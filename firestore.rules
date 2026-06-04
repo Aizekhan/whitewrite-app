@@ -1,0 +1,24 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users collection - users can only read/write their own document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Projects collection - users can only access their own projects
+    match /projects/{projectId} {
+      allow read, write: if request.auth != null &&
+                            request.auth.uid == resource.data.owner;
+      allow create: if request.auth != null &&
+                       request.auth.uid == request.resource.data.owner;
+
+      // LoRA subcollection - same ownership rules
+      match /lora/{entityId} {
+        allow read, write: if request.auth != null &&
+                              request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.owner;
+      }
+    }
+  }
+}
