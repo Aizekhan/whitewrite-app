@@ -1,8 +1,14 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { signOut } from '@/firebase';
+import AuthModal from '@/components/AuthModal';
 import '../styles/landing.css';
 
 function Landing() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   return (
     <div className="shell">
@@ -16,12 +22,25 @@ function Landing() {
           White<b>Write</b>
         </div>
         <div className="rail__foot">
-          <button className="ritem">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
-            </svg>
-            <span className="ritem__lbl">Увійти</span>
-          </button>
+          {loading ? (
+            <div className="ritem" style={{ opacity: 0.5 }}>
+              <span className="ritem__lbl">Завантаження...</span>
+            </div>
+          ) : user ? (
+            <button className="ritem" onClick={() => navigate('/projects')}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 5v14M9 5v14M14 6l4 13M4 5h5M9 5h5"/>
+              </svg>
+              <span className="ritem__lbl">Мої проєкти</span>
+            </button>
+          ) : (
+            <button className="ritem" onClick={() => setAuthModalOpen(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/>
+              </svg>
+              <span className="ritem__lbl">Увійти</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -38,7 +57,10 @@ function Landing() {
                 історії пишуться самі, а кожна зміна автоматично впливає на весь всесвіт.
               </p>
               <div style={{ marginTop: '24px' }}>
-                <button className="btn-hero" onClick={() => navigate('/projects')}>
+                <button
+                  className="btn-hero"
+                  onClick={() => user ? navigate('/projects') : setAuthModalOpen(true)}
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M12 16v-4M12 8h.01"/>
@@ -123,6 +145,36 @@ function Landing() {
           </div>
         </div>
       </div>
+
+      {/* User Dock (bottom-left) */}
+      {user && (
+        <div className="userdock" onClick={() => navigate('/account')}>
+          <div className="userdock__av">
+            {user.photoURL ? (
+              <img src={user.photoURL} alt={user.displayName || 'User'} />
+            ) : (
+              user.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'U'
+            )}
+          </div>
+          <div className="userdock__info">
+            <div className="userdock__name">{user.displayName || user.email}</div>
+            <div className="userdock__tok">
+              <span className="userdock__spark">✦</span>
+              <b>∞</b> токенів
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sign Out Button (top-right) */}
+      {user && (
+        <button className="homefab" onClick={() => signOut()}>
+          Вийти
+        </button>
+      )}
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </div>
   );
 }
