@@ -5,7 +5,8 @@
       "Bash(npm create:*)",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nSetup Vite + React + TS + React Router\n\n- Initialize Vite with React TypeScript template\n- Add React Router DOM v6\n- Add Firebase SDK\n- Configure TypeScript with path aliases (@/, @shared/, etc.)\n- Create directory structure (src/shared, components, firebase, hooks, pages)\n- Add ESLint configuration\n- Create placeholder Landing page\n- Verify build works (158.81 kB bundle)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

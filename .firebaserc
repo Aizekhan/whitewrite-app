@@ -1,6 +1,6 @@
 {
   "projects": {
-    "firebase deploy --only firestore:rules": "whitewrite-app"
+    "default": "whitewrite-app"
   },
   "targets": {},
   "etags": {}
