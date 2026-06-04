@@ -1,0 +1,278 @@
+/* Projects Page Styles */
+
+/* Rail back button (показуємо на Projects) */
+.rail__back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+  color: #e9cd92;
+  border: 1px solid rgba(201, 162, 75, 0.45);
+  background: linear-gradient(
+    180deg,
+    rgba(60, 42, 20, 0.5),
+    rgba(30, 20, 10, 0.6)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 235, 180, 0.12),
+    0 2px 10px rgba(0, 0, 0, 0.5);
+  transition: 0.2s;
+}
+
+.rail__back svg {
+  width: 19px;
+  height: 19px;
+}
+
+.rail__back:hover {
+  color: #f6e3b5;
+  border-color: rgba(240, 200, 120, 0.85);
+  transform: translateX(-2px);
+  box-shadow: 0 0 18px rgba(232, 170, 80, 0.35),
+    inset 0 1px 0 rgba(255, 235, 180, 0.2);
+}
+
+/* Loader */
+.loader {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: var(--bg-0);
+  z-index: 5;
+}
+
+.loader.is-on {
+  display: grid;
+}
+
+.loader__mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--gold-soft);
+  border-top-color: var(--gold-lit);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Project Cards */
+.ncard__edit,
+.ncard__del {
+  position: absolute;
+  top: 10px;
+  z-index: 3;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: rgba(10, 8, 12, 0.6);
+  backdrop-filter: blur(6px);
+  transition: 0.16s;
+}
+
+.ncard__edit {
+  left: 10px;
+  color: var(--gold-lit);
+  border: 1px solid rgba(217, 160, 70, 0.45);
+}
+
+.ncard__edit svg {
+  width: 15px;
+  height: 15px;
+}
+
+.ncard__edit:hover {
+  color: #fff;
+  border-color: rgba(240, 200, 120, 0.85);
+  background: rgba(50, 33, 15, 0.8);
+}
+
+.ncard__del {
+  left: 48px;
+  color: #e0857a;
+  border: 1px solid rgba(224, 86, 79, 0.4);
+}
+
+.ncard__del svg {
+  width: 15px;
+  height: 15px;
+}
+
+.ncard__del:hover {
+  color: #fff;
+  border-color: rgba(224, 86, 79, 0.85);
+  background: rgba(80, 30, 26, 0.8);
+}
+
+/* Delete Bar (3-second countdown) */
+.ncard__delbar {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(8, 5, 6, 0.86);
+}
+
+.delbar__fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 100%;
+  width: 0;
+  background: rgba(224, 86, 79, 0.28);
+  border-right: 2px solid #e0564f;
+}
+
+@keyframes delbarFill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.delbar__txt {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: #f3d3cf;
+}
+
+.delbar__txt b {
+  cursor: pointer;
+  color: #fff;
+  text-decoration: underline;
+}
+
+.delbar__txt b:hover {
+  color: var(--gold-bright);
+}
+
+/* Open button */
+.ncard__open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border-radius: 9px;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #1a1206;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold-lit));
+  border: none;
+  cursor: pointer;
+  transition: 0.18s;
+  width: 100%;
+}
+
+.ncard__open:hover {
+  filter: brightness(1.06);
+}
+
+.ncard__open svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Project Edit Modal specific styles */
+.pe-area {
+  resize: vertical;
+  line-height: 1.55;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Spectral', serif;
+  font-size: 15px;
+  color: var(--tx-hi);
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: 9px;
+  padding: 11px 13px;
+  outline: none;
+  transition: border-color 0.16s;
+}
+
+.pe-area:focus {
+  border-color: var(--gold);
+}
+
+.pe-sel {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Spectral', serif;
+  font-size: 15px;
+  color: var(--tx-hi);
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: 9px;
+  padding: 11px 13px;
+  outline: none;
+  transition: border-color 0.16s;
+}
+
+.pe-sel:focus {
+  border-color: var(--gold);
+}
+
+.pe-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pe-chip {
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 12.5px;
+  color: var(--tx-mid);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-1);
+  transition: 0.15s;
+}
+
+.pe-chip:hover {
+  color: var(--gold-lit);
+  border-color: var(--gold);
+}
+
+.pe-chip.is-on {
+  color: var(--gold-bright);
+  border-color: rgba(217, 160, 70, 0.6);
+  background: var(--gold-soft);
+}
+
+.pe-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-style: italic;
+  color: var(--tx-mid);
+}
+
+.pe-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
