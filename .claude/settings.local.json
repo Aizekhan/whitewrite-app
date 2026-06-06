@@ -12,7 +12,8 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nAdd Projects CRUD with Firestore integration\n\nProjects Page (/projects):\n- List of user projects (owner: uid filter)\n- Grid layout with project cards\n- \"Create Project\" card\n- Edit/Delete buttons on each card\n- Delete confirmation (3-second countdown bar)\n- Loading states\n- Empty state message\n- Auth gate (redirect to / if not logged in)\n\nCreate Project Modal:\n- Form: title, ending, scope, genres, dialogueDensity\n- Scope selector (short/novella/novel/series)\n- Genre chips (8 genres, multi-select)\n- Dialogue density slider (0-100%)\n- Initialize empty ProjectCanon on creation\n- canonAware: true by default\n\nFirestore Integration:\n- getUserProjects(uid) - fetch user''s projects\n- createProject(id, uid, data) - create with owner\n- deleteProject(id) - delete project\n- Real-time data from Firestore\n- Security rules: owner-based access\n\nComponents:\n- src/pages/Projects.tsx (200+ lines)\n- src/components/CreateProjectModal.tsx (150+ lines)\n- src/styles/projects.css (250+ lines)\n\nRouter:\n- /projects route added to App.tsx\n\nUI ported from prototype:\n- Gilded cards with edit/delete buttons\n- Delete bar animation (delbarFill 3s)\n- Project cover, title, meta, description\n- \"Відкрити\" button (navigate to /book/:id)\n\nBundle: 625.72 kB (Firebase + Firestore full SDK)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git commit:*)",
       "Bash(npm install:*)",
-      "Bash(firebase deploy:*)"
+      "Bash(firebase deploy:*)",
+      "Bash(firebase functions:secrets:set:*)"
     ],
     "deny": [],
     "ask": []

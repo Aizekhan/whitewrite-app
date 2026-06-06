@@ -1282,18 +1282,15 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     });
   }
 
-  // Initialize Firebase Auth and load projects
+  // Initialize Firebase Auth (loadProjects will be called by auth state listener)
   setTimeout(function() {
-    if (window.__firebaseAuth && window.__firebaseProjects) {
-      // Initialize auth state listener
+    if (window.__firebaseAuth) {
+      // Initialize auth state listener (will call __reloadProjects when ready)
       window.__firebaseAuth.init();
-      // Load projects (will use current auth state)
-      loadProjects();
     } else {
       console.warn('Firebase not loaded yet, retrying...');
       setTimeout(function() {
         if (window.__firebaseAuth) window.__firebaseAuth.init();
-        loadProjects();
       }, 500);
     }
   }, 100);
@@ -1314,11 +1311,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
 
 <!-- Firebase modules -->
 <script src="firebase-init.js"></script>
 <script src="firebase-projects.js"></script>
 <script src="firebase-auth.js"></script>
+<script src="firebase-ai.js"></script>
 
 <script src="kb.js"></script>
 </body>
