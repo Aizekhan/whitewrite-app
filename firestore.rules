@@ -2,15 +2,21 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // TEMPORARY: Open rules for Step 1 testing
-    // Will be locked down in Step 2 with real auth
+    // Projects collection - owner-based access
     match /projects/{projectId} {
-      allow read, write, create, delete: if true;
+      // Allow read if user owns the project
+      allow read: if request.auth != null && request.auth.uid == resource.data.owner;
+
+      // Allow create if user is authenticated and sets themselves as owner
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.owner;
+
+      // Allow update/delete if user owns the project
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.owner;
     }
 
-    // Users collection (for Step 2)
+    // Users collection - user can only access their own document
     match /users/{userId} {
-      allow read, write: if true; // Will lock down in Step 2
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

@@ -522,6 +522,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       <label class="pe-field"><span class="pe-lbl">Пошта</span><input class="pe-input" id="auth-email" type="email" placeholder="you@world.tree" /></label>
       <label class="pe-field"><span class="pe-lbl">Пароль</span><input class="pe-input" id="auth-pass" type="password" placeholder="••••••••" /></label>
       <button class="pe-btn pe-btn--save" id="auth-submit" style="width:100%;justify-content:center" onclick="window.__wwAuthDo()">✦ Увійти</button>
+      <div style="text-align:center;margin:16px 0 8px;color:var(--tx-mid);font-size:13px">або</div>
+      <button class="pe-btn" id="auth-google" style="width:100%;justify-content:center;background:rgba(66,133,244,0.12);border-color:rgba(66,133,244,0.3);color:#8ab4f8" onclick="window.__wwAuthGoogle&&window.__wwAuthGoogle()">
+        <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Увійти через Google
+      </button>
     </div>
   </div>
 </div>
@@ -790,22 +795,91 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   // ---- auth (login / register) ----
   function openAuth() { document.getElementById("auth-modal").classList.add("is-on"); }
   function closeAuth() { document.getElementById("auth-modal").classList.remove("is-on"); }
-  window.__wwAuthDo = function (mode2) {
+
+  // NEW: Firebase Auth integration
+  window.__wwAuthDo = async function () {
     var m = document.getElementById("auth-modal");
-    var name = (m.querySelector("#auth-name") || {}).value || "Майстер всесвітів";
-    window.__wwAuth = true;
-    window.__wwUser = { name: name.trim() || "Майстер всесвітів", plan: "seed", avatar: null };
-    try { localStorage.setItem("ww_auth", "1"); localStorage.setItem("ww_user", JSON.stringify(window.__wwUser)); } catch (e) {}
-    closeAuth();
-    syncDockAuth();
-    showHome();
+    var email = m.querySelector("#auth-email").value.trim();
+    var password = m.querySelector("#auth-pass").value.trim();
+    var name = (m.querySelector("#auth-name").value || "").trim();
+    var isRegister = m.querySelector("#auth-treg").classList.contains("is-on");
+
+    if (!email || !password) {
+      alert("Введіть email та пароль");
+      return;
+    }
+
+    // Show loading state
+    var btn = m.querySelector("#auth-submit");
+    var oldText = btn.textContent;
+    btn.textContent = "⏳ Зачекайте...";
+    btn.disabled = true;
+
+    try {
+      var result;
+      if (isRegister) {
+        // Sign up
+        result = await window.__firebaseAuth.signUp(email, password, name);
+      } else {
+        // Sign in
+        result = await window.__firebaseAuth.signIn(email, password);
+      }
+
+      if (result.success) {
+        // Clear form
+        m.querySelector("#auth-email").value = "";
+        m.querySelector("#auth-pass").value = "";
+        m.querySelector("#auth-name").value = "";
+        closeAuth();
+        showHome();
+      } else {
+        alert("Помилка: " + result.error);
+        btn.textContent = oldText;
+        btn.disabled = false;
+      }
+    } catch (e) {
+      console.error("Auth error:", e);
+      alert("Помилка автентифікації");
+      btn.textContent = oldText;
+      btn.disabled = false;
+    }
   };
-  window.__wwLogout = function () {
-    window.__wwAuth = false; window.__wwUser = null;
-    try { localStorage.removeItem("ww_auth"); localStorage.removeItem("ww_user"); } catch (e) {}
-    syncDockAuth();
-    showHome();
+
+  window.__wwLogout = async function () {
+    var result = await window.__firebaseAuth.signOut();
+    if (result.success) {
+      showHome();
+    }
   };
+
+  // Google Sign-In
+  window.__wwAuthGoogle = async function () {
+    var m = document.getElementById("auth-modal");
+    var btn = m.querySelector("#auth-google");
+    var oldText = btn.textContent;
+    btn.textContent = "⏳ Зачекайте...";
+    btn.disabled = true;
+
+    try {
+      var result = await window.__firebaseAuth.signInWithGoogle();
+      if (result.success) {
+        closeAuth();
+        showHome();
+      } else {
+        if (result.error !== "Вхід скасовано") {
+          alert("Помилка: " + result.error);
+        }
+        btn.textContent = oldText;
+        btn.disabled = false;
+      }
+    } catch (e) {
+      console.error("Google auth error:", e);
+      alert("Помилка автентифікації");
+      btn.textContent = oldText;
+      btn.disabled = false;
+    }
+  };
+
   window.__wwOpenAuth = openAuth;
   window.__wwCloseAuth = closeAuth;
   // feedback (bug / suggestion)
@@ -836,6 +910,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     else { dock.classList.remove("is-guest"); }
     syncDockAvatar();
   }
+  // Make syncDockAuth globally accessible for firebase-auth
+  window.__syncDockAuth = syncDockAuth;
+
+  // Reload projects after auth change
+  window.__reloadProjects = function() {
+    loadProjects();
+  };
 
   document.getElementById("logo").addEventListener("click", showHome);
   document.getElementById("rail-collapse").addEventListener("click", function () { document.querySelector(".rail").classList.toggle("is-collapsed"); });
@@ -1201,13 +1282,19 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     });
   }
 
-  // Load projects from Firestore, then fill other views
+  // Initialize Firebase Auth and load projects
   setTimeout(function() {
-    if (window.__firebaseProjects) {
+    if (window.__firebaseAuth && window.__firebaseProjects) {
+      // Initialize auth state listener
+      window.__firebaseAuth.init();
+      // Load projects (will use current auth state)
       loadProjects();
     } else {
       console.warn('Firebase not loaded yet, retrying...');
-      setTimeout(loadProjects, 500);
+      setTimeout(function() {
+        if (window.__firebaseAuth) window.__firebaseAuth.init();
+        loadProjects();
+      }, 500);
     }
   }, 100);
   fillMarket(); fillKb(); fillNews(); fillAccount();
@@ -1231,6 +1318,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <!-- Firebase modules -->
 <script src="firebase-init.js"></script>
 <script src="firebase-projects.js"></script>
+<script src="firebase-auth.js"></script>
 
 <script src="kb.js"></script>
 </body>
