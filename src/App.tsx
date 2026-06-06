@@ -1,13 +1,9 @@
-import { Routes, Route } from 'react-router-dom'
-import Landing from './pages/Landing'
-import Projects from './pages/Projects'
-
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/projects" element={<Projects />} />
-    </Routes>
+    <div>
+      <h1>Vite is running</h1>
+      <p>Open <a href="/White.html">/White.html</a> to see prototype</p>
+    </div>
   )
 }
 
