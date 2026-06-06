@@ -570,10 +570,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   var railFoot = document.getElementById("rail-foot");
   var views = {}; [].forEach.call(document.querySelectorAll(".view"), function (v) { views[v.dataset.view] = v; });
 
-  var PROJECTS = [
-    { title: "Червоний сигнал", meta: "Hard SF · Сезон", desc: "Колонії Марса вмовкли. Тиша поширюється швидше за світло — і ще один сигнал кличе крізь неї.", badge: "active", c1: "#c2542a", c2: "#2a1c16", active: true, genres: ["Hard SF", "Космоопера"], scope: "season", ending: "open", written: 9 },
-    { title: "Сад Велета", meta: "Темне фентезі · Новела", desc: "Садівник, що вирощує спогади. Поки лише премиса й кілька персонажів.", badge: "draft", c1: "#3a2c5a", c2: "#12131a", active: false, genres: ["Темне фентезі"], scope: "novella", ending: "open", written: 0 },
-  ];
+  // PROJECTS loaded from Firestore (async)
+  var PROJECTS = [];
   var editProjectIdx = null;
   var SCOPE_LBL = { shot: "Оповідання", novella: "Новела", season: "Сезон", endless: "Без меж" };
   // ordered smallest→largest capacity; can't shrink below already-written scenes
@@ -630,21 +628,47 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   var _peCover = null;
   function closeProjectEdit() { document.getElementById("proj-edit").classList.remove("is-on"); editProjectIdx = null; }
-  function saveProjectEdit() {
+  async function saveProjectEdit() {
     if (editProjectIdx == null) return;
     var p = PROJECTS[editProjectIdx], ov = document.getElementById("proj-edit");
-    p.title = ov.querySelector("#pe-title").value.trim() || p.title;
-    p.cover = _peCover || null;
-    p.desc = ov.querySelector("#pe-desc").value.trim() || p.desc;
+    var title = ov.querySelector("#pe-title").value.trim() || p.title;
+    var cover = _peCover || null;
+    var desc = ov.querySelector("#pe-desc").value.trim() || p.desc;
     var prevScope = p.scope;
     var chosen = ov.querySelector("#pe-scope").value;
     // guard: never accept a scope that can't hold the written scenes — keep previous
-    p.scope = (SCOPE_CAP[chosen] < (p.written || 0)) ? prevScope : chosen;
-    p.ending = ov.querySelector("#pe-ending").value;
-    p.genres = [].map.call(ov.querySelectorAll(".pe-chip.is-on"), function (c) { return c.textContent; });
-    p.meta = (p.genres[0] || "Історія") + " · " + SCOPE_LBL[p.scope];
-    closeProjectEdit();
-    fillHome();
+    var scope = (SCOPE_CAP[chosen] < (p.written || 0)) ? prevScope : chosen;
+    var ending = ov.querySelector("#pe-ending").value;
+    var genres = [].map.call(ov.querySelectorAll(".pe-chip.is-on"), function (c) { return c.textContent; });
+    var meta = (genres[0] || "Історія") + " · " + SCOPE_LBL[scope];
+
+    // Update Firestore
+    try {
+      await window.__firebaseProjects.updateProject(p.id, {
+        title: title,
+        cover: cover,
+        desc: desc,
+        scope: scope,
+        ending: ending,
+        genres: genres,
+        meta: meta
+      });
+
+      // Update local
+      p.title = title;
+      p.cover = cover;
+      p.desc = desc;
+      p.scope = scope;
+      p.ending = ending;
+      p.genres = genres;
+      p.meta = meta;
+
+      closeProjectEdit();
+      fillHome();
+    } catch (err) {
+      console.error('Failed to save project:', err);
+      alert('Помилка збереження проєкту');
+    }
   }
   window.__peSave = saveProjectEdit;
   window.__peClose = closeProjectEdit;
@@ -834,6 +858,36 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
   });
 
+  /* ============================ FIRESTORE INTEGRATION ============================ */
+  async function loadProjects() {
+    // TEMPORARY: uid is 'demo_user' for Step 1
+    // Will use real auth uid in Step 2
+    try {
+      const projects = await window.__firebaseProjects.getProjects();
+      PROJECTS = projects.map(function (p) {
+        return {
+          id: p.id,
+          title: p.title,
+          meta: p.meta,
+          desc: p.desc,
+          badge: p.badge,
+          c1: p.c1,
+          c2: p.c2,
+          active: p.active,
+          cover: p.cover,
+          genres: p.genres,
+          scope: p.scope,
+          ending: p.ending,
+          written: p.written || 0
+        };
+      });
+      fillHome();
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+      fillHome(); // Show empty state
+    }
+  }
+
   /* ============================ VIEW CONTENT ============================ */
   function fillHome() {
     views.narr.innerHTML =
@@ -886,10 +940,23 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     ov.classList.add("is-on");
     ov.__idx = i;
   }
-  window.__dcYes = function () {
+  window.__dcYes = async function () {
     var ov = document.getElementById("del-confirm");
-    if (ov.__idx != null) { PROJECTS.splice(ov.__idx, 1); ov.__idx = null; }
-    ov.classList.remove("is-on"); fillHome();
+    if (ov.__idx != null) {
+      var p = PROJECTS[ov.__idx];
+      if (p && p.id) {
+        try {
+          await window.__firebaseProjects.deleteProject(p.id);
+          PROJECTS.splice(ov.__idx, 1);
+        } catch (err) {
+          console.error('Failed to delete project:', err);
+          alert('Помилка видалення проєкту');
+        }
+      }
+      ov.__idx = null;
+    }
+    ov.classList.remove("is-on");
+    fillHome();
   };
   window.__dcNo = function () {
     var ov = document.getElementById("del-confirm"); ov.__idx = null; ov.classList.remove("is-on");
@@ -1134,7 +1201,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     });
   }
 
-  fillHome(); fillMarket(); fillKb(); fillNews(); fillAccount();
+  // Load projects from Firestore, then fill other views
+  setTimeout(function() {
+    if (window.__firebaseProjects) {
+      loadProjects();
+    } else {
+      console.warn('Firebase not loaded yet, retrying...');
+      setTimeout(loadProjects, 500);
+    }
+  }, 100);
+  fillMarket(); fillKb(); fillNews(); fillAccount();
 
   /* ---- initial route ---- */
   var h = (location.hash || "").replace("#", "");
@@ -1146,6 +1222,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   if (!window.__wwAuth) setTimeout(openAuth, 600);
 }());
 </script>
+
+<!-- Firebase SDK (v9 compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<!-- Firebase modules -->
+<script src="firebase-init.js"></script>
+<script src="firebase-projects.js"></script>
+
 <script src="kb.js"></script>
 </body>
 </html>

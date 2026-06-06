@@ -2,27 +2,15 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection - users can only read/write their own document
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // TEMPORARY: Open rules for Step 1 testing
+    // Will be locked down in Step 2 with real auth
+    match /projects/{projectId} {
+      allow read, write, create, delete: if true;
     }
 
-    // Projects collection - users can only access their own projects
-    match /projects/{projectId} {
-      allow read: if request.auth != null &&
-                     request.auth.uid == resource.data.owner;
-      allow write: if request.auth != null &&
-                      request.auth.uid == resource.data.owner;
-      allow create: if request.auth != null &&
-                       request.auth.uid == request.resource.data.owner;
-      // Allow listing own projects via query
-      allow list: if request.auth != null;
-
-      // LoRA subcollection - same ownership rules
-      match /lora/{entityId} {
-        allow read, write: if request.auth != null &&
-                              request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.owner;
-      }
+    // Users collection (for Step 2)
+    match /users/{userId} {
+      allow read, write: if true; // Will lock down in Step 2
     }
   }
 }
