@@ -558,7 +558,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   /* ---- pillars (iframes) ---- */
   var PILLARS = {
-    book:     { src: "WhiteWrite.html",           label: "Книга",   icon: "book" },
+    book:     { src: "whitewrite.html",           label: "Книга",   icon: "book" },
     universe: { src: "WhiteWrite WorldTree.html", label: "Всесвіт", icon: "universe" },
     director: { src: "WhiteWrite Workspace.html", label: "Режисер", icon: "clapper" },
   };
@@ -1304,6 +1304,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   try { if (localStorage.getItem("ww_auth") === "1") { window.__wwAuth = true; window.__wwUser = JSON.parse(localStorage.getItem("ww_user") || "null") || { name: "Майстер всесвітів", plan: "seed", avatar: null }; } } catch (e) {}
   syncDockAuth();
   if (!window.__wwAuth) setTimeout(openAuth, 600);
+
+  // Expose renderRail globally so firebase-auth can re-render menu after auth
+  window.__reloadRail = function() {
+    renderRail();
+  };
 }());
 </script>
 

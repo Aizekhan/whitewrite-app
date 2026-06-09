@@ -23,7 +23,7 @@ function StartScreen({ onBegin }) {
       <div className="hero-panel" onClick={(e) => e.stopPropagation()}>
         <h1 className="hero-title">Твоя історія<br/>чекає</h1>
         <p className="hero-lede">Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.</p>
-        <button className="hero-cta" type="button" onClick={(e) => { e.stopPropagation(); try { if (window.parent && window.parent.__wwAuth === false) { window.parent.__wwOpenAuth && window.parent.__wwOpenAuth(); return; } } catch (err) {} onBegin(); }}>
+        <button className="hero-cta" type="button" onClick={(e) => { e.stopPropagation(); console.log('Button clicked!'); onBegin(); }}>
           <span className="hero-cta__star">✦</span> Створити свою історію
         </button>
       </div>
@@ -135,9 +135,32 @@ function StoryForm({ onBack, onCreate }) {
       return next;
     });
   }
-  function submit() {
+  async function submit() {
     if (!ready) return;
-    onCreate({ title, description, creation, scope, episodes: scope === "season" ? episodes : null, ending, endingNote, genres, length, dialogue });
+
+    // Create project in Firestore
+    const projectId = await window.__firebaseProjects.createProject({
+      title: title || 'Без назви',
+      desc: description,
+      scope,
+      ending: scope !== "endless" ? ending : "open",
+      genres
+    });
+
+    // Pass projectId + form data to onCreate
+    onCreate({
+      projectId,
+      title,
+      description,
+      creation,
+      scope,
+      episodes: scope === "season" ? episodes : null,
+      ending,
+      endingNote,
+      genres,
+      length,
+      dialogue
+    });
   }
 
   const SCOPE_HINT = { shot: "одна завершена сцена", novella: "кілька сцен, один сюжет", season: "повноцінний серіал із кількох серій", endless: "історія без визначеного кінця" };

@@ -7,7 +7,7 @@ window.__firebaseAuth = {
     const auth = window.__firebase.auth;
 
     // Listen to auth state changes
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(async (user) => {
       if (user) {
         // User signed in
         window.__wwAuth = true;
@@ -16,7 +16,8 @@ window.__firebaseAuth = {
           email: user.email,
           name: user.displayName || user.email?.split('@')[0] || 'Майстер всесвітів',
           avatar: user.photoURL || null,
-          plan: 'seed' // Default plan
+          plan: 'seed', // Default plan
+          isAnonymous: user.isAnonymous
         };
 
         // Update firebase-projects uid
@@ -30,28 +31,40 @@ window.__firebaseAuth = {
           localStorage.setItem('ww_user', JSON.stringify(window.__wwUser));
         } catch (e) {}
 
-        console.log('Auth state: signed in', user.email);
+        console.log('Auth state: signed in', user.isAnonymous ? '(anonymous)' : user.email);
       } else {
-        // User signed out
-        window.__wwAuth = false;
-        window.__wwUser = null;
-
-        // Reset to demo user
-        if (window.__firebaseProjects) {
-          window.__firebaseProjects.uid = 'demo_user';
-        }
-
+        // No user — sign in anonymously
+        console.log('No user detected, signing in anonymously...');
         try {
-          localStorage.removeItem('ww_auth');
-          localStorage.removeItem('ww_user');
-        } catch (e) {}
+          await auth.signInAnonymously();
+          // onAuthStateChanged will fire again with the new user
+          return;
+        } catch (error) {
+          console.error('Anonymous sign-in failed:', error);
 
-        console.log('Auth state: signed out');
+          // Fallback to demo user
+          window.__wwAuth = false;
+          window.__wwUser = null;
+
+          if (window.__firebaseProjects) {
+            window.__firebaseProjects.uid = 'demo_user';
+          }
+
+          try {
+            localStorage.removeItem('ww_auth');
+            localStorage.removeItem('ww_user');
+          } catch (e) {}
+        }
       }
 
       // Sync UI (if function exists)
       if (typeof window.__syncDockAuth === 'function') {
         window.__syncDockAuth();
+      }
+
+      // Re-render rail menu (so "Проекти" appears after auth)
+      if (typeof window.__reloadRail === 'function') {
+        window.__reloadRail();
       }
 
       // Reload projects with new uid

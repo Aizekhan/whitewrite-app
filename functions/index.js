@@ -1,7 +1,7 @@
-const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const cors = require('cors')({ origin: true }); // Enable CORS for all origins
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -15,7 +15,7 @@ const geminiApiKey = defineSecret('GEMINI_API_KEY');
  * Generates a story scene based on project canon and scene intent.
  * Canon-aware generation using Gemini API.
  *
- * Input:
+ * Input (POST JSON body):
  *  - projectId: string
  *  - sceneIntent: 'conflict' | 'character' | 'action' | 'romance' | 'worldbuilding' | 'surprise' | 'custom'
  *  - customIntent?: string (if sceneIntent === 'custom')
@@ -24,123 +24,186 @@ const geminiApiKey = defineSecret('GEMINI_API_KEY');
  * Output:
  *  - scene: { title: string, text: string, entities: string[] }
  */
-exports.generateScene = onCall({
+exports.generateScene = onRequest({
   region: 'us-central1',
   secrets: [geminiApiKey]
-}, async (request) => {
-  const { projectId, sceneIntent, customIntent, previousScenes = [] } = request.data;
-  const uid = request.auth?.uid;
-
-  // Auth check
-  if (!uid) {
-    throw new HttpsError('unauthenticated', 'Потрібна автентифікація');
-  }
-
-  // Validate input
-  if (!projectId || !sceneIntent) {
-    throw new HttpsError('invalid-argument', 'projectId та sceneIntent обов\'язкові');
-  }
-
-  try {
-    // Load project from Firestore
-    const projectDoc = await db.collection('projects').doc(projectId).get();
-
-    if (!projectDoc.exists) {
-      throw new HttpsError('not-found', 'Проєкт не знайдено');
-    }
-
-    const project = projectDoc.data();
-
-    // Check ownership
-    if (project.owner !== uid) {
-      throw new HttpsError('permission-denied', 'Ви не є власником цього проєкту');
-    }
-
-    // Extract canon
-    const canon = project.canon || {
-      characters: {},
-      locations: {},
-      events: {},
-      factions: {},
-      artifacts: {},
-      world: {}
-    };
-
-    // Build canon context for prompt
-    const canonContext = buildCanonContext(canon);
-
-    // Map scene intent to Ukrainian description
-    const intentMap = {
-      conflict: 'Конфлікт — протистояння, напруга, загострення',
-      character: 'Розвиток персонажа — внутрішні зміни, рішення, розкриття',
-      action: 'Екшн — динаміка, рух, фізична дія',
-      romance: 'Романтика — емоційна близькість, зв\'язок між персонажами',
-      worldbuilding: 'Світобудова — розкриття всесвіту, деталі світу',
-      surprise: 'Сюрприз від AI — несподіваний поворот, який змінює очікування',
-      custom: customIntent || 'Вільний напрям'
-    };
-
-    const intentDescription = intentMap[sceneIntent] || intentMap.custom;
-
-    // Build prompt
-    const prompt = buildScenePrompt({
-      title: project.title,
-      desc: project.desc,
-      genres: project.genres || [],
-      scope: project.scope,
-      canonContext,
-      intentDescription,
-      previousScenes
-    });
-
-    // Call Gemini API
-    const genAI = new GoogleGenerativeAI(geminiApiKey.value());
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        temperature: 0.8,
-        maxOutputTokens: 2048,
+}, async (req, res) => {
+  // Handle CORS
+  return cors(req, res, async () => {
+    try {
+      // Only allow POST
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
       }
-    });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const sceneText = response.text();
+      const { projectId, sceneIntent, customIntent, previousScenes = [] } = req.body;
 
-    // Parse scene (extract title from first line if present)
-    const lines = sceneText.trim().split('\n');
-    let sceneTitle = `Сцена ${previousScenes.length + 1}`;
-    let sceneContent = sceneText;
-
-    // If first line looks like a title (## Title or # Title), extract it
-    if (lines[0].startsWith('#')) {
-      sceneTitle = lines[0].replace(/^#+\s*/, '').trim();
-      sceneContent = lines.slice(1).join('\n').trim();
-    }
-
-    // Extract mentioned entities (simple keyword matching from canon)
-    const entities = extractMentionedEntities(sceneContent, canon);
-
-    return {
-      success: true,
-      scene: {
-        title: sceneTitle,
-        text: sceneContent,
-        entities,
-        intent: sceneIntent,
-        generatedAt: admin.firestore.FieldValue.serverTimestamp()
+      // Get auth token from header
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Потрібна автентифікація' });
+        return;
       }
-    };
 
-  } catch (error) {
-    console.error('generateScene error:', error);
+      // Verify Firebase auth token
+      const token = authHeader.split('Bearer ')[1];
+      let uid;
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        uid = decodedToken.uid;
+      } catch (error) {
+        console.error('Auth verification failed:', error);
+        res.status(401).json({ error: 'Невірний токен автентифікації' });
+        return;
+      }
 
-    if (error instanceof HttpsError) {
-      throw error;
+      // Validate input
+      if (!projectId || !sceneIntent) {
+        res.status(400).json({ error: 'projectId та sceneIntent обов\'язкові' });
+        return;
+      }
+
+      // Load project from Firestore
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+
+      if (!projectDoc.exists) {
+        res.status(404).json({ error: 'Проєкт не знайдено' });
+        return;
+      }
+
+      const project = projectDoc.data();
+
+      // Check ownership
+      if (project.owner !== uid) {
+        res.status(403).json({ error: 'Ви не є власником цього проєкту' });
+        return;
+      }
+
+      // Extract canon
+      const canon = project.canon || {
+        characters: {},
+        locations: {},
+        events: {},
+        factions: {},
+        artifacts: {},
+        world: {}
+      };
+
+      // Build canon context for prompt
+      const canonContext = buildCanonContext(canon);
+
+      // Map scene intent to Ukrainian description
+      const intentMap = {
+        conflict: 'Конфлікт — протистояння, напруга, загострення',
+        character: 'Розвиток персонажа — внутрішні зміни, рішення, розкриття',
+        action: 'Екшн — динаміка, рух, фізична дія',
+        romance: 'Романтика — емоційна близькість, зв\'язок між персонажами',
+        worldbuilding: 'Світобудова — розкриття всесвіту, деталі світу',
+        surprise: 'Сюрприз від AI — несподіваний поворот, який змінює очікування',
+        custom: customIntent || 'Вільний напрям'
+      };
+
+      const intentDescription = intentMap[sceneIntent] || intentMap.custom;
+
+      // Build prompt
+      const prompt = buildScenePrompt({
+        title: project.title,
+        desc: project.desc,
+        genres: project.genres || [],
+        scope: project.scope,
+        canonContext,
+        intentDescription,
+        previousScenes
+      });
+
+      // Call Gemini API directly via REST (SDK застарілий, використовує v1beta)
+      const apiKey = geminiApiKey.value();
+
+      // Try models with fallback (REST API v1, 2026 models)
+      const modelNames = [
+        'gemini-3.5-flash',   // Latest (2026)
+        'gemini-2.5-flash',   // Stable fallback
+        'gemini-2.0-flash'    // Legacy (може бути вимкнена)
+      ];
+
+      let sceneText = null;
+      let lastError = null;
+
+      for (const modelName of modelNames) {
+        try {
+          console.log(`Trying model: ${modelName}`);
+
+          const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: prompt }]
+              }],
+              generationConfig: {
+                temperature: 0.8,
+                maxOutputTokens: 2048
+              }
+            })
+          });
+
+          if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`HTTP ${response.status}: ${error}`);
+          }
+
+          const data = await response.json();
+
+          if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+            throw new Error('Invalid response structure');
+          }
+
+          sceneText = data.candidates[0].content.parts[0].text;
+          console.log(`✓ Model ${modelName} succeeded`);
+          break; // Success
+        } catch (error) {
+          console.warn(`✗ Model ${modelName} failed:`, error.message);
+          lastError = error;
+        }
+      }
+
+      if (!sceneText) {
+        throw new Error(`Усі моделі Gemini недоступні. Остання помилка: ${lastError?.message}`);
+      }
+
+      // Parse scene (extract title from first line if present)
+      const lines = sceneText.trim().split('\n');
+      let sceneTitle = `Сцена ${previousScenes.length + 1}`;
+      let sceneContent = sceneText;
+
+      // If first line looks like a title (## Title or # Title), extract it
+      if (lines[0].startsWith('#')) {
+        sceneTitle = lines[0].replace(/^#+\s*/, '').trim();
+        sceneContent = lines.slice(1).join('\n').trim();
+      }
+
+      // Extract mentioned entities (simple keyword matching from canon)
+      const entities = extractMentionedEntities(sceneContent, canon);
+
+      res.status(200).json({
+        success: true,
+        scene: {
+          title: sceneTitle,
+          text: sceneContent,
+          entities,
+          intent: sceneIntent,
+          generatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }
+      });
+
+    } catch (error) {
+      console.error('generateScene error:', error);
+      res.status(500).json({ error: `Помилка генерації: ${error.message}` });
     }
-
-    throw new HttpsError('internal', `Помилка генерації: ${error.message}`);
-  }
+  });
 });
 
 /**

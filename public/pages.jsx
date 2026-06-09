@@ -166,7 +166,7 @@ function WorldMapSpread() {
 // End-of-scene Scene Intent: the heart of Story Navigation. After the last
 // written scene, the keeper asks "what next?" — the reader sets a DIRECTION,
 // not a prompt, then generates the next scene.
-function SceneIntentPage() {
+function SceneIntentPage({ projectId }) {
   const INTENTS = [
     { id: "conflict", icon: "⚔", t: "Конфлікт", d: "зіткнення, ставки ростуть" },
     { id: "character", icon: "❦", t: "Розвиток персонажа", d: "внутрішня зміна, вибір" },
@@ -180,12 +180,62 @@ function SceneIntentPage() {
   const [sel, setSel] = useReactState("");
   const [note, setNote] = useReactState("");
   const [busy, setBusy] = useReactState(false);
+  const [error, setError] = useReactState("");
+  const [result, setResult] = useReactState(null);
   const cur = INTENTS.find((o) => o.id === sel);
   const canGo = sel && (sel !== "custom" || note.trim().length > 0);
-  function generate() {
+
+  async function generate() {
     if (!canGo || busy) return;
+    if (!projectId) {
+      setError("Проєкт не знайдено");
+      return;
+    }
+
     setBusy(true);
-    setTimeout(() => setBusy(false), 1900);
+    setError("");
+    setResult(null);
+
+    try {
+      const response = await window.__firebaseAI.generateScene(
+        projectId,
+        sel,
+        sel === "custom" ? note : null,
+        [] // previousScenes - можна додати пізніше
+      );
+
+      if (response.success) {
+        setResult(response.scene);
+        console.log("Scene generated:", response.scene);
+
+        // Save scene to Firestore
+        try {
+          const savedScene = await window.__firebaseScenes.addScene(projectId, {
+            title: response.scene.title,
+            text: response.scene.text,
+            intent: sel,
+            customIntent: sel === "custom" ? note : null,
+            entities: response.scene.entities || {
+              characters: [],
+              locations: [],
+              events: [],
+              artifacts: []
+            }
+          });
+          console.log("Scene saved to Firestore:", savedScene);
+        } catch (saveError) {
+          console.error("Failed to save scene:", saveError);
+          setError("Сцена згенерована, але не збережена: " + saveError.message);
+        }
+      } else {
+        setError(response.error || "Помилка генерації");
+      }
+    } catch (err) {
+      console.error("Generation error:", err);
+      setError("Помилка генерації: " + err.message);
+    } finally {
+      setBusy(false);
+    }
   }
   return (
     <div className="page-inner page-intent">
@@ -205,6 +255,18 @@ function SceneIntentPage() {
       <button className="intent-gen" type="button" onClick={generate} disabled={!canGo || busy}>
         {busy ? "✦ Хранитель пише…" : "✦ Генерувати наступну сцену"}
       </button>
+      {error && <p style={{color: 'var(--gold-deep)', marginTop: 20}}>{error}</p>}
+      {result && (
+        <div style={{marginTop: 20, padding: 20, background: 'var(--parch-hi)', borderRadius: 8}}>
+          <h3 style={{color: 'var(--ink)', marginTop: 0}}>{result.title}</h3>
+          <p style={{color: 'var(--ink)', whiteSpace: 'pre-wrap'}}>{result.text}</p>
+          {result.entities && result.entities.length > 0 && (
+            <p style={{color: 'var(--ink-soft)', fontSize: '0.9em', marginTop: 15}}>
+              Згадані сутності: {result.entities.map(e => e.name).join(', ')}
+            </p>
+          )}
+        </div>
+      )}
       <Folio n="vi" />
     </div>);
 

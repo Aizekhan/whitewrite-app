@@ -13,21 +13,39 @@ window.__firebaseAI = {
    */
   async generateScene(projectId, sceneIntent, customIntent = null, previousScenes = []) {
     try {
-      // Get callable function
-      const functions = window.__firebase.functions || firebase.functions();
-      const generateSceneFunc = functions.httpsCallable('generateScene');
+      // Get auth token
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        throw new Error('Користувач не автентифікований');
+      }
 
-      // Call function
+      const token = await user.getIdToken();
+
+      // Call HTTP endpoint directly
       console.log('Generating scene...', { projectId, sceneIntent });
-      const result = await generateSceneFunc({
-        projectId,
-        sceneIntent,
-        customIntent,
-        previousScenes
+
+      const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/generateScene', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          projectId,
+          sceneIntent,
+          customIntent,
+          previousScenes
+        })
       });
 
-      console.log('Scene generated:', result.data);
-      return result.data;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'HTTP error');
+      }
+
+      const result = await response.json();
+      console.log('Scene generated:', result);
+      return result;
 
     } catch (error) {
       console.error('generateScene error:', error);

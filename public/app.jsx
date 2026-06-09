@@ -28,10 +28,12 @@ function App() {
   const [stage, setStage] = useAState(DIRECT ? "book" : "start"); // start | form | book
   const [form, setForm] = useAState(DIRECT ? { description: "" } : null);
   const [returned] = useAState(DIRECT);
+  const [projectId, setProjectId] = useAState(null);
 
   // Persist the universe title so the workspace ↔ book stay the same world.
   function enterBook(data) {
     setForm(data);
+    if (data.projectId) setProjectId(data.projectId);
     try { localStorage.setItem("ww_title", (data && data.title && data.title.trim()) || titleFromPremise(data && data.description)); } catch (e) {}
     setStage("book");
   }
@@ -70,6 +72,7 @@ function App() {
             flow={!returned}
             premise={form ? form.description : ""}
             title={bookTitle}
+            projectId={projectId}
             startScene={SCENE}
             onExit={() => { setStage("start"); }}
           />

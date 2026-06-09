@@ -13,7 +13,9 @@
       "Bash(git commit:*)",
       "Bash(npm install:*)",
       "Bash(firebase deploy:*)",
-      "Bash(firebase functions:secrets:set:*)"
+      "Bash(firebase functions:secrets:set:*)",
+      "Bash(cat:*)",
+      "Bash(firebase auth:export:*)"
     ],
     "deny": [],
     "ask": []

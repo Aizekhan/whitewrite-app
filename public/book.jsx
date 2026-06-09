@@ -37,7 +37,7 @@ function WritingPage() {
 const actOf = (n) => n <= 3 ? 1 : n <= 6 ? 2 : 3;
 // Scenes, each with its OWN page-spreads. Page arrows/dots flip WITHIN a scene;
 // the scene picker switches between scenes (jumps to the scene's first page).
-function buildScenes(title) {
+function buildScenes(title, projectId) {
   return [
     { n: 1, t: "Тиша над колонією", pages: [
       { left: <TitlePage title={title} />, right: <StoryOpening />, whisper: "Історію зіткано. Ось як вона починається." },
@@ -50,17 +50,17 @@ function buildScenes(title) {
       { left: <WorldMapSpread />, right: <SceneEditor />, whisper: "Перепиши сцену — і Хранитель звірить її з каноном." },
     ] },
     { n: 4, t: "Остання передача", pages: [
-      { left: <ColophonPage />, right: <SceneIntentPage />, whisper: "Сцену завершено. Тепер ти вирішуєш, куди поверне історія." },
+      { left: <ColophonPage />, right: <SceneIntentPage projectId={projectId} />, whisper: "Сцену завершено. Тепер ти вирішуєш, куди поверне історія." },
     ] },
   ];
 }
 
-function Book({ flow = false, premise = "", title = "Попіл Орелії", startScene = null, onExit }) {
+function Book({ flow = false, premise = "", title = "Попіл Орелії", projectId = null, startScene = null, onExit }) {
   const [generating, setGenerating] = useState(flow);
   const [ritualClosing, setRitualClosing] = useState(false);
   const [justRevealed, setJustRevealed] = useState(false);
   const [editOn, setEditOn] = useState(false);
-  const SCENES = useRef(buildScenes(title)).current;
+  const SCENES = useRef(buildScenes(title, projectId)).current;
   // current scene index + page index within that scene
   const [sc, setSc] = useState(0);
   const [pg, setPg] = useState(0);

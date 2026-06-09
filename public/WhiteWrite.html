@@ -975,6 +975,37 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-functions-compat.js"></script>
+
+<!-- Firebase initialization & modules -->
+<script src="firebase-init.js"></script>
+<script src="firebase-projects.js"></script>
+<script src="firebase-scenes.js"></script>
+<script src="firebase-auth.js"></script>
+<script src="firebase-ai.js"></script>
+
+<!-- Initialize auth listener -->
+<script>
+  if (window.__firebaseAuth) {
+    window.__firebaseAuth.init();
+
+    // Auto sign-in anonymously for testing if not signed in
+    setTimeout(() => {
+      if (!window.__wwAuth) {
+        console.log('Auto-signing in anonymously for testing...');
+        window.__firebase.auth.signInAnonymously()
+          .then(() => console.log('Anonymous sign-in successful'))
+          .catch(err => console.error('Anonymous sign-in failed:', err));
+      }
+    }, 1000);
+  }
+</script>
+
+<!-- App modules -->
 <script type="text/babel" src="atmosphere.jsx"></script>
 <script type="text/babel" src="pages.jsx"></script>
 <script type="text/babel" src="book-edit.jsx"></script>

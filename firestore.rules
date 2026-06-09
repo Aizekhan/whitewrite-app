@@ -2,21 +2,75 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Projects collection - owner-based access
-    match /projects/{projectId} {
-      // Allow read if user owns the project
-      allow read: if request.auth != null && request.auth.uid == resource.data.owner;
-
-      // Allow create if user is authenticated and sets themselves as owner
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.owner;
-
-      // Allow update/delete if user owns the project
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.owner;
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Users collection - user can only access their own document
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isProjectOwner(projectId) {
+      return get(/databases/$(database)/documents/projects/$(projectId)).data.owner == request.auth.uid;
+    }
+
+    // Users collection
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId);
+      allow delete: if false; // Users can't delete themselves via client
+    }
+
+    // Projects collection
+    match /projects/{projectId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.owner == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.owner == request.auth.uid &&
+                       request.resource.data.visibility == 'private';
+      allow update: if isAuthenticated() &&
+                       resource.data.owner == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+                       resource.data.owner == request.auth.uid;
+
+      // Scenes subcollection
+      match /scenes/{sceneId} {
+        allow read: if isAuthenticated() && isProjectOwner(projectId);
+        allow write: if isAuthenticated() && isProjectOwner(projectId);
+      }
+
+      // Narrative subcollection (future)
+      match /narrative/{docId} {
+        allow read: if isAuthenticated() && isProjectOwner(projectId);
+        allow write: if isAuthenticated() && isProjectOwner(projectId);
+      }
+
+      // Director subcollection (future)
+      match /director/{docId} {
+        allow read: if isAuthenticated() && isProjectOwner(projectId);
+        allow write: if isAuthenticated() && isProjectOwner(projectId);
+      }
+
+      // Snapshots subcollection (future)
+      match /snapshots/{snapshotId} {
+        allow read: if isAuthenticated() && isProjectOwner(projectId);
+        allow create: if isAuthenticated() && isProjectOwner(projectId);
+        allow delete: if false; // Snapshots are immutable
+      }
+    }
+
+    // Reconstruction queue (future, global but user-scoped)
+    match /reconstructionQueue/{queueId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid;
     }
   }
 }

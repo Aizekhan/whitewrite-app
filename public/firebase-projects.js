@@ -1,47 +1,44 @@
 // Firestore CRUD for projects
-// Replaces PROJECTS array in White.html
+// Production-ready schema with Canon + Scenes subcollection
 
 window.__firebaseProjects = {
-  // TEMPORARY: Use demo user for Step 1 (no auth required with open rules)
-  // Will be replaced with real auth in Step 2
-  uid: 'demo_user',
+  // Get current user ID (from Firebase Auth)
+  get uid() {
+    const user = firebase.auth().currentUser;
+    return user ? user.uid : null;
+  },
 
   // Get all projects for current user
   async getProjects() {
-    // TEMPORARY: In Step 1, uid is set to 'demo_user'
-    // In Step 2, will use real auth uid
-    const uid = this.uid || 'demo_user';
+    const uid = this.uid;
+    if (!uid) {
+      throw new Error('User not authenticated');
+    }
 
-    // TEMPORARY: Remove orderBy until index is fully built
-    // Will add back sorting once index is ready
     const snapshot = await window.__firebase.db
       .collection('projects')
       .where('owner', '==', uid)
+      .orderBy('updatedAt', 'desc')
       .get();
 
-    // Sort manually for now
-    const projects = snapshot.docs.map(doc => ({
+    return snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
-
-    // Sort by createdAt descending (newest first)
-    projects.sort((a, b) => {
-      const timeA = a.createdAt?.toMillis?.() || 0;
-      const timeB = b.createdAt?.toMillis?.() || 0;
-      return timeB - timeA;
-    });
-
-    return projects;
   },
 
   // Create new project
   async createProject(data) {
-    const uid = this.uid || 'demo_user';
+    const uid = this.uid;
+    if (!uid) {
+      throw new Error('User not authenticated');
+    }
+
     const projectId = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
     await window.__firebase.db.collection('projects').doc(projectId).set({
       owner: uid,
+      visibility: 'private', // Future: 'shared' | 'public'
       title: data.title || 'Без назви',
       desc: data.desc || '',
       meta: data.meta || '',
@@ -56,12 +53,20 @@ window.__firebaseProjects = {
       c2: data.c2 || '#10131a',
       canonAware: true,
       canon: {
+        world: {
+          tagline: '',
+          summary: '',
+          facts: [],
+          rules: [],
+          palette: []
+        },
         characters: {},
         locations: {},
         events: {},
         factions: {},
         artifacts: {},
-        world: {}
+        inferred: {},      // AI-suggested entities (not facts yet)
+        hiddenCanon: {}    // For plot twists
       },
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
