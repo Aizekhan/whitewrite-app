@@ -66,16 +66,17 @@ function GeneratedScenePage({ scene }) {
 // shows the universe entities connected to what you're reading.
 const actOf = (n) => n <= 3 ? 1 : n <= 6 ? 2 : 3;
 
-// Opening page for new project (shows user's premise)
-function ProjectOpening({ premise }) {
+// Empty page for new project (before first scene generated)
+function BlankPage() {
   return (
-    <div className="page-inner">
-      <PageHeader kicker="Початок подорожі" title="Твій всесвіт" />
-      <Prose first={premise ? premise.charAt(0) : "Т"}>
-        {premise ? premise.slice(1) : "вій всесвіт чекає на перші сторінки..."}
-      </Prose>
+    <div className="page-inner" style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '20px'}}>
+      <div style={{fontSize: '48px', opacity: 0.3}}>✦</div>
+      <div style={{fontFamily: 'Cinzel, serif', fontSize: '15px', color: 'var(--tx-mid)', textAlign: 'center', maxWidth: '280px', lineHeight: 1.6}}>
+        Чистий аркуш.<br/>
+        Історія народиться з твого першого кроку.
+      </div>
       <MarginNote>
-        Згенеруй першу сцену, щоб розпочати історію. Хранитель сплете її з твоїх слів.
+        Перегорни сторінку → обери напрям → Хранитель напише першу сцену.
       </MarginNote>
       <Folio n="i" />
     </div>
@@ -86,30 +87,45 @@ function ProjectOpening({ premise }) {
 function buildScenesFromFirestore(title, projectId, firestoreScenes, premise = "") {
   const scenes = [];
 
-  // Title page (always first)
-  scenes.push({
-    n: 0,
-    t: "Початок історії",
-    pages: [{
-      left: <TitlePage title={title} />,
-      right: <ProjectOpening premise={premise} />,
-      whisper: "Історію зіткано. Ось як вона починається."
-    }]
-  });
-
-  // Generated scenes from Firestore
-  if (firestoreScenes && firestoreScenes.length > 0) {
-    firestoreScenes.forEach((scene) => {
-      scenes.push({
-        n: scene.n,
-        t: scene.title,
-        pages: [{
-          left: <GeneratedScenePage scene={scene} />,
-          right: <CharactersLeft />, // Можна замінити на related entities
-          whisper: `Згенеровано AI на основі канону. Intent: ${scene.intent}`
-        }]
-      });
+  // Title page + Blank page (if no scenes yet) OR first scene (if generated)
+  if (!firestoreScenes || firestoreScenes.length === 0) {
+    // No scenes yet — show blank page
+    scenes.push({
+      n: 0,
+      t: "Початок історії",
+      pages: [{
+        left: <TitlePage title={title} />,
+        right: <BlankPage />,
+        whisper: "Чистий аркуш чекає на твою першу сцену."
+      }]
     });
+  } else {
+    // Has scenes — Title + First generated scene
+    const firstScene = firestoreScenes[0];
+    scenes.push({
+      n: 0,
+      t: "Початок історії",
+      pages: [{
+        left: <TitlePage title={title} />,
+        right: <GeneratedScenePage scene={firstScene} />,
+        whisper: "Історію зіткано. Ось як вона починається."
+      }]
+    });
+
+    // Add remaining scenes (starting from second, since first is on title spread)
+    if (firestoreScenes.length > 1) {
+      firestoreScenes.slice(1).forEach((scene) => {
+        scenes.push({
+          n: scene.n,
+          t: scene.title,
+          pages: [{
+            left: <GeneratedScenePage scene={scene} />,
+            right: <CharactersLeft />, // Можна замінити на related entities
+            whisper: `Згенеровано AI на основі канону. Intent: ${scene.intent}`
+          }]
+        });
+      });
+    }
   }
 
   // Scene Intent page (always last — for generating next scene)
