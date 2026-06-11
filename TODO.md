@@ -15,13 +15,11 @@
 
 ---
 
-## ⚠️ БЛОКЕР: Gemini API Quota
+## ✅ ВИРІШЕНО: Gemini API працює
 
-**Проблема:** API ключ не має доступу до Free Tier (quota limit: 0)
+**Статус:** ✅ Новий Free Tier ключ працює (gemini-2.5-flash генерує успішно)
 
-**Причина:** Ключ створений у проєкті з білінгом (навіть якщо кредити закінчились)
-
-**Рішення для наступної сесії:**
+**Минулий блокер (вирішено):**
 
 1. **Створити новий Google Cloud проєкт БЕЗ білінгу:**
    - https://console.cloud.google.com/projectcreate
@@ -49,22 +47,27 @@
 
 ---
 
-## 📋 Наступні кроки (після вирішення quota)
+## ✅ Step 3 Complete: AI Integration + Firestore Scenes
 
-### Step 3 (продовження): AI Integration
+- ✅ **Генерація працює** (gemini-2.5-flash, fallback механізм)
+- ✅ **Збереження сцен у Firestore:**
+  - Subcollection `projects/{id}/scenes/{sceneId}`
+  - Автоінкремент `n` (номер сцени)
+  - Entities tracking (characters/locations/events/artifacts)
+  - Reconstruction metadata (mode, affectedBy)
+- ✅ **Відображення в book.jsx:**
+  - Завантаження з Firestore (async)
+  - Real-time refresh (кожні 5 секунд)
+  - Компонент <GeneratedScenePage>
+  - Title → Generated Scenes → Scene Intent (loop)
 
-- [ ] **Протестувати генерацію сцени** (після оновлення API ключа)
-- [ ] **Додати збереження згенерованих сцен у Firestore:**
-  - Додати поле `scenes: []` у проєкт
-  - Зберігати результат генерації у `project.scenes`
-  - Показувати згенеровані сцени в UI
+### Step 4: Поліпшення UX
 
-### Step 4: Інтеграція з прототипом
-
-- [ ] Підключити згенеровані сцени до book.jsx (замість mock-сцен)
-- [ ] Зробити "Чистий аркуш" функціональним (генерація нової сцени)
-- [ ] Додати можливість регенерації сцени
-- [ ] Зберігати позицію читання (localStorage) — ✅ вже є в book.jsx
+- ✅ Підключити згенеровані сцени до book.jsx (ГОТОВО)
+- [ ] Зробити "Чистий аркуш" функціональним (inline генерація)
+- [ ] Додати кнопку регенерації сцени
+- [ ] Додати previousScenes контекст (continuity між сценами)
+- ✅ Зберігати позицію читання (localStorage) — вже є в book.jsx
 
 ### Step 5: Фінальне полірування
 
