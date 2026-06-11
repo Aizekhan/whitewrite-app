@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhiteWrite — Книга</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Modules -->
+  <script src="/shared/firebase/firebase-init.js"></script>
+  <script src="/shared/firebase/firebase-auth.js"></script>
+  <script src="/shared/firebase/firebase-projects.js"></script>
+  <script src="/shared/firebase/firebase-scenes.js"></script>
+  <script src="/shared/firebase/firebase-ai.js"></script>
+
+  <!-- React App Components -->
+  <script type="text/babel" src="app.jsx"></script>
+  <script type="text/babel" src="flow.jsx"></script>
+  <script type="text/babel" src="book.jsx"></script>
+  <script type="text/babel" src="pages.jsx"></script>
+  <script type="text/babel" src="atmosphere.jsx"></script>
+</body>
+</html>

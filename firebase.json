@@ -15,6 +15,20 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "rewrites": [
+      {
+        "source": "/app",
+        "destination": "/main-app/app.html"
+      },
+      {
+        "source": "/canon",
+        "destination": "/canon-editor/worldtree.html"
+      },
+      {
+        "source": "/director",
+        "destination": "/director-workspace/workspace.html"
+      }
+    ],
     "redirects": []
   }
 }

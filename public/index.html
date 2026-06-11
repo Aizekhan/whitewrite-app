@@ -796,12 +796,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
 
-    // Redirect to React app with projectId
+    // Redirect to React app (/app) with projectId
     if (projectId) {
-      window.location.href = '/?projectId=' + projectId;
+      window.location.href = '/app?projectId=' + projectId;
     } else {
       // "Create new" button — go to form
-      window.location.href = '/';
+      window.location.href = '/app';
     }
   }
 
@@ -1338,12 +1338,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
 
 <!-- Firebase modules -->
-<script src="firebase-init.js"></script>
-<script src="firebase-projects.js"></script>
-<script src="firebase-auth.js"></script>
-<script src="firebase-ai.js"></script>
-<script src="firebase-scenes.js"></script>
+<script src="/shared/firebase/firebase-init.js"></script>
+<script src="/shared/firebase/firebase-projects.js"></script>
+<script src="/shared/firebase/firebase-auth.js"></script>
+<script src="/shared/firebase/firebase-ai.js"></script>
+<script src="/shared/firebase/firebase-scenes.js"></script>
 
-<script src="kb.js"></script>
+<script src="/shared/kb.js"></script>
 </body>
 </html>
