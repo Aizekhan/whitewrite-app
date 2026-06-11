@@ -768,8 +768,23 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   // The mage landing: ALWAYS reset the book to its first page (the mage cover).
   function showHome() {
-    // Show "narr" view (project list) instead of book iframe
-    showView("narr");
+    histPush();
+    inWork = false; mode = "home";
+    suppressWorkUntil = Date.now() + 2000;
+    try { localStorage.removeItem("ww_return"); } catch (e) {}
+
+    // Load /app as iframe (StartScreen with mage + button)
+    var f = ensureFrame("book");
+    if (!loaded.book) {
+      f.__loader && f.__loader.classList.add("is-on");
+      f.src = "/app";
+      loaded.book = true;
+    }
+
+    Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
+    Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "book"); });
+    renderRail();
+    try { history.replaceState(null, "", "#home"); } catch (e) {}
   }
   window.__wwHome = showHome;
   // NEW: Open project in React app (with form → book flow)
