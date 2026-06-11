@@ -27,6 +27,35 @@ window.__firebaseProjects = {
     }));
   },
 
+  // Get single project by ID
+  async getProject(projectId) {
+    const uid = this.uid;
+    if (!uid) {
+      throw new Error('User not authenticated');
+    }
+
+    const doc = await window.__firebase.db
+      .collection('projects')
+      .doc(projectId)
+      .get();
+
+    if (!doc.exists) {
+      throw new Error('Project not found');
+    }
+
+    const data = doc.data();
+
+    // Verify ownership
+    if (data.owner !== uid) {
+      throw new Error('Access denied: not project owner');
+    }
+
+    return {
+      id: doc.id,
+      ...data
+    };
+  },
+
   // Create new project
   async createProject(data) {
     const uid = this.uid;

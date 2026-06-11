@@ -114,19 +114,22 @@ function dialogueLabel(v) {
 }
 
 // ── Stage 1 ─────────────────────────────────────────────────────────────
-function StoryForm({ onBack, onCreate }) {
-  const [description, setDescription] = useFState("");
-  const [title, setTitle] = useFState("");
-  const [creation, setCreation] = useFState("guided");   // guided | auto
-  const [scope, setScope] = useFState("novella");        // shot | novella | season | endless
-  const [episodes, setEpisodes] = useFState(8);
-  const [ending, setEnding] = useFState("open");         // open | closed | custom
-  const [endingNote, setEndingNote] = useFState("");
-  const [genres, setGenres] = useFState([]);
-  const [length, setLength] = useFState(700);
-  const [dialogue, setDialogue] = useFState(50);         // 0..100 density
+function StoryForm({ onBack, onCreate, initialData = null }) {
+  // Initialize with existing project data if available
+  const [description, setDescription] = useFState(initialData?.description || "");
+  const [title, setTitle] = useFState(initialData?.title || "");
+  const [creation, setCreation] = useFState(initialData?.creation || "guided");
+  const [scope, setScope] = useFState(initialData?.scope || "novella");
+  const [episodes, setEpisodes] = useFState(initialData?.episodes || 8);
+  const [ending, setEnding] = useFState(initialData?.ending || "open");
+  const [endingNote, setEndingNote] = useFState(initialData?.endingNote || "");
+  const [genres, setGenres] = useFState(initialData?.genres || []);
+  const [length, setLength] = useFState(initialData?.length || 700);
+  const [dialogue, setDialogue] = useFState(initialData?.dialogue || 50);
   const [dialogueTouched, setDialogueTouched] = useFState(false);
+
   const ready = description.trim().length > 0;
+  const isEditMode = initialData && initialData.projectId;
 
   function toggleGenre(g) {
     setGenres((cur) => {
@@ -138,14 +141,26 @@ function StoryForm({ onBack, onCreate }) {
   async function submit() {
     if (!ready) return;
 
-    // Create project in Firestore
-    const projectId = await window.__firebaseProjects.createProject({
-      title: title || 'Без назви',
-      desc: description,
-      scope,
-      ending: scope !== "endless" ? ending : "open",
-      genres
-    });
+    let projectId;
+
+    if (isEditMode) {
+      // Edit mode: use existing projectId, optionally update project
+      projectId = initialData.projectId;
+      console.log('Opening existing project:', projectId);
+
+      // Optionally update project if fields changed
+      // (For now, just open — user can edit via index.html interface)
+    } else {
+      // Create mode: create new project in Firestore
+      projectId = await window.__firebaseProjects.createProject({
+        title: title || 'Без назви',
+        desc: description,
+        scope,
+        ending: scope !== "endless" ? ending : "open",
+        genres
+      });
+      console.log('Created new project:', projectId);
+    }
 
     // Pass projectId + form data to onCreate
     onCreate({

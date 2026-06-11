@@ -789,8 +789,21 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     try { history.replaceState(null, "", "#home"); } catch (e) {}
   }
   window.__wwHome = showHome;
-  // Open an existing narrative straight into reading + pillars.
-  function openNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "scene=1"); }
+  // NEW: Open project in React app (with form → book flow)
+  function openNarrative(projectId) {
+    if (!window.__wwAuth) {
+      openAuth();
+      return;
+    }
+
+    // Redirect to React app with projectId
+    if (projectId) {
+      window.location.href = '/?projectId=' + projectId;
+    } else {
+      // "Create new" button — go to form
+      window.location.href = '/';
+    }
+  }
 
   // ---- auth (login / register) ----
   function openAuth() { document.getElementById("auth-modal").classList.add("is-on"); }
@@ -982,10 +995,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">Новий всесвіт</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">з чистого аркуша</span></button>' +
         '</div>' +
       '</div>';
-    var open = views.narr.querySelector('[data-open]');
-    if (open) open.addEventListener("click", openNarrative);
+    // Attach event listeners to all "Відкрити" buttons
+    [].forEach.call(views.narr.querySelectorAll('[data-open]'), function (btn) {
+      btn.addEventListener("click", function () {
+        const projectId = btn.dataset.projectId;
+        openNarrative(projectId);
+      });
+    });
+
     var nn = views.narr.querySelector("#new-narr");
-    if (nn) nn.addEventListener("click", openNarrative);
+    if (nn) nn.addEventListener("click", function() { openNarrative(null); });
     [].forEach.call(views.narr.querySelectorAll(".ncard__edit"), function (b) {
       b.addEventListener("click", function (e) { e.stopPropagation(); openProjectEdit(+b.dataset.i); });
     });
@@ -1046,8 +1065,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   function narrCard(p, i) {
     var b = p.badge === "active" ? '<span class="ncard__badge badge--active">активний</span>' : '<span class="ncard__badge badge--draft">чернетка</span>';
     var btn = p.active
-      ? '<button class="ncard__open" data-open>' + svg("open") + 'Відкрити всесвіт</button>'
-      : '<button class="ncard__open" data-open style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + 'Продовжити</button>';
+      ? '<button class="ncard__open" data-open data-project-id="' + p.id + '">' + svg("open") + 'Відкрити всесвіт</button>'
+      : '<button class="ncard__open" data-open data-project-id="' + p.id + '" style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + 'Продовжити</button>';
     return '<article class="ncard" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '">' +
       '<div class="ncard__cover" style="background-image:url(' + (p.cover || "assets/ph-project.png") + ');background-size:cover;background-position:center">' + b +
         '<button class="ncard__edit" data-i="' + i + '" title="Редагувати всесвіт">' + svg("edit") + '</button>' +

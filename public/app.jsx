@@ -14,21 +14,71 @@ function titleFromPremise(p) {
 }
 
 function App() {
-  // Returning from the workspace? Open straight to the story (skip the ritual).
-  let RET = false, RET_TITLE = "", SCENE = null;
+  // Check URL parameters
+  let RET = false, RET_TITLE = "", SCENE = null, PROJECT_ID = null;
   try {
     RET = localStorage.getItem("ww_return") === "1";
     RET_TITLE = localStorage.getItem("ww_title") || "";
     if (RET) localStorage.removeItem("ww_return");
-    const sp = new URLSearchParams(location.search).get("scene");
-    if (sp) SCENE = parseInt(sp, 10) || null;
-  } catch (e) {}
-  const DIRECT = RET || SCENE != null;
 
-  const [stage, setStage] = useAState(DIRECT ? "book" : "start"); // start | form | book
+    const params = new URLSearchParams(location.search);
+    const sp = params.get("scene");
+    if (sp) SCENE = parseInt(sp, 10) || null;
+
+    // NEW: support opening existing project via URL
+    PROJECT_ID = params.get("projectId");
+  } catch (e) {}
+
+  const DIRECT = RET || SCENE != null || PROJECT_ID != null;
+
+  const [stage, setStage] = useAState(DIRECT ? (PROJECT_ID ? "form" : "book") : "start");
   const [form, setForm] = useAState(DIRECT ? { description: "" } : null);
   const [returned] = useAState(DIRECT);
-  const [projectId, setProjectId] = useAState(null);
+  const [projectId, setProjectId] = useAState(PROJECT_ID);
+  const [loadingProject, setLoadingProject] = useAState(false);
+  const [projectData, setProjectData] = useAState(null);
+
+  // Load existing project if projectId in URL
+  React.useEffect(() => {
+    async function loadProject() {
+      if (!PROJECT_ID) return;
+
+      setLoadingProject(true);
+      try {
+        const project = await window.__firebaseProjects.getProject(PROJECT_ID);
+        console.log('Loaded existing project:', project);
+
+        setProjectData(project);
+        setProjectId(project.id);
+
+        // Pre-fill form data
+        setForm({
+          projectId: project.id,
+          title: project.title || '',
+          description: project.desc || '',
+          scope: project.scope || 'novella',
+          ending: project.ending || 'open',
+          genres: project.genres || [],
+          // These are not stored in Firestore, use defaults
+          creation: 'guided',
+          length: 700,
+          dialogue: 50,
+          episodes: 8,
+          endingNote: ''
+        });
+
+        setStage("form");
+      } catch (error) {
+        console.error('Failed to load project:', error);
+        alert('Не вдалося завантажити проєкт: ' + error.message);
+        setStage("start");
+      } finally {
+        setLoadingProject(false);
+      }
+    }
+
+    loadProject();
+  }, []);
 
   // Persist the universe title so the workspace ↔ book stay the same world.
   function enterBook(data) {
@@ -60,11 +110,18 @@ function App() {
         <StartScreen key="start" onBegin={() => setStage("form")} />
       )}
       {stage === "form" && (
-        <StoryForm
-          key="form"
-          onBack={() => setStage("start")}
-          onCreate={enterBook}
-        />
+        loadingProject ? (
+          <div className="stage-screen" style={{display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', color:'var(--tx-mid)'}}>
+            Завантаження проєкту...
+          </div>
+        ) : (
+          <StoryForm
+            key="form"
+            onBack={() => setStage("start")}
+            onCreate={enterBook}
+            initialData={form}
+          />
+        )
       )}
       {stage === "book" && (
         <div key="book" className="stage-screen">
