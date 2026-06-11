@@ -558,9 +558,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   /* ---- pillars (iframes) ---- */
   var PILLARS = {
-    book:     { src: "whitewrite.html",           label: "Книга",   icon: "book" },
-    universe: { src: "WhiteWrite WorldTree.html", label: "Всесвіт", icon: "universe" },
-    director: { src: "WhiteWrite Workspace.html", label: "Режисер", icon: "clapper" },
+    book:     { src: "/app",                            label: "Книга",   icon: "book" },
+    universe: { src: "/canon-editor/worldtree.html",    label: "Всесвіт", icon: "universe" },
+    director: { src: "/director-workspace/workspace.html", label: "Режисер", icon: "clapper" },
   };
   /* ---- home sections (in-shell views). The mage landing itself = the book
      pillar at its cover, shown by showHome(); these are the side tabs. ---- */
@@ -772,19 +772,20 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     inWork = false; mode = "home";
     suppressWorkUntil = Date.now() + 2000;
     try { localStorage.removeItem("ww_return"); } catch (e) {}
-    var f = ensureFrame("book");
-    var bsrc = f.getAttribute("src") || "";
-    // URL-based reading (…&scene=) → reload to the plain cover URL;
-    // internal reading (user clicked "Open My Universe") → message the book to reset.
-    if (bsrc.indexOf("scene=") >= 0 || !loaded.book) {
-      f.__loader && f.__loader.classList.add("is-on");
-      f.src = PILLARS.book.src + "?embed=1";
-      loaded.book = true;
-    } else {
-      try { f.contentWindow.postMessage({ type: "ww-home" }, "*"); } catch (e) {}
-    }
+
+    // NOTE: Book is no longer loaded as iframe — use redirect to /app instead
+    // var f = ensureFrame("book");
+    // var bsrc = f.getAttribute("src") || "";
+    // if (bsrc.indexOf("scene=") >= 0 || !loaded.book) {
+    //   f.__loader && f.__loader.classList.add("is-on");
+    //   f.src = PILLARS.book.src + "?embed=1";
+    //   loaded.book = true;
+    // } else {
+    //   try { f.contentWindow.postMessage({ type: "ww-home" }, "*"); } catch (e) {}
+    // }
+
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
-    Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "book"); });
+    // Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "book"); });
     renderRail();
     try { history.replaceState(null, "", "#home"); } catch (e) {}
   }
