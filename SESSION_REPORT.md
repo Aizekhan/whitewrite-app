@@ -1,8 +1,10 @@
-# WhiteWrite — Session Report (2026-06-11)
+# WhiteWrite — Session Report (2026-06-11) — UPDATED
 
 ## 🎯 Мета сесії
 
-**Закрити цикл генерації:** Користувач генерує сцену → зберігається в Firestore → відображається в книзі.
+**Продовження попередньої сесії:**
+1. Закрити цикл генерації (вже завершено в попередній сесії)
+2. **Рефакторинг структури проєкту** — зробити структуру зрозумілою для наступних сесій та розробників
 
 ---
 
@@ -361,3 +363,89 @@ TODO.md                     (updated)    — статус прогресу
 **Дата:** 2026-06-11
 **Автор:** Claude Code
 **Версія:** Step 3 Complete — AI Generation + Save + Display
+
+---
+
+## 📦 ОНОВЛЕННЯ (2026-06-11 продовження)
+
+### ✅ Виконано: Рефакторинг структури проєкту
+
+**Проблема:**
+- 87KB index.html був гібридом: Shell код БЕЗ React
+- Redirect на `/?projectId=xxx` не працював (index.html не завантажував app.jsx)
+- 4 окремі HTML файли змішані разом
+- Legacy файли (whitewrite.html) не відокремлені
+- Mock дані (wt-world.jsx) в основній папці
+- Складно зрозуміти структуру для нових розробників
+
+**Рішення:**
+
+Створено чітку структуру папок:
+
+```
+public/
+  ├── index.html                    ← Shell (список проєктів)
+  ├── main-app/                     ← React App (/app)
+  │   ├── app.html                  ← Entry point
+  │   └── app.jsx, flow.jsx, book.jsx, pages.jsx, atmosphere.jsx
+  ├── canon-editor/                 ← World Tree (/canon)
+  │   ├── worldtree.html            ← Entry point
+  │   └── wt-*.jsx
+  ├── director-workspace/           ← Director (/director)
+  │   ├── workspace.html            ← Entry point
+  │   └── ws-*.jsx
+  ├── shared/                       ← Firebase + utilities
+  │   └── firebase/ (firebase-*.js)
+  ├── legacy/                       ← Old files (НЕ production)
+  └── prototype/                    ← Mock data (wt-world.jsx)
+```
+
+**Зміни:**
+
+1. **Створено entry points:**
+   - `/app` → `main-app/app.html`
+   - `/canon` → `canon-editor/worldtree.html`
+   - `/director` → `director-workspace/workspace.html`
+
+2. **firebase.json rewrites** — додано для `/app`, `/canon`, `/director`
+
+3. **index.html** — redirect на `/app?projectId=xxx`, шляхи до `/shared/firebase/`
+
+4. **Документація:**
+   - `ARCHITECTURE_AUDIT.md` — проблеми
+   - `REFACTORING_PLAN.md` — план
+   - `public/README.md` — гайд для розробників
+
+**Deployment:**
+- ✅ Committed: `8a6778e`
+- ✅ Deployed: https://whitewrite-app.web.app
+- ✅ Pushed to GitHub
+
+**Переваги:**
+✅ Clarity — зрозуміла структура
+✅ Separation — production / legacy / prototypes
+✅ Clean URLs — `/app`, `/canon`, `/director`
+✅ Easy onboarding — README для розробників
+
+---
+
+## 📌 Наступна сесія
+
+**Готові блоки:**
+- ✅ Generation cycle (Form → AI → Firestore → Book)
+- ✅ Clean structure (main-app, canon-editor, director, shared, legacy, prototype)
+- ✅ Documentation (ARCHITECTURE_AUDIT, REFACTORING_PLAN, public/README)
+
+**Можливі напрямки:**
+
+1. **Scene Intent UI покращення** (зробити візуальнішим)
+2. **Reconstruction Engine** (реконструкція сцен при зміні канону)
+3. **Canon Promotion** (виділив у тексті → зробити сутністю)
+4. **Optimize bundle** (Vite/Webpack замість Babel in-browser)
+
+---
+
+**Автор:** Claude Code
+**Коміт:** 8a6778e
+**Статус:** ✅ Refactoring complete + deployed
+

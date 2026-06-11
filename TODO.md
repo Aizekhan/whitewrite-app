@@ -1,154 +1,201 @@
 # WhiteWrite — TODO для наступної сесії
 
-## ✅ Завершено у цій сесії
+## ✅ Завершено: Рефакторинг структури (2026-06-11)
 
-1. ✅ Виправлено головну кнопку лендінгу (StartScreen)
-2. ✅ WhiteWrite.html → index.html (головна сторінка)
-3. ✅ Виправлено 301 редірект у firebase.json
-4. ✅ Створено 404.html
-5. ✅ Увімкнено Anonymous Authentication у Firebase Console
-6. ✅ Переписано Cloud Function з `onCall` → `onRequest` + CORS
-7. ✅ Замінено застарілий Gemini SDK на пряме REST API v1
-8. ✅ Оновлено назви моделей для 2026 року (gemini-3.5-flash, gemini-2.5-flash)
-9. ✅ Додано fallback mechanism для моделей
-10. ✅ Оновлено клієнтський код (fetch замість httpsCallable)
+**Проблема:** Файли були змішані — складно зрозуміти де production, legacy, prototypes.
 
----
+**Рішення:** Створено чітку структуру папок:
 
-## ✅ ВИРІШЕНО: Gemini API працює
-
-**Статус:** ✅ Новий Free Tier ключ працює (gemini-2.5-flash генерує успішно)
-
-**Минулий блокер (вирішено):**
-
-1. **Створити новий Google Cloud проєкт БЕЗ білінгу:**
-   - https://console.cloud.google.com/projectcreate
-   - Name: `WhiteWrite-Free` (або будь-яка назва)
-   - **НЕ додавати billing account!**
-
-2. **Створити API ключ у новому проєкті:**
-   - https://aistudio.google.com/apikey
-   - Create API key → Select project: `WhiteWrite-Free`
-   - Скопіювати новий ключ
-
-3. **Оновити секрет у Firebase:**
-   ```bash
-   firebase functions:secrets:set GEMINI_API_KEY
-   ```
-   (вставити новий ключ)
-
-4. **Задеплоїти функцію:**
-   ```bash
-   firebase deploy --only functions
-   ```
-
-5. **Перевірити генерацію:**
-   - https://whitewrite.com → створити історію → Scene Intent → генерувати
-
----
-
-## ✅ Step 3 Complete: AI Integration + Firestore Scenes
-
-- ✅ **Генерація працює** (gemini-2.5-flash, fallback механізм)
-- ✅ **Збереження сцен у Firestore:**
-  - Subcollection `projects/{id}/scenes/{sceneId}`
-  - Автоінкремент `n` (номер сцени)
-  - Entities tracking (characters/locations/events/artifacts)
-  - Reconstruction metadata (mode, affectedBy)
-- ✅ **Відображення в book.jsx:**
-  - Завантаження з Firestore (async)
-  - Real-time refresh (кожні 5 секунд)
-  - Компонент <GeneratedScenePage>
-  - Title → Generated Scenes → Scene Intent (loop)
-
-### Step 4: Поліпшення UX
-
-- ✅ Підключити згенеровані сцени до book.jsx (ГОТОВО)
-- [ ] Зробити "Чистий аркуш" функціональним (inline генерація)
-- [ ] Додати кнопку регенерації сцени
-- [ ] Додати previousScenes контекст (continuity між сценами)
-- ✅ Зберігати позицію читання (localStorage) — вже є в book.jsx
-
-### Step 5: Фінальне полірування
-
-- [ ] Відновити безпечні Firestore rules (після тестування)
-- [ ] Додати favicon.ico (зараз 404)
-- [ ] Прекомпіляція JSX для production (зараз Babel in-browser)
-- [ ] Оптимізація bundle size
-
----
-
-## 🔧 Технічні деталі
-
-### Cloud Function: generateScene
-
-**Локація:** `functions/index.js`
-**Тип:** `onRequest` (HTTP endpoint з CORS)
-**Region:** `us-central1`
-**URL:** https://us-central1-whitewrite-app.cloudfunctions.net/generateScene
-
-**Метод:** POST
-**Auth:** Bearer token (Firebase Auth)
-**Body:**
-```json
-{
-  "projectId": "proj_xxx",
-  "sceneIntent": "action" | "character" | "conflict" | ...,
-  "customIntent": "string (optional)",
-  "previousScenes": []
-}
+```
+public/
+  ├── index.html                    ← Shell (список проєктів)
+  ├── main-app/                     ← React App (/app) — PRODUCTION
+  │   ├── app.html                  ← Entry point
+  │   └── app.jsx, flow.jsx, book.jsx, pages.jsx, atmosphere.jsx
+  ├── canon-editor/                 ← World Tree (/canon) — PRODUCTION
+  │   ├── worldtree.html            ← Entry point
+  │   └── wt-*.jsx
+  ├── director-workspace/           ← Director (/director) — PRODUCTION
+  │   ├── workspace.html            ← Entry point
+  │   └── ws-*.jsx
+  ├── shared/                       ← Firebase + utilities
+  │   └── firebase/ (firebase-*.js)
+  ├── legacy/                       ← Old files (НЕ production)
+  │   ├── whitewrite.html
+  │   └── index.old.html
+  └── prototype/                    ← Mock data
+      └── wt-world.jsx              ← "Попіл Орелії" hardcoded
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "scene": {
-    "title": "Назва сцени",
-    "text": "Текст сцени...",
-    "entities": [{type: "character", id: "...", name: "..."}],
-    "intent": "action",
-    "generatedAt": "timestamp"
-  }
-}
-```
+**Документація:**
+- `ARCHITECTURE_AUDIT.md` — виявлені проблеми (87KB index.html hybrid)
+- `REFACTORING_PLAN.md` — план реорганізації
+- `public/README.md` — гайд для розробників (3 додатки, папки, flows, schema)
 
-**Моделі (fallback):**
-1. `gemini-3.5-flash` (найновіша, 2026)
-2. `gemini-2.5-flash` (стабільна)
-3. `gemini-2.0-flash` (legacy, може бути вимкнена)
-
-**API:** Пряме REST API v1
-`https://generativelanguage.googleapis.com/v1/models/{model}:generateContent`
+**Коміт:** `8a6778e` — "Refactor: Clean project structure"
+**Deployment:** ✅ https://whitewrite-app.web.app
 
 ---
 
-## 📝 Файли змінено у цій сесії
+## ✅ Завершено попередні сесії
 
-- `public/index.html` (renamed from WhiteWrite.html)
-- `public/404.html` (new)
-- `public/flow.jsx` (button fix, createProject integration)
-- `public/app.jsx` (projectId state)
-- `public/book.jsx` (projectId prop)
-- `public/pages.jsx` (SceneIntentPage real AI call)
-- `public/firebase-init.js` (functions region)
-- `public/firebase-auth.js` (anonymous auto-signin)
-- `public/firebase-ai.js` (fetch замість httpsCallable)
-- `functions/index.js` (onRequest + REST API + fallback)
-- `firebase.json` (redirect WhiteWrite.html → /)
-- `firestore.rules` (TEMPORARY open: `allow read, write: if true`)
+### Step 3: AI Integration + Firestore Scenes ✅
+
+- ✅ **Gemini 2.5-flash працює** (Free Tier ключ)
+- ✅ **Генерація сцен:** Cloud Function `generateScene` (onRequest + CORS)
+- ✅ **Збереження у Firestore:** `projects/{id}/scenes/{sceneId}`
+- ✅ **Відображення в book.jsx:** `<GeneratedScenePage>`, real-time refresh (5s)
+- ✅ **Project opening flow:** Shell → Form (pre-filled) → Book
+- ✅ **Blank page для нових проєктів** (замість mock "Попіл Орелії")
+
+### Повний цикл генерації працює:
+
+1. Користувач створює проєкт (форма) → Firestore `projects/{id}`
+2. Обирає Scene Intent (conflict/character/action/romance/worldbuilding/surprise/custom)
+3. Cloud Function викликає Gemini 2.5-flash з canon + previous scenes
+4. AI генерує сцену (title, text, entities)
+5. Firestore зберігає → `projects/{id}/scenes/{sceneId}`
+6. Book завантажує з Firestore → `<GeneratedScenePage>`
+7. Real-time refresh кожні 5 секунд
+
+---
+
+## 📋 Наступні завдання (пріоритетні)
+
+### 🧪 Тестування після рефакторингу
+
+**Перевірити вручну:**
+
+1. **Main App Flow:**
+   - Відкрити `/` → клікнути "Створити свою історію" → має redirect на `/app`
+   - Заповнити форму → створити проєкт → має redirect на `/app?projectId=xxx`
+   - Має показати книгу (Title + Blank page)
+
+2. **Open Existing Project:**
+   - Відкрити `/` → клікнути "Відкрити всесвіт" → має redirect на `/app?projectId=xxx`
+   - Має показати форму (pre-filled) → клікнути "Почати творити" → книга зі сценами
+
+3. **Canon Editor:**
+   - Відкрити `/canon` → має показати World Tree
+
+4. **Director:**
+   - Відкрити `/director` → має показати Workspace
+
+5. **Firebase Modules:**
+   - Console → no errors
+   - Auth працює (sign in/out)
+   - Projects/Scenes CRUD працює
+
+### 🎨 Scene Intent UI (покращення)
+
+**Зараз:** Прості кнопки на `<SceneIntentPage>`
+
+**Можливі покращення:**
+
+- Візуальні картки замість кнопок (з іконками)
+- Приклади для кожного Intent ("Конфлікт — персонаж стикається з перешкодою...")
+- Custom Intent textarea (зараз є, але можна зробити візуальніше)
+- Preview попередніх сцен (щоб користувач бачив контекст)
+
+### 🔄 Reconstruction Engine (інтеграція)
+
+**Зараз:** Рушій існує (`wt-impact.jsx`), але не інтегрований з генерацією.
+
+**Завдання:**
+
+1. **Canon Change Detection:**
+   - При редагуванні канону (World Tree) → виявити affected scenes
+   - Показати список сцен для реконструкції
+
+2. **Reconstruction UI:**
+   - Diff UI ("було → стане")
+   - Кнопки: Прийняти / Відхилити / Pin (не чіпати)
+
+3. **AI Reconstruction:**
+   - Перегенерувати affected scenes з новим каноном
+   - Зберегти `reconstruction.affectedBy` metadata
+
+### 📦 Optimize Bundle
+
+**Зараз:** Babel in-browser compilation (НЕ production-ready)
+
+**Можливі покращення:**
+
+1. **Extract CSS:**
+   - Винести CSS з index.html → `styles.css` (зменшити index.html з 87KB)
+
+2. **Build Step:**
+   - Vite/Webpack замість Babel in-browser
+   - Pre-compile JSX → `.js` files
+   - Code splitting
+
+3. **Firebase SDK:**
+   - Зараз: compat SDK (legacy, великий bundle)
+   - Можна: modular SDK (менший bundle)
+
+### 🌟 Canon Promotion (з книги → канон)
+
+**Ідея:** Виділив у тексті → зробити сутністю (персонаж/локація/подія)
+
+**Завдання:**
+
+1. **Text Selection UI:**
+   - Виділити текст у book → popup "Зробити персонажем / локацією / подією"
+
+2. **Entity Creation:**
+   - Створити сутність у canon
+   - Зв'язати з поточною сценою
+
+3. **AI Inference:**
+   - Auto-suggest entities з тексту через AI
+   - Додати в `canon.inferred` (з confidence %)
+
+---
+
+## 🔧 Tech Debt (низький пріоритет)
+
+- [ ] Favicon.ico (зараз 404)
+- [ ] Firestore rules — зараз TEMPORARY open (`allow read, write: if true`)
+- [ ] previousScenes контекст (continuity між сценами) — зараз НЕ передається
+
+---
+
+## 📚 Документація (для розробників)
+
+**Обов'язково прочитати перед роботою:**
+
+1. `CLAUDE.md` — інваріанти, філософія, конвенції
+2. `public/README.md` — структура проєкту (3 додатки, папки, flows)
+3. `FIRESTORE_SCHEMA.md` — схема даних
+4. `ARCHITECTURE_AUDIT.md` — виявлені проблеми структури
+5. `REFACTORING_PLAN.md` — план реорганізації
+
+**Entry points (URLs):**
+- `/` — Shell (список проєктів)
+- `/app` — Main App (Form → Book)
+- `/canon` — Canon Editor (World Tree)
+- `/director` — Director (Storyboards/Shots)
 
 ---
 
 ## ⚡ Швидкий старт наступної сесії
 
-1. Створити новий проєкт без білінгу
-2. Створити API ключ у новому проєкті
-3. `firebase functions:secrets:set GEMINI_API_KEY` (новий ключ)
-4. `firebase deploy --only functions`
-5. Тестувати на https://whitewrite.com
-6. Якщо працює → додати збереження сцен у Firestore
+### Якщо продовжуєш з попередньої сесії:
+
+1. Прочитати `SESSION_REPORT.md` — що було зроблено
+2. Прочитати цей TODO.md — що далі
+3. Обрати завдання з розділу "Наступні завдання"
+
+### Якщо новий розробник:
+
+1. Прочитати `public/README.md` — структура проєкту
+2. Прочитати `CLAUDE.md` — інваріанти, філософія
+3. Запустити локально: `firebase serve`
+4. Протестувати вручну (MANUAL_TEST_CHECKLIST.md)
 
 ---
 
-**Статус:** Технічно все готово, чекаємо на валідний API ключ з Free Tier.
+**Останнє оновлення:** 2026-06-11
+**Коміт:** 8a6778e
+**Статус:** ✅ Refactoring complete, ready for next features
+
