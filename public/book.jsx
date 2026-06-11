@@ -32,12 +32,86 @@ function WritingPage() {
   );
 }
 
+// Component for displaying a generated scene
+function GeneratedScenePage({ scene }) {
+  if (!scene) return null;
+
+  // Split text into paragraphs
+  const paragraphs = scene.text.split('\n\n').filter(p => p.trim());
+
+  return (
+    <div className="page-inner">
+      <PageHeader
+        kicker={`Сцена ${scene.n}`}
+        title={scene.title}
+      />
+      {paragraphs.map((para, i) => (
+        <Prose key={i} first={i === 0 ? para.charAt(0) : null}>
+          {i === 0 ? para.slice(1) : para}
+        </Prose>
+      ))}
+      {scene.entities && (scene.entities.characters?.length > 0 || scene.entities.locations?.length > 0) && (
+        <MarginNote>
+          {scene.intent && `Intent: ${scene.intent}`}
+          {scene.entities.characters?.length > 0 && ` · Персонажі: ${scene.entities.characters.length}`}
+          {scene.entities.locations?.length > 0 && ` · Локації: ${scene.entities.locations.length}`}
+        </MarginNote>
+      )}
+      <Folio n={scene.n} />
+    </div>
+  );
+}
+
 // Maps each reading spread to a canonical scene, so the "Пов'язане" panel
 // shows the universe entities connected to what you're reading.
 const actOf = (n) => n <= 3 ? 1 : n <= 6 ? 2 : 3;
-// Scenes, each with its OWN page-spreads. Page arrows/dots flip WITHIN a scene;
-// the scene picker switches between scenes (jumps to the scene's first page).
-function buildScenes(title, projectId) {
+
+// Build scenes from Firestore data + Scene Intent page
+function buildScenesFromFirestore(title, projectId, firestoreScenes) {
+  const scenes = [];
+
+  // Title page (always first)
+  scenes.push({
+    n: 0,
+    t: "Початок історії",
+    pages: [{
+      left: <TitlePage title={title} />,
+      right: <StoryOpening />,
+      whisper: "Історію зіткано. Ось як вона починається."
+    }]
+  });
+
+  // Generated scenes from Firestore
+  if (firestoreScenes && firestoreScenes.length > 0) {
+    firestoreScenes.forEach((scene) => {
+      scenes.push({
+        n: scene.n,
+        t: scene.title,
+        pages: [{
+          left: <GeneratedScenePage scene={scene} />,
+          right: <CharactersLeft />, // Можна замінити на related entities
+          whisper: `Згенеровано AI на основі канону. Intent: ${scene.intent}`
+        }]
+      });
+    });
+  }
+
+  // Scene Intent page (always last — for generating next scene)
+  scenes.push({
+    n: scenes.length,
+    t: "Що далі?",
+    pages: [{
+      left: <ColophonPage />,
+      right: <SceneIntentPage projectId={projectId} />,
+      whisper: "Тепер ти вирішуєш, куди поверне історія."
+    }]
+  });
+
+  return scenes;
+}
+
+// Legacy mock scenes (fallback if Firestore unavailable)
+function buildMockScenes(title, projectId) {
   return [
     { n: 1, t: "Тиша над колонією", pages: [
       { left: <TitlePage title={title} />, right: <StoryOpening />, whisper: "Історію зіткано. Ось як вона починається." },
@@ -60,7 +134,55 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const [ritualClosing, setRitualClosing] = useState(false);
   const [justRevealed, setJustRevealed] = useState(false);
   const [editOn, setEditOn] = useState(false);
-  const SCENES = useRef(buildScenes(title, projectId)).current;
+  const [scenesLoading, setScenesLoading] = useState(true);
+  const [firestoreScenes, setFirestoreScenes] = useState([]);
+  const [scenesError, setScenesError] = useState(null);
+
+  // Load scenes from Firestore
+  useEffect(() => {
+    async function loadScenes() {
+      if (!projectId) {
+        setScenesLoading(false);
+        return;
+      }
+
+      try {
+        const scenes = await window.__firebaseScenes.getScenes(projectId);
+        console.log('Loaded scenes from Firestore:', scenes);
+        setFirestoreScenes(scenes);
+      } catch (error) {
+        console.error('Failed to load scenes:', error);
+        setScenesError(error.message);
+      } finally {
+        setScenesLoading(false);
+      }
+    }
+
+    loadScenes();
+
+    // Listen for new scenes (refresh when scene is generated)
+    const interval = setInterval(() => {
+      loadScenes();
+    }, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [projectId, scenesLoading]);
+
+  // Build scenes state (reactive to Firestore changes)
+  const [SCENES, setSCENES] = useState([]);
+
+  // Rebuild scenes when Firestore scenes change
+  useEffect(() => {
+    if (scenesLoading) return;
+
+    const newScenes = projectId
+      ? buildScenesFromFirestore(title, projectId, firestoreScenes)
+      : buildMockScenes(title, projectId);
+
+    setSCENES(newScenes);
+    console.log('Scenes rebuilt:', newScenes.length, 'scenes');
+  }, [firestoreScenes, scenesLoading, projectId, title]);
+
   // current scene index + page index within that scene
   const [sc, setSc] = useState(0);
   const [pg, setPg] = useState(0);
@@ -69,9 +191,18 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const done = useRef(false);
 
   const scene = SCENES[sc];
-  const spread = scene.pages[pg];
+  const spread = scene?.pages?.[pg];
   const atFirst = sc === 0 && pg === 0;
-  const atLast = sc === SCENES.length - 1 && pg === scene.pages.length - 1;
+  const atLast = sc === SCENES.length - 1 && scene && pg === scene.pages.length - 1;
+
+  // Safety: if scenes not loaded yet, show loading
+  if (scenesLoading || !scene || !spread) {
+    return (
+      <div className="book-loading">
+        <div className="book-loading__spinner">Завантаження історії...</div>
+      </div>
+    );
+  }
 
   // Size an overlay box to exactly match the cover-rendered book image, so
   // the text regions track the photographed pages at any viewport/crop.
