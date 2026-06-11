@@ -66,8 +66,24 @@ function GeneratedScenePage({ scene }) {
 // shows the universe entities connected to what you're reading.
 const actOf = (n) => n <= 3 ? 1 : n <= 6 ? 2 : 3;
 
+// Opening page for new project (shows user's premise)
+function ProjectOpening({ premise }) {
+  return (
+    <div className="page-inner">
+      <PageHeader kicker="Початок подорожі" title="Твій всесвіт" />
+      <Prose first={premise ? premise.charAt(0) : "Т"}>
+        {premise ? premise.slice(1) : "вій всесвіт чекає на перші сторінки..."}
+      </Prose>
+      <MarginNote>
+        Згенеруй першу сцену, щоб розпочати історію. Хранитель сплете її з твоїх слів.
+      </MarginNote>
+      <Folio n="i" />
+    </div>
+  );
+}
+
 // Build scenes from Firestore data + Scene Intent page
-function buildScenesFromFirestore(title, projectId, firestoreScenes) {
+function buildScenesFromFirestore(title, projectId, firestoreScenes, premise = "") {
   const scenes = [];
 
   // Title page (always first)
@@ -76,7 +92,7 @@ function buildScenesFromFirestore(title, projectId, firestoreScenes) {
     t: "Початок історії",
     pages: [{
       left: <TitlePage title={title} />,
-      right: <StoryOpening />,
+      right: <ProjectOpening premise={premise} />,
       whisper: "Історію зіткано. Ось як вона починається."
     }]
   });
@@ -176,12 +192,12 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
     if (scenesLoading) return;
 
     const newScenes = projectId
-      ? buildScenesFromFirestore(title, projectId, firestoreScenes)
+      ? buildScenesFromFirestore(title, projectId, firestoreScenes, premise)
       : buildMockScenes(title, projectId);
 
     setSCENES(newScenes);
     console.log('Scenes rebuilt:', newScenes.length, 'scenes');
-  }, [firestoreScenes, scenesLoading, projectId, title]);
+  }, [firestoreScenes, scenesLoading, projectId, title, premise]);
 
   // current scene index + page index within that scene
   const [sc, setSc] = useState(0);
