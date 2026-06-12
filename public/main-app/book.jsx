@@ -362,7 +362,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
       {/* Stage 3 — full-bleed photographed book; text tracks its two pages */}
       <div className={`photobook ${flow && !ritualClosing ? "" : "is-revealed"} ${justRevealed ? "is-revealing" : ""}`}>
-        <img className="photobook__img" src="assets/OpenedBook.jpg" alt="Відкрита книга" />
+        <img className="photobook__img" src="/assets/OpenedBook.jpg" alt="Відкрита книга" />
         <div className="photobook__pages" style={pageBox ? { width: pageBox.w, height: pageBox.h } : undefined}>
           <div className="opage opage--left">
             <div className="opage__fade" key={"L" + sc + "-" + pg}>{spread.left}</div>
@@ -385,7 +385,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         <div className="ritual" aria-live="polite">
           <video
             className="ritual__video"
-            src="assets/StartStoryAnim.mp4"
+            src="/assets/StartStoryAnim.mp4"
             autoPlay muted playsInline
             onEnded={finishRitual}
           />
