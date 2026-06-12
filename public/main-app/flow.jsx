@@ -13,8 +13,6 @@ function StartScreen({ onBegin }) {
       <Particles density={0.7} />
       <div className="vignette" aria-hidden="true" />
 
-      <div className="hero-mark">WhiteWrite<span className="hero-mark__by">by White Tree</span></div>
-
       <div className="hero-quote">
         «Історії — це магія, що творить світи.»
         <span className="hero-quote__orn">· ✦ ·</span>
