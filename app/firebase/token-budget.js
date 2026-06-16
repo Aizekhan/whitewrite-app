@@ -87,30 +87,33 @@ window.__PLAN_BUDGETS = {
     allowReconstruction: true, // ← Unlock Universe Reconstruction (moat!)
     allowExport: true,
     allowAPI: false,
+    allowLoRA: true,           // ← Unlock LoRA training
 
     maxProjects: Infinity,
     imageCreditsGuideline: 100, // Soft limit (UI shows "100 images recommended")
+    loraSlots: 3,              // 3 LoRA models per project (one-time training)
 
-    description: "32,000 токенів: 400 Gemini АБО 80 Claude + зображення + Reconstruction"
+    description: "32K токенів: ~400 Gemini / 80 Claude + 100 зображень + 3 LoRA + Reconstruction"
   },
 
   worldbuilder: {
     name: "Worldbuilder",
     price: 69,
-    monthly: 180000,           // 300 Claude (90000) + 500 images (175000) OR 1 LoRA (50000) + ...
+    monthly: 180000,           // 300 Claude (90000) + 500 images (175000) OR mix
 
     allowClaude: true,
     allowImages: true,
     allowReconstruction: true,
     allowExport: true,
     allowAPI: true,            // ← Unlock API access
+    allowLoRA: true,
     priority: true,            // Priority queue for generation
 
     maxProjects: Infinity,
     imageCreditsGuideline: 500,
-    loraCreditsGuideline: 3,   // ~3 LoRA trainings per month
+    loraSlots: 10,             // 10 LoRA models per project
 
-    description: "180,000 токенів: 300 Claude + 500 зображень + API + пріоритет"
+    description: "180K токенів: ~300 Claude / ∞ Gemini + 500 зображень + 10 LoRA + API"
   },
 
   // Dev/testing plan (legacy)
