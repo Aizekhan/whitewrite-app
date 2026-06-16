@@ -421,7 +421,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     <span class="userdock__av">Г</span>
     <span class="userdock__info">
       <span class="userdock__name">Гість</span>
-      <span class="userdock__tok"><span class="userdock__spark">✦</span><b id="scenecount">0/10</b> сцен</span>
+      <span class="userdock__tok"><span class="userdock__spark">✦</span><b id="scenecount">200/200</b> токенів</span>
     </span>
   </button>
 
@@ -1319,11 +1319,18 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var sceneCount = document.getElementById("scenecount");
     if (av) av.innerHTML = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : (u.name || "М").charAt(0);
     if (nm) nm.textContent = u.name || "Майстер всесвітів";
-    // Scene counter (Phase 1.1)
+    // Token budget (Phase 1.1 refactor - Token Budget System)
     if (sceneCount) {
-      var generated = u.scenesGenerated || 0;
-      var limit = u.scenesLimit || 10;
-      sceneCount.textContent = generated + '/' + limit;
+      var remaining = u.tokensRemaining !== undefined ? u.tokensRemaining : 200;
+      var budget = u.tokensBudget || 200;
+
+      // Format: show thousands with K suffix
+      var formatTokens = function(n) {
+        if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'K';
+        return n.toString();
+      };
+
+      sceneCount.textContent = formatTokens(remaining) + ' / ' + formatTokens(budget);
     }
     if (dock) dock.classList.remove('is-loading');
   }
@@ -1384,6 +1391,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
 <!-- Firebase Modules -->
 <script src="/firebase/firebase-init.js"></script>
+<script src="/firebase/token-budget.js"></script>
 <script src="/firebase/firebase-auth.js"></script>
 <script src="/firebase/firebase-projects.js"></script>
 <script src="/firebase/firebase-scenes.js"></script>

@@ -1,0 +1,155 @@
+// Token Budget System for WhiteWrite
+// Universal metering for all AI operations (scenes, images, canon, etc.)
+
+// ============================================================================
+// TOKEN COSTS — How much each operation consumes
+// ============================================================================
+// Base unit: 1 token ≈ $0.000015 (inspired by OpenAI pricing psychology)
+// This makes numbers human-readable: "5,000 tokens" feels better than "0.075 credits"
+
+window.__TOKEN_COSTS = {
+  // ===== SCENES =====
+  sceneGemini: 20,           // ~$0.0003 per scene (Gemini Flash)
+  sceneClaude: 300,          // ~$0.0135 per scene (Claude Sonnet)
+
+  // ===== IMAGES =====
+  imageGenerate: 3500,       // ~$0.05 per image (DALL-E 3 / Midjourney)
+  imageVariant: 2000,        // ~$0.03 per variant (cheaper, reuse base)
+
+  // ===== CANON (cheap operations) =====
+  canonSuggestion: 10,       // Extract entities from scene
+  characterCard: 15,         // Generate character profile
+  locationCard: 15,          // Generate location profile
+  eventCard: 15,             // Generate event profile
+
+  // ===== DIRECTOR (storyboard) =====
+  storyboardBreakdown: 5,    // Break scene into shots (cheap)
+  shotImageGen: 3500,        // Generate shot image (same as imageGenerate)
+  loraTraining: 50000,       // ~$0.75 per LoRA model (expensive, rare)
+
+  // ===== RECONSTRUCTION =====
+  sceneReconstruct: 30,      // Regenerate scene with new canon (slightly > new scene)
+  impactAnalysis: 5,         // Analyze which scenes affected by canon change
+
+  // ===== NARRATIVE TOOLS =====
+  architectOutline: 25,      // Generate story outline
+  memorySuggestions: 8,      // Suggest canon additions (very cheap)
+  continuitCheck: 5          // Check for contradictions
+};
+
+// ============================================================================
+// PLAN BUDGETS — Monthly token allocation per tier
+// ============================================================================
+
+window.__PLAN_BUDGETS = {
+  free: {
+    name: "Free",
+    price: 0,
+    monthly: 200,              // 10 Gemini scenes (10 × 20 = 200)
+
+    // Feature gates
+    allowClaude: false,
+    allowImages: false,
+    allowReconstruction: false,
+    allowExport: false,
+    allowAPI: false,
+
+    // Soft limits (UI guidance, not hard blocks)
+    maxProjects: 1,
+
+    description: "10 сцен Gemini на місяць"
+  },
+
+  storyteller: {
+    name: "Storyteller",
+    price: 12,
+    monthly: 2400,             // 120 Gemini scenes (120 × 20 = 2400)
+
+    allowClaude: false,
+    allowImages: false,
+    allowReconstruction: false,
+    allowExport: true,         // ← Unlock DOCX/PDF export
+    allowAPI: false,
+
+    maxProjects: 5,
+
+    description: "120 сцен Gemini, експорт книг"
+  },
+
+  novelist: {
+    name: "Novelist",
+    price: 29,
+    monthly: 32000,            // Flexible: 400 Gemini (8000) OR 80 Claude (24000) + 100 images (350000)
+                               // Reality: most will use hybrid (200 Gemini + 40 Claude + 50 images ≈ 29000)
+
+    allowClaude: true,         // ← Unlock Claude Sonnet
+    allowImages: true,         // ← Unlock image generation
+    allowReconstruction: true, // ← Unlock Universe Reconstruction (moat!)
+    allowExport: true,
+    allowAPI: false,
+
+    maxProjects: Infinity,
+    imageCreditsGuideline: 100, // Soft limit (UI shows "100 images recommended")
+
+    description: "32,000 токенів: 400 Gemini АБО 80 Claude + зображення + Reconstruction"
+  },
+
+  worldbuilder: {
+    name: "Worldbuilder",
+    price: 69,
+    monthly: 180000,           // 300 Claude (90000) + 500 images (175000) OR 1 LoRA (50000) + ...
+
+    allowClaude: true,
+    allowImages: true,
+    allowReconstruction: true,
+    allowExport: true,
+    allowAPI: true,            // ← Unlock API access
+    priority: true,            // Priority queue for generation
+
+    maxProjects: Infinity,
+    imageCreditsGuideline: 500,
+    loraCreditsGuideline: 3,   // ~3 LoRA trainings per month
+
+    description: "180,000 токенів: 300 Claude + 500 зображень + API + пріоритет"
+  }
+};
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+// Get plan configuration
+window.__getPlanConfig = function(planName) {
+  return window.__PLAN_BUDGETS[planName] || window.__PLAN_BUDGETS.free;
+};
+
+// Check if user can afford operation
+window.__canAfford = function(operation, userTokensRemaining) {
+  const cost = window.__TOKEN_COSTS[operation];
+  if (!cost) {
+    console.error(`Unknown operation: ${operation}`);
+    return false;
+  }
+  return userTokensRemaining >= cost;
+};
+
+// Get human-readable cost
+window.__formatTokens = function(tokens) {
+  if (tokens >= 1000) {
+    return (tokens / 1000).toFixed(1) + 'K';
+  }
+  return tokens.toString();
+};
+
+// Estimate what user can do with remaining budget
+window.__estimateCapacity = function(tokensRemaining) {
+  return {
+    geminiScenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneGemini),
+    claudeScenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneClaude),
+    images: Math.floor(tokensRemaining / window.__TOKEN_COSTS.imageGenerate),
+    // Show most relevant capacity in UI
+    primary: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneGemini) + ' Gemini сцен'
+  };
+};
+
+console.log('Token Budget System loaded:', Object.keys(window.__TOKEN_COSTS).length, 'operations');

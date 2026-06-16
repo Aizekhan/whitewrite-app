@@ -37,21 +37,32 @@
 - **Novelist** ($29): 400 Gemini АБО 80 Claude, ∞ проєктів, Universe Reconstruction
 - **Worldbuilder** ($69): 300 Claude, ∞ проєктів, API, пріоритет
 
-### 1.1 Лічильник сцен на користувача
+### 1.1 ✅ Token Budget System (universal metering)
 - **Firestore schema:**
   ```javascript
   users/{uid}
     - plan: "free" | "storyteller" | "novelist" | "worldbuilder"
-    - scenesGenerated: number  // this month
-    - scenesLimit: number      // based on plan: 10 / 120 / 400 / 300
-    - claudeCredits: number    // only for novelist: 80/month
+    - tokensUsed: number       // consumed this month
+    - usage: {                 // breakdown for analytics
+        sceneGemini: { count: 10, tokens: 200 },
+        sceneClaude: { count: 2, tokens: 600 },
+        imageGenerate: { count: 5, tokens: 17500 }
+      }
     - resetDate: timestamp     // start of billing cycle
-    - tokens: number           // legacy, deprecated
   ```
-- **Логіка:** Інкремент `scenesGenerated` після кожної успішної генерації.
-- **Готово коли:**
-  - `window.__firebaseAuth.getUserPlan()` повертає `{ plan, scenesGenerated, scenesLimit }`
-  - Лічильник скидається щомісяця (або при зміні плану)
+- **Token Costs:** (`app/firebase/token-budget.js`)
+  - Gemini scene: 20 tokens (~$0.0003)
+  - Claude scene: 300 tokens (~$0.0135)
+  - Image: 3500 tokens (~$0.05)
+  - Canon suggestion: 10 tokens, storyboard: 5, etc.
+- **Plan Budgets:**
+  - Free: 200/міс (10 Gemini)
+  - Storyteller: 2,400/міс (120 Gemini)
+  - Novelist: 32,000/міс (гнучко: 400 Gemini АБО 80 Claude + images)
+  - Worldbuilder: 180,000/міс (300 Claude + 500 images)
+- **Логіка:** `consumeTokens(operation, cost)` після кожної генерації.
+- **UI:** `"5.4K / 32K токенів"` замість `"10/120 сцен"`
+- **✅ ГОТОВО:** Деплоїться, лишається міграція user data
 
 ### 1.2 Gating по ліміту
 - **UI:** Коли `scenesGenerated >= scenesLimit`:

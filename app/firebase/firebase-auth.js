@@ -28,29 +28,28 @@ window.__firebaseAuth = {
 
             // Plan info
             window.__wwUser.plan = userData.plan || 'free';
-            window.__wwUser.tokens = userData.tokens || 0; // legacy, deprecated
-            window.__wwUser.tokensMonthly = userData.tokensMonthly || 0; // legacy
 
-            // Scene counters (Phase 1.1)
-            window.__wwUser.scenesGenerated = userData.scenesGenerated || 0;
-            window.__wwUser.geminiScenes = userData.geminiScenes || 0;
-            window.__wwUser.claudeScenes = userData.claudeScenes || 0;
+            // Token Budget System (Phase 1.1 refactor)
+            const planConfig = window.__getPlanConfig ? window.__getPlanConfig(window.__wwUser.plan) : { monthly: 200 };
+
+            window.__wwUser.tokensBudget = planConfig.monthly;
+            window.__wwUser.tokensUsed = userData.tokensUsed || 0;
+            window.__wwUser.tokensRemaining = window.__wwUser.tokensBudget - window.__wwUser.tokensUsed;
             window.__wwUser.resetDate = userData.resetDate?.toDate() || new Date();
 
-            // Limits based on plan
-            const limits = {
-              free: { scenes: 10, claude: 0 },
-              storyteller: { scenes: 120, claude: 0 },
-              novelist: { scenes: 400, claude: 80 },
-              worldbuilder: { scenes: 300, claude: 300 }
-            };
-            const planLimits = limits[window.__wwUser.plan] || limits.free;
-            window.__wwUser.scenesLimit = planLimits.scenes;
-            window.__wwUser.claudeLimit = planLimits.claude;
+            // Feature gates (from plan config)
+            window.__wwUser.allowClaude = planConfig.allowClaude || false;
+            window.__wwUser.allowImages = planConfig.allowImages || false;
+            window.__wwUser.allowReconstruction = planConfig.allowReconstruction || false;
+            window.__wwUser.allowExport = planConfig.allowExport || false;
+            window.__wwUser.allowAPI = planConfig.allowAPI || false;
+
+            // Usage breakdown (for analytics)
+            window.__wwUser.usage = userData.usage || {};
 
             console.log('User plan loaded:', window.__wwUser.plan,
-              `(${window.__wwUser.scenesGenerated}/${window.__wwUser.scenesLimit} scenes,`,
-              `${window.__wwUser.claudeScenes}/${window.__wwUser.claudeLimit} Claude)`);
+              `(${window.__wwUser.tokensUsed}/${window.__wwUser.tokensBudget} tokens,`,
+              `${window.__wwUser.tokensRemaining} remaining)`);
 
             // Update dock with real data
             if (typeof window.__syncDockAvatar === 'function') {
@@ -61,15 +60,15 @@ window.__firebaseAuth = {
             // Create default user document
             await window.__firebase.db.collection('users').doc(user.uid).set({
               plan: 'free',
-              scenesGenerated: 0,
-              geminiScenes: 0,
-              claudeScenes: 0,
+              tokensUsed: 0,
+              usage: {},
               resetDate: new Date(),
               createdAt: new Date()
             });
             window.__wwUser.plan = 'free';
-            window.__wwUser.scenesGenerated = 0;
-            window.__wwUser.scenesLimit = 10;
+            window.__wwUser.tokensUsed = 0;
+            window.__wwUser.tokensBudget = 200; // free plan
+            window.__wwUser.tokensRemaining = 200;
           }
         } catch (error) {
           console.error('Failed to load user plan:', error);
@@ -180,45 +179,71 @@ window.__firebaseAuth = {
     }
   },
 
-  // Increment scene counter after generation (Phase 1.1)
-  async incrementSceneCounter(provider = 'gemini') {
+  // Consume tokens for any operation (Phase 1.1 refactor - Token Budget System)
+  async consumeTokens(operation, customCost = null) {
     if (!window.__wwUser || !window.__wwUser.uid) {
-      console.error('Cannot increment: no user');
+      console.error('Cannot consume tokens: no user');
       return { success: false, error: 'No user' };
+    }
+
+    // Get cost from TOKEN_COSTS or use custom
+    const cost = customCost !== null ? customCost : (window.__TOKEN_COSTS && window.__TOKEN_COSTS[operation]);
+    if (!cost) {
+      console.error(`Unknown operation or missing cost: ${operation}`);
+      return { success: false, error: 'Invalid operation' };
+    }
+
+    // Check if user can afford
+    if (window.__wwUser.tokensRemaining < cost) {
+      console.warn(`Insufficient tokens: need ${cost}, have ${window.__wwUser.tokensRemaining}`);
+      return { success: false, error: 'Insufficient tokens', needed: cost, available: window.__wwUser.tokensRemaining };
     }
 
     try {
       const uid = window.__wwUser.uid;
       const userRef = window.__firebase.db.collection('users').doc(uid);
 
-      // Increment counters
-      const increment = firebase.firestore.FieldValue.increment(1);
+      // Increment tokensUsed
+      const increment = firebase.firestore.FieldValue.increment(cost);
       const updates = {
-        scenesGenerated: increment
+        tokensUsed: increment
       };
 
-      if (provider === 'claude') {
-        updates.claudeScenes = increment;
-      } else {
-        updates.geminiScenes = increment;
-      }
+      // Track usage breakdown (for analytics)
+      const usageKey = `usage.${operation}`;
+      updates[`${usageKey}.count`] = firebase.firestore.FieldValue.increment(1);
+      updates[`${usageKey}.tokens`] = firebase.firestore.FieldValue.increment(cost);
 
       await userRef.update(updates);
 
       // Update local state
-      window.__wwUser.scenesGenerated = (window.__wwUser.scenesGenerated || 0) + 1;
-      if (provider === 'claude') {
-        window.__wwUser.claudeScenes = (window.__wwUser.claudeScenes || 0) + 1;
-      } else {
-        window.__wwUser.geminiScenes = (window.__wwUser.geminiScenes || 0) + 1;
+      window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
+      window.__wwUser.tokensRemaining = window.__wwUser.tokensBudget - window.__wwUser.tokensUsed;
+
+      // Update usage breakdown locally
+      if (!window.__wwUser.usage) window.__wwUser.usage = {};
+      if (!window.__wwUser.usage[operation]) window.__wwUser.usage[operation] = { count: 0, tokens: 0 };
+      window.__wwUser.usage[operation].count += 1;
+      window.__wwUser.usage[operation].tokens += cost;
+
+      console.log(`Tokens consumed: ${operation} (-${cost}) → ${window.__wwUser.tokensUsed}/${window.__wwUser.tokensBudget} (${window.__wwUser.tokensRemaining} left)`);
+
+      // Refresh UI to show new balance
+      if (typeof window.__syncDockAvatar === 'function') {
+        window.__syncDockAvatar();
       }
 
-      console.log(`Scene counter incremented: ${window.__wwUser.scenesGenerated}/${window.__wwUser.scenesLimit} (${provider})`);
-      return { success: true };
+      return { success: true, cost, remaining: window.__wwUser.tokensRemaining };
     } catch (error) {
-      console.error('Failed to increment scene counter:', error);
+      console.error('Failed to consume tokens:', error);
       return { success: false, error: error.message };
     }
+  },
+
+  // Legacy wrapper for backward compatibility (deprecated, use consumeTokens)
+  async incrementSceneCounter(provider = 'gemini') {
+    const operation = provider === 'claude' ? 'sceneClaude' : 'sceneGemini';
+    return await this.consumeTokens(operation);
   },
 
   // Get user-friendly error messages
