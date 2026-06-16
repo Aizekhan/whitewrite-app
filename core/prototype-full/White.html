@@ -522,11 +522,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       <label class="pe-field"><span class="pe-lbl">Пошта</span><input class="pe-input" id="auth-email" type="email" placeholder="you@world.tree" /></label>
       <label class="pe-field"><span class="pe-lbl">Пароль</span><input class="pe-input" id="auth-pass" type="password" placeholder="••••••••" /></label>
       <button class="pe-btn pe-btn--save" id="auth-submit" style="width:100%;justify-content:center" onclick="window.__wwAuthDo()">✦ Увійти</button>
-      <div style="text-align:center;margin:16px 0 8px;color:var(--tx-mid);font-size:13px">або</div>
-      <button class="pe-btn" id="auth-google" style="width:100%;justify-content:center;background:rgba(66,133,244,0.12);border-color:rgba(66,133,244,0.3);color:#8ab4f8" onclick="window.__wwAuthGoogle&&window.__wwAuthGoogle()">
-        <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        Увійти через Google
-      </button>
     </div>
   </div>
 </div>
@@ -558,9 +553,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   /* ---- pillars (iframes) ---- */
   var PILLARS = {
-    book:     { src: "/app",                            label: "Книга",   icon: "book" },
-    universe: { src: "/canon-editor/worldtree.html",    label: "Всесвіт", icon: "universe" },
-    director: { src: "/director-workspace/workspace.html", label: "Режисер", icon: "clapper" },
+    book:     { src: "WhiteWrite.html",           label: "Книга",   icon: "book" },
+    universe: { src: "WhiteWrite WorldTree.html", label: "Всесвіт", icon: "universe" },
+    director: { src: "WhiteWrite Workspace.html", label: "Режисер", icon: "clapper" },
   };
   /* ---- home sections (in-shell views). The mage landing itself = the book
      pillar at its cover, shown by showHome(); these are the side tabs. ---- */
@@ -575,8 +570,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   var railFoot = document.getElementById("rail-foot");
   var views = {}; [].forEach.call(document.querySelectorAll(".view"), function (v) { views[v.dataset.view] = v; });
 
-  // PROJECTS loaded from Firestore (async)
-  var PROJECTS = [];
+  var PROJECTS = [
+    { title: "Червоний сигнал", meta: "Hard SF · Сезон", desc: "Колонії Марса вмовкли. Тиша поширюється швидше за світло — і ще один сигнал кличе крізь неї.", badge: "active", c1: "#c2542a", c2: "#2a1c16", active: true, genres: ["Hard SF", "Космоопера"], scope: "season", ending: "open", written: 9 },
+    { title: "Сад Велета", meta: "Темне фентезі · Новела", desc: "Садівник, що вирощує спогади. Поки лише премиса й кілька персонажів.", badge: "draft", c1: "#3a2c5a", c2: "#12131a", active: false, genres: ["Темне фентезі"], scope: "novella", ending: "open", written: 0 },
+  ];
   var editProjectIdx = null;
   var SCOPE_LBL = { shot: "Оповідання", novella: "Новела", season: "Сезон", endless: "Без меж" };
   // ordered smallest→largest capacity; can't shrink below already-written scenes
@@ -633,47 +630,21 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   var _peCover = null;
   function closeProjectEdit() { document.getElementById("proj-edit").classList.remove("is-on"); editProjectIdx = null; }
-  async function saveProjectEdit() {
+  function saveProjectEdit() {
     if (editProjectIdx == null) return;
     var p = PROJECTS[editProjectIdx], ov = document.getElementById("proj-edit");
-    var title = ov.querySelector("#pe-title").value.trim() || p.title;
-    var cover = _peCover || null;
-    var desc = ov.querySelector("#pe-desc").value.trim() || p.desc;
+    p.title = ov.querySelector("#pe-title").value.trim() || p.title;
+    p.cover = _peCover || null;
+    p.desc = ov.querySelector("#pe-desc").value.trim() || p.desc;
     var prevScope = p.scope;
     var chosen = ov.querySelector("#pe-scope").value;
     // guard: never accept a scope that can't hold the written scenes — keep previous
-    var scope = (SCOPE_CAP[chosen] < (p.written || 0)) ? prevScope : chosen;
-    var ending = ov.querySelector("#pe-ending").value;
-    var genres = [].map.call(ov.querySelectorAll(".pe-chip.is-on"), function (c) { return c.textContent; });
-    var meta = (genres[0] || "Історія") + " · " + SCOPE_LBL[scope];
-
-    // Update Firestore
-    try {
-      await window.__firebaseProjects.updateProject(p.id, {
-        title: title,
-        cover: cover,
-        desc: desc,
-        scope: scope,
-        ending: ending,
-        genres: genres,
-        meta: meta
-      });
-
-      // Update local
-      p.title = title;
-      p.cover = cover;
-      p.desc = desc;
-      p.scope = scope;
-      p.ending = ending;
-      p.genres = genres;
-      p.meta = meta;
-
-      closeProjectEdit();
-      fillHome();
-    } catch (err) {
-      console.error('Failed to save project:', err);
-      alert('Помилка збереження проєкту');
-    }
+    p.scope = (SCOPE_CAP[chosen] < (p.written || 0)) ? prevScope : chosen;
+    p.ending = ov.querySelector("#pe-ending").value;
+    p.genres = [].map.call(ov.querySelectorAll(".pe-chip.is-on"), function (c) { return c.textContent; });
+    p.meta = (p.genres[0] || "Історія") + " · " + SCOPE_LBL[p.scope];
+    closeProjectEdit();
+    fillHome();
   }
   window.__peSave = saveProjectEdit;
   window.__peClose = closeProjectEdit;
@@ -772,163 +743,45 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     inWork = false; mode = "home";
     suppressWorkUntil = Date.now() + 2000;
     try { localStorage.removeItem("ww_return"); } catch (e) {}
-
-    // Load /app as iframe (StartScreen with mage + button)
     var f = ensureFrame("book");
-    if (!loaded.book) {
+    var bsrc = f.getAttribute("src") || "";
+    // URL-based reading (…&scene=) → reload to the plain cover URL;
+    // internal reading (user clicked "Open My Universe") → message the book to reset.
+    if (bsrc.indexOf("scene=") >= 0 || !loaded.book) {
       f.__loader && f.__loader.classList.add("is-on");
-      f.src = "/app";
+      f.src = PILLARS.book.src + "?embed=1";
       loaded.book = true;
+    } else {
+      try { f.contentWindow.postMessage({ type: "ww-home" }, "*"); } catch (e) {}
     }
-
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "book"); });
     renderRail();
     try { history.replaceState(null, "", "#home"); } catch (e) {}
   }
   window.__wwHome = showHome;
-  // NEW: Open project in React app (with form → book flow)
-  function openNarrative(projectId) {
-    if (!window.__wwAuth) {
-      openAuth();
-      return;
-    }
-
-    // Redirect to React app (/app) with projectId
-    if (projectId) {
-      window.location.href = '/app?projectId=' + projectId;
-    } else {
-      // "Create new" button — go to form
-      window.location.href = '/app';
-    }
-  }
+  // Open an existing narrative straight into reading + pillars.
+  function openNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "scene=1"); }
 
   // ---- auth (login / register) ----
   function openAuth() { document.getElementById("auth-modal").classList.add("is-on"); }
   function closeAuth() { document.getElementById("auth-modal").classList.remove("is-on"); }
-
-  // NEW: Firebase Auth integration
-  window.__wwAuthDo = async function () {
+  window.__wwAuthDo = function (mode2) {
     var m = document.getElementById("auth-modal");
-    var email = m.querySelector("#auth-email").value.trim();
-    var password = m.querySelector("#auth-pass").value.trim();
-    var name = (m.querySelector("#auth-name").value || "").trim();
-    var isRegister = m.querySelector("#auth-treg").classList.contains("is-on");
-
-    if (!email || !password) {
-      alert("Введіть email та пароль");
-      return;
-    }
-
-    // Show loading state
-    var btn = m.querySelector("#auth-submit");
-    var oldText = btn.textContent;
-    btn.textContent = "⏳ Зачекайте...";
-    btn.disabled = true;
-
-    try {
-      var result;
-      if (isRegister) {
-        // Sign up
-        result = await window.__firebaseAuth.signUp(email, password, name);
-      } else {
-        // Sign in
-        result = await window.__firebaseAuth.signIn(email, password);
-      }
-
-      if (result.success) {
-        // Clear form
-        m.querySelector("#auth-email").value = "";
-        m.querySelector("#auth-pass").value = "";
-        m.querySelector("#auth-name").value = "";
-        closeAuth();
-        showHome();
-      } else {
-        alert("Помилка: " + result.error);
-        btn.textContent = oldText;
-        btn.disabled = false;
-      }
-    } catch (e) {
-      console.error("Auth error:", e);
-      alert("Помилка автентифікації");
-      btn.textContent = oldText;
-      btn.disabled = false;
-    }
+    var name = (m.querySelector("#auth-name") || {}).value || "Майстер всесвітів";
+    window.__wwAuth = true;
+    window.__wwUser = { name: name.trim() || "Майстер всесвітів", plan: "seed", avatar: null };
+    try { localStorage.setItem("ww_auth", "1"); localStorage.setItem("ww_user", JSON.stringify(window.__wwUser)); } catch (e) {}
+    closeAuth();
+    syncDockAuth();
+    showHome();
   };
-
-  window.__wwActivateWorldforge = async function () {
-    try {
-      const user = window.__wwUser;
-      if (!user) {
-        alert('Please log in first');
-        return;
-      }
-
-      console.log('Activating Worldforge plan...');
-      const token = await user.getIdToken();
-
-      const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/initializeUser', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          plan: 'worldforge',
-          email: user.email,
-          displayName: user.displayName || 'User'
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert('✅ Worldforge план активовано!\n\n🎩 Claude API ready\n8000 токенів/міс\n\nПерезавантаж сторінку і створи новий проєкт.');
-        console.log('✓ User data:', result.user);
-      } else {
-        alert('Помилка: ' + (result.error || 'Unknown error'));
-      }
-    } catch (error) {
-      console.error('Failed to activate Worldforge:', error);
-      alert('Помилка активації: ' + error.message);
-    }
+  window.__wwLogout = function () {
+    window.__wwAuth = false; window.__wwUser = null;
+    try { localStorage.removeItem("ww_auth"); localStorage.removeItem("ww_user"); } catch (e) {}
+    syncDockAuth();
+    showHome();
   };
-
-  window.__wwLogout = async function () {
-    var result = await window.__firebaseAuth.signOut();
-    if (result.success) {
-      showHome();
-    }
-  };
-
-  // Google Sign-In
-  window.__wwAuthGoogle = async function () {
-    var m = document.getElementById("auth-modal");
-    var btn = m.querySelector("#auth-google");
-    var oldText = btn.textContent;
-    btn.textContent = "⏳ Зачекайте...";
-    btn.disabled = true;
-
-    try {
-      var result = await window.__firebaseAuth.signInWithGoogle();
-      if (result.success) {
-        closeAuth();
-        showHome();
-      } else {
-        if (result.error !== "Вхід скасовано") {
-          alert("Помилка: " + result.error);
-        }
-        btn.textContent = oldText;
-        btn.disabled = false;
-      }
-    } catch (e) {
-      console.error("Google auth error:", e);
-      alert("Помилка автентифікації");
-      btn.textContent = oldText;
-      btn.disabled = false;
-    }
-  };
-
   window.__wwOpenAuth = openAuth;
   window.__wwCloseAuth = closeAuth;
   // feedback (bug / suggestion)
@@ -959,13 +812,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     else { dock.classList.remove("is-guest"); }
     syncDockAvatar();
   }
-  // Make syncDockAuth globally accessible for firebase-auth
-  window.__syncDockAuth = syncDockAuth;
-
-  // Reload projects after auth change
-  window.__reloadProjects = function() {
-    loadProjects();
-  };
 
   document.getElementById("logo").addEventListener("click", showHome);
   document.getElementById("rail-collapse").addEventListener("click", function () { document.querySelector(".rail").classList.toggle("is-collapsed"); });
@@ -988,36 +834,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
   });
 
-  /* ============================ FIRESTORE INTEGRATION ============================ */
-  async function loadProjects() {
-    // TEMPORARY: uid is 'demo_user' for Step 1
-    // Will use real auth uid in Step 2
-    try {
-      const projects = await window.__firebaseProjects.getProjects();
-      PROJECTS = projects.map(function (p) {
-        return {
-          id: p.id,
-          title: p.title,
-          meta: p.meta,
-          desc: p.desc,
-          badge: p.badge,
-          c1: p.c1,
-          c2: p.c2,
-          active: p.active,
-          cover: p.cover,
-          genres: p.genres,
-          scope: p.scope,
-          ending: p.ending,
-          written: p.written || 0
-        };
-      });
-      fillHome();
-    } catch (err) {
-      console.error('Failed to load projects:', err);
-      fillHome(); // Show empty state
-    }
-  }
-
   /* ============================ VIEW CONTENT ============================ */
   function fillHome() {
     views.narr.innerHTML =
@@ -1031,16 +847,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">Новий всесвіт</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">з чистого аркуша</span></button>' +
         '</div>' +
       '</div>';
-    // Attach event listeners to all "Відкрити" buttons
-    [].forEach.call(views.narr.querySelectorAll('[data-open]'), function (btn) {
-      btn.addEventListener("click", function () {
-        const projectId = btn.dataset.projectId;
-        openNarrative(projectId);
-      });
-    });
-
+    var open = views.narr.querySelector('[data-open]');
+    if (open) open.addEventListener("click", openNarrative);
     var nn = views.narr.querySelector("#new-narr");
-    if (nn) nn.addEventListener("click", function() { openNarrative(null); });
+    if (nn) nn.addEventListener("click", openNarrative);
     [].forEach.call(views.narr.querySelectorAll(".ncard__edit"), function (b) {
       b.addEventListener("click", function (e) { e.stopPropagation(); openProjectEdit(+b.dataset.i); });
     });
@@ -1076,23 +886,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     ov.classList.add("is-on");
     ov.__idx = i;
   }
-  window.__dcYes = async function () {
+  window.__dcYes = function () {
     var ov = document.getElementById("del-confirm");
-    if (ov.__idx != null) {
-      var p = PROJECTS[ov.__idx];
-      if (p && p.id) {
-        try {
-          await window.__firebaseProjects.deleteProject(p.id);
-          PROJECTS.splice(ov.__idx, 1);
-        } catch (err) {
-          console.error('Failed to delete project:', err);
-          alert('Помилка видалення проєкту');
-        }
-      }
-      ov.__idx = null;
-    }
-    ov.classList.remove("is-on");
-    fillHome();
+    if (ov.__idx != null) { PROJECTS.splice(ov.__idx, 1); ov.__idx = null; }
+    ov.classList.remove("is-on"); fillHome();
   };
   window.__dcNo = function () {
     var ov = document.getElementById("del-confirm"); ov.__idx = null; ov.classList.remove("is-on");
@@ -1101,8 +898,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   function narrCard(p, i) {
     var b = p.badge === "active" ? '<span class="ncard__badge badge--active">активний</span>' : '<span class="ncard__badge badge--draft">чернетка</span>';
     var btn = p.active
-      ? '<button class="ncard__open" data-open data-project-id="' + p.id + '">' + svg("open") + 'Відкрити всесвіт</button>'
-      : '<button class="ncard__open" data-open data-project-id="' + p.id + '" style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + 'Продовжити</button>';
+      ? '<button class="ncard__open" data-open>' + svg("open") + 'Відкрити всесвіт</button>'
+      : '<button class="ncard__open" data-open style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + 'Продовжити</button>';
     return '<article class="ncard" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '">' +
       '<div class="ncard__cover" style="background-image:url(' + (p.cover || "assets/ph-project.png") + ');background-size:cover;background-position:center">' + b +
         '<button class="ncard__edit" data-i="' + i + '" title="Редагувати всесвіт">' + svg("edit") + '</button>' +
@@ -1295,61 +1092,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       ed.onclick = function () { nameEl.contentEditable = "false"; nameEl.classList.remove("is-editing"); u.name = nameEl.innerText.trim() || u.name; fillAccount(); syncDockAvatar(); };
     };
     [].forEach.call(document.querySelectorAll(".plan__btn"), function (b) {
-      b.onclick = async function () {
-        var newPlan = b.dataset.plan;
-        var oldText = b.textContent;
-        b.textContent = "Оновлюємо...";
-        b.disabled = true;
-
-        try {
-          var token = await window.__firebase.auth.currentUser.getIdToken();
-          var response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/initializeUser', {
-            method: 'POST',
-            headers: {
-              'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              plan: newPlan,
-              email: u.email,
-              displayName: u.name
-            })
-          });
-
-          var result = await response.json();
-
-          if (result.success) {
-            u.plan = newPlan;
-            u.tokens = result.user.tokens;
-            u.tokensMonthly = result.user.tokensMonthly;
-            fillAccount();
-          } else {
-            alert('Помилка: ' + (result.error || 'Unknown'));
-            b.textContent = oldText;
-            b.disabled = false;
-          }
-        } catch (error) {
-          console.error('Failed to update plan:', error);
-          alert('Помилка: ' + error.message);
-          b.textContent = oldText;
-          b.disabled = false;
-        }
-      };
+      b.onclick = function () { u.plan = b.dataset.plan; fillAccount(); };
     });
     var tu = document.getElementById("acc-topup");
     if (tu) tu.onclick = function () { tu.textContent = "✓ Дякуємо!"; };
   }
   function syncDockAvatar() {
-    var u = window.__wwUser || {};
-    var av = document.querySelector(".userdock__av");
+    var u = window.__wwUser || {}; var av = document.querySelector(".userdock__av");
     var nm = document.querySelector(".userdock__name");
-    var tok = document.getElementById("tokcount");
-
     if (av) av.innerHTML = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : (u.name || "М").charAt(0);
     if (nm) nm.textContent = u.name || "Майстер всесвітів";
-    if (tok && u.tokens != null) {
-      tok.textContent = u.tokens.toLocaleString('uk-UA');
-    }
   }
   function accStat(n, l) { return '<div class="acc-stat"><div class="acc-stat__n">' + n + '</div><div class="acc-stat__l">' + l + '</div></div>'; }
 
@@ -1382,19 +1134,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     });
   }
 
-  // Initialize Firebase Auth (loadProjects will be called by auth state listener)
-  setTimeout(function() {
-    if (window.__firebaseAuth) {
-      // Initialize auth state listener (will call __reloadProjects when ready)
-      window.__firebaseAuth.init();
-    } else {
-      console.warn('Firebase not loaded yet, retrying...');
-      setTimeout(function() {
-        if (window.__firebaseAuth) window.__firebaseAuth.init();
-      }, 500);
-    }
-  }, 100);
-  fillMarket(); fillKb(); fillNews(); fillAccount();
+  fillHome(); fillMarket(); fillKb(); fillNews(); fillAccount();
 
   /* ---- initial route ---- */
   var h = (location.hash || "").replace("#", "");
@@ -1404,27 +1144,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   try { if (localStorage.getItem("ww_auth") === "1") { window.__wwAuth = true; window.__wwUser = JSON.parse(localStorage.getItem("ww_user") || "null") || { name: "Майстер всесвітів", plan: "seed", avatar: null }; } } catch (e) {}
   syncDockAuth();
   if (!window.__wwAuth) setTimeout(openAuth, 600);
-
-  // Expose renderRail globally so firebase-auth can re-render menu after auth
-  window.__reloadRail = function() {
-    renderRail();
-  };
 }());
 </script>
-
-<!-- Firebase SDK (v9 compat) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
-
-<!-- Firebase modules -->
-<script src="/shared/firebase/firebase-init.js"></script>
-<script src="/shared/firebase/firebase-projects.js"></script>
-<script src="/shared/firebase/firebase-auth.js"></script>
-<script src="/shared/firebase/firebase-ai.js"></script>
-<script src="/shared/firebase/firebase-scenes.js"></script>
-
-<script src="/shared/kb.js"></script>
+<script src="kb.js"></script>
 </body>
 </html>

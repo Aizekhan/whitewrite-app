@@ -8,7 +8,6 @@ window.__firebaseAuth = {
 
     // Listen to auth state changes
     auth.onAuthStateChanged(async (user) => {
-      console.log('[DEBUG] onAuthStateChanged fired, user:', user ? user.email : 'null');
       if (user) {
         // User signed in
         window.__wwAuth = true;
@@ -20,33 +19,61 @@ window.__firebaseAuth = {
           plan: 'seed', // Default plan (will be updated from Firestore)
           isAnonymous: user.isAnonymous
         };
-        console.log('[DEBUG] window.__wwUser initialized with default plan: seed');
 
-        // Load user plan from Firestore
-        console.log('[DEBUG] Starting Firestore load for user:', user.uid);
-        console.log('[DEBUG] window.__firebase exists?', !!window.__firebase);
-        console.log('[DEBUG] window.__firebase.db exists?', !!(window.__firebase && window.__firebase.db));
+        // Load user plan + scene counters from Firestore
         try {
           const userDoc = await window.__firebase.db.collection('users').doc(user.uid).get();
           if (userDoc.exists) {
             const userData = userDoc.data();
-            window.__wwUser.plan = userData.plan || 'seed';
-            window.__wwUser.tokens = userData.tokens || 300;
-            window.__wwUser.tokensMonthly = userData.tokensMonthly || 300;
-            console.log('User plan loaded:', window.__wwUser.plan, `(${window.__wwUser.tokens} tokens)`);
 
-            // Update dock with real tokens
+            // Plan info
+            window.__wwUser.plan = userData.plan || 'free';
+            window.__wwUser.tokens = userData.tokens || 0; // legacy, deprecated
+            window.__wwUser.tokensMonthly = userData.tokensMonthly || 0; // legacy
+
+            // Scene counters (Phase 1.1)
+            window.__wwUser.scenesGenerated = userData.scenesGenerated || 0;
+            window.__wwUser.geminiScenes = userData.geminiScenes || 0;
+            window.__wwUser.claudeScenes = userData.claudeScenes || 0;
+            window.__wwUser.resetDate = userData.resetDate?.toDate() || new Date();
+
+            // Limits based on plan
+            const limits = {
+              free: { scenes: 10, claude: 0 },
+              storyteller: { scenes: 120, claude: 0 },
+              novelist: { scenes: 400, claude: 80 },
+              worldbuilder: { scenes: 300, claude: 300 }
+            };
+            const planLimits = limits[window.__wwUser.plan] || limits.free;
+            window.__wwUser.scenesLimit = planLimits.scenes;
+            window.__wwUser.claudeLimit = planLimits.claude;
+
+            console.log('User plan loaded:', window.__wwUser.plan,
+              `(${window.__wwUser.scenesGenerated}/${window.__wwUser.scenesLimit} scenes,`,
+              `${window.__wwUser.claudeScenes}/${window.__wwUser.claudeLimit} Claude)`);
+
+            // Update dock with real data
             if (typeof window.__syncDockAvatar === 'function') {
               window.__syncDockAvatar();
             }
           } else {
-            console.log('No user document found, using default plan: seed');
+            console.log('No user document found, creating default: free plan');
+            // Create default user document
+            await window.__firebase.db.collection('users').doc(user.uid).set({
+              plan: 'free',
+              scenesGenerated: 0,
+              geminiScenes: 0,
+              claudeScenes: 0,
+              resetDate: new Date(),
+              createdAt: new Date()
+            });
+            window.__wwUser.plan = 'free';
+            window.__wwUser.scenesGenerated = 0;
+            window.__wwUser.scenesLimit = 10;
           }
         } catch (error) {
-          console.error('[DEBUG] Failed to load user plan:', error);
+          console.error('Failed to load user plan:', error);
         }
-
-        console.log('[DEBUG] After Firestore load, window.__wwUser:', JSON.stringify(window.__wwUser));
 
         // Update firebase-projects uid
         if (window.__firebaseProjects) {
@@ -61,28 +88,19 @@ window.__firebaseAuth = {
 
         console.log('Auth state: signed in', user.isAnonymous ? '(anonymous)' : user.email);
       } else {
-        // No user — sign in anonymously
-        console.log('No user detected, signing in anonymously...');
-        try {
-          await auth.signInAnonymously();
-          // onAuthStateChanged will fire again with the new user
-          return;
-        } catch (error) {
-          console.error('Anonymous sign-in failed:', error);
+        // No user — not signed in
+        console.log('No user detected');
+        window.__wwAuth = false;
+        window.__wwUser = null;
 
-          // Fallback to demo user
-          window.__wwAuth = false;
-          window.__wwUser = null;
-
-          if (window.__firebaseProjects) {
-            window.__firebaseProjects.uid = 'demo_user';
-          }
-
-          try {
-            localStorage.removeItem('ww_auth');
-            localStorage.removeItem('ww_user');
-          } catch (e) {}
+        if (window.__firebaseProjects) {
+          window.__firebaseProjects.uid = null;
         }
+
+        try {
+          localStorage.removeItem('ww_auth');
+          localStorage.removeItem('ww_user');
+        } catch (e) {}
       }
 
       // Sync UI (if function exists)
@@ -98,6 +116,11 @@ window.__firebaseAuth = {
       // Reload projects with new uid
       if (typeof window.__reloadProjects === 'function') {
         window.__reloadProjects();
+      }
+
+      // Check if auth modal should open (for first-time visitors)
+      if (typeof window.__checkAuthModal === 'function') {
+        window.__checkAuthModal();
       }
     });
   },
@@ -154,6 +177,47 @@ window.__firebaseAuth = {
     } catch (error) {
       console.error('Sign out error:', error);
       return { success: false, error: this._getErrorMessage(error) };
+    }
+  },
+
+  // Increment scene counter after generation (Phase 1.1)
+  async incrementSceneCounter(provider = 'gemini') {
+    if (!window.__wwUser || !window.__wwUser.uid) {
+      console.error('Cannot increment: no user');
+      return { success: false, error: 'No user' };
+    }
+
+    try {
+      const uid = window.__wwUser.uid;
+      const userRef = window.__firebase.db.collection('users').doc(uid);
+
+      // Increment counters
+      const increment = firebase.firestore.FieldValue.increment(1);
+      const updates = {
+        scenesGenerated: increment
+      };
+
+      if (provider === 'claude') {
+        updates.claudeScenes = increment;
+      } else {
+        updates.geminiScenes = increment;
+      }
+
+      await userRef.update(updates);
+
+      // Update local state
+      window.__wwUser.scenesGenerated = (window.__wwUser.scenesGenerated || 0) + 1;
+      if (provider === 'claude') {
+        window.__wwUser.claudeScenes = (window.__wwUser.claudeScenes || 0) + 1;
+      } else {
+        window.__wwUser.geminiScenes = (window.__wwUser.geminiScenes || 0) + 1;
+      }
+
+      console.log(`Scene counter incremented: ${window.__wwUser.scenesGenerated}/${window.__wwUser.scenesLimit} (${provider})`);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to increment scene counter:', error);
+      return { success: false, error: error.message };
     }
   },
 

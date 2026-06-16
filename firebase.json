@@ -9,7 +9,7 @@
     "codebase": "default"
   },
   "hosting": {
-    "public": "public",
+    "public": "app",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -17,16 +17,8 @@
     ],
     "rewrites": [
       {
-        "source": "/app",
-        "destination": "/main-app/app.html"
-      },
-      {
-        "source": "/canon",
-        "destination": "/canon-editor/worldtree.html"
-      },
-      {
-        "source": "/director",
-        "destination": "/director-workspace/workspace.html"
+        "source": "/",
+        "destination": "/White.html"
       }
     ],
     "redirects": []

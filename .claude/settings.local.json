@@ -15,7 +15,12 @@
       "Bash(firebase deploy:*)",
       "Bash(firebase functions:secrets:set:*)",
       "Bash(cat:*)",
-      "Bash(firebase auth:export:*)"
+      "Bash(firebase auth:export:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(npm run deploy:*)",
+      "Bash(echo \"Перевір у Firestore Console: https://console.firebase.google.com/project/whitewrite-app/firestore/databases/-default-/data/~2Fusers~2FD72FcLAn2xQritZkO6xYD5lxLDL2\n\nМає бути:\n- plan: ''worldforge''\n- tokens: 8000\n- tokensMonthly: 8000\n\nЯкщо це так, то генерація має працювати з Claude!\")",
+      "Bash(firebase functions:log:*)"
     ],
     "deny": [],
     "ask": []

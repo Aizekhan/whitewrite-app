@@ -2,12 +2,14 @@ const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true }); // Enable CORS for all origins
+const Anthropic = require('@anthropic-ai/sdk');
 
 admin.initializeApp();
 const db = admin.firestore();
 
-// Define secret for Gemini API key
+// Define secrets
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
+const claudeApiKey = defineSecret('CLAUDE_API_KEY');
 
 /**
  * Cloud Function: Generate Scene
@@ -26,7 +28,9 @@ const geminiApiKey = defineSecret('GEMINI_API_KEY');
  */
 exports.generateScene = onRequest({
   region: 'us-central1',
-  secrets: [geminiApiKey]
+  secrets: [geminiApiKey, claudeApiKey],
+  timeoutSeconds: 540,  // 9 minutes - Claude Opus 4 can be slow
+  memory: '512MiB'
 }, async (req, res) => {
   // Handle CORS
   return cors(req, res, async () => {
@@ -80,6 +84,37 @@ exports.generateScene = onRequest({
         return;
       }
 
+      // Load user data to check plan
+      const userDoc = await db.collection('users').doc(uid).get();
+      const userData = userDoc.exists ? userDoc.data() : {};
+      const userPlan = userData.plan || 'seed'; // default: free tier
+      const userTokens = userData.tokens || 0;
+
+      // Check token quota
+      if (userTokens <= 0) {
+        res.status(403).json({
+          error: 'Ви вичерпали місячний ліміт токенів',
+          tokensRemaining: 0,
+          plan: userPlan
+        });
+        return;
+      }
+
+      // Check subscription status for paid plans
+      // TODO: Re-enable when Stripe is fully configured
+      // if (userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
+      //   res.status(403).json({
+      //     error: 'Активна підписка необхідна для генерації',
+      //     requiresSubscription: true,
+      //     plan: userPlan
+      //   });
+      //   return;
+      // }
+
+      // Determine which AI to use
+      const useClaudeAPI = userPlan === 'worldforge';
+      console.log(`User plan: ${userPlan}, tokens: ${userTokens}, AI: ${useClaudeAPI ? 'Claude 3.5 Sonnet' : 'Gemini 2.5 Flash'}`);
+
       // Extract canon
       const canon = project.canon || {
         characters: {},
@@ -112,25 +147,61 @@ exports.generateScene = onRequest({
         desc: project.desc,
         genres: project.genres || [],
         scope: project.scope,
+        ending: project.ending || 'open',
+        endingNote: project.endingNote || '',
+        length: project.length || 700,
+        dialogue: project.dialogue != null ? project.dialogue : 50,
         canonContext,
         intentDescription,
         previousScenes
       });
 
-      // Call Gemini API directly via REST (SDK застарілий, використовує v1beta)
-      const apiKey = geminiApiKey.value();
-
-      // Try models with fallback (REST API v1, 2026 models)
-      const modelNames = [
-        'gemini-3.5-flash',   // Latest (2026)
-        'gemini-2.5-flash',   // Stable fallback
-        'gemini-2.0-flash'    // Legacy (може бути вимкнена)
-      ];
-
       let sceneText = null;
       let lastError = null;
 
-      for (const modelName of modelNames) {
+      // Generate scene using Claude or Gemini based on plan
+      if (useClaudeAPI) {
+        // CLAUDE API (Worldforge plan)
+        try {
+          console.log('Using Claude API (claude-opus-4-8)');
+
+          const anthropic = new Anthropic({
+            apiKey: claudeApiKey.value()
+          });
+
+          const message = await anthropic.messages.create({
+            model: 'claude-opus-4-8',
+            max_tokens: 4096,
+            messages: [{
+              role: 'user',
+              content: prompt
+            }]
+          });
+
+          sceneText = message.content[0].text;
+
+          // Validate minimum length
+          if (sceneText.length < 500) {
+            throw new Error(`Scene too short (${sceneText.length} chars) - likely incomplete`);
+          }
+
+          console.log(`✓ Claude succeeded (${sceneText.length} chars, stop_reason: ${message.stop_reason})`);
+        } catch (error) {
+          console.error('✗ Claude failed:', error.message);
+          lastError = error;
+        }
+      } else {
+        // GEMINI API (Seed / Storyweaver plans)
+        const apiKey = geminiApiKey.value();
+
+        // Try models with fallback (REST API v1, 2026 models)
+        // NOTE: gemini-3.5-flash removed - has lower token limits and unreliable output
+        const modelNames = [
+          'gemini-2.5-flash',   // Stable, tested (4096 tokens works)
+          'gemini-2.0-flash'    // Legacy fallback
+        ];
+
+        for (const modelName of modelNames) {
         try {
           console.log(`Trying model: ${modelName}`);
 
@@ -145,7 +216,8 @@ exports.generateScene = onRequest({
               }],
               generationConfig: {
                 temperature: 0.8,
-                maxOutputTokens: 2048
+                maxOutputTokens: 4096,  // Increased for longer scenes (Ukrainian text needs more tokens)
+                stopSequences: []
               }
             })
           });
@@ -162,16 +234,32 @@ exports.generateScene = onRequest({
           }
 
           sceneText = data.candidates[0].content.parts[0].text;
-          console.log(`✓ Model ${modelName} succeeded`);
+
+          // Check if text was truncated
+          const finishReason = data.candidates[0].finishReason;
+          if (finishReason === 'MAX_TOKENS') {
+            console.warn(`⚠ Model ${modelName} hit token limit - text may be truncated`);
+            throw new Error('Model hit token limit - scene incomplete');
+          }
+
+          // Validate minimum length (scene should be at least ~500 chars for 700 words)
+          if (sceneText.length < 500) {
+            console.warn(`⚠ Model ${modelName} returned too short text (${sceneText.length} chars)`);
+            throw new Error(`Scene too short (${sceneText.length} chars) - likely incomplete`);
+          }
+
+          console.log(`✓ Model ${modelName} succeeded (${sceneText.length} chars, reason: ${finishReason})`);
           break; // Success
         } catch (error) {
           console.warn(`✗ Model ${modelName} failed:`, error.message);
           lastError = error;
         }
+        }
       }
 
       if (!sceneText) {
-        throw new Error(`Усі моделі Gemini недоступні. Остання помилка: ${lastError?.message}`);
+        const aiName = useClaudeAPI ? 'Claude' : 'Gemini';
+        throw new Error(`${aiName} API недоступна. Остання помилка: ${lastError?.message}`);
       }
 
       // Parse scene (extract title from first line if present)
@@ -256,13 +344,37 @@ function buildCanonContext(canon) {
 /**
  * Build scene generation prompt
  */
-function buildScenePrompt({ title, desc, genres, scope, canonContext, intentDescription, previousScenes }) {
+function buildScenePrompt({ title, desc, genres, scope, ending, endingNote, length, dialogue, canonContext, intentDescription, previousScenes }) {
+  // Convert dialogue percentage to style instruction
+  let dialogueStyle;
+  if (dialogue <= 15) {
+    dialogueStyle = 'Майже без діалогів — фокус на розповіді, описах, внутрішніх переживаннях';
+  } else if (dialogue <= 38) {
+    dialogueStyle = 'Більше розповіді — діалоги лише де потрібно, основа — наратив';
+  } else if (dialogue <= 62) {
+    dialogueStyle = 'Збалансовано — міксуй діалоги з розповіддю природно';
+  } else if (dialogue <= 82) {
+    dialogueStyle = 'Більше діалогів — персонажі розмовляють часто, через репліки розкривай дії';
+  } else {
+    dialogueStyle = 'Діалоги ведуть сцену — майже вся сцена тримається на розмовах персонажів';
+  }
+
+  // Convert ending type to narrative direction
+  let endingDirection = '';
+  if (ending === 'closed') {
+    endingDirection = '\n**Напрям фіналу:** Історія йде до завершеного фіналу — всі лінії мають розв\'язатися.';
+  } else if (ending === 'open') {
+    endingDirection = '\n**Напрям фіналу:** Відкритий фінал — історія може залишати питання, інтригу.';
+  } else if (ending === 'custom' && endingNote) {
+    endingDirection = `\n**Напрям фіналу:** ${endingNote}`;
+  }
+
   let prompt = `Ти — AI-письменник для WhiteWrite, інструменту canon-aware наративної генерації.
 
 **Проєкт:** ${title}
 **Опис:** ${desc}
 **Жанри:** ${genres.join(', ') || 'не вказано'}
-**Масштаб:** ${scope}
+**Масштаб:** ${scope}${endingDirection}
 
 **Canon (авторитетна база знань про світ):**
 ${canonContext}
@@ -270,8 +382,13 @@ ${canonContext}
 `;
 
   if (previousScenes.length > 0) {
-    prompt += `**Попередні сцени (для контексту):**
-${previousScenes.map((s, i) => `${i + 1}. ${s.title}\n${s.text.substring(0, 200)}...`).join('\n\n')}
+    prompt += `**Попередні сцени (для continuity — дотримуйся послідовності подій і персонажів):**
+${previousScenes.map((s, i) => {
+      // For last 2 scenes, show full text; for earlier, show summary (500 chars)
+      const isRecent = i >= previousScenes.length - 2;
+      const text = isRecent ? s.text : s.text.substring(0, 500) + '...';
+      return `${i + 1}. ${s.title}\n${text}`;
+    }).join('\n\n')}
 
 `;
   }
@@ -279,14 +396,20 @@ ${previousScenes.map((s, i) => `${i + 1}. ${s.title}\n${s.text.substring(0, 200)
   prompt += `**Scene Intent (напрям сцени):**
 ${intentDescription}
 
+**Стиль письма:**
+- Довжина сцени: ~${length} слів (одна сцена, не розділ)
+- Діалоги: ${dialogueStyle}
+
 **Інструкції:**
 1. Генеруй наступну сцену, яка СТРОГО ДОТРИМУЄТЬСЯ канону (не додавай нових персонажів/локацій якщо їх немає в каноні, ЯКЩО ТІЛЬКИ це не є частиною сюрпризу)
 2. Сцена має бути canon-consistent — використовуй лише факти з канону
 3. Якщо канон порожній — створюй світ і персонажів, але будь послідовним
 4. Пиши українською, у стилі жанру проєкту
-5. Довжина: 300-500 слів (одна сцена, не розділ)
-6. Формат: ## Назва сцени (перший рядок), далі текст
-7. Дотримуйся Scene Intent — це ключовий напрям сцени
+5. Формат: ## Назва сцени (перший рядок), далі текст
+6. Дотримуйся Scene Intent — це ключовий напрям сцени
+7. ВАЖЛИВО: дотримуйся вказаної довжини (~${length} слів) та стилю діалогів (${dialogue}% діалогів)
+8. **Типографіка:** Використовуй українські лапки «текст», довге тире —, неразривні пробіли (в місті, з нами)
+9. **КРИТИЧНО:** Виводь ТІЛЬКИ текст сцени. БЕЗ метакоментарів, БЕЗ "(Proceed to output...)", БЕЗ пояснень — лише чиста художня проза українською мовою.
 
 Згенеруй сцену:`;
 
@@ -323,3 +446,100 @@ function extractMentionedEntities(text, canon) {
 
   return mentioned;
 }
+
+/**
+ * Cloud Function: Initialize or Update User
+ *
+ * Creates or updates user document with plan and tokens.
+ * Called on first login or when upgrading plan.
+ */
+exports.initializeUser = onRequest({
+  region: 'us-central1'
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+      }
+
+      // Get auth token
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+
+      const token = authHeader.split('Bearer ')[1];
+      let uid;
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        uid = decodedToken.uid;
+      } catch (error) {
+        res.status(401).json({ error: 'Invalid auth token' });
+        return;
+      }
+
+      const { plan, email, displayName } = req.body;
+
+      // Plan limits
+      const planLimits = {
+        seed: { tokensMonthly: 300, maxProjects: 1 },
+        storyweaver: { tokensMonthly: 2500, maxProjects: 10 },
+        worldforge: { tokensMonthly: 8000, maxProjects: 999 }
+      };
+
+      const userPlan = plan || 'seed';
+      const limits = planLimits[userPlan] || planLimits.seed;
+
+      const userRef = db.collection('users').doc(uid);
+      const userDoc = await userRef.get();
+
+      if (!userDoc.exists) {
+        // Create new user
+        await userRef.set({
+          email: email || '',
+          displayName: displayName || 'User',
+          plan: userPlan,
+          tokens: limits.tokensMonthly,
+          tokensMonthly: limits.tokensMonthly,
+          maxProjects: limits.maxProjects,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log(`✓ User ${uid} initialized with plan: ${userPlan}`);
+      } else {
+        // Update existing user (plan change)
+        if (plan) {
+          const userData = userDoc.data();
+
+          // Protect paid plans - require active subscription
+          // TODO: Re-enable when Stripe is fully configured
+          // if (userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
+          //   res.status(403).json({
+          //     error: 'Активна підписка необхідна для зміни плану',
+          //     requiresSubscription: true
+          //   });
+          //   return;
+          // }
+
+          await userRef.update({
+            plan: userPlan,
+            tokensMonthly: limits.tokensMonthly,
+            maxProjects: limits.maxProjects,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          console.log(`✓ User ${uid} plan updated to: ${userPlan}`);
+        }
+      }
+
+      const userData = (await userRef.get()).data();
+      res.status(200).json({ success: true, user: userData });
+
+    } catch (error) {
+      console.error('initializeUser error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+

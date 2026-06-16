@@ -99,10 +99,60 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 
 > Narrative generation must NOT assume full-story generation. Default flow: Canon → Next Scene → User Direction → Next Scene. Full-book/season generation is a separate autonomous mode.
 
+# 🏗 Поточна робота: Підписка з Claude API (червень 2026)
+
+## Продакшн
+- **Головний сайт:** `whitewrite.com` (custom domain для Firebase Hosting)
+- **Firebase Hosting:** деплоїться з папки `app/` (НЕ `public/`!)
+- **Деплой:** `firebase deploy --only hosting` (або `--only functions` для Cloud Functions)
+
+## Структура файлів (ВАЖЛИВО!)
+- **Робоча директорія:** `app/` — це продакшн, що йде на whitewrite.com
+- **Застаріла директорія:** `public/` — ігнорувати, це старі файли
+- **Firebase модулі:** `app/firebase/*.js` (НЕ `app/shared/firebase/`!)
+  - `firebase-init.js` — ініціалізація Firebase
+  - `firebase-auth.js` — автентифікація + завантаження плану користувача
+  - `firebase-projects.js` — робота з проєктами
+  - `firebase-scenes.js` — генерація сцен через Cloud Functions
+  - `firebase-ai.js` — AI-генерація
+
+## Підписка: плани користувачів
+- **seed** (безкоштовно): 300 токенів/міс, Gemini API, 1 проєкт
+- **storyweaver** ($12/міс): 2500 токенів/міс, Gemini API, 10 проєктів
+- **worldforge** ($29/міс): 8000 токенів/міс, **Claude API**, 999 проєктів
+
+## Що вже зроблено ✅
+1. Claude API інтегровано в Cloud Functions (`functions/index.js`)
+2. `generateScene` перевіряє план користувача і використовує Claude для worldforge
+3. `initializeUser` Cloud Function для створення/оновлення планів користувачів
+4. Firestore: колекція `users/{uid}` з полями `{plan, tokens, tokensMonthly, maxProjects}`
+5. UI перемикання планів викликає `initializeUser` (зберігає в Firestore, не мок)
+6. `app/firebase/firebase-auth.js` завантажує план з Firestore при вході
+
+## Поточний статус ✅
+- ✅ Firebase Auth завантажує план з Firestore
+- ✅ Claude API працює з моделлю `claude-3-5-sonnet-20240620`
+- ✅ Квоти та захист підписки реалізовано
+- ✅ Stripe Checkout інтеграція додана (test mode)
+- ⏳ Потрібен Stripe Webhook для активації підписки після оплати
+
+## UI — НЕ ЧІПАТИ!
+- **Дизайн затверджено.** Не змінювати стилі, тексти, елементи без явної вказівки.
+- Модальне вікно акаунта вже існує з планами seed/storyweaver/worldforge.
+- Перемикання планів вже працює (викликає Cloud Function).
+- Токени відображаються в лівому нижньому куті (dock) — `#tokcount`.
+
+## Наступні кроки (після виправлення завантаження плану)
+1. Перевірити, що `window.__wwUser.plan = 'worldforge'` після входу
+2. Створити проєкт і згенерувати сцену
+3. Переконатись, що використовується Claude API (перевірити логи Cloud Functions)
+4. Перевірити токени (має відніматись з `window.__wwUser.tokens`)
+
 # Конвенції
 - Стиль коду — як у наявних файлах. JSX через babel; глобали на `window` (увага до колізій імен; **ніколи** `const styles`).
 - Скриншотер (html-to-image) НЕ знімає web-компоненти й fixed-overlay — перевіряти через DOM (eval), а не скриншот. У реальному браузері все рендериться.
 - **НІКОЛИ не переписуй весь файл** — використовуй `Edit` tool для точкових змін (git diff style). Якщо Read повернув 50 lines, а ти змінюєш 2 — Write з усіма 50 lines ЗАБОРОНЕНО. Лише Edit з old_string → new_string.
+- **Завжди працюємо з `app/`, НЕ `public/`!** Перед редагуванням перевіряй, чи правильна директорія.
 
 
 ---
