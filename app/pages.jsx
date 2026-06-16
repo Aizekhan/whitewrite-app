@@ -269,15 +269,10 @@ function SceneIntentPage() {
               const tokenResult = await window.__firebaseAuth.consumeTokens('sceneGemini');
               if (tokenResult.success) {
                 console.log(`✅ Tokens consumed: -${tokenResult.cost}, remaining: ${tokenResult.remaining}`);
-                // Show visual feedback
-                const message = `Сцена збережена!\n\n"${result.scene.title}"\n\n✦ Використано токенів: ${tokenResult.cost}\n✦ Залишилось: ${tokenResult.remaining}`;
-                if (window.__reloadBook) {
-                  // Brief notification before reload
-                  setTimeout(() => {
-                    console.log(`📊 ${message}`);
-                  }, 100);
-                } else {
-                  alert(message);
+
+                // Show toast notification
+                if (typeof window.__showTokenToast === 'function') {
+                  window.__showTokenToast(tokenResult.cost, tokenResult.remaining);
                 }
               } else {
                 console.error('Failed to consume tokens:', tokenResult.error);

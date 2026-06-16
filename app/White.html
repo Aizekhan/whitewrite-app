@@ -410,6 +410,23 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .intent-features__label{ font-weight:600; color:var(--tx); }
 .intent-features__provider{ color:var(--gold-lit); }
 .intent-features__upgrade{ color:var(--tx-soft); font-style:italic; }
+
+/* Toast notification for token consumption */
+.ww-toast{ position:fixed; top:80px; right:20px; z-index:9999;
+  background:linear-gradient(135deg, rgba(26,20,16,0.98) 0%, rgba(42,31,24,0.98) 100%);
+  border:1px solid rgba(212,175,55,0.4); border-radius:12px; padding:16px 20px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4), 0 0 40px rgba(212,175,55,0.15);
+  font-family:"Spectral",serif; color:var(--tx); min-width:280px;
+  animation:toastSlideIn 0.3s ease-out, toastFadeOut 0.3s ease-in 2.7s forwards; }
+.ww-toast__title{ font-family:"Cinzel",serif; font-size:15px; color:var(--gold-lit); margin:0 0 8px; font-weight:600; }
+.ww-toast__message{ font-size:13px; color:var(--tx); line-height:1.4; margin:0; }
+.ww-toast__tokens{ display:flex; align-items:center; gap:8px; margin-top:10px; padding-top:10px;
+  border-top:1px solid rgba(212,175,55,0.2); font-family:"JetBrains Mono",monospace; font-size:12px; }
+.ww-toast__tokens-used{ color:var(--st-draft); }
+.ww-toast__tokens-remaining{ color:var(--gold-lit); font-weight:600; }
+
+@keyframes toastSlideIn{ from{ transform:translateX(400px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
+@keyframes toastFadeOut{ to{ opacity:0; transform:translateX(400px); } }
 </style>
 </head>
 <body>
@@ -1444,6 +1461,27 @@ window.__openPricingModal = function() {
   } else {
     console.error('Account modal not available');
   }
+};
+
+// Global toast notification for token consumption
+window.__showTokenToast = function(cost, remaining) {
+  const toast = document.createElement('div');
+  toast.className = 'ww-toast';
+  toast.innerHTML = `
+    <div class="ww-toast__title">✦ Сцена згенерована!</div>
+    <div class="ww-toast__message">Нова сцена додана до вашої історії</div>
+    <div class="ww-toast__tokens">
+      <span class="ww-toast__tokens-used">-${cost} токенів</span>
+      <span>·</span>
+      <span class="ww-toast__tokens-remaining">Залишилось: ${remaining}</span>
+    </div>
+  `;
+  document.body.appendChild(toast);
+
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
 };
 </script>
 
