@@ -11,6 +11,19 @@ const db = admin.firestore();
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 const claudeApiKey = defineSecret('CLAUDE_API_KEY');
 
+// Phase 1.1: Token Budget System (synced with app/firebase/token-budget.js)
+const PLAN_BUDGETS = {
+  free: { monthly: 200, allowClaude: false },
+  storyteller: { monthly: 2400, allowClaude: false },
+  novelist: { monthly: 32000, allowClaude: true },
+  worldbuilder: { monthly: 180000, allowClaude: true },
+  worldforge: { monthly: 180000, allowClaude: true } // dev/testing plan
+};
+
+function getPlanBudget(plan) {
+  return PLAN_BUDGETS[plan] || PLAN_BUDGETS.free;
+}
+
 /**
  * Cloud Function: Generate Scene
  *
@@ -84,17 +97,22 @@ exports.generateScene = onRequest({
         return;
       }
 
-      // Load user data to check plan
+      // Load user data to check plan (Phase 1.1: Token Budget System)
       const userDoc = await db.collection('users').doc(uid).get();
       const userData = userDoc.exists ? userDoc.data() : {};
-      const userPlan = userData.plan || 'seed'; // default: free tier
-      const userTokens = userData.tokens || 0;
+      const userPlan = userData.plan || 'free'; // default: free tier
+      const planConfig = getPlanBudget(userPlan);
+      const tokensUsed = userData.tokensUsed || 0;
+      const tokensBudget = planConfig.monthly;
+      const tokensRemaining = tokensBudget - tokensUsed;
 
-      // Check token quota
-      if (userTokens <= 0) {
+      // Check token quota (client already checked, but double-check server-side)
+      const sceneCost = 20; // Gemini scene cost (will be 300 for Claude)
+      if (tokensRemaining < sceneCost) {
         res.status(403).json({
-          error: 'Ви вичерпали місячний ліміт токенів',
-          tokensRemaining: 0,
+          error: 'Недостатньо токенів для генерації',
+          tokensRemaining: tokensRemaining,
+          tokensNeeded: sceneCost,
           plan: userPlan
         });
         return;
@@ -111,9 +129,9 @@ exports.generateScene = onRequest({
       //   return;
       // }
 
-      // Determine which AI to use
-      const useClaudeAPI = userPlan === 'worldforge';
-      console.log(`User plan: ${userPlan}, tokens: ${userTokens}, AI: ${useClaudeAPI ? 'Claude 3.5 Sonnet' : 'Gemini 2.5 Flash'}`);
+      // Determine which AI to use (Phase 1.3: Feature Gates)
+      const useClaudeAPI = planConfig.allowClaude;
+      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude 3.5 Sonnet' : 'Gemini 2.5 Flash'}`);
 
       // Extract canon
       const canon = project.canon || {
