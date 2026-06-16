@@ -1435,56 +1435,16 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 
 <script src="kb.js"></script>
 
-<!-- Pricing Modal Container -->
-<div id="pricing-modal-root"></div>
-
-<!-- React Standalone (for PricingModal) -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-<!-- Pricing Modal Component -->
-<script type="text/babel" src="/components/PricingModal.jsx"></script>
-
-<!-- Pricing Modal Controller -->
+<!-- Pricing integration removed - now in Account modal -->
 <script>
-// Global function to open pricing modal
+// Global function redirects to Account modal (pricing is inside)
 window.__openPricingModal = function() {
-  const currentPlan = (window.__wwUser && window.__wwUser.plan) || 'free';
-  const root = document.getElementById('pricing-modal-root');
-  if (!root || !window.PricingModal) {
-    console.error('Pricing modal not loaded');
-    return;
+  if (typeof window.__openAccount === 'function') {
+    window.__openAccount();
+  } else {
+    console.error('Account modal not available');
   }
-
-  const modalRoot = ReactDOM.createRoot(root);
-  modalRoot.render(
-    React.createElement(window.PricingModal, {
-      isOpen: true,
-      currentPlan: currentPlan,
-      onClose: function() {
-        modalRoot.unmount();
-      }
-    })
-  );
 };
-
-// Add "Upgrade" button click handler to userdock
-document.addEventListener('DOMContentLoaded', function() {
-  const userdock = document.getElementById('userdock');
-  if (userdock) {
-    // Add click handler to token count for quick upgrade
-    const tokenEl = document.querySelector('.userdock__tok');
-    if (tokenEl) {
-      tokenEl.style.cursor = 'pointer';
-      tokenEl.title = 'Натисніть для перегляду планів';
-      tokenEl.addEventListener('click', function(e) {
-        e.stopPropagation();
-        window.__openPricingModal();
-      });
-    }
-  }
-});
 </script>
 
 </body>
