@@ -225,9 +225,14 @@ function App() {
 
                   console.log(`[${i + 1}/${scenesToGenerate}] ✓ Saved to Firestore`);
 
-                  // Increment scene counter (Phase 1.1)
-                  if (window.__firebaseAuth && window.__firebaseAuth.incrementSceneCounter) {
-                    await window.__firebaseAuth.incrementSceneCounter('gemini'); // TODO: detect provider
+                  // Phase 1.1: Consume tokens after successful generation
+                  if (window.__firebaseAuth && window.__firebaseAuth.consumeTokens) {
+                    const tokenResult = await window.__firebaseAuth.consumeTokens('sceneGemini');
+                    if (tokenResult.success) {
+                      console.log(`[${i + 1}/${scenesToGenerate}] ✅ Tokens: -${tokenResult.cost}, remaining: ${tokenResult.remaining}`);
+                    } else {
+                      console.error(`[${i + 1}/${scenesToGenerate}] ❌ Token consumption failed:`, tokenResult.error);
+                    }
                   }
                 } else {
                   console.error(`[${i + 1}/${scenesToGenerate}] ✗ Generation failed:`, result.error);

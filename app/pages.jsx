@@ -264,11 +264,29 @@ function SceneIntentPage() {
             });
             console.log('Scene saved to Firestore:', savedScene.id);
 
+            // Phase 1.1: Consume tokens after successful generation
+            if (window.__firebaseAuth && window.__firebaseAuth.consumeTokens) {
+              const tokenResult = await window.__firebaseAuth.consumeTokens('sceneGemini');
+              if (tokenResult.success) {
+                console.log(`✅ Tokens consumed: -${tokenResult.cost}, remaining: ${tokenResult.remaining}`);
+                // Show visual feedback
+                const message = `Сцена збережена!\n\n"${result.scene.title}"\n\n✦ Використано токенів: ${tokenResult.cost}\n✦ Залишилось: ${tokenResult.remaining}`;
+                if (window.__reloadBook) {
+                  // Brief notification before reload
+                  setTimeout(() => {
+                    console.log(`📊 ${message}`);
+                  }, 100);
+                } else {
+                  alert(message);
+                }
+              } else {
+                console.error('Failed to consume tokens:', tokenResult.error);
+              }
+            }
+
             // D5: Trigger book reload to show new scene
             if (window.__reloadBook) {
               window.__reloadBook({ jumpToLast: true });
-            } else {
-              alert(`Сцена збережена!\n\n"${result.scene.title}"\n\nОновіть сторінку, щоб побачити її в книзі.`);
             }
           } catch (saveError) {
             console.error('Failed to save scene:', saveError);
