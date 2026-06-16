@@ -417,7 +417,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   border:1px solid rgba(212,175,55,0.4); border-radius:12px; padding:16px 20px;
   box-shadow:0 8px 24px rgba(0,0,0,0.4), 0 0 40px rgba(212,175,55,0.15);
   font-family:"Spectral",serif; color:var(--tx); min-width:280px;
-  animation:toastSlideIn 0.3s ease-out, toastFadeOut 0.3s ease-in 2.7s forwards; }
+  animation:toastSlideIn 0.3s ease-out, toastFadeOut 0.3s ease-in 5.7s forwards; }
 .ww-toast__title{ font-family:"Cinzel",serif; font-size:15px; color:var(--gold-lit); margin:0 0 8px; font-weight:600; }
 .ww-toast__message{ font-size:13px; color:var(--tx); line-height:1.4; margin:0; }
 .ww-toast__tokens{ display:flex; align-items:center; gap:8px; margin-top:10px; padding-top:10px;
@@ -1478,10 +1478,10 @@ window.__showTokenToast = function(cost, remaining) {
   `;
   document.body.appendChild(toast);
 
-  // Auto-remove after 3 seconds
+  // Auto-remove after 6 seconds
   setTimeout(() => {
     toast.remove();
-  }, 3000);
+  }, 6000);
 };
 </script>
 
