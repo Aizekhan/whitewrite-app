@@ -31,13 +31,20 @@
 
 **Мета:** Інфраструктура для всіх тірів — лічильник, gating, провайдер за планом.
 
+**Фінальні плани (з PRICING_ANALYSIS.md):**
+- **Free** ($0): 10 сцен Gemini, 1 проєкт
+- **Storyteller** ($12): 120 сцен Gemini, 5 проєктів, експорт
+- **Novelist** ($29): 400 Gemini АБО 80 Claude, ∞ проєктів, Universe Reconstruction
+- **Worldbuilder** ($69): 300 Claude, ∞ проєктів, API, пріоритет
+
 ### 1.1 Лічильник сцен на користувача
 - **Firestore schema:**
   ```javascript
   users/{uid}
     - plan: "free" | "storyteller" | "novelist" | "worldbuilder"
     - scenesGenerated: number  // this month
-    - scenesLimit: number      // based on plan
+    - scenesLimit: number      // based on plan: 10 / 120 / 400 / 300
+    - claudeCredits: number    // only for novelist: 80/month
     - resetDate: timestamp     // start of billing cycle
     - tokens: number           // legacy, deprecated
   ```
@@ -48,24 +55,28 @@
 
 ### 1.2 Gating по ліміту
 - **UI:** Коли `scenesGenerated >= scenesLimit`:
-  - Scene Intent Page показує: "Ви використали 150/150 сцен цього місяця"
+  - Scene Intent Page показує: "Ви використали 120/120 сцен цього місяця"
   - Кнопка "Генерувати" → "Підвищити план" (поки без оплати, просто alert)
 - **М'який стоп:** Не блокує читання/редагування, лише генерацію.
 - **Готово коли:**
-  - Free (15 сцен) → стоп після 15
-  - Storyteller (150) → стоп після 150
-  - Novelist/Worldbuilder → стоп на їхніх лімітах
+  - Free (10 сцен) → стоп після 10
+  - Storyteller (120) → стоп після 120
+  - Novelist (400 Gemini або 80 Claude) → подвійний лічильник
+  - Worldbuilder (300 Claude) → стоп після 300
 
 ### 1.3 Claude-провайдер за планом
 - **Логіка:**
   - Free / Storyteller → Gemini (завжди)
-  - Novelist → Gemini за замовчуванням, але є **Claude credits** (100/міс)
+  - Novelist → Gemini за замовчуванням, але є **Claude credits** (80/міс)
   - Worldbuilder → Claude за замовчуванням (300 сцен)
 - **UI:** Scene Intent Page — вибір провайдера (якщо план дозволяє)
+- **Лічильники:**
+  - Novelist: `geminiScenes` (max 400) + `claudeScenes` (max 80)
+  - Worldbuilder: `claudeScenes` (max 300)
 - **Готово коли:**
   - `generateScene()` приймає `provider: "gemini" | "claude"`
   - Cloud Function маршрутизує на правильний API
-  - Витрата credits відслідковується
+  - Витрата credits відслідковується окремо
 
 **Готово коли (вся фаза 1):**
 - Лічильник працює в Firestore
