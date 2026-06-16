@@ -196,6 +196,19 @@ window.__firebaseAuth = {
     // Check if user can afford
     if (window.__wwUser.tokensRemaining < cost) {
       console.warn(`Insufficient tokens: need ${cost}, have ${window.__wwUser.tokensRemaining}`);
+
+      // Show upgrade modal (if function exists)
+      if (typeof window.__openPricingModal === 'function') {
+        setTimeout(() => {
+          const planName = window.__getPlanConfig ? window.__getPlanConfig(window.__wwUser.plan).name : 'free';
+          const message = `Недостатньо токенів!\n\nПотрібно: ${cost} токенів\nДоступно: ${window.__wwUser.tokensRemaining} токенів\n\nВаш поточний план: ${planName}\n\nОберіть більший план для продовження генерації.`;
+
+          if (confirm(message + '\n\nПереглянути тарифи?')) {
+            window.__openPricingModal();
+          }
+        }, 100);
+      }
+
       return { success: false, error: 'Insufficient tokens', needed: cost, available: window.__wwUser.tokensRemaining };
     }
 
