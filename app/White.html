@@ -376,6 +376,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   padding:10px; border-radius:9px; border:none; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
 .plan__badge{ text-align:center; font-size:12px; color:var(--gold-lit); padding:9px; border-radius:9px;
   background:var(--gold-soft); border:1px solid rgba(217,160,70,0.4); }
+.plan.is-popular{ border:2px solid var(--gold-bright); box-shadow:0 0 0 1px var(--gold-soft), 0 8px 24px rgba(217,160,70,0.2); }
+.plan__pop-badge{ position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+  background:linear-gradient(135deg,var(--gold-bright) 0%,var(--gold-lit) 100%); color:#1a1206;
+  padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:0.5px;
+  box-shadow:0 4px 12px rgba(217,160,70,0.4); }
 
 @media (max-width:620px){
   .rail{ height:54px; padding:0 10px; gap:6px; }
@@ -1194,18 +1199,28 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '</div>' +
         '<div class="vsec-h">' + svg("sparkle") + 'Плани підписки</div>' +
         '<div class="plan-grid">' +
-          planCard("seed", "Зерно", "Безкоштовно", ["1 всесвіт", "300 токенів/міс", "Історії пише Gemini"], u.plan) +
-          planCard("storyweaver", "Storyweaver", "$12/міс", ["10 всесвітів", "2 500 токенів/міс", "Історії пише Gemini", "Режисер + LoRA", "Реконструкція канону"], u.plan) +
-          planCard("worldforge", "Worldforge", "$29/міс", ["Безліч всесвітів", "8 000 токенів/міс", "✦ Історії пише Claude", "Пріоритетна генерація", "Авто-режим сезонів"], u.plan) +
+          planCard("free", "Free", "Безкоштовно", ["10 Gemini сцен/міс", "1 проєкт", "Canon-aware generation"], u.plan) +
+          planCard("storyteller", "Storyteller", "$12/міс", ["120 Gemini сцен/міс", "5 проєктів", "✨ Експорт DOCX/PDF"], u.plan) +
+          planCard("novelist", "Novelist", "$29/міс", ["32K токенів (гнучко)", "✦ Claude Sonnet", "100 image credits", "3 LoRA slots", "🔥 Universe Reconstruction"], u.plan, true) +
+          planCard("worldbuilder", "Worldbuilder", "$69/міс", ["180K токенів", "500 image credits", "10 LoRA slots", "API access", "Priority queue"], u.plan) +
         '</div>' +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">⎋ Вийти з акаунту</button>' +
       '</div>';
     bindAccount();
   }
-  function planLabel(id) { return { seed: "План Зерно", storyweaver: "План Storyweaver", worldforge: "План Worldforge" }[id] || "План"; }
-  function planCard(id, name, price, feats, cur) {
+  function planLabel(id) {
+    return {
+      free: "План Free",
+      storyteller: "План Storyteller",
+      novelist: "План Novelist",
+      worldbuilder: "План Worldbuilder",
+      worldforge: "План Worldforge"  // legacy compat
+    }[id] || "План";
+  }
+  function planCard(id, name, price, feats, cur, popular) {
     var active = id === cur;
-    return '<div class="plan ' + (active ? "is-cur" : "") + '">' +
+    return '<div class="plan ' + (active ? "is-cur" : "") + (popular ? " is-popular" : "") + '">' +
+      (popular ? '<div class="plan__pop-badge">⭐ POPULAR</div>' : '') +
       '<div class="plan__name">' + name + '</div><div class="plan__price">' + price + '</div>' +
       '<ul class="plan__feats">' + feats.map(function (f) { return '<li>' + f + '</li>'; }).join("") + '</ul>' +
       (active ? '<div class="plan__badge">Поточний план</div>' : '<button class="plan__btn" data-plan="' + id + '">Обрати</button>') +
@@ -1231,28 +1246,22 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       b.onclick = async function () {
         var targetPlan = b.dataset.plan;
 
-        // Seed plan - allow free switch
-        if (targetPlan === 'seed') {
+        // Free plan - downgrade
+        if (targetPlan === 'free') {
           alert('Повернення на безкоштовний план поки недоступне. Зв\'яжіться з підтримкою.');
           return;
         }
 
-        // Paid plans - redirect to Stripe payment links (temporary, will be replaced with proper integration)
-        var paymentLinks = {
-          storyweaver: 'https://buy.stripe.com/test_00g4jb8Tp1ly9cA000', // TODO: Replace with real link
-          worldforge: 'https://buy.stripe.com/test_00g4jb8Tp1ly9cA000'   // TODO: Replace with real link
-        };
+        // Phase 8: Stripe integration placeholder
+        alert('Stripe integration: Phase 8\n\nВи обрали план: ' + targetPlan + '\n\nПоки що плани змінюються вручну в Firestore Console:\nusers/{uid}.plan = "' + targetPlan + '"');
 
-        var paymentLink = paymentLinks[targetPlan];
-        if (paymentLink) {
-          // Add user metadata to URL
-          var u = window.__wwUser;
-          var url = paymentLink + '?prefilled_email=' + encodeURIComponent(u.email || '');
-          url += '&client_reference_id=' + encodeURIComponent(u.uid);
-          window.location.href = url;
-        } else {
-          alert('Оформлення підписки тимчасово недоступне. Спробуйте пізніше.');
-        }
+        // TODO Phase 8: Stripe Checkout
+        // var paymentLinks = {
+        //   storyteller: 'https://buy.stripe.com/storyteller_link',
+        //   novelist: 'https://buy.stripe.com/novelist_link',
+        //   worldbuilder: 'https://buy.stripe.com/worldbuilder_link'
+        // };
+        // window.location.href = paymentLinks[targetPlan] + '?prefilled_email=' + u.email + '&client_reference_id=' + u.uid;
       };
     });
     var tu = document.getElementById("acc-topup");
