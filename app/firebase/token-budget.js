@@ -111,6 +111,26 @@ window.__PLAN_BUDGETS = {
     loraCreditsGuideline: 3,   // ~3 LoRA trainings per month
 
     description: "180,000 токенів: 300 Claude + 500 зображень + API + пріоритет"
+  },
+
+  // Dev/testing plan (legacy)
+  worldforge: {
+    name: "Worldforge",
+    price: 0,
+    monthly: 180000,           // Same as worldbuilder for testing
+
+    allowClaude: true,
+    allowImages: true,
+    allowReconstruction: true,
+    allowExport: true,
+    allowAPI: true,
+    priority: true,
+
+    maxProjects: Infinity,
+    imageCreditsGuideline: 500,
+    loraCreditsGuideline: 3,
+
+    description: "180,000 токенів (dev plan)"
   }
 };
 
