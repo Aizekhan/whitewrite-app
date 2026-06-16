@@ -156,6 +156,30 @@ function App() {
           try {
             console.log(`${isAutoMode ? 'Auto mode' : 'Guided mode'}: generating ${scenesToGenerate} scene(s)...`);
 
+            // Phase 1.2: Check token balance for ALL scenes upfront (Auto Mode)
+            const user = window.__wwUser;
+            if (!user || !user.uid) {
+              alert('Увійдіть в акаунт для генерації сцен.');
+              return;
+            }
+
+            const costPerScene = window.__TOKEN_COSTS?.sceneGemini || 20;
+            const totalCost = costPerScene * scenesToGenerate;
+            if (user.tokensRemaining < totalCost) {
+              console.warn(`Insufficient tokens for ${scenesToGenerate} scenes: need ${totalCost}, have ${user.tokensRemaining}`);
+
+              const planName = window.__getPlanConfig ? window.__getPlanConfig(user.plan).name : 'Free';
+              const maxScenes = Math.floor(user.tokensRemaining / costPerScene);
+              const message = `Недостатньо токенів для генерації ${scenesToGenerate} сцен!\n\nПотрібно: ${totalCost} токенів (${scenesToGenerate} × ${costPerScene})\nДоступно: ${user.tokensRemaining} токенів\n\nМожна згенерувати: до ${maxScenes} сцен\n\nВаш поточний план: ${planName}`;
+
+              if (confirm(message + '\n\nВідкрити налаштування акаунту?')) {
+                if (typeof window.__openAccount === 'function') {
+                  window.__openAccount();
+                }
+              }
+              return; // BLOCK generation
+            }
+
             for (let i = 0; i < scenesToGenerate; i++) {
               try {
                 // Free tier: add delay between scenes to avoid rate limits

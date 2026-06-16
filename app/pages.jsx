@@ -191,6 +191,31 @@ function SceneIntentPage() {
       return;
     }
 
+    // Phase 1.2: Check token balance BEFORE generation
+    const user = window.__wwUser;
+    if (!user || !user.uid) {
+      alert('Увійдіть в акаунт для генерації сцен.');
+      return;
+    }
+
+    // Get cost for scene generation (default to Gemini)
+    const cost = window.__TOKEN_COSTS?.sceneGemini || 20;
+    if (user.tokensRemaining < cost) {
+      console.warn(`Insufficient tokens: need ${cost}, have ${user.tokensRemaining}`);
+
+      // Show upgrade modal
+      const planName = window.__getPlanConfig ? window.__getPlanConfig(user.plan).name : 'Free';
+      const message = `Недостатньо токенів для генерації сцени!\n\nПотрібно: ${cost} токенів\nДоступно: ${user.tokensRemaining} токенів\n\nВаш поточний план: ${planName}\n\nОберіть більший план для продовження генерації.`;
+
+      if (confirm(message + '\n\nВідкрити налаштування акаунту?')) {
+        // Open account modal
+        if (typeof window.__openAccount === 'function') {
+          window.__openAccount();
+        }
+      }
+      return; // BLOCK generation
+    }
+
     setBusy(true);
 
     try {
@@ -277,6 +302,39 @@ function SceneIntentPage() {
         <textarea className="intent-note" value={note} onChange={(ev) => setNote(ev.target.value)}
           placeholder="Напр.: Маркус знаходить лист від Олени й вирішує повернутись на станцію…" rows={3} />
       )}
+      {/* Phase 1.2: Token balance indicator + Phase 1.3: Feature gates info */}
+      {(() => {
+        const user = window.__wwUser;
+        const cost = window.__TOKEN_COSTS?.sceneGemini || 20;
+        const canAfford = user && user.tokensRemaining >= cost;
+        const balanceClass = canAfford ? 'intent-balance' : 'intent-balance intent-balance--low';
+        const planConfig = window.__getPlanConfig ? window.__getPlanConfig(user?.plan) : null;
+
+        return user ? (
+          <>
+            <div className={balanceClass}>
+              <span className="intent-balance__label">Вартість генерації:</span>
+              <span className="intent-balance__cost">{cost} токенів</span>
+              <span className="intent-balance__sep">·</span>
+              <span className="intent-balance__remaining">
+                {canAfford ? `Доступно: ${user.tokensRemaining}` : `⚠ Недостатньо токенів (${user.tokensRemaining})`}
+              </span>
+            </div>
+            {/* Phase 1.3: Feature gates indicator */}
+            {planConfig && (!planConfig.allowClaude || !planConfig.allowImages) && (
+              <div className="intent-features">
+                <span className="intent-features__label">Провайдер:</span>
+                <span className="intent-features__provider">✦ Gemini Flash (швидкий, економний)</span>
+                {!planConfig.allowClaude && (
+                  <span className="intent-features__upgrade">
+                    · Claude Sonnet доступний з плану Novelist →
+                  </span>
+                )}
+              </div>
+            )}
+          </>
+        ) : null;
+      })()}
       <button className="intent-gen" type="button" onClick={generate} disabled={!canGo || busy}>
         {busy ? "✦ Хранитель пише…" : "✦ Генерувати наступну сцену"}
       </button>
