@@ -230,6 +230,11 @@ function App() {
                     const tokenResult = await window.__firebaseAuth.consumeTokens('sceneGemini');
                     if (tokenResult.success) {
                       console.log(`[${i + 1}/${scenesToGenerate}] ✅ Tokens: -${tokenResult.cost}, remaining: ${tokenResult.remaining}`);
+
+                      // Show toast notification (only on last scene in Auto Mode)
+                      if (i === scenesToGenerate - 1 && typeof window.__showTokenToast === 'function') {
+                        window.__showTokenToast(tokenResult.cost * scenesToGenerate, tokenResult.remaining);
+                      }
                     } else {
                       console.error(`[${i + 1}/${scenesToGenerate}] ❌ Token consumption failed:`, tokenResult.error);
                     }
