@@ -352,7 +352,10 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   }, [SCENES]);
 
   const goWorkspace = useCallback(() => fadeNav("WhiteWrite Workspace.html"), []);
-  const goTree = useCallback(() => fadeNav("WhiteWrite WorldTree.html"), []);
+  const goTree = useCallback(() => {
+    const url = projectId ? `WhiteWrite WorldTree.html?projectId=${encodeURIComponent(projectId)}` : "WhiteWrite WorldTree.html";
+    fadeNav(url);
+  }, [projectId]);
 
   // Show loading if scenes not ready
   if (loadingScenes || !scene || !spread) {

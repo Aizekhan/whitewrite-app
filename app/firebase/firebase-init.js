@@ -14,7 +14,16 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const functions = firebase.app().functions('us-central1'); // Set region for compat SDK
+
+// Functions SDK is optional (only loaded on some pages)
+let functions = null;
+try {
+  if (firebase.app && firebase.app().functions) {
+    functions = firebase.app().functions('us-central1');
+  }
+} catch (e) {
+  console.warn('Firebase Functions SDK not loaded (optional)');
+}
 
 // Global access
 window.__firebase = { app, auth, db, functions };

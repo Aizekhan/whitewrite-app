@@ -140,12 +140,170 @@ function initialCur() {
 
 function WorldTreeApp() {
   const [cur, setCur] = useAppState(initialCur); // null | {type,id}
+  const [canon, setCanon] = useAppState(null); // Real canon from Firestore
+  const [loading, setLoading] = useAppState(true);
+  const [authReady, setAuthReady] = useAppState(false);
+
+  // Get projectId from URL param, global, or last opened project
+  const getProjectId = async () => {
+    // 1. Try URL param
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlProjectId = params.get('projectId');
+      if (urlProjectId) {
+        console.log('[WorldTree] projectId from URL:', urlProjectId);
+        return urlProjectId;
+      }
+    } catch (e) {}
+
+    // 2. Try global (set by Book)
+    if (window.__currentProjectId) {
+      console.log('[WorldTree] projectId from global:', window.__currentProjectId);
+      return window.__currentProjectId;
+    }
+
+    // 3. Try to get any user project from Firestore
+    if (window.__firebase && window.__wwUser?.uid) {
+      try {
+        console.log('[WorldTree] Fetching projects for user:', window.__wwUser.uid);
+        const userProjects = await window.__firebase.db
+          .collection('projects')
+          .where('owner', '==', window.__wwUser.uid)
+          .limit(1)
+          .get();
+
+        if (!userProjects.empty) {
+          const firstProject = userProjects.docs[0];
+          console.log('[WorldTree] projectId from first project:', firstProject.id, firstProject.data().title);
+          return firstProject.id;
+        } else {
+          console.warn('[WorldTree] User has no projects');
+        }
+      } catch (error) {
+        console.error('[WorldTree] Failed to get user projects:', error);
+      }
+    } else {
+      console.warn('[WorldTree] Cannot fetch projects: firebase =', !!window.__firebase, ', user =', !!window.__wwUser);
+    }
+
+    console.warn('[WorldTree] No project found');
+    return null;
+  };
+
+  // Listen to auth state changes and reload canon
+  React.useEffect(() => {
+    // Poll for auth state (Firebase auth initializes async)
+    const authCheckInterval = setInterval(() => {
+      if (window.__wwAuth !== undefined && !authReady) {
+        console.log('[WorldTree] Auth ready:', window.__wwAuth ? 'authenticated' : 'anonymous', window.__wwUser?.email || 'no user');
+        setAuthReady(true);
+        clearInterval(authCheckInterval);
+      }
+    }, 100);
+
+    // Cleanup after 15 seconds
+    const timeout = setTimeout(() => {
+      if (!authReady) {
+        console.warn('[WorldTree] Auth timeout after 15s, proceeding without user');
+        setAuthReady(true);
+      }
+      clearInterval(authCheckInterval);
+    }, 15000);
+
+    return () => {
+      clearInterval(authCheckInterval);
+      clearTimeout(timeout);
+    };
+  }, [authReady]);
+
+  // Load canon from Firestore when auth is ready
+  React.useEffect(() => {
+    if (!authReady) return; // Wait for auth
+
+    async function loadCanon() {
+      console.log('[WorldTree] Loading canon with auth:', window.__wwAuth ? 'authenticated' : 'anonymous', window.__wwUser?.email || 'no user');
+
+      const projectId = await getProjectId();
+
+      console.log('[WorldTree] Loading canon...', {
+        projectId,
+        user: window.__wwUser?.email || 'anonymous',
+        urlParams: window.location.search,
+        globalProjectId: window.__currentProjectId,
+        firebaseCanonExists: !!window.__firebaseCanon,
+        firebaseExists: !!window.__firebase
+      });
+
+      // Store globally for other components
+      if (projectId) {
+        window.__currentProjectId = projectId;
+      }
+
+      if (!projectId) {
+        console.warn('[WorldTree] ⚠️ No project selected — using empty canon');
+        setCanon(window.__firebaseCanon?._emptyCanon() || WORLD);
+        setLoading(false);
+        return;
+      }
+
+      if (!window.__firebaseCanon) {
+        console.error('[WorldTree] ❌ Firebase canon not loaded — falling back to WORLD mock');
+        setCanon(WORLD);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const realCanon = await window.__firebaseCanon.getCanon(projectId);
+        const canonArrays = window.__firebaseCanon.canonToArrays(realCanon);
+
+        console.log('[WorldTree] ✅ Canon loaded from Firestore:', {
+          projectId,
+          characters: canonArrays.characters.length,
+          locations: canonArrays.locations.length,
+          events: canonArrays.events.length,
+          world: canonArrays.world
+        });
+
+        // Update global WORLD for compatibility with existing code (wt-tree.jsx, wt-workspace.jsx, etc.)
+        window.WORLD = canonArrays;
+
+        setCanon(canonArrays);
+      } catch (error) {
+        console.error('[WorldTree] ❌ Failed to load canon:', error);
+        // Keep original WORLD mock as fallback
+        setCanon(WORLD);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadCanon();
+  }, [authReady]); // Reload when auth becomes ready
+
   const navigate = useAppCb((type, id) => {
+    if (!canon) return;
     if (type === "chronicle") { setCur({ type: "chronicle" }); return; }
-    const fid = id || (WORLD[type] && WORLD[type][0] && WORLD[type][0].id);
+    const fid = id || (canon[type] && canon[type][0] && canon[type][0].id);
     setCur({ type, id: fid });
-  }, []);
+  }, [canon]);
   const close = useAppCb(() => setCur(null), []);
+
+  if (loading) {
+    return (
+      <div className="wt-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--tx-mid)', fontSize: 14 }}>Завантаження канону...</p>
+      </div>
+    );
+  }
+
+  if (!canon) {
+    return (
+      <div className="wt-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'var(--tx-mid)', fontSize: 14 }}>Канон не знайдено</p>
+      </div>
+    );
+  }
 
   return (
     <div className="wt-root">
@@ -154,7 +312,7 @@ function WorldTreeApp() {
         <>
           <header className="brand">
             <span className="brand__logo"><Ic.book /></span>
-            <span><span className="brand__name">White Tree</span><span className="brand__tag">Всесвіт · Червоний сигнал</span></span>
+            <span><span className="brand__name">White Tree</span><span className="brand__tag">Всесвіт · {canon.world?.tagline || 'Ваш всесвіт'}</span></span>
           </header>
           <PillarSwitch here="universe" fixed />
         </>

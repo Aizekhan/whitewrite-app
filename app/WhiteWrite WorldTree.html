@@ -637,6 +637,17 @@ image-slot::part(frame){ background:rgba(255,255,255,0.035); }
 
 <script src="image-slot.js"></script>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+
+<!-- Firebase modules -->
+<script src="firebase/firebase-init.js"></script>
+<script src="firebase/firebase-auth.js"></script>
+<script src="firebase/firebase-projects.js"></script>
+<script src="firebase/firebase-canon.js"></script>
+
 <script type="text/babel" src="ws-icons.jsx"></script>
 <script type="text/babel" src="wt-icons.jsx"></script>
 <script type="text/babel" src="wt-world.jsx"></script>
@@ -646,5 +657,12 @@ image-slot::part(frame){ background:rgba(255,255,255,0.035); }
 <script type="text/babel" src="wt-workspace.jsx"></script>
 <script type="text/babel" src="wt-tree.jsx"></script>
 <script type="text/babel" src="wt-app.jsx"></script>
+
+<script>
+// Initialize Firebase Auth
+if (window.__firebaseAuth && window.__firebaseAuth.init) {
+  window.__firebaseAuth.init();
+}
+</script>
 </body>
 </html>
