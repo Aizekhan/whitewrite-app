@@ -601,6 +601,33 @@ image-slot::part(frame){ background:rgba(255,255,255,0.035); }
 .chron-cat__c{ font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--tx-low);
   background:var(--bg-3); border-radius:20px; padding:2px 8px; }
 
+/* Phase 3.1c: Inferred Canon Review Queue */
+.inferred-queue{ margin-top:24px; }
+.inferred-scene{ margin-bottom:18px; }
+.inferred-scene__title{ font-size:12px; color:var(--tx-mid); margin-bottom:9px; }
+
+.canon-suggestion{ background:var(--bg-2); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; }
+.canon-suggestion__header{ display:flex; align-items:center; gap:9px; margin-bottom:9px; }
+.canon-suggestion__name{ font-size:15px; color:var(--tx-hi); flex:1; }
+.canon-suggestion__action{ font-size:11px; color:var(--tx-mid); text-transform:uppercase; letter-spacing:.1em; }
+.canon-suggestion__reason{ font-size:13px; color:var(--tx); margin-bottom:12px; font-style:italic; }
+.canon-suggestion__data{ margin-bottom:12px; }
+.canon-suggestion__actions{ display:flex; gap:9px; }
+
+.type-badge{ display:inline-flex; align-items:center; justify-content:center; padding:3px 9px; border-radius:20px;
+  font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; background:var(--bg-3); color:var(--tx-mid); }
+.type-badge[data-type="character"]{ background:rgba(124,58,237,0.16); color:var(--violet-lit); }
+.type-badge[data-type="location"]{ background:rgba(6,182,212,0.16); color:#22d3ee; }
+.type-badge[data-type="event"]{ background:rgba(217,119,6,0.16); color:var(--gold-lit); }
+.type-badge[data-type="faction"]{ background:rgba(220,38,38,0.16); color:#f87171; }
+.type-badge[data-type="artifact"]{ background:rgba(168,85,247,0.16); color:#c084fc; }
+
+.btn-approve, .btn-reject{ display:inline-flex; align-items:center; gap:6px; padding:7px 13px; border-radius:8px;
+  font-size:13px; font-weight:500; cursor:pointer; transition:.18s; border:1px solid var(--line); background:var(--bg-3); color:var(--tx); }
+.btn-approve svg, .btn-reject svg{ width:14px; height:14px; }
+.btn-approve:hover{ background:rgba(34,197,94,0.16); border-color:#22c55e; color:#4ade80; }
+.btn-reject:hover{ background:rgba(239,68,68,0.16); border-color:#ef4444; color:#f87171; }
+
 @media (max-width:1040px){
   .ws-split{ grid-template-columns:1fr; }
   .ws-aside{ border-left:none; border-top:1px solid var(--line); }

@@ -36,6 +36,134 @@ function PillarSwitch({ here, fixed }) {
   );
 }
 
+// Phase 3.1c: Inferred Canon Review Queue
+function InferredCanonQueue({ projectId }) {
+  const [inferredCanon, setInferredCanon] = useAppState(null);
+  const [loading, setLoading] = useAppState(true);
+
+  // Load inferredCanon from Firestore
+  React.useEffect(() => {
+    if (!window.__firebase?.db || !projectId) return;
+
+    async function loadInferredCanon() {
+      try {
+        const projectDoc = await window.__firebase.db.collection('projects').doc(projectId).get();
+        const data = projectDoc.data();
+        const inferred = data?.inferredCanon || {};
+
+        // Convert to array and filter pending only
+        const pending = Object.entries(inferred)
+          .filter(([_, v]) => v.status === 'pending')
+          .map(([sceneId, data]) => ({
+            sceneId,
+            ...data
+          }));
+
+        setInferredCanon(pending);
+        setLoading(false);
+      } catch (error) {
+        console.error('[InferredCanon] Load failed:', error);
+        setLoading(false);
+      }
+    }
+
+    loadInferredCanon();
+  }, [projectId]);
+
+  async function approveSuggestion(sceneId, suggestion) {
+    if (!window.__firebase?.db || !projectId) return;
+
+    try {
+      // Merge to canon
+      const updatePath = `canon.${suggestion.type}.${suggestion.id}`;
+      await window.__firebase.db.collection('projects').doc(projectId).update({
+        [updatePath]: {
+          ...suggestion.newData,
+          explicit: false,  // Inferred, not user-created
+          inferredFrom: sceneId,
+          createdAt: window.__firebase.db.FieldValue.serverTimestamp()
+        },
+        [`inferredCanon.${sceneId}.status`]: 'approved'
+      });
+
+      // Reload
+      setInferredCanon((prev) => prev.filter((item) => item.sceneId !== sceneId));
+
+      console.log('[InferredCanon] ✅ Approved:', suggestion.id);
+    } catch (error) {
+      console.error('[InferredCanon] Approve failed:', error);
+      alert(`Помилка: ${error.message}`);
+    }
+  }
+
+  async function rejectSuggestion(sceneId) {
+    if (!window.__firebase?.db || !projectId) return;
+
+    try {
+      await window.__firebase.db.collection('projects').doc(projectId).update({
+        [`inferredCanon.${sceneId}.status`]: 'rejected'
+      });
+
+      // Remove from UI
+      setInferredCanon((prev) => prev.filter((item) => item.sceneId !== sceneId));
+
+      console.log('[InferredCanon] ❌ Rejected:', sceneId);
+    } catch (error) {
+      console.error('[InferredCanon] Reject failed:', error);
+      alert(`Помилка: ${error.message}`);
+    }
+  }
+
+  if (loading) return <p style={{fontSize: 14, color: 'var(--tx-mid)'}}>Завантаження...</p>;
+  if (!inferredCanon || inferredCanon.length === 0) return null;
+
+  const totalSuggestions = inferredCanon.reduce((sum, item) => sum + (item.suggestions?.length || 0), 0);
+
+  return (
+    <div className="inferred-queue">
+      <h3 className="blk-h" style={{ marginTop: 24 }}>
+        <Ic.alert />Нові сутності на розгляді · {totalSuggestions}
+      </h3>
+
+      {inferredCanon.map((item) => (
+        <div className="inferred-scene" key={item.sceneId}>
+          <p className="inferred-scene__title">Сцена ({new Date(item.createdAt?.toDate()).toLocaleDateString('uk')})</p>
+
+          {item.suggestions?.map((suggestion) => (
+            <div className="canon-suggestion" key={suggestion.id}>
+              <div className="canon-suggestion__header">
+                <span className="type-badge" data-type={suggestion.type}>{suggestion.type}</span>
+                <strong className="canon-suggestion__name">{suggestion.newData?.name || suggestion.targetId}</strong>
+                <span className="canon-suggestion__action">{suggestion.action === 'add' ? '+ Додати' : '↻ Оновити'}</span>
+              </div>
+
+              <p className="canon-suggestion__reason">{suggestion.reason}</p>
+
+              <div className="canon-suggestion__data">
+                {Object.entries(suggestion.newData || {}).slice(0, 3).map(([key, value]) => (
+                  <div className="kv__row" key={key}>
+                    <span className="kv__k">{key}</span>
+                    <span className="kv__v">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="canon-suggestion__actions">
+                <button className="btn-approve" type="button" onClick={() => approveSuggestion(item.sceneId, suggestion)}>
+                  <Ic.check />Прийняти
+                </button>
+                <button className="btn-reject" type="button" onClick={() => rejectSuggestion(item.sceneId)}>
+                  <Ic.x />Відхилити все
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Chronicle — the canon overview at the heart of the tree. Minimal inline editing.
 function ChronicleView({ navigate, onClose }) {
   const w = WORLD.world;
@@ -100,6 +228,8 @@ function ChronicleView({ navigate, onClose }) {
             ) : (
               <div className="rules">{w.rules.map((r, i) => <div className="rule" key={i}><span className="rule__n">{String(i + 1).padStart(2, "0")}</span><span>{r}</span></div>)}</div>
             )}
+            <InferredCanonQueue projectId={window.__currentProjectId} />
+
             <h3 className="blk-h" style={{ marginTop: 24 }}><Ic.flame />Хроніка подій · {WORLD.events.length}</h3>
             <div className="chron-list">
               {WORLD.events.slice().sort((a, b) => a.act - b.act).map((e) => (
