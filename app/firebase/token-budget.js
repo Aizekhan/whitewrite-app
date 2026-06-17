@@ -17,7 +17,9 @@ window.__TOKEN_COSTS = {
   imageVariant: 2000,        // ~$0.03 per variant (cheaper, reuse base)
 
   // ===== CANON (cheap operations) =====
-  canonSuggestion: 10,       // Extract entities from scene
+  canonSuggestion: 10,       // Extract entities from scene (legacy)
+  canonExtractPerScene: 15,  // Auto-extraction after scene generation (Haiku)
+  canonSyncProject: null,    // Dynamic: scenesCount × canonExtractPerScene
   characterCard: 15,         // Generate character profile
   locationCard: 15,          // Generate location profile
   eventCard: 15,             // Generate event profile
@@ -33,8 +35,10 @@ window.__TOKEN_COSTS = {
 
   // ===== NARRATIVE TOOLS =====
   architectOutline: 25,      // Generate story outline
-  memorySuggestions: 8,      // Suggest canon additions (very cheap)
-  continuitCheck: 5          // Check for contradictions
+  memorySuggestions: 8,      // Suggest canon additions (very cheap, legacy)
+  continuityCheck: 5,        // Check for contradictions
+  analyzeScene: 50,          // ANALYZE mode (Claude Opus for quality)
+  improveScene: 80           // IMPROVE mode (Claude Opus for rewriting)
 };
 
 // ============================================================================
@@ -53,6 +57,11 @@ window.__PLAN_BUDGETS = {
     allowReconstruction: false,
     allowExport: false,
     allowAPI: false,
+    allowWorldTree: false,          // ❌ NO WorldTree access
+    allowCanonExtraction: false,    // ❌ NO auto-extraction
+    allowCanonSync: false,          // ❌ NO sync button
+    allowAnalyze: false,            // ❌ NO ANALYZE mode
+    allowImprove: false,            // ❌ NO IMPROVE mode
 
     // Soft limits (UI guidance, not hard blocks)
     maxProjects: 1,
@@ -70,10 +79,15 @@ window.__PLAN_BUDGETS = {
     allowReconstruction: false,
     allowExport: true,         // ← Unlock DOCX/PDF export
     allowAPI: false,
+    allowWorldTree: true,           // ✅ WorldTree access
+    allowCanonExtraction: true,     // ✅ Auto-extraction (15 tokens/scene)
+    allowCanonSync: true,           // ✅ "Синхронізувати" button
+    allowAnalyze: false,            // ❌ ANALYZE mode (too expensive for this tier)
+    allowImprove: false,            // ❌ IMPROVE mode (too expensive for this tier)
 
     maxProjects: 5,
 
-    description: "120 сцен Gemini, експорт книг"
+    description: "120 сцен Gemini, експорт книг, WorldTree + Canon"
   },
 
   novelist: {
@@ -88,12 +102,17 @@ window.__PLAN_BUDGETS = {
     allowExport: true,
     allowAPI: false,
     allowLoRA: true,           // ← Unlock LoRA training
+    allowWorldTree: true,           // ✅ WorldTree access
+    allowCanonExtraction: true,     // ✅ Auto-extraction
+    allowCanonSync: true,           // ✅ Canon sync
+    allowAnalyze: true,             // ✅ ANALYZE mode (50 tokens)
+    allowImprove: true,             // ✅ IMPROVE mode (80 tokens)
 
     maxProjects: Infinity,
     imageCreditsGuideline: 100, // Soft limit (UI shows "100 images recommended")
     loraSlots: 3,              // 3 LoRA models per project (one-time training)
 
-    description: "32K токенів: ~400 Gemini / 80 Claude + 100 зображень + 3 LoRA + Reconstruction"
+    description: "32K токенів: ~400 Gemini / 80 Claude + 100 зображень + 3 LoRA + Reconstruction + ANALYZE/IMPROVE"
   },
 
   worldbuilder: {
@@ -108,12 +127,17 @@ window.__PLAN_BUDGETS = {
     allowAPI: true,            // ← Unlock API access
     allowLoRA: true,
     priority: true,            // Priority queue for generation
+    allowWorldTree: true,
+    allowCanonExtraction: true,
+    allowCanonSync: true,
+    allowAnalyze: true,
+    allowImprove: true,
 
     maxProjects: Infinity,
     imageCreditsGuideline: 500,
     loraSlots: 10,             // 10 LoRA models per project
 
-    description: "180K токенів: ~300 Claude / ∞ Gemini + 500 зображень + 10 LoRA + API"
+    description: "180K токенів: ~300 Claude / ∞ Gemini + 500 зображень + 10 LoRA + API + ANALYZE/IMPROVE"
   },
 
   // Dev/testing plan (legacy)
@@ -128,6 +152,11 @@ window.__PLAN_BUDGETS = {
     allowExport: true,
     allowAPI: true,
     priority: true,
+    allowWorldTree: true,
+    allowCanonExtraction: true,
+    allowCanonSync: true,
+    allowAnalyze: true,
+    allowImprove: true,
 
     maxProjects: Infinity,
     imageCreditsGuideline: 500,

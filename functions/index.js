@@ -13,17 +13,57 @@ const claudeApiKey = defineSecret('CLAUDE_API_KEY');
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 
-// Phase 1.1: Token Budget System (synced with app/firebase/token-budget.js)
+// Phase 1.1 + 3.0: Token Budget System (synced with app/firebase/token-budget.js)
 const PLAN_BUDGETS = {
-  free: { monthly: 200, allowClaude: false },
-  storyteller: { monthly: 2400, allowClaude: false },
-  novelist: { monthly: 32000, allowClaude: true },
-  worldbuilder: { monthly: 180000, allowClaude: true },
-  worldforge: { monthly: 180000, allowClaude: true } // dev/testing plan
+  free: {
+    monthly: 200,
+    allowClaude: false,
+    allowCanonExtraction: false,
+    allowAnalyze: false,
+    allowImprove: false
+  },
+  storyteller: {
+    monthly: 2400,
+    allowClaude: false,
+    allowCanonExtraction: true,  // ✅ Auto-extraction enabled
+    allowAnalyze: false,
+    allowImprove: false
+  },
+  novelist: {
+    monthly: 32000,
+    allowClaude: true,
+    allowCanonExtraction: true,
+    allowAnalyze: true,   // ✅ ANALYZE mode
+    allowImprove: true    // ✅ IMPROVE mode
+  },
+  worldbuilder: {
+    monthly: 180000,
+    allowClaude: true,
+    allowCanonExtraction: true,
+    allowAnalyze: true,
+    allowImprove: true
+  },
+  worldforge: {
+    monthly: 180000,
+    allowClaude: true,
+    allowCanonExtraction: true,
+    allowAnalyze: true,
+    allowImprove: true
+  } // dev/testing plan
 };
 
 function getPlanBudget(plan) {
   return PLAN_BUDGETS[plan] || PLAN_BUDGETS.free;
+}
+
+// Helper: Verify Firebase ID token
+async function verifyAuth(authHeader) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Invalid authorization header');
+  }
+  const idToken = authHeader.split('Bearer ')[1];
+  const decodedToken = await admin.auth().verifyIdToken(idToken);
+  return decodedToken.uid;
 }
 
 /**
@@ -746,5 +786,179 @@ exports.stripeWebhook = onRequest({ secrets: [stripeSecretKey, stripeWebhookSecr
     console.error('Webhook error:', error);
     res.status(400).send(`Webhook Error: ${error.message}`);
   }
+});
+
+/**
+ * Cloud Function: Extract Memory Suggestions from Scene
+ * Phase 3.1a: Canon auto-extraction (inspired by White-Tree)
+ *
+ * Input: { projectId, sceneId, sceneText }
+ * Output: { success: true, suggestions: [...], tokensConsumed: 15 }
+ *
+ * Uses Claude Haiku (cheap, fast) with JSON mode
+ */
+exports.extractMemorySuggestions = onRequest({
+  secrets: [claudeApiKey],
+  cors: true
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      // Auth check
+      const uid = req.body.uid || (req.headers.authorization ? await verifyAuth(req.headers.authorization) : null);
+      if (!uid) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { projectId, sceneId, sceneText } = req.body;
+
+      if (!projectId || !sceneId || !sceneText) {
+        return res.status(400).json({ error: 'Missing required fields: projectId, sceneId, sceneText' });
+      }
+
+      // Get user plan
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userData = userDoc.data();
+      const userPlan = userData.plan || 'free';
+      const planConfig = getPlanBudget(userPlan);
+
+      // Check if canon extraction is allowed
+      if (!planConfig.allowCanonExtraction) {
+        return res.status(403).json({
+          error: 'Canon extraction не доступний на вашому плані. Upgrade до Storyteller або вище.'
+        });
+      }
+
+      // Check token budget
+      const tokensBudget = userData.tokensMonthly || planConfig.monthly;
+      const tokensUsed = userData.tokensUsed || 0;
+      const tokensRemaining = tokensBudget - tokensUsed;
+      const extractionCost = 15; // canonExtractPerScene
+
+      if (tokensRemaining < extractionCost) {
+        return res.status(402).json({
+          error: `Недостатньо токенів. Потрібно: ${extractionCost}, є: ${tokensRemaining}`
+        });
+      }
+
+      // Load current canon
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const canon = projectDoc.data().canon || {
+        characters: {},
+        locations: {},
+        events: {},
+        factions: {},
+        artifacts: {},
+        world: {}
+      };
+
+      // Build extraction prompt (inspired by White-Tree)
+      const systemInstruction = `You are a narrative analysis expert. Extract structured canon information from the provided scene text.
+
+CRITICAL RULES:
+1. Extract ONLY significant new facts (characters, locations, events, factions, artifacts)
+2. Avoid duplicates — compare with existing canon
+3. For characters: extract name, role, trait, status, location, goal, relationships
+4. For locations: extract name, description, type
+5. For events: extract name, description, when, participants
+6. Return ONLY valid JSON, no markdown wrapping
+
+Current Canon (for duplicate detection):
+${JSON.stringify({
+  characters: Object.keys(canon.characters || {}),
+  locations: Object.keys(canon.locations || {}),
+  events: Object.keys(canon.events || {}),
+  factions: Object.keys(canon.factions || {}),
+  artifacts: Object.keys(canon.artifacts || {})
+}, null, 2)}`;
+
+      const prompt = `Analyze this scene and extract canon entities:
+
+Scene Text:
+${sceneText}
+
+Return JSON with memorySuggestions array:
+{
+  "memorySuggestions": [
+    {
+      "id": "unique_id",
+      "type": "character" | "location" | "event" | "faction" | "artifact",
+      "action": "add" | "update",
+      "targetId": "exact_name_or_id",
+      "newData": {
+        // For character: name, role, trait, status, location, goal, relationships, developmentArc
+        // For location: name, description, type
+        // For event: name, description, when, participants
+        // For faction: name, description, members
+        // For artifact: name, description, owner
+      },
+      "reason": "Brief explanation why this is significant"
+    }
+  ]
+}`;
+
+      // Call Claude Haiku (cheap & fast)
+      console.log('[Extract] Using Claude Haiku for canon extraction');
+
+      const anthropic = new Anthropic({
+        apiKey: claudeApiKey.value()
+      });
+
+      const message = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',  // Cheapest model
+        max_tokens: 2048,
+        temperature: 0.2,  // Low temperature for accuracy
+        system: systemInstruction,
+        messages: [{
+          role: 'user',
+          content: prompt
+        }]
+      });
+
+      const responseText = message.content[0].text;
+
+      // Parse JSON
+      let suggestions = [];
+      try {
+        const parsed = JSON.parse(responseText);
+        suggestions = parsed.memorySuggestions || [];
+      } catch (parseError) {
+        console.error('[Extract] JSON parse failed:', parseError);
+        // Try to extract JSON from markdown
+        const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+          suggestions = parsed.memorySuggestions || [];
+        } else {
+          throw new Error('Failed to parse JSON response');
+        }
+      }
+
+      console.log(`[Extract] ✅ Extracted ${suggestions.length} suggestions`);
+
+      // Deduct tokens
+      await db.collection('users').doc(uid).update({
+        tokensUsed: admin.firestore.FieldValue.increment(extractionCost)
+      });
+
+      res.status(200).json({
+        success: true,
+        suggestions,
+        tokensConsumed: extractionCost,
+        tokensRemaining: tokensRemaining - extractionCost
+      });
+
+    } catch (error) {
+      console.error('[Extract] Error:', error);
+      res.status(500).json({ error: `Помилка extraction: ${error.message}` });
+    }
+  });
 });
 
