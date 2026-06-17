@@ -792,6 +792,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
     // account now lives in the persistent bottom-left userdock (whole service)
   }
+  // Export for firebase-auth.js to call after auth state changes
+  window.__reloadRail = renderRail;
 
   /* ---- in-shell views ---- */
   function showView(v) {
