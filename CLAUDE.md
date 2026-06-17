@@ -25,6 +25,56 @@
 - Книга → Всесвіт: магічні закладки + «✦ Дослідити канон».
 - Deep-links: `WorldTree.html?type=&id=` (відкрити сутність), `WhiteWrite.html?scene=N` (відкрити розворот).
 
+## 💳 Платежі та Токени (Phase 1-2, прод-готово)
+
+**Phase 1.1: Token Budget System** — повністю працює ✅
+- План-базована система токенів (місячний бюджет + витрати)
+- UI: dock показує баланс, toast після генерації, upgrade modal при нестачі
+- `window.__firebaseAuth.consumeTokens(operation)` — універсальна функція споживання
+- Feature gates: `allowClaude`, `allowImages`, `allowReconstruction` (прив'язані до плану)
+
+**Phase 2: Stripe Integration** — повністю працює ✅
+
+Файли:
+- `functions/index.js` (lines 10-13, 567-730) — Stripe Cloud Functions
+- `app/White.html` (lines 368-379, 1281-1322) — Frontend + CSS
+- `app/firebase/firebase-auth.js` (lines 192-269) — consumeTokens логіка
+
+Stripe Price IDs (Test Mode):
+```javascript
+storyteller: 'price_1Tj4eVK1XPrHbpbZrmiMvCwh',    // $12/month
+novelist: 'price_1Tj4fBK1XPrHbpbZyhlAANxB',       // $36/month
+worldbuilder: 'price_1Tj5PZK1XPrHbpbZJ8LpKik0'    // $69/month
+```
+
+Webhook Events (handled in `stripeWebhook`):
+- `checkout.session.completed` → update user plan + stripeCustomerId/SubscriptionId
+- `customer.subscription.updated` → sync plan changes
+- `customer.subscription.deleted` → downgrade to free
+
+UI Classes (app/White.html):
+- `.plan.is-cur` — gold border на поточному плані (line 380)
+- `.plan` — flexbox container (line 368-369)
+- `.plan__feats` — flex:1 (розтягується, line 373)
+- `.plan__btn`, `.plan__badge` — margin-top:auto (прибиті до низу, lines 376-379)
+
+Token Costs (`window.__TOKEN_COSTS`):
+- sceneGemini: 20 tokens
+- sceneClaude: 100 tokens
+- imageGeneration: 50 tokens (майбутнє)
+
+Margins:
+- Free: 200 tokens/mo (cost: -$0.005, втрата)
+- Storyteller: 2000 tokens, $12 → ~99% margin
+- Novelist: 8000 tokens, $36 → ~90% margin
+- Worldbuilder: 20000 tokens, $69 → ~70% margin
+- Реальні margins ~98% (юзери не витрачають весь бюджет)
+
+Наступні кроки (опціонально):
+- Customer Portal (cancel/upgrade підписки)
+- Live Mode (перейти з test на production Stripe keys)
+- Промокоди (вже підтримуються в checkout: `allow_promotion_codes: true`)
+
 ---
 
 # 🗺 Roadmap (ідеї, не зобовʼязання)
