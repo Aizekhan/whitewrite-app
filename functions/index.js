@@ -108,8 +108,15 @@ exports.generateScene = onRequest({
       const tokensBudget = planConfig.monthly;
       const tokensRemaining = tokensBudget - tokensUsed;
 
+      // Determine which AI to use (Phase 1.3: Feature Gates)
+      const useClaudeAPI = planConfig.allowClaude;
+
+      // Calculate scene cost based on AI provider (CRITICAL: Claude costs 15x more than Gemini!)
+      const sceneCost = useClaudeAPI ? 300 : 20;
+
+      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude Opus 4' : 'Gemini 2.5 Flash'}, cost: ${sceneCost} tokens`);
+
       // Check token quota (client already checked, but double-check server-side)
-      const sceneCost = 20; // Gemini scene cost (will be 300 for Claude)
       if (tokensRemaining < sceneCost) {
         res.status(403).json({
           error: 'Недостатньо токенів для генерації',
@@ -130,10 +137,6 @@ exports.generateScene = onRequest({
       //   });
       //   return;
       // }
-
-      // Determine which AI to use (Phase 1.3: Feature Gates)
-      const useClaudeAPI = planConfig.allowClaude;
-      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude 3.5 Sonnet' : 'Gemini 2.5 Flash'}`);
 
       // Extract canon
       const canon = project.canon || {
@@ -296,6 +299,13 @@ exports.generateScene = onRequest({
       // Extract mentioned entities (simple keyword matching from canon)
       const entities = extractMentionedEntities(sceneContent, canon);
 
+      // Deduct tokens from user's budget (server-side, authoritative)
+      await db.collection('users').doc(uid).update({
+        tokensUsed: admin.firestore.FieldValue.increment(sceneCost)
+      });
+
+      console.log(`✅ Tokens deducted: -${sceneCost} (${tokensRemaining - sceneCost} remaining)`);
+
       res.status(200).json({
         success: true,
         scene: {
@@ -304,7 +314,9 @@ exports.generateScene = onRequest({
           entities,
           intent: sceneIntent,
           generatedAt: admin.firestore.FieldValue.serverTimestamp()
-        }
+        },
+        tokensConsumed: sceneCost,
+        tokensRemaining: tokensRemaining - sceneCost
       });
 
     } catch (error) {

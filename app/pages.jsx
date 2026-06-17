@@ -264,18 +264,25 @@ function SceneIntentPage() {
             });
             console.log('Scene saved to Firestore:', savedScene.id);
 
-            // Phase 1.1: Consume tokens after successful generation
-            if (window.__firebaseAuth && window.__firebaseAuth.consumeTokens) {
-              const tokenResult = await window.__firebaseAuth.consumeTokens('sceneGemini');
-              if (tokenResult.success) {
-                console.log(`✅ Tokens consumed: -${tokenResult.cost}, remaining: ${tokenResult.remaining}`);
+            // Phase 1.1: Sync tokens from server response (server already deducted)
+            if (result.tokensConsumed && window.__wwUser) {
+              const cost = result.tokensConsumed;
+              const remaining = result.tokensRemaining;
 
-                // Show toast notification
-                if (typeof window.__showTokenToast === 'function') {
-                  window.__showTokenToast(tokenResult.cost, tokenResult.remaining);
-                }
-              } else {
-                console.error('Failed to consume tokens:', tokenResult.error);
+              // Update local state to match server
+              window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
+              window.__wwUser.tokensRemaining = remaining;
+
+              console.log(`✅ Tokens synced from server: -${cost}, remaining: ${remaining}`);
+
+              // Show toast notification
+              if (typeof window.__showTokenToast === 'function') {
+                window.__showTokenToast(cost, remaining);
+              }
+
+              // Refresh UI
+              if (typeof window.__syncDockAvatar === 'function') {
+                window.__syncDockAvatar();
               }
             }
 

@@ -225,18 +225,26 @@ function App() {
 
                   console.log(`[${i + 1}/${scenesToGenerate}] ✓ Saved to Firestore`);
 
-                  // Phase 1.1: Consume tokens after successful generation
-                  if (window.__firebaseAuth && window.__firebaseAuth.consumeTokens) {
-                    const tokenResult = await window.__firebaseAuth.consumeTokens('sceneGemini');
-                    if (tokenResult.success) {
-                      console.log(`[${i + 1}/${scenesToGenerate}] ✅ Tokens: -${tokenResult.cost}, remaining: ${tokenResult.remaining}`);
+                  // Phase 1.1: Sync tokens from server response (server already deducted)
+                  if (result.tokensConsumed && window.__wwUser) {
+                    const cost = result.tokensConsumed;
+                    const remaining = result.tokensRemaining;
 
-                      // Show toast notification (only on last scene in Auto Mode)
-                      if (i === scenesToGenerate - 1 && typeof window.__showTokenToast === 'function') {
-                        window.__showTokenToast(tokenResult.cost * scenesToGenerate, tokenResult.remaining);
-                      }
-                    } else {
-                      console.error(`[${i + 1}/${scenesToGenerate}] ❌ Token consumption failed:`, tokenResult.error);
+                    // Update local state to match server
+                    window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
+                    window.__wwUser.tokensRemaining = remaining;
+
+                    console.log(`[${i + 1}/${scenesToGenerate}] ✅ Tokens synced: -${cost}, remaining: ${remaining}`);
+
+                    // Show toast notification (only on last scene in Auto Mode)
+                    if (i === scenesToGenerate - 1 && typeof window.__showTokenToast === 'function') {
+                      const totalCost = cost * scenesToGenerate; // Approximate total (may vary if Claude used)
+                      window.__showTokenToast(totalCost, remaining);
+                    }
+
+                    // Refresh UI
+                    if (typeof window.__syncDockAvatar === 'function') {
+                      window.__syncDockAvatar();
                     }
                   }
                 } else {
