@@ -346,6 +346,33 @@ exports.generateScene = onRequest({
 
       console.log(`✅ Tokens deducted: -${sceneCost} (${tokensRemaining - sceneCost} remaining)`);
 
+      // Phase 3.1b: Auto-extraction (for paid users only)
+      if (planConfig.allowCanonExtraction) {
+        try {
+          console.log('[Auto-Extract] Starting canon extraction...');
+
+          const extractionCost = 15; // canonExtractPerScene
+          const tokensAfterScene = tokensRemaining - sceneCost;
+
+          if (tokensAfterScene >= extractionCost) {
+            // Call extraction in background (async, don't await)
+            extractCanonFromScene(projectId, sceneContent, canon, uid, extractionCost)
+              .then(suggestions => {
+                console.log(`[Auto-Extract] ✅ Extracted ${suggestions.length} suggestions`);
+              })
+              .catch(error => {
+                console.error('[Auto-Extract] ❌ Failed (non-critical):', error.message);
+                // Don't fail scene generation if extraction fails
+              });
+          } else {
+            console.warn(`[Auto-Extract] ⚠️ Skipped — insufficient tokens (${tokensAfterScene} < ${extractionCost})`);
+          }
+        } catch (error) {
+          console.error('[Auto-Extract] Error (non-critical):', error);
+          // Don't fail scene generation
+        }
+      }
+
       res.status(200).json({
         success: true,
         scene: {
@@ -365,6 +392,122 @@ exports.generateScene = onRequest({
     }
   });
 });
+
+/**
+ * Helper: Extract canon from scene (Phase 3.1b)
+ * Called asynchronously after scene generation
+ */
+async function extractCanonFromScene(projectId, sceneText, canon, uid, extractionCost) {
+  try {
+    // Build extraction prompt
+    const systemInstruction = `You are a narrative analysis expert. Extract structured canon information from the provided scene text.
+
+CRITICAL RULES:
+1. Extract ONLY significant new facts (characters, locations, events, factions, artifacts)
+2. Avoid duplicates — compare with existing canon
+3. For characters: extract name, role, trait, status, location, goal, relationships
+4. For locations: extract name, description, type
+5. For events: extract name, description, when, participants
+6. Return ONLY valid JSON, no markdown wrapping
+
+Current Canon (for duplicate detection):
+${JSON.stringify({
+  characters: Object.keys(canon.characters || {}),
+  locations: Object.keys(canon.locations || {}),
+  events: Object.keys(canon.events || {}),
+  factions: Object.keys(canon.factions || {}),
+  artifacts: Object.keys(canon.artifacts || {})
+}, null, 2)}`;
+
+    const prompt = `Analyze this scene and extract canon entities:
+
+Scene Text:
+${sceneText}
+
+Return JSON with memorySuggestions array:
+{
+  "memorySuggestions": [
+    {
+      "id": "unique_id",
+      "type": "character" | "location" | "event" | "faction" | "artifact",
+      "action": "add" | "update",
+      "targetId": "exact_name_or_id",
+      "newData": {
+        // For character: name, role, trait, status, location, goal, relationships, developmentArc
+        // For location: name, description, type
+        // For event: name, description, when, participants
+        // For faction: name, description, members
+        // For artifact: name, description, owner
+      },
+      "reason": "Brief explanation why this is significant"
+    }
+  ]
+}`;
+
+    // Call Claude Haiku
+    const anthropic = new Anthropic({
+      apiKey: claudeApiKey.value()
+    });
+
+    const message = await anthropic.messages.create({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 2048,
+      temperature: 0.2,
+      system: systemInstruction,
+      messages: [{
+        role: 'user',
+        content: prompt
+      }]
+    });
+
+    const responseText = message.content[0].text;
+
+    // Parse JSON
+    let suggestions = [];
+    try {
+      const parsed = JSON.parse(responseText);
+      suggestions = parsed.memorySuggestions || [];
+    } catch (parseError) {
+      // Try to extract JSON from markdown
+      const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+        suggestions = parsed.memorySuggestions || [];
+      } else {
+        throw new Error('Failed to parse JSON response');
+      }
+    }
+
+    if (suggestions.length === 0) {
+      console.log('[Auto-Extract] No new entities found');
+      return [];
+    }
+
+    // Generate scene ID (timestamp-based)
+    const sceneId = `scene_${Date.now()}`;
+
+    // Store in inferredCanon queue
+    await db.collection('projects').doc(projectId).update({
+      [`inferredCanon.${sceneId}`]: {
+        suggestions,
+        status: 'pending',
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      }
+    });
+
+    // Deduct extraction tokens
+    await db.collection('users').doc(uid).update({
+      tokensUsed: admin.firestore.FieldValue.increment(extractionCost)
+    });
+
+    console.log(`[Auto-Extract] ✅ Stored ${suggestions.length} suggestions in inferredCanon.${sceneId}`);
+
+    return suggestions;
+  } catch (error) {
+    console.error('[Auto-Extract] Error:', error);
+    throw error;
+  }
+}
 
 /**
  * Build canon context string for prompt
