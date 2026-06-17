@@ -365,18 +365,20 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .userdock.is-guest .userdock__name::after{ font-size:12.5px; font-family:"Cinzel",serif; color:var(--tx-hi); }
 .userdock.is-guest .userdock__tok{ font-size:0; }
 .userdock.is-guest .userdock__tok::after{ content:"Увійти"; font-size:12px; color:var(--gold-lit); }
-.plan{ position:relative; padding:20px 18px; border-radius:14px; background:var(--bg-2); border:1px solid var(--line); }
+.plan{ position:relative; padding:20px 18px; border-radius:14px; background:var(--bg-2); border:1px solid var(--line);
+  display:flex; flex-direction:column; }
 .plan.is-cur{ border-color:rgba(217,160,70,0.6); box-shadow:0 0 0 1px var(--gold-soft); }
 .plan__name{ font-family:"Cinzel",serif; font-weight:600; font-size:17px; color:var(--tx-hi); }
 .plan__price{ font-family:"JetBrains Mono",monospace; font-size:15px; color:var(--gold-lit); margin-top:4px; }
-.plan__feats{ list-style:none; margin:14px 0 16px; padding:0; }
+.plan__feats{ list-style:none; margin:14px 0 16px; padding:0; flex:1; }
 .plan__feats li{ font-size:13px; color:var(--tx); padding:5px 0 5px 18px; position:relative; }
 .plan__feats li::before{ content:"✦"; position:absolute; left:0; color:var(--gold-lit); font-size:11px; }
 .plan__btn{ width:100%; cursor:pointer; font-family:"Cinzel",serif; font-weight:600; font-size:13px; color:#1a1206;
-  padding:10px; border-radius:9px; border:none; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
+  padding:10px; border-radius:9px; border:none; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit));
+  margin-top:auto; }
 .plan__badge{ text-align:center; font-size:12px; color:var(--gold-lit); padding:9px; border-radius:9px;
-  background:var(--gold-soft); border:1px solid rgba(217,160,70,0.4); }
-.plan.is-popular{ border:2px solid var(--gold-bright); box-shadow:0 0 0 1px var(--gold-soft), 0 8px 24px rgba(217,160,70,0.2); }
+  background:var(--gold-soft); border:1px solid rgba(217,160,70,0.4); margin-top:auto; }
+.plan.is-cur{ border:2px solid var(--gold-bright); box-shadow:0 0 0 1px var(--gold-soft), 0 8px 24px rgba(217,160,70,0.2); }
 .plan__pop-badge{ position:absolute; top:-12px; left:50%; transform:translateX(-50%);
   background:linear-gradient(135deg,var(--gold-bright) 0%,var(--gold-lit) 100%); color:#1a1206;
   padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:0.5px;
@@ -1227,7 +1229,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
             '<span class="acc__plan">' + svg("sparkle") + planLabel(u.plan) + '</span>' +
             '<button class="acc__editbtn" id="acc-edit">' + svg("edit") + ' Редагувати профіль</button>' +
           '</div>' +
-          '<div class="acc__tokens"><span class="acc__tokn" id="acc-tokn">0</span><span class="acc__tokl">токенів</span>' +
+          '<div class="acc__tokens"><span class="acc__tokn" id="acc-tokn">' + ((u.tokensRemaining !== undefined ? u.tokensRemaining : 0).toLocaleString()) + '</span><span class="acc__tokl">токенів залишилось</span>' +
             '<button class="acc__topup" id="acc-topup">+ Поповнити</button></div>' +
         '</div>' +
         '<div class="acc-stats" id="acc-stats">' +
@@ -1288,16 +1290,38 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           return;
         }
 
-        // Phase 8: Stripe integration placeholder
-        alert('Stripe integration: Phase 8\n\nВи обрали план: ' + targetPlan + '\n\nПоки що плани змінюються вручну в Firestore Console:\nusers/{uid}.plan = "' + targetPlan + '"');
+        // Phase 2: Stripe Checkout Session
+        try {
+          b.disabled = true;
+          b.textContent = '⏳ Завантаження...';
 
-        // TODO Phase 8: Stripe Checkout
-        // var paymentLinks = {
-        //   storyteller: 'https://buy.stripe.com/storyteller_link',
-        //   novelist: 'https://buy.stripe.com/novelist_link',
-        //   worldbuilder: 'https://buy.stripe.com/worldbuilder_link'
-        // };
-        // window.location.href = paymentLinks[targetPlan] + '?prefilled_email=' + u.email + '&client_reference_id=' + u.uid;
+          const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createCheckoutSession', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              plan: targetPlan,
+              uid: u.uid,
+              email: u.email
+            })
+          });
+
+          const data = await response.json();
+
+          if (data.error) {
+            alert('Помилка: ' + data.error);
+            b.disabled = false;
+            b.textContent = 'Обрати';
+            return;
+          }
+
+          // Redirect to Stripe Checkout
+          window.location.href = data.url;
+        } catch (error) {
+          console.error('Checkout error:', error);
+          alert('Не вдалося створити сесію оплати. Спробуйте пізніше.');
+          b.disabled = false;
+          b.textContent = 'Обрати';
+        }
       };
     });
     var tu = document.getElementById("acc-topup");
@@ -1344,11 +1368,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           accStat(totalCanonEntities.toString(), "Сутності канону");
       }
 
-      // Update tokens from user data
+      // Update tokens from user data (Phase 1.1: Token Budget System)
       const tokCountEls = document.querySelectorAll("#tokcount, #acc-tokn");
-      const userTokens = (window.__wwUser && window.__wwUser.tokens != null)
-        ? window.__wwUser.tokens.toLocaleString('uk-UA')
-        : '300';
+      const userTokens = (window.__wwUser && window.__wwUser.tokensRemaining != null)
+        ? window.__wwUser.tokensRemaining.toLocaleString('uk-UA')
+        : '0';
       tokCountEls.forEach(el => {
         if (el) el.textContent = userTokens;
       });
@@ -1380,6 +1404,17 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
     if (dock) dock.classList.remove('is-loading');
   }
+
+  // Reload account modal with fresh data (called when user data changes)
+  window.__reloadAccount = function() {
+    // Only reload if account view is currently visible
+    if (views.account && views.account.parentElement && views.account.parentElement.classList.contains('is-on')) {
+      fillAccount();
+    }
+  };
+
+  // Export fillAccount for Firebase Auth to call after initial auth load
+  window.__fillAccount = fillAccount;
   function accStat(n, l) { return '<div class="acc-stat"><div class="acc-stat__n">' + n + '</div><div class="acc-stat__l">' + l + '</div></div>'; }
 
   function fillNews() {
@@ -1411,7 +1446,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     });
   }
 
-  fillHome(); fillMarket(); fillKb(); fillNews(); fillAccount();
+  fillHome(); fillMarket(); fillKb(); fillNews();
+  // fillAccount() called by Firebase Auth after user data loads
 
   /* ---- initial route ---- */
   var h = (location.hash || "").replace("#", "");
@@ -1465,6 +1501,8 @@ window.__openPricingModal = function() {
 
 // Global toast notification for token consumption
 window.__showTokenToast = function(cost, remaining) {
+  console.log('✦ Toast called:', cost, 'tokens consumed,', remaining, 'remaining');
+
   const toast = document.createElement('div');
   toast.className = 'ww-toast';
   toast.innerHTML = `
@@ -1477,10 +1515,12 @@ window.__showTokenToast = function(cost, remaining) {
     </div>
   `;
   document.body.appendChild(toast);
+  console.log('✦ Toast appended to body, element:', toast);
 
   // Auto-remove after 6 seconds
   setTimeout(() => {
     toast.remove();
+    console.log('✦ Toast removed');
   }, 6000);
 };
 </script>

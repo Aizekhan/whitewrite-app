@@ -55,6 +55,11 @@ window.__firebaseAuth = {
             if (typeof window.__syncDockAvatar === 'function') {
               window.__syncDockAvatar();
             }
+
+            // Fill Account modal with real data (initial render after auth)
+            if (typeof window.__fillAccount === 'function') {
+              window.__fillAccount();
+            }
           } else {
             console.log('No user document found, creating default: free plan');
             // Create default user document
@@ -115,6 +120,11 @@ window.__firebaseAuth = {
       // Reload projects with new uid
       if (typeof window.__reloadProjects === 'function') {
         window.__reloadProjects();
+      }
+
+      // Reload account modal if open
+      if (typeof window.__reloadAccount === 'function') {
+        window.__reloadAccount();
       }
 
       // Check if auth modal should open (for first-time visitors)
@@ -244,6 +254,11 @@ window.__firebaseAuth = {
       // Refresh UI to show new balance
       if (typeof window.__syncDockAvatar === 'function') {
         window.__syncDockAvatar();
+      }
+
+      // Reload account modal if open
+      if (typeof window.__reloadAccount === 'function') {
+        window.__reloadAccount();
       }
 
       return { success: true, cost, remaining: window.__wwUser.tokensRemaining };
