@@ -1245,3 +1245,191 @@ exports.syncCanonFromProject = onRequest({
   });
 });
 
+/**
+ * Cloud Function: Analyze Scene (Narrative Diagnostics)
+ * Phase 3.2: Deep analysis with scoring, consistency check, tension analysis
+ *
+ * Input: { projectId, sceneText }
+ * Output: { score, detailedScores, strengths, weaknesses, suggestions, consistencyIssues, tensionAnalysis, ... }
+ *
+ * Uses Claude Opus (expensive but high-quality analysis)
+ */
+exports.analyzeScene = onRequest({
+  secrets: [claudeApiKey],
+  cors: true,
+  timeoutSeconds: 120
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      // Auth check
+      const uid = req.body.uid || (req.headers.authorization ? await verifyAuth(req.headers.authorization) : null);
+      if (!uid) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { projectId, sceneText } = req.body;
+
+      if (!projectId || !sceneText) {
+        return res.status(400).json({ error: 'Missing projectId or sceneText' });
+      }
+
+      // Get user plan
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userData = userDoc.data();
+      const userPlan = userData.plan || 'free';
+      const planConfig = getPlanBudget(userPlan);
+
+      // Check if ANALYZE is allowed
+      if (!planConfig.allowAnalyze) {
+        return res.status(403).json({
+          error: 'ANALYZE mode не доступний на вашому плані. Upgrade до Novelist або вище.'
+        });
+      }
+
+      // Check token budget
+      const tokensBudget = userData.tokensMonthly || planConfig.monthly;
+      const tokensUsed = userData.tokensUsed || 0;
+      const tokensRemaining = tokensBudget - tokensUsed;
+      const analyzeCost = 50; // analyzeScene token cost
+
+      if (tokensRemaining < analyzeCost) {
+        return res.status(402).json({
+          error: `Недостатньо токенів. Потрібно: ${analyzeCost}, є: ${tokensRemaining}`
+        });
+      }
+
+      // Load project canon
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const canon = projectDoc.data().canon || {
+        characters: {},
+        locations: {},
+        events: {},
+        factions: {},
+        artifacts: {},
+        world: {}
+      };
+
+      // Build analysis prompt (inspired by White-Tree)
+      const systemInstruction = `You are a narrative analysis expert. Perform a complete diagnostic of the provided scene text.
+
+CRITICAL ANALYSIS TASKS:
+1. Consistency Check: Compare text against canon. Identify contradictions.
+2. Narrative Diagnostic: Provide scores (0-10), strengths, weaknesses, suggestions.
+3. Tension Analysis: Break down narrative into 6-8 segments and evaluate tension (0-10) for each.
+4. Quick Fixes: Suggest specific inline improvements (original → suggested).
+
+SCORING GUIDELINES (0-10):
+- 0-3: Critical issues. 4-6: Functional but lacking. 7-8: Good. 9-10: Exceptional.
+
+Return ONLY valid JSON, no markdown wrapping.
+
+Canon Context:
+- Characters: ${Object.keys(canon.characters || {}).join(', ') || 'None'}
+- Locations: ${Object.keys(canon.locations || {}).join(', ') || 'None'}
+- Events: ${Object.keys(canon.events || {}).join(', ') || 'None'}`;
+
+      const prompt = `Analyze this scene:
+
+${sceneText}
+
+Return JSON:
+{
+  "score": <number 0-10>,
+  "detailedScores": {
+    "plot": <number 0-10>,
+    "characters": <number 0-10>,
+    "conflict": <number 0-10>,
+    "atmosphere": <number 0-10>,
+    "dialogue": <number 0-10>,
+    "style": <number 0-10>
+  },
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<weakness 1>", "<weakness 2>", "<weakness 3>"],
+  "suggestions": ["<suggestion 1>", "<suggestion 2>", "<suggestion 3>"],
+  "consistencyIssues": [
+    {
+      "type": "character" | "timeline" | "location" | "event" | "logic",
+      "description": "Issue description",
+      "contradiction": "What contradicts what"
+    }
+  ],
+  "tensionAnalysis": [
+    {
+      "segment": "Brief segment description",
+      "level": <number 0-10>,
+      "pacing": "slow" | "moderate" | "fast",
+      "note": "Why this tension level"
+    }
+  ],
+  "quickFixes": [
+    {
+      "original": "Original text snippet",
+      "suggested": "Suggested replacement",
+      "reason": "Why this improves the text"
+    }
+  ]
+}`;
+
+      // Call Claude Opus (expensive, high quality)
+      console.log('[Analyze] Using Claude Opus for narrative analysis');
+
+      const anthropic = new Anthropic({
+        apiKey: claudeApiKey.value()
+      });
+
+      const message = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20240620',  // Claude Sonnet (good balance)
+        max_tokens: 4096,
+        temperature: 0.2,  // Low temperature for analytical accuracy
+        system: systemInstruction,
+        messages: [{
+          role: 'user',
+          content: prompt
+        }]
+      });
+
+      const responseText = message.content[0].text;
+
+      // Parse JSON
+      let analysis;
+      try {
+        analysis = JSON.parse(responseText);
+      } catch (parseError) {
+        // Try to extract JSON from markdown
+        const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysis = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+        } else {
+          throw new Error('Failed to parse JSON response');
+        }
+      }
+
+      // Deduct tokens
+      await db.collection('users').doc(uid).update({
+        tokensUsed: admin.firestore.FieldValue.increment(analyzeCost)
+      });
+
+      console.log(`[Analyze] ✅ Analysis complete (score: ${analysis.score}/10)`);
+
+      res.status(200).json({
+        success: true,
+        analysis,
+        tokensConsumed: analyzeCost,
+        tokensRemaining: tokensRemaining - analyzeCost
+      });
+
+    } catch (error) {
+      console.error('[Analyze] Error:', error);
+      res.status(500).json({ error: `Помилка analysis: ${error.message}` });
+    }
+  });
+});
+
