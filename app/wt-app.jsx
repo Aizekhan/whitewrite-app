@@ -36,6 +36,115 @@ function PillarSwitch({ here, fixed }) {
   );
 }
 
+// Phase 3.1d: Canon Sync Banner (for old projects)
+function CanonSyncBanner({ projectId, canon }) {
+  const [syncing, setSyncing] = useAppState(false);
+  const [scenesCount, setScenesCount] = useAppState(0);
+
+  // Load project scenes count
+  React.useEffect(() => {
+    if (!window.__firebase?.db || !projectId) return;
+
+    async function loadScenesCount() {
+      try {
+        const projectDoc = await window.__firebase.db.collection('projects').doc(projectId).get();
+        const data = projectDoc.data();
+        const scenes = data?.scenes || [];
+        setScenesCount(scenes.length);
+      } catch (error) {
+        console.error('[CanonSync] Failed to load scenes count:', error);
+      }
+    }
+
+    loadScenesCount();
+  }, [projectId]);
+
+  // Check if canon is empty
+  const canonEmpty = !canon || (
+    Object.keys(canon.characters || {}).length === 0 &&
+    Object.keys(canon.locations || {}).length === 0 &&
+    Object.keys(canon.events || {}).length === 0
+  );
+
+  if (!canonEmpty || scenesCount === 0) return null;
+
+  const cost = scenesCount * 15;
+  const tokensRemaining = window.__wwUser?.tokensRemaining || 0;
+  const canAfford = tokensRemaining >= cost;
+
+  async function syncCanon() {
+    if (!window.__firebase?.functions || !projectId) return;
+
+    const confirmed = confirm(
+      `Синхронізація канону з ${scenesCount} сцен\n\n` +
+      `Вартість: ${cost} токенів (залишиться ${tokensRemaining - cost})\n\n` +
+      `Продовжити?`
+    );
+
+    if (!confirmed) return;
+
+    setSyncing(true);
+
+    try {
+      const idToken = await window.__firebase.auth.currentUser.getIdToken();
+
+      const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/syncCanonFromProject', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          projectId,
+          uid: window.__wwUser?.uid
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Sync failed');
+      }
+
+      alert(`✅ Синхронізація завершена!\n\n` +
+            `Оброблено: ${result.scenesProcessed} сцен\n` +
+            `Витрачено: ${result.tokensConsumed} токенів\n\n` +
+            `Перезавантажте сторінку щоб побачити результат.`);
+
+      // Reload page to show extracted canon
+      window.location.reload();
+    } catch (error) {
+      console.error('[CanonSync] Error:', error);
+      alert(`❌ Помилка: ${error.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  return (
+    <div className="canon-sync-banner">
+      <div className="canon-sync-banner__icon"><Ic.alert /></div>
+      <div className="canon-sync-banner__content">
+        <strong>Канон порожній</strong>
+        <p>Згенеруйте його з {scenesCount} існуючих сцен</p>
+      </div>
+      <button
+        className="canon-sync-banner__btn"
+        type="button"
+        onClick={syncCanon}
+        disabled={syncing || !canAfford}
+      >
+        {syncing ? 'Синхронізація...' : `⚡ Синхронізувати (${cost} токенів)`}
+      </button>
+      {!canAfford && (
+        <p className="canon-sync-banner__warning">
+          ⚠️ Недостатньо токенів (потрібно {cost}, є {tokensRemaining})
+        </p>
+      )}
+    </div>
+  );
+}
+
 // Phase 3.1c: Inferred Canon Review Queue
 function InferredCanonQueue({ projectId }) {
   const [inferredCanon, setInferredCanon] = useAppState(null);
@@ -165,7 +274,7 @@ function InferredCanonQueue({ projectId }) {
 }
 
 // Chronicle — the canon overview at the heart of the tree. Minimal inline editing.
-function ChronicleView({ navigate, onClose }) {
+function ChronicleView({ navigate, onClose, canon }) {
   const w = WORLD.world;
   const [edit, setEdit] = useAppState(false);
   const [, force] = useAppState(0);
@@ -228,6 +337,7 @@ function ChronicleView({ navigate, onClose }) {
             ) : (
               <div className="rules">{w.rules.map((r, i) => <div className="rule" key={i}><span className="rule__n">{String(i + 1).padStart(2, "0")}</span><span>{r}</span></div>)}</div>
             )}
+            <CanonSyncBanner projectId={window.__currentProjectId} canon={canon} />
             <InferredCanonQueue projectId={window.__currentProjectId} />
 
             <h3 className="blk-h" style={{ marginTop: 24 }}><Ic.flame />Хроніка подій · {WORLD.events.length}</h3>
@@ -447,7 +557,7 @@ function WorldTreeApp() {
           <PillarSwitch here="universe" fixed />
         </>
       )}
-      {cur && cur.type === "chronicle" && <ChronicleView navigate={navigate} onClose={close} />}
+      {cur && cur.type === "chronicle" && <ChronicleView navigate={navigate} onClose={close} canon={canon} />}
       {cur && cur.type !== "chronicle" && (
         <Workspace key={cur.type} type={cur.type} selectedId={cur.id} navigate={navigate} onClose={close} goPillar={wtFade} />
       )}

@@ -1105,3 +1105,143 @@ Return JSON with memorySuggestions array:
   });
 });
 
+/**
+ * Cloud Function: Sync Canon from Project (Bulk Extraction)
+ * Phase 3.1d: For old projects that don't have canon extracted yet
+ *
+ * Input: { projectId }
+ * Output: { success: true, scenesProcessed: 10, totalCost: 150 }
+ *
+ * Extracts canon from ALL scenes in project sequentially
+ */
+exports.syncCanonFromProject = onRequest({
+  secrets: [claudeApiKey],
+  cors: true,
+  timeoutSeconds: 540,  // 9 minutes (max for 2nd gen functions)
+  memory: '1GiB'
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      // Auth check
+      const uid = req.body.uid || (req.headers.authorization ? await verifyAuth(req.headers.authorization) : null);
+      if (!uid) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { projectId } = req.body;
+
+      if (!projectId) {
+        return res.status(400).json({ error: 'Missing projectId' });
+      }
+
+      // Get user plan
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userData = userDoc.data();
+      const userPlan = userData.plan || 'free';
+      const planConfig = getPlanBudget(userPlan);
+
+      // Check if canon sync is allowed
+      if (!planConfig.allowCanonExtraction) {
+        return res.status(403).json({
+          error: 'Canon sync не доступний на вашому плані. Upgrade до Storyteller або вище.'
+        });
+      }
+
+      // Load project
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      const project = projectDoc.data();
+
+      // Check ownership
+      if (project.owner !== uid) {
+        return res.status(403).json({ error: 'Forbidden: not project owner' });
+      }
+
+      const canon = project.canon || {
+        characters: {},
+        locations: {},
+        events: {},
+        factions: {},
+        artifacts: {},
+        world: {}
+      };
+
+      // Get all scenes from project.scenes array
+      const scenes = project.scenes || [];
+
+      if (scenes.length === 0) {
+        return res.status(400).json({ error: 'Проєкт не має сцен для синхронізації' });
+      }
+
+      // Calculate cost
+      const extractionCostPerScene = 15;
+      const totalCost = scenes.length * extractionCostPerScene;
+
+      // Check token budget
+      const tokensBudget = userData.tokensMonthly || planConfig.monthly;
+      const tokensUsed = userData.tokensUsed || 0;
+      const tokensRemaining = tokensBudget - tokensUsed;
+
+      if (tokensRemaining < totalCost) {
+        return res.status(402).json({
+          error: `Недостатньо токенів. Потрібно: ${totalCost} (${scenes.length} сцен × ${extractionCostPerScene}), є: ${tokensRemaining}`
+        });
+      }
+
+      console.log(`[Sync] Starting bulk extraction for ${scenes.length} scenes (cost: ${totalCost} tokens)`);
+
+      let successCount = 0;
+      let failedCount = 0;
+
+      // Process scenes sequentially (avoid rate limits)
+      for (let i = 0; i < scenes.length; i++) {
+        const scene = scenes[i];
+        const sceneText = scene.text || scene.content;
+
+        if (!sceneText || sceneText.length < 100) {
+          console.warn(`[Sync] Skipping scene ${i} — too short or empty`);
+          continue;
+        }
+
+        try {
+          const sceneId = `scene_${Date.now()}_${i}`;
+          const suggestions = await extractCanonFromScene(projectId, sceneText, canon, uid, extractionCostPerScene);
+
+          console.log(`[Sync] ✅ Scene ${i + 1}/${scenes.length} — ${suggestions.length} suggestions`);
+          successCount++;
+
+          // Small delay to avoid rate limits
+          if (i < scenes.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (error) {
+          console.error(`[Sync] ❌ Scene ${i + 1} failed:`, error.message);
+          failedCount++;
+        }
+      }
+
+      console.log(`[Sync] Complete: ${successCount} success, ${failedCount} failed`);
+
+      res.status(200).json({
+        success: true,
+        scenesProcessed: successCount,
+        scenesFailed: failedCount,
+        totalScenes: scenes.length,
+        tokensConsumed: successCount * extractionCostPerScene,
+        tokensRemaining: tokensRemaining - (successCount * extractionCostPerScene)
+      });
+
+    } catch (error) {
+      console.error('[Sync] Error:', error);
+      res.status(500).json({ error: `Помилка sync: ${error.message}` });
+    }
+  });
+});
+
