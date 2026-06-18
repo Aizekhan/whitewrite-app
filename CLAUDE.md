@@ -8,8 +8,16 @@
 🎬 Режисер (Director)  — WhiteWrite Workspace.html  візуалізуєш сцени (темний)
 ```
 
+## 🗂 Session Logs
+- **2026-06-18**: Canon Extraction System (Phase 3.0-3.4) — `CANON_EXTRACTION_SESSION_2026-06-18.md`
+  - Auto-extraction працює (Claude Haiku), auto-approve режим
+  - AI Models — single source of truth (`ai-models.js`)
+  - ANALYZE backend готовий (UI немає), Bulk Sync backend готовий (UI немає)
+  - **Next**: Testing + Bulk Sync UI + Analyze UI
+
 ## Архітектура даних (важливо)
 - **`WORLD` (`wt-world.jsx`) — ЄДИНЕ джерело правди.** Усі три стовпи читають із нього.
+- **`AI_MODELS` (`firebase/ai-models.js`) — ЄДИНЕ джерело правди для AI моделей.** Frontend (`window.__AI_MODELS`) і Backend (require) використовують один файл. **НІКОЛИ** не хардкодь версії моделей!
 - `DATA` (`ws-data.jsx`) — це **проєкція над `WORLD`**, а не окремі дані (`DATA.characters === WORLD.characters`). Не повертати DATA до власних моків.
 - Тришарова модель: **Canon** (characters/locations/events/factions/artifacts/world) → **Narrative** (arcs/chapters/scenes/dialogues) → **Director** (storyboards/shots/images). Звʼязки названі за target-type-plural; реверс деривується.
 
