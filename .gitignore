@@ -36,6 +36,8 @@ yarn-error.log*
 .firebase/
 firebase-debug.log
 firestore-debug.log
+*-firebase-adminsdk-*.json
+serviceAccount*.json
 
 # OS
 Thumbs.db

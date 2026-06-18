@@ -15,10 +15,14 @@ function wtFade(href, ret) {
 
 // Unified pillar switcher — identical on all three screens. `here` = active pillar.
 function PillarSwitch({ here, fixed }) {
+  // Get current projectId to pass to other pillars
+  const projectId = window.__currentProjectId;
+  const projectParam = projectId ? `?projectId=${projectId}` : '';
+
   const items = [
-    { id: "book", label: "Книга", icon: "feather", go: () => wtFade("WhiteWrite.html", true) },
-    { id: "universe", label: "Всесвіт", icon: "tree", go: () => wtFade("WhiteWrite WorldTree.html") },
-    { id: "director", label: "Режисер", icon: "clapper", go: () => wtFade("WhiteWrite Workspace.html") },
+    { id: "book", label: "Книга", icon: "feather", go: () => wtFade(`WhiteWrite.html${projectParam}`, true) },
+    { id: "universe", label: "Всесвіт", icon: "tree", go: () => wtFade(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "director", label: "Режисер", icon: "clapper", go: () => wtFade(`WhiteWrite Workspace.html${projectParam}`) },
   ];
   return (
     <div className={`pillswitch ${fixed ? "pillswitch--fixed" : ""}`} role="tablist" aria-label="Стовпи WhiteWrite">
@@ -146,127 +150,85 @@ function CanonSyncBanner({ projectId, canon }) {
 }
 
 // Phase 3.1c: Inferred Canon Review Queue
-function InferredCanonQueue({ projectId }) {
-  const [inferredCanon, setInferredCanon] = useAppState(null);
+function CanonHistoryView({ projectId, canon }) {
+  const [aiEntities, setAiEntities] = useAppState([]);
   const [loading, setLoading] = useAppState(true);
 
-  // Load inferredCanon from Firestore
+  // Extract AI-extracted entities from canon
   React.useEffect(() => {
-    if (!window.__firebase?.db || !projectId) return;
+    if (!canon) return;
 
-    async function loadInferredCanon() {
-      try {
-        const projectDoc = await window.__firebase.db.collection('projects').doc(projectId).get();
-        const data = projectDoc.data();
-        const inferred = data?.inferredCanon || {};
+    console.log('[CanonHistory] Canon received:', canon);
+    console.log('[CanonHistory] canon.characters type:', typeof canon.characters, canon.characters);
 
-        // Convert to array and filter pending only
-        const pending = Object.entries(inferred)
-          .filter(([_, v]) => v.status === 'pending')
-          .map(([sceneId, data]) => ({
-            sceneId,
-            ...data
-          }));
+    const entities = [];
 
-        setInferredCanon(pending);
-        setLoading(false);
-      } catch (error) {
-        console.error('[InferredCanon] Load failed:', error);
-        setLoading(false);
-      }
-    }
+    // Iterate through all canon types
+    ['characters', 'locations', 'events', 'factions', 'artifacts'].forEach(type => {
+      const items = canon[type] || {};
+      console.log(`[CanonHistory] ${type}:`, items, 'isArray:', Array.isArray(items));
 
-    loadInferredCanon();
-  }, [projectId]);
+      // Handle both object {id: data} and array [{id, ...data}] formats
+      const entries = Array.isArray(items)
+        ? items.map(item => [item.id, item])
+        : Object.entries(items);
 
-  async function approveSuggestion(sceneId, suggestion) {
-    if (!window.__firebase?.db || !projectId) return;
-
-    try {
-      // Merge to canon
-      const updatePath = `canon.${suggestion.type}.${suggestion.id}`;
-      await window.__firebase.db.collection('projects').doc(projectId).update({
-        [updatePath]: {
-          ...suggestion.newData,
-          explicit: false,  // Inferred, not user-created
-          inferredFrom: sceneId,
-          createdAt: window.__firebase.db.FieldValue.serverTimestamp()
-        },
-        [`inferredCanon.${sceneId}.status`]: 'approved'
+      entries.forEach(([id, data]) => {
+        console.log(`[CanonHistory] Checking ${type}/${id}:`, data, 'aiExtracted:', data.aiExtracted);
+        if (data.aiExtracted) {
+          entities.push({
+            type,
+            id,
+            name: data.name,
+            extractedAt: data.extractedAt,
+            data
+          });
+        }
       });
+    });
 
-      // Reload
-      setInferredCanon((prev) => prev.filter((item) => item.sceneId !== sceneId));
+    // Sort by extractedAt (newest first)
+    entities.sort((a, b) => {
+      const timeA = a.extractedAt?.toDate?.() || new Date(0);
+      const timeB = b.extractedAt?.toDate?.() || new Date(0);
+      return timeB - timeA;
+    });
 
-      console.log('[InferredCanon] ✅ Approved:', suggestion.id);
-    } catch (error) {
-      console.error('[InferredCanon] Approve failed:', error);
-      alert(`Помилка: ${error.message}`);
-    }
-  }
-
-  async function rejectSuggestion(sceneId) {
-    if (!window.__firebase?.db || !projectId) return;
-
-    try {
-      await window.__firebase.db.collection('projects').doc(projectId).update({
-        [`inferredCanon.${sceneId}.status`]: 'rejected'
-      });
-
-      // Remove from UI
-      setInferredCanon((prev) => prev.filter((item) => item.sceneId !== sceneId));
-
-      console.log('[InferredCanon] ❌ Rejected:', sceneId);
-    } catch (error) {
-      console.error('[InferredCanon] Reject failed:', error);
-      alert(`Помилка: ${error.message}`);
-    }
-  }
+    console.log('[CanonHistory] ✅ Found AI entities:', entities.length, entities);
+    setAiEntities(entities);
+    setLoading(false);
+  }, [canon]);
 
   if (loading) return <p style={{fontSize: 14, color: 'var(--tx-mid)'}}>Завантаження...</p>;
-  if (!inferredCanon || inferredCanon.length === 0) return null;
-
-  const totalSuggestions = inferredCanon.reduce((sum, item) => sum + (item.suggestions?.length || 0), 0);
+  if (aiEntities.length === 0) return null;
 
   return (
-    <div className="inferred-queue">
+    <div className="canon-history">
       <h3 className="blk-h" style={{ marginTop: 24 }}>
-        <Ic.alert />Нові сутності на розгляді · {totalSuggestions}
+        <Ic.check />AI-витягнутий канон · {aiEntities.length}
       </h3>
 
-      {inferredCanon.map((item) => (
-        <div className="inferred-scene" key={item.sceneId}>
-          <p className="inferred-scene__title">Сцена ({new Date(item.createdAt?.toDate()).toLocaleDateString('uk')})</p>
+      {aiEntities.map((entity) => (
+        <div className="canon-entity" key={entity.id}>
+          <div className="canon-entity__header">
+            <span className="type-badge" data-type={entity.type}>{entity.type}</span>
+            <strong className="canon-entity__name">{entity.name}</strong>
+            <span className="canon-entity__date">
+              {entity.extractedAt?.toDate ? entity.extractedAt.toDate().toLocaleDateString('uk') : 'невідома дата'}
+            </span>
+          </div>
 
-          {item.suggestions?.map((suggestion) => (
-            <div className="canon-suggestion" key={suggestion.id}>
-              <div className="canon-suggestion__header">
-                <span className="type-badge" data-type={suggestion.type}>{suggestion.type}</span>
-                <strong className="canon-suggestion__name">{suggestion.newData?.name || suggestion.targetId}</strong>
-                <span className="canon-suggestion__action">{suggestion.action === 'add' ? '+ Додати' : '↻ Оновити'}</span>
-              </div>
-
-              <p className="canon-suggestion__reason">{suggestion.reason}</p>
-
-              <div className="canon-suggestion__data">
-                {Object.entries(suggestion.newData || {}).slice(0, 3).map(([key, value]) => (
-                  <div className="kv__row" key={key}>
-                    <span className="kv__k">{key}</span>
-                    <span className="kv__v">{value}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="canon-suggestion__actions">
-                <button className="btn-approve" type="button" onClick={() => approveSuggestion(item.sceneId, suggestion)}>
-                  <Ic.check />Прийняти
-                </button>
-                <button className="btn-reject" type="button" onClick={() => rejectSuggestion(item.sceneId)}>
-                  <Ic.x />Відхилити все
-                </button>
-              </div>
-            </div>
-          ))}
+          <div className="canon-entity__data">
+            {Object.entries(entity.data || {})
+              .filter(([key]) => !['id', 'aiExtracted', 'extractedAt', 'name'].includes(key))
+              .slice(0, 3)
+              .map(([key, value]) => (
+                <div className="kv__row" key={key}>
+                  <span className="kv__k">{key}</span>
+                  <span className="kv__v">{typeof value === 'object' && value !== null ? JSON.stringify(value) : value}</span>
+                </div>
+              ))}
+          </div>
         </div>
       ))}
     </div>
@@ -274,7 +236,7 @@ function InferredCanonQueue({ projectId }) {
 }
 
 // Chronicle — the canon overview at the heart of the tree. Minimal inline editing.
-function ChronicleView({ navigate, onClose, canon }) {
+function ChronicleView({ navigate, onClose, canon, projectId }) {
   const w = WORLD.world;
   const [edit, setEdit] = useAppState(false);
   const [, force] = useAppState(0);
@@ -337,8 +299,8 @@ function ChronicleView({ navigate, onClose, canon }) {
             ) : (
               <div className="rules">{w.rules.map((r, i) => <div className="rule" key={i}><span className="rule__n">{String(i + 1).padStart(2, "0")}</span><span>{r}</span></div>)}</div>
             )}
-            <CanonSyncBanner projectId={window.__currentProjectId} canon={canon} />
-            <InferredCanonQueue projectId={window.__currentProjectId} />
+            <CanonSyncBanner projectId={projectId} canon={canon} />
+            <CanonHistoryView projectId={projectId} canon={canon} />
 
             <h3 className="blk-h" style={{ marginTop: 24 }}><Ic.flame />Хроніка подій · {WORLD.events.length}</h3>
             <div className="chron-list">
@@ -383,10 +345,17 @@ function WorldTreeApp() {
   const [canon, setCanon] = useAppState(null); // Real canon from Firestore
   const [loading, setLoading] = useAppState(true);
   const [authReady, setAuthReady] = useAppState(false);
+  const [projectId, setProjectId] = useAppState(null); // Current project ID
 
   // Get projectId from URL param, global, or last opened project
   const getProjectId = async () => {
-    // 1. Try URL param
+    // 1. Try global FIRST (most reliable - set by shell)
+    if (window.__currentProjectId) {
+      console.log('[WorldTree] projectId from global:', window.__currentProjectId);
+      return window.__currentProjectId;
+    }
+
+    // 2. Try URL param (fallback for direct navigation)
     try {
       const params = new URLSearchParams(window.location.search);
       const urlProjectId = params.get('projectId');
@@ -395,12 +364,6 @@ function WorldTreeApp() {
         return urlProjectId;
       }
     } catch (e) {}
-
-    // 2. Try global (set by Book)
-    if (window.__currentProjectId) {
-      console.log('[WorldTree] projectId from global:', window.__currentProjectId);
-      return window.__currentProjectId;
-    }
 
     // 3. Try to get any user project from Firestore
     if (window.__firebase && window.__wwUser?.uid) {
@@ -429,6 +392,46 @@ function WorldTreeApp() {
     console.warn('[WorldTree] No project found');
     return null;
   };
+
+  // Listen for projectId from shell (postMessage)
+  React.useEffect(() => {
+    const handleMessage = async (e) => {
+      const d = e.data || {};
+      if (d.type === 'ww-project' && d.projectId) {
+        console.log('[WorldTree] Received projectId from shell:', d.projectId);
+
+        // Update global and state
+        window.__currentProjectId = d.projectId;
+        setProjectId(d.projectId);
+
+        // If auth ready, reload canon immediately (no page reload)
+        if (authReady && window.__firebaseCanon) {
+          console.log('[WorldTree] Reloading canon with new projectId...');
+          setLoading(true);
+
+          try {
+            const realCanon = await window.__firebaseCanon.getCanon(d.projectId);
+            const canonArrays = window.__firebaseCanon.canonToArrays(realCanon);
+
+            console.log('[WorldTree] ✅ Canon reloaded:', {
+              characters: canonArrays.characters.length,
+              locations: canonArrays.locations.length,
+              events: canonArrays.events.length
+            });
+
+            window.WORLD = canonArrays;
+            setCanon(canonArrays);
+          } catch (error) {
+            console.error('[WorldTree] Failed to reload canon:', error);
+          } finally {
+            setLoading(false);
+          }
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [authReady]);
 
   // Listen to auth state changes and reload canon
   React.useEffect(() => {
@@ -477,6 +480,10 @@ function WorldTreeApp() {
       // Store globally for other components
       if (projectId) {
         window.__currentProjectId = projectId;
+        setProjectId(projectId);  // Also store in React state
+        console.log('[WorldTree] ✅ Set window.__currentProjectId =', projectId);
+      } else {
+        console.warn('[WorldTree] ⚠️ No projectId to set globally');
       }
 
       if (!projectId) {
@@ -557,7 +564,7 @@ function WorldTreeApp() {
           <PillarSwitch here="universe" fixed />
         </>
       )}
-      {cur && cur.type === "chronicle" && <ChronicleView navigate={navigate} onClose={close} canon={canon} />}
+      {cur && cur.type === "chronicle" && <ChronicleView navigate={navigate} onClose={close} canon={canon} projectId={projectId} />}
       {cur && cur.type !== "chronicle" && (
         <Workspace key={cur.type} type={cur.type} selectedId={cur.id} navigate={navigate} onClose={close} goPillar={wtFade} />
       )}

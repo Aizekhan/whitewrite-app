@@ -231,7 +231,7 @@ function SceneMenu() {
             <Ic.layers /><span className="ws-cat__lbl">Уся історія</span>
           </button>
           <div className="ws-cat__sep" />
-          {WORLD.scenes.map((s) => (
+          {(WORLD.scenes || []).map((s) => (
             <button key={s.n} role="menuitem" type="button" className={`ws-cat__opt ${scene === s.n ? "is-on" : ""}`} onClick={() => { setOpen(false); setScene(s.n); }}>
               <span className="scene-dot">{s.n}</span><span className="ws-cat__lbl" style={{ fontFamily: "inherit", fontWeight: 500 }}>{s.title}</span><span className="ws-cat__n">акт {s.act}</span>
             </button>

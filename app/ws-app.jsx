@@ -15,10 +15,14 @@ window.__wsGoCanon = (type, id) => fadeNav("WhiteWrite WorldTree.html?type=" + t
 
 // Unified pillar switcher — identical on all three screens. `here` = active pillar.
 function PillarSwitch({ here }) {
+  // Get current projectId to pass to other pillars
+  const projectId = window.__currentProjectId;
+  const projectParam = projectId ? `?projectId=${projectId}` : '';
+
   const items = [
-    { id: "book", label: "Книга", icon: "book", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav("WhiteWrite.html"); } },
-    { id: "universe", label: "Всесвіт", icon: "tree", go: () => fadeNav("WhiteWrite WorldTree.html") },
-    { id: "director", label: "Режисер", icon: "clapper", go: () => fadeNav("WhiteWrite Workspace.html") },
+    { id: "book", label: "Книга", icon: "book", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
+    { id: "universe", label: "Всесвіт", icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "director", label: "Режисер", icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
   ];
   return (
     <div className="pillswitch" role="tablist" aria-label="Стовпи WhiteWrite">

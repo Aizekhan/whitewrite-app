@@ -3,6 +3,7 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true }); // Enable CORS for all origins
 const Anthropic = require('@anthropic-ai/sdk');
+const { AI_MODELS } = require('./ai-models.js');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -226,14 +227,14 @@ exports.generateScene = onRequest({
       if (useClaudeAPI) {
         // CLAUDE API (Worldforge plan)
         try {
-          console.log('Using Claude API (claude-opus-4-8)');
+          console.log(`Using Claude API (${AI_MODELS.claude.opus})`);
 
           const anthropic = new Anthropic({
             apiKey: claudeApiKey.value()
           });
 
           const message = await anthropic.messages.create({
-            model: 'claude-opus-4-8',
+            model: AI_MODELS.claude.opus,
             max_tokens: 4096,
             messages: [{
               role: 'user',
@@ -258,10 +259,8 @@ exports.generateScene = onRequest({
         const apiKey = geminiApiKey.value();
 
         // Try models with fallback (REST API v1, 2026 models)
-        // NOTE: gemini-3.5-flash removed - has lower token limits and unreliable output
         const modelNames = [
-          'gemini-2.5-flash',   // Stable, tested (4096 tokens works)
-          'gemini-2.0-flash'    // Legacy fallback
+          AI_MODELS.gemini.pro  // Current Gemini model
         ];
 
         for (const modelName of modelNames) {
@@ -394,6 +393,50 @@ exports.generateScene = onRequest({
 });
 
 /**
+ * Helper: Merge extracted suggestions into canon
+ * Auto-approve mode: immediately add entities to canon
+ */
+async function mergeIntoCanon(projectId, suggestions) {
+  const updates = {};
+  const mergedEntities = [];
+
+  // Pluralize type (character → characters, location → locations, etc.)
+  const pluralize = (type) => {
+    if (type.endsWith('y')) return type.slice(0, -1) + 'ies'; // factory → factories
+    return type + 's'; // character → characters
+  };
+
+  for (const suggestion of suggestions) {
+    const { type, action, targetId, newData } = suggestion;
+
+    // Generate unique ID if adding new entity
+    const entityId = action === 'add'
+      ? `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      : targetId;
+
+    // Add AI-extracted flag and timestamp
+    const entityData = {
+      ...newData,
+      id: entityId,
+      aiExtracted: true,
+      extractedAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Update path in Firestore (pluralize type: character → characters)
+    const pluralType = pluralize(type);
+    updates[`canon.${pluralType}.${entityId}`] = entityData;
+    mergedEntities.push({ type: pluralType, id: entityId, name: newData.name });
+  }
+
+  // Batch update
+  if (Object.keys(updates).length > 0) {
+    await db.collection('projects').doc(projectId).update(updates);
+  }
+
+  return mergedEntities;
+}
+
+/**
  * Helper: Extract canon from scene (Phase 3.1b)
  * Called asynchronously after scene generation
  */
@@ -450,7 +493,7 @@ Return JSON with memorySuggestions array:
     });
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
+      model: AI_MODELS.claude.haiku,
       max_tokens: 2048,
       temperature: 0.2,
       system: systemInstruction,
@@ -483,24 +526,15 @@ Return JSON with memorySuggestions array:
       return [];
     }
 
-    // Generate scene ID (timestamp-based)
-    const sceneId = `scene_${Date.now()}`;
-
-    // Store in inferredCanon queue
-    await db.collection('projects').doc(projectId).update({
-      [`inferredCanon.${sceneId}`]: {
-        suggestions,
-        status: 'pending',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      }
-    });
+    // Auto-merge into canon (no review queue)
+    const mergedEntities = await mergeIntoCanon(projectId, suggestions);
 
     // Deduct extraction tokens
     await db.collection('users').doc(uid).update({
       tokensUsed: admin.firestore.FieldValue.increment(extractionCost)
     });
 
-    console.log(`[Auto-Extract] ✅ Stored ${suggestions.length} suggestions in inferredCanon.${sceneId}`);
+    console.log(`[Auto-Extract] ✅ Auto-merged ${mergedEntities.length} entities into canon`);
 
     return suggestions;
   } catch (error) {
@@ -1055,7 +1089,7 @@ Return JSON with memorySuggestions array:
       });
 
       const message = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',  // Cheapest model
+        model: AI_MODELS.claude.haiku,
         max_tokens: 2048,
         temperature: 0.2,  // Low temperature for accuracy
         system: systemInstruction,
@@ -1386,7 +1420,7 @@ Return JSON:
       });
 
       const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20240620',  // Claude Sonnet (good balance)
+        model: AI_MODELS.claude.sonnet,
         max_tokens: 4096,
         temperature: 0.2,  // Low temperature for analytical accuracy
         system: systemInstruction,

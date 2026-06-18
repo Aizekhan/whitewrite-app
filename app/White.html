@@ -840,6 +840,18 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (!isNewProject) {
       try { history.replaceState(null, "", "#work/" + p); } catch (e) {}
     }
+
+    // Send current projectId to iframe after it loads
+    if (currentProjectId && f.contentWindow) {
+      setTimeout(function() {
+        try {
+          f.contentWindow.postMessage({ type: "ww-project", projectId: currentProjectId }, "*");
+          console.log('[Shell] Sent projectId to iframe:', currentProjectId);
+        } catch (e) {
+          console.error('[Shell] Failed to send projectId:', e);
+        }
+      }, 500);
+    }
   }
   // The mage landing: ALWAYS reset the book to its first page (the mage cover).
   function showHome() {
@@ -865,6 +877,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   window.__wwHome = showHome;
   // Open an existing narrative straight into reading + pillars.
+  var currentProjectId = null; // Track current project globally
+
   function openNarrative(projectId) {
     if (!window.__wwAuth) { openAuth(); return; }
     if (!projectId) {
@@ -872,6 +886,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     console.log('Opening project:', projectId);
+    currentProjectId = projectId; // Store globally
     showPillar("book", "projectId=" + projectId);
   }
 
@@ -984,7 +999,15 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var d = e.data || {};
     if (d.type === "ww-news") { showView("news"); return; }
     if (d.type === "ww-buybook") { document.getElementById("buybook-modal").classList.add("is-on"); return; }
-    if (d.type === "ww-nav" && d.pillar) { showPillar(d.pillar, d.query || ""); return; }
+    if (d.type === "ww-nav" && d.pillar) {
+      // Auto-inject projectId if available and not already in query
+      var query = d.query || "";
+      if (currentProjectId && query.indexOf("projectId=") < 0) {
+        query = (query ? query + "&" : "") + "projectId=" + currentProjectId;
+      }
+      showPillar(d.pillar, query);
+      return;
+    }
     // the book tells the shell whether the reader is on the cover (home) or inside a story (work)
     if (d.type === "ww-mode") {
       if (d.mode === "work") { if (Date.now() < suppressWorkUntil) return; inWork = true; mode = "book"; renderRail(); }
@@ -1474,6 +1497,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
 
 <!-- Firebase Modules -->
+<script src="/firebase/ai-models.js"></script>
 <script src="/firebase/firebase-init.js"></script>
 <script src="/firebase/token-budget.js"></script>
 <script src="/firebase/firebase-auth.js"></script>
