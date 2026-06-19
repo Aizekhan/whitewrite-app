@@ -301,7 +301,13 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
     let r = all.filter((e) => !e._draft);
     if (scene != null) {
       const sc = (dataSource.scenes || []).find((s) => s.n === scene);
-      r = r.filter((e) => (e.scenes || []).includes(scene) || (sc && (sc[type] || []).includes(e.id)));
+      // Filter by scene.canonRefs (new linking system)
+      if (sc && sc.canonRefs && sc.canonRefs[type]) {
+        r = r.filter((e) => sc.canonRefs[type].includes(e.id));
+      } else {
+        // Fallback: old system (entity.scenes or scene[type])
+        r = r.filter((e) => (e.scenes || []).includes(scene) || (sc && (sc[type] || []).includes(e.id)));
+      }
     }
     const qq = q.trim().toLowerCase();
     if (qq) r = r.filter((e) => A.search(e).toLowerCase().includes(qq));
