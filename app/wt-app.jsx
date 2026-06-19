@@ -347,6 +347,7 @@ function WorldTreeApp() {
   const [loading, setLoading] = useAppState(true);
   const [authReady, setAuthReady] = useAppState(false);
   const [projectId, setProjectId] = useAppState(null); // Current project ID
+  const loadedProjectIdRef = React.useRef(null); // Track loaded projectId synchronously (to prevent duplicate loads)
 
   // Get projectId from URL param, global, or last opened project
   const getProjectId = async () => {
@@ -402,14 +403,16 @@ function WorldTreeApp() {
         console.log('[WorldTree] Received projectId from shell:', d.projectId);
 
         // Skip if already loaded (prevent double-reload/flashing)
-        if (d.projectId === projectId) {
-          console.log('[WorldTree] Same projectId, skipping reload');
+        // Use ref for synchronous check (state updates are async)
+        if (d.projectId === loadedProjectIdRef.current) {
+          console.log('[WorldTree] Same projectId (cached), skipping reload');
           return;
         }
 
         // Update global and state
         window.__currentProjectId = d.projectId;
         setProjectId(d.projectId);
+        loadedProjectIdRef.current = d.projectId; // Mark as loaded immediately
 
         // Reset to tree view when switching projects
         setCur(null);
@@ -506,6 +509,7 @@ function WorldTreeApp() {
       if (projectId) {
         window.__currentProjectId = projectId;
         setProjectId(projectId);  // Also store in React state
+        loadedProjectIdRef.current = projectId; // Mark as loaded
         console.log('[WorldTree] ✅ Set window.__currentProjectId =', projectId);
       } else {
         console.warn('[WorldTree] ⚠️ No projectId to set globally');
