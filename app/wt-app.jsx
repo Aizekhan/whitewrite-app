@@ -423,10 +423,25 @@ function WorldTreeApp() {
             const realCanon = await window.__firebaseCanon.getCanon(d.projectId);
             const canonArrays = window.__firebaseCanon.canonToArrays(realCanon);
 
+            // Load scenes from Firestore (separate subcollection)
+            let scenes = [];
+            if (window.__firebaseScenes) {
+              try {
+                scenes = await window.__firebaseScenes.getScenes(d.projectId);
+                console.log('[WorldTree] ✅ Scenes reloaded:', scenes.length);
+              } catch (sceneError) {
+                console.warn('[WorldTree] Failed to reload scenes:', sceneError);
+              }
+            }
+
+            // Merge scenes into canon
+            canonArrays.scenes = scenes;
+
             console.log('[WorldTree] ✅ Canon reloaded:', {
               characters: canonArrays.characters.length,
               locations: canonArrays.locations.length,
-              events: canonArrays.events.length
+              events: canonArrays.events.length,
+              scenes: canonArrays.scenes.length
             });
 
             window.WORLD = canonArrays;
@@ -514,11 +529,26 @@ function WorldTreeApp() {
         const realCanon = await window.__firebaseCanon.getCanon(projectId);
         const canonArrays = window.__firebaseCanon.canonToArrays(realCanon);
 
+        // Load scenes from Firestore (separate subcollection)
+        let scenes = [];
+        if (window.__firebaseScenes) {
+          try {
+            scenes = await window.__firebaseScenes.getScenes(projectId);
+            console.log('[WorldTree] ✅ Scenes loaded:', scenes.length);
+          } catch (sceneError) {
+            console.warn('[WorldTree] Failed to load scenes:', sceneError);
+          }
+        }
+
+        // Merge scenes into canon
+        canonArrays.scenes = scenes;
+
         console.log('[WorldTree] ✅ Canon loaded from Firestore:', {
           projectId,
           characters: canonArrays.characters.length,
           locations: canonArrays.locations.length,
           events: canonArrays.events.length,
+          scenes: canonArrays.scenes.length,
           world: canonArrays.world
         });
 
