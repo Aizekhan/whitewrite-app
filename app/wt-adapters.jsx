@@ -5,6 +5,13 @@ const A_TONECLS = { draft: "draft", review: "review", ready: "ready", done: "don
 const aTone = (t) => ({ draft: "var(--st-draft)", review: "var(--st-review)", ready: "var(--st-ready)", done: "var(--st-done)", anta: "var(--violet-lit)" }[t] || "var(--gold)");
 const aHue = (t) => ({ lead: "var(--gold)", anta: "var(--st-draft)", support: "var(--violet)" }[t] || "var(--violet)");
 
+// Safe string compare helper for sorting (handles undefined/null)
+const safeCompare = (a, b) => {
+  const aStr = (a || "").toString();
+  const bStr = (b || "").toString();
+  return aStr.localeCompare(bStr, "uk");
+};
+
 function Bar({ pct, color }) {
   return <div className="prog"><div className="prog__fill" style={{ width: pct + "%", background: color }} /></div>;
 }
@@ -39,8 +46,8 @@ const ADAPTERS = {
       { key: "status", label: "Статус", of: (e) => e.status },
     ],
     sorts: [
-      { key: "name", label: "За іменем", cmp: (a, b) => a.name.localeCompare(b.name, "uk") },
-      { key: "arc", label: "За аркою", cmp: (a, b) => b.prog - a.prog },
+      { key: "name", label: "За іменем", cmp: (a, b) => safeCompare(a.name, b.name) },
+      { key: "arc", label: "За аркою", cmp: (a, b) => (b.prog || 0) - (a.prog || 0) },
     ],
     cardStat: (e) => `${e.prog}%`,
     profile: (e) => (
@@ -66,7 +73,7 @@ const ADAPTERS = {
       { key: "type", label: "Тип", of: (e) => e.type },
       { key: "atmos", label: "Атмосфера", of: (e) => (e.atmos || [])[0] || "—" },
     ],
-    sorts: [{ key: "name", label: "За назвою", cmp: (a, b) => a.name.localeCompare(b.name, "uk") }],
+    sorts: [{ key: "name", label: "За назвою", cmp: (a, b) => safeCompare(a.name, b.name) }],
     cardStat: (e) => (e.scenes ? e.scenes.length + " сц." : ""),
     profile: (e) => (
       <>
@@ -91,7 +98,7 @@ const ADAPTERS = {
       { key: "act", label: "Акт", of: (e) => "Акт " + e.act },
       { key: "type", label: "Тип", of: (e) => e.type },
     ],
-    sorts: [{ key: "act", label: "За хронологією", cmp: (a, b) => a.act - b.act }],
+    sorts: [{ key: "act", label: "За хронологією", cmp: (a, b) => (a.act || 0) - (b.act || 0) }],
     cardStat: (e) => "Акт " + e.act,
     profile: (e) => (
       <>
@@ -113,8 +120,8 @@ const ADAPTERS = {
     search: (e) => [e.name, e.align, e.motto, e.desc].join(" "),
     facets: [{ key: "align", label: "Ставлення", of: (e) => e.align }],
     sorts: [
-      { key: "power", label: "За впливом", cmp: (a, b) => b.power - a.power },
-      { key: "name", label: "За назвою", cmp: (a, b) => a.name.localeCompare(b.name, "uk") },
+      { key: "power", label: "За впливом", cmp: (a, b) => (b.power || 0) - (a.power || 0) },
+      { key: "name", label: "За назвою", cmp: (a, b) => safeCompare(a.name, b.name) },
     ],
     cardStat: (e) => e.power + "%",
     profile: (e) => (
@@ -141,7 +148,7 @@ const ADAPTERS = {
       { key: "rarity", label: "Рідкість", of: (e) => e.rarity },
       { key: "type", label: "Тип", of: (e) => e.type },
     ],
-    sorts: [{ key: "name", label: "За назвою", cmp: (a, b) => a.name.localeCompare(b.name, "uk") }],
+    sorts: [{ key: "name", label: "За назвою", cmp: (a, b) => safeCompare(a.name, b.name) }],
     cardStat: (e) => e.rarity,
     profile: (e) => {
       const sc = WORLD.scenes.find((s) => s.n === e.scene);
