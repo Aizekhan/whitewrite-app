@@ -61,15 +61,54 @@ window.__firebaseCanon = {
    * Convert canon from object format to array format (for UI compatibility)
    * Canon in Firestore: { characters: { id1: {...}, id2: {...} } }
    * Canon for UI: { characters: [{id: 'id1', ...}, {id: 'id2', ...}] }
+   *
+   * IMPORTANT: Maps AI-extracted field names to UI-expected field names
    */
   canonToArrays(canon) {
+    // Helper: Normalize AI-extracted entity to UI-expected format
+    const normalizeCharacter = (data) => ({
+      ...data,
+      motivation: data.motivation || data.goal || data.trait || '',
+      roleType: data.roleType || (data.role?.includes('головн') ? 'lead' : 'support'),
+      prog: data.prog || 0,
+      arc: data.arc || data.developmentArc || ''
+    });
+
+    const normalizeLocation = (data) => ({
+      ...data,
+      desc: data.desc || data.description || ''
+    });
+
+    const normalizeEvent = (data) => ({
+      ...data,
+      title: data.title || data.name || '',
+      desc: data.desc || data.description || '',
+      act: data.act || 1,
+      type: data.type || 'Подія',
+      tone: data.tone || 'done'
+    });
+
+    const normalizeFaction = (data) => ({
+      ...data,
+      desc: data.desc || data.description || '',
+      align: data.align || 'neutral',
+      power: data.power || 5
+    });
+
+    const normalizeArtifact = (data) => ({
+      ...data,
+      desc: data.desc || data.description || '',
+      type: data.type || 'Артефакт',
+      rarity: data.rarity || 'Звичайний'
+    });
+
     const result = {
       world: canon.world || this._emptyCanon().world,
-      characters: Object.entries(canon.characters || {}).map(([id, data]) => ({ id, ...data })),
-      locations: Object.entries(canon.locations || {}).map(([id, data]) => ({ id, ...data })),
-      events: Object.entries(canon.events || {}).map(([id, data]) => ({ id, ...data })),
-      factions: Object.entries(canon.factions || {}).map(([id, data]) => ({ id, ...data })),
-      artifacts: Object.entries(canon.artifacts || {}).map(([id, data]) => ({ id, ...data }))
+      characters: Object.entries(canon.characters || {}).map(([id, data]) => normalizeCharacter({ id, ...data })),
+      locations: Object.entries(canon.locations || {}).map(([id, data]) => normalizeLocation({ id, ...data })),
+      events: Object.entries(canon.events || {}).map(([id, data]) => normalizeEvent({ id, ...data })),
+      factions: Object.entries(canon.factions || {}).map(([id, data]) => normalizeFaction({ id, ...data })),
+      artifacts: Object.entries(canon.artifacts || {}).map(([id, data]) => normalizeArtifact({ id, ...data }))
     };
 
     return result;
