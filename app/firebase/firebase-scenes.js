@@ -99,11 +99,13 @@ window.__firebaseScenes = {
       status: sceneData.status || 'draft',
       generatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      entities: sceneData.entities || {
-        characters: [],
-        locations: [],
-        events: [],
-        artifacts: []
+      // Canon references — ID links to entities (5 types)
+      canonRefs: sceneData.canonRefs || {
+        characters: [],  // Character IDs that appear/speak in scene
+        locations: [],   // Location IDs where scene takes place
+        events: [],      // Event IDs that happen/are mentioned
+        factions: [],    // Faction IDs involved
+        artifacts: []    // Artifact IDs that appear
       },
       reconstruction: {
         mode: sceneData.reconstruction?.mode || 'review',
@@ -248,6 +250,41 @@ window.__createTestScene = async function(projectId) {
   } catch (err) {
     console.error('Failed to create test scene:', err);
   }
+};
+
+// Validate canonRefs structure (helper for quality checks)
+window.__firebaseScenes.validateCanonRefs = function(canonRefs) {
+  if (!canonRefs || typeof canonRefs !== 'object') {
+    return {valid: false, error: 'canonRefs must be an object'};
+  }
+
+  const requiredTypes = ['characters', 'locations', 'events', 'factions', 'artifacts'];
+
+  for (const type of requiredTypes) {
+    if (!Array.isArray(canonRefs[type])) {
+      return {valid: false, error: `canonRefs.${type} must be an array`};
+    }
+
+    // Check all IDs are strings
+    for (const id of canonRefs[type]) {
+      if (typeof id !== 'string' || !id) {
+        return {valid: false, error: `Invalid ID in canonRefs.${type}: ${id}`};
+      }
+    }
+  }
+
+  return {valid: true};
+};
+
+// Create empty canonRefs (helper for initialization)
+window.__firebaseScenes.emptyCanonRefs = function() {
+  return {
+    characters: [],
+    locations: [],
+    events: [],
+    factions: [],
+    artifacts: []
+  };
 };
 
 console.log('Firebase scenes module loaded');
