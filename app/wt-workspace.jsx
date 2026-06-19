@@ -284,9 +284,11 @@ function WsCatMenu({ type, navigate }) {
 }
 
 /* ---------------- the workspace ---------------- */
-function Workspace({ type, selectedId, navigate, onClose, goPillar }) {
+function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   const A = ADAPTERS[type];
-  const all = WORLD[type];
+  // Use canon prop if available (real data), fallback to WORLD (mock)
+  const dataSource = canon || WORLD;
+  const all = dataSource[type] || [];
   const [scene] = useWtScene();
   const [q, setQ] = useWsState("");
   const [view, setView] = useWsState("cards");
@@ -298,7 +300,7 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar }) {
   const list = useWsMemo(() => {
     let r = all.filter((e) => !e._draft);
     if (scene != null) {
-      const sc = WORLD.scenes.find((s) => s.n === scene);
+      const sc = (dataSource.scenes || []).find((s) => s.n === scene);
       r = r.filter((e) => (e.scenes || []).includes(scene) || (sc && (sc[type] || []).includes(e.id)));
     }
     const qq = q.trim().toLowerCase();
@@ -307,7 +309,7 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar }) {
     const s = A.sorts.find((x) => x.key === sortKey) || A.sorts[0];
     r.sort(s.cmp);
     return r;
-  }, [all, q, filters, sortKey, type, scene, rev]);
+  }, [all, q, filters, sortKey, type, scene, rev, canon]);
 
   const groups = useWsMemo(() => {
     if (!group) return [{ key: null, items: list }];

@@ -566,7 +566,7 @@ function WorldTreeApp() {
       )}
       {cur && cur.type === "chronicle" && <ChronicleView navigate={navigate} onClose={close} canon={canon} projectId={projectId} />}
       {cur && cur.type !== "chronicle" && (
-        <Workspace key={cur.type} type={cur.type} selectedId={cur.id} navigate={navigate} onClose={close} goPillar={wtFade} />
+        <Workspace key={cur.type} type={cur.type} selectedId={cur.id} navigate={navigate} onClose={close} goPillar={wtFade} canon={canon} />
       )}
     </div>
   );
