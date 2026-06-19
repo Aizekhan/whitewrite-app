@@ -1,6 +1,39 @@
 // Top-level flow: start → form → (ritual + reading inside Book).
 const { useState: useAState } = React;
 
+// Pillar navigation (Книга · Всесвіт · Режисер)
+function PillarSwitch({ here }) {
+  const Ic = window.Ic || {};
+  const projectId = window.__currentProjectId;
+  const projectParam = projectId ? `?projectId=${projectId}` : '';
+
+  const fadeNav = (href) => {
+    if (window.wwGo && window.wwGo(href)) return;
+    window.location.href = href;
+  };
+
+  const items = [
+    { id: "book", label: "Книга", icon: "feather", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
+    { id: "universe", label: "Всесвіт", icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "director", label: "Режисер", icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
+  ];
+
+  return (
+    <div className="pillswitch pillswitch--fixed" role="tablist" aria-label="Стовпи WhiteWrite">
+      {items.map((it) => {
+        const I = Ic[it.icon];
+        const cur = here === it.id;
+        return (
+          <button key={it.id} type="button" role="tab" aria-current={cur ? "page" : undefined}
+            className={`pillswitch__b ${cur ? "is-here" : ""}`} onClick={() => { if (!cur) it.go(); }}>
+            {I && <I />}{it.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // Derive a universe title from the user's premise — falls back to the
 // scripted stub when nothing meaningful is given.
 function titleFromPremise(p) {
@@ -102,6 +135,9 @@ function App() {
           genres: project.genres || []
         });
 
+        // Set global projectId for PillarSwitch navigation
+        window.__currentProjectId = project.id;
+
         // Ensure we stay on book stage
         console.log('Setting stage to book');
         setStage("book");
@@ -140,6 +176,9 @@ function App() {
 
         // Store projectId for book to use
         data.projectId = projectId;
+
+        // Set global projectId for PillarSwitch navigation
+        window.__currentProjectId = projectId;
 
         // Auto mode: generate all scenes at once
         // Guided mode: generate only first scene
@@ -306,6 +345,7 @@ function App() {
       )}
       {stage === "book" && (
         <div key="book" className="stage-screen">
+          <PillarSwitch here="book" />
           <Book
             flow={!returned}
             premise={form ? form.description : ""}
