@@ -341,7 +341,8 @@ function initialCur() {
 }
 
 function WorldTreeApp() {
-  const [cur, setCur] = useAppState(initialCur); // null | {type,id}
+  // Always start with tree view (null = show main tree)
+  const [cur, setCur] = useAppState(null); // null | {type,id}
   const [canon, setCanon] = useAppState(null); // Real canon from Firestore
   const [loading, setLoading] = useAppState(true);
   const [authReady, setAuthReady] = useAppState(false);
@@ -400,9 +401,18 @@ function WorldTreeApp() {
       if (d.type === 'ww-project' && d.projectId) {
         console.log('[WorldTree] Received projectId from shell:', d.projectId);
 
+        // Skip if already loaded (prevent double-reload/flashing)
+        if (d.projectId === projectId) {
+          console.log('[WorldTree] Same projectId, skipping reload');
+          return;
+        }
+
         // Update global and state
         window.__currentProjectId = d.projectId;
         setProjectId(d.projectId);
+
+        // Reset to tree view when switching projects
+        setCur(null);
 
         // If auth ready, reload canon immediately (no page reload)
         if (authReady && window.__firebaseCanon) {
@@ -431,7 +441,7 @@ function WorldTreeApp() {
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [authReady]);
+  }, [authReady, projectId]);
 
   // Listen to auth state changes and reload canon
   React.useEffect(() => {
