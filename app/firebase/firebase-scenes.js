@@ -287,4 +287,38 @@ window.__firebaseScenes.emptyCanonRefs = function() {
   };
 };
 
+// Backfill canonRefs for all scenes in project (deterministic matching)
+window.__firebaseScenes.backfillCanonRefs = async function(projectId) {
+  if (!projectId) {
+    throw new Error('Project ID required');
+  }
+
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  const token = await user.getIdToken();
+
+  console.log('[Backfill] Starting for project:', projectId);
+
+  const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/backfillSceneCanonRefs', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ projectId })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+    throw new Error(errorData.error || `HTTP ${response.status}`);
+  }
+
+  const result = await response.json();
+  console.log('[Backfill] Complete:', result);
+  return result;
+};
+
 console.log('Firebase scenes module loaded');

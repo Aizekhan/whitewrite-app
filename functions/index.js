@@ -1504,3 +1504,196 @@ Return JSON:
   });
 });
 
+/**
+ * Cloud Function: Backfill Scene canonRefs
+ *
+ * Deterministic matching: scan scene text for confirmed canon entity names (word boundaries).
+ * Processes in batches with rate limiting. Returns progress info.
+ */
+exports.backfillSceneCanonRefs = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 540,
+  memory: '512MiB'
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+      }
+
+      // Get auth token
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Authentication required' });
+        return;
+      }
+
+      const token = authHeader.split('Bearer ')[1];
+      let uid;
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        uid = decodedToken.uid;
+      } catch (error) {
+        res.status(401).json({ error: 'Invalid auth token' });
+        return;
+      }
+
+      const { projectId } = req.body;
+
+      if (!projectId) {
+        res.status(400).json({ error: 'Missing projectId' });
+        return;
+      }
+
+      console.log(`[Backfill] Starting for project ${projectId}...`);
+
+      // Verify user owns the project
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists || projectDoc.data().owner !== uid) {
+        res.status(403).json({ error: 'Project not found or access denied' });
+        return;
+      }
+
+      const canon = projectDoc.data().canon || {
+        characters: {},
+        locations: {},
+        events: {},
+        factions: {},
+        artifacts: {}
+      };
+
+      // Build lookup maps: name → id (only CONFIRMED entities)
+      const lookups = {
+        characters: {},
+        locations: {},
+        events: {},
+        factions: {},
+        artifacts: {}
+      };
+
+      Object.keys(canon).forEach(type => {
+        if (!lookups[type]) return;
+
+        Object.keys(canon[type]).forEach(id => {
+          const entity = canon[type][id];
+          // Skip inferred entities (only match confirmed)
+          if (entity.inferred) return;
+
+          const name = entity.name || entity.title || '';
+          if (name) {
+            lookups[type][name.toLowerCase()] = id;
+          }
+        });
+      });
+
+      console.log(`[Backfill] Canon lookups built:`, Object.keys(lookups).map(t => `${t}: ${Object.keys(lookups[t]).length}`).join(', '));
+
+      // Get all scenes
+      const scenesSnapshot = await db.collection('projects')
+        .doc(projectId)
+        .collection('scenes')
+        .orderBy('n', 'asc')
+        .get();
+
+      const scenes = scenesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      console.log(`[Backfill] Processing ${scenes.length} scenes...`);
+
+      let updated = 0;
+      let skipped = 0;
+      const BATCH_SIZE = 100;
+      const BATCH_DELAY = 500; // ms
+
+      // Process in batches
+      for (let i = 0; i < scenes.length; i += BATCH_SIZE) {
+        const batch = scenes.slice(i, i + BATCH_SIZE);
+        const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+        const totalBatches = Math.ceil(scenes.length / BATCH_SIZE);
+
+        console.log(`[Backfill] Batch ${batchNum}/${totalBatches} (scenes ${i + 1}-${Math.min(i + BATCH_SIZE, scenes.length)})...`);
+
+        // Process each scene in batch
+        const batchPromises = batch.map(async (scene) => {
+          // Skip if already has canonRefs
+          if (scene.canonRefs && Object.keys(scene.canonRefs).length > 0) {
+            const hasRefs = Object.values(scene.canonRefs).some(arr => arr && arr.length > 0);
+            if (hasRefs) {
+              skipped++;
+              return null;
+            }
+          }
+
+          const text = scene.text || '';
+          if (!text) {
+            skipped++;
+            return null;
+          }
+
+          // Deterministic matching with word boundaries
+          const canonRefs = {
+            characters: [],
+            locations: [],
+            events: [],
+            factions: [],
+            artifacts: []
+          };
+
+          Object.keys(lookups).forEach(type => {
+            Object.keys(lookups[type]).forEach(name => {
+              // Word boundary regex (case-insensitive)
+              const regex = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+              if (regex.test(text)) {
+                const id = lookups[type][name];
+                if (!canonRefs[type].includes(id)) {
+                  canonRefs[type].push(id);
+                }
+              }
+            });
+          });
+
+          // Only update if we found references
+          const hasMatches = Object.values(canonRefs).some(arr => arr.length > 0);
+          if (!hasMatches) {
+            skipped++;
+            return null;
+          }
+
+          // Update scene
+          await db.collection('projects')
+            .doc(projectId)
+            .collection('scenes')
+            .doc(scene.id)
+            .update({ canonRefs });
+
+          updated++;
+          return scene.id;
+        });
+
+        await Promise.all(batchPromises);
+
+        // Rate limiting between batches
+        if (i + BATCH_SIZE < scenes.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
+      }
+
+      console.log(`[Backfill] ✅ Complete! Updated: ${updated}, Skipped: ${skipped}, Total: ${scenes.length}`);
+
+      res.status(200).json({
+        success: true,
+        total: scenes.length,
+        updated,
+        skipped
+      });
+
+    } catch (error) {
+      console.error('[Backfill] Error:', error);
+      res.status(500).json({ error: `Backfill error: ${error.message}` });
+    }
+  });
+});
+
