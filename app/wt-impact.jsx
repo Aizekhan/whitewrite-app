@@ -64,7 +64,15 @@
     const storyboards = WORLD.storyboards || [];
     const images = WORLD.images || [];
 
-    const sceneSet = new Set(scenes.filter((s) => (s[type] || []).includes(id)).map((s) => s.n));
+    // Filter scenes by canonRefs (new linking system) with fallback to old system
+    const sceneSet = new Set(scenes.filter((s) => {
+      // Try new canonRefs first
+      if (s.canonRefs && s.canonRefs[type]) {
+        return s.canonRefs[type].includes(id);
+      }
+      // Fallback: old system (scene[type])
+      return (s[type] || []).includes(id);
+    }).map((s) => s.n));
     const refOr = (it) => (it[type] || []).includes(id);
     const inScene = (it) => sceneSet.has(it.scene);
 
