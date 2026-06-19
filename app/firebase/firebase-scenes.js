@@ -114,13 +114,13 @@ window.__firebaseScenes = {
       }
     };
 
-    // Write scene to subcollection
+    // Write scene to subcollection (merge to preserve canonRefs from extraction)
     await window.__firebase.db
       .collection('projects')
       .doc(projectId)
       .collection('scenes')
       .doc(sceneId)
-      .set(scene);
+      .set(scene, { merge: true });
 
     // Update project.written count and updatedAt
     await window.__firebase.db

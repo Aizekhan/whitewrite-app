@@ -560,11 +560,12 @@ Return JSON with memorySuggestions array:
     // Update scene with canonRefs (if sceneId provided)
     if (sceneId) {
       try {
+        // Use set with merge to avoid race condition (client may not have created doc yet)
         await db.collection('projects')
           .doc(projectId)
           .collection('scenes')
           .doc(sceneId)
-          .update({ canonRefs });
+          .set({ canonRefs }, { merge: true });
 
         console.log(`[Auto-Extract] ✅ Updated scene ${sceneId} with canonRefs`);
       } catch (updateError) {
