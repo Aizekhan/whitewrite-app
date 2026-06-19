@@ -11,7 +11,7 @@ window.__firebaseAI = {
    * @param {Array} [previousScenes] - Previous scenes for continuity
    * @returns {Promise<{success: boolean, scene: {title: string, text: string, entities: Array}}>}
    */
-  async generateScene(projectId, sceneIntent, customIntent = null, previousScenes = [], retryCount = 0) {
+  async generateScene(projectId, sceneIntent, customIntent = null, previousScenes = [], retryCount = 0, sceneId = null) {
     const MAX_RETRIES = 2;
     const RETRY_DELAY = 5000; // 5 seconds
 
@@ -24,8 +24,13 @@ window.__firebaseAI = {
 
       const token = await user.getIdToken();
 
+      // Generate sceneId if not provided (for canon linking)
+      if (!sceneId) {
+        sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
+
       // Call HTTP endpoint directly with extended timeout
-      console.log('Generating scene...', { projectId, sceneIntent, attempt: retryCount + 1 });
+      console.log('Generating scene...', { projectId, sceneIntent, sceneId, attempt: retryCount + 1 });
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes client timeout
@@ -40,7 +45,8 @@ window.__firebaseAI = {
           projectId,
           sceneIntent,
           customIntent,
-          previousScenes
+          previousScenes,
+          sceneId  // Pass sceneId for canon linking
         }),
         signal: controller.signal
       });

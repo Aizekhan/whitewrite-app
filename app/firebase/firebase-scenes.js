@@ -82,8 +82,8 @@ window.__firebaseScenes = {
 
     const nextN = scenesSnapshot.empty ? 1 : scenesSnapshot.docs[0].data().n + 1;
 
-    // Create scene ID
-    const sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    // Use provided ID or create new one
+    const sceneId = sceneData.id || ('scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
 
     // Prepare scene document
     const scene = {

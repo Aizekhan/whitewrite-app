@@ -240,26 +240,28 @@ function App() {
 
                 console.log(`[${i + 1}/${scenesToGenerate}] Generating scene with intent: ${intent}...`);
 
+                // Pre-generate sceneId for canon linking
+                const sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
                 const result = await window.__firebaseAI.generateScene(
                   projectId,
                   intent,
                   null,
-                  last3
+                  last3,
+                  0,  // retryCount
+                  sceneId  // Pass sceneId for canon linking
                 );
 
                 if (result.success) {
                   console.log(`[${i + 1}/${scenesToGenerate}] ✓ Generated: "${result.scene.title}"`);
 
+                  // Use the same sceneId that was passed to Cloud Function
                   await window.__firebaseScenes.addScene(projectId, {
+                    id: sceneId,  // Use pre-generated ID
                     title: result.scene.title,
                     text: result.scene.text,
-                    intent: result.scene.intent,
-                    entities: {
-                      characters: result.scene.entities?.filter(e => e.type === 'character').map(e => e.id) || [],
-                      locations: result.scene.entities?.filter(e => e.type === 'location').map(e => e.id) || [],
-                      events: [],
-                      artifacts: []
-                    }
+                    intent: result.scene.intent
+                    // canonRefs will be filled by extraction asynchronously
                   });
 
                   console.log(`[${i + 1}/${scenesToGenerate}] ✓ Saved to Firestore`);

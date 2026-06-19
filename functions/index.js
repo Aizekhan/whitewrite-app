@@ -355,9 +355,12 @@ exports.generateScene = onRequest({
 
           if (tokensAfterScene >= extractionCost) {
             // Call extraction in background (async, don't await)
-            extractCanonFromScene(projectId, sceneContent, canon, uid, extractionCost)
-              .then(suggestions => {
-                console.log(`[Auto-Extract] ✅ Extracted ${suggestions.length} suggestions`);
+            // NOTE: sceneId is passed from frontend in req.body
+            const sceneId = req.body.sceneId;
+
+            extractCanonFromScene(projectId, sceneContent, canon, uid, extractionCost, sceneId)
+              .then(result => {
+                console.log(`[Auto-Extract] ✅ Extracted ${result.suggestions.length} suggestions, linked to scene ${sceneId}`);
               })
               .catch(error => {
                 console.error('[Auto-Extract] ❌ Failed (non-critical):', error.message);
@@ -433,14 +436,15 @@ async function mergeIntoCanon(projectId, suggestions) {
     await db.collection('projects').doc(projectId).update(updates);
   }
 
-  return mergedEntities;
+  return mergedEntities; // [{type: 'characters', id: 'char_123', name: 'Marcus'}, ...]
 }
 
 /**
- * Helper: Extract canon from scene (Phase 3.1b)
+ * Helper: Extract canon from scene (Phase 3.1b + canonRefs linking)
  * Called asynchronously after scene generation
+ * @param sceneId - Scene document ID to update with canonRefs
  */
-async function extractCanonFromScene(projectId, sceneText, canon, uid, extractionCost) {
+async function extractCanonFromScene(projectId, sceneText, canon, uid, extractionCost, sceneId) {
   try {
     // Build extraction prompt
     const systemInstruction = `You are a narrative analysis expert. Extract structured canon information from the provided scene text.
@@ -536,7 +540,40 @@ Return JSON with memorySuggestions array:
 
     console.log(`[Auto-Extract] ✅ Auto-merged ${mergedEntities.length} entities into canon`);
 
-    return suggestions;
+    // Build canonRefs from merged entities
+    const canonRefs = {
+      characters: [],
+      locations: [],
+      events: [],
+      factions: [],
+      artifacts: []
+    };
+
+    mergedEntities.forEach(entity => {
+      if (canonRefs[entity.type]) {
+        canonRefs[entity.type].push(entity.id);
+      }
+    });
+
+    console.log(`[Auto-Extract] Canon refs:`, canonRefs);
+
+    // Update scene with canonRefs (if sceneId provided)
+    if (sceneId) {
+      try {
+        await db.collection('projects')
+          .doc(projectId)
+          .collection('scenes')
+          .doc(sceneId)
+          .update({ canonRefs });
+
+        console.log(`[Auto-Extract] ✅ Updated scene ${sceneId} with canonRefs`);
+      } catch (updateError) {
+        console.error(`[Auto-Extract] ⚠️ Failed to update scene canonRefs:`, updateError);
+        // Non-critical — extraction succeeded, linking failed
+      }
+    }
+
+    return { suggestions, canonRefs };
   } catch (error) {
     console.error('[Auto-Extract] Error:', error);
     throw error;
@@ -1245,10 +1282,10 @@ exports.syncCanonFromProject = onRequest({
         }
 
         try {
-          const sceneId = `scene_${Date.now()}_${i}`;
-          const suggestions = await extractCanonFromScene(projectId, sceneText, canon, uid, extractionCostPerScene);
+          const sceneId = scene.id || `scene_${Date.now()}_${i}`;
+          const result = await extractCanonFromScene(projectId, sceneText, canon, uid, extractionCostPerScene, sceneId);
 
-          console.log(`[Sync] ✅ Scene ${i + 1}/${scenes.length} — ${suggestions.length} suggestions`);
+          console.log(`[Sync] ✅ Scene ${i + 1}/${scenes.length} — ${result.suggestions.length} suggestions`);
           successCount++;
 
           // Small delay to avoid rate limits
