@@ -55,20 +55,32 @@
     return r;
   }
   function _computeAffected(type, id) {
-    const sceneSet = new Set(WORLD.scenes.filter((s) => (s[type] || []).includes(id)).map((s) => s.n));
+    // Safe access to narrative/director layers (may not exist in canon-only WORLD)
+    const scenes = WORLD.scenes || [];
+    const dialogues = WORLD.dialogues || [];
+    const arcs = WORLD.arcs || [];
+    const chapters = WORLD.chapters || [];
+    const shots = WORLD.shots || [];
+    const storyboards = WORLD.storyboards || [];
+    const images = WORLD.images || [];
+
+    const sceneSet = new Set(scenes.filter((s) => (s[type] || []).includes(id)).map((s) => s.n));
     const refOr = (it) => (it[type] || []).includes(id);
     const inScene = (it) => sceneSet.has(it.scene);
 
-    const scenes = WORLD.scenes.filter((s) => sceneSet.has(s.n));
-    const dialogues = WORLD.dialogues.filter((d) => refOr(d) || inScene(d));
-    const arcs = WORLD.arcs.filter((a) => refOr(a) || (a.scenes || []).some((n) => sceneSet.has(n)));
-    const chapters = WORLD.chapters.filter((c) => (c.scenes || []).some((n) => sceneSet.has(n)));
-    const shots = WORLD.shots.filter((sh) => refOr(sh) || inScene(sh));
-    const shotSet = new Set(shots.map((sh) => sh.id));
-    const storyboards = WORLD.storyboards.filter((sb) => sceneSet.has(sb.scene));
-    const images = WORLD.images.filter((im) => shotSet.has(im.shot));
+    const affectedScenes = scenes.filter((s) => sceneSet.has(s.n));
+    const affectedDialogues = dialogues.filter((d) => refOr(d) || inScene(d));
+    const affectedArcs = arcs.filter((a) => refOr(a) || (a.scenes || []).some((n) => sceneSet.has(n)));
+    const affectedChapters = chapters.filter((c) => (c.scenes || []).some((n) => sceneSet.has(n)));
+    const affectedShots = shots.filter((sh) => refOr(sh) || inScene(sh));
+    const shotSet = new Set(affectedShots.map((sh) => sh.id));
+    const affectedStoryboards = storyboards.filter((sb) => sceneSet.has(sb.scene));
+    const affectedImages = images.filter((im) => shotSet.has(im.shot));
 
-    return { narrative: { arcs, chapters, scenes, dialogues }, director: { storyboards, shots, images } };
+    return {
+      narrative: { arcs: affectedArcs, chapters: affectedChapters, scenes: affectedScenes, dialogues: affectedDialogues },
+      director: { storyboards: affectedStoryboards, shots: affectedShots, images: affectedImages }
+    };
   }
 
   // Flat counts + per-layer & grand totals.
