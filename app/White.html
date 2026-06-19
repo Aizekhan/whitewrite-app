@@ -841,16 +841,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       try { history.replaceState(null, "", "#work/" + p); } catch (e) {}
     }
 
-    // Send current projectId to iframe after it loads
-    if (currentProjectId && f.contentWindow) {
-      setTimeout(function() {
+    // Send current projectId to iframe immediately on load
+    if (window.__currentProjectId) {
+      f.addEventListener('load', function() {
         try {
-          f.contentWindow.postMessage({ type: "ww-project", projectId: currentProjectId }, "*");
-          console.log('[Shell] Sent projectId to iframe:', currentProjectId);
+          f.contentWindow.postMessage({ type: "ww-project", projectId: window.__currentProjectId }, window.location.origin);
+          console.log('[Shell] Sent projectId to iframe:', window.__currentProjectId);
         } catch (e) {
           console.error('[Shell] Failed to send projectId:', e);
         }
-      }, 500);
+      }, { once: true });
     }
   }
   // The mage landing: ALWAYS reset the book to its first page (the mage cover).
@@ -876,9 +876,42 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     try { history.replaceState(null, "", "#home"); } catch (e) {}
   }
   window.__wwHome = showHome;
-  // Open an existing narrative straight into reading + pillars.
-  var currentProjectId = null; // Track current project globally
 
+  // Navigation interceptor for iframes (used by PillarSwitch)
+  // Parses URL like "WhiteWrite WorldTree.html?projectId=..." and routes through shell
+  window.wwGo = function(href) {
+    try {
+      // Parse the href to extract filename and params
+      var parts = href.split('?');
+      var filename = parts[0];
+      var params = parts[1] || '';
+
+      // Extract projectId from params if present
+      var projectIdMatch = params.match(/projectId=([^&]+)/);
+      if (projectIdMatch) {
+        window.__currentProjectId = decodeURIComponent(projectIdMatch[1]);
+        console.log('[Shell] wwGo: Set window.__currentProjectId from URL:', window.__currentProjectId);
+      }
+
+      // Determine which pillar based on filename
+      var pillar = null;
+      if (filename.indexOf('WhiteWrite WorldTree.html') >= 0) pillar = 'universe';
+      else if (filename.indexOf('WhiteWrite Workspace.html') >= 0) pillar = 'director';
+      else if (filename.indexOf('WhiteWrite.html') >= 0) pillar = 'book';
+
+      if (pillar) {
+        // Remove projectId from params (it will be sent via postMessage)
+        var cleanParams = params.replace(/projectId=[^&]+&?/, '').replace(/&$/, '');
+        showPillar(pillar, cleanParams);
+        return true; // Signal that navigation was handled
+      }
+    } catch (e) {
+      console.error('[Shell] wwGo failed:', e);
+    }
+    return false; // Let fadeNav do full page reload
+  };
+
+  // Open an existing narrative straight into reading + pillars.
   function openNarrative(projectId) {
     if (!window.__wwAuth) { openAuth(); return; }
     if (!projectId) {
@@ -886,7 +919,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     console.log('Opening project:', projectId);
-    currentProjectId = projectId; // Store globally
+    window.__currentProjectId = projectId; // Store in global variable (used by all pillars)
     showPillar("book", "projectId=" + projectId);
   }
 

@@ -351,13 +351,19 @@ function WorldTreeApp() {
 
   // Get projectId from URL param, global, or last opened project
   const getProjectId = async () => {
-    // 1. Try global FIRST (most reliable - set by shell)
-    if (window.__currentProjectId) {
-      console.log('[WorldTree] projectId from global:', window.__currentProjectId);
-      return window.__currentProjectId;
+    const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
+
+    // Embedded mode: ONLY read from global (shell sets it)
+    if (isEmbedded) {
+      if (window.__currentProjectId) {
+        console.log('[WorldTree] Embedded mode — projectId from global:', window.__currentProjectId);
+        return window.__currentProjectId;
+      }
+      console.warn('[WorldTree] Embedded mode but no global projectId set');
+      return null;
     }
 
-    // 2. Try URL param (fallback for direct navigation)
+    // Standalone mode: try URL param, then Firestore fallback
     try {
       const params = new URLSearchParams(window.location.search);
       const urlProjectId = params.get('projectId');
@@ -367,7 +373,7 @@ function WorldTreeApp() {
       }
     } catch (e) {}
 
-    // 3. Try to get any user project from Firestore
+    // Firestore fallback for standalone
     if (window.__firebase && window.__wwUser?.uid) {
       try {
         console.log('[WorldTree] Fetching projects for user:', window.__wwUser.uid);
@@ -535,13 +541,17 @@ function WorldTreeApp() {
 
         // Load scenes from Firestore (separate subcollection)
         let scenes = [];
+        console.log('[WorldTree] DEBUG: window.__firebaseScenes exists?', !!window.__firebaseScenes);
         if (window.__firebaseScenes) {
+          console.log('[WorldTree] DEBUG: About to call getScenes with projectId:', projectId);
           try {
             scenes = await window.__firebaseScenes.getScenes(projectId);
             console.log('[WorldTree] ✅ Scenes loaded:', scenes.length);
           } catch (sceneError) {
-            console.warn('[WorldTree] Failed to load scenes:', sceneError);
+            console.error('[WorldTree] ❌ Failed to load scenes:', sceneError);
           }
+        } else {
+          console.error('[WorldTree] ❌ window.__firebaseScenes is undefined!');
         }
 
         // Merge scenes into canon
