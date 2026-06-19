@@ -198,6 +198,9 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   font-feature-settings: "kern" 1, "liga" 1; /* Enable kerning and ligatures */
   text-rendering: optimizeLegibility;
   hanging-punctuation: first last; /* Hanging punctuation for quotes/dashes */
+  word-wrap: break-word; /* Break long words */
+  overflow-wrap: break-word; /* Modern spec */
+  max-width: 100%; /* Prevent overflow */
 }
 .prose:has(.prose__cap){ text-indent:0; } /* No indent for first paragraph with drop cap */
 .prose__cap{ float:left; font-family:"Philosopher",serif; font-weight:700;
@@ -698,7 +701,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 @keyframes inkIn{ from{ opacity:0; filter:blur(2px) } to{ opacity:1; filter:none } }
 
 /* page content rescaled to the book via container-query units (cqw) */
-.opage .page-inner{ position:absolute; inset:0; padding:0; display:flex; flex-direction:column; }
+.opage .page-inner{ position:absolute; inset:0; padding:0; display:flex; flex-direction:column; overflow: hidden; }
 .opage .se-prose{ flex:1; min-height:0; overflow:hidden; padding-top:.4cqw; }
 .opage .se-prose.is-editing{ overflow-y:auto; }
 .se-pages{ display:flex; align-items:center; justify-content:center; gap:12px; margin-top:auto; padding-top:.6cqw; }
@@ -715,6 +718,9 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   font-feature-settings: "kern" 1, "liga" 1;
   text-rendering: optimizeLegibility;
   hanging-punctuation: first last;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 .opage .prose:has(.prose__cap){ text-indent:0; } /* No indent for first paragraph */
 .opage .prose__cap{ font-size:4.8cqw; padding:.3cqw .6cqw 0 0; }
@@ -946,7 +952,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   .opage .page-head__kicker{ font-size:11px; letter-spacing:.26em; margin-bottom:6px; }
   .opage .page-head__title{ font-size:23px; }
   .opage .page-head__rule{ margin-top:10px; }
-  .opage .prose{ font-size:15px; line-height:1.6; margin:0 0 11px; text-indent:1.5em; }
+  .opage .prose{ font-size:15px; line-height:1.6; margin:0 0 11px; text-indent:1.5em; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
   .opage .prose:has(.prose__cap){ text-indent:0; }
   .opage .prose__cap{ font-size:46px; padding:4px 9px 0 0; }
   .opage .margin-note{ font-size:13.5px; gap:8px; margin:6px 0 12px; }

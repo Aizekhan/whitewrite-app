@@ -1,0 +1,305 @@
+diff --git a/app/White.html b/app/White.html
+index bd66003..5f7dd39 100644
+--- a/app/White.html
++++ b/app/White.html
+@@ -841,16 +841,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
+       try { history.replaceState(null, "", "#work/" + p); } catch (e) {}
+     }
+ 
+-    // Send current projectId to iframe after it loads
+-    if (currentProjectId && f.contentWindow) {
+-      setTimeout(function() {
++    // Send current projectId to iframe immediately on load
++    if (window.__currentProjectId) {
++      f.addEventListener('load', function() {
+         try {
+-          f.contentWindow.postMessage({ type: "ww-project", projectId: currentProjectId }, "*");
+-          console.log('[Shell] Sent projectId to iframe:', currentProjectId);
++          f.contentWindow.postMessage({ type: "ww-project", projectId: window.__currentProjectId }, window.location.origin);
++          console.log('[Shell] Sent projectId to iframe:', window.__currentProjectId);
+         } catch (e) {
+           console.error('[Shell] Failed to send projectId:', e);
+         }
+-      }, 500);
++      }, { once: true });
+     }
+   }
+   // The mage landing: ALWAYS reset the book to its first page (the mage cover).
+@@ -876,9 +876,42 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
+     try { history.replaceState(null, "", "#home"); } catch (e) {}
+   }
+   window.__wwHome = showHome;
+-  // Open an existing narrative straight into reading + pillars.
+-  var currentProjectId = null; // Track current project globally
+ 
++  // Navigation interceptor for iframes (used by PillarSwitch)
++  // Parses URL like "WhiteWrite WorldTree.html?projectId=..." and routes through shell
++  window.wwGo = function(href) {
++    try {
++      // Parse the href to extract filename and params
++      var parts = href.split('?');
++      var filename = parts[0];
++      var params = parts[1] || '';
++
++      // Extract projectId from params if present
++      var projectIdMatch = params.match(/projectId=([^&]+)/);
++      if (projectIdMatch) {
++        window.__currentProjectId = decodeURIComponent(projectIdMatch[1]);
++        console.log('[Shell] wwGo: Set window.__currentProjectId from URL:', window.__currentProjectId);
++      }
++
++      // Determine which pillar based on filename
++      var pillar = null;
++      if (filename.indexOf('WhiteWrite WorldTree.html') >= 0) pillar = 'universe';
++      else if (filename.indexOf('WhiteWrite Workspace.html') >= 0) pillar = 'director';
++      else if (filename.indexOf('WhiteWrite.html') >= 0) pillar = 'book';
++
++      if (pillar) {
++        // Remove projectId from params (it will be sent via postMessage)
++        var cleanParams = params.replace(/projectId=[^&]+&?/, '').replace(/&$/, '');
++        showPillar(pillar, cleanParams);
++        return true; // Signal that navigation was handled
++      }
++    } catch (e) {
++      console.error('[Shell] wwGo failed:', e);
++    }
++    return false; // Let fadeNav do full page reload
++  };
++
++  // Open an existing narrative straight into reading + pillars.
+   function openNarrative(projectId) {
+     if (!window.__wwAuth) { openAuth(); return; }
+     if (!projectId) {
+@@ -886,7 +919,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
+       return;
+     }
+     console.log('Opening project:', projectId);
+-    currentProjectId = projectId; // Store globally
++    window.__currentProjectId = projectId; // Store in global variable (used by all pillars)
+     showPillar("book", "projectId=" + projectId);
+   }
+ 
+diff --git a/app/ws-app.jsx b/app/ws-app.jsx
+index 2f434e0..5a6180b 100644
+--- a/app/ws-app.jsx
++++ b/app/ws-app.jsx
+@@ -83,10 +83,129 @@ function ScenePick({ scene, setScene }) {
+ 
+ function App() {
+   const [tab, setTab] = useWState("director");
+-  const [scene, setScene] = useWState(DATA.scene.n);
++  const [scene, setScene] = useWState(1);
+   const [genBusy, setGenBusy] = useWState(false);
++  const [loading, setLoading] = useWState(true);
++  const [authReady, setAuthReady] = useWState(false);
++
++  // Load project from Firestore (canon + scenes)
++  React.useEffect(() => {
++    // Poll for auth state (Firebase auth initializes async)
++    const authCheckInterval = setInterval(() => {
++      if (window.__wwAuth !== undefined && !authReady) {
++        setAuthReady(true);
++        clearInterval(authCheckInterval);
++        console.log('[Workspace] Auth ready:', window.__wwAuth ? 'authenticated' : 'anonymous');
++      }
++    }, 100);
++
++    return () => clearInterval(authCheckInterval);
++  }, [authReady]);
++
++  // Load canon + scenes when auth is ready
++  React.useEffect(() => {
++    if (!authReady) return;
++
++    async function loadProject() {
++      console.log('[Workspace] Loading project...');
++
++      const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
++      let projectId;
++
++      // Embedded mode: ONLY read from global (shell sets it)
++      if (isEmbedded) {
++        projectId = window.__currentProjectId;
++        if (!projectId) {
++          console.warn('[Workspace] Embedded mode but no global projectId set');
++          setLoading(false);
++          return;
++        }
++        console.log('[Workspace] Embedded mode — projectId from global:', projectId);
++      } else {
++        // Standalone mode: try URL param, then Firestore fallback
++        try {
++          const params = new URLSearchParams(window.location.search);
++          projectId = params.get('projectId');
++        } catch (e) {}
++
++        if (!projectId && window.__firebase?.auth?.currentUser) {
++          // Fallback: load first user project
++          try {
++            const uid = window.__firebase.auth.currentUser.uid;
++            const userProjects = await window.__firebase.db
++              .collection('projects')
++              .where('owner', '==', uid)
++              .orderBy('createdAt', 'desc')
++              .limit(1)
++              .get();
++
++            if (!userProjects.empty) {
++              projectId = userProjects.docs[0].id;
++            }
++          } catch (error) {
++            console.error('[Workspace] Failed to load user projects:', error);
++          }
++        }
++
++        if (!projectId) {
++          console.warn('[Workspace] No project selected — using mock data');
++          setLoading(false);
++          return;
++        }
++
++        // Store globally
++        window.__currentProjectId = projectId;
++        console.log('[Workspace] projectId:', projectId);
++      }
++
++      try {
++        // Load canon from Firestore
++        const realCanon = await window.__firebaseCanon.getCanon(projectId);
++        const canonArrays = window.__firebaseCanon.canonToArrays(realCanon);
++
++        // Load scenes from Firestore subcollection
++        let scenes = [];
++        if (window.__firebaseScenes) {
++          try {
++            scenes = await window.__firebaseScenes.getScenes(projectId);
++            console.log('[Workspace] ✅ Scenes loaded:', scenes.length);
++          } catch (sceneError) {
++            console.warn('[Workspace] Failed to load scenes:', sceneError);
++          }
++        }
++
++        // Merge into WORLD
++        canonArrays.scenes = scenes;
++
++        // Replace mock WORLD with real data
++        Object.keys(canonArrays).forEach(key => {
++          WORLD[key] = canonArrays[key];
++        });
++
++        console.log('[Workspace] ✅ Canon loaded:', {
++          characters: WORLD.characters.length,
++          locations: WORLD.locations.length,
++          scenes: WORLD.scenes.length
++        });
++
++        // Set first scene as default
++        if (WORLD.scenes.length > 0) {
++          setScene(WORLD.scenes[0].n);
++        }
++
++        setLoading(false);
++      } catch (error) {
++        console.error('[Workspace] Failed to load project:', error);
++        setLoading(false);
++      }
++    }
++
++    loadProject();
++  }, [authReady]);
++
+   const active = TABS.find((t) => t.id === tab);
+-  const Tab = active.C();
++  const Tab = active ? active.C() : null;
++
+   function calcScene() {
+     if (genBusy) return;
+     setGenBusy(true);
+@@ -94,6 +213,21 @@ function App() {
+     setTimeout(() => setGenBusy(false), 1400);
+   }
+ 
++  if (loading) {
++    return (
++      <div className="shell">
++        <div className="main">
++          <div className="content" style={{ display: 'grid', placeItems: 'center', color: 'var(--tx-mid)' }}>
++            <div style={{ textAlign: 'center' }}>
++              <div className="spin-ring" style={{ width: 40, height: 40, margin: '0 auto 16px' }} />
++              <div>Завантаження проєкту...</div>
++            </div>
++          </div>
++        </div>
++      </div>
++    );
++  }
++
+   return (
+     <div className="shell">
+       <div className="main">
+@@ -118,7 +252,7 @@ function App() {
+         </header>
+ 
+         <main className="content">
+-          <Tab key={tab + ":" + scene} scene={scene} />
++          {Tab && <Tab key={tab + ":" + scene} scene={scene} />}
+         </main>
+       </div>
+     </div>
+diff --git a/app/wt-app.jsx b/app/wt-app.jsx
+index 3901dba..c6a34e3 100644
+--- a/app/wt-app.jsx
++++ b/app/wt-app.jsx
+@@ -351,13 +351,19 @@ function WorldTreeApp() {
+ 
+   // Get projectId from URL param, global, or last opened project
+   const getProjectId = async () => {
+-    // 1. Try global FIRST (most reliable - set by shell)
+-    if (window.__currentProjectId) {
+-      console.log('[WorldTree] projectId from global:', window.__currentProjectId);
+-      return window.__currentProjectId;
++    const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
++
++    // Embedded mode: ONLY read from global (shell sets it)
++    if (isEmbedded) {
++      if (window.__currentProjectId) {
++        console.log('[WorldTree] Embedded mode — projectId from global:', window.__currentProjectId);
++        return window.__currentProjectId;
++      }
++      console.warn('[WorldTree] Embedded mode but no global projectId set');
++      return null;
+     }
+ 
+-    // 2. Try URL param (fallback for direct navigation)
++    // Standalone mode: try URL param, then Firestore fallback
+     try {
+       const params = new URLSearchParams(window.location.search);
+       const urlProjectId = params.get('projectId');
+@@ -367,7 +373,7 @@ function WorldTreeApp() {
+       }
+     } catch (e) {}
+ 
+-    // 3. Try to get any user project from Firestore
++    // Firestore fallback for standalone
+     if (window.__firebase && window.__wwUser?.uid) {
+       try {
+         console.log('[WorldTree] Fetching projects for user:', window.__wwUser.uid);
+@@ -535,13 +541,17 @@ function WorldTreeApp() {
+ 
+         // Load scenes from Firestore (separate subcollection)
+         let scenes = [];
++        console.log('[WorldTree] DEBUG: window.__firebaseScenes exists?', !!window.__firebaseScenes);
+         if (window.__firebaseScenes) {
++          console.log('[WorldTree] DEBUG: About to call getScenes with projectId:', projectId);
+           try {
+             scenes = await window.__firebaseScenes.getScenes(projectId);
+             console.log('[WorldTree] ✅ Scenes loaded:', scenes.length);
+           } catch (sceneError) {
+-            console.warn('[WorldTree] Failed to load scenes:', sceneError);
++            console.error('[WorldTree] ❌ Failed to load scenes:', sceneError);
+           }
++        } else {
++          console.error('[WorldTree] ❌ window.__firebaseScenes is undefined!');
+         }
+ 
+         // Merge scenes into canon

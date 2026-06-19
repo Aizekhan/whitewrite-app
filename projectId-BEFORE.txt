@@ -1,0 +1,183 @@
+app/app.jsx:7:  const projectId = window.__currentProjectId;
+app/app.jsx:8:  const projectParam = projectId ? `?projectId=${projectId}` : '';
+app/app.jsx:89:    PROJECT_ID = params.get("projectId");
+app/app.jsx:94:  const [form, setForm] = useAState(DIRECT ? { description: "", projectId: PROJECT_ID } : null);
+app/app.jsx:132:          projectId: project.id,
+app/app.jsx:138:        // Set global projectId for PillarSwitch navigation
+app/app.jsx:174:        const projectId = await window.__firebaseProjects.createProject(projectData);
+app/app.jsx:175:        console.log('Project created:', projectId);
+app/app.jsx:177:        // Store projectId for book to use
+app/app.jsx:178:        data.projectId = projectId;
+app/app.jsx:180:        // Set global projectId for PillarSwitch navigation
+app/app.jsx:181:        window.__currentProjectId = projectId;
+app/app.jsx:231:                const previousScenes = await window.__firebaseScenes.getScenes(projectId);
+app/app.jsx:247:                  projectId,
+app/app.jsx:259:                  await window.__firebaseScenes.addScene(projectId, {
+app/app.jsx:355:            projectId={form ? form.projectId : null}
+app/book.jsx:58:function Book({ flow = false, premise = "", title = "Попіл Орелії", projectId = null, startScene = null, onExit }) {
+app/book.jsx:72:  // Store projectId globally for SceneIntentPage to access
+app/book.jsx:74:    window.__currentProjectId = projectId;
+app/book.jsx:76:  }, [projectId]);
+app/book.jsx:81:      if (!projectId || !window.__firebaseScenes) {
+app/book.jsx:87:        const firestoreScenes = await window.__firebaseScenes.getScenes(projectId);
+app/book.jsx:219:            if (position.projectId === projectId) {
+app/book.jsx:249:  }, [projectId]);
+app/book.jsx:277:    if (generating || !projectId) return;
+app/book.jsx:279:      const position = { projectId, sc, pg };
+app/book.jsx:282:  }, [sc, pg, generating, projectId]);
+app/book.jsx:356:    const url = projectId ? `WhiteWrite WorldTree.html?projectId=${encodeURIComponent(projectId)}` : "WhiteWrite WorldTree.html";
+app/book.jsx:358:  }, [projectId]);
+app/firebase/firebase-ai.js:8:   * @param {string} projectId - Project ID
+app/firebase/firebase-ai.js:14:  async generateScene(projectId, sceneIntent, customIntent = null, previousScenes = [], retryCount = 0, sceneId = null) {
+app/firebase/firebase-ai.js:33:      console.log('Generating scene...', { projectId, sceneIntent, sceneId, attempt: retryCount + 1 });
+app/firebase/firebase-ai.js:45:          projectId,
+app/firebase/firebase-ai.js:78:        return this.generateScene(projectId, sceneIntent, customIntent, previousScenes, retryCount + 1);
+app/firebase/firebase-ai.js:116:window.__testGenerateScene = async function(projectId) {
+app/firebase/firebase-ai.js:118:    console.log('Testing scene generation for project:', projectId);
+app/firebase/firebase-ai.js:121:      projectId,
+app/firebase/firebase-canon.js:7:   * @param {string} projectId - Firestore project ID
+app/firebase/firebase-canon.js:10:  async getCanon(projectId) {
+app/firebase/firebase-canon.js:16:    if (!projectId) {
+app/firebase/firebase-canon.js:17:      console.error('No projectId provided');
+app/firebase/firebase-canon.js:22:      const projectDoc = await window.__firebase.db.collection('projects').doc(projectId).get();
+app/firebase/firebase-canon.js:25:        console.error('Project not found:', projectId);
+app/firebase/firebase-canon.js:32:      console.log('Canon loaded for project:', projectId, canon);
+app/firebase/firebase-init.js:7:  projectId: "whitewrite-app",
+app/firebase/firebase-projects.js:48:  async getProject(projectId) {
+app/firebase/firebase-projects.js:56:      .doc(projectId)
+app/firebase/firebase-projects.js:83:    const projectId = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+app/firebase/firebase-projects.js:85:    await window.__firebase.db.collection('projects').doc(projectId).set({
+app/firebase/firebase-projects.js:121:    return projectId;
+app/firebase/firebase-projects.js:125:  async updateProject(projectId, data) {
+app/firebase/firebase-projects.js:126:    await window.__firebase.db.collection('projects').doc(projectId).update({
+app/firebase/firebase-projects.js:133:  async deleteProject(projectId) {
+app/firebase/firebase-projects.js:134:    await window.__firebase.db.collection('projects').doc(projectId).delete();
+app/firebase/firebase-projects.js:141:    const projectId = await window.__firebaseProjects.createProject({
+app/firebase/firebase-projects.js:154:    console.log('Test project created:', projectId);
+app/firebase/firebase-projects.js:155:    return projectId;
+app/firebase/firebase-scenes.js:2:// Scenes live in projects/{projectId}/scenes/{sceneId}
+app/firebase/firebase-scenes.js:12:  async getScenes(projectId) {
+app/firebase/firebase-scenes.js:13:    if (!projectId) {
+app/firebase/firebase-scenes.js:19:      .doc(projectId)
+app/firebase/firebase-scenes.js:31:  async getScene(projectId, sceneId) {
+app/firebase/firebase-scenes.js:32:    if (!projectId || !sceneId) {
+app/firebase/firebase-scenes.js:38:      .doc(projectId)
+app/firebase/firebase-scenes.js:54:  async addScene(projectId, sceneData) {
+app/firebase/firebase-scenes.js:55:    if (!projectId) {
+app/firebase/firebase-scenes.js:67:      .doc(projectId)
+app/firebase/firebase-scenes.js:77:      .doc(projectId)
+app/firebase/firebase-scenes.js:120:      .doc(projectId)
+app/firebase/firebase-scenes.js:128:      .doc(projectId)
+app/firebase/firebase-scenes.js:138:  async updateScene(projectId, sceneId, updates) {
+app/firebase/firebase-scenes.js:139:    if (!projectId || !sceneId) {
+app/firebase/firebase-scenes.js:151:      .doc(projectId)
+app/firebase/firebase-scenes.js:161:      .doc(projectId)
+app/firebase/firebase-scenes.js:172:      .doc(projectId)
+app/firebase/firebase-scenes.js:179:  async deleteScene(projectId, sceneId) {
+app/firebase/firebase-scenes.js:180:    if (!projectId || !sceneId) {
+app/firebase/firebase-scenes.js:192:      .doc(projectId)
+app/firebase/firebase-scenes.js:202:      .doc(projectId)
+app/firebase/firebase-scenes.js:210:      .doc(projectId)
+app/firebase/firebase-scenes.js:218:  async getScenesCount(projectId) {
+app/firebase/firebase-scenes.js:219:    if (!projectId) {
+app/firebase/firebase-scenes.js:225:      .doc(projectId)
+app/firebase/firebase-scenes.js:234:window.__createTestScene = async function(projectId) {
+app/firebase/firebase-scenes.js:236:    const scene = await window.__firebaseScenes.addScene(projectId, {
+app/firebase/firebase-scenes.js:291:window.__firebaseScenes.backfillCanonRefs = async function(projectId) {
+app/firebase/firebase-scenes.js:292:  if (!projectId) {
+app/firebase/firebase-scenes.js:303:  console.log('[Backfill] Starting for project:', projectId);
+app/firebase/firebase-scenes.js:311:    body: JSON.stringify({ projectId })
+app/pages.jsx:188:    const projectId = window.__currentProjectId;
+app/pages.jsx:189:    if (!projectId) {
+app/pages.jsx:226:          const allScenes = await window.__firebaseScenes.getScenes(projectId);
+app/pages.jsx:241:        projectId,
+app/pages.jsx:253:            const savedScene = await window.__firebaseScenes.addScene(projectId, {
+app/White.html:844:    // Send current projectId to iframe after it loads
+app/White.html:848:          f.contentWindow.postMessage({ type: "ww-project", projectId: window.__currentProjectId }, "*");
+app/White.html:849:          console.log('[Shell] Sent projectId to iframe:', window.__currentProjectId);
+app/White.html:851:          console.error('[Shell] Failed to send projectId:', e);
+app/White.html:881:  // Parses URL like "WhiteWrite WorldTree.html?projectId=..." and routes through shell
+app/White.html:889:      // Extract projectId from params if present
+app/White.html:890:      var projectIdMatch = params.match(/projectId=([^&]+)/);
+app/White.html:891:      if (projectIdMatch) {
+app/White.html:892:        window.__currentProjectId = decodeURIComponent(projectIdMatch[1]);
+app/White.html:903:        // Remove projectId from params (it will be sent via postMessage)
+app/White.html:904:        var cleanParams = params.replace(/projectId=[^&]+&?/, '').replace(/&$/, '');
+app/White.html:915:  function openNarrative(projectId) {
+app/White.html:917:    if (!projectId) {
+app/White.html:918:      console.error('openNarrative called without projectId');
+app/White.html:921:    console.log('Opening project:', projectId);
+app/White.html:922:    window.__currentProjectId = projectId; // Store in global variable (used by all pillars)
+app/White.html:923:    showPillar("book", "projectId=" + projectId);
+app/White.html:1036:      // Auto-inject projectId if available and not already in query
+app/White.html:1038:      if (currentProjectId && query.indexOf("projectId=") < 0) {
+app/White.html:1039:        query = (query ? query + "&" : "") + "projectId=" + currentProjectId;
+app/White.html:1069:        var projectId = card ? card.dataset.projectId : null;
+app/White.html:1070:        openNarrative(projectId);
+app/ws-app.jsx:18:  // Get current projectId to pass to other pillars
+app/ws-app.jsx:19:  const projectId = window.__currentProjectId;
+app/ws-app.jsx:20:  const projectParam = projectId ? `?projectId=${projectId}` : '';
+app/ws-app.jsx:112:      // Get projectId from URL or global
+app/ws-app.jsx:113:      let projectId = window.__currentProjectId;
+app/ws-app.jsx:114:      if (!projectId) {
+app/ws-app.jsx:117:          projectId = params.get('projectId');
+app/ws-app.jsx:121:      if (!projectId && window.__firebase?.auth?.currentUser) {
+app/ws-app.jsx:133:            projectId = userProjects.docs[0].id;
+app/ws-app.jsx:140:      if (!projectId) {
+app/ws-app.jsx:147:      window.__currentProjectId = projectId;
+app/ws-app.jsx:148:      console.log('[Workspace] projectId:', projectId);
+app/ws-app.jsx:152:        const realCanon = await window.__firebaseCanon.getCanon(projectId);
+app/ws-app.jsx:159:            scenes = await window.__firebaseScenes.getScenes(projectId);
+app/wt-app.jsx:18:  // Get current projectId to pass to other pillars
+app/wt-app.jsx:19:  const projectId = window.__currentProjectId;
+app/wt-app.jsx:20:  const projectParam = projectId ? `?projectId=${projectId}` : '';
+app/wt-app.jsx:44:function CanonSyncBanner({ projectId, canon }) {
+app/wt-app.jsx:50:    if (!window.__firebase?.db || !projectId) return;
+app/wt-app.jsx:54:        const projectDoc = await window.__firebase.db.collection('projects').doc(projectId).get();
+app/wt-app.jsx:64:  }, [projectId]);
+app/wt-app.jsx:80:    if (!window.__firebase?.functions || !projectId) return;
+app/wt-app.jsx:102:          projectId,
+app/wt-app.jsx:153:function CanonHistoryView({ projectId, canon }) {
+app/wt-app.jsx:239:function ChronicleView({ navigate, onClose, canon, projectId }) {
+app/wt-app.jsx:302:            <CanonSyncBanner projectId={projectId} canon={canon} />
+app/wt-app.jsx:303:            <CanonHistoryView projectId={projectId} canon={canon} />
+app/wt-app.jsx:349:  const [projectId, setProjectId] = useAppState(null); // Current project ID
+app/wt-app.jsx:350:  const loadedProjectIdRef = React.useRef(null); // Track loaded projectId synchronously (to prevent duplicate loads)
+app/wt-app.jsx:352:  // Get projectId from URL param, global, or last opened project
+app/wt-app.jsx:356:      console.log('[WorldTree] projectId from global:', window.__currentProjectId);
+app/wt-app.jsx:363:      const urlProjectId = params.get('projectId');
+app/wt-app.jsx:365:        console.log('[WorldTree] projectId from URL:', urlProjectId);
+app/wt-app.jsx:373:      const projectIdBeforeWait = window.__currentProjectId;
+app/wt-app.jsx:374:      console.log('[WorldTree] Embedded mode — waiting 800ms for projectId from shell... (current:', projectIdBeforeWait || 'none', ')');
+app/wt-app.jsx:377:      // Check if we received projectId during wait
+app/wt-app.jsx:378:      if (window.__currentProjectId && window.__currentProjectId !== projectIdBeforeWait) {
+app/wt-app.jsx:379:        console.log('[WorldTree] ✅ Received projectId from shell after wait:', window.__currentProjectId);
+app/wt-app.jsx:385:        console.log('[WorldTree] ✅ Using projectId that was already set:', window.__currentProjectId);
+app/wt-app.jsx:389:      console.warn('[WorldTree] No projectId received from shell after 800ms — falling back to first project');
+app/wt-app.jsx:404:          console.log('[WorldTree] projectId from first project:', firstProject.id, firstProject.data().title);
+app/wt-app.jsx:420:  // Listen for projectId from shell (postMessage)
+app/wt-app.jsx:424:      if (d.type === 'ww-project' && d.projectId) {
+app/wt-app.jsx:425:        console.log('[WorldTree] Received projectId from shell:', d.projectId);
+app/wt-app.jsx:429:        if (d.projectId === loadedProjectIdRef.current) {
+app/wt-app.jsx:430:          console.log('[WorldTree] Same projectId (cached), skipping reload');
+app/wt-app.jsx:435:        window.__currentProjectId = d.projectId;
+app/wt-app.jsx:436:        setProjectId(d.projectId);
+app/wt-app.jsx:437:        loadedProjectIdRef.current = d.projectId; // Mark as loaded immediately
+app/wt-app.jsx:444:          console.log('[WorldTree] Reloading canon with new projectId...');
+app/wt-app.jsx:448:            const realCanon = await window.__firebaseCanon.getCanon(d.projectId);
+app/wt-app.jsx:455:                scenes = await window.__firebaseScenes.getScenes(d.projectId);
+app/wt-app.jsx:484:  }, [authReady, projectId]);
+app/wt-app.jsx:519:      const projectId = await getProjectId();
+app/wt-app.jsx:522:        projectId,
+app/wt-app.jsx:531:      if (projectId) {
+app/wt-app.jsx:532:        window.__currentProjectId = projectId;
+app/wt-app.jsx:533:        setProjectId(projectId);  // Also store in React state
+app/wt-app.jsx:534:        loadedProjectIdRef.current = projectId; // Mark as loaded
+app/wt-app.jsx:535:        console.log('[WorldTree] ✅ Set window.__currentProjectId =', projectId);
+app/wt-app.jsx:537:        console.warn('[WorldTree] ⚠️ No projectId to set globally');
+app/wt-app.jsx:540:      if (!projectId) {
+app/wt-app.jsx:555:        const realCanon = await window.__firebaseCanon.getCanon(projectId);
+app/wt-app.jsx:562:          console.log('[WorldTree] DEBUG: About to call getScenes with projectId:', projectId);
+app/wt-app.jsx:564:            scenes = await window.__firebaseScenes.getScenes(projectId);
+app/wt-app.jsx:577:          projectId,
+app/wt-app.jsx:637:      {cur && cur.type === "chronicle" && <ChronicleView navigate={navigate} onClose={close} canon={canon} projectId={projectId} />}

@@ -353,14 +353,21 @@ function WorldTreeApp() {
   const getProjectId = async () => {
     const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
 
-    // Embedded mode: ONLY read from global (shell sets it)
+    // Embedded mode: read from parent OR wait for postMessage
     if (isEmbedded) {
-      if (window.__currentProjectId) {
-        console.log('[WorldTree] Embedded mode — projectId from global:', window.__currentProjectId);
-        return window.__currentProjectId;
+      try {
+        const parentProjectId = window.parent.__currentProjectId;
+        if (parentProjectId) {
+          console.log('[WorldTree] Embedded mode — projectId from parent:', parentProjectId);
+          return parentProjectId;
+        }
+      } catch (e) {
+        console.error('[WorldTree] Cannot access parent.__currentProjectId:', e);
       }
-      console.warn('[WorldTree] Embedded mode but no global projectId set');
-      return null;
+
+      // No projectId yet — wait for postMessage (home screen → project opened)
+      console.log('[WorldTree] Embedded mode — waiting for postMessage...');
+      return null; // postMessage listener will trigger reload when projectId arrives
     }
 
     // Standalone mode: try URL param, then Firestore fallback

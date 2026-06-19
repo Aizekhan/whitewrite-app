@@ -112,15 +112,22 @@ function App() {
       const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
       let projectId;
 
-      // Embedded mode: ONLY read from global (shell sets it)
+      // Embedded mode: ONLY read from parent window (shell sets it BEFORE iframe loads)
       if (isEmbedded) {
-        projectId = window.__currentProjectId;
-        if (!projectId) {
-          console.warn('[Workspace] Embedded mode but no global projectId set');
+        try {
+          projectId = window.parent.__currentProjectId;
+          if (projectId) {
+            console.log('[Workspace] Embedded mode — projectId from parent:', projectId);
+          } else {
+            console.warn('[Workspace] Embedded mode but parent.__currentProjectId not set');
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          console.error('[Workspace] Cannot access parent.__currentProjectId:', e);
           setLoading(false);
           return;
         }
-        console.log('[Workspace] Embedded mode — projectId from global:', projectId);
       } else {
         // Standalone mode: try URL param, then Firestore fallback
         try {

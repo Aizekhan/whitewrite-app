@@ -842,16 +842,18 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
 
     // Send current projectId to iframe immediately on load
-    if (window.__currentProjectId) {
-      f.addEventListener('load', function() {
+    f.addEventListener('load', function() {
+      if (window.__currentProjectId) {
         try {
           f.contentWindow.postMessage({ type: "ww-project", projectId: window.__currentProjectId }, window.location.origin);
           console.log('[Shell] Sent projectId to iframe:', window.__currentProjectId);
         } catch (e) {
           console.error('[Shell] Failed to send projectId:', e);
         }
-      }, { once: true });
-    }
+      } else {
+        console.warn('[Shell] iframe loaded but window.__currentProjectId not set');
+      }
+    }, { once: true });
   }
   // The mage landing: ALWAYS reset the book to its first page (the mage cover).
   function showHome() {
