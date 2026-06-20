@@ -209,6 +209,7 @@ exports.generateScene = onRequest({
       const prompt = buildScenePrompt({
         title: project.title,
         desc: project.desc,
+        language: project.language || 'uk',
         genres: project.genres || [],
         scope: project.scope,
         ending: project.ending || 'open',
@@ -631,7 +632,37 @@ function buildCanonContext(canon) {
 /**
  * Build scene generation prompt
  */
-function buildScenePrompt({ title, desc, genres, scope, ending, endingNote, length, dialogue, canonContext, intentDescription, previousScenes }) {
+function buildScenePrompt({ title, desc, language, genres, scope, ending, endingNote, length, dialogue, canonContext, intentDescription, previousScenes }) {
+  // Map language code to full name and typography rules
+  const languageMap = {
+    uk: {
+      name: 'українською',
+      quotes: '«текст»',
+      dash: '—',
+      example: 'українські лапки «текст», довге тире —, неразривні пробіли'
+    },
+    en: {
+      name: 'English',
+      quotes: '"text"',
+      dash: '—',
+      example: 'English quotes "text", em dash —, proper spacing'
+    },
+    pl: {
+      name: 'polski (Polish)',
+      quotes: '„tekst"',
+      dash: '–',
+      example: 'Polish quotes „tekst", en dash –, proper spacing'
+    },
+    ru: {
+      name: 'русском (Russian)',
+      quotes: '«текст»',
+      dash: '—',
+      example: 'русские кавычки «текст», длинное тире —, неразрывные пробелы'
+    }
+  };
+
+  const lang = languageMap[language] || languageMap.uk;
+
   // Convert dialogue percentage to style instruction
   let dialogueStyle;
   if (dialogue <= 15) {
@@ -691,12 +722,12 @@ ${intentDescription}
 1. Генеруй наступну сцену, яка СТРОГО ДОТРИМУЄТЬСЯ канону (не додавай нових персонажів/локацій якщо їх немає в каноні, ЯКЩО ТІЛЬКИ це не є частиною сюрпризу)
 2. Сцена має бути canon-consistent — використовуй лише факти з канону
 3. Якщо канон порожній — створюй світ і персонажів, але будь послідовним
-4. Пиши українською, у стилі жанру проєкту
+4. **МОВА:** Пиши ${lang.name}, у стилі жанру проєкту
 5. Формат: ## Назва сцени (перший рядок), далі текст
 6. Дотримуйся Scene Intent — це ключовий напрям сцени
 7. ВАЖЛИВО: дотримуйся вказаної довжини (~${length} слів) та стилю діалогів (${dialogue}% діалогів)
-8. **Типографіка:** Використовуй українські лапки «текст», довге тире —, неразривні пробіли (в місті, з нами)
-9. **КРИТИЧНО:** Виводь ТІЛЬКИ текст сцени. БЕЗ метакоментарів, БЕЗ "(Proceed to output...)", БЕЗ пояснень — лише чиста художня проза українською мовою.
+8. **Типографіка:** Використовуй ${lang.example}
+9. **КРИТИЧНО:** Виводь ТІЛЬКИ текст сцени. БЕЗ метакоментарів, БЕЗ "(Proceed to output...)", БЕЗ пояснень — лише чиста художня проза ${lang.name}.
 
 Згенеруй сцену:`;
 

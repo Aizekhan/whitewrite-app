@@ -89,9 +89,15 @@ window.__firebaseProjects = {
       desc: data.desc || '',
       meta: data.meta || '',
       cover: data.cover || null,
+      language: data.language || 'uk',         // Language: uk | en | pl | ru
       scope: data.scope || 'novella',
       ending: data.ending || 'open',
+      endingNote: data.endingNote || '',       // Custom ending description
       genres: data.genres || [],
+      creation: data.creation || 'guided',     // Creation mode: guided | auto
+      length: data.length || 700,              // Scene length in words (200-2000)
+      dialogue: data.dialogue || 50,           // Dialogue density 0-100%
+      episodes: data.episodes || null,         // Number of episodes (for season scope)
       written: data.written || 0,
       active: data.active !== undefined ? data.active : false,
       badge: data.badge || 'draft',

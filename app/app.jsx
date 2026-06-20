@@ -161,6 +161,7 @@ function App() {
         const projectData = {
           title: data.title || titleFromPremise(data.description),
           desc: data.description || '',
+          language: data.language || 'uk',
           scope: data.scope || 'novella',
           ending: data.ending || 'open',
           genres: data.genres || [],

@@ -119,6 +119,7 @@ function dialogueLabel(v) {
 function StoryForm({ onBack, onCreate }) {
   const [description, setDescription] = useFState("");
   const [title, setTitle] = useFState("");
+  const [language, setLanguage] = useFState("uk");       // uk | en | pl | ru
   const [creation, setCreation] = useFState("guided");   // guided | auto
   const [scope, setScope] = useFState("novella");        // shot | novella | season | endless
   const [episodes, setEpisodes] = useFState(8);
@@ -142,7 +143,7 @@ function StoryForm({ onBack, onCreate }) {
     if (!ready || creating) return;
     setCreating(true);
     try {
-      await onCreate({ title, description, creation, scope, episodes: scope === "season" ? episodes : null, ending, endingNote, genres, length, dialogue });
+      await onCreate({ title, description, language, creation, scope, episodes: scope === "season" ? episodes : null, ending, endingNote, genres, length, dialogue });
     } catch (error) {
       console.error('Failed to create project:', error);
       alert('Не вдалося створити проєкт: ' + error.message);
@@ -172,6 +173,22 @@ function StoryForm({ onBack, onCreate }) {
               placeholder="Попіл Орелії"
               disabled={creating}
             />
+          </label>
+
+          <label className="field">
+            <span className="field__label">Мова історії</span>
+            <Segmented
+              value={language}
+              onChange={(val) => !creating && setLanguage(val)}
+              disabled={creating}
+              options={[
+                { value: "uk", label: "🇺🇦 Українська" },
+                { value: "en", label: "🇬🇧 English" },
+                { value: "pl", label: "🇵🇱 Polski" },
+                { value: "ru", label: "🇷🇺 Русский" },
+              ]}
+            />
+            <span className="field__note">На якій мові AI генеруватиме сцени та діалоги</span>
           </label>
 
           <label className="field">
