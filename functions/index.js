@@ -634,34 +634,63 @@ function buildCanonContext(canon) {
  */
 function buildScenePrompt({ title, desc, language, genres, scope, ending, endingNote, length, dialogue, canonContext, intentDescription, previousScenes }) {
   // Map language code to full name and typography rules
+  // Single source of truth for language configuration across the project
   const languageMap = {
-    uk: {
-      name: 'українською',
-      quotes: '«текст»',
-      dash: '—',
-      example: 'українські лапки «текст», довге тире —, неразривні пробіли'
-    },
-    en: {
-      name: 'English',
-      quotes: '"text"',
-      dash: '—',
-      example: 'English quotes "text", em dash —, proper spacing'
-    },
-    pl: {
-      name: 'polski (Polish)',
-      quotes: '„tekst"',
-      dash: '–',
-      example: 'Polish quotes „tekst", en dash –, proper spacing'
-    },
-    ru: {
-      name: 'русском (Russian)',
-      quotes: '«текст»',
-      dash: '—',
-      example: 'русские кавычки «текст», длинное тире —, неразрывные пробелы'
-    }
+    en: { name: 'English', quotes: '"text"', dash: '—' },
+    es: { name: 'Español', quotes: '«texto»', dash: '—' },
+    zh: { name: '中文', quotes: '"文本"', dash: '——' },
+    hi: { name: 'हिन्दी', quotes: '"पाठ"', dash: '—' },
+    ar: { name: 'العربية', quotes: '«نص»', dash: '—' },
+    pt: { name: 'Português', quotes: '"texto"', dash: '—' },
+    bn: { name: 'বাংলা', quotes: '"পাঠ্য"', dash: '—' },
+    ru: { name: 'Русском', quotes: '«текст»', dash: '—' },
+    ja: { name: '日本語', quotes: '「テキスト」', dash: '—' },
+    pa: { name: 'ਪੰਜਾਬੀ', quotes: '"ਟੈਕਸਟ"', dash: '—' },
+    de: { name: 'Deutsch', quotes: '„Text"', dash: '—' },
+    jv: { name: 'Basa Jawa', quotes: '"teks"', dash: '—' },
+    ko: { name: '한국어', quotes: '"텍스트"', dash: '—' },
+    fr: { name: 'Français', quotes: '« texte »', dash: '—' },
+    te: { name: 'తెలుగు', quotes: '"పాఠ్యం"', dash: '—' },
+    mr: { name: 'मराठी', quotes: '"मजकूर"', dash: '—' },
+    tr: { name: 'Türkçe', quotes: '"metin"', dash: '—' },
+    ta: { name: 'தமிழ்', quotes: '"உரை"', dash: '—' },
+    vi: { name: 'Tiếng Việt', quotes: '"văn bản"', dash: '—' },
+    ur: { name: 'اردو', quotes: '«متن»', dash: '—' },
+    it: { name: 'Italiano', quotes: '«testo»', dash: '—' },
+    th: { name: 'ไทย', quotes: '"ข้อความ"', dash: '—' },
+    gu: { name: 'ગુજરાતી', quotes: '"ટેક્સ્ટ"', dash: '—' },
+    pl: { name: 'Polski', quotes: '„tekst"', dash: '–' },
+    uk: { name: 'Українською', quotes: '«текст»', dash: '—' },
+    fa: { name: 'فارسی', quotes: '«متن»', dash: '—' },
+    ml: { name: 'മലയാളം', quotes: '"വാചകം"', dash: '—' },
+    kn: { name: 'ಕನ್ನಡ', quotes: '"ಪಠ್ಯ"', dash: '—' },
+    or: { name: 'ଓଡ଼ିଆ', quotes: '"ପାଠ୍ୟ"', dash: '—' },
+    my: { name: 'မြန်မာ', quotes: '"စာသား"', dash: '—' },
+    nl: { name: 'Nederlands', quotes: '"tekst"', dash: '—' },
+    sv: { name: 'Svenska', quotes: '"text"', dash: '—' },
+    he: { name: 'עברית', quotes: '«טקסט»', dash: '—' },
+    el: { name: 'Ελληνικά', quotes: '«κείμενο»', dash: '—' },
+    cs: { name: 'Čeština', quotes: '„text"', dash: '—' },
+    ro: { name: 'Română', quotes: '„text"', dash: '—' },
+    hu: { name: 'Magyar', quotes: '„szöveg"', dash: '—' },
+    da: { name: 'Dansk', quotes: '»tekst«', dash: '—' },
+    fi: { name: 'Suomi', quotes: '"teksti"', dash: '—' },
+    no: { name: 'Norsk', quotes: '«tekst»', dash: '—' },
+    sk: { name: 'Slovenčina', quotes: '„text"', dash: '—' },
+    bg: { name: 'Български', quotes: '„текст"', dash: '—' },
+    hr: { name: 'Hrvatski', quotes: '„tekst"', dash: '—' },
+    sr: { name: 'Српски', quotes: '„текст"', dash: '—' },
+    lt: { name: 'Lietuvių', quotes: '„tekstas"', dash: '—' },
+    sl: { name: 'Slovenščina', quotes: '„besedilo"', dash: '—' },
+    lv: { name: 'Latviešu', quotes: '„teksts"', dash: '—' },
+    et: { name: 'Eesti', quotes: '„tekst"', dash: '—' },
+    is: { name: 'Íslenska', quotes: '„texti"', dash: '—' },
+    ga: { name: 'Gaeilge', quotes: '"téacs"', dash: '—' },
+    cy: { name: 'Cymraeg', quotes: '"testun"', dash: '—' },
+    mt: { name: 'Malti', quotes: '"test"', dash: '—' }
   };
 
-  const lang = languageMap[language] || languageMap.uk;
+  const lang = languageMap[language] || languageMap.en;
 
   // Convert dialogue percentage to style instruction
   let dialogueStyle;
@@ -722,12 +751,12 @@ ${intentDescription}
 1. Генеруй наступну сцену, яка СТРОГО ДОТРИМУЄТЬСЯ канону (не додавай нових персонажів/локацій якщо їх немає в каноні, ЯКЩО ТІЛЬКИ це не є частиною сюрпризу)
 2. Сцена має бути canon-consistent — використовуй лише факти з канону
 3. Якщо канон порожній — створюй світ і персонажів, але будь послідовним
-4. **МОВА:** Пиши ${lang.name}, у стилі жанру проєкту
-5. Формат: ## Назва сцени (перший рядок), далі текст
-6. Дотримуйся Scene Intent — це ключовий напрям сцени
-7. ВАЖЛИВО: дотримуйся вказаної довжини (~${length} слів) та стилю діалогів (${dialogue}% діалогів)
-8. **Типографіка:** Використовуй ${lang.example}
-9. **КРИТИЧНО:** Виводь ТІЛЬКИ текст сцени. БЕЗ метакоментарів, БЕЗ "(Proceed to output...)", БЕЗ пояснень — лише чиста художня проза ${lang.name}.
+4. **LANGUAGE:** Write in ${lang.name}, in the style of the project's genre
+5. Format: ## Scene Title (first line), then text
+6. Follow Scene Intent — this is the key direction for the scene
+7. IMPORTANT: Follow the specified length (~${length} words) and dialogue style (${dialogue}% dialogue density)
+8. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
+9. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.
 
 Згенеруй сцену:`;
 

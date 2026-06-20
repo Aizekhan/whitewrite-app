@@ -93,6 +93,62 @@ const GENRES = [
   "Драма", "Комедія", "Янг-адалт", "Слайс-оф-лайф", "Вестерн",
 ];
 
+// World languages for project language selection
+const LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "es", name: "Español (Spanish)" },
+  { code: "zh", name: "中文 (Chinese)" },
+  { code: "hi", name: "हिन्दी (Hindi)" },
+  { code: "ar", name: "العربية (Arabic)" },
+  { code: "pt", name: "Português (Portuguese)" },
+  { code: "bn", name: "বাংলা (Bengali)" },
+  { code: "ru", name: "Русский (Russian)" },
+  { code: "ja", name: "日本語 (Japanese)" },
+  { code: "pa", name: "ਪੰਜਾਬੀ (Punjabi)" },
+  { code: "de", name: "Deutsch (German)" },
+  { code: "jv", name: "Basa Jawa (Javanese)" },
+  { code: "ko", name: "한국어 (Korean)" },
+  { code: "fr", name: "Français (French)" },
+  { code: "te", name: "తెలుగు (Telugu)" },
+  { code: "mr", name: "मराठी (Marathi)" },
+  { code: "tr", name: "Türkçe (Turkish)" },
+  { code: "ta", name: "தமிழ் (Tamil)" },
+  { code: "vi", name: "Tiếng Việt (Vietnamese)" },
+  { code: "ur", name: "اردو (Urdu)" },
+  { code: "it", name: "Italiano (Italian)" },
+  { code: "th", name: "ไทย (Thai)" },
+  { code: "gu", name: "ગુજરાતી (Gujarati)" },
+  { code: "pl", name: "Polski (Polish)" },
+  { code: "uk", name: "Українська (Ukrainian)" },
+  { code: "fa", name: "فارسی (Persian)" },
+  { code: "ml", name: "മലയാളം (Malayalam)" },
+  { code: "kn", name: "ಕನ್ನಡ (Kannada)" },
+  { code: "or", name: "ଓଡ଼ିଆ (Odia)" },
+  { code: "my", name: "မြန်မာ (Burmese)" },
+  { code: "nl", name: "Nederlands (Dutch)" },
+  { code: "sv", name: "Svenska (Swedish)" },
+  { code: "he", name: "עברית (Hebrew)" },
+  { code: "el", name: "Ελληνικά (Greek)" },
+  { code: "cs", name: "Čeština (Czech)" },
+  { code: "ro", name: "Română (Romanian)" },
+  { code: "hu", name: "Magyar (Hungarian)" },
+  { code: "da", name: "Dansk (Danish)" },
+  { code: "fi", name: "Suomi (Finnish)" },
+  { code: "no", name: "Norsk (Norwegian)" },
+  { code: "sk", name: "Slovenčina (Slovak)" },
+  { code: "bg", name: "Български (Bulgarian)" },
+  { code: "hr", name: "Hrvatski (Croatian)" },
+  { code: "sr", name: "Српски (Serbian)" },
+  { code: "lt", name: "Lietuvių (Lithuanian)" },
+  { code: "sl", name: "Slovenščina (Slovenian)" },
+  { code: "lv", name: "Latviešu (Latvian)" },
+  { code: "et", name: "Eesti (Estonian)" },
+  { code: "is", name: "Íslenska (Icelandic)" },
+  { code: "ga", name: "Gaeilge (Irish)" },
+  { code: "cy", name: "Cymraeg (Welsh)" },
+  { code: "mt", name: "Malti (Maltese)" }
+];
+
 // Genre → default dialogue density (0 none … 100 dialogue-driven).
 const GENRE_DIALOGUE = {
   "Документалка": 10, "Міф і казка": 30, "Історичне": 45, "Горор": 35, "Містика": 40,
@@ -119,7 +175,7 @@ function dialogueLabel(v) {
 function StoryForm({ onBack, onCreate }) {
   const [description, setDescription] = useFState("");
   const [title, setTitle] = useFState("");
-  const [language, setLanguage] = useFState("uk");       // uk | en | pl | ru
+  const [language, setLanguage] = useFState("en");       // Default: English (буде dropdown з усіма мовами)
   const [creation, setCreation] = useFState("guided");   // guided | auto
   const [scope, setScope] = useFState("novella");        // shot | novella | season | endless
   const [episodes, setEpisodes] = useFState(8);
@@ -132,6 +188,9 @@ function StoryForm({ onBack, onCreate }) {
   const [creating, setCreating] = useFState(false);
   const ready = description.trim().length > 0;
 
+  // Guided Mode → автоматично scope='endless' (історія без меж)
+  const effectiveScope = creation === 'guided' ? 'endless' : scope;
+
   function toggleGenre(g) {
     setGenres((cur) => {
       const next = cur.includes(g) ? cur.filter((x) => x !== g) : (cur.length >= 4 ? cur : cur.concat(g));
@@ -143,7 +202,19 @@ function StoryForm({ onBack, onCreate }) {
     if (!ready || creating) return;
     setCreating(true);
     try {
-      await onCreate({ title, description, language, creation, scope, episodes: scope === "season" ? episodes : null, ending, endingNote, genres, length, dialogue });
+      await onCreate({
+        title,
+        description,
+        language,
+        creation,
+        scope: effectiveScope,  // Guided → 'endless', Auto → вибране юзером
+        episodes: effectiveScope === "season" ? episodes : null,
+        ending,
+        endingNote,
+        genres,
+        length,
+        dialogue
+      });
     } catch (error) {
       console.error('Failed to create project:', error);
       alert('Не вдалося створити проєкт: ' + error.message);
@@ -176,19 +247,18 @@ function StoryForm({ onBack, onCreate }) {
           </label>
 
           <label className="field">
-            <span className="field__label">Мова історії</span>
-            <Segmented
+            <span className="field__label">Language / Мова історії</span>
+            <select
+              className="field__input"
               value={language}
-              onChange={(val) => !creating && setLanguage(val)}
+              onChange={(e) => !creating && setLanguage(e.target.value)}
               disabled={creating}
-              options={[
-                { value: "uk", label: "🇺🇦 Українська" },
-                { value: "en", label: "🇬🇧 English" },
-                { value: "pl", label: "🇵🇱 Polski" },
-                { value: "ru", label: "🇷🇺 Русский" },
-              ]}
-            />
-            <span className="field__note">На якій мові AI генеруватиме сцени та діалоги</span>
+            >
+              {LANGUAGES.map(lang => (
+                <option key={lang.code} value={lang.code}>{lang.name}</option>
+              ))}
+            </select>
+            <span className="field__note">AI will generate scenes and dialogues in this language</span>
           </label>
 
           <label className="field">
@@ -219,23 +289,25 @@ function StoryForm({ onBack, onCreate }) {
             </div>
           </div>
 
-          <label className="field">
-            <span className="field__label">Обсяг історії</span>
-            <Segmented
-              value={scope}
-              onChange={(val) => !creating && setScope(val)}
-              disabled={creating}
-              options={[
-                { value: "shot", label: "Оповідання" },
-                { value: "novella", label: "Новела" },
-                { value: "season", label: "Сезон" },
-                { value: "endless", label: "Без меж" },
-              ]}
-            />
-            <span className="field__note">{SCOPE_HINT[scope]}</span>
-          </label>
+          {creation === "auto" && (
+            <label className="field">
+              <span className="field__label">Обсяг історії</span>
+              <Segmented
+                value={scope}
+                onChange={(val) => !creating && setScope(val)}
+                disabled={creating}
+                options={[
+                  { value: "shot", label: "Оповідання" },
+                  { value: "novella", label: "Новела" },
+                  { value: "season", label: "Сезон" },
+                  { value: "endless", label: "Без меж" },
+                ]}
+              />
+              <span className="field__note">{SCOPE_HINT[scope]}</span>
+            </label>
+          )}
 
-          {scope === "season" && (
+          {creation === "auto" && scope === "season" && (
             <label className="field">
               <span className="field__label">Скільки серій</span>
               <div className="wslider">
@@ -255,7 +327,7 @@ function StoryForm({ onBack, onCreate }) {
             </label>
           )}
 
-          {scope !== "endless" && (
+          {creation === "auto" && scope !== "endless" && (
             <label className="field">
               <span className="field__label">Фінал</span>
               <Segmented
