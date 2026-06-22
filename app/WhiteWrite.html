@@ -180,6 +180,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 /* ---------- Page content ---------- */
 .page-inner{ position:absolute; inset:0; padding:clamp(20px,3.4vh,48px) clamp(28px,3.7vw,56px);
   padding-top:clamp(32px,4.5vh,60px); /* Increased top padding to prevent text overflow */
+  padding-bottom:clamp(32px,4.5vh,60px); /* Increased bottom padding to prevent text overflow */
   display:flex; flex-direction:column; z-index:1; }
 .leaf--left .page-inner{ padding-right:clamp(40px,5vw,70px); }
 .leaf--right .page-inner{ padding-left:clamp(40px,5vw,70px); }
@@ -363,7 +364,9 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   font-style:italic; font-size:clamp(16px,1.6vw,21px); line-height:1.9; color:var(--ink);
   background-image:repeating-linear-gradient(transparent 0 calc(1.9em - 1px),
      rgba(140,106,46,0.16) calc(1.9em - 1px) 1.9em);
-  background-position:0 .55em; }
+  background-position:0 .55em;
+  max-height: calc(1.9em * 20); /* Limit to 20 lines */
+  overflow: hidden; }
 .writing:empty:before{ content:attr(data-placeholder); color:rgba(120,96,56,0.55); }
 .writing__caret-hint{ align-self:flex-end; font-size:11px; letter-spacing:.2em;
   text-transform:uppercase; color:var(--gold-deep); opacity:.6; margin-top:6px; }
@@ -619,7 +622,9 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .seg__opt:hover{ border-color:rgba(201,162,75,0.65); color:#f0d398; }
 .seg__opt.is-on{ color:#1c1308; border-color:#e6be6c;
   background:linear-gradient(180deg, rgba(233,200,120,0.92), rgba(201,162,75,0.78));
-  box-shadow:inset 0 1px 0 rgba(255,245,210,0.5); }
+  box-shadow:inset 0 1px 0 rgba(255,245,210,0.5), 0 0 0 3px rgba(201,162,75,0.4);
+  font-weight:700;
+  transform:scale(1.05); }
 .seg__icon{ color:#e6be6c; }
 
 .wslider input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:4px;
@@ -695,13 +700,14 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   container-type:inline-size; pointer-events:none; }
 .photobook__pages .opage{ pointer-events:auto; }
 .opage{ position:absolute; overflow:hidden; z-index:2; color:#42301b; }
-.opage--left{ left:20%; right:53%; top:17%; bottom:21%; }
-.opage--right{ left:52%; right:20%; top:17%; bottom:21%; }
+.opage--left{ left:20%; right:53%; top:15%; bottom:24%; }
+.opage--right{ left:52%; right:20%; top:15%; bottom:24%; }
 .opage__fade{ position:absolute; inset:0; animation:inkIn 1s ease both; }
 @keyframes inkIn{ from{ opacity:0; filter:blur(2px) } to{ opacity:1; filter:none } }
 
 /* page content rescaled to the book via container-query units (cqw) */
-.opage .page-inner{ position:absolute; inset:0; padding:0; display:flex; flex-direction:column; overflow: hidden; }
+.opage .page-inner,
+.opage__fade .page-inner{ position:absolute; top:0; left:0; right:0; bottom:2cqw; padding:0; display:flex; flex-direction:column; overflow: hidden; border: 2px solid red; }
 .opage .se-prose{ flex:1; min-height:0; overflow:hidden; padding-top:.4cqw; }
 .opage .se-prose.is-editing{ overflow-y:auto; }
 .se-pages{ display:flex; align-items:center; justify-content:center; gap:12px; margin-top:auto; padding-top:.6cqw; }
@@ -985,6 +991,86 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   .to-workspace{ left:50%; right:auto; transform:translateX(-50%); bottom:118px;
     padding:10px 18px; font-size:14px; }
   .to-workspace:hover{ transform:translateX(-50%) translateY(-2px); }
+}
+
+/* Generation progress overlay */
+.gen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(16, 11, 7, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.gen-card {
+  background: linear-gradient(135deg, rgba(58, 44, 29, 0.9), rgba(30, 22, 14, 0.9));
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 48px 64px;
+  max-width: 560px;
+  text-align: center;
+  box-shadow: 0 12px 48px rgba(201, 162, 75, 0.25);
+}
+.gen-spinner {
+  font-size: 64px;
+  color: var(--gold);
+  margin-bottom: 24px;
+  animation: spin 3s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.gen-title {
+  font-family: 'Philosopher', serif;
+  font-size: 28px;
+  color: var(--gold-lit);
+  margin-bottom: 32px;
+  font-weight: 700;
+}
+.gen-progress {
+  margin-top: 24px;
+}
+.gen-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(201, 162, 75, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.gen-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-deep), var(--gold), var(--gold-lit));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+  animation: shimmer 2s linear infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.gen-text {
+  font-family: 'Philosopher', serif;
+  font-size: 16px;
+  color: var(--parch);
+  line-height: 1.6;
+}
+.gen-scene-title {
+  color: var(--gold-lit);
+  font-style: italic;
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
 }
 </style>
 </head>

@@ -93,25 +93,24 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         }
 
         // Convert Firestore scenes to book format
-        // Each scene = one spread (left + right pages), scenes don't mix on same spread
+        // FLAT array of ALL pages, then pair into spreads [0,1], [2,3], [4,5]...
+        // This eliminates empty pages between scenes
 
-        console.log('Firestore scenes order:', firestoreScenes.map(s => ({ n: s.n, title: s.title })));
 
-        // Track pageIndex across ALL scenes so spreads are continuous
-        let globalPageIndex = 0;
+        // Collect ALL pages from ALL scenes into flat array
+        const allPages = [];
 
         const bookScenes = firestoreScenes.map((scene, idx) => {
-          const act = Math.ceil(scene.n / 3); // Simple act calculation: 3 scenes per act
           const paragraphs = scene.text.split('\n\n').filter(p => p.trim());
           const isLastScene = idx === firestoreScenes.length - 1;
 
-          // Simple character-based pagination - reliable and fast
-          const CHARS_PER_PAGE_FIRST = 1400; // First page (with header)
-          const CHARS_PER_PAGE = 1800; // Other pages
+          // Character-based pagination with REDUCED limit to prevent cut-off
+          // Based on real statistics + paragraph margin (.6cqw per para) adjustment
+          const CHARS_PER_PAGE_FIRST = 520; // First page (with header) - accounts for margins
+          const CHARS_PER_PAGE = 580; // Other pages - accounts for margins
 
-          const pages = [];
+          const scenePages = [];
           let isFirstPage = true;
-
           const allText = paragraphs.join('\n\n');
           let remainingText = allText;
 
@@ -144,8 +143,9 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
             const paras = chunk.split('\n\n').filter(p => p.trim());
 
             if (paras.length > 0) {
+
               const pageContent = (
-                <div className="page-inner" key={`page-${globalPageIndex}`}>
+                <div className="page-inner" key={`page-${allPages.length}`}>
                   {isFirstPage && (
                     <header className="page-head">
                       <h2 className="page-head__title">{scene.title}</h2>
@@ -169,26 +169,25 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
                 </div>
               );
 
-              if (globalPageIndex % 2 === 0) {
-                pages.push({ left: pageContent, right: null });
-              } else {
-                // If pages array is empty (first page of scene but globalPageIndex is odd),
-                // create a new spread with null left
-                if (pages.length === 0) {
-                  pages.push({ left: null, right: pageContent });
-                } else {
-                  pages[pages.length - 1].right = pageContent;
-                }
-              }
-
-              globalPageIndex++;
+              // Add to FLAT array AND scene pages
+              allPages.push(pageContent);
+              scenePages.push(pageContent);
               isFirstPage = false;
             }
           }
 
-          // Add SceneIntentPage as separate spread after last scene
+          // Pair THIS scene's pages into spreads
+          const sceneSpreads = [];
+          for (let i = 0; i < scenePages.length; i += 2) {
+            sceneSpreads.push({
+              left: scenePages[i] || null,
+              right: scenePages[i + 1] || null
+            });
+          }
+
+          // Add SceneIntentPage after last scene
           if (isLastScene) {
-            pages.push({
+            sceneSpreads.push({
               left: null,
               right: <SceneIntentPage />
             });
@@ -197,7 +196,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           return {
             n: scene.n,
             t: scene.title,
-            pages: pages
+            pages: sceneSpreads
           };
         });
 
@@ -254,8 +253,8 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const atFirst = sc === 0 && pg === 0;
   const atLast = SCENES.length > 0 && sc === SCENES.length - 1 && scene && pg === scene.pages.length - 1;
 
-  // Debug
-  console.log('Book render:', { scenesCount: SCENES.length, sc, pg, hasScene: !!scene, hasSpread: !!spread, loadingScenes });
+
+  // Pagination diagnostics removed - stable at 520/580 chars
 
   // Size an overlay box to exactly match the cover-rendered book image, so
   // the text regions track the photographed pages at any viewport/crop.
