@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+// Redirect to shell if opened directly (not in iframe)
+if (!window.location.search.includes('embed=1')) {
+  var projectId = new URLSearchParams(window.location.search).get('projectId');
+  window.location.href = '/#work/book' + (projectId ? '?projectId=' + projectId : '');
+}
+</script>
 <title>White Tree — місце, де народжуються всесвіти</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
