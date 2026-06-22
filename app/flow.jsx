@@ -96,6 +96,7 @@ const GENRES = [
 // World languages for project language selection
 const LANGUAGES = [
   { code: "en", name: "English" },
+  { code: "uk", name: "Українська (Ukrainian)" },
   { code: "es", name: "Español (Spanish)" },
   { code: "zh", name: "中文 (Chinese)" },
   { code: "hi", name: "हिन्दी (Hindi)" },
@@ -119,7 +120,6 @@ const LANGUAGES = [
   { code: "th", name: "ไทย (Thai)" },
   { code: "gu", name: "ગુજરાતી (Gujarati)" },
   { code: "pl", name: "Polski (Polish)" },
-  { code: "uk", name: "Українська (Ukrainian)" },
   { code: "fa", name: "فارسی (Persian)" },
   { code: "ml", name: "മലയാളം (Malayalam)" },
   { code: "kn", name: "ಕನ್ನಡ (Kannada)" },
