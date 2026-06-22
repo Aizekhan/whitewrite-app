@@ -358,8 +358,9 @@ exports.generateScene = onRequest({
             // Call extraction in background (async, don't await)
             // NOTE: sceneId is passed from frontend in req.body
             const sceneId = req.body.sceneId;
+            const projectLanguage = project.language || 'uk'; // Default to Ukrainian
 
-            extractCanonFromScene(projectId, sceneContent, canon, uid, extractionCost, sceneId)
+            extractCanonFromScene(projectId, sceneContent, canon, uid, extractionCost, sceneId, projectLanguage)
               .then(result => {
                 console.log(`[Auto-Extract] ✅ Extracted ${result.suggestions.length} suggestions, linked to scene ${sceneId}`);
               })
@@ -445,8 +446,24 @@ async function mergeIntoCanon(projectId, suggestions) {
  * Called asynchronously after scene generation
  * @param sceneId - Scene document ID to update with canonRefs
  */
-async function extractCanonFromScene(projectId, sceneText, canon, uid, extractionCost, sceneId) {
+async function extractCanonFromScene(projectId, sceneText, canon, uid, extractionCost, sceneId, language = 'uk') {
   try {
+    // Language names mapping
+    const languageNames = {
+      'uk': 'Ukrainian',
+      'en': 'English',
+      'pl': 'Polish',
+      'ru': 'Russian',
+      'de': 'German',
+      'es': 'Spanish',
+      'fr': 'French',
+      'it': 'Italian',
+      'pt': 'Portuguese',
+      'ja': 'Japanese',
+      'zh': 'Chinese'
+    };
+    const languageName = languageNames[language] || languageNames['uk'];
+
     // Build extraction prompt
     const systemInstruction = `You are a narrative analysis expert. Extract structured canon information from the provided scene text.
 
@@ -456,7 +473,8 @@ CRITICAL RULES:
 3. For characters: extract name, role, trait, status, location, goal, relationships
 4. For locations: extract name, description, type
 5. For events: extract name, description, when, participants
-6. Return ONLY valid JSON, no markdown wrapping
+6. **LANGUAGE: Extract ALL entity names and descriptions in ${languageName} language.**
+7. Return ONLY valid JSON, no markdown wrapping
 
 Current Canon (for duplicate detection):
 ${JSON.stringify({
