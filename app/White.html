@@ -831,7 +831,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       inWork = true; mode = p;
     }
     var f = ensureFrame(p);
-    var target = PILLARS[p].src + sep(PILLARS[p].src) + "embed=1" + (query ? "&" + query : "");
+    var cacheBust = "&v=" + Date.now();
+    var target = PILLARS[p].src + sep(PILLARS[p].src) + "embed=1" + (query ? "&" + query : "") + cacheBust;
     if (!loaded[p]) { f.src = target; loaded[p] = true; }
     else if (query) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; }
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
