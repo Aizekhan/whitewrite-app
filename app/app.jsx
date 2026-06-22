@@ -74,6 +74,19 @@ function getSceneIntent(index, total, isAutoMode) {
   return 'surprise';                         // Default: let AI decide
 }
 
+// Generation progress overlay
+function GenerationProgress({ current, total }) {
+  return (
+    <div className="gen-overlay">
+      <div className="gen-card">
+        <div className="gen-star">✨</div>
+        <div className="gen-text">Генерується сцена {current + 1} з {total}</div>
+        <div className="gen-note">Це може зайняти кілька хвилин...</div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   // Returning from the workspace? Open straight to the story (skip the ritual).
   // Or opening existing project from list?
@@ -94,6 +107,7 @@ function App() {
   const [form, setForm] = useAState(DIRECT ? { description: "", projectId: PROJECT_ID } : null);
   const [returned] = useAState(DIRECT);
   const [loadingProject, setLoadingProject] = useAState(false);
+  const [generationProgress, setGenerationProgress] = useAState({ current: 0, total: 0, isGenerating: false });
 
   // Load existing project if PROJECT_ID provided
   React.useEffect(() => {
@@ -220,8 +234,14 @@ function App() {
               return; // BLOCK generation
             }
 
+            // Start progress tracking
+            setGenerationProgress({ current: 0, total: scenesToGenerate, isGenerating: true });
+
             for (let i = 0; i < scenesToGenerate; i++) {
               try {
+                // Update progress
+                setGenerationProgress({ current: i, total: scenesToGenerate, isGenerating: true });
+
                 // Free tier: add delay between scenes to avoid rate limits
                 if (i > 0) {
                   console.log(`[${i + 1}/${scenesToGenerate}] Waiting 3s (free tier rate limit)...`);
@@ -304,11 +324,15 @@ function App() {
             console.log(`✓ Generation complete! Total scenes: ${scenesToGenerate}`);
           } catch (genError) {
             console.error('Failed to generate scenes:', genError);
+          } finally {
+            // Stop progress tracking
+            setGenerationProgress({ current: 0, total: 0, isGenerating: false });
           }
         }
       } catch (error) {
         console.error('Failed to create project:', error);
         alert('Не вдалося створити проєкт: ' + error.message);
+        setGenerationProgress({ current: 0, total: 0, isGenerating: false });
         return;
       }
     }
@@ -358,6 +382,9 @@ function App() {
             onExit={() => { setStage("start"); }}
           />
         </div>
+      )}
+      {generationProgress.isGenerating && (
+        <GenerationProgress current={generationProgress.current} total={generationProgress.total} />
       )}
     </div>
   );
