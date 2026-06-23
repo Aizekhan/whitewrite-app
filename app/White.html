@@ -632,7 +632,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
 
     PROJECTS_LOADING = true;
-    fillHome(); // Show loading state
 
     try {
       const projects = await window.__firebaseProjects.getUserProjects(window.__wwUser.uid);
@@ -643,7 +642,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       PROJECTS = [];
     } finally {
       PROJECTS_LOADING = false;
-      fillHome(); // Re-render with data
+      fillHome(); // Render once with data
     }
   }
 
