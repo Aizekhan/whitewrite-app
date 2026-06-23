@@ -1,7 +1,36 @@
 // World Tree — the Universe pillar. Tree (Level 1) → full-screen category
 // workspace (Level 2). Everything is one connected system: navigate(type,id)
 // jumps anywhere; the Chronicle is the canon overview at the heart.
-const { useState: useAppState, useCallback: useAppCb } = React;
+const { useState: useAppState, useCallback: useAppCb, useEffect: useAppEffect } = React;
+
+// ---- PHASE 3: ProjectContext (read from shell) ----
+const ProjectContext = React.createContext(null);
+
+function ProjectProvider({ children }) {
+  const [projectId, setProjectId] = useAppState(null);
+
+  useAppEffect(() => {
+    // Initial read from parent (if embedded in shell)
+    if (window.self !== window.top && window.parent.__currentProjectId) {
+      const initialId = window.parent.__currentProjectId;
+      console.log('[WorldTree] Initial projectId from parent:', initialId);
+      setProjectId(initialId);
+    }
+
+    // Listen for projectId updates from shell
+    function handleMessage(event) {
+      if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
+        console.log('[WorldTree] Received projectId from shell:', event.data.projectId);
+        setProjectId(event.data.projectId);
+      }
+    }
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  return React.createElement(ProjectContext.Provider, { value: projectId }, children);
+}
 
 function wtFade(href, ret) {
   if (window.wwGo && window.wwGo(href)) return;
@@ -15,8 +44,8 @@ function wtFade(href, ret) {
 
 // Unified pillar switcher — identical on all three screens. `here` = active pillar.
 function PillarSwitch({ here, fixed }) {
-  // Get current projectId to pass to other pillars
-  const projectId = window.__currentProjectId;
+  // PHASE 3: Read from ProjectContext (not window.__currentProjectId)
+  const projectId = React.useContext(ProjectContext);
   const projectParam = projectId ? `?projectId=${projectId}` : '';
 
   const items = [
@@ -422,8 +451,8 @@ function WorldTreeApp() {
           return;
         }
 
-        // Update global and state
-        window.__currentProjectId = d.projectId;
+        // PHASE 3: Removed direct write to window.__currentProjectId
+        // ProjectContext already updated via postMessage from shell
         setProjectId(d.projectId);
         loadedProjectIdRef.current = d.projectId; // Mark as loaded immediately
 
@@ -518,14 +547,14 @@ function WorldTreeApp() {
         firebaseExists: !!window.__firebase
       });
 
-      // Store globally for other components
+      // PHASE 3: Removed direct write to window.__currentProjectId
+      // ProjectContext already updated via postMessage from shell
       if (projectId) {
-        window.__currentProjectId = projectId;
-        setProjectId(projectId);  // Also store in React state
+        setProjectId(projectId);  // Store in React state
         loadedProjectIdRef.current = projectId; // Mark as loaded
-        console.log('[WorldTree] ✅ Set window.__currentProjectId =', projectId);
+        console.log('[WorldTree] ✅ ProjectId loaded from context:', projectId);
       } else {
-        console.warn('[WorldTree] ⚠️ No projectId to set globally');
+        console.warn('[WorldTree] ⚠️ No projectId in context');
       }
 
       if (!projectId) {
@@ -633,4 +662,8 @@ function WorldTreeApp() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<WorldTreeApp />);
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <ProjectProvider>
+    <WorldTreeApp />
+  </ProjectProvider>
+);

@@ -1,10 +1,42 @@
 // Top-level flow: start → form → (ritual + reading inside Book).
-const { useState: useAState } = React;
+const { useState: useAState, useEffect: useAEffect } = React;
+
+// ---- PHASE 3: ProjectContext (read from shell) ----
+// Shell (window.parent) is the single source of truth for projectId
+// This context listens to postMessage from shell and provides projectId to components
+const ProjectContext = React.createContext(null);
+
+function ProjectProvider({ children }) {
+  const [projectId, setProjectId] = useAState(null);
+
+  useAEffect(() => {
+    // Initial read from parent (if embedded in shell)
+    if (window.self !== window.top && window.parent.__currentProjectId) {
+      const initialId = window.parent.__currentProjectId;
+      console.log('[Book] Initial projectId from parent:', initialId);
+      setProjectId(initialId);
+    }
+
+    // Listen for projectId updates from shell
+    function handleMessage(event) {
+      if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
+        console.log('[Book] Received projectId from shell:', event.data.projectId);
+        setProjectId(event.data.projectId);
+      }
+    }
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  return React.createElement(ProjectContext.Provider, { value: projectId }, children);
+}
 
 // Pillar navigation (Книга · Всесвіт · Режисер)
 function PillarSwitch({ here }) {
   const Ic = window.Ic || {};
-  const projectId = window.__currentProjectId;
+  // PHASE 3: Read from ProjectContext (not window.__currentProjectId)
+  const projectId = React.useContext(ProjectContext);
   const projectParam = projectId ? `?projectId=${projectId}` : '';
 
   const fadeNav = (href) => {
@@ -149,8 +181,11 @@ function App() {
           genres: project.genres || []
         });
 
-        // Set global projectId for PillarSwitch navigation
-        window.__currentProjectId = project.id;
+        // PHASE 3: Notify shell about loaded projectId (if embedded in shell)
+        if (window.self !== window.top && window.parent.__setCurrentProject) {
+          console.log('[Book] Notifying shell about loaded project:', project.id);
+          window.parent.__setCurrentProject(project.id);
+        }
 
         // Ensure we stay on book stage
         console.log('Setting stage to book');
@@ -192,8 +227,11 @@ function App() {
         // Store projectId for book to use
         data.projectId = projectId;
 
-        // Set global projectId for PillarSwitch navigation
-        window.__currentProjectId = projectId;
+        // PHASE 3: Notify shell about new projectId (if embedded in shell)
+        if (window.self !== window.top && window.parent.__setCurrentProject) {
+          console.log('[Book] Notifying shell about new project:', projectId);
+          window.parent.__setCurrentProject(projectId);
+        }
 
         // Auto mode: generate all scenes at once
         // Guided mode: generate only first scene
@@ -390,4 +428,8 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <ProjectProvider>
+    <App />
+  </ProjectProvider>
+);

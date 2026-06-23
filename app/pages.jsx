@@ -185,7 +185,8 @@ function SceneIntentPage() {
   async function generate() {
     if (!canGo || busy) return;
 
-    const projectId = window.__currentProjectId;
+    // PHASE 3: Read from parent (shell) as single source of truth
+    const projectId = (window.self !== window.top && window.parent.__currentProjectId) || window.__currentProjectId;
     if (!projectId) {
       alert('Проєкт не знайдено. Спробуйте створити новий.');
       return;

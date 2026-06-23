@@ -799,7 +799,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     histPush();
     inWork = false; mode = v;
     if (v === "account") fillAccount();
-    if (v === "narr") loadProjects();
+    if (v === "narr") { fillHome(); loadProjects(); } // Render immediately, then reload
     Object.keys(frames).forEach(function (k) { frames[k].classList.remove("is-on"); });
     Object.keys(views).forEach(function (k) { views[k].classList.toggle("is-on", k === v); });
     renderRail();
@@ -879,6 +879,35 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   window.__wwHome = showHome;
 
+  // ---- PHASE 3: Single source of truth for projectId ----
+  // Shell is the ONLY place that writes projectId
+  // Iframes read from window.parent.__currentProjectId or receive via postMessage
+  window.__setCurrentProject = function(projectId) {
+    if (!projectId) {
+      console.log('[Shell] __setCurrentProject: clearing projectId');
+      window.__currentProjectId = null;
+      return;
+    }
+
+    console.log('[Shell] __setCurrentProject:', projectId);
+    window.__currentProjectId = projectId;
+
+    // Notify all loaded iframes about projectId change
+    try {
+      Object.keys(frames).forEach(function(pillar) {
+        if (frames[pillar] && frames[pillar].contentWindow && loaded[pillar]) {
+          frames[pillar].contentWindow.postMessage({
+            type: 'ww-project',
+            projectId: projectId
+          }, '*');
+          console.log('[Shell] Sent projectId to', pillar, ':', projectId);
+        }
+      });
+    } catch (e) {
+      console.error('[Shell] Failed to notify iframes:', e);
+    }
+  };
+
   // Navigation interceptor for iframes (used by PillarSwitch)
   // Parses URL like "WhiteWrite WorldTree.html?projectId=..." and routes through shell
   window.wwGo = function(href) {
@@ -888,11 +917,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       var filename = parts[0];
       var params = parts[1] || '';
 
-      // Extract projectId from params if present
+      // PHASE 3: Extract projectId from params and use single setter
       var projectIdMatch = params.match(/projectId=([^&]+)/);
       if (projectIdMatch) {
-        window.__currentProjectId = decodeURIComponent(projectIdMatch[1]);
-        console.log('[Shell] wwGo: Set window.__currentProjectId from URL:', window.__currentProjectId);
+        var projectId = decodeURIComponent(projectIdMatch[1]);
+        window.__setCurrentProject(projectId);
       }
 
       // Determine which pillar based on filename
@@ -921,7 +950,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     console.log('Opening project:', projectId);
-    window.__currentProjectId = projectId; // Store in global variable (used by all pillars)
+    window.__setCurrentProject(projectId); // PHASE 3: Use single setter
     showPillar("book", "projectId=" + projectId);
   }
 

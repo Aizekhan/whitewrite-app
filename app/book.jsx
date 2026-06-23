@@ -69,11 +69,8 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const [sceneMenu, setSceneMenu] = useState(false);
   const done = useRef(false);
 
-  // Store projectId globally for SceneIntentPage to access
-  useEffect(() => {
-    window.__currentProjectId = projectId;
-    return () => { window.__currentProjectId = null; };
-  }, [projectId]);
+  // PHASE 3: Removed useEffect that wrote to window.__currentProjectId
+  // ProjectContext now provides projectId to all components
 
   // Load scenes from Firestore on mount
   useEffect(() => {

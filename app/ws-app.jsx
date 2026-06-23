@@ -1,5 +1,34 @@
 // Workspace shell: sidebar nav + topbar + tab routing.
-const { useState: useWState } = React;
+const { useState: useWState, useEffect: useWEffect } = React;
+
+// ---- PHASE 3: ProjectContext (read from shell) ----
+const ProjectContext = React.createContext(null);
+
+function ProjectProvider({ children }) {
+  const [projectId, setProjectId] = useWState(null);
+
+  useWEffect(() => {
+    // Initial read from parent (if embedded in shell)
+    if (window.self !== window.top && window.parent.__currentProjectId) {
+      const initialId = window.parent.__currentProjectId;
+      console.log('[Workspace] Initial projectId from parent:', initialId);
+      setProjectId(initialId);
+    }
+
+    // Listen for projectId updates from shell
+    function handleMessage(event) {
+      if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
+        console.log('[Workspace] Received projectId from shell:', event.data.projectId);
+        setProjectId(event.data.projectId);
+      }
+    }
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  return React.createElement(ProjectContext.Provider, { value: projectId }, children);
+}
 
 // Smooth fade back into the book document (same universe).
 function fadeNav(href) {
@@ -15,8 +44,8 @@ window.__wsGoCanon = (type, id) => fadeNav("WhiteWrite WorldTree.html?type=" + t
 
 // Unified pillar switcher — identical on all three screens. `here` = active pillar.
 function PillarSwitch({ here }) {
-  // Get current projectId to pass to other pillars
-  const projectId = window.__currentProjectId;
+  // PHASE 3: Read from ProjectContext (not window.__currentProjectId)
+  const projectId = React.useContext(ProjectContext);
   const projectParam = projectId ? `?projectId=${projectId}` : '';
 
   const items = [
@@ -160,9 +189,9 @@ function App() {
           return;
         }
 
-        // Store globally
-        window.__currentProjectId = projectId;
-        console.log('[Workspace] projectId:', projectId);
+        // PHASE 3: Removed direct write to window.__currentProjectId
+        // ProjectContext already updated via postMessage from shell
+        console.log('[Workspace] projectId loaded from context:', projectId);
       }
 
       try {
@@ -266,4 +295,8 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <ProjectProvider>
+    <App />
+  </ProjectProvider>
+);
