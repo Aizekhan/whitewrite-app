@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<title>Pagination Test (Mock Data)</title>
+<style>
+/* Copy essential CSS from WhiteWrite.html */
+@font-face{font-family:'Philosopher';src:url('app/assets/fonts/Philosopher-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap;}
+
+.photobook__pages{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  container-type: inline-size;
+  pointer-events: none;
+  width: 800px;
+  height: 600px;
+}
+
+.opage {
+  position: absolute;
+  overflow: hidden;
+  z-index: 2;
+  color: #42301b;
+}
+
+.opage--left {
+  left: 20%;
+  right: 53%;
+  top: 17%;
+  bottom: 24%;
+}
+
+.opage--right {
+  left: 52%;
+  right: 20%;
+  top: 17%;
+  bottom: 24%;
+}
+
+.opage__fade {
+  position: absolute;
+  inset: 0;
+}
+
+.opage .page-inner,
+.opage__fade .page-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 2cqw;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 2px solid red;
+}
+
+.opage .page-head {
+  margin-bottom: .7cqw;
+}
+
+.opage .page-head__title {
+  font-size: 2.3cqw;
+  line-height: 1.08;
+  font-family: 'Philosopher', serif;
+  font-weight: 600;
+  margin: 0;
+  color: #46341f;
+}
+
+.opage .page-head__rule {
+  margin-top: .8cqw;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(140,106,46,0.6), rgba(140,106,46,0));
+}
+
+.opage .prose {
+  font-size: calc(1.3cqw * 1);
+  line-height: 1.5;
+  margin: 0 0 .6cqw;
+  font-family: 'Philosopher', serif;
+  text-indent: 1.5em;
+  orphans: 3;
+  widows: 3;
+  text-rendering: optimizeLegibility;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.opage .prose:has(.prose__cap) {
+  text-indent: 0;
+}
+
+.opage .prose__cap {
+  float: left;
+  font-size: 4.8cqw;
+  padding: .3cqw .6cqw 0 0;
+  color: #8c6a2e;
+  font-family: 'Philosopher', serif;
+  font-weight: 700;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: 'Philosopher', serif;
+  background: #0a0705;
+  color: #d4af70;
+}
+
+#test-container {
+  position: relative;
+  width: 100%;
+  height: 800px;
+  background: #1a1410;
+  margin-bottom: 20px;
+}
+
+#results {
+  background: #2a2015;
+  padding: 20px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.error { color: #ff6b6b; }
+.warning { color: #feca57; }
+.success { color: #48dbfb; }
+.info { color: #dfe6e9; }
+</style>
+</head>
+<body>
+
+<h1>🔍 Pagination Diagnostic Test</h1>
+
+<div id="test-container">
+  <div class="photobook__pages"></div>
+</div>
+
+<h2>📊 Test Results:</h2>
+<div id="results">Running test...</div>
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+<script>
+// Mock scene data
+const mockScene = {
+  n: 1,
+  title: "Тиша над колонією",
+  text: `Коли впала остання зоря над Орелією, місто не закричало. Воно затихло — так затихає людина, що нарешті почула власне ім'я з вуст того, кого давно вважала мертвим.
+
+Десь під містом прокинувся голос. Він не кликав її — він просто почав рахувати від тисячі донизу.
+
+Оракул чекав на неї там, де закінчувалися мапи. Він пам'ятав не минуле — він пам'ятав уперед, і кожен спогад був раною, якої ще не сталося.
+
+«Щоб місто вдихнуло, — сказав він, — хтось має затримати подих назавжди.» Елена зрозуміла ціну раніше, ніж він договорив.
+
+Світ Орелії тісний, як долоня. У його серці — саме місто, оточене Тихими долами на півночі та Соляним морем, що дихає сіллю й туманом.
+
+За Підмістям, де вулиці спускаються в темряву, стоїть Вежа Оракула — там, де закінчуються всі мапи. Шлях Елени веде від Соляного мосту до Вежі — і світ звужується разом із нею.
+
+Коли остання зоря згасла, Елена не дивилась на небо. Вона дивилась на свої руки — і вони тремтіли не від страху, а від усвідомлення того, що вона єдина, хто може це зупинити.`
+};
+
+// Test results
+const results = [];
+
+function log(message, type = 'info') {
+  const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+  results.push({ timestamp, message, type });
+  updateResults();
+}
+
+function updateResults() {
+  const container = document.getElementById('results');
+  container.innerHTML = results.map(r =>
+    `<span class="${r.type}">[${r.timestamp}] ${r.message}</span>`
+  ).join('\n');
+  container.scrollTop = container.scrollHeight;
+}
+
+// DOM-based pagination function (copied from book.jsx)
+async function paginateSceneDOM(scene, paragraphs, startPageIndex) {
+  log(`\n🔍 paginateSceneDOM: scene ${scene.n}`, 'info');
+
+  const container = document.querySelector('.photobook__pages');
+  if (!container) {
+    log('❌ Container .photobook__pages not found!', 'error');
+    return [];
+  }
+
+  log('✅ Container found', 'success');
+
+  // Create hidden probe
+  const probe = document.createElement('div');
+  probe.className = 'opage opage--left';
+  probe.style.visibility = 'hidden';
+  probe.style.position = 'absolute';
+  probe.style.pointerEvents = 'none';
+  probe.style.zIndex = '-1';
+  container.appendChild(probe);
+
+  const probeFade = document.createElement('div');
+  probeFade.className = 'opage__fade';
+  probe.appendChild(probeFade);
+
+  const probeInner = document.createElement('div');
+  probeInner.className = 'page-inner';
+  probeFade.appendChild(probeInner);
+
+  await new Promise(resolve => requestAnimationFrame(resolve));
+
+  // Diagnostic: Compare probe vs real page
+  const realPage = document.querySelector('.opage--left .page-inner');
+  if (realPage) {
+    const probeStyles = window.getComputedStyle(probeInner);
+    const realStyles = window.getComputedStyle(realPage);
+
+    log('\n📐 Probe vs Real Page:', 'info');
+    log(`  Width: probe=${probeInner.clientWidth}px, real=${realPage.clientWidth}px`, 'info');
+    log(`  Height: probe=${probeInner.clientHeight}px, real=${realPage.clientHeight}px`, 'info');
+    log(`  Font: probe=${probeStyles.fontSize} / ${probeStyles.fontFamily}`, 'info');
+    log(`  Font: real=${realStyles.fontSize} / ${realStyles.fontFamily}`, 'info');
+    log(`  Line-height: probe=${probeStyles.lineHeight}, real=${realStyles.lineHeight}`, 'info');
+    log(`  Padding: probe=${probeStyles.padding}, real=${realStyles.padding}`, 'info');
+  } else {
+    log('⚠️ No real page found for comparison', 'warning');
+  }
+
+  const pages = [];
+  let currentPageIndex = startPageIndex;
+  let isFirstPage = true;
+  let remainingParagraphs = [...paragraphs];
+
+  log(`\n📄 Starting pagination (startPageIndex: ${startPageIndex})`, 'info');
+  log(`   Total paragraphs: ${paragraphs.length}`, 'info');
+
+  while (remainingParagraphs.length > 0) {
+    probeInner.innerHTML = '';
+
+    if (isFirstPage) {
+      const header = document.createElement('header');
+      header.className = 'page-head';
+      const title = document.createElement('h2');
+      title.className = 'page-head__title';
+      title.textContent = scene.title;
+      const rule = document.createElement('div');
+      rule.className = 'page-head__rule';
+      header.appendChild(title);
+      header.appendChild(rule);
+      probeInner.appendChild(header);
+    }
+
+    const contentDiv = document.createElement('div');
+    probeInner.appendChild(contentDiv);
+
+    let accumulatedParas = [];
+
+    for (let i = 0; i < remainingParagraphs.length; i++) {
+      const para = remainingParagraphs[i];
+
+      const p = document.createElement('p');
+      p.className = 'prose';
+
+      if (isFirstPage && i === 0 && para.length > 0) {
+        const cap = document.createElement('span');
+        cap.className = 'prose__cap';
+        cap.textContent = para.charAt(0);
+        p.appendChild(cap);
+        p.appendChild(document.createTextNode(para.slice(1)));
+      } else {
+        p.textContent = para;
+      }
+
+      contentDiv.appendChild(p);
+
+      const innerHeight = probeInner.clientHeight;
+      const scrollHeight = probeInner.scrollHeight;
+
+      log(`  Para ${i + 1}/${remainingParagraphs.length}: scrollHeight=${scrollHeight}px, innerHeight=${innerHeight}px, chars=${para.length}`, 'info');
+
+      if (scrollHeight > innerHeight) {
+        contentDiv.removeChild(p);
+        log(`  ⚠️ Overflow detected (${scrollHeight}px > ${innerHeight}px), stopping at para ${i}`, 'warning');
+        break;
+      }
+
+      accumulatedParas.push(para);
+    }
+
+    if (accumulatedParas.length === 0 && remainingParagraphs.length > 0) {
+      log(`  ⚠️ No paragraphs fit! Forcing first paragraph.`, 'warning');
+      accumulatedParas = [remainingParagraphs[0]];
+      remainingParagraphs = remainingParagraphs.slice(1);
+    } else {
+      remainingParagraphs = remainingParagraphs.slice(accumulatedParas.length);
+    }
+
+    log(`  ✅ Page ${currentPageIndex}: ${accumulatedParas.length} paragraphs, ${accumulatedParas.join(' ').length} chars`, 'success');
+
+    const isEven = currentPageIndex % 2 === 0;
+    const pagesArrayEmpty = pages.length === 0;
+
+    log(`  📋 Spread logic: pageIndex=${currentPageIndex}, isEven=${isEven}, pagesArrayEmpty=${pagesArrayEmpty}`, 'info');
+
+    if (isEven) {
+      pages.push({ left: accumulatedParas, right: null });
+      log(`    → Created new spread [${pages.length - 1}] with LEFT page`, 'success');
+    } else {
+      if (pagesArrayEmpty) {
+        pages.push({ left: null, right: accumulatedParas });
+        log(`    → Created new spread [${pages.length - 1}] with RIGHT page (left=null)`, 'success');
+      } else {
+        const lastSpreadIndex = pages.length - 1;
+        const hadRight = pages[lastSpreadIndex].right !== null;
+
+        if (hadRight) {
+          log(`    ⚠️ WARNING: Overwriting existing right page in spread [${lastSpreadIndex}]!`, 'warning');
+        }
+
+        pages[lastSpreadIndex].right = accumulatedParas;
+        log(`    → Filled RIGHT page in existing spread [${lastSpreadIndex}]`, 'success');
+      }
+    }
+
+    currentPageIndex++;
+    isFirstPage = false;
+  }
+
+  container.removeChild(probe);
+
+  log(`\n✅ paginateSceneDOM complete: ${pages.length} spreads`, 'success');
+
+  const emptyCheck = pages.map((s, i) => ({
+    spread: i,
+    hasLeft: !!s.left,
+    hasRight: !!s.right,
+    isEmpty: !s.left && !s.right
+  }));
+
+  log(`   Empty spreads check: ${JSON.stringify(emptyCheck, null, 2)}`, 'info');
+
+  const totalParasInPages = pages.reduce((sum, spread) => {
+    let count = 0;
+    if (spread.left) count += spread.left.length;
+    if (spread.right) count += spread.right.length;
+    return sum + count;
+  }, 0);
+
+  if (totalParasInPages !== paragraphs.length) {
+    log(`❌ PARAGRAPH MISMATCH: Original ${paragraphs.length}, in pages ${totalParasInPages}`, 'error');
+  } else {
+    log(`✅ All ${paragraphs.length} paragraphs accounted for`, 'success');
+  }
+
+  return pages;
+}
+
+// Run test
+async function runTest() {
+  try {
+    log('=== 📖 PAGINATION TEST START ===', 'info');
+
+    // Wait for fonts
+    await document.fonts.ready;
+    log('✅ Fonts ready', 'success');
+
+    const paragraphs = mockScene.text.split('\n\n').filter(p => p.trim());
+    log(`\n--- Scene ${mockScene.n}: "${mockScene.title}" ---`, 'info');
+    log(`Paragraphs: ${paragraphs.length}, Total chars: ${mockScene.text.length}`, 'info');
+
+    const pages = await paginateSceneDOM(mockScene, paragraphs, 0);
+
+    log('\n=== 📖 PAGINATION TEST COMPLETE ===', 'success');
+    log(`\nFinal pages structure:`, 'info');
+    pages.forEach((spread, i) => {
+      log(`  Spread ${i}:`, 'info');
+      if (spread.left) {
+        log(`    LEFT: ${spread.left.length} paragraphs, ${spread.left.join(' ').length} chars`, 'success');
+      } else {
+        log(`    LEFT: null`, 'warning');
+      }
+      if (spread.right) {
+        log(`    RIGHT: ${spread.right.length} paragraphs, ${spread.right.join(' ').length} chars`, 'success');
+      } else {
+        log(`    RIGHT: null`, 'warning');
+      }
+    });
+
+  } catch (error) {
+    log(`❌ Test failed: ${error.message}`, 'error');
+    log(error.stack, 'error');
+  }
+}
+
+// Start test when fonts load
+document.fonts.ready.then(() => {
+  setTimeout(runTest, 1000);
+});
+</script>
+
+</body>
+</html>
