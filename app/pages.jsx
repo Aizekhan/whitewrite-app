@@ -166,31 +166,93 @@ function WorldMapSpread() {
 // End-of-scene Scene Intent: the heart of Story Navigation. After the last
 // written scene, the keeper asks "what next?" — the reader sets a DIRECTION,
 // not a prompt, then generates the next scene.
-function SceneIntentPage() {
-  const INTENTS = [
-    { id: "conflict", icon: "⚔", t: "Конфлікт", d: "зіткнення, ставки ростуть" },
-    { id: "character", icon: "❦", t: "Розвиток персонажа", d: "внутрішня зміна, вибір" },
-    { id: "action", icon: "✦", t: "Екшн", d: "рух, погоня, небезпека" },
-    { id: "romance", icon: "♥", t: "Романтика", d: "близькість, тепло, напруга" },
-    { id: "world", icon: "✶", t: "Світобудова", d: "глибше у канон світу" },
-    { id: "twist", icon: "↯", t: "Поворот", d: "підрив очікувань" },
-    { id: "surprise", icon: "✷", t: "Сюрприз від AI", d: "довірити напрям Хранителю" },
-    { id: "custom", icon: "✎", t: "Свій напрям", d: "опиши, що хочеш побачити" },
-  ];
-  const [sel, setSel] = useReactState("");
-  const [note, setNote] = useReactState("");
+
+// Shared state for Scene Intent (spans two pages)
+const SCENE_INTENT_STATE = {
+  selection: "",
+  customNote: "",
+  listeners: []
+};
+
+function useSceneIntentState() {
+  const [, forceUpdate] = useReactState(0);
+
+  React.useEffect(() => {
+    const listener = () => forceUpdate(n => n + 1);
+    SCENE_INTENT_STATE.listeners.push(listener);
+    return () => {
+      SCENE_INTENT_STATE.listeners = SCENE_INTENT_STATE.listeners.filter(l => l !== listener);
+    };
+  }, []);
+
+  return {
+    sel: SCENE_INTENT_STATE.selection,
+    note: SCENE_INTENT_STATE.customNote,
+    setSel: (v) => {
+      SCENE_INTENT_STATE.selection = v;
+      SCENE_INTENT_STATE.listeners.forEach(l => l());
+    },
+    setNote: (v) => {
+      SCENE_INTENT_STATE.customNote = v;
+      SCENE_INTENT_STATE.listeners.forEach(l => l());
+    }
+  };
+}
+
+const INTENTS = [
+  { id: "conflict", icon: "⚔", t: "Конфлікт", d: "зіткнення, ставки ростуть" },
+  { id: "character", icon: "❦", t: "Розвиток персонажа", d: "внутрішня зміна, вибір" },
+  { id: "action", icon: "✦", t: "Екшн", d: "рух, погоня, небезпека" },
+  { id: "romance", icon: "♥", t: "Романтика", d: "близькість, тепло, напруга" },
+  { id: "world", icon: "✶", t: "Світобудова", d: "глибше у канон світу" },
+  { id: "twist", icon: "↯", t: "Поворот", d: "підрив очікувань" },
+  { id: "surprise", icon: "✷", t: "Сюрприз від AI", d: "довірити напрям Хранителю" },
+  { id: "custom", icon: "✎", t: "Свій напрям", d: "опиши, що хочеш побачити" },
+];
+
+// LEFT PAGE: Cards 1-4 + Header
+function SceneIntentLeft() {
+  const { sel, setSel } = useSceneIntentState();
+  const leftIntents = INTENTS.slice(0, 4);
+
+  return (
+    <div className="page-inner page-intent-left">
+      <PageHeader kicker="Історія чекає" title="Що далі?" />
+      <p className="intent__lead">
+        Сцену завершено. Обери напрям, куди поверне історія — або довір вибір Хранителю.
+      </p>
+
+      <div className="intent__grid">
+        {leftIntents.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            className={`intent-card ${sel === o.id ? 'is-sel' : ''}`}
+            onClick={() => setSel(o.id)}
+          >
+            <div className="intent-card__icon">{o.icon}</div>
+            <div className="intent-card__title">{o.t}</div>
+            <div className="intent-card__desc">{o.d}</div>
+            {sel === o.id && <div className="intent-card__mark">✦</div>}
+          </button>
+        ))}
+      </div>
+
+      <Folio n="—" />
+    </div>
+  );
+}
+
+// RIGHT PAGE: Cards 5-8 + Generate Button
+function SceneIntentRight({ projectId: propProjectId }) {
+  const { sel, note, setSel, setNote } = useSceneIntentState();
+  const rightIntents = INTENTS.slice(4, 8);
   const [busy, setBusy] = useReactState(false);
   const cur = INTENTS.find((o) => o.id === sel);
   const canGo = sel && (sel !== "custom" || note.trim().length > 0);
+
   async function generate() {
     if (!canGo || busy) return;
-
-    // PHASE 3: Read from parent (shell) as single source of truth
-    const projectId = (window.self !== window.top && window.parent.__currentProjectId) || window.__currentProjectId;
-    if (!projectId) {
-      alert('Проєкт не знайдено. Спробуйте створити новий.');
-      return;
-    }
 
     // Phase 1.2: Check token balance BEFORE generation
     const user = window.__wwUser;
@@ -219,12 +281,20 @@ function SceneIntentPage() {
 
     setBusy(true);
 
+    // Use prop projectId if passed, otherwise fallback to window/parent
+    const actualProjectId = propProjectId || projectId;
+    if (!actualProjectId) {
+      alert('Проєкт не знайдено. Спробуйте створити новий.');
+      setBusy(false);
+      return;
+    }
+
     try {
       // F2: Load previous scenes for continuity (last 2-3 scenes)
       let previousScenes = [];
       if (window.__firebaseScenes) {
         try {
-          const allScenes = await window.__firebaseScenes.getScenes(projectId);
+          const allScenes = await window.__firebaseScenes.getScenes(actualProjectId);
           // Take last 2-3 scenes for context
           const contextCount = Math.min(3, allScenes.length);
           previousScenes = allScenes.slice(-contextCount).map(s => ({
@@ -239,7 +309,7 @@ function SceneIntentPage() {
       }
 
       const result = await window.__firebaseAI.generateScene(
-        projectId,
+        actualProjectId,
         sel,
         sel === 'custom' ? note : null,
         previousScenes
@@ -251,7 +321,7 @@ function SceneIntentPage() {
         // D4: Save scene to Firestore
         if (window.__firebaseScenes) {
           try {
-            const savedScene = await window.__firebaseScenes.addScene(projectId, {
+            const savedScene = await window.__firebaseScenes.addScene(actualProjectId, {
               title: result.scene.title,
               text: result.scene.text,
               intent: result.scene.intent,
@@ -309,59 +379,49 @@ function SceneIntentPage() {
     }
   }
   return (
-    <div className="page-inner page-intent">
-      <PageHeader kicker="Сцена 3 завершена" title="Що далі?" />
-      <p className="intent__lead">Задай напрям — або опиши свій. Хранитель напише наступну сцену, спираючись на канон.</p>
-      <label className="intent-field">
-        <span className="intent-field__lbl">Напрям наступної сцени</span>
-        <select className="intent-select" value={sel} onChange={(ev) => setSel(ev.target.value)}>
-          <option value="" disabled>Оберіть напрям…</option>
-          {INTENTS.map((o) => <option key={o.id} value={o.id}>{o.icon}  {o.t} — {o.d}</option>)}
-        </select>
-      </label>
+    <div className="page-inner page-intent-right">
+      <div className="intent__grid">
+        {rightIntents.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            className={`intent-card ${sel === o.id ? 'is-sel' : ''}`}
+            onClick={() => setSel(o.id)}
+          >
+            <div className="intent-card__icon">{o.icon}</div>
+            <div className="intent-card__title">{o.t}</div>
+            <div className="intent-card__desc">{o.d}</div>
+            {sel === o.id && <div className="intent-card__mark">✦</div>}
+          </button>
+        ))}
+      </div>
+
       {sel === "custom" && (
-        <textarea className="intent-note" value={note} onChange={(ev) => setNote(ev.target.value)}
-          placeholder="Напр.: Маркус знаходить лист від Олени й вирішує повернутись на станцію…" rows={3} />
+        <div className="intent-custom">
+          <div className="intent-custom__quill">✒</div>
+          <textarea
+            className="intent-custom__text"
+            value={note}
+            onChange={(ev) => setNote(ev.target.value)}
+            placeholder="Опиши, що має статися далі…"
+            autoFocus
+          />
+        </div>
       )}
-      {/* Phase 1.2: Token balance indicator + Phase 1.3: Feature gates info */}
-      {(() => {
-        const user = window.__wwUser;
-        const cost = window.__TOKEN_COSTS?.sceneGemini || 20;
-        const canAfford = user && user.tokensRemaining >= cost;
-        const balanceClass = canAfford ? 'intent-balance' : 'intent-balance intent-balance--low';
-        const planConfig = window.__getPlanConfig ? window.__getPlanConfig(user?.plan) : null;
 
-        return user ? (
-          <>
-            <div className={balanceClass}>
-              <span className="intent-balance__label">Вартість генерації:</span>
-              <span className="intent-balance__cost">{cost} токенів</span>
-              <span className="intent-balance__sep">·</span>
-              <span className="intent-balance__remaining">
-                {canAfford ? `Доступно: ${user.tokensRemaining}` : `⚠ Недостатньо токенів (${user.tokensRemaining})`}
-              </span>
-            </div>
-            {/* Phase 1.3: Feature gates indicator */}
-            {planConfig && (!planConfig.allowClaude || !planConfig.allowImages) && (
-              <div className="intent-features">
-                <span className="intent-features__label">Провайдер:</span>
-                <span className="intent-features__provider">✦ Gemini Flash (швидкий, економний)</span>
-                {!planConfig.allowClaude && (
-                  <span className="intent-features__upgrade">
-                    · Claude Sonnet доступний з плану Novelist →
-                  </span>
-                )}
-              </div>
-            )}
-          </>
-        ) : null;
-      })()}
-      <button className="intent-gen" type="button" onClick={generate} disabled={!canGo || busy}>
-        {busy ? "✦ Хранитель пише…" : "✦ Генерувати наступну сцену"}
-      </button>
-      <Folio n="vi" />
-    </div>);
-
+      <div className="intent__footer">
+        <button className="intent-seal" type="button" onClick={generate} disabled={!canGo || busy}>
+          <div className="intent-seal__ring">
+            <div className="intent-seal__rune">{busy ? '✦' : cur ? cur.icon : '✶'}</div>
+          </div>
+          <div className="intent-seal__label">
+            {busy ? 'Хранитель пише…' : 'Почати наступну сцену'}
+          </div>
+        </button>
+      </div>
+      <Folio n="—" />
+    </div>
+  );
 }
 
 function ColophonPage() {
@@ -383,5 +443,6 @@ function ColophonPage() {
 
 Object.assign(window, {
   TitlePage, StoryOpening, StoryContinued,
-  CharactersLeft, CharactersRight, WorldMapSpread, ColophonPage, SceneIntentPage
+  CharactersLeft, CharactersRight, WorldMapSpread, ColophonPage,
+  SceneIntentLeft, SceneIntentRight
 });

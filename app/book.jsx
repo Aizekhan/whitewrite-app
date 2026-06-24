@@ -50,7 +50,7 @@ function buildScenes(title) {
       { left: <WorldMapSpread />, right: <SceneEditor />, whisper: "Перепиши сцену — і Хранитель звірить її з каноном." },
     ] },
     { n: 4, t: "Остання передача", pages: [
-      { left: <ColophonPage />, right: <SceneIntentPage />, whisper: "Сцену завершено. Тепер ти вирішуєш, куди поверне історія." },
+      { left: <ColophonPage />, right: <SceneIntentRight />, whisper: "Сцену завершено. Тепер ти вирішуєш, куди поверне історія." },
     ] },
   ];
 }
@@ -182,11 +182,11 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
             });
           }
 
-          // Add SceneIntentPage after last scene
+          // Add SceneIntent spread after last scene (two pages)
           if (isLastScene) {
             sceneSpreads.push({
-              left: null,
-              right: <SceneIntentPage />
+              left: <SceneIntentLeft />,
+              right: <SceneIntentRight projectId={projectId} />
             });
           }
 

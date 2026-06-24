@@ -313,34 +313,222 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   box-shadow:inset 0 1px 0 rgba(255,240,200,0.5); }
 
 /* end-of-scene Scene Intent */
-.page-intent{ }
-.intent__lead{ font-style:italic; color:#5b4527; font-size:clamp(13px,1.3vw,16px); line-height:1.55; margin:0 0 16px; }
-.intent__opts{ display:flex; flex-direction:column; gap:7px; margin-bottom:18px; }
-.intent-opt{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
-  font-family:"Philosopher",serif; padding:9px 12px; border-radius:3px; color:#4a3415;
-  background:rgba(255,250,235,0.3); border:1px solid rgba(120,90,46,0.32); transition:all .2s ease; }
-.intent-opt:hover{ border-color:rgba(140,106,46,0.7); background:rgba(255,250,235,0.6); }
-.intent-opt.is-on{ border-color:#9a6f25; background:linear-gradient(180deg, rgba(233,200,120,0.4), rgba(201,162,75,0.22));
-  box-shadow:inset 0 1px 0 rgba(255,245,210,0.5); }
-.intent-opt__ic{ width:24px; text-align:center; font-size:16px; color:#9a6f25; flex:0 0 auto; }
-.intent-opt__t{ display:block; font-size:clamp(14px,1.4vw,16px); color:#3a2614; font-weight:600; }
-.intent-opt__d{ display:block; font-size:clamp(11px,1.1vw,13px); color:#7a5b2c; font-style:italic; }
-.intent-field{ display:block; margin-bottom:14px; }
-.intent-field__lbl{ display:block; font-size:clamp(11px,1.1vw,13px); letter-spacing:.14em; text-transform:uppercase; color:#7a5b2c; margin-bottom:7px; }
-.intent-select{ width:100%; box-sizing:border-box; cursor:pointer; font-family:"Philosopher",serif;
-  font-size:clamp(13px,1.35vw,16px); color:#3a2614; background:rgba(255,250,235,0.55);
-  border:1px solid #9a6f25; border-radius:4px; padding:12px 14px; outline:none; }
-.intent-select:focus{ box-shadow:0 0 0 3px rgba(201,162,75,0.22); }
-.intent-note{ width:100%; box-sizing:border-box; resize:none; margin-bottom:14px;
-  font-family:"Philosopher",serif; font-size:clamp(13px,1.3vw,15px); line-height:1.5; color:#3a2614;
-  background:rgba(255,250,235,0.5); border:1px solid #9a6f25; border-radius:4px; padding:11px 13px; outline:none; }
-.intent-note::placeholder{ color:rgba(122,91,44,0.6); font-style:italic; }
-.intent-gen{ width:100%; cursor:pointer; font-family:"Philosopher",serif;
-  font-size:clamp(14px,1.45vw,17px); letter-spacing:.02em; color:#1c1308; border:none; border-radius:3px;
-  padding:13px 18px; background:linear-gradient(180deg,#e9c878,#bd9040);
-  box-shadow:0 10px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,240,200,0.6); transition:filter .2s, opacity .2s; }
-.intent-gen:hover:not(:disabled){ filter:brightness(1.06); }
-.intent-gen:disabled{ opacity:.5; cursor:default; }
+.page-intent-left{ }
+.page-intent-right{ }
+.intent__lead{ font-style:italic; color:#5b4527; font-size:clamp(13px,1.35cqw,16px); line-height:1.55; margin:0 0 1.4cqw; }
+
+/* Scene Intent Cards — Golden Vertical Cards (2×2 grid) */
+.intent__grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1cqw;
+  margin-bottom:1.2cqw; }
+
+.intent-card{
+  position:relative;
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:1.6cqw 1.2cqw 1.4cqw;
+  border-radius:4px;
+  font-family:"Philosopher",serif;
+  background:
+    linear-gradient(180deg, rgba(250,244,228,0.95), rgba(238,228,206,0.96)),
+    repeating-linear-gradient(135deg, rgba(154,111,37,0.04) 0 2px, transparent 2px 6px);
+  border:1px solid rgba(154,111,37,0.38);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.14),
+    inset 0 1px 0 rgba(255,252,245,0.85),
+    inset 2px 2px 5px rgba(255,248,235,0.5);
+  transition:all .35s cubic-bezier(.23,.86,.39,.96); }
+
+.intent-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(154,111,37,0.6);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,0.2),
+    0 0 18px rgba(201,162,75,0.3),
+    inset 0 1px 0 rgba(255,252,245,1),
+    inset 3px 3px 7px rgba(255,248,235,0.75);
+  background:
+    linear-gradient(180deg, rgba(255,250,238,0.98), rgba(246,236,218,0.98)),
+    repeating-linear-gradient(135deg, rgba(154,111,37,0.05) 0 2px, transparent 2px 6px); }
+
+.intent-card.is-sel{
+  border-color:#9a6f25;
+  border-width:2px;
+  padding:calc(1.6cqw - 1px) calc(1.2cqw - 1px) calc(1.4cqw - 1px);
+  background:
+    linear-gradient(180deg, rgba(255,248,228,1), rgba(242,230,204,0.98)),
+    repeating-linear-gradient(135deg, rgba(201,162,75,0.1) 0 2px, transparent 2px 6px);
+  box-shadow:
+    0 0 0 3px rgba(201,162,75,0.28),
+    0 10px 28px rgba(0,0,0,0.24),
+    0 0 22px rgba(201,162,75,0.45),
+    inset 0 2px 0 rgba(255,248,230,1),
+    inset 4px 4px 9px rgba(255,245,220,0.85); }
+
+.intent-card__icon{
+  font-size:3.2cqw;
+  width:4cqw;
+  height:4cqw;
+  display:grid;
+  place-items:center;
+  margin-bottom:0.8cqw;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,248,220,0.92), rgba(233,200,120,0.4)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.08) 15deg 18deg);
+  border-radius:50%;
+  border:1.5px solid rgba(154,111,37,0.35);
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.14),
+    inset 0 2px 3px rgba(255,250,240,0.9);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,0.12)); }
+
+.intent-card.is-sel .intent-card__icon{
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,248,220,1), rgba(233,200,120,0.6)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.12) 15deg 18deg);
+  border-color:rgba(154,111,37,0.55);
+  box-shadow:
+    0 5px 16px rgba(154,111,37,0.28),
+    inset 0 2px 4px rgba(255,250,240,1); }
+
+.intent-card__title{
+  font-weight:700;
+  font-size:clamp(14px,1.5cqw,17px);
+  color:#3a2614;
+  margin-bottom:0.5cqw;
+  letter-spacing:0.01em; }
+
+.intent-card__desc{
+  font-size:clamp(11px,1.15cqw,13px);
+  color:#7a5b2c;
+  font-style:italic;
+  line-height:1.35; }
+
+.intent-card__mark{
+  position:absolute;
+  top:-0.8cqw;
+  right:-0.8cqw;
+  width:2.2cqw;
+  height:2.2cqw;
+  display:grid;
+  place-items:center;
+  font-size:1.4cqw;
+  color:#f0d398;
+  background:radial-gradient(circle at 30% 26%, #f4d9a0, #9a6f25 74%);
+  border-radius:50%;
+  border:2px solid #f8ebd8;
+  box-shadow:
+    0 5px 16px rgba(154,111,37,0.65),
+    inset 0 2px 3px rgba(255,248,225,0.95);
+  animation:markPulse 2.4s ease-in-out infinite; }
+@keyframes markPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+
+/* Custom intent field */
+.intent-custom{
+  position:relative;
+  margin-top:0.8cqw;
+  margin-bottom:0.6cqw;
+  padding:1cqw 1.2cqw 0.9cqw;
+  border-radius:3px;
+  background:
+    linear-gradient(180deg, rgba(255,250,240,0.85), rgba(248,238,218,0.9)),
+    repeating-linear-gradient(90deg, rgba(140,106,46,0.025) 0 2px, transparent 2px 6px);
+  border:1px solid rgba(154,111,37,0.45);
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.06), 0 3px 10px rgba(0,0,0,0.08);
+  animation:customUnfold .4s cubic-bezier(.23,.86,.39,.96) both; }
+@keyframes customUnfold{ from{opacity:0; max-height:0; padding-top:0; padding-bottom:0; margin-top:0} to{opacity:1; max-height:120px} }
+.intent-custom__quill{
+  position:absolute;
+  top:-0.9cqw;
+  left:50%;
+  transform:translateX(-50%);
+  width:2.2cqw;
+  height:2.2cqw;
+  display:grid;
+  place-items:center;
+  font-size:1.3cqw;
+  color:#9a6f25;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255,250,235,1), rgba(242,228,200,0.98)),
+    repeating-linear-gradient(45deg, rgba(140,106,46,0.04) 0 2px, transparent 2px 6px);
+  border:1px solid rgba(154,111,37,0.55);
+  border-radius:50%;
+  box-shadow:0 4px 14px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,250,240,0.9); }
+.intent-custom__text{
+  width:100%;
+  box-sizing:border-box;
+  resize:none;
+  height:2.8cqw;
+  min-height:2.8cqw;
+  max-height:2.8cqw;
+  font-family:"Philosopher",serif;
+  font-size:clamp(12px,1.2cqw,14px);
+  line-height:1.4;
+  color:#3a2614;
+  background:transparent;
+  border:none;
+  outline:none;
+  overflow-y:auto; }
+.intent-custom__text::placeholder{ color:rgba(122,91,44,0.5); font-style:italic; }
+
+/* Generate button as ritual seal */
+.intent__footer{
+  margin-top:0.8cqw;
+  padding-top:0.6cqw;
+  display:flex;
+  justify-content:center;
+  align-items:center; }
+.intent-seal{
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:1cqw;
+  background:transparent;
+  border:none;
+  font-family:"Philosopher",serif;
+  transition:all .45s cubic-bezier(.23,.86,.39,.96); }
+.intent-seal:disabled{ opacity:.4; cursor:default; }
+.intent-seal__ring{
+  position:relative;
+  width:6.5cqw;
+  height:6.5cqw;
+  display:grid;
+  place-items:center;
+  background:
+    radial-gradient(circle at 32% 28%, #f4d9a0, #bd9040 70%),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 9deg, rgba(255,245,210,0.25) 9deg 11deg);
+  border-radius:50%;
+  border:3px solid #9a6f25;
+  box-shadow:
+    0 10px 32px rgba(0,0,0,0.28),
+    0 0 22px rgba(201,162,75,0.35),
+    inset 0 3px 0 rgba(255,245,210,0.75),
+    inset 0 -2px 8px rgba(60,40,15,0.22);
+  transition:all .45s cubic-bezier(.23,.86,.39,.96); }
+.intent-seal:hover:not(:disabled) .intent-seal__ring{
+  transform:scale(1.12) rotate(12deg);
+  box-shadow:
+    0 14px 42px rgba(0,0,0,0.32),
+    0 0 32px rgba(201,162,75,0.55),
+    inset 0 3px 0 rgba(255,245,210,0.9),
+    inset 0 -2px 8px rgba(60,40,15,0.28); }
+.intent-seal__rune{
+  font-size:2.8cqw;
+  color:#3a2614;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,0.25)); }
+.intent-seal[disabled] .intent-seal__rune{ animation:runeRotate 2.2s linear infinite; }
+@keyframes runeRotate{ from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.intent-seal__label{
+  font-size:clamp(13px,1.35cqw,16px);
+  letter-spacing:0.04em;
+  color:#7a5b2c;
+  font-weight:500; }
 .quill{ margin-top:30px; font-family:"Philosopher",serif; cursor:pointer;
   background:transparent; color:var(--gold-deep);
   border:1px solid rgba(140,106,46,0.5); border-radius:2px;
