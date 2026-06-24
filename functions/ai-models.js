@@ -45,6 +45,12 @@ const MODEL_PRICING = {
     cacheWrite: 1.00,
     cacheRead: 0.08
   },
+  'claude-haiku-4-5-20251001': {
+    input: 0.80,
+    output: 4.00,
+    cacheWrite: 1.00,
+    cacheRead: 0.08
+  },
   'gemini-2.0-flash-exp': { input: 0, output: 0 } // Free tier
 };
 

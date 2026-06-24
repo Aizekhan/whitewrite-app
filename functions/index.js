@@ -4,6 +4,7 @@ const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true }); // Enable CORS for all origins
 const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('./ai-models.js');
+const { charge } = require('./token-service.js');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -359,73 +360,29 @@ exports.generateScene = onRequest({
       // Extract mentioned entities (simple keyword matching from canon)
       const entities = extractMentionedEntities(sceneContent, canon);
 
-      // Deduct tokens from user's budget (server-side, authoritative)
-      await db.collection('users').doc(uid).update({
-        tokensUsed: admin.firestore.FieldValue.increment(sceneCost)
-      });
+      // Phase 5.1: Charge via token-service (reads economy_operations, logs usage_logs)
+      const { userCost, apiCostUSD } = await charge(
+        db,
+        uid,
+        'generateScene',
+        actualModel || providerModel,
+        apiUsage || { input_tokens: 0, output_tokens: 0 },
+        projectId,
+        { provider: useClaudeAPI ? 'claude' : 'gemini' }
+      );
 
-      console.log(`✅ Tokens deducted: -${sceneCost} (${tokensRemaining - sceneCost} remaining)`);
-
-      // Phase 4.1: Calculate real API cost in USD from MODEL_PRICING (including cache)
-      let inputTokens = 0;
-      let outputTokens = 0;
-      let cacheCreationTokens = 0;
-      let cacheReadTokens = 0;
-      let apiCostUSD = 0;
-
-      if (apiUsage && actualModel) {
-        inputTokens = apiUsage.input_tokens || 0;
-        outputTokens = apiUsage.output_tokens || 0;
-        cacheCreationTokens = apiUsage.cache_creation_input_tokens || 0;
-        cacheReadTokens = apiUsage.cache_read_input_tokens || 0;
-
-        const pricing = MODEL_PRICING[actualModel];
-        if (pricing) {
-          const inputCost = inputTokens * pricing.input / 1000000;
-          const outputCost = outputTokens * pricing.output / 1000000;
-          const cacheWriteCost = cacheCreationTokens * (pricing.cacheWrite || pricing.input) / 1000000;
-          const cacheReadCost = cacheReadTokens * (pricing.cacheRead || pricing.input) / 1000000;
-
-          apiCostUSD = inputCost + outputCost + cacheWriteCost + cacheReadCost;
-        } else {
-          console.warn(`⚠️ Unknown model pricing: ${actualModel} — apiCostUSD will be $0.0000`);
-        }
-      }
-
-      // Phase 4: Log usage for analytics & billing reconciliation
-      await db.collection('usage_logs').add({
-        operation: 'generateScene',
-        provider: useClaudeAPI ? 'claude' : 'gemini',
-        model: actualModel || providerModel,  // Actual model used
-        userTokens: sceneCost,        // Fixed charge (300/20)
-        inputTokens: inputTokens,      // Real API input tokens
-        outputTokens: outputTokens,    // Real API output tokens
-        cacheCreationTokens: cacheCreationTokens,  // Cache write tokens
-        cacheReadTokens: cacheReadTokens,          // Cache read tokens
-        apiCostUSD: apiCostUSD,        // Real cost in USD (including cache)
-        uid: uid,
-        projectId: projectId,
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        plan: userPlan
-      });
-
-      console.log(`📊 Usage logged: ${actualModel || providerModel} / ${sceneCost} user tokens / $${apiCostUSD.toFixed(4)} API cost (${inputTokens}in/${outputTokens}out + ${cacheCreationTokens}cacheW/${cacheReadTokens}cacheR)`);
+      console.log(`✅ Scene generated: -${userCost} tokens, $${apiCostUSD.toFixed(4)} API cost`);
 
       // Phase 3.1b: Auto-extraction (for paid users only)
       if (planConfig.allowCanonExtraction) {
         try {
           console.log('[Auto-Extract] Starting canon extraction...');
 
-          const extractionCost = 15; // canonExtractPerScene
-          const tokensAfterScene = tokensRemaining - sceneCost;
+          // NOTE: Token check happens inside extractCanonFromScene via token-service
+          const sceneId = req.body.sceneId;
+          const projectLanguage = project.language || 'uk'; // Default to Ukrainian
 
-          if (tokensAfterScene >= extractionCost) {
-            // Call extraction in background (async, don't await)
-            // NOTE: sceneId is passed from frontend in req.body
-            const sceneId = req.body.sceneId;
-            const projectLanguage = project.language || 'uk'; // Default to Ukrainian
-
-            extractCanonFromScene(projectId, sceneContent, canon, uid, extractionCost, sceneId, projectLanguage)
+          extractCanonFromScene(projectId, sceneContent, canon, uid, sceneId, projectLanguage)
               .then(result => {
                 console.log(`[Auto-Extract] ✅ Extracted ${result.suggestions.length} suggestions, linked to scene ${sceneId}`);
               })
@@ -433,9 +390,6 @@ exports.generateScene = onRequest({
                 console.error('[Auto-Extract] ❌ Failed (non-critical):', error.message);
                 // Don't fail scene generation if extraction fails
               });
-          } else {
-            console.warn(`[Auto-Extract] ⚠️ Skipped — insufficient tokens (${tokensAfterScene} < ${extractionCost})`);
-          }
         } catch (error) {
           console.error('[Auto-Extract] Error (non-critical):', error);
           // Don't fail scene generation
@@ -511,7 +465,7 @@ async function mergeIntoCanon(projectId, suggestions) {
  * Called asynchronously after scene generation
  * @param sceneId - Scene document ID to update with canonRefs
  */
-async function extractCanonFromScene(projectId, sceneText, canon, uid, extractionCost, sceneId, language = 'uk') {
+async function extractCanonFromScene(projectId, sceneText, canon, uid, sceneId, language = 'uk') {
   try {
     // Language names mapping
     const languageNames = {
@@ -591,6 +545,10 @@ Return JSON with memorySuggestions array:
       }]
     });
 
+    // Debug: log usage
+    console.log(`[Auto-Extract] API usage:`, JSON.stringify(message.usage));
+    console.log(`[Auto-Extract] Model:`, message.model);
+
     const responseText = message.content[0].text;
 
     // Parse JSON
@@ -617,12 +575,18 @@ Return JSON with memorySuggestions array:
     // Auto-merge into canon (no review queue)
     const mergedEntities = await mergeIntoCanon(projectId, suggestions);
 
-    // Deduct extraction tokens
-    await db.collection('users').doc(uid).update({
-      tokensUsed: admin.firestore.FieldValue.increment(extractionCost)
-    });
+    // Phase 5.1: Charge via token-service (reads economy_operations, logs usage_logs)
+    const { userCost, apiCostUSD } = await charge(
+      db,
+      uid,
+      'extractCanon',
+      message.model || AI_MODELS.claude.haiku,
+      message.usage || { input_tokens: 0, output_tokens: 0 },
+      projectId,
+      { sceneId, provider: 'claude' }
+    );
 
-    console.log(`[Auto-Extract] ✅ Auto-merged ${mergedEntities.length} entities into canon`);
+    console.log(`[Auto-Extract] ✅ Auto-merged ${mergedEntities.length} entities (-${userCost} tokens, $${apiCostUSD.toFixed(4)})`);
 
     // Build canonRefs from merged entities
     const canonRefs = {
@@ -1147,180 +1111,6 @@ exports.stripeWebhook = onRequest({ secrets: [stripeSecretKey, stripeWebhookSecr
 });
 
 /**
- * Cloud Function: Extract Memory Suggestions from Scene
- * Phase 3.1a: Canon auto-extraction (inspired by White-Tree)
- *
- * Input: { projectId, sceneId, sceneText }
- * Output: { success: true, suggestions: [...], tokensConsumed: 15 }
- *
- * Uses Claude Haiku (cheap, fast) with JSON mode
- */
-exports.extractMemorySuggestions = onRequest({
-  secrets: [claudeApiKey],
-  cors: true
-}, async (req, res) => {
-  return cors(req, res, async () => {
-    try {
-      // Auth check
-      const uid = req.body.uid || (req.headers.authorization ? await verifyAuth(req.headers.authorization) : null);
-      if (!uid) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-
-      const { projectId, sceneId, sceneText } = req.body;
-
-      if (!projectId || !sceneId || !sceneText) {
-        return res.status(400).json({ error: 'Missing required fields: projectId, sceneId, sceneText' });
-      }
-
-      // Get user plan
-      const userDoc = await db.collection('users').doc(uid).get();
-      if (!userDoc.exists) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      const userData = userDoc.data();
-      const userPlan = userData.plan || 'free';
-      const planConfig = getPlanBudget(userPlan);
-
-      // Check if canon extraction is allowed
-      if (!planConfig.allowCanonExtraction) {
-        return res.status(403).json({
-          error: 'Canon extraction не доступний на вашому плані. Upgrade до Storyteller або вище.'
-        });
-      }
-
-      // Check token budget
-      const tokensBudget = userData.tokensMonthly || planConfig.monthly;
-      const tokensUsed = userData.tokensUsed || 0;
-      const tokensRemaining = tokensBudget - tokensUsed;
-      const extractionCost = 15; // canonExtractPerScene
-
-      if (tokensRemaining < extractionCost) {
-        return res.status(402).json({
-          error: `Недостатньо токенів. Потрібно: ${extractionCost}, є: ${tokensRemaining}`
-        });
-      }
-
-      // Load current canon
-      const projectDoc = await db.collection('projects').doc(projectId).get();
-      if (!projectDoc.exists) {
-        return res.status(404).json({ error: 'Project not found' });
-      }
-
-      const canon = projectDoc.data().canon || {
-        characters: {},
-        locations: {},
-        events: {},
-        factions: {},
-        artifacts: {},
-        world: {}
-      };
-
-      // Build extraction prompt (inspired by White-Tree)
-      const systemInstruction = `You are a narrative analysis expert. Extract structured canon information from the provided scene text.
-
-CRITICAL RULES:
-1. Extract ONLY significant new facts (characters, locations, events, factions, artifacts)
-2. Avoid duplicates — compare with existing canon
-3. For characters: extract name, role, trait, status, location, goal, relationships
-4. For locations: extract name, description, type
-5. For events: extract name, description, when, participants
-6. Return ONLY valid JSON, no markdown wrapping
-
-Current Canon (for duplicate detection):
-${JSON.stringify({
-  characters: Object.keys(canon.characters || {}),
-  locations: Object.keys(canon.locations || {}),
-  events: Object.keys(canon.events || {}),
-  factions: Object.keys(canon.factions || {}),
-  artifacts: Object.keys(canon.artifacts || {})
-}, null, 2)}`;
-
-      const prompt = `Analyze this scene and extract canon entities:
-
-Scene Text:
-${sceneText}
-
-Return JSON with memorySuggestions array:
-{
-  "memorySuggestions": [
-    {
-      "id": "unique_id",
-      "type": "character" | "location" | "event" | "faction" | "artifact",
-      "action": "add" | "update",
-      "targetId": "exact_name_or_id",
-      "newData": {
-        // For character: name, role, trait, status, location, goal, relationships, developmentArc
-        // For location: name, description, type
-        // For event: name, description, when, participants
-        // For faction: name, description, members
-        // For artifact: name, description, owner
-      },
-      "reason": "Brief explanation why this is significant"
-    }
-  ]
-}`;
-
-      // Call Claude Haiku (cheap & fast)
-      console.log('[Extract] Using Claude Haiku for canon extraction');
-
-      const anthropic = new Anthropic({
-        apiKey: claudeApiKey.value()
-      });
-
-      const message = await anthropic.messages.create({
-        model: AI_MODELS.claude.haiku,
-        max_tokens: 2048,
-        temperature: 0.2,  // Low temperature for accuracy
-        system: systemInstruction,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
-      });
-
-      const responseText = message.content[0].text;
-
-      // Parse JSON
-      let suggestions = [];
-      try {
-        const parsed = JSON.parse(responseText);
-        suggestions = parsed.memorySuggestions || [];
-      } catch (parseError) {
-        console.error('[Extract] JSON parse failed:', parseError);
-        // Try to extract JSON from markdown
-        const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
-          suggestions = parsed.memorySuggestions || [];
-        } else {
-          throw new Error('Failed to parse JSON response');
-        }
-      }
-
-      console.log(`[Extract] ✅ Extracted ${suggestions.length} suggestions`);
-
-      // Deduct tokens
-      await db.collection('users').doc(uid).update({
-        tokensUsed: admin.firestore.FieldValue.increment(extractionCost)
-      });
-
-      res.status(200).json({
-        success: true,
-        suggestions,
-        tokensConsumed: extractionCost,
-        tokensRemaining: tokensRemaining - extractionCost
-      });
-
-    } catch (error) {
-      console.error('[Extract] Error:', error);
-      res.status(500).json({ error: `Помилка extraction: ${error.message}` });
-    }
-  });
-});
-
-/**
  * Cloud Function: Sync Canon from Project (Bulk Extraction)
  * Phase 3.1d: For old projects that don't have canon extracted yet
  *
@@ -1395,8 +1185,12 @@ exports.syncCanonFromProject = onRequest({
         return res.status(400).json({ error: 'Проєкт не має сцен для синхронізації' });
       }
 
-      // Calculate cost
-      const extractionCostPerScene = 15;
+      // Phase 5.1: Read cost from economy_operations
+      const economyDoc = await db.collection('economy_operations').doc('extractCanon').get();
+      if (!economyDoc.exists) {
+        return res.status(500).json({ error: 'economy_operations/extractCanon not found' });
+      }
+      const extractionCostPerScene = economyDoc.data().providers.claude.cost;
       const totalCost = scenes.length * extractionCostPerScene;
 
       // Check token budget
@@ -1427,7 +1221,7 @@ exports.syncCanonFromProject = onRequest({
 
         try {
           const sceneId = scene.id || `scene_${Date.now()}_${i}`;
-          const result = await extractCanonFromScene(projectId, sceneText, canon, uid, extractionCostPerScene, sceneId);
+          const result = await extractCanonFromScene(projectId, sceneText, canon, uid, sceneId);
 
           console.log(`[Sync] ✅ Scene ${i + 1}/${scenes.length} — ${result.suggestions.length} suggestions`);
           successCount++;
@@ -1509,7 +1303,13 @@ exports.analyzeScene = onRequest({
       const tokensBudget = userData.tokensMonthly || planConfig.monthly;
       const tokensUsed = userData.tokensUsed || 0;
       const tokensRemaining = tokensBudget - tokensUsed;
-      const analyzeCost = 50; // analyzeScene token cost
+
+      // Phase 5.1: Read cost from economy_operations (no hardcode)
+      const economyDoc = await db.collection('economy_operations').doc('analyzeScene').get();
+      if (!economyDoc.exists) {
+        return res.status(500).json({ error: 'economy_operations/analyzeScene not found' });
+      }
+      const analyzeCost = economyDoc.data().providers.claude.cost;
 
       if (tokensRemaining < analyzeCost) {
         return res.status(402).json({
@@ -1627,18 +1427,24 @@ Return JSON:
         }
       }
 
-      // Deduct tokens
-      await db.collection('users').doc(uid).update({
-        tokensUsed: admin.firestore.FieldValue.increment(analyzeCost)
-      });
+      // Phase 5.1: Charge via token-service (reads economy_operations, logs usage_logs)
+      const { userCost, apiCostUSD } = await charge(
+        db,
+        uid,
+        'analyzeScene',
+        message.model || AI_MODELS.claude.sonnet,
+        message.usage || { input_tokens: 0, output_tokens: 0 },
+        projectId,
+        { provider: 'claude' }
+      );
 
-      console.log(`[Analyze] ✅ Analysis complete (score: ${analysis.score}/10)`);
+      console.log(`[Analyze] ✅ Analysis complete (score: ${analysis.score}/10, -${userCost} tokens, $${apiCostUSD.toFixed(4)})`);
 
       res.status(200).json({
         success: true,
         analysis,
-        tokensConsumed: analyzeCost,
-        tokensRemaining: tokensRemaining - analyzeCost
+        tokensConsumed: userCost,
+        tokensRemaining: tokensRemaining - userCost
       });
 
     } catch (error) {
@@ -1866,13 +1672,13 @@ exports.seedEconomy = onRequest({
         extractCanon: {
           name: 'Canon Extraction',
           providers: {
-            gemini: { cost: 15, model: 'gemini-2.0-flash-exp' }
+            claude: { cost: 15, model: AI_MODELS.claude.haiku }
           }
         },
         analyzeScene: {
           name: 'Scene Analysis',
           providers: {
-            gemini: { cost: 50, model: 'gemini-2.0-flash-exp' }
+            claude: { cost: 50, model: AI_MODELS.claude.sonnet }
           }
         }
       };
