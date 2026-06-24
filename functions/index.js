@@ -152,10 +152,24 @@ exports.generateScene = onRequest({
       // Determine which AI to use (Phase 1.3: Feature Gates)
       const useClaudeAPI = planConfig.allowClaude;
 
-      // Calculate scene cost based on AI provider (CRITICAL: Claude costs 15x more than Gemini!)
-      const sceneCost = useClaudeAPI ? 300 : 20;
+      // Phase 4: Read token cost from economy_operations (data-driven pricing)
+      const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
+      const economyData = economyDoc.exists ? economyDoc.data() : null;
 
-      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude Opus 4' : 'Gemini 2.5 Flash'}, cost: ${sceneCost} tokens`);
+      let sceneCost = 20; // fallback
+      let providerModel = 'gemini-2.0-flash-exp';
+
+      if (economyData && economyData.providers) {
+        if (useClaudeAPI && economyData.providers.claude) {
+          sceneCost = economyData.providers.claude.cost;
+          providerModel = economyData.providers.claude.model;
+        } else if (economyData.providers.gemini) {
+          sceneCost = economyData.providers.gemini.cost;
+          providerModel = economyData.providers.gemini.model;
+        }
+      }
+
+      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude' : 'Gemini'} (${providerModel}), cost: ${sceneCost} tokens`);
 
       // Check token quota (client already checked, but double-check server-side)
       if (tokensRemaining < sceneCost) {
@@ -345,6 +359,20 @@ exports.generateScene = onRequest({
       });
 
       console.log(`✅ Tokens deducted: -${sceneCost} (${tokensRemaining - sceneCost} remaining)`);
+
+      // Phase 4: Log usage for analytics & billing reconciliation
+      await db.collection('usage_logs').add({
+        operation: 'generateScene',
+        provider: useClaudeAPI ? 'claude' : 'gemini',
+        model: providerModel,
+        userTokens: sceneCost,
+        uid: uid,
+        projectId: projectId,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        plan: userPlan
+      });
+
+      console.log(`📊 Usage logged: ${useClaudeAPI ? 'claude' : 'gemini'} / ${sceneCost} tokens`);
 
       // Phase 3.1b: Auto-extraction (for paid users only)
       if (planConfig.allowCanonExtraction) {
@@ -1772,6 +1800,64 @@ exports.backfillSceneCanonRefs = onRequest({
     } catch (error) {
       console.error('[Backfill] Error:', error);
       res.status(500).json({ error: `Backfill error: ${error.message}` });
+    }
+  });
+});
+
+/**
+ * Phase 4: Seed Economy Operations
+ *
+ * One-time setup to populate economy_operations collection with token costs.
+ * Makes prices data-driven instead of magic numbers.
+ *
+ * Usage: Call once via Firebase Console or curl
+ */
+exports.seedEconomy = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 60
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      const operations = {
+        generateScene: {
+          name: 'Scene Generation',
+          providers: {
+            gemini: { cost: 20, model: 'gemini-2.0-flash-exp' },
+            claude: { cost: 300, model: 'claude-opus-4-20250514' }
+          }
+        },
+        extractCanon: {
+          name: 'Canon Extraction',
+          providers: {
+            gemini: { cost: 15, model: 'gemini-2.0-flash-exp' }
+          }
+        },
+        analyzeScene: {
+          name: 'Scene Analysis',
+          providers: {
+            gemini: { cost: 50, model: 'gemini-2.0-flash-exp' }
+          }
+        }
+      };
+
+      const batch = db.batch();
+      Object.entries(operations).forEach(([opId, opData]) => {
+        const ref = db.collection('economy_operations').doc(opId);
+        batch.set(ref, opData);
+      });
+
+      await batch.commit();
+
+      console.log('[seedEconomy] ✅ Seeded economy_operations');
+
+      res.status(200).json({
+        success: true,
+        seeded: Object.keys(operations)
+      });
+
+    } catch (error) {
+      console.error('[seedEconomy] Error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 });
