@@ -3,7 +3,7 @@ const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true }); // Enable CORS for all origins
 const Anthropic = require('@anthropic-ai/sdk');
-const { AI_MODELS } = require('./ai-models.js');
+const { AI_MODELS, MODEL_PRICING } = require('./ai-models.js');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -237,6 +237,8 @@ exports.generateScene = onRequest({
 
       let sceneText = null;
       let lastError = null;
+      let apiUsage = null; // Phase 4.1: Track real API usage
+      let actualModel = null; // Phase 4.1: Track actual model used
 
       // Generate scene using Claude or Gemini based on plan
       if (useClaudeAPI) {
@@ -259,12 +261,16 @@ exports.generateScene = onRequest({
 
           sceneText = message.content[0].text;
 
+          // Phase 4.1: Capture real API usage + model
+          apiUsage = message.usage; // { input_tokens, output_tokens, cache_* }
+          actualModel = message.model || AI_MODELS.claude.opus; // Claude returns model in response
+
           // Validate minimum length
           if (sceneText.length < 500) {
             throw new Error(`Scene too short (${sceneText.length} chars) - likely incomplete`);
           }
 
-          console.log(`✓ Claude succeeded (${sceneText.length} chars, stop_reason: ${message.stop_reason})`);
+          console.log(`✓ Claude succeeded (${sceneText.length} chars, stop_reason: ${message.stop_reason}, usage:`, JSON.stringify(apiUsage));
         } catch (error) {
           console.error('✗ Claude failed:', error.message);
           lastError = error;
@@ -360,19 +366,50 @@ exports.generateScene = onRequest({
 
       console.log(`✅ Tokens deducted: -${sceneCost} (${tokensRemaining - sceneCost} remaining)`);
 
+      // Phase 4.1: Calculate real API cost in USD from MODEL_PRICING (including cache)
+      let inputTokens = 0;
+      let outputTokens = 0;
+      let cacheCreationTokens = 0;
+      let cacheReadTokens = 0;
+      let apiCostUSD = 0;
+
+      if (apiUsage && actualModel) {
+        inputTokens = apiUsage.input_tokens || 0;
+        outputTokens = apiUsage.output_tokens || 0;
+        cacheCreationTokens = apiUsage.cache_creation_input_tokens || 0;
+        cacheReadTokens = apiUsage.cache_read_input_tokens || 0;
+
+        const pricing = MODEL_PRICING[actualModel];
+        if (pricing) {
+          const inputCost = inputTokens * pricing.input / 1000000;
+          const outputCost = outputTokens * pricing.output / 1000000;
+          const cacheWriteCost = cacheCreationTokens * (pricing.cacheWrite || pricing.input) / 1000000;
+          const cacheReadCost = cacheReadTokens * (pricing.cacheRead || pricing.input) / 1000000;
+
+          apiCostUSD = inputCost + outputCost + cacheWriteCost + cacheReadCost;
+        } else {
+          console.warn(`⚠️ Unknown model pricing: ${actualModel} — apiCostUSD will be $0.0000`);
+        }
+      }
+
       // Phase 4: Log usage for analytics & billing reconciliation
       await db.collection('usage_logs').add({
         operation: 'generateScene',
         provider: useClaudeAPI ? 'claude' : 'gemini',
-        model: providerModel,
-        userTokens: sceneCost,
+        model: actualModel || providerModel,  // Actual model used
+        userTokens: sceneCost,        // Fixed charge (300/20)
+        inputTokens: inputTokens,      // Real API input tokens
+        outputTokens: outputTokens,    // Real API output tokens
+        cacheCreationTokens: cacheCreationTokens,  // Cache write tokens
+        cacheReadTokens: cacheReadTokens,          // Cache read tokens
+        apiCostUSD: apiCostUSD,        // Real cost in USD (including cache)
         uid: uid,
         projectId: projectId,
         timestamp: admin.firestore.FieldValue.serverTimestamp(),
         plan: userPlan
       });
 
-      console.log(`📊 Usage logged: ${useClaudeAPI ? 'claude' : 'gemini'} / ${sceneCost} tokens`);
+      console.log(`📊 Usage logged: ${actualModel || providerModel} / ${sceneCost} user tokens / $${apiCostUSD.toFixed(4)} API cost (${inputTokens}in/${outputTokens}out + ${cacheCreationTokens}cacheW/${cacheReadTokens}cacheR)`);
 
       // Phase 3.1b: Auto-extraction (for paid users only)
       if (planConfig.allowCanonExtraction) {

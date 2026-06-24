@@ -628,10 +628,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   async function loadProjects() {
     if (!window.__firebaseProjects || !window.__wwUser) {
       PROJECTS = [];
+      PROJECTS_LOADING = false;
+      fillHome();
       return;
     }
 
-    PROJECTS_LOADING = true;
+    // PROJECTS_LOADING already set by showView() - don't duplicate
 
     try {
       const projects = await window.__firebaseProjects.getUserProjects(window.__wwUser.uid);
@@ -799,7 +801,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     histPush();
     inWork = false; mode = v;
     if (v === "account") fillAccount();
-    if (v === "narr") { PROJECTS_LOADING = true; fillHome(); loadProjects(); } // Show loading state, then load
+    if (v === "narr") { PROJECTS_LOADING = true; loadProjects(); } // Don't render empty state - let loadProjects() render
     Object.keys(frames).forEach(function (k) { frames[k].classList.remove("is-on"); });
     Object.keys(views).forEach(function (k) { views[k].classList.toggle("is-on", k === v); });
     renderRail();
