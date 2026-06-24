@@ -178,8 +178,17 @@ function DirectorTab({ scene }) {
 
       <div className="shot-list">
         {shots.map((s) => <ShotCard key={s._id || s.n} s={s} onGenerate={genShot} onEdit={editShot} onDelete={delShot} onPick={pickVariant} onMoreVariant={moreVariant} />)}
-        {shots.length === 0 && <div className="ws-empty" style={{ padding: "40px 0", textAlign: "center", color: "var(--tx-mid)", fontStyle: "italic" }}>Кадрів немає — додай перший.</div>}
-        <button className="btn btn--add" onClick={addShot}><Ic.plus />Додати кадр</button>
+        {shots.length === 0 && (
+          <div className="ws-empty" style={{ padding: "80px 20px", textAlign: "center", maxWidth: 500, margin: "0 auto" }}>
+            <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🎬</div>
+            <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: "var(--tx)" }}>Розкадровка порожня</div>
+            <div style={{ color: "var(--tx-mid)", marginBottom: 24 }}>
+              Натисніть <strong>«Розрахувати кадри»</strong> у топбарі, щоб AI розбив текст сцени на візуальні кадри.
+            </div>
+            <button className="btn" onClick={addShot}><Ic.plus />Або додайте кадр вручну</button>
+          </div>
+        )}
+        {shots.length > 0 && <button className="btn btn--add" onClick={addShot}><Ic.plus />Додати кадр</button>}
       </div>
 
       {editing && <ShotEditor shot={editing} onSave={saveShotEdit} onClose={() => setEditShotN(null)} />}

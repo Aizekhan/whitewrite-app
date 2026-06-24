@@ -799,7 +799,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     histPush();
     inWork = false; mode = v;
     if (v === "account") fillAccount();
-    if (v === "narr") { fillHome(); loadProjects(); } // Render immediately, then reload
+    if (v === "narr") { PROJECTS_LOADING = true; fillHome(); loadProjects(); } // Show loading state, then load
     Object.keys(frames).forEach(function (k) { frames[k].classList.remove("is-on"); });
     Object.keys(views).forEach(function (k) { views[k].classList.toggle("is-on", k === v); });
     renderRail();
@@ -834,6 +834,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var target = PILLARS[p].src + sep(PILLARS[p].src) + "embed=1" + (query ? "&" + query : "") + cacheBust;
     if (!loaded[p]) { f.src = target; loaded[p] = true; }
     else if (query) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; }
+    // FORCE reload for Workspace to bypass cache
+    else if (p === 'director') { f.src = target; }
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === p); });
     renderRail();

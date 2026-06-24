@@ -14,18 +14,26 @@ const _SCN = {
 };
 const _LOCICON = { earthcmd: "globe", beta7: "pin", alpha: "signal", aurora: "rocket", helios: "globe", gamma: "pin", "relay-belt": "signal", medbay: "pin" };
 
-const DATA = {
-  project: "Червоний сигнал",
-  scene: { n: CUR_SCENE, title: (wScene(CUR_SCENE) || {}).title || "" },
+let DATA;
+try {
+  console.log('[ws-data] Creating DATA projection...', {
+    worldChars: WORLD.characters?.length,
+    worldLocs: WORLD.locations?.length,
+    worldScenes: WORLD.scenes?.length
+  });
 
-  // canon — straight from WORLD (same objects the universe uses)
-  characters: WORLD.characters,
+  DATA = {
+    project: "Червоний сигнал",
+    scene: { n: CUR_SCENE, title: (wScene(CUR_SCENE) || {}).title || "" },
 
-  // relationship spokes around the protagonist (RelGraph hub = Маркус)
-  rels: (wEnt("characters", "marcus").relations || []).map((r) => ({ a: "Маркус", b: _firstName(r.id), kind: r.kind, tone: r.tone })),
+    // canon — straight from WORLD (same objects the universe uses)
+    characters: WORLD.characters || [],
 
-  location: WORLD.locations.find((x) => x.cur) || WORLD.locations[0],
-  locations: WORLD.locations.map((l) => ({ name: l.name, icon: _LOCICON[l.id] || "pin", cur: !!l.cur })),
+    // relationship spokes around the protagonist (RelGraph hub = Маркус)
+    rels: (wEnt("characters", "marcus")?.relations || []).map((r) => ({ a: "Маркус", b: _firstName(r.id), kind: r.kind, tone: r.tone })),
+
+    location: WORLD.locations?.find((x) => x.cur) || WORLD.locations?.[0] || {},
+    locations: (WORLD.locations || []).map((l) => ({ name: l.name, icon: _LOCICON[l.id] || "pin", cur: !!l.cur })),
 
   // scenes projected + Director production fields
   scenes: WORLD.scenes.map((s) => ({
@@ -61,7 +69,26 @@ const DATA = {
     { icon: "alert", t: "Скафандр пошкоджено — запас повітря обмежений.", tone: "warn" },
   ],
   tension: [0.25, 0.4, 0.55, 0.42, 0.6, 0.5, 0.78, 0.65, 0.95],
-};
+  };
+
+  console.log('[ws-data] ✅ DATA created successfully');
+} catch (error) {
+  console.error('[ws-data] ❌ Failed to create DATA:', error);
+  // Fallback: minimal DATA to prevent complete crash
+  DATA = {
+    project: "Error loading project",
+    scene: { n: 1, title: "" },
+    characters: [],
+    rels: [],
+    location: {},
+    locations: [],
+    scenes: [],
+    shots: [],
+    threads: [],
+    continuity: [],
+    tension: []
+  };
+}
 
 const ST_LABEL = { draft: "Чернетка", review: "Рев'ю", ready: "Готово", done: "Завершено", pending: "Не почато", active: "Активна" };
 const ST_PILL = { draft: "draft", review: "review", ready: "ready", done: "done", pending: "draft", active: "review" };

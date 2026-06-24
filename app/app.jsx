@@ -141,10 +141,10 @@ function App() {
   const [loadingProject, setLoadingProject] = useAState(false);
   const [generationProgress, setGenerationProgress] = useAState({ current: 0, total: 0, isGenerating: false });
 
-  // Load existing project if PROJECT_ID provided
+  // Load existing project if PROJECT_ID provided (URL param mode)
   React.useEffect(() => {
     if (!PROJECT_ID || !window.__firebaseProjects) {
-      console.log('No PROJECT_ID to load:', { PROJECT_ID, hasFirebase: !!window.__firebaseProjects });
+      // Not an error: embed mode (shell) passes projectId via postMessage, not URL
       return;
     }
 

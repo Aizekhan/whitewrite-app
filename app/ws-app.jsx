@@ -5,21 +5,26 @@ const { useState: useWState, useEffect: useWEffect } = React;
 const ProjectContext = React.createContext(null);
 
 function ProjectProvider({ children }) {
-  const [projectId, setProjectId] = useWState(null);
-
-  useWEffect(() => {
-    // Initial read from parent (if embedded in shell)
-    if (window.self !== window.top && window.parent.__currentProjectId) {
-      const initialId = window.parent.__currentProjectId;
-      console.log('[Workspace] Initial projectId from parent:', initialId);
-      setProjectId(initialId);
+  // Initialize from parent window (synchronous, before first render)
+  const [projectId, setProjectId] = React.useState(() => {
+    try {
+      const initialId = (window.self !== window.top && window.parent.__currentProjectId) || null;
+      if (initialId) {
+        console.log('[Workspace] Initial projectId from parent:', initialId);
+      }
+      return initialId;
+    } catch (e) {
+      console.error('[Workspace] Failed to read parent.__currentProjectId:', e);
+      return null;
     }
+  });
 
-    // Listen for projectId updates from shell
+  // Listen for projectId updates from shell via postMessage
+  React.useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
         console.log('[Workspace] Received projectId from shell:', event.data.projectId);
-        setProjectId(event.data.projectId);
+        setProjectId(event.data.projectId); // Triggers re-render of consumers
       }
     }
 
@@ -111,88 +116,76 @@ function ScenePick({ scene, setScene }) {
 }
 
 function App() {
+  console.log('[Workspace] App component mounting/re-rendering');
+
   const [tab, setTab] = useWState("director");
   const [scene, setScene] = useWState(1);
   const [genBusy, setGenBusy] = useWState(false);
   const [loading, setLoading] = useWState(true);
-  const [authReady, setAuthReady] = useWState(false);
 
-  // Load project from Firestore (canon + scenes)
+  // PHASE 3: Read projectId from ProjectContext
+  const contextProjectId = React.useContext(ProjectContext);
+  console.log('[Workspace] 🔥 NEW CODE 2026-06-23:', { contextProjectId, wwUser: !!window.__wwUser });
+
+  // DEBUG: Log contextProjectId changes
   React.useEffect(() => {
-    // Poll for auth state (Firebase auth initializes async)
-    const authCheckInterval = setInterval(() => {
-      if (window.__wwAuth !== undefined && !authReady) {
-        setAuthReady(true);
-        clearInterval(authCheckInterval);
-        console.log('[Workspace] Auth ready:', window.__wwAuth ? 'authenticated' : 'anonymous');
-      }
-    }, 100);
+    console.log('[Workspace] DEBUG: contextProjectId changed:', contextProjectId);
+  }, [contextProjectId]);
 
-    return () => clearInterval(authCheckInterval);
-  }, [authReady]);
+  // REMOVED: Separate auth polling useEffect
+  // Instead, we wait for window.__wwUser inside loadProject() (same as Book)
 
-  // Load canon + scenes when auth is ready
+  // Load canon + scenes when contextProjectId is ready
   React.useEffect(() => {
-    if (!authReady) return;
+    console.log('[Workspace] 🚀 NEW useEffect (no authReady!)', { contextProjectId, wwUser: !!window.__wwUser });
+
+    if (!contextProjectId) {
+      console.log('[Workspace] Waiting for projectId from shell...');
+      setLoading(false); // Show content with mock data instead of spinner
+      return;
+    }
 
     async function loadProject() {
-      console.log('[Workspace] Loading project...');
+      console.log('[Workspace] Loading project:', contextProjectId);
+      setLoading(true); // Show spinner while loading real data
 
-      const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
-      let projectId;
+      // PHASE 3: Use projectId from ProjectContext (set by postMessage from shell)
+      let projectId = contextProjectId;
 
-      // Embedded mode: ONLY read from parent window (shell sets it BEFORE iframe loads)
-      if (isEmbedded) {
-        try {
-          projectId = window.parent.__currentProjectId;
-          if (projectId) {
-            console.log('[Workspace] Embedded mode — projectId from parent:', projectId);
-          } else {
-            console.warn('[Workspace] Embedded mode but parent.__currentProjectId not set');
-            setLoading(false);
-            return;
-          }
-        } catch (e) {
-          console.error('[Workspace] Cannot access parent.__currentProjectId:', e);
-          setLoading(false);
-          return;
-        }
-      } else {
-        // Standalone mode: try URL param, then Firestore fallback
+      // Fallback to URL params (standalone mode)
+      if (!projectId) {
         try {
           const params = new URLSearchParams(window.location.search);
           projectId = params.get('projectId');
         } catch (e) {}
-
-        if (!projectId && window.__firebase?.auth?.currentUser) {
-          // Fallback: load first user project
-          try {
-            const uid = window.__firebase.auth.currentUser.uid;
-            const userProjects = await window.__firebase.db
-              .collection('projects')
-              .where('owner', '==', uid)
-              .orderBy('createdAt', 'desc')
-              .limit(1)
-              .get();
-
-            if (!userProjects.empty) {
-              projectId = userProjects.docs[0].id;
-            }
-          } catch (error) {
-            console.error('[Workspace] Failed to load user projects:', error);
-          }
-        }
-
-        if (!projectId) {
-          console.warn('[Workspace] No project selected — using mock data');
-          setLoading(false);
-          return;
-        }
-
-        // PHASE 3: Removed direct write to window.__currentProjectId
-        // ProjectContext already updated via postMessage from shell
-        console.log('[Workspace] projectId loaded from context:', projectId);
       }
+
+      // Fallback to first user project
+      if (!projectId && window.__firebase?.auth?.currentUser) {
+        try {
+          const uid = window.__firebase.auth.currentUser.uid;
+          const userProjects = await window.__firebase.db
+            .collection('projects')
+            .where('owner', '==', uid)
+            .orderBy('createdAt', 'desc')
+            .limit(1)
+            .get();
+
+          if (!userProjects.empty) {
+            projectId = userProjects.docs[0].id;
+          }
+        } catch (error) {
+          console.error('[Workspace] Failed to load user projects:', error);
+        }
+      }
+
+      if (!projectId) {
+        console.warn('[Workspace] No project selected — using mock data');
+        setLoading(false);
+        return;
+      }
+
+      console.log('[Workspace] Loading projectId:', projectId);
 
       try {
         // Load canon from Firestore
@@ -213,9 +206,14 @@ function App() {
         // Merge into WORLD
         canonArrays.scenes = scenes;
 
-        // Replace mock WORLD with real data
+        // Mutate WORLD arrays in-place (preserves DATA projection references)
         Object.keys(canonArrays).forEach(key => {
-          WORLD[key] = canonArrays[key];
+          if (Array.isArray(WORLD[key]) && Array.isArray(canonArrays[key])) {
+            WORLD[key].length = 0;
+            WORLD[key].push(...canonArrays[key]);
+          } else {
+            WORLD[key] = canonArrays[key];
+          }
         });
 
         console.log('[Workspace] ✅ Canon loaded:', {
@@ -237,7 +235,7 @@ function App() {
     }
 
     loadProject();
-  }, [authReady]);
+  }, [contextProjectId]); // Reload when projectId changes via postMessage
 
   const active = TABS.find((t) => t.id === tab);
   const Tab = active ? active.C() : null;
