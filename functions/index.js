@@ -172,12 +172,12 @@ exports.generateScene = onRequest({
       // Combined input size check (prevent API context overflow)
       const MAX_TOTAL_INPUT_TOKENS = 8000; // Conservative limit (~32KB text)
       const estimatedInputChars = (project.desc?.length || 0) + (customIntent?.length || 0);
-      const estimatedInputTokens = Math.ceil(estimatedInputChars / 4); // ~4 chars per token
+      const estimatedBasicInputTokens = Math.ceil(estimatedInputChars / 4); // ~4 chars per token
 
-      if (estimatedInputTokens > MAX_TOTAL_INPUT_TOKENS) {
-        console.warn(`[generateScene] Rejected: combined input too large (est. ${estimatedInputTokens} tokens)`);
+      if (estimatedBasicInputTokens > MAX_TOTAL_INPUT_TOKENS) {
+        console.warn(`[generateScene] Rejected: combined input too large (est. ${estimatedBasicInputTokens} tokens)`);
         res.status(400).json({
-          error: `Сукупний розмір тексту задовгий (≈${estimatedInputTokens} токенів). Максимум: ${MAX_TOTAL_INPUT_TOKENS} токенів. Скоротіть опис всесвіту або свій напрям.`,
+          error: `Сукупний розмір тексту задовгий (≈${estimatedBasicInputTokens} токенів). Максимум: ${MAX_TOTAL_INPUT_TOKENS} токенів. Скоротіть опис всесвіту або свій напрям.`,
           code: 'INPUT_TOO_LONG'
         });
         return;
@@ -277,6 +277,11 @@ exports.generateScene = onRequest({
         intentDescription,
         previousScenes
       });
+
+      // Phase 6.2: Estimate input tokens for pricing (prompt size affects cost)
+      // ~4 chars per token (conservative estimate)
+      const estimatedInputTokens = Math.ceil(prompt.length / 4);
+      console.log(`[generateScene] Estimated input: ${prompt.length} chars ≈ ${estimatedInputTokens} tokens`);
 
       let sceneText = null;
       let lastError = null;
@@ -402,7 +407,7 @@ exports.generateScene = onRequest({
       // Extract mentioned entities (simple keyword matching from canon)
       const entities = extractMentionedEntities(sceneContent, canon);
 
-      // Phase 6.1: Charge via token-service (word-based pricing)
+      // Phase 6.2: Charge via token-service (includes input + output cost)
       const targetWords = project.length || 700; // From project settings
       const { userCost, apiCostUSD } = await charge(
         db,
@@ -411,7 +416,7 @@ exports.generateScene = onRequest({
         actualModel || providerModel,
         apiUsage || { input_tokens: 0, output_tokens: 0 },
         projectId,
-        { provider: useClaudeAPI ? 'claude' : 'gemini', targetWords }
+        { provider: useClaudeAPI ? 'claude' : 'gemini', targetWords, estimatedInputTokens }
       );
 
       console.log(`✅ Scene generated: -${userCost} tokens, $${apiCostUSD.toFixed(4)} API cost`);

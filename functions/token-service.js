@@ -160,28 +160,44 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
 
   console.log(`[TokenService] Global config: tokenToUSD=${tokenToUSD}, globalMargin=${globalMarginMultiplier}`);
 
-  // 3. Calculate estimated API cost (cost-based pricing, Phase 6.1)
+  // 3. Calculate estimated API cost (cost-based pricing, Phase 6.2: includes INPUT)
   const targetWords = options.targetWords || 700;
+  const estimatedInputTokens = options.estimatedInputTokens || 0; // NEW: input tokens estimate
   const estimatedCostPer700Words = providerData.estimatedCostPer700Words;
 
-  let estApiCostUSD;
+  // Calculate OUTPUT cost
+  let estOutputCostUSD = 0;
   if (estimatedCostPer700Words != null && estimatedCostPer700Words > 0) {
-    // Cost-based pricing: estApiCostUSD = (targetWords / 700) × estimatedCostPer700Words
-    estApiCostUSD = (targetWords / 700) * estimatedCostPer700Words;
-    console.log(`[TokenService] Cost-based pricing: ${targetWords} words × $${estimatedCostPer700Words}/700 = $${estApiCostUSD.toFixed(4)}`);
+    // Cost-based pricing: estOutputCostUSD = (targetWords / 700) × estimatedCostPer700Words
+    estOutputCostUSD = (targetWords / 700) * estimatedCostPer700Words;
+    console.log(`[TokenService] Output cost: ${targetWords} words × $${estimatedCostPer700Words}/700 = $${estOutputCostUSD.toFixed(4)}`);
   } else {
     // Fallback: word-based or fixed pricing (backwards compat)
     const tokensPer100Words = providerData.tokensPer100Words;
     if (tokensPer100Words > 0) {
       const baseTokens = Math.ceil((targetWords / 100) * tokensPer100Words);
-      estApiCostUSD = baseTokens * tokenToUSD;
-      console.log(`[TokenService] Word-based fallback: ${baseTokens} tokens × $${tokenToUSD} = $${estApiCostUSD.toFixed(4)}`);
+      estOutputCostUSD = baseTokens * tokenToUSD;
+      console.log(`[TokenService] Word-based fallback: ${baseTokens} tokens × $${tokenToUSD} = $${estOutputCostUSD.toFixed(4)}`);
     } else {
       const baseTokens = providerData.baseTokens || providerData.cost || 0;
-      estApiCostUSD = baseTokens * tokenToUSD;
-      console.log(`[TokenService] Fixed pricing fallback: ${baseTokens} tokens × $${tokenToUSD} = $${estApiCostUSD.toFixed(4)}`);
+      estOutputCostUSD = baseTokens * tokenToUSD;
+      console.log(`[TokenService] Fixed pricing fallback: ${baseTokens} tokens × $${tokenToUSD} = $${estOutputCostUSD.toFixed(4)}`);
     }
   }
+
+  // Calculate INPUT cost (Phase 6.2: charge for prompt size)
+  let estInputCostUSD = 0;
+  if (estimatedInputTokens > 0) {
+    const pricing = MODEL_PRICING[model];
+    if (pricing) {
+      estInputCostUSD = estimatedInputTokens * pricing.input / 1000000;
+      console.log(`[TokenService] Input cost: ${estimatedInputTokens} tokens × $${pricing.input}/M = $${estInputCostUSD.toFixed(4)}`);
+    }
+  }
+
+  // Total estimated cost = output + input
+  const estApiCostUSD = estOutputCostUSD + estInputCostUSD;
+  console.log(`[TokenService] Total estimated cost: $${estOutputCostUSD.toFixed(4)} (output) + $${estInputCostUSD.toFixed(4)} (input) = $${estApiCostUSD.toFixed(4)}`);
 
   console.log(`[TokenService] Margin multiplier: ${marginMultiplier}`);
 
@@ -239,9 +255,12 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     sceneId: options.sceneId || null,
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
 
-    // Cost-based pricing (Phase 6.1 - Final)
+    // Cost-based pricing (Phase 6.2 - with input cost)
     targetWords,                          // Target word count
-    estimatedApiCostUSD: parseFloat(estApiCostUSD.toFixed(4)),  // Estimated cost (shown to user)
+    estimatedInputTokens,                 // Estimated input tokens (prompt size)
+    estimatedOutputCostUSD: parseFloat(estOutputCostUSD.toFixed(4)), // Output cost estimate
+    estimatedInputCostUSD: parseFloat(estInputCostUSD.toFixed(4)),   // Input cost estimate
+    estimatedApiCostUSD: parseFloat(estApiCostUSD.toFixed(4)),  // Total estimated cost
     tokenToUSD,                           // Conversion rate at time of use
     marginMultiplier,                     // Operation-specific margin
     globalMarginMultiplier,               // Global margin at time of use
