@@ -186,17 +186,32 @@ function StoryForm({ onBack, onCreate }) {
   const [dialogue, setDialogue] = useFState(50);         // 0..100 density
   const [dialogueTouched, setDialogueTouched] = useFState(false);
   const [creating, setCreating] = useFState(false);
+  const [pricingReady, setPricingReady] = useFState(false);  // Track pricing load state
   const ready = description.trim().length > 0;
 
   // Guided Mode → 'endless' (історія без меж)
   // Auto Mode → 'season' (завжди серіал, лише кількість серій змінюється)
   const effectiveScope = creation === 'guided' ? 'endless' : 'season';
 
-  // Load pricing from Firestore on mount
+  // Load pricing from Firestore on mount + poll for user/pricing ready
   React.useEffect(() => {
     if (window.__firebasePricing) {
-      window.__firebasePricing.loadPricing();
+      window.__firebasePricing.loadPricing().then(() => {
+        console.log('[StoryForm] Pricing loaded');
+      });
     }
+
+    // Poll for user + pricing ready (trigger re-render when both available)
+    const interval = setInterval(() => {
+      if (window.__wwUser && window.__firebasePricing?.cache?.loaded) {
+        setPricingReady(true);
+        clearInterval(interval);
+        console.log('[StoryForm] User + pricing ready, re-rendering');
+      }
+    }, 200);
+
+    // Cleanup
+    return () => clearInterval(interval);
   }, []);
 
   // Token cost calculator using real pricing from Firestore
