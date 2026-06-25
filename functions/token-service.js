@@ -16,21 +16,25 @@ const admin = require('firebase-admin');
 const { MODEL_PRICING } = require('./ai-models.js');
 
 // ============================================================================
-// GLOBAL MARGIN CACHE (TTL 60s)
+// GLOBAL CONFIG CACHE (TTL 60s)
 // ============================================================================
-// Avoid Firestore read on every operation — cache globalMarginMultiplier in memory
-let globalMarginCache = {
-  value: 1.0,
+// Cache economy_config/global to avoid Firestore reads on every operation
+let globalConfigCache = {
+  globalMarginMultiplier: 1.0,
+  tokenToUSD: 0.01,  // Default: 1 token = 1 cent
   lastFetch: 0,
   TTL_MS: 60000  // 60 seconds
 };
 
-async function getGlobalMarginMultiplier(db) {
+async function getGlobalConfig(db) {
   const now = Date.now();
 
   // Cache hit (within TTL)
-  if (now - globalMarginCache.lastFetch < globalMarginCache.TTL_MS) {
-    return globalMarginCache.value;
+  if (now - globalConfigCache.lastFetch < globalConfigCache.TTL_MS) {
+    return {
+      globalMarginMultiplier: globalConfigCache.globalMarginMultiplier,
+      tokenToUSD: globalConfigCache.tokenToUSD
+    };
   }
 
   // Cache miss — fetch from Firestore
@@ -39,28 +43,51 @@ async function getGlobalMarginMultiplier(db) {
 
     if (globalDoc.exists) {
       const data = globalDoc.data();
-      const multiplier = data.globalMarginMultiplier;
 
-      // Validate: must be a positive number, fallback to 1.0
-      if (typeof multiplier === 'number' && multiplier > 0 && !isNaN(multiplier)) {
-        globalMarginCache.value = multiplier;
-        globalMarginCache.lastFetch = now;
-        console.log(`[TokenService] Global margin multiplier loaded: ${multiplier}`);
-        return multiplier;
+      // Validate globalMarginMultiplier
+      if (typeof data.globalMarginMultiplier === 'number' && data.globalMarginMultiplier > 0 && !isNaN(data.globalMarginMultiplier)) {
+        globalConfigCache.globalMarginMultiplier = data.globalMarginMultiplier;
       } else {
-        console.warn(`[TokenService] Invalid globalMarginMultiplier: ${multiplier}, using fallback 1.0`);
+        console.warn(`[TokenService] Invalid globalMarginMultiplier: ${data.globalMarginMultiplier}, using fallback 1.0`);
+        globalConfigCache.globalMarginMultiplier = 1.0;
       }
+
+      // Validate tokenToUSD
+      if (typeof data.tokenToUSD === 'number' && data.tokenToUSD > 0 && !isNaN(data.tokenToUSD)) {
+        globalConfigCache.tokenToUSD = data.tokenToUSD;
+      } else {
+        console.warn(`[TokenService] Invalid tokenToUSD: ${data.tokenToUSD}, using fallback 0.01`);
+        globalConfigCache.tokenToUSD = 0.01;
+      }
+
+      globalConfigCache.lastFetch = now;
+      console.log(`[TokenService] Global config loaded: margin=${globalConfigCache.globalMarginMultiplier}, tokenToUSD=${globalConfigCache.tokenToUSD}`);
+
+      return {
+        globalMarginMultiplier: globalConfigCache.globalMarginMultiplier,
+        tokenToUSD: globalConfigCache.tokenToUSD
+      };
     } else {
-      console.warn('[TokenService] economy_config/global not found, using fallback 1.0');
+      console.warn('[TokenService] economy_config/global not found, using fallback values');
     }
   } catch (error) {
-    console.error('[TokenService] Failed to fetch globalMarginMultiplier:', error);
+    console.error('[TokenService] Failed to fetch global config:', error);
   }
 
-  // Fallback: 1.0 (no markup)
-  globalMarginCache.value = 1.0;
-  globalMarginCache.lastFetch = now;
-  return 1.0;
+  // Fallback: defaults
+  globalConfigCache.globalMarginMultiplier = 1.0;
+  globalConfigCache.tokenToUSD = 0.01;
+  globalConfigCache.lastFetch = now;
+  return {
+    globalMarginMultiplier: 1.0,
+    tokenToUSD: 0.01
+  };
+}
+
+// Backwards compat wrapper
+async function getGlobalMarginMultiplier(db) {
+  const config = await getGlobalConfig(db);
+  return config.globalMarginMultiplier;
 }
 
 /**
@@ -124,20 +151,47 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   }
 
   const providerData = economyData.providers[provider];
-  const baseTokens = providerData.baseTokens || providerData.cost || 0; // Fallback to 'cost' for backwards compat
   const marginMultiplier = providerData.marginMultiplier || 1.0;
 
-  console.log(`[TokenService] Base tokens: ${baseTokens} (from economy_operations/${operation}/${provider})`);
+  // 2. Get global config (cached): tokenToUSD + globalMarginMultiplier
+  const globalConfig = await getGlobalConfig(db);
+  const tokenToUSD = globalConfig.tokenToUSD;
+  const globalMarginMultiplier = globalConfig.globalMarginMultiplier;
+
+  console.log(`[TokenService] Global config: tokenToUSD=${tokenToUSD}, globalMargin=${globalMarginMultiplier}`);
+
+  // 3. Calculate estimated API cost (cost-based pricing, Phase 6.1)
+  const targetWords = options.targetWords || 700;
+  const estimatedCostPer700Words = providerData.estimatedCostPer700Words;
+
+  let estApiCostUSD;
+  if (estimatedCostPer700Words != null && estimatedCostPer700Words > 0) {
+    // Cost-based pricing: estApiCostUSD = (targetWords / 700) × estimatedCostPer700Words
+    estApiCostUSD = (targetWords / 700) * estimatedCostPer700Words;
+    console.log(`[TokenService] Cost-based pricing: ${targetWords} words × $${estimatedCostPer700Words}/700 = $${estApiCostUSD.toFixed(4)}`);
+  } else {
+    // Fallback: word-based or fixed pricing (backwards compat)
+    const tokensPer100Words = providerData.tokensPer100Words;
+    if (tokensPer100Words > 0) {
+      const baseTokens = Math.ceil((targetWords / 100) * tokensPer100Words);
+      estApiCostUSD = baseTokens * tokenToUSD;
+      console.log(`[TokenService] Word-based fallback: ${baseTokens} tokens × $${tokenToUSD} = $${estApiCostUSD.toFixed(4)}`);
+    } else {
+      const baseTokens = providerData.baseTokens || providerData.cost || 0;
+      estApiCostUSD = baseTokens * tokenToUSD;
+      console.log(`[TokenService] Fixed pricing fallback: ${baseTokens} tokens × $${tokenToUSD} = $${estApiCostUSD.toFixed(4)}`);
+    }
+  }
+
   console.log(`[TokenService] Margin multiplier: ${marginMultiplier}`);
 
-  // 2. Get global margin multiplier (cached)
-  const globalMarginMultiplier = await getGlobalMarginMultiplier(db);
-  console.log(`[TokenService] Global margin multiplier: ${globalMarginMultiplier}`);
+  // 4. Calculate final user cost with margin (NEW FORMULA: ceil at end only!)
+  // userTokens = ceil( (estApiCostUSD / tokenToUSD) × marginMultiplier × globalMargin )
+  const userCost = Math.ceil(
+    (estApiCostUSD / tokenToUSD) * marginMultiplier * globalMarginMultiplier
+  );
 
-  // 3. Calculate final user cost with margin
-  const userCost = calculateUserTokens(baseTokens, marginMultiplier, globalMarginMultiplier);
-
-  console.log(`[TokenService] User cost (final): ${userCost} tokens = ceil(${baseTokens} × ${marginMultiplier} × ${globalMarginMultiplier})`);
+  console.log(`[TokenService] User cost (final): ${userCost} tokens = ceil(($${estApiCostUSD.toFixed(4)} / $${tokenToUSD}) × ${marginMultiplier} × ${globalMarginMultiplier})`);
 
   // 4. Calculate real API cost from usage
   let apiCostUSD = 0;
@@ -172,7 +226,11 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
 
   console.log(`[TokenService] ✅ Deducted ${userCost} tokens from user ${uid}`);
 
-  // 6. Log to usage_logs with margin tracking
+  // 6. Log to usage_logs with cost-based pricing + real margin tracking
+  const realMarginRatio = apiCostUSD > 0 ? (userCost * tokenToUSD) / apiCostUSD : 0;
+  const profitUSD = (userCost * tokenToUSD) - apiCostUSD;
+  const cacheSavingsUSD = estApiCostUSD - apiCostUSD; // If positive, cache saved money
+
   const logEntry = {
     uid,
     operation,
@@ -181,11 +239,14 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     sceneId: options.sceneId || null,
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
 
-    // Margin architecture (Phase 6)
-    baseTokens,                    // Base cost before margin
-    marginMultiplier,              // Operation-specific margin
-    globalMarginMultiplier,        // Global margin at time of use
-    userTokensCharged: userCost,   // Final charged amount = ceil(base × margin × global)
+    // Cost-based pricing (Phase 6.1 - Final)
+    targetWords,                          // Target word count
+    estimatedApiCostUSD: parseFloat(estApiCostUSD.toFixed(4)),  // Estimated cost (shown to user)
+    tokenToUSD,                           // Conversion rate at time of use
+    marginMultiplier,                     // Operation-specific margin
+    globalMarginMultiplier,               // Global margin at time of use
+    userTokensCharged: userCost,          // Final: ceil((est/tokenToUSD) × margin × global)
+    userPaidUSD: parseFloat((userCost * tokenToUSD).toFixed(4)),  // What user paid in $
 
     // Real API usage
     inputTokens,
@@ -193,7 +254,12 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     cacheCreationTokens,
     cacheReadTokens,
     totalTokens: inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens,
-    apiCostUSD: parseFloat(apiCostUSD.toFixed(4)),
+    realApiCostUSD: parseFloat(apiCostUSD.toFixed(4)),  // Actual cost paid to API
+
+    // Analytics (for margin tracking)
+    realMarginRatio: parseFloat(realMarginRatio.toFixed(2)),  // userPaid / realCost
+    profitUSD: parseFloat(profitUSD.toFixed(4)),              // userPaid - realCost
+    cacheSavingsUSD: parseFloat(cacheSavingsUSD.toFixed(4)),  // est - real (if cache hit)
 
     // Full usage object for debugging
     rawUsage: usage

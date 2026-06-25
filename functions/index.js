@@ -125,6 +125,23 @@ exports.generateScene = onRequest({
         return;
       }
 
+      // SERVER-SIDE INPUT VALIDATION: Prevent massive prompts (protect against frontend bypass)
+      // Max token limits (conservative, ~4 chars per token):
+      // - Project description: 2000 chars (≈500 tokens)
+      // - Custom intent: 500 chars (≈125 tokens)
+      // - Combined input: 8000 tokens max (≈32000 chars)
+
+      const MAX_CUSTOM_INTENT_CHARS = 500;
+
+      if (customIntent && customIntent.length > MAX_CUSTOM_INTENT_CHARS) {
+        console.warn(`[generateScene] Rejected: customIntent too long (${customIntent.length} chars)`);
+        res.status(400).json({
+          error: `Свій напрям задовгий (${customIntent.length} символів). Максимум: ${MAX_CUSTOM_INTENT_CHARS} символів.`,
+          code: 'INPUT_TOO_LONG'
+        });
+        return;
+      }
+
       // Load project from Firestore
       const projectDoc = await db.collection('projects').doc(projectId).get();
 
@@ -138,6 +155,31 @@ exports.generateScene = onRequest({
       // Check ownership
       if (project.owner !== uid) {
         res.status(403).json({ error: 'Ви не є власником цього проєкту' });
+        return;
+      }
+
+      // SERVER-SIDE VALIDATION: Project description length
+      const MAX_DESCRIPTION_CHARS = 2000;
+      if (project.desc && project.desc.length > MAX_DESCRIPTION_CHARS) {
+        console.warn(`[generateScene] Rejected: project description too long (${project.desc.length} chars)`);
+        res.status(400).json({
+          error: `Опис всесвіту задовгий (${project.desc.length} символів). Максимум: ${MAX_DESCRIPTION_CHARS} символів.`,
+          code: 'INPUT_TOO_LONG'
+        });
+        return;
+      }
+
+      // Combined input size check (prevent API context overflow)
+      const MAX_TOTAL_INPUT_TOKENS = 8000; // Conservative limit (~32KB text)
+      const estimatedInputChars = (project.desc?.length || 0) + (customIntent?.length || 0);
+      const estimatedInputTokens = Math.ceil(estimatedInputChars / 4); // ~4 chars per token
+
+      if (estimatedInputTokens > MAX_TOTAL_INPUT_TOKENS) {
+        console.warn(`[generateScene] Rejected: combined input too large (est. ${estimatedInputTokens} tokens)`);
+        res.status(400).json({
+          error: `Сукупний розмір тексту задовгий (≈${estimatedInputTokens} токенів). Максимум: ${MAX_TOTAL_INPUT_TOKENS} токенів. Скоротіть опис всесвіту або свій напрям.`,
+          code: 'INPUT_TOO_LONG'
+        });
         return;
       }
 
@@ -360,7 +402,8 @@ exports.generateScene = onRequest({
       // Extract mentioned entities (simple keyword matching from canon)
       const entities = extractMentionedEntities(sceneContent, canon);
 
-      // Phase 5.1: Charge via token-service (reads economy_operations, logs usage_logs)
+      // Phase 6.1: Charge via token-service (word-based pricing)
+      const targetWords = project.length || 700; // From project settings
       const { userCost, apiCostUSD } = await charge(
         db,
         uid,
@@ -368,7 +411,7 @@ exports.generateScene = onRequest({
         actualModel || providerModel,
         apiUsage || { input_tokens: 0, output_tokens: 0 },
         projectId,
-        { provider: useClaudeAPI ? 'claude' : 'gemini' }
+        { provider: useClaudeAPI ? 'claude' : 'gemini', targetWords }
       );
 
       console.log(`✅ Scene generated: -${userCost} tokens, $${apiCostUSD.toFixed(4)} API cost`);
@@ -1735,6 +1778,121 @@ exports.checkMargin = onRequest({
         allData: data
       });
     } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Migration: Add word-based pricing (tokensPer100Words)
+exports.migrateWordPricing = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 60
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      console.log('=== Word-Based Pricing Migration ===\n');
+
+      // Update generateScene with tokensPer100Words
+      const sceneDoc = await db.collection('economy_operations').doc('generateScene').get();
+
+      if (!sceneDoc.exists) {
+        return res.status(404).json({ error: 'generateScene operation not found' });
+      }
+
+      const data = sceneDoc.data();
+
+      // Add tokensPer100Words for each provider
+      if (data.providers.claude) {
+        data.providers.claude.tokensPer100Words = 150; // ~150 tokens per 100 words output
+        console.log('  ✓ claude.tokensPer100Words = 150');
+      }
+
+      if (data.providers.gemini) {
+        data.providers.gemini.tokensPer100Words = 20; // ~20 tokens per 100 words (cheaper)
+        console.log('  ✓ gemini.tokensPer100Words = 20');
+      }
+
+      await sceneDoc.ref.update({ providers: data.providers });
+
+      console.log('  ✅ generateScene updated with word-based pricing\n');
+
+      res.json({
+        success: true,
+        message: 'Word-based pricing migrated',
+        providers: {
+          claude: { tokensPer100Words: data.providers.claude.tokensPer100Words },
+          gemini: { tokensPer100Words: data.providers.gemini.tokensPer100Words }
+        }
+      });
+    } catch (error) {
+      console.error('Migration failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Migration: Add cost-based pricing (tokenToUSD + estimatedCostPer700Words)
+// Phase 6.1: Transition from word-based to cost-based pricing
+exports.migrateCostPricing = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 60
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      // 1. Add tokenToUSD to economy_config/global
+      await db.collection('economy_config').doc('global').update({
+        tokenToUSD: 0.01,  // 1 token = 1 cent ($0.01)
+        globalMarginMultiplier: 5.0,  // ×5 markup
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 2. Add estimatedCostPer700Words to economy_operations/generateScene
+      const sceneDoc = await db.collection('economy_operations').doc('generateScene').get();
+      if (!sceneDoc.exists) {
+        throw new Error('generateScene operation not found');
+      }
+
+      const data = sceneDoc.data();
+
+      // Add estimatedCostPer700Words (conservative, NO CACHE)
+      data.providers.claude.estimatedCostPer700Words = 0.03;  // $0.03 per 700 words (no cache)
+      data.providers.gemini.estimatedCostPer700Words = 0.001; // $0.001 per 700 words
+
+      // Update marginMultipliers
+      data.providers.claude.marginMultiplier = 1.5;  // +50% for quality
+      data.providers.gemini.marginMultiplier = 1.0;  // baseline
+
+      await sceneDoc.ref.update({ providers: data.providers });
+
+      // 3. Same for extractCanon (always Claude)
+      const extractDoc = await db.collection('economy_operations').doc('extractCanon').get();
+      if (extractDoc.exists) {
+        const extractData = extractDoc.data();
+        extractData.providers.claude.estimatedCostPer700Words = 0.01;  // $0.01 per extraction
+        extractData.providers.claude.marginMultiplier = 1.0;  // baseline
+        await extractDoc.ref.update({ providers: extractData.providers });
+      }
+
+      res.json({
+        success: true,
+        message: 'Cost-based pricing migrated',
+        config: {
+          tokenToUSD: 0.01,
+          globalMarginMultiplier: 5.0,
+          generateScene: {
+            claude: {
+              estimatedCostPer700Words: 0.03,
+              marginMultiplier: 1.5
+            },
+            gemini: {
+              estimatedCostPer700Words: 0.001,
+              marginMultiplier: 1.0
+            }
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Migration failed:', error);
       res.status(500).json({ error: error.message });
     }
   });

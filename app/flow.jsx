@@ -188,8 +188,39 @@ function StoryForm({ onBack, onCreate }) {
   const [creating, setCreating] = useFState(false);
   const ready = description.trim().length > 0;
 
-  // Guided Mode → автоматично scope='endless' (історія без меж)
-  const effectiveScope = creation === 'guided' ? 'endless' : scope;
+  // Guided Mode → 'endless' (історія без меж)
+  // Auto Mode → 'season' (завжди серіал, лише кількість серій змінюється)
+  const effectiveScope = creation === 'guided' ? 'endless' : 'season';
+
+  // Load pricing from Firestore on mount
+  React.useEffect(() => {
+    if (window.__firebasePricing) {
+      window.__firebasePricing.loadPricing();
+    }
+  }, []);
+
+  // Token cost calculator using real pricing from Firestore
+  function estimateTokens() {
+    if (!window.__firebasePricing || !window.__wwUser) {
+      // Fallback if pricing not loaded
+      return creation === 'guided' ? 300 : episodes * 300;
+    }
+
+    const userPlan = window.__wwUser.plan || 'free';
+
+    if (creation === 'guided') {
+      // Guided mode: 1 scene only
+      const provider = window.__firebasePricing.getProviderForPlan(userPlan);
+      // Estimate based on provider (conservative)
+      return provider === 'claude' ? 300 : 20;
+    } else {
+      // Auto Mode: use real pricing formula
+      const estimate = window.__firebasePricing.estimateAutoModeCost(episodes, userPlan);
+      return estimate.totalCost;
+    }
+  }
+
+  const estimatedCost = estimateTokens();
 
   function toggleGenre(g) {
     setGenres((cur) => {
@@ -262,14 +293,24 @@ function StoryForm({ onBack, onCreate }) {
           </label>
 
           <label className="field">
-            <span className="field__label">Опис всесвіту</span>
+            <span className="field__label">
+              Опис всесвіту
+              <span className="field__counter" style={{ marginLeft: '8px', fontSize: '12px', color: description.length > 2000 ? '#d9534f' : 'rgba(194,161,87,0.7)' }}>
+                {description.length} / 2000
+              </span>
+            </span>
             <textarea
               className="field__area"
               value={description}
-              onChange={(e) => !creating && setDescription(e.target.value)}
+              onChange={(e) => {
+                if (!creating && e.target.value.length <= 2000) {
+                  setDescription(e.target.value);
+                }
+              }}
               placeholder="Місто, де згасають зорі, і жінка, що пам'ятає його живим…"
               rows={6}
               disabled={creating}
+              maxLength={2000}
             />
           </label>
 
@@ -291,25 +332,17 @@ function StoryForm({ onBack, onCreate }) {
 
           {creation === "auto" && (
             <label className="field">
-              <span className="field__label">Обсяг історії</span>
-              <Segmented
-                value={scope}
-                onChange={(val) => !creating && setScope(val)}
-                disabled={creating}
-                options={[
-                  { value: "shot", label: "Оповідання" },
-                  { value: "novella", label: "Новела" },
-                  { value: "season", label: "Сезон" },
-                  { value: "endless", label: "Без меж" },
-                ]}
-              />
-              <span className="field__note">{SCOPE_HINT[scope]}</span>
-            </label>
-          )}
-
-          {creation === "auto" && scope === "season" && (
-            <label className="field">
-              <span className="field__label">Скільки серій</span>
+              <span className="field__label">
+                Скільки серій
+                {window.__firebasePricing && window.__wwUser && (() => {
+                  const estimate = window.__firebasePricing.estimateAutoModeCost(episodes, window.__wwUser.plan || 'free', length);
+                  return (
+                    <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
+                      ~{estimate.totalCost.toLocaleString()} токенів
+                    </span>
+                  );
+                })()}
+              </span>
               <div className="wslider">
                 <input
                   type="range" min="3" max="24" step="1"
@@ -327,7 +360,7 @@ function StoryForm({ onBack, onCreate }) {
             </label>
           )}
 
-          {creation === "auto" && scope !== "endless" && (
+          {creation === "auto" && (
             <label className="field">
               <span className="field__label">Фінал</span>
               <Segmented
@@ -365,7 +398,19 @@ function StoryForm({ onBack, onCreate }) {
           </div>
 
           <label className="field">
-            <span className="field__label">Довжина сцен</span>
+            <span className="field__label">
+              Довжина сцен
+              {window.__firebasePricing && window.__wwUser && (() => {
+                const userPlan = window.__wwUser.plan || 'free';
+                const estimate = window.__firebasePricing.estimateAutoModeCost(1, userPlan, length); // 1 scene, length words
+                const costPerScene = estimate.breakdown?.sceneCostPerScene || 0;
+                return (
+                  <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
+                    ~{costPerScene} токенів/сцена
+                  </span>
+                );
+              })()}
+            </span>
             <WordSlider value={length} onChange={(val) => !creating && setLength(val)} disabled={creating} />
           </label>
 

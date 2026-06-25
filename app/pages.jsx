@@ -399,13 +399,23 @@ function SceneIntentRight({ projectId: propProjectId }) {
       {sel === "custom" && (
         <div className="intent-custom">
           <div className="intent-custom__quill">✒</div>
-          <textarea
-            className="intent-custom__text"
-            value={note}
-            onChange={(ev) => setNote(ev.target.value)}
-            placeholder="Опиши, що має статися далі…"
-            autoFocus
-          />
+          <div style={{ position: 'relative', flex: 1 }}>
+            <textarea
+              className="intent-custom__text"
+              value={note}
+              onChange={(ev) => {
+                if (ev.target.value.length <= 500) {
+                  setNote(ev.target.value);
+                }
+              }}
+              placeholder="Опиши, що має статися далі…"
+              autoFocus
+              maxLength={500}
+            />
+            <div style={{ position: 'absolute', bottom: '8px', right: '12px', fontSize: '11px', color: note.length > 500 ? '#d9534f' : 'rgba(194,161,87,0.6)', pointerEvents: 'none' }}>
+              {note.length} / 500
+            </div>
+          </div>
         </div>
       )}
 
