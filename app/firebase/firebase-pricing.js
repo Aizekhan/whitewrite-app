@@ -215,6 +215,76 @@ function estimateAutoModeCost(episodes, userPlan, targetWords = 700) {
   };
 }
 
+/**
+ * Estimate cost for single scene with input + output (reactive preview)
+ * @param {number} targetWords - Target words for scene output
+ * @param {number} inputChars - Total input characters (description + customIntent)
+ * @param {string} userPlan - User plan (seed, storyweaver, worldforge)
+ * @param {number} canonTokens - Actual canon size in tokens (0 for first scene, real size for continuation)
+ * @returns {number} Total user tokens (output + input cost)
+ */
+function estimateSingleSceneCost(targetWords, inputChars, userPlan, canonTokens = 0) {
+  console.log(`[Pricing] estimateSingleSceneCost called: targetWords=${targetWords}, inputChars=${inputChars}, userPlan=${userPlan}, canonTokens=${canonTokens}`);
+
+  if (!pricingCache.loaded) {
+    console.warn('[Pricing] Pricing not loaded, using fallback');
+    const provider = getProviderForPlan(userPlan);
+    return provider === 'claude' ? 300 : 20; // Conservative fallback
+  }
+
+  const provider = getProviderForPlan(userPlan);
+  const tokenToUSD = pricingCache.data.global?.tokenToUSD || 0.01;
+  const globalMargin = pricingCache.data.global?.globalMarginMultiplier || 1.0;
+
+  console.log(`[Pricing] provider=${provider}, tokenToUSD=${tokenToUSD}, globalMargin=${globalMargin}`);
+
+  // Get generateScene pricing
+  const sceneOp = pricingCache.data.operations.generateScene;
+  const sceneProvider = sceneOp?.providers?.[provider];
+  const estimatedCostPer700Words = sceneProvider?.estimatedCostPer700Words;
+  const sceneMargin = sceneProvider?.marginMultiplier || 1.0;
+
+  // Calculate OUTPUT cost (from targetWords)
+  let estOutputCostUSD = 0;
+  if (estimatedCostPer700Words != null && estimatedCostPer700Words > 0) {
+    estOutputCostUSD = estimateAPICost(targetWords, estimatedCostPer700Words);
+  } else {
+    // Fallback to word-based or fixed pricing
+    const tokensPer100Words = sceneProvider?.tokensPer100Words;
+    if (tokensPer100Words > 0) {
+      estOutputCostUSD = (targetWords / 100) * tokensPer100Words * tokenToUSD;
+    } else {
+      const baseTokens = sceneProvider?.baseTokens || sceneProvider?.cost || 0;
+      estOutputCostUSD = baseTokens * tokenToUSD;
+    }
+  }
+
+  // Calculate INPUT cost (from inputChars + canonTokens)
+  // inputChars = description + customIntent (~4 chars per token)
+  // canonTokens = REAL canon size (0 for first scene, actual size for continuation)
+  const estimatedInputTokens = Math.ceil(inputChars / 4) + canonTokens;
+  let estInputCostUSD = 0;
+
+  // Get model pricing for input cost (use Claude Sonnet pricing for worldforge, Gemini for others)
+  if (provider === 'claude') {
+    // Claude Sonnet: $3/M input
+    estInputCostUSD = estimatedInputTokens * 3 / 1000000;
+  } else {
+    // Gemini Flash: $0.075/M input (conservative, using Flash 1.5 pricing)
+    estInputCostUSD = estimatedInputTokens * 0.075 / 1000000;
+  }
+
+  // Total API cost = output + input
+  const estApiCostUSD = estOutputCostUSD + estInputCostUSD;
+
+  // Apply margin formula: userTokens = ceil((estApiCostUSD / tokenToUSD) × margin × global)
+  const userTokens = calculateUserTokens(estApiCostUSD, tokenToUSD, sceneMargin, globalMargin);
+
+  console.log(`[Pricing] estimateSingleSceneCost result: inputTokens=${estimatedInputTokens}, outputCost=$${estOutputCostUSD.toFixed(4)}, inputCost=$${estInputCostUSD.toFixed(4)}, userTokens=${userTokens}`);
+
+  return userTokens;
+}
+
 // ============================================================================
 // EXPORTS
 // ============================================================================
@@ -225,6 +295,7 @@ window.__firebasePricing = {
   estimateAPICost,
   getProviderForPlan,
   estimateAutoModeCost,
+  estimateSingleSceneCost,  // NEW: reactive preview with input cost
   // Expose cache for debugging
   get cache() { return pricingCache; }
 };

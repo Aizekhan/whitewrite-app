@@ -1330,10 +1330,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '</div>' +
         '<div class="vsec-h">' + svg("sparkle") + 'Плани підписки</div>' +
         '<div class="plan-grid">' +
-          planCard("free", "Free", "Безкоштовно", ["10 Gemini сцен/міс", "1 проєкт", "Canon-aware generation"], u.plan) +
-          planCard("storyteller", "Storyteller", "$12/міс", ["120 Gemini сцен/міс", "5 проєктів", "✨ Експорт DOCX/PDF"], u.plan) +
-          planCard("novelist", "Novelist", "$29/міс", ["32K токенів (гнучко)", "✦ Claude Sonnet", "100 image credits", "3 LoRA slots", "🔥 Universe Reconstruction"], u.plan, true) +
-          planCard("worldbuilder", "Worldbuilder", "$69/міс", ["180K токенів", "500 image credits", "10 LoRA slots", "API access", "Priority queue"], u.plan) +
+          planCard("storyteller", "Storyteller", "$12/міс", ["1200 токенів/міс", "≈ 200 сцен (Gemini, 700 слів)", "10 проєктів", "✨ Експорт DOCX/PDF", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
+          planCard("novelist", "Novelist", "$36/міс", ["3600 токенів/міс", "≈ 600 сцен (Gemini, 700 слів)", "50 проєктів", "Canon extraction", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan, true) +
+          planCard("worldbuilder", "Worldbuilder", "$69/міс", ["6900 токенів/міс", "≈ 275 сцен (Claude, 700 слів)", "✦ Claude Sonnet API", "999 проєктів", "🔥 Universe Reconstruction", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
         '</div>' +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">⎋ Вийти з акаунту</button>' +
       '</div>';
@@ -1568,9 +1567,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <script src="/firebase/ai-models.js"></script>
 <script src="/firebase/firebase-init.js"></script>
 <script src="/firebase/token-budget.js"></script>
+<script src="/firebase/firebase-pricing.js"></script>
 <script src="/firebase/firebase-auth.js"></script>
 <script src="/firebase/firebase-projects.js"></script>
-<script src="/firebase/firebase-scenes.js"></script>
+<parameter name="old_string"><script src="/firebase/firebase-scenes.js"></script>
 <script src="/firebase/firebase-ai.js"></script>
 
 <!-- Initialize Firebase Auth -->

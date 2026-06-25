@@ -440,9 +440,13 @@ function StoryForm({ onBack, onCreate }) {
             <span className="field__label">
               Довжина сцен
               {pricingReady && (() => {
+                console.log('[StoryForm] Rendering preview, pricingReady=true');
                 const userPlan = window.__wwUser.plan || 'free';
-                const estimate = window.__firebasePricing.estimateAutoModeCost(1, userPlan, length);
-                const costPerScene = estimate.breakdown?.sceneCostPerScene || 0;
+                const inputChars = description.length;
+                const canonTokens = 0; // First scene — no canon yet
+                console.log(`[StoryForm] Calling estimateSingleSceneCost: length=${length}, inputChars=${inputChars}, plan=${userPlan}`);
+                const costPerScene = window.__firebasePricing.estimateSingleSceneCost(length, inputChars, userPlan, canonTokens);
+                console.log(`[StoryForm] Preview result: ${costPerScene} tokens/scene`);
                 return (
                   <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
                     ~{costPerScene} токенів/сцена
