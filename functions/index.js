@@ -1705,3 +1705,164 @@ exports.seedEconomy = onRequest({
   });
 });
 
+// ============================================================================
+// MIGRATION: Add margin architecture to economy_operations
+// ============================================================================
+// One-time migration function: adds baseTokens + marginMultiplier to economy_operations
+// Also creates economy_config/global with globalMarginMultiplier
+// Call once via: https://us-central1-whitewrite-app.cloudfunctions.net/migrateMargin
+
+// Debug function: Check current globalMarginMultiplier
+exports.checkMargin = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 10
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      const globalDoc = await db.collection('economy_config').doc('global').get();
+
+      if (!globalDoc.exists) {
+        return res.json({ error: 'economy_config/global not found' });
+      }
+
+      const data = globalDoc.data();
+
+      res.json({
+        success: true,
+        globalMarginMultiplier: data.globalMarginMultiplier,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        allData: data
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+// Set globalMarginMultiplier (for demo)
+exports.setMargin = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 10
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      const newMargin = parseFloat(req.query.value || req.body?.value || 1.0);
+
+      if (isNaN(newMargin) || newMargin <= 0) {
+        return res.status(400).json({ error: 'Invalid margin value (must be positive number)' });
+      }
+
+      await db.collection('economy_config').doc('global').update({
+        globalMarginMultiplier: newMargin,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      console.log(`✅ globalMarginMultiplier updated: ${newMargin}`);
+
+      res.json({
+        success: true,
+        globalMarginMultiplier: newMargin,
+        message: `Margin updated to ${newMargin}`
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+exports.migrateMargin = onRequest({
+  region: 'us-central1',
+  timeoutSeconds: 60
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      console.log('=== Margin Architecture Migration ===\n');
+
+      // 1. Migrate economy_operations
+      const operations = ['generateScene', 'extractCanon', 'analyzeScene'];
+      const updates = [];
+
+      for (const operation of operations) {
+        console.log(`Migrating ${operation}...`);
+
+        const opDoc = await db.collection('economy_operations').doc(operation).get();
+
+        if (!opDoc.exists) {
+          console.warn(`  ⚠️ ${operation} not found, skipping`);
+          continue;
+        }
+
+        const data = opDoc.data();
+        let updated = false;
+
+        // Update each provider (claude, gemini)
+        for (const provider of ['claude', 'gemini']) {
+          if (data.providers && data.providers[provider]) {
+            const providerData = data.providers[provider];
+
+            // Add baseTokens (from existing 'cost' field)
+            if (!providerData.baseTokens && providerData.cost) {
+              providerData.baseTokens = providerData.cost;
+              updated = true;
+              console.log(`  ✓ ${provider}.baseTokens = ${providerData.cost} (from cost)`);
+            }
+
+            // Add marginMultiplier (default 1.0)
+            if (!providerData.marginMultiplier) {
+              providerData.marginMultiplier = 1.0;
+              updated = true;
+              console.log(`  ✓ ${provider}.marginMultiplier = 1.0`);
+            }
+          }
+        }
+
+        if (updated) {
+          await opDoc.ref.update({ providers: data.providers });
+          console.log(`  ✅ ${operation} migrated\n`);
+          updates.push(operation);
+        } else {
+          console.log(`  → ${operation} already has margin fields\n`);
+        }
+      }
+
+      // 2. Create economy_config/global
+      console.log('Creating economy_config/global...');
+
+      const globalDoc = await db.collection('economy_config').doc('global').get();
+
+      if (!globalDoc.exists) {
+        await db.collection('economy_config').doc('global').set({
+          globalMarginMultiplier: 1.0,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        console.log('  ✅ economy_config/global created (globalMarginMultiplier: 1.0)\n');
+      } else {
+        const globalData = globalDoc.data();
+        if (!globalData.globalMarginMultiplier) {
+          await globalDoc.ref.update({
+            globalMarginMultiplier: 1.0,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          console.log('  ✅ globalMarginMultiplier added (1.0)\n');
+        } else {
+          console.log(`  → economy_config/global already exists (globalMarginMultiplier: ${globalData.globalMarginMultiplier})\n`);
+        }
+      }
+
+      console.log('=== Migration Complete ===');
+
+      res.status(200).json({
+        success: true,
+        message: 'Margin architecture migrated successfully',
+        updated: updates
+      });
+
+    } catch (error) {
+      console.error('Migration failed:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+

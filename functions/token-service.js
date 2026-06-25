@@ -1,10 +1,12 @@
 // ============================================================================
-// Token Service — Universal AI Operation Billing & Tracking
+// Token Service — Universal AI Operation Billing & Tracking with Margin
 // ============================================================================
 // Phase 5.1: Single entry point for ALL AI operations
+// Phase 6: Margin architecture (baseTokens × marginMultiplier × globalMarginMultiplier)
 // - Reads prices from economy_operations (data-driven, NOT hardcoded)
+// - Applies margin multipliers (operation-level + global)
 // - Deducts user tokens
-// - Logs usage_logs with real API cost (apiCostUSD, tokens breakdown)
+// - Logs usage_logs with margin tracking
 //
 // Usage:
 //   const { charge } = require('./token-service.js');
@@ -12,6 +14,86 @@
 
 const admin = require('firebase-admin');
 const { MODEL_PRICING } = require('./ai-models.js');
+
+// ============================================================================
+// GLOBAL MARGIN CACHE (TTL 60s)
+// ============================================================================
+// Avoid Firestore read on every operation — cache globalMarginMultiplier in memory
+let globalMarginCache = {
+  value: 1.0,
+  lastFetch: 0,
+  TTL_MS: 60000  // 60 seconds
+};
+
+async function getGlobalMarginMultiplier(db) {
+  const now = Date.now();
+
+  // Cache hit (within TTL)
+  if (now - globalMarginCache.lastFetch < globalMarginCache.TTL_MS) {
+    return globalMarginCache.value;
+  }
+
+  // Cache miss — fetch from Firestore
+  try {
+    const globalDoc = await db.collection('economy_config').doc('global').get();
+
+    if (globalDoc.exists) {
+      const data = globalDoc.data();
+      const multiplier = data.globalMarginMultiplier;
+
+      // Validate: must be a positive number, fallback to 1.0
+      if (typeof multiplier === 'number' && multiplier > 0 && !isNaN(multiplier)) {
+        globalMarginCache.value = multiplier;
+        globalMarginCache.lastFetch = now;
+        console.log(`[TokenService] Global margin multiplier loaded: ${multiplier}`);
+        return multiplier;
+      } else {
+        console.warn(`[TokenService] Invalid globalMarginMultiplier: ${multiplier}, using fallback 1.0`);
+      }
+    } else {
+      console.warn('[TokenService] economy_config/global not found, using fallback 1.0');
+    }
+  } catch (error) {
+    console.error('[TokenService] Failed to fetch globalMarginMultiplier:', error);
+  }
+
+  // Fallback: 1.0 (no markup)
+  globalMarginCache.value = 1.0;
+  globalMarginCache.lastFetch = now;
+  return 1.0;
+}
+
+/**
+ * Calculate user token cost with margin
+ * @param {number} baseTokens - Base cost before margin
+ * @param {number} marginMultiplier - Operation-specific margin (from economy_operations)
+ * @param {number} globalMarginMultiplier - Global margin lever (from economy_config/global)
+ * @returns {number} Final user token cost (rounded UP)
+ */
+function calculateUserTokens(baseTokens, marginMultiplier, globalMarginMultiplier) {
+  // Validate inputs (fallback to 1.0 if invalid, except baseTokens which defaults to 0)
+  const validBase = (typeof baseTokens === 'number' && baseTokens > 0 && !isNaN(baseTokens))
+    ? baseTokens
+    : 0;
+
+  const validMargin = (typeof marginMultiplier === 'number' && marginMultiplier > 0 && !isNaN(marginMultiplier))
+    ? marginMultiplier
+    : 1.0;
+
+  const validGlobal = (typeof globalMarginMultiplier === 'number' && globalMarginMultiplier > 0 && !isNaN(globalMarginMultiplier))
+    ? globalMarginMultiplier
+    : 1.0;
+
+  // Formula: userTokens = ceil(base × margin × globalMargin)
+  // Use Math.ceil to round UP (never undercharge)
+  const userTokens = Math.ceil(validBase * validMargin * validGlobal);
+
+  return userTokens;
+}
+
+// ============================================================================
+// TOKEN CHARGING
+// ============================================================================
 
 /**
  * Charge user for AI operation + log usage
@@ -28,7 +110,7 @@ const { MODEL_PRICING } = require('./ai-models.js');
 async function charge(db, uid, operation, model, usage, projectId, options = {}) {
   console.log(`[TokenService] Charging ${uid} for ${operation} (model: ${model})`);
 
-  // 1. Read user-facing cost from economy_operations
+  // 1. Read pricing from economy_operations
   const economyDoc = await db.collection('economy_operations').doc(operation).get();
   if (!economyDoc.exists) {
     throw new Error(`economy_operations/${operation} not found — cannot charge`);
@@ -41,11 +123,23 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     throw new Error(`economy_operations/${operation} missing provider: ${provider}`);
   }
 
-  const userCost = economyData.providers[provider].cost; // Fixed cost user pays (e.g. 300, 15, 50)
+  const providerData = economyData.providers[provider];
+  const baseTokens = providerData.baseTokens || providerData.cost || 0; // Fallback to 'cost' for backwards compat
+  const marginMultiplier = providerData.marginMultiplier || 1.0;
 
-  console.log(`[TokenService] User cost: ${userCost} tokens (from economy_operations/${operation}/${provider})`);
+  console.log(`[TokenService] Base tokens: ${baseTokens} (from economy_operations/${operation}/${provider})`);
+  console.log(`[TokenService] Margin multiplier: ${marginMultiplier}`);
 
-  // 2. Calculate real API cost from usage
+  // 2. Get global margin multiplier (cached)
+  const globalMarginMultiplier = await getGlobalMarginMultiplier(db);
+  console.log(`[TokenService] Global margin multiplier: ${globalMarginMultiplier}`);
+
+  // 3. Calculate final user cost with margin
+  const userCost = calculateUserTokens(baseTokens, marginMultiplier, globalMarginMultiplier);
+
+  console.log(`[TokenService] User cost (final): ${userCost} tokens = ceil(${baseTokens} × ${marginMultiplier} × ${globalMarginMultiplier})`);
+
+  // 4. Calculate real API cost from usage
   let apiCostUSD = 0;
   let inputTokens = usage.input_tokens || 0;
   let outputTokens = usage.output_tokens || 0;
@@ -71,14 +165,14 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     console.warn(`[TokenService] ⚠️ Unknown model pricing: ${model} — apiCostUSD will be $0.0000`);
   }
 
-  // 3. Deduct user tokens
+  // 5. Deduct user tokens
   await db.collection('users').doc(uid).update({
     tokensUsed: admin.firestore.FieldValue.increment(userCost)
   });
 
   console.log(`[TokenService] ✅ Deducted ${userCost} tokens from user ${uid}`);
 
-  // 4. Log to usage_logs
+  // 6. Log to usage_logs with margin tracking
   const logEntry = {
     uid,
     operation,
@@ -87,8 +181,11 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     sceneId: options.sceneId || null,
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
 
-    // User charge (fixed)
-    userTokensCharged: userCost,
+    // Margin architecture (Phase 6)
+    baseTokens,                    // Base cost before margin
+    marginMultiplier,              // Operation-specific margin
+    globalMarginMultiplier,        // Global margin at time of use
+    userTokensCharged: userCost,   // Final charged amount = ceil(base × margin × global)
 
     // Real API usage
     inputTokens,
@@ -104,9 +201,9 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
 
   await db.collection('usage_logs').add(logEntry);
 
-  console.log(`[TokenService] ✅ Logged usage_logs entry (apiCostUSD: $${apiCostUSD.toFixed(4)})`);
+  console.log(`[TokenService] ✅ Logged usage_logs entry (apiCostUSD: $${apiCostUSD.toFixed(4)}, margin tracked)`);
 
-  return { userCost, apiCostUSD };
+  return { userCost, apiCostUSD, marginMultiplier, globalMarginMultiplier };
 }
 
 module.exports = { charge };
