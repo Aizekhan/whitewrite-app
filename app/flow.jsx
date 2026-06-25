@@ -349,7 +349,7 @@ function StoryForm({ onBack, onCreate }) {
             <label className="field">
               <span className="field__label">
                 Скільки серій
-                {window.__firebasePricing && window.__wwUser && (() => {
+                {pricingReady && (() => {
                   const estimate = window.__firebasePricing.estimateAutoModeCost(episodes, window.__wwUser.plan || 'free', length);
                   return (
                     <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
@@ -415,9 +415,9 @@ function StoryForm({ onBack, onCreate }) {
           <label className="field">
             <span className="field__label">
               Довжина сцен
-              {window.__firebasePricing && window.__wwUser && (() => {
+              {pricingReady && (() => {
                 const userPlan = window.__wwUser.plan || 'free';
-                const estimate = window.__firebasePricing.estimateAutoModeCost(1, userPlan, length); // 1 scene, length words
+                const estimate = window.__firebasePricing.estimateAutoModeCost(1, userPlan, length);
                 const costPerScene = estimate.breakdown?.sceneCostPerScene || 0;
                 return (
                   <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
