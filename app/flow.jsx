@@ -195,18 +195,42 @@ function StoryForm({ onBack, onCreate }) {
 
   // Load pricing from Firestore on mount + poll for user/pricing ready
   React.useEffect(() => {
+    console.log('[StoryForm] useEffect triggered');
+    console.log('[StoryForm] window.__firebasePricing exists?', !!window.__firebasePricing);
+    console.log('[StoryForm] window.__wwUser exists?', !!window.__wwUser);
+
     if (window.__firebasePricing) {
       window.__firebasePricing.loadPricing().then(() => {
-        console.log('[StoryForm] Pricing loaded');
+        console.log('[StoryForm] ✅ Pricing loaded from Firestore');
+        console.log('[StoryForm] Cache loaded?', window.__firebasePricing.cache?.loaded);
+      }).catch(err => {
+        console.error('[StoryForm] ❌ Pricing load failed:', err);
       });
+    } else {
+      console.warn('[StoryForm] ⚠️ window.__firebasePricing not available');
     }
 
     // Poll for user + pricing ready (trigger re-render when both available)
+    let pollCount = 0;
     const interval = setInterval(() => {
-      if (window.__wwUser && window.__firebasePricing?.cache?.loaded) {
+      pollCount++;
+      const hasUser = !!window.__wwUser;
+      const hasPricing = !!window.__firebasePricing;
+      const pricingLoaded = window.__firebasePricing?.cache?.loaded;
+
+      console.log(`[StoryForm] Poll #${pollCount}: user=${hasUser}, pricing=${hasPricing}, loaded=${pricingLoaded}`);
+
+      if (hasUser && hasPricing && pricingLoaded) {
         setPricingReady(true);
         clearInterval(interval);
-        console.log('[StoryForm] User + pricing ready, re-rendering');
+        console.log('[StoryForm] ✅ User + pricing ready, setting pricingReady=true');
+      }
+
+      // Timeout after 10 seconds (50 polls)
+      if (pollCount >= 50) {
+        clearInterval(interval);
+        console.warn('[StoryForm] ⚠️ Timeout waiting for pricing, enabling anyway');
+        setPricingReady(true); // Enable anyway so UI doesn't break
       }
     }, 200);
 
