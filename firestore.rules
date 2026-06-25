@@ -72,5 +72,23 @@ service cloud.firestore {
       allow delete: if isAuthenticated() &&
                        resource.data.userId == request.auth.uid;
     }
+
+    // Economy operations (pricing data) - read-only for all authenticated users
+    match /economy_operations/{operationId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only via Cloud Functions
+    }
+
+    // Economy config (global settings) - read-only for all authenticated users
+    match /economy_config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only via Cloud Functions
+    }
+
+    // Usage logs - write by Cloud Functions, read by owner
+    match /usage_logs/{logId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow write: if false; // Only via Cloud Functions
+    }
   }
 }
