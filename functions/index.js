@@ -870,7 +870,7 @@ ${intentDescription}
 
 **ОСТАННЯ КОМАНДА (дотримуйся строго):**
 - Довжина: ~${length} слів (≈ ${Math.round(length / 100)} абзаців). Не більше ${length + 200} слів.
-- ${dialogueStyle}
+- ${dialogueStyle}${sceneIntent === 'custom' && customIntent ? '\n- НАПРЯМ СЦЕНИ: ' + customIntent : ''}
 
 Згенеруй сцену:`;
 
