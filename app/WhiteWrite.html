@@ -327,10 +327,18 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   gap:1cqw;
   margin-bottom:1.2cqw; }
 
-/* Left page: 7 cards in compact 2-column grid */
+/* Left page: 7 compact cards (almost list-style) */
 .intent__grid--left{
   grid-template-columns:1fr 1fr;
-  gap:0.8cqw; }
+  gap:0.5cqw 0.6cqw; }
+
+/* Compact cards on left page */
+.intent__grid--left .intent-card{
+  padding:0.8cqw 0.9cqw 0.7cqw;
+  flex-direction:row;
+  align-items:center;
+  text-align:left;
+  gap:0.7cqw; }
 
 /* Right page: custom card + textarea */
 .intent__custom-card{
@@ -382,6 +390,9 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
     inset 0 2px 0 rgba(255,248,230,1),
     inset 4px 4px 9px rgba(255,245,220,0.85); }
 
+.intent__grid--left .intent-card.is-sel{
+  padding:calc(0.8cqw - 1px) calc(0.9cqw - 1px) calc(0.7cqw - 1px); }
+
 .intent-card__icon{
   font-size:3.2cqw;
   width:4cqw;
@@ -389,6 +400,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   display:grid;
   place-items:center;
   margin-bottom:0.8cqw;
+  flex-shrink:0;
   background:
     radial-gradient(circle at 32% 28%, rgba(255,248,220,0.92), rgba(233,200,120,0.4)),
     repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.08) 15deg 18deg);
@@ -398,6 +410,13 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
     0 4px 12px rgba(0,0,0,0.14),
     inset 0 2px 3px rgba(255,250,240,0.9);
   filter:drop-shadow(0 2px 6px rgba(0,0,0,0.12)); }
+
+/* Smaller icon on left page compact cards */
+.intent__grid--left .intent-card__icon{
+  font-size:1.8cqw;
+  width:2.2cqw;
+  height:2.2cqw;
+  margin-bottom:0; }
 
 .intent-card.is-sel .intent-card__icon{
   background:
@@ -415,11 +434,20 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   margin-bottom:0.5cqw;
   letter-spacing:0.01em; }
 
+/* Smaller text on left page compact cards */
+.intent__grid--left .intent-card__title{
+  font-size:clamp(12px,1.2cqw,14px);
+  margin-bottom:0.2cqw; }
+
 .intent-card__desc{
   font-size:clamp(11px,1.15cqw,13px);
   color:#7a5b2c;
   font-style:italic;
   line-height:1.35; }
+
+.intent__grid--left .intent-card__desc{
+  font-size:clamp(10px,0.95cqw,11px);
+  line-height:1.25; }
 
 .intent-card__mark{
   position:absolute;
