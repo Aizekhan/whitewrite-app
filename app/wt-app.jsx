@@ -503,6 +503,22 @@ function WorldTreeApp() {
     return () => window.removeEventListener('message', handleMessage);
   }, [authReady, projectId]);
 
+  // Notify parent shell that iframe is ready (for initial projectId sync)
+  React.useEffect(() => {
+    const isEmbedded = window.location.search.indexOf('embed=1') >= 0;
+    if (isEmbedded && window.parent) {
+      try {
+        window.parent.postMessage({
+          type: 'ww-iframe-ready',
+          pillar: 'universe'
+        }, '*');
+        console.log('[WorldTree] Notified parent: iframe ready');
+      } catch (e) {
+        console.error('[WorldTree] Failed to notify parent:', e);
+      }
+    }
+  }, []); // Run once on mount
+
   // Listen to auth state changes and reload canon
   React.useEffect(() => {
     // Poll for auth state (Firebase auth initializes async)

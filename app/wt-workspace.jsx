@@ -288,7 +288,12 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   const A = ADAPTERS[type];
   // Use canon prop if available (real data), fallback to WORLD (mock)
   const dataSource = canon || WORLD;
-  const all = dataSource[type] || [];
+  const rawData = dataSource[type];
+
+  // Ensure 'all' is always an array (handle both object and array formats)
+  const all = Array.isArray(rawData)
+    ? rawData
+    : (rawData && typeof rawData === 'object' ? Object.values(rawData) : []);
   const [scene] = useWtScene();
   const [q, setQ] = useWsState("");
   const [view, setView] = useWsState("cards");

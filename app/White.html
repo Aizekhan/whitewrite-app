@@ -1076,6 +1076,18 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       showPillar(d.pillar, query);
       return;
     }
+    // Iframe ready — send current projectId
+    if (d.type === "ww-iframe-ready" && d.pillar) {
+      console.log('[Shell] Iframe ready:', d.pillar);
+      if (window.__currentProjectId && frames[d.pillar] && frames[d.pillar].contentWindow) {
+        frames[d.pillar].contentWindow.postMessage({
+          type: 'ww-project',
+          projectId: window.__currentProjectId
+        }, '*');
+        console.log('[Shell] Sent projectId to ready iframe', d.pillar, ':', window.__currentProjectId);
+      }
+      return;
+    }
     // the book tells the shell whether the reader is on the cover (home) or inside a story (work)
     if (d.type === "ww-mode") {
       if (d.mode === "work") { if (Date.now() < suppressWorkUntil) return; inWork = true; mode = "book"; renderRail(); }
