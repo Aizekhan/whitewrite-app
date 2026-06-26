@@ -365,7 +365,18 @@ function SceneIntentRight({ projectId: propProjectId }) {
 
             // D5: Trigger book reload to show new scene
             if (window.__reloadBook) {
+              console.log('[SceneIntent] Reloading book with jumpToLast...');
               window.__reloadBook({ jumpToLast: true });
+            } else {
+              console.warn('[SceneIntent] window.__reloadBook not found, trying fallback...');
+              // Fallback: force page reload to show new scene
+              if (window.parent && window.parent !== window) {
+                // We're in iframe — ask parent to reload book
+                window.parent.postMessage({ type: 'reloadBook', jumpToLast: true }, '*');
+              } else {
+                // Standalone — just alert user
+                alert('Сцена збережена! Перезавантажте сторінку щоб побачити її.');
+              }
             }
           } catch (saveError) {
             console.error('Failed to save scene:', saveError);
