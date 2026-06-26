@@ -67,6 +67,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const [pg, setPg] = useState(0);
   const [whisper, setWhisper] = useState({ text: "", sig: 0 });
   const [sceneMenu, setSceneMenu] = useState(false);
+  const [showingNewScene, setShowingNewScene] = useState(false); // Trigger fade-in animation for new scene
   const done = useRef(false);
 
   // PHASE 3: Removed useEffect that wrote to window.__currentProjectId
@@ -199,10 +200,20 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
         setScenes(bookScenes);
 
-        // If reload after new scene generation, jump to last scene
+        // If reload after new scene generation, jump to NEW scene (not Scene Intent page)
         if (options.jumpToLast) {
-          setSc(bookScenes.length - 1);
-          setPg(bookScenes[bookScenes.length - 1].pages.length - 1); // Jump to SceneIntentPage
+          const lastSceneIdx = bookScenes.length - 1;
+          const lastScene = bookScenes[lastSceneIdx];
+
+          // Jump to FIRST page of new scene (show text, not Scene Intent)
+          setSc(lastSceneIdx);
+          setPg(0);  // First page of new scene (text starts here)
+          setShowingNewScene(true); // Trigger fade-in animation
+
+          // Clear animation flag after animation completes
+          setTimeout(() => setShowingNewScene(false), 1200);
+
+          console.log(`[Book] Jumped to new scene ${lastSceneIdx + 1}, page 1 (showing generated text with fade-in)`);
           setLoadingScenes(false);
           return;
         }
@@ -241,7 +252,20 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
     // Export reload function for SceneIntentPage to call after saving
     window.__reloadBook = loadFromFirestore;
-    return () => { window.__reloadBook = null; };
+
+    // Listen for postMessage reload requests (fallback if __reloadBook not accessible)
+    const handleMessage = (event) => {
+      if (event.data.type === 'reloadBook') {
+        console.log('[Book] Received reloadBook message from iframe');
+        loadFromFirestore(event.data);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.__reloadBook = null;
+      window.removeEventListener('message', handleMessage);
+    };
   }, [projectId]);
 
   const SCENES = scenes;
@@ -397,10 +421,10 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         <img className="photobook__img" src="assets/OpenedBook.jpg" alt="Відкрита книга" />
         <div className="photobook__pages" style={pageBox ? { width: pageBox.w, height: pageBox.h } : undefined}>
           <div className="opage opage--left">
-            <div className="opage__fade" key={"L" + sc + "-" + pg}>{spread.left}</div>
+            <div className="opage__fade" key={"L" + sc + "-" + pg + (showingNewScene ? "-new" : "")}>{spread.left}</div>
           </div>
           <div className="opage opage--right">
-            <div className="opage__fade" key={"R" + sc + "-" + pg}>{spread.right}</div>
+            <div className="opage__fade" key={"R" + sc + "-" + pg + (showingNewScene ? "-new" : "")}>{spread.right}</div>
           </div>
         </div>
 
