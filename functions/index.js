@@ -5,6 +5,7 @@ const cors = require('cors')({ origin: true }); // Enable CORS for all origins
 const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('./ai-models.js');
 const { charge } = require('./token-service.js');
+// Legacy plan migration completed on 2026-06-26, no longer needed
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -196,25 +197,40 @@ exports.generateScene = onRequest({
       const useClaudeAPI = planConfig.allowClaude;
 
       // Phase 4: Read token cost from economy_operations (data-driven pricing)
+      // SIMPLE MODEL: providers.{provider}.cost = FINAL user token price (no formula)
+      // Change price without deploy: update Firestore economy_operations/generateScene
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const economyData = economyDoc.exists ? economyDoc.data() : null;
 
-      let sceneCost = 20; // fallback
-      let providerModel = 'gemini-2.0-flash-exp';
+      let sceneCost = 20; // fallback (if Firestore unavailable)
+      let providerModel = 'gemini-2.5-flash'; // fallback
 
       if (economyData && economyData.providers) {
         if (useClaudeAPI && economyData.providers.claude) {
-          sceneCost = economyData.providers.claude.cost;
+          sceneCost = economyData.providers.claude.cost;  // ← SINGLE SOURCE OF TRUTH (e.g. 300)
           providerModel = economyData.providers.claude.model;
         } else if (economyData.providers.gemini) {
-          sceneCost = economyData.providers.gemini.cost;
+          sceneCost = economyData.providers.gemini.cost;  // ← SINGLE SOURCE OF TRUTH (e.g. 20)
           providerModel = economyData.providers.gemini.model;
         }
       }
 
       console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude' : 'Gemini'} (${providerModel}), cost: ${sceneCost} tokens`);
 
-      // Check token quota (client already checked, but double-check server-side)
+      // HARD STOP: Block generation at 0 tokens (no overdraft, no fallback to paid API key)
+      if (tokensRemaining <= 0) {
+        console.warn(`[generateScene] HARD STOP: User ${uid} has 0 tokens (plan: ${userPlan})`);
+        res.status(403).json({
+          error: 'Токени закінчились. Оновіть план або дочекайтесь наступного місяця.',
+          tokensRemaining: 0,
+          tokensNeeded: sceneCost,
+          plan: userPlan,
+          code: 'OUT_OF_TOKENS'
+        });
+        return;
+      }
+
+      // Check if user can afford this specific operation
       if (tokensRemaining < sceneCost) {
         res.status(403).json({
           error: 'Недостатньо токенів для генерації',
@@ -226,15 +242,14 @@ exports.generateScene = onRequest({
       }
 
       // Check subscription status for paid plans
-      // TODO: Re-enable when Stripe is fully configured
-      // if (userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
-      //   res.status(403).json({
-      //     error: 'Активна підписка необхідна для генерації',
-      //     requiresSubscription: true,
-      //     plan: userPlan
-      //   });
-      //   return;
-      // }
+      if (userPlan !== 'free' && userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
+        res.status(403).json({
+          error: 'Активна підписка необхідна для генерації',
+          requiresSubscription: true,
+          plan: userPlan
+        });
+        return;
+      }
 
       // Extract canon
       const canon = project.canon || {
@@ -290,16 +305,18 @@ exports.generateScene = onRequest({
 
       // Generate scene using Claude or Gemini based on plan
       if (useClaudeAPI) {
-        // CLAUDE API (Worldforge plan)
+        // CLAUDE API - all Claude plans use Sonnet (worldbuilder differentiated by budget + features)
+        const claudeModel = AI_MODELS.claude.sonnet;
+
         try {
-          console.log(`Using Claude API (${AI_MODELS.claude.opus})`);
+          console.log(`Using Claude API (${claudeModel})`);
 
           const anthropic = new Anthropic({
             apiKey: claudeApiKey.value()
           });
 
           const message = await anthropic.messages.create({
-            model: AI_MODELS.claude.opus,
+            model: claudeModel,
             max_tokens: 4096,
             messages: [{
               role: 'user',
@@ -311,7 +328,7 @@ exports.generateScene = onRequest({
 
           // Phase 4.1: Capture real API usage + model
           apiUsage = message.usage; // { input_tokens, output_tokens, cache_* }
-          actualModel = message.model || AI_MODELS.claude.opus; // Claude returns model in response
+          actualModel = message.model || claudeModel; // Claude returns model in response
 
           // Validate minimum length
           if (sceneText.length < 500) {
@@ -787,18 +804,18 @@ function buildScenePrompt({ title, desc, language, genres, scope, ending, ending
 
   const lang = languageMap[language] || languageMap.en;
 
-  // Convert dialogue percentage to style instruction
+  // Convert dialogue percentage to IMPERATIVE style instruction (strong signal)
   let dialogueStyle;
   if (dialogue <= 15) {
-    dialogueStyle = 'Майже без діалогів — фокус на розповіді, описах, внутрішніх переживаннях';
+    dialogueStyle = 'Напиши сцену БЕЗ діалогів. Лише оповідь, опис, внутрішні думки. Жодної прямої мови.';
   } else if (dialogue <= 38) {
-    dialogueStyle = 'Більше розповіді — діалоги лише де потрібно, основа — наратив';
+    dialogueStyle = 'Діалоги рідкісні — максимум 1-2 короткі репліки на весь текст. Основа — наратив і опис.';
   } else if (dialogue <= 62) {
-    dialogueStyle = 'Збалансовано — міксуй діалоги з розповіддю природно';
+    dialogueStyle = 'Рівно чергуй діалоги й оповідь — 3-4 абзаці опису, потім розмова, потім знову опис.';
   } else if (dialogue <= 82) {
-    dialogueStyle = 'Більше діалогів — персонажі розмовляють часто, через репліки розкривай дії';
+    dialogueStyle = 'Діалоги ведуть дію — персонажі говорять часто, між репліками короткі описи (1-2 речення).';
   } else {
-    dialogueStyle = 'Діалоги ведуть сцену — майже вся сцена тримається на розмовах персонажів';
+    dialogueStyle = 'Сцена МАЄ майже цілком складатися з діалогів — персонажі говорять, мінімум опису між репліками.';
   }
 
   // Convert ending type to narrative direction
@@ -839,7 +856,7 @@ ${previousScenes.map((s, i) => {
 ${intentDescription}
 
 **Стиль письма:**
-- Довжина сцени: ~${length} слів (одна сцена, не розділ)
+- Довжина сцени: ~${length} слів (≈ ${Math.round(length / 100)} абзаців)
 - Діалоги: ${dialogueStyle}
 
 **Інструкції:**
@@ -848,10 +865,12 @@ ${intentDescription}
 3. Якщо канон порожній — створюй світ і персонажів, але будь послідовним
 4. **LANGUAGE:** Write in ${lang.name}, in the style of the project's genre
 5. Format: ## Scene Title (first line), then text
-6. Follow Scene Intent — this is the key direction for the scene
-7. IMPORTANT: Follow the specified length (~${length} words) and dialogue style (${dialogue}% dialogue density)
-8. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
-9. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.
+6. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
+7. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.
+
+**ОСТАННЯ КОМАНДА (дотримуйся строго):**
+- Довжина: ~${length} слів (≈ ${Math.round(length / 100)} абзаців). Не більше ${length + 200} слів.
+- ${dialogueStyle}
 
 Згенеруй сцену:`;
 
@@ -924,15 +943,16 @@ exports.initializeUser = onRequest({
 
       const { plan, email, displayName } = req.body;
 
-      // Plan limits
+      // Plan limits (synced with PLAN_BUDGETS)
       const planLimits = {
-        seed: { tokensMonthly: 300, maxProjects: 1 },
-        storyweaver: { tokensMonthly: 2500, maxProjects: 10 },
-        worldforge: { tokensMonthly: 8000, maxProjects: 999 }
+        free: { tokensMonthly: 200, maxProjects: 1 },
+        storyteller: { tokensMonthly: 2400, maxProjects: 5 },
+        novelist: { tokensMonthly: 32000, maxProjects: 999 },
+        worldbuilder: { tokensMonthly: 180000, maxProjects: 999 }
       };
 
-      const userPlan = plan || 'seed';
-      const limits = planLimits[userPlan] || planLimits.seed;
+      const userPlan = plan || 'free';
+      const limits = planLimits[userPlan] || planLimits.free;
 
       const userRef = db.collection('users').doc(uid);
       const userDoc = await userRef.get();
@@ -956,14 +976,13 @@ exports.initializeUser = onRequest({
           const userData = userDoc.data();
 
           // Protect paid plans - require active subscription
-          // TODO: Re-enable when Stripe is fully configured
-          // if (userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
-          //   res.status(403).json({
-          //     error: 'Активна підписка необхідна для зміни плану',
-          //     requiresSubscription: true
-          //   });
-          //   return;
-          // }
+          if (userPlan !== 'free' && userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
+            res.status(403).json({
+              error: 'Активна підписка необхідна для зміни плану',
+              requiresSubscription: true
+            });
+            return;
+          }
 
           await userRef.update({
             plan: userPlan,
@@ -1082,6 +1101,7 @@ exports.stripeWebhook = onRequest({ secrets: [stripeSecretKey, stripeWebhookSecr
           plan: plan,
           stripeCustomerId: session.customer,
           stripeSubscriptionId: session.subscription,
+          subscriptionStatus: 'active',
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
@@ -1107,12 +1127,13 @@ exports.stripeWebhook = onRequest({ secrets: [stripeSecretKey, stripeWebhookSecr
         const userDoc = userSnapshot.docs[0];
         const uid = userDoc.id;
 
-        // Check subscription status
-        if (subscription.status === 'active') {
-          console.log(`Subscription updated for ${uid}: ${subscription.id}`);
-        } else {
-          console.log(`Subscription ${subscription.status} for ${uid}`);
-        }
+        // Update subscription status
+        await db.collection('users').doc(uid).update({
+          subscriptionStatus: subscription.status,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`Subscription ${subscription.status} for ${uid}`);
 
         break;
       }
@@ -1141,6 +1162,7 @@ exports.stripeWebhook = onRequest({ secrets: [stripeSecretKey, stripeWebhookSecr
         await db.collection('users').doc(uid).update({
           plan: 'free',
           stripeSubscriptionId: null,
+          subscriptionStatus: 'canceled',
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
@@ -2028,4 +2050,6 @@ exports.migrateMargin = onRequest({
     }
   });
 });
+
+
 
