@@ -308,20 +308,26 @@ function SceneIntentRight({ projectId: propProjectId }) {
         }
       }
 
+      // Pre-generate sceneId for canon linking (Phase 3.1b)
+      const sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
       const result = await window.__firebaseAI.generateScene(
         actualProjectId,
         sel,
         sel === 'custom' ? note : null,
-        previousScenes
+        previousScenes,
+        0,  // retryCount
+        sceneId  // Pass sceneId for canon linking
       );
 
       if (result.success) {
         console.log('Scene generated:', result.scene);
 
-        // D4: Save scene to Firestore
+        // D4: Save scene to Firestore (with pre-generated sceneId for canon linking)
         if (window.__firebaseScenes) {
           try {
             const savedScene = await window.__firebaseScenes.addScene(actualProjectId, {
+              id: sceneId,  // Use pre-generated ID to match canon extraction linking
               title: result.scene.title,
               text: result.scene.text,
               intent: result.scene.intent,
