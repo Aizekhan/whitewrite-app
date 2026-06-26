@@ -9,14 +9,8 @@ const WT_NODES = [
   { id: "events",     x: 27.5, y: 45 },
   { id: "factions",   x: 72.5, y: 45 },
 ];
-// Rich illustrated emblems (custom images for each node type)
-const NODE_ART = {
-  characters: "assets/node-characters.png",
-  locations: "assets/node-locations.png",
-  events: "assets/node-events.png",
-  artifacts: "assets/node-artifacts.png",
-  factions: "assets/node-factions.png"
-};
+// rich illustrated emblems disabled — back to clean line icons.
+const NODE_ART = {};
 
 function TreeMap({ onSelect, canon }) {
   const [hover, setHover] = useTreeState(null);
@@ -25,7 +19,7 @@ function TreeMap({ onSelect, canon }) {
   const node = (id, x, y, core) => {
     const A = ADAPTERS[id];
     const I = core ? Ic.scroll : Ic[A.icon];
-    const art = core ? "assets/node-chronicle.png" : NODE_ART[id];
+    const art = NODE_ART[id];
     const top = y < 52;
     const title = core ? "Хроніка" : A.title;
     const kick = core ? "Серце всесвіту" : A.kicker;
