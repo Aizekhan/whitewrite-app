@@ -12,8 +12,10 @@ const WT_NODES = [
 // rich illustrated emblems disabled — back to clean line icons.
 const NODE_ART = {};
 
-function TreeMap({ onSelect }) {
+function TreeMap({ onSelect, canon }) {
   const [hover, setHover] = useTreeState(null);
+  // Use canon prop if available (real data), fallback to WORLD (mock)
+  const dataSource = canon || window.WORLD || {};
   const node = (id, x, y, core) => {
     const A = ADAPTERS[id];
     const I = core ? Ic.scroll : Ic[A.icon];
@@ -21,7 +23,7 @@ function TreeMap({ onSelect }) {
     const top = y < 52;
     const title = core ? "Хроніка" : A.title;
     const kick = core ? "Серце всесвіту" : A.kicker;
-    const count = core ? WORLD.events.length : (WORLD[id] || []).length;
+    const count = core ? (dataSource.events || []).length : (dataSource[id] || []).length;
     return (
       <button key={id} className={`node ${core ? "node--core" : ""} ${art ? "node--art" : ""} ${hover === id ? "is-hot" : ""}`}
         style={{ left: x + "%", top: y + "%" }}

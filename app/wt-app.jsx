@@ -618,6 +618,11 @@ function WorldTreeApp() {
           world: canonArrays.world
         });
 
+        // DEBUG: Log actual character data for inspection
+        console.log('[WorldTree] DEBUG Characters array:', canonArrays.characters);
+        console.log('[WorldTree] DEBUG Locations array:', canonArrays.locations);
+        console.log('[WorldTree] DEBUG Events array:', canonArrays.events);
+
         // Update global WORLD for compatibility with existing code (wt-tree.jsx, wt-workspace.jsx, etc.)
         window.WORLD = canonArrays;
 
@@ -660,7 +665,7 @@ function WorldTreeApp() {
 
   return (
     <div className="wt-root">
-      <TreeMap onSelect={(t) => navigate(t)} />
+      <TreeMap onSelect={(t) => navigate(t)} canon={canon} />
       {!cur && (
         <>
           <header className="brand">
