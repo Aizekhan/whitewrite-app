@@ -314,15 +314,27 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 
 /* end-of-scene Scene Intent */
 .page-intent-left{ }
-.page-intent-right{ }
+.page-intent-right{
+  display:flex;
+  flex-direction:column;
+  min-height:0; }
 .intent__lead{ font-style:italic; color:#5b4527; font-size:clamp(13px,1.35cqw,16px); line-height:1.55; margin:0 0 1.4cqw; }
 
-/* Scene Intent Cards — Golden Vertical Cards (2×2 grid) */
+/* Scene Intent Cards — Golden Vertical Cards */
 .intent__grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:1cqw;
   margin-bottom:1.2cqw; }
+
+/* Left page: 7 cards in compact 2-column grid */
+.intent__grid--left{
+  grid-template-columns:1fr 1fr;
+  gap:0.8cqw; }
+
+/* Right page: custom card + textarea */
+.intent__custom-card{
+  margin-bottom:1cqw; }
 
 .intent-card{
   position:relative;
@@ -428,7 +440,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   animation:markPulse 2.4s ease-in-out infinite; }
 @keyframes markPulse{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
 
-/* Custom intent field */
+/* Custom intent field — larger on right page */
 .intent-custom{
   position:relative;
   margin-top:0.8cqw;
@@ -440,13 +452,15 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
     repeating-linear-gradient(90deg, rgba(140,106,46,0.025) 0 2px, transparent 2px 6px);
   border:1px solid rgba(154,111,37,0.45);
   box-shadow:inset 0 2px 6px rgba(0,0,0,0.06), 0 3px 10px rgba(0,0,0,0.08);
-  animation:customUnfold .4s cubic-bezier(.23,.86,.39,.96) both; }
-@keyframes customUnfold{ from{opacity:0; max-height:0; padding-top:0; padding-bottom:0; margin-top:0} to{opacity:1; max-height:120px} }
+  animation:customUnfold .4s cubic-bezier(.23,.86,.39,.96) both;
+  display:flex;
+  align-items:flex-start;
+  gap:0.8cqw;
+  flex:1;
+  min-height:0; }
+@keyframes customUnfold{ from{opacity:0; max-height:0; padding-top:0; padding-bottom:0; margin-top:0} to{opacity:1; max-height:600px} }
 .intent-custom__quill{
-  position:absolute;
-  top:-0.9cqw;
-  left:50%;
-  transform:translateX(-50%);
+  flex-shrink:0;
   width:2.2cqw;
   height:2.2cqw;
   display:grid;
@@ -463,12 +477,11 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   width:100%;
   box-sizing:border-box;
   resize:none;
-  height:2.8cqw;
-  min-height:2.8cqw;
-  max-height:2.8cqw;
+  min-height:8cqw;
+  max-height:15cqw;
   font-family:"Philosopher",serif;
   font-size:clamp(12px,1.2cqw,14px);
-  line-height:1.4;
+  line-height:1.5;
   color:#3a2614;
   background:transparent;
   border:none;
@@ -476,10 +489,10 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   overflow-y:auto; }
 .intent-custom__text::placeholder{ color:rgba(122,91,44,0.5); font-style:italic; }
 
-/* Generate button as ritual seal */
+/* Generate button as ritual seal — always at bottom */
 .intent__footer{
-  margin-top:0.8cqw;
-  padding-top:0.6cqw;
+  margin-top:auto;
+  padding-top:0.8cqw;
   display:flex;
   justify-content:center;
   align-items:center; }

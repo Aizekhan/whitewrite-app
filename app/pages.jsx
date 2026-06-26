@@ -210,10 +210,10 @@ const INTENTS = [
   { id: "custom", icon: "✎", t: "Свій напрям", d: "опиши, що хочеш побачити" },
 ];
 
-// LEFT PAGE: Cards 1-4 + Header
+// LEFT PAGE: Cards 1-7 (all except "custom") + Header
 function SceneIntentLeft() {
   const { sel, setSel } = useSceneIntentState();
-  const leftIntents = INTENTS.slice(0, 4);
+  const leftIntents = INTENTS.slice(0, 7); // All except "custom"
 
   return (
     <div className="page-inner page-intent-left">
@@ -222,7 +222,7 @@ function SceneIntentLeft() {
         Сцену завершено. Обери напрям, куди поверне історія — або довір вибір Хранителю.
       </p>
 
-      <div className="intent__grid">
+      <div className="intent__grid intent__grid--left">
         {leftIntents.map((o) => (
           <button
             key={o.id}
@@ -243,10 +243,10 @@ function SceneIntentLeft() {
   );
 }
 
-// RIGHT PAGE: Cards 5-8 + Generate Button
+// RIGHT PAGE: "Custom" card + textarea OR selected intent display + Generate Button
 function SceneIntentRight({ projectId: propProjectId }) {
   const { sel, note, setSel, setNote } = useSceneIntentState();
-  const rightIntents = INTENTS.slice(4, 8);
+  const customIntent = INTENTS[7]; // "custom" is last (index 7)
   const [busy, setBusy] = useReactState(false);
   const cur = INTENTS.find((o) => o.id === sel);
   const canGo = sel && (sel !== "custom" || note.trim().length > 0);
@@ -397,22 +397,21 @@ function SceneIntentRight({ projectId: propProjectId }) {
   }
   return (
     <div className="page-inner page-intent-right">
-      <div className="intent__grid">
-        {rightIntents.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            className={`intent-card ${sel === o.id ? 'is-sel' : ''}`}
-            onClick={() => setSel(o.id)}
-          >
-            <div className="intent-card__icon">{o.icon}</div>
-            <div className="intent-card__title">{o.t}</div>
-            <div className="intent-card__desc">{o.d}</div>
-            {sel === o.id && <div className="intent-card__mark">✦</div>}
-          </button>
-        ))}
+      {/* Custom card - always visible at top */}
+      <div className="intent__custom-card">
+        <button
+          type="button"
+          className={`intent-card intent-card--custom ${sel === "custom" ? 'is-sel' : ''}`}
+          onClick={() => setSel("custom")}
+        >
+          <div className="intent-card__icon">{customIntent.icon}</div>
+          <div className="intent-card__title">{customIntent.t}</div>
+          <div className="intent-card__desc">{customIntent.d}</div>
+          {sel === "custom" && <div className="intent-card__mark">✦</div>}
+        </button>
       </div>
 
+      {/* If custom selected, show large textarea */}
       {sel === "custom" && (
         <div className="intent-custom">
           <div className="intent-custom__quill">✒</div>
@@ -425,17 +424,18 @@ function SceneIntentRight({ projectId: propProjectId }) {
                   setNote(ev.target.value);
                 }
               }}
-              placeholder="Опиши, що має статися далі…"
+              placeholder="Опиши, що має статися далі… (наприклад: 'персонажі знаходять стародавній артефакт, який відкриває портал')"
               autoFocus
               maxLength={500}
             />
-            <div style={{ position: 'absolute', bottom: '8px', right: '12px', fontSize: '11px', color: note.length > 500 ? '#d9534f' : 'rgba(194,161,87,0.6)', pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', bottom: '8px', right: '12px', fontSize: '11px', color: note.length > 450 ? '#d9534f' : 'rgba(194,161,87,0.6)', pointerEvents: 'none' }}>
               {note.length} / 500
             </div>
           </div>
         </div>
       )}
 
+      {/* Generate button - always at bottom, stable position */}
       <div className="intent__footer">
         <button className="intent-seal" type="button" onClick={generate} disabled={!canGo || busy}>
           <div className="intent-seal__ring">
