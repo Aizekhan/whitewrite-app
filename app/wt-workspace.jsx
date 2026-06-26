@@ -287,13 +287,22 @@ function WsCatMenu({ type, navigate }) {
 function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   const A = ADAPTERS[type];
   // Use canon prop if available (real data), fallback to WORLD (mock)
-  const dataSource = canon || WORLD;
-  const rawData = dataSource[type];
+  const dataSource = canon || window.WORLD;
+  const rawData = dataSource ? dataSource[type] : undefined;
+
+  // DEBUG: Log data for inspection
+  console.log(`[Workspace ${type}] canon prop:`, canon);
+  console.log(`[Workspace ${type}] dataSource:`, dataSource);
+  console.log(`[Workspace ${type}] rawData for type "${type}":`, rawData);
+  console.log(`[Workspace ${type}] rawData type:`, Array.isArray(rawData) ? 'array' : typeof rawData);
 
   // Ensure 'all' is always an array (handle both object and array formats)
   const all = Array.isArray(rawData)
     ? rawData
     : (rawData && typeof rawData === 'object' ? Object.values(rawData) : []);
+
+  console.log(`[Workspace ${type}] all (converted):`, all);
+  console.log(`[Workspace ${type}] all.length:`, all.length);
   const [scene] = useWtScene();
   const [q, setQ] = useWsState("");
   const [view, setView] = useWsState("cards");
