@@ -291,10 +291,12 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   const rawData = dataSource ? dataSource[type] : undefined;
 
   // DEBUG: Log data for inspection
-  console.log(`[Workspace ${type}] canon prop:`, canon);
-  console.log(`[Workspace ${type}] dataSource:`, dataSource);
-  console.log(`[Workspace ${type}] rawData for type "${type}":`, rawData);
-  console.log(`[Workspace ${type}] rawData type:`, Array.isArray(rawData) ? 'array' : typeof rawData);
+  if (typeof DEBUG !== 'undefined' && DEBUG) {
+    console.log(`[Workspace ${type}] canon prop:`, canon);
+    console.log(`[Workspace ${type}] dataSource:`, dataSource);
+    console.log(`[Workspace ${type}] rawData for type "${type}":`, rawData);
+    console.log(`[Workspace ${type}] rawData type:`, Array.isArray(rawData) ? 'array' : typeof rawData);
+  }
 
   // Ensure 'all' is always an array (handle both object and array formats)
   const all = Array.isArray(rawData)

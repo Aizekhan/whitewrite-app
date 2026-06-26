@@ -322,7 +322,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   background:rgba(20,14,8,0.92); border:1px solid rgba(217,160,70,0.6); color:var(--gold-lit); }
 .acc__avcam svg{ width:14px; height:14px; }
 .acc__id{ flex:1; min-width:0; }
-.acc__editbtn{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; cursor:pointer; font-size:12.5px;
+.acc__editbtn{ display:inline-flex; align-items:center; gap:6px; margin-top:0; cursor:pointer; font-size:12.5px;
   color:var(--tx); padding:7px 13px; border-radius:8px; border:1px solid var(--line-2); background:var(--bg-1); transition:.16s; }
 .acc__editbtn svg{ width:14px; height:14px; }
 .acc__editbtn:hover{ color:var(--gold-lit); border-color:var(--gold); }
@@ -336,7 +336,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .userdock__av{ position:relative; overflow:hidden; }
 .userdock__av img{ position:absolute; width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .acc__name{ font-family:"Cinzel",serif; font-weight:600; font-size:22px; color:var(--tx-hi); }
-.acc__plan{ display:inline-flex; align-items:center; gap:7px; margin-top:7px; font-size:12px; color:var(--gold-lit);
+.acc__plan{ display:inline-flex; align-items:center; gap:7px; margin-top:6px; margin-bottom:8px; font-size:12px; color:var(--gold-lit);
   background:var(--gold-soft); border:1px solid rgba(217,119,6,0.3); border-radius:20px; padding:4px 12px; }
 .acc-stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-top:22px; }
 .acc-stat{ background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:16px 18px; }
@@ -1179,18 +1179,27 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var ov = document.getElementById("del-confirm"); ov.__idx = null; ov.classList.remove("is-on");
   };
   function fillNarr(){ return fillHome(); }
+
+  // XSS protection: escape HTML entities in user input
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   function narrCard(p, i) {
     var b = p.badge === "active" ? '<span class="ncard__badge badge--active">активний</span>' : '<span class="ncard__badge badge--draft">чернетка</span>';
     var btn = p.active
       ? '<button class="ncard__open" data-open>' + svg("open") + 'Відкрити всесвіт</button>'
       : '<button class="ncard__open" data-open style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + 'Продовжити</button>';
-    return '<article class="ncard" data-project-id="' + p.id + '" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '">' +
-      '<div class="ncard__cover" style="background-image:url(' + (p.cover || "assets/ph-project.png") + ');background-size:cover;background-position:center">' + b +
+    return '<article class="ncard" data-project-id="' + escapeHtml(p.id) + '" style="--c1:' + escapeHtml(p.c1) + ';--c2:' + escapeHtml(p.c2) + '">' +
+      '<div class="ncard__cover" style="background-image:url(' + escapeHtml(p.cover || "assets/ph-project.png") + ');background-size:cover;background-position:center">' + b +
         '<button class="ncard__edit" data-i="' + i + '" title="Редагувати всесвіт">' + svg("edit") + '</button>' +
         '<button class="ncard__del" data-di="' + i + '" title="Видалити всесвіт">' + svg("trash") + '</button>' +
-        '<span class="ncard__mark">' + p.title.charAt(0) + '</span></div>' +
-      '<div class="ncard__b"><div class="ncard__title">' + p.title + '</div><div class="ncard__meta">' + p.meta + '</div>' +
-      '<p class="ncard__desc">' + p.desc + '</p>' + btn + '</div></article>';
+        '<span class="ncard__mark">' + escapeHtml(p.title.charAt(0)) + '</span></div>' +
+      '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(p.title) + '</div><div class="ncard__meta">' + escapeHtml(p.meta) + '</div>' +
+      '<p class="ncard__desc">' + escapeHtml(p.desc) + '</p>' + btn + '</div></article>';
   }
 
   function fillMarket() {
@@ -1318,7 +1327,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '</div>';
       return;
     }
-    var u = window.__wwUser || (window.__wwUser = { name: "Майстер всесвітів", plan: "storyweaver", avatar: null });
+    var u = window.__wwUser || (window.__wwUser = { name: "Майстер всесвітів", plan: "free", avatar: null });
     var initial = u.name.trim().charAt(0) || "М";
     var avInner = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : initial;
     views.account.innerHTML =
@@ -1331,7 +1340,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           '<input type="file" id="acc-avfile" accept="image/*" style="display:none" />' +
           '<div class="acc__id">' +
             '<div class="acc__name" id="acc-name">' + u.name + '</div>' +
-            '<span class="acc__plan">' + svg("sparkle") + planLabel(u.plan) + '</span>' +
+            '<span class="acc__plan">' + svg("sparkle") + planLabel(u.plan) + (u.subscriptionStatus && u.subscriptionStatus !== 'active' && u.plan !== 'free' ? ' <span style="opacity:0.6">(скасовано)</span>' : '') + '</span>' +
             '<button class="acc__editbtn" id="acc-edit">' + svg("edit") + ' Редагувати профіль</button>' +
           '</div>' +
           '<div class="acc__tokens"><span class="acc__tokn" id="acc-tokn">' + ((u.tokensRemaining !== undefined ? u.tokensRemaining : 0).toLocaleString()) + '</span><span class="acc__tokl">токенів залишилось</span>' +
@@ -1342,9 +1351,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '</div>' +
         '<div class="vsec-h">' + svg("sparkle") + 'Плани підписки</div>' +
         '<div class="plan-grid">' +
-          planCard("storyteller", "Storyteller", "$12/міс", ["1200 токенів/міс", "≈ 200 сцен (Gemini, 700 слів)", "10 проєктів", "✨ Експорт DOCX/PDF", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
-          planCard("novelist", "Novelist", "$36/міс", ["3600 токенів/міс", "≈ 600 сцен (Gemini, 700 слів)", "50 проєктів", "Canon extraction", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan, true) +
-          planCard("worldbuilder", "Worldbuilder", "$69/міс", ["6900 токенів/міс", "≈ 275 сцен (Claude, 700 слів)", "✦ Claude Sonnet API", "999 проєктів", "🔥 Universe Reconstruction", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
+          planCard("free", "Free", "$0/міс", ["200 токенів/міс", "≈ 10 сцен (Gemini, 700 слів)", "1 проєкт", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
+          planCard("storyteller", "Storyteller", "$12/міс", ["2400 токенів/міс", "≈ 120 сцен (Gemini, 700 слів)", "5 проєктів", "✨ Експорт DOCX/PDF", "WorldTree + Canon", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
+          planCard("novelist", "Novelist", "$29/міс", ["32000 токенів/міс", "≈ 400 Gemini або 80 Claude сцен", "✦ Claude Sonnet API", "∞ проєктів", "Universe Reconstruction", "ANALYZE/IMPROVE modes", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan, true) +
+          planCard("worldbuilder", "Worldbuilder", "$69/міс", ["180000 токенів/міс", "≈ 300 Claude / ∞ Gemini сцен", "✦ Claude Sonnet API", "∞ проєктів", "🔥 Universe Reconstruction", "API access", '<span style="font-size:11px;opacity:0.7">К-ть сцен залежить від довжини й моделі</span>'], u.plan) +
         '</div>' +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">⎋ Вийти з акаунту</button>' +
       '</div>';

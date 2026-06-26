@@ -15,7 +15,7 @@ const AI_MODELS = {
 
   // Gemini models (Google API)
   gemini: {
-    pro: 'gemini-2.0-flash-exp'       // Free tier model
+    pro: 'gemini-2.5-flash'           // Stable GA model (free tier)
   }
 };
 

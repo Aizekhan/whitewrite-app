@@ -117,12 +117,12 @@ function calculateUserTokens(estApiCostUSD, tokenToUSD, marginMultiplier, global
 
 /**
  * Get provider for user plan (matches backend logic)
- * @param {string} plan - User plan (seed, storyteller, worldforge)
+ * @param {string} plan - User plan (free, storyteller, novelist, worldbuilder)
  * @returns {string} Provider name ('gemini' or 'claude')
  */
 function getProviderForPlan(plan) {
-  // worldforge uses Claude, others use Gemini
-  return (plan === 'worldforge') ? 'claude' : 'gemini';
+  // novelist + worldbuilder use Claude Sonnet, free/storyteller use Gemini
+  return (plan === 'novelist' || plan === 'worldbuilder') ? 'claude' : 'gemini';
 }
 
 /**

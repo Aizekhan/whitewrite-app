@@ -1,6 +1,10 @@
 // World Tree — the Universe pillar. Tree (Level 1) → full-screen category
 // workspace (Level 2). Everything is one connected system: navigate(type,id)
 // jumps anywhere; the Chronicle is the canon overview at the heart.
+
+// Debug flag — set to false for production
+const DEBUG = false;
+
 const { useState: useAppState, useCallback: useAppCb, useEffect: useAppEffect } = React;
 
 // ---- PHASE 3: ProjectContext (read from shell) ----
@@ -593,9 +597,9 @@ function WorldTreeApp() {
 
         // Load scenes from Firestore (separate subcollection)
         let scenes = [];
-        console.log('[WorldTree] DEBUG: window.__firebaseScenes exists?', !!window.__firebaseScenes);
+        if (DEBUG) console.log('[WorldTree] DEBUG: window.__firebaseScenes exists?', !!window.__firebaseScenes);
         if (window.__firebaseScenes) {
-          console.log('[WorldTree] DEBUG: About to call getScenes with projectId:', projectId);
+          if (DEBUG) console.log('[WorldTree] DEBUG: About to call getScenes with projectId:', projectId);
           try {
             scenes = await window.__firebaseScenes.getScenes(projectId);
             console.log('[WorldTree] ✅ Scenes loaded:', scenes.length);
@@ -619,9 +623,11 @@ function WorldTreeApp() {
         });
 
         // DEBUG: Log actual character data for inspection
-        console.log('[WorldTree] DEBUG Characters array:', canonArrays.characters);
-        console.log('[WorldTree] DEBUG Locations array:', canonArrays.locations);
-        console.log('[WorldTree] DEBUG Events array:', canonArrays.events);
+        if (DEBUG) {
+          console.log('[WorldTree] DEBUG Characters array:', canonArrays.characters);
+          console.log('[WorldTree] DEBUG Locations array:', canonArrays.locations);
+          console.log('[WorldTree] DEBUG Events array:', canonArrays.events);
+        }
 
         // Update global WORLD for compatibility with existing code (wt-tree.jsx, wt-workspace.jsx, etc.)
         window.WORLD = canonArrays;

@@ -44,6 +44,9 @@ window.__firebaseAuth = {
             window.__wwUser.allowExport = planConfig.allowExport || false;
             window.__wwUser.allowAPI = planConfig.allowAPI || false;
 
+            // Subscription status (for UI display)
+            window.__wwUser.subscriptionStatus = userData.subscriptionStatus || null;
+
             // Usage breakdown (for analytics)
             window.__wwUser.usage = userData.usage || {};
 
@@ -203,7 +206,26 @@ window.__firebaseAuth = {
       return { success: false, error: 'Invalid operation' };
     }
 
-    // Check if user can afford
+    // HARD STOP: Block generation when tokens = 0 (no overdraft, no fallback to paid API)
+    if (window.__wwUser.tokensRemaining <= 0) {
+      console.warn(`Hard stop: 0 tokens remaining (plan: ${window.__wwUser.plan})`);
+
+      // Show upgrade modal
+      if (typeof window.__openPricingModal === 'function') {
+        setTimeout(() => {
+          const planName = window.__getPlanConfig ? window.__getPlanConfig(window.__wwUser.plan).name : 'free';
+          const message = `Токени закінчились!\n\nДоступно: 0 токенів\nВаш план: ${planName}\n\nОберіть більший план або дочекайтесь наступного місяця для продовження генерації.`;
+
+          if (confirm(message + '\n\nПереглянути тарифи?')) {
+            window.__openPricingModal();
+          }
+        }, 100);
+      }
+
+      return { success: false, error: 'Out of tokens', needed: cost, available: 0 };
+    }
+
+    // Check if user can afford this specific operation
     if (window.__wwUser.tokensRemaining < cost) {
       console.warn(`Insufficient tokens: need ${cost}, have ${window.__wwUser.tokensRemaining}`);
 

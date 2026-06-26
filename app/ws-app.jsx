@@ -1,4 +1,8 @@
 // Workspace shell: sidebar nav + topbar + tab routing.
+
+// Debug flag — set to false for production
+const DEBUG = false;
+
 const { useState: useWState, useEffect: useWEffect } = React;
 
 // ---- PHASE 3: ProjectContext (read from shell) ----
@@ -125,11 +129,11 @@ function App() {
 
   // PHASE 3: Read projectId from ProjectContext
   const contextProjectId = React.useContext(ProjectContext);
-  console.log('[Workspace] 🔥 NEW CODE 2026-06-23:', { contextProjectId, wwUser: !!window.__wwUser });
+  if (DEBUG) console.log('[Workspace] 🔥 NEW CODE 2026-06-23:', { contextProjectId, wwUser: !!window.__wwUser });
 
   // DEBUG: Log contextProjectId changes
   React.useEffect(() => {
-    console.log('[Workspace] DEBUG: contextProjectId changed:', contextProjectId);
+    if (DEBUG) console.log('[Workspace] DEBUG: contextProjectId changed:', contextProjectId);
   }, [contextProjectId]);
 
   // REMOVED: Separate auth polling useEffect
