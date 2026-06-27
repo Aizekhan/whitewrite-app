@@ -918,6 +918,106 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   margin-top:auto;
   padding-top:1.2cqw; }
 
+/* ========================================
+   ROAD CIRCLES (Round buttons on paths)
+   ======================================== */
+
+.road-circle{
+  position:absolute;
+  width:4.5cqw;
+  height:4.5cqw;
+  border-radius:50%;
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  font-size:2.2cqw;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,250,230,0.95), rgba(238,220,180,0.92)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 18deg, rgba(201,162,75,0.08) 18deg 22deg);
+  border:2px solid rgba(154,111,37,0.4);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.15),
+    inset 0 2px 4px rgba(255,250,240,0.85);
+  transition:all .35s cubic-bezier(.23,.86,.39,.96); }
+
+.road-circle:hover{
+  transform:scale(1.12);
+  border-color:rgba(154,111,37,0.6);
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,252,240,1), rgba(245,230,195,0.96)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 18deg, rgba(201,162,75,0.1) 18deg 22deg);
+  box-shadow:
+    0 8px 22px rgba(0,0,0,0.22),
+    0 0 20px rgba(201,162,75,0.35),
+    inset 0 2px 5px rgba(255,250,240,1); }
+
+.road-circle.is-sel{
+  border-color:#9a6f25;
+  border-width:3px;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(255,248,220,1), rgba(242,218,170,1)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 18deg, rgba(201,162,75,0.15) 18deg 22deg);
+  box-shadow:
+    0 0 0 4px rgba(201,162,75,0.25),
+    0 10px 28px rgba(0,0,0,0.25),
+    0 0 32px rgba(201,162,75,0.5),
+    inset 0 3px 6px rgba(255,245,215,1); }
+
+.road-circle__icon{
+  position:relative;
+  z-index:1; }
+
+.road-circle__glow{
+  position:absolute;
+  inset:-8px;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 50%, rgba(201,162,75,0.2), transparent 65%);
+  pointer-events:none;
+  animation:circleGlow 2.2s ease-in-out infinite; }
+
+@keyframes circleGlow{
+  0%, 100%{ opacity:0.5; transform:scale(0.95); }
+  50%{ opacity:0.9; transform:scale(1.05); } }
+
+/* Positioning for each road (adjust based on design) */
+.road-circle--1{ top:15%; left:20%; }
+.road-circle--2{ top:25%; left:45%; }
+.road-circle--3{ top:18%; left:70%; }
+.road-circle--4{ top:45%; left:15%; }
+.road-circle--5{ top:50%; left:65%; }
+.road-circle--6{ top:70%; left:30%; }
+.road-circle--7{ top:75%; left:60%; }
+
+/* ========================================
+   GENERATE BUTTON (replaces right arrow)
+   ======================================== */
+
+.pturn--generate{
+  /* Same base as pturn but styled as golden seal */
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255,248,220,0.95), rgba(233,200,120,0.85)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.12) 15deg 18deg);
+  border:2px solid rgba(154,111,37,0.5);
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.2),
+    0 0 24px rgba(201,162,75,0.4),
+    inset 0 2px 4px rgba(255,250,240,0.9); }
+
+.pturn--generate:hover:not(:disabled){
+  transform:scale(1.15);
+  border-color:#9a6f25;
+  background:
+    radial-gradient(circle at 40% 30%, rgba(255,250,230,1), rgba(240,210,140,0.95)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.15) 15deg 18deg);
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.28),
+    0 0 32px rgba(201,162,75,0.6),
+    inset 0 3px 6px rgba(255,248,230,1); }
+
+.pturn--generate:disabled{
+  opacity:0.5;
+  cursor:default; }
+
 .quill{ margin-top:30px; font-family:"Philosopher",serif; cursor:pointer;
   background:transparent; color:var(--gold-deep);
   border:1px solid rgba(140,106,46,0.5); border-radius:2px;

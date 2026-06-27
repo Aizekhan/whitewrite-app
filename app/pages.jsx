@@ -231,15 +231,12 @@ function SceneIntentLeft() {
             <button
               key={o.id}
               type="button"
-              className={`crossroads__path crossroads__path--${idx + 1} ${sel === o.id ? 'is-sel' : ''}`}
+              className={`road-circle road-circle--${idx + 1} ${sel === o.id ? 'is-sel' : ''}`}
               onClick={() => setSel(o.id)}
+              title={`${o.t}: ${o.d}`}
             >
-              <div className="path__icon">{o.icon}</div>
-              <div className="path__label">
-                <div className="path__title">{o.t}</div>
-                <div className="path__desc">{o.d}</div>
-              </div>
-              {sel === o.id && <div className="path__glow"></div>}
+              <div className="road-circle__icon">{o.icon}</div>
+              {sel === o.id && <div className="road-circle__glow"></div>}
             </button>
           ))}
         </div>
@@ -257,6 +254,18 @@ function SceneIntentRight({ projectId: propProjectId }) {
   const [busy, setBusy] = useReactState(false);
   const cur = INTENTS.find((o) => o.id === sel);
   const canGo = sel && (sel !== "custom" || note.trim().length > 0);
+
+  // Export generate function to window for book.jsx
+  React.useEffect(() => {
+    window.__sceneIntentGenerate = generate;
+    window.__sceneIntentCanGenerate = () => canGo;
+    window.__sceneIntentIsBusy = () => busy;
+    return () => {
+      window.__sceneIntentGenerate = null;
+      window.__sceneIntentCanGenerate = () => false;
+      window.__sceneIntentIsBusy = () => false;
+    };
+  }, [canGo, busy]);
 
   async function generate() {
     if (!canGo || busy) return;
@@ -452,24 +461,19 @@ function SceneIntentRight({ projectId: propProjectId }) {
             </div>
           )}
         </div>
-
-        {/* Generate button - seal at the end of the path */}
-        <div className="crossroads__seal">
-          <button className="intent-seal" type="button" onClick={generate} disabled={!canGo || busy}>
-            <div className="intent-seal__ring">
-              <div className="intent-seal__rune">{busy ? '✦' : cur ? cur.icon : '✶'}</div>
-            </div>
-            <div className="intent-seal__label">
-              {busy ? 'Хранитель пише…' : 'Почати наступну сцену'}
-            </div>
-          </button>
-        </div>
       </div>
 
       <Folio n="—" />
     </div>
   );
 }
+
+// Export generate function to window for book.jsx to call
+Object.assign(window, {
+  __sceneIntentGenerate: null, // Will be set by SceneIntentRight
+  __sceneIntentCanGenerate: () => false, // Will be set by SceneIntentRight
+  __sceneIntentIsBusy: () => false // Will be set by SceneIntentRight
+});
 
 function ColophonPage() {
   return (

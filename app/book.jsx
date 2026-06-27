@@ -431,8 +431,19 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         {!generating && (
           <button className={`pturn pturn--prev ${atFirst ? "is-disabled" : ""}`} onClick={() => !atFirst && go("prev")} aria-label="Назад" type="button" disabled={atFirst}>‹</button>
         )}
-        {!generating && (
+        {!generating && !atLast && (
           <button className={`pturn pturn--next ${atLast ? "is-disabled" : ""}`} onClick={() => !atLast && go("next")} aria-label="Далі" type="button" disabled={atLast}>›</button>
+        )}
+        {!generating && atLast && window.__sceneIntentCanGenerate && window.__sceneIntentCanGenerate() && (
+          <button
+            className="pturn pturn--generate"
+            onClick={() => window.__sceneIntentGenerate && window.__sceneIntentGenerate()}
+            aria-label="Почати наступну сцену"
+            type="button"
+            disabled={window.__sceneIntentIsBusy && window.__sceneIntentIsBusy()}
+          >
+            {window.__sceneIntentIsBusy && window.__sceneIntentIsBusy() ? '⏳' : '✦'}
+          </button>
         )}
       </div>
 
