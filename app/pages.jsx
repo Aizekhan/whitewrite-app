@@ -215,6 +215,26 @@ function SceneIntentLeft() {
   const { sel, setSel } = useSceneIntentState();
   const leftIntents = INTENTS.slice(0, 7); // All except "custom"
 
+  // Set crossroads background on mount
+  React.useEffect(() => {
+    const paper = document.querySelector('.opage--left .leaf__paper') ||
+                  document.querySelector('.leaf--left .leaf__paper');
+    if (paper) {
+      paper.style.backgroundImage = "url('assets/BookNextEpisode.png')";
+      paper.style.backgroundSize = "200% 100%";
+      paper.style.backgroundPosition = "left center";
+      paper.style.backgroundRepeat = "no-repeat";
+    }
+    return () => {
+      if (paper) {
+        paper.style.backgroundImage = "";
+        paper.style.backgroundSize = "";
+        paper.style.backgroundPosition = "";
+        paper.style.backgroundRepeat = "";
+      }
+    };
+  }, []);
+
   return (
     <div className="page-inner page-intent-left">
       {/* Crossroads background illustration will be added via CSS */}
@@ -257,6 +277,26 @@ function SceneIntentRight({ projectId: propProjectId }) {
   const [busy, setBusy] = useReactState(false);
   const cur = INTENTS.find((o) => o.id === sel);
   const canGo = sel && (sel !== "custom" || note.trim().length > 0);
+
+  // Set crossroads background on mount
+  React.useEffect(() => {
+    const paper = document.querySelector('.opage--right .leaf__paper') ||
+                  document.querySelector('.leaf--right .leaf__paper');
+    if (paper) {
+      paper.style.backgroundImage = "url('assets/BookNextEpisode.png')";
+      paper.style.backgroundSize = "200% 100%";
+      paper.style.backgroundPosition = "right center";
+      paper.style.backgroundRepeat = "no-repeat";
+    }
+    return () => {
+      if (paper) {
+        paper.style.backgroundImage = "";
+        paper.style.backgroundSize = "";
+        paper.style.backgroundPosition = "";
+        paper.style.backgroundRepeat = "";
+      }
+    };
+  }, []);
 
   async function generate() {
     if (!canGo || busy) return;
