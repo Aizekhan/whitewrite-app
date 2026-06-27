@@ -313,6 +313,20 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   box-shadow:inset 0 1px 0 rgba(255,240,200,0.5); }
 
 /* end-of-scene Scene Intent */
+
+/* ВАЖЛИВО: Замінити фон книги на роздоріжжя для Scene Intent сторінок */
+.page-intent-left .leaf__paper,
+.page-intent-right .leaf__paper{
+  background-image:url('assets/BookNextEpisode.png');
+  background-size:200% 100%;
+  background-repeat:no-repeat; }
+
+.page-intent-left .leaf__paper{
+  background-position:left center; }
+
+.page-intent-right .leaf__paper{
+  background-position:right center; }
+
 .page-intent-left{ }
 .page-intent-right{
   display:flex;
@@ -582,18 +596,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   flex-direction:column;
   flex:1;
   min-height:0;
-  padding:1.5cqw 0;
-  background-image:url('assets/BookNextEpisode.png');
-  background-size:200% 100%;
-  background-repeat:no-repeat; }
-
-/* Left page: show left half of crossroads image */
-.page-intent-left .crossroads{
-  background-position:left center; }
-
-/* Right page: show right half of crossroads image */
-.page-intent-right .crossroads{
-  background-position:right center; }
+  padding:1.5cqw 0; }
 
 /* Center stone with "What next?" text */
 .crossroads__center{
