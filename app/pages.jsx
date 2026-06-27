@@ -217,16 +217,37 @@ function SceneIntentLeft() {
 
   // Set crossroads background on mount
   React.useEffect(() => {
-    const paper = document.querySelector('.opage--left .leaf__paper') ||
-                  document.querySelector('.leaf--left .leaf__paper');
+    console.log('[SceneIntentLeft] Mounting, searching for .leaf__paper...');
+
+    // Try multiple selectors
+    let paper = document.querySelector('.opage--left .leaf__paper');
+    console.log('[SceneIntentLeft] .opage--left .leaf__paper:', paper);
+
+    if (!paper) {
+      paper = document.querySelector('.leaf--left .leaf__paper');
+      console.log('[SceneIntentLeft] .leaf--left .leaf__paper:', paper);
+    }
+
+    if (!paper) {
+      paper = document.querySelector('.leaf__paper');
+      console.log('[SceneIntentLeft] .leaf__paper (any):', paper);
+    }
+
     if (paper) {
+      console.log('[SceneIntentLeft] Setting background on:', paper);
       paper.style.backgroundImage = "url('assets/BookNextEpisode.png')";
       paper.style.backgroundSize = "200% 100%";
       paper.style.backgroundPosition = "left center";
       paper.style.backgroundRepeat = "no-repeat";
+      console.log('[SceneIntentLeft] Background set!');
+    } else {
+      console.error('[SceneIntentLeft] ERROR: .leaf__paper not found!');
+      console.log('[SceneIntentLeft] Available elements:', document.querySelectorAll('*[class*="leaf"]'));
     }
+
     return () => {
       if (paper) {
+        console.log('[SceneIntentLeft] Cleanup: removing background');
         paper.style.backgroundImage = "";
         paper.style.backgroundSize = "";
         paper.style.backgroundPosition = "";
@@ -280,16 +301,41 @@ function SceneIntentRight({ projectId: propProjectId }) {
 
   // Set crossroads background on mount
   React.useEffect(() => {
-    const paper = document.querySelector('.opage--right .leaf__paper') ||
-                  document.querySelector('.leaf--right .leaf__paper');
+    console.log('[SceneIntentRight] Mounting, searching for .leaf__paper...');
+
+    // Try multiple selectors
+    let paper = document.querySelector('.opage--right .leaf__paper');
+    console.log('[SceneIntentRight] .opage--right .leaf__paper:', paper);
+
+    if (!paper) {
+      paper = document.querySelector('.leaf--right .leaf__paper');
+      console.log('[SceneIntentRight] .leaf--right .leaf__paper:', paper);
+    }
+
+    if (!paper) {
+      const allPapers = document.querySelectorAll('.leaf__paper');
+      console.log('[SceneIntentRight] All .leaf__paper:', allPapers);
+      if (allPapers.length > 1) {
+        paper = allPapers[1]; // Right page is second
+        console.log('[SceneIntentRight] Using second .leaf__paper:', paper);
+      }
+    }
+
     if (paper) {
+      console.log('[SceneIntentRight] Setting background on:', paper);
       paper.style.backgroundImage = "url('assets/BookNextEpisode.png')";
       paper.style.backgroundSize = "200% 100%";
       paper.style.backgroundPosition = "right center";
       paper.style.backgroundRepeat = "no-repeat";
+      console.log('[SceneIntentRight] Background set!');
+    } else {
+      console.error('[SceneIntentRight] ERROR: .leaf__paper not found!');
+      console.log('[SceneIntentRight] Available elements:', document.querySelectorAll('*[class*="leaf"]'));
     }
+
     return () => {
       if (paper) {
+        console.log('[SceneIntentRight] Cleanup: removing background');
         paper.style.backgroundImage = "";
         paper.style.backgroundSize = "";
         paper.style.backgroundPosition = "";
