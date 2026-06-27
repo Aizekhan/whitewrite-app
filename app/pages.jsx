@@ -210,32 +210,39 @@ const INTENTS = [
   { id: "custom", icon: "✎", t: "Свій напрям", d: "опиши, що хочеш побачити" },
 ];
 
-// LEFT PAGE: Cards 1-7 (all except "custom") + Header
+// LEFT PAGE: Crossroads design — paths diverging into different directions
 function SceneIntentLeft() {
   const { sel, setSel } = useSceneIntentState();
   const leftIntents = INTENTS.slice(0, 7); // All except "custom"
 
   return (
     <div className="page-inner page-intent-left">
-      <PageHeader kicker="Історія чекає" title="Що далі?" />
-      <p className="intent__lead">
-        Сцену завершено. Обери напрям, куди поверне історія — або довір вибір Хранителю.
-      </p>
+      {/* Crossroads background illustration will be added via CSS */}
+      <div className="crossroads">
+        <div className="crossroads__center">
+          <div className="crossroads__stone">
+            <div className="crossroads__kicker">Історія чекає</div>
+            <div className="crossroads__title">Що далі?</div>
+          </div>
+        </div>
 
-      <div className="intent__grid intent__grid--left">
-        {leftIntents.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            className={`intent-card ${sel === o.id ? 'is-sel' : ''}`}
-            onClick={() => setSel(o.id)}
-          >
-            <div className="intent-card__icon">{o.icon}</div>
-            <div className="intent-card__title">{o.t}</div>
-            <div className="intent-card__desc">{o.d}</div>
-            {sel === o.id && <div className="intent-card__mark">✦</div>}
-          </button>
-        ))}
+        <div className="crossroads__paths">
+          {leftIntents.map((o, idx) => (
+            <button
+              key={o.id}
+              type="button"
+              className={`crossroads__path crossroads__path--${idx + 1} ${sel === o.id ? 'is-sel' : ''}`}
+              onClick={() => setSel(o.id)}
+            >
+              <div className="path__icon">{o.icon}</div>
+              <div className="path__label">
+                <div className="path__title">{o.t}</div>
+                <div className="path__desc">{o.d}</div>
+              </div>
+              {sel === o.id && <div className="path__glow"></div>}
+            </button>
+          ))}
+        </div>
       </div>
 
       <Folio n="—" />
@@ -397,55 +404,68 @@ function SceneIntentRight({ projectId: propProjectId }) {
   }
   return (
     <div className="page-inner page-intent-right">
-      {/* Custom card - always visible at top */}
-      <div className="intent__custom-card">
-        <button
-          type="button"
-          className={`intent-card intent-card--custom ${sel === "custom" ? 'is-sel' : ''}`}
-          onClick={() => setSel("custom")}
-        >
-          <div className="intent-card__icon">{customIntent.icon}</div>
-          <div className="intent-card__title">{customIntent.t}</div>
-          <div className="intent-card__desc">{customIntent.d}</div>
-          {sel === "custom" && <div className="intent-card__mark">✦</div>}
-        </button>
-      </div>
+      {/* Crossroads continuation: path "towards us" for custom direction */}
+      <div className="crossroads crossroads--right">
+        {/* The path coming towards reader */}
+        <div className="crossroads__own-path">
+          <button
+            type="button"
+            className={`own-path__trigger ${sel === "custom" ? 'is-sel' : ''}`}
+            onClick={() => setSel("custom")}
+          >
+            <div className="own-path__icon">{customIntent.icon}</div>
+            <div className="own-path__title">{customIntent.t}</div>
+            <div className="own-path__desc">{customIntent.d}</div>
+            {sel === "custom" && <div className="own-path__glow"></div>}
+          </button>
 
-      {/* If custom selected, show large textarea */}
-      {sel === "custom" && (
-        <div className="intent-custom">
-          <div className="intent-custom__quill">✒</div>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <textarea
-              className="intent-custom__text"
-              value={note}
-              onChange={(ev) => {
-                if (ev.target.value.length <= 500) {
-                  setNote(ev.target.value);
-                }
-              }}
-              placeholder="Опиши, що має статися далі… (наприклад: 'персонажі знаходять стародавній артефакт, який відкриває портал')"
-              autoFocus
-              maxLength={500}
-            />
-            <div style={{ position: 'absolute', bottom: '8px', right: '12px', fontSize: '11px', color: note.length > 450 ? '#d9534f' : 'rgba(194,161,87,0.6)', pointerEvents: 'none' }}>
-              {note.length} / 500
+          {/* Scroll/paper for writing custom direction */}
+          {sel === "custom" && (
+            <div className="own-path__scroll">
+              <div className="scroll__quill">✒</div>
+              <div className="scroll__paper">
+                <textarea
+                  className="scroll__text"
+                  value={note}
+                  onChange={(ev) => {
+                    if (ev.target.value.length <= 500) {
+                      setNote(ev.target.value);
+                    }
+                  }}
+                  placeholder="Опиши свій шлях історії… Що має статися далі?"
+                  autoFocus
+                  maxLength={500}
+                />
+                <div className="scroll__counter" style={{ color: note.length > 450 ? '#d9534f' : 'rgba(122,91,44,0.5)' }}>
+                  {note.length} / 500
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Generate button - always at bottom, stable position */}
-      <div className="intent__footer">
-        <button className="intent-seal" type="button" onClick={generate} disabled={!canGo || busy}>
-          <div className="intent-seal__ring">
-            <div className="intent-seal__rune">{busy ? '✦' : cur ? cur.icon : '✶'}</div>
-          </div>
-          <div className="intent-seal__label">
-            {busy ? 'Хранитель пише…' : 'Почати наступну сцену'}
-          </div>
-        </button>
+          {/* Selected intent display (if not custom) */}
+          {sel && sel !== "custom" && (
+            <div className="selected-intent">
+              <div className="selected-intent__mark">✦</div>
+              <div className="selected-intent__name">{cur?.t}</div>
+              <div className="selected-intent__hint">{cur?.d}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Generate button - seal at the end of the path */}
+        <div className="crossroads__seal">
+          <button className="intent-seal" type="button" onClick={generate} disabled={!canGo || busy}>
+            <div className="intent-seal__ring">
+              <div className="intent-seal__rune">{busy ? '✦' : cur ? cur.icon : '✶'}</div>
+            </div>
+            <div className="intent-seal__label">
+              {busy ? 'Хранитель пише…' : 'Почати наступну сцену'}
+            </div>
+          </button>
+        </div>
       </div>
+
       <Folio n="—" />
     </div>
   );
