@@ -582,7 +582,18 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   flex-direction:column;
   flex:1;
   min-height:0;
-  padding:1.5cqw 0; }
+  padding:1.5cqw 0;
+  background-image:url('assets/BookNextEpisode.png');
+  background-size:200% 100%;
+  background-repeat:no-repeat; }
+
+/* Left page: show left half of crossroads image */
+.page-intent-left .crossroads{
+  background-position:left center; }
+
+/* Right page: show right half of crossroads image */
+.page-intent-right .crossroads{
+  background-position:right center; }
 
 /* Center stone with "What next?" text */
 .crossroads__center{
