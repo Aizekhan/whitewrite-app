@@ -590,40 +590,21 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   justify-content:center;
   margin-bottom:2cqw; }
 
-.crossroads__stone{
-  position:relative;
-  text-align:center;
-  padding:1.8cqw 2.5cqw;
-  background:
-    linear-gradient(135deg, rgba(238,228,206,0.95), rgba(220,208,186,0.92)),
-    repeating-linear-gradient(45deg, rgba(154,111,37,0.05) 0 3px, transparent 3px 8px);
-  border:2px solid rgba(154,111,37,0.5);
-  border-radius:8px;
-  box-shadow:
-    0 8px 24px rgba(0,0,0,0.18),
-    inset 0 2px 4px rgba(255,250,240,0.8),
-    0 0 20px rgba(201,162,75,0.15);
-  font-family:"Philosopher",serif; }
-
-.crossroads__kicker{
-  font-size:clamp(11px,1.1cqw,13px);
-  letter-spacing:0.15em;
-  text-transform:uppercase;
-  color:#9a6f25;
-  margin-bottom:0.4cqw;
-  font-weight:500; }
-
+/* Title without background — dark ink with subtle embossed effect */
 .crossroads__title{
-  font-size:clamp(20px,2.2cqw,26px);
+  text-align:center;
+  font-size:clamp(22px,2.5cqw,30px);
   font-weight:700;
-  color:#3a2614;
-  letter-spacing:0.02em; }
+  color:#2a1d10;
+  letter-spacing:0.03em;
+  font-family:"Philosopher",serif;
+  text-shadow:0 1px 2px rgba(255,255,255,0.4); }
 
-/* Paths grid */
+/* Paths container for circular arrangement */
 .crossroads__paths{
-  display:grid;
-  grid-template-columns:repeat(2, 1fr);
-  gap:0.8cqw 1cqw;
+  position:relative;
+  width:100%;
+  height:100%;
   flex:1; }
 
 /* Individual path button */
@@ -725,95 +706,19 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   justify-content:space-between; }
 
 .crossroads__own-path{
+  position:relative;
   flex:1;
   display:flex;
   flex-direction:column;
   gap:1.2cqw; }
 
-.own-path__trigger{
-  position:relative;
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-  padding:1.4cqw 1.8cqw;
-  background:
-    linear-gradient(180deg, rgba(250,244,228,0.92), rgba(238,228,206,0.94)),
-    repeating-linear-gradient(135deg, rgba(154,111,37,0.04) 0 2px, transparent 2px 6px);
-  border:1px solid rgba(154,111,37,0.4);
-  border-radius:6px;
-  font-family:"Philosopher",serif;
-  transition:all .35s cubic-bezier(.23,.86,.39,.96);
-  box-shadow:
-    0 4px 14px rgba(0,0,0,0.12),
-    inset 0 1px 0 rgba(255,252,245,0.8); }
-
-.own-path__trigger:hover{
-  transform:translateY(-2px);
-  border-color:rgba(154,111,37,0.55);
-  background:
-    linear-gradient(180deg, rgba(255,250,238,0.96), rgba(246,236,218,0.96)),
-    repeating-linear-gradient(135deg, rgba(154,111,37,0.05) 0 2px, transparent 2px 6px);
-  box-shadow:
-    0 8px 20px rgba(0,0,0,0.18),
-    0 0 18px rgba(201,162,75,0.28),
-    inset 0 1px 0 rgba(255,252,245,1); }
-
-.own-path__trigger.is-sel{
-  border-color:#9a6f25;
-  border-width:2px;
-  padding:calc(1.4cqw - 1px) calc(1.8cqw - 1px);
-  background:
-    linear-gradient(180deg, rgba(255,248,228,1), rgba(242,230,204,0.98)),
-    repeating-linear-gradient(135deg, rgba(201,162,75,0.09) 0 2px, transparent 2px 6px);
-  box-shadow:
-    0 0 0 3px rgba(201,162,75,0.24),
-    0 10px 26px rgba(0,0,0,0.22),
-    0 0 24px rgba(201,162,75,0.42),
-    inset 0 2px 0 rgba(255,248,230,1); }
-
-.own-path__icon{
-  width:3.5cqw;
-  height:3.5cqw;
-  display:grid;
-  place-items:center;
-  font-size:2.2cqw;
-  margin-bottom:0.8cqw;
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255,248,220,0.9), rgba(233,200,120,0.4)),
-    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.07) 15deg 18deg);
-  border-radius:50%;
-  border:1.5px solid rgba(154,111,37,0.35);
-  box-shadow:0 4px 12px rgba(0,0,0,0.12), inset 0 2px 3px rgba(255,250,240,0.9); }
-
-.own-path__trigger.is-sel .own-path__icon{
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255,248,220,1), rgba(233,200,120,0.6)),
-    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.11) 15deg 18deg);
-  border-color:rgba(154,111,37,0.5);
-  box-shadow:0 5px 16px rgba(154,111,37,0.25), inset 0 2px 4px rgba(255,250,240,1); }
-
-.own-path__title{
-  font-weight:700;
-  font-size:clamp(15px,1.6cqw,18px);
-  color:#3a2614;
-  margin-bottom:0.4cqw;
-  letter-spacing:0.01em; }
-
-.own-path__desc{
-  font-size:clamp(12px,1.2cqw,14px);
-  color:#7a5b2c;
-  font-style:italic;
-  line-height:1.4; }
-
-.own-path__glow{
+/* Custom direction button positioned in center of right page */
+.road-circle--custom{
   position:absolute;
-  inset:-8px;
-  border-radius:8px;
-  background:radial-gradient(circle at 50% 50%, rgba(201,162,75,0.2), transparent 70%);
-  pointer-events:none;
-  animation:pathGlow 2s ease-in-out infinite; }
+  top:calc(50% - 4cqw);
+  left:calc(50% - 4cqw); }
+
+/* Custom button now uses .road-circle styles above */
 
 /* Scroll/paper for custom text */
 .own-path__scroll{
@@ -924,12 +829,15 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 
 .road-circle{
   position:absolute;
-  width:4.5cqw;
-  height:4.5cqw;
+  width:8cqw;
+  height:8cqw;
   border-radius:50%;
   cursor:pointer;
-  display:grid;
-  place-items:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:0.3cqw;
   font-size:2.2cqw;
   background:
     radial-gradient(circle at 35% 25%, rgba(255,250,230,0.95), rgba(238,220,180,0.92)),
@@ -938,7 +846,8 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   box-shadow:
     0 4px 14px rgba(0,0,0,0.15),
     inset 0 2px 4px rgba(255,250,240,0.85);
-  transition:all .35s cubic-bezier(.23,.86,.39,.96); }
+  transition:all .35s cubic-bezier(.23,.86,.39,.96);
+  padding:0.5cqw; }
 
 .road-circle:hover{
   transform:scale(1.12);
@@ -963,9 +872,22 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
     0 0 32px rgba(201,162,75,0.5),
     inset 0 3px 6px rgba(255,245,215,1); }
 
+.road-circle.is-disabled{
+  opacity:0.5;
+  cursor:not-allowed; }
+
+.road-circle.is-disabled:hover{
+  transform:none;
+  border-color:rgba(154,111,37,0.4);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,0.15),
+    inset 0 2px 4px rgba(255,250,240,0.85); }
+
 .road-circle__icon{
   position:relative;
-  z-index:1; }
+  z-index:1;
+  font-size:2.4cqw;
+  line-height:1; }
 
 .road-circle__glow{
   position:absolute;
@@ -975,48 +897,102 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   pointer-events:none;
   animation:circleGlow 2.2s ease-in-out infinite; }
 
+.road-circle__label{
+  position:relative;
+  font-family:"Philosopher",serif;
+  font-size:clamp(8px,0.85cqw,10px);
+  font-weight:600;
+  color:#5a4222;
+  text-align:center;
+  pointer-events:none;
+  line-height:1.1;
+  max-width:90%;
+  word-wrap:break-word; }
+
+.road-circle:hover .road-circle__label,
+.road-circle.is-sel .road-circle__label{
+  color:#2a1d10; }
+
 @keyframes circleGlow{
   0%, 100%{ opacity:0.5; transform:scale(0.95); }
   50%{ opacity:0.9; transform:scale(1.05); } }
 
-/* Positioning for each road (adjust based on design) */
-.road-circle--1{ top:15%; left:20%; }
-.road-circle--2{ top:25%; left:45%; }
-.road-circle--3{ top:18%; left:70%; }
-.road-circle--4{ top:45%; left:15%; }
-.road-circle--5{ top:50%; left:65%; }
-.road-circle--6{ top:70%; left:30%; }
-.road-circle--7{ top:75%; left:60%; }
+/* Positioning for 10 buttons in perfect circle */
+/* Center: 50% 50%; Radius: 35%; Angle step: 36° */
+/* Formula: x = 50% + 35% * sin(angle) - 4cqw, y = 50% - 35% * cos(angle) - 4cqw */
+/* Starting from top (0°), clockwise */
+
+.road-circle--1{  top:calc(50% - 35% - 4cqw);           left:calc(50% - 4cqw); }  /* 0° */
+.road-circle--2{  top:calc(50% - 35% * 0.809 - 4cqw);   left:calc(50% + 35% * 0.588 - 4cqw); }  /* 36° */
+.road-circle--3{  top:calc(50% - 35% * 0.309 - 4cqw);   left:calc(50% + 35% * 0.951 - 4cqw); }  /* 72° */
+.road-circle--4{  top:calc(50% + 35% * 0.309 - 4cqw);   left:calc(50% + 35% * 0.951 - 4cqw); }  /* 108° */
+.road-circle--5{  top:calc(50% + 35% * 0.809 - 4cqw);   left:calc(50% + 35% * 0.588 - 4cqw); }  /* 144° */
+.road-circle--6{  top:calc(50% + 35% - 4cqw);           left:calc(50% - 4cqw); }  /* 180° */
+.road-circle--7{  top:calc(50% + 35% * 0.809 - 4cqw);   left:calc(50% - 35% * 0.588 - 4cqw); }  /* 216° */
+.road-circle--8{  top:calc(50% + 35% * 0.309 - 4cqw);   left:calc(50% - 35% * 0.951 - 4cqw); }  /* 252° */
+.road-circle--9{  top:calc(50% - 35% * 0.309 - 4cqw);   left:calc(50% - 35% * 0.951 - 4cqw); }  /* 288° */
+.road-circle--10{ top:calc(50% - 35% * 0.809 - 4cqw);   left:calc(50% - 35% * 0.588 - 4cqw); }  /* 324° */
 
 /* ========================================
    GENERATE BUTTON (replaces right arrow)
    ======================================== */
 
 .pturn--generate{
-  /* Same base as pturn but styled as golden seal */
+  /* Position same as right arrow */
+  right:19.5% !important;
+  /* MUCH BIGGER and more prominent */
+  width:85px !important;
+  height:85px !important;
+  font-size:46px !important;
+  /* Flex for vertical layout (icon + text) */
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:0px !important;
+  /* Styled as VERY bright golden seal - NOT transparent! */
   background:
-    radial-gradient(circle at 40% 30%, rgba(255,248,220,0.95), rgba(233,200,120,0.85)),
-    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.12) 15deg 18deg);
-  border:2px solid rgba(154,111,37,0.5);
+    radial-gradient(circle at 40% 30%, rgb(255,248,220), rgb(245,210,120)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.2) 15deg 18deg) !important;
+  border:4px solid rgb(201,162,75) !important;
   box-shadow:
-    0 6px 18px rgba(0,0,0,0.2),
-    0 0 24px rgba(201,162,75,0.4),
-    inset 0 2px 4px rgba(255,250,240,0.9); }
+    0 10px 30px rgba(0,0,0,0.4),
+    0 0 50px rgba(201,162,75,1),
+    inset 0 3px 8px rgba(255,250,240,1) !important;
+  /* Pulsing animation */
+  animation:generatePulse 2s ease-in-out infinite !important;
+  backdrop-filter:none !important; }
 
-.pturn--generate:hover:not(:disabled){
+@keyframes generatePulse{
+  0%, 100%{
+    transform:scale(1);
+    box-shadow:
+      0 10px 30px rgba(0,0,0,0.4),
+      0 0 50px rgba(201,162,75,1),
+      inset 0 3px 8px rgba(255,250,240,1);
+  }
+  50%{
+    transform:scale(1.1);
+    box-shadow:
+      0 12px 36px rgba(0,0,0,0.45),
+      0 0 70px rgba(201,162,75,1),
+      0 0 90px rgba(255,215,0,0.6),
+      inset 0 4px 10px rgba(255,250,240,1);
+  }
+}
+
+.pturn--generate:hover{
+  animation:none;
   transform:scale(1.15);
   border-color:#9a6f25;
   background:
-    radial-gradient(circle at 40% 30%, rgba(255,250,230,1), rgba(240,210,140,0.95)),
-    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.15) 15deg 18deg);
+    radial-gradient(circle at 40% 30%, rgb(255,252,240), rgb(250,220,160)),
+    repeating-conic-gradient(from 0deg at 50% 50%, transparent 0deg 15deg, rgba(201,162,75,0.25) 15deg 18deg);
   box-shadow:
-    0 8px 24px rgba(0,0,0,0.28),
-    0 0 32px rgba(201,162,75,0.6),
-    inset 0 3px 6px rgba(255,248,230,1); }
-
-.pturn--generate:disabled{
-  opacity:0.5;
-  cursor:default; }
+    0 12px 36px rgba(0,0,0,0.5),
+    0 0 80px rgba(201,162,75,1),
+    0 0 100px rgba(255,215,0,0.8),
+    inset 0 4px 10px rgba(255,250,240,1); }
 
 .quill{ margin-top:30px; font-family:"Philosopher",serif; cursor:pointer;
   background:transparent; color:var(--gold-deep);
@@ -1859,6 +1835,7 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 }
 </script>
 
+<script type="text/babel" src="ErrorBoundary.jsx"></script>
 <script type="text/babel" src="atmosphere.jsx"></script>
 <script type="text/babel" src="pages.jsx"></script>
 <script type="text/babel" src="book-edit.jsx"></script>

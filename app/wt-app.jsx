@@ -690,7 +690,9 @@ function WorldTreeApp() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <ProjectProvider>
-    <WorldTreeApp />
-  </ProjectProvider>
+  <ErrorBoundary>
+    <ProjectProvider>
+      <WorldTreeApp />
+    </ProjectProvider>
+  </ErrorBoundary>
 );

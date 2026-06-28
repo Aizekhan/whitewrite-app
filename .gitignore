@@ -38,6 +38,8 @@ firebase-debug.log
 firestore-debug.log
 *-firebase-adminsdk-*.json
 serviceAccount*.json
+functions/.env.yaml
+functions/.env
 
 # OS
 Thumbs.db

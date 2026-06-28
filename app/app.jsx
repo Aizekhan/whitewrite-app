@@ -429,7 +429,9 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <ProjectProvider>
-    <App />
-  </ProjectProvider>
+  <ErrorBoundary>
+    <ProjectProvider>
+      <App />
+    </ProjectProvider>
+  </ErrorBoundary>
 );

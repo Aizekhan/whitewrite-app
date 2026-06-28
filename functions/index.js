@@ -1,7 +1,16 @@
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
-const cors = require('cors')({ origin: true }); // Enable CORS for all origins
+const cors = require('cors')({
+  origin: [
+    'https://whitewrite.com',
+    'https://www.whitewrite.com',
+    'https://whitewrite-app.web.app',
+    'https://whitewrite-app.firebaseapp.com',
+    /^http:\/\/localhost:\d+$/ // Allow localhost with any port for development
+  ],
+  credentials: true
+});
 const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('./ai-models.js');
 const { charge } = require('./token-service.js');
@@ -290,7 +299,9 @@ exports.generateScene = onRequest({
         dialogue: project.dialogue != null ? project.dialogue : 50,
         canonContext,
         intentDescription,
-        previousScenes
+        previousScenes,
+        sceneIntent,
+        customIntent
       });
 
       // Phase 6.2: Estimate input tokens for pricing (prompt size affects cost)
@@ -744,7 +755,7 @@ function buildCanonContext(canon) {
 /**
  * Build scene generation prompt
  */
-function buildScenePrompt({ title, desc, language, genres, scope, ending, endingNote, length, dialogue, canonContext, intentDescription, previousScenes }) {
+function buildScenePrompt({ title, desc, language, genres, scope, ending, endingNote, length, dialogue, canonContext, intentDescription, previousScenes, sceneIntent, customIntent }) {
   // Map language code to full name and typography rules
   // Single source of truth for language configuration across the project
   const languageMap = {
