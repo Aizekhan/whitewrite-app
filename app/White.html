@@ -366,9 +366,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   padding:10px; border-radius:9px; border:1px solid var(--line-2); background:var(--bg-1); transition:.16s; }
 .auth-tab.is-on{ color:var(--gold-lit); background:var(--gold-soft); border-color:rgba(217,160,70,0.4); }
 .userdock.is-guest .userdock__av{ color:var(--tx-mid); background:var(--bg-3); }
-.userdock.is-guest .userdock__name::after{ content:"Гість"; }
-.userdock.is-guest .userdock__name{ font-size:0; }
-.userdock.is-guest .userdock__name::after{ font-size:12.5px; font-family:"Cinzel",serif; color:var(--tx-hi); }
+.userdock.is-guest .userdock__name{ font-size:12.5px; font-family:"Cinzel",serif; color:var(--tx-hi); }
 .userdock.is-guest .userdock__tok{ font-size:0; }
 .userdock.is-guest .userdock__tok::after{ content:"Увійти"; font-size:12px; color:var(--gold-lit); }
 .plan{ position:relative; padding:20px 18px; border-radius:14px; background:var(--bg-2); border:1px solid var(--line);
@@ -842,7 +840,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (v === "account") fillAccount();
     if (v === "narr") {
       // Show immediate loader to prevent flash of empty state
-      views.narr.innerHTML = '<div style="padding:60px;text-align:center;color:var(--tx-mid)"><div style="font-size:24px;margin-bottom:12px">⏳</div>Завантаження проєктів...</div>';
+      views.narr.innerHTML = '<div style="padding:60px;text-align:center;color:var(--tx-mid)"><div style="font-size:24px;margin-bottom:12px">⏳</div>' + (window.__i18n ? window.__i18n.t('projects.loading') : 'Завантаження проєктів...') + '</div>';
       PROJECTS_LOADING = true;
       loadProjects();
     }
@@ -1284,7 +1282,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   function fillKb() {
     var KB = window.WW_KB;
-    if (!KB) { views.kb.innerHTML = '<div class="vwrap"><h1 class="vhead__t">База знань</h1><p class="vhead__s">Завантаження…</p></div>'; return; }
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    if (!KB) { views.kb.innerHTML = '<div class="vwrap"><h1 class="vhead__t">' + t('kb.title') + '</h1><p class="vhead__s">' + t('kb.loading') + '</p></div>'; return; }
     var q = (KB.__q || "").trim().toLowerCase();
     var cat = KB.__cat || "all";
 
@@ -1297,7 +1296,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var list = KB.articles.filter(match);
     var catName = {}; KB.categories.forEach(function (c) { catName[c.id] = c.label; });
 
-    var cats = '<button class="kb-cat ' + (cat === "all" ? "is-on" : "") + '" data-cat="all">Усі</button>' +
+    var cats = '<button class="kb-cat ' + (cat === "all" ? "is-on" : "") + '" data-cat="all">' + t('kb.all') + '</button>' +
       KB.categories.map(function (c) {
         return '<button class="kb-cat ' + (cat === c.id ? "is-on" : "") + '" data-cat="' + c.id + '">' + svg(c.icon) + c.label + '</button>';
       }).join("");
@@ -1306,15 +1305,15 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return '<button class="kb" data-art="' + a.id + '">' +
         '<div class="kb__top"><span class="kb__ic">' + svg(a.icon) + '</span><span class="kb__cat">' + catName[a.cat] + '</span></div>' +
         '<div class="kb__t">' + a.title + '</div><div class="kb__d">' + a.lead + '</div></button>';
-    }).join("") : '<div class="kb-empty">Нічого не знайдено за запитом «' + (KB.__q || "") + '».</div>';
+    }).join("") : '<div class="kb-empty">' + t('kb.empty') + ' «' + (KB.__q || "") + '».</div>';
 
     views.kb.innerHTML =
       '<div class="vwrap">' +
-        '<div class="vhead__k">Гайди й принципи</div>' +
-        '<h1 class="vhead__t">База знань</h1>' +
-        '<p class="vhead__s">Усе, що варто знати про WhiteWrite — від першої історії до режисури, канону й токенів.</p>' +
+        '<div class="vhead__k">' + t('kb.kicker') + '</div>' +
+        '<h1 class="vhead__t">' + t('kb.title') + '</h1>' +
+        '<p class="vhead__s">' + t('kb.subtitle') + '</p>' +
         '<div class="kb-search"><span class="kb-search__ic">' + svg("compass") + '</span>' +
-          '<input id="kb-q" placeholder="Пошук у базі знань…" value="' + (KB.__q || "").replace(/"/g, "&quot;") + '" />' +
+          '<input id="kb-q" placeholder="' + t('kb.search') + '" value="' + (KB.__q || "").replace(/"/g, "&quot;") + '" />' +
           (KB.__q ? '<button class="kb-search__x" id="kb-x">✕</button>' : '') + '</div>' +
         '<div class="kb-cats">' + cats + '</div>' +
         '<div class="grid grid--kb" style="margin-top:8px">' + cards + '</div>' +
@@ -1611,6 +1610,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   function accStat(n, l) { return '<div class="acc-stat"><div class="acc-stat__n">' + n + '</div><div class="acc-stat__l">' + l + '</div></div>'; }
 
   function fillNews() {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var posts = [
       ["Реліз", "Реконструкція канону вже працює", "Зміни персонажа чи локацію — і система перебудує залежні сцени, діалоги й кадри. Перший крок до живого всесвіту.", "2 дні тому", "#c2542a", "#2a1c16"],
       ["Спільнота", "Конкурс коротких всесвітів", "Створи всесвіт на одну новелу до 30 червня — найкращі потраплять на головну Маркетплейсу.", "5 днів тому", "#3a2c5a", "#12131a"],
@@ -1619,10 +1619,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     ];
     views.news.innerHTML =
       '<div class="vwrap">' +
-        '<button class="view-close" title="Закрити" aria-label="Закрити" onclick="window.__wwHome&&window.__wwHome()">✕</button>' +
-        '<div class="vhead__k">Стрічка спільноти</div>' +
-        '<h1 class="vhead__t">Новини White</h1>' +
-        '<p class="vhead__s">Релізи, конкурси й гайди. Обговорення — у спільноті Маркетплейсу.</p>' +
+        '<button class="view-close" data-i18n-title="news.close" data-i18n-aria="news.close" title="' + t('news.close') + '" aria-label="' + t('news.close') + '" onclick="window.__wwHome&&window.__wwHome()">✕</button>' +
+        '<div class="vhead__k">' + t('news.kicker') + '</div>' +
+        '<h1 class="vhead__t">' + t('news.title') + '</h1>' +
+        '<p class="vhead__s">' + t('news.subtitle') + '</p>' +
         '<div class="grid grid--narr" style="margin-top:26px">' +
           posts.map(function (p) {
             return '<article class="ncard" style="--c1:' + p[4] + ';--c2:' + p[5] + '">' +
@@ -1699,15 +1699,16 @@ window.__openPricingModal = function() {
 window.__showTokenToast = function(cost, remaining) {
   console.log('✦ Toast called:', cost, 'tokens consumed,', remaining, 'remaining');
 
+  var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
   const toast = document.createElement('div');
   toast.className = 'ww-toast';
   toast.innerHTML = `
-    <div class="ww-toast__title">✦ Сцена згенерована!</div>
-    <div class="ww-toast__message">Нова сцена додана до вашої історії</div>
+    <div class="ww-toast__title">${t('toast.sceneGenerated')}</div>
+    <div class="ww-toast__message">${t('toast.sceneAdded')}</div>
     <div class="ww-toast__tokens">
-      <span class="ww-toast__tokens-used">-${cost} токенів</span>
+      <span class="ww-toast__tokens-used">-${cost} ${t('toast.tokensUsed')}</span>
       <span>·</span>
-      <span class="ww-toast__tokens-remaining">Залишилось: ${remaining}</span>
+      <span class="ww-toast__tokens-remaining">${t('toast.tokensRemaining')}: ${remaining}</span>
     </div>
   `;
   document.body.appendChild(toast);

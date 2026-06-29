@@ -201,6 +201,27 @@
       'error.generateFailed': 'Помилка: функція генерації не знайдена. Перезавантаж сторінку.',
       'alert.downgradeUnavailable': 'Повернення на безкоштовний план поки недоступне. Зв\'яжіться з підтримкою.',
       'alert.checkoutError': 'Не вдалося створити сесію оплати. Спробуйте пізніше.',
+
+      // Knowledge Base
+      'kb.kicker': 'Гайди й принципи',
+      'kb.title': 'База знань',
+      'kb.subtitle': 'Усе, що варто знати про WhiteWrite — від першої історії до режисури, канону й токенів.',
+      'kb.search': 'Пошук у базі знань…',
+      'kb.all': 'Усі',
+      'kb.empty': 'Нічого не знайдено за запитом',
+      'kb.loading': 'Завантаження…',
+
+      // News
+      'news.kicker': 'Стрічка спільноти',
+      'news.title': 'Новини White',
+      'news.subtitle': 'Релізи, конкурси й гайди. Обговорення — у спільноті Маркетплейсу.',
+      'news.close': 'Закрити',
+
+      // Toast
+      'toast.sceneGenerated': '✦ Сцена згенерована!',
+      'toast.sceneAdded': 'Нова сцена додана до вашої історії',
+      'toast.tokensUsed': 'токенів',
+      'toast.tokensRemaining': 'Залишилось',
     },
 
     en: {
@@ -398,6 +419,27 @@
       'error.generateFailed': 'Error: generation function not found. Reload the page.',
       'alert.downgradeUnavailable': 'Downgrade to free plan is not available yet. Contact support.',
       'alert.checkoutError': 'Failed to create payment session. Try again later.',
+
+      // Knowledge Base
+      'kb.kicker': 'Guides & Principles',
+      'kb.title': 'Knowledge Base',
+      'kb.subtitle': 'Everything worth knowing about WhiteWrite — from your first story to directing, canon, and tokens.',
+      'kb.search': 'Search knowledge base…',
+      'kb.all': 'All',
+      'kb.empty': 'No results found for',
+      'kb.loading': 'Loading…',
+
+      // News
+      'news.kicker': 'Community Feed',
+      'news.title': 'White News',
+      'news.subtitle': 'Releases, contests, and guides. Discussion in the Marketplace community.',
+      'news.close': 'Close',
+
+      // Toast
+      'toast.sceneGenerated': '✦ Scene Generated!',
+      'toast.sceneAdded': 'New scene added to your story',
+      'toast.tokensUsed': 'tokens',
+      'toast.tokensRemaining': 'Remaining',
     }
   };
 
