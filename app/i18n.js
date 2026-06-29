@@ -14,6 +14,9 @@
       'nav.director': 'Режисер',
       'nav.account': 'Профіль',
       'nav.logout': 'Вийти',
+      'nav.projects': 'Проекти',
+      'nav.knowledgeBase': 'База знань',
+      'nav.marketplace': 'Маркетплейс',
 
       // Account Modal
       'account.title': 'Акаунт',
@@ -185,6 +188,9 @@
       'nav.director': 'Director',
       'nav.account': 'Profile',
       'nav.logout': 'Logout',
+      'nav.projects': 'Projects',
+      'nav.knowledgeBase': 'Knowledge Base',
+      'nav.marketplace': 'Marketplace',
 
       // Account Modal
       'account.title': 'Account',
@@ -412,6 +418,10 @@
     }
     if (window.__reloadProjects) {
       window.__reloadProjects();
+    }
+    // Update navigation rail labels
+    if (window.__reloadRail) {
+      window.__reloadRail();
     }
   }
 

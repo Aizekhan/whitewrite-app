@@ -620,17 +620,27 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   /* ---- pillars (iframes) ---- */
   var PILLARS = {
-    book:     { src: "WhiteWrite.html",           label: "Книга",   icon: "book" },
-    universe: { src: "WhiteWrite WorldTree.html", label: "Всесвіт", icon: "universe" },
-    director: { src: "WhiteWrite Workspace.html", label: "Режисер", icon: "clapper" },
+    book:     { src: "WhiteWrite.html",           labelKey: "nav.book",     icon: "book" },
+    universe: { src: "WhiteWrite WorldTree.html", labelKey: "nav.universe", icon: "universe" },
+    director: { src: "WhiteWrite Workspace.html", labelKey: "nav.director", icon: "clapper" },
   };
+  // Helper to get pillar label with i18n
+  function getPillarLabel(key) {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    return PILLARS[key] ? t(PILLARS[key].labelKey) : '';
+  }
   /* ---- home sections (in-shell views). The mage landing itself = the book
      pillar at its cover, shown by showHome(); these are the side tabs. ---- */
   var SECTIONS = {
-    narr:    { label: "Проекти",     icon: "library" },
-    kb:      { label: "База знань",  icon: "brain" },
-    market:  { label: "Маркетплейс", icon: "compass" },
+    narr:    { labelKey: "nav.projects",      icon: "library" },
+    kb:      { labelKey: "nav.knowledgeBase", icon: "brain" },
+    market:  { labelKey: "nav.marketplace",   icon: "compass" },
   };
+  // Helper to get section label with i18n
+  function getSectionLabel(key) {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    return SECTIONS[key] ? t(SECTIONS[key].labelKey) : '';
+  }
 
   var stage = document.getElementById("stage");
   var railItems = document.getElementById("rail-items");
@@ -804,6 +814,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
 
   function renderRail() {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     document.getElementById("homefab").style.display = (inWork || (mode && mode !== "home")) ? "block" : "none";
     var col = document.getElementById("rail-collapse");
     if (col) col.style.display = (inWork && mode === "book") ? "grid" : "none";
@@ -811,12 +822,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     railItems.innerHTML = ""; railFoot.innerHTML = "";
     if (inWork) {
       Object.keys(PILLARS).forEach(function (p) {
-        railItems.appendChild(railBtn(p, PILLARS[p].label, PILLARS[p].icon, mode === p, function () { showPillar(p); }));
+        railItems.appendChild(railBtn(p, getPillarLabel(p), PILLARS[p].icon, mode === p, function () { showPillar(p); }));
       });
     } else {
       Object.keys(SECTIONS).forEach(function (s) {
         if (s === "narr" && !window.__wwAuth) return; // Проекти only when logged in
-        railItems.appendChild(railBtn(s, SECTIONS[s].label, SECTIONS[s].icon, mode === s, function () { showView(s); }));
+        railItems.appendChild(railBtn(s, getSectionLabel(s), SECTIONS[s].icon, mode === s, function () { showView(s); }));
       });
     }
     // account now lives in the persistent bottom-left userdock (whole service)
