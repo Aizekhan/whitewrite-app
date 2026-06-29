@@ -73,8 +73,15 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
   // Listen for language change events
   useEffect(() => {
-    function onLanguageChange() {
-      console.log('[Book] Language changed, forcing re-render');
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang;
+      console.log('[Book] Language changed to:', newLang, 'forcing re-render');
+
+      // Update iframe's i18n to match parent
+      if (window.__i18n && newLang) {
+        window.__i18n.setLanguage(newLang);
+      }
+
       forceBookUpdate(prev => prev + 1);
     }
     window.addEventListener('ww-language-change', onLanguageChange);

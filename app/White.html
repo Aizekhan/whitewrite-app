@@ -1655,8 +1655,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   // fillAccount() called by Firebase Auth after user data loads
 
   // Listen for language change events
-  window.addEventListener('ww-language-change', function() {
-    console.log('[White.html] Language changed, updating UI');
+  window.addEventListener('ww-language-change', function(event) {
+    const newLang = event.detail?.lang;
+    console.log('[White.html] Language changed to:', newLang, 'updating UI');
     // Update static translations (already done by i18n.js updateStaticTranslations)
     // Update dynamic content
     renderRail();  // Update navigation rail labels

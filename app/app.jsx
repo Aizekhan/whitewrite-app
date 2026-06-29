@@ -399,9 +399,17 @@ function App() {
 
   // Listen for language change events from parent window (Account modal)
   React.useEffect(() => {
-    function onLanguageChange() {
-      const newLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
-      console.log('[App] Language changed to:', newLang, 'incrementing langVersion from', langVersion);
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang || (window.__i18n ? window.__i18n.getLanguage() : 'uk');
+      console.log('[App] Language change event received, new lang:', newLang);
+
+      // Update iframe's i18n to match parent
+      if (window.__i18n && newLang) {
+        console.log('[App] Setting iframe language to:', newLang);
+        window.__i18n.setLanguage(newLang);
+      }
+
+      console.log('[App] Incrementing langVersion from', langVersion);
       setLangVersion(prev => {
         console.log('[App] langVersion updated from', prev, 'to', prev + 1);
         return prev + 1;

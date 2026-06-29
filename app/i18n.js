@@ -756,14 +756,15 @@
     updateStaticTranslations();
 
     // Dispatch event for React components and White.html
-    window.dispatchEvent(new Event('ww-language-change'));
+    // IMPORTANT: Pass language as CustomEvent detail so iframe knows which language to switch to
+    window.dispatchEvent(new CustomEvent('ww-language-change', { detail: { lang: lang } }));
 
     // Also dispatch to iframe if exists
     const iframes = document.querySelectorAll('iframe');
     iframes.forEach(function(iframe) {
       try {
         if (iframe.contentWindow) {
-          iframe.contentWindow.dispatchEvent(new Event('ww-language-change'));
+          iframe.contentWindow.dispatchEvent(new CustomEvent('ww-language-change', { detail: { lang: lang } }));
         }
       } catch (e) {
         // Cross-origin iframe, skip

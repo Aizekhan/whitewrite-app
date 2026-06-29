@@ -546,8 +546,18 @@
     ],
   };
 
-  function loadKB() {
-    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+  function loadKB(event) {
+    var lang;
+    if (event && event.detail && event.detail.lang) {
+      lang = event.detail.lang;
+      // Update iframe's i18n to match
+      if (window.__i18n) {
+        window.__i18n.setLanguage(lang);
+      }
+    } else {
+      lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+    }
+
     window.WW_KB = {
       categories: KB['categories_' + lang] || KB.categories_uk,
       articles: KB['articles_' + lang] || KB.articles_uk
