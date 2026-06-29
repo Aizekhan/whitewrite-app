@@ -80,14 +80,47 @@
 
       // Project Editor
       'editor.kicker': 'Всесвіт',
+      'editor.title': 'Редагувати історію',
+      'editor.cover': 'Обкладинка',
+      'editor.coverPlaceholder': 'Своя обкладинка проєкту',
+      'editor.coverUpload': 'Завантажити',
+      'editor.coverRemove': 'Прибрати',
+      'editor.nameLabel': 'Назва',
+      'editor.descLabel': 'Опис всесвіту',
+      'editor.scopeLabel': 'Обсяг',
+      'editor.scopeShot': 'Оповідання',
+      'editor.scopeNovella': 'Новела',
+      'editor.scopeSeason': 'Сезон',
+      'editor.scopeEndless': 'Без меж',
       'editor.ending': 'Фінал',
       'editor.endingOpen': 'Відкритий',
       'editor.endingClosed': 'Завершений',
       'editor.endingCustom': 'Свій опис',
+      'editor.genreLabel': 'Жанр і тон',
+      'editor.cancel': 'Скасувати',
+      'editor.save': '✓ Зберегти',
+
+      // Delete Confirmation
+      'delete.kicker': 'Видалення',
+      'delete.title': 'Видалити всесвіт?',
+      'delete.question': 'Ви точно хочете видалити',
+      'delete.warning': 'Цю дію не можна скасувати — історія, канон і кадри зникнуть назавжди.',
+      'delete.keep': 'Залишити',
+      'delete.confirm': '🗑 Видалити назавжди',
 
       // Auth
+      'auth.kicker': 'White Tree',
       'auth.createAccount': 'Створити акаунт',
       'auth.signIn': 'Увійти у свій всесвіт',
+      'auth.email': 'Email',
+      'auth.password': 'Пароль',
+      'auth.name': 'Ім\'я (необов\'язково)',
+      'auth.signInTab': 'Вхід',
+      'auth.signUpTab': 'Реєстрація',
+      'auth.signInButton': 'Увійти',
+      'auth.signUpButton': 'Створити акаунт',
+      'auth.orDivider': 'або',
+      'auth.googleButton': 'Продовжити з Google',
 
       // Knowledge Base
       'kb.title': 'База знань',
@@ -218,14 +251,47 @@
 
       // Project Editor
       'editor.kicker': 'Universe',
+      'editor.title': 'Edit Story',
+      'editor.cover': 'Cover',
+      'editor.coverPlaceholder': 'Custom project cover',
+      'editor.coverUpload': 'Upload',
+      'editor.coverRemove': 'Remove',
+      'editor.nameLabel': 'Title',
+      'editor.descLabel': 'Universe Description',
+      'editor.scopeLabel': 'Scope',
+      'editor.scopeShot': 'Short Story',
+      'editor.scopeNovella': 'Novella',
+      'editor.scopeSeason': 'Season',
+      'editor.scopeEndless': 'Endless',
       'editor.ending': 'Ending',
       'editor.endingOpen': 'Open',
       'editor.endingClosed': 'Closed',
       'editor.endingCustom': 'Custom',
+      'editor.genreLabel': 'Genre & Tone',
+      'editor.cancel': 'Cancel',
+      'editor.save': '✓ Save',
+
+      // Delete Confirmation
+      'delete.kicker': 'Deletion',
+      'delete.title': 'Delete Universe?',
+      'delete.question': 'Are you sure you want to delete',
+      'delete.warning': 'This action cannot be undone — story, canon, and frames will be lost forever.',
+      'delete.keep': 'Keep',
+      'delete.confirm': '🗑 Delete Forever',
 
       // Auth
+      'auth.kicker': 'White Tree',
       'auth.createAccount': 'Create Account',
       'auth.signIn': 'Sign In to Your Universe',
+      'auth.email': 'Email',
+      'auth.password': 'Password',
+      'auth.name': 'Name (optional)',
+      'auth.signInTab': 'Sign In',
+      'auth.signUpTab': 'Sign Up',
+      'auth.signInButton': 'Sign In',
+      'auth.signUpButton': 'Create Account',
+      'auth.orDivider': 'or',
+      'auth.googleButton': 'Continue with Google',
 
       // Knowledge Base
       'kb.title': 'Knowledge Base',
@@ -306,12 +372,39 @@
     return TRANSLATIONS[currentLang][key] || TRANSLATIONS['uk'][key] || key;
   }
 
+  // Update all data-i18n elements
+  function updateStaticTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      const key = el.getAttribute('data-i18n');
+      const translation = t(key);
+
+      // Update text content (for spans, divs, buttons, etc.)
+      if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+        // Only one text node
+        el.textContent = translation;
+      } else if (el.childNodes.length === 0) {
+        el.textContent = translation;
+      } else {
+        // Has child elements - try to find and update text nodes
+        for (let i = 0; i < el.childNodes.length; i++) {
+          if (el.childNodes[i].nodeType === 3) { // Text node
+            el.childNodes[i].textContent = translation;
+            break;
+          }
+        }
+      }
+    });
+  }
+
   // Set language
   function setLanguage(lang) {
     if (lang !== 'uk' && lang !== 'en') return;
     currentLang = lang;
     localStorage.setItem('ww-lang', lang);
     document.documentElement.lang = lang;
+
+    // Update static translations
+    updateStaticTranslations();
 
     // Trigger re-render of current view
     if (window.__fillAccount) {
@@ -332,9 +425,17 @@
     t: t,
     setLanguage: setLanguage,
     getLanguage: getLanguage,
-    init: initLanguage
+    init: initLanguage,
+    updateStatic: updateStaticTranslations
   };
 
   // Auto-initialize
   initLanguage();
+
+  // Update static translations on page load (after DOM ready)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateStaticTranslations);
+  } else {
+    updateStaticTranslations();
+  }
 })();
