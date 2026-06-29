@@ -400,21 +400,26 @@ function App() {
   // Listen for language change events from parent window (Account modal)
   React.useEffect(() => {
     function onLanguageChange() {
-      console.log('[App] Language changed, forcing re-render');
-      setLangVersion(prev => prev + 1);
+      const newLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+      console.log('[App] Language changed to:', newLang, 'incrementing langVersion from', langVersion);
+      setLangVersion(prev => {
+        console.log('[App] langVersion updated from', prev, 'to', prev + 1);
+        return prev + 1;
+      });
     }
     window.addEventListener('ww-language-change', onLanguageChange);
     return () => window.removeEventListener('ww-language-change', onLanguageChange);
-  }, []);
+  }, [langVersion]);
 
   return (
-    <div className="app">
+    <div className="app" key={`app-${langVersion}`}>
       {stage === "start" && (
-        <StartScreen key={`start-${langVersion}`} onBegin={() => setStage("form")} />
+        <StartScreen key={`start-${langVersion}`} langVersion={langVersion} onBegin={() => setStage("form")} />
       )}
       {stage === "form" && (
         <StoryForm
           key={`form-${langVersion}`}
+          langVersion={langVersion}
           onBack={() => setStage("start")}
           onCreate={enterBook}
         />
