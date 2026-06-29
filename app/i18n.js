@@ -258,7 +258,7 @@
       'form.languageLabel': 'Language / Мова історії',
       'form.languageNote': 'AI will generate scenes and dialogues in this language',
       'form.descLabel': 'Опис всесвіту',
-      'form.descPlaceholder': 'Місто, де згасають зорі, і жінка, що пам'ятає його живим…',
+      'form.descPlaceholder': 'Місто, де згасають зорі, і жінка, що пам\'ятає його живим…',
       'form.creationLabel': 'Як створюємо',
       'form.guidedIcon': '🪶',
       'form.guidedTitle': 'Поступово з автором',
