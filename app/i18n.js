@@ -640,9 +640,8 @@
     if (saved && (saved === 'uk' || saved === 'en')) {
       currentLang = saved;
     } else {
-      // Detect from browser
-      const browserLang = navigator.language || navigator.userLanguage;
-      currentLang = browserLang.startsWith('uk') ? 'uk' : 'en';
+      // Default to Ukrainian (product is Ukrainian-first)
+      currentLang = 'uk';
     }
 
     // Update html lang attribute
