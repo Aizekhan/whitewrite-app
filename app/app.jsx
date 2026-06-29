@@ -141,7 +141,6 @@ function App() {
   const [loadingProject, setLoadingProject] = useAState(false);
   const [generationProgress, setGenerationProgress] = useAState({ current: 0, total: 0, isGenerating: false });
   const [, forceUpdate] = useAState(0); // For language change re-render
-  const [i18nReady, setI18nReady] = useAState(false); // Wait for i18n to load
 
   // Load existing project if PROJECT_ID provided (URL param mode)
   React.useEffect(() => {
@@ -398,18 +397,6 @@ function App() {
     return () => window.removeEventListener("message", onMsg);
   }, []);
 
-  // Wait for i18n to be ready
-  React.useEffect(() => {
-    function checkI18n() {
-      if (window.__i18n && window.__i18n.t) {
-        setI18nReady(true);
-      } else {
-        setTimeout(checkI18n, 50); // Check again in 50ms
-      }
-    }
-    checkI18n();
-  }, []);
-
   // Listen for language change events from parent window (Account modal)
   React.useEffect(() => {
     function onLanguageChange() {
@@ -419,13 +406,6 @@ function App() {
     window.addEventListener('ww-language-change', onLanguageChange);
     return () => window.removeEventListener('ww-language-change', onLanguageChange);
   }, []);
-
-  // Don't render until i18n is ready
-  if (!i18nReady) {
-    return <div className="app" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-      <div style={{ fontSize: '24px', color: 'rgba(194,161,87,0.7)' }}>⏳</div>
-    </div>;
-  }
 
   return (
     <div className="app">

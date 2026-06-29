@@ -6,10 +6,23 @@ const { useState: useFState } = React;
 // The user's own hero art (StartBack.png) leads. The whole scene is the
 // doorway — click anywhere to open a universe. Particles add living light.
 function StartScreen({ onBegin }) {
-  const t = window.__i18n ? window.__i18n.t : (k) => {
-    console.warn('[StartScreen] i18n not ready, key:', k);
-    return k;
+  // Fallback Ukrainian text if i18n not loaded yet
+  const FALLBACK = {
+    'hero.mark': 'WhiteWrite',
+    'hero.by': 'by White Tree',
+    'hero.quote': '«Історії — це магія, що творить світи.»',
+    'hero.title': 'Твоя історія\nчекає',
+    'hero.lede': 'Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.',
+    'hero.cta': 'Створити свою історію',
+    'hero.featureBeta': 'нова можливість',
+    'hero.featureTitle': '🎬 Доведи історію до відео',
+    'hero.featureDesc': 'Хочеш більшого? Розкадруй сцени на кадри й натренуй LoRA-референси персонажів — і твій світ готовий стати серією відеороликів зі сталими образами.',
+    'hero.bookBeta': 'бета',
+    'hero.bookTitle': 'Надрукуй свою історію\nу справжній книзі',
+    'hero.bookDesc': 'Стародавня обкладинка · подарунок · унікальний фоліант на полицю',
+    'hero.bookBtn': '📦 Замовити книгу'
   };
+  const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
   return (
     <div className="screen screen--start stage-screen">
       <img className="hero-img" src="assets/StartBack.jpg" alt="Хранитель історій з живою книгою" />
