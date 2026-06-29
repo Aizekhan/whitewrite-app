@@ -6,7 +6,10 @@ const { useState: useFState } = React;
 // The user's own hero art (StartBack.png) leads. The whole scene is the
 // doorway — click anywhere to open a universe. Particles add living light.
 function StartScreen({ onBegin }) {
-  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const t = window.__i18n ? window.__i18n.t : (k) => {
+    console.warn('[StartScreen] i18n not ready, key:', k);
+    return k;
+  };
   return (
     <div className="screen screen--start stage-screen">
       <img className="hero-img" src="assets/StartBack.jpg" alt="Хранитель історій з живою книгою" />
