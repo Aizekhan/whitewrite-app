@@ -5,7 +5,8 @@ const { useState: useFState } = React;
 // ── Stage 0 ─────────────────────────────────────────────────────────────
 // The user's own hero art (StartBack.png) leads. The whole scene is the
 // doorway — click anywhere to open a universe. Particles add living light.
-function StartScreen({ onBegin }) {
+function StartScreen({ onBegin, langVersion }) {
+  console.log('[StartScreen] Component mounted/updated with langVersion:', langVersion);
   // Fallback Ukrainian text if i18n not loaded yet
   const FALLBACK = {
     'hero.mark': 'WhiteWrite',

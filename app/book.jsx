@@ -68,7 +68,18 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const [whisper, setWhisper] = useState({ text: "", sig: 0 });
   const [sceneMenu, setSceneMenu] = useState(false);
   const [showingNewScene, setShowingNewScene] = useState(false); // Trigger fade-in animation for new scene
+  const [, forceBookUpdate] = useState(0); // For language change re-render
   const done = useRef(false);
+
+  // Listen for language change events
+  useEffect(() => {
+    function onLanguageChange() {
+      console.log('[Book] Language changed, forcing re-render');
+      forceBookUpdate(prev => prev + 1);
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
+  }, []);
 
   // PHASE 3: Removed useEffect that wrote to window.__currentProjectId
   // ProjectContext now provides projectId to all components
@@ -455,14 +466,14 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
                 alert('Помилка: функція генерації не знайдена. Перезавантаж сторінку.');
               }
             }}
-            aria-label="Почати наступну сцену"
+            aria-label={(window.__i18n ? window.__i18n.t('intent.generate') : 'Почати наступну сцену')}
             type="button"
           >
             <span style={{ fontSize: '46px', lineHeight: 1, color: '#3a2a15' }}>
               {window.__sceneIntentIsBusy && window.__sceneIntentIsBusy() ? '⏳' : '✦'}
             </span>
             <span style={{ fontSize: '11px', fontFamily: 'Philosopher, serif', fontWeight: 700, marginTop: '4px', color: '#3a2a15', textShadow: '0 0 2px rgba(255,255,255,0.3)' }}>
-              Генерувати
+              {window.__i18n ? window.__i18n.t('intent.generate') : 'Генерувати'}
             </span>
           </button>
         )}
@@ -492,11 +503,11 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
       {!generating && (
         <div className="bookbar">
-          <button className="scenebar__nav" type="button" disabled={atFirst} onClick={() => go("prev")} aria-label="Попередня">‹</button>
+          <button className="scenebar__nav" type="button" disabled={atFirst} onClick={() => go("prev")} aria-label={(window.__i18n ? window.__i18n.t('ui.previous') : 'Попередня')}>‹</button>
           <div className="scenebar__pick">
             <button className={`scenebar__btn ${sceneMenu ? "is-open" : ""}`} type="button" onClick={(e) => { e.stopPropagation(); setSceneMenu((o) => !o); }}>
-              <span className="scenebar__act">Акт {actOf(scene.n)}</span>
-              <span className="scenebar__sc">Сцена {scene.n} · {scene.t}</span>
+              <span className="scenebar__act">{window.__i18n ? window.__i18n.t('book.act') : 'Акт'} {actOf(scene.n)}</span>
+              <span className="scenebar__sc">{window.__i18n ? window.__i18n.t('book.scene') : 'Сцена'} {scene.n} · {scene.t}</span>
               <span className="scenebar__caret">▾</span>
             </button>
             {sceneMenu && (
@@ -506,7 +517,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
                   {SCENES.map((s, i) => (
                     <button key={s.n} role="menuitem" type="button" className={`scenebar__opt ${i === sc ? "is-on" : ""}`}
                       onClick={(e) => { e.stopPropagation(); setSceneMenu(false); goScene(i); }}>
-                      <span className="scenebar__opt-act">Акт {actOf(s.n)}</span>
+                      <span className="scenebar__opt-act">{window.__i18n ? window.__i18n.t('book.act') : 'Акт'} {actOf(s.n)}</span>
                       <span className="scenebar__opt-n">{s.n}</span>
                       <span className="scenebar__opt-t">{s.t}</span>
                     </button>

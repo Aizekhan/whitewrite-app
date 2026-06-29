@@ -136,6 +136,11 @@
       'ui.feedback': 'Повідомити про баг або написати нам',
       'ui.feedbackShort': 'Зворотний зв\'язок',
       'ui.close': 'Закрити',
+      'ui.previous': 'Попередня',
+
+      // Book / Reading
+      'book.act': 'Акт',
+      'book.scene': 'Сцена',
 
       // Feedback Modal
       'feedback.kicker': 'Зворотний зв\'язок',
@@ -462,6 +467,11 @@
       'ui.account': 'Account',
       'ui.guest': 'Guest',
       'ui.tokens': 'tokens',
+      'ui.previous': 'Previous',
+
+      // Book / Reading
+      'book.act': 'Act',
+      'book.scene': 'Scene',
       'ui.feedback': 'Report a bug or write to us',
       'ui.feedbackShort': 'Feedback',
       'ui.close': 'Close',
