@@ -1554,10 +1554,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       // Update stats in DOM
       const statsContainer = document.getElementById("acc-stats");
       if (statsContainer) {
+        var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
         statsContainer.innerHTML =
-          accStat(projects.length.toString(), "Всесвіти") +
-          accStat(totalScenes.toString(), "Сцени") +
-          accStat(totalCanonEntities.toString(), "Сутності канону");
+          accStat(projects.length.toString(), t('stats.universes')) +
+          accStat(totalScenes.toString(), t('stats.scenes')) +
+          accStat(totalCanonEntities.toString(), t('stats.canonEntities'));
       }
 
       // Update tokens from user data (Phase 1.1: Token Budget System)
@@ -1623,10 +1624,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   function fillNews() {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var posts = [
-      ["Реліз", "Реконструкція канону вже працює", "Зміни персонажа чи локацію — і система перебудує залежні сцени, діалоги й кадри. Перший крок до живого всесвіту.", "2 дні тому", "#c2542a", "#2a1c16"],
-      ["Спільнота", "Конкурс коротких всесвітів", "Створи всесвіт на одну новелу до 30 червня — найкращі потраплять на головну Маркетплейсу.", "5 днів тому", "#3a2c5a", "#12131a"],
-      ["Гайд", "Як вести історію через Scene Intent", "Ти не пишеш текст — ти задаєш напрям. Розбираємо, як скеровувати Хранителя сцена за сценою.", "тиждень тому", "#243a5a", "#101418"],
-      ["Режисер", "Варіанти кадрів і LoRA-референси", "Тепер кожен кадр має до 5 варіантів, а персонажі — сталу зовнішність між серіями.", "тиждень тому", "#143a36", "#0e1414"],
+      [t('news.post1.badge'), t('news.post1.title'), t('news.post1.desc'), t('news.post1.time'), "#c2542a", "#2a1c16"],
+      [t('news.post2.badge'), t('news.post2.title'), t('news.post2.desc'), t('news.post2.time'), "#3a2c5a", "#12131a"],
+      [t('news.post3.badge'), t('news.post3.title'), t('news.post3.desc'), t('news.post3.time'), "#243a5a", "#101418"],
+      [t('news.post4.badge'), t('news.post4.title'), t('news.post4.desc'), t('news.post4.time'), "#143a36", "#0e1414"],
     ];
     views.news.innerHTML =
       '<div class="vwrap">' +
@@ -1641,7 +1642,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
               '<div class="ncard__b"><div class="ncard__title" style="font-size:16px">' + p[1] + '</div>' +
               '<div class="ncard__meta">' + p[3] + '</div>' +
               '<p class="ncard__desc" style="-webkit-line-clamp:3">' + p[2] + '</p>' +
-              '<button class="ncard__open" data-market>' + svg("compass") + 'Обговорити</button></div></article>';
+              '<button class="ncard__open" data-market>' + svg("compass") + t('news.discuss') + '</button></div></article>';
           }).join("") +
         '</div>' +
       '</div>';
@@ -1660,6 +1661,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     // Update dynamic content
     renderRail();  // Update navigation rail labels
     syncDockAvatar();  // Update user dock
+    fillNews();  // Update news posts
     // Only reload account modal if it's currently visible
     if (views.account && views.account.classList.contains('is-on')) {
       fillAccount();

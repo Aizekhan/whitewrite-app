@@ -140,7 +140,7 @@ function App() {
   const [returned] = useAState(DIRECT);
   const [loadingProject, setLoadingProject] = useAState(false);
   const [generationProgress, setGenerationProgress] = useAState({ current: 0, total: 0, isGenerating: false });
-  const [, forceUpdate] = useAState(0); // For language change re-render
+  const [langVersion, setLangVersion] = useAState(0); // For language change re-render
 
   // Load existing project if PROJECT_ID provided (URL param mode)
   React.useEffect(() => {
@@ -401,7 +401,7 @@ function App() {
   React.useEffect(() => {
     function onLanguageChange() {
       console.log('[App] Language changed, forcing re-render');
-      forceUpdate(prev => prev + 1);
+      setLangVersion(prev => prev + 1);
     }
     window.addEventListener('ww-language-change', onLanguageChange);
     return () => window.removeEventListener('ww-language-change', onLanguageChange);
@@ -410,11 +410,11 @@ function App() {
   return (
     <div className="app">
       {stage === "start" && (
-        <StartScreen key="start" onBegin={() => setStage("form")} />
+        <StartScreen key={`start-${langVersion}`} onBegin={() => setStage("form")} />
       )}
       {stage === "form" && (
         <StoryForm
-          key="form"
+          key={`form-${langVersion}`}
           onBack={() => setStage("start")}
           onCreate={enterBook}
         />
