@@ -380,7 +380,22 @@ function WorldTreeApp() {
   const [loading, setLoading] = useAppState(true);
   const [authReady, setAuthReady] = useAppState(false);
   const [projectId, setProjectId] = useAppState(null); // Current project ID
+  const [, forceTreeUpdate] = useAppState(0); // For language change re-render
   const loadedProjectIdRef = React.useRef(null); // Track loaded projectId synchronously (to prevent duplicate loads)
+
+  // Listen for language change events
+  useAppEffect(() => {
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang;
+      console.log('[WorldTree] Language changed to:', newLang, 'forcing re-render');
+      if (window.__i18n && newLang) {
+        window.__i18n.setLanguage(newLang);
+      }
+      forceTreeUpdate(prev => prev + 1);
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
+  }, []);
 
   // Get projectId from URL param, global, or last opened project
   const getProjectId = async () => {
