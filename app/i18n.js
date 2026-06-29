@@ -65,11 +65,39 @@
 
       // Projects
       'projects.title': 'Мої Всесвіти',
+      'projects.subtitle': 'WhiteWrite · твоя бібліотека',
       'projects.create': '✦ Створити новий всесвіт',
       'projects.empty': 'У вас ще немає проєктів. Створіть перший всесвіт!',
       'projects.open': 'Відкрити',
+      'projects.openUniverse': 'Відкрити всесвіт',
       'projects.delete': 'Видалити',
+      'projects.deleteUniverse': 'Видалити всесвіт',
+      'projects.deleteConfirm': 'Видалити всесвіт?',
+      'projects.deleteForever': '🗑 Видалити назавжди',
       'projects.loading': 'Завантаження проєктів...',
+      'projects.loadingShort': 'Завантаження...',
+      'projects.universe': 'Всесвіт',
+
+      // Project Editor
+      'editor.kicker': 'Всесвіт',
+      'editor.ending': 'Фінал',
+      'editor.endingOpen': 'Відкритий',
+      'editor.endingClosed': 'Завершений',
+      'editor.endingCustom': 'Свій опис',
+
+      // Auth
+      'auth.createAccount': 'Створити акаунт',
+      'auth.signIn': 'Увійти у свій всесвіт',
+
+      // Knowledge Base
+      'kb.title': 'База знань',
+      'kb.loading': 'Завантаження…',
+
+      // News
+      'news.title': 'Новини White',
+      'news.subtitle': 'Стрічка спільноти',
+      'news.description': 'Релізи, конкурси й гайди. Обговорення — у спільноті Маркетплейсу.',
+      'news.discuss': 'Обговорити',
 
       // Scene Intent
       'intent.title': 'Що далі?',
@@ -175,11 +203,39 @@
 
       // Projects
       'projects.title': 'My Universes',
+      'projects.subtitle': 'WhiteWrite · your library',
       'projects.create': '✦ Create New Universe',
       'projects.empty': 'You don\'t have any projects yet. Create your first universe!',
       'projects.open': 'Open',
+      'projects.openUniverse': 'Open Universe',
       'projects.delete': 'Delete',
+      'projects.deleteUniverse': 'Delete Universe',
+      'projects.deleteConfirm': 'Delete Universe?',
+      'projects.deleteForever': '🗑 Delete Forever',
       'projects.loading': 'Loading projects...',
+      'projects.loadingShort': 'Loading...',
+      'projects.universe': 'Universe',
+
+      // Project Editor
+      'editor.kicker': 'Universe',
+      'editor.ending': 'Ending',
+      'editor.endingOpen': 'Open',
+      'editor.endingClosed': 'Closed',
+      'editor.endingCustom': 'Custom',
+
+      // Auth
+      'auth.createAccount': 'Create Account',
+      'auth.signIn': 'Sign In to Your Universe',
+
+      // Knowledge Base
+      'kb.title': 'Knowledge Base',
+      'kb.loading': 'Loading…',
+
+      // News
+      'news.title': 'White News',
+      'news.subtitle': 'Community Feed',
+      'news.description': 'Releases, contests, and guides. Discussions in the Marketplace community.',
+      'news.discuss': 'Discuss',
 
       // Scene Intent
       'intent.title': 'What\'s Next?',

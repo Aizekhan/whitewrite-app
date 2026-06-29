@@ -1121,17 +1121,20 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   /* ============================ VIEW CONTENT ============================ */
   function fillHome() {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+
     views.narr.innerHTML =
       '<div class="vwrap">' +
-        '<div class="vhead__k">WhiteWrite · твоя бібліотека</div>' +
-        '<h1 class="vhead__t">Твої наративи</h1>' +
-        '<p class="vhead__s">Кожен наратив — окремий живий всесвіт. Відкрий, щоб писати книгу, керувати каноном і візуалізувати сцени.</p>' +
-        '<div class="vsec-h">' + svg("library") + 'У роботі</div>' +
+        '<div class="vhead__k">' + t('projects.subtitle') + '</div>' +
+        '<h1 class="vhead__t">' + t('projects.title') + '</h1>' +
+        '<p class="vhead__s">' + (lang === 'uk' ? 'Кожен наратив — окремий живий всесвіт. Відкрий, щоб писати книгу, керувати каноном і візуалізувати сцени.' : 'Each narrative is a separate living universe. Open to write a book, manage canon, and visualize scenes.') + '</p>' +
+        '<div class="vsec-h">' + svg("library") + (lang === 'uk' ? 'У роботі' : 'In Progress') + '</div>' +
         '<div class="grid grid--narr">' +
-          (PROJECTS_LOADING ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">Завантаження...</div>' :
-           PROJECTS.length === 0 ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">Ще немає проєктів. Створіть перший!</div>' :
+          (PROJECTS_LOADING ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
+           PROJECTS.length === 0 ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.empty') + '</div>' :
            PROJECTS.map(function (p, i) { return narrCard(p, i); }).join("")) +
-          '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">Новий всесвіт</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">з чистого аркуша</span></button>' +
+          '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + (lang === 'uk' ? 'Новий всесвіт' : 'New Universe') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + (lang === 'uk' ? 'з чистого аркуша' : 'from scratch') + '</span></button>' +
         '</div>' +
       '</div>';
     [].forEach.call(views.narr.querySelectorAll('[data-open]'), function (btn) {
@@ -1153,11 +1156,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   // hold-to-confirm delete (5s)
   var delTimer = null, delRAF = null;
   function armDelete(i, btn) {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
     var card = btn.closest(".ncard");
     if (card.querySelector(".ncard__delbar")) return; // already arming
     var bar = document.createElement("div");
     bar.className = "ncard__delbar";
-    bar.innerHTML = '<div class="delbar__fill"></div><div class="delbar__txt">Видалення… утримуйте • <b>Скасувати</b></div>';
+    bar.innerHTML = '<div class="delbar__fill"></div><div class="delbar__txt">' + (lang === 'uk' ? 'Видалення… утримуйте • ' : 'Deleting… hold • ') + '<b>' + t('btn.cancel') + '</b></div>';
     card.appendChild(bar);
     var start = Date.now(), DUR = 5000;
     function tick() {
@@ -1187,8 +1192,10 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           await window.__firebaseProjects.deleteProject(p.id);
           console.log('Project deleted:', p.id);
         } catch (error) {
+          var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+          var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
           console.error('Failed to delete project:', error);
-          alert('Не вдалося видалити проєкт: ' + error.message);
+          alert((lang === 'uk' ? 'Не вдалося видалити проєкт: ' : 'Failed to delete project: ') + error.message);
           ov.__idx = null;
           ov.classList.remove("is-on");
           return;
@@ -1213,14 +1220,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
 
   function narrCard(p, i) {
-    var b = p.badge === "active" ? '<span class="ncard__badge badge--active">активний</span>' : '<span class="ncard__badge badge--draft">чернетка</span>';
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+    var b = p.badge === "active" ? '<span class="ncard__badge badge--active">' + (lang === 'uk' ? 'активний' : 'active') + '</span>' : '<span class="ncard__badge badge--draft">' + (lang === 'uk' ? 'чернетка' : 'draft') + '</span>';
     var btn = p.active
-      ? '<button class="ncard__open" data-open>' + svg("open") + 'Відкрити всесвіт</button>'
-      : '<button class="ncard__open" data-open style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + 'Продовжити</button>';
+      ? '<button class="ncard__open" data-open>' + svg("open") + t('projects.openUniverse') + '</button>'
+      : '<button class="ncard__open" data-open style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + (lang === 'uk' ? 'Продовжити' : 'Continue') + '</button>';
     return '<article class="ncard" data-project-id="' + escapeHtml(p.id) + '" style="--c1:' + escapeHtml(p.c1) + ';--c2:' + escapeHtml(p.c2) + '">' +
       '<div class="ncard__cover" style="background-image:url(' + escapeHtml(p.cover || "assets/ph-project.png") + ');background-size:cover;background-position:center">' + b +
-        '<button class="ncard__edit" data-i="' + i + '" title="Редагувати всесвіт">' + svg("edit") + '</button>' +
-        '<button class="ncard__del" data-di="' + i + '" title="Видалити всесвіт">' + svg("trash") + '</button>' +
+        '<button class="ncard__edit" data-i="' + i + '" title="' + (lang === 'uk' ? 'Редагувати всесвіт' : 'Edit universe') + '">' + svg("edit") + '</button>' +
+        '<button class="ncard__del" data-di="' + i + '" title="' + t('projects.deleteUniverse') + '">' + svg("trash") + '</button>' +
         '<span class="ncard__mark">' + escapeHtml(p.title.charAt(0)) + '</span></div>' +
       '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(p.title) + '</div><div class="ncard__meta">' + escapeHtml(p.meta) + '</div>' +
       '<p class="ncard__desc">' + escapeHtml(p.desc) + '</p>' + btn + '</div></article>';
