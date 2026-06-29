@@ -706,19 +706,7 @@
     // Update static translations
     updateStaticTranslations();
 
-    // Trigger re-render of current view
-    if (window.__fillAccount) {
-      window.__fillAccount();
-    }
-    if (window.__reloadProjects) {
-      window.__reloadProjects();
-    }
-    // Update navigation rail labels
-    if (window.__reloadRail) {
-      window.__reloadRail();
-    }
-
-    // Dispatch event for React components (flow.jsx in iframe)
+    // Dispatch event for React components and White.html
     window.dispatchEvent(new Event('ww-language-change'));
 
     // Also dispatch to iframe if exists

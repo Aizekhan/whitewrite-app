@@ -466,9 +466,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   <button class="homefab" id="homefab" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну" style="display:none"><span data-i18n="ui.home">⌂ На головну</span></button>
 
   <button class="userdock is-loading" id="userdock" data-i18n-title="ui.account" title="Акаунт" data-i18n-aria="ui.account" aria-label="Акаунт">
-    <span class="userdock__av" data-i18n="ui.guest">Г</span>
+    <span class="userdock__av">Г</span>
     <span class="userdock__info">
-      <span class="userdock__name" data-i18n="ui.guest">Гість</span>
+      <span class="userdock__name">Гість</span>
       <span class="userdock__tok"><span class="userdock__spark">✦</span><b id="scenecount">200/200</b> <span data-i18n="ui.tokens">токенів</span></span>
     </span>
   </button>
@@ -1579,8 +1579,19 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var av = document.querySelector(".userdock__av");
     var nm = document.querySelector(".userdock__name");
     var sceneCount = document.getElementById("scenecount");
-    if (av) av.innerHTML = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : (u.name || "М").charAt(0);
-    if (nm) nm.textContent = u.name || "Майстер всесвітів";
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+
+    // If logged in, show user data
+    if (window.__wwAuth && u.name) {
+      if (av) av.innerHTML = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : (u.name || "М").charAt(0);
+      if (nm) nm.textContent = u.name || (lang === 'uk' ? "Майстер всесвітів" : "Universe Master");
+    } else {
+      // If guest, show translated "Guest"
+      var guestInitial = lang === 'uk' ? 'Г' : 'G';
+      if (av) av.textContent = guestInitial;
+      if (nm) nm.textContent = t('ui.guest');
+    }
     // Token budget (Phase 1.1 refactor - Token Budget System)
     if (sceneCount) {
       var remaining = u.tokensRemaining !== undefined ? u.tokensRemaining : 200;
@@ -1641,6 +1652,19 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   fillHome(); fillMarket(); fillKb(); fillNews();
   // fillAccount() called by Firebase Auth after user data loads
+
+  // Listen for language change events
+  window.addEventListener('ww-language-change', function() {
+    console.log('[White.html] Language changed, updating UI');
+    // Update static translations (already done by i18n.js updateStaticTranslations)
+    // Update dynamic content
+    renderRail();  // Update navigation rail labels
+    syncDockAvatar();  // Update user dock
+    // Only reload account modal if it's currently visible
+    if (views.account && views.account.classList.contains('is-on')) {
+      fillAccount();
+    }
+  });
 
   /* ---- initial route ---- */
   var h = (location.hash || "").replace("#", "");
