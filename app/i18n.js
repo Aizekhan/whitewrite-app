@@ -125,6 +125,29 @@
       'auth.orDivider': 'або',
       'auth.googleButton': 'Продовжити з Google',
 
+      // UI Elements
+      'ui.back': 'Назад',
+      'ui.home': 'На головну',
+      'ui.hideMenu': 'Сховати меню для читання',
+      'ui.navigation': 'Навігація',
+      'ui.account': 'Акаунт',
+      'ui.guest': 'Гість',
+      'ui.tokens': 'токенів',
+      'ui.feedback': 'Повідомити про баг або написати нам',
+      'ui.feedbackShort': 'Зворотний зв\'язок',
+      'ui.close': 'Закрити',
+
+      // Feedback Modal
+      'feedback.kicker': 'Зворотний зв\'язок',
+      'feedback.title': 'Написати розробникам',
+      'feedback.bugTab': '🐞 Баг',
+      'feedback.ideaTab': '✦ Побажання',
+      'feedback.bugLabel': 'Опишіть проблему',
+      'feedback.ideaLabel': 'Ваша ідея',
+      'feedback.placeholder': 'Що сталося / що хотілося б покращити…',
+      'feedback.send': 'Надіслати',
+      'feedback.thanks': '✓ Дякуємо! Надіслано',
+
       // Knowledge Base
       'kb.title': 'База знань',
       'kb.loading': 'Завантаження…',
@@ -299,6 +322,29 @@
       'auth.orDivider': 'or',
       'auth.googleButton': 'Continue with Google',
 
+      // UI Elements
+      'ui.back': 'Back',
+      'ui.home': 'Home',
+      'ui.hideMenu': 'Hide menu for reading',
+      'ui.navigation': 'Navigation',
+      'ui.account': 'Account',
+      'ui.guest': 'Guest',
+      'ui.tokens': 'tokens',
+      'ui.feedback': 'Report a bug or write to us',
+      'ui.feedbackShort': 'Feedback',
+      'ui.close': 'Close',
+
+      // Feedback Modal
+      'feedback.kicker': 'Feedback',
+      'feedback.title': 'Write to Developers',
+      'feedback.bugTab': '🐞 Bug',
+      'feedback.ideaTab': '✦ Suggestion',
+      'feedback.bugLabel': 'Describe the problem',
+      'feedback.ideaLabel': 'Your idea',
+      'feedback.placeholder': 'What happened / what would you like to improve…',
+      'feedback.send': 'Send',
+      'feedback.thanks': '✓ Thank you! Sent',
+
       // Knowledge Base
       'kb.title': 'Knowledge Base',
       'kb.loading': 'Loading…',
@@ -380,6 +426,7 @@
 
   // Update all data-i18n elements
   function updateStaticTranslations() {
+    // Update text content
     document.querySelectorAll('[data-i18n]').forEach(function(el) {
       const key = el.getAttribute('data-i18n');
       const translation = t(key);
@@ -399,6 +446,24 @@
           }
         }
       }
+    });
+
+    // Update title attributes
+    document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+      const key = el.getAttribute('data-i18n-title');
+      el.setAttribute('title', t(key));
+    });
+
+    // Update aria-label attributes
+    document.querySelectorAll('[data-i18n-aria]').forEach(function(el) {
+      const key = el.getAttribute('data-i18n-aria');
+      el.setAttribute('aria-label', t(key));
+    });
+
+    // Update placeholder attributes
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+      const key = el.getAttribute('data-i18n-placeholder');
+      el.setAttribute('placeholder', t(key));
     });
   }
 

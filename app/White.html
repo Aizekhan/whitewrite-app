@@ -440,18 +440,18 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <body>
 <div class="shell">
   <aside class="rail">
-    <button class="rail__back" id="backbtn" title="Назад" aria-label="Назад" style="display:none">
+    <button class="rail__back" id="backbtn" data-i18n-title="ui.back" title="Назад" data-i18n-aria="ui.back" aria-label="Назад" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
-    <button class="rail__logo" id="logo" title="На головну" aria-label="На головну">
+    <button class="rail__logo" id="logo" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну">
       <img src="assets/LogoWhiteTree.png" alt="White Tree" draggable="false" />
     </button>
     <span class="rail__brand">WhiteWrite</span>
-    <button class="rail__collapse" id="rail-collapse" title="Сховати меню для читання" aria-label="Сховати меню" style="display:none">
+    <button class="rail__collapse" id="rail-collapse" data-i18n-title="ui.hideMenu" title="Сховати меню для читання" aria-label="Сховати меню" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
     </button>
     <span class="rail__div"></span>
-    <nav class="rail__items" id="rail-items" aria-label="Навігація"></nav>
+    <nav class="rail__items" id="rail-items" data-i18n-aria="ui.navigation" aria-label="Навігація"></nav>
     <div class="rail__foot" id="rail-foot"></div>
   </aside>
 
@@ -465,33 +465,33 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   </main>
   <div class="kb-reader" id="kb-reader"></div>
 
-  <button class="homefab" id="homefab" title="На головну" aria-label="На головну" style="display:none">⌂ На головну</button>
+  <button class="homefab" id="homefab" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну" style="display:none"><span data-i18n="ui.home">⌂ На головну</span></button>
 
-  <button class="userdock is-loading" id="userdock" title="Акаунт" aria-label="Акаунт">
-    <span class="userdock__av">Г</span>
+  <button class="userdock is-loading" id="userdock" data-i18n-title="ui.account" title="Акаунт" data-i18n-aria="ui.account" aria-label="Акаунт">
+    <span class="userdock__av" data-i18n="ui.guest">Г</span>
     <span class="userdock__info">
-      <span class="userdock__name">Гість</span>
-      <span class="userdock__tok"><span class="userdock__spark">✦</span><b id="scenecount">200/200</b> токенів</span>
+      <span class="userdock__name" data-i18n="ui.guest">Гість</span>
+      <span class="userdock__tok"><span class="userdock__spark">✦</span><b id="scenecount">200/200</b> <span data-i18n="ui.tokens">токенів</span></span>
     </span>
   </button>
 
-  <button class="feedback-fab" id="feedback-fab" title="Повідомити про баг або написати нам" aria-label="Зворотний зв'язок">
+  <button class="feedback-fab" id="feedback-fab" data-i18n-title="ui.feedback" title="Повідомити про баг або написати нам" data-i18n-aria="ui.feedbackShort" aria-label="Зворотний зв'язок">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 0 1 8 0v1M6 12h12M5 12a7 7 0 0 0 14 0M12 8v9M9.5 5.5 8 4M14.5 5.5 16 4M5 9 3 8M19 9l2-1M5 15l-2 1M19 15l2 1"/></svg>
   </button>
 
   <div class="proj-edit" id="feedback-modal">
     <div class="pe-scrim" onclick="window.__fbClose&&window.__fbClose()"></div>
-    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Зворотний зв'язок" style="width:min(460px,92vw)">
-      <button class="pe-x" onclick="window.__fbClose&&window.__fbClose()" aria-label="Закрити">✕</button>
-      <div class="pe-kicker">Зворотний зв'язок</div>
-      <h2 class="pe-title-h">Написати розробникам</h2>
+    <div class="pe-card" role="dialog" aria-modal="true" data-i18n-aria="feedback.title" aria-label="Зворотний зв'язок" style="width:min(460px,92vw)">
+      <button class="pe-x" onclick="window.__fbClose&&window.__fbClose()" data-i18n-aria="ui.close" aria-label="Закрити">✕</button>
+      <div class="pe-kicker" data-i18n="feedback.kicker">Зворотний зв'язок</div>
+      <h2 class="pe-title-h" data-i18n="feedback.title">Написати розробникам</h2>
       <div class="auth-tabs">
-        <button class="auth-tab is-on" id="fb-tbug" onclick="window.__fbTab&&window.__fbTab('bug')">🐞 Баг</button>
-        <button class="auth-tab" id="fb-tidea" onclick="window.__fbTab&&window.__fbTab('idea')">✦ Побажання</button>
+        <button class="auth-tab is-on" id="fb-tbug" onclick="window.__fbTab&&window.__fbTab('bug')" data-i18n="feedback.bugTab">🐞 Баг</button>
+        <button class="auth-tab" id="fb-tidea" onclick="window.__fbTab&&window.__fbTab('idea')" data-i18n="feedback.ideaTab">✦ Побажання</button>
       </div>
-      <label class="pe-field"><span class="pe-lbl" id="fb-lbl">Опишіть проблему</span>
-        <textarea class="pe-area" id="fb-text" rows="5" placeholder="Що сталося / що хотілося б покращити…"></textarea></label>
-      <button class="pe-btn pe-btn--save" id="fb-submit" style="width:100%;justify-content:center" onclick="window.__fbSend&&window.__fbSend()">Надіслати</button>
+      <label class="pe-field"><span class="pe-lbl" id="fb-lbl" data-i18n="feedback.bugLabel">Опишіть проблему</span>
+        <textarea class="pe-area" id="fb-text" rows="5" data-i18n-placeholder="feedback.placeholder" placeholder="Що сталося / що хотілося б покращити…"></textarea></label>
+      <button class="pe-btn pe-btn--save" id="fb-submit" style="width:100%;justify-content:center" onclick="window.__fbSend&&window.__fbSend()" data-i18n="feedback.send">Надіслати</button>
     </div>
   </div>
 
