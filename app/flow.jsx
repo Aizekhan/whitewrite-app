@@ -23,6 +23,8 @@ function StartScreen({ onBegin }) {
     'hero.bookBtn': '📦 Замовити книгу'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
+  const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+  console.log('[StartScreen] Rendering with language:', currentLang, 'title:', t('hero.title'));
   return (
     <div className="screen screen--start stage-screen">
       <img className="hero-img" src="assets/StartBack.jpg" alt="Хранитель історій з живою книгою" />

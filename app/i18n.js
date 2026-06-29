@@ -733,6 +733,11 @@
   // Set language
   function setLanguage(lang) {
     if (lang !== 'uk' && lang !== 'en') return;
+    if (currentLang === lang) {
+      console.log('[i18n] Language already set to', lang, '- skipping');
+      return; // Don't trigger events if language hasn't changed
+    }
+    console.log('[i18n] Changing language from', currentLang, 'to', lang);
     currentLang = lang;
     localStorage.setItem('ww-lang', lang);
     document.documentElement.lang = lang;
