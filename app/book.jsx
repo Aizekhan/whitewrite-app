@@ -420,15 +420,15 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
       {/* Always-visible pillar navigation — identical to Tree / Director */}
       {!generating && (
         <div className="book-nav">
-          <div className="pillswitch" role="tablist" aria-label="Стовпи WhiteWrite">
+          <div className="pillswitch" role="tablist" aria-label={window.__i18n ? window.__i18n.t('nav.pillars') : 'Стовпи WhiteWrite'}>
             <button className="pillswitch__b is-here" type="button" aria-current="page">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-3 0-9 2-12 8-1.3 2.6-2 5-2 5s2.4-.7 5-2c6-3 8-9 9-11z"/><path d="M5 19 11 13M16 8l-4 1 1-4"/></svg>Книга
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 5c-3 0-9 2-12 8-1.3 2.6-2 5-2 5s2.4-.7 5-2c6-3 8-9 9-11z"/><path d="M5 19 11 13M16 8l-4 1 1-4"/></svg>{window.__i18n ? window.__i18n.t('nav.book') : 'Книга'}
             </button>
             <button className="pillswitch__b" type="button" onClick={goTree}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21v-6"/><path d="M12 15c-3 0-5-2-5-5a4.3 4.3 0 0 1 1.5-3.3A4 4 0 0 1 12 3a4 4 0 0 1 3.5 3.7A4.3 4.3 0 0 1 17 10c0 3-2 5-5 5z"/></svg>Всесвіт
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21v-6"/><path d="M12 15c-3 0-5-2-5-5a4.3 4.3 0 0 1 1.5-3.3A4 4 0 0 1 12 3a4 4 0 0 1 3.5 3.7A4.3 4.3 0 0 1 17 10c0 3-2 5-5 5z"/></svg>{window.__i18n ? window.__i18n.t('nav.universe') : 'Всесвіт'}
             </button>
             <button className="pillswitch__b" type="button" onClick={goWorkspace}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5 21 9.5 21 19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="m3 9.5 17-4M7 5l-1 4M12 4l-1 4.5M17 3l-1 5"/></svg>Режисер
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5 21 9.5 21 19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="m3 9.5 17-4M7 5l-1 4M12 4l-1 4.5M17 3l-1 5"/></svg>{window.__i18n ? window.__i18n.t('nav.director') : 'Режисер'}
             </button>
           </div>
         </div>

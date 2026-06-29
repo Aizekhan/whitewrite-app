@@ -65,18 +65,26 @@ window.__firebaseCanon = {
    * IMPORTANT: Maps AI-extracted field names to UI-expected field names
    */
   canonToArrays(canon) {
+    // Helper: Migrate legacy text values to enum codes
+    const migrateEnum = (value) => {
+      if (!value || !window.__canonEnums) return value;
+      return window.__canonEnums.normalizeEnumValue(value);
+    };
+
     // Helper: Normalize AI-extracted entity to UI-expected format
     const normalizeCharacter = (data) => ({
       ...data,
       motivation: data.motivation || data.goal || data.trait || '',
-      roleType: data.roleType || (data.role?.includes('головн') ? 'lead' : 'support'),
+      roleType: migrateEnum(data.roleType || (data.role?.includes('головн') ? 'lead' : 'support')),
+      status: migrateEnum(data.status),
       prog: data.prog || 0,
       arc: data.arc || data.developmentArc || ''
     });
 
     const normalizeLocation = (data) => ({
       ...data,
-      desc: data.desc || data.description || ''
+      desc: data.desc || data.description || '',
+      type: migrateEnum(data.type)
     });
 
     const normalizeEvent = (data) => ({
@@ -84,22 +92,22 @@ window.__firebaseCanon = {
       title: data.title || data.name || '',
       desc: data.desc || data.description || '',
       act: data.act || 1,
-      type: data.type || 'Подія',
+      type: migrateEnum(data.type || 'other'),
       tone: data.tone || 'done'
     });
 
     const normalizeFaction = (data) => ({
       ...data,
       desc: data.desc || data.description || '',
-      align: data.align || 'neutral',
+      align: migrateEnum(data.align || 'neutral'),
       power: data.power || 5
     });
 
     const normalizeArtifact = (data) => ({
       ...data,
       desc: data.desc || data.description || '',
-      type: data.type || 'Артефакт',
-      rarity: data.rarity || 'Звичайний'
+      type: migrateEnum(data.type || 'other'),
+      rarity: migrateEnum(data.rarity || 'common')
     });
 
     const result = {

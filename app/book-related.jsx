@@ -5,7 +5,22 @@
 (function () {
   const { useState: useRelState, useEffect: useRelEffect } = React;
 
-  const REL_LABEL = { characters: "Персонажі", locations: "Локації", events: "Події", factions: "Фракції", artifacts: "Артефакти" };
+  // Helper to get translations
+  function t(key) {
+    return window.__i18n ? window.__i18n.t(key) : key;
+  }
+
+  function getRelLabel(type) {
+    return t('book.related.' + type);
+  }
+
+  const REL_LABEL = {
+    get characters() { return getRelLabel('characters'); },
+    get locations() { return getRelLabel('locations'); },
+    get events() { return getRelLabel('events'); },
+    get factions() { return getRelLabel('factions'); },
+    get artifacts() { return getRelLabel('artifacts'); }
+  };
   const REL_COLOR = { characters: "#b78a32", locations: "#6f8a4f", events: "#b15a37", factions: "#8a6bb0", artifacts: "#c0892f" };
   const REL_ORDER = ["characters", "locations", "events", "factions", "artifacts"];
 
@@ -93,7 +108,7 @@
               <span className="bm__n">{groups[t].length}</span>
             </button>
           ))}
-          <button className={`bm bm--explore ${open === "__text" ? "is-active" : ""}`} type="button" title="Налаштування тексту" onClick={() => setOpen(open === "__text" ? null : "__text")}>
+          <button className={`bm bm--explore ${open === "__text" ? "is-active" : ""}`} type="button" title={t('book.textSettings')} onClick={() => setOpen(open === "__text" ? null : "__text")}>
             <span className="bm__glyph">Aa</span>
           </button>
         </div>
@@ -101,16 +116,16 @@
         {open === "__text" && (
           <>
             <div className="bm-scrim" onClick={() => setOpen(null)} />
-            <div className="bm-pop bm-pop--text" role="dialog" aria-modal="true" aria-label="Налаштування тексту" ref={popRef}>
+            <div className="bm-pop bm-pop--text" role="dialog" aria-modal="true" aria-label={t('book.textSettings')} ref={popRef}>
               <div className="bm-pop__head">
                 <div>
-                  <div className="bm-pop__sub">Читання</div>
-                  <div className="bm-pop__title">Текст</div>
+                  <div className="bm-pop__sub">{t('book.reading')}</div>
+                  <div className="bm-pop__title">{t('book.text')}</div>
                 </div>
-                <button className="bm-pop__x" type="button" onClick={() => setOpen(null)} aria-label="Закрити">✕</button>
+                <button className="bm-pop__x" type="button" onClick={() => setOpen(null)} aria-label={t('ui.close')}>✕</button>
               </div>
               <div className="ts-group">
-                <div className="ts-lbl">Шрифт</div>
+                <div className="ts-lbl">{t('book.font')}</div>
                 <div className="ts-row">
                   {[["Philosopher","Philosopher"],["Spectral","Spectral, Georgia, serif"],["Sans","system-ui, sans-serif"]].map(([lbl,ff]) => (
                     <button key={lbl} className="ts-btn" style={{ fontFamily: ff }} onClick={() => setBookFont(ff)}>{lbl}</button>
@@ -118,14 +133,14 @@
                 </div>
               </div>
               <div className="ts-group">
-                <div className="ts-lbl">Розмір</div>
+                <div className="ts-lbl">{t('book.size')}</div>
                 <div className="ts-row">
                   <button className="ts-btn" onClick={() => stepBookSize(-0.08)}>A−</button>
-                  <button className="ts-btn" onClick={() => setBookSize(1)}>Скинути</button>
+                  <button className="ts-btn" onClick={() => setBookSize(1)}>{t('book.reset')}</button>
                   <button className="ts-btn" onClick={() => stepBookSize(0.08)}>A+</button>
                 </div>
               </div>
-              <div className="bm-pop__foot">Налаштування читання</div>
+              <div className="bm-pop__foot">{t('book.readingSettings')}</div>
             </div>
           </>
         )}
@@ -133,13 +148,13 @@
         {open && open !== "__text" && (
           <>
             <div className="bm-scrim" onClick={() => setOpen(null)} />
-            <div className="bm-pop" role="dialog" aria-modal="true" aria-label={`Канон сцени ${scene}: ${REL_LABEL[open]}`} ref={popRef} style={{ "--c": REL_COLOR[open] }}>
+            <div className="bm-pop" role="dialog" aria-modal="true" aria-label={`${t('book.sceneCanon')} ${scene}: ${REL_LABEL[open]}`} ref={popRef} style={{ "--c": REL_COLOR[open] }}>
               <div className="bm-pop__head">
                 <div>
-                  <div className="bm-pop__sub">Канон сцени {scene}</div>
+                  <div className="bm-pop__sub">{t('book.sceneCanon')} {scene}</div>
                   <div className="bm-pop__title">{REL_LABEL[open]}</div>
                 </div>
-                <button className="bm-pop__x" type="button" onClick={() => setOpen(null)} aria-label="Закрити">✕</button>
+                <button className="bm-pop__x" type="button" onClick={() => setOpen(null)} aria-label={t('ui.close')}>✕</button>
               </div>
               <div className="bm-pop__list">
                 {groups[open].map((id) => {
@@ -151,7 +166,7 @@
                   );
                 })}
               </div>
-              <div className="bm-pop__foot">✦ Відкрити у Світовому Дереві</div>
+              <div className="bm-pop__foot">{t('book.openInWorldTree')}</div>
             </div>
           </>
         )}

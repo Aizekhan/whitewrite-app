@@ -39,19 +39,22 @@ function PillarSwitch({ here }) {
   const projectId = React.useContext(ProjectContext);
   const projectParam = projectId ? `?projectId=${projectId}` : '';
 
+  // Helper to get translations
+  const t = (key) => window.__i18n ? window.__i18n.t(key) : key;
+
   const fadeNav = (href) => {
     if (window.wwGo && window.wwGo(href)) return;
     window.location.href = href;
   };
 
   const items = [
-    { id: "book", label: "Книга", icon: "feather", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
-    { id: "universe", label: "Всесвіт", icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
-    { id: "director", label: "Режисер", icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
+    { id: "book", label: t('nav.book'), icon: "feather", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
+    { id: "universe", label: t('nav.universe'), icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "director", label: t('nav.director'), icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
   ];
 
   return (
-    <div className="pillswitch pillswitch--fixed" role="tablist" aria-label="Стовпи WhiteWrite">
+    <div className="pillswitch pillswitch--fixed" role="tablist" aria-label={t('nav.pillars')}>
       {items.map((it) => {
         const I = Ic[it.icon];
         const cur = here === it.id;
@@ -108,12 +111,14 @@ function getSceneIntent(index, total, isAutoMode) {
 
 // Generation progress overlay
 function GenerationProgress({ current, total }) {
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const text = t('generation.creating').replace('{current}', current + 1).replace('{total}', total);
   return (
     <div className="gen-overlay">
       <div className="gen-card">
         <div className="gen-star">✨</div>
-        <div className="gen-text">Генерується сцена {current + 1} з {total}</div>
-        <div className="gen-note">Це може зайняти кілька хвилин...</div>
+        <div className="gen-text">{text}</div>
+        <div className="gen-note">{t('generation.note')}</div>
       </div>
     </div>
   );
@@ -141,6 +146,12 @@ function App() {
   const [loadingProject, setLoadingProject] = useAState(false);
   const [generationProgress, setGenerationProgress] = useAState({ current: 0, total: 0, isGenerating: false });
   const [langVersion, setLangVersion] = useAState(0); // For language change re-render
+
+  // Export generation progress control to window (for SceneIntent continuation)
+  React.useEffect(() => {
+    window.__setGenerationProgress = setGenerationProgress;
+    return () => { window.__setGenerationProgress = null; };
+  }, []);
 
   // Load existing project if PROJECT_ID provided (URL param mode)
   React.useEffect(() => {
@@ -350,12 +361,18 @@ function App() {
                   }
                 } else {
                   console.error(`[${i + 1}/${scenesToGenerate}] ✗ Generation failed:`, result.error);
-                  alert(`Помилка генерації сцени ${i + 1}: ${result.error}\n\nЗгенеровано ${i} з ${scenesToGenerate} сцен.`);
+                  const t = window.__i18n ? window.__i18n.t : (k) => k;
+                  const errorMsg = t('error.sceneGeneration').replace('{number}', i + 1);
+                  const countMsg = t('error.scenesGenerated').replace('{count}', i).replace('{total}', scenesToGenerate);
+                  alert(`${errorMsg}: ${result.error}\n\n${countMsg}`);
                   break; // Stop on error
                 }
               } catch (sceneError) {
                 console.error(`[${i + 1}/${scenesToGenerate}] ✗ Exception:`, sceneError);
-                alert(`Помилка при генерації сцени ${i + 1}: ${sceneError.message}\n\nЗгенеровано ${i} з ${scenesToGenerate} сцен.`);
+                const t = window.__i18n ? window.__i18n.t : (k) => k;
+                const errorMsg = t('error.sceneGeneration').replace('{number}', i + 1);
+                const countMsg = t('error.scenesGenerated').replace('{count}', i).replace('{total}', scenesToGenerate);
+                alert(`${errorMsg}: ${sceneError.message}\n\n${countMsg}`);
                 break;
               }
             }
@@ -370,7 +387,8 @@ function App() {
         }
       } catch (error) {
         console.error('Failed to create project:', error);
-        alert('Не вдалося створити проєкт: ' + error.message);
+        const t = window.__i18n ? window.__i18n.t : (k) => k;
+        alert(t('error.projectCreation') + ': ' + error.message);
         setGenerationProgress({ current: 0, total: 0, isGenerating: false });
         return;
       }

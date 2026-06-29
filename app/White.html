@@ -495,20 +495,20 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   <div class="proj-edit" id="buybook-modal">
     <div class="pe-scrim" onclick="document.getElementById('buybook-modal').classList.remove('is-on')"></div>
-    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Придбати книгу" style="width:min(460px,92vw);text-align:center">
-      <button class="pe-x" onclick="document.getElementById('buybook-modal').classList.remove('is-on')" aria-label="Закрити">✕</button>
-      <div class="pe-kicker">📜 Бета</div>
-      <h2 class="pe-title-h">Надрукуй свою історію у справжній книзі</h2>
-      <p style="font-size:14.5px;line-height:1.65;color:var(--tx);margin:0 0 14px">Обери стародавню магічну обкладинку — шкіра, тиснене золото, пергаментні сторінки — і тримай свій всесвіт у руках.</p>
+    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Buy book" style="width:min(460px,92vw);text-align:center">
+      <button class="pe-x" onclick="document.getElementById('buybook-modal').classList.remove('is-on')" aria-label="Close">✕</button>
+      <div class="pe-kicker" data-i18n="buyBook.badge">📜 Бета</div>
+      <h2 class="pe-title-h" data-i18n="buyBook.title">Надрукуй свою історію у справжній книзі</h2>
+      <p style="font-size:14.5px;line-height:1.65;color:var(--tx);margin:0 0 14px" data-i18n="buyBook.description">Обери стародавню магічну обкладинку — шкіра, тиснене золото, пергаментні сторінки — і тримай свій всесвіт у руках.</p>
       <div class="bb-uses">
-        <div class="bb-use"><span class="bb-use__ic">🎁</span><span>Подаруй книгу про близьку людину — історію, де <b>герой — саме вона</b></span></div>
-        <div class="bb-use"><span class="bb-use__ic">📚</span><span>Прикрась полицю <b>унікальним фоліантом</b>, якого більше ні в кого немає</span></div>
-        <div class="bb-use"><span class="bb-use__ic">✦</span><span>Збережи свій всесвіт <b>назавжди</b> — не лише на екрані</span></div>
+        <div class="bb-use"><span class="bb-use__ic">🎁</span><span data-i18n-html="buyBook.use1">Подаруй книгу про близьку людину — історію, де <b>герой — саме вона</b></span></div>
+        <div class="bb-use"><span class="bb-use__ic">📚</span><span data-i18n-html="buyBook.use2">Прикрась полицю <b>унікальним фоліантом</b>, якого більше ні в кого немає</span></div>
+        <div class="bb-use"><span class="bb-use__ic">✦</span><span data-i18n-html="buyBook.use3">Збережи свій всесвіт <b>назавжди</b> — не лише на екрані</span></div>
       </div>
       <div class="bb-soon" style="margin-top:18px;text-align:center;padding:16px;border-radius:12px;background:rgba(217,160,70,0.1);border:1px solid rgba(217,160,70,0.32)">
         <div style="font-size:30px;margin-bottom:6px">📜✦</div>
-        <div style="font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--gold-bright)">Функція в розробці — уже зовсім скоро</div>
-        <p style="font-family:'Philosopher',serif;font-size:14px;line-height:1.6;color:var(--tx);margin:8px 0 0">Ми кропітко працюємо над друком справжніх фоліантів. Щойно це стане можливим — ти дізнаєшся одним із перших. ✦</p>
+        <div style="font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--gold-bright)" data-i18n="buyBook.comingSoonTitle">Функція в розробці — уже зовсім скоро</div>
+        <p style="font-family:'Philosopher',serif;font-size:14px;line-height:1.6;color:var(--tx);margin:8px 0 0" data-i18n="buyBook.comingSoonText">Ми кропітко працюємо над друком справжніх фоліантів. Щойно це стане можливим — ти дізнаєшся одним із перших. ✦</p>
       </div>
     </div>
   </div>
@@ -825,6 +825,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     } else {
       Object.keys(SECTIONS).forEach(function (s) {
         if (s === "narr" && !window.__wwAuth) return; // Проекти only when logged in
+        if (s === "market" && !window.__features?.marketplace) return; // Marketplace coming soon
         railItems.appendChild(railBtn(s, getSectionLabel(s), SECTIONS[s].icon, mode === s, function () { showView(s); }));
       });
     }
@@ -1155,6 +1156,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
            PROJECTS.map(function (p, i) { return narrCard(p, i); }).join("")) +
           '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + (lang === 'uk' ? 'Новий всесвіт' : 'New Universe') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + (lang === 'uk' ? 'з чистого аркуша' : 'from scratch') + '</span></button>' +
         '</div>' +
+        '<div class="director-announcement" style="margin-top:32px;padding:20px 24px;border-radius:16px;background:linear-gradient(135deg,rgba(147,51,234,0.12),rgba(79,70,229,0.12));border:2px solid rgba(147,51,234,0.35)">' +
+          '<div style="font-size:12px;letter-spacing:0.25em;text-transform:uppercase;color:#c4b5fd;margin-bottom:14px;font-weight:700">🎬 ' + t('director.newFeatureBadge') + '</div>' +
+          '<h3 style="font-family:Cinzel,serif;font-size:18px;font-weight:600;color:var(--tx);margin:0 0 10px 0">' + t('director.newFeatureTitle') + '</h3>' +
+          '<p style="font-size:14.5px;line-height:1.65;color:var(--tx-mid);margin:0">' + t('director.newFeatureText') + '</p>' +
+        '</div>' +
       '</div>';
     [].forEach.call(views.narr.querySelectorAll('[data-open]'), function (btn) {
       btn.addEventListener("click", function () {
@@ -1332,12 +1338,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
 
   function renderBlock(blk) {
+    var i18n = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var t = blk[0], v = blk[1];
     if (t === "h") return '<h3 class="art__h">' + v + '</h3>';
     if (t === "p") return '<p class="art__p">' + v + '</p>';
     if (t === "ul") return '<ul class="art__ul">' + v.map(function (li) { return '<li>' + li + '</li>'; }).join("") + '</ul>';
-    if (t === "tip") return '<div class="art__note art__note--tip"><b>Порада.</b> ' + v + '</div>';
-    if (t === "warn") return '<div class="art__note art__note--warn"><b>Увага.</b> ' + v + '</div>';
+    if (t === "tip") return '<div class="art__note art__note--tip"><b>' + i18n('kb.tip') + '</b> ' + v + '</div>';
+    if (t === "warn") return '<div class="art__note art__note--warn"><b>' + i18n('kb.warning') + '</b> ' + v + '</div>';
     return '';
   }
   function openArticle(id) {

@@ -4,6 +4,11 @@
 // stand-in for the real generation pipeline.
 const { useState: useDState } = React;
 
+// i18n helper
+function t(key) {
+  return window.__i18n ? window.__i18n.t(key) : key;
+}
+
 function CopyBtn({ text }) {
   const [done, setDone] = useDState(false);
   function copy() {
@@ -35,8 +40,8 @@ function ShotCard({ s, onGenerate, onEdit, onDelete, onPick, onMoreVariant }) {
           {s.moods.map((m) => <span key={m} className="chip chip--mood">{m}</span>)}
         </span>
         <span className="shot__acts">
-          <button className="ibtn" title="Редагувати об'єкт кадру" onClick={() => onEdit(s.n)}><Ic.edit /></button>
-          <button className="ibtn" title="Видалити кадр" onClick={() => onDelete(s.n)}><Ic.plus style={{ transform: "rotate(45deg)" }} /></button>
+          <button className="ibtn" title={!window.__features?.director ? t('preview.actionDisabled') : "Редагувати об'єкт кадру"} onClick={() => onEdit(s.n)} disabled={!window.__features?.director}><Ic.edit /></button>
+          <button className="ibtn" title={!window.__features?.director ? t('preview.actionDisabled') : "Видалити кадр"} onClick={() => onDelete(s.n)} disabled={!window.__features?.director}><Ic.plus style={{ transform: "rotate(45deg)" }} /></button>
         </span>
       </div>
 
@@ -59,11 +64,11 @@ function ShotCard({ s, onGenerate, onEdit, onDelete, onPick, onMoreVariant }) {
           {s.generated && (
             <div className="varstrip">
               {Array.from({ length: s.variants || 3 }, (_, i) => (
-                <button key={i} className={`varthumb ${(s.sel || 0) === i ? "is-sel" : ""}`} title={"Варіант " + (i + 1)}
-                  onClick={() => onPick(s.n, i)}><span className="varthumb__n">{i + 1}</span></button>
+                <button key={i} className={`varthumb ${(s.sel || 0) === i ? "is-sel" : ""}`} title={!window.__features?.director ? t('preview.actionDisabled') : "Варіант " + (i + 1)}
+                  onClick={() => onPick(s.n, i)} disabled={!window.__features?.director}><span className="varthumb__n">{i + 1}</span></button>
               ))}
               {(s.variants || 3) < 5 && (
-                <button className="varthumb varthumb--add" title="Згенерувати ще варіант" onClick={() => onMoreVariant(s.n)}><Ic.plus /></button>
+                <button className="varthumb varthumb--add" title={!window.__features?.director ? t('preview.actionDisabled') : "Згенерувати ще варіант"} onClick={() => onMoreVariant(s.n)} disabled={!window.__features?.director}><Ic.plus /></button>
               )}
             </div>
           )}
@@ -84,7 +89,7 @@ function ShotCard({ s, onGenerate, onEdit, onDelete, onPick, onMoreVariant }) {
             <p className="prompt__txt mono">{s.prompt}</p>
             <div className="prompt__acts">
               <CopyBtn text={s.prompt} />
-              <button className="btn btn--gold" onClick={generate} disabled={busy || s.generated}>
+              <button className="btn btn--gold" onClick={generate} disabled={busy || s.generated || !window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}>
                 <Ic.sparkle />{s.generated ? "Перемалювати" : busy ? "Малюю…" : "Намалювати кадр"}
               </button>
             </div>
@@ -99,10 +104,10 @@ function ShotCard({ s, onGenerate, onEdit, onDelete, onPick, onMoreVariant }) {
                   <span className="shot__dlg__dur mono">~{Math.max(1, Math.round((d.line || "").length / 14))}с</span>
                 </div>
               ))}
-              <button className="shot__dlg--more" onClick={() => onEdit(s.n)}>＋ ще репліка / редагувати</button>
+              <button className="shot__dlg--more" onClick={() => onEdit(s.n)} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}>＋ ще репліка / редагувати</button>
             </div>
           ) : (
-            <button className="shot__dlg shot__dlg--add" onClick={() => onEdit(s.n)}>🗨 Додати репліку персонажа до цього кадру</button>
+            <button className="shot__dlg shot__dlg--add" onClick={() => onEdit(s.n)} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}>🗨 Додати репліку персонажа до цього кадру</button>
           )}
         </div>
       </div>
@@ -172,7 +177,7 @@ function DirectorTab({ scene }) {
           <h1>Розкадровка</h1>
           <span className="phead__sub">{shots.length} кадри · готових storyboard: {ready}</span>
         </div>
-        <button className="btn btn--gold" onClick={addShot}><Ic.plus />Додати кадр</button>
+        <button className="btn btn--gold" onClick={addShot} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}><Ic.plus />Додати кадр</button>
       </div>
       <div className="pdiv" />
 
@@ -185,10 +190,10 @@ function DirectorTab({ scene }) {
             <div style={{ color: "var(--tx-mid)", marginBottom: 24 }}>
               Натисніть <strong>«Розрахувати кадри»</strong> у топбарі, щоб AI розбив текст сцени на візуальні кадри.
             </div>
-            <button className="btn" onClick={addShot}><Ic.plus />Або додайте кадр вручну</button>
+            <button className="btn" onClick={addShot} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}><Ic.plus />Або додайте кадр вручну</button>
           </div>
         )}
-        {shots.length > 0 && <button className="btn btn--add" onClick={addShot}><Ic.plus />Додати кадр</button>}
+        {shots.length > 0 && <button className="btn btn--add" onClick={addShot} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}><Ic.plus />Додати кадр</button>}
       </div>
 
       {editing && <ShotEditor shot={editing} onSave={saveShotEdit} onClose={() => setEditShotN(null)} />}

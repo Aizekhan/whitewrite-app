@@ -606,13 +606,17 @@ image-slot::part(frame){ background:rgba(255,255,255,0.03); border:1px dashed va
 <script src="firebase/firebase-projects.js"></script>
 <script src="firebase/firebase-scenes.js"></script>
 <script src="firebase/firebase-canon.js"></script>
+<script src="firebase/firebase-features.js"></script>
 
-<script type="text/babel" src="ErrorBoundary.jsx"></script>
-<script type="text/babel" src="ws-icons.jsx"></script>
-<script type="text/babel" src="wt-world.jsx"></script>
-<script type="text/babel" src="ws-data.jsx"></script>
-<script type="text/babel" src="ws-director.jsx"></script>
-<script type="text/babel" src="ws-vizref.jsx"></script>
-<script type="text/babel" src="ws-app.jsx"></script>
+<!-- i18n must load before any components that use translations -->
+<script src="i18n.js"></script>
+
+<script type="text/babel" src="ErrorBoundary.jsx?v=20260629"></script>
+<script type="text/babel" src="ws-icons.jsx?v=20260629"></script>
+<script type="text/babel" src="wt-world.jsx?v=20260629"></script>
+<script type="text/babel" src="ws-data.jsx?v=20260629"></script>
+<script type="text/babel" src="ws-director.jsx?v=20260629"></script>
+<script type="text/babel" src="ws-vizref.jsx?v=20260629"></script>
+<script type="text/babel" src="ws-app.jsx?v=20260629"></script>
 </body>
 </html>

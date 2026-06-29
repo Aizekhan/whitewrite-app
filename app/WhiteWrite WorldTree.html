@@ -683,6 +683,9 @@ image-slot::part(frame){ background:rgba(255,255,255,0.035); }
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
+<!-- Enum definitions (must load before firebase-canon) -->
+<script src="wt-enums.js"></script>
+
 <!-- Firebase modules -->
 <script src="firebase/firebase-init.js"></script>
 <script src="firebase/token-budget.js"></script>
@@ -690,17 +693,21 @@ image-slot::part(frame){ background:rgba(255,255,255,0.035); }
 <script src="firebase/firebase-projects.js"></script>
 <script src="firebase/firebase-scenes.js"></script>
 <script src="firebase/firebase-canon.js"></script>
+<script src="firebase/firebase-features.js"></script>
 
-<script type="text/babel" src="ws-icons.jsx"></script>
-<script type="text/babel" src="ErrorBoundary.jsx"></script>
-<script type="text/babel" src="wt-icons.jsx"></script>
-<script type="text/babel" src="wt-world.jsx"></script>
-<script type="text/babel" src="wt-impact.jsx"></script>
-<script type="text/babel" src="wt-adapters.jsx"></script>
-<script type="text/babel" src="wt-reconstruct.jsx"></script>
-<script type="text/babel" src="wt-workspace.jsx"></script>
-<script type="text/babel" src="wt-tree.jsx"></script>
-<script type="text/babel" src="wt-app.jsx"></script>
+<!-- i18n must load before any components that use translations -->
+<script src="i18n.js"></script>
+
+<script type="text/babel" src="ws-icons.jsx?v=202606291915"></script>
+<script type="text/babel" src="ErrorBoundary.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-icons.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-world.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-impact.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-adapters.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-reconstruct.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-workspace.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-tree.jsx?v=202606291915"></script>
+<script type="text/babel" src="wt-app.jsx?v=202606291915"></script>
 
 <script>
 // Initialize Firebase Auth

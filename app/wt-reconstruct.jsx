@@ -3,8 +3,27 @@
 //   Очікує → Регенерується → Готово, with a progress bar and a final summary.
 (function () {
   const { useEffect: useRcEffect, useState: useRcState, useRef: useRcRef } = React;
-  const LAYER_LABEL = { narrative: "Наратив", director: "Режисер" };
-  const ST_TXT = { pending: "Очікує", running: "Регенерується…", done: "Готово" };
+
+  // Helper to get translations
+  function t(key, replacements) {
+    let text = window.__i18n ? window.__i18n.t(key) : key;
+    if (replacements) {
+      Object.keys(replacements).forEach(k => {
+        text = text.replace(new RegExp('{' + k + '}', 'g'), replacements[k]);
+      });
+    }
+    return text;
+  }
+
+  const LAYER_LABEL = {
+    narrative: () => t('reconstruct.layer.narrative'),
+    director: () => t('reconstruct.layer.director')
+  };
+  const ST_TXT = {
+    pending: () => t('reconstruct.status.pending'),
+    running: () => t('reconstruct.status.running'),
+    done: () => t('reconstruct.status.done')
+  };
 
   function KindRow({ kind, items }) {
     const I = Ic[WKIND.icon[kind]] || Ic.dot;
@@ -12,7 +31,7 @@
       <div className="rc-kind">
         <div className="rc-kind__h"><I />{WKIND.label[kind]}<span className="rc-kind__n">{items.length}</span></div>
         <div className="rc-kind__items">
-          {items.map((it) => <span className="rc-pill" key={it.id || it.n}>{it.title || it.name || ("Сцена " + it.n)}</span>)}
+          {items.map((it) => <span className="rc-pill" key={it.id || it.n}>{it.title || it.name || (t('reconstruct.scene') + " " + it.n)}</span>)}
         </div>
       </div>
     );
@@ -83,27 +102,27 @@
 
     return ReactDOM.createPortal(
       <div className="rc-scrim" onClick={() => phase !== "running" && onClose()}>
-        <div className="rc" role="dialog" aria-modal="true" aria-label="Реконструкція всесвіту" ref={rootRef} onClick={(ev) => ev.stopPropagation()}>
+        <div className="rc" role="dialog" aria-modal="true" aria-label={t('reconstruct.title')} ref={rootRef} onClick={(ev) => ev.stopPropagation()}>
           <header className="rc__head">
             <div>
-              <span className="rc__k">{phase === "done" ? "Реконструкцію завершено" : phase === "running" ? "Реконструкція виконується" : "Симуляція реконструкції"}</span>
+              <span className="rc__k">{phase === "done" ? t('reconstruct.completedTitle') : phase === "running" ? t('reconstruct.runningTitle') : t('reconstruct.simulationTitle')}</span>
               <h2 className="rc__title">{wTitle(type, e)}</h2>
             </div>
-            <button className="rc__x" type="button" onClick={onClose} aria-label="Закрити" disabled={phase === "running"}><Ic.x /></button>
+            <button className="rc__x" type="button" onClick={onClose} aria-label={t('reconstruct.close')} disabled={phase === "running"}><Ic.x /></button>
           </header>
 
           <div className="rc__body">
             <div className="rc-flow">
-              <div className="rc-flow__node is-source"><span className="rc-flow__lbl">Зміна канону</span><span className="rc-flow__v">{wTitle(type, e)}</span></div>
+              <div className="rc-flow__node is-source"><span className="rc-flow__lbl">{t('reconstruct.canonChange')}</span><span className="rc-flow__v">{wTitle(type, e)}</span></div>
               <span className="rc-flow__arr">↓</span>
-              <div className="rc-flow__node"><span className="rc-flow__lbl">Зачеплений наратив</span><span className="rc-flow__v">{imp.narrative}</span></div>
+              <div className="rc-flow__node"><span className="rc-flow__lbl">{t('reconstruct.affectedNarrative')}</span><span className="rc-flow__v">{imp.narrative}</span></div>
               <span className="rc-flow__arr">↓</span>
-              <div className="rc-flow__node"><span className="rc-flow__lbl">Зачеплений режисер</span><span className="rc-flow__v">{imp.director}</span></div>
+              <div className="rc-flow__node"><span className="rc-flow__lbl">{t('reconstruct.affectedDirector')}</span><span className="rc-flow__v">{imp.director}</span></div>
             </div>
 
             {/* Change Analysis — the kind of change picks the strategy */}
             <div className="rc-change">
-              <div className="rc-change__lbl">Аналіз зміни · яка саме зміна сталася?</div>
+              <div className="rc-change__lbl">{t('reconstruct.changeAnalysis')}</div>
               <div className="rc-change__opts">
                 {WCHANGES.map((c) => {
                   const CI = Ic[c.icon] || Ic.dot;
@@ -116,18 +135,18 @@
                 })}
               </div>
               <div className="rc-strategy">
-                <span className={`rc-sev rc-sev--${ct.severity}`}>{sev.label} реконструкція</span>
+                <span className={`rc-sev rc-sev--${ct.severity}`}>{sev.label} {t('reconstruct.reconstruction')}</span>
                 <span className="rc-strategy__t"><b>{ct.strategy}</b> — {ct.desc}</span>
               </div>
             </div>
 
             {phase === "done" ? (
               <div className="rc-summary rc-summary--done">
-                <Ic.check /><span>Реконструйовано <b>{regenTotal}</b> елементів за <b>{steps.length}</b> кроків. Всесвіт узгоджено.</span>
+                <Ic.check /><span dangerouslySetInnerHTML={{ __html: t('reconstruct.completedSummary', { total: regenTotal, steps: steps.length }) }} />
               </div>
             ) : (
               <div className="rc-summary">
-                <Ic.layers /><span>Зміна цієї сутності зачепить <b>{imp.total}</b> елементів контенту</span>
+                <Ic.layers /><span dangerouslySetInnerHTML={{ __html: t('reconstruct.impactSummary', { total: imp.total }) }} />
               </div>
             )}
 
@@ -137,7 +156,7 @@
               if (!kinds.length) return null;
               return (
                 <section className="rc-layer" key={layer}>
-                  <h3 className="rc-layer__h">{LAYER_LABEL[layer]}<span className="rc-layer__n">{imp[layer]}</span></h3>
+                  <h3 className="rc-layer__h">{LAYER_LABEL[layer]()}<span className="rc-layer__n">{imp[layer]}</span></h3>
                   {kinds.map((k) => <KindRow key={k} kind={k} items={aff[layer][k]} />)}
                 </section>
               );
@@ -145,11 +164,11 @@
 
             <section className="rc-plan">
               <div className="rc-plan__top">
-                <h3 className="rc-plan__h"><Ic.wand />План реконструкції</h3>
+                <h3 className="rc-plan__h"><Ic.wand />{t('reconstruct.planTitle')}</h3>
                 {phase !== "plan" && <span className="rc-plan__prog mono">{doneCount}/{steps.length}</span>}
               </div>
               {phase !== "plan" && <div className="rc-bar"><div className="rc-bar__fill" style={{ width: pct + "%" }} /></div>}
-              {steps.length === 0 && <div className="rc-empty">{changeId === "add" ? "Додавання сутності не зачіпає наявний контент — реконструкція не потрібна." : "За цією стратегією немає що реконструювати."}</div>}
+              {steps.length === 0 && <div className="rc-empty">{changeId === "add" ? t('reconstruct.emptyAdd') : t('reconstruct.emptyDefault')}</div>}
               <ol className="rc-steps">
                 {steps.map((s, idx) => {
                   const I = Ic[s.icon] || Ic.dot;
@@ -157,10 +176,10 @@
                   return (
                     <li className={`rc-step rc-step--${st}`} key={s.order}>
                       <span className="rc-step__no">{st === "done" ? "✓" : String(s.order).padStart(2, "0")}</span>
-                      <span className={`rc-step__layer rc-step__layer--${s.layer}`}>{LAYER_LABEL[s.layer]}</span>
+                      <span className={`rc-step__layer rc-step__layer--${s.layer}`}>{LAYER_LABEL[s.layer]()}</span>
                       <span className="rc-step__act"><I />{s.action}</span>
                       <span className="rc-step__cnt">×{s.count}</span>
-                      <span className={`rc-step__st rc-step__st--${st}`}>{st === "running" && <span className="rc-spin" />}{ST_TXT[st]}</span>
+                      <span className={`rc-step__st rc-step__st--${st}`}>{st === "running" && <span className="rc-spin" />}{ST_TXT[st]()}</span>
                     </li>
                   );
                 })}
@@ -169,16 +188,16 @@
 
             <div className="rc__foot">
               <span className="rc__note">
-                {phase === "done" ? "Демо-конвеєр: контент позначено як узгоджений (нічого не видалено)."
-                  : phase === "running" ? "Виконується послідовно: Наратив → Режисер."
-                  : "Прев'ю режиму Universe Reconstruction. Запуск — демонстраційний."}
+                {phase === "done" ? t('reconstruct.demoNote')
+                  : phase === "running" ? t('reconstruct.runningNote')
+                  : t('reconstruct.previewNote')}
               </span>
               {phase === "done" ? (
-                <button className="rc__run rc__run--done" type="button" onClick={onClose}><Ic.check />Готово · Закрити</button>
+                <button className="rc__run rc__run--done" type="button" onClick={onClose}><Ic.check />{t('reconstruct.done')}</button>
               ) : (
                 <button className={`rc__run ${steps.length && phase === "plan" ? "rc__run--go" : ""}`} type="button"
                   onClick={run} disabled={!steps.length || phase === "running"}>
-                  {phase === "running" ? <><span className="rc-spin rc-spin--lg" />Реконструкція…</> : <>▶ Запустити реконструкцію</>}
+                  {phase === "running" ? <><span className="rc-spin rc-spin--lg" />{t('reconstruct.running')}</> : <>{t('reconstruct.run')}</>}
                 </button>
               )}
             </div>

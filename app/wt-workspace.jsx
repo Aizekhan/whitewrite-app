@@ -3,6 +3,11 @@
 // with Cards · List · Graph on the left and a connected profile on the right.
 const { useState: useWsState, useMemo: useWsMemo } = React;
 
+// Helper to get translations
+function t(key) {
+  return window.__i18n ? window.__i18n.t(key) : key;
+}
+
 const TYPE_COLOR = {
   characters: "var(--gold-lit)", locations: "var(--st-ready)", events: "var(--st-draft)",
   factions: "var(--violet-lit)", artifacts: "var(--st-review)",
@@ -10,6 +15,40 @@ const TYPE_COLOR = {
 
 function distinct(items, of) {
   const s = []; items.forEach((e) => { const v = of(e); if (v != null && !s.includes(v)) s.push(v); }); return s;
+}
+
+/* ---------------- Preview Mode Banner ---------------- */
+function PreviewBanner() {
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(217,119,6,0.1) 0%, rgba(217,119,6,0.05) 100%)',
+      border: '1px solid rgba(217,119,6,0.2)',
+      borderRadius: '8px',
+      padding: '12px 20px',
+      margin: '16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      fontSize: '14px',
+      color: 'var(--tx-base)'
+    }}>
+      <span style={{
+        background: 'var(--gold-soft)',
+        color: 'var(--gold)',
+        padding: '4px 12px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+      }}>
+        {t('preview.badge')}
+      </span>
+      <span style={{ flex: 1 }}>
+        {t('preview.message')}
+      </span>
+    </div>
+  );
 }
 
 /* ---------------- left views ---------------- */
@@ -76,7 +115,7 @@ function EgoGraph({ type, id, navigate }) {
         <circle cx={cx} cy={cy} r="44" fill="var(--gold-soft)" stroke="var(--gold)" strokeWidth="2.2" />
         <text x={cx} y={cy} className="gn__t gn__hub">{wTitle(type, center).slice(0, 16)}</text>
       </svg>
-      <div className="graph-hint">Натисніть вузол, щоб перейти до пов'язаної сутності</div>
+      <div className="graph-hint">{t('workspace.graphHint')}</div>
     </div>
   );
 }
@@ -85,19 +124,19 @@ function EgoGraph({ type, id, navigate }) {
 function ImpactBar({ type, id, onOpen }) {
   const imp = wImpact(type, id);
   if (!imp.total) {
-    return <div className="dblk impactbar impactbar--empty"><Ic.layers />Ще не використано в наративі</div>;
+    return <div className="dblk impactbar impactbar--empty"><Ic.layers />{t('workspace.notUsed')}</div>;
   }
   return (
     <div className="dblk impactbar">
       <div className="impactbar__top">
-        <span className="impactbar__lead"><Ic.layers />Впливає на <b>{imp.total}</b> елементів</span>
-        <button className="impactbar__btn" type="button" onClick={onOpen}>Реконструкція<Ic.chevron /></button>
+        <span className="impactbar__lead"><Ic.layers />{t('workspace.impacts')} <b>{imp.total}</b> {t('workspace.elements')}</span>
+        <button className="impactbar__btn" type="button" onClick={onOpen} disabled={!window.__features?.universe} title={!window.__features?.universe ? t('preview.actionDisabled') : ''}>{t('workspace.reconstruction')}<Ic.chevron /></button>
       </div>
       <div className="impactbar__chips">
-        <span className="impactbar__chip"><Ic.book />{imp.byKind.scenes || 0}<i>сцен</i></span>
-        <span className="impactbar__chip"><Ic.chat />{imp.byKind.dialogues || 0}<i>діал.</i></span>
-        <span className="impactbar__chip"><Ic.clapper />{imp.byKind.shots || 0}<i>кадрів</i></span>
-        <span className="impactbar__chip"><Ic.camera />{imp.byKind.images || 0}<i>зобр.</i></span>
+        <span className="impactbar__chip"><Ic.book />{imp.byKind.scenes || 0}<i>{t('workspace.scenes')}</i></span>
+        <span className="impactbar__chip"><Ic.chat />{imp.byKind.dialogues || 0}<i>{t('workspace.dialogues')}</i></span>
+        <span className="impactbar__chip"><Ic.clapper />{imp.byKind.shots || 0}<i>{t('workspace.shots')}</i></span>
+        <span className="impactbar__chip"><Ic.camera />{imp.byKind.images || 0}<i>{t('workspace.images')}</i></span>
       </div>
     </div>
   );
@@ -115,7 +154,7 @@ function Profile({ type, id, navigate, goPillar }) {
   React.useEffect(() => { setEditing(false); }, [type, id]);
   const [, bump] = useWsState(0);
   const A = ADAPTERS[type], e = wEnt(type, id);
-  if (!e) return <div className="profile profile--empty">Оберіть сутність</div>;
+  if (!e) return <div className="profile profile--empty">{t('workspace.selectEntity')}</div>;
   const p = A.pill(e);
   const conns = wConnections(type, id);
   const grouped = {};
@@ -150,23 +189,23 @@ function Profile({ type, id, navigate, goPillar }) {
             ref={titleRef}>{wTitle(type, e)}</h2>
         </div>
         <span className={`pill pill--${p.cls} profile__pill`}>{p.label}</span>
-        <button className={`profile__edit ${editing ? "is-on" : ""}`} title={editing ? "Зберегти" : "Редагувати"} onClick={() => editing ? save() : startEdit()}>
-          {editing ? <><Ic.check />Зберегти</> : <Ic.edit />}
+        <button className={`profile__edit ${editing ? "is-on" : ""}`} title={editing ? t('workspace.save') : t('workspace.edit')} onClick={() => editing ? save() : startEdit()} disabled={!window.__features?.universe} title={!window.__features?.universe ? t('preview.actionDisabled') : (editing ? t('workspace.save') : t('workspace.edit'))}>
+          {editing ? <><Ic.check />{t('workspace.save')}</> : <Ic.edit />}
         </button>
-        {editing && <button className="profile__cancel" title="Скасувати" onClick={cancelEdit}><Ic.x /></button>}
+        {editing && <button className="profile__cancel" title={t('workspace.cancel')} onClick={cancelEdit}><Ic.x /></button>}
       </div>
       <div className="profile__body">
         {editing && descField ? (
           <div className="dblk">
-            <h3 className="blk-h"><Ic.edit />Опис</h3>
+            <h3 className="blk-h"><Ic.edit />{t('workspace.description')}</h3>
             <div className="prof-edit" contentEditable suppressContentEditableWarning
               ref={descRef}>{e[descField]}</div>
-            <p className="prof-edit__hint">Зміни застосуються лише після «Зберегти». Перехід на іншу картку без збереження — скасує правки.</p>
+            <p className="prof-edit__hint">{t('workspace.editHint')}</p>
           </div>
         ) : A.profile(e)}
         {conns.length > 0 && (
           <div className="dblk conns">
-            <h3 className="blk-h"><Ic.link />Пов'язане · {conns.length}</h3>
+            <h3 className="blk-h"><Ic.link />{t('workspace.related')} · {conns.length}</h3>
             {W_TYPES.filter((t) => grouped[t]).map((t) => (
               <div className="conn-grp" key={t}>
                 <div className="conn-grp__h">{React.createElement(Ic[ADAPTERS[t].icon])}{ADAPTERS[t].title} · {grouped[t].length}</div>
@@ -209,6 +248,21 @@ function useWtScene() {
 function SceneMenu() {
   const [scene, setScene] = useWtScene();
   const [open, setOpen] = useWsState(false);
+  const [langRev, setLangRev] = useWsState(0);
+
+  // Force re-render on language change
+  React.useEffect(() => {
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang;
+      if (window.__i18n && newLang) {
+        window.__i18n.setLanguage(newLang);
+      }
+      setLangRev(prev => prev + 1);
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
+  }, []);
+
   React.useEffect(function () {
     if (!open) return;
     var close = function () { setOpen(false); };
@@ -221,19 +275,19 @@ function SceneMenu() {
       <button className={`ws-cat__btn ${open ? "is-open" : ""}`} type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="true" aria-expanded={open}>
         <Ic.clapper style={{ width: 17, height: 17, color: "var(--gold-lit)", flex: "0 0 auto" }} />
         <span className="ws-head__id">
-          <span className="ws-head__title" style={{ fontSize: 15 }}>{cur ? "Сцена " + cur.n : "Уся історія"}</span>
+          <span className="ws-head__title" style={{ fontSize: 15 }}>{cur ? t('workspace.sceneLabel') + " " + cur.n : t('workspace.allStory')}</span>
         </span>
         <Ic.caret />
       </button>
       {open && (
         <div className="ws-cat__menu" role="menu" style={{ minWidth: 268 }}>
           <button role="menuitem" type="button" className={`ws-cat__opt ${scene == null ? "is-on" : ""}`} onClick={() => { setOpen(false); setScene(null); }}>
-            <Ic.layers /><span className="ws-cat__lbl">Уся історія</span>
+            <Ic.layers /><span className="ws-cat__lbl">{t('workspace.allStory')}</span>
           </button>
           <div className="ws-cat__sep" />
           {(WORLD.scenes || []).map((s) => (
             <button key={s.n} role="menuitem" type="button" className={`ws-cat__opt ${scene === s.n ? "is-on" : ""}`} onClick={() => { setOpen(false); setScene(s.n); }}>
-              <span className="scene-dot">{s.n}</span><span className="ws-cat__lbl" style={{ fontFamily: "inherit", fontWeight: 500 }}>{s.title}</span><span className="ws-cat__n">акт {s.act}</span>
+              <span className="scene-dot">{s.n}</span><span className="ws-cat__lbl" style={{ fontFamily: "inherit", fontWeight: 500 }}>{s.title}</span><span className="ws-cat__n">{t('workspace.act')} {s.act}</span>
             </button>
           ))}
         </div>
@@ -244,8 +298,23 @@ function SceneMenu() {
 
 function WsCatMenu({ type, navigate }) {
   const isChron = type === "chronicle";
-  const kicker = isChron ? "Серце всесвіту" : ADAPTERS[type].kicker;
-  const ttl = isChron ? "Хроніка" : ADAPTERS[type].title;
+  const [langRev, setLangRev] = useWsState(0);
+
+  // Force re-render on language change
+  React.useEffect(() => {
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang;
+      if (window.__i18n && newLang) {
+        window.__i18n.setLanguage(newLang);
+      }
+      setLangRev(prev => prev + 1);
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
+  }, []);
+
+  const kicker = isChron ? t('workspace.chronicleKicker') : ADAPTERS[type].kicker;
+  const ttl = isChron ? t('workspace.chronicle') : ADAPTERS[type].title;
   const [open, setOpen] = useWsState(false);
   React.useEffect(() => {
     if (!open) return;
@@ -275,7 +344,7 @@ function WsCatMenu({ type, navigate }) {
           })}
           <div className="ws-cat__sep" />
           <button role="menuitem" type="button" className={`ws-cat__opt ${isChron ? "is-on" : ""}`} onClick={() => { setOpen(false); if (!isChron) navigate("chronicle"); }}>
-            <Ic.scroll /><span className="ws-cat__lbl">Хроніка</span>
+            <Ic.scroll /><span className="ws-cat__lbl">{t('workspace.chronicle')}</span>
           </button>
         </div>
       )}
@@ -313,6 +382,20 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   const [group, setGroup] = useWsState("");
   const [rev, setRev] = useWsState(0);
 
+  // Listen for language changes and force re-render
+  React.useEffect(() => {
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang;
+      console.log('[Workspace] Language changed to:', newLang);
+      if (window.__i18n && newLang) {
+        window.__i18n.setLanguage(newLang);
+      }
+      setRev(prev => prev + 1); // Force re-render
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
+  }, []);
+
   const list = useWsMemo(() => {
     let r = all.filter((e) => !e._draft);
     if (scene != null) {
@@ -348,11 +431,11 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
     const id = "new_" + type + "_" + (++window.__wtNewSeq);
     const base = { id, scenes: [], characters: [], locations: [], events: [], factions: [], artifacts: [] };
     const NEW = {
-      characters: { ...base, name: "Новий персонаж", role: "Роль", roleType: "support", status: "Чернетка", motivation: "Опиши мотивацію…", arc: "Арка", prog: 0, relations: [] },
-      locations: { ...base, name: "Нова локація", type: "Тип", atmos: [], desc: "Опиши місце…" },
-      events: { ...base, title: "Нова подія", type: "Тип", act: 1, when: "—", tone: "review", desc: "Опиши подію…" },
-      factions: { ...base, name: "Нова фракція", align: "Нейтральна", tone: "review", motto: "—", power: 30, members: 1, desc: "Опиши фракцію…" },
-      artifacts: { ...base, name: "Новий артефакт", type: "Тип", rarity: "Звичайний", tone: "review", desc: "Опиши артефакт…" },
+      characters: { ...base, name: t('workspace.newCharacter'), role: t('workspace.role'), roleType: "support", status: "draft", motivation: t('workspace.motivation'), arc: t('workspace.arc'), prog: 0, relations: [] },
+      locations: { ...base, name: t('workspace.newLocation'), type: "other", atmos: [], desc: t('workspace.atmosphere') },
+      events: { ...base, title: t('workspace.newEvent'), type: "other", act: 1, when: t('workspace.when'), tone: "review", desc: t('workspace.eventDesc') },
+      factions: { ...base, name: t('workspace.newFaction'), align: "neutral", tone: "review", motto: t('workspace.motto'), power: 30, members: 1, desc: t('workspace.factionDesc') },
+      artifacts: { ...base, name: t('workspace.newArtifact'), type: "other", rarity: "common", tone: "review", desc: t('workspace.artifactDesc') },
     }[type];
     NEW._draft = true;
     WORLD[type].push(NEW);
@@ -376,7 +459,7 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   return (
     <div className="ws">
       <header className="ws-head">
-        <button className="ws-back" type="button" onClick={onClose}><Ic.tree /><span>До дерева</span></button>
+        <button className="ws-back" type="button" onClick={onClose}><Ic.tree /><span>{t('workspace.toTree')}</span></button>
         <span className="ws-head__ring"><EntIcon type={type} hue="var(--gold-lit)" /></span>
         <WsCatMenu type={type} navigate={navigate} />
         <span className="ws-cat__div" />
@@ -386,29 +469,31 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
         <PillarSwitch here="universe" />
       </header>
 
+      {!window.__features?.universe && <PreviewBanner />}
+
       <div className="ws-bar">
         <label className="ws-search">
           <Ic.eye style={{ width: 16, height: 16, opacity: .5 }} />
-          <input value={q} onChange={(ev) => setQ(ev.target.value)} placeholder={`Пошук · ${A.title.toLowerCase()}`} />
+          <input value={q} onChange={(ev) => setQ(ev.target.value)} placeholder={`${t('workspace.search')} · ${A.title.toLowerCase()}`} />
           {q && <button className="ws-search__x" onClick={() => setQ("")} type="button">✕</button>}
         </label>
         <div className="ws-filters">
           {A.facets.map((f) => (
             <select key={f.key} className="ws-sel" value={filters[f.key] || ""} onChange={(ev) => setFilters((p) => ({ ...p, [f.key]: ev.target.value }))}>
-              <option value="">{f.label}: усі</option>
-              {distinct(all, f.of).map((v) => <option key={v} value={v}>{v}</option>)}
+              <option value="">{f.label}: {t('workspace.all')}</option>
+              {distinct(all, f.of).map((v) => <option key={v} value={v}>{f.display ? f.display(v) : v}</option>)}
             </select>
           ))}
           <select className="ws-sel" value={sortKey} onChange={(ev) => setSortKey(ev.target.value)}>
             {A.sorts.map((s) => <option key={s.key} value={s.key}>↕ {s.label}</option>)}
           </select>
           <select className="ws-sel" value={group} onChange={(ev) => setGroup(ev.target.value)}>
-            <option value="">Без груп</option>
-            {A.facets.map((f) => <option key={f.key} value={f.key}>Групувати: {f.label}</option>)}
+            <option value="">{t('workspace.noGroups')}</option>
+            {A.facets.map((f) => <option key={f.key} value={f.key}>{t('workspace.groupBy')}: {f.label}</option>)}
           </select>
         </div>
         <div className="ws-views">
-          {[["cards", "grid", "Картки"], ["list", "layers", "Список"], ["graph", "link", "Граф"]].map(([v, ic, lbl]) => {
+          {[["cards", "grid", t('workspace.cards')], ["list", "layers", t('workspace.list')], ["graph", "link", t('workspace.graph')]].map(([v, ic, lbl]) => {
             const I = Ic[ic];
             return <button key={v} className={`ws-view ${view === v ? "is-on" : ""}`} onClick={() => setView(v)} type="button" title={lbl}><I /><span>{lbl}</span></button>;
           })}
@@ -418,26 +503,30 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
       <div className="ws-split">
         <div className="ws-main">
           {view === "graph" ? (
-            sel ? <EgoGraph type={type} id={sel} navigate={navigate} /> : <div className="profile--empty">Немає сутностей</div>
-          ) : groups.map((g, gi) => (
+            sel ? <EgoGraph type={type} id={sel} navigate={navigate} /> : <div className="profile--empty">{t('workspace.noEntities')}</div>
+          ) : groups.map((g, gi) => {
+            const f = group ? A.facets.find((x) => x.key === group) : null;
+            const displayKey = g.key != null && f?.display ? f.display(g.key) : g.key;
+            return (
             <div className="ws-group" key={gi}>
-              {g.key != null && <div className="ws-group__h">{g.key}<span className="ws-group__n">{g.items.length}</span></div>}
+              {g.key != null && <div className="ws-group__h">{displayKey}<span className="ws-group__n">{g.items.length}</span></div>}
               <div className={view === "cards" ? "wcards" : "wrows"}>
                 {g.items.map((e) => view === "cards"
                   ? <WCard key={e.id} type={type} e={e} active={e.id === sel} onOpen={() => open(e)} />
                   : <WRow key={e.id} type={type} e={e} active={e.id === sel} onOpen={() => open(e)} />)}
                 {gi === groups.length - 1 && (
                   view === "cards"
-                    ? <button className="wcard wcard--new" type="button" onClick={createEntity}><Ic.plus /><span>Додати · {A.title.toLowerCase().replace(/и$/, "у")}</span></button>
-                    : <button className="wrow wrow--new" type="button" onClick={createEntity}><Ic.plus /><span>Додати</span></button>
+                    ? <button className="wcard wcard--new" type="button" onClick={createEntity} disabled={!window.__features?.universe} title={!window.__features?.universe ? t('preview.actionDisabled') : ''}><Ic.plus /><span>{t('workspace.add')} · {A.title.toLowerCase()}</span></button>
+                    : <button className="wrow wrow--new" type="button" onClick={createEntity} disabled={!window.__features?.universe} title={!window.__features?.universe ? t('preview.actionDisabled') : ''}><Ic.plus /><span>{t('workspace.add')}</span></button>
                 )}
               </div>
             </div>
-          ))}
-          {view !== "graph" && list.length === 0 && <div className="ws-empty">Нічого не знайдено</div>}
+            );
+          })}
+          {view !== "graph" && list.length === 0 && <div className="ws-empty">{t('workspace.nothingFound')}</div>}
         </div>
         <aside className="ws-aside">
-          {sel ? <Profile type={type} id={sel} navigate={navigate} goPillar={goPillar} /> : <div className="profile profile--empty">Оберіть сутність</div>}
+          {sel ? <Profile type={type} id={sel} navigate={navigate} goPillar={goPillar} /> : <div className="profile profile--empty">{t('workspace.selectEntity')}</div>}
         </aside>
       </div>
     </div>

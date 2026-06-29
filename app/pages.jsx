@@ -307,6 +307,11 @@ function SceneIntentRight({ projectId: propProjectId }) {
 
     setBusy(true);
 
+    // Show generation progress modal
+    if (window.__setGenerationProgress) {
+      window.__setGenerationProgress({ current: 0, total: 1, isGenerating: true });
+    }
+
     // Use prop projectId if passed, otherwise fallback to window
     const actualProjectId = propProjectId || window.__currentProjectId;
     if (!actualProjectId) {
@@ -421,6 +426,11 @@ function SceneIntentRight({ projectId: propProjectId }) {
       alert(t('intent.error') + ': ' + error.message);
     } finally {
       setBusy(false);
+
+      // Hide generation progress modal
+      if (window.__setGenerationProgress) {
+        window.__setGenerationProgress({ current: 0, total: 0, isGenerating: false });
+      }
     }
   }
   return (

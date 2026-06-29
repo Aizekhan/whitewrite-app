@@ -4,6 +4,11 @@
 // same across every shot and every episode of the series.
 const { useState: useVkState } = React;
 
+// i18n helper
+function t(key) {
+  return window.__i18n ? window.__i18n.t(key) : key;
+}
+
 // LoRA / reference readiness — derived deterministically from canon role.
 function vkModel(type, e) {
   if (type === "characters") {
@@ -86,13 +91,13 @@ function VkCard({ type, e }) {
         <p className="vk__note"><Ic.eye style={{ width: 13, height: 13, color: "var(--gold-lit)" }} />{note}</p>
         <p className="vk__hint">{hint}</p>
         <div className="vk__acts">
-          <button className="btn" style={{ flex: 1, justifyContent: "center" }} onClick={() => setMng(true)}>
+          <button className="btn" style={{ flex: 1, justifyContent: "center" }} onClick={() => setMng(true)} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}>
             <Ic.image />Керувати референсами
           </button>
         </div>
         <div className="vk__acts" style={{ marginTop: 8 }}>
-          <button className="btn btn--gold" style={{ flex: 1, justifyContent: "center" }} onClick={train} disabled={busy || !enough}
-            title={enough ? "" : `Спершу додай ≥${VK_MIN} референси`}>
+          <button className="btn btn--gold" style={{ flex: 1, justifyContent: "center" }} onClick={train} disabled={busy || !enough || !window.__features?.director}
+            title={!window.__features?.director ? t('preview.actionDisabled') : (enough ? "" : `Спершу додай ≥${VK_MIN} референси`)}>
             {busy ? <span className="spin-ring" style={{ width: 15, height: 15 }} /> : <Ic.cpu />}
             {busy ? "Навчання…" : trained ? "Перенавчити LoRA" : "Навчити LoRA"}
           </button>
@@ -111,7 +116,7 @@ function VkCard({ type, e }) {
             <div className="vk-mng__grid">
               {Array.from({ length: refs }, (_, i) => (
                 <div className="vk-mng__cell" key={i}><span className="vk-mng__n">{i + 1}</span>
-                  <button className="vk-mng__del" title="Видалити" onClick={() => setRefs((r) => Math.max(0, r - 1))}><Ic.x /></button>
+                  <button className="vk-mng__del" title={!window.__features?.director ? t('preview.actionDisabled') : "Видалити"} onClick={() => setRefs((r) => Math.max(0, r - 1))} disabled={!window.__features?.director}><Ic.x /></button>
                 </div>
               ))}
               {Array.from({ length: pending }, (_, i) => (
@@ -123,25 +128,25 @@ function VkCard({ type, e }) {
               <div className="vk-pending">
                 <span className="vk-pending__t">✦ Згенеровано {pending} нових — переглянь і підтверди</span>
                 <div className="vk__acts">
-                  <button className="btn btn--gold" style={{ flex: 1, justifyContent: "center" }} onClick={acceptPending}><Ic.check />Підтвердити</button>
-                  <button className="btn" onClick={discardPending}><Ic.x />Відхилити</button>
+                  <button className="btn btn--gold" style={{ flex: 1, justifyContent: "center" }} onClick={acceptPending} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}><Ic.check />Підтвердити</button>
+                  <button className="btn" onClick={discardPending} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}><Ic.x />Відхилити</button>
                 </div>
               </div>
             )}
             <div className="vk__acts" style={{ marginTop: 16 }}>
-              <button className="btn" style={{ flex: 1, justifyContent: "center" }} onClick={genRefs} disabled={genning || pending > 0 || refs >= VK_MAX}>
+              <button className="btn" style={{ flex: 1, justifyContent: "center" }} onClick={genRefs} disabled={genning || pending > 0 || refs >= VK_MAX || !window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}>
                 {genning ? <span className="spin-ring" style={{ width: 15, height: 15 }} /> : <Ic.sparkle />}
                 {genning ? "Малюю…" : refs >= VK_MAX ? "Максимум" : "Згенерувати +8"}
               </button>
-              <label className="btn" style={{ cursor: "pointer" }} title="Завантажити свої зображення">
+              <label className={`btn ${!window.__features?.director ? 'is-disabled' : ''}`} style={{ cursor: window.__features?.director ? "pointer" : "not-allowed", opacity: window.__features?.director ? 1 : 0.5 }} title={!window.__features?.director ? t('preview.actionDisabled') : "Завантажити свої зображення"}>
                 <Ic.image />Завантажити
-                <input type="file" accept="image/*" multiple style={{ display: "none" }}
+                <input type="file" accept="image/*" multiple style={{ display: "none" }} disabled={!window.__features?.director}
                   onChange={(ev) => { const n = ev.target.files ? ev.target.files.length : 0; if (n) setRefs((r) => Math.min(VK_MAX, r + n)); ev.target.value = ""; }} />
               </label>
             </div>
             {refs > 0 && (
               <button className="btn" style={{ width: "100%", justifyContent: "center", marginTop: 8, color: "var(--st-draft)", borderColor: "rgba(224,86,79,0.4)" }}
-                onClick={() => { setRefs(0); setTrained(false); }}>
+                onClick={() => { setRefs(0); setTrained(false); }} disabled={!window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : ''}>
                 <Ic.x />Видалити всі референси
               </button>
             )}

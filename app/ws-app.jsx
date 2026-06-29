@@ -58,12 +58,12 @@ function PillarSwitch({ here }) {
   const projectParam = projectId ? `?projectId=${projectId}` : '';
 
   const items = [
-    { id: "book", label: "Книга", icon: "book", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
-    { id: "universe", label: "Всесвіт", icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
-    { id: "director", label: "Режисер", icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
+    { id: "book", label: t('nav.book'), icon: "book", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
+    { id: "universe", label: t('nav.universe'), icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "director", label: t('nav.director'), icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
   ];
   return (
-    <div className="pillswitch" role="tablist" aria-label="Стовпи WhiteWrite">
+    <div className="pillswitch" role="tablist" aria-label={t('nav.pillars')}>
       {items.map((it) => {
         const I = Ic[it.icon];
         const cur = here === it.id;
@@ -81,10 +81,50 @@ function PillarSwitch({ here }) {
 // Director = visual production ONLY: shot breakdown + visual-consistency assets.
 // Canon (characters/locations/events/memory) lives in the World Tree — reached
 // via the topbar "Світове дерево" button, never duplicated as Director tabs.
-const TABS = [
-  { id: "director", label: "Розкадровка", icon: "clapper", count: () => DATA.shots.length, C: () => window.DirectorTab },
-  { id: "vizref", label: "Візуальний канон", icon: "image", count: () => WORLD.characters.length + WORLD.locations.length, C: () => window.VizRefTab },
-];
+function t(key) {
+  return window.__i18n ? window.__i18n.t(key) : key;
+}
+
+/* ---------------- Preview Mode Banner ---------------- */
+function PreviewBanner() {
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(217,119,6,0.1) 0%, rgba(217,119,6,0.05) 100%)',
+      border: '1px solid rgba(217,119,6,0.2)',
+      borderRadius: '8px',
+      padding: '12px 20px',
+      margin: '16px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      fontSize: '14px',
+      color: 'var(--tx-base)'
+    }}>
+      <span style={{
+        background: 'var(--gold-soft)',
+        color: 'var(--gold)',
+        padding: '4px 12px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.5px'
+      }}>
+        {t('preview.badge')}
+      </span>
+      <span style={{ flex: 1 }}>
+        {t('preview.message')}
+      </span>
+    </div>
+  );
+}
+
+function getTabs() {
+  return [
+    { id: "director", label: t('director.storyboard'), icon: "clapper", count: () => DATA.shots.length, C: () => window.DirectorTab },
+    { id: "vizref", label: t('director.visualCanon'), icon: "image", count: () => WORLD.characters.length + WORLD.locations.length, C: () => window.VizRefTab },
+  ];
+}
 
 // Scene picker dropdown — choose which scene the Director works on.
 function ScenePick({ scene, setScene }) {
@@ -99,7 +139,7 @@ function ScenePick({ scene, setScene }) {
   return (
     <div className="scene-pickwrap" onClick={(e) => e.stopPropagation()}>
       <button className={`scene-pick ${open ? "is-open" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="true" aria-expanded={open}>
-        <Ic.clapper /><span className="num">Сцена {cur.n}</span>
+        <Ic.clapper /><span className="num">{t('book.scene')} {cur.n}</span>
         <span>· {cur.title}</span>
         <Ic.caret />
       </button>
@@ -110,7 +150,7 @@ function ScenePick({ scene, setScene }) {
               onClick={() => { setOpen(false); setScene(s.n); }}>
               <span className="scene-opt__n">{s.n}</span>
               <span className="scene-opt__t">{s.title}</span>
-              <span className="scene-opt__act">акт {s.act}</span>
+              <span className="scene-opt__act">{t('book.act')} {s.act}</span>
             </button>
           ))}
         </div>
@@ -126,10 +166,25 @@ function App() {
   const [scene, setScene] = useWState(1);
   const [genBusy, setGenBusy] = useWState(false);
   const [loading, setLoading] = useWState(true);
+  const [, forceWorkspaceUpdate] = useWState(0);
 
   // PHASE 3: Read projectId from ProjectContext
   const contextProjectId = React.useContext(ProjectContext);
   if (DEBUG) console.log('[Workspace] 🔥 NEW CODE 2026-06-23:', { contextProjectId, wwUser: !!window.__wwUser });
+
+  // Listen for language change events
+  React.useEffect(() => {
+    function onLanguageChange(event) {
+      const newLang = event.detail?.lang;
+      console.log('[Workspace] Language changed to:', newLang, 'forcing re-render');
+      if (window.__i18n && newLang) {
+        window.__i18n.setLanguage(newLang);
+      }
+      forceWorkspaceUpdate(prev => prev + 1);
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
+  }, []);
 
   // DEBUG: Log contextProjectId changes
   React.useEffect(() => {
@@ -241,6 +296,7 @@ function App() {
     loadProject();
   }, [contextProjectId]); // Reload when projectId changes via postMessage
 
+  const TABS = getTabs();
   const active = TABS.find((t) => t.id === tab);
   const Tab = active ? active.C() : null;
 
@@ -258,7 +314,7 @@ function App() {
           <div className="content" style={{ display: 'grid', placeItems: 'center', color: 'var(--tx-mid)' }}>
             <div style={{ textAlign: 'center' }}>
               <div className="spin-ring" style={{ width: 40, height: 40, margin: '0 auto 16px' }} />
-              <div>Завантаження проєкту...</div>
+              <div>{t('director.loadingProject')}</div>
             </div>
           </div>
         </div>
@@ -283,11 +339,13 @@ function App() {
           </div>
           <div className="topbar__spacer" />
           <PillarSwitch here="director" />
-          <button className="topbar__btn topbar__btn--gold" onClick={calcScene} disabled={genBusy || tab !== "director"} title={tab !== "director" ? "Доступно на вкладці Розкадровка" : ""}>
+          <button className="topbar__btn topbar__btn--gold" onClick={calcScene} disabled={genBusy || tab !== "director" || !window.__features?.director} title={!window.__features?.director ? t('preview.actionDisabled') : (tab !== "director" ? t('director.availableOnStoryboard') : "")}>
             {genBusy ? <span className="spin-ring" style={{ width: 15, height: 15 }} /> : <Ic.grid />}
-            {genBusy ? "Розраховую…" : "Розрахувати кадри"}
+            {genBusy ? t('director.calculating') : t('director.calculateShots')}
           </button>
         </header>
+
+        {!window.__features?.director && <PreviewBanner />}
 
         <main className="content">
           {Tab && <Tab key={tab + ":" + scene} scene={scene} />}

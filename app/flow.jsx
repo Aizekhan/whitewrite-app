@@ -28,7 +28,7 @@ function StartScreen({ onBegin, langVersion }) {
   console.log('[StartScreen] Rendering with language:', currentLang, 'title:', t('hero.title'));
   return (
     <div className="screen screen--start stage-screen">
-      <img className="hero-img" src="assets/StartBack.jpg" alt="Хранитель історій з живою книгою" />
+      <img className="hero-img" src="assets/StartBack.jpg" alt={t('hero.imgAlt')} />
       <div className="hero-scrim" aria-hidden="true" />
       <Particles density={0.7} />
       <div className="vignette" aria-hidden="true" />

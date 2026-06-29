@@ -90,5 +90,11 @@ service cloud.firestore {
       allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
       allow write: if false; // Only via Cloud Functions
     }
+
+    // Config collection (feature flags, global settings) - read-only for all authenticated users
+    match /config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only via Cloud Functions or Firebase Console
+    }
   }
 }

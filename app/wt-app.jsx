@@ -5,6 +5,11 @@
 // Debug flag — set to false for production
 const DEBUG = false;
 
+// i18n helper
+function t(key) {
+  return window.__i18n ? window.__i18n.t(key) : key;
+}
+
 const { useState: useAppState, useCallback: useAppCb, useEffect: useAppEffect } = React;
 
 // ---- PHASE 3: ProjectContext (read from shell) ----
@@ -287,15 +292,15 @@ function ChronicleView({ navigate, onClose, canon, projectId }) {
   return (
     <div className="ws chron">
       <header className="ws-head">
-        <button className="ws-back" type="button" onClick={onClose}><Ic.tree /><span>До дерева</span></button>
+        <button className="ws-back" type="button" onClick={onClose}><Ic.tree /><span>{t('workspace.toTreeChronicle')}</span></button>
         <span className="ws-head__ring"><span className="went-ic" style={{ "--h": "var(--gold-lit)" }}><Ic.scroll /></span></span>
         <WsCatMenu type="chronicle" navigate={navigate} />
         <span className="ws-cat__div" />
         <SceneMenu />
         <div className="ws-head__sp" />
         {edit
-          ? <button className="ws-back" type="button" onClick={save} style={{ borderColor: "rgba(217,119,6,0.4)", color: "var(--gold-lit)" }}><Ic.check /><span>Зберегти</span></button>
-          : <button className="ws-back" type="button" onClick={startEdit}><Ic.wand /><span>Редагувати</span></button>}
+          ? <button className="ws-back" type="button" onClick={save} style={{ borderColor: "rgba(217,119,6,0.4)", color: "var(--gold-lit)" }}><Ic.check /><span>{t('workspace.saveChronicle')}</span></button>
+          : <button className="ws-back" type="button" onClick={startEdit}><Ic.wand /><span>{t('workspace.editChronicle')}</span></button>}
         <PillarSwitch here="universe" />
       </header>
       <div className="chron__body">
