@@ -625,7 +625,14 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   var PROJECTS = [];
   var PROJECTS_LOADING = false;
 
+  var loadProjectsPromise = null; // Prevent concurrent loads
   async function loadProjects() {
+    // If already loading, wait for existing promise
+    if (loadProjectsPromise) {
+      console.log('[loadProjects] Already loading, waiting...');
+      return loadProjectsPromise;
+    }
+
     if (!window.__firebaseProjects || !window.__wwUser) {
       PROJECTS = [];
       PROJECTS_LOADING = false;
@@ -633,19 +640,25 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
 
-    // PROJECTS_LOADING already set by showView() - don't duplicate
+    console.log('[loadProjects] Starting load...');
+    PROJECTS_LOADING = true;
 
-    try {
-      const projects = await window.__firebaseProjects.getUserProjects(window.__wwUser.uid);
-      PROJECTS = projects;
-      console.log('Loaded projects:', projects.length);
-    } catch (error) {
-      console.error('Failed to load projects:', error);
-      PROJECTS = [];
-    } finally {
-      PROJECTS_LOADING = false;
-      fillHome(); // Render once with data
-    }
+    loadProjectsPromise = (async () => {
+      try {
+        const projects = await window.__firebaseProjects.getUserProjects(window.__wwUser.uid);
+        PROJECTS = projects;
+        console.log('[loadProjects] Loaded projects:', projects.length);
+      } catch (error) {
+        console.error('[loadProjects] Failed to load projects:', error);
+        PROJECTS = [];
+      } finally {
+        PROJECTS_LOADING = false;
+        loadProjectsPromise = null; // Clear promise for next load
+        fillHome(); // Render once with data
+      }
+    })();
+
+    return loadProjectsPromise;
   }
 
   window.__reloadProjects = loadProjects;
@@ -801,7 +814,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     histPush();
     inWork = false; mode = v;
     if (v === "account") fillAccount();
-    if (v === "narr") { PROJECTS_LOADING = true; loadProjects(); } // Don't render empty state - let loadProjects() render
+    if (v === "narr") {
+      // Show immediate loader to prevent flash of empty state
+      views.narr.innerHTML = '<div style="padding:60px;text-align:center;color:var(--tx-mid)"><div style="font-size:24px;margin-bottom:12px">⏳</div>Завантаження проєктів...</div>';
+      PROJECTS_LOADING = true;
+      loadProjects();
+    }
     Object.keys(frames).forEach(function (k) { frames[k].classList.remove("is-on"); });
     Object.keys(views).forEach(function (k) { views[k].classList.toggle("is-on", k === v); });
     renderRail();

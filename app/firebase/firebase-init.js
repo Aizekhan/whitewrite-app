@@ -11,20 +11,25 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase (uses global firebase from CDN)
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+// Prevent double initialization
+if (window.__firebase) {
+  console.log('Firebase already initialized, skipping...');
+} else {
+  const app = firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-// Functions SDK is optional (only loaded on some pages)
-let functions = null;
-try {
-  if (firebase.app && firebase.app().functions) {
-    functions = firebase.app().functions('us-central1');
+  // Functions SDK is optional (only loaded on some pages)
+  let functions = null;
+  try {
+    if (firebase.app && firebase.app().functions) {
+      functions = firebase.app().functions('us-central1');
+    }
+  } catch (e) {
+    console.warn('Firebase Functions SDK not loaded (optional)');
   }
-} catch (e) {
-  console.warn('Firebase Functions SDK not loaded (optional)');
-}
 
-// Global access
-window.__firebase = { app, auth, db, functions };
-console.log('Firebase initialized');
+  // Global access
+  window.__firebase = { app, auth, db, functions };
+  console.log('Firebase initialized');
+}

@@ -207,23 +207,23 @@ const INTENTS = [
   { id: "world", icon: "✶", t: "Світобудова", d: "глибше у канон світу" },
   { id: "twist", icon: "↯", t: "Поворот", d: "підрив очікувань" },
   { id: "surprise", icon: "✷", t: "Сюрприз від AI", d: "довірити напрям Хранителю" },
+  { id: "arc-choice", icon: "⚡", t: "Вибір сюжетної лінії", d: "розгалуження арки", disabled: true },
+  { id: "parallel", icon: "⫴", t: "Паралельна сюж.лінія", d: "переключення POV" },
+  { id: "new-character", icon: "☆", t: "Зустріч нового персонажу", d: "новий герой входить в історію" },
   { id: "custom", icon: "✎", t: "Свій напрям", d: "опиши, що хочеш побачити" },
 ];
 
 // LEFT PAGE: Crossroads design — paths diverging into different directions
 function SceneIntentLeft() {
   const { sel, setSel } = useSceneIntentState();
-  const leftIntents = INTENTS.slice(0, 7); // All except "custom"
+  const leftIntents = INTENTS.slice(0, 10); // All except "custom" (which is last)
 
   return (
     <div className="page-inner page-intent-left">
       {/* Crossroads background illustration will be added via CSS */}
       <div className="crossroads">
         <div className="crossroads__center">
-          <div className="crossroads__stone">
-            <div className="crossroads__kicker">Історія чекає</div>
-            <div className="crossroads__title">Що далі?</div>
-          </div>
+          <div className="crossroads__title">Що далі?</div>
         </div>
 
         <div className="crossroads__paths">
@@ -231,11 +231,13 @@ function SceneIntentLeft() {
             <button
               key={o.id}
               type="button"
-              className={`road-circle road-circle--${idx + 1} ${sel === o.id ? 'is-sel' : ''}`}
-              onClick={() => setSel(o.id)}
+              className={`road-circle road-circle--${idx + 1} ${sel === o.id ? 'is-sel' : ''} ${o.disabled ? 'is-disabled' : ''}`}
+              onClick={() => !o.disabled && setSel(o.id)}
               title={`${o.t}: ${o.d}`}
+              disabled={o.disabled}
             >
               <div className="road-circle__icon">{o.icon}</div>
+              <div className="road-circle__label">{o.t}</div>
               {sel === o.id && <div className="road-circle__glow"></div>}
             </button>
           ))}
@@ -250,7 +252,7 @@ function SceneIntentLeft() {
 // RIGHT PAGE: "Custom" card + textarea OR selected intent display + Generate Button
 function SceneIntentRight({ projectId: propProjectId }) {
   const { sel, note, setSel, setNote } = useSceneIntentState();
-  const customIntent = INTENTS[7]; // "custom" is last (index 7)
+  const customIntent = INTENTS[INTENTS.length - 1]; // "custom" is last
   const [busy, setBusy] = useReactState(false);
   const cur = INTENTS.find((o) => o.id === sel);
   const canGo = sel && (sel !== "custom" || note.trim().length > 0);
@@ -297,13 +299,15 @@ function SceneIntentRight({ projectId: propProjectId }) {
 
     setBusy(true);
 
-    // Use prop projectId if passed, otherwise fallback to window/parent
-    const actualProjectId = propProjectId || projectId;
+    // Use prop projectId if passed, otherwise fallback to window
+    const actualProjectId = propProjectId || window.__currentProjectId;
     if (!actualProjectId) {
       alert('Проєкт не знайдено. Спробуйте створити новий.');
       setBusy(false);
       return;
     }
+
+    console.log('[SceneIntent] Generating with projectId:', actualProjectId);
 
     try {
       // F2: Load previous scenes for continuity (last 2-3 scenes)
@@ -419,13 +423,13 @@ function SceneIntentRight({ projectId: propProjectId }) {
         <div className="crossroads__own-path">
           <button
             type="button"
-            className={`own-path__trigger ${sel === "custom" ? 'is-sel' : ''}`}
+            className={`road-circle road-circle--custom ${sel === "custom" ? 'is-sel' : ''}`}
             onClick={() => setSel("custom")}
+            title={`${customIntent.t}: ${customIntent.d}`}
           >
-            <div className="own-path__icon">{customIntent.icon}</div>
-            <div className="own-path__title">{customIntent.t}</div>
-            <div className="own-path__desc">{customIntent.d}</div>
-            {sel === "custom" && <div className="own-path__glow"></div>}
+            <div className="road-circle__icon">{customIntent.icon}</div>
+            <div className="road-circle__label">{customIntent.t}</div>
+            {sel === "custom" && <div className="road-circle__glow"></div>}
           </button>
 
           {/* Scroll/paper for writing custom direction */}

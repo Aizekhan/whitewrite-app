@@ -1438,9 +1438,10 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .pturn{ position:fixed; bottom:14%; z-index:36;
   width:52px; height:52px; display:grid; place-items:center; cursor:pointer;
   background:rgba(30,19,9,0.6); border:1px solid rgba(201,162,75,0.5); border-radius:50%;
-  color:rgba(245,222,160,0.9); backdrop-filter:blur(4px);
+  color:#3a2a15; backdrop-filter:blur(4px);
   box-shadow:0 6px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,240,200,0.18), 0 0 14px rgba(201,162,75,0.18);
-  font-size:30px; font-family:"Philosopher",serif; line-height:1; transition:color .25s, border-color .25s, background .25s, transform .25s; }
+  font-size:30px; font-family:"Philosopher",serif; font-weight:700; line-height:1; transition:color .25s, border-color .25s, background .25s, transform .25s;
+  text-shadow:0 0 3px rgba(255,255,255,0.5); }
 .pturn--prev{ left:20%; }
 .pturn--next{ right:19.5%; }
 .pturn:hover{ color:#fff !important; border-color:rgba(240,200,120,0.9);
@@ -1660,8 +1661,9 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   .opage .writing{ font-size:16px; }
   .opage .writing__caret-hint{ font-size:10px; }
   .pturn{ position:fixed; top:auto; bottom:18px; width:54px; height:54px;
-    font-size:36px; color:rgba(240,214,150,0.8) !important;
-    background:rgba(20,13,6,0.6); border:1px solid rgba(201,162,75,0.4); border-radius:50%; }
+    font-size:36px; color:#3a2a15 !important; font-weight:700;
+    background:rgba(20,13,6,0.6); border:1px solid rgba(201,162,75,0.4); border-radius:50%;
+    text-shadow:0 0 3px rgba(255,255,255,0.5); }
   .pturn--prev{ left:18px; }
   .pturn--next{ right:18px; }
   .pager{ bottom:auto; }

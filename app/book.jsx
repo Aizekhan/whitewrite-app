@@ -434,15 +434,36 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         {!generating && !atLast && (
           <button className={`pturn pturn--next ${atLast ? "is-disabled" : ""}`} onClick={() => !atLast && go("next")} aria-label="Далі" type="button" disabled={atLast}>›</button>
         )}
-        {!generating && atLast && window.__sceneIntentCanGenerate && window.__sceneIntentCanGenerate() && (
+        {!generating && atLast && (
           <button
             className="pturn pturn--generate"
-            onClick={() => window.__sceneIntentGenerate && window.__sceneIntentGenerate()}
+            onClick={() => {
+              console.log('[Book] Generate button clicked');
+              const canGenerate = window.__sceneIntentCanGenerate ? window.__sceneIntentCanGenerate() : false;
+              console.log('[Book] window.__sceneIntentGenerate:', window.__sceneIntentGenerate);
+              console.log('[Book] window.__sceneIntentCanGenerate:', canGenerate);
+
+              if (!canGenerate) {
+                alert('Обери напрям історії перед генерацією!');
+                return;
+              }
+
+              if (window.__sceneIntentGenerate) {
+                window.__sceneIntentGenerate();
+              } else {
+                console.error('[Book] window.__sceneIntentGenerate is not defined!');
+                alert('Помилка: функція генерації не знайдена. Перезавантаж сторінку.');
+              }
+            }}
             aria-label="Почати наступну сцену"
             type="button"
-            disabled={window.__sceneIntentIsBusy && window.__sceneIntentIsBusy()}
           >
-            {window.__sceneIntentIsBusy && window.__sceneIntentIsBusy() ? '⏳' : '✦'}
+            <span style={{ fontSize: '46px', lineHeight: 1, color: '#3a2a15' }}>
+              {window.__sceneIntentIsBusy && window.__sceneIntentIsBusy() ? '⏳' : '✦'}
+            </span>
+            <span style={{ fontSize: '11px', fontFamily: 'Philosopher, serif', fontWeight: 700, marginTop: '4px', color: '#3a2a15', textShadow: '0 0 2px rgba(255,255,255,0.3)' }}>
+              Генерувати
+            </span>
           </button>
         )}
       </div>
