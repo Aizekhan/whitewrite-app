@@ -546,10 +546,20 @@
     ],
   };
 
-  var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
-  window.WW_KB = {
-    categories: KB['categories_' + lang] || KB.categories_uk,
-    articles: KB['articles_' + lang] || KB.articles_uk
-  };
-  if (window.__fillKb) window.__fillKb();
+  function loadKB() {
+    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+    window.WW_KB = {
+      categories: KB['categories_' + lang] || KB.categories_uk,
+      articles: KB['articles_' + lang] || KB.articles_uk
+    };
+    if (window.__fillKb) window.__fillKb();
+  }
+
+  // Initial load
+  loadKB();
+
+  // Reload on language change
+  if (window.addEventListener) {
+    window.addEventListener('ww-language-change', loadKB);
+  }
 }());

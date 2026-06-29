@@ -717,6 +717,21 @@
     if (window.__reloadRail) {
       window.__reloadRail();
     }
+
+    // Dispatch event for React components (flow.jsx in iframe)
+    window.dispatchEvent(new Event('ww-language-change'));
+
+    // Also dispatch to iframe if exists
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(function(iframe) {
+      try {
+        if (iframe.contentWindow) {
+          iframe.contentWindow.dispatchEvent(new Event('ww-language-change'));
+        }
+      } catch (e) {
+        // Cross-origin iframe, skip
+      }
+    });
   }
 
   // Get current language

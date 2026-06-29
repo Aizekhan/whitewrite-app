@@ -140,6 +140,7 @@ function App() {
   const [returned] = useAState(DIRECT);
   const [loadingProject, setLoadingProject] = useAState(false);
   const [generationProgress, setGenerationProgress] = useAState({ current: 0, total: 0, isGenerating: false });
+  const [, forceUpdate] = useAState(0); // For language change re-render
 
   // Load existing project if PROJECT_ID provided (URL param mode)
   React.useEffect(() => {
@@ -394,6 +395,16 @@ function App() {
     function onMsg(e) { if (e.data && e.data.type === "ww-home") setStage("start"); }
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
+  }, []);
+
+  // Listen for language change events from parent window (Account modal)
+  React.useEffect(() => {
+    function onLanguageChange() {
+      console.log('[App] Language changed, forcing re-render');
+      forceUpdate(prev => prev + 1);
+    }
+    window.addEventListener('ww-language-change', onLanguageChange);
+    return () => window.removeEventListener('ww-language-change', onLanguageChange);
   }, []);
 
   return (
