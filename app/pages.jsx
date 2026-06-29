@@ -199,23 +199,29 @@ function useSceneIntentState() {
   };
 }
 
-const INTENTS = [
-  { id: "conflict", icon: "⚔", t: "Конфлікт", d: "зіткнення, ставки ростуть" },
-  { id: "character", icon: "❦", t: "Розвиток персонажа", d: "внутрішня зміна, вибір" },
-  { id: "action", icon: "✦", t: "Екшн", d: "рух, погоня, небезпека" },
-  { id: "romance", icon: "♥", t: "Романтика", d: "близькість, тепло, напруга" },
-  { id: "world", icon: "✶", t: "Світобудова", d: "глибше у канон світу" },
-  { id: "twist", icon: "↯", t: "Поворот", d: "підрив очікувань" },
-  { id: "surprise", icon: "✷", t: "Сюрприз від AI", d: "довірити напрям Хранителю" },
-  { id: "arc-choice", icon: "⚡", t: "Вибір сюжетної лінії", d: "розгалуження арки", disabled: true },
-  { id: "parallel", icon: "⫴", t: "Паралельна сюж.лінія", d: "переключення POV" },
-  { id: "new-character", icon: "☆", t: "Зустріч нового персонажу", d: "новий герой входить в історію" },
-  { id: "custom", icon: "✎", t: "Свій напрям", d: "опиши, що хочеш побачити" },
-];
+// Get localized intents
+function getIntents() {
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  return [
+    { id: "conflict", icon: "⚔", t: t('intent.conflict'), d: t('intent.conflictDesc') },
+    { id: "character", icon: "❦", t: t('intent.character'), d: t('intent.characterDesc') },
+    { id: "action", icon: "✦", t: t('intent.action'), d: t('intent.actionDesc') },
+    { id: "romance", icon: "♥", t: t('intent.romance'), d: t('intent.romanceDesc') },
+    { id: "world", icon: "✶", t: t('intent.world'), d: t('intent.worldDesc') },
+    { id: "twist", icon: "↯", t: t('intent.twist'), d: t('intent.twistDesc') },
+    { id: "surprise", icon: "✷", t: t('intent.surprise'), d: t('intent.surpriseDesc') },
+    { id: "arc-choice", icon: "⚡", t: t('intent.arcChoice'), d: t('intent.arcChoiceDesc'), disabled: true },
+    { id: "parallel", icon: "⫴", t: t('intent.parallel'), d: t('intent.parallelDesc') },
+    { id: "new-character", icon: "☆", t: t('intent.newCharacter'), d: t('intent.newCharacterDesc') },
+    { id: "custom", icon: "✎", t: t('intent.custom'), d: t('intent.customDesc') },
+  ];
+}
 
 // LEFT PAGE: Crossroads design — paths diverging into different directions
 function SceneIntentLeft() {
   const { sel, setSel } = useSceneIntentState();
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const INTENTS = getIntents();
   const leftIntents = INTENTS.slice(0, 10); // All except "custom" (which is last)
 
   return (
@@ -223,7 +229,7 @@ function SceneIntentLeft() {
       {/* Crossroads background illustration will be added via CSS */}
       <div className="crossroads">
         <div className="crossroads__center">
-          <div className="crossroads__title">Що далі?</div>
+          <div className="crossroads__title">{t('intent.title')}</div>
         </div>
 
         <div className="crossroads__paths">
@@ -252,6 +258,8 @@ function SceneIntentLeft() {
 // RIGHT PAGE: "Custom" card + textarea OR selected intent display + Generate Button
 function SceneIntentRight({ projectId: propProjectId }) {
   const { sel, note, setSel, setNote } = useSceneIntentState();
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const INTENTS = getIntents();
   const customIntent = INTENTS[INTENTS.length - 1]; // "custom" is last
   const [busy, setBusy] = useReactState(false);
   const cur = INTENTS.find((o) => o.id === sel);
@@ -275,7 +283,7 @@ function SceneIntentRight({ projectId: propProjectId }) {
     // Phase 1.2: Check token balance BEFORE generation
     const user = window.__wwUser;
     if (!user || !user.uid) {
-      alert('Увійдіть в акаунт для генерації сцен.');
+      alert(t('intent.loginRequired'));
       return;
     }
 
@@ -286,9 +294,9 @@ function SceneIntentRight({ projectId: propProjectId }) {
 
       // Show upgrade modal
       const planName = window.__getPlanConfig ? window.__getPlanConfig(user.plan).name : 'Free';
-      const message = `Недостатньо токенів для генерації сцени!\n\nПотрібно: ${cost} токенів\nДоступно: ${user.tokensRemaining} токенів\n\nВаш поточний план: ${planName}\n\nОберіть більший план для продовження генерації.`;
+      const message = `${t('intent.insufficientTokens')}\n\n${t('intent.needed')}: ${cost} ${t('ui.tokens')}\n${t('intent.available')}: ${user.tokensRemaining} ${t('ui.tokens')}\n\n${t('intent.currentPlan')}: ${planName}\n\n${t('intent.upgradePlan')}`;
 
-      if (confirm(message + '\n\nВідкрити налаштування акаунту?')) {
+      if (confirm(message + '\n\n' + t('intent.openSettings'))) {
         // Open account modal
         if (typeof window.__openAccount === 'function') {
           window.__openAccount();
@@ -302,7 +310,7 @@ function SceneIntentRight({ projectId: propProjectId }) {
     // Use prop projectId if passed, otherwise fallback to window
     const actualProjectId = propProjectId || window.__currentProjectId;
     if (!actualProjectId) {
-      alert('Проєкт не знайдено. Спробуйте створити новий.');
+      alert(t('error.projectNotFound'));
       setBusy(false);
       return;
     }
@@ -403,14 +411,14 @@ function SceneIntentRight({ projectId: propProjectId }) {
             alert('Сцена згенерована, але не вдалося зберегти: ' + saveError.message);
           }
         } else {
-          alert(`Сцена згенерована!\n\nНазва: ${result.scene.title}\n\n(Firebase не підключений)`);
+          alert(`${t('intent.sceneGenerated')}\n\n${t('intent.sceneName')}: ${result.scene.title}\n\n${t('intent.firebaseNotConnected')}`);
         }
       } else {
-        alert('Помилка генерації: ' + result.error);
+        alert(t('intent.generationError') + ': ' + result.error);
       }
     } catch (error) {
       console.error('Generation failed:', error);
-      alert('Помилка: ' + error.message);
+      alert(t('intent.error') + ': ' + error.message);
     } finally {
       setBusy(false);
     }
@@ -445,7 +453,7 @@ function SceneIntentRight({ projectId: propProjectId }) {
                       setNote(ev.target.value);
                     }
                   }}
-                  placeholder="Опиши свій шлях історії… Що має статися далі?"
+                  placeholder={t('intent.customPlaceholder')}
                   autoFocus
                   maxLength={500}
                 />
