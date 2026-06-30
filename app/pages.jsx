@@ -211,7 +211,7 @@ function getIntents() {
     { id: "twist", icon: "↯", t: t('intent.twist'), d: t('intent.twistDesc') },
     { id: "surprise", icon: "✷", t: t('intent.surprise'), d: t('intent.surpriseDesc') },
     { id: "arc-choice", icon: "⚡", t: t('intent.arcChoice'), d: t('intent.arcChoiceDesc'), disabled: true },
-    { id: "parallel", icon: "⫴", t: t('intent.parallel'), d: t('intent.parallelDesc') },
+    { id: "parallel", icon: "⫴", t: t('intent.parallel'), d: t('intent.parallelDesc'), disabled: true },
     { id: "new-character", icon: "☆", t: t('intent.newCharacter'), d: t('intent.newCharacterDesc') },
     { id: "custom", icon: "✎", t: t('intent.custom'), d: t('intent.customDesc') },
   ];
