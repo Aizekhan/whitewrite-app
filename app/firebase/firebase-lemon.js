@@ -37,16 +37,25 @@ async function createSubscriptionCheckout(plan, userEmail) {
     throw new Error(`No variant ID for plan: ${plan}`);
   }
 
-  // Lemon Squeezy checkout URL (hosted)
-  // https://docs.lemonsqueezy.com/help/checkout/passing-custom-data
-  const checkoutUrl = new URL(`https://whitewrite.lemonsqueezy.com/checkout/buy/${variantId}`);
+  // Call Cloud Function to create checkout via LS API
+  const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createLemonSqueezyCheckout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      variantId: variantId,
+      userEmail: userEmail,
+      userId: window.__wwUser?.uid || '',
+      customData: { plan: plan }
+    })
+  });
 
-  // Pass user data as custom fields
-  checkoutUrl.searchParams.set('checkout[email]', userEmail);
-  checkoutUrl.searchParams.set('checkout[custom][user_id]', window.__wwUser?.uid || '');
-  checkoutUrl.searchParams.set('checkout[custom][plan]', plan);
+  const data = await response.json();
 
-  return checkoutUrl.toString();
+  if (!response.ok || data.error) {
+    throw new Error(data.error || 'Failed to create checkout');
+  }
+
+  return data.url;
 }
 
 // Create Lemon Squeezy checkout URL for token top-up
@@ -61,14 +70,28 @@ async function createTokenTopUpCheckout(userEmail) {
     throw new Error('No variant ID for 500 tokens');
   }
 
-  const checkoutUrl = new URL(`https://whitewrite.lemonsqueezy.com/checkout/buy/${variantId}`);
+  // Call Cloud Function to create checkout via LS API
+  const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createLemonSqueezyCheckout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      variantId: variantId,
+      userEmail: userEmail,
+      userId: window.__wwUser?.uid || '',
+      customData: {
+        type: 'token_topup',
+        tokens: '500'
+      }
+    })
+  });
 
-  checkoutUrl.searchParams.set('checkout[email]', userEmail);
-  checkoutUrl.searchParams.set('checkout[custom][user_id]', window.__wwUser?.uid || '');
-  checkoutUrl.searchParams.set('checkout[custom][type]', 'token_topup');
-  checkoutUrl.searchParams.set('checkout[custom][tokens]', '500');
+  const data = await response.json();
 
-  return checkoutUrl.toString();
+  if (!response.ok || data.error) {
+    throw new Error(data.error || 'Failed to create checkout');
+  }
+
+  return data.url;
 }
 
 // Export to window

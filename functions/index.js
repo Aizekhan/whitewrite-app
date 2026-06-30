@@ -2065,6 +2065,81 @@ exports.migrateMargin = onRequest({
 });
 
 /**
+ * Create Lemon Squeezy Checkout
+ * Generates checkout URL via Lemon Squeezy API
+ */
+exports.createLemonSqueezyCheckout = onRequest({
+  secrets: [lemonSqueezyApiKey],
+  cors: true
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      const { variantId, userEmail, userId, customData } = req.body;
+
+      if (!variantId || !userEmail || !userId) {
+        return res.status(400).json({ error: 'Missing required fields: variantId, userEmail, userId' });
+      }
+
+      console.log(`[LS Checkout] Creating checkout for variant ${variantId}, user ${userId}`);
+
+      // Call Lemon Squeezy API to create checkout
+      const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.api+json',
+          'Content-Type': 'application/vnd.api+json',
+          'Authorization': `Bearer ${lemonSqueezyApiKey.value()}`
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'checkouts',
+            attributes: {
+              checkout_data: {
+                email: userEmail,
+                custom: {
+                  user_id: userId,
+                  ...customData
+                }
+              }
+            },
+            relationships: {
+              store: {
+                data: {
+                  type: 'stores',
+                  id: '419955'
+                }
+              },
+              variant: {
+                data: {
+                  type: 'variants',
+                  id: variantId.toString()
+                }
+              }
+            }
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('[LS Checkout] API error:', data);
+        return res.status(response.status).json({ error: data.errors || 'Failed to create checkout' });
+      }
+
+      const checkoutUrl = data.data.attributes.url;
+      console.log('[LS Checkout] Created:', checkoutUrl);
+
+      res.status(200).json({ url: checkoutUrl });
+
+    } catch (error) {
+      console.error('[LS Checkout] Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+/**
  * Initialize Lemon Squeezy Config (one-time setup)
  * Creates config/lemon_squeezy document in Firestore
  */
