@@ -275,15 +275,15 @@ exports.generateScene = onRequest({
       // Build canon context for prompt
       const canonContext = buildCanonContext(canon);
 
-      // Map scene intent to Ukrainian description
+      // Map scene intent to DIRECTIVE instructions (command, not description)
       const intentMap = {
-        conflict: 'Конфлікт — протистояння, напруга, загострення',
-        character: 'Розвиток персонажа — внутрішні зміни, рішення, розкриття',
-        action: 'Екшн — динаміка, рух, фізична дія',
-        romance: 'Романтика — емоційна близькість, зв\'язок між персонажами',
-        worldbuilding: 'Світобудова — розкриття всесвіту, деталі світу',
-        surprise: 'Сюрприз від AI — несподіваний поворот, який змінює очікування',
-        custom: customIntent || 'Вільний напрям'
+        conflict: 'КОНФЛІКТ: Створи напругу між персонажами або силами. Покажи протистояння, суперечності, загострення. Хтось має чогось хотіти, а щось/хтось цьому заважає.',
+        character: 'РОЗВИТОК ПЕРСОНАЖА: Покажи внутрішні зміни героя. Він приймає рішення, змінює думку, розкриває нові грані особистості, долає внутрішні суперечності.',
+        action: 'ЕКШН: Сцена має бути динамічною. Персонажі рухаються, діють, борються, тікають, переслідують. Мінімум роздумів — максимум фізичної дії.',
+        romance: 'РОМАНТИКА: Покажи емоційну близькість між персонажами. Хімія, напруга, зв\'язок. Момент, коли відносини поглиблюються або змінюються.',
+        worldbuilding: 'СВІТОБУДОВА: Розкрий деталі всесвіту. Покажи як працює магія/технологія, культуру, історію, географію. Читач має дізнатись щось нове про світ.',
+        surprise: 'СЮРПРИЗ: Зроби несподіваний поворот, який змінює очікування. Твіст, розкриття, перемога/поразка, якої не чекали. Здивуй читача.',
+        custom: customIntent || 'Вільний напрям — діяти за власним розсудом'
       };
 
       const intentDescription = intentMap[sceneIntent] || intentMap.custom;
@@ -865,7 +865,7 @@ ${previousScenes.map((s, i) => {
 `;
   }
 
-  prompt += `**Scene Intent (напрям сцени):**
+  prompt += `**SCENE INTENT (ОБОВ'ЯЗКОВО ДОТРИМУЙСЯ):**
 ${intentDescription}
 
 **Стиль письма:**
@@ -873,17 +873,19 @@ ${intentDescription}
 - Діалоги: ${dialogueStyle}
 
 **Інструкції:**
-1. Генеруй наступну сцену, яка СТРОГО ДОТРИМУЄТЬСЯ канону (не додавай нових персонажів/локацій якщо їх немає в каноні, ЯКЩО ТІЛЬКИ це не є частиною сюрпризу)
-2. Сцена має бути canon-consistent — використовуй лише факти з канону
-3. Якщо канон порожній — створюй світ і персонажів, але будь послідовним
-4. **LANGUAGE:** Write in ${lang.name}, in the style of the project's genre
-5. Format: ## Scene Title (first line), then text
-6. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
-7. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.
+1. **НАЙВАЖЛИВІШЕ: ДОТРИМУЙСЯ SCENE INTENT ВИЩЕ.** Сцена має точно відповідати напряму, який вказав користувач.
+2. Генеруй наступну сцену, яка СТРОГО ДОТРИМУЄТЬСЯ канону (не додавай нових персонажів/локацій якщо їх немає в каноні, ЯКЩО ТІЛЬКИ це не є частиною сюрпризу)
+3. Сцена має бути canon-consistent — використовуй лише факти з канону
+4. Якщо канон порожній — створюй світ і персонажів, але будь послідовним
+5. **LANGUAGE:** Write in ${lang.name}, in the style of the project's genre
+6. Format: ## Scene Title (first line), then text
+7. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
+8. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.
 
 **ОСТАННЯ КОМАНДА (дотримуйся строго):**
+- **SCENE INTENT:** ${intentDescription}
 - Довжина: ~${length} слів (≈ ${Math.round(length / 100)} абзаців). Не більше ${length + 200} слів.
-- ${dialogueStyle}${sceneIntent === 'custom' && customIntent ? '\n- НАПРЯМ СЦЕНИ: ' + customIntent : ''}
+- ${dialogueStyle}
 
 Згенеруй сцену:`;
 
