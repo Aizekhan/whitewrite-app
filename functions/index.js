@@ -24,6 +24,8 @@ const geminiApiKey = defineSecret('GEMINI_API_KEY');
 const claudeApiKey = defineSecret('CLAUDE_API_KEY');
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
+const lemonSqueezyApiKey = defineSecret('LEMON_SQUEEZY_API_KEY');
+const lemonSqueezyWebhookSecret = defineSecret('LEMON_SQUEEZY_WEBHOOK_SECRET');
 
 // Phase 1.1 + 3.0: Token Budget System (synced with app/firebase/token-budget.js)
 const PLAN_BUDGETS = {
@@ -2060,5 +2062,231 @@ exports.migrateMargin = onRequest({
       res.status(500).json({ success: false, error: error.message });
     }
   });
+});
+
+/**
+ * Initialize Lemon Squeezy Config (one-time setup)
+ * Creates config/lemon_squeezy document in Firestore
+ */
+exports.initLemonSqueezyConfig = onRequest({}, async (req, res) => {
+  try {
+    await db.collection('config').doc('lemon_squeezy').set({
+      storeId: '419955',
+
+      variants: {
+        storyteller: '1849926',
+        novelist: '1849976',
+        worldbuilder: '1849991',
+        tokens_500: '1850008'
+      },
+
+      topups: {
+        '500': {
+          variantId: '1850008',
+          tokens: 500,
+          price: 5
+        }
+      },
+
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log('[LemonSqueezy] Config created successfully');
+
+    res.status(200).json({
+      success: true,
+      message: 'Lemon Squeezy config created',
+      config: {
+        storeId: '419955',
+        variants: {
+          storyteller: '1849926',
+          novelist: '1849976',
+          worldbuilder: '1849991',
+          tokens_500: '1850008'
+        }
+      }
+    });
+  } catch (error) {
+    console.error('[LemonSqueezy] Config creation failed:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * Lemon Squeezy Webhook Handler
+ * Listens to subscription and order events, updates user plan/tokens in Firestore
+ *
+ * Events handled:
+ * - subscription_created → activate subscription, update plan
+ * - subscription_updated → sync subscription status
+ * - subscription_cancelled → downgrade to free
+ * - order_created → add tokens for one-time purchases (token top-ups)
+ */
+exports.lemonSqueezyWebhook = onRequest({
+  secrets: [lemonSqueezyWebhookSecret]
+}, async (req, res) => {
+  const crypto = require('crypto');
+
+  try {
+    // Verify webhook signature
+    const signature = req.headers['x-signature'];
+    const secret = lemonSqueezyWebhookSecret.value();
+
+    if (!signature) {
+      console.error('Missing X-Signature header');
+      return res.status(401).send('Missing signature');
+    }
+
+    // Lemon Squeezy uses HMAC SHA256
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(JSON.stringify(req.body));
+    const digest = hmac.digest('hex');
+
+    if (signature !== digest) {
+      console.error('Invalid signature');
+      return res.status(401).send('Invalid signature');
+    }
+
+    const event = req.body;
+    console.log('[LemonSqueezy] Webhook event:', event.meta?.event_name);
+
+    switch (event.meta?.event_name) {
+      case 'subscription_created': {
+        const subscription = event.data;
+        const customData = subscription.attributes.first_subscription_item?.meta?.custom_data || {};
+        const uid = customData.user_id;
+        const plan = customData.plan;
+
+        if (!uid || !plan) {
+          console.error('[LemonSqueezy] Missing uid or plan in subscription:', subscription.id);
+          break;
+        }
+
+        console.log(`[LemonSqueezy] Subscription created: ${uid} → ${plan}`);
+
+        // Update user plan in Firestore
+        await db.collection('users').doc(uid).update({
+          plan: plan,
+          lemonSqueezyCustomerId: subscription.attributes.customer_id,
+          lemonSqueezySubscriptionId: subscription.id,
+          subscriptionStatus: 'active',
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`[LemonSqueezy] User ${uid} upgraded to ${plan}`);
+        break;
+      }
+
+      case 'subscription_updated': {
+        const subscription = event.data;
+        const subscriptionId = subscription.id;
+
+        // Find user by lemonSqueezySubscriptionId
+        const userSnapshot = await db.collection('users')
+          .where('lemonSqueezySubscriptionId', '==', subscriptionId)
+          .limit(1)
+          .get();
+
+        if (userSnapshot.empty) {
+          console.error('[LemonSqueezy] No user found for subscription:', subscriptionId);
+          break;
+        }
+
+        const userDoc = userSnapshot.docs[0];
+        const uid = userDoc.id;
+
+        // Update subscription status
+        const status = subscription.attributes.status; // active, past_due, cancelled, etc.
+        await db.collection('users').doc(uid).update({
+          subscriptionStatus: status,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`[LemonSqueezy] Subscription ${status} for ${uid}`);
+        break;
+      }
+
+      case 'subscription_cancelled': {
+        const subscription = event.data;
+        const subscriptionId = subscription.id;
+
+        // Find user by lemonSqueezySubscriptionId
+        const userSnapshot = await db.collection('users')
+          .where('lemonSqueezySubscriptionId', '==', subscriptionId)
+          .limit(1)
+          .get();
+
+        if (userSnapshot.empty) {
+          console.error('[LemonSqueezy] No user found for subscription:', subscriptionId);
+          break;
+        }
+
+        const userDoc = userSnapshot.docs[0];
+        const uid = userDoc.id;
+
+        console.log(`[LemonSqueezy] Subscription canceled for ${uid}, downgrading to free`);
+
+        // Downgrade to free plan
+        await db.collection('users').doc(uid).update({
+          plan: 'free',
+          lemonSqueezySubscriptionId: null,
+          subscriptionStatus: 'canceled',
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        break;
+      }
+
+      case 'order_created': {
+        const order = event.data;
+        const customData = order.attributes.first_order_item?.meta?.custom_data || {};
+        const uid = customData.user_id;
+        const type = customData.type; // 'token_topup'
+        const tokens = parseInt(customData.tokens || '0', 10);
+        const orderId = order.id;
+
+        if (!uid || type !== 'token_topup' || !tokens) {
+          console.log('[LemonSqueezy] Order created, but not a token top-up:', orderId);
+          break;
+        }
+
+        console.log(`[LemonSqueezy] Token top-up order: ${uid} → +${tokens} tokens (order: ${orderId})`);
+
+        // Check for duplicate order (idempotency)
+        const userRef = db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+          console.error('[LemonSqueezy] User not found:', uid);
+          break;
+        }
+
+        const processedOrders = userDoc.data().processedOrders || [];
+        if (processedOrders.includes(orderId)) {
+          console.log(`[LemonSqueezy] Order ${orderId} already processed, skipping`);
+          break;
+        }
+
+        // Add tokens (atomic increment)
+        await userRef.update({
+          tokensRemaining: admin.firestore.FieldValue.increment(tokens),
+          processedOrders: admin.firestore.FieldValue.arrayUnion(orderId),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`[LemonSqueezy] Added ${tokens} tokens to user ${uid}`);
+        break;
+      }
+
+      default:
+        console.log(`[LemonSqueezy] Unhandled event type: ${event.meta?.event_name}`);
+    }
+
+    res.status(200).json({ received: true });
+  } catch (error) {
+    console.error('[LemonSqueezy] Webhook error:', error);
+    res.status(400).send(`Webhook Error: ${error.message}`);
+  }
 });
 

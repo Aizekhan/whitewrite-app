@@ -1489,32 +1489,23 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           return;
         }
 
-        // Phase 2: Stripe Checkout Session
+        // Lemon Squeezy Checkout
         try {
           b.disabled = true;
           b.textContent = t('btn.loading');
 
-          const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createCheckoutSession', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              plan: targetPlan,
-              uid: u.uid,
-              email: u.email
-            })
-          });
+          // Create checkout URL via Lemon Squeezy
+          const checkoutUrl = await window.__lemonSqueezy.createSubscriptionCheckout(targetPlan, u.email);
 
-          const data = await response.json();
-
-          if (data.error) {
-            alert(t('error.generic') + ': ' + data.error);
+          if (!checkoutUrl) {
+            alert(t('error.generic') + ': Could not create checkout');
             b.disabled = false;
             b.textContent = t('plan.choose');
             return;
           }
 
-          // Redirect to Stripe Checkout
-          window.location.href = data.url;
+          // Redirect to Lemon Squeezy Checkout
+          window.location.href = checkoutUrl;
         } catch (error) {
           console.error('Checkout error:', error);
           alert(t('alert.checkoutError'));
@@ -1524,7 +1515,30 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       };
     });
     var tu = document.getElementById("acc-topup");
-    if (tu) tu.onclick = function () { tu.textContent = "✓ Дякуємо!"; };
+    if (tu) tu.onclick = async function () {
+      try {
+        tu.disabled = true;
+        tu.textContent = t('btn.loading');
+
+        // Create Lemon Squeezy checkout for 500 tokens
+        const checkoutUrl = await window.__lemonSqueezy.createTokenTopUpCheckout(u.email);
+
+        if (!checkoutUrl) {
+          alert(t('error.generic') + ': Could not create checkout');
+          tu.disabled = false;
+          tu.textContent = t('account.topUp');
+          return;
+        }
+
+        // Redirect to Lemon Squeezy Checkout
+        window.location.href = checkoutUrl;
+      } catch (error) {
+        console.error('Token top-up error:', error);
+        alert(t('alert.checkoutError'));
+        tu.disabled = false;
+        tu.textContent = t('account.topUp');
+      }
+    };
 
     // Load real account stats
     loadAccountStats();
@@ -1708,6 +1722,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <script src="/firebase/firebase-projects.js"></script>
 <parameter name="old_string"><script src="/firebase/firebase-scenes.js"></script>
 <script src="/firebase/firebase-ai.js"></script>
+<script src="/firebase/firebase-lemon.js"></script>
 
 <!-- Initialize Firebase Auth -->
 <script>
