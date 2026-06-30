@@ -901,21 +901,21 @@ function extractMentionedEntities(text, canon) {
 
   // Check characters
   Object.entries(canon.characters || {}).forEach(([id, char]) => {
-    if (textLower.includes(char.name.toLowerCase())) {
+    if (char.name && textLower.includes(char.name.toLowerCase())) {
       mentioned.push({ type: 'character', id, name: char.name });
     }
   });
 
   // Check locations
   Object.entries(canon.locations || {}).forEach(([id, loc]) => {
-    if (textLower.includes(loc.name.toLowerCase())) {
+    if (loc.name && textLower.includes(loc.name.toLowerCase())) {
       mentioned.push({ type: 'location', id, name: loc.name });
     }
   });
 
   // Check factions
   Object.entries(canon.factions || {}).forEach(([id, faction]) => {
-    if (textLower.includes(faction.name.toLowerCase())) {
+    if (faction.name && textLower.includes(faction.name.toLowerCase())) {
       mentioned.push({ type: 'faction', id, name: faction.name });
     }
   });
