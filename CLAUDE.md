@@ -132,7 +132,7 @@ Margins:
 
 1. **Canon = джерело правди. Memory = View** (буквально як SQL View, не копія).
    `Canon → Memory View → AI Context`. memorySuggestions пишуть **у canon**, memory **ре-деривується**. Ніколи два джерела правди.
-2. **Canon — поле в `project`-документі**, не окрема колекція (щоб не дублювати save-queue/versioning/rollback/snapshots).
+2. **Canon живе у Світі: `worlds/{worldId}` + підколекція `entities/{id}`** (рішення 2026-10-31, замість поля `project.canon` — ліміт 1 МБ і «один світ = одна історія»). Проєкт = історія, посилається на світ через `project.worldId`; кілька історій можуть ділити один світ. Вид сутності — поле `kind` (`type` — це підтип сутності). Бекенд: `functions/canon-store.js` (`loadCanon` / `mergeSuggestions` / лінива міграція `ensureWorld`), фронт: `app/firebase/firebase-canon.js` (`getCanon` / `createEntity` / `updateEntity` / `updateWorld`). Легасі `project.canon` не видаляється (rollback), але більше не читається.
 3. **Два джерела канону:**
    - **Explicit Canon** — створив користувач (авторитетне).
    - **Inferred Canon** — AI припустив, із `confidence %` → черга на підтвердження. Inferred НЕ є фактом: не годується в генерацію як істина і не тригерить реконструкцію, доки не підтверджено. Міграція не створює непідтверджених «фактів».

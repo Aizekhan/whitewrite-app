@@ -1,13 +1,23 @@
 // Firebase Canon integration for World Tree
-// Read-only access to project.canon from Firestore (this iteration: NO editing)
+// Canon lives in worlds/{worldId} + worlds/{worldId}/entities (see functions/canon-store.js).
+// A project (story) references its world via project.worldId.
+
+const CANON_KINDS = ['characters', 'locations', 'events', 'factions', 'artifacts'];
+const CANON_ID_PREFIX = { characters: 'char', locations: 'loc', events: 'evt', factions: 'fac', artifacts: 'art' };
+// Derived/UI-only fields never persisted (reverse links are derived, invariant: "реверс деривується")
+const CANON_TRANSIENT = ['_draft', 'scenes'];
 
 window.__firebaseCanon = {
+  worldId: null, // world of the currently loaded project
+
   /**
-   * Get canon for a project
+   * Get canon for a project (from its world; legacy projects are migrated server-side)
    * @param {string} projectId - Firestore project ID
    * @returns {Promise<Object>} Canon object with characters, locations, events, factions, artifacts, world
    */
   async getCanon(projectId) {
+    this.worldId = null;
+
     if (!window.__firebase?.db) {
       console.error('Firebase not initialized');
       return this._emptyCanon();
@@ -19,22 +29,102 @@ window.__firebaseCanon = {
     }
 
     try {
-      const projectDoc = await window.__firebase.db.collection('projects').doc(projectId).get();
+      const db = window.__firebase.db;
+      const projectDoc = await db.collection('projects').doc(projectId).get();
 
       if (!projectDoc.exists) {
         console.error('Project not found:', projectId);
         return this._emptyCanon();
       }
 
-      const project = projectDoc.data();
-      const canon = project.canon || this._emptyCanon();
+      const worldId = projectDoc.data().worldId || await this._ensureWorld(projectId);
+      const worldRef = db.collection('worlds').doc(worldId);
+      const [worldDoc, entitiesSnap] = await Promise.all([worldRef.get(), worldRef.collection('entities').get()]);
 
-      console.log('Canon loaded for project:', projectId, canon);
+      const canon = this._emptyCanon();
+      const world = worldDoc.exists ? worldDoc.data() : {};
+      Object.keys(canon.world).forEach((f) => { if (world[f] !== undefined) canon.world[f] = world[f]; });
+      entitiesSnap.forEach((doc) => {
+        const data = doc.data();
+        if (!CANON_KINDS.includes(data.kind)) return;
+        if (data.origin && data.origin.confirmed === false) return; // inferred, not yet fact
+        canon[data.kind][doc.id] = data;
+      });
+
+      this.worldId = worldId;
+      console.log('Canon loaded for project:', projectId, 'world:', worldId);
       return canon;
     } catch (error) {
       console.error('Failed to load canon:', error);
       return this._emptyCanon();
     }
+  },
+
+  // Legacy project without worldId → server migrates project.canon into a world
+  async _ensureWorld(projectId) {
+    const idToken = await window.__firebase.auth.currentUser.getIdToken();
+    const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/ensureProjectWorld', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+      body: JSON.stringify({ projectId })
+    });
+    const data = await response.json();
+    if (!response.ok || !data.worldId) throw new Error(data.error || 'ensureProjectWorld failed');
+    return data.worldId;
+  },
+
+  // Opaque stable id, e.g. "char_8f3k2a" (invariant #4)
+  newEntityId(kind) {
+    const bytes = crypto.getRandomValues(new Uint8Array(3));
+    return CANON_ID_PREFIX[kind] + '_' + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  slugify(name) {
+    return String(name || '').toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+  },
+
+  /**
+   * Create an explicit (user-authored) entity in the current world.
+   * @param {string} kind - 'characters' | 'locations' | ...
+   * @param {Object} entity - entity incl. id (from newEntityId)
+   */
+  async createEntity(kind, entity) {
+    if (!this.worldId) throw new Error('No world loaded');
+    const data = {};
+    Object.keys(entity).forEach((k) => { if (!CANON_TRANSIENT.includes(k)) data[k] = entity[k]; });
+    const name = data.name || data.title || '';
+    await window.__firebase.db.collection('worlds').doc(this.worldId).collection('entities').doc(entity.id).set({
+      ...data,
+      kind,
+      name,
+      slug: this.slugify(name),
+      origin: { source: 'explicit', confidence: null, confirmed: true, createdBy: 'user' },
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  },
+
+  /**
+   * Patch fields of an entity (merge; never replaces the whole entity).
+   */
+  async updateEntity(entityId, patch) {
+    if (!this.worldId) throw new Error('No world loaded');
+    const data = { ...patch, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    if (patch.name !== undefined || patch.title !== undefined) {
+      data.name = patch.name !== undefined ? patch.name : patch.title;
+      data.slug = this.slugify(data.name);
+    }
+    await window.__firebase.db.collection('worlds').doc(this.worldId).collection('entities').doc(entityId)
+      .set(data, { merge: true });
+  },
+
+  /**
+   * Patch world-level canon (tagline, summary, rules, facts, palette).
+   */
+  async updateWorld(patch) {
+    if (!this.worldId) throw new Error('No world loaded');
+    await window.__firebase.db.collection('worlds').doc(this.worldId)
+      .set({ ...patch, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
   },
 
   /**

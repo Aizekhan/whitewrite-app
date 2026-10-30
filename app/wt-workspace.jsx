@@ -167,9 +167,17 @@ function Profile({ type, id, navigate, goPillar }) {
   const descRef = React.useRef(null);
   function startEdit() { setEditing(true); }
   function save() {
-    if (titleRef.current) { const v = titleRef.current.innerText.trim(); if (v) e[nameField] = v; }
-    if (descRef.current && descField) { const v = descRef.current.innerText.trim(); if (v) e[descField] = v; }
+    const patch = {};
+    if (titleRef.current) { const v = titleRef.current.innerText.trim(); if (v) { e[nameField] = v; patch[nameField] = v; } }
+    if (descRef.current && descField) { const v = descRef.current.innerText.trim(); if (v) { e[descField] = v; patch[descField] = v; } }
+    const isNew = !!e._draft;
     if (e._draft) { delete e._draft; if (window.__wtCommit) window.__wtCommit(); }
+    // Persist to the world (canon = source of truth)
+    const fc = window.__firebaseCanon;
+    if (fc && fc.worldId) {
+      (isNew ? fc.createEntity(type, e) : fc.updateEntity(id, patch))
+        .catch((err) => console.error('Canon save failed:', err));
+    }
     setEditing(false);
     bump((n) => n + 1);
   }
@@ -428,7 +436,8 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
 
   let _newSeq = (window.__wtNewSeq = (window.__wtNewSeq || 0));
   function createEntity() {
-    const id = "new_" + type + "_" + (++window.__wtNewSeq);
+    const fc = window.__firebaseCanon;
+    const id = fc && fc.worldId ? fc.newEntityId(type) : "new_" + type + "_" + (++window.__wtNewSeq);
     const base = { id, scenes: [], characters: [], locations: [], events: [], factions: [], artifacts: [] };
     const NEW = {
       characters: { ...base, name: t('workspace.newCharacter'), role: t('workspace.role'), roleType: "support", status: "draft", motivation: t('workspace.motivation'), arc: t('workspace.arc'), prog: 0, relations: [] },

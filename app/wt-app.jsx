@@ -281,6 +281,11 @@ function ChronicleView({ navigate, onClose, canon, projectId }) {
     w.tagline = draft.tagline.trim() || w.tagline;
     w.summary = draft.summary.trim() || w.summary;
     w.rules = draft.rules.map((r) => r.trim()).filter(Boolean);
+    const fc = window.__firebaseCanon;
+    if (fc && fc.worldId) {
+      fc.updateWorld({ tagline: w.tagline, summary: w.summary, rules: w.rules })
+        .catch((err) => console.error('Chronicle save failed:', err));
+    }
     setEdit(false); force((n) => n + 1);
   }
   const setRule = (i, v) => setDraft((d) => ({ ...d, rules: d.rules.map((r, j) => j === i ? v : r) }));

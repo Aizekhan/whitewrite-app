@@ -15,6 +15,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('./ai-models.js');
 const { charge, getBalance, reserve, refund } = require('./token-service.js');
 const { getPlanBudget } = require('./plans.js');
+const { loadCanon, mergeSuggestions } = require('./canon-store.js');
 // Legacy plan migration completed on 2026-06-26, no longer needed
 
 admin.initializeApp();
@@ -267,15 +268,8 @@ exports.generateScene = onRequest({
         return;
       }
 
-      // Extract canon
-      const canon = project.canon || {
-        characters: {},
-        locations: {},
-        events: {},
-        factions: {},
-        artifacts: {},
-        world: {}
-      };
+      // Load canon from the project's world (lazy-migrates legacy project.canon)
+      const { worldId, canon } = await loadCanon(db, projectId, project, uid);
 
       // Build canon context for prompt
       const canonContext = buildCanonContext(canon);
@@ -470,7 +464,7 @@ exports.generateScene = onRequest({
           const sceneId = req.body.sceneId;
           const projectLanguage = project.language || 'uk'; // Default to Ukrainian
 
-          extractCanonFromScene(projectId, sceneContent, canon, uid, sceneId, projectLanguage)
+          extractCanonFromScene(projectId, worldId, sceneContent, canon, uid, sceneId, projectLanguage)
               .then(result => {
                 console.log(`[Auto-Extract] ✅ Extracted ${result.suggestions.length} suggestions, linked to scene ${sceneId}`);
               })
@@ -508,55 +502,11 @@ exports.generateScene = onRequest({
 });
 
 /**
- * Helper: Merge extracted suggestions into canon
- * Auto-approve mode: immediately add entities to canon
- */
-async function mergeIntoCanon(projectId, suggestions) {
-  const updates = {};
-  const mergedEntities = [];
-
-  // Pluralize type (character → characters, location → locations, etc.)
-  const pluralize = (type) => {
-    if (type.endsWith('y')) return type.slice(0, -1) + 'ies'; // factory → factories
-    return type + 's'; // character → characters
-  };
-
-  for (const suggestion of suggestions) {
-    const { type, action, targetId, newData } = suggestion;
-
-    // Generate unique ID if adding new entity
-    const entityId = action === 'add'
-      ? `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      : targetId;
-
-    // Add AI-extracted flag and timestamp
-    const entityData = {
-      ...newData,
-      id: entityId,
-      aiExtracted: true,
-      extractedAt: admin.firestore.FieldValue.serverTimestamp()
-    };
-
-    // Update path in Firestore (pluralize type: character → characters)
-    const pluralType = pluralize(type);
-    updates[`canon.${pluralType}.${entityId}`] = entityData;
-    mergedEntities.push({ type: pluralType, id: entityId, name: newData.name });
-  }
-
-  // Batch update
-  if (Object.keys(updates).length > 0) {
-    await db.collection('projects').doc(projectId).update(updates);
-  }
-
-  return mergedEntities; // [{type: 'characters', id: 'char_123', name: 'Marcus'}, ...]
-}
-
-/**
  * Helper: Extract canon from scene (Phase 3.1b + canonRefs linking)
  * Called asynchronously after scene generation
  * @param sceneId - Scene document ID to update with canonRefs
  */
-async function extractCanonFromScene(projectId, sceneText, canon, uid, sceneId, language = 'uk') {
+async function extractCanonFromScene(projectId, worldId, sceneText, canon, uid, sceneId, language = 'uk') {
   try {
     // Language names mapping
     const languageNames = {
@@ -586,14 +536,13 @@ CRITICAL RULES:
 6. **LANGUAGE: Extract ALL entity names and descriptions in ${languageName} language.**
 7. Return ONLY valid JSON, no markdown wrapping
 
-Current Canon (for duplicate detection):
-${JSON.stringify({
-  characters: Object.keys(canon.characters || {}),
-  locations: Object.keys(canon.locations || {}),
-  events: Object.keys(canon.events || {}),
-  factions: Object.keys(canon.factions || {}),
-  artifacts: Object.keys(canon.artifacts || {})
-}, null, 2)}`;
+Current Canon (for duplicate detection; use the exact "id" as targetId for updates):
+${JSON.stringify(Object.fromEntries(
+  ['characters', 'locations', 'events', 'factions', 'artifacts'].map(kind => [
+    kind,
+    Object.entries(canon[kind] || {}).map(([id, e]) => ({ id, name: e.name || e.title || '' }))
+  ])
+), null, 2)}`;
 
     const prompt = `Analyze this scene and extract canon entities:
 
@@ -607,7 +556,7 @@ Return JSON with memorySuggestions array:
       "id": "unique_id",
       "type": "character" | "location" | "event" | "faction" | "artifact",
       "action": "add" | "update",
-      "targetId": "exact_name_or_id",
+      "targetId": "existing entity id (for update) or null (for add)",
       "newData": {
         // For character: name, role, trait, status, location, goal, relationships, developmentArc
         // For location: name, description, type
@@ -663,8 +612,8 @@ Return JSON with memorySuggestions array:
       return [];
     }
 
-    // Auto-merge into canon (no review queue)
-    const mergedEntities = await mergeIntoCanon(projectId, suggestions);
+    // Auto-merge into the world (no review queue; provenance recorded as inferred)
+    const mergedEntities = await mergeSuggestions(db, worldId, canon, suggestions);
 
     // Phase 5.1: Charge via token-service (reads economy_operations, logs usage_logs)
     const { userCost, apiCostUSD } = await charge(
@@ -1010,6 +959,43 @@ exports.initializeUser = onRequest({
   });
 });
 
+/**
+ * Cloud Function: Ensure Project World
+ * Returns the project's worldId, migrating legacy project.canon on first call.
+ * Input: { projectId }  Output: { worldId }
+ */
+exports.ensureProjectWorld = onRequest({
+  region: 'us-central1'
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    try {
+      let uid;
+      try {
+        uid = await verifyAuth(req.headers.authorization);
+      } catch (e) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const { projectId } = req.body || {};
+      if (!projectId) {
+        return res.status(400).json({ error: 'Missing projectId' });
+      }
+
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists || projectDoc.data().owner !== uid) {
+        return res.status(403).json({ error: 'Project not found or access denied' });
+      }
+
+      // loadCanon also verifies world ownership (project.worldId may be client-set)
+      const { worldId } = await loadCanon(db, projectId, projectDoc.data(), uid);
+      res.status(200).json({ worldId });
+    } catch (error) {
+      console.error('[ensureProjectWorld] Error:', error);
+      res.status(error.status || 500).json({ error: error.message });
+    }
+  });
+});
+
 // ============================================================================
 // Phase 2: Stripe Integration
 // ============================================================================
@@ -1251,14 +1237,7 @@ exports.syncCanonFromProject = onRequest({
         return res.status(403).json({ error: 'Forbidden: not project owner' });
       }
 
-      const canon = project.canon || {
-        characters: {},
-        locations: {},
-        events: {},
-        factions: {},
-        artifacts: {},
-        world: {}
-      };
+      const { worldId, canon } = await loadCanon(db, projectId, project, uid);
 
       // Get all scenes from project.scenes array
       const scenes = project.scenes || [];
@@ -1301,7 +1280,7 @@ exports.syncCanonFromProject = onRequest({
 
         try {
           const sceneId = scene.id || `scene_${Date.now()}_${i}`;
-          const result = await extractCanonFromScene(projectId, sceneText, canon, uid, sceneId);
+          const result = await extractCanonFromScene(projectId, worldId, sceneText, canon, uid, sceneId);
 
           console.log(`[Sync] ✅ Scene ${i + 1}/${scenes.length} — ${result.suggestions.length} suggestions`);
           successCount++;
@@ -1407,14 +1386,10 @@ exports.analyzeScene = onRequest({
         return res.status(404).json({ error: 'Project not found' });
       }
 
-      const canon = projectDoc.data().canon || {
-        characters: {},
-        locations: {},
-        events: {},
-        factions: {},
-        artifacts: {},
-        world: {}
-      };
+      if (projectDoc.data().owner !== uid) {
+        return res.status(403).json({ error: 'Forbidden: not project owner' });
+      }
+      const { canon } = await loadCanon(db, projectId, projectDoc.data(), uid);
 
       // Build analysis prompt (inspired by White-Tree)
       const systemInstruction = `You are a narrative analysis expert. Perform a complete diagnostic of the provided scene text.
@@ -1431,9 +1406,9 @@ SCORING GUIDELINES (0-10):
 Return ONLY valid JSON, no markdown wrapping.
 
 Canon Context:
-- Characters: ${Object.keys(canon.characters || {}).join(', ') || 'None'}
-- Locations: ${Object.keys(canon.locations || {}).join(', ') || 'None'}
-- Events: ${Object.keys(canon.events || {}).join(', ') || 'None'}`;
+- Characters: ${Object.values(canon.characters || {}).map(e => e.name || e.title).filter(Boolean).join(', ') || 'None'}
+- Locations: ${Object.values(canon.locations || {}).map(e => e.name || e.title).filter(Boolean).join(', ') || 'None'}
+- Events: ${Object.values(canon.events || {}).map(e => e.name || e.title).filter(Boolean).join(', ') || 'None'}`;
 
       const prompt = `Analyze this scene:
 
@@ -1589,13 +1564,7 @@ exports.backfillSceneCanonRefs = onRequest({
         return;
       }
 
-      const canon = projectDoc.data().canon || {
-        characters: {},
-        locations: {},
-        events: {},
-        factions: {},
-        artifacts: {}
-      };
+      const { canon } = await loadCanon(db, projectId, projectDoc.data(), uid);
 
       // Build lookup maps: name → id (only CONFIRMED entities)
       const lookups = {
