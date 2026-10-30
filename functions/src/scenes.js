@@ -465,6 +465,21 @@ exports.generateScene = onRequest({
  */
 function buildCanonContext(canon) {
   const sections = [];
+  const world = canon.world || {};
+
+  // World — summary, facts, and laws first: they frame everything below
+  const worldText = world.summary || world.description;
+  if (worldText) {
+    sections.push('**Всесвіт:**\n' + worldText);
+  }
+  const facts = (world.facts || []).filter(f => f && f.k && f.v);
+  if (facts.length > 0) {
+    sections.push('**Факти світу:**\n' + facts.map(f => `- ${f.k}: ${f.v}`).join('\n'));
+  }
+  const rules = (world.rules || []).map(r => String(r).trim()).filter(Boolean);
+  if (rules.length > 0) {
+    sections.push('**ЗАКОНИ СВІТУ (непорушні — фізика цього всесвіту):**\n' + rules.map((r, i) => `${i + 1}. ${r}`).join('\n'));
+  }
 
   // Characters
   const chars = Object.values(canon.characters || {});
@@ -498,10 +513,12 @@ function buildCanonContext(canon) {
     ).join('\n'));
   }
 
-  // World
-  const world = canon.world || {};
-  if (Object.keys(world).length > 0 && world.description) {
-    sections.push('**Всесвіт:**\n' + world.description);
+  // Artifacts
+  const artifacts = Object.values(canon.artifacts || {});
+  if (artifacts.length > 0) {
+    sections.push('**Артефакти:**\n' + artifacts.map(a =>
+      `- ${a.name}: ${a.description || 'немає опису'}`
+    ).join('\n'));
   }
 
   return sections.length > 0 ? sections.join('\n\n') : 'Канон порожній — ти створюєш світ з нуля.';
@@ -594,6 +611,8 @@ function buildScenePrompt({ title, desc, language, genres, scope, ending, ending
     endingDirection = `\n**Напрям фіналу:** ${endingNote}`;
   }
 
+  const hasWorldLaws = canonContext.includes('ЗАКОНИ СВІТУ');
+
   let prompt = `Ти — AI-письменник для WhiteWrite, інструменту canon-aware наративної генерації.
 
 **Проєкт:** ${title}
@@ -633,12 +652,13 @@ ${intentDescription}
 5. **LANGUAGE:** Write in ${lang.name}, in the style of the project's genre
 6. Format: ## Scene Title (first line), then text
 7. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
-8. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.
+8. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.${hasWorldLaws ? `
+9. **ЗАКОНИ СВІТУ — це фізика всесвіту, а не факти сюжету.** Жодна подія сцени не може їх порушити. Scene Intent виконуй У МЕЖАХ цих законів (знайди спосіб, що їм не суперечить). Порушити закон можна лише якщо Scene Intent прямо й явно цього вимагає — тоді це свідомий твіст, і він має бути помітним у тексті, а не випадковим.` : ''}
 
 **ОСТАННЯ КОМАНДА (дотримуйся строго):**
 - **SCENE INTENT (CRITICAL):** ${intentDescription}${sceneIntent === 'custom' ? '\n  ↳ ВИКОНАЙ ЦЕ БУКВАЛЬНО. Якщо написано "персонаж стає Х" — він МАЄ стати Х в цій сцені. Не символічно, не метафорично — буквально.' : ''}
 - Довжина: ~${length} слів (≈ ${Math.round(length / 100)} абзаців). Не більше ${length + 200} слів.
-- ${dialogueStyle}
+- ${dialogueStyle}${hasWorldLaws ? '\n- Закони світу не порушуються (див. «ЗАКОНИ СВІТУ»).' : ''}
 
 Згенеруй сцену:`;
 
