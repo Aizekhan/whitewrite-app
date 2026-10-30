@@ -9,6 +9,7 @@ const CANON_TRANSIENT = ['_draft', 'scenes'];
 
 window.__firebaseCanon = {
   worldId: null, // world of the currently loaded project
+  projectId: null, // project (story) whose canon is loaded
 
   /**
    * Get canon for a project (from its world; legacy projects are migrated server-side)
@@ -17,6 +18,7 @@ window.__firebaseCanon = {
    */
   async getCanon(projectId) {
     this.worldId = null;
+    this.projectId = null;
 
     if (!window.__firebase?.db) {
       console.error('Firebase not initialized');
@@ -52,6 +54,7 @@ window.__firebaseCanon = {
       });
 
       this.worldId = worldId;
+      this.projectId = projectId;
       console.log('Canon loaded for project:', projectId, 'world:', worldId);
       return canon;
     } catch (error) {

@@ -321,4 +321,35 @@ window.__firebaseScenes.backfillCanonRefs = async function(projectId) {
   return result;
 };
 
+// Reconstruction (stage 3): ask the server for a canon-consistent rewrite of one
+// scene. Returns a proposal only — nothing is saved until applyReconstruction().
+// Resolves to { success, unchanged, proposedText, tokensConsumed } or { success:false, error, code }.
+window.__firebaseScenes.reconstructScene = async function(projectId, sceneId, entityType, entityId, changeType, changeNote) {
+  const user = firebase.auth().currentUser;
+  if (!user) return { success: false, error: 'Користувач не автентифікований' };
+  const token = await user.getIdToken();
+  try {
+    const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/reconstructScene', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ projectId, sceneId, entityType, entityId, changeType, changeNote: changeNote || '' })
+    });
+    const data = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+    if (!response.ok) return { success: false, error: data.error || `HTTP ${response.status}`, code: data.code };
+    return data;
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Accept a reconstruction proposal: write the new text, keep the old one for rollback.
+window.__firebaseScenes.applyReconstruction = async function(projectId, sceneId, newText, previousText, cause) {
+  await this.updateScene(projectId, sceneId, {
+    text: newText,
+    'reconstruction.previousText': previousText,
+    'reconstruction.lastReconstructionAt': firebase.firestore.FieldValue.serverTimestamp(),
+    'reconstruction.lastCause': cause || null
+  });
+};
+
 console.log('Firebase scenes module loaded');

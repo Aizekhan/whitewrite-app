@@ -695,3 +695,221 @@ function extractMentionedEntities(text, canon) {
 
   return mentioned;
 }
+
+/**
+ * Cloud Function: Reconstruct Scene (stage 3 — real reconstruction with diff)
+ *
+ * After a canon change, rewrites ONE dependent scene so it is consistent with
+ * the CURRENT canon, with minimal edits. Returns a proposal only — nothing is
+ * saved here; the author accepts/rejects it in the reconstruction overlay
+ * (human-in-the-loop, invariant #5: Review is the default).
+ *
+ * Input (POST JSON): { projectId, sceneId, entityType, entityId, changeType, changeNote? }
+ * Output: { success, unchanged, proposedText, tokensConsumed, tokensRemaining }
+ */
+const RECON_CHANGE_TYPES = {
+  rename: 'Сутність перейменовано. Заміни в тексті всі згадки її старої назви на поточну (з урахуванням відмінків). Більше нічого не змінюй.',
+  property: 'Змінились властивості сутності (опис, вигляд, характер, статус). Виправ лише ті місця сцени, що суперечать її поточному опису в каноні.',
+  relationship: 'Змінились зв\'язки сутності з іншими. Перепиши взаємодії та репліки, що суперечать поточним зв\'язкам; сюжет сцени збережи.',
+  remove: 'Сутність ВИДАЛЕНО з канону. Перебудуй сцену без неї: її дії та репліки передай іншим доречним персонажам/елементам канону або прибери, зберігши сюжетну функцію сцени.',
+  rewrite: 'Канон сутності суттєво переписано. Перепиши сцену глибше, щоб вона повністю відповідала поточному канону, але збережи ключові події, якщо вони йому не суперечать.',
+};
+const RECON_UNCHANGED = 'БЕЗ ЗМІН';
+const MAX_RECON_SCENE_CHARS = 20000;
+const MAX_CHANGE_NOTE_CHARS = 500;
+const RECON_HIDDEN_FIELDS = ['id', 'kind', 'slug', 'origin', 'confirmed', 'createdAt', 'updatedAt', 'sourceScenes'];
+
+exports.reconstructScene = onRequest({
+  region: 'us-central1',
+  secrets: [geminiApiKey, claudeApiKey],
+  timeoutSeconds: 300,
+  memory: '512MiB'
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    let uid;
+    let reservation = null;
+    try {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+      }
+
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(401).json({ error: 'Потрібна автентифікація' });
+        return;
+      }
+      try {
+        uid = (await admin.auth().verifyIdToken(authHeader.split('Bearer ')[1])).uid;
+      } catch (error) {
+        res.status(401).json({ error: 'Невірний токен автентифікації' });
+        return;
+      }
+
+      const { projectId, sceneId, entityType, entityId, changeType } = req.body || {};
+      const changeNote = String(req.body?.changeNote || '').slice(0, MAX_CHANGE_NOTE_CHARS).trim();
+      if (!projectId || !sceneId || !entityType || !entityId || !RECON_CHANGE_TYPES[changeType]) {
+        res.status(400).json({ error: 'projectId, sceneId, entityType, entityId та коректний changeType обов\'язкові' });
+        return;
+      }
+
+      const projectDoc = await db.collection('projects').doc(projectId).get();
+      if (!projectDoc.exists) {
+        res.status(404).json({ error: 'Проєкт не знайдено' });
+        return;
+      }
+      const project = projectDoc.data();
+      if (project.owner !== uid) {
+        res.status(403).json({ error: 'Ви не є власником цього проєкту' });
+        return;
+      }
+
+      // Scene text comes from Firestore, never from the client
+      const sceneDoc = await db.collection('projects').doc(projectId).collection('scenes').doc(sceneId).get();
+      if (!sceneDoc.exists) {
+        res.status(404).json({ error: 'Сцену не знайдено' });
+        return;
+      }
+      const scene = sceneDoc.data();
+      const sceneText = String(scene.text || '');
+      if (!sceneText.trim()) {
+        res.status(200).json({ success: true, unchanged: true, proposedText: sceneText, tokensConsumed: 0 });
+        return;
+      }
+      if (sceneText.length > MAX_RECON_SCENE_CHARS) {
+        res.status(400).json({ error: `Сцена задовга для реконструкції (${sceneText.length} символів).`, code: 'INPUT_TOO_LONG' });
+        return;
+      }
+
+      // Plan gate + tokens (priced like generateScene: rewriting a scene ≈ writing one)
+      const userDoc = await db.collection('users').doc(uid).get();
+      const userData = userDoc.exists ? userDoc.data() : {};
+      const userPlan = userData.plan || 'free';
+      const planConfig = getPlanBudget(userPlan);
+      if (!planConfig.allowReconstruction) {
+        res.status(403).json({ error: 'Реконструкція доступна з плану Novelist', code: 'PLAN_REQUIRED', plan: userPlan });
+        return;
+      }
+      if (userData.subscriptionStatus !== 'active') {
+        res.status(403).json({ error: 'Активна підписка необхідна для реконструкції', requiresSubscription: true, plan: userPlan });
+        return;
+      }
+
+      const useClaudeAPI = planConfig.allowClaude;
+      const provider = useClaudeAPI ? 'claude' : 'gemini';
+      const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
+      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {})[provider] : null;
+      const reserveCost = (providerEconomy && providerEconomy.cost) || (useClaudeAPI ? 300 : 20);
+      const balance = getBalance(userData);
+      if (balance.available < reserveCost) {
+        res.status(403).json({ error: 'Недостатньо токенів для реконструкції', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+        return;
+      }
+      try {
+        reservation = await reserve(db, uid, reserveCost);
+      } catch (error) {
+        if (error.code !== 'OUT_OF_TOKENS') throw error;
+        res.status(403).json({ error: 'Недостатньо токенів для реконструкції', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+        return;
+      }
+
+      const { canon } = await loadCanon(db, projectId, project, uid);
+      const entity = (canon[entityType] || {})[entityId];
+      const entityBlock = entity
+        ? JSON.stringify(Object.fromEntries(Object.entries(entity).filter(([k, v]) =>
+            !RECON_HIDDEN_FIELDS.includes(k) && v !== null && v !== '' && (typeof v !== 'object' || Array.isArray(v))
+          )), null, 2).slice(0, 3000)
+        : '(сутності більше немає в каноні)';
+
+      const prompt = `Ти — редактор WhiteWrite. У каноні світу відбулась зміна, і цю сцену треба узгодити з ПОТОЧНИМ каноном.
+
+**Поточний канон (авторитетний):**
+${buildCanonContext(canon)}
+
+**Змінена сутність (${entityType}):**
+${entityBlock}
+
+**Тип зміни:** ${RECON_CHANGE_TYPES[changeType]}${changeNote ? `\n**Що змінилось (зі слів автора):** ${changeNote}` : ''}
+
+**Сцена «${scene.title || 'Без назви'}» (поточний текст):**
+<scene>
+${sceneText}
+</scene>
+
+**Правила:**
+1. Мінімальні правки: змінюй лише те, що суперечить поточному канону або стосується зміненої сутності. Решту тексту лиши дослівно — стиль, ритм, абзаци.
+2. Закони світу непорушні.
+3. Пиши тією ж мовою і з тією ж типографікою, що й оригінал.
+4. Якщо сцена вже повністю відповідає поточному канону — виведи рівно «${RECON_UNCHANGED}» і нічого більше.
+5. Інакше виведи ЛИШЕ повний виправлений текст сцени, без назви, без коментарів і без тегів.`;
+
+      const estimatedInputTokens = Math.ceil(prompt.length / 4);
+      let outText = null;
+      let apiUsage = { input_tokens: 0, output_tokens: 0 };
+      let model;
+
+      if (useClaudeAPI) {
+        model = AI_MODELS.claude.sonnet;
+        const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
+        const message = await anthropic.messages.create({
+          model,
+          max_tokens: 8192,
+          messages: [{ role: 'user', content: prompt }]
+        });
+        if (message.stop_reason === 'max_tokens') throw new Error('Відповідь обрізана — сцена задовга');
+        outText = message.content[0].text;
+        apiUsage = message.usage;
+        model = message.model || model;
+      } else {
+        model = AI_MODELS.gemini.pro;
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${geminiApiKey.value()}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.3, maxOutputTokens: 8192 }
+          })
+        });
+        if (!response.ok) throw new Error(`Gemini HTTP ${response.status}: ${await response.text()}`);
+        const data = await response.json();
+        const cand = data.candidates && data.candidates[0];
+        if (!cand?.content?.parts?.[0]?.text) throw new Error('Gemini: invalid response structure');
+        if (cand.finishReason === 'MAX_TOKENS') throw new Error('Відповідь обрізана — сцена задовга');
+        outText = cand.content.parts[0].text;
+        if (data.usageMetadata) {
+          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: data.usageMetadata.candidatesTokenCount || 0 };
+        }
+      }
+
+      outText = outText.trim().replace(/^<scene>\s*/, '').replace(/\s*<\/scene>$/, '');
+      const unchanged = outText === RECON_UNCHANGED || outText === sceneText.trim();
+      if (!unchanged && outText.length < Math.min(200, sceneText.length / 4)) {
+        throw new Error('AI повернув підозріло короткий текст — пропозицію відхилено');
+      }
+
+      const { userCost } = await charge(db, uid, 'generateScene', model, apiUsage, projectId, {
+        provider,
+        targetWords: Math.max(100, sceneText.split(/\s+/).length),
+        estimatedInputTokens,
+        reserved: reservation,
+        logAs: 'reconstructScene',
+        sceneId
+      });
+      reservation = null;
+
+      res.status(200).json({
+        success: true,
+        unchanged,
+        proposedText: unchanged ? sceneText : outText,
+        tokensConsumed: userCost,
+        tokensRemaining: Math.max(0, balance.available - userCost)
+      });
+    } catch (error) {
+      console.error('reconstructScene error:', error);
+      if (reservation) {
+        await refund(db, uid, reservation).catch(e => console.error('[reconstructScene] Refund failed:', e));
+      }
+      res.status(500).json({ error: `Помилка реконструкції: ${error.message}` });
+    }
+  });
+});

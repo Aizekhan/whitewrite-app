@@ -93,6 +93,12 @@ for (const name of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
     }
   );
 
+  // Cache-bust plain local scripts too (firebase/*.js, i18n.js, …) by content hash
+  html = html.replace(/(<script\s+src=")(?!https?:)([^"?]+\.js)(?:\?[^"]*)?(")/g, (m, pre, src, post) => {
+    const f = path.join(OUT, decodeURI(src).replace(/^\//, ''));
+    return fs.existsSync(f) ? `${pre}${src}?v=${hash(fs.readFileSync(f))}${post}` : m;
+  });
+
   html = html.replace(/[ \t]*<script src="https:\/\/unpkg\.com\/@babel\/standalone[^"]*"[^>]*><\/script>\r?\n?/g, '');
 
   for (const [dev, prod] of Object.entries(REACT_PROD)) {

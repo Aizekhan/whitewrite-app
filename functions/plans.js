@@ -11,6 +11,7 @@ const PLAN_BUDGETS = {
     allowClaude: false,
     allowCanonExtraction: false,
     allowAnalyze: false,
+    allowReconstruction: false,
     allowImprove: false
   },
   storyteller: {
@@ -19,6 +20,7 @@ const PLAN_BUDGETS = {
     allowClaude: false,
     allowCanonExtraction: true,  // ✅ Auto-extraction enabled
     allowAnalyze: false,
+    allowReconstruction: false,
     allowImprove: false
   },
   novelist: {
@@ -27,6 +29,7 @@ const PLAN_BUDGETS = {
     allowClaude: true,
     allowCanonExtraction: true,
     allowAnalyze: true,   // ✅ ANALYZE mode
+    allowReconstruction: true,
     allowImprove: true    // ✅ IMPROVE mode
   },
   worldbuilder: {
@@ -35,6 +38,7 @@ const PLAN_BUDGETS = {
     allowClaude: true,
     allowCanonExtraction: true,
     allowAnalyze: true,
+    allowReconstruction: true,
     allowImprove: true
   },
   worldforge: {
@@ -43,6 +47,7 @@ const PLAN_BUDGETS = {
     allowClaude: true,
     allowCanonExtraction: true,
     allowAnalyze: true,
+    allowReconstruction: true,
     allowImprove: true
   } // dev/testing plan
 };

@@ -22,8 +22,57 @@
   const ST_TXT = {
     pending: () => t('reconstruct.status.pending'),
     running: () => t('reconstruct.status.running'),
-    done: () => t('reconstruct.status.done')
+    done: () => t('reconstruct.status.done'),
+    skipped: () => t('reconstruct.status.skipped')
   };
+
+  // Word-level diff (LCS) for the "було → стане" view. Common prefix/suffix are
+  // trimmed first, so the DP only covers the edited middle of the scene.
+  function wordDiff(a, b) {
+    const A = a.split(/(\s+)/), B = b.split(/(\s+)/);
+    let p = 0; while (p < A.length && p < B.length && A[p] === B[p]) p++;
+    let s = 0; while (s < A.length - p && s < B.length - p && A[A.length - 1 - s] === B[B.length - 1 - s]) s++;
+    const a2 = A.slice(p, A.length - s), b2 = B.slice(p, B.length - s);
+    const n = a2.length, m = b2.length, out = [];
+    const push = (type, text) => { const l = out[out.length - 1]; if (l && l.type === type) l.text += text; else if (text) out.push({ type, text }); };
+    push("eq", A.slice(0, p).join(""));
+    if (n * m > 4e6) { push("del", a2.join("")); push("ins", b2.join("")); }
+    else {
+      const W = m + 1, dp = new Uint16Array((n + 1) * W);
+      for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+        dp[i * W + j] = a2[i] === b2[j] ? dp[(i + 1) * W + j + 1] + 1 : Math.max(dp[(i + 1) * W + j], dp[i * W + j + 1]);
+      let i = 0, j = 0;
+      while (i < n && j < m) {
+        if (a2[i] === b2[j]) { push("eq", a2[i]); i++; j++; }
+        else if (dp[(i + 1) * W + j] >= dp[i * W + j + 1]) push("del", a2[i++]);
+        else push("ins", b2[j++]);
+      }
+      while (i < n) push("del", a2[i++]);
+      while (j < m) push("ins", b2[j++]);
+    }
+    push("eq", A.slice(A.length - s).join(""));
+    return out;
+  }
+
+  // Long unchanged stretches are clipped to their edges so the edits stand out.
+  function clipEq(text, first, last) {
+    const K = 160;
+    if (text.length <= 2 * K + 40) return text;
+    if (first) return "… " + text.slice(-K);
+    if (last) return text.slice(0, K) + " …";
+    return text.slice(0, K) + " … " + text.slice(-K);
+  }
+
+  function DiffView({ before, after }) {
+    const parts = React.useMemo(() => wordDiff(before, after), [before, after]);
+    return (
+      <div className="rc-diff">
+        {parts.map((p, i) => p.type === "eq"
+          ? <span key={i}>{clipEq(p.text, i === 0, i === parts.length - 1)}</span>
+          : <span key={i} className={p.type === "ins" ? "rc-diff__ins" : "rc-diff__del"}>{p.text}</span>)}
+      </div>
+    );
+  }
 
   function KindRow({ kind, items }) {
     const I = Ic[WKIND.icon[kind]] || Ic.dot;
@@ -51,6 +100,14 @@
     const cancelled = useRcRef(false);
     const rootRef = useRcRef(null);
 
+    // Real mode: a loaded Firestore project → scenes are rewritten by AI and
+    // reviewed here. Without one (demo world) the pipeline stays a simulation.
+    const projectId = window.__firebaseCanon && window.__firebaseCanon.projectId;
+    const isReal = !!(projectId && window.__firebaseScenes && window.__firebaseScenes.reconstructScene);
+    const [note, setNote] = useRcState("");
+    const [results, setResults] = useRcState({}); // sceneId → { title, st, before, after, error }
+    const [fatal, setFatal] = useRcState(null);
+
     useRcEffect(() => {
       const prev = document.activeElement;
       const el = rootRef.current;
@@ -69,7 +126,7 @@
     }, []);
 
     // changing the change-type re-derives the plan → reset execution
-    useRcEffect(() => { setStatuses(steps.map(() => "pending")); setPhase("plan"); }, [changeId]);
+    useRcEffect(() => { setStatuses(steps.map(() => "pending")); setPhase("plan"); setResults({}); setFatal(null); }, [changeId]);
 
     useRcEffect(() => {
       const k = (ev) => { if (ev.key === "Escape" && phase !== "running") onClose(); };
@@ -82,8 +139,66 @@
     const regenTotal = steps.reduce((a, s) => a + s.count, 0);
     const pct = steps.length ? Math.round((doneCount / steps.length) * 100) : 0;
 
+    const setStep = (idx, st) => setStatuses((prev) => prev.map((s, k) => (k === idx ? st : s)));
+    const putResult = (sid, r) => setResults((prev) => ({ ...prev, [sid]: { ...prev[sid], ...r } }));
+
+    async function applyScene(sid, before, after) {
+      await window.__firebaseScenes.applyReconstruction(projectId, sid, after, before, { type, id, change: changeId });
+      const sc = (WORLD.scenes || []).find((x) => x.id === sid);
+      if (sc) sc.text = after;
+    }
+    async function accept(sid) {
+      const r = results[sid];
+      try { await applyScene(sid, r.before, r.after); putResult(sid, { st: "applied" }); }
+      catch (err) { putResult(sid, { st: "error", error: err.message }); }
+    }
+    async function acceptAll() {
+      for (const sid of Object.keys(results)) if (results[sid].st === "review") await accept(sid);
+    }
+
+    // Scenes are reconstructed one by one; each scene's own mode decides what
+    // happens to the proposal: review (default) → diff, auto → applied, pinned → untouched.
+    async function runReal() {
+      setPhase("running"); setFatal(null);
+      for (let idx = 0; idx < steps.length; idx++) {
+        const step = steps[idx];
+        if (step.kind !== "scenes") { setStep(idx, "skipped"); continue; }
+        setStep(idx, "running");
+        for (const it of step.items) {
+          if (cancelled.current) return;
+          const sc = (WORLD.scenes || []).find((x) => x.id === it.id);
+          if (!sc) continue;
+          const mode = (sc.reconstruction && sc.reconstruction.mode) || "review";
+          putResult(sc.id, { title: it.title, st: mode === "pinned" ? "pinned" : "running" });
+          if (mode === "pinned") continue;
+          const r = await window.__firebaseScenes.reconstructScene(projectId, sc.id, type, id, changeId, note.trim());
+          if (cancelled.current) return;
+          if (!r.success) {
+            putResult(sc.id, { st: "error", error: r.error });
+            if (r.code === "OUT_OF_TOKENS" || r.code === "PLAN_REQUIRED" || r.requiresSubscription) {
+              setFatal(r.error); setStep(idx, "skipped"); setPhase("done"); return;
+            }
+            continue;
+          }
+          if (r.unchanged) { putResult(sc.id, { st: "unchanged" }); continue; }
+          const before = sc.text || "";
+          putResult(sc.id, { st: "review", before, after: r.proposedText });
+          if (mode === "auto") {
+            try { await applyScene(sc.id, before, r.proposedText); putResult(sc.id, { st: "applied" }); }
+            catch (err) { putResult(sc.id, { st: "error", error: err.message }); }
+          }
+        }
+        setStep(idx, "done");
+      }
+      setPhase("done");
+    }
+
+    const rv = Object.values(results);
+    const rvCount = (st) => rv.filter((r) => r.st === st).length;
+
     function run() {
       if (phase !== "plan" || !steps.length) return;
+      if (isReal) { runReal(); return; }
       setPhase("running");
       let i = 0;
       const tick = () => {
@@ -105,7 +220,7 @@
         <div className="rc" role="dialog" aria-modal="true" aria-label={t('reconstruct.title')} ref={rootRef} onClick={(ev) => ev.stopPropagation()}>
           <header className="rc__head">
             <div>
-              <span className="rc__k">{phase === "done" ? t('reconstruct.completedTitle') : phase === "running" ? t('reconstruct.runningTitle') : t('reconstruct.simulationTitle')}</span>
+              <span className="rc__k">{phase === "done" ? t('reconstruct.completedTitle') : phase === "running" ? t('reconstruct.runningTitle') : isReal ? t('reconstruct.title') : t('reconstruct.simulationTitle')}</span>
               <h2 className="rc__title">{wTitle(type, e)}</h2>
             </div>
             <button className="rc__x" type="button" onClick={onClose} aria-label={t('reconstruct.close')} disabled={phase === "running"}><Ic.x /></button>
@@ -138,11 +253,18 @@
                 <span className={`rc-sev rc-sev--${ct.severity}`}>{sev.label} {t('reconstruct.reconstruction')}</span>
                 <span className="rc-strategy__t"><b>{ct.strategy}</b> — {ct.desc}</span>
               </div>
+              {isReal && steps.length > 0 && (
+                <textarea className="rc-note" rows={2} maxLength={500} value={note} disabled={phase !== "plan"}
+                  onChange={(ev) => setNote(ev.target.value)}
+                  placeholder={t('reconstruct.notePlaceholder')} aria-label={t('reconstruct.notePlaceholder')} />
+              )}
             </div>
 
             {phase === "done" ? (
               <div className="rc-summary rc-summary--done">
-                <Ic.check /><span dangerouslySetInnerHTML={{ __html: t('reconstruct.completedSummary', { total: regenTotal, steps: steps.length }) }} />
+                <Ic.check /><span dangerouslySetInnerHTML={{ __html: isReal
+                  ? t('reconstruct.reviewSummary', { review: rvCount("review"), applied: rvCount("applied"), unchanged: rvCount("unchanged") })
+                  : t('reconstruct.completedSummary', { total: regenTotal, steps: steps.length }) }} />
               </div>
             ) : (
               <div className="rc-summary">
@@ -186,9 +308,37 @@
               </ol>
             </section>
 
+            {isReal && rv.length > 0 && (
+              <section className="rc-review">
+                <div className="rc-plan__top">
+                  <h3 className="rc-plan__h"><Ic.book />{t('reconstruct.reviewTitle')}</h3>
+                  {rvCount("review") > 1 && <button type="button" className="rc-rv__btn rc-rv__btn--ok" onClick={acceptAll}><Ic.check />{t('reconstruct.acceptAll')}</button>}
+                </div>
+                {fatal && <div className="rc-rv__msg rc-rv__msg--err">{t('reconstruct.stopped', { error: fatal })}</div>}
+                {Object.entries(results).map(([sid, r]) => (
+                  <article className={`rc-rv rc-rv--${r.st}`} key={sid}>
+                    <div className="rc-rv__top">
+                      <span className="rc-rv__title">{r.title}</span>
+                      <span className={`rc-rv__st rc-rv__st--${r.st}`}>{r.st === "running" && <span className="rc-spin" />}{t('reconstruct.status.' + r.st)}</span>
+                    </div>
+                    {r.st === "pinned" && <div className="rc-rv__msg">{t('reconstruct.pinnedWarn')}</div>}
+                    {r.st === "error" && <div className="rc-rv__msg rc-rv__msg--err">{r.error}</div>}
+                    {(r.st === "review" || r.st === "applied") && <DiffView before={r.before} after={r.after} />}
+                    {r.st === "review" && (
+                      <div className="rc-rv__acts">
+                        <button type="button" className="rc-rv__btn rc-rv__btn--ok" onClick={() => accept(sid)}><Ic.check />{t('reconstruct.accept')}</button>
+                        <button type="button" className="rc-rv__btn" onClick={() => putResult(sid, { st: "rejected" })}><Ic.x />{t('reconstruct.reject')}</button>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </section>
+            )}
+
             <div className="rc__foot">
               <span className="rc__note">
-                {phase === "done" ? t('reconstruct.demoNote')
+                {isReal ? t('reconstruct.realNote')
+                  : phase === "done" ? t('reconstruct.demoNote')
                   : phase === "running" ? t('reconstruct.runningNote')
                   : t('reconstruct.previewNote')}
               </span>

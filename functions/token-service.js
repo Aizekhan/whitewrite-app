@@ -210,7 +210,7 @@ function calculateUserTokens(baseTokens, marginMultiplier, globalMarginMultiplie
  * @param {string} model - Actual model used (from API response, e.g. 'claude-opus-4-20250514')
  * @param {object} usage - API usage object { input_tokens, output_tokens, cache_creation_input_tokens?, cache_read_input_tokens? }
  * @param {string} projectId - Project ID (for logging)
- * @param {object} options - Optional params { sceneId?, provider? }
+ * @param {object} options - Optional params { sceneId?, provider?, logAs? }
  * @returns {Promise<{ userCost: number, apiCostUSD: number }>}
  */
 async function charge(db, uid, operation, model, usage, projectId, options = {}) {
@@ -338,7 +338,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
 
   const logEntry = {
     uid,
-    operation,
+    operation: options.logAs || operation, // logAs: priced as `operation`, logged under its own name
     model,
     projectId,
     sceneId: options.sceneId || null,
