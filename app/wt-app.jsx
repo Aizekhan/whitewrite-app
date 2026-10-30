@@ -271,6 +271,35 @@ function CanonHistoryView({ projectId, canon }) {
   );
 }
 
+// Story-order log of entity state changes (scene.stateChanges) — the world's timeline.
+function ChronicleStateTimeline({ navigate }) {
+  const scenes = (WORLD.scenes || []).filter((s) => (s.stateChanges || []).length).sort((a, b) => a.n - b.n);
+  if (!scenes.length) return null;
+  return (
+    <>
+      <h3 className="blk-h" style={{ marginTop: 24 }}><Ic.hourglass />{t('timeline.chronicleTitle')}</h3>
+      <div className="stl-chron">
+        {scenes.map((s) => (
+          <div className="stl-chron__scene" key={s.n}>
+            <div className="stl-chron__h"><span className="scene-dot">{s.n}</span>{s.title}</div>
+            {s.stateChanges.map((c, i) => {
+              const ent = wEnt(c.kind, c.id);
+              if (!ent) return null;
+              return (
+                <button className="stl-chron__row" type="button" key={i} onClick={() => navigate(c.kind, c.id)}>
+                  <span className="stl-chron__ent">{wTitle(c.kind, ent)}</span>
+                  <span className="stl__aspect">{t('timeline.aspect.' + c.aspect)}</span>
+                  <span className="stl__val">{c.value}</span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 // Chronicle — the canon overview at the heart of the tree. Minimal inline editing.
 function ChronicleView({ navigate, onClose, canon, projectId }) {
   const w = WORLD.world;
@@ -355,6 +384,7 @@ function ChronicleView({ navigate, onClose, canon, projectId }) {
                 </button>
               ))}
             </div>
+            <ChronicleStateTimeline navigate={navigate} />
             <div className="chron-cats">
               {W_TYPES.map((t) => (
                 <button className="chron-cat" key={t} type="button" onClick={() => navigate(t)}>

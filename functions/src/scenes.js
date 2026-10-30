@@ -466,6 +466,16 @@ exports.generateScene = onRequest({
 function buildCanonContext(canon) {
   const sections = [];
   const world = canon.world || {};
+  // Entities come from two writers: AI extraction (name/description/trait…) and
+  // the WorldTree editor (title/desc/motivation…) — read both.
+  const nameOf = (x) => x.name || x.title || 'без назви';
+  const descOf = (x) => x.description || x.desc || x.motivation ||
+    [x.role, x.trait, x.goal].filter(Boolean).join('; ') || 'немає опису';
+  // Current state = state at the end of the latest scene (continuity)
+  const stateOf = (x) => {
+    const parts = [x.status && `статус: ${x.status}`, x.location && `де: ${x.location}`].filter(Boolean);
+    return parts.length ? ` [зараз — ${parts.join('; ')}]` : '';
+  };
 
   // World — summary, facts, and laws first: they frame everything below
   const worldText = world.summary || world.description;
@@ -485,7 +495,7 @@ function buildCanonContext(canon) {
   const chars = Object.values(canon.characters || {});
   if (chars.length > 0) {
     sections.push('**Персонажі:**\n' + chars.map(c =>
-      `- ${c.name}: ${c.description || 'немає опису'}`
+      `- ${nameOf(c)}: ${descOf(c)}${stateOf(c)}`
     ).join('\n'));
   }
 
@@ -493,7 +503,7 @@ function buildCanonContext(canon) {
   const locs = Object.values(canon.locations || {});
   if (locs.length > 0) {
     sections.push('**Локації:**\n' + locs.map(l =>
-      `- ${l.name}: ${l.description || 'немає опису'}`
+      `- ${nameOf(l)}: ${descOf(l)}`
     ).join('\n'));
   }
 
@@ -501,7 +511,7 @@ function buildCanonContext(canon) {
   const events = Object.values(canon.events || {});
   if (events.length > 0) {
     sections.push('**Події:**\n' + events.map(e =>
-      `- ${e.name}: ${e.description || 'немає опису'}`
+      `- ${nameOf(e)}: ${descOf(e)}`
     ).join('\n'));
   }
 
@@ -509,7 +519,7 @@ function buildCanonContext(canon) {
   const factions = Object.values(canon.factions || {});
   if (factions.length > 0) {
     sections.push('**Фракції:**\n' + factions.map(f =>
-      `- ${f.name}: ${f.description || 'немає опису'}`
+      `- ${nameOf(f)}: ${descOf(f)}`
     ).join('\n'));
   }
 
@@ -517,7 +527,7 @@ function buildCanonContext(canon) {
   const artifacts = Object.values(canon.artifacts || {});
   if (artifacts.length > 0) {
     sections.push('**Артефакти:**\n' + artifacts.map(a =>
-      `- ${a.name}: ${a.description || 'немає опису'}`
+      `- ${nameOf(a)}: ${descOf(a)}${a.owner ? ` [власник: ${a.owner}]` : ''}`
     ).join('\n'));
   }
 
@@ -612,6 +622,7 @@ function buildScenePrompt({ title, desc, language, genres, scope, ending, ending
   }
 
   const hasWorldLaws = canonContext.includes('ЗАКОНИ СВІТУ');
+  const hasEntityState = canonContext.includes('[зараз —');
 
   let prompt = `Ти — AI-письменник для WhiteWrite, інструменту canon-aware наративної генерації.
 
@@ -653,7 +664,8 @@ ${intentDescription}
 6. Format: ## Scene Title (first line), then text
 7. **Typography:** Use proper quotation marks ${lang.quotes} and dash ${lang.dash}
 8. **CRITICAL:** Output ONLY the scene text. NO meta-comments, NO "(Proceed to output...)", NO explanations — pure literary prose in ${lang.name}.${hasWorldLaws ? `
-9. **ЗАКОНИ СВІТУ — це фізика всесвіту, а не факти сюжету.** Жодна подія сцени не може їх порушити. Scene Intent виконуй У МЕЖАХ цих законів (знайди спосіб, що їм не суперечить). Порушити закон можна лише якщо Scene Intent прямо й явно цього вимагає — тоді це свідомий твіст, і він має бути помітним у тексті, а не випадковим.` : ''}
+9. **ЗАКОНИ СВІТУ — це фізика всесвіту, а не факти сюжету.** Жодна подія сцени не може їх порушити. Scene Intent виконуй У МЕЖАХ цих законів (знайди спосіб, що їм не суперечить). Порушити закон можна лише якщо Scene Intent прямо й явно цього вимагає — тоді це свідомий твіст, і він має бути помітним у тексті, а не випадковим.` : ''}${hasEntityState ? `
+10. **CONTINUITY:** позначка «[зараз — …]» у каноні — стан сутності на кінець останньої сцени. Сцена починається з цього стану: мертвий персонаж не діє і не говорить (хіба що це явний флешбек, видіння чи свідомий твіст зі Scene Intent), персонаж перебуває там, де вказано, доки сцена не покаже, як він перемістився.` : ''}
 
 **ОСТАННЯ КОМАНДА (дотримуйся строго):**
 - **SCENE INTENT (CRITICAL):** ${intentDescription}${sceneIntent === 'custom' ? '\n  ↳ ВИКОНАЙ ЦЕ БУКВАЛЬНО. Якщо написано "персонаж стає Х" — він МАЄ стати Х в цій сцені. Не символічно, не метафорично — буквально.' : ''}

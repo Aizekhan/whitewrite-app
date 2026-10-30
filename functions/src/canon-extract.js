@@ -7,6 +7,9 @@ const {
   mergeSuggestions,
   claudeApiKey,
 } = require('./common');
+const { toKind } = require('../canon-store.js');
+
+const STATE_ASPECTS = ['status', 'location', 'possession', 'allegiance', 'condition'];
 
 
 /**
@@ -74,8 +77,19 @@ Return JSON with memorySuggestions array:
       },
       "reason": "Brief explanation why this is significant"
     }
+  ],
+  "stateChanges": [
+    {
+      "type": "character" | "location" | "faction" | "artifact",
+      "targetId": "existing entity id, or null if the entity is new in this scene",
+      "name": "entity name",
+      "aspect": "status" | "location" | "possession" | "allegiance" | "condition",
+      "value": "new state after this scene, 1-6 words (e.g. dead, wounded, in Beta-7, owns the Orion key)"
+    }
   ]
-}`;
+}
+
+stateChanges = what is DIFFERENT about an entity at the END of this scene (died, moved, lost/gained an object, changed side, got injured/healed). Only real changes that happen in this scene — not static descriptions. Empty array if nothing changed.`;
 
     // Call Claude Haiku
     const anthropic = new Anthropic({
@@ -101,21 +115,24 @@ Return JSON with memorySuggestions array:
 
     // Parse JSON
     let suggestions = [];
+    let rawStateChanges = [];
     try {
       const parsed = JSON.parse(responseText);
       suggestions = parsed.memorySuggestions || [];
+      rawStateChanges = parsed.stateChanges || [];
     } catch (parseError) {
       // Try to extract JSON from markdown
       const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/) || responseText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[1] || jsonMatch[0]);
         suggestions = parsed.memorySuggestions || [];
+        rawStateChanges = parsed.stateChanges || [];
       } else {
         throw new Error('Failed to parse JSON response');
       }
     }
 
-    if (suggestions.length === 0) {
+    if (suggestions.length === 0 && rawStateChanges.length === 0) {
       console.log('[Auto-Extract] No new entities found');
       return [];
     }
@@ -151,6 +168,23 @@ Return JSON with memorySuggestions array:
       }
     });
 
+    // Timeline: per-scene state changes, resolved to stable entity ids (after merge,
+    // so entities born in this scene resolve too). Unresolvable names are dropped.
+    const stateChanges = [];
+    for (const sc of Array.isArray(rawStateChanges) ? rawStateChanges : []) {
+      const kind = toKind(sc && sc.type);
+      const value = String((sc && sc.value) || '').trim().slice(0, 80);
+      if (!kind || !value || !STATE_ASPECTS.includes(sc.aspect)) continue;
+      let id = sc.targetId && canon[kind][sc.targetId] ? sc.targetId : null;
+      if (!id && sc.name) {
+        const n = String(sc.name).toLowerCase().trim();
+        id = Object.keys(canon[kind] || {}).find(k => String(canon[kind][k].name || canon[kind][k].title || '').toLowerCase().trim() === n) || null;
+      }
+      if (!id) continue;
+      stateChanges.push({ kind, id, aspect: sc.aspect, value });
+      if (!canonRefs[kind].includes(id)) canonRefs[kind].push(id);
+    }
+
     console.log(`[Auto-Extract] Canon refs:`, canonRefs);
 
     // Update scene with canonRefs (if sceneId provided)
@@ -161,7 +195,7 @@ Return JSON with memorySuggestions array:
           .doc(projectId)
           .collection('scenes')
           .doc(sceneId)
-          .set({ canonRefs }, { merge: true });
+          .set({ canonRefs, stateChanges }, { merge: true });
 
         console.log(`[Auto-Extract] ✅ Updated scene ${sceneId} with canonRefs`);
       } catch (updateError) {

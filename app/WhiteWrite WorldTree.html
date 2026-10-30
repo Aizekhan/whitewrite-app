@@ -582,6 +582,22 @@ image-slot::part(frame){ background:rgba(255,255,255,0.035); }
 .rc-sev--heavy{ color:var(--st-draft); background:rgba(224,86,79,0.13); }
 .rc-sev--full{ color:#fff; background:var(--st-draft); }
 
+/* state over time — entity profile + chronicle timeline */
+.stl__now{ margin-bottom:12px; }
+.stl__now-k{ display:block; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold-lit); margin-bottom:8px; }
+.stl__list{ list-style:none; margin:0; padding:0 0 0 11px; border-left:1px solid var(--line-2); display:flex; flex-direction:column; gap:6px; }
+.stl__row{ display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; background:var(--bg-2); border:1px solid var(--line); font-size:12.5px; transition:opacity .2s; }
+.stl__row.is-future{ opacity:.4; }
+.stl__scene{ flex:1; min-width:0; color:var(--tx-mid); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.stl__aspect{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--violet-lit); background:var(--violet-soft); padding:3px 8px; border-radius:20px; flex:0 0 auto; }
+.stl__val{ color:var(--tx-hi); flex:0 1 auto; text-align:right; }
+.stl-chron{ display:flex; flex-direction:column; gap:12px; }
+.stl-chron__h{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--tx-hi); margin-bottom:6px; }
+.stl-chron__row{ display:flex; align-items:center; gap:10px; text-align:left; margin:0 0 5px 33px; width:calc(100% - 33px); padding:8px 12px;
+  border-radius:8px; background:var(--bg-2); border:1px solid var(--line); font-size:12.5px; cursor:pointer; transition:.18s; }
+.stl-chron__row:hover{ border-color:var(--gold); background:var(--gold-soft); }
+.stl-chron__ent{ flex:1; min-width:0; color:var(--tx-hi); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 /* reconstruction — real run: author's note + per-scene review (було → стане) */
 .rc-note{ display:block; width:100%; margin-top:12px; padding:10px 12px; border-radius:8px; border:1px solid var(--line-2); background:var(--bg-3);
   color:var(--tx-hi); font:inherit; font-size:13px; resize:vertical; }

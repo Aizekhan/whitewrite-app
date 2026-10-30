@@ -211,6 +211,7 @@ function Profile({ type, id, navigate, goPillar }) {
             <p className="prof-edit__hint">{t('workspace.editHint')}</p>
           </div>
         ) : A.profile(e)}
+        <StateTimeline type={type} id={id} />
         {conns.length > 0 && (
           <div className="dblk conns">
             <h3 className="blk-h"><Ic.link />{t('workspace.related')} · {conns.length}</h3>
@@ -232,6 +233,50 @@ function Profile({ type, id, navigate, goPillar }) {
         <ImpactBar type={type} id={id} onOpen={() => setRecon(true)} />
       </div>
       {recon && <ReconstructionOverlay type={type} id={id} onClose={() => setRecon(false)} />}
+    </div>
+  );
+}
+
+/* entity state over time — per-scene changes recorded by canon extraction
+   (scene.stateChanges). Follows the scene lens: shows the state AS OF that scene
+   and dims what happens later. */
+function wStateRows(type, id) {
+  const rows = [];
+  (WORLD.scenes || []).slice().sort((a, b) => a.n - b.n).forEach((s) => {
+    (s.stateChanges || []).forEach((c) => {
+      if (c.kind === type && c.id === id) rows.push({ n: s.n, title: s.title, aspect: c.aspect, value: c.value });
+    });
+  });
+  return rows;
+}
+function StateTimeline({ type, id }) {
+  const [lens] = useWtScene();
+  const rows = wStateRows(type, id);
+  if (!rows.length) return null;
+  const asOf = {};
+  rows.forEach((r) => { if (lens == null || r.n <= lens) asOf[r.aspect] = r; });
+  const now = Object.values(asOf);
+  return (
+    <div className="dblk stl">
+      <h3 className="blk-h"><Ic.hourglass />{t('timeline.title')} · {rows.length}</h3>
+      {now.length > 0 && (
+        <div className="stl__now">
+          <span className="stl__now-k">{lens == null ? t('timeline.now') : t('timeline.asOf').replace('{n}', lens)}</span>
+          <div className="kv">
+            {now.map((r) => <div className="kv__row" key={r.aspect}><span className="kv__k">{t('timeline.aspect.' + r.aspect)}</span><span className="kv__v">{r.value}</span></div>)}
+          </div>
+        </div>
+      )}
+      <ol className="stl__list">
+        {rows.map((r, i) => (
+          <li className={`stl__row ${lens != null && r.n > lens ? "is-future" : ""}`} key={i}>
+            <span className="scene-dot">{r.n}</span>
+            <span className="stl__scene">{r.title}</span>
+            <span className="stl__aspect">{t('timeline.aspect.' + r.aspect)}</span>
+            <span className="stl__val">{r.value}</span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
