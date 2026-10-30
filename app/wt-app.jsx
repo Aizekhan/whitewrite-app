@@ -136,10 +136,7 @@ function CanonSyncBanner({ projectId, canon }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify({
-          projectId,
-          uid: window.__wwUser?.uid
-        })
+        body: JSON.stringify({ projectId })
       });
 
       const result = await response.json();

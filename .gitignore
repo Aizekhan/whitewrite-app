@@ -43,3 +43,6 @@ functions/.env
 
 # OS
 Thumbs.db
+
+# Exported user data (never commit)
+users.json

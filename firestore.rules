@@ -16,10 +16,20 @@ service cloud.firestore {
     }
 
     // Users collection
+    // Billing fields (plan, tokens*, bonusTokens, periodStart, subscription*, processedOrders, ...)
+    // are server-only: written exclusively by Cloud Functions / payment webhooks.
+    function clientUserFields() {
+      return ['email', 'displayName', 'avatar', 'language', 'settings', 'updatedAt'];
+    }
+
     match /users/{userId} {
       allow read: if isAuthenticated() && isOwner(userId);
-      allow create: if isAuthenticated() && isOwner(userId);
-      allow update: if isAuthenticated() && isOwner(userId);
+      // Client may only bootstrap a free account with nothing spent
+      allow create: if isAuthenticated() && isOwner(userId) &&
+                       request.resource.data.keys().hasOnly(clientUserFields().concat(['plan', 'createdAt'])) &&
+                       request.resource.data.plan == 'free';
+      allow update: if isAuthenticated() && isOwner(userId) &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(clientUserFields());
       allow delete: if false; // Users can't delete themselves via client
     }
 

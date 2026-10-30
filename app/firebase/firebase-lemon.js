@@ -37,16 +37,12 @@ async function createSubscriptionCheckout(plan, userEmail) {
     throw new Error(`No variant ID for plan: ${plan}`);
   }
 
-  // Call Cloud Function to create checkout via LS API
+  // Call Cloud Function to create checkout via LS API (variant resolved server-side)
+  const idToken = await window.__firebase.auth.currentUser.getIdToken();
   const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createLemonSqueezyCheckout', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      variantId: variantId,
-      userEmail: userEmail,
-      userId: window.__wwUser?.uid || '',
-      customData: { plan: plan }
-    })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+    body: JSON.stringify({ plan: plan, userEmail: userEmail })
   });
 
   const data = await response.json();
@@ -70,19 +66,12 @@ async function createTokenTopUpCheckout(userEmail) {
     throw new Error('No variant ID for 500 tokens');
   }
 
-  // Call Cloud Function to create checkout via LS API
+  // Call Cloud Function to create checkout via LS API (tokens resolved server-side)
+  const idToken = await window.__firebase.auth.currentUser.getIdToken();
   const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createLemonSqueezyCheckout', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      variantId: variantId,
-      userEmail: userEmail,
-      userId: window.__wwUser?.uid || '',
-      customData: {
-        type: 'token_topup',
-        tokens: '500'
-      }
-    })
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+    body: JSON.stringify({ topup: '500', userEmail: userEmail })
   });
 
   const data = await response.json();

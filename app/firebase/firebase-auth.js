@@ -32,9 +32,15 @@ window.__firebaseAuth = {
             // Token Budget System (Phase 1.1 refactor)
             const planConfig = window.__getPlanConfig ? window.__getPlanConfig(window.__wwUser.plan) : { monthly: 200 };
 
+            // Mirrors functions/token-service.js getBalance(): allowance renews 1 month after periodStart
+            const periodStart = userData.periodStart?.toDate ? userData.periodStart.toDate() : null;
+            const renewAt = periodStart ? new Date(periodStart) : null;
+            if (renewAt) renewAt.setMonth(renewAt.getMonth() + 1);
+            const periodExpired = !renewAt || renewAt <= new Date();
             window.__wwUser.tokensBudget = planConfig.monthly;
-            window.__wwUser.tokensUsed = userData.tokensUsed || 0;
-            window.__wwUser.tokensRemaining = window.__wwUser.tokensBudget - window.__wwUser.tokensUsed;
+            window.__wwUser.tokensUsed = periodExpired ? 0 : (userData.tokensUsed || 0);
+            window.__wwUser.bonusTokens = Math.max(0, userData.bonusTokens || 0);
+            window.__wwUser.tokensRemaining = Math.max(0, window.__wwUser.tokensBudget - window.__wwUser.tokensUsed) + window.__wwUser.bonusTokens;
             window.__wwUser.resetDate = userData.resetDate?.toDate() || new Date();
 
             // Feature gates (from plan config)
@@ -66,11 +72,9 @@ window.__firebaseAuth = {
           } else {
             console.log('No user document found, creating default: free plan');
             // Create default user document
+            // Billing fields (tokensUsed, periodStart, ...) are server-only (see firestore.rules)
             await window.__firebase.db.collection('users').doc(user.uid).set({
               plan: 'free',
-              tokensUsed: 0,
-              usage: {},
-              resetDate: new Date(),
               createdAt: new Date()
             });
             window.__wwUser.plan = 'free';
@@ -192,109 +196,7 @@ window.__firebaseAuth = {
     }
   },
 
-  // Consume tokens for any operation (Phase 1.1 refactor - Token Budget System)
-  async consumeTokens(operation, customCost = null) {
-    if (!window.__wwUser || !window.__wwUser.uid) {
-      console.error('Cannot consume tokens: no user');
-      return { success: false, error: 'No user' };
-    }
-
-    // Get cost from TOKEN_COSTS or use custom
-    const cost = customCost !== null ? customCost : (window.__TOKEN_COSTS && window.__TOKEN_COSTS[operation]);
-    if (!cost) {
-      console.error(`Unknown operation or missing cost: ${operation}`);
-      return { success: false, error: 'Invalid operation' };
-    }
-
-    // HARD STOP: Block generation when tokens = 0 (no overdraft, no fallback to paid API)
-    if (window.__wwUser.tokensRemaining <= 0) {
-      console.warn(`Hard stop: 0 tokens remaining (plan: ${window.__wwUser.plan})`);
-
-      // Show upgrade modal
-      if (typeof window.__openPricingModal === 'function') {
-        setTimeout(() => {
-          const planName = window.__getPlanConfig ? window.__getPlanConfig(window.__wwUser.plan).name : 'free';
-          const message = `Токени закінчились!\n\nДоступно: 0 токенів\nВаш план: ${planName}\n\nОберіть більший план або дочекайтесь наступного місяця для продовження генерації.`;
-
-          if (confirm(message + '\n\nПереглянути тарифи?')) {
-            window.__openPricingModal();
-          }
-        }, 100);
-      }
-
-      return { success: false, error: 'Out of tokens', needed: cost, available: 0 };
-    }
-
-    // Check if user can afford this specific operation
-    if (window.__wwUser.tokensRemaining < cost) {
-      console.warn(`Insufficient tokens: need ${cost}, have ${window.__wwUser.tokensRemaining}`);
-
-      // Show upgrade modal (if function exists)
-      if (typeof window.__openPricingModal === 'function') {
-        setTimeout(() => {
-          const planName = window.__getPlanConfig ? window.__getPlanConfig(window.__wwUser.plan).name : 'free';
-          const message = `Недостатньо токенів!\n\nПотрібно: ${cost} токенів\nДоступно: ${window.__wwUser.tokensRemaining} токенів\n\nВаш поточний план: ${planName}\n\nОберіть більший план для продовження генерації.`;
-
-          if (confirm(message + '\n\nПереглянути тарифи?')) {
-            window.__openPricingModal();
-          }
-        }, 100);
-      }
-
-      return { success: false, error: 'Insufficient tokens', needed: cost, available: window.__wwUser.tokensRemaining };
-    }
-
-    try {
-      const uid = window.__wwUser.uid;
-      const userRef = window.__firebase.db.collection('users').doc(uid);
-
-      // Increment tokensUsed
-      const increment = firebase.firestore.FieldValue.increment(cost);
-      const updates = {
-        tokensUsed: increment
-      };
-
-      // Track usage breakdown (for analytics)
-      const usageKey = `usage.${operation}`;
-      updates[`${usageKey}.count`] = firebase.firestore.FieldValue.increment(1);
-      updates[`${usageKey}.tokens`] = firebase.firestore.FieldValue.increment(cost);
-
-      await userRef.update(updates);
-
-      // Update local state
-      window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
-      window.__wwUser.tokensRemaining = window.__wwUser.tokensBudget - window.__wwUser.tokensUsed;
-
-      // Update usage breakdown locally
-      if (!window.__wwUser.usage) window.__wwUser.usage = {};
-      if (!window.__wwUser.usage[operation]) window.__wwUser.usage[operation] = { count: 0, tokens: 0 };
-      window.__wwUser.usage[operation].count += 1;
-      window.__wwUser.usage[operation].tokens += cost;
-
-      console.log(`Tokens consumed: ${operation} (-${cost}) → ${window.__wwUser.tokensUsed}/${window.__wwUser.tokensBudget} (${window.__wwUser.tokensRemaining} left)`);
-
-      // Refresh UI to show new balance
-      if (typeof window.__syncDockAvatar === 'function') {
-        window.__syncDockAvatar();
-      }
-
-      // Reload account modal if open
-      if (typeof window.__reloadAccount === 'function') {
-        window.__reloadAccount();
-      }
-
-      return { success: true, cost, remaining: window.__wwUser.tokensRemaining };
-    } catch (error) {
-      console.error('Failed to consume tokens:', error);
-      return { success: false, error: error.message };
-    }
-  },
-
-  // Legacy wrapper for backward compatibility (deprecated, use consumeTokens)
-  async incrementSceneCounter(provider = 'gemini') {
-    const operation = provider === 'claude' ? 'sceneClaude' : 'sceneGemini';
-    return await this.consumeTokens(operation);
-  },
+  // Token consumption is server-side only (Cloud Functions charge via token-service.js)
 
   // Get user-friendly error messages
   _getErrorMessage(error) {

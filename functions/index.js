@@ -13,7 +13,8 @@ const cors = require('cors')({
 });
 const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('./ai-models.js');
-const { charge } = require('./token-service.js');
+const { charge, getBalance, reserve, refund } = require('./token-service.js');
+const { getPlanBudget } = require('./plans.js');
 // Legacy plan migration completed on 2026-06-26, no longer needed
 
 admin.initializeApp();
@@ -27,48 +28,7 @@ const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 const lemonSqueezyApiKey = defineSecret('LEMON_SQUEEZY_API_KEY');
 const lemonSqueezyWebhookSecret = defineSecret('LEMON_SQUEEZY_WEBHOOK_SECRET');
 
-// Phase 1.1 + 3.0: Token Budget System (synced with app/firebase/token-budget.js)
-const PLAN_BUDGETS = {
-  free: {
-    monthly: 200,
-    allowClaude: false,
-    allowCanonExtraction: false,
-    allowAnalyze: false,
-    allowImprove: false
-  },
-  storyteller: {
-    monthly: 2400,
-    allowClaude: false,
-    allowCanonExtraction: true,  // ✅ Auto-extraction enabled
-    allowAnalyze: false,
-    allowImprove: false
-  },
-  novelist: {
-    monthly: 32000,
-    allowClaude: true,
-    allowCanonExtraction: true,
-    allowAnalyze: true,   // ✅ ANALYZE mode
-    allowImprove: true    // ✅ IMPROVE mode
-  },
-  worldbuilder: {
-    monthly: 180000,
-    allowClaude: true,
-    allowCanonExtraction: true,
-    allowAnalyze: true,
-    allowImprove: true
-  },
-  worldforge: {
-    monthly: 180000,
-    allowClaude: true,
-    allowCanonExtraction: true,
-    allowAnalyze: true,
-    allowImprove: true
-  } // dev/testing plan
-};
-
-function getPlanBudget(plan) {
-  return PLAN_BUDGETS[plan] || PLAN_BUDGETS.free;
-}
+// Phase 1.1 + 3.0: Token Budget System — plans live in plans.js (single source of truth)
 
 // Helper: Verify Firebase ID token
 async function verifyAuth(authHeader) {
@@ -78,6 +38,25 @@ async function verifyAuth(authHeader) {
   const idToken = authHeader.split('Bearer ')[1];
   const decodedToken = await admin.auth().verifyIdToken(idToken);
   return decodedToken.uid;
+}
+
+// Helper: Admin-only guard (custom claim `admin: true`, set via functions/set-admin.js)
+// Returns true if allowed; otherwise sends 401/403 and returns false.
+async function requireAdmin(req, res) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Authentication required' });
+    return false;
+  }
+  try {
+    const decoded = await admin.auth().verifyIdToken(authHeader.split('Bearer ')[1]);
+    if (decoded.admin === true) return true;
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid auth token' });
+    return false;
+  }
+  res.status(403).json({ error: 'Admin only' });
+  return false;
 }
 
 /**
@@ -103,6 +82,8 @@ exports.generateScene = onRequest({
 }, async (req, res) => {
   // Handle CORS
   return cors(req, res, async () => {
+    let uid;
+    let reservation = null; // token reservation (refunded if generation fails)
     try {
       // Only allow POST
       if (req.method !== 'POST') {
@@ -110,7 +91,17 @@ exports.generateScene = onRequest({
         return;
       }
 
-      const { projectId, sceneIntent, customIntent, previousScenes = [] } = req.body;
+      const { projectId, sceneIntent, customIntent } = req.body;
+
+      // Cap client-supplied history (fixed price ⇒ bounded prompt): last 10 scenes, 8000 chars each
+      const MAX_PREV_SCENES = 10;
+      const MAX_PREV_SCENE_CHARS = 8000;
+      const previousScenes = (Array.isArray(req.body.previousScenes) ? req.body.previousScenes : [])
+        .slice(-MAX_PREV_SCENES)
+        .map(s => ({
+          title: String(s?.title || '').slice(0, 200),
+          text: String(s?.text || '').slice(0, MAX_PREV_SCENE_CHARS)
+        }));
 
       // Get auth token from header
       const authHeader = req.headers.authorization;
@@ -121,7 +112,6 @@ exports.generateScene = onRequest({
 
       // Verify Firebase auth token
       const token = authHeader.split('Bearer ')[1];
-      let uid;
       try {
         const decodedToken = await admin.auth().verifyIdToken(token);
         uid = decodedToken.uid;
@@ -200,9 +190,9 @@ exports.generateScene = onRequest({
       const userData = userDoc.exists ? userDoc.data() : {};
       const userPlan = userData.plan || 'free'; // default: free tier
       const planConfig = getPlanBudget(userPlan);
-      const tokensUsed = userData.tokensUsed || 0;
-      const tokensBudget = planConfig.monthly;
-      const tokensRemaining = tokensBudget - tokensUsed;
+      const balance = getBalance(userData);
+      const tokensBudget = balance.monthly;
+      const tokensRemaining = balance.available;
 
       // Determine which AI to use (Phase 1.3: Feature Gates)
       const useClaudeAPI = planConfig.allowClaude;
@@ -258,6 +248,21 @@ exports.generateScene = onRequest({
           error: 'Активна підписка необхідна для генерації',
           requiresSubscription: true,
           plan: userPlan
+        });
+        return;
+      }
+
+      // Atomically reserve tokens before the AI call (settled in charge(), refunded on failure)
+      try {
+        reservation = await reserve(db, uid, sceneCost);
+      } catch (error) {
+        if (error.code !== 'OUT_OF_TOKENS') throw error;
+        res.status(403).json({
+          error: 'Недостатньо токенів для генерації',
+          tokensRemaining: error.available,
+          tokensNeeded: sceneCost,
+          plan: userPlan,
+          code: 'OUT_OF_TOKENS'
         });
         return;
       }
@@ -450,8 +455,9 @@ exports.generateScene = onRequest({
         actualModel || providerModel,
         apiUsage || { input_tokens: 0, output_tokens: 0 },
         projectId,
-        { provider: useClaudeAPI ? 'claude' : 'gemini', targetWords, estimatedInputTokens }
+        { provider: useClaudeAPI ? 'claude' : 'gemini', targetWords, estimatedInputTokens, reserved: reservation }
       );
+      reservation = null; // settled
 
       console.log(`✅ Scene generated: -${userCost} tokens, $${apiCostUSD.toFixed(4)} API cost`);
 
@@ -487,12 +493,15 @@ exports.generateScene = onRequest({
           intent: sceneIntent,
           generatedAt: admin.firestore.FieldValue.serverTimestamp()
         },
-        tokensConsumed: sceneCost,
-        tokensRemaining: tokensRemaining - sceneCost
+        tokensConsumed: userCost,
+        tokensRemaining: tokensRemaining - userCost
       });
 
     } catch (error) {
       console.error('generateScene error:', error);
+      if (reservation) {
+        await refund(db, uid, reservation).catch(e => console.error('[generateScene] Refund failed:', e));
+      }
       res.status(500).json({ error: `Помилка генерації: ${error.message}` });
     }
   });
@@ -960,57 +969,35 @@ exports.initializeUser = onRequest({
         return;
       }
 
-      const { plan, email, displayName } = req.body;
+      const { email, displayName } = req.body;
 
-      // Plan limits (synced with PLAN_BUDGETS)
-      const planLimits = {
-        free: { tokensMonthly: 200, maxProjects: 1 },
-        storyteller: { tokensMonthly: 2400, maxProjects: 5 },
-        novelist: { tokensMonthly: 32000, maxProjects: 999 },
-        worldbuilder: { tokensMonthly: 180000, maxProjects: 999 }
-      };
+      // Paid plans are granted ONLY by payment webhooks — this endpoint never sets a paid plan.
+      if (req.body.plan && req.body.plan !== 'free') {
+        res.status(403).json({
+          error: 'Зміна плану можлива лише через оплату',
+          requiresSubscription: true
+        });
+        return;
+      }
 
-      const userPlan = plan || 'free';
-      const limits = planLimits[userPlan] || planLimits.free;
-
+      const freePlan = getPlanBudget('free');
       const userRef = db.collection('users').doc(uid);
       const userDoc = await userRef.get();
 
       if (!userDoc.exists) {
-        // Create new user
+        // Create new user (always free)
         await userRef.set({
           email: email || '',
           displayName: displayName || 'User',
-          plan: userPlan,
-          tokens: limits.tokensMonthly,
-          tokensMonthly: limits.tokensMonthly,
-          maxProjects: limits.maxProjects,
+          plan: 'free',
+          tokensUsed: 0,
+          bonusTokens: 0,
+          periodStart: admin.firestore.Timestamp.now(),
+          maxProjects: freePlan.maxProjects,
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
-        console.log(`✓ User ${uid} initialized with plan: ${userPlan}`);
-      } else {
-        // Update existing user (plan change)
-        if (plan) {
-          const userData = userDoc.data();
-
-          // Protect paid plans - require active subscription
-          if (userPlan !== 'free' && userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
-            res.status(403).json({
-              error: 'Активна підписка необхідна для зміни плану',
-              requiresSubscription: true
-            });
-            return;
-          }
-
-          await userRef.update({
-            plan: userPlan,
-            tokensMonthly: limits.tokensMonthly,
-            maxProjects: limits.maxProjects,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-          });
-          console.log(`✓ User ${uid} plan updated to: ${userPlan}`);
-        }
+        console.log(`✓ User ${uid} initialized with plan: free`);
       }
 
       const userData = (await userRef.get()).data();
@@ -1217,7 +1204,13 @@ exports.syncCanonFromProject = onRequest({
   return cors(req, res, async () => {
     try {
       // Auth check
-      const uid = req.body.uid || (req.headers.authorization ? await verifyAuth(req.headers.authorization) : null);
+      // uid ONLY from verified ID token (never from body)
+      let uid = null;
+      try {
+        uid = await verifyAuth(req.headers.authorization);
+      } catch (e) {
+        uid = null;
+      }
       if (!uid) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
@@ -1283,9 +1276,7 @@ exports.syncCanonFromProject = onRequest({
       const totalCost = scenes.length * extractionCostPerScene;
 
       // Check token budget
-      const tokensBudget = userData.tokensMonthly || planConfig.monthly;
-      const tokensUsed = userData.tokensUsed || 0;
-      const tokensRemaining = tokensBudget - tokensUsed;
+      const tokensRemaining = getBalance(userData).available;
 
       if (tokensRemaining < totalCost) {
         return res.status(402).json({
@@ -1360,7 +1351,13 @@ exports.analyzeScene = onRequest({
   return cors(req, res, async () => {
     try {
       // Auth check
-      const uid = req.body.uid || (req.headers.authorization ? await verifyAuth(req.headers.authorization) : null);
+      // uid ONLY from verified ID token (never from body)
+      let uid = null;
+      try {
+        uid = await verifyAuth(req.headers.authorization);
+      } catch (e) {
+        uid = null;
+      }
       if (!uid) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
@@ -1389,9 +1386,7 @@ exports.analyzeScene = onRequest({
       }
 
       // Check token budget
-      const tokensBudget = userData.tokensMonthly || planConfig.monthly;
-      const tokensUsed = userData.tokensUsed || 0;
-      const tokensRemaining = tokensBudget - tokensUsed;
+      const tokensRemaining = getBalance(userData).available;
 
       // Phase 5.1: Read cost from economy_operations (no hardcode)
       const economyDoc = await db.collection('economy_operations').doc('analyzeScene').get();
@@ -1750,6 +1745,8 @@ exports.seedEconomy = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
+      if (!(await requireAdmin(req, res))) return;
+
       const operations = {
         generateScene: {
           name: 'Scene Generation',
@@ -1808,6 +1805,8 @@ exports.checkMargin = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
+      if (!(await requireAdmin(req, res))) return;
+
       const globalDoc = await db.collection('economy_config').doc('global').get();
 
       if (!globalDoc.exists) {
@@ -1836,6 +1835,8 @@ exports.migrateWordPricing = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
+      if (!(await requireAdmin(req, res))) return;
+
       console.log('=== Word-Based Pricing Migration ===\n');
 
       // Update generateScene with tokensPer100Words
@@ -1885,6 +1886,8 @@ exports.migrateCostPricing = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
+      if (!(await requireAdmin(req, res))) return;
+
       // 1. Add tokenToUSD to economy_config/global
       await db.collection('economy_config').doc('global').update({
         tokenToUSD: 0.01,  // 1 token = 1 cent ($0.01)
@@ -1951,6 +1954,8 @@ exports.setMargin = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
+      if (!(await requireAdmin(req, res))) return;
+
       const newMargin = parseFloat(req.query.value || req.body?.value || 1.0);
 
       if (isNaN(newMargin) || newMargin <= 0) {
@@ -1981,6 +1986,8 @@ exports.migrateMargin = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
+      if (!(await requireAdmin(req, res))) return;
+
       console.log('=== Margin Architecture Migration ===\n');
 
       // 1. Migrate economy_operations
@@ -2080,10 +2087,27 @@ exports.createLemonSqueezyCheckout = onRequest({
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
-      const { variantId, userEmail, userId, customData } = req.body;
+      // Identity ONLY from verified ID token
+      let decoded;
+      try {
+        decoded = await admin.auth().verifyIdToken((req.headers.authorization || '').split('Bearer ')[1] || '');
+      } catch (e) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+      const userId = decoded.uid;
+      const userEmail = decoded.email || req.body.userEmail || '';
 
-      if (!variantId || !userEmail || !userId) {
-        return res.status(400).json({ error: 'Missing required fields: variantId, userEmail, userId' });
+      // Variant resolved server-side from config/lemon_squeezy (client only names the product)
+      const { plan, topup } = req.body;
+      const lsConfig = (await db.collection('config').doc('lemon_squeezy').get()).data() || {};
+      let variantId = null;
+      if (plan && plan !== 'free' && lsConfig.variants?.[plan] && !String(plan).startsWith('tokens_')) {
+        variantId = lsConfig.variants[plan];
+      } else if (topup && lsConfig.topups?.[topup]) {
+        variantId = lsConfig.topups[topup].variantId;
+      }
+      if (!variantId) {
+        return res.status(400).json({ error: 'Unknown plan or top-up' });
       }
 
       console.log(`[LS Checkout] Creating checkout for variant ${variantId}, user ${userId}`);
@@ -2103,8 +2127,7 @@ exports.createLemonSqueezyCheckout = onRequest({
               checkout_data: {
                 email: userEmail,
                 custom: {
-                  user_id: userId,
-                  ...customData
+                  user_id: userId  // plan/tokens are derived from variant_id in the webhook
                 }
               }
             },
@@ -2151,6 +2174,8 @@ exports.createLemonSqueezyCheckout = onRequest({
  */
 exports.initLemonSqueezyConfig = onRequest({}, async (req, res) => {
   try {
+    if (!(await requireAdmin(req, res))) return;
+
     await db.collection('config').doc('lemon_squeezy').set({
       storeId: '419955',
 
@@ -2219,36 +2244,51 @@ exports.lemonSqueezyWebhook = onRequest({
       return res.status(401).send('Missing signature');
     }
 
-    // Lemon Squeezy uses HMAC SHA256
+    // Lemon Squeezy uses HMAC SHA256 over the RAW request body
     const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(JSON.stringify(req.body));
-    const digest = hmac.digest('hex');
+    hmac.update(req.rawBody);
+    const digest = Buffer.from(hmac.digest('hex'), 'utf8');
+    const received = Buffer.from(String(signature), 'utf8');
 
-    if (signature !== digest) {
+    if (received.length !== digest.length || !crypto.timingSafeEqual(received, digest)) {
       console.error('Invalid signature');
       return res.status(401).send('Invalid signature');
     }
 
     const event = req.body;
+
+    // Plans / top-ups are derived from variant_id via config/lemon_squeezy (never from custom_data)
+    const lsConfig = (await db.collection('config').doc('lemon_squeezy').get()).data() || {};
+    const planByVariant = {};
+    for (const [planName, variant] of Object.entries(lsConfig.variants || {})) {
+      if (!planName.startsWith('tokens_')) planByVariant[String(variant)] = planName;
+    }
+    const tokensByVariant = {};
+    for (const t of Object.values(lsConfig.topups || {})) {
+      tokensByVariant[String(t.variantId)] = t.tokens;
+    }
     console.log('[LemonSqueezy] Webhook event:', event.meta?.event_name);
 
     switch (event.meta?.event_name) {
       case 'subscription_created': {
         const subscription = event.data;
-        const customData = subscription.attributes.first_subscription_item?.meta?.custom_data || {};
+        // LS sends checkout custom data in the event's meta.custom_data
+        const customData = event.meta?.custom_data || subscription.attributes.first_subscription_item?.meta?.custom_data || {};
         const uid = customData.user_id;
-        const plan = customData.plan;
+        const plan = planByVariant[String(subscription.attributes.variant_id)];
 
         if (!uid || !plan) {
-          console.error('[LemonSqueezy] Missing uid or plan in subscription:', subscription.id);
+          console.error('[LemonSqueezy] Missing uid or unknown variant in subscription:', subscription.id, subscription.attributes.variant_id);
           break;
         }
 
         console.log(`[LemonSqueezy] Subscription created: ${uid} → ${plan}`);
 
-        // Update user plan in Firestore
+        // Update user plan in Firestore (new billing period starts now)
         await db.collection('users').doc(uid).update({
           plan: plan,
+          tokensUsed: 0,
+          periodStart: admin.firestore.Timestamp.now(),
           lemonSqueezyCustomerId: subscription.attributes.customer_id,
           lemonSqueezySubscriptionId: subscription.id,
           subscriptionStatus: 'active',
@@ -2277,12 +2317,15 @@ exports.lemonSqueezyWebhook = onRequest({
         const userDoc = userSnapshot.docs[0];
         const uid = userDoc.id;
 
-        // Update subscription status
+        // Update subscription status (+ plan, if the variant changed on upgrade/downgrade)
         const status = subscription.attributes.status; // active, past_due, cancelled, etc.
-        await db.collection('users').doc(uid).update({
+        const updates = {
           subscriptionStatus: status,
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
+        };
+        const variantPlan = planByVariant[String(subscription.attributes.variant_id)];
+        if (status === 'active' && variantPlan) updates.plan = variantPlan;
+        await db.collection('users').doc(uid).update(updates);
 
         console.log(`[LemonSqueezy] Subscription ${status} for ${uid}`);
         break;
@@ -2321,40 +2364,39 @@ exports.lemonSqueezyWebhook = onRequest({
 
       case 'order_created': {
         const order = event.data;
-        const customData = order.attributes.first_order_item?.meta?.custom_data || {};
+        const customData = event.meta?.custom_data || order.attributes.first_order_item?.meta?.custom_data || {};
         const uid = customData.user_id;
-        const type = customData.type; // 'token_topup'
-        const tokens = parseInt(customData.tokens || '0', 10);
+        const tokens = tokensByVariant[String(order.attributes.first_order_item?.variant_id)] || 0;
         const orderId = order.id;
 
-        if (!uid || type !== 'token_topup' || !tokens) {
+        if (!uid || !tokens) {
           console.log('[LemonSqueezy] Order created, but not a token top-up:', orderId);
           break;
         }
 
         console.log(`[LemonSqueezy] Token top-up order: ${uid} → +${tokens} tokens (order: ${orderId})`);
 
-        // Check for duplicate order (idempotency)
+        // Idempotent credit (transaction): purchased tokens go to bonusTokens (persist across periods)
         const userRef = db.collection('users').doc(uid);
-        const userDoc = await userRef.get();
-
-        if (!userDoc.exists) {
-          console.error('[LemonSqueezy] User not found:', uid);
-          break;
-        }
-
-        const processedOrders = userDoc.data().processedOrders || [];
-        if (processedOrders.includes(orderId)) {
-          console.log(`[LemonSqueezy] Order ${orderId} already processed, skipping`);
-          break;
-        }
-
-        // Add tokens (atomic increment)
-        await userRef.update({
-          tokensRemaining: admin.firestore.FieldValue.increment(tokens),
-          processedOrders: admin.firestore.FieldValue.arrayUnion(orderId),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        const credited = await db.runTransaction(async (tx) => {
+          const userDoc = await tx.get(userRef);
+          if (!userDoc.exists) {
+            console.error('[LemonSqueezy] User not found:', uid);
+            return false;
+          }
+          const processedOrders = userDoc.data().processedOrders || [];
+          if (processedOrders.includes(orderId)) {
+            console.log(`[LemonSqueezy] Order ${orderId} already processed, skipping`);
+            return false;
+          }
+          tx.update(userRef, {
+            bonusTokens: admin.firestore.FieldValue.increment(tokens),
+            processedOrders: admin.firestore.FieldValue.arrayUnion(orderId),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          return true;
         });
+        if (!credited) break;
 
         console.log(`[LemonSqueezy] Added ${tokens} tokens to user ${uid}`);
         break;

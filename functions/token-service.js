@@ -14,6 +14,85 @@
 
 const admin = require('firebase-admin');
 const { MODEL_PRICING } = require('./ai-models.js');
+const { getPlanBudget } = require('./plans.js');
+
+// ============================================================================
+// BALANCE (server-side only — client never writes token fields)
+// ============================================================================
+// users/{uid} fields:
+//   tokensUsed   — spent from the monthly allowance in the current period
+//   periodStart  — Timestamp; allowance renews 1 month after (lazy reset on next debit)
+//   bonusTokens  — purchased top-ups; persist across periods, spent after the allowance
+
+function getBalance(userData, now = new Date()) {
+  const plan = userData.plan || 'free';
+  const monthly = getPlanBudget(plan).monthly;
+  const periodStart = userData.periodStart?.toDate ? userData.periodStart.toDate() : null;
+  let expired = !periodStart;
+  if (periodStart) {
+    const renewAt = new Date(periodStart);
+    renewAt.setMonth(renewAt.getMonth() + 1);
+    expired = renewAt <= now;
+  }
+  const used = expired ? 0 : (userData.tokensUsed || 0);
+  const bonus = Math.max(0, userData.bonusTokens || 0);
+  const monthlyLeft = Math.max(0, monthly - used);
+  return { plan, monthly, used, bonus, monthlyLeft, available: monthlyLeft + bonus, expired };
+}
+
+// Debit inside a transaction: monthly allowance first, then bonus.
+// allowOverdraft: post-hoc charges (API already paid) may exceed the balance.
+function applyDebit(tx, ref, userData, amount, allowOverdraft) {
+  const b = getBalance(userData);
+  if (!allowOverdraft && b.available < amount) {
+    const err = new Error('Insufficient tokens');
+    err.code = 'OUT_OF_TOKENS';
+    err.available = b.available;
+    throw err;
+  }
+  const fromMonthly = Math.min(amount, b.monthlyLeft);
+  const fromBonus = Math.min(amount - fromMonthly, b.bonus);
+  const overflow = amount - fromMonthly - fromBonus;
+  const updates = {
+    tokensUsed: b.used + fromMonthly + overflow,
+    bonusTokens: b.bonus - fromBonus
+  };
+  if (b.expired) updates.periodStart = admin.firestore.Timestamp.now();
+  tx.update(ref, updates);
+  return { fromMonthly: fromMonthly + overflow, fromBonus, available: b.available - amount };
+}
+
+function applyCredit(tx, ref, userData, split) {
+  const b = getBalance(userData);
+  const updates = {
+    tokensUsed: Math.max(0, b.used - (split.fromMonthly || 0)),
+    bonusTokens: b.bonus + (split.fromBonus || 0)
+  };
+  if (b.expired) updates.periodStart = admin.firestore.Timestamp.now();
+  tx.update(ref, updates);
+}
+
+/**
+ * Atomically reserve tokens BEFORE an AI call (prevents parallel overspend).
+ * Throws err.code === 'OUT_OF_TOKENS' if balance is insufficient.
+ * @returns {Promise<{fromMonthly:number, fromBonus:number, available:number}>}
+ */
+async function reserve(db, uid, amount) {
+  const ref = db.collection('users').doc(uid);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    return applyDebit(tx, ref, snap.exists ? snap.data() : {}, amount, false);
+  });
+}
+
+// Return a reservation (AI call failed).
+async function refund(db, uid, split) {
+  const ref = db.collection('users').doc(uid);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (snap.exists) applyCredit(tx, ref, snap.data(), split);
+  });
+}
 
 // ============================================================================
 // GLOBAL CONFIG CACHE (TTL 60s)
@@ -235,9 +314,19 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     console.warn(`[TokenService] ⚠️ Unknown model pricing: ${model} — apiCostUSD will be $0.0000`);
   }
 
-  // 5. Deduct user tokens
-  await db.collection('users').doc(uid).update({
-    tokensUsed: admin.firestore.FieldValue.increment(userCost)
+  // 5. Deduct user tokens (transactional; settles against a prior reserve() if given)
+  const userRef = db.collection('users').doc(uid);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(userRef);
+    const userData = snap.exists ? snap.data() : {};
+    if (options.reserved) {
+      const reservedTotal = (options.reserved.fromMonthly || 0) + (options.reserved.fromBonus || 0);
+      const delta = userCost - reservedTotal;
+      if (delta > 0) applyDebit(tx, userRef, userData, delta, true);
+      else if (delta < 0) applyCredit(tx, userRef, userData, { fromMonthly: -delta, fromBonus: 0 });
+    } else {
+      applyDebit(tx, userRef, userData, userCost, true);
+    }
   });
 
   console.log(`[TokenService] ✅ Deducted ${userCost} tokens from user ${uid}`);
@@ -291,4 +380,4 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   return { userCost, apiCostUSD, marginMultiplier, globalMarginMultiplier };
 }
 
-module.exports = { charge };
+module.exports = { charge, getBalance, reserve, refund };
