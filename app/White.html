@@ -917,7 +917,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       f.src = PILLARS.book.src + "?embed=1";
       loaded.book = true;
     } else {
-      try { f.contentWindow.postMessage({ type: "ww-home" }, "*"); } catch (e) {}
+      try { f.contentWindow.postMessage({ type: "ww-home" }, window.location.origin); } catch (e) {}
     }
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "book"); });
@@ -946,7 +946,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           frames[pillar].contentWindow.postMessage({
             type: 'ww-project',
             projectId: projectId
-          }, '*');
+          }, window.location.origin);
           console.log('[Shell] Sent projectId to', pillar, ':', projectId);
         }
       });
@@ -1108,6 +1108,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   });
 
   window.addEventListener("message", function (e) {
+    if (e.origin !== window.location.origin) return;
     var d = e.data || {};
     if (d.type === "ww-news") { showView("news"); return; }
     if (d.type === "ww-buybook") { document.getElementById("buybook-modal").classList.add("is-on"); return; }
@@ -1127,7 +1128,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         frames[d.pillar].contentWindow.postMessage({
           type: 'ww-project',
           projectId: window.__currentProjectId
-        }, '*');
+        }, window.location.origin);
         console.log('[Shell] Sent projectId to ready iframe', d.pillar, ':', window.__currentProjectId);
       }
       return;

@@ -285,7 +285,8 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
     // Listen for postMessage reload requests (fallback if __reloadBook not accessible)
     const handleMessage = (event) => {
-      if (event.data.type === 'reloadBook') {
+      if (event.origin !== window.location.origin) return;
+      if (event.data && event.data.type === 'reloadBook') {
         console.log('[Book] Received reloadBook message from iframe');
         loadFromFirestore(event.data);
       }

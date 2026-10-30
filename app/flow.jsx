@@ -58,7 +58,7 @@ function StartScreen({ onBegin, langVersion }) {
         <div className="hero-buybook__beta">{t('hero.bookBeta')}</div>
         <div className="hero-buybook__t">{t('hero.bookTitle').split('\n').map((line, i) => i > 0 ? [<br key={i}/>, line] : line)}</div>
         <div className="hero-buybook__d">{t('hero.bookDesc')}</div>
-        <button className="hero-buybook__btn" type="button" onClick={() => { try { window.parent.postMessage({ type: "ww-buybook" }, "*"); } catch (err) {} }}>{t('hero.bookBtn')}</button>
+        <button className="hero-buybook__btn" type="button" onClick={() => { try { window.parent.postMessage({ type: "ww-buybook" }, window.location.origin); } catch (err) {} }}>{t('hero.bookBtn')}</button>
       </div>
     </div>
   );

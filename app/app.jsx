@@ -19,6 +19,7 @@ function ProjectProvider({ children }) {
 
     // Listen for projectId updates from shell
     function handleMessage(event) {
+      if (event.origin !== window.location.origin) return;
       if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
         console.log('[Book] Received projectId from shell:', event.data.projectId);
         setProjectId(event.data.projectId);
@@ -405,12 +406,12 @@ function App() {
   // so the side rail can switch between global sections and the pillars.
   React.useEffect(() => {
     if (window.self === window.top) return;
-    try { window.parent.postMessage({ type: "ww-mode", mode: stage === "book" ? "work" : "home" }, "*"); } catch (e) {}
+    try { window.parent.postMessage({ type: "ww-mode", mode: stage === "book" ? "work" : "home" }, window.location.origin); } catch (e) {}
   }, [stage]);
 
   // Shell logo → return to the mage cover even if we navigated internally.
   React.useEffect(() => {
-    function onMsg(e) { if (e.data && e.data.type === "ww-home") setStage("start"); }
+    function onMsg(e) { if (e.origin === window.location.origin && e.data && e.data.type === "ww-home") setStage("start"); }
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
   }, []);

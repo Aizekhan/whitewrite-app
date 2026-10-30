@@ -26,6 +26,7 @@ function ProjectProvider({ children }) {
   // Listen for projectId updates from shell via postMessage
   React.useEffect(() => {
     function handleMessage(event) {
+      if (event.origin !== window.location.origin) return;
       if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
         console.log('[Workspace] Received projectId from shell:', event.data.projectId);
         setProjectId(event.data.projectId); // Triggers re-render of consumers

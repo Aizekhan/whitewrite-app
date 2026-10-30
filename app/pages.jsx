@@ -405,7 +405,7 @@ function SceneIntentRight({ projectId: propProjectId }) {
               // Fallback: force page reload to show new scene
               if (window.parent && window.parent !== window) {
                 // We're in iframe — ask parent to reload book
-                window.parent.postMessage({ type: 'reloadBook', jumpToLast: true }, '*');
+                window.parent.postMessage({ type: 'reloadBook', jumpToLast: true }, window.location.origin);
               } else {
                 // Standalone — just alert user
                 alert('Сцена збережена! Перезавантажте сторінку щоб побачити її.');

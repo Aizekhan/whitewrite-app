@@ -28,6 +28,7 @@ function ProjectProvider({ children }) {
 
     // Listen for projectId updates from shell
     function handleMessage(event) {
+      if (event.origin !== window.location.origin) return;
       if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
         console.log('[WorldTree] Received projectId from shell:', event.data.projectId);
         setProjectId(event.data.projectId);
@@ -466,6 +467,7 @@ function WorldTreeApp() {
   // Listen for projectId from shell (postMessage)
   React.useEffect(() => {
     const handleMessage = async (e) => {
+      if (e.origin !== window.location.origin) return;
       const d = e.data || {};
       if (d.type === 'ww-project' && d.projectId) {
         console.log('[WorldTree] Received projectId from shell:', d.projectId);
@@ -537,7 +539,7 @@ function WorldTreeApp() {
         window.parent.postMessage({
           type: 'ww-iframe-ready',
           pillar: 'universe'
-        }, '*');
+        }, window.location.origin);
         console.log('[WorldTree] Notified parent: iframe ready');
       } catch (e) {
         console.error('[WorldTree] Failed to notify parent:', e);

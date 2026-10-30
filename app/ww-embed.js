@@ -41,7 +41,7 @@
     var q = "";
     var qi = href.indexOf("?");
     if (qi >= 0) q = href.slice(qi + 1);
-    try { window.parent.postMessage({ type: "ww-nav", pillar: pillar, query: q }, "*"); } catch (e) {}
+    try { window.parent.postMessage({ type: "ww-nav", pillar: pillar, query: q }, window.location.origin); } catch (e) {}
     return true;
   };
 }());
