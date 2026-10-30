@@ -136,6 +136,7 @@ function ScenePick({ scene, setScene }) {
     return () => window.removeEventListener("click", close);
   }, [open]);
   const cur = WORLD.scenes.find((s) => s.n === scene) || WORLD.scenes[0];
+  if (!cur) return null; // project without scenes yet
   return (
     <div className="scene-pickwrap" onClick={(e) => e.stopPropagation()}>
       <button className={`scene-pick ${open ? "is-open" : ""}`} onClick={() => setOpen((o) => !o)} aria-haspopup="true" aria-expanded={open}>
@@ -265,15 +266,8 @@ function App() {
         // Merge into WORLD
         canonArrays.scenes = scenes;
 
-        // Mutate WORLD arrays in-place (preserves DATA projection references)
-        Object.keys(canonArrays).forEach(key => {
-          if (Array.isArray(WORLD[key]) && Array.isArray(canonArrays[key])) {
-            WORLD[key].length = 0;
-            WORLD[key].push(...canonArrays[key]);
-          } else {
-            WORLD[key] = canonArrays[key];
-          }
-        });
+        // Load into the shared WORLD in place (preserves DATA projection references, drops demo layers)
+        wSetWorld(canonArrays);
 
         console.log('[Workspace] ✅ Canon loaded:', {
           characters: WORLD.characters.length,

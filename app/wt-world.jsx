@@ -147,6 +147,24 @@ function _computeConnections(type, id) {
 window.WORLD = WORLD;
 window.wEnt = wEnt; window.wTitle = wTitle; window.wConnections = wConnections; window.W_TYPES = W_TYPES;
 
+// Load a project's canon into WORLD — the ONE way every pillar swaps worlds.
+// Mutates in place (same object ⇒ DATA projection / captured refs stay valid),
+// empties layers the new world doesn't have (no demo narrative mixed into real
+// canon) and invalidates memo caches (wConnections / wAffected).
+function wSetWorld(next) {
+  Object.keys(WORLD).forEach((k) => { if (!(k in next) && Array.isArray(WORLD[k])) WORLD[k].length = 0; });
+  Object.keys(next).forEach((k) => {
+    if (Array.isArray(WORLD[k]) && Array.isArray(next[k])) { WORLD[k].length = 0; WORLD[k].push(...next[k]); }
+    else WORLD[k] = next[k];
+  });
+  wInvalidate();
+}
+function wInvalidate() {
+  _connCache.clear();
+  if (window.__wImpactInvalidate) window.__wImpactInvalidate();
+}
+window.wSetWorld = wSetWorld; window.wInvalidate = wInvalidate;
+
 // ---- dependency / "Referenced By" index ----
 // Derive each scene's direct entity references from the canon (single source
 // of truth: entity.scenes / artifact.scene). Events & factions are abstract

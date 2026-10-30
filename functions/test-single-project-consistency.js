@@ -1,8 +1,8 @@
 // E2E test: Single project consistency across all pillars
 const { chromium } = require('playwright');
 
-const TEST_EMAIL = 'hrytsenkomaksym@gmail.com';
-const TEST_PASSWORD = 'Makson2005';
+const TEST_EMAIL = process.env.WW_TEST_EMAIL;
+const TEST_PASSWORD = process.env.WW_TEST_PASSWORD; // never hardcode credentials
 
 (async () => {
   console.log('🚀 E2E Test: Single Project Consistency Across Pillars\n');

@@ -515,8 +515,8 @@ function WorldTreeApp() {
               scenes: canonArrays.scenes.length
             });
 
-            window.WORLD = canonArrays;
-            setCanon(canonArrays);
+            wSetWorld(canonArrays);
+            setCanon({ ...WORLD });
           } catch (error) {
             console.error('[WorldTree] Failed to reload canon:', error);
           } finally {
@@ -651,10 +651,10 @@ function WorldTreeApp() {
           console.log('[WorldTree] DEBUG Events array:', canonArrays.events);
         }
 
-        // Update global WORLD for compatibility with existing code (wt-tree.jsx, wt-workspace.jsx, etc.)
-        window.WORLD = canonArrays;
+        // Load into the shared WORLD (wt-tree.jsx, wt-workspace.jsx, impact engine read it)
+        wSetWorld(canonArrays);
 
-        setCanon(canonArrays);
+        setCanon({ ...WORLD });
       } catch (error) {
         console.error('[WorldTree] ❌ Failed to load canon:', error);
         // Keep original WORLD mock as fallback

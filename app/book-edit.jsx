@@ -6,13 +6,24 @@
 (function () {
   const { useState: useEdState, useRef: useEdRef, useEffect: useEdEffect } = React;
 
-  // Known canon of this universe (stand-in for WORLD inside the book).
-  const KNOWN = {
-    "Елена": { type: "Персонаж", dead: false },
-    "Оракул": { type: "Персонаж", dead: false },
-    "Орелія": { type: "Локація", dead: false },
-    "Маркус": { type: "Персонаж", dead: true },   // already fell — speaking = contradiction
-  };
+  // Known canon of this universe — derived from the shared WORLD (loaded by book.jsx).
+  // Keyed by full name and first word (tokens below are single capitalized words).
+  const DEAD_RE = /dead|deceased|killed|мертв|загин|помер|вбит/i;
+  function knownCanon() {
+    const W = window.WORLD || {};
+    const known = {};
+    ["characters", "locations", "events", "factions", "artifacts"].forEach((kind) => {
+      (W[kind] || []).forEach((e) => {
+        const name = (e.name || e.title || "").trim();
+        if (!name) return;
+        const info = { type: kind, dead: kind === "characters" && DEAD_RE.test(String(e.status || "")) };
+        known[name] = info;
+        const first = name.split(/\s+/)[0];
+        known[first] = known[first] || info;
+      });
+    });
+    return known;
+  }
   const STOP = new Set(["Коли","Воно","Він","Вона","Десь","Щоб","Тут","Місто","І","А","Та","Але","Бо","Як","Це","Раптом","Потім","Тоді","Нарешті","Зненацька","Проте","Однак","Тепер","Вже","Ось","Поруч","Раніше","Пізніше","Можливо","Здавалося","Так","Ні","Сталася","Стався","Сталось","Прийшов","Прийшла","Велика","Великий","Велике","За","На","У","В","До","Із","Зі","Над","Під"]);
 
   // Extract capitalized tokens; classify as known / new / contradiction.
@@ -20,6 +31,7 @@
     const tokens = (text.match(/[А-ЯЇІЄҐ][а-яїієґ’']+/g) || []);
     const seen = new Set();
     const news = [], conflicts = [];
+    const KNOWN = knownCanon();
     tokens.forEach((w) => {
       if (STOP.has(w) || seen.has(w)) return; seen.add(w);
       if (KNOWN[w]) { if (KNOWN[w].dead) conflicts.push(w); }

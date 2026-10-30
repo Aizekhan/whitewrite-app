@@ -100,7 +100,19 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
       try {
         setLoadingScenes(true);
+        // Canon loads in parallel into the shared WORLD (Related panel, inline continuity)
+        const canonPromise = window.__firebaseCanon
+          ? window.__firebaseCanon.getCanon(projectId).catch((err) => { console.warn('[Book] Canon load failed:', err); return null; })
+          : Promise.resolve(null);
         const firestoreScenes = await window.__firebaseScenes.getScenes(projectId);
+        const canon = await canonPromise;
+        if (canon && window.wSetWorld) {
+          // Scene → canon links come from scene.canonRefs (set by extraction)
+          window.wSetWorld({
+            ...window.__firebaseCanon.canonToArrays(canon),
+            scenes: firestoreScenes.map((s) => ({ ...s, ...(s.canonRefs || {}) }))
+          });
+        }
 
         if (firestoreScenes.length === 0) {
           // No scenes yet - keep mock

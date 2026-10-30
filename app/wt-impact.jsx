@@ -47,6 +47,7 @@
   // Transitive impact of changing a canon entity, grouped by layer & kind.
   // Memoised — WORLD is read-only at runtime, so (type:id) → result is stable.
   const _affCache = new Map();
+  window.__wImpactInvalidate = () => _affCache.clear(); // called by wSetWorld on world swap
   function wAffected(type, id) {
     const key = type + ":" + id;
     if (_affCache.has(key)) return _affCache.get(key);
