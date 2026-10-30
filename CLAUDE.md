@@ -44,7 +44,7 @@
 **Phase 2: Stripe Integration** — повністю працює ✅
 
 Файли:
-- `functions/index.js` (lines 10-13, 567-730) — Stripe Cloud Functions
+- `functions/src/stripe.js` — Stripe Cloud Functions
 - `app/White.html` (lines 368-379, 1281-1322) — Frontend + CSS
 - `app/firebase/firebase-auth.js` (lines 192-269) — consumeTokens логіка
 
@@ -124,7 +124,7 @@ Margins:
   - ✅ Режисер очищено: лише Розкадровка + Візуальний канон (LoRA-референси); Персонажі/Локації — у Дереві.
   - ✅ Єдиний перемикач стовпів `.pillswitch` (Книга·Всесвіт·Режисер) на всіх 3 екранах.
   - ✅ Мертвий CSS у WorldTree прибрано; focus-trap + role=dialog на overlay реконструкції та книжкових закладках; глобальні фокус-кільця.
-- **P2** — продакшн (in-browser Babel, dev-React); ✅ важкі PNG (world-tree, StartBack) → JPEG (−86%, 5.8МБ→0.8МБ); ✅ memo для `wConnections`/`wImpact`; ✅ персистентність позиції читання книги (localStorage); лишається: мобільні overlay/граф полірування, прекомпіляція JSX для прод.
+- **P2** — продакшн (in-browser Babel, dev-React); ✅ важкі PNG (world-tree, StartBack) → JPEG (−86%, 5.8МБ→0.8МБ); ✅ memo для `wConnections`/`wImpact`; ✅ персистентність позиції читання книги (localStorage); ✅ прекомпіляція JSX + prod-React (`scripts/build-app.mjs` → `dist/`); лишається: мобільні overlay/граф полірування.
 
 # 🧬 Фундаментальні інваріанти (НЕ порушувати)
 
@@ -161,11 +161,12 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 
 ## Продакшн
 - **Головний сайт:** `whitewrite.com` (custom domain для Firebase Hosting)
-- **Firebase Hosting:** деплоїться з папки `app/` (НЕ `public/`!)
+- **Firebase Hosting:** віддає `dist/` — збірку з `app/` (`npm run build:app`, запускається автоматично як predeploy). Вихідники — `app/`, `dist/` не редагувати й не комітити.
 - **Деплой:** `firebase deploy --only hosting` (або `--only functions` для Cloud Functions)
 
 ## Структура файлів (ВАЖЛИВО!)
-- **Робоча директорія:** `app/` — це продакшн, що йде на whitewrite.com
+- **Робоча директорія:** `app/` — вихідники продакшну (локально працюють як є, з in-browser Babel); на whitewrite.com іде їх збірка `dist/`
+- **Cloud Functions:** `functions/index.js` лише збирає модулі з `functions/src/` (`common`, `scenes`, `canon-extract`, `users`, `stripe`, `canon-sync`, `economy-admin`, `lemon`)
 - **Застаріла директорія:** `public/` — ігнорувати, це старі файли
 - **Firebase модулі:** `app/firebase/*.js` (НЕ `app/shared/firebase/`!)
   - `firebase-init.js` — ініціалізація Firebase
@@ -180,7 +181,7 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 - **worldforge** ($29/міс): 8000 токенів/міс, **Claude API**, 999 проєктів
 
 ## Що вже зроблено ✅
-1. Claude API інтегровано в Cloud Functions (`functions/index.js`)
+1. Claude API інтегровано в Cloud Functions (`functions/src/scenes.js`)
 2. `generateScene` перевіряє план користувача і використовує Claude для worldforge
 3. `initializeUser` Cloud Function для створення/оновлення планів користувачів
 4. Firestore: колекція `users/{uid}` з полями `{plan, tokens, tokensMonthly, maxProjects}`
@@ -189,7 +190,7 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 
 ## Поточний статус ✅
 - ✅ Firebase Auth завантажує план з Firestore
-- ✅ Claude API працює з моделлю `claude-3-5-sonnet-20240620`
+- ✅ Claude API працює; моделі — лише з `ai-models.js`
 - ✅ Квоти та захист підписки реалізовано
 - ✅ Stripe Checkout інтеграція додана (test mode)
 - ⏳ Потрібен Stripe Webhook для активації підписки після оплати
