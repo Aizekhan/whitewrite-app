@@ -15,7 +15,7 @@ const AI_MODELS = {
 
   // Gemini models (Google API)
   gemini: {
-    pro: 'gemini-2.0-flash-exp'       // Free tier model
+    pro: 'gemini-2.5-flash'           // Stable GA model (free tier); gemini-2.0-flash-exp was retired (404)
   }
 };
 
@@ -51,7 +51,7 @@ const MODEL_PRICING = {
     cacheWrite: 1.00,
     cacheRead: 0.08
   },
-  'gemini-2.0-flash-exp': { input: 0, output: 0 } // Free tier
+  'gemini-2.5-flash': { input: 0, output: 0 } // Free tier
 };
 
 // Export for Node.js (Cloud Functions)

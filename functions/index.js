@@ -965,7 +965,8 @@ exports.initializeUser = onRequest({
  * Input: { projectId }  Output: { worldId }
  */
 exports.ensureProjectWorld = onRequest({
-  region: 'us-central1'
+  region: 'us-central1',
+  invoker: 'public' // auth is checked in code (Firebase ID token)
 }, async (req, res) => {
   return cors(req, res, async () => {
     try {
@@ -1720,7 +1721,7 @@ exports.seedEconomy = onRequest({
         generateScene: {
           name: 'Scene Generation',
           providers: {
-            gemini: { cost: 20, model: 'gemini-2.0-flash-exp' },
+            gemini: { cost: 20, model: AI_MODELS.gemini.pro },
             claude: { cost: 300, model: 'claude-opus-4-20250514' }
           }
         },
