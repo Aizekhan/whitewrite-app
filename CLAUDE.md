@@ -22,6 +22,10 @@
   - Головна: «Створи свій світ» / «Обери свій світ» → вид «Світи» → хаб світу (історії, Дерево, Біблія гри); Genesis = створення світу (`__firebaseCanon.createWorld` / `listWorlds`); База знань — кнопка «?» біля жучка
   - Біблія гри (`WhiteWrite GameBible.html` + `gamebible.js`): **один канон → багато ігор** — `worlds/{w}/games/{g}` (+ `cards/`, `plan/current`); гейм-поля сутності канону — у `games/{g}/cards/{entityId}` (`canonRef`), не на сутності
   - `functions/src/gamedev.js` → `gamedevPlan`: `import` (.md → пропозиція, автор відмічає), `analyze` (GDD + питання), `plan` (етапи з воротами + промпти для Claude Code); доступ `allowGameDev` (worldbuilder, worldforge)
+  - Імпорт .md ділиться на частини ~20k символів (паралельно, стрімінг) — один виклик вибивав таймаут 540 с; картки з тією ж назвою зливаються
+  - Файли на картках (префаби, моделі, картинки): Firebase Storage `worlds/{w}/games/{g}/files/{cardId}/…`, `card.files[]`, `storage.rules` (≤200 МБ, allowGameDev)
+  - `token-service` тарифікує датований id моделі (`claude-sonnet-4-5-2025…`) за аліасом з `ai-models.js`
+  - Світ MythRunner перенесено з артефакту (19 сутностей канону, гра «MythRunner», 233 картки, 102 картинки у Storage)
   - **Next**: E2E з реальним AI (імпорт нотаток MythRunner → аналіз → план); підключити каталог можливостей RPG Framework
 
 ## Архітектура даних (важливо)
