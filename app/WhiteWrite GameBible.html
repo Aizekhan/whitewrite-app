@@ -122,6 +122,14 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .ww-embed .leaf-foot{ padding-right:140px; } /* clear the shell's "?" and bug fabs */
 .newfield{ display:flex; gap:8px; }
 .newfield input{ flex:1; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 9px; }
+/* files on a card */
+.card .thumb{ width:calc(100% + 28px); margin:-12px -14px 2px; aspect-ratio:16/9; object-fit:cover; border-radius:12px 12px 0 0; background:var(--bg-1); }
+.field.files .file{ display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); }
+.field.files .file img{ width:72px; height:48px; object-fit:cover; border-radius:6px; display:block; }
+.field.files .file .ico{ width:72px; text-align:center; font-size:22px; }
+.field.files .fname{ flex:1; overflow-wrap:anywhere; color:var(--tx); }
+.field.files .file .btn{ padding:2px 8px; }
+.field.files > .btn{ justify-self:start; margin-top:8px; cursor:pointer; }
 
 /* canon vs game, game picker */
 .navh{ margin:14px 6px 4px; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); }
@@ -218,6 +226,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="firebase/firebase-init.js"></script>
 <script src="firebase/token-budget.js"></script>
 <script src="gamebible.js"></script>

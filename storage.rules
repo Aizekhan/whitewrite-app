@@ -1,0 +1,20 @@
+rules_version = '2';
+// Files on Game Bible cards (prefabs, models, images, audio). Mirrors firestore.rules for worlds/{w}/games:
+// the world owner reads; writing needs a plan with allowGameDev (functions/plans.js).
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isWorldOwner(worldId) {
+      return firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner == request.auth.uid;
+    }
+    function hasGameDev() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
+    }
+
+    match /worlds/{worldId}/games/{gameId}/files/{rest=**} {
+      allow read: if request.auth != null && isWorldOwner(worldId);
+      allow delete: if request.auth != null && isWorldOwner(worldId) && hasGameDev();
+      allow create, update: if request.auth != null && isWorldOwner(worldId) && hasGameDev() &&
+                               request.resource.size < 200 * 1024 * 1024;
+    }
+  }
+}

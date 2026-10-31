@@ -36,6 +36,8 @@
       importApply: "Додати відмічене", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
+      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ", filesAdd: "＋ Додати файли", filesSaveFirst: "Спершу збережи картку — тоді можна додати файли.",
+      uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
       exportMd: "⬇ Markdown для репозиторію", busyAnalyze: "AI читає всю біблію і складає гейм-диздок… (до хвилини)",
       busyPlan: "AI складає план розробки… (може зайняти кілька хвилин)", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
@@ -71,6 +73,8 @@
       importApply: "Add ticked items", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
+      files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB", filesAdd: "＋ Add files", filesSaveFirst: "Save the card first — then you can add files.",
+      uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
       exportMd: "⬇ Markdown for the repo", busyAnalyze: "AI is reading the whole bible and drafting the GDD… (up to a minute)",
       busyPlan: "AI is building the development plan… (may take a few minutes)", costNote: "AI analysis, import and the plan spend tokens from your balance.",
@@ -179,12 +183,12 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: s.defs.concat(extra), extraDefs: extra, fields: c.fields || {}, hidden: !!c.hidden };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: s.defs.concat(extra), extraDefs: extra, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden };
   }
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {} };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [] };
   }
   function allCards() {
     var out = [];
@@ -257,7 +261,10 @@
     if (c.src === "canon") tags.push('<span class="pill canon-pill">' + STR.canonTag + '</span>');
     if (c.note) tags.push('<span class="flag">' + STR.note + '</span>');
     if (query && c.section !== section) tags.push('<span class="pill s-agreed">' + esc(L(sec(c.section))) + '</span>');
-    return '<button class="card" data-key="' + esc(c.key) + '"><h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags">' + tags.join("") +
+    var img = (c.files || []).filter(isImage)[0];
+    if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
+    return '<button class="card" data-key="' + esc(c.key) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
+      '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
 
@@ -338,11 +345,57 @@
   function renderFields() {
     var html = '<div class="field note"><label for="f-note">' + STR.note + ' <span class="hint">' + STR.noteHint + '</span></label>' +
       '<textarea id="f-note" data-key="__note" rows="2" placeholder="' + esc(STR.notePh) + '">' + esc(draft.note) + '</textarea></div>';
+    html += filesHtml();
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
     draft.defs.forEach(function (d) { html += fieldHtml(d.key, d.label, draft.fields[d.key] || ""); });
     html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '"><button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
   }
+  // ---------- files on a card: prefabs, models, images… (Storage: worlds/{w}/games/{g}/files/{cardId}/…) ----------
+  var MAX_FILE = 200 * 1024 * 1024;
+  function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
+  function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+  function filesHtml() {
+    var files = open.files || [];
+    var list = files.map(function (f) {
+      return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">📦</span>') +
+        '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' +
+        (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
+    }).join("");
+    var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
+      : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
+    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + STR.filesHint + '</span></label>' + list + add + '</div>';
+  }
+  async function uploadFiles(list) {
+    var card = open, done = 0;
+    for (var i = 0; i < list.length; i++) {
+      var file = list[i];
+      if (file.size > MAX_FILE) { msg(STR.fileTooBig + ": " + file.name); continue; }
+      var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + card.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
+      try {
+        var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
+        task.on("state_changed", function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
+        await task;
+        var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
+        var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() };
+        if (card.src === "canon") body.canonRef = card.id;
+        await gref().collection("cards").doc(card.id).set(body, { merge: true });
+        card.files = (card.files || []).concat([meta]); done++;
+      } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
+    }
+    if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
+  }
+  async function removeFile(id) {
+    var card = open, f = (card.files || []).filter(function (x) { return x.id === id; })[0];
+    if (!f || !confirm(STR.confirmFile + " " + f.name + "?")) return;
+    try {
+      await firebase.storage().ref(f.path).delete().catch(function (e) { if (e.code !== "storage/object-not-found") throw e; });
+      await gref().collection("cards").doc(card.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
+      card.files = card.files.filter(function (x) { return x.id !== id; });
+      if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
+    } catch (e) { msg(STR.failed + ": " + (e.code || e.message || e)); }
+  }
+
   function editField(key) {
     var el = document.querySelector('.shown[data-edit="' + CSS.escape(key) + '"]'); if (!el) return;
     var ta = document.createElement("textarea");
@@ -401,6 +454,7 @@
       await gref().collection("cards").doc(open.id).set({ section: open.section, canonRef: open.id, hidden: true }, { merge: true });
     } else {
       if (!confirm(STR.confirmDel)) return;
+      await Promise.all((open.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await gref().collection("cards").doc(open.id).delete();
     }
     closeLeaf();
@@ -685,6 +739,7 @@
   });
   $("e-body").addEventListener("click", function (e) {
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
+    var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     if (e.target.id === "nf-add") {
       var label = $("nf").value.trim(); if (!label) return;
       var key = fieldKey(label);
@@ -692,6 +747,9 @@
       if (!draft.defs.some(function (d) { return d.key === key; })) draft.defs.push({ key: key, label: label });
       renderFields(); editField(key);
     }
+  });
+  $("e-body").addEventListener("change", function (e) {
+    if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(list); }
   });
   $("e-body").addEventListener("keydown", function (e) {
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
