@@ -131,19 +131,46 @@ window.__firebaseCanon = {
   },
 
   /**
-   * Genesis: write the world seed the author chose into the project's world.
-   * The author picked it, so it is explicit canon (not inferred).
+   * Worlds of the current user, newest first. Legacy stories without a world
+   * are migrated first (server-side), so every story appears under its world.
+   * @returns {Promise<Array>} [{ id, title, tagline, summary, ... }]
    */
-  async applyGenesis(projectId, seed) {
-    await this.getCanon(projectId); // ensures the world exists and sets worldId
-    if (!this.worldId) throw new Error('No world loaded');
-    await this.updateWorld({
+  async listWorlds() {
+    const uid = firebase.auth().currentUser?.uid;
+    if (!uid) return [];
+    const db = window.__firebase.db;
+    const projects = await db.collection('projects').where('owner', '==', uid).get();
+    const legacy = projects.docs.filter((d) => !d.data().worldId);
+    await Promise.all(legacy.map((d) => this._ensureWorld(d.id).catch((e) => console.error('[Worlds] migrate', d.id, e))));
+    const snap = await db.collection('worlds').where('owner', '==', uid).get();
+    const ts = (w) => (w.updatedAt && w.updatedAt.toMillis ? w.updatedAt.toMillis() : 0);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => ts(b) - ts(a));
+  },
+
+  /**
+   * Genesis: create a world from the seed the author chose (or an empty one).
+   * The author picked it, so it is explicit canon (not inferred).
+   * @returns {Promise<string>} worldId
+   */
+  async createWorld(seed) {
+    const uid = firebase.auth().currentUser?.uid;
+    if (!uid) throw new Error('User not authenticated');
+    const bytes = crypto.getRandomValues(new Uint8Array(4));
+    const worldId = 'world_' + Date.now().toString(36) + Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    await window.__firebase.db.collection('worlds').doc(worldId).set({
+      owner: uid,
       title: seed.name || '',
       tagline: seed.tagline || '',
       summary: seed.summary || '',
       facts: seed.facts || [],
-      rules: seed.rules || []
+      rules: seed.rules || [],
+      palette: [],
+      schemaVersion: 1,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+    this.worldId = worldId;
+    this.projectId = null;
     for (const kind of ['characters', 'locations', 'factions']) {
       for (const e of seed[kind] || []) {
         const entity = { id: this.newEntityId(kind), name: e.name, desc: e.description || '' };
@@ -151,6 +178,7 @@ window.__firebaseCanon = {
         await this.createEntity(kind, entity);
       }
     }
+    return worldId;
   },
 
   /**

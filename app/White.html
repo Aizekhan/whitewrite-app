@@ -360,6 +360,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   background:linear-gradient(180deg, rgba(40,28,14,0.92), rgba(22,15,8,0.95)); border:1px solid rgba(201,162,75,0.45);
   box-shadow:0 8px 26px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,235,180,0.12); transition:.2s; }
 .feedback-fab svg{ width:22px; height:22px; }
+.feedback-fab.kb-fab{ right:72px; font:600 21px/1 "Cinzel",serif; }
+.wtiles{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:26px; }
+.wtile:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
 .feedback-fab:hover{ color:#f6e3b5; border-color:rgba(240,200,120,0.8); transform:translateY(-2px) rotate(-6deg);
   box-shadow:0 12px 32px rgba(0,0,0,0.55), 0 0 22px rgba(232,170,80,0.3); }
 .auth-tab{ flex:1; cursor:pointer; font-family:"Cinzel",serif; font-weight:600; font-size:13px; color:var(--tx-mid);
@@ -455,6 +458,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   <main class="stage" id="stage">
     <!-- in-shell views injected here; pillar iframes appended on demand -->
+    <section class="view" data-view="worlds"></section>
     <section class="view" data-view="narr"></section>
     <section class="view" data-view="market"></section>
     <section class="view" data-view="kb"></section>
@@ -476,6 +480,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   <button class="feedback-fab" id="feedback-fab" data-i18n-title="ui.feedback" title="Повідомити про баг або написати нам" data-i18n-aria="ui.feedbackShort" aria-label="Зворотний зв'язок">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 0 1 8 0v1M6 12h12M5 12a7 7 0 0 0 14 0M12 8v9M9.5 5.5 8 4M14.5 5.5 16 4M5 9 3 8M19 9l2-1M5 15l-2 1M19 15l2 1"/></svg>
   </button>
+
+  <button class="feedback-fab kb-fab" id="kb-fab" data-i18n-title="kb.fab" title="База знань" data-i18n-aria="kb.fab" aria-label="База знань">?</button>
 
   <div class="proj-edit" id="feedback-modal">
     <div class="pe-scrim" onclick="window.__fbClose&&window.__fbClose()"></div>
@@ -621,6 +627,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     book:     { src: "WhiteWrite.html",           labelKey: "nav.book",     icon: "book" },
     universe: { src: "WhiteWrite WorldTree.html", labelKey: "nav.universe", icon: "universe" },
     director: { src: "WhiteWrite Workspace.html", labelKey: "nav.director", icon: "clapper" },
+    bible:    { src: "WhiteWrite GameBible.html", labelKey: "worlds.bible", icon: "layers", world: true }, // world-scoped, not a story pillar
   };
   // Helper to get pillar label with i18n
   function getPillarLabel(key) {
@@ -630,8 +637,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   /* ---- home sections (in-shell views). The mage landing itself = the book
      pillar at its cover, shown by showHome(); these are the side tabs. ---- */
   var SECTIONS = {
-    narr:    { labelKey: "nav.projects",      icon: "library" },
-    kb:      { labelKey: "nav.knowledgeBase", icon: "brain" },
+    worlds:  { labelKey: "nav.worlds",        icon: "universe" },
     market:  { labelKey: "nav.marketplace",   icon: "compass" },
   };
   // Helper to get section label with i18n
@@ -647,6 +653,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   var PROJECTS = [];
   var PROJECTS_LOADING = false;
+  var WORLDS = [];
+  var CURRENT_WORLD = null; // id of the world whose hub (stories, tree, bible) is open
 
   var loadProjectsPromise = null; // Prevent concurrent loads
   async function loadProjects() {
@@ -658,8 +666,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
     if (!window.__firebaseProjects || !window.__wwUser) {
       PROJECTS = [];
+      WORLDS = [];
       PROJECTS_LOADING = false;
-      fillHome();
+      fillHome(); fillWorlds(); announceWorlds();
       return;
     }
 
@@ -668,16 +677,18 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
     loadProjectsPromise = (async () => {
       try {
+        // worlds first: listing migrates legacy stories, so every project has its worldId
+        WORLDS = window.__firebaseCanon ? await window.__firebaseCanon.listWorlds() : [];
         const projects = await window.__firebaseProjects.getUserProjects(window.__wwUser.uid);
         PROJECTS = projects;
-        console.log('[loadProjects] Loaded projects:', projects.length);
+        console.log('[loadProjects] Loaded worlds:', WORLDS.length, 'projects:', projects.length);
       } catch (error) {
         console.error('[loadProjects] Failed to load projects:', error);
         PROJECTS = [];
       } finally {
         PROJECTS_LOADING = false;
         loadProjectsPromise = null; // Clear promise for next load
-        fillHome(); // Render once with data
+        fillHome(); fillWorlds(); announceWorlds(); // Render once with data
       }
     })();
 
@@ -797,7 +808,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   function goBack() {
     if (!hist.length) return;
     var s = hist.pop(); _back = true;
-    if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else showView(s.mode);
+    if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else if (s.mode === "bible") showBible(); else showView(s.mode);
     _back = false; updateBack();
   }
 
@@ -820,13 +831,15 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     railItems.innerHTML = ""; railFoot.innerHTML = "";
     if (inWork) {
       Object.keys(PILLARS).forEach(function (p) {
+        if (PILLARS[p].world) return;
         railItems.appendChild(railBtn(p, getPillarLabel(p), PILLARS[p].icon, mode === p, function () { showPillar(p); }));
       });
     } else {
       Object.keys(SECTIONS).forEach(function (s) {
-        if (s === "narr" && !window.__wwAuth) return; // Проекти only when logged in
+        if (s === "worlds" && !window.__wwAuth) return; // Світи only when logged in
         if (s === "market" && !window.__features?.marketplace) return; // Marketplace coming soon
-        railItems.appendChild(railBtn(s, getSectionLabel(s), SECTIONS[s].icon, mode === s, function () { showView(s); }));
+        var on = mode === s || (s === "worlds" && (mode === "narr" || mode === "bible")); // a world's hub belongs to Світи
+        railItems.appendChild(railBtn(s, getSectionLabel(s), SECTIONS[s].icon, on, function () { showView(s); }));
       });
     }
     // account now lives in the persistent bottom-left userdock (whole service)
@@ -839,6 +852,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     histPush();
     inWork = false; mode = v;
     if (v === "account") fillAccount();
+    if (v === "worlds") { fillWorlds(); loadProjects(); }
     if (v === "narr") {
       // Show immediate loader to prevent flash of empty state
       views.narr.innerHTML = '<div style="padding:60px;text-align:center;color:var(--tx-mid)"><div style="font-size:24px;margin-bottom:12px">⏳</div>' + (window.__i18n ? window.__i18n.t('projects.loading') : 'Завантаження проєктів...') + '</div>';
@@ -870,7 +884,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (!PILLARS[p]) return;
     histPush();
     // Don't set inWork=true if opening creation form (new=1) — wait for iframe to notify
-    var isNewProject = query && query.indexOf("new=1") >= 0;
+    var isNewProject = query && (query.indexOf("new=1") >= 0 || query.indexOf("newWorld=1") >= 0);
     if (!isNewProject) {
       inWork = true; mode = p;
     }
@@ -1002,7 +1016,28 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
 
   // Create a new narrative (open form, not book)
-  function createNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "new=1"); }
+  function createNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD)); }
+  function createWorld() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "newWorld=1"); }
+  function openWorld(worldId) { CURRENT_WORLD = worldId; showView("narr"); }
+  // Game Bible of the current world (an iframe, but world-scoped: the rail stays on Світи)
+  function showBible() {
+    histPush();
+    inWork = false; mode = "bible";
+    var f = ensureFrame("bible");
+    var target = PILLARS.bible.src + "?embed=1&worldId=" + encodeURIComponent(CURRENT_WORLD);
+    if (f.getAttribute("src") !== target) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; }
+    loaded.bible = true;
+    Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
+    Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "bible"); });
+    renderRail();
+  }
+  window.__wwOpenWorld = openWorld;
+  // the book's start screen knows whether to offer "create" or "choose" a world
+  function announceWorlds() {
+    window.__wwWorldsCount = WORLDS.length;
+    var f = frames.book;
+    if (f && f.contentWindow) try { f.contentWindow.postMessage({ type: "ww-worlds", count: WORLDS.length }, window.location.origin); } catch (e) {}
+  }
 
   // ---- auth (login / register) ----
   function openAuth() { document.getElementById("auth-modal").classList.add("is-on"); }
@@ -1069,6 +1104,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   window.__wwCloseAuth = closeAuth;
   // feedback (bug / suggestion)
   document.getElementById("feedback-fab").addEventListener("click", function () { document.getElementById("feedback-modal").classList.add("is-on"); });
+  document.getElementById("kb-fab").addEventListener("click", function () { showView("kb"); });
   window.__fbClose = function () { document.getElementById("feedback-modal").classList.remove("is-on"); var s = document.getElementById("fb-submit"); s.textContent = "Надіслати"; document.getElementById("fb-text").value = ""; };
   window.__fbTab = function (t) {
     var bug = t === "bug";
@@ -1112,6 +1148,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var d = e.data || {};
     if (d.type === "ww-news") { showView("news"); return; }
     if (d.type === "ww-buybook") { document.getElementById("buybook-modal").classList.add("is-on"); return; }
+    if (d.type === "ww-world-cta") {
+      if (!window.__wwAuth) { openAuth(); return; }
+      Promise.resolve(loadProjectsPromise).then(function () { if (WORLDS.length) showView("worlds"); else createWorld(); });
+      return;
+    }
+    if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
     if (d.type === "ww-nav" && d.pillar) {
       // Auto-inject projectId if available and not already in query
       var query = d.query || "";
@@ -1141,21 +1183,29 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   });
 
   /* ============================ VIEW CONTENT ============================ */
+  // The world's hub: its stories (the former "Projects") and the doors into its canon.
   function fillHome() {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
-    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
+    var world = WORLDS.filter(function (w) { return w.id === CURRENT_WORLD; })[0] || null;
+    var stories = PROJECTS.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return x.p.worldId === CURRENT_WORLD; });
 
     views.narr.innerHTML =
       '<div class="vwrap">' +
-        '<div class="vhead__k">' + t('projects.subtitle') + '</div>' +
-        '<h1 class="vhead__t">' + t('projects.title') + '</h1>' +
-        '<p class="vhead__s">' + (lang === 'uk' ? 'Кожен наратив — окремий живий всесвіт. Відкрий, щоб писати книгу, керувати каноном і візуалізувати сцени.' : 'Each narrative is a separate living universe. Open to write a book, manage canon, and visualize scenes.') + '</p>' +
-        '<div class="vsec-h">' + svg("library") + (lang === 'uk' ? 'У роботі' : 'In Progress') + '</div>' +
+        '<button id="to-worlds" style="background:none;border:0;color:var(--tx-mid);cursor:pointer;padding:0;margin-bottom:14px;font:inherit">' + t('worlds.all') + '</button>' +
+        '<div class="vhead__k">' + t('worlds.hubKicker') + '</div>' +
+        '<h1 class="vhead__t">' + escapeHtml(world ? (world.title || t('worlds.untitled')) : '…') + '</h1>' +
+        (world && (world.tagline || world.summary) ? '<p class="vhead__s">' + escapeHtml(world.tagline || world.summary) + '</p>' : '') +
+        '<div class="wtiles">' +
+          '<button class="kb wtile" id="w-tree"' + (stories.length ? '' : ' disabled') + '><div class="kb__ic">' + svg("universe") + '</div>' +
+            '<div class="kb__t">' + t('worlds.tree') + '</div><div class="kb__d">' + (stories.length ? t('worlds.treeHint') : t('worlds.treeNeedsStory')) + '</div></button>' +
+          '<button class="kb wtile" id="w-bible"><div class="kb__ic">' + svg("layers") + '</div>' +
+            '<div class="kb__t">' + t('worlds.bible') + '</div><div class="kb__d">' + t('worlds.bibleHint') + '</div></button>' +
+        '</div>' +
+        '<div class="vsec-h">' + svg("library") + t('worlds.storiesTitle') + '</div>' +
         '<div class="grid grid--narr">' +
           (PROJECTS_LOADING ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
-           PROJECTS.length === 0 ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.empty') + '</div>' :
-           PROJECTS.map(function (p, i) { return narrCard(p, i); }).join("")) +
-          '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + (lang === 'uk' ? 'Новий всесвіт' : 'New Universe') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + (lang === 'uk' ? 'з чистого аркуша' : 'from scratch') + '</span></button>' +
+           stories.map(function (x) { return narrCard(x.p, x.i); }).join("")) +
+          '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + t('worlds.newStory') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + t('worlds.newStoryHint') + '</span></button>' +
         '</div>' +
         '<div class="director-announcement" style="margin-top:32px;padding:20px 24px;border-radius:16px;background:linear-gradient(135deg,rgba(147,51,234,0.12),rgba(79,70,229,0.12));border:2px solid rgba(147,51,234,0.35)">' +
           '<div style="font-size:12px;letter-spacing:0.25em;text-transform:uppercase;color:#c4b5fd;margin-bottom:14px;font-weight:700">🎬 ' + t('director.newFeatureBadge') + '</div>' +
@@ -1172,6 +1222,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     });
     var nn = views.narr.querySelector("#new-narr");
     if (nn) nn.addEventListener("click", createNarrative);
+    views.narr.querySelector("#to-worlds").addEventListener("click", function () { showView("worlds"); });
+    views.narr.querySelector("#w-bible").addEventListener("click", showBible);
+    var wt = views.narr.querySelector("#w-tree");
+    if (wt && stories.length) wt.addEventListener("click", function () {
+      window.__setCurrentProject(stories[0].p.id); // the tree reads the world through one of its stories
+      showPillar("universe");
+    });
     [].forEach.call(views.narr.querySelectorAll(".ncard__edit"), function (b) {
       b.addEventListener("click", function (e) { e.stopPropagation(); openProjectEdit(+b.dataset.i); });
     });
@@ -1179,6 +1236,34 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       b.addEventListener("click", function (e) { e.stopPropagation(); armDelete(+b.dataset.di, b); });
     });
   }
+  // Світи: every world of the author; entering one opens its hub.
+  function fillWorlds() {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    var count = function (id) { return PROJECTS.filter(function (p) { return p.worldId === id; }).length; };
+    views.worlds.innerHTML =
+      '<div class="vwrap">' +
+        '<div class="vhead__k">' + t('worlds.kicker') + '</div>' +
+        '<h1 class="vhead__t">' + t('worlds.title') + '</h1>' +
+        '<p class="vhead__s">' + t('worlds.subtitle') + '</p>' +
+        '<div class="grid grid--narr" style="margin-top:28px">' +
+          (PROJECTS_LOADING && !WORLDS.length ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
+           WORLDS.map(function (w) {
+             return '<article class="ncard" data-world="' + escapeHtml(w.id) + '">' +
+               '<div class="ncard__cover"></div>' +
+               '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(w.title || t('worlds.untitled')) + '</div>' +
+               '<div class="ncard__meta">' + count(w.id) + ' ' + t('worlds.stories') + '</div>' +
+               '<p class="ncard__desc">' + escapeHtml(w.tagline || w.summary || '') + '</p>' +
+               '<button class="ncard__open" data-open-world>' + svg("open") + t('worlds.open') + '</button></div></article>';
+           }).join("")) +
+          '<button class="ncard ncard--new" id="new-world">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + t('worlds.new') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + t('worlds.newHint') + '</span></button>' +
+        '</div>' +
+      '</div>';
+    [].forEach.call(views.worlds.querySelectorAll('[data-open-world]'), function (b) {
+      b.addEventListener("click", function () { openWorld(b.closest('.ncard').dataset.world); });
+    });
+    views.worlds.querySelector("#new-world").addEventListener("click", createWorld);
+  }
+
   // hold-to-confirm delete (5s)
   var delTimer = null, delRAF = null;
   function armDelete(i, btn) {
@@ -1694,7 +1779,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   /* ---- initial route ---- */
   var h = (location.hash || "").replace("#", "");
   if (h.indexOf("work/") === 0 && PILLARS[h.slice(5)]) { showPillar(h.slice(5)); }
-  else if (SECTIONS[h] || h === "account") { showView(h); }
+  else if (SECTIONS[h] || h === "account" || h === "kb") { showView(h); }
   else { showHome(); }
 
   // Auth state will be set by Firebase Auth (firebase-auth.js init)
@@ -1722,6 +1807,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <script src="/firebase/firebase-auth.js"></script>
 <script src="/firebase/firebase-projects.js"></script>
 <script src="/firebase/firebase-scenes.js"></script>
+<script src="/firebase/firebase-canon.js?v=20261101"></script>
 <script src="/firebase/firebase-ai.js"></script>
 <script src="/firebase/firebase-lemon.js"></script>
 

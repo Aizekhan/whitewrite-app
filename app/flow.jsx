@@ -5,7 +5,7 @@ const { useState: useFState } = React;
 // ── Stage 0 ─────────────────────────────────────────────────────────────
 // The user's own hero art (StartBack.png) leads. The whole scene is the
 // doorway — click anywhere to open a universe. Particles add living light.
-function StartScreen({ onBegin, langVersion }) {
+function StartScreen({ onBegin, langVersion, hasWorlds }) {
   console.log('[StartScreen] Component mounted/updated with langVersion:', langVersion);
   // Fallback Ukrainian text if i18n not loaded yet
   const FALLBACK = {
@@ -14,7 +14,8 @@ function StartScreen({ onBegin, langVersion }) {
     'hero.quote': '«Історії — це магія, що творить світи.»',
     'hero.title': 'Твоя історія\nчекає',
     'hero.lede': 'Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.',
-    'hero.cta': 'Створити свою історію',
+    'hero.ctaCreate': 'Створи свій світ',
+    'hero.ctaChoose': 'Обери свій світ',
     'hero.featureBeta': 'нова можливість',
     'hero.featureTitle': '🎬 Доведи історію до відео',
     'hero.featureDesc': 'Хочеш більшого? Розкадруй сцени на кадри й натренуй LoRA-референси персонажів — і твій світ готовий стати серією відеороликів зі сталими образами.',
@@ -44,7 +45,7 @@ function StartScreen({ onBegin, langVersion }) {
         <h1 className="hero-title">{t('hero.title').split('\n').map((line, i) => i > 0 ? [<br key={i}/>, line] : line)}</h1>
         <p className="hero-lede">{t('hero.lede')}</p>
         <button className="hero-cta" type="button" onClick={(e) => { e.stopPropagation(); try { if (window.parent && window.parent.__wwAuth === false) { window.parent.__wwOpenAuth && window.parent.__wwOpenAuth(); return; } } catch (err) {} onBegin(); }}>
-          <span className="hero-cta__star">✦</span> {t('hero.cta')}
+          <span className="hero-cta__star">✦</span> {t(hasWorlds ? 'hero.ctaChoose' : 'hero.ctaCreate')}
         </button>
       </div>
 
@@ -525,6 +526,80 @@ function StoryForm({ onBack, onCreate, initial }) {
   );
 }
 
+// World form — the first step of a world: its premise. Genesis then proposes
+// three seeds; the chosen one becomes the world's canon. Stories come later, inside it.
+function WorldForm({ onBack, onCreate, initial }) {
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const init = initial || {}; // restored when returning from Genesis
+  const [title, setTitle] = useFState(init.title || "");
+  const [description, setDescription] = useFState(init.description || "");
+  const [language, setLanguage] = useFState(init.language || (window.__i18n ? window.__i18n.getLanguage() : "uk"));
+  const [genres, setGenres] = useFState(init.genres || []);
+  const [creating, setCreating] = useFState(false);
+  const ready = description.trim().length > 0;
+
+  function toggleGenre(g) {
+    setGenres((cur) => cur.includes(g) ? cur.filter((x) => x !== g) : (cur.length >= 4 ? cur : cur.concat(g)));
+  }
+  async function submit() {
+    if (!ready || creating) return;
+    setCreating(true);
+    try { await onCreate({ title, description, language, genres }); }
+    catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
+  }
+
+  return (
+    <div className="screen screen--form stage-screen">
+      <Particles density={0.5} />
+      <div className="form-parch">
+        <div className="form-inner">
+          <div className="form-head">
+            <div className="form-kicker">{t('worlds.formKicker')}</div>
+            <h2 className="form-title">{t('worlds.formTitle')}</h2>
+          </div>
+
+          <label className="field">
+            <span className="field__label">{t('worlds.nameLabel')}</span>
+            <input className="field__input" value={title} onChange={(e) => setTitle(e.target.value)}
+              placeholder={t('worlds.namePlaceholder')} disabled={creating} />
+          </label>
+
+          <label className="field">
+            <span className="field__label">{t('form.languageLabel')}</span>
+            <select className="field__input" value={language} onChange={(e) => setLanguage(e.target.value)} disabled={creating}>
+              {LANGUAGES.map((lang) => <option key={lang.code} value={lang.code}>{lang.name}</option>)}
+            </select>
+          </label>
+
+          <label className="field">
+            <span className="field__label">{t('worlds.descLabel')}</span>
+            <textarea className="field__area" value={description} rows={6} maxLength={2000}
+              onChange={(e) => setDescription(e.target.value)} placeholder={t('worlds.descPlaceholder')} disabled={creating} />
+          </label>
+
+          <div className="field">
+            <span className="field__label">{t('form.genreLabel')} <span className="field__hint">{t('form.genreHint')}</span></span>
+            <div className="chips">
+              {getGenres().map((g) => (
+                <button key={g.key} type="button" className={`chip ${genres.includes(g.key) ? "is-on" : ""}`} onClick={() => !creating && toggleGenre(g.key)} disabled={creating}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-foot">
+            <button className="link-back" type="button" onClick={onBack}>{t('form.back')}</button>
+            <button className={`create-btn ${ready && !creating ? "" : "is-disabled"}`} type="button" onClick={submit} disabled={!ready || creating}>
+              <span className="begin-btn__star">✨</span>{creating ? t('form.creating') : t('worlds.create')}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Genesis / World Intent — before the first scene the author CHOOSES the world:
 // AI proposes 3 distinct seeds from the premise; pick one, ask again, or skip
 // (then the world is born from the first scene, as before).
@@ -603,4 +678,4 @@ function GenesisScreen({ data, onChoose, onSkip, onBack }) {
   );
 }
 
-Object.assign(window, { StartScreen, StoryForm, GenesisScreen });
+Object.assign(window, { StartScreen, StoryForm, WorldForm, GenesisScreen });

@@ -84,6 +84,7 @@ window.__firebaseProjects = {
 
     await window.__firebase.db.collection('projects').doc(projectId).set({
       owner: uid,
+      ...(data.worldId ? { worldId: data.worldId } : {}), // the story lives in this world
       visibility: 'private', // Future: 'shared' | 'public'
       title: data.title || 'Без назви',
       desc: data.desc || '',

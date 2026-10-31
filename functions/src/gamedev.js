@@ -1,0 +1,343 @@
+// Game Bible → Production Plan, for one GAME built on a world's canon (one canon → many games).
+//   op "import":  the author's .md notes → a PROPOSAL sorted onto the shelves (nothing is written:
+//                 the author ticks what goes in, the client writes it — AI guesses never become canon on their own)
+//   op "analyze": a living GDD summary + the open questions that block production
+//   op "plan":    after the author's answers, a precise development plan
+// analyze/plan results live in worlds/{w}/games/{g}/plan/current (answers are written there by the client).
+const {
+  onRequest,
+  admin,
+  db,
+  cors,
+  Anthropic,
+  AI_MODELS,
+  charge,
+  getBalance,
+  reserve,
+  refund,
+  getPlanBudget,
+  claudeApiKey,
+} = require('./common');
+
+const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
+const MAX_BIBLE_CHARS = 120000;
+const MAX_IMPORT_CHARS = 100000;
+const CANON_KINDS = ['characters', 'locations', 'factions', 'artifacts'];
+
+const ENGINE_PROFILES = {
+  generic: 'Engine-agnostic. Use standard game production practice (prototype → vertical slice → content → polish). ' +
+    'Where the engine matters, name the choice as a decision for the developer instead of assuming one.',
+  'rpg-framework': 'Unity game built on RPG Framework (UPM package com.aizekhan.rpg-framework, v0.22.0). The developer builds the game ' +
+    'together with Claude Code in the game repository; this service does not run Unity. The framework is organised around genre kits ' +
+    '(e.g. ActionRpg, TurnBased, or a Custom host) and runtime modules (e.g. combat, progression, quests, items, loot, dialogue); designer ' +
+    'content is ScriptableObject assets; multiplayer is host-authoritative co-op. The framework capabilities catalog is NOT connected yet: ' +
+    'never state that a module exists for certain — mark every framework dependency "verify in catalog", and list likely framework gaps ' +
+    '(need, what is missing, desired API, workaround). Game repo docs: GAME.md, FRAMEWORK-GAPS.md, Docs/GDD.md, Docs/ASSETS.md, Docs/TASKS.md.',
+};
+
+const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
+const list = (a, n, f) => (Array.isArray(a) ? a : []).map(f).filter(Boolean).slice(0, n);
+const oneOf = (v, opts, d) => (opts.includes(v) ? v : d);
+const labelMap = (o, n, max) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {})
+  .map(([k, v]) => [str(k, 80), str(v, max)]).filter(([k, v]) => k && v).slice(0, n));
+
+// Canon + this game as compact text; every card carries a ref the model can point questions at.
+function bibleText(world, entities, cards, game) {
+  const own = (game.sections || []).map((s) => ({ id: s.id, name: s.name }));
+  const lines = [`# World canon: ${world.title || ''}`, world.tagline || '', world.summary || ''];
+  if ((world.rules || []).length) lines.push('Laws of the world:', ...world.rules.map((r) => `- ${r}`));
+  lines.push(`\n# Game: ${game.title || ''}`);
+  const card = (ref, section, title, status, fields, note) => {
+    lines.push(`\n## [${ref}] ${title} (section: ${section}, status: ${status || 'idea'})`);
+    for (const [k, v] of Object.entries(fields)) if (str(v, 1)) lines.push(`${k}: ${str(v, 3000)}`);
+    if (note) lines.push(`Author's note: ${str(note, 1000)}`);
+  };
+  const named = (c) => {
+    const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
+    return Object.fromEntries(Object.entries(c.fields || {}).map(([k, v]) => [labels[k] || k, v]));
+  };
+  for (const e of entities) {
+    if (!CANON_KINDS.includes(e.kind)) continue;
+    const c = cards.find((x) => x.canonRef === e.id) || {};
+    if (c.hidden) continue;
+    card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '', ...named(c) }, c.note);
+  }
+  for (const c of cards) {
+    if (c.canonRef) continue;
+    card(`c:${c.id}`, (own.find((s) => s.id === c.section) || {}).name || c.section, c.title || '', c.status, named(c), c.note);
+  }
+  return lines.join('\n').slice(0, MAX_BIBLE_CHARS);
+}
+
+const cleanQuestion = (q, i) => (q && str(q.question, 600) ? {
+  id: 'q_' + Date.now().toString(36) + '_' + i,
+  topic: str(q.topic, 80),
+  question: str(q.question, 600),
+  why: str(q.why, 400),
+  options: list(q.options, 5, (o) => str(o, 200) || null),
+  priority: oneOf(q.priority, ['blocker', 'important', 'nice'], 'important'),
+  target: q.target && str(q.target.card, 80) ? { card: str(q.target.card, 80), field: str(q.target.field, 80) } : null,
+} : null);
+const cleanContradiction = (c) => (c && str(c.what, 500) ? { what: str(c.what, 500), where: str(c.where, 200) } : null);
+
+function cleanAnalysis(p) {
+  const gdd = p && p.gdd ? p.gdd : {};
+  return {
+    gdd: {
+      summary: str(gdd.summary, 1500),
+      readiness: Math.max(0, Math.min(100, Math.round(Number(gdd.readiness) || 0))),
+      sections: list(gdd.sections, 20, (s) => (s && str(s.title, 80) ? { title: str(s.title, 80), status: oneOf(s.status, ['solid', 'partial', 'missing'], 'partial'), notes: str(s.notes, 600) } : null)),
+    },
+    questions: list(p && p.questions, 25, cleanQuestion),
+    contradictions: list(p && p.contradictions, 12, cleanContradiction),
+  };
+}
+
+function cleanPlan(p) {
+  const plan = p && p.plan ? p.plan : {};
+  return {
+    overview: str(plan.overview, 2000),
+    engineNotes: str(plan.engineNotes, 2000),
+    milestones: list(plan.milestones, 12, (m) => (m && str(m.name, 120) ? {
+      id: str(m.id, 12), name: str(m.name, 120), goal: str(m.goal, 600), gate: str(m.gate, 600),
+      tasks: list(m.tasks, 30, (t) => (t && str(t.title, 160) ? {
+        id: str(t.id, 16), title: str(t.title, 160), detail: str(t.detail, 1200),
+        deps: list(t.deps, 8, (d) => str(d, 16) || null),
+        size: oneOf(t.size, ['S', 'M', 'L'], 'M'),
+        owner: oneOf(t.owner, ['design', 'dev', 'art', 'audio', 'qa'], 'dev'),
+        prompt: str(t.prompt, 3000),
+      } : null)),
+    } : null)),
+    parallel: list(plan.parallel, 8, (s) => str(s, 300) || null),
+    risks: list(plan.risks, 10, (r) => (r && str(r.risk, 300) ? { risk: str(r.risk, 300), mitigation: str(r.mitigation, 400) } : null)),
+    gaps: list(plan.gaps, 15, (g) => (g && str(g.need, 300) ? { need: str(g.need, 300), missing: str(g.missing, 300), desiredApi: str(g.desiredApi, 500), workaround: str(g.workaround, 300) } : null)),
+  };
+}
+
+function cleanImport(p, shelves, entities, world) {
+  const gameShelves = shelves.filter((s) => s.kind === 'game').map((s) => s.id);
+  const ids = new Set(entities.map((e) => e.id));
+  const laws = new Set((world.rules || []).map((r) => String(r).trim().toLowerCase()));
+  return {
+    laws: list(p && p.laws, 10, (l) => { const v = str(l, 240); return v && !laws.has(v.toLowerCase()) ? v : null; }),
+    canon: list(p && p.canon, 60, (e) => (e && CANON_KINDS.includes(e.kind) && str(e.name, 80) ? {
+      kind: e.kind, name: str(e.name, 80), description: str(e.description, 1500),
+      match: ids.has(str(e.match, 80)) ? str(e.match, 80) : '',
+      gameFields: labelMap(e.gameFields, 12, 3000),
+    } : null)),
+    cards: list(p && p.cards, 120, (c) => (c && str(c.title, 160) ? {
+      section: gameShelves.includes(c.section) ? c.section : 'overview', title: str(c.title, 160), fields: labelMap(c.fields, 15, 4000),
+    } : null)),
+    contradictions: list(p && p.contradictions, 15, cleanContradiction),
+    questions: list(p && p.questions, 20, cleanQuestion).map((q) => ({ ...q, target: null })), // their cards don't exist yet
+  };
+}
+
+const answeredText = (answered) => (answered.length ? `\nAlready decided by the author:\n${answered.map((a) => `- Q: ${a.q}\n  A: ${a.a}`).join('\n')}\n` : '');
+
+function importPrompt(markdown, shelves, entities, world, languageName) {
+  const shelfText = shelves.map((s) => `- ${s.id} (${s.kind === 'canon' ? `CANON ${s.canonKind}` : 'game'}): ${s.name}${s.fields.length ? ` — fields: ${s.fields.join(' | ')}` : ''}`).join('\n');
+  const known = entities.filter((e) => CANON_KINDS.includes(e.kind)).map((e) => `- ${e.id} [${e.kind}] ${e.name || ''}`).join('\n');
+  return `You are the librarian of WhiteWrite. The author uploaded their notes about a world and a game. Sort EVERYTHING useful onto the shelves below — do not invent content that is not in the notes, do not drop details (numbers, names, prompts, references).
+
+SHELVES:
+${shelfText}
+
+Rules:
+- CANON is the world shared by all stories and games: characters, locations, factions, artifacts. Put each canon entity in "canon" with kind (characters|locations|factions|artifacts), name, description (who/what it is in the world). If it is already in the canon list below, set "match" to its id. Game-only information about it (role in the game, numbers, abilities, model/prefab, level design) goes to gameFields as {"<field label>": "value"} — prefer the shelf's field labels.
+- New laws of the world (hard rules of magic/physics/society) go to "laws" — only ones not already listed.
+- Everything about the GAME (overview, pillars, loop, mechanics, enemies, bosses, assets, prefabs, materials, sound, UI…) goes to "cards" with section = a game shelf id, title, and fields {"<field label>": "value"}. Use the shelf's field labels when they fit; otherwise a short new label. Keep markdown (tables, lists) inside values.
+- contradictions: places where the notes contradict themselves or the canon (what, where).
+- questions: decisions the notes leave open that block making the game (topic, question, why, options, priority blocker|important|nice).
+
+World canon now: ${world.title || ''}. ${world.summary || ''}
+Laws: ${(world.rules || []).join(' | ')}
+Known canon entities:
+${known || '(none)'}
+
+AUTHOR'S NOTES:
+${markdown}
+
+Write ALL text in ${languageName} unless quoting the notes. Return ONLY valid JSON, no markdown fence:
+{"laws":[""],"canon":[{"kind":"characters","name":"","description":"","match":"","gameFields":{}}],"cards":[{"section":"mechanics","title":"","fields":{}}],"contradictions":[{"what":"","where":""}],"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"important"}]}`;
+}
+
+function analyzePrompt(bible, engine, answered, languageName) {
+  return `You are the lead game designer and producer of WhiteWrite. Below is the world canon and the Game Bible of one game built on it: structured cards written by the author. Canon cards ([e:...]) are shared with the world's stories and other games; their game fields belong to this game only.
+
+Your job: turn it into an interactive game design document. Read everything, then:
+1. gdd.summary — 2-4 sentences: what this game is, for whom, what makes it itself.
+2. gdd.readiness — 0-100: how ready the design is to start production.
+3. gdd.sections — for each area of a GDD (vision & pillars, core loop, mechanics, progression, characters, enemies, levels, economy/items, UI/UX, audio, art direction, multiplayer, tech/engine, monetization if relevant): status solid|partial|missing + one-line notes.
+4. questions — the UNRESOLVED decisions that block or weaken production, most important first (max 15). Concrete, answerable questions. For each: topic, question, why (what in production depends on it), 2-4 options when sensible, priority blocker|important|nice, and target — the card ref it belongs to ("c:..." / "e:..." from the bible, or "") and the field it would fill (an existing field name, or a short new field label).
+5. contradictions — places where cards contradict each other or the world laws (what, where).
+Do NOT ask what the bible already answers. Do NOT re-ask what the author already decided.
+
+Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
+${answeredText(answered)}
+BIBLE:
+${bible}
+
+Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
+{"gdd":{"summary":"","readiness":0,"sections":[{"title":"","status":"partial","notes":""}]},"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"blocker","target":{"card":"","field":""}}],"contradictions":[{"what":"","where":""}]}`;
+}
+
+function planPrompt(bible, engine, answered, gdd, languageName) {
+  return `You are the producer of this game. Using the Game Bible, the GDD analysis and the author's decisions below, write a precise, actionable DEVELOPMENT PLAN.
+
+Rules:
+- Milestones in order (typically: prototype of the core loop → vertical slice → content production → alpha → beta/polish → release; adapt to the game's scope). Each has a goal and a GATE: a concrete, checkable condition that must be true before the next milestone starts.
+- Tasks inside each milestone: id like "M1.3", title, detail (what exactly, with the numbers/content from the bible), deps (task ids), size S|M|L, owner design|dev|art|audio|qa, and prompt — a ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation brief). Every bible card that must be built should appear in some task.
+- parallel: which streams can run at the same time.
+- risks with mitigation.
+- gaps: things the engine/framework likely does not provide (need, missing, desiredApi, workaround). Empty for a generic engine unless obvious.
+- Ground everything in the bible; where the bible is silent, choose the simplest option and say so in the task detail.
+
+Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
+
+GDD analysis: ${JSON.stringify(gdd)}
+${answeredText(answered)}
+BIBLE:
+${bible}
+
+Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
+{"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]}}`;
+}
+
+function parseJson(text) {
+  try { return JSON.parse(text); } catch (e) {
+    const m = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('AI повернув не JSON');
+    return JSON.parse(m[1] || m[0]);
+  }
+}
+
+// Shelves the client sent (its sections with field labels in the author's language) — prompt input only.
+function cleanShelves(a) {
+  return list(a, 40, (s) => (s && str(s.id, 60) && str(s.name, 80) ? {
+    id: str(s.id, 60), name: str(s.name, 80), kind: s.kind === 'canon' ? 'canon' : 'game',
+    canonKind: CANON_KINDS.includes(s.canonKind) ? s.canonKind : '', fields: list(s.fields, 15, (f) => str(f, 60) || null),
+  } : null));
+}
+
+/**
+ * Cloud Function: gamedevPlan
+ * Input (POST JSON): { worldId, gameId, op: 'import' | 'analyze' | 'plan', language?, markdown?, shelves? }
+ * Output: { success, tokensConsumed, tokensRemaining, proposal? } — analyze/plan write worlds/{w}/games/{g}/plan/current
+ */
+exports.gamedevPlan = onRequest({
+  region: 'us-central1',
+  secrets: [claudeApiKey],
+  timeoutSeconds: 540,
+  memory: '512MiB'
+}, async (req, res) => {
+  return cors(req, res, async () => {
+    let uid;
+    let reservation = null;
+    try {
+      if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) return res.status(401).json({ error: 'Потрібна автентифікація' });
+      try {
+        uid = (await admin.auth().verifyIdToken(authHeader.split('Bearer ')[1])).uid;
+      } catch (error) {
+        return res.status(401).json({ error: 'Невірний токен автентифікації' });
+      }
+
+      const body = req.body || {};
+      const op = oneOf(body.op, ['import', 'analyze', 'plan'], 'analyze');
+      const worldId = str(body.worldId, 120);
+      const gameId = str(body.gameId, 120);
+      const languageName = LANGUAGES[body.language] || LANGUAGES.uk;
+      if (!worldId || !gameId) return res.status(400).json({ error: 'Missing worldId/gameId' });
+      const markdown = String(body.markdown || '');
+      if (op === 'import' && !markdown.trim()) return res.status(400).json({ error: 'Порожній файл' });
+      if (markdown.length > MAX_IMPORT_CHARS) return res.status(400).json({ error: `Файл завеликий. Максимум: ${MAX_IMPORT_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
+
+      const userDoc = await db.collection('users').doc(uid).get();
+      const userData = userDoc.exists ? userDoc.data() : {};
+      const userPlan = userData.plan || 'free';
+      if (!getPlanBudget(userPlan).allowGameDev) {
+        return res.status(403).json({ error: 'Біблія гри доступна на тарифі Worldbuilder', code: 'PLAN_REQUIRED', plan: userPlan });
+      }
+      if (userData.subscriptionStatus !== 'active') {
+        return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true, plan: userPlan });
+      }
+
+      const worldRef = db.collection('worlds').doc(worldId);
+      const gameRef = worldRef.collection('games').doc(gameId);
+      const [worldSnap, gameSnap, entitiesSnap, cardsSnap, planSnap] = await Promise.all([
+        worldRef.get(), gameRef.get(), worldRef.collection('entities').get(), gameRef.collection('cards').get(), gameRef.collection('plan').doc('current').get()]);
+      if (!worldSnap.exists || worldSnap.data().owner !== uid || !gameSnap.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+
+      const world = worldSnap.data(), game = gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
+      const entities = entitiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false));
+      const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const engine = (game.engine && game.engine.profile) || 'generic';
+      const answers = prev.answers || {};
+      const answered = (prev.asked || []).filter((q) => str(answers[q.id], 1)).map((q) => ({ q: q.question, a: str(answers[q.id], 2000) }));
+      if (op === 'plan' && !prev.gdd) return res.status(400).json({ error: 'Спершу проаналізуй біблію', code: 'ANALYZE_FIRST' });
+      const shelves = cleanShelves(body.shelves);
+
+      // Priced by real output (scene economy entry), logged separately
+      const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
+      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
+      const reserveCost = ((providerEconomy && providerEconomy.cost) || 300) * (op === 'analyze' ? 2 : 4);
+      const balance = getBalance(userData);
+      if (balance.available < reserveCost) {
+        return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+      }
+      try {
+        reservation = await reserve(db, uid, reserveCost);
+      } catch (error) {
+        if (error.code !== 'OUT_OF_TOKENS') throw error;
+        return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+      }
+
+      const prompt = op === 'import' ? importPrompt(markdown, shelves, entities, world, languageName)
+        : op === 'plan' ? planPrompt(bibleText(world, entities, cards, game), engine, answered, prev.gdd, languageName)
+        : analyzePrompt(bibleText(world, entities, cards, game), engine, answered, languageName);
+      let model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet;
+      const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
+      const message = await anthropic.messages.create({
+        model,
+        max_tokens: op === 'analyze' ? 8000 : 16000,
+        messages: [{ role: 'user', content: prompt }]
+      });
+      if (message.stop_reason === 'max_tokens') throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
+      const parsed = parseJson(message.content.filter((b) => b.type === 'text').map((b) => b.text).join(''));
+      model = message.model || model;
+
+      let proposal = null;
+      if (op === 'import') {
+        proposal = cleanImport(parsed, shelves, entities, world);
+      } else {
+        const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine };
+        if (op === 'analyze') {
+          const a = cleanAnalysis(parsed);
+          // keep answered questions; open ones are replaced by the fresh analysis
+          const kept = (prev.asked || []).filter((q) => str(answers[q.id], 1));
+          Object.assign(update, { gdd: a.gdd, contradictions: a.contradictions, asked: kept.concat(a.questions), analyzedAt: admin.firestore.FieldValue.serverTimestamp() });
+        } else {
+          Object.assign(update, { plan: cleanPlan(parsed), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
+        }
+        await gameRef.collection('plan').doc('current').set(update, { merge: true });
+      }
+
+      const { userCost } = await charge(db, uid, 'generateScene', model, message.usage, null, {
+        provider: 'claude',
+        targetWords: Math.round((message.usage.output_tokens || 0) * 0.75),
+        estimatedInputTokens: Math.ceil(prompt.length / 4),
+        reserved: reservation,
+        logAs: 'gamedev_' + op
+      });
+      reservation = null;
+
+      res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
+    } catch (error) {
+      console.error('gamedevPlan error:', error);
+      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[gamedevPlan] Refund failed:', e));
+      res.status(500).json({ error: `Помилка біблії гри: ${error.message}` });
+    }
+  });
+});

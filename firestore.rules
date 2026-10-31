@@ -47,6 +47,17 @@ service cloud.firestore {
       match /entities/{entityId} {
         allow read, write: if isAuthenticated() && isWorldOwner(worldId);
       }
+
+      // Games built on this canon (one canon → many games): game doc + cards + production plan.
+      // Writing needs a plan with allowGameDev (functions/plans.js); reading stays with the owner whatever the plan.
+      match /games/{document=**} {
+        allow read: if isAuthenticated() && isWorldOwner(worldId);
+        allow write: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev();
+      }
+    }
+
+    function hasGameDev() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
     }
 
     // Projects collection

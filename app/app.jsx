@@ -128,7 +128,7 @@ function GenerationProgress({ current, total }) {
 function App() {
   // Returning from the workspace? Open straight to the story (skip the ritual).
   // Or opening existing project from list?
-  let RET = false, RET_TITLE = "", SCENE = null, NEW = false, PROJECT_ID = null;
+  let RET = false, RET_TITLE = "", SCENE = null, NEW = false, PROJECT_ID = null, WORLD_ID = null, NEW_WORLD = false;
   try {
     RET = localStorage.getItem("ww_return") === "1";
     RET_TITLE = localStorage.getItem("ww_title") || "";
@@ -138,10 +138,13 @@ function App() {
     if (sp) SCENE = parseInt(sp, 10) || null;
     NEW = params.get("new") === "1";
     PROJECT_ID = params.get("projectId");
+    WORLD_ID = params.get("worldId");       // a new story is born inside this world
+    NEW_WORLD = params.get("newWorld") === "1";
   } catch (e) {}
   const DIRECT = RET || SCENE != null || PROJECT_ID != null;
 
-  const [stage, setStage] = useAState(DIRECT ? "book" : (NEW ? "form" : "start")); // start | form | book
+  // A story always lives in a world: "new" without a world starts with the world itself.
+  const [stage, setStage] = useAState(DIRECT ? "book" : (NEW_WORLD || (NEW && !WORLD_ID)) ? "worldform" : (NEW ? "form" : "start")); // start | worldform | genesis | form | book
   const [form, setForm] = useAState(DIRECT ? { description: "", projectId: PROJECT_ID } : null);
   const [returned] = useAState(DIRECT);
   const [loadingProject, setLoadingProject] = useAState(false);
@@ -215,12 +218,23 @@ function App() {
     loadExistingProject();
   }, [PROJECT_ID]);
 
-  // Form → Genesis (author chooses the world) → book. Without the AI module, straight to the book.
+  // How many worlds the author has: the hero CTA is "create" for none, "choose" otherwise.
+  const [worldsCount, setWorldsCount] = useAState(() => { try { return window.parent.__wwWorldsCount || 0; } catch (e) { return 0; } });
+  function beginFromHero() {
+    if (window.self !== window.top) window.parent.postMessage({ type: "ww-world-cta" }, window.location.origin);
+    else setStage("worldform");
+  }
+
+  // World form → Genesis (author chooses the world) → world hub in the shell.
   const [genesisData, setGenesisData] = useAState(null);
   function startGenesis(data) {
-    if (!(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return enterBook(data);
     setGenesisData(data);
+    if (!(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return createWorld({ name: data.title, summary: data.description });
     setStage("genesis");
+  }
+  async function createWorld(seed) {
+    const worldId = await window.__firebaseCanon.createWorld(seed);
+    if (window.self !== window.top) window.parent.postMessage({ type: "ww-world-created", worldId }, window.location.origin);
   }
 
   // Persist the universe title so the workspace ↔ book stay the same world.
@@ -239,7 +253,8 @@ function App() {
           length: data.length || 700,
           dialogue: data.dialogue || 50,
           episodes: data.episodes || null,
-          endingNote: data.endingNote || ''
+          endingNote: data.endingNote || '',
+          worldId: WORLD_ID
         };
 
         const projectId = await window.__firebaseProjects.createProject(projectData);
@@ -252,15 +267,6 @@ function App() {
         if (window.self !== window.top && window.parent.__setCurrentProject) {
           console.log('[Book] Notifying shell about new project:', projectId);
           window.parent.__setCurrentProject(projectId);
-        }
-
-        // Genesis: the world the author chose becomes canon before the first scene
-        if (data.genesis && window.__firebaseCanon) {
-          try {
-            await window.__firebaseCanon.applyGenesis(projectId, data.genesis);
-          } catch (genesisError) {
-            console.error('[Genesis] Failed to write world seed:', genesisError);
-          }
         }
 
         // Auto mode: generate all scenes at once
@@ -428,7 +434,11 @@ function App() {
 
   // Shell logo → return to the mage cover even if we navigated internally.
   React.useEffect(() => {
-    function onMsg(e) { if (e.origin === window.location.origin && e.data && e.data.type === "ww-home") setStage("start"); }
+    function onMsg(e) {
+      if (e.origin !== window.location.origin || !e.data) return;
+      if (e.data.type === "ww-home") setStage("start");
+      if (e.data.type === "ww-worlds") setWorldsCount(e.data.count);
+    }
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
   }, []);
@@ -458,24 +468,31 @@ function App() {
   return (
     <div className="app" key={`app-${langVersion}`}>
       {stage === "start" && (
-        <StartScreen key={`start-${langVersion}`} langVersion={langVersion} onBegin={() => setStage("form")} />
+        <StartScreen key={`start-${langVersion}`} langVersion={langVersion} hasWorlds={worldsCount > 0} onBegin={beginFromHero} />
+      )}
+      {stage === "worldform" && (
+        <WorldForm
+          key={`worldform-${langVersion}`}
+          onBack={() => setStage("start")}
+          onCreate={startGenesis}
+          initial={genesisData}
+        />
       )}
       {stage === "form" && (
         <StoryForm
           key={`form-${langVersion}`}
           langVersion={langVersion}
-          onBack={() => setStage("start")}
-          onCreate={startGenesis}
-          initial={genesisData}
+          onBack={() => { try { window.parent.__wwOpenWorld(WORLD_ID); } catch (e) { setStage("start"); } }}
+          onCreate={enterBook}
         />
       )}
       {stage === "genesis" && genesisData && (
         <GenesisScreen
           key={`genesis-${langVersion}`}
           data={genesisData}
-          onChoose={(seed) => enterBook({ ...genesisData, genesis: seed })}
-          onSkip={() => enterBook(genesisData)}
-          onBack={() => setStage("form")}
+          onChoose={createWorld}
+          onSkip={() => createWorld({ name: genesisData.title, summary: genesisData.description })}
+          onBack={() => setStage("worldform")}
         />
       )}
       {stage === "book" && (

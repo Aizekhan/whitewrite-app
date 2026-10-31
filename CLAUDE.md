@@ -18,6 +18,11 @@
   - Етап 2: збірка `app/` → `dist/` (`scripts/build-app.mjs`), prod-React, CSP (повний allowlist поки Report-Only), postMessage same-origin, `functions/src/*` модулі
   - Етап 3: закони/факти/стан сутностей у промпті (`buildCanonContext`); реконструкція з diff (`reconstructScene` + overlay у Дереві, поважає `scene.reconstruction.mode`); таймлайн (`scene.stateChanges` з екстракції → «Стан у часі» у профілі, хронологія в Хроніці); карта локацій (вид «Карта», `entity.mapPos`); Genesis (`genesisWorld` → екран вибору світу між формою і книгою, `__firebaseCanon.applyGenesis`)
   - **Next**: E2E з реальним AI на акаунті власника; увімкнути повний CSP після перевірки Google-логіну/Stripe
+- **2026-11-01**: Світи на головній + Біблія гри + Продакшн-план
+  - Головна: «Створи свій світ» / «Обери свій світ» → вид «Світи» → хаб світу (історії, Дерево, Біблія гри); Genesis = створення світу (`__firebaseCanon.createWorld` / `listWorlds`); База знань — кнопка «?» біля жучка
+  - Біблія гри (`WhiteWrite GameBible.html` + `gamebible.js`): **один канон → багато ігор** — `worlds/{w}/games/{g}` (+ `cards/`, `plan/current`); гейм-поля сутності канону — у `games/{g}/cards/{entityId}` (`canonRef`), не на сутності
+  - `functions/src/gamedev.js` → `gamedevPlan`: `import` (.md → пропозиція, автор відмічає), `analyze` (GDD + питання), `plan` (етапи з воротами + промпти для Claude Code); доступ `allowGameDev` (worldbuilder, worldforge)
+  - **Next**: E2E з реальним AI (імпорт нотаток MythRunner → аналіз → план); підключити каталог можливостей RPG Framework
 
 ## Архітектура даних (важливо)
 - **`WORLD` (`wt-world.jsx`) — ЄДИНЕ джерело правди.** Усі три стовпи читають із нього.

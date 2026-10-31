@@ -62,6 +62,7 @@ window.__PLAN_BUDGETS = {
     allowCanonSync: false,          // ❌ NO sync button
     allowAnalyze: false,            // ❌ NO ANALYZE mode
     allowImprove: false,            // ❌ NO IMPROVE mode
+    allowGameDev: false,
 
     // Soft limits (UI guidance, not hard blocks)
     maxProjects: 1,
@@ -84,6 +85,7 @@ window.__PLAN_BUDGETS = {
     allowCanonSync: true,           // ✅ "Синхронізувати" button
     allowAnalyze: false,            // ❌ ANALYZE mode (too expensive for this tier)
     allowImprove: false,            // ❌ IMPROVE mode (too expensive for this tier)
+    allowGameDev: false,
 
     maxProjects: 5,
 
@@ -107,6 +109,7 @@ window.__PLAN_BUDGETS = {
     allowCanonSync: true,           // ✅ Canon sync
     allowAnalyze: true,             // ✅ ANALYZE mode (50 tokens)
     allowImprove: true,             // ✅ IMPROVE mode (80 tokens)
+    allowGameDev: false,
 
     maxProjects: Infinity,
     imageCreditsGuideline: 100, // Soft limit (UI shows "100 images recommended")
@@ -132,6 +135,7 @@ window.__PLAN_BUDGETS = {
     allowCanonSync: true,
     allowAnalyze: true,
     allowImprove: true,
+    allowGameDev: true,           // ✅ Game Bible + Production Plan
 
     maxProjects: Infinity,
     imageCreditsGuideline: 500,
@@ -157,6 +161,7 @@ window.__PLAN_BUDGETS = {
     allowCanonSync: true,
     allowAnalyze: true,
     allowImprove: true,
+    allowGameDev: true,           // ✅ Game Bible + Production Plan
 
     maxProjects: Infinity,
     imageCreditsGuideline: 500,

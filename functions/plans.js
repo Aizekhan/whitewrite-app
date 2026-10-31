@@ -12,7 +12,8 @@ const PLAN_BUDGETS = {
     allowCanonExtraction: false,
     allowAnalyze: false,
     allowReconstruction: false,
-    allowImprove: false
+    allowImprove: false,
+    allowGameDev: false
   },
   storyteller: {
     monthly: 2400,
@@ -21,7 +22,8 @@ const PLAN_BUDGETS = {
     allowCanonExtraction: true,  // ✅ Auto-extraction enabled
     allowAnalyze: false,
     allowReconstruction: false,
-    allowImprove: false
+    allowImprove: false,
+    allowGameDev: false
   },
   novelist: {
     monthly: 32000,
@@ -30,7 +32,8 @@ const PLAN_BUDGETS = {
     allowCanonExtraction: true,
     allowAnalyze: true,   // ✅ ANALYZE mode
     allowReconstruction: true,
-    allowImprove: true    // ✅ IMPROVE mode
+    allowImprove: true,   // ✅ IMPROVE mode
+    allowGameDev: false
   },
   worldbuilder: {
     monthly: 180000,
@@ -39,7 +42,8 @@ const PLAN_BUDGETS = {
     allowCanonExtraction: true,
     allowAnalyze: true,
     allowReconstruction: true,
-    allowImprove: true
+    allowImprove: true,
+    allowGameDev: true // Game Bible + Production Plan
   },
   worldforge: {
     monthly: 180000,
@@ -48,7 +52,8 @@ const PLAN_BUDGETS = {
     allowCanonExtraction: true,
     allowAnalyze: true,
     allowReconstruction: true,
-    allowImprove: true
+    allowImprove: true,
+    allowGameDev: true // Game Bible + Production Plan
   } // dev/testing plan
 };
 

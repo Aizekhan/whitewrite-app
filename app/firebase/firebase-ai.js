@@ -100,7 +100,7 @@ window.__firebaseAI = {
 
   /**
    * Genesis / World Intent: 3 distinct world seeds from the author's premise.
-   * Nothing is saved — the chosen seed is written by __firebaseCanon.applyGenesis().
+   * Nothing is saved — the chosen seed is written by __firebaseCanon.createWorld().
    * @returns {Promise<{success: boolean, seeds?: Array, error?: string, code?: string}>}
    */
   async genesisWorld({ title, premise, genres, language }) {
