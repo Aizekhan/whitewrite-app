@@ -457,7 +457,7 @@
       var shelves = sections().filter(function (x) { return !x.special; }).map(function (x) {
         return { id: x.id, name: L(x), kind: x.canon ? "canon" : "game", canonKind: x.canon || "", fields: (x.defs || []).map(function (d) { return d.label; }) };
       });
-      try { var data = await callFn({ op: "import", markdown: text, shelves: shelves }); imp = { proposal: data.proposal, spent: data.tokensConsumed }; }
+      try { var data = await callFn({ op: "import", markdown: text, shelves: shelves }); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {} }; }
       catch (e) { imp = { error: e.message }; }
       render();
     };
@@ -473,7 +473,7 @@
     var p = imp.proposal;
     if (p && !imp.done) {
       if (imp.spent) html += '<p class="muted">' + STR.spent + ': ' + imp.spent + '</p>';
-      var box = function (kind, i, label, detail) { return '<label class="imp"><input type="checkbox" checked data-imp="' + kind + ':' + i + '"><span><b>' + esc(label) + '</b>' + (detail ? '<span class="muted"> — ' + esc(detail) + '</span>' : '') + '</span></label>'; };
+      var box = function (kind, i, label, detail) { return '<label class="imp"><input type="checkbox"' + (imp.off[kind + ':' + i] ? '' : ' checked') + ' data-imp="' + kind + ':' + i + '"><span><b>' + esc(label) + '</b>' + (detail ? '<span class="muted"> — ' + esc(detail) + '</span>' : '') + '</span></label>'; };
       if (p.laws.length) html += '<h2 class="group">' + STR.importLaws + '</h2>' + p.laws.map(function (l, i) { return box("law", i, l); }).join("");
       if (p.canon.length) html += '<h2 class="group">' + STR.importCanon + '</h2>' + p.canon.map(function (e, i) {
         return box("canon", i, e.name + " · " + L(sec(CANON.filter(function (s) { return s.canon === e.kind; })[0].id)), (e.match ? STR.importMatch : STR.importNew) + (e.description ? ": " + e.description : "")); }).join("");
@@ -484,6 +484,7 @@
     }
     $("view").innerHTML = html;
     $("imp-x").onclick = function () { imp = null; render(); };
+    [].forEach.call(document.querySelectorAll("[data-imp]"), function (cb) { cb.onchange = function () { imp.off[cb.dataset.imp] = !cb.checked; }; }); // survives re-renders from live snapshots
     var ok = $("imp-ok"); if (ok) ok.onclick = function () { ok.disabled = true; applyImport().catch(function (e) { imp.error = e.message; render(); }); };
   }
 
@@ -516,7 +517,16 @@
     });
     p.cards.forEach(function (c, i) {
       if (!on("card", i)) return;
-      var s = sec(c.section), f = toFields(c.fields, s.defs || CUSTOM_DEFS);
+      var s = sec(c.section);
+      var same = cards.filter(function (x) { return !x.canonRef && x.section === s.id && String(x.title || "").trim().toLowerCase() === c.title.trim().toLowerCase(); })[0];
+      if (same) { // the card already exists: add the imported fields to it, keep what the author wrote
+        var g = toFields(c.fields, same.defs || s.defs || CUSTOM_DEFS), merged = Object.assign({}, same.fields);
+        Object.keys(g.fields).forEach(function (k) { merged[k] = merged[k] && merged[k] !== g.fields[k] ? merged[k] + "\n\n" + g.fields[k] : g.fields[k]; });
+        batch.set(gref().collection("cards").doc(same.id), { fields: merged, defs: (same.defs || s.defs || CUSTOM_DEFS).concat(g.extra), updatedAt: stamp() }, { merge: true });
+        n++;
+        return;
+      }
+      var f = toFields(c.fields, s.defs || CUSTOM_DEFS);
       batch.set(gref().collection("cards").doc(newId("card")), { section: s.id, title: c.title, status: "idea", note: "", defs: (s.defs || CUSTOM_DEFS).concat(f.extra),
         fields: f.fields, order: Date.now() + i, createdAt: stamp(), updatedAt: stamp() });
       n++;

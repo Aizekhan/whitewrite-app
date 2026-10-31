@@ -16,6 +16,13 @@ const admin = require('firebase-admin');
 const { MODEL_PRICING } = require('./ai-models.js');
 const { getPlanBudget } = require('./plans.js');
 
+// The API answers with a dated id (claude-sonnet-4-5-20250929); price it by the configured alias it starts with
+function pricingFor(model) {
+  if (MODEL_PRICING[model]) return MODEL_PRICING[model];
+  const alias = Object.keys(MODEL_PRICING).filter((k) => String(model || '').startsWith(k + '-')).sort((x, y) => y.length - x.length)[0];
+  return alias ? MODEL_PRICING[alias] : null;
+}
+
 // ============================================================================
 // BALANCE (server-side only — client never writes token fields)
 // ============================================================================
@@ -267,7 +274,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   // Calculate INPUT cost (Phase 6.2: charge for prompt size)
   let estInputCostUSD = 0;
   if (estimatedInputTokens > 0) {
-    const pricing = MODEL_PRICING[model];
+    const pricing = pricingFor(model);
     if (pricing) {
       estInputCostUSD = estimatedInputTokens * pricing.input / 1000000;
       console.log(`[TokenService] Input cost: ${estimatedInputTokens} tokens × $${pricing.input}/M = $${estInputCostUSD.toFixed(4)}`);
@@ -295,7 +302,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   let cacheCreationTokens = usage.cache_creation_input_tokens || 0;
   let cacheReadTokens = usage.cache_read_input_tokens || 0;
 
-  const pricing = MODEL_PRICING[model];
+  const pricing = pricingFor(model);
   if (pricing) {
     const inputCost = inputTokens * pricing.input / 1000000;
     const outputCost = outputTokens * pricing.output / 1000000;

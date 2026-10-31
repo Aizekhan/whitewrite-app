@@ -151,7 +151,6 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
         });
         outText = message.content[0].text;
         apiUsage = message.usage;
-        model = message.model || model;
       } else {
         model = AI_MODELS.gemini.pro;
         const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${geminiApiKey.value()}`, {

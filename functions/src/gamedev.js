@@ -135,7 +135,7 @@ function cleanImport(p, shelves, entities, world) {
 
 const answeredText = (answered) => (answered.length ? `\nAlready decided by the author:\n${answered.map((a) => `- Q: ${a.q}\n  A: ${a.a}`).join('\n')}\n` : '');
 
-function importPrompt(markdown, shelves, entities, world, languageName) {
+function importPrompt(markdown, shelves, entities, world, languageName, cards) {
   const shelfText = shelves.map((s) => `- ${s.id} (${s.kind === 'canon' ? `CANON ${s.canonKind}` : 'game'}): ${s.name}${s.fields.length ? ` — fields: ${s.fields.join(' | ')}` : ''}`).join('\n');
   const known = entities.filter((e) => CANON_KINDS.includes(e.kind)).map((e) => `- ${e.id} [${e.kind}] ${e.name || ''}`).join('\n');
   return `You are the librarian of WhiteWrite. The author uploaded their notes about a world and a game. Sort EVERYTHING useful onto the shelves below — do not invent content that is not in the notes, do not drop details (numbers, names, prompts, references).
@@ -154,6 +154,8 @@ World canon now: ${world.title || ''}. ${world.summary || ''}
 Laws: ${(world.rules || []).join(' | ')}
 Known canon entities:
 ${known || '(none)'}
+Existing game cards (to add to one, reuse its exact title and section):
+${cards.filter((c) => !c.canonRef).map((c) => `- [${c.section}] ${c.title || ''}`).join('\n') || '(none)'}
 
 AUTHOR'S NOTES:
 ${markdown}
@@ -202,6 +204,49 @@ ${bible}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 {"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]}}`;
+}
+
+// Split notes at headings into parts of at most IMPORT_PART_CHARS
+const IMPORT_PART_CHARS = 20000;
+function splitMarkdown(md) {
+  const parts = [];
+  let cur = '';
+  md.split(/\n(?=#{1,3} )/).forEach((block) => {
+    for (let i = 0; i < block.length; i += IMPORT_PART_CHARS) {
+      const piece = block.slice(i, i + IMPORT_PART_CHARS);
+      if (cur && cur.length + piece.length + 1 > IMPORT_PART_CHARS) { parts.push(cur); cur = ''; }
+      cur += (cur ? '\n' : '') + piece;
+    }
+  });
+  if (cur.trim()) parts.push(cur);
+  return parts;
+}
+
+// Proposals of the parts → one: the same entity / card from two parts is merged
+function mergeImports(results) {
+  const key = (...a) => a.map((v) => String(v || '').trim().toLowerCase()).join('|');
+  const out = { laws: [], canon: [], cards: [], contradictions: [], questions: [] };
+  const canon = new Map(), cards = new Map(), laws = new Set();
+  results.forEach((r) => {
+    (Array.isArray(r && r.laws) ? r.laws : []).forEach((l) => { const k = key(l); if (!laws.has(k)) { laws.add(k); out.laws.push(l); } });
+    (Array.isArray(r && r.canon) ? r.canon : []).forEach((e) => {
+      if (!e) return;
+      const k = key(e.kind, e.name), prev = canon.get(k);
+      if (!prev) { canon.set(k, e); out.canon.push(e); return; }
+      if (e.description && !String(prev.description || '').includes(e.description)) prev.description = [prev.description, e.description].filter(Boolean).join('\n\n');
+      prev.match = prev.match || e.match;
+      prev.gameFields = Object.assign({}, e.gameFields, prev.gameFields);
+    });
+    (Array.isArray(r && r.cards) ? r.cards : []).forEach((c) => {
+      if (!c) return;
+      const k = key(c.section, c.title), prev = cards.get(k);
+      if (!prev) { cards.set(k, c); out.cards.push(c); return; }
+      Object.entries(c.fields || {}).forEach(([f, v]) => { prev.fields = prev.fields || {}; prev.fields[f] = prev.fields[f] ? prev.fields[f] + '\n\n' + v : v; });
+    });
+    out.contradictions.push(...(Array.isArray(r && r.contradictions) ? r.contradictions : []));
+    out.questions.push(...(Array.isArray(r && r.questions) ? r.questions : []));
+  });
+  return out;
 }
 
 function parseJson(text) {
@@ -294,23 +339,26 @@ exports.gamedevPlan = onRequest({
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }
 
-      const prompt = op === 'import' ? importPrompt(markdown, shelves, entities, world, languageName)
-        : op === 'plan' ? planPrompt(bibleText(world, entities, cards, game), engine, answered, prev.gdd, languageName)
-        : analyzePrompt(bibleText(world, entities, cards, game), engine, answered, languageName);
-      let model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet;
+      // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
+      const prompts = op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
+        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game), engine, answered, prev.gdd, languageName)
+          : analyzePrompt(bibleText(world, entities, cards, game), engine, answered, languageName)];
+      const prompt = prompts.join('');
+      const model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet; // configured id — the one MODEL_PRICING knows
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
-      const message = await anthropic.messages.create({
+      const messages = await Promise.all(prompts.map((content) => anthropic.messages.stream({
         model,
         max_tokens: op === 'analyze' ? 8000 : 16000,
-        messages: [{ role: 'user', content: prompt }]
-      });
-      if (message.stop_reason === 'max_tokens') throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
-      const parsed = parseJson(message.content.filter((b) => b.type === 'text').map((b) => b.text).join(''));
-      model = message.model || model;
+        messages: [{ role: 'user', content }]
+      }).finalMessage()));
+      if (messages.some((m) => m.stop_reason === 'max_tokens')) throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
+      const results = messages.map((m) => parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')));
+      const usage = messages.reduce((u, m) => ({ input_tokens: u.input_tokens + (m.usage.input_tokens || 0), output_tokens: u.output_tokens + (m.usage.output_tokens || 0) }), { input_tokens: 0, output_tokens: 0 });
+      const parsed = results[0];
 
       let proposal = null;
       if (op === 'import') {
-        proposal = cleanImport(parsed, shelves, entities, world);
+        proposal = cleanImport(mergeImports(results), shelves, entities, world);
       } else {
         const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine };
         if (op === 'analyze') {
@@ -324,9 +372,9 @@ exports.gamedevPlan = onRequest({
         await gameRef.collection('plan').doc('current').set(update, { merge: true });
       }
 
-      const { userCost } = await charge(db, uid, 'generateScene', model, message.usage, null, {
+      const { userCost } = await charge(db, uid, 'generateScene', model, usage, null, {
         provider: 'claude',
-        targetWords: Math.round((message.usage.output_tokens || 0) * 0.75),
+        targetWords: Math.round(usage.output_tokens * 0.75),
         estimatedInputTokens: Math.ceil(prompt.length / 4),
         reserved: reservation,
         logAs: 'gamedev_' + op
