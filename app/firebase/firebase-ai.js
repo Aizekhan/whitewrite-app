@@ -99,6 +99,29 @@ window.__firebaseAI = {
   },
 
   /**
+   * Genesis / World Intent: 3 distinct world seeds from the author's premise.
+   * Nothing is saved — the chosen seed is written by __firebaseCanon.applyGenesis().
+   * @returns {Promise<{success: boolean, seeds?: Array, error?: string, code?: string}>}
+   */
+  async genesisWorld({ title, premise, genres, language }) {
+    try {
+      const user = firebase.auth().currentUser;
+      if (!user) throw new Error('Користувач не автентифікований');
+      const token = await user.getIdToken();
+      const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/genesisWorld', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ title, premise, genres, language })
+      });
+      const data = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+      if (!response.ok) return { success: false, error: data.error || `HTTP ${response.status}`, code: data.code };
+      return data;
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+
+  /**
    * Scene Intent options for UI
    */
   sceneIntents: [

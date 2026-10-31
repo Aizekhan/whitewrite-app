@@ -215,6 +215,14 @@ function App() {
     loadExistingProject();
   }, [PROJECT_ID]);
 
+  // Form → Genesis (author chooses the world) → book. Without the AI module, straight to the book.
+  const [genesisData, setGenesisData] = useAState(null);
+  function startGenesis(data) {
+    if (!(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return enterBook(data);
+    setGenesisData(data);
+    setStage("genesis");
+  }
+
   // Persist the universe title so the workspace ↔ book stay the same world.
   async function enterBook(data) {
     // Create project in Firestore
@@ -244,6 +252,15 @@ function App() {
         if (window.self !== window.top && window.parent.__setCurrentProject) {
           console.log('[Book] Notifying shell about new project:', projectId);
           window.parent.__setCurrentProject(projectId);
+        }
+
+        // Genesis: the world the author chose becomes canon before the first scene
+        if (data.genesis && window.__firebaseCanon) {
+          try {
+            await window.__firebaseCanon.applyGenesis(projectId, data.genesis);
+          } catch (genesisError) {
+            console.error('[Genesis] Failed to write world seed:', genesisError);
+          }
         }
 
         // Auto mode: generate all scenes at once
@@ -448,7 +465,17 @@ function App() {
           key={`form-${langVersion}`}
           langVersion={langVersion}
           onBack={() => setStage("start")}
-          onCreate={enterBook}
+          onCreate={startGenesis}
+          initial={genesisData}
+        />
+      )}
+      {stage === "genesis" && genesisData && (
+        <GenesisScreen
+          key={`genesis-${langVersion}`}
+          data={genesisData}
+          onChoose={(seed) => enterBook({ ...genesisData, genesis: seed })}
+          onSkip={() => enterBook(genesisData)}
+          onBack={() => setStage("form")}
         />
       )}
       {stage === "book" && (

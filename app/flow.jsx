@@ -200,19 +200,20 @@ function dialogueLabel(v) {
 }
 
 // ── Stage 1 ─────────────────────────────────────────────────────────────
-function StoryForm({ onBack, onCreate }) {
-  const [description, setDescription] = useFState("");
-  const [title, setTitle] = useFState("");
-  const [language, setLanguage] = useFState("en");       // Default: English (буде dropdown з усіма мовами)
-  const [creation, setCreation] = useFState("guided");   // guided | auto
-  const [scope, setScope] = useFState("novella");        // shot | novella | season | endless
-  const [episodes, setEpisodes] = useFState(8);
-  const [ending, setEnding] = useFState("open");         // open | closed | custom
-  const [endingNote, setEndingNote] = useFState("");
-  const [genres, setGenres] = useFState([]);
-  const [length, setLength] = useFState(700);
-  const [dialogue, setDialogue] = useFState(50);         // 0..100 density
-  const [dialogueTouched, setDialogueTouched] = useFState(false);
+function StoryForm({ onBack, onCreate, initial }) {
+  const init = initial || {}; // restored when returning from Genesis
+  const [description, setDescription] = useFState(init.description || "");
+  const [title, setTitle] = useFState(init.title || "");
+  const [language, setLanguage] = useFState(init.language || "en");       // Default: English (буде dropdown з усіма мовами)
+  const [creation, setCreation] = useFState(init.creation || "guided");   // guided | auto
+  const [scope, setScope] = useFState(init.scope && init.scope !== "endless" ? init.scope : "novella");        // shot | novella | season | endless
+  const [episodes, setEpisodes] = useFState(init.episodes || 8);
+  const [ending, setEnding] = useFState(init.ending || "open");         // open | closed | custom
+  const [endingNote, setEndingNote] = useFState(init.endingNote || "");
+  const [genres, setGenres] = useFState(init.genres || []);
+  const [length, setLength] = useFState(init.length || 700);
+  const [dialogue, setDialogue] = useFState(init.dialogue != null ? init.dialogue : 50);         // 0..100 density
+  const [dialogueTouched, setDialogueTouched] = useFState(init.dialogue != null);
   const [creating, setCreating] = useFState(false);
   const [pricingReady, setPricingReady] = useFState(false);  // Track pricing load state
   const ready = description.trim().length > 0;
@@ -524,4 +525,82 @@ function StoryForm({ onBack, onCreate }) {
   );
 }
 
-Object.assign(window, { StartScreen, StoryForm });
+// Genesis / World Intent — before the first scene the author CHOOSES the world:
+// AI proposes 3 distinct seeds from the premise; pick one, ask again, or skip
+// (then the world is born from the first scene, as before).
+function GenesisScreen({ data, onChoose, onSkip, onBack }) {
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const [seeds, setSeeds] = useFState(null);
+  const [error, setError] = useFState(null);
+  const [busy, setBusy] = useFState(false);
+  const [choosing, setChoosing] = useFState(null); // seed index, or "skip"
+
+  async function load() {
+    setBusy(true); setError(null);
+    const r = await window.__firebaseAI.genesisWorld({
+      title: data.title, premise: data.description, genres: data.genres, language: data.language
+    });
+    setBusy(false);
+    if (r.success) setSeeds(r.seeds); else setError(r.error);
+  }
+  React.useEffect(() => { load(); }, []);
+
+  async function go(which, action) {
+    if (choosing != null) return;
+    setChoosing(which);
+    try { await action(); } catch (e) { setError(e.message); }
+    setChoosing(null); // still here ⇒ project creation failed (enterBook already alerted)
+  }
+  const locked = busy || choosing != null;
+
+  return (
+    <div className="screen screen--form stage-screen">
+      <Particles density={0.5} />
+      <div className="form-parch">
+        <div className="form-inner">
+          <div className="form-head">
+            <div className="form-kicker">{t('genesis.kicker')}</div>
+            <h2 className="form-title">{t('genesis.title')}</h2>
+            <p className="genesis-lead">{t('genesis.lead')}</p>
+          </div>
+
+          {busy && <div className="genesis-wait"><span className="genesis-wait__star">✦</span>{t('genesis.loading')}</div>}
+          {error && <div className="genesis-err">{error}</div>}
+
+          {!busy && seeds && (
+            <div className="genesis-seeds">
+              {seeds.map((s, i) => (
+                <article className={`genesis-seed ${choosing === i ? "is-on" : ""}`} key={i}>
+                  <h3 className="genesis-seed__name">{s.name}</h3>
+                  {s.tagline && <p className="genesis-seed__tag">{s.tagline}</p>}
+                  <p className="genesis-seed__sum">{s.summary}</p>
+                  <div className="genesis-seed__k">{t('genesis.laws')}</div>
+                  <ol className="genesis-seed__laws">{s.rules.map((r, j) => <li key={j}>{r}</li>)}</ol>
+                  {s.characters.length > 0 && <div className="genesis-seed__row"><b>{t('genesis.characters')}:</b> {s.characters.map((c) => c.name + (c.role ? ` (${c.role})` : "")).join(", ")}</div>}
+                  {s.locations.length > 0 && <div className="genesis-seed__row"><b>{t('genesis.locations')}:</b> {s.locations.map((l) => l.name).join(", ")}</div>}
+                  {s.factions.length > 0 && <div className="genesis-seed__row"><b>{t('genesis.factions')}:</b> {s.factions.map((f) => f.name).join(", ")}</div>}
+                  <button className={`create-btn genesis-seed__pick ${locked ? "is-disabled" : ""}`} type="button" disabled={locked}
+                    onClick={() => go(i, () => onChoose(s))}>
+                    <span className="begin-btn__star">✨</span>{choosing === i ? t('genesis.creating') : t('genesis.choose')}
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+
+          <div className="form-foot">
+            <button className="link-back" type="button" onClick={onBack} disabled={locked}>{t('form.back')}</button>
+            <span className="genesis-foot">
+              <button className="link-back" type="button" onClick={load} disabled={locked}>↻ {t('genesis.again')}</button>
+              <button className="link-back" type="button" onClick={() => go("skip", onSkip)} disabled={locked}>
+                {choosing === "skip" ? t('genesis.creating') : t('genesis.skip')}
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { StartScreen, StoryForm, GenesisScreen });

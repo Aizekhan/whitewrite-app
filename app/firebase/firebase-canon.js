@@ -131,6 +131,29 @@ window.__firebaseCanon = {
   },
 
   /**
+   * Genesis: write the world seed the author chose into the project's world.
+   * The author picked it, so it is explicit canon (not inferred).
+   */
+  async applyGenesis(projectId, seed) {
+    await this.getCanon(projectId); // ensures the world exists and sets worldId
+    if (!this.worldId) throw new Error('No world loaded');
+    await this.updateWorld({
+      title: seed.name || '',
+      tagline: seed.tagline || '',
+      summary: seed.summary || '',
+      facts: seed.facts || [],
+      rules: seed.rules || []
+    });
+    for (const kind of ['characters', 'locations', 'factions']) {
+      for (const e of seed[kind] || []) {
+        const entity = { id: this.newEntityId(kind), name: e.name, desc: e.description || '' };
+        if (kind === 'characters' && e.role) entity.role = e.role;
+        await this.createEntity(kind, entity);
+      }
+    }
+  },
+
+  /**
    * Empty canon structure (for new projects)
    */
   _emptyCanon() {
