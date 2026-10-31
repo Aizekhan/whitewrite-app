@@ -14,6 +14,10 @@
   - AI Models — single source of truth (`ai-models.js`)
   - ANALYZE backend готовий (UI немає), Bulk Sync backend готовий (UI немає)
   - **Next**: Testing + Bulk Sync UI + Analyze UI
+- **2026-10-31**: Аудит етапи 0–3 (усе задеплоєно)
+  - Етап 2: збірка `app/` → `dist/` (`scripts/build-app.mjs`), prod-React, CSP (повний allowlist поки Report-Only), postMessage same-origin, `functions/src/*` модулі
+  - Етап 3: закони/факти/стан сутностей у промпті (`buildCanonContext`); реконструкція з diff (`reconstructScene` + overlay у Дереві, поважає `scene.reconstruction.mode`); таймлайн (`scene.stateChanges` з екстракції → «Стан у часі» у профілі, хронологія в Хроніці); карта локацій (вид «Карта», `entity.mapPos`); Genesis (`genesisWorld` → екран вибору світу між формою і книгою, `__firebaseCanon.applyGenesis`)
+  - **Next**: E2E з реальним AI на акаунті власника; увімкнути повний CSP після перевірки Google-логіну/Stripe
 
 ## Архітектура даних (важливо)
 - **`WORLD` (`wt-world.jsx`) — ЄДИНЕ джерело правди.** Усі три стовпи читають із нього.
