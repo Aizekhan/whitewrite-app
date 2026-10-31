@@ -452,6 +452,9 @@
       'timeline.aspect.possession': 'Володіє',
       'timeline.aspect.allegiance': 'Сторона',
       'timeline.aspect.condition': 'Стан',
+      'map.title': 'Карта',
+      'map.routes': 'Лінії — маршрути персонажів між сценами',
+      'map.hint': 'Перетягуй локації, щоб розкласти світ',
 
       // Feedback Modal
       'feedback.kicker': 'Зворотний зв\'язок',
@@ -1094,6 +1097,9 @@
       'timeline.aspect.possession': 'Holds',
       'timeline.aspect.allegiance': 'Allegiance',
       'timeline.aspect.condition': 'Condition',
+      'map.title': 'Map',
+      'map.routes': 'Lines — character routes between scenes',
+      'map.hint': 'Drag locations to lay out the world',
 
       'ui.feedback': 'Report a bug or write to us',
       'ui.feedbackShort': 'Feedback',

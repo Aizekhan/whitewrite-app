@@ -44,7 +44,9 @@ const REACT_PROD = {
 
 const hash = (s) => crypto.createHash('sha1').update(s).digest('hex').slice(0, 10);
 
-fs.rmSync(OUT, { recursive: true, force: true });
+// Empty dist/ rather than deleting it (Windows locks a directory a server is serving from)
+fs.mkdirSync(OUT, { recursive: true });
+for (const ent of fs.readdirSync(OUT)) fs.rmSync(path.join(OUT, ent), { recursive: true, force: true });
 fs.cpSync(SRC, OUT, {
   recursive: true,
   filter: (p) => !path.basename(p).startsWith('.') && !p.includes('node_modules'),

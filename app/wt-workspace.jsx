@@ -281,6 +281,114 @@ function StateTimeline({ type, id }) {
   );
 }
 
+/* World map — locations laid out by the author (drag; saved as entity.mapPos),
+   routes derived from characters moving between scenes, and who is where as of
+   the scene lens. Location state values are free text, so they are matched to
+   locations by name (longest name first). */
+const MAP_W = 1000, MAP_H = 620;
+function wMatchLocation(value, locs) {
+  const v = String(value || "").toLowerCase();
+  if (!v) return null;
+  return locs.slice().sort((a, b) => (b.name || "").length - (a.name || "").length)
+    .find((l) => l.name && v.includes(l.name.toLowerCase())) || null;
+}
+function wMapData(locs, lens) {
+  const scenes = (WORLD.scenes || []).slice().sort((a, b) => a.n - b.n);
+  const trail = {}; // characterId → [locationId per move, story order]
+  scenes.forEach((s) => (s.stateChanges || []).forEach((c) => {
+    if (c.kind !== "characters" || c.aspect !== "location") return;
+    const l = wMatchLocation(c.value, locs);
+    if (l) (trail[c.id] = trail[c.id] || []).push({ n: s.n, loc: l.id });
+  }));
+  const routes = {};
+  Object.values(trail).forEach((moves) => moves.forEach((m, i) => {
+    if (i === 0 || moves[i - 1].loc === m.loc) return;
+    const k = [moves[i - 1].loc, m.loc].sort().join("|");
+    routes[k] = (routes[k] || 0) + 1;
+  }));
+  const here = {}; // locationId → [character]
+  (WORLD.characters || []).forEach((ch) => {
+    const moves = (trail[ch.id] || []).filter((m) => lens == null || m.n <= lens);
+    // No recorded moves at all → the canon's static location holds for the whole story
+    const locId = moves.length ? moves[moves.length - 1].loc
+      : ((lens == null || !trail[ch.id]) && wMatchLocation(ch.location, locs) || {}).id;
+    if (locId) (here[locId] = here[locId] || []).push(ch);
+  });
+  return { routes, here };
+}
+function WorldMap({ locs, sel, onOpen }) {
+  const [lens] = useWtScene();
+  const [, bump] = useWsState(0);
+  const drag = React.useRef(null);
+  const svgRef = React.useRef(null);
+  const pos = (l, i) => l.mapPos || {
+    x: MAP_W / 2 + Math.cos(i * 2.39996) * (90 + 34 * Math.sqrt(i)) * 1.6,
+    y: MAP_H / 2 + Math.sin(i * 2.39996) * (90 + 34 * Math.sqrt(i)),
+  };
+  const P = {};
+  locs.forEach((l, i) => { P[l.id] = pos(l, i); });
+  const { routes, here } = wMapData(locs, lens);
+  const canEdit = !!window.__features?.universe;
+
+  function toSvg(ev) {
+    const r = svgRef.current.getBoundingClientRect();
+    return { x: Math.max(30, Math.min(MAP_W - 30, (ev.clientX - r.left) / r.width * MAP_W)),
+             y: Math.max(30, Math.min(MAP_H - 30, (ev.clientY - r.top) / r.height * MAP_H)) };
+  }
+  function down(ev, l) {
+    if (!canEdit) return;
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+    drag.current = { l, moved: false };
+  }
+  function move(ev) {
+    if (!drag.current) return;
+    drag.current.l.mapPos = toSvg(ev); drag.current.moved = true; bump((n) => n + 1);
+  }
+  function up(l) {
+    const d = drag.current; drag.current = null;
+    if (!d || !d.moved) { onOpen(l); return; }
+    const fc = window.__firebaseCanon;
+    const mp = { x: Math.round(l.mapPos.x), y: Math.round(l.mapPos.y) };
+    l.mapPos = mp;
+    if (fc && fc.worldId && !l._draft) fc.updateEntity(l.id, { mapPos: mp }).catch((err) => console.error('Map save failed:', err));
+  }
+
+  if (!locs.length) return <div className="ws-empty">{t('workspace.nothingFound')}</div>;
+  return (
+    <div className="wmap">
+      <svg ref={svgRef} className="wmap__svg" viewBox={`0 0 ${MAP_W} ${MAP_H}`} onPointerMove={move} role="img" aria-label={t('map.title')}>
+        <defs>
+          <pattern id="wmap-grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="currentColor" strokeWidth="0.6" /></pattern>
+        </defs>
+        <rect width={MAP_W} height={MAP_H} fill="url(#wmap-grid)" className="wmap__grid" />
+        {Object.entries(routes).map(([k, n]) => {
+          const [a, b] = k.split("|");
+          if (!P[a] || !P[b]) return null;
+          return <line key={k} className="wmap__route" x1={P[a].x} y1={P[a].y} x2={P[b].x} y2={P[b].y} strokeWidth={1.2 + Math.min(n, 5) * 0.8} />;
+        })}
+        {locs.map((l) => {
+          const p = P[l.id], who = here[l.id] || [];
+          return (
+            <g key={l.id} className={`wmap__node ${l.id === sel ? "is-sel" : ""} ${canEdit ? "is-drag" : ""}`} transform={`translate(${p.x},${p.y})`}
+              onPointerDown={(ev) => down(ev, l)} onPointerUp={() => up(l)} tabIndex={0}
+              onKeyDown={(ev) => { if (ev.key === "Enter") onOpen(l); }}>
+              <circle r={who.length ? 17 : 13} className="wmap__dot" />
+              {who.length > 0 && <text className="wmap__count" textAnchor="middle" dy="4">{who.length}</text>}
+              <text className="wmap__name" textAnchor="middle" y={who.length ? 34 : 30}>{l.name}</text>
+              {who.length > 0 && <text className="wmap__who" textAnchor="middle" y={who.length ? 50 : 46}>{who.slice(0, 3).map((c) => c.name).join(", ")}{who.length > 3 ? " +" + (who.length - 3) : ""}</text>}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="wmap__legend">
+        <span>{lens == null ? t('timeline.now') : t('timeline.asOf').replace('{n}', lens)}</span>
+        <span className="wmap__legend-route">{t('map.routes')}</span>
+        {canEdit && <span>{t('map.hint')}</span>}
+      </div>
+    </div>
+  );
+}
+
 /* category dropdown — switch workspace without returning to the tree; also the "you are here" marker */
 /* shared "current scene" lens — synced across categories & chronicle via localStorage + event */
 function useWtScene() {
@@ -430,6 +538,7 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
   const [scene] = useWtScene();
   const [q, setQ] = useWsState("");
   const [view, setView] = useWsState("cards");
+  React.useEffect(() => { if (view === "map" && type !== "locations") setView("cards"); }, [type]);
   const [filters, setFilters] = useWsState({});
   const [sortKey, setSortKey] = useWsState(A.sorts[0].key);
   const [group, setGroup] = useWsState("");
@@ -547,7 +656,8 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
           </select>
         </div>
         <div className="ws-views">
-          {[["cards", "grid", t('workspace.cards')], ["list", "layers", t('workspace.list')], ["graph", "link", t('workspace.graph')]].map(([v, ic, lbl]) => {
+          {[["cards", "grid", t('workspace.cards')], ["list", "layers", t('workspace.list')], ["graph", "link", t('workspace.graph')]]
+            .concat(type === "locations" ? [["map", "map", t('map.title')]] : []).map(([v, ic, lbl]) => {
             const I = Ic[ic];
             return <button key={v} className={`ws-view ${view === v ? "is-on" : ""}`} onClick={() => setView(v)} type="button" title={lbl}><I /><span>{lbl}</span></button>;
           })}
@@ -556,7 +666,9 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
 
       <div className="ws-split">
         <div className="ws-main">
-          {view === "graph" ? (
+          {view === "map" ? (
+            <WorldMap locs={all.filter((e) => !e._draft)} sel={sel} onOpen={open} />
+          ) : view === "graph" ? (
             sel ? <EgoGraph type={type} id={sel} navigate={navigate} /> : <div className="profile--empty">{t('workspace.noEntities')}</div>
           ) : groups.map((g, gi) => {
             const f = group ? A.facets.find((x) => x.key === group) : null;
@@ -577,7 +689,7 @@ function Workspace({ type, selectedId, navigate, onClose, goPillar, canon }) {
             </div>
             );
           })}
-          {view !== "graph" && list.length === 0 && <div className="ws-empty">{t('workspace.nothingFound')}</div>}
+          {view !== "graph" && view !== "map" && list.length === 0 && <div className="ws-empty">{t('workspace.nothingFound')}</div>}
         </div>
         <aside className="ws-aside">
           {sel ? <Profile type={type} id={sel} navigate={navigate} goPillar={goPillar} /> : <div className="profile profile--empty">{t('workspace.selectEntity')}</div>}
