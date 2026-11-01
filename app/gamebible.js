@@ -15,6 +15,12 @@
   var STR = {
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
+      cosmo: { name: "Космограф", off: "Космограф вимкнено", offText: "Космограф — живе небо твого світу: планета з картою, сонця й супутники на справжніх орбітах, календар, доба й пори року, затемнення. Він вимкнений за замовчуванням і вмикається в налаштуваннях проєкту.",
+        toSettings: "До налаштувань", expired: "Місяць Космографа скінчився", expiredText: "Небо збережене. Щоб знову ним керувати, продовж Космограф ще на 30 днів.",
+        renew: "Продовжити на 30 днів", setTitle: "Космограф", setOff: "Вимкнено. Коли увімкнеш, з балансу спишеться {n} токенів, і Космограф працюватиме 30 днів.",
+        setOn: "Увімкнено, оплачено до {d}.", setPaidOff: "Вимкнено, але оплачений місяць триває до {d}: увімкнення до цієї дати безкоштовне.",
+        enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам.",
+        mapUploading: "Завантажую карту…", skyNote: "Небо збережено в каноні світу." },
       cult: { add: "＋ Додати", empty: "Ще порожньо.", del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
       chron: { add: "＋ Подія", unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
@@ -109,6 +115,12 @@
     },
     en: {
       brand: "World Bible", engine: "Game engine",
+      cosmo: { name: "Cosmograph", off: "The Cosmograph is off", offText: "The Cosmograph is the living sky of your world: a planet with its map, suns and moons on real orbits, a calendar, day and seasons, eclipses. It is off by default and is turned on in the project settings.",
+        toSettings: "To settings", expired: "The Cosmograph month is over", expiredText: "The sky is saved. To work with it again, extend the Cosmograph for another 30 days.",
+        renew: "Extend for 30 days", setTitle: "Cosmograph", setOff: "Off. Turning it on spends {n} tokens, and the Cosmograph works for 30 days.",
+        setOn: "On, paid until {d}.", setPaidOff: "Off, but the paid month lasts until {d}: turning it on before then is free.",
+        enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself.",
+        mapUploading: "Uploading the map…", skyNote: "The sky is saved in the world canon." },
       cult: { add: "＋ Add", empty: "Empty yet.", del: "Delete entry", delQ: "Delete this culture entry with its files?" },
       chron: { add: "＋ Event", unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
@@ -334,7 +346,9 @@
       defs: [F("what", "Що це", "What it is"), F("when", "Коли і де", "When & where"), F("meaning", "Значення", "Meaning")] },
   ];
   var loreGroup = function (id) { return LORE.filter(function (g) { return g.id === id; })[0] || LORE[3]; };
-  CANON.push(CANON_ISSUES, CHRONICLE, CULTURE);
+  var COSMOLOGY = { id: "cosmology", special: "cosmology", uk: "Космологія", en: "Cosmology",
+    about: { uk: "Небо світу: планета, сонця, супутники, календар — у Космографі.", en: "The sky of the world: planet, suns, moons, calendar — in the Cosmograph." } };
+  CANON.push(CANON_ISSUES, CHRONICLE, CULTURE, COSMOLOGY);
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
@@ -485,6 +499,7 @@
 
   function render() {
     renderNav();
+    if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
     if (section === "settings" && !imp) return renderSettings();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
     var cs = CANON.filter(function (x) { return x.id === section; })[0];
@@ -494,6 +509,7 @@
       if (cs.dossier) return renderDossiers(cs);
       if (cs.special === "chronicle") return renderChronicle(cs);
       if (cs.special === "culture") return renderCulture(cs);
+      if (cs.special === "cosmology") return renderCosmology(cs);
     }
     if (!game) return renderNewGame();
     if (imp) return renderImport();
@@ -756,6 +772,64 @@
         (list.length ? '<div class="grid">' + list.map(dosCardHtml).join("") + '</div>' : '<p class="muted">' + STR.cult.empty + '</p>');
     });
     $("view").innerHTML = html;
+  }
+  // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
+  var COSMO_COST = 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
+  function cosmoState() {
+    var c = (world && world.cosmograph) || {}, until = c.paidUntil && c.paidUntil.toMillis ? c.paidUntil.toMillis() : 0;
+    return { enabled: !!c.enabled, until: until, paid: until > Date.now() };
+  }
+  async function callCosmo(op) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(COSMO_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify({ worldId: worldId, op: op }) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
+    return data;
+  }
+  function renderCosmology(s) {
+    var st = cosmoState();
+    var head = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>';
+    if (!(st.enabled && st.paid)) {
+      if (cosmo) { cosmo.api.destroy(); cosmo = null; }
+      $("view").innerHTML = head + '<div class="canonbox cosmo-off"><h4>' + (st.enabled ? STR.cosmo.expired : STR.cosmo.off) + '</h4><p>' + (st.enabled ? STR.cosmo.expiredText : STR.cosmo.offText) + '</p>' +
+        '<div class="row">' + (st.enabled ? '<button class="btn primary" id="cg-renew">' + STR.cosmo.renew + costMark("cosmograph") + '</button>' : '<button class="btn" id="cg-settings">' + STR.cosmo.toSettings + '</button>') + '</div>' +
+        '<p class="hint" id="cg-msg"></p></div>';
+      var go = $("cg-settings"); if (go) go.onclick = function () { section = "settings"; render(); };
+      var rn = $("cg-renew"); if (rn) rn.onclick = function () { confirmCost("cosmograph", function () { rn.disabled = true; callCosmo("enable").catch(function (er) { $("cg-msg").textContent = STR.failed + ": " + er.message; rn.disabled = false; }); }); };
+      return;
+    }
+    $("view").innerHTML = head + '<div class="cosmo-host" id="cg-slot"></div>';
+    if (cosmo) { $("cg-slot").replaceWith(cosmo.el); return; } // keep the running sky through re-renders
+    var el = document.createElement("div"); el.className = "cosmo-host"; $("cg-slot").replaceWith(el);
+    cosmo = { el: el, api: null };
+    var mine = cosmo;
+    import("./cosmograph/cosmograph.js").then(function (m) {
+      if (cosmo !== mine) return;
+      mine.api = m.mountCosmograph(el, { config: world.cosmos || null, lang: LANG, canEdit: canWrite,
+        onSave: function (cfg) { return wref().update({ cosmos: cfg, updatedAt: stamp() }); },
+        onUploadMap: async function (file) {
+          if (file.size > MAX_FILE) throw new Error(STR.fileTooBig);
+          var path = "worlds/" + worldId + "/files/cosmos/" + newId("map") + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
+          var task = firebase.storage().ref(path).put(file, { contentType: file.type || "image/jpeg" });
+          await task; return task.snapshot.ref.getDownloadURL();
+        } });
+    }).catch(function (er) { el.innerHTML = '<p class="muted">' + STR.failed + ': ' + esc(er.message || er) + '</p>'; });
+  }
+  function cosmoSettingsHtml() {
+    var st = cosmoState(), d = st.until ? new Date(st.until).toLocaleDateString(LANG === "en" ? "en-GB" : "uk-UA") : "";
+    var text = st.enabled && st.paid ? STR.cosmo.setOn.replace("{d}", d) : st.paid ? STR.cosmo.setPaidOff.replace("{d}", d) : STR.cosmo.setOff.replace("{n}", COSMO_COST);
+    return '<section class="setbox"><h2>' + STR.cosmo.setTitle + '</h2><p class="hint">' + esc(text) + '</p><div class="setrow">' +
+      (st.enabled && st.paid ? '<button class="btn" id="st-cg-off">' + STR.cosmo.disable + '</button>'
+        : '<button class="btn primary" id="st-cg-on">' + STR.cosmo.enable + (st.paid ? '' : costMark("cosmograph")) + '</button>') + '</div><p class="hint" id="st-cg-msg"></p></section>';
+  }
+  function bindCosmoSettings() {
+    var say = function (t) { $("st-cg-msg").textContent = t; };
+    var on = $("st-cg-on"), off = $("st-cg-off");
+    if (on) on.onclick = function () {
+      var run = function () { on.disabled = true; callCosmo("enable").catch(function (er) { say(STR.failed + ": " + er.message); on.disabled = false; }); };
+      if (cosmoState().paid) run(); else confirmCost("cosmograph", run);
+    };
+    if (off) off.onclick = function () { off.disabled = true; callCosmo("disable").catch(function (er) { say(STR.failed + ": " + er.message); off.disabled = false; }); };
   }
   function switchDossier(id) {
     dcollect();
@@ -1270,13 +1344,13 @@
   }
   // AI operations spend tokens: a small ✦ marks them, and the author confirms the approximate price first.
   var COST_BASE = 300; // economy_operations/generateScene providers.claude.cost; × the same factor gamedevPlan reserves
-  function costOf(op) { return COST_BASE * (op === "analyze" || op === "canonAudit" ? 2 : 4); }
+  function costOf(op) { if (op === "cosmograph") return COSMO_COST; return COST_BASE * (op === "analyze" || op === "canonAudit" ? 2 : 4); }
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦</span>'; }
   function confirmCost(op, run) {
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.costTitle) + '"><h3><span class="aicost">✦</span> ' + esc(STR.costTitle) + '</h3>' +
-      '<p class="warn">' + esc(STR.costText.replace("{op}", STR.ops[op] || op).replace("{n}", costOf(op))) + '</p>' +
+      '<p class="warn">' + esc((op === "cosmograph" ? STR.cosmo.costText : STR.costText).replace("{op}", STR.ops[op] || op).replace("{n}", costOf(op))) + '</p>' +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.costGo + '</button></div></form>';
     document.body.appendChild(box);
     var close = function () { box.remove(); };
@@ -1306,6 +1380,7 @@
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
           : '<p class="hint">' + STR.stNoSections + '</p>') + '</section>';
+    html += cosmoSettingsHtml();
     html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (game ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '') +
       '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button></div><p class="hint" id="st-msg"></p></section>';
@@ -1319,6 +1394,7 @@
     $("st-wexp").onclick = exportWorld;
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
     $("st-wdel").onclick = deleteWorld;
+    bindCosmoSettings();
     if (!game) return;
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
@@ -1382,7 +1458,7 @@
     }
     if (data && data.format === "whitewrite.world/1" && data.world) {
       var wid = newId("world"), w = Object.assign({}, revive(data.world));
-      delete w.id; delete w.audit; delete w.auditRunning;
+      delete w.id; delete w.audit; delete w.auditRunning; delete w.cosmograph; // the paid month belongs to the original world
       w.owner = firebase.auth().currentUser.uid; w.createdAt = stamp(); w.updatedAt = stamp();
       await db.collection("worlds").doc(wid).set(w);
       await writeAll(db.collection("worlds").doc(wid).collection("entities"), data.entities || [], true);
@@ -1456,6 +1532,8 @@
       await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
       await deleteDocs(wref().collection("lore"));
+      var skyMap = world.cosmos && world.cosmos.planet && world.cosmos.planet.map; // an uploaded map of the Космограф
+      if (/^https:\/\/firebasestorage\./.test(skyMap || "")) await firebase.storage().refFromURL(skyMap).delete().catch(function () {});
       await wref().delete(); // last: the rules check ownership through the world doc
       tellShell({ type: "ww-worlds-changed", deleted: true });
     });

@@ -47,6 +47,12 @@ function bibleText(world, entities, cards, game, shelves, lore) {
   const own = (game.sections || []).map((s) => ({ id: s.id, name: s.name })).concat((shelves || []).map((s) => ({ id: s.id, name: s.name })));
   const lines = [`# World canon: ${world.title || ''}`, world.tagline || '', world.summary || ''];
   if ((world.rules || []).length) lines.push('Laws of the world:', ...world.rules.map((r) => `- ${r}`));
+  const sky = world.cosmos; // World Bible «Космологія» (Космограф)
+  if (sky && sky.planet) {
+    const yd = (sky.calendar && sky.calendar.monthDays || []).reduce((a, b) => a + b, 0);
+    lines.push(`Sky: planet ${sky.planet.name || ''} (radius ${sky.planet.radiusKm} km, axial tilt ${sky.planet.tilt}°, day ${sky.planet.dayHours} h, year ${yd} days); ` +
+      `suns: ${(sky.stars || []).map((s) => `${s.name} (period ${s.periodDays} d)`).join(', ') || 'none'}; moons: ${(sky.moons || []).map((m) => `${m.name} (period ${m.periodDays} d)`).join(', ') || 'none'}.`);
+  }
   if ((lore || []).length) { // World Bible «Культура»: peoples, languages, faith, customs
     lines.push('\n# Culture of the world');
     for (const x of lore) {

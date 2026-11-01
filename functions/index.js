@@ -8,3 +8,4 @@ Object.assign(exports, require('./src/lemon'));
 Object.assign(exports, require('./src/genesis'));
 Object.assign(exports, require('./src/gamedev'));
 Object.assign(exports, require('./src/mcp'));
+Object.assign(exports, require('./src/cosmograph'));

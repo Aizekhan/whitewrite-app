@@ -40,9 +40,12 @@ service cloud.firestore {
 
     match /worlds/{worldId} {
       allow read, delete: if isAuthenticated() && resource.data.owner == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.owner == request.auth.uid;
+      // worlds/{w}.cosmograph (Космограф access, paid monthly) is written only by functions/src/cosmograph.js
+      allow create: if isAuthenticated() && request.resource.data.owner == request.auth.uid &&
+                       !('cosmograph' in request.resource.data);
       allow update: if isAuthenticated() && resource.data.owner == request.auth.uid &&
-                       request.resource.data.owner == resource.data.owner;
+                       request.resource.data.owner == resource.data.owner &&
+                       request.resource.data.get('cosmograph', null) == resource.data.get('cosmograph', null);
 
       match /entities/{entityId} {
         allow read, write: if isAuthenticated() && isWorldOwner(worldId);
