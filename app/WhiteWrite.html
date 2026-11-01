@@ -1248,7 +1248,8 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .field__hint{ letter-spacing:.04em; text-transform:none; color:rgba(194,161,87,0.7); font-style:italic; }
 
 /* creation-mode big cards */
-.modecards{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.modecards{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+@media (max-width:640px){ .modecards{ grid-template-columns:1fr; } }
 .modecard{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; cursor:pointer; text-align:left;
   font-family:"Philosopher",serif; padding:13px 14px; border-radius:4px; color:#d9bd86;
   background:rgba(40,28,14,0.5); border:1px solid rgba(201,162,75,0.3); transition:all .22s ease; }
@@ -1430,6 +1431,22 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   max-width: 100%;
 }
 .opage .prose:has(.prose__cap){ text-indent:0; } /* No indent for first paragraph */
+.opage .prose.prose--cont{ text-indent:0; } /* a paragraph continued from the previous page */
+.opage .prose.prose--split{ text-align-last:justify; } /* …and its last line on this page runs full width */
+.opage .page-inner > div::after{ content:""; display:block; clear:both; } /* a short page still holds its drop cap */
+.opage .empty-book .quill{ align-self:flex-start; pointer-events:auto; cursor:pointer; }
+/* The writing sheet (book-edit.jsx SceneSheet): free writing / pasting over the book */
+.sheet{ position:fixed; inset:0; z-index:60; display:grid; place-items:center; background:rgba(8,5,3,.62); backdrop-filter:blur(3px); animation:inkIn .35s ease both; }
+.sheet__paper{ width:min(880px,92vw); height:min(86vh,980px); display:flex; flex-direction:column; gap:10px; padding:28px 34px 18px;
+  background:linear-gradient(180deg,#f3e6c8,#e9d7b0); color:var(--ink); border-radius:6px; box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,30,.18); }
+.sheet__kicker{ font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:#9a5e1c; font-weight:600; }
+.sheet__title{ font:600 26px "Philosopher",serif; color:var(--ink); background:none; border:0; border-bottom:1px solid rgba(90,60,25,.3); padding:4px 0 8px; outline:none; }
+.sheet__text{ flex:1; min-height:0; resize:none; font:18px/1.7 var(--book-font,"Philosopher"),Georgia,serif; color:var(--ink); background:transparent; border:0; outline:none; padding:6px 2px; }
+.sheet__text::placeholder,.sheet__title::placeholder{ color:rgba(58,44,29,.45); font-style:italic; }
+.sheet__foot{ display:flex; align-items:center; gap:14px; font:13px "Inter",system-ui,sans-serif; color:var(--ink-soft); border-top:1px solid rgba(90,60,25,.2); padding-top:10px; }
+.sheet__state.is-error{ color:#a3341f; font-weight:600; }
+.sheet__done{ font:600 14px "Philosopher",serif; padding:8px 20px; border-radius:8px; border:0; cursor:pointer; color:#1c1308; background:linear-gradient(180deg,#e9c878,#bd9040); }
+.sheet__done:focus-visible,.sheet__title:focus-visible{ outline:2px solid #9a5e1c; outline-offset:2px; }
 .opage .prose__cap{ font-size:4.8cqw; padding:.3cqw .6cqw 0 0; }
 .opage .margin-note{ font-size:1.32cqw; gap:.6cqw; margin:.2cqw 0 .7cqw; }
 .opage .margin-note__rune{ font-size:1.4cqw; }
@@ -1660,7 +1677,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   .opage .page-head__kicker{ font-size:11px; letter-spacing:.26em; margin-bottom:6px; }
   .opage .page-head__title{ font-size:23px; }
   .opage .page-head__rule{ margin-top:10px; }
-  .opage .prose{ font-size:15px; line-height:1.6; margin:0 0 11px; text-indent:1.5em; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
+  .opage .prose{ font-size:calc(15px * var(--book-size, 1)); line-height:1.6; margin:0 0 11px; text-indent:1.5em; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
   .opage .prose:has(.prose__cap){ text-indent:0; }
   .opage .prose__cap{ font-size:46px; padding:4px 9px 0 0; }
   .opage .margin-note{ font-size:13.5px; gap:8px; margin:6px 0 12px; }
@@ -1851,7 +1868,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 <script src="/firebase/firebase-pricing.js"></script>
 <script src="/firebase/firebase-auth.js"></script>
 <script src="/firebase/firebase-projects.js"></script>
-<script src="/firebase/firebase-scenes.js"></script>
+<script src="/firebase/firebase-scenes.js?v=20261102"></script>
 <script src="/firebase/firebase-canon.js?v=20261031"></script>
 <script src="/firebase/firebase-ai.js"></script>
 
@@ -1862,16 +1879,16 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 }
 </script>
 
-<script src="i18n.js"></script>
+<script src="i18n.js?v=20261102"></script>
 <script src="kb.js"></script>
 <script type="text/babel" src="ErrorBoundary.jsx"></script>
 <script type="text/babel" src="atmosphere.jsx"></script>
 <script type="text/babel" src="pages.jsx"></script>
-<script type="text/babel" src="book-edit.jsx?v=20261031"></script>
-<script type="text/babel" src="flow.jsx"></script>
+<script type="text/babel" src="book-edit.jsx?v=20261102"></script>
+<script type="text/babel" src="flow.jsx?v=20261102"></script>
 <script type="text/babel" src="wt-world.jsx?v=20261031"></script>
-<script type="text/babel" src="book-related.jsx"></script>
-<script type="text/babel" src="book.jsx?v=20261031"></script>
-<script type="text/babel" src="app.jsx"></script>
+<script type="text/babel" src="book-related.jsx?v=20261102"></script>
+<script type="text/babel" src="book.jsx?v=20261102"></script>
+<script type="text/babel" src="app.jsx?v=20261102"></script>
 </body>
 </html>

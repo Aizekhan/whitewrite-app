@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.2.0 (2026-11-01)
+**Version:** 2.3.0 (2026-11-01)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -37,7 +37,8 @@ E:\WhiteWrite/
 │  ├─ app.jsx                    # App root (stages: start/form/book)
 │  ├─ flow.jsx                   # StoryForm (create project modal)
 │  ├─ pages.jsx                  # Book page (scene intent, generation)
-│  ├─ book.jsx                   # Book component (pagination, rendering)
+│  ├─ book.jsx                   # Book component (measured pagination, reading, ritual)
+│  ├─ book-edit.jsx              # SceneSheet — free writing / pasting a scene (autosave)
 │  │
 │  ├─ firebase/
 │  │  ├─ firebase-init.js        # Firebase SDK initialization
@@ -342,6 +343,11 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
    - Triggers canon extraction (async)
    - Deducts tokens
 4. Frontend re-renders with new scene
+
+**The book (reading & writing, `app/book.jsx`, `app/book-edit.jsx`):**
+- **Pages are measured, not counted:** `paginateScene` lays each scene into the real page boxes using a hidden probe (`makeProbe`: same `.photobook__pages` size, `cqw`, font and `--book-size`), paragraph by paragraph, splitting the last paragraph by words (binary search); a continued paragraph has no indent (`.prose--cont`), the split one justifies its last line (`.prose--split`). Re-run on resize, font/size (`ww-book-typo` event from the «Aa» bookmark → `localStorage ww-book-typo`) and after `document.fonts.ready`. Phones (≤820px) read one parchment sheet per scene. State keeps the raw scenes (`raw`), spreads are derived.
+- **Free writing:** the story form has a third mode **«Пишу сам»** (`project.creation: "free"`, title is enough) — no generation; the mage ritual (`StartStoryAnim.mp4`) opens the book with «Книга відкривається…», then the writing sheet. **Sheet** (`SceneSheet`): ✎ (this scene) / ＋ (new scene via `addScene`) — title + plain-text area (typing or pasting; a line = a paragraph), autosave 0.9 s → `updateScene({title,text})`, Ctrl+S, Esc/«Готово» closes and re-opens the book on that scene; an untouched new scene is deleted.
+- An empty story shows «Порожня книга» (+ the «what next?» spread for AI), never the demo; the demo (`buildScenes`) only without a projectId. `?scene=N` opens scene N. `addScene` no longer writes empty `canonRefs` (it raced with server extraction).
 
 **Context Building:**
 ```javascript

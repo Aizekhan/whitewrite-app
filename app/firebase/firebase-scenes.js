@@ -99,14 +99,9 @@ window.__firebaseScenes = {
       status: sceneData.status || 'draft',
       generatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      // Canon references — ID links to entities (5 types)
-      canonRefs: sceneData.canonRefs || {
-        characters: [],  // Character IDs that appear/speak in scene
-        locations: [],   // Location IDs where scene takes place
-        events: [],      // Event IDs that happen/are mentioned
-        factions: [],    // Faction IDs involved
-        artifacts: []    // Artifact IDs that appear
-      },
+      // Canon references (characters/locations/events/factions/artifacts → ids) are written by extraction on the
+      // server; a default here would wipe them when extraction finishes first (merge write), so only explicit ones.
+      ...(sceneData.canonRefs ? { canonRefs: sceneData.canonRefs } : {}),
       reconstruction: {
         mode: sceneData.reconstruction?.mode || 'review',
         affectedBy: sceneData.reconstruction?.affectedBy || [],

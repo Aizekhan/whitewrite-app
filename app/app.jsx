@@ -269,6 +269,14 @@ function App() {
           window.parent.__setCurrentProject(projectId);
         }
 
+        // Free mode: the author writes — no generation, the book opens into the writing sheet
+        if (data.creation === 'free') {
+          setForm(data);
+          try { localStorage.setItem("ww_title", (data.title && data.title.trim()) || titleFromPremise(data.description)); } catch (e) {}
+          setStage("book");
+          return;
+        }
+
         // Auto mode: generate all scenes at once
         // Guided mode: generate only first scene
         const isAutoMode = data.creation === 'auto';
@@ -423,7 +431,7 @@ function App() {
     setStage("book");
   }
 
-  const bookTitle = returned ? (RET_TITLE || "Попіл Орелії") : ((form && form.title && form.title.trim()) || titleFromPremise(form && form.description));
+  const bookTitle = (form && form.title && form.title.trim()) || (returned ? (RET_TITLE || "Попіл Орелії") : titleFromPremise(form && form.description));
 
   // Tell the White shell whether we're on the cover (home) or inside a story (work),
   // so the side rail can switch between global sections and the pillars.
@@ -500,10 +508,12 @@ function App() {
           <PillarSwitch here="book" />
           <Book
             flow={!returned}
+            ritualText={form && form.creation === 'free' ? (window.__i18n ? window.__i18n.t('book.opening') : 'Книга відкривається…') : null}
             premise={form ? form.description : ""}
             title={bookTitle}
             projectId={form ? form.projectId : null}
             startScene={SCENE}
+            startWriting={!!(form && form.creation === 'free')}
             onExit={() => { setStage("start"); }}
           />
         </div>

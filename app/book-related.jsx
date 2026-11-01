@@ -56,9 +56,9 @@
 
   // reading typography controls (set CSS vars on the reading root)
   function readingRoot() { return document.querySelector(".world.reading") || document.documentElement; }
-  function setBookFont(ff) { readingRoot().style.setProperty("--book-font", ff); }
-  let _sz = 1;
-  function setBookSize(v) { _sz = v; readingRoot().style.setProperty("--book-size", v); }
+  // the Book owns these (state + localStorage) and re-measures its pages on every change
+  function setBookFont(ff) { window.dispatchEvent(new CustomEvent("ww-book-typo", { detail: { font: ff } })); }
+  function setBookSize(v) { window.dispatchEvent(new CustomEvent("ww-book-typo", { detail: { size: Math.round(v * 100) / 100 } })); }
   function stepBookSize(d) {
     const cur = parseFloat(getComputedStyle(readingRoot()).getPropertyValue("--book-size")) || 1;
     setBookSize(Math.min(1.4, Math.max(0.78, cur + d)));
@@ -94,8 +94,7 @@
     }, [open]);
 
     const groups = relatedForScene(scene);
-    const present = REL_ORDER.filter((t) => groups[t].length);
-    if (!present.length) return null;
+    const present = REL_ORDER.filter((t) => groups[t].length); // «Aa» stays even when nothing is linked yet
 
     return (
       <>

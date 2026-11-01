@@ -197,3 +197,68 @@
 
   window.SceneEditor = SceneEditor;
 }());
+
+// ---------- The writing sheet: free writing or pasting a scene, saved as you type ----------
+// Opens over the book from ✎ (this scene) or ＋ (a new one). Plain text: paragraphs are separated by line breaks;
+// the book lays them into pages by measuring (book.jsx paginateScene). Autosave → projects/{p}/scenes/{id} { title, text }.
+(function () {
+  const { useState, useEffect, useRef } = React;
+  const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
+  function SceneSheet({ projectId, scene, fresh, onClose }) {
+    const [title, setTitle] = useState(scene.title || "");
+    const [text, setText] = useState(scene.text || "");
+    const [state, setState] = useState("saved"); // saved | dirty | saving | error
+    const timer = useRef(null), last = useRef({ title: scene.title || "", text: scene.text || "" }), area = useRef(null);
+    const save = async (v) => {
+      if (v.title === last.current.title && v.text === last.current.text) { setState("saved"); return; }
+      setState("saving");
+      try {
+        await window.__firebaseScenes.updateScene(projectId, scene.id, { title: v.title, text: v.text, status: "draft" });
+        last.current = v; setState("saved");
+      } catch (e) { console.error("[SceneSheet] save failed", e); setState("error"); }
+    };
+    const change = (v) => { setState("dirty"); clearTimeout(timer.current); timer.current = setTimeout(() => save(v), 900); };
+    useEffect(() => { if (area.current) { area.current.focus(); area.current.setSelectionRange(text.length, text.length); } }, []);
+    const close = async () => {
+      clearTimeout(timer.current);
+      const v = { title: title.trim() || scene.title || "", text };
+      if (fresh && !text.trim()) { // an untouched new scene leaves no trace
+        try {
+          const db = window.__firebase.db;
+          await db.collection("projects").doc(projectId).collection("scenes").doc(scene.id).delete();
+          await db.collection("projects").doc(projectId).update({ written: firebase.firestore.FieldValue.increment(-1) });
+        } catch (e) { console.warn("[SceneSheet] cleanup", e); }
+        onClose(null); return;
+      }
+      await save(v);
+      onClose(scene.id);
+    };
+    useEffect(() => {
+      const k = (e) => {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); clearTimeout(timer.current); save({ title, text }); }
+      };
+      window.addEventListener("keydown", k, true);
+      return () => window.removeEventListener("keydown", k, true);
+    });
+    const words = (text.match(/\S+/g) || []).length;
+    return (
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={tt('book.sheetTitle')}>
+        <div className="sheet__paper">
+          <div className="sheet__kicker">{tt('book.scene')} {scene.n} · {tt('book.sheetTitle')}</div>
+          <input className="sheet__title" value={title} placeholder={tt('book.sheetTitlePh')}
+            onChange={(e) => { setTitle(e.target.value); change({ title: e.target.value, text }); }} />
+          <textarea ref={area} className="sheet__text" value={text} placeholder={tt('book.sheetPh')} spellCheck="true"
+            onChange={(e) => { setText(e.target.value); change({ title, text: e.target.value }); }} />
+          <div className="sheet__foot">
+            <span className={"sheet__state is-" + state}>{tt('book.sheet.' + state)}</span>
+            <span className="sheet__count">{words} {tt('book.words')}</span>
+            <span style={{ flex: 1 }} />
+            <button className="sheet__done" type="button" onClick={close}>{tt('book.sheetDone')}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  window.SceneSheet = SceneSheet;
+}());

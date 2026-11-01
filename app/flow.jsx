@@ -206,7 +206,7 @@ function StoryForm({ onBack, onCreate, initial }) {
   const [description, setDescription] = useFState(init.description || "");
   const [title, setTitle] = useFState(init.title || "");
   const [language, setLanguage] = useFState(init.language || "en");       // Default: English (буде dropdown з усіма мовами)
-  const [creation, setCreation] = useFState(init.creation || "guided");   // guided | auto
+  const [creation, setCreation] = useFState(init.creation || "guided");   // guided | auto | free (the author writes)
   const [scope, setScope] = useFState(init.scope && init.scope !== "endless" ? init.scope : "novella");        // shot | novella | season | endless
   const [episodes, setEpisodes] = useFState(init.episodes || 8);
   const [ending, setEnding] = useFState(init.ending || "open");         // open | closed | custom
@@ -217,7 +217,7 @@ function StoryForm({ onBack, onCreate, initial }) {
   const [dialogueTouched, setDialogueTouched] = useFState(init.dialogue != null);
   const [creating, setCreating] = useFState(false);
   const [pricingReady, setPricingReady] = useFState(false);  // Track pricing load state
-  const ready = description.trim().length > 0;
+  const ready = description.trim().length > 0 || (creation === "free" && title.trim().length > 0);
 
   // Guided Mode → 'endless' (історія без меж)
   // Auto Mode → 'season' (завжди серіал, лише кількість серій змінюється)
@@ -398,6 +398,11 @@ function StoryForm({ onBack, onCreate, initial }) {
                 <span className="modecard__t">{t('form.autoTitle')}</span>
                 <span className="modecard__d">{t('form.autoDesc')}</span>
               </button>
+              <button type="button" className={`modecard ${creation === "free" ? "is-on" : ""}`} onClick={() => !creating && setCreation("free")} disabled={creating}>
+                <span className="modecard__ic">{t('form.freeIcon')}</span>
+                <span className="modecard__t">{t('form.freeTitle')}</span>
+                <span className="modecard__d">{t('form.freeDesc')}</span>
+              </button>
             </div>
           </div>
 
@@ -517,7 +522,7 @@ function StoryForm({ onBack, onCreate, initial }) {
               disabled={!ready || creating}
             >
               <span className="begin-btn__star">✨</span>
-              {creating ? t('form.creating') : (creation === "auto" ? t('form.createAuto') : t('form.createGuided'))}
+              {creating ? t('form.creating') : (creation === "auto" ? t('form.createAuto') : creation === "free" ? t('form.createFree') : t('form.createGuided'))}
             </button>
           </div>
         </div>

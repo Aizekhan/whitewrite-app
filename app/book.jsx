@@ -5,6 +5,132 @@
 // production workspace (the 5 tabs) — same universe, seamless fade.
 const { useState, useEffect, useCallback, useRef } = React;
 
+// ---------- pages: measured, not counted ----------
+// Each scene's text is laid into page boxes by measuring a hidden copy of the real page (same width/height, fonts, size),
+// paragraph by paragraph, splitting the last one by words. Re-run on resize, font, size or language — so text never
+// runs past a page. A continued paragraph has no indent.
+const BOOK_TYPO_KEY = "ww-book-typo";
+function readTypo() {
+  try { const v = JSON.parse(localStorage.getItem(BOOK_TYPO_KEY) || "{}"); return { size: +v.size || 1, font: v.font || "Philosopher" }; }
+  catch (e) { return { size: 1, font: "Philosopher" }; }
+}
+function makeProbe(box, typo) {
+  const root = document.createElement("div");
+  root.setAttribute("aria-hidden", "true");
+  root.style.cssText = "position:fixed;left:-20000px;top:0;visibility:hidden;pointer-events:none;";
+  root.style.setProperty("--book-size", typo.size);
+  root.style.setProperty("--book-font", typo.font);
+  const pages = document.createElement("div");
+  pages.className = "photobook__pages";
+  if (box) { pages.style.width = box.w + "px"; pages.style.height = box.h + "px"; }
+  root.appendChild(pages);
+  const inner = ["left", "right"].map((side) => {
+    const o = document.createElement("div"); o.className = "opage opage--" + side;
+    const i = document.createElement("div"); i.className = "page-inner"; o.appendChild(i); pages.appendChild(o);
+    return i;
+  });
+  document.body.appendChild(root);
+  return { inner, remove: () => root.remove() };
+}
+function splitParas(text) { return String(text || "").replace(/\r/g, "").split(/\n\s*\n|\n/).map((p) => p.trim()).filter(Boolean); }
+// → [{ first, paras: [{ text, cap, cont }] }] for one scene
+function paginateScene(scene, probe) {
+  const paras = splitParas(scene.text);
+  const pages = [];
+  let page = { first: true, paras: [] };
+  const fill = (inner, pg) => {
+    inner.innerHTML = "";
+    if (pg.first) {
+      const h = document.createElement("header"); h.className = "page-head";
+      const t = document.createElement("h2"); t.className = "page-head__title"; t.textContent = scene.title || "";
+      const r = document.createElement("div"); r.className = "page-head__rule"; h.appendChild(t); h.appendChild(r); inner.appendChild(h);
+    }
+    const box = document.createElement("div");
+    pg.paras.forEach((p) => {
+      const el = document.createElement("p"); el.className = "prose" + (p.cont ? " prose--cont" : "") + (p.split ? " prose--split" : "");
+      if (p.cap && p.text) { const c = document.createElement("span"); c.className = "prose__cap"; c.textContent = p.text.charAt(0); el.appendChild(c); el.appendChild(document.createTextNode(p.text.slice(1))); }
+      else el.textContent = p.text;
+      box.appendChild(el);
+    });
+    inner.appendChild(box);
+  };
+  const fits = (pg) => { const inner = probe.inner[pages.length % 2]; fill(inner, pg); return inner.scrollHeight <= inner.clientHeight + 1; };
+  const queue = paras.map((text, i) => ({ text, cap: i === 0, cont: false }));
+  while (queue.length) {
+    const p = queue.shift();
+    page.paras.push(p);
+    if (fits(page)) continue;
+    page.paras.pop();
+    const words = p.text.split(/\s+/);
+    let lo = 0, hi = words.length - 1; // the most words of p that still fit on this page
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      page.paras.push({ ...p, text: words.slice(0, mid).join(" ") });
+      if (fits(page)) lo = mid; else hi = mid - 1;
+      page.paras.pop();
+    }
+    if (lo === 0 && !page.paras.length) lo = 1; // a word longer than a page still moves on
+    if (lo > 0) page.paras.push({ ...p, text: words.slice(0, lo).join(" "), split: lo < words.length });
+    pages.push(page);
+    page = { first: false, paras: [] };
+    if (lo < words.length) queue.unshift({ text: words.slice(lo).join(" "), cap: false, cont: lo > 0 });
+  }
+  if (page.paras.length || !pages.length) pages.push(page);
+  return pages;
+}
+function PageView({ spec, title }) {
+  return (
+    <div className="page-inner">
+      {spec.first && (
+        <header className="page-head">
+          <h2 className="page-head__title">{title}</h2>
+          <div className="page-head__rule" />
+        </header>
+      )}
+      <div>
+        {spec.paras.map((p, i) => p.cap && p.text
+          ? <p key={i} className={"prose" + (p.split ? " prose--split" : "")}><span className="prose__cap">{p.text.charAt(0)}</span>{p.text.slice(1)}</p>
+          : <p key={i} className={"prose" + (p.cont ? " prose--cont" : "") + (p.split ? " prose--split" : "")}>{p.text}</p>)}
+      </div>
+    </div>
+  );
+}
+function EmptyBookPage({ onWrite }) {
+  const t = (k) => (window.__i18n ? window.__i18n.t(k) : k);
+  return (
+    <div className="page-inner empty-book">
+      <header className="page-head">
+        <h2 className="page-head__title">{t('book.emptyTitle')}</h2>
+        <div className="page-head__rule" />
+      </header>
+      <p className="prose prose--cont">{t('book.emptyText')}</p>
+      <button className="quill" type="button" onClick={onWrite}>✎ {t('book.writeFirst')}</button>
+    </div>
+  );
+}
+// raw Firestore scenes → book scenes with spreads; the last one ends with the «what next?» spread
+function paginateBook(raw, box, typo, projectId, onWrite) {
+  if (!raw.length) return [{ n: 1, t: "", id: null, pages: [
+    { left: <EmptyBookPage onWrite={onWrite} />, right: null },
+    { left: <SceneIntentLeft />, right: <SceneIntentRight projectId={projectId} /> },
+  ] }];
+  // a phone reads one long parchment sheet per scene (no page boxes to fill)
+  const phone = window.matchMedia && window.matchMedia("(max-width:820px)").matches;
+  const probe = phone ? null : makeProbe(box, typo);
+  try {
+    return raw.map((scene, idx) => {
+      const specs = phone ? [{ first: true, paras: splitParas(scene.text).map((text, i) => ({ text, cap: i === 0, cont: false })) }] : paginateScene(scene, probe);
+      const spreads = [];
+      for (let i = 0; i < specs.length; i += 2) spreads.push({
+        left: <PageView spec={specs[i]} title={scene.title} />,
+        right: specs[i + 1] ? <PageView spec={specs[i + 1]} title={scene.title} /> : null,
+      });
+      if (idx === raw.length - 1) spreads.push({ left: <SceneIntentLeft />, right: <SceneIntentRight projectId={projectId} /> });
+      return { n: scene.n, t: scene.title, id: scene.id, pages: spreads };
+    });
+  } finally { if (probe) probe.remove(); }
+}
+
 // Smooth full-screen fade, then navigate. Keeps the "one world" feeling
 // across the (separate) workspace document.
 function fadeNav(href) {
@@ -55,12 +181,16 @@ function buildScenes(title) {
   ];
 }
 
-function Book({ flow = false, premise = "", title = "Попіл Орелії", projectId = null, startScene = null, onExit }) {
+function Book({ flow = false, premise = "", title = "Попіл Орелії", projectId = null, startScene = null, startWriting = false, ritualText = null, onExit }) {
   const [generating, setGenerating] = useState(flow);
   const [ritualClosing, setRitualClosing] = useState(false);
   const [justRevealed, setJustRevealed] = useState(false);
-  const [editOn, setEditOn] = useState(false);
-  const [scenes, setScenes] = useState(buildScenes(title)); // Initialize with mock
+  const [scenes, setScenes] = useState(() => (projectId ? [] : buildScenes(title))); // the demo only without a story
+  const [raw, setRaw] = useState(null);       // scenes as stored (projects/{p}/scenes)
+  const [typo, setTypo] = useState(readTypo); // reading font & size (the «Aa» bookmark)
+  const [sheet, setSheet] = useState(null);   // the writing sheet: { scene } (book-edit.jsx SceneSheet)
+  const startDone = useRef(false), writeDone = useRef(false);
+  const [pageBox, setPageBox] = useState(null);
   const [loadingScenes, setLoadingScenes] = useState(false);
   // current scene index + page index within that scene
   const [sc, setSc] = useState(0);
@@ -114,138 +244,28 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           });
         }
 
-        if (firestoreScenes.length === 0) {
-          // No scenes yet - keep mock
-          setLoadingScenes(false);
-          return;
-        }
-
-        // Convert Firestore scenes to book format
-        // FLAT array of ALL pages, then pair into spreads [0,1], [2,3], [4,5]...
-        // This eliminates empty pages between scenes
-
-
-        // Collect ALL pages from ALL scenes into flat array
-        const allPages = [];
-
-        const bookScenes = firestoreScenes.map((scene, idx) => {
-          const paragraphs = scene.text.split('\n\n').filter(p => p.trim());
-          const isLastScene = idx === firestoreScenes.length - 1;
-
-          // Character-based pagination with REDUCED limit to prevent cut-off
-          // Based on real statistics + paragraph margin (.6cqw per para) adjustment
-          const CHARS_PER_PAGE_FIRST = 520; // First page (with header) - accounts for margins
-          const CHARS_PER_PAGE = 580; // Other pages - accounts for margins
-
-          const scenePages = [];
-          let isFirstPage = true;
-          const allText = paragraphs.join('\n\n');
-          let remainingText = allText;
-
-          while (remainingText.length > 0) {
-            const limit = isFirstPage ? CHARS_PER_PAGE_FIRST : CHARS_PER_PAGE;
-
-            let chunk;
-            if (remainingText.length <= limit) {
-              chunk = remainingText;
-              remainingText = '';
-            } else {
-              // Find last paragraph break before limit
-              let breakPoint = remainingText.lastIndexOf('\n\n', limit);
-              if (breakPoint === -1 || breakPoint < limit * 0.7) {
-                // No good paragraph break, find last space
-                breakPoint = remainingText.lastIndexOf(' ', limit);
-              }
-
-              if (breakPoint > 0) {
-                chunk = remainingText.substring(0, breakPoint);
-                remainingText = remainingText.substring(breakPoint).trim();
-              } else {
-                // Force break at limit
-                chunk = remainingText.substring(0, limit);
-                remainingText = remainingText.substring(limit);
-              }
-            }
-
-            // Create page
-            const paras = chunk.split('\n\n').filter(p => p.trim());
-
-            if (paras.length > 0) {
-
-              const pageContent = (
-                <div className="page-inner" key={`page-${allPages.length}`}>
-                  {isFirstPage && (
-                    <header className="page-head">
-                      <h2 className="page-head__title">{scene.title}</h2>
-                      <div className="page-head__rule" />
-                    </header>
-                  )}
-                  <div>
-                    {paras.map((p, idx) => {
-                      const isFirstPara = isFirstPage && idx === 0;
-                      if (isFirstPara && p.length > 0) {
-                        return (
-                          <p key={idx} className="prose">
-                            <span className="prose__cap">{p.charAt(0)}</span>
-                            {p.slice(1)}
-                          </p>
-                        );
-                      }
-                      return <p key={idx} className="prose">{p}</p>;
-                    })}
-                  </div>
-                </div>
-              );
-
-              // Add to FLAT array AND scene pages
-              allPages.push(pageContent);
-              scenePages.push(pageContent);
-              isFirstPage = false;
-            }
-          }
-
-          // Pair THIS scene's pages into spreads
-          const sceneSpreads = [];
-          for (let i = 0; i < scenePages.length; i += 2) {
-            sceneSpreads.push({
-              left: scenePages[i] || null,
-              right: scenePages[i + 1] || null
-            });
-          }
-
-          // Add SceneIntent spread after last scene (two pages)
-          if (isLastScene) {
-            sceneSpreads.push({
-              left: <SceneIntentLeft />,
-              right: <SceneIntentRight projectId={projectId} />
-            });
-          }
-
-          return {
-            n: scene.n,
-            t: scene.title,
-            pages: sceneSpreads
-          };
-        });
-
-        setScenes(bookScenes);
+        setRaw(firestoreScenes); // pages are measured from these (paginateBook), not cut by character counts
+        if (firestoreScenes.length === 0) { setSc(0); setPg(0); return; }
 
         // If reload after new scene generation, jump to NEW scene (not Scene Intent page)
         if (options.jumpToLast) {
-          const lastSceneIdx = bookScenes.length - 1;
-          const lastScene = bookScenes[lastSceneIdx];
-
-          // Jump to FIRST page of new scene (show text, not Scene Intent)
-          setSc(lastSceneIdx);
-          setPg(0);  // First page of new scene (text starts here)
+          setSc(firestoreScenes.length - 1);
+          setPg(0);
           setShowingNewScene(true); // Trigger fade-in animation
-
-          // Clear animation flag after animation completes
           setTimeout(() => setShowingNewScene(false), 1200);
-
-          console.log(`[Book] Jumped to new scene ${lastSceneIdx + 1}, page 1 (showing generated text with fade-in)`);
-          setLoadingScenes(false);
           return;
+        }
+        // after writing in the sheet: back to the scene that was written
+        if (options.jumpTo) {
+          const i = firestoreScenes.findIndex((x) => x.id === options.jumpTo);
+          setSc(Math.max(0, i)); setPg(0);
+          return;
+        }
+        // deep link ?scene=N
+        if (startScene != null && !startDone.current) {
+          startDone.current = true;
+          const i = firestoreScenes.findIndex((x) => x.n === startScene);
+          if (i >= 0) { setSc(i); setPg(0); return; }
         }
 
         // Restore reading position if exists
@@ -254,13 +274,8 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           if (savedPosition) {
             const position = JSON.parse(savedPosition);
             if (position.projectId === projectId) {
-              // Restore saved position
-              const validSc = Math.min(position.sc, bookScenes.length - 1);
-              const validPg = Math.min(position.pg, bookScenes[validSc]?.pages?.length - 1 || 0);
-              setSc(validSc);
-              setPg(validPg);
-              console.log('Restored reading position:', { sc: validSc, pg: validPg });
-              setLoadingScenes(false);
+              setSc(Math.min(position.sc, firestoreScenes.length - 1));
+              setPg(position.pg || 0); // clamped once the pages are measured
               return;
             }
           }
@@ -299,6 +314,42 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
     };
   }, [projectId]);
 
+  useEffect(() => {
+    const h = (e) => setTypo((cur) => {
+      const next = { ...cur, ...(e.detail || {}) };
+      try { localStorage.setItem(BOOK_TYPO_KEY, JSON.stringify(next)); } catch (er) {}
+      return next;
+    });
+    window.addEventListener("ww-book-typo", h);
+    return () => window.removeEventListener("ww-book-typo", h);
+  }, []);
+  const openSheet = useCallback((scene) => setSheet({ scene }), []);
+  const newScene = useCallback(async () => {
+    const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
+    const n = (raw || []).reduce((m, x) => Math.max(m, x.n || 0), 0) + 1;
+    const made = await window.__firebaseScenes.addScene(projectId, { title: tt('book.scene') + " " + n, text: "", n, status: "draft" });
+    setSheet({ scene: made, fresh: true });
+  }, [raw, projectId]);
+  useEffect(() => {
+    if (!raw) return;
+    let dead = false;
+    const run = () => { if (!dead) setScenes(paginateBook(raw, pageBox, typo, projectId, () => (raw.length ? openSheet(raw[0]) : newScene()))); };
+    (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(run);
+    return () => { dead = true; };
+  }, [raw, pageBox, typo, projectId]);
+  // a written-from-scratch story opens straight into the sheet
+  useEffect(() => {
+    if (!raw || generating || !startWriting || writeDone.current) return; // after the mage has opened the book
+    writeDone.current = true;
+    if (raw.length) openSheet(raw[raw.length - 1]); else newScene();
+  }, [raw, generating]);
+  // keep the page index inside the (re)measured scene
+  useEffect(() => {
+    const s = scenes[sc];
+    if (!s) { if (scenes.length) setSc(scenes.length - 1); return; }
+    if (pg > s.pages.length - 1) setPg(s.pages.length - 1);
+  }, [scenes]);
+
   const SCENES = scenes;
   const scene = SCENES.length > 0 ? SCENES[sc] : null;
   const spread = scene && scene.pages ? scene.pages[pg] : null;
@@ -310,7 +361,6 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
   // Size an overlay box to exactly match the cover-rendered book image, so
   // the text regions track the photographed pages at any viewport/crop.
-  const [pageBox, setPageBox] = useState(null);
   useEffect(() => {
     const IW = 1536, IH = 1024;
     function calc() {
@@ -376,14 +426,14 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
   useEffect(() => {
     function onKey(e) {
-      if (generating) return;
+      if (generating || sheet || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || "") || (e.target && e.target.isContentEditable)) return;
       if (e.key === "ArrowRight") go("next");
       else if (e.key === "ArrowLeft") go("prev");
       else if (e.key === "Escape") close();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [generating, go, close]);
+  }, [generating, go, close, sheet]);
 
   // Quill "continue the story" jumps to the writing leaf (last scene's last page).
   useEffect(() => {
@@ -409,7 +459,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   }, [projectId]);
 
   // Show loading if scenes not ready
-  if (loadingScenes || !scene || !spread) {
+  if (!scene || !spread) {
     return (
       <div className="book-loading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0908', color: '#d4af70', fontSize: '18px' }}>
         <div>Завантаження книги...</div>
@@ -418,7 +468,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   }
 
   return (
-    <div className="world reading">
+    <div className="world reading" style={{ "--book-size": typo.size, "--book-font": typo.font }}>
       <div className="vignette" aria-hidden="true" />
       <div className="ambient" aria-hidden="true" />
       <Particles density={0.7} />
@@ -511,7 +561,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           <div className="ritual__veil" />
           <div className={`ritual__center ${ritualClosing ? "is-closing" : ""}`}>
             <div className="ritual__mark">✶</div>
-            <div className="ritual__text">AI створює вашу історію…</div>
+            <div className="ritual__text">{ritualText || (window.__i18n ? window.__i18n.t('book.ritualAi') : 'AI створює вашу історію…')}</div>
             {premise && <div className="ritual__premise">«{premise.trim().slice(0, 120)}»</div>}
             <div className="ritual__dots"><span /><span /><span /></div>
           </div>
@@ -565,11 +615,20 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           </div>
           <button className="scenebar__nav" type="button" disabled={atLast} onClick={() => go("next")} aria-label="Наступна">›</button>
           <span className="scenebar__div" />
-          <button className={`bookbar__edit ${editOn ? "is-on" : ""}`} type="button" title="Редагувати текст" onClick={() => { const v = !window.__wwEditMode; window.__wwEditMode = v; setEditOn(v); window.dispatchEvent(new CustomEvent("ww-editmode", { detail: v })); }}>✎</button>
+          {projectId && raw && raw[sc] && (
+            <button className="bookbar__edit" type="button" title={window.__i18n ? window.__i18n.t('book.editScene') : 'Редагувати сцену'} onClick={() => openSheet(raw[sc])}>✎</button>
+          )}
+          {projectId && raw && (
+            <button className="bookbar__edit bookbar__new" type="button" title={window.__i18n ? window.__i18n.t('book.newScene') : 'Нова сцена'} onClick={newScene}>＋</button>
+          )}
         </div>
       )}
 
       {!generating && <RelatedPanel scene={scene.n} />}
+      {sheet && (
+        <SceneSheet projectId={projectId} scene={sheet.scene} fresh={!!sheet.fresh}
+          onClose={(id) => { setSheet(null); if (window.__reloadBook) window.__reloadBook({ jumpTo: id }); }} />
+      )}
     </div>
   );
 }
