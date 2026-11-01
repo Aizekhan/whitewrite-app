@@ -159,7 +159,7 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту" },
+      ops: { questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту" },
       launch: { title: "Запуск Claude Code", hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено", kb: "Як підготувати ПК і почати: ", kbLink: "База знань → шлях з агентом" },
@@ -353,7 +353,7 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan" },
+      ops: { questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan" },
       launch: { title: "Launch Claude Code", hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)",
         copy: "Copy the commands", copied: "Copied", saved: "Saved", kb: "How to prepare your PC and start: ", kbLink: "Knowledge base → the path with the agent" },
@@ -1376,10 +1376,11 @@
       $("d-body").innerHTML = html + loreGroup(e.group).defs.map(function (d) {
         return '<div class="field"><label for="lf-' + d.key + '">' + esc(d.label) + '</label><textarea id="lf-' + d.key + '" data-lf="' + d.key + '" rows="4">' + esc(ddraft.fields[d.key] || "") + '</textarea></div>';
       }).join("");
+      if (!e.isNew) $("d-body").insertAdjacentHTML("beforeend", '<div class="field">' + bulbHtml("lore", e.id) + qdLinksHtml(e) + '</div>');
       $("d-tabs").innerHTML = ""; $("d-tabs").hidden = true; return;
     }
     $("d-tabs").hidden = false;
-    if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div>';
+    if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div><div class="field">' + bulbHtml("e", e.id) + '</div>';
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
@@ -1501,7 +1502,12 @@
       triggerPh: "Коли починається: підійти, клік, подія…", nodes: "Репліки", node: "Репліка", speaker: "Хто говорить", player: "Гравець", narrator: "Оповідач",
       text: "Текст репліки", locKey: "Ключ локалізації", cond: "Умова", effects: "Ефекти", effectsPh: "напр. give_item:ключ; set_flag:met", next: "Далі",
       choice: "Текст вибору", addChoice: "＋ Вибір гравця", addNode: "＋ Репліка", endNode: "Кінець розмови",
-      stagesN: "етапів", nodesN: "реплік", inDossier: "Квести й діалоги", givesIt: "дає квест",
+      stagesN: "етапів", nodesN: "реплік", inDossier: "Квести й діалоги", givesIt: "дає квест", fromIt: "джерело",
+      bulb: "💡 Створити квест на основі цього", source: "Джерело", srcHint: "Історія, досьє чи запис культури, з якого виріс квест", openSrc: "↗ Відкрити джерело",
+      srcKinds: { story: "Історія", characters: "Персонаж", locations: "Локація", factions: "Фракція", artifacts: "Артефакт", events: "Подія", lore: "Культура" },
+      ai: "✦ Запропонувати з ШІ", aiHint: "ШІ пропонує, ти вирішуєш: кожне поле приймаєш чи відхиляєш окремо. Нічого не зберігається без «Зберегти».",
+      wishPh: "Чого хочеш від цієї чернетки (необовʼязково)", aiBusy: "ШІ складає чернетку…", prop: "Пропозиція ШІ", accept: "Прийняти", reject: "Відхилити",
+      acceptAll: "Прийняти все", closeProp: "Закрити пропозицію", ideas: "Ідеї ШІ — не канон, лише нотатки", spent: "Витрачено токенів",
       qtypes: { main: "Основні", side: "Побічні", faction: "Фракційні", companion: "Компаньйонів", contract: "Контракти й доручення", event: "Події світу", tutorial: "Навчальні" },
       dtypes: { narrative: "Сюжетні розмови", quest: "Квестові", ambient: "Фонові репліки (barks)", trader: "Торговці", event: "Події", tutorial: "Навчання", social: "Соціальні" },
       appr: { draft: "чернетка", review: "на розгляді", approved: "затверджено", archived: "в архіві" },
@@ -1528,7 +1534,12 @@
       triggerPh: "When it starts: approach, click, event…", nodes: "Lines", node: "Line", speaker: "Speaker", player: "Player", narrator: "Narrator",
       text: "Line text", locKey: "Localisation key", cond: "Condition", effects: "Effects", effectsPh: "e.g. give_item:key; set_flag:met", next: "Next",
       choice: "Choice text", addChoice: "＋ Player choice", addNode: "＋ Line", endNode: "End of conversation",
-      stagesN: "stages", nodesN: "lines", inDossier: "Quests & dialogues", givesIt: "gives the quest",
+      stagesN: "stages", nodesN: "lines", inDossier: "Quests & dialogues", givesIt: "gives the quest", fromIt: "source",
+      bulb: "💡 Create a quest from this", source: "Source", srcHint: "The story, dossier or culture entry the quest grew from", openSrc: "↗ Open the source",
+      srcKinds: { story: "Story", characters: "Character", locations: "Location", factions: "Faction", artifacts: "Artifact", events: "Event", lore: "Culture" },
+      ai: "✦ Propose with AI", aiHint: "AI proposes, you decide: accept or reject each field on its own. Nothing is saved until “Save”.",
+      wishPh: "What you want from this draft (optional)", aiBusy: "AI is drafting…", prop: "AI proposal", accept: "Accept", reject: "Reject",
+      acceptAll: "Accept all", closeProp: "Close the proposal", ideas: "AI ideas — not canon, just notes", spent: "Tokens spent",
       qtypes: { main: "Main", side: "Side", faction: "Faction", companion: "Companion", contract: "Contracts & errands", event: "World events", tutorial: "Tutorial" },
       dtypes: { narrative: "Story conversations", quest: "Quest", ambient: "Ambient barks", trader: "Traders", event: "Events", tutorial: "Tutorial", social: "Social" },
       appr: { draft: "draft", review: "in review", approved: "approved", archived: "archived" },
@@ -1540,6 +1551,7 @@
         noNodes: "No lines", emptyText: "{id}: an empty line", speakerNotIn: "{id}: the speaker is not a participant" } }
   }[LANG];
   var quests = [], dialogues = [], canQuest = false, qed = null; // qed: { col, id, isNew, d (draft), first }
+  var qprop = null, qbusy = "", NARR_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/narrativeDraft"; // qprop: the AI proposal of the open draft
   var QREFS = ["giver", "characters", "locations", "factions", "artifacts"];
   function entName(id) { var e = entities.filter(function (x) { return x.id === id; })[0]; return e ? (e.name || e.title || id) : id; }
   function ofKind(k) { return entities.filter(function (e) { return e.kind === k; }).sort(byOrder(function (e) { return e.name || e.title || ""; })); }
@@ -1552,7 +1564,7 @@
   }
   function qdDefaults(col) {
     return col === "quests"
-      ? { title: "", type: "side", approval: "draft", status: "idea", summary: "", stories: [], giver: "", characters: [], locations: [], factions: [], artifacts: [], objectives: "",
+      ? { title: "", type: "side", approval: "draft", status: "idea", source: { type: "", id: "", title: "" }, summary: "", stories: [], giver: "", characters: [], locations: [], factions: [], artifacts: [], objectives: "",
           stages: [{ id: "s1", title: "", objective: "", next: [], end: false, fail: false }], rewards: "", prereqs: [], repeat: { mode: "once", cooldown: "" }, hooks: "", notes: "" }
       : { title: "", type: "narrative", approval: "draft", status: "idea", participants: [], location: "", questId: "", stageId: "", trigger: "",
           nodes: [{ id: "n1", speaker: "", text: "", locKey: "", cond: "", effects: "", choices: [], next: "", end: true }], notes: "" };
@@ -1563,7 +1575,7 @@
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
     if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order"].indexOf(k) < 0) own[k] = x[k]; });
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
-    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d }; qed.first = JSON.stringify(d);
+    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d }; qed.first = JSON.stringify(d); qprop = null; qbusy = "";
     if (section !== col) { section = col; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
   }
@@ -1631,16 +1643,16 @@
       qfld(QD.approval, qsel("approval", pairsOf(QD.appr), d.approval, QD.approval)) +
       qfld(QD.status, qsel("status", STATUSES.map(function (x) { return [x.id, L(x)]; }), d.status, QD.status)) + '</div>');
     $("view").innerHTML = '<div class="qed" id="q-ed" data-id="' + esc(q.id) + '" tabindex="-1"><header class="sec"><div><button class="btn ghost" data-qact="back">' + QD.back + '</button>' +
-      '<h1>' + esc(d.title || (isQ ? QD.newQ : QD.newD)) + '</h1></div></header>' + ident + (isQ ? questBody(d) : dlgBody(d)) +
+      '<h1>' + esc(d.title || (isQ ? QD.newQ : QD.newD)) + '</h1></div></header>' + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
       '<div class="canonbox qbox" id="q-issues" aria-live="polite">' + qdIssuesHtml() + '</div>' +
       (canQuest ? '<div class="row wsave"><span class="muted" id="q-state"></span>' + (q.isNew ? '' : '<button class="btn danger" data-qact="delete">' + QD.del + '</button>') +
         '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button></div>' : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') + '</div>';
-    if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input,textarea,select,[data-qtog]"), function (el) { el.disabled = true; });
+    if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input,textarea,select,[data-qtog],[data-qact^=add],[data-qact^=rm]"), function (el) { el.disabled = true; });
     qdState();
   }
   function questBody(d) {
     var chars = ofKind("characters"), others = quests.filter(function (x) { return x.id !== qed.id; }), mine = dialogues.filter(function (x) { return x.questId === qed.id; });
-    var html = qbox(QD.summary, qtxt("summary", d.summary, QD.summaryPh, 4) +
+    var html = qbox(QD.summary, srcHtml(d) + qtxt("summary", d.summary, QD.summaryPh, 4) +
       qblk(QD.stories, stories.length ? qtogs("stories", stories, d.stories, function (x) { return x.title || x.name || "…"; }) : '<p class="muted">' + QD.noStories + '</p>'));
     html += qbox(QD.actors, qfld(QD.giver, qsel("giver", [["", QD.none]].concat(chars.map(function (c) { return [c.id, c.name || c.title || ""]; })), d.giver, QD.giver)) +
       qblk(QD.cast, qtogs("characters", chars, d.characters)) + qblk(QD.places, qtogs("locations", ofKind("locations"), d.locations)) +
@@ -1699,6 +1711,11 @@
   }
   function qdInput(e) {
     var t = e.target; if (!qed || !t.dataset || !t.dataset.qf || !$("q-ed")) return;
+    if (t.dataset.qf === "srcKey") { // «Джерело»: type:id → { type, id, title }
+      if (e.type !== "change") return;
+      var k = t.value.split(":"), it = k[1] ? srcItem(k[0] === "story" || k[0] === "lore" ? k[0] : "e", k[1]) : null;
+      qed.d.source = it ? { type: k[0], id: k[1], title: it.title || it.name || "" } : { type: "", id: "", title: "" }; renderQEditor(); return;
+    }
     qdSet(t.dataset.qf, t.type === "checkbox" ? t.checked : t.value);
     if (e.type === "change" && t.dataset.qf === "questId") { qed.d.stageId = ""; renderQEditor(); return; }
     qdState();
@@ -1709,6 +1726,12 @@
     if (p[0] === "back") { if (qdDirty() && !confirm(STR.dos.unsaved)) return; qed = null; render(); return; }
     if (p[0] === "save") return saveQD();
     if (p[0] === "delete") return deleteQD();
+    if (p[0] === "openSrc") return openSrc();
+    if (p[0] === "ai") return confirmCost(qed.col === "quests" ? "questDraft" : "dialogueDraft", aiDraft);
+    if (p[0] === "pAcc") { propAccept(p[1]); renderQEditor(); return; }
+    if (p[0] === "pRej") { qprop.done[p[1]] = 1; renderQEditor(); return; }
+    if (p[0] === "pAll") { PROP_FIELDS[qed.col].forEach(function (k) { var v = qprop[k]; if (!qprop.done[k] && v != null && v !== "" && !(Array.isArray(v) && !v.length)) propAccept(k); }); renderQEditor(); return; }
+    if (p[0] === "pClose") { qprop = null; renderQEditor(); return; }
     if (p[0] === "newDlg") { if (qdDirty() && !confirm(STR.dos.unsaved)) return; var qid = qed.id; qed = null; openQD("dialogues", null, { questId: qid, type: "quest", participants: d.giver ? [d.giver] : [] }); return; }
     if (p[0] === "addStage") { // the new stage follows the last one when that one led nowhere
       var last = d.stages[d.stages.length - 1], ns = { id: nextId(d.stages, "s"), title: "", objective: "", next: [], end: false, fail: false };
@@ -1748,13 +1771,101 @@
     catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   // the dossier lists the quests and dialogues its entity takes part in (derived, nothing stored on the entity)
+  // ---- 💡 a quest from a source (spec 2.2): the source travels into the form, the obvious links are prefilled, AI is one click away ----
+  function bulbHtml(type, id) { return '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>'; }
+  function srcItem(type, id) {
+    if (type === "story") return stories.filter(function (x) { return x.id === id; })[0];
+    if (type === "lore") return lore.filter(function (x) { return x.id === id; })[0];
+    return entities.filter(function (x) { return x.id === id; })[0];
+  }
+  function questFrom(type, id) {
+    if (!canQuest) { alert(QD.locked); return; }
+    var x = srcItem(type, id); if (!x) return;
+    var kind = type === "story" || type === "lore" ? type : x.kind, pre = { source: { type: kind, id: id, title: x.title || x.name || "" } };
+    if (kind === "characters") { pre.giver = id; pre.characters = [id]; }
+    else if (kind === "locations" || kind === "factions" || kind === "artifacts") pre[kind] = [id];
+    else if (kind === "events") pre.characters = (x.characters || []).slice();
+    else if (kind === "story") { pre.stories = [id]; pre.characters = (x.subjects || []).filter(function (s) { return entities.some(function (e) { return e.id === s && e.kind === "characters"; }); }); }
+    if (dos) closeDossier();
+    qed = null; openQD("quests", null, pre);
+  }
+  function srcPairs() {
+    var out = [["", QD.none]];
+    stories.forEach(function (x) { out.push(["story:" + x.id, QD.srcKinds.story + " · " + (x.title || x.name || "…")]); });
+    ["characters", "locations", "factions", "artifacts", "events"].forEach(function (k) { ofKind(k).forEach(function (e) { out.push([k + ":" + e.id, QD.srcKinds[k] + " · " + (e.name || e.title || "…")]); }); });
+    lore.forEach(function (l) { out.push(["lore:" + l.id, QD.srcKinds.lore + " · " + (l.name || "…")]); });
+    return out;
+  }
+  function srcHtml(d) {
+    var s = d.source || {}, key = s.type && s.id ? s.type + ":" + s.id : "";
+    return qfld(QD.source + " · " + QD.srcHint, qsel("srcKey", srcPairs(), key, QD.source)) + (key && srcItem(s.type === "story" || s.type === "lore" ? s.type : "e", s.id) ? '<button class="btn mini ghost" data-qact="openSrc">' + QD.openSrc + '</button>' : '');
+  }
+  function openSrc() {
+    var s = qed.d.source || {};
+    if (s.type === "story") return tellShell({ type: "ww-open-story", projectId: s.id });
+    var x = srcItem(s.type === "lore" ? "lore" : "e", s.id); if (x) openDossier(x);
+  }
+  // ---- ✦ AI proposal: shown above the form; every field is accepted or rejected on its own ----
+  var PROP_FIELDS = { quests: ["title", "type", "summary", "giver", "characters", "locations", "factions", "artifacts", "objectives", "stages", "rewards", "hooks", "repeat"],
+    dialogues: ["title", "type", "trigger", "participants", "location", "nodes"] };
+  var PROP_LABEL = function (k) { return { title: QD.title, type: QD.type, summary: QD.summary, giver: QD.giver, characters: QD.cast, locations: QD.places, factions: QD.factions,
+    artifacts: QD.artifacts, objectives: QD.objectives, stages: QD.stages, rewards: QD.rewards, hooks: QD.hooks, repeat: QD.repeat, trigger: QD.trigger,
+    participants: QD.participants, location: QD.location, nodes: QD.nodes }[k] || k; };
+  function propText(k, v) {
+    var types = qed.col === "quests" ? QD.qtypes : QD.dtypes;
+    if (k === "type") return types[v] || v;
+    if (k === "giver" || k === "location") return entName(v);
+    if (Array.isArray(v) && k !== "stages" && k !== "nodes") return v.map(entName).join(", ");
+    if (k === "repeat") return (QD.rep[v.mode] || v.mode) + (v.cooldown ? " · " + v.cooldown : "");
+    if (k === "stages") return v.map(function (st, i) { return (i + 1) + ". " + (st.title || "") + (st.objective ? " — " + st.objective : "") + (st.end ? " ✓" : st.fail ? " ✕" : "") +
+      ((st.next || []).length ? " → " + st.next.map(function (b) { return b.to.slice(1) + (b.cond ? " (" + b.cond + ")" : ""); }).join(", ") : ""); }).join("\n");
+    if (k === "nodes") return v.map(function (n, i) { var who = n.speaker === "player" ? QD.player : n.speaker === "narrator" ? QD.narrator : n.speaker ? entName(n.speaker) : "—";
+      return (i + 1) + ". " + who + ": " + n.text + (n.choices || []).map(function (c) { return "\n   ▸ " + c.text + (c.to ? " → " + c.to.slice(1) : ""); }).join("") + (n.next ? " → " + n.next.slice(1) : "") + (n.end ? " ■" : ""); }).join("\n");
+    return String(v == null ? "" : v);
+  }
+  function propHtml() {
+    if (!qprop) return "";
+    var keys = PROP_FIELDS[qed.col].filter(function (k) { var v = qprop[k]; return v != null && v !== "" && !(Array.isArray(v) && !v.length) && !qprop.done[k]; });
+    return '<div class="canonbox qbox qprop"><h4>' + QD.prop + '</h4>' + (keys.length ? keys.map(function (k) {
+      return '<div class="qprow"><span class="qh">' + esc(PROP_LABEL(k)) + '</span><pre>' + esc(propText(k, qprop[k])) + '</pre><div class="row">' +
+        '<button class="btn mini primary" data-qact="pAcc:' + k + '">' + QD.accept + '</button><button class="btn mini ghost" data-qact="pRej:' + k + '">' + QD.reject + '</button></div></div>';
+    }).join("") + '<div class="row"><button class="btn primary" data-qact="pAll">' + QD.acceptAll + '</button><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button></div>' : '<p class="muted">✓</p><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button>') +
+      ((qprop.ideas || []).length ? '<div class="field"><span class="qh">' + QD.ideas + '</span><ul class="qiss">' + qprop.ideas.map(function (x) { return '<li>· ' + esc(x) + '</li>'; }).join("") + '</ul></div>' : '') + '</div>';
+  }
+  function aiHtml() {
+    if (!canQuest) return "";
+    var op = qed.col === "quests" ? "questDraft" : "dialogueDraft";
+    return '<div class="canonbox qbox"><div class="row qai"><input id="q-wish" placeholder="' + esc(QD.wishPh) + '" aria-label="' + esc(QD.wishPh) + '"' + (qbusy ? " disabled" : "") + '>' +
+      '<button class="btn" data-qact="ai"' + (qbusy ? " disabled" : "") + '>' + QD.ai + costMark(op) + '</button></div><p class="muted" id="q-aimsg">' + esc(qbusy || QD.aiHint) + '</p></div>';
+  }
+  async function aiDraft() {
+    var q = qed, isQ = q.col === "quests", wish = ($("q-wish") || {}).value || "";
+    var src = isQ ? q.d.source : q.d.questId ? { type: "quest", id: q.d.questId } : null;
+    qbusy = QD.aiBusy; renderQEditor();
+    try {
+      var token = await firebase.auth().currentUser.getIdToken();
+      var r = await fetch(NARR_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        body: JSON.stringify({ worldId: worldId, op: isQ ? "questDraft" : "dialogueDraft", source: src && src.id ? { type: src.type, id: src.id } : null, draft: q.d, wish: wish, language: LANG }) });
+      var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+      if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
+      if (qed !== q) return;
+      qprop = Object.assign({ done: {} }, data.proposal); qbusy = "";
+      renderQEditor(); var m = $("q-aimsg"); if (m) m.textContent = QD.spent + ": " + (data.tokensConsumed || 0);
+    } catch (er) { if (qed === q) { qbusy = ""; renderQEditor(); var m2 = $("q-aimsg"); if (m2) m2.textContent = STR.failed + ": " + er.message; } }
+  }
+  function propAccept(k) {
+    var v = JSON.parse(JSON.stringify(qprop[k]));
+    if (k === "type" && subsOf(sec(qed.col)).indexOf(v) < 0) v = qed.d.type; // only known types
+    qed.d[k] = v; qprop.done[k] = 1;
+    if (k === "participants") qed.d.nodes.forEach(function (n) { if (n.speaker && n.speaker !== "player" && n.speaker !== "narrator" && v.indexOf(n.speaker) < 0) n.speaker = ""; });
+  }
   function qdLinksHtml(e) {
     var has = function (v) { return v === e.id || (Array.isArray(v) && v.indexOf(e.id) >= 0); };
-    var qs = quests.filter(function (q) { return QREFS.some(function (k) { return has(q[k]); }); });
+    var qs = quests.filter(function (q) { return QREFS.some(function (k) { return has(q[k]); }) || (q.source && q.source.id === e.id); });
     var ds = dialogues.filter(function (d) { return has(d.participants) || d.location === e.id; });
     if (!qs.length && !ds.length) return "";
     return '<h4 class="dsub">' + QD.inDossier + '</h4><div class="dlinks">' + qs.map(function (q) {
-      return '<button class="dlink" data-dqd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + (q.giver === e.id ? ' <i>' + QD.givesIt + '</i>' : '') + '</button>';
+      return '<button class="dlink" data-dqd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + (q.giver === e.id ? ' <i>' + QD.givesIt + '</i>' : q.source && q.source.id === e.id ? ' <i>' + QD.fromIt + '</i>' : '') + '</button>';
     }).join("") + ds.map(function (d) {
       return '<button class="dlink" data-dqd="dialogues:' + esc(d.id) + '"><span class="k">' + QD.dialogue + '</span>' + esc(d.title || "…") + '</button>';
     }).join("") + '</div>';
@@ -1829,6 +1940,8 @@
   });
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
+    var db2 = e.target.closest("[data-bulb]");
+    if (db2) { dcollect(); if (JSON.stringify(ddraft) !== dfirst && !confirm(STR.dos.unsaved)) return; questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); return; }
     var dq = e.target.closest("[data-dqd]");
     if (dq) { dcollect(); if (JSON.stringify(ddraft) !== dfirst && !confirm(STR.dos.unsaved)) return; closeDossier(); openQD(dq.dataset.dqd.split(":")[0], dq.dataset.dqd.split(":")[1]); return; }
     if (e.target.closest("#d-story")) { newStoryDialog(dos); return; }
@@ -1964,7 +2077,9 @@
         (about.length ? '<div class="who-row">' + about.map(function (x) { return '<button class="dlink" data-ent="' + esc(x.id) + '">' + avatar(x) + esc(x.name || x.title || "") + '</button>'; }).join("") + '</div>' : '') +
         '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><div class="row"><select data-reveal="' + esc(p.id) + '" aria-label="' + esc(STR.story.revealAria) + '">' +
         REVEALS.map(function (r) { return '<option value="' + r + '"' + ((p.reveal || "open") === r ? " selected" : "") + '>' + esc(STR.story.reveals[r]) + '</option>'; }).join("") + '</select>' +
-        '<span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div></div>';
+        '<span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>' +
+        '<div class="row">' + bulbHtml("story", p.id) + quests.filter(function (q) { return q.source && q.source.id === p.id; }).map(function (q) {
+          return '<button class="dlink" data-qd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + '</button>'; }).join("") + '</div></div>';
     }).join("") + '</div>' : '<p class="muted">' + STR.chron.noStories + '</p>';
   }
 
@@ -3554,6 +3669,7 @@
   function viewClick(e) {
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
+    var bl = e.target.closest("[data-bulb]"); if (bl) { questFrom(bl.dataset.bulb.split(":")[0], bl.dataset.bulb.split(":")[1]); return; }
     var qo = e.target.closest("[data-qd]"); if (qo) { var qp = qo.dataset.qd.split(":"); openQD(qp[0], qp.slice(1).join(":")); return; }
     var opt = e.target.closest("[data-opt]");
     if (opt) {
