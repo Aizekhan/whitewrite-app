@@ -187,6 +187,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .userdock__spark{ font-size:11px; }
 .userdock.is-loading{ opacity:0.3; pointer-events:none; }
 @media (max-width:560px){ .userdock__info{ display:none; } .userdock{ padding:7px; } }
+@media (max-width:820px){ .view{ padding-bottom:96px; } .acc__tokens{ margin-left:0; align-items:flex-start; text-align:left; width:100%; } } /* phones: the fixed bottom buttons never cover the last row */
 
 /* project edit overlay */
 .proj-edit{ position:fixed; inset:0; z-index:80; display:none; }
@@ -1255,7 +1256,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
              return '<article class="ncard" data-world="' + escapeHtml(w.id) + '">' +
                '<div class="ncard__cover"></div>' +
                '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(w.title || t('worlds.untitled')) + '</div>' +
-               '<div class="ncard__meta">' + count(w.id) + ' ' + t('worlds.stories') + '</div>' +
+               '<div class="ncard__meta">' + count(w.id) + ' ' + (function (n) { var d = n % 10, h = n % 100; return t(d === 1 && h !== 11 ? 'worlds.story1' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? 'worlds.story2' : 'worlds.stories'); })(count(w.id)) + '</div>' +
                '<p class="ncard__desc">' + escapeHtml(w.tagline || w.summary || '') + '</p>' +
                '<button class="ncard__open" data-open-world>' + svg("open") + t('worlds.open') + '</button></div></article>';
            }).join("")) +
@@ -1435,8 +1436,27 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (t === "ul") return '<ul class="art__ul">' + v.map(function (li) { return '<li>' + li + '</li>'; }).join("") + '</ul>';
     if (t === "tip") return '<div class="art__note art__note--tip"><b>' + i18n('kb.tip') + '</b> ' + v + '</div>';
     if (t === "warn") return '<div class="art__note art__note--warn"><b>' + i18n('kb.warning') + '</b> ' + v + '</div>';
+    if (t === "plans" || t === "prices") return kbRegistry(t);
     if (t === "prompt") return '<div class="art__prompt"><pre>' + String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;") + '</pre><button type="button" class="art__copy">' + i18n('kb.copy') + '</button></div>';
     return '';
+  }
+  // «Тарифи» / «Токени» articles read the paid-features registry, so they never drift from the plans
+  function kbRegistry(kind) {
+    var PF = window.__PAID_FEATURES; if (!PF) return '';
+    var en = window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === 'en';
+    var L = function (f) { return en ? f.en : f.uk; };
+    if (kind === "plans") return PF.PLAN_ORDER.map(function (id) {
+      var p = PF.PLANS[id], fs = PF.FEATURES.filter(function (f) { return f.minPlan === id && !f.planned; });
+      return '<h3 class="art__h">' + p.name + ' — $' + p.price + (en ? '/mo' : '/міс') + '</h3><ul class="art__ul"><li>' +
+        p.monthly.toLocaleString() + (en ? ' tokens a month, ' : ' токенів на місяць, ') + (p.maxProjects >= 999 ? '∞' : p.maxProjects) + (en ? ' projects' : ' проєкт(и)') + '</li>' +
+        fs.map(function (f) { return '<li><b>' + L(f).name + '</b> — ' + L(f).desc + '</li>'; }).join("") + '</ul>';
+    }).join("");
+    return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
+      var pr = f.price, c = PF.featureCost(f);
+      var n = pr.fixed ? c : pr.factor ? '≈ ' + c : (en ? 'Gemini ' + PF.SCENE_COST.gemini + ' / Claude ' + PF.SCENE_COST.claude : 'Gemini ' + PF.SCENE_COST.gemini + ' / Claude ' + PF.SCENE_COST.claude);
+      var per = pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : '';
+      return '<li><b>' + L(f).name + '</b> — ' + n + per + (en ? ' tokens · from ' : ' токенів · від ') + PF.PLANS[f.minPlan].name + '</li>';
+    }).join("") + '</ul>';
   }
   function openArticle(id) {
     var KB = window.WW_KB; if (!KB) return;
@@ -1452,7 +1472,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '<h1 class="art__title">' + a.title + '</h1>' +
         '<p class="art__lead">' + a.lead + '</p>' +
         '<div class="art__body">' + a.body.map(renderBlock).join("") + '</div>' +
-        (related.length ? '<div class="art__rel"><div class="art__rel-h">Далі в розділі «' + catName[a.cat] + '»</div>' +
+        (related.length ? '<div class="art__rel"><div class="art__rel-h">' + i18nT('kb.moreIn') + ' «' + catName[a.cat] + '»</div>' +
           related.map(function (r) { return '<button class="art__rel-b" data-art="' + r.id + '">' + r.title + ' <span>›</span></button>'; }).join("") + '</div>' : '') +
       '</div>';
     ov.classList.add("is-on");
@@ -1526,10 +1546,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '</div>' +
         '<div class="vsec-h">' + svg("sparkle") + t('account.subscriptionPlans') + '</div>' +
         '<div class="plan-grid">' +
-          planCard("free", "Free", currentLang === 'en' ? "$0/mo" : "$0/міс", ["200 " + t('plan.tokens'), "≈ 10 " + t('plan.scenes') + " (Gemini, 700 " + (currentLang === 'en' ? 'words' : 'слів') + ")", "1 " + (currentLang === 'en' ? 'project' : 'проєкт'), '<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>'], u.plan) +
-          planCard("storyteller", "Storyteller", currentLang === 'en' ? "$12/mo" : "$12/міс", ["2400 " + t('plan.tokens'), "≈ 120 " + t('plan.scenes') + " (Gemini, 700 " + (currentLang === 'en' ? 'words' : 'слів') + ")", "5 " + t('plan.projects'), t('feature.exportDocs'), t('feature.worldTree'), '<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>'], u.plan) +
-          planCard("novelist", "Novelist", currentLang === 'en' ? "$29/mo" : "$29/міс", ["32000 " + t('plan.tokens'), "≈ 400 Gemini " + t('plan.or') + " 80 Claude " + t('plan.scenes'), t('feature.claudeAPI'), "∞ " + t('plan.projects'), t('feature.reconstruction'), t('feature.analyzeModes'), '<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>'], u.plan, true) +
-          planCard("worldbuilder", "Worldbuilder", currentLang === 'en' ? "$69/mo" : "$69/міс", ["180000 " + t('plan.tokens'), "≈ 300 Claude / ∞ Gemini " + t('plan.scenes'), t('feature.claudeAPI'), "∞ " + t('plan.projects'), t('feature.reconstructionPro'), t('feature.apiAccess'), '<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>'], u.plan) +
+          planCards(u.plan, currentLang === 'en') +
         '</div>' +
         integHtml(currentLang) +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">' + t('account.logoutButton') + '</button>' +
@@ -1587,6 +1604,28 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var key = 'plan.' + id;
     return t(key);
+  }
+  // Plan cards come from the paid-features registry (functions/paid-features.js → window.__PAID_FEATURES)
+  function planCards(cur, en) {
+    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
+    var PF = window.__PAID_FEATURES; if (!PF) return '';
+    cur = (PF.PLANS[cur] && PF.PLANS[cur].as) || cur; // the dev plan shows as the plan it mirrors
+    var gem = PF.SCENE_COST.gemini, cla = PF.SCENE_COST.claude;
+    return PF.PLAN_ORDER.map(function (id, i) {
+      var p = PF.PLANS[id], b = PF.planBudget(id), prev = PF.PLAN_ORDER[i - 1];
+      var feats = [p.monthly.toLocaleString() + " " + t('plan.tokens'),
+        b.allowClaude ? "≈ " + Math.floor(p.monthly / cla) + " Claude " + t('plan.or') + " " + Math.floor(p.monthly / gem) + " Gemini " + t('plan.scenes')
+                      : "≈ " + Math.floor(p.monthly / gem) + " " + t('plan.scenes') + " (Gemini, 700 " + (en ? 'words' : 'слів') + ")",
+        (p.maxProjects >= 999 ? "∞ " : p.maxProjects + " ") + (p.maxProjects === 1 ? (en ? 'project' : 'проєкт') : t('plan.projects'))];
+      if (prev) feats.push('<b>' + (en ? 'Everything in ' : 'Усе з ') + PF.PLANS[prev].name + ' +</b>');
+      PF.FEATURES.forEach(function (f) {
+        if (f.minPlan !== id || f.planned || f.id === 'scenes' || f.id === 'genesis') return;
+        var L = en ? f.en : f.uk;
+        feats.push('<span title="' + esc(L.desc) + '">' + L.name + '</span>');
+      });
+      feats.push('<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>');
+      return planCard(id, p.name, "$" + p.price + (en ? "/mo" : "/міс"), feats, cur, p.popular);
+    }).join("");
   }
   function planCard(id, name, price, feats, cur, popular) {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
@@ -1862,6 +1901,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <!-- Firebase Modules -->
 <script src="/firebase/ai-models.js"></script>
 <script src="/firebase/firebase-init.js"></script>
+<script src="/firebase/paid-features.js"></script>
 <script src="/firebase/token-budget.js"></script>
 <script src="/firebase/firebase-pricing.js"></script>
 <script src="/firebase/firebase-auth.js"></script>

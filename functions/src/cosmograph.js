@@ -4,7 +4,8 @@
 // (firestore.rules keep it read-only for clients); the sky itself lives in worlds/{w}.cosmos (client-written).
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget } = require('./common');
 
-const COSMOGRAPH_COST = 2000; // app/gamebible.js COSMO_COST mirrors this
+const { featureCost, byOp } = require('../paid-features.js');
+const COSMOGRAPH_COST = featureCost(byOp('cosmograph')); // paid-features.js (gamebible.js reads the same)
 const PERIOD_MS = 30 * 24 * 3600 * 1000;
 
 exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res) => {
@@ -34,6 +35,7 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
       if (!getPlanBudget(userData.plan || 'free').allowGameDev) {
         return res.status(403).json({ error: 'Біблія світу доступна на тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
       }
+      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
       const now = Date.now();
       const paidUntil = cur.paidUntil && cur.paidUntil.toMillis ? cur.paidUntil.toMillis() : 0;
       if (paidUntil > now) { // this month is paid: just turn it on

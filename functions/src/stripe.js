@@ -6,6 +6,7 @@ const {
   cors,
   stripeSecretKey,
   stripeWebhookSecret,
+  verifyAuth,
 } = require('./common');
 
 
@@ -27,7 +28,11 @@ exports.createCheckoutSession = onRequest({ secrets: [stripeSecretKey] }, async 
   cors(req, res, async () => {
     try {
       const stripe = require('stripe')(stripeSecretKey.value());
-      const { plan, uid, email } = req.body;
+      // Legacy (checkout is Lemon Squeezy now): uid and email ONLY from the verified ID token, never from the body
+      let uid;
+      try { uid = await verifyAuth(req.headers.authorization); } catch (e) { res.status(401).json({ error: 'Unauthorized' }); return; }
+      const email = (await admin.auth().getUser(uid)).email;
+      const { plan } = req.body || {};
 
       if (!plan || !uid || !email) {
         res.status(400).json({ error: 'Missing required fields: plan, uid, email' });

@@ -159,9 +159,20 @@ exports.initLemonSqueezyConfig = onRequest({}, async (req, res) => {
  * Events handled:
  * - subscription_created → activate subscription, update plan
  * - subscription_updated → sync subscription status
- * - subscription_cancelled → downgrade to free
+ * - subscription_cancelled → plan stays until ends_at (cancelAtPeriodEnd); subscription_expired / status expired → free
  * - order_created → add tokens for one-time purchases (token top-ups)
  */
+async function downgradeToFree(uid) {
+  await db.collection('users').doc(uid).update({
+    plan: 'free',
+    lemonSqueezySubscriptionId: null,
+    subscriptionStatus: 'canceled',
+    cancelAtPeriodEnd: false,
+    subscriptionEndsAt: null,
+    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+}
+
 exports.lemonSqueezyWebhook = onRequest({
   secrets: [lemonSqueezyWebhookSecret]
 }, async (req, res) => {
@@ -251,9 +262,14 @@ exports.lemonSqueezyWebhook = onRequest({
         const uid = userDoc.id;
 
         // Update subscription status (+ plan, if the variant changed on upgrade/downgrade)
-        const status = subscription.attributes.status; // active, past_due, cancelled, etc.
+        const status = subscription.attributes.status; // active, on_trial, past_due, cancelled (paid until ends_at), expired…
+        if (status === 'expired') { await downgradeToFree(uid); console.log(`[LemonSqueezy] Subscription expired for ${uid}`); break; }
+        const graceUntil = status === 'cancelled' ? Date.parse(subscription.attributes.ends_at || '') : NaN;
+        const inGrace = graceUntil > Date.now(); // cancelled, but the paid period hasn't ended: keep the plan working
         const updates = {
-          subscriptionStatus: status,
+          subscriptionStatus: inGrace ? 'active' : status,
+          cancelAtPeriodEnd: inGrace,
+          subscriptionEndsAt: inGrace ? admin.firestore.Timestamp.fromMillis(graceUntil) : null,
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
         const variantPlan = planByVariant[String(subscription.attributes.variant_id)];
@@ -264,6 +280,7 @@ exports.lemonSqueezyWebhook = onRequest({
         break;
       }
 
+      case 'subscription_expired':
       case 'subscription_cancelled': {
         const subscription = event.data;
         const subscriptionId = subscription.id;
@@ -282,16 +299,19 @@ exports.lemonSqueezyWebhook = onRequest({
         const userDoc = userSnapshot.docs[0];
         const uid = userDoc.id;
 
-        console.log(`[LemonSqueezy] Subscription canceled for ${uid}, downgrading to free`);
-
-        // Downgrade to free plan
-        await db.collection('users').doc(uid).update({
-          plan: 'free',
-          lemonSqueezySubscriptionId: null,
-          subscriptionStatus: 'canceled',
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-
+        // Cancelled = paid until ends_at (Lemon Squeezy keeps it until then); expired = it's over
+        const endsAt = Date.parse(subscription.attributes.ends_at || '');
+        if (event.meta.event_name === 'subscription_cancelled' && endsAt > Date.now()) {
+          console.log(`[LemonSqueezy] Subscription cancelled for ${uid}, plan stays until ${subscription.attributes.ends_at}`);
+          await db.collection('users').doc(uid).update({
+            cancelAtPeriodEnd: true,
+            subscriptionEndsAt: admin.firestore.Timestamp.fromMillis(endsAt),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          break;
+        }
+        console.log(`[LemonSqueezy] Subscription over for ${uid}, downgrading to free`);
+        await downgradeToFree(uid);
         break;
       }
 

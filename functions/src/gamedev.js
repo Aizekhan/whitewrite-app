@@ -23,6 +23,7 @@ const {
   claudeApiKey,
 } = require('./common');
 const { intentText } = require('./experience')._experience;
+const { featureCost, byOp } = require('../paid-features.js');
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;
@@ -542,7 +543,7 @@ exports.gamedevPlan = onRequest({
       // Priced by real output (scene economy entry), logged separately
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
-      const reserveCost = ((providerEconomy && providerEconomy.cost) || 300) * (op === 'analyze' || isCanon ? 2 : 4); // gamebible.js COST mirrors this
+      const reserveCost = featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost); // paid-features.js — gamebible.js costOf reads the same
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });

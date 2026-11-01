@@ -197,6 +197,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   const [pg, setPg] = useState(0);
   const [whisper, setWhisper] = useState({ text: "", sig: 0 });
   const [sceneMenu, setSceneMenu] = useState(false);
+  const [exportMenu, setExportMenu] = useState(false); // ⤓ DOCX / PDF (book-export.js; allowExport — Storyteller+)
   const [showingNewScene, setShowingNewScene] = useState(false); // Trigger fade-in animation for new scene
   const [, forceBookUpdate] = useState(0); // For language change re-render
   const done = useRef(false);
@@ -617,6 +618,29 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           {projectId && raw && (
             <button className="bookbar__edit bookbar__new" type="button" title={window.__i18n ? window.__i18n.t('book.newScene') : 'Нова сцена'} onClick={newScene}>＋</button>
           )}
+          {projectId && raw && raw.length > 0 && (function () {
+            const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
+            const plan = window.__wwUser && window.__wwUser.plan;
+            const ok = !!(window.__getPlanConfig && plan && window.__getPlanConfig(plan).allowExport);
+            const run = (kind) => { setExportMenu(false); window.__bookExport[kind](title, raw.map((s) => ({ n: s.n, title: s.title, text: s.text }))); };
+            return (
+              <div className="bookbar__exp">
+                <button className={`bookbar__edit ${exportMenu ? "is-on" : ""}`} type="button" title={tt('book.export')} aria-label={tt('book.export')} aria-expanded={exportMenu}
+                  onClick={(e) => { e.stopPropagation(); setExportMenu((o) => !o); }}>⤓</button>
+                {exportMenu && (
+                  <>
+                    <div className="scenebar__scrim" onClick={(e) => { e.stopPropagation(); setExportMenu(false); }} />
+                    <div className="scenebar__menu scenebar__menu--up bookbar__expmenu" role="menu" onClick={(e) => e.stopPropagation()}>
+                      <div className="bookbar__exphead">{tt('book.export')} · {raw.length} {tt('plan.scenes')}</div>
+                      <button role="menuitem" type="button" className="scenebar__opt" disabled={!ok} onClick={() => run("docx")}>DOCX — Word</button>
+                      <button role="menuitem" type="button" className="scenebar__opt" disabled={!ok} onClick={() => run("pdf")}>PDF — {tt('book.exportPrint')}</button>
+                      {!ok && <div className="bookbar__exphead">{tt('book.exportPlan')}</div>}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          }())}
         </div>
       )}
 

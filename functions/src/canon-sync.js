@@ -8,6 +8,8 @@ const {
   AI_MODELS,
   charge,
   getBalance,
+  reserve,
+  refund,
   getPlanBudget,
   loadCanon,
   claudeApiKey,
@@ -173,10 +175,10 @@ exports.analyzeScene = onRequest({
   timeoutSeconds: 120
 }, async (req, res) => {
   return cors(req, res, async () => {
+    let reservation = null, uid = null;
     try {
       // Auth check
       // uid ONLY from verified ID token (never from body)
-      let uid = null;
       try {
         uid = await verifyAuth(req.headers.authorization);
       } catch (e) {
@@ -208,6 +210,9 @@ exports.analyzeScene = onRequest({
           error: 'ANALYZE mode не доступний на вашому плані. Upgrade до Novelist або вище.'
         });
       }
+      if (userData.subscriptionStatus !== 'active') {
+        return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
+      }
 
       // Check token budget
       const tokensRemaining = getBalance(userData).available;
@@ -233,6 +238,13 @@ exports.analyzeScene = onRequest({
 
       if (projectDoc.data().owner !== uid) {
         return res.status(403).json({ error: 'Forbidden: not project owner' });
+      }
+      // Atomically reserve before the AI call (settled in charge(), refunded on failure) — parallel runs can't overspend
+      try {
+        reservation = await reserve(db, uid, analyzeCost);
+      } catch (error) {
+        if (error.code === 'OUT_OF_TOKENS') return res.status(402).json({ error: `Недостатньо токенів. Потрібно: ${analyzeCost}`, code: 'OUT_OF_TOKENS' });
+        throw error;
       }
       const project = projectDoc.data();
       const { canon } = await loadCanon(db, projectId, project, uid);
@@ -305,8 +317,9 @@ At most 5 items per list.`;
         message.model || AI_MODELS.claude.sonnet,
         message.usage || { input_tokens: 0, output_tokens: 0 },
         projectId,
-        { provider: 'claude' }
+        { provider: 'claude', reserved: reservation }
       );
+      reservation = null;
 
       console.log(`[Analyze] ✅ Advice ready (-${userCost} tokens, $${apiCostUSD.toFixed(4)})`);
 
@@ -318,6 +331,7 @@ At most 5 items per list.`;
       });
 
     } catch (error) {
+      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[Analyze] Refund failed:', e));
       console.error('[Analyze] Error:', error);
       res.status(500).json({ error: `Помилка analysis: ${error.message}` });
     }

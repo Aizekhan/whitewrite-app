@@ -196,7 +196,7 @@ function StoryForm({ onBack, onCreate, initial }) {
   const init = initial || {}; // restored when returning from Genesis
   const [description, setDescription] = useFState(init.description || "");
   const [title, setTitle] = useFState(init.title || "");
-  const [language, setLanguage] = useFState(init.language || "en");       // Default: English (буде dropdown з усіма мовами)
+  const [language, setLanguage] = useFState(init.language || (window.__i18n ? window.__i18n.getLanguage() : "uk")); // the interface language by default
   const [creation, setCreation] = useFState(init.creation || "guided");   // guided | auto | free (the author writes)
   const [scope, setScope] = useFState(init.scope && init.scope !== "endless" ? init.scope : "novella");        // shot | novella | season | endless
   const [episodes, setEpisodes] = useFState(init.episodes || 8);

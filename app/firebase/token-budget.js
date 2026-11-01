@@ -150,6 +150,18 @@ window.__PLAN_BUDGETS = {
   }
 };
 
+// Prices, budgets and gates come from the paid-features registry (functions/paid-features.js) when loaded
+(function () {
+  var PF = window.__PAID_FEATURES;
+  if (!PF) return;
+  Object.keys(PF.PLANS).forEach(function (id) {
+    var p = PF.PLANS[id], b = PF.planBudget(id), cur = window.__PLAN_BUDGETS[id] || (window.__PLAN_BUDGETS[id] = {});
+    Object.keys(b).forEach(function (k) { cur[k] = b[k]; });
+    cur.name = p.name; cur.price = p.price;
+    if (cur.maxProjects >= 999) cur.maxProjects = Infinity;
+  });
+})();
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================

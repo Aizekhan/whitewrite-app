@@ -128,7 +128,7 @@
       ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
       progress: "Прогрес", acceptTitle: "Критерії приймання", tests: "Тести", testsNone: "не запускались", report: "Звіт", changes: "Змінені файли",
       serverCheck: "Перевірка сервера", checkOk: "усі критерії виконано, тести зелені", checkWarn: "не все підтверджено",
-      accept: "Прийняти", giveBack: "Повернути на доопрацювання", returnPh: "Що виправити? (побачить Claude Code)",
+      accept: "Прийняти", acceptUnchecked: "Не всі критерії чи тести підтверджено. Прийняти все одно?", giveBack: "Повернути на доопрацювання", returnPh: "Що виправити? (побачить Claude Code)",
       blocked: "Блокер", needs: "Потрібно", unblock: "Розблоковано", unblockPh: "Що змінилось / відповідь для Claude Code",
       crTitle: "Запити на зміну від виконавця", crWhy: "Чому", crProposal: "Пропозиція", crImpact: "Вплив", crAccept: "Погодити", crReject: "Відхилити",
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
@@ -304,7 +304,7 @@
       ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
       progress: "Progress", acceptTitle: "Acceptance criteria", tests: "Tests", testsNone: "not run", report: "Report", changes: "Changed files",
       serverCheck: "Server check", checkOk: "all criteria met, tests green", checkWarn: "not everything confirmed",
-      accept: "Accept", giveBack: "Return for rework", returnPh: "What to fix? (Claude Code will see it)",
+      accept: "Accept", acceptUnchecked: "Not every criterion or test is confirmed. Accept anyway?", giveBack: "Return for rework", returnPh: "What to fix? (Claude Code will see it)",
       blocked: "Blocker", needs: "Needs", unblock: "Unblocked", unblockPh: "What changed / answer for Claude Code",
       crTitle: "Change requests from the executor", crWhy: "Why", crProposal: "Proposal", crImpact: "Impact", crAccept: "Approve", crReject: "Reject",
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
@@ -540,7 +540,7 @@
   var lore = []; // culture entries: worlds/{w}/lore/{id} { group, name, desc, fields, files }
   var cards = [], entities = [], planDoc = {}, canWrite = false, canGame = false, unsub = [];
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
-  var section = "overview", query = "", statusFilter = {}, planName = null, pendingFocus = null;
+  var section = "world", query = "", statusFilter = {}, planName = null, pendingFocus = null;
   var canonFolded = false; try { canonFolded = !!localStorage.getItem("ww-bible-fold"); } catch (e) {}
   var editMode = false; // card field structure editing (names, types, deletion) — never survives closing the card
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
@@ -817,7 +817,7 @@
     var all = allCards();
     var pick = !canGame ? '<button class="nav-item" data-sec="overview">🔒 ' + esc(STR.wt.gameLocked) + '</button>' : games.length ? '<div class="gamerow"><label for="gamepick">' + STR.gameLabel + '</label><select id="gamepick">' +
       games.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === gameId ? " selected" : "") + '>' + esc(g.title) + '</option>'; }).join("") +
-      '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option></select></div>' : "";
+      '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option></select></div>' : '<button class="nav-item" data-sec="overview">' + esc(STR.newGame) + '</button>'; // no game yet: the way to the first one
     // the world block folds away so the author can work on the game alone
     $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>' + STR.canonGroup + '</button>' +
       (canonFolded ? "" : CANON.map(function (s) { return navItem(s, all); }).join("")) +
@@ -859,7 +859,8 @@
   function render() {
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
-    $("statuses").hidden = !query && CANON.some(function (x) { return x.id === section; }); // the canon has no game statuses
+    $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience)$/.test(sec(section).special || "")); // status filters only where there are game cards
+    var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = cur ? L(cur) : "";
     if (section === "settings" && !imp) return renderSettings();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
     var cs = CANON.filter(function (x) { return x.id === section; })[0];
@@ -1393,7 +1394,7 @@
     dragCtx = s;
   }
   // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
-  var COSMO_COST = 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
+  var COSMO_COST = window.__PAID_FEATURES ? window.__PAID_FEATURES.featureCost(window.__PAID_FEATURES.byOp("cosmograph")) : 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
   function cosmoState() {
     var c = (world && world.cosmograph) || {}, until = c.paidUntil && c.paidUntil.toMillis ? c.paidUntil.toMillis() : 0;
     return { enabled: !!c.enabled, until: until, paid: until > Date.now() };
@@ -2137,8 +2138,8 @@
   }
   // AI operations spend tokens: a small ✦ marks them, and the author confirms the approximate price first.
   var COST_BASE = 300; // economy_operations/generateScene providers.claude.cost; × the same factor gamedevPlan reserves
-  function costOf(op) { if (op === "cosmograph") return COSMO_COST; return COST_BASE * (op === "analyze" || op === "canonAudit" || op === "expReport" || op === "playtest" ? 2 : 4); }
-  function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦</span>'; }
+  function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
+  function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   function confirmCost(op, run) {
     var box = document.createElement("div");
     box.className = "ask";
@@ -2844,7 +2845,9 @@
         '<div>' + STR.tests + ': ' + (r.tests && r.tests.ran ? '✓ ' + r.tests.passed + ' · ✗ ' + r.tests.failed : STR.testsNone) + '</div>' +
         ((r.criteria || []).length ? '<ul class="crit">' + r.criteria.map(function (c) { return '<li>' + (c.met ? '✅' : '❌') + ' ' + esc(c.criterion) + (c.evidence ? ' <span class="muted">— ' + esc(c.evidence) + '</span>' : '') + '</li>'; }).join("") + '</ul>' : '') +
         '<div class="muted">' + STR.serverCheck + ': ' + (ck.allCriteriaMet && ck.testsGreen ? '✅ ' + STR.checkOk : '⚠ ' + STR.checkWarn + ((ck.unmet || []).length ? ' (' + esc(ck.unmet.join("; ")) + ')' : '')) + '</div>' +
-        (canWrite ? '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '">' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>' : '') + '</div>';
+        (canWrite ? (ck.allCriteriaMet && ck.testsGreen // failed checks: «return» is the primary action, accepting asks once more
+          ? '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '">' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>'
+          : '<div class="row"><button class="btn primary" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button><button class="btn" data-accept="' + esc(lt.id) + '" data-unchecked="1">' + STR.accept + '</button></div>') : '') + '</div>';
     }
     return html;
   }
@@ -2976,8 +2979,10 @@
     if (e.target.closest("#canon-toggle")) { canonFolded = !canonFolded; try { localStorage.setItem("ww-bible-fold", canonFolded ? "1" : ""); } catch (er) {} renderNav(); return; }
     var b = e.target.closest(".nav-item"); if (!b) return;
     if (wdraft && b.dataset.sec !== section && wdirty() && !confirm(STR.dos.unsaved)) return;
-    section = b.dataset.sec; query = ""; imp = null; $("q").value = ""; render(); $("main").scrollTop = 0;
+    section = b.dataset.sec; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
+  // phones: the sections fold into a drawer under one «☰ section» button
+  $("nav-toggle").addEventListener("click", function () { var o = $("spine").classList.toggle("is-open"); this.setAttribute("aria-expanded", String(o)); });
   $("nav").addEventListener("click", navClick);
   $("nav-foot").addEventListener("click", navClick);
   $("nav").addEventListener("change", function (e) {
@@ -2992,7 +2997,7 @@
     new MutationObserver(function () {
       var top = $("topline"), head = $("view").querySelector("header.sec");
       top.innerHTML = "";
-      if (!head) return;
+      if (!head || window.matchMedia("(max-width:820px)").matches) return; // phones keep the header in the page
       var h1 = head.querySelector("h1"), actions = head.querySelector(":scope > .row");
       if (h1) top.appendChild(h1);
       if (actions) top.appendChild(actions);
@@ -3029,7 +3034,7 @@
     var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var rv = e.target.closest("[data-revoke]");
     if (rv) { if (confirm(STR.exRevokeQ)) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); return; }
-    var acc = e.target.closest("[data-accept]"); if (acc) { acc.disabled = true; reviewTask(acc.dataset.accept, true); return; }
+    var acc = e.target.closest("[data-accept]"); if (acc) { if (acc.dataset.unchecked && !confirm(STR.acceptUnchecked)) return; acc.disabled = true; reviewTask(acc.dataset.accept, true); return; }
     var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
     var cr = e.target.closest("[data-cr]");

@@ -265,6 +265,10 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .scenebar__div{ width:1px; height:24px; background:rgba(201,162,75,0.3); }
 .bookbar__edit{ width:38px; height:38px; border-radius:9px; cursor:pointer; font-size:17px; color:#e9cd92;
   background:rgba(20,14,7,0.6); border:1px solid rgba(201,162,75,0.4); transition:.18s; }
+.bookbar__exp{ position:relative; }
+.bookbar__expmenu{ right:0; left:auto; min-width:220px; }
+.bookbar__exphead{ padding:8px 12px; font-size:12px; opacity:.75; }
+.scenebar__opt:disabled{ opacity:.45; cursor:not-allowed; }
 .bookbar__edit:hover{ color:#1c1308; background:linear-gradient(180deg,#e9c878,#bd9040); border-color:transparent; }
 .bookbar__edit.is-on{ color:#1c1308; background:linear-gradient(180deg,#f6cf7e,#d99a32); border-color:transparent;
   box-shadow:0 0 0 2px rgba(246,207,126,0.35), 0 0 16px rgba(246,207,126,0.7); animation:editGlow 1.4s ease-in-out infinite; }
@@ -1874,6 +1878,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 
 <!-- Firebase Modules -->
 <script src="/firebase/firebase-init.js"></script>
+<script src="/firebase/paid-features.js"></script>
 <script src="/firebase/token-budget.js"></script>
 <script src="/firebase/firebase-pricing.js"></script>
 <script src="/firebase/firebase-auth.js"></script>
@@ -1898,6 +1903,7 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 <script type="text/babel" src="flow.jsx?v=20261102"></script>
 <script type="text/babel" src="wt-world.jsx?v=20261031"></script>
 <script type="text/babel" src="book-related.jsx?v=20261102"></script>
+<script src="book-export.js"></script>
 <script type="text/babel" src="book.jsx?v=20261102"></script>
 <script type="text/babel" src="app.jsx?v=20261102"></script>
 </body>

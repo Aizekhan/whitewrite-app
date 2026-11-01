@@ -10,10 +10,20 @@
 // (ARCHITECTURE.md §Experience → «Scale»), keeping Firestore for aggregates, issues and playtests.
 const crypto = require('crypto');
 const { onRequest, admin, db, cors, Anthropic, AI_MODELS, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const { featureCost, byOp } = require('../paid-features.js');
 
 const RAW_DAYS = 30;
 const DAILY_DAYS = 400;
 const SCALE_EVENTS_PER_DAY = 150000;
+// The ingest key ships inside builds, so anyone can lift it: a game stops accepting events past DAILY_CAP a day (429),
+// and one address may send at most IP_PER_MIN batches a minute (per instance). Raise DAILY_CAP with the BigQuery move.
+const DAILY_CAP = 2 * SCALE_EVENTS_PER_DAY, IP_PER_MIN = 120;
+const ipHits = new Map();
+function ipLimited(ip) {
+  const m = Math.floor(Date.now() / 60000), h = ipHits.get(ip);
+  if (!h || h.m !== m) { if (ipHits.size > 5000) ipHits.clear(); ipHits.set(ip, { m, n: 1 }); return false; }
+  return ++h.n > IP_PER_MIN;
+}
 const MAX_BATCH = 500;
 const MAX_READ = 60000; // events read for one metrics run (newest first)
 const DAY = 86400000;
@@ -151,6 +161,7 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
   if (req.method === 'OPTIONS') return res.status(204).send('');
   try {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
+    if (ipLimited(String(req.ip || req.headers['x-forwarded-for'] || '-'))) { res.set('Retry-After', '60'); return res.status(429).json({ error: 'Too many batches, slow down' }); }
     const auth = String(req.headers.authorization || '');
     const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
     if (!/^wwi_[\w-]{20,}$/.test(token)) return res.status(401).json({ error: 'Missing or malformed ingest key' });
@@ -162,6 +173,9 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
     const now = Date.now(), ok = [], rejected = [];
     events.forEach((e, i) => { const r = cleanEvent(e, now); if (typeof r === 'string') { if (rejected.length < 20) rejected.push({ i, reason: r }); } else ok.push(r); });
     const gref = db.collection('worlds').doc(key.worldId).collection('games').doc(key.gameId);
+    const today = new Date(now).toISOString().slice(0, 10);
+    const st0 = ((await gref.get()).data() || {}).telemetryStats || {};
+    if (st0.day === today && (st0.count || 0) >= DAILY_CAP) { res.set('Retry-After', '3600'); return res.status(429).json({ error: `Daily event cap reached (${DAILY_CAP})`, code: 'DAILY_CAP' }); }
     const exp = expire(RAW_DAYS);
     for (let i = 0; i < ok.length; i += 450) {
       const b = db.batch();
@@ -514,7 +528,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       if (op === 'report' && (!metricsDoc.exists || !(metricsDoc.data().sample || {}).events)) return res.status(400).json({ error: 'Спершу зберіть події й порахуйте метрики', code: 'NO_METRICS' });
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
-      const reserveCost = ((providerEconomy && providerEconomy.cost) || 300) * 2; // gamebible.js costOf mirrors this
+      const reserveCost = featureCost(byOp(op === 'report' ? 'expReport' : 'playtest'), providerEconomy && providerEconomy.cost); // paid-features.js
       const balance = getBalance(userData);
       if (balance.available < reserveCost) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       try { reservation = await reserve(db, uid, reserveCost); } catch (error) {

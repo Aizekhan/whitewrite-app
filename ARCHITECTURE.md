@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.12.0 (2026-11-02)
+**Version:** 2.13.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -90,11 +90,13 @@ White.html (Shell)
     │        hero card «🤖 Як говорити з агентом» (flow.jsx, posts `ww-agent-guide`) → Knowledge base on the «agent» category
     ├─ Knowledge base (`kb.js` → `window.WW_KB`, rendered by `fillKb` / `openArticle`; «?» fab): categories start · agent ·
     │        book · world · game · framework · account, uk + en; blocks p/h/ul/tip/warn/prompt («prompt» = a ready request
-    │        for Claude Code with a «Копіювати» button). Every service change updates its article in the same commit.
+    │        for Claude Code with a «Копіювати» button), plans/prices (rendered from the paid-features registry).
+    │        Every service change updates its article in the same commit.
     ├─ Auth (Firebase Auth)
     ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
     └─ Pillar iframes:
-        ├─ WhiteWrite.html?projectId=X (Book)
+        ├─ WhiteWrite.html?projectId=X (Book; ⤓ export DOCX / PDF — `book-export.js`, in the browser: a STORE-zip
+        │   WordprocessingML package, or print of a book-styled frame; `allowExport`, Storyteller+)
         └─ WhiteWrite GameBible.html?worldId=W (World Bible, world-scoped)
     Canon links (book bookmarks «✦ Дослідити канон», old `WhiteWrite WorldTree.html?type=&id=` links) go through
     `wwGo` / `ww-nav` as pillar `canon` → shell `openCanon(query)`: world of `projectId` (or the current world) → `showBible()` →
@@ -235,64 +237,28 @@ Frontend (re-render)
 ```
 The key `wwk_…` is shown once; only its sha256 is stored. Created per game in Game Bible → Production plan; listed/revoked in Account → Integrations.
 
-#### **`economy_operations/{operationId}`** (planned)
-```javascript
-{
-  "generateScene": {
-    tokenCost: 100,
-    displayName: "Створення сцени",
-    category: "generation"
-  }
-}
-```
+#### **`economy_operations/{operationId}`** (live)
+Data-driven pricing read by `token-service.js charge()`: `providers.{claude|gemini}.cost` (the reserve per scene; 300 / 20 by default), margin multipliers; `economy_config/global` holds `tokenToUSD` and the global multiplier. Edited in the admin economy panel (`economy-admin.js`).
 
-#### **`usage_logs/{logId}`** (planned)
-```javascript
-{
-  uid: "...",
-  projectId: "...",
-  operation: "generateScene",
-  costs: {
-    claude: 0.0230,
-    gemini: 0.0000,
-    storage: 0.0001,
-    firebase: 0.00001
-  },
-  totalCostUSD: 0.02311,
-  userTokens: 100,
-  timestamp: Timestamp
-}
-```
+#### **`usage_logs/{logId}`** (live)
+One row per charge: `uid, projectId, operation (logAs), model, usage, apiCostUSD, userTokens, realMarginRatio, timestamp`.
 
 ---
 
 ## 🔧 Core Systems
 
-### **1. Token Budget System**
+### **1. Paid features registry, plans and tokens**
 
-**File:** `app/firebase/token-budget.js`
+**Single source of truth:** `functions/paid-features.js` (v2.13). `app/firebase/paid-features.js` is a copy made by `scripts/build-app.mjs` (the same step copies `functions/ai-models.js` → `app/firebase/ai-models.js`, so the two never drift again) — edit only the `functions/` file.
+- `PLAN_ORDER` free → storyteller → novelist → worldbuilder; `PLANS {name, price, monthly, maxProjects, popular?}`; `worldforge` is a hidden dev plan `as: 'worldbuilder'`.
+- `FEATURES[]`: `{ id, kind: gate|ai|free, flag, alias?, minPlan, price?: {scene}|{factor}|{fixed, per?}, op?, uk/en {name, desc}, where, server, planned? }`. A feature is on from `minPlan` upward; `planBudget(plan)` derives the old `{monthly, maxProjects, allow…}` shape; `featureCost(feature, claudeCost)` = the tokens reserved before a run (`factor` × the economy Claude scene price, or `fixed`); `byOp(op)`.
+- Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowCanonExtraction` (+ alias `allowCanonSync`) — Storyteller; `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder.
+- Readers: `functions/plans.js` (`PLAN_BUDGETS` / `getPlanBudget` for every server gate), `gamedevPlan` / `experience` / `cosmographAccess` reserves (`featureCost(byOp(op))`), `token-budget.js` (overwrites `window.__PLAN_BUDGETS` flags/budgets/prices), the Account plan cards (`planCards` in `White.html`: tokens, ≈ scenes, projects, «Усе з X +» and the features new at that plan), the Bible `costOf` / `costMark` (✦ price on the button and in the confirm), and the knowledge base blocks `["plans"]` / `["prices"]` (`kbRegistry` in `White.html`).
+- Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage priced by `economy_operations` (the difference is debited or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
 
-**Plans:**
-```javascript
-free:         200 tokens/month    (10 Gemini scenes)
-storyteller:  2400 tokens/month   (120 Gemini scenes)
-novelist:     32000 tokens/month  (400 Gemini OR 80 Claude + images)
-worldbuilder: 180000 tokens/month (300 Claude + 500 images)
-worldforge:   180000 tokens/month (dev/testing, same as worldbuilder)
-```
+**Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
 
-**Token Costs:**
-- `sceneGemini`: 20 tokens
-- `sceneClaude`: 100 tokens
-- `canonExtractPerScene`: 15 tokens
-- `analyzeScene`: 50 tokens
-- `improveScene`: 80 tokens
-
-**Flow:**
-1. User action → Frontend checks `window.__canAfford(operation)`
-2. Frontend calls Cloud Function
-3. Cloud Function deducts tokens from Firestore
-4. Frontend syncs `window.__wwUser.tokensRemaining`
+**Known gaps (audit 2026-11-02):** `maxProjects` is not enforced on the server; the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); plan upgrades open a new LS subscription without cancelling the old one; check `economy_config/global` margins against plan prices (a full Worldbuilder budget may cost more in API than $69).
 
 ---
 
@@ -455,6 +421,7 @@ Source: `World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx` (root).
 - `telemetryIngest` (public, CORS *): `Authorization: Bearer wwi_…` → sha256 → `ingestKeys/{sha256}` `{ uid, worldId, gameId, label, prefix, revoked }` (owner plan must have `allowGameDev`; 5-min cache). `POST { events: [≤500 envelopes] }`. Envelope: `event_id, event_name, schema_version, build_id, session_id, player_id (pseudonymous, no "@"), timestamp (±7d/+1d), level_id, zone_id, entity_id, mechanic_id, quest_id, position (rounded 0.5 m), context {platform, mode, cohort, variant}, properties (≤20 primitives)`. Stored compact in `games/{g}/telemetry/{event_id}` (`n v b s p t gt l z en m q pos ctx pr expireAt`) — the same event_id overwrites itself (retries dedupe). Daily totals `games/{g}/telemetryDaily/{YYYY-MM-DD}` (`total`, `events.{name}`, `builds.{b}` increments — they count accepted deliveries, retries included; metrics always read the deduplicated raw events). `games/{g}.telemetryStats { day, count, lastAt, scaleAlert? }`.
 - **Retention (automatic):** Firestore TTL policies on `expireAt` for collection groups `telemetry` (30 days) and `telemetryDaily` (400 days) — `firestore.indexes.json` fieldOverrides, enabled with `gcloud firestore fields ttls update expireAt --collection-group=…`. Game deletion calls `experience {op: purge}` (recursive delete of telemetry, daily, experience, issues, playtests, experiments + its ingest keys).
 - **Scale:** raw events in Firestore suit playtests / early launch. Past `SCALE_EVENTS_PER_DAY` (150 000) the game gets `telemetryStats.scaleAlert`, and «Досвід гравців» shows a banner. ⚠ Then: stream raw events to **BigQuery** (ingest writes to BigQuery instead of `telemetry/`, metrics computed by SQL), keep Firestore for daily totals, metrics, issues, playtests. Also revisit the single `telemetryDaily` doc per day (≈1 write/s sustained limit).
+- **Abuse limits** (the ingest key ships inside builds): a game accepts at most `DAILY_CAP` (2 × 150 000) events a day — then 429 `DAILY_CAP`; one address may send `IP_PER_MIN` (120) batches a minute per instance — then 429. Raise `DAILY_CAP` together with the BigQuery move.
 - `experience` (signed-in owner, `allowGameDev`): `keyCreate {label}` → `wwi_` key once (+ `games/{g}.ingestKeys[] {hash(16), prefix, label, at}`), `keyRevoke {hash}`; `metrics {days ≤30, build?}` (free) → reads ≤60 000 newest events, `computeMetrics` → `games/{g}/experience/metrics` `{ sample, session, zones{gapMedianSec, gapP90Sec, downtimeSessionShare, stayMedianSec, deathsPerPlayer, stuckShare, exitShare, hints…}, quests, levels, mechanics, variety, exploration, surveys, experiments (conversion, z, p), heatmaps[≤12 zones × 24×24 × move/death/interact/explore] }`; `report` (AI, ×2 economy) → `games/{g}/experienceIssues/{id}` `{ title, category, priority, scope, evidence[{metric,value,note}], hypothesis, alternatives, confidence, confidenceWhy, impact, actions[{change,risk}], validation{plan,target[{metric,direction}]}, baseline, sample, status open|planned|validating|resolved|dismissed, taskId?, validations[] }` — evidence only by metric keys of `flatten(metrics)`, «Boredom Risk», never claims about people; `playtest {focus}` (AI) → `games/{g}/playtests/{id}` `{ title, goal, build, cohort, tasks, questions[{id,text,type,options,when}], status draft|active|done }`; `validate {issueId}` (free) → re-measures `validation.target` vs `baseline` (±10%) → verdict improved|mixed|not_improved|inconclusive, `improved` resolves.
 - A/B: `games/{g}/experiments/{id}` `{ hypothesis, variants, metricEvent, status running|done }` (client-written); the game puts the variant in `context.variant`.
 - Survey answers: event `SurveyAnswered {playtest, question, answer}`.
@@ -495,13 +462,13 @@ Source: `World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx` (root).
 - Firebase SDK 9.22.1 (compat mode)
 
 ### **Backend**
-- Firebase Cloud Functions (Node.js 20)
+- Firebase Cloud Functions (Node.js 22)
 - Anthropic SDK (`@anthropic-ai/sdk`)
 - Google AI SDK (`@google/generative-ai`)
 
 ### **APIs**
 - Claude API (Sonnet, Haiku)
-- Gemini API (2.0 Flash)
+- Gemini API (2.5 Flash)
 - Firebase Auth, Firestore, Hosting, Storage
 - MCP (Model Context Protocol) — WhiteWrite is an MCP **server** for Claude Code
 - three.js (CDN, import map) — 3D viewer in the Game Bible

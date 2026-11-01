@@ -134,7 +134,7 @@ stateChanges = what is DIFFERENT about an entity at the END of this scene (died,
 
     if (suggestions.length === 0 && rawStateChanges.length === 0) {
       console.log('[Auto-Extract] No new entities found');
-      return [];
+      return { suggestions: [], canonRefs: {} }; // callers read .suggestions — an empty scene is not a failure
     }
 
     // Auto-merge into the world (no review queue; provenance recorded as inferred)
