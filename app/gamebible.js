@@ -21,6 +21,11 @@
         setOn: "Увімкнено, оплачено до {d}.", setPaidOff: "Вимкнено, але оплачений місяць триває до {d}: увімкнення до цієї дати безкоштовне.",
         enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам.",
         mapUploading: "Завантажую карту…", skyNote: "Небо збережено в каноні світу." },
+      story: { title: "Історії", add: "＋ Історія", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
+        newTitle: "Нова історія", titlePh: "Назва історії", reveal: "Для читача", revealNote: "Коли розкриється", revealNotePh: "напр. «після сцени, де Ліра знаходить руну»",
+        write: "Писати", revealAria: "Видимість для читача",
+        reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
+        revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
       chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
@@ -127,6 +132,11 @@
         setOn: "On, paid until {d}.", setPaidOff: "Off, but the paid month lasts until {d}: turning it on before then is free.",
         enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself.",
         mapUploading: "Uploading the map…", skyNote: "The sky is saved in the world canon." },
+      story: { title: "Stories", add: "＋ Story", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
+        newTitle: "New story", titlePh: "Story title", reveal: "For the reader", revealNote: "When it is revealed", revealNotePh: "e.g. “after the scene where Lira finds the rune”",
+        write: "Write", revealAria: "Visibility for the reader",
+        reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
+        revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
       chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
@@ -741,6 +751,7 @@
       $("d-tabs").innerHTML = ""; $("d-tabs").hidden = true; return;
     }
     $("d-tabs").hidden = false;
+    if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div>';
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "links" ? linksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
@@ -908,6 +919,8 @@
   });
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
+    if (e.target.closest("#d-story")) { newStoryDialog(dos); return; }
+    var ds = e.target.closest("[data-story]"); if (ds) { tellShell({ type: "ww-open-story", projectId: ds.dataset.story }); return; }
     var rm = e.target.closest("[data-drmfile]"); if (rm) { removeEntityFile(rm.dataset.drmfile); return; }
     var v3 = e.target.closest("[data-dview3d]"); if (v3) { view3d(dos.files.filter(function (f) { return f.id === v3.dataset.dview3d; })[0], dos.files); return; }
     var wh = e.target.closest("[data-who]");
@@ -934,11 +947,45 @@
   });
 
   // ---------- Історія і хроніка: events as comets over the time line (tail = duration, a star = a moment), stories of the world ----------
-  var worldStories = null;
-  function loadStories() {
-    worldStories = worldStories || db.collection("projects").where("owner", "==", firebase.auth().currentUser.uid).where("worldId", "==", worldId).get()
-      .then(function (sn) { return sn.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }).catch(function () { return []; });
-    return worldStories;
+  // ---------- stories of the world (projects with worldId), live; each may be about canon entities and has a reveal mark ----------
+  var stories = []; // projects/{p} { title, subjects: [entityId], reveal: open|later|internal, revealNote }
+  var REVEALS = ["open", "later", "internal"];
+  function revealChip(p) {
+    var r = REVEALS.indexOf(p.reveal) >= 0 ? p.reveal : "open";
+    return '<span class="rv rv-' + r + '" title="' + esc(p.revealNote || STR.story.revealHint[r]) + '">' + esc(STR.story.reveals[r]) + '</span>';
+  }
+  function storiesHtml(e) {
+    var list = stories.filter(function (p) { return (p.subjects || []).indexOf(e.id) >= 0; });
+    return '<label>' + STR.story.title + ' <button class="btn mini" id="d-story" type="button">' + STR.story.add + '</button></label>' +
+      (list.length ? '<div class="dstories">' + list.map(function (p) {
+        return '<div class="dstory">' + revealChip(p) + '<b>' + esc(p.title || "…") + '</b><span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.story.open + '</button></div>';
+      }).join("") + '</div>' : '<p class="muted">' + STR.story.none + '</p>');
+  }
+  // «＋ Історія»: a title and its reveal mark, then the shell opens the book (the mage ritual) straight into the writing sheet
+  function newStoryDialog(e) {
+    var box = document.createElement("div");
+    box.className = "ask";
+    box.innerHTML = '<form class="ask-box story-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.story.newTitle) + '"><h3>' + esc(STR.story.newTitle) + '</h3>' +
+      '<input id="ns-title" autocomplete="off" placeholder="' + esc(STR.story.titlePh) + '" value="' + esc(e.name || e.title || "") + '">' +
+      '<fieldset class="rvpick"><legend>' + STR.story.reveal + '</legend>' + REVEALS.map(function (r, i) {
+        return '<label class="rvopt"><input type="radio" name="rv" value="' + r + '"' + (i ? '' : ' checked') + '><span class="rv rv-' + r + '">' + esc(STR.story.reveals[r]) + '</span><i>' + esc(STR.story.revealHint[r]) + '</i></label>';
+      }).join("") + '</fieldset>' +
+      '<input id="ns-when" autocomplete="off" hidden placeholder="' + esc(STR.story.revealNotePh) + '" aria-label="' + esc(STR.story.revealNote) + '">' +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ns-go">✎ ' + STR.story.write + '</button></div></form>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    box.addEventListener("change", function () { box.querySelector("#ns-when").hidden = box.querySelector('input[name="rv"]:checked').value !== "later"; });
+    box.querySelector("form").onsubmit = function (ev) {
+      ev.preventDefault();
+      var title = box.querySelector("#ns-title").value.trim(); if (!title) { box.querySelector("#ns-title").focus(); return; }
+      var rv = box.querySelector('input[name="rv"]:checked').value;
+      tellShell({ type: "ww-write-story", worldId: worldId, title: title, subjects: [e.id], reveal: rv, revealNote: rv === "later" ? box.querySelector("#ns-when").value.trim() : "" });
+      close();
+    };
+    var t = box.querySelector("#ns-title"); t.focus(); t.select();
   }
   function niceStep(span) { var raw = span / 8, p = Math.pow(10, Math.floor(Math.log10(raw || 1))), m = raw / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
   function cometsHtml(list) {
@@ -980,18 +1027,19 @@
       var d = l.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }), u = l.filter(function (e) { return e.at === null; });
       return (d.length ? cometsHtml(d) : '') + (u.length ? '<p class="muted">' + STR.chron.undated + ':</p><div class="grid">' + u.map(dosCardHtml).join("") + '</div>' : '');
     });
-    html += '<h2 class="group">' + STR.chron.stories + '<button class="btn mini" id="ch-newstory">' + STR.sub.story + '</button></h2><div id="ch-stories"><p class="muted">' + STR.dos.loading + '</p></div>';
+    html += '<h2 class="group">' + STR.chron.stories + '<button class="btn mini" id="ch-newstory">' + STR.sub.story + '</button></h2><div id="ch-stories"></div>';
     $("view").innerHTML = html;
     $("add-top").onclick = newSubsection;
     $("ch-newstory").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
-    loadStories().then(function (list) {
-      var box = $("ch-stories"); if (!box) return;
-      box.innerHTML = list.length ? '<div class="grid">' + list.map(function (p) {
-        return '<div class="card story"><h3>' + esc(p.title || p.name || "…") + '</h3>' + (p.meta ? '<p class="sub">' + esc(p.meta) + '</p>' : '') +
-          '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>';
-      }).join("") + '</div>' : '<p class="muted">' + STR.chron.noStories + '</p>';
-    });
+    $("ch-stories").innerHTML = stories.length ? '<div class="grid">' + stories.map(function (p) {
+      var about = (p.subjects || []).map(function (id) { return entities.filter(function (x) { return x.id === id; })[0]; }).filter(Boolean);
+      return '<div class="card story"><h3>' + esc(p.title || p.name || "…") + '</h3>' + (p.meta ? '<p class="sub">' + esc(p.meta) + '</p>' : '') +
+        (about.length ? '<div class="who-row">' + about.map(function (x) { return '<button class="dlink" data-ent="' + esc(x.id) + '">' + avatar(x) + esc(x.name || x.title || "") + '</button>'; }).join("") + '</div>' : '') +
+        '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><div class="row"><select data-reveal="' + esc(p.id) + '" aria-label="' + esc(STR.story.revealAria) + '">' +
+        REVEALS.map(function (r) { return '<option value="' + r + '"' + ((p.reveal || "open") === r ? " selected" : "") + '>' + esc(STR.story.reveals[r]) + '</option>'; }).join("") + '</select>' +
+        '<span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div></div>';
+    }).join("") + '</div>' : '<p class="muted">' + STR.chron.noStories + '</p>';
   }
 
   function renderNewGame() {
@@ -2015,6 +2063,17 @@
   }
   $("topline").addEventListener("click", function (e) { viewClick(e); });
   $("view").addEventListener("click", viewClick);
+  $("view").addEventListener("change", function (e) {
+    var rv = e.target.closest("[data-reveal]");
+    if (rv) db.collection("projects").doc(rv.dataset.reveal).update({ reveal: rv.value, updatedAt: stamp() });
+  });
+  // the shell brings the author back to an entity («Біблія світу» from the book)
+  window.addEventListener("message", function (ev) {
+    if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-focus") return;
+    var x = entities.filter(function (y) { return y.id === ev.data.ent; })[0]; if (!x) return;
+    var s = x.kind === "events" ? CHRONICLE : dosSection(x.kind); if (s) { section = s.id; render(); }
+    if (!dos || dos.id !== x.id) openDossier(x);
+  });
   function viewClick(e) {
     var opt = e.target.closest("[data-opt]");
     if (opt) {
@@ -2215,6 +2274,12 @@
         .filter(function (e) { return !(e.origin && e.origin.confirmed === false); }); // inferred canon is not fact yet
       render();
     });
+    db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
+      stories = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
+      if (section === "chronicle") render();
+      var ds = $("d-stories"); if (ds && dos && !dos.isNew && dos.col !== "lore") ds.innerHTML = storiesHtml(dos);
+    }, function () {});
     wref().collection("lore").onSnapshot(function (snap) {
       lore = snap.docs.map(function (d) { return Object.assign({ id: d.id, col: "lore" }, d.data()); })
         .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });

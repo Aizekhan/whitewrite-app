@@ -129,6 +129,7 @@ function App() {
   // Returning from the workspace? Open straight to the story (skip the ritual).
   // Or opening existing project from list?
   let RET = false, RET_TITLE = "", SCENE = null, NEW = false, PROJECT_ID = null, WORLD_ID = null, NEW_WORLD = false;
+  let FREE = null, RITUAL = false; // RITUAL: opened from the World Bible — the mage opens the book // from the World Bible («＋ Історія»): { title, subjects, reveal, revealNote } — created at once, no form
   try {
     RET = localStorage.getItem("ww_return") === "1";
     RET_TITLE = localStorage.getItem("ww_title") || "";
@@ -140,11 +141,16 @@ function App() {
     PROJECT_ID = params.get("projectId");
     WORLD_ID = params.get("worldId");       // a new story is born inside this world
     NEW_WORLD = params.get("newWorld") === "1";
+    RITUAL = params.get("ritual") === "1";
+    if (NEW && params.get("free") === "1" && params.get("title")) FREE = {
+      title: params.get("title"), subjects: (params.get("about") || "").split(",").filter(Boolean),
+      reveal: params.get("reveal") || "open", revealNote: params.get("revealNote") || "" };
   } catch (e) {}
   const DIRECT = RET || SCENE != null || PROJECT_ID != null;
 
   // A story always lives in a world: "new" without a world starts with the world itself.
-  const [stage, setStage] = useAState(DIRECT ? "book" : (NEW_WORLD || (NEW && !WORLD_ID)) ? "worldform" : (NEW ? "form" : "start")); // start | worldform | genesis | form | book
+  const [stage, setStage] = useAState(DIRECT ? "book" : (NEW_WORLD || (NEW && !WORLD_ID)) ? "worldform" : FREE ? "auto" : (NEW ? "form" : "start")); // start | worldform | genesis | form | auto | book
+  React.useEffect(() => { if (stage === "auto") enterBook({ title: FREE.title, description: "", creation: "free", subjects: FREE.subjects, reveal: FREE.reveal, revealNote: FREE.revealNote }); }, []);
   const [form, setForm] = useAState(DIRECT ? { description: "", projectId: PROJECT_ID } : null);
   const [returned] = useAState(DIRECT);
   const [loadingProject, setLoadingProject] = useAState(false);
@@ -254,7 +260,10 @@ function App() {
           dialogue: data.dialogue || 50,
           episodes: data.episodes || null,
           endingNote: data.endingNote || '',
-          worldId: WORLD_ID
+          worldId: WORLD_ID,
+          subjects: data.subjects || [],       // canon entities the story is about (World Bible dossier «Історії»)
+          reveal: data.reveal || 'open',       // open | later | internal — what the reader may see
+          revealNote: data.revealNote || ''
         };
 
         const projectId = await window.__firebaseProjects.createProject(projectData);
@@ -507,8 +516,8 @@ function App() {
         <div key="book" className="stage-screen">
           <PillarSwitch here="book" />
           <Book
-            flow={!returned}
-            ritualText={form && form.creation === 'free' ? (window.__i18n ? window.__i18n.t('book.opening') : 'Книга відкривається…') : null}
+            flow={!returned || RITUAL}
+            ritualText={(form && form.creation === 'free') || RITUAL ? (window.__i18n ? window.__i18n.t('book.opening') : 'Книга відкривається…') : null}
             premise={form ? form.description : ""}
             title={bookTitle}
             projectId={form ? form.projectId : null}

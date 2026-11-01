@@ -87,8 +87,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
 /* ============================ STAGE ============================ */
 .stage{ position:relative; flex:1; min-width:0; height:100%; background:var(--bg-0); overflow:hidden; }
-.frame{ position:absolute; inset:0; width:100%; height:100%; border:0; visibility:hidden; pointer-events:none; }
-.frame.is-on{ visibility:visible; pointer-events:auto; }
+.frame{ position:absolute; inset:0; width:100%; height:100%; border:0; visibility:hidden; pointer-events:none; opacity:0; transition:opacity .5s ease, visibility 0s linear .5s; }
+.frame.is-on{ visibility:visible; pointer-events:auto; opacity:1; transition:opacity .5s ease; } /* Біблія ↔ книга crossfade */
 .loader{ position:absolute; inset:0; display:none; place-items:center; background:var(--bg-0); z-index:5; }
 .loader.is-on{ display:grid; }
 .loader__mark{ width:44px; height:44px; border-radius:50%; border:2px solid var(--gold-soft); border-top-color:var(--gold-lit); animation:spin 1s linear infinite; }
@@ -843,6 +843,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (!(inWork && mode === "book")) document.querySelector(".rail").classList.remove("is-collapsed");
     railItems.innerHTML = ""; railFoot.innerHTML = "";
     if (inWork) {
+      if (CURRENT_WORLD) railItems.appendChild(railBtn("bible", t('worlds.bible'), PILLARS.bible.icon, false, showBible)); // back to the World Bible, as it was left
       Object.keys(PILLARS).forEach(function (p) {
         if (PILLARS[p].world) return;
         railItems.appendChild(railBtn(p, getPillarLabel(p), PILLARS[p].icon, mode === p, function () { showPillar(p); }));
@@ -1018,15 +1019,17 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   };
 
   // Open an existing narrative straight into reading + pillars.
-  function openNarrative(projectId) {
+  function openNarrative(projectId, ritual) {
     if (!window.__wwAuth) { openAuth(); return; }
     if (!projectId) {
       console.error('openNarrative called without projectId');
       return;
     }
     console.log('Opening project:', projectId);
+    var pr = PROJECTS.filter(function (p) { return p.id === projectId; })[0];
+    if (pr && pr.worldId) CURRENT_WORLD = pr.worldId; // «Біблія світу» in the rail leads back to this story's world
     window.__setCurrentProject(projectId); // PHASE 3: Use single setter
-    showPillar("book", "projectId=" + projectId);
+    showPillar("book", "projectId=" + projectId + (ritual ? "&ritual=1" : ""));
   }
 
   // Create a new narrative (open form, not book)
@@ -1167,8 +1170,15 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
-    if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId); return; } // World Bible → chronicle → a story of this world
+    if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId, true); return; } // World Bible → a story of this world: the mage opens the book
     if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(); return; } // World Bible → chronicle → «＋ Нова історія»
+    // World Bible → a dossier → «＋ Історія»: the book opens (the mage ritual) straight into writing, the story is about that entity
+    if (d.type === "ww-write-story" && d.worldId && window.__wwAuth) {
+      CURRENT_WORLD = d.worldId;
+      showPillar("book", "new=1&free=1&worldId=" + encodeURIComponent(d.worldId) + "&title=" + encodeURIComponent(d.title || "") +
+        "&about=" + encodeURIComponent((d.subjects || []).join(",")) + "&reveal=" + encodeURIComponent(d.reveal || "open") + "&revealNote=" + encodeURIComponent(d.revealNote || ""));
+      return;
+    }
     // the World Bible renamed or deleted the world: refresh the list (and leave the deleted world)
     if (d.type === "ww-worlds-changed") { Promise.resolve(loadProjects()).then(function () { if (d.deleted) { CURRENT_WORLD = null; showView("worlds"); } }); return; }
     if (d.type === "ww-nav" && d.pillar) {

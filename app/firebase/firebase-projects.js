@@ -95,7 +95,10 @@ window.__firebaseProjects = {
       ending: data.ending || 'open',
       endingNote: data.endingNote || '',       // Custom ending description
       genres: data.genres || [],
-      creation: data.creation || 'guided',     // Creation mode: guided | auto
+      creation: data.creation || 'guided',     // Creation mode: guided | auto | free (the author writes)
+      subjects: data.subjects || [],           // canon entity ids the story is about
+      reveal: data.reveal || 'open',           // open (to the reader) | later (revealed later) | internal (canon idea, author only)
+      revealNote: data.revealNote || '',
       length: data.length || 700,              // Scene length in words (200-2000)
       dialogue: data.dialogue || 50,           // Dialogue density 0-100%
       episodes: data.episodes || null,         // Number of episodes (for season scope)

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.3.0 (2026-11-01)
+**Version:** 2.4.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -157,7 +157,9 @@ Frontend (re-render)
   scope: "novella",              // shot | novella | season | endless
   ending: "open",                // open | closed | custom
   genres: ["Містика", "Драма"],
-  creation: "guided",            // guided | auto
+  creation: "guided",            // guided | auto | free (the author writes)
+  subjects: ["char_…"],          // canon entities the story is about (World Bible «Історії»)
+  reveal: "open",                // open | later | internal — what the reader may see (+ revealNote)
   length: 700,                   // Scene length (words)
   dialogue: 50,                  // Dialogue density (0-100%)
   episodes: 12,                  // For season scope
@@ -373,6 +375,9 @@ User: Generate next scene following canon.
 - **Космологія / Космограф** (`special: cosmology`, world block; `app/cosmograph/` ES modules, three.js via the import map, loaded on demand): a generalised port of MorraSimulator (`D:\MorraSimulator\morra-simulator`) — orbit math (Kepler, inclination, node), lat/lon conventions (lon 0 = map centre, east = right), "light on the map" — for any planet with up to 4 suns + 4 moons. Sky model: every body orbits the planet; orbits are tilted by the axial tilt (seasons); the planet turns so the first sun's solar day lasts exactly `dayHours`, t = 0 is midnight at lon 0. The planet shader sums the suns' light per pixel and darkens eclipses by the true angular sizes of moon and sun as seen from that point. Distances are log-compressed for display only. Presets: «Земля» (NASA Blue Marble map `app/cosmograph/earth-blue-marble.jpg`, public domain; calendar from 1 January 2026) and «Три сонця» (MorraSimulator's starting calibration). Editor: planet (name, radius, tilt, day, map upload → Storage `worlds/{w}/files/cosmos/…`), calendar (month names/days, first year, era), suns/moons. Saved to `worlds/{w}.cosmos` (fed to `gamedevPlan` as a «Sky:» line). Morra-only physics (magic, radiation roles, magosphere) is not ported.
   **Access:** off by default; turned on in project settings via `cosmographAccess` (`functions/src/cosmograph.js`): 2000 tokens per world per 30 days (`worlds/{w}.cosmograph { enabled, paidUntil, paidAt }`, written only by the server — firestore.rules keep the field read-only for clients; turning it off keeps the paid month, turning it back on within it is free; nothing renews by itself). The running sky survives re-renders and stops when the author leaves the section. `window.__COSMOGRAPH__` exposes `config`, `setTime(h)`, `sample(lat, lon)` (light per sun) for checks.
 - **Language:** every label is built for one language at load (`LANG` from the shell's `__i18n` / `localStorage ww-lang`); the account switch (`i18n.setLanguage`) dispatches `ww-language-change` into the frame → the Bible reloads in place on the same section (`sessionStorage ww-bible-sec-{w}`), after an open card/dossier is closed. The game-status chips are hidden on canon pages. Shell: `i18n.js` loads before the shell script; on a switch the shell re-renders rail, dock, news, world hub, worlds list, marketplace, KB.
+- **Біблія ↔ книга (the Bible is the home of a world):** a canon dossier has a block **«Історії»** — the stories about it (`projects.subjects` contains the entity id; live listener on `projects where owner, worldId`) with their reveal mark, «Відкрити», and **«＋ Історія»**: a dialog (title from the entity, reveal mark, «коли розкриється» for *later*) → `ww-write-story` → the shell opens `WhiteWrite.html?new=1&free=1&worldId&title&about&reveal&revealNote` → the book creates the story at once (`creation: free`, no form), the mage ritual opens it («Книга відкривається…»), then the writing sheet. Opening a story from the Bible (`ww-open-story`) also plays the ritual (`ritual=1`).
+  **Reveal marks** (`projects.reveal`): `open` «Відкрита читачеві» · `later` «Розкриється згодом» (+ `revealNote`) · `internal` «Внутрішній канон» (author only). Shown as chips; changeable on the chronicle's story cards (which also show who the story is about).
+  **Back:** in a story the shell rail starts with **«Біблія світу»** (`CURRENT_WORLD` from the story's `worldId`) → `showBible()` keeps the frame, so the same dossier is still open; `ww-bible-focus {ent}` opens a given entity. Frames crossfade (`.frame` opacity .5 s).
 - **Menu (World Bible):** head «Біблія світу» + world title; world block (canon sections) folds with an arrow (`localStorage ww-bible-fold`); then «Гра:» picker; game sections; «+ Свій розділ»; **«⚙ Налаштування проєкту»** last (special section `settings`).
 - **Project settings:** rename world (notifies the shell `ww-worlds-changed`) / game, engine profile, `.md` import, JSON export of world (`whitewrite.world/1`) and game (`whitewrite.game/1`), delete custom sections, game, world.
   Safe deletion = type the exact name. Game delete removes cards (+ Storage files), plan, tasks, executions, changeRequests, its `mcpKeys`, then the game doc. World delete is refused while stories (`projects.worldId`) exist; else games → entities → world doc (last, rules check ownership through it), then the shell reloads and shows the worlds list.
