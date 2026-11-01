@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.23.0 (2026-11-02)
+**Version:** 2.24.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -542,7 +542,8 @@ firebase deploy                   # Deploy everything
 
 **Firestore Rules:**
 - Users can only read/write their own projects
-- Worlds/entities: owner only; `games/**` write requires `allowGameDev` plan (`hasGameDev()`)
+- Worlds/entities: owner only; game doc write requires `allowGameDev` plan (`hasGameDev()`)
+- **Game subcollections (v2.24):** client-writable ONLY `cards`, `plan`, `tasks`, `changeRequests`, `experienceIssues`, `experiments`, `playtests` (what the Game Bible page edits); `executions` — the owner may only delete (game deletion); everything else under a game (`telemetry`, `telemetryDaily`, `experience`, and future server records: activity log, project knowledge, marketing posts…) is server-only, owner read. Deeper nesting: read only
 - `mcpKeys`: owner reads/deletes; create only for own world + gamedev plan, fixed field set; no client updates
 - `repoTokens`: no client read or write (only the `gamedevPlan` function)
 - `ingestKeys`: no client read or write (only `experience` / `telemetryIngest`); the ingest key is write-only and per game, so it may ship inside a build; analytics is opt-in, pseudonymous ids, positions rounded
@@ -550,6 +551,8 @@ firebase deploy                   # Deploy everything
 - MCP: key hashed (sha256), per-game scope, revocable, plan re-checked on every call; function is public-invoker, auth is in code
 - Canon extraction logs: owner-only read
 - Admin stats: role-based access
+
+**Tests (v2.24):** `npm test` (`tests/run.mjs`) runs every `tests/*.test.*`: `rules.test.mjs` — `firestore.rules` in Google's Rules Test API (`firebaserules.googleapis.com/v1/projects/whitewrite-app:test`, gcloud token, `get()` mocked; no emulator/Java), `model-watch.test.cjs` / `claude-fallback.test.cjs` (stubbed Firestore/fetch), `plan-gates.test.cjs` (`mcp.js lockedBy`). `npm run test:rules` — only the rules. UI flows: Playwright E2E with a mocked Firebase (kept outside the repo).
 
 **Authentication:**
 - Firebase Auth (Email/Password, Google)
