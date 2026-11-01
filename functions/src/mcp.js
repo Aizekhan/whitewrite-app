@@ -110,13 +110,27 @@ function taskCards(ctx, t) {
   return [...refs].map((r) => cardView(ctx, r)).filter(Boolean);
 }
 
-const isReady = (ctx, t) => (t.deps || []).every((d) => { const x = ctx.tasks.find((y) => y.id === d); return !x || x.status === 'done'; });
+// A gated plan (production pipeline): a milestone opens once the author approved the gate of the milestone before it
+// in the same track; expansion and extra open after the last MVP gate. Older plans (no plan.gated) are not gated.
+function lockedBy(ctx, t) {
+  const plan = ctx.plan.plan || {}, gates = ctx.plan.gates || {};
+  if (!plan.gated) return null;
+  const ms = plan.milestones || [], m = ms.find((x) => x.id === t.milestone);
+  if (!m || !m.track) return null;
+  const ok = (x) => (gates[x.id] || {}).status === 'approved';
+  const mvp = ms.filter((x) => x.track === 'mvp');
+  const before = m.track === 'mvp' ? mvp.slice(0, mvp.indexOf(m)) : mvp.concat(ms.filter((x) => x.track === m.track && ms.indexOf(x) < ms.indexOf(m)));
+  const open = before.find((x) => !ok(x));
+  return open ? open.id : null;
+}
+const isReady = (ctx, t) => !lockedBy(ctx, t) && (t.deps || []).every((d) => { const x = ctx.tasks.find((y) => y.id === d); return !x || x.status === 'done'; });
 
 function taskView(ctx, t) {
   const ms = ((ctx.plan.plan || {}).milestones || []).find((m) => m.id === t.milestone) || {};
   return {
     id: t.id, title: t.title, status: t.status, owner: t.owner, size: t.size,
-    milestone: { id: t.milestone, name: ms.name || '', goal: ms.goal || '', gate: ms.gate || '' },
+    milestone: { id: t.milestone, track: ms.track || '', name: ms.name || '', goal: ms.goal || '', gate: ms.gate || '', gate_checks: ms.accept || [], budgets: ms.budgets || '' },
+    priority: t.priority || '', asset_state: t.assetState || '', card_roles: t.roles || {},
     detail: t.detail || '', instructions: t.prompt || '',
     acceptance_criteria: t.accept || [], tests: t.tests || [],
     deps: (t.deps || []).map((d) => ({ id: d, status: (ctx.tasks.find((x) => x.id === d) || {}).status || 'unknown' })),
@@ -186,13 +200,15 @@ async function callTool(name, args, key) {
   switch (name) {
     case 'get_project_overview': return overview(ctx);
     case 'list_tasks': return ctx.tasks.filter((t) => !args.status || t.status === args.status)
-      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, owner: t.owner, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t) }));
+      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, owner: t.owner, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
     case 'get_next_task': {
       if (!ctx.tasks.length) return { task: null, message: 'No roadmap yet: the author has to generate the production plan in the Game Bible first.' };
       const mine = ctx.tasks.find((t) => t.status === 'in_progress') || ctx.tasks.find((t) => t.status === 'rework' && isReady(ctx, t));
       const t = mine || ctx.tasks.find((x) => x.status === 'todo' && isReady(ctx, x));
       if (!t) {
         const waiting = ctx.tasks.filter((x) => ['review', 'blocked'].includes(x.status)).map((x) => `${x.id} (${x.status})`);
+        const gate = ctx.tasks.filter((x) => x.status === 'todo').map((x) => lockedBy(ctx, x)).find(Boolean);
+        if (gate) waiting.push(`the gate ${gate} — the author approves it in the Production plan`);
         return { task: null, message: ctx.tasks.every((x) => x.status === 'done') ? 'All tasks are done.' : `Nothing is ready. Waiting for the author: ${waiting.join(', ') || 'deps not done'}.` };
       }
       if (args.claim !== false && t.status !== 'in_progress') {

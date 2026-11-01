@@ -427,6 +427,33 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .gate{ color:var(--gold-bright); }
 .task{ padding:9px 0; border-top:1px solid var(--line); }
 .task__d{ color:var(--tx); font-size:14px; margin-top:4px; white-space:pre-wrap; }
+/* production pipeline: gate path, tracks, gate box, card chips by role, bible health, asset matrix */
+.dod{ margin:12px 0; padding:12px 16px; border:1px solid rgba(240,169,59,.35); border-radius:12px; background:rgba(240,169,59,.06); }
+.dod ul{ margin:6px 0 0; padding-left:18px; }
+.ptabs{ display:flex; gap:6px; margin:14px 0 6px; }
+.ptabs .chip[aria-selected="true"]{ background:var(--gold-soft); color:var(--tx-hi); border-color:var(--gold-lit); }
+.gpath{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:14px 0 4px; }
+.gstep{ padding:6px 12px; border-radius:999px; border:1px solid var(--line-2); color:var(--tx-mid); font-size:13px; text-decoration:none; }
+.gstep span{ opacity:.75; } .gs-ok{ color:var(--s-game); border-color:currentColor; } .gs-now{ color:var(--gold-lit); border-color:var(--gold-lit); background:var(--gold-soft); }
+.gs-lock{ opacity:.55; } .garr{ color:var(--tx-low); }
+h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline-block; }
+.trackbox > summary{ list-style:none; } .trackbox > summary::before{ content:"▸ "; color:var(--tx-mid); } .trackbox[open] > summary::before{ content:"▾ "; }
+.ms-ok{ border-color:rgba(110,190,120,.45); } .ms-locked{ opacity:.7; border-style:dashed; }
+.ms__l ul{ margin:2px 0 6px; padding-left:18px; font-size:14px; }
+.gatebox{ margin-top:12px; padding:10px 12px; border-radius:10px; border:1px solid rgba(240,169,59,.35); background:rgba(240,169,59,.05); display:grid; gap:6px; }
+.cutline{ margin:18px 0 6px; padding-top:8px; border-top:2px dashed var(--s-redo); color:var(--s-redo); font-size:13px; }
+.cchips{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
+.cchip{ cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px; border:1px solid var(--line-2); background:var(--bg-2, transparent);
+  color:var(--tx); font:12.5px "Inter"; }
+.cchip:hover{ border-color:var(--gold-lit); color:var(--tx-hi); } .cchip--new{ cursor:default; border-style:dashed; color:var(--tx-mid); }
+.cchip__r{ font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--gold-lit); }
+.pr-must{ color:var(--gold-lit); border-color:currentColor; } .pr-should{ color:#7fb6ff; border-color:currentColor; } .pr-could{ color:var(--tx-mid); border-color:var(--line-2); }
+.health{ margin:10px 0; } .health ul{ list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+.health li{ padding:9px 12px; border-radius:10px; border:1px solid var(--line-2); font-size:14px; }
+.health .h-red{ border-color:rgba(208,103,90,.55); background:rgba(208,103,90,.07); } .health .h-warn{ border-color:rgba(240,169,59,.4); }
+.matrix{ overflow-x:auto; margin-top:8px; } .matrix table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+.matrix th, .matrix td{ text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+.matrix select{ background:var(--bg-1); color:var(--tx); border:1px solid var(--line-2); border-radius:6px; padding:3px 6px; }
 .task pre{ white-space:pre-wrap; background:#0005; padding:10px; border-radius:8px; font:12.5px/1.5 "JetBrains Mono",monospace; }
 /* execution: task states, review, executor log */
 .tst-todo{ color:var(--tx-mid); border-color:var(--line-2); } .tst-in_progress{ color:var(--gold-lit); border-color:rgba(240,169,59,.5); }

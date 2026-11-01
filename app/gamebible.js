@@ -136,6 +136,20 @@
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
       answeredTitle: "Ухвалені рішення", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
+      pp: { dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
+        track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
+        trackAbout: { mvp: "П'ять воріт від порожнього проєкту до релізу. Наступний етап відкривається, коли ти приймеш ворота попереднього.",
+          expansion: "Більше контенту систем, уже перевірених у MVP: рівні, вороги, предмети. Відкривається після MVP.",
+          extra: "Нові системи, кожна з власним прототипом. Відсортовано за цінністю; нижче лінії — не плануємо зараз." },
+        entry: "Старт, коли", deliver: "Результат", budgets: "Бюджети", gateChecks: "Перевірки воріт",
+        approve: "✓ Ворота пройдено", giveBack: "↩ Ще ні", approved: "Пройдено", returned: "Повернуто", locked: "🔒 Відкриється після воріт {g}",
+        early: "Не всі задачі етапу готові. Однаково прийняти ворота?", returnPh: "Що ще не так? (побачить і Claude Code)",
+        cut: "Лінія відсікання — нижче не плануємо зараз", prio: { must: "must", should: "should", could: "could" },
+        role: { implements: "робить", "uses-asset": "ассет", "in-level": "у рівні", "follows-style": "стиль", "constrained-by": "обмеження" },
+        state: { "": "—", greybox: "greybox", standin: "заглушка-префаб", styled: "у стилі", final: "фінал" }, stateNeed: "потрібен стан",
+        health: "Готовність Біблії", healthOk: "Біблії вистачає для MVP.", red: "Ліцензія не дозволяє комерційне використання — у MVP не можна: {n}",
+        blue: "Ліцензія невідома — перевір перед релізом: {n}", heavy: "Моделі понад 100 000 полігонів: {n}", noGrey: "Рівні без greybox: {n}",
+        mCard: "Картка", mSection: "Розділ", mState: "Стан", mLic: "Ліцензія", mPoly: "Полігони", mTasks: "Задачі", mEmpty: "Ще немає ассетів — додай картки в «Ассети й префаби», «Матеріали», «Анімації», «Звук» чи «UI»." },
       planTitle: "План розробки", gate: "Ворота", goal: "Мета", deps: "залежить від", prompt: "Промпт для Claude Code", copy: "Копіювати",
       copied: "Скопійовано", parallel: "Паралельні потоки", risks: "Ризики", gaps: "Прогалини рушія / фреймворку", engineNotes: "Про рушій",
       issues: "Неузгоджене", issuesAbout: "Суперечності й невирішені питання гри. Відпиши своїми словами або обери варіант — рішення запишеться в картку.",
@@ -316,6 +330,20 @@
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
       answeredTitle: "Decisions made", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
+      pp: { dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
+        track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
+        trackAbout: { mvp: "Five gates from an empty project to a release. The next stage opens once you approve the gate of the one before.",
+          expansion: "More content of systems already proven in the MVP: levels, enemies, items. Opens after the MVP.",
+          extra: "New systems, each with its own prototype. Ranked by value; below the line — not planned for now." },
+        entry: "Starts when", deliver: "Deliverables", budgets: "Budgets", gateChecks: "Gate checks",
+        approve: "✓ Gate passed", giveBack: "↩ Not yet", approved: "Passed", returned: "Returned", locked: "🔒 Opens after gate {g}",
+        early: "Not every task of this stage is done. Approve the gate anyway?", returnPh: "What is still wrong? (Claude Code sees it too)",
+        cut: "Cut line — below it, not planned for now", prio: { must: "must", should: "should", could: "could" },
+        role: { implements: "builds", "uses-asset": "asset", "in-level": "in level", "follows-style": "style", "constrained-by": "constraint" },
+        state: { "": "—", greybox: "greybox", standin: "stand-in prefab", styled: "styled", final: "final" }, stateNeed: "required state",
+        health: "Bible readiness", healthOk: "The Bible holds enough for the MVP.", red: "The licence forbids commercial use — not in the MVP: {n}",
+        blue: "Licence unknown — check before release: {n}", heavy: "Models over 100,000 polygons: {n}", noGrey: "Levels without a greybox: {n}",
+        mCard: "Card", mSection: "Section", mState: "State", mLic: "Licence", mPoly: "Polygons", mTasks: "Tasks", mEmpty: "No assets yet — add cards to “Assets & prefabs”, “Materials”, “Animation”, “Sound” or “UI”." },
       planTitle: "Development plan", gate: "Gate", goal: "Goal", deps: "depends on", prompt: "Prompt for Claude Code", copy: "Copy",
       copied: "Copied", parallel: "Parallel streams", risks: "Risks", gaps: "Engine / framework gaps", engineNotes: "Engine notes",
       issues: "Inconsistencies", issuesAbout: "Contradictions and open questions of the game. Answer in your own words or pick an option — the decision is written into the card.",
@@ -785,7 +813,7 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "" };
   }
   function inGame(e) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
@@ -794,7 +822,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "" };
   }
   function allCards() {
     var out = [];
@@ -2820,6 +2848,7 @@
     var a = $("p-analyze"); if (a) a.onclick = function () { confirmCost("analyze", function () { runPlan("analyze"); }); };
     var pl = $("p-plan"); if (pl) pl.onclick = function () { confirmCost("plan", function () { runPlan("plan"); }); };
     var mdb = $("p-md"); if (mdb) mdb.onclick = exportMarkdown;
+    [].forEach.call(document.querySelectorAll("[data-astate]"), function (sel) { sel.onchange = function () { setAssetState(sel.dataset.astate, sel.value); }; });
   }
 
   // ---------- what the plan needs but the bible lacks: the author ticks, empty cards appear "in progress" ----------
@@ -2963,30 +2992,141 @@
       history: firebase.firestore.FieldValue.arrayUnion({ type: "unblocked", by: "author", comment: note, at: Date.now() }) }, { merge: true });
   }
 
+  // ---------- the production pipeline: MVP gates G0…G4 → expansion → extra features (ranked, cut line); the plan
+  // references Bible cards by role instead of copying them; gates are approved by the author (plan/current.gates)
+  // and lock the next stage for Claude Code too (mcp.js lockedBy mirrors msLock) ----------
+  var planTab = "plan";
+  var ASSET_SECS = ["assets", "materials", "animation", "audio", "ui"];
+  var gateOf = function (m) { return (planDoc.gates || {})[m.id] || {}; };
+  function msLock(plan, m) {
+    if (!plan.gated || !m.track) return null;
+    var ms = plan.milestones || [], mvp = ms.filter(function (x) { return x.track === "mvp"; });
+    var before = m.track === "mvp" ? mvp.slice(0, mvp.indexOf(m)) : mvp.concat(ms.filter(function (x) { return x.track === m.track && ms.indexOf(x) < ms.indexOf(m); }));
+    var open = before.filter(function (x) { return gateOf(x).status !== "approved"; })[0];
+    return open ? open.id : null;
+  }
+  function refCard(ref) {
+    var all = allCards();
+    return ref.indexOf("new:") === 0 ? all.filter(function (x) { return x.src === "game" && x.title.toLowerCase() === ref.slice(4).toLowerCase(); })[0] : all.filter(function (x) { return x.key === ref; })[0];
+  }
+  function cardChip(ref, role) {
+    var c = refCard(ref), P = STR.pp;
+    return '<button class="cchip' + (c ? '' : ' cchip--new') + '"' + (c ? ' data-openref="' + esc(c.key) + '"' : ' disabled') + '>' +
+      (role ? '<span class="cchip__r">' + esc(P.role[role] || role) + '</span>' : '') + esc(c ? c.title : cardName(ref)) +
+      (c && c.assetState ? ' <span class="muted">· ' + esc(P.state[c.assetState]) + '</span>' : '') + '</button>';
+  }
+  function taskHtml(t) {
+    var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
+    return '<div class="task' + (lt ? ' t-' + lt.status : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b>' +
+      (lt ? ' <span class="pill tst-' + lt.status + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
+      (t.priority ? ' <span class="pill pr-' + t.priority + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
+      ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
+      (t.assetState ? ' <span class="pill st-' + t.assetState + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
+      (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
+      (t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
+      ((t.cards || []).length ? '<div class="cchips">' + t.cards.map(function (r) { return cardChip(r, (t.roles || {})[r]); }).join("") + '</div>' : '') +
+      (acc.length ? '<details><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit">' + acc.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul>' +
+        (tst.length ? '<div class="muted">' + STR.tests + ': ' + esc(tst.join("; ")) + '</div>' : '') + '</details>' : '') +
+      taskState(t) +
+      (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
+  }
+  function msHtml(plan, m) {
+    var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [];
+    var done = ts.filter(function (t) { var lt = liveTask(t.id); return lt && lt.status === "done"; }).length;
+    var list = function (title, a) { return a && a.length ? '<div class="ms__l"><b>' + title + ':</b><ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' : ''; };
+    var head = '<h3>' + esc(m.id) + ' · ' + esc(m.name) + (m.estimateDays ? ' <span class="muted">' + P.days.replace("{n}", m.estimateDays) + '</span>' : '') +
+      (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
+      (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') + '</h3>';
+    var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') +
+      list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + ts.map(taskHtml).join("");
+    var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
+      ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
+      (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
+      (plan.gated && m.track && canWrite && !lock ? '<div class="row">' + (g.status === "approved" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>'
+        : '<button class="btn primary" data-gate="' + esc(m.id) + '" data-to="approved"' + (done < ts.length ? ' data-early="1"' : '') + '>' + P.approve + '</button>' +
+          (g.status !== "returned" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>' : '')) + '</div>' : '') + '</div>' : '';
+    if (lock) return '<div class="ms ms-locked" id="ms-' + esc(m.id) + '">' + head + '<p class="muted">' + P.locked.replace("{g}", esc(lock)) + '</p>' +
+      '<details><summary>' + esc(m.goal || m.name) + '</summary>' + body + gate + '</details></div>';
+    return '<div class="ms' + (g.status === "approved" ? ' ms-ok' : '') + '" id="ms-' + esc(m.id) + '">' + head + body + gate + '</div>';
+  }
+  // what blocks or weakens the MVP in the Bible itself: licences, heavy models, levels without a greybox + the planner's own notes
+  function healthHtml(plan) {
+    var P = STR.pp, all = allCards(), red = [], blue = [], hv = [], items = [];
+    all.forEach(function (c) {
+      (c.files || []).forEach(function (f) {
+        if (heavy(f) && hv.indexOf(c) < 0) hv.push(c);
+        if (!isAsset(f)) return;
+        var col = LIC_COLOR[licOf(f, c.files).id] || "blue";
+        if (col === "red" && red.indexOf(c) < 0) red.push(c);
+        if (col === "blue" && licOf(f, c.files).id !== "own" && blue.indexOf(c) < 0) blue.push(c);
+      });
+    });
+    var noGrey = all.filter(function (c) { return c.section === "levels" && !c.assetState; });
+    var chips = function (a) { return '<div class="cchips">' + a.slice(0, 12).map(function (c) { return cardChip(c.key); }).join("") + '</div>'; };
+    if (red.length) items.push('<li class="h-red">' + P.red.replace("{n}", red.length) + chips(red) + '</li>');
+    if (blue.length) items.push('<li class="h-warn">' + P.blue.replace("{n}", blue.length) + chips(blue) + '</li>');
+    if (hv.length) items.push('<li class="h-warn">' + P.heavy.replace("{n}", hv.length) + chips(hv) + '</li>');
+    if (noGrey.length) items.push('<li class="h-warn">' + P.noGrey.replace("{n}", noGrey.length) + chips(noGrey) + '</li>');
+    (plan.health || []).forEach(function (h) { items.push('<li class="h-note"><b>' + esc(h.issue) + '</b>' + (h.fix ? ' — ' + esc(h.fix) : '') +
+      ((h.cards || []).length ? '<div class="cchips">' + h.cards.map(function (r) { return cardChip(r); }).join("") + '</div>' : '') + '</li>'); });
+    return '<div class="health"><h3 class="sub">' + P.health + '</h3>' + (items.length ? '<ul>' + items.join("") + '</ul>' : '<p class="muted">✓ ' + P.healthOk + '</p>') + '</div>';
+  }
+  // every asset card × its state on the ladder (greybox → stand-in → styled → final), licence, polygons and the tasks that use it
+  function matrixHtml() {
+    var P = STR.pp, all = allCards().filter(function (c) { return ASSET_SECS.indexOf(c.section) >= 0 || c.section === "levels" || (c.files || []).some(function (f) { return isAsset(f); }); });
+    if (!all.length) return '<p class="muted">' + P.mEmpty + '</p>';
+    var rank = { red: 0, blue: 1, yellow: 2, green: 3 };
+    var planTasks = [].concat.apply([], ((planDoc.plan || {}).milestones || []).map(function (m) { return m.tasks || []; }));
+    return '<div class="matrix"><table><tr><th>' + P.mCard + '</th><th>' + P.mSection + '</th><th>' + P.mState + '</th><th>' + P.mLic + '</th><th>' + P.mPoly + '</th><th>' + P.mTasks + '</th></tr>' +
+      all.map(function (c) {
+        var lic = null; (c.files || []).filter(isAsset).forEach(function (f) { var col = LIC_COLOR[licOf(f, c.files).id] || "blue"; if (!lic || rank[col] < rank[lic]) lic = col; });
+        var tris = Math.max.apply(null, [0].concat((c.files || []).filter(is3D).map(function (f) { return f.tris || 0; })));
+        var used = planTasks.filter(function (t) { return (t.cards || []).some(function (r) { var x = refCard(r); return x && x.key === c.key; }); }).map(function (t) { return t.id; });
+        return '<tr><td>' + cardChip(c.key) + '</td><td class="muted">' + esc(L(sec(c.section))) + '</td>' +
+          '<td>' + (canWrite ? '<select data-astate="' + esc(c.key) + '">' + Object.keys(P.state).map(function (k) { return '<option value="' + k + '"' + (k === c.assetState ? ' selected' : '') + '>' + esc(P.state[k]) + '</option>'; }).join("") + '</select>'
+            : esc(P.state[c.assetState])) + '</td>' +
+          '<td>' + (lic ? '<span class="lic lic-' + lic + '">' + esc(STR.lic[lic]) + '</span>' : '<span class="muted">—</span>') + '</td>' +
+          '<td class="mono">' + (tris ? tris.toLocaleString() + (tris > POLY_MAX ? ' <span class="poly-warn">!</span>' : '') : '—') + '</td>' +
+          '<td class="mono">' + esc(used.join(", ")) + '</td></tr>';
+      }).join("") + '</table></div>';
+  }
+  function setAssetState(key, v) {
+    var c = allCards().filter(function (x) { return x.key === key; })[0]; if (!c) return;
+    var body = { assetState: v, updatedAt: stamp() };
+    if (c.src === "canon") Object.assign(body, { section: c.section, canonRef: c.id });
+    gref().collection("cards").doc(c.id).set(body, { merge: true });
+  }
+  async function setGate(id, to, early) {
+    var P = STR.pp, comment = "";
+    if (to === "approved" && early && !confirm(P.early)) return;
+    if (to === "returned") { comment = (prompt(P.returnPh) || "").trim(); if (!comment) return; }
+    var upd = {}; upd[id] = { status: to, at: Date.now(), by: "author", comment: comment };
+    await gref().collection("plan").doc("current").set({ gates: upd }, { merge: true });
+  }
   function planHtml(plan) {
+    var P = STR.pp, ms = plan.milestones || [];
     var html = '<section class="psec"><h2 class="group">' + STR.planTitle + '</h2>' + (plan.overview ? '<p>' + esc(plan.overview) + '</p>' : '');
+    if ((plan.dod || []).length) html += '<div class="dod"><b>' + P.dod + '</b>' + (plan.estimateWeeks ? ' <span class="muted">' + P.weeks.replace("{n}", plan.estimateWeeks) + '</span>' : '') +
+      '<ul>' + plan.dod.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></div>';
     if (tasks.length) {
       var done = tasks.filter(function (t) { return t.status === "done"; }).length, pct = Math.round(100 * done / tasks.length);
       html += '<div class="ready"><span>' + STR.progress + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + done + ' / ' + tasks.length + '</b></div>';
     }
     if (plan.engineNotes) html += '<div class="canonbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
-    (plan.milestones || []).forEach(function (m) {
-      html += '<div class="ms"><h3>' + esc(m.id) + ' · ' + esc(m.name) + '</h3>' + (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') +
-        (m.gate ? '<p class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</p>' : '') +
-        (m.tasks || []).map(function (t) {
-          var lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
-          return '<div class="task' + (lt ? ' t-' + lt.status : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b>' +
-            (lt ? ' <span class="pill tst-' + lt.status + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
-            ' <span class="pill s-agreed">' + esc(t.size) + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
-            (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
-            (t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
-            ((t.cards || []).length ? '<div class="muted task__c">' + STR.taskCards + ': ' + esc(t.cards.map(cardName).join(", ")) + '</div>' : '') +
-            (acc.length ? '<details><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit">' + acc.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul>' +
-              (tst.length ? '<div class="muted">' + STR.tests + ': ' + esc(tst.join("; ")) + '</div>' : '') + '</details>' : '') +
-            taskState(t) +
-            (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
-        }).join("") + '</div>';
+    html += '<div class="ptabs" role="tablist">' + ["plan", "matrix"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : P.tabMatrix) + '</button>'; }).join("") + '</div>';
+    if (planTab === "matrix") return html + matrixHtml() + '</section>';
+    html += healthHtml(plan);
+    var mvp = ms.filter(function (m) { return m.track === "mvp"; });
+    if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
+      return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '">' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';
+    ["mvp", "expansion", "extra"].forEach(function (tr) {
+      var group = ms.filter(function (m) { return m.track === tr; }); if (!group.length) return;
+      var inner = '<p class="muted">' + P.trackAbout[tr] + '</p>' + group.map(function (m, i) {
+        return (tr === "extra" && plan.cutLine && i === plan.cutLine ? '<div class="cutline">' + P.cut + '</div>' : '') + msHtml(plan, m); }).join("");
+      html += tr === "mvp" ? '<h3 class="sub track">' + P.track[tr] + '</h3>' + inner
+        : '<details class="trackbox"' + (group.some(function (m) { return !msLock(plan, m); }) ? ' open' : '') + '><summary><h3 class="sub track">' + P.track[tr] + ' <span class="muted">' + group.length + '</span></h3></summary>' + inner + '</details>';
     });
+    ms.filter(function (m) { return !m.track; }).forEach(function (m) { html += msHtml(plan, m); }); // older plans and the experience fixes (EXP)
     if ((plan.parallel || []).length) html += '<h3 class="sub">' + STR.parallel + '</h3><ul>' + plan.parallel.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
     if ((plan.risks || []).length) html += '<h3 class="sub">' + STR.risks + '</h3><ul>' + plan.risks.map(function (r) { return '<li><b>' + esc(r.risk) + '</b> — ' + esc(r.mitigation) + '</li>'; }).join("") + '</ul>';
     if ((plan.gaps || []).length) html += '<h3 class="sub">' + STR.gaps + '</h3><ul>' + plan.gaps.map(function (g) {
@@ -3031,11 +3171,17 @@
     var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
     if (done.length) { out.push("", "## Decisions", ""); done.forEach(function (q) { out.push("- **" + q.question + "** — " + answers()[q.id]); }); }
     out.push("", "# Development plan", "", p.overview || "");
+    if ((p.dod || []).length) out.push("", "**MVP definition of done**" + (p.estimateWeeks ? " (≈ " + p.estimateWeeks + " weeks)" : "") + ":", "", p.dod.map(function (d) { return "- " + d; }).join("\n"));
     if (p.engineNotes) out.push("", "> " + p.engineNotes);
-    (p.milestones || []).forEach(function (m) {
-      out.push("", "## " + m.id + " · " + m.name, "", "**Goal:** " + (m.goal || ""), "", "**Gate:** " + (m.gate || ""), "");
+    (p.milestones || []).forEach(function (m, i) {
+      if (m.track === "extra" && p.cutLine && i === (p.milestones || []).filter(function (x) { return x.track !== "extra"; }).length + p.cutLine) out.push("", "---", "", "_Cut line: below — not planned for now._");
+      var g = (planDoc.gates || {})[m.id] || {};
+      out.push("", "## " + m.id + " · " + m.name + (m.track ? " [" + m.track + "]" : "") + (g.status ? " — gate " + g.status : ""), "", "**Goal:** " + (m.goal || ""), "", "**Gate:** " + (m.gate || ""), "");
+      if ((m.accept || []).length) out.push(m.accept.map(function (a) { return "- [" + (g.status === "approved" ? "x" : " ") + "] " + a; }).join("\n"), "");
+      if (m.budgets) out.push("**Budgets:** " + m.budgets, "");
       (m.tasks || []).forEach(function (t) {
-        out.push("### " + t.id + " " + t.title + " [" + t.size + ", " + t.owner + "]" + (t.deps.length ? " — deps: " + t.deps.join(", ") : ""), "", t.detail || "");
+        out.push("### " + t.id + " " + t.title + " [" + t.size + ", " + t.owner + (t.priority ? ", " + t.priority : "") + (t.assetState ? ", → " + t.assetState : "") + "]" + (t.deps.length ? " — deps: " + t.deps.join(", ") : ""), "", t.detail || "");
+        if ((t.cards || []).length) out.push("", "Cards: " + t.cards.map(function (r) { return cardName(r) + ((t.roles || {})[r] ? " (" + t.roles[r] + ")" : ""); }).join(", "));
         if (t.prompt) out.push("", "```text", t.prompt, "```");
         out.push("");
       });
@@ -3121,6 +3267,9 @@
     var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var rv = e.target.closest("[data-revoke]");
     if (rv) { if (confirm(STR.exRevokeQ)) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); return; }
+    var orf = e.target.closest("[data-openref]"); if (orf) { var oc = allCards().filter(function (x) { return x.key === orf.dataset.openref; })[0]; if (oc) openCard(oc); return; }
+    var gt = e.target.closest("[data-gate]"); if (gt) { setGate(gt.dataset.gate, gt.dataset.to, gt.dataset.early).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); return; }
     var acc = e.target.closest("[data-accept]"); if (acc) { if (acc.dataset.unchecked && !confirm(STR.acceptUnchecked)) return; acc.disabled = true; reviewTask(acc.dataset.accept, true); return; }
     var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }

@@ -130,23 +130,51 @@ function cleanAnalysis(p) {
   };
 }
 
+// A production pipeline (owner decision 2026-11-02): track mvp = gates G0 setup → G1 core loop greybox → G2 first playable
+// (styled slice) → G3 MVP feature-complete → G4 release candidate; then 'expansion' (more of proven systems) and 'extra'
+// (new systems, each behind its own prototype gate, ranked, cut below plan.cutLine). gated: a milestone's tasks open only
+// after the author approved the previous gate of its track (plan/current.gates, see mcp.js isReady).
+const TRACKS = ['mvp', 'expansion', 'extra'];
+const CARD_ROLES = ['implements', 'uses-asset', 'in-level', 'follows-style', 'constrained-by'];
+const ASSET_STATES = ['greybox', 'standin', 'styled', 'final'];
 function cleanPlan(p) {
   const plan = p && p.plan ? p.plan : {};
   return {
+    gated: true,
     overview: str(plan.overview, 2000),
+    dod: list(plan.dod, 8, (d) => str(d, 300) || null),
+    estimateWeeks: Math.max(0, Math.min(104, Math.round(+plan.estimateWeeks || 0))),
     engineNotes: str(plan.engineNotes, 2000),
-    milestones: list(plan.milestones, 12, (m) => (m && str(m.name, 120) ? {
-      id: str(m.id, 12), name: str(m.name, 120), goal: str(m.goal, 600), gate: str(m.gate, 600),
-      tasks: list(m.tasks, 30, (t) => (t && str(t.title, 160) ? {
-        id: str(t.id, 16), title: str(t.title, 160), detail: str(t.detail, 1200),
-        deps: list(t.deps, 8, (d) => str(d, 16) || null),
-        size: oneOf(t.size, ['S', 'M', 'L'], 'M'),
-        owner: oneOf(t.owner, ['design', 'dev', 'art', 'audio', 'qa'], 'dev'),
-        prompt: str(t.prompt, 3000),
-        cards: list(t.cards, 20, (c) => str(c, 200) || null),
-        accept: list(t.accept, 8, (a) => str(a, 300) || null),
-        tests: list(t.tests, 6, (a) => str(a, 300) || null),
-      } : null)),
+    cutLine: Math.max(0, Math.min(12, Math.round(+plan.cutLine || 0))),
+    health: list(plan.health, 12, (h) => (h && str(h.issue, 300) ? { issue: str(h.issue, 300), fix: str(h.fix, 400), cards: list(h.cards, 8, (c) => str(c, 200) || null) } : null)),
+    milestones: list(plan.milestones, 14, (m) => (m && str(m.name, 120) ? {
+      id: str(m.id, 12), track: oneOf(m.track, TRACKS, 'mvp'), name: str(m.name, 120), goal: str(m.goal, 600), gate: str(m.gate, 600),
+      entry: str(m.entry, 400), deliverables: list(m.deliverables, 10, (d) => str(d, 300) || null),
+      accept: list(m.accept, 10, (a) => str(a, 300) || null), budgets: str(m.budgets, 600),
+      estimateDays: Math.max(0, Math.min(120, Math.round(+m.estimateDays || 0))),
+      tasks: list(m.tasks, 30, (t) => {
+        if (!t || !str(t.title, 160)) return null;
+        // cards come as "c:…" or {ref, role}; kept as plain refs (MCP, older plans) + a role per ref
+        const roles = {};
+        const cards = list(t.cards, 20, (c) => {
+          const ref = str(c && typeof c === 'object' ? c.ref : c, 200);
+          if (ref && c && typeof c === 'object' && CARD_ROLES.includes(c.role)) roles[ref] = c.role;
+          return ref || null;
+        });
+        return {
+          id: str(t.id, 16), title: str(t.title, 160), detail: str(t.detail, 1200),
+          deps: list(t.deps, 8, (d) => str(d, 16) || null),
+          size: oneOf(t.size, ['S', 'M', 'L'], 'M'),
+          owner: oneOf(t.owner, ['design', 'dev', 'art', 'audio', 'qa'], 'dev'),
+          priority: oneOf(t.priority, ['must', 'should', 'could'], m.track === 'extra' ? 'could' : m.track === 'expansion' ? 'should' : 'must'),
+          assetState: ASSET_STATES.includes(t.assetState) ? t.assetState : '',
+          estimate: Math.max(0, Math.min(30, +t.estimate || 0)),
+          prompt: str(t.prompt, 3000),
+          cards, roles,
+          accept: list(t.accept, 8, (a) => str(a, 300) || null),
+          tests: list(t.tests, 6, (a) => str(a, 300) || null),
+        };
+      }),
     } : null)),
     parallel: list(plan.parallel, 8, (s) => str(s, 300) || null),
     risks: list(plan.risks, 10, (r) => (r && str(r.risk, 300) ? { risk: str(r.risk, 300), mitigation: str(r.mitigation, 400) } : null)),
@@ -189,7 +217,7 @@ async function writeTasks(gameRef, plan) {
       order++;
       const id = t.id.replace(/[\/\s]/g, '_');
       if (!id || kept.has(id)) continue;
-      batch.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, status: 'todo', order, history: [],
+      batch.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, track: m.track, status: 'todo', order, history: [],
         createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
     }
   }
@@ -279,11 +307,22 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 }
 
 function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
-  return `You are the producer of this game. Using the Game Bible, the GDD analysis and the author's decisions below, write a precise, actionable DEVELOPMENT PLAN.
+  return `You are the producer of this game — a solo author working with an AI coding agent (Claude Code) and bought/ready prefabs. Using the Game Bible, the GDD analysis and the author's decisions below, write a PRODUCTION PLAN the way real studios run production, cut down for one person: its one goal is to reach a real, playable MVP in the shortest time, step by step, and only then grow it.
 
-Rules:
-- Milestones in order (typically: prototype of the core loop → vertical slice → content production → alpha → beta/polish → release; adapt to the game's scope). Each has a goal and a GATE: a concrete, checkable condition that must be true before the next milestone starts.
-- Tasks inside each milestone: id like "M1.3", title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids), size S|M|L, owner design|dev|art|audio|qa, accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task builds ("c:..." / "e:..." refs, or "new:<title>" for a scaffold card below), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card. 4-8 tasks per milestone.
+Pipeline (keep this structure, adapt the content to the game):
+- Track "mvp" — five milestones with GATES, ids G0…G4, in this order:
+  G0 Setup — repository, engine project, folder & naming conventions (SM_/M_/T_/A_ prefixes…), MCP connection, a headless build that succeeds. Gate: the empty project builds and runs.
+  G1 Core loop in greybox — the 3Cs (character, camera, controls), the core mechanic, win/lose, ONE greybox level from primitives — no final art. Gate: the author plays 5 minutes and it is fun; tests pass.
+  G2 First playable (vertical slice) — that same level styled: prefabs/models unified to the art direction, materials, light & post, UI skin, key SFX & music, performance budgets met. Gate: screenshot-quality, frame rate on the minimum spec, every used asset has a commercial-OK or with-conditions licence.
+  G3 MVP feature-complete — every MUST system, progression, save/load, menus, all MVP levels. Gate: a stranger plays from start to finish without help.
+  G4 Release candidate — bug fixing, credits & attribution, store page assets, the release build. Gate: the release checklist is green.
+- Track "expansion" — 1-3 milestones (ids X1…): MORE content of systems already proven in the MVP (levels, enemies, items, quests). No new systems here.
+- Track "extra" — 0-6 milestones (ids F1…), ONE new feature/system each, RANKED by value for the player ÷ cost. Each starts with its own small greybox prototype gate. Set cutLine = how many of them are worth doing at all; the rest are "below the line" (kept, not planned).
+- Rule: a MUST card or system → MVP; more of a proven type → expansion; a new system → extra. Never plan styled/final art for a level before its greybox gate. Prefer ready prefabs (stand-ins) over making assets from scratch in the MVP.
+- Every milestone: id, track, name, goal, entry (what must be true to start), deliverables (concrete list), gate (one sentence), accept (2-6 pass/fail checks with the kind of evidence: test, screenshot, video, build, playtest), budgets (performance / polygon / texture / memory budgets that apply, from the bible or sensible for the engine and platform), estimateDays (solo + AI + bought assets).
+- Tasks inside each milestone: id like "G1.3" / "X1.2" / "F2.1", title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids), size S|M|L, estimate (days), owner design|dev|art|audio|qa, priority must|should|could, assetState — for art/asset tasks the state the assets must reach in this milestone (greybox | standin = a ready prefab placed as is | styled = unified to the art direction | final), accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task touches, each {"ref": "c:..." | "e:..." | "new:<title>", "role": implements | uses-asset | in-level | follows-style | constrained-by} (follows-style = the art-direction / style card it must match, constrained-by = a law, budget or technical card it must respect), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation or sourcing brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card. 3-8 tasks per milestone.
+- The bible must reach down to the details the art needs: art direction (palette, proportions, silhouettes, character style), texel density, materials (stone, grass, wood… surfaces), lighting mood, audio mood. health — what the bible still lacks for the MVP (issue, fix = what the author should add, cards = related refs); scaffold the missing cards below.
+- dod — the MVP definition of done in 3-6 checkable lines; estimateWeeks — the whole MVP (G0…G4).
 - parallel: which streams can run at the same time.
 - risks with mitigation.
 - gaps: things the engine/framework likely does not provide (need, missing, desiredApi, workaround). Empty for a generic engine unless obvious.
@@ -301,7 +340,7 @@ BIBLE:
 ${bible}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","accept":[""],"tests":[""],"cards":["c:..."],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"M2.1"}]}}`;
+{"plan":{"overview":"","dod":[""],"estimateWeeks":10,"engineNotes":"","cutLine":2,"health":[{"issue":"","fix":"","cards":["c:..."]}],"milestones":[{"id":"G0","track":"mvp","name":"","goal":"","entry":"","deliverables":[""],"gate":"","accept":[""],"budgets":"","estimateDays":2,"tasks":[{"id":"G0.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"G2.1"}]}}`;
 }
 
 // ---------- GitHub: the game's repository, read only on the author's button ----------
