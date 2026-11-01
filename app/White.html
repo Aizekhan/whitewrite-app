@@ -611,6 +611,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 </div>
 <!-- /authmodal -->
 
+<script src="/i18n.js"></script><!-- before the shell script: its first render already speaks the saved language -->
 <script>
 (function () {
   /* ---- icons ---- */
@@ -1167,6 +1168,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
     if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId); return; } // World Bible → chronicle → a story of this world
+    if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(); return; } // World Bible → chronicle → «＋ Нова історія»
     // the World Bible renamed or deleted the world: refresh the list (and leave the deleted world)
     if (d.type === "ww-worlds-changed") { Promise.resolve(loadProjects()).then(function () { if (d.deleted) { CURRENT_WORLD = null; showView("worlds"); } }); return; }
     if (d.type === "ww-nav" && d.pillar) {
@@ -1833,6 +1835,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     renderRail();  // Update navigation rail labels
     syncDockAvatar();  // Update user dock
     fillNews();  // Update news posts
+    fillHome(); fillWorlds(); fillMarket(); fillKb();  // world hub, worlds list, marketplace, knowledge base
     // Only reload account modal if it's currently visible
     if (views.account && views.account.classList.contains('is-on')) {
       fillAccount();
@@ -1864,7 +1867,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 <!-- Firebase Modules -->
 <script src="/firebase/ai-models.js"></script>
 <script src="/firebase/firebase-init.js"></script>
-<script src="/i18n.js"></script>
 <script src="/firebase/token-budget.js"></script>
 <script src="/firebase/firebase-pricing.js"></script>
 <script src="/firebase/firebase-auth.js"></script>

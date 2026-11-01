@@ -21,22 +21,27 @@
         setOn: "Увімкнено, оплачено до {d}.", setPaidOff: "Вимкнено, але оплачений місяць триває до {d}: увімкнення до цієї дати безкоштовне.",
         enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам.",
         mapUploading: "Завантажую карту…", skyNote: "Небо збережено в каноні світу." },
-      cult: { add: "＋ Додати", empty: "Ще порожньо.", del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
-      chron: { add: "＋ Подія", unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
+      cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
+      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
         at: "Початок (число на лінії часу)", dur: "Тривалість (0 — мить)", when: "Підпис часу", whenPh: "напр. «Весна 340 р.»", who: "Учасники", noChars: "У каноні ще немає персонажів." },
-      pick: { add: "＋ Додати з канону", title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
+      pick: { title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
         none: "Усіх з канону вже взято в гру.", newOne: "＋ Новий у каноні", addN: "Додати", picked: "Додано в гру" },
-      dos: { newEnt: "＋ Нова сутність", desc: "Опис", pics: "Зображення й моделі світу", picsHint: "спільні для всіх історій та ігор; у грі може бути свій вигляд",
+      dos: { desc: "Опис", pics: "Зображення й моделі світу", picsHint: "спільні для всіх історій та ігор; у грі може бути свій вигляд",
         links: "Звʼязки", appear: "Поява в історіях та іграх", life: "Хронологія життя", lifeHint: "замітки на лінії життя; упорядковуються за першим числом («12 років», «рік 340»)",
         lifeAdd: "＋ Замітка", lifeWhen: "Коли: вік, рік, епоха", lifeText: "Що сталося", lifeEmpty: "Ще немає заміток. Додай першу — вона повисне на лінії життя.",
         noLinks: "Звʼязків поки немає. Їх додають у Дереві всесвіту.", inGames: "Ігри", inStories: "Історії", notInGames: "Ще немає ігор у цьому світі.",
         notInStories: "Ще не зʼявлявся в історіях.", scenes: "сцени", loading: "Шукаю…", openInGame: "Відкрити в грі", hiddenInGame: "прибрано з гри",
         unsaved: "Є незбережені зміни. Перейти без збереження?", world: "досьє світу", saveFirst: "Спершу збережи — тоді можна додати файли.",
-        storyPh: "Пиши вільно: звідки, що пережив, чого прагне…", lookPh: "Як виглядає: риси, одяг, кольори, деталі, впізнавані знаки…",
+        picsPlain: "Зображення й файли", picsPlainHint: "ілюстрації, карти, схеми", appearStories: "Поява в історіях",
         kinds: { characters: "персонаж", locations: "локація", events: "подія", factions: "фракція", artifacts: "артефакт" },
-        tabs: { characters: ["Біографія", "Зовнішність"], locations: ["Історія місця", "Вигляд"], factions: ["Історія й мета", "Символіка"], artifacts: ["Походження", "Вигляд"], events: ["Перебіг", "Вигляд"] } },
+        // the two writing tabs of each kind of dossier: [key in entity.dossier, label, placeholder]
+        tabs: { characters: [["story", "Біографія", "Пиши вільно: звідки, що пережив, чого прагне…"], ["look", "Зовнішність", "Як виглядає: риси, одяг, кольори, деталі, впізнавані знаки…"]],
+          locations: [["story", "Історія місця", "Як виникло це місце, що тут відбувалося, кому воно належало…"], ["look", "Вигляд", "Як виглядає: краєвид, будівлі, світло, звуки, запахи…"]],
+          factions: [["story", "Історія й мета", "Як виникла, хто її веде, чого прагне, з ким ворогує…"], ["look", "Символіка", "Герб, кольори, знаки, одяг, гасла…"]],
+          artifacts: [["story", "Походження", "Хто й навіщо створив, через чиї руки пройшов, яку має силу…"], ["look", "Вигляд", "Матеріал, розмір, знаки, як відчувається в руці…"]],
+          events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settings: "Налаштування проєкту", settingsAbout: "Назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти.",
@@ -51,11 +56,12 @@
       canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
       createGame: "Створити гру", firstGame: "Перша гра на цьому каноні",
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
-      addCard: "+ Нова картка", addSection: "+ Свій розділ", sectionName: "Назва розділу, напр. «Звук»",
+      addSection: "+ Свій розділ", sectionName: "Назва розділу, напр. «Звук»",
       sectionAbout: "Про що цей розділ (необовʼязково)", create: "Створити", cancel: "Скасувати",
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
-      found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше",
-      group: "Підзаголовок", noGroup: "— без підзаголовка —", newGroup: "＋ Створити підзаголовок", newGroupPh: "Назва нового підзаголовка",
+      found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
+      group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.",
+        general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
       ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", file: "Файли (префаби, моделі…)" },
@@ -121,22 +127,26 @@
         setOn: "On, paid until {d}.", setPaidOff: "Off, but the paid month lasts until {d}: turning it on before then is free.",
         enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself.",
         mapUploading: "Uploading the map…", skyNote: "The sky is saved in the world canon." },
-      cult: { add: "＋ Add", empty: "Empty yet.", del: "Delete entry", delQ: "Delete this culture entry with its files?" },
-      chron: { add: "＋ Event", unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
+      cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
+      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
         at: "Start (a number on the time line)", dur: "Duration (0 — a moment)", when: "Time label", whenPh: "e.g. “Spring of 340”", who: "Participants", noChars: "No characters in the canon yet." },
-      pick: { add: "＋ Add from canon", title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
+      pick: { title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
         none: "Everything in the canon is already in the game.", newOne: "＋ New in canon", addN: "Add", picked: "Added to the game" },
-      dos: { newEnt: "＋ New entity", desc: "Description", pics: "World images & models", picsHint: "shared by every story and game; a game may have its own look",
+      dos: { desc: "Description", pics: "World images & models", picsHint: "shared by every story and game; a game may have its own look",
         links: "Connections", appear: "Appears in stories & games", life: "Life timeline", lifeHint: "notes on the life line, ordered by their first number (“age 12”, “year 340”)",
         lifeAdd: "＋ Note", lifeWhen: "When: age, year, era", lifeText: "What happened", lifeEmpty: "No notes yet. Add the first — it hangs on the life line.",
         noLinks: "No connections yet. They are added in the Universe tree.", inGames: "Games", inStories: "Stories", notInGames: "No games in this world yet.",
         notInStories: "Has not appeared in stories yet.", scenes: "scenes", loading: "Looking…", openInGame: "Open in game", hiddenInGame: "removed from the game",
         unsaved: "There are unsaved changes. Leave without saving?", world: "world dossier", saveFirst: "Save first — then files can be added.",
-        storyPh: "Write freely: where from, what they went through, what they want…", lookPh: "How it looks: features, clothes, colours, details, signs…",
+        picsPlain: "Images & files", picsPlainHint: "illustrations, maps, diagrams", appearStories: "Appearance in stories",
         kinds: { characters: "character", locations: "location", events: "event", factions: "faction", artifacts: "artifact" },
-        tabs: { characters: ["Biography", "Appearance"], locations: ["History of the place", "Look"], factions: ["History & aim", "Symbols"], artifacts: ["Origin", "Look"], events: ["Course", "Look"] } },
+        tabs: { characters: [["story", "Biography", "Write freely: where from, what they went through, what they want…"], ["look", "Appearance", "How they look: features, clothes, colours, details, signs…"]],
+          locations: [["story", "History of the place", "How this place came to be, what happened here, who owned it…"], ["look", "Look", "How it looks: landscape, buildings, light, sounds, smells…"]],
+          factions: [["story", "History & aim", "How it arose, who leads it, what it wants, whom it fights…"], ["look", "Symbols", "Coat of arms, colours, signs, garb, mottos…"]],
+          artifacts: [["story", "Origin", "Who made it and why, whose hands it passed through, what power it has…"], ["look", "Look", "Material, size, markings, how it feels in the hand…"]],
+          events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settings: "Project settings", settingsAbout: "Names, engine, import and export, safe deletion.", gameLabel: "Game:",
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept.",
@@ -151,11 +161,12 @@
       canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
       createGame: "Create game", firstGame: "The first game on this canon",
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
-      addCard: "+ New card", addSection: "+ Own section", sectionName: "Section name, e.g. “Sound”",
+      addSection: "+ Own section", sectionName: "Section name, e.g. “Sound”",
       sectionAbout: "What this section is about (optional)", create: "Create", cancel: "Cancel",
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
-      found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other",
-      group: "Subheading", noGroup: "— no subheading —", newGroup: "＋ Create subheading", newGroupPh: "Name of the new subheading",
+      found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
+      group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.",
+        general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
       ftypes: { text: "Text", table: "Table", image: "Images", file: "Files (prefabs, models…)" },
@@ -269,7 +280,7 @@
       defs: [F("gameplay", "Роль у геймплеї", "Role in gameplay"), F("rewards", "Що дає гравцю", "What it gives the player")] },
     { id: "items", canon: "artifacts", uk: "Артефакти", en: "Artifacts",
       about: { uk: "Артефакти канону як ігрові предмети.", en: "Canon artifacts as game items." },
-      defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get")] },
+      defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon")] },
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
       groups: { uk: ["Рух", "Бій", "Здібності", "Взаємодія", "Камера й керування", "Смерть і відродження", "Перемога й поразка"], en: ["Movement", "Combat", "Abilities", "Interaction", "Camera & controls", "Death & respawn", "Win & lose"] },
       about: { uk: "Правила гри з числами. Правка тут — це завдання змінити гру.", en: "Game rules with numbers. An edit here is a task to change the game." },
@@ -345,7 +356,8 @@
     { id: "customs", uk: "Звичаї й побут", en: "Customs & daily life",
       defs: [F("what", "Що це", "What it is"), F("when", "Коли і де", "When & where"), F("meaning", "Значення", "Meaning")] },
   ];
-  var loreGroup = function (id) { return LORE.filter(function (g) { return g.id === id; })[0] || LORE[3]; };
+  // a custom culture subsection is named by its id and has no fields of its own beyond the description
+  var loreGroup = function (id) { return LORE.filter(function (g) { return g.id === id; })[0] || { id: id, uk: id || L(LORE[3]), en: id || L(LORE[3]), defs: id ? [] : LORE[3].defs }; };
   var COSMOLOGY = { id: "cosmology", special: "cosmology", uk: "Космологія", en: "Cosmology",
     about: { uk: "Небо світу: планета, сонця, супутники, календар — у Космографі.", en: "The sky of the world: planet, suns, moons, calendar — in the Cosmograph." } };
   CANON.push(CANON_ISSUES, CHRONICLE, CULTURE, COSMOLOGY);
@@ -387,9 +399,66 @@
   // Subheadings: every ordinary section groups its cards by one field (mechanics "group", assets "category", others "group")
   function groupKey(s) { return s.special ? "" : (s.group || "group"); }
   // Standard subheadings of the section first (s.groups), then the author's own ones in order of appearance.
+  // ---------- subsections: «＋ Додати» at each subheading (the Культура pattern), «＋ Підрозділ» on the top bar ----------
+  // Their order lives in games/{g}.subsections[sectionId] (game sections) or worlds/{w}.subsections[sectionId] (canon);
+  // standard names are stored in either language and shown in the current one.
+  function normGroup(s, name) {
+    var g = s.groups, i = g ? g.uk.indexOf(name) : -1; if (g && i < 0) i = g.en.indexOf(name);
+    return i >= 0 ? (g[LANG] || g.uk)[i] : name;
+  }
+  function inCanon(s) { return !!(s.dossier || s.special === "chronicle" || s.special === "culture"); }
+  function subsOf(s) {
+    var own = ((inCanon(s) ? world : game) || {}).subsections || {};
+    if (Array.isArray(own[s.id])) return own[s.id].map(function (n) { return normGroup(s, n); });
+    if (s.special === "culture") return LORE.map(function (g) { return g.id; });
+    return s.groups ? (s.groups[LANG] || s.groups.uk).slice() : [];
+  }
+  function saveSubs(s, list) {
+    var patch = { subsections: {} }; patch.subsections[s.id] = list;
+    return (inCanon(s) ? wref() : gref()).set(patch, { merge: true });
+  }
+  // One block per subsection: heading with its count and «＋ Додати»; empty custom ones can be removed.
+  function subsHtml(s, items, groupOf, body, labelOf) {
+    var subs = subsOf(s), by = {}, extra = [], loose = [];
+    items.forEach(function (x) {
+      var g = groupOf(x) || "";
+      if (!g) return loose.push(x);
+      if (subs.indexOf(g) < 0 && extra.indexOf(g) < 0) extra.push(g);
+      (by[g] = by[g] || []).push(x);
+    });
+    var html = "", head = function (g, label, n, canDrop) {
+      return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span><button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' +
+        (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
+    };
+    subs.concat(extra).forEach(function (g) {
+      var list = by[g] || [];
+      html += head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>');
+    });
+    if (loose.length || !(subs.length + extra.length)) {
+      var gl = subs.length + extra.length ? STR.other : s.special === "chronicle" ? STR.sub.timeline : STR.sub.general;
+      html += head("", gl, loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>');
+    }
+    return html;
+  }
+  function newSubsection() {
+    var s = sec(section);
+    askName(STR.sub.title, STR.sub.ph, function (name) {
+      if (!name) return;
+      var list = subsOf(s); if (list.indexOf(name) < 0) saveSubs(s, list.concat(name));
+    });
+  }
+  function dropSubsection(g) { var s = sec(section); saveSubs(s, subsOf(s).filter(function (x) { return x !== g; })); }
+  // «＋ Додати» under a subheading: a card, a dossier, an event or a culture entry born in that subsection
+  function addIn(g) {
+    var s = sec(section);
+    if (s.dossier) return openDossier({ id: entityId(s.dossier), kind: s.dossier, isNew: true, group: g });
+    if (s.special === "chronicle") return openDossier({ id: entityId("events"), kind: "events", isNew: true, group: g });
+    if (s.special === "culture") return openDossier({ id: newId("lore"), col: "lore", group: g || "customs", isNew: true });
+    addCard(false, g);
+  }
   function groupsOf(s) {
-    var k = groupKey(s), seen = s.groups ? (s.groups[LANG] || s.groups.uk).slice() : [];
-    allCards().forEach(function (c) { var g = c.section === s.id && c.fields[k]; if (g && seen.indexOf(g) < 0) seen.push(g); });
+    var k = groupKey(s), seen = subsOf(s);
+    allCards().forEach(function (c) { var g = c.section === s.id && c.fields[k] && normGroup(s, c.fields[k]); if (g && seen.indexOf(g) < 0) seen.push(g); });
     return seen;
   }
   function sec(id) { return sections().filter(function (s) { return s.id === id; })[0] || GAME[0]; }
@@ -500,6 +569,7 @@
   function render() {
     renderNav();
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
+    $("statuses").hidden = !query && CANON.some(function (x) { return x.id === section; }); // the canon has no game statuses
     if (section === "settings" && !imp) return renderSettings();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
     var cs = CANON.filter(function (x) { return x.id === section; })[0];
@@ -521,17 +591,12 @@
     var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>' +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
-        '<button class="btn primary" id="add-top">' + (s.canon ? STR.pick.add : STR.addCard) + '</button></div>') + '</header>';
-    if (!list.length) html += '<p class="empty">' + STR.nothing + '</p>';
-    else if (!query && list.some(function (c) { return c.fields[groupKey(s)]; })) {
-      var groups = {}, order = [];
-      list.forEach(function (c) { var g = c.fields[groupKey(s)] || STR.other; if (!groups[g]) { groups[g] = []; order.push(g); } groups[g].push(c); });
-      var std = groupsOf(s); // standard subheadings keep their order, the rest follow
-      order.sort(function (a, b) { var ia = std.indexOf(a), ib = std.indexOf(b); return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib); });
-      order.forEach(function (g) { html += '<h2 class="group">' + esc(g) + ' <span>' + groups[g].length + '</span></h2><div class="grid">' + groups[g].map(cardHtml).join("") + '</div>'; });
-    } else html += '<div class="grid">' + list.map(cardHtml).join("") + '</div>';
+        '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div>') + '</header>';
+    var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
+    if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
+    else html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid);
     $("view").innerHTML = html;
-    var at = $("add-top"); if (at) at.onclick = addCard;
+    var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
   }
 
@@ -562,9 +627,9 @@
     var list = entities.filter(function (e) { return e.kind === s.dossier; })
       .sort(function (a, b) { return String(a.name || a.title || "").localeCompare(String(b.name || b.title || "")); });
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row"><button class="btn primary" id="add-top">' + STR.dos.newEnt + '</button></div></header>' +
-      (list.length ? '<div class="grid">' + list.map(dosCardHtml).join("") + '</div>' : '<p class="empty">' + STR.nothing + '</p>');
-    var at = $("add-top"); if (at) at.onclick = function () { openDossier({ id: entityId(s.dossier), kind: s.dossier, isNew: true }); };
+      '<div class="row"><button class="btn primary" id="add-top">' + STR.sub.add + '</button></div></header>' +
+      subsHtml(s, list, function (e) { return e.group; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; });
+    $("add-top").onclick = newSubsection;
   }
   function dosCardHtml(e) {
     var img = entImage(e), tags = [];
@@ -580,7 +645,7 @@
     if (!e) return;
     if (open) closeLeaf();
     dos = e; dtab = "story";
-    ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({ story: "", look: "" }, e.dossier),
+    ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
@@ -616,7 +681,7 @@
     return img ? '<img class="av" alt="" src="' + esc(img.url) + '">' : '<span class="av">' + esc(String(c.name || c.title || "?").trim().charAt(0).toUpperCase()) + '</span>';
   }
   function closeDossier() {
-    dos = null; ddraft = null;
+    dos = null; ddraft = null; setTimeout(applyLang);
     $("dos").classList.remove("open"); $("dos").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
   }
   function lifeOrder(n) { var m = String(n.at || "").match(/-?\d+(?:[.,]\d+)?/); return m ? parseFloat(m[0].replace(",", ".")) : Infinity; }
@@ -665,8 +730,8 @@
     }).join("") + '</div>';
   }
   function renderDossier() {
-    var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [];
-    var html = '<div class="field files"><label>' + STR.dos.pics + ' <span class="hint">' + STR.dos.picsHint + '</span></label>' + files.map(dosFileRow).join("") +
+    var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
+    var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
       (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
     html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="4">' + esc(ddraft.desc) + '</textarea></div>';
     if (e.col === "lore") { // culture: its group's fields, no tabs
@@ -679,9 +744,9 @@
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "links" ? linksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
-      : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc(dtab === "look" ? STR.dos.lookPh : STR.dos.storyPh) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
+      : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
     $("d-body").innerHTML = html + '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>';
-    $("d-tabs").innerHTML = [["story", t[0]], ["links", STR.dos.links], ["look", t[1]], ["appear", STR.dos.appear]].map(function (x) {
+    $("d-tabs").innerHTML = [t[0], ["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]].map(function (x) {
       return '<button role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dtab) + '">' + esc(x[1]) + '</button>';
     }).join("");
     if (dtab === "appear") loadAppearance(e);
@@ -751,6 +816,7 @@
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
     if (e.isNew) Object.assign(body, { id: e.id, kind: e.kind, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
+    if (e.isNew && e.group) body.group = e.group; // the subsection it was added in
     if (e.isNew || name !== (e.name || e.title || "")) { body[(e.title !== undefined && e.name === undefined) || (e.isNew && e.kind === "events") ? "title" : "name"] = name; body.slug = slugify(name); }
     if (e.kind === "events") Object.assign(body, { at: num(ddraft.at), dur: num(ddraft.dur), when: ddraft.when.trim(), characters: ddraft.who });
     if (e.isNew || ddraft.desc !== (e[descKeyOf(e)] || "")) body[descKeyOf(e)] = ddraft.desc;
@@ -765,13 +831,12 @@
     closeDossier();
   }
   function renderCulture(s) {
-    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>';
-    LORE.forEach(function (g) {
-      var list = lore.filter(function (x) { return (x.group || "customs") === g.id; });
-      html += '<h2 class="group">' + esc(L(g)) + ' <span>' + list.length + '</span><button class="btn mini" data-newlore="' + g.id + '">' + STR.cult.add + '</button></h2>' +
-        (list.length ? '<div class="grid">' + list.map(dosCardHtml).join("") + '</div>' : '<p class="muted">' + STR.cult.empty + '</p>');
-    });
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
+      '<div class="row"><button class="btn primary" id="add-top">' + STR.sub.add + '</button></div></header>';
+    html += subsHtml(s, lore, function (x) { return x.group || "customs"; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; },
+      function (g) { return L(loreGroup(g)); });
     $("view").innerHTML = html;
+    $("add-top").onclick = newSubsection;
   }
   // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
   var COSMO_COST = 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
@@ -905,15 +970,20 @@
   }
   function renderChronicle(s) {
     var evs = entities.filter(function (e) { return e.kind === "events"; }).map(function (e) { return Object.assign({}, e, { at: num(e.at), dur: Math.max(0, num(e.dur) || 0) }); });
-    var dated = evs.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }), undated = evs.filter(function (e) { return e.at === null; });
+    var dated = evs.filter(function (e) { return e.at !== null; });
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row"><label class="unitbox">' + STR.chron.unit + ' <input id="ch-unit" value="' + esc((world && world.timeUnit) || "") + '" placeholder="' + esc(STR.chron.unitPh) + '"></label>' +
-      '<button class="btn primary" id="add-top">' + STR.chron.add + '</button></div></header>';
-    html += dated.length ? '<p class="muted">' + STR.chron.legend + '</p>' + cometsHtml(dated) : '<p class="empty">' + STR.chron.empty + '</p>';
-    if (undated.length) html += '<h2 class="group">' + STR.chron.undated + ' <span>' + undated.length + '</span></h2><div class="grid">' + undated.map(dosCardHtml).join("") + '</div>';
-    html += '<h2 class="group">' + STR.chron.stories + '</h2><div id="ch-stories"><p class="muted">' + STR.dos.loading + '</p></div>';
+      '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div></header>';
+    html += '<p class="muted">' + (dated.length ? STR.chron.legend : STR.chron.empty) + '</p>';
+    // each subsection (an era, a war, a line of the story…) is its own time line
+    html += subsHtml(s, evs, function (e) { return e.group; }, function (l) {
+      var d = l.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }), u = l.filter(function (e) { return e.at === null; });
+      return (d.length ? cometsHtml(d) : '') + (u.length ? '<p class="muted">' + STR.chron.undated + ':</p><div class="grid">' + u.map(dosCardHtml).join("") + '</div>' : '');
+    });
+    html += '<h2 class="group">' + STR.chron.stories + '<button class="btn mini" id="ch-newstory">' + STR.sub.story + '</button></h2><div id="ch-stories"><p class="muted">' + STR.dos.loading + '</p></div>';
     $("view").innerHTML = html;
-    $("add-top").onclick = function () { openDossier({ id: entityId("events"), kind: "events", isNew: true }); };
+    $("add-top").onclick = newSubsection;
+    $("ch-newstory").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
     loadStories().then(function (list) {
       var box = $("ch-stories"); if (!box) return;
@@ -954,23 +1024,11 @@
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
-    fillGroups(c.fields[groupKey(sec(c.section))] || "");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-delete").style.display = c.isNew ? "none" : "";
     renderFields(); msg("");
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     $("e-title").focus();
-  }
-
-  function fillGroups(cur, extra) {
-    var s = sec(open.section), list = groupsOf(s).concat(extra || []);
-    if (cur && list.indexOf(cur) < 0) list.push(cur);
-    $("e-group").hidden = !groupKey(s);
-    $("e-group").innerHTML = '<option value="">' + STR.noGroup + '</option>' +
-      list.map(function (g) { return '<option' + (g === cur ? " selected" : "") + '>' + esc(g) + '</option>'; }).join("") +
-      '<option value="__new">' + STR.newGroup + '</option>';
-    $("e-group").value = cur;
-    $("e-group").dataset.cur = cur;
   }
 
   function fieldHtml(key, label, value, extra) {
@@ -982,7 +1040,7 @@
       '<textarea id="f-note" data-key="__note" rows="2" placeholder="' + esc(STR.notePh) + '">' + esc(draft.note) + '</textarea></div>';
     html += filesHtml();
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
-    var gk = groupKey(sec(open.section)); // edited through the subheading menu in the head
+    var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk) html += defHtml(d); });
     html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
@@ -1147,7 +1205,7 @@
   function msg(t) { $("e-msg").textContent = t; }
   function closeLeaf() {
     flushLabels(); setEditMode(false);
-    open = null; draft = null;
+    open = null; draft = null; setTimeout(applyLang);
     $("leaf").classList.remove("open"); $("leaf").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
   }
 
@@ -1157,10 +1215,7 @@
     draft.title = $("e-title").value.trim() || open.title || STR.newCard;
     draft.status = $("e-status").value;
     var gk = groupKey(sec(open.section));
-    if (gk) {
-      draft.fields[gk] = $("e-group").value;
-      if (!draft.defs.some(function (d) { return d.key === gk; })) draft.defs.push({ key: gk, label: STR.group });
-    }
+    if (gk && draft.fields[gk] && !draft.defs.some(function (d) { return d.key === gk; })) draft.defs.push({ key: gk, label: STR.group });
     msg(STR.saving);
     try {
       if (open.src === "canon") {
@@ -1199,17 +1254,18 @@
     closeLeaf();
   }
 
-  function addCard(fresh) {
+  function addCard(fresh, group) {
     var s = sec(section);
-    if (s.canon && fresh !== true) return pickFromCanon(s);
+    if (s.canon && fresh !== true) return pickFromCanon(s, group);
     var c = s.canon
       ? { key: "new", src: "canon", id: entityId(s.canon), section: s.id, title: "", status: "idea", note: "", canonDesc: { key: "desc", value: "" }, defs: s.defs.slice(), fields: {}, isNew: true }
       : { key: "new", src: "game", id: newId("card"), section: s.id, title: "", status: "idea", note: "", defs: (s.defs || CUSTOM_DEFS).slice(), fields: {}, isNew: true };
+    if (group) c.fields[groupKey(s)] = group;
     openCard(c);
   }
 
   // The game takes canon entities by choice: a picker of those not in the game yet, or a new one born in the canon.
-  function pickFromCanon(s) {
+  function pickFromCanon(s, group) {
     var free = entities.filter(function (e) { return e.kind === s.canon && !inGame(e); })
       .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
     var box = document.createElement("div");
@@ -1225,7 +1281,7 @@
     document.body.appendChild(box);
     function close() { box.remove(); }
     box.querySelector("#ask-x").onclick = close;
-    box.querySelector("#pick-new").onclick = function () { close(); addCard(true); };
+    box.querySelector("#pick-new").onclick = function () { close(); addCard(true, group); };
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
     box.addEventListener("change", function () { var ok = box.querySelector("#pick-ok"); if (ok) ok.disabled = !box.querySelector(".picklist input:checked"); });
@@ -1233,7 +1289,11 @@
       ev.preventDefault();
       var ids = [].map.call(box.querySelectorAll(".picklist input:checked"), function (i) { return i.value; }); if (!ids.length) return;
       var batch = db.batch();
-      ids.forEach(function (id) { batch.set(gref().collection("cards").doc(id), { section: s.id, canonRef: id, hidden: false, status: "idea", updatedAt: stamp() }, { merge: true }); });
+      ids.forEach(function (id) {
+        var c = { section: s.id, canonRef: id, hidden: false, status: "idea", updatedAt: stamp() };
+        if (group) { c.fields = {}; c.fields[groupKey(s)] = group; }
+        batch.set(gref().collection("cards").doc(id), c, { merge: true });
+      });
       await batch.commit(); close();
     };
     var first = box.querySelector(".picklist input") || box.querySelector("#pick-new"); first.focus();
@@ -1983,7 +2043,8 @@
     var v = e.target.closest("[data-view3d]");
     if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
-    var nl = e.target.closest("[data-newlore]"); if (nl) { openDossier({ id: newId("lore"), col: "lore", group: nl.dataset.newlore, isNew: true }); return; }
+    var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
+    var sd = e.target.closest("[data-subdel]"); if (sd) { dropSubsection(sd.dataset.subdel); return; }
     var dl = e.target.closest("[data-lore]"); if (dl) { openDossier(lore.filter(function (x) { return x.id === dl.dataset.lore; })[0]); return; }
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
@@ -2042,11 +2103,6 @@
   $("e-body").addEventListener("keydown", function (e) {
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
   });
-  $("e-group").addEventListener("change", function (e) {
-    if (e.target.value !== "__new") { e.target.dataset.cur = e.target.value; return; }
-    var sel = e.target;
-    askName(STR.newGroup.replace(/^＋\s*/, ""), STR.newGroupPh, function (name) { fillGroups(name || sel.dataset.cur, name ? [name] : []); sel.focus(); });
-  });
   // A small dialog in the service's style instead of the browser's prompt(); done(name) gets "" on cancel.
   function askName(title, ph, done) {
     var box = document.createElement("div");
@@ -2084,9 +2140,24 @@
     }
   });
 
+  // ---------- language: the account switch (i18n.js setLanguage) reaches this frame as ww-language-change ----------
+  // Every label is built for one language at load, so the page reloads in place — after an open card or dossier is closed.
+  var langNext = null;
+  function applyLang() {
+    if (!langNext || open || dos) return;
+    try { sessionStorage.setItem("ww-bible-sec-" + worldId, section); } catch (e) {}
+    location.reload();
+  }
+  window.addEventListener("ww-language-change", function (ev) {
+    var l = ev.detail && ev.detail.lang; if (!l || (l === "en" ? "en" : "uk") === LANG) return;
+    langNext = l; applyLang();
+  });
+  try { var keep = sessionStorage.getItem("ww-bible-sec-" + worldId); if (keep) { section = keep; sessionStorage.removeItem("ww-bible-sec-" + worldId); } } catch (e) {}
+  $("spine").setAttribute("aria-label", STR.sectionsAria);
+
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search;
-  setEditMode(false); $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
+  setEditMode(false); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
   $("d-save").textContent = STR.save; $("d-close").textContent = STR.close; $("d-delete").textContent = STR.cult.del;
   renderStatuses();
 
