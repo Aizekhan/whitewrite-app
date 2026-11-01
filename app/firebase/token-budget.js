@@ -160,6 +160,10 @@ window.__PLAN_BUDGETS = {
     cur.name = p.name; cur.price = p.price;
     if (cur.maxProjects >= 999) cur.maxProjects = Infinity;
   });
+  // display / pre-check prices follow the registry too (typical scene, ✦ Порадити)
+  var C = window.__TOKEN_COSTS;
+  C.sceneGemini = PF.SCENE_TYPICAL.gemini; C.sceneClaude = PF.SCENE_TYPICAL.claude;
+  C.analyzeScene = PF.featureCost(PF.byOp('advise'));
 })();
 
 // ============================================================================

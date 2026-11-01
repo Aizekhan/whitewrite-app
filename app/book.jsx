@@ -109,10 +109,10 @@ function EmptyBookPage({ onWrite }) {
   );
 }
 // raw Firestore scenes → book scenes with spreads; the last one ends with the «what next?» spread
-function paginateBook(raw, box, typo, projectId, onWrite) {
+function paginateBook(raw, box, typo, projectId, onWrite, actions) {
   if (!raw.length) return [{ n: 1, t: "", id: null, pages: [
     { left: <EmptyBookPage onWrite={onWrite} />, right: null },
-    { left: <SceneIntentLeft />, right: <SceneIntentRight projectId={projectId} /> },
+    { left: <SceneIntentLeft />, right: <SceneIntentRight projectId={projectId} actions={actions} /> },
   ] }];
   // a phone reads one long parchment sheet per scene (no page boxes to fill)
   const phone = window.matchMedia && window.matchMedia("(max-width:820px)").matches;
@@ -125,7 +125,7 @@ function paginateBook(raw, box, typo, projectId, onWrite) {
         left: <PageView spec={specs[i]} title={scene.title} />,
         right: specs[i + 1] ? <PageView spec={specs[i + 1]} title={scene.title} /> : null,
       });
-      if (idx === raw.length - 1) spreads.push({ left: <SceneIntentLeft />, right: <SceneIntentRight projectId={projectId} /> });
+      if (idx === raw.length - 1) spreads.push({ left: <SceneIntentLeft />, right: <SceneIntentRight projectId={projectId} actions={actions} /> });
       return { n: scene.n, t: scene.title, id: scene.id, pages: spreads };
     });
   } finally { if (probe) probe.remove(); }
@@ -325,6 +325,13 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
     return () => window.removeEventListener("ww-book-typo", h);
   }, []);
   const openSheet = useCallback((scene) => setSheet({ scene }), []);
+  // scenes are saved as they are written; «Зберегти історію» stamps the story and returns to the world's stories
+  const saveStory = useCallback(async () => {
+    const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
+    try { if (projectId) await window.__firebaseProjects.updateProject(projectId, {}); } catch (e) { alert(tt('error.generic') + ': ' + e.message); return; }
+    setWhisper((p) => ({ text: tt('intent.saved'), sig: p.sig + 1 }));
+    if (window.self !== window.top) setTimeout(() => window.parent.postMessage({ type: "ww-story-saved", projectId }, window.location.origin), 700);
+  }, [projectId]);
   const newScene = useCallback(async () => {
     const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
     const n = (raw || []).reduce((m, x) => Math.max(m, x.n || 0), 0) + 1;
@@ -334,10 +341,12 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   useEffect(() => {
     if (!raw) return;
     let dead = false;
-    const run = () => { if (!dead) setScenes(paginateBook(raw, pageBox, typo, projectId, () => (raw.length ? openSheet(raw[0]) : newScene()))); };
+    // the «what next?» spread also offers: write on yourself, edit the last scene, save the story (back to the world)
+    const actions = { write: newScene, edit: raw.length ? () => openSheet(raw[raw.length - 1]) : null, save: saveStory };
+    const run = () => { if (!dead) setScenes(paginateBook(raw, pageBox, typo, projectId, () => (raw.length ? openSheet(raw[0]) : newScene()), actions)); };
     (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(run);
     return () => { dead = true; };
-  }, [raw, pageBox, typo, projectId]);
+  }, [raw, pageBox, typo, projectId, newScene]);
   // a written-from-scratch story opens straight into the sheet
   useEffect(() => {
     if (!raw || generating || !startWriting || writeDone.current) return; // after the mage has opened the book

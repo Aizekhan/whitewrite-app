@@ -256,7 +256,7 @@ function SceneIntentLeft() {
 }
 
 // RIGHT PAGE: "Custom" card + textarea OR selected intent display + Generate Button
-function SceneIntentRight({ projectId: propProjectId }) {
+function SceneIntentRight({ projectId: propProjectId, actions }) {
   const { sel, note, setSel, setNote } = useSceneIntentState();
   const t = window.__i18n ? window.__i18n.t : (k) => k;
   const INTENTS = getIntents();
@@ -484,6 +484,18 @@ function SceneIntentRight({ projectId: propProjectId }) {
           )}
         </div>
       </div>
+
+      {/* or without AI: write on yourself, edit, save the story */}
+      {actions && (
+        <div className="intent-end">
+          <div className="intent-end__or">{t('intent.orYourself')}</div>
+          <div className="intent-end__row">
+            <button type="button" className="intent-end__btn" onClick={actions.write}>✎ {t('intent.writeSelf')}</button>
+            {actions.edit && <button type="button" className="intent-end__btn" onClick={actions.edit}>✍ {t('intent.editLast')}</button>}
+            <button type="button" className="intent-end__btn intent-end__btn--save" onClick={actions.save}>✓ {t('intent.saveStory')}</button>
+          </div>
+        </div>
+      )}
 
       <Folio n="—" />
     </div>

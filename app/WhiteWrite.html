@@ -788,6 +788,16 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   font-family:"Philosopher",serif;
   pointer-events:none; }
 
+/* the «what next?» page: or without AI — write on, edit, save */
+.intent-end{ margin-top:1.2cqw; text-align:center; }
+.intent-end__or{ font:italic 400 1.15cqw "Philosopher",serif; color:rgba(122,91,44,0.75); margin-bottom:.6cqw; }
+.intent-end__row{ display:flex; flex-wrap:wrap; justify-content:center; gap:.6cqw; }
+.intent-end__btn{ cursor:pointer; font:600 1.15cqw "Philosopher",serif; color:#4a3418; padding:.55cqw 1.1cqw; border-radius:6px;
+  background:rgba(255,250,238,0.85); border:1px solid rgba(154,111,37,0.45); }
+.intent-end__btn:hover,.intent-end__btn:focus-visible{ border-color:#9a6f25; background:#fffaf0; }
+.intent-end__btn--save{ color:#2f5a2a; border-color:rgba(70,120,60,0.5); }
+@media (max-width:820px){ .intent-end__or,.intent-end__btn{ font-size:14px; } .intent-end__btn{ padding:8px 12px; } .intent-end__row{ gap:8px; } }
+
 /* Selected intent display (when not custom) */
 .selected-intent{
   text-align:center;

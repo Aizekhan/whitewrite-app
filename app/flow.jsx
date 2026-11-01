@@ -304,7 +304,8 @@ function StoryForm({ onBack, onCreate, initial }) {
         endingNote,
         genres,
         length,
-        dialogue
+        dialogue,
+        ...(init.subjects ? { subjects: init.subjects, reveal: init.reveal, revealNote: init.revealNote } : {}) // from a Bible dossier
       });
     } catch (error) {
       console.error('Failed to create project:', error);

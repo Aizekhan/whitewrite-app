@@ -1162,12 +1162,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
+    if (d.type === "ww-story-saved") { Promise.resolve(loadProjects()).then(function () { if (CURRENT_WORLD) openWorld(CURRENT_WORLD); else showView("worlds"); }); return; } // book → «Зберегти історію»
     if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId, true); return; } // World Bible → a story of this world: the mage opens the book
     if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(); return; } // World Bible → chronicle → «＋ Нова історія»
     // World Bible → a dossier → «＋ Історія»: the book opens (the mage ritual) straight into writing, the story is about that entity
     if (d.type === "ww-write-story" && d.worldId && window.__wwAuth) {
       CURRENT_WORLD = d.worldId;
-      showPillar("book", "new=1&free=1&worldId=" + encodeURIComponent(d.worldId) + "&title=" + encodeURIComponent(d.title || "") +
+      showPillar("book", "new=1" + (d.mode === "ai" ? "" : "&free=1") + "&worldId=" + encodeURIComponent(d.worldId) + "&title=" + encodeURIComponent(d.title || "") +
         "&about=" + encodeURIComponent((d.subjects || []).join(",")) + "&reveal=" + encodeURIComponent(d.reveal || "open") + "&revealNote=" + encodeURIComponent(d.revealNote || ""));
       return;
     }

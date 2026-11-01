@@ -23,7 +23,8 @@
         mapUploading: "Завантажую карту…", skyNote: "Небо збережено в каноні світу." },
       story: { title: "Історії", add: "＋ Історія", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
         newTitle: "Нова історія", titlePh: "Назва історії", reveal: "Для читача", revealNote: "Коли розкриється", revealNotePh: "напр. «після сцени, де Ліра знаходить руну»",
-        write: "Писати", revealAria: "Видимість для читача",
+        write: "Писати", revealAria: "Видимість для читача", how: "Як писати",
+        hows: { ai: "✦ З допомогою ШІ", self: "✎ Пишу сам" }, howHint: { ai: "форма історії: жанр, обсяг, режим — далі ШІ пише сцену за сценою, ти обираєш напрям", self: "книга відкриється одразу на чистому аркуші" },
         reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
@@ -203,7 +204,8 @@
         mapUploading: "Uploading the map…", skyNote: "The sky is saved in the world canon." },
       story: { title: "Stories", add: "＋ Story", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
         newTitle: "New story", titlePh: "Story title", reveal: "For the reader", revealNote: "When it is revealed", revealNotePh: "e.g. “after the scene where Lira finds the rune”",
-        write: "Write", revealAria: "Visibility for the reader",
+        write: "Write", revealAria: "Visibility for the reader", how: "How to write",
+        hows: { ai: "✦ With AI", self: "✎ I write myself" }, howHint: { ai: "the story form: genre, length, mode — then AI writes scene by scene, you choose the direction", self: "the book opens straight on a blank sheet" },
         reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
@@ -1531,6 +1533,9 @@
         return '<label class="rvopt"><input type="radio" name="rv" value="' + r + '"' + (i ? '' : ' checked') + '><span class="rv rv-' + r + '">' + esc(STR.story.reveals[r]) + '</span><i>' + esc(STR.story.revealHint[r]) + '</i></label>';
       }).join("") + '</fieldset>' +
       '<input id="ns-when" autocomplete="off" hidden placeholder="' + esc(STR.story.revealNotePh) + '" aria-label="' + esc(STR.story.revealNote) + '">' +
+      '<fieldset class="rvpick"><legend>' + STR.story.how + '</legend>' + ["ai", "self"].map(function (m, i) {
+        return '<label class="rvopt"><input type="radio" name="how" value="' + m + '"' + (i ? '' : ' checked') + '><b>' + esc(STR.story.hows[m]) + '</b><i>' + esc(STR.story.howHint[m]) + '</i></label>';
+      }).join("") + '</fieldset>' +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ns-go">✎ ' + STR.story.write + '</button></div></form>';
     document.body.appendChild(box);
     var close = function () { box.remove(); };
@@ -1542,7 +1547,8 @@
       ev.preventDefault();
       var title = box.querySelector("#ns-title").value.trim(); if (!title) { box.querySelector("#ns-title").focus(); return; }
       var rv = box.querySelector('input[name="rv"]:checked').value;
-      tellShell({ type: "ww-write-story", worldId: worldId, title: title, subjects: [e.id], reveal: rv, revealNote: rv === "later" ? box.querySelector("#ns-when").value.trim() : "" });
+      tellShell({ type: "ww-write-story", worldId: worldId, title: title, subjects: [e.id], reveal: rv, revealNote: rv === "later" ? box.querySelector("#ns-when").value.trim() : "",
+        mode: box.querySelector('input[name="how"]:checked').value });
       close();
     };
     var t = box.querySelector("#ns-title"); t.focus(); t.select();

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.16.0 (2026-11-02)
+**Version:** 2.17.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -264,6 +264,8 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 - **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices: Opus 4.8 $5/$25, Sonnet 4.5 $3/$15, Haiku 4.5 $1/$5, Gemini 2.5 Flash $0.30/$2.50 incl. thinking tokens — Gemini usage is now captured in generateScene). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical: Sonnet scene ≈ 150, Gemini scene ≈ 30, .md import chunk ≈ 570, Opus game plan ≈ 3000. `SCENE_TYPICAL {gemini 30, claude 150}` feeds the plan cards and the KB; reserves `SCENE_COST {gemini 40, claude 300}`, advise 200, game plan ×12. The UI shows prices as «≈ N».
 
 **Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
+
+**Story creation (v2.17):** Bible dossier «＋ Історія» asks *how*: `mode:'ai'` → the shell opens `WhiteWrite.html?new=1&worldId&title&about&reveal&revealNote` → `StoryForm` prefilled (`initial`, keeps `subjects/reveal/revealNote`); `mode:'self'` adds `free=1` → the sheet. `enterBook` waits up to 10 s for `__wwUser`/`__firebaseProjects` before creating (the race used to skip creation and open the demo «Попіл Орелії»); a failure never falls into the demo. The last «Що далі?» spread (`SceneIntentRight actions`) also offers write on / edit the last scene / save the story (`updateProject` stamp + postMessage `ww-story-saved` → the shell reopens the world's stories). `token-budget.js` takes `__TOKEN_COSTS.sceneGemini/sceneClaude/analyzeScene` from the registry.
 
 **Project limit (v2.16):** stories are created ONLY by the `createProject` Cloud Function (`functions/src/projects.js`; `firestore.rules` → `projects` `allow create: if false`). It counts `projects where owner == uid` against `planBudget(plan).maxProjects + users/{uid}.extraProjects`; over the limit it answers 403 `{code:'PROJECT_LIMIT', limit, count, plan, slotCost, tokensRemaining}`, and with `buySlot: true` reserves the registry price of `projectSlot` (500 tokens, fixed), increments `extraProjects` (a permanent slot, survives plan changes) and logs `usage_logs {operation:'project_slot'}`. The server whitelists and caps the story fields; `worldId` must be the caller's world. Client: `__firebaseProjects.createProject(data, buySlot?)` — confirm «купити слот» (i18n `project.limitAsk`) or open the plans; `OUT_OF_TOKENS` → alert `project.slotNoTokens`; both throw `err.silent` so `app.jsx` shows no second alert.
 

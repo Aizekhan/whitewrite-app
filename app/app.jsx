@@ -128,7 +128,7 @@ function App() {
   // Returning from the workspace? Open straight to the story (skip the ritual).
   // Or opening existing project from list?
   let RET = false, RET_TITLE = "", SCENE = null, NEW = false, PROJECT_ID = null, WORLD_ID = null, NEW_WORLD = false;
-  let FREE = null, RITUAL = false; // RITUAL: opened from the World Bible — the mage opens the book // from the World Bible («＋ Історія»): { title, subjects, reveal, revealNote } — created at once, no form
+  let FREE = null, RITUAL = false, STORY_INIT = null; // STORY_INIT: dossier «＋ Історія» with AI — the story form opens prefilled // RITUAL: opened from the World Bible — the mage opens the book // from the World Bible («＋ Історія»): { title, subjects, reveal, revealNote } — created at once, no form
   try {
     RET = localStorage.getItem("ww_return") === "1";
     RET_TITLE = localStorage.getItem("ww_title") || "";
@@ -142,6 +142,9 @@ function App() {
     NEW_WORLD = params.get("newWorld") === "1";
     RITUAL = params.get("ritual") === "1";
     if (NEW && params.get("free") === "1" && params.get("title")) FREE = {
+      title: params.get("title"), subjects: (params.get("about") || "").split(",").filter(Boolean),
+      reveal: params.get("reveal") || "open", revealNote: params.get("revealNote") || "" };
+    else if (NEW && params.get("title")) STORY_INIT = {
       title: params.get("title"), subjects: (params.get("about") || "").split(",").filter(Boolean),
       reveal: params.get("reveal") || "open", revealNote: params.get("revealNote") || "" };
   } catch (e) {}
@@ -244,6 +247,15 @@ function App() {
 
   // Persist the universe title so the workspace ↔ book stay the same world.
   async function enterBook(data) {
+    // The book may open before the sign-in has loaded (a story straight from the Bible): wait for it,
+    // otherwise no project is created and the book would fall back to the demo.
+    for (let i = 0; i < 100 && !(window.__firebaseProjects && window.__wwUser); i++) await new Promise((r) => setTimeout(r, 100));
+    if (!(window.__firebaseProjects && window.__wwUser)) {
+      const t = window.__i18n ? window.__i18n.t : (k) => k;
+      alert(t('error.projectCreation') + ': ' + t('error.notSignedIn'));
+      setStage(FREE ? "start" : "form");
+      return;
+    }
     // Create project in Firestore
     if (window.__firebaseProjects && window.__wwUser) {
       try {
@@ -430,6 +442,7 @@ function App() {
         const t = window.__i18n ? window.__i18n.t : (k) => k;
         if (!error.silent) alert(t('error.projectCreation') + ': ' + error.message); // silent: the limit dialog already spoke
         setGenerationProgress({ current: 0, total: 0, isGenerating: false });
+        if (stage === "auto") setStage("start"); // a story from the Bible: never the demo book
         return;
       }
     }
@@ -500,6 +513,7 @@ function App() {
           langVersion={langVersion}
           onBack={() => { try { window.parent.__wwOpenWorld(WORLD_ID); } catch (e) { setStage("start"); } }}
           onCreate={enterBook}
+          initial={STORY_INIT}
         />
       )}
       {stage === "genesis" && genesisData && (
