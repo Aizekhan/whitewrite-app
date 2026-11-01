@@ -570,6 +570,24 @@
     var hidden = (game && game.hiddenSections) || [];
     return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE]);
   }
+  // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
+  // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
+  var NAV_GROUPS = [
+    { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "refs"] },
+    { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies"] },
+    { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen"] },
+    { id: "g-mech", members: ["mechanics"] },
+    { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
+    { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["assets", "materials", "animation", "audio"] },
+    { id: "g-ui", members: ["ui"] },
+    { id: "g-tech", members: ["tech"] },
+    "custom",
+    { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues"] },
+    { id: "g-exp", uk: "Досвід гравців", en: "Player experience", members: ["experience", "telemetry"] },
+  ];
+  var lastSub = {}; // the sub-tab last open in each group: the menu item returns to it
+  function navGroupOf(id) { return NAV_GROUPS.filter(function (g) { return g.members && g.members.indexOf(id) >= 0; })[0] || null; }
+  function groupMembers(g) { var ids = gameSections().map(function (s) { return s.id; }); return g.members.filter(function (m) { return ids.indexOf(m) >= 0; }); }
   var SETTINGS = { id: "settings", special: "settings", uk: "Налаштування проєкту", en: "Project settings",
     about: { uk: "Назви, рушій, імпорт і експорт, безпечне видалення.", en: "Names, engine, import and export, safe deletion." } };
   function sections() { return CANON.concat(gameSections(), [SETTINGS]); }
@@ -812,14 +830,39 @@
   }
 
   // ---------- render ----------
-  function navItem(s, all) {
-    var n = s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
+  function navCount(s, all) {
+    return s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
       : s.special === "experience" ? (exIssues.filter(function (x) { return x.status === "open"; }).length || "")
       : s.special === "culture" ? lore.length
       : s.special === "chronicle" ? entities.filter(function (e) { return e.kind === "events"; }).length
       : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
       : s.special ? "" : all.filter(function (c) { return c.section === s.id; }).length;
-    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(L(s)) + '<span class="n">' + n + '</span></button>';
+  }
+  function navItem(s, all) {
+    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(L(s)) + '<span class="n">' + navCount(s, all) + '</span></button>';
+  }
+  function gameNav(all) {
+    var listed = {}, out = [];
+    NAV_GROUPS.forEach(function (g) { if (g.members) g.members.forEach(function (m) { listed[m] = 1; }); });
+    NAV_GROUPS.forEach(function (g) {
+      if (g === "custom") { gameSections().filter(function (s) { return !listed[s.id]; }).forEach(function (s) { out.push(navItem(s, all)); }); return; }
+      var mem = groupMembers(g); if (!mem.length) return;
+      if (mem.length === 1) { out.push(navItem(sec(mem[0]), all)); return; }
+      var to = mem.indexOf(lastSub[g.id]) >= 0 ? lastSub[g.id] : mem[0];
+      var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
+      out.push('<button class="nav-item" data-sec="' + esc(to) + '" data-group="' + g.id + '" aria-current="' + (mem.indexOf(section) >= 0 && !imp) + '">' + esc(L(g)) + '<span class="n">' + (n || "") + '</span></button>');
+    });
+    return out.join("");
+  }
+  // the sub-tabs of the open group, above the view
+  function renderSubtabs() {
+    var g = !imp && !query && game ? navGroupOf(section) : null, mem = g ? groupMembers(g) : [];
+    if (mem.length < 2) { $("subtabs").innerHTML = ""; $("subtabs").hidden = true; return; }
+    lastSub[g.id] = section;
+    var all = allCards();
+    $("subtabs").hidden = false;
+    $("subtabs").innerHTML = mem.map(function (m) { var s = sec(m), n = navCount(s, all);
+      return '<button class="subtab" role="tab" data-sec="' + esc(m) + '" aria-selected="' + (m === section) + '">' + esc(L(s)) + (n ? ' <span class="n">' + n + '</span>' : '') + '</button>'; }).join("");
   }
   function renderNav() {
     var all = allCards();
@@ -829,7 +872,7 @@
     // the world block folds away so the author can work on the game alone
     $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>' + STR.canonGroup + '</button>' +
       (canonFolded ? "" : CANON.map(function (s) { return navItem(s, all); }).join("")) +
-      pick + (game ? gameSections().map(function (s) { return navItem(s, all); }).join("") : "");
+      pick + (game ? gameNav(all) : "");
     $("newsec-slot").innerHTML = game && canGame ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
     $("nav-foot").innerHTML = navItem(SETTINGS, all).replace('data-sec="settings">', 'data-sec="settings">⚙ ');
   }
@@ -865,7 +908,7 @@
   }
 
   function render() {
-    renderNav(); dragCtx = null;
+    renderNav(); renderSubtabs(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
     $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = cur ? L(cur) : "";
@@ -3014,7 +3057,7 @@
   // ---------- events ----------
   function navClick(e) {
     if (e.target.closest("#canon-toggle")) { canonFolded = !canonFolded; try { localStorage.setItem("ww-bible-fold", canonFolded ? "1" : ""); } catch (er) {} renderNav(); return; }
-    var b = e.target.closest(".nav-item"); if (!b) return;
+    var b = e.target.closest(".nav-item, .subtab"); if (!b) return;
     if (wdraft && b.dataset.sec !== section && wdirty() && !confirm(STR.dos.unsaved)) return;
     section = b.dataset.sec; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
@@ -3022,6 +3065,7 @@
   $("nav-toggle").addEventListener("click", function () { var o = $("spine").classList.toggle("is-open"); this.setAttribute("aria-expanded", String(o)); });
   $("nav").addEventListener("click", navClick);
   $("nav-foot").addEventListener("click", navClick);
+  $("subtabs").addEventListener("click", navClick);
   $("nav").addEventListener("change", function (e) {
     if (e.target.id !== "gamepick") return;
     if (section === "settings") section = "overview";

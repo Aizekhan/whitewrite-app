@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.18.0 (2026-11-02)
+**Version:** 2.19.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -367,6 +367,8 @@ User: Generate next scene following canon.
 
 **Files:** `app/WhiteWrite GameBible.html`, `app/gamebible.js`, `app/gb-3d.js`, `functions/src/gamedev.js`
 **Access:** plans with `allowGameDev` (worldbuilder, worldforge); reading stays with the owner.
+
+- **Game menu (v2.19, navigation only):** `NAV_GROUPS` in `gamebible.js` folds the game shelves into 11 menu items — Огляд і лор [overview, lore, refs] · Персонажі й вороги [characters, factions, enemies] · Світ і рівні [locations, levels, worldgen] · Механіки · Прогресія й предмети [progression, gear, items] · Арт і аудіо [assets, materials, animation, audio] · UI/UX · Технічне · (author's own sections) · Продакшн-план [plan, issues] · Досвід гравців [experience, telemetry]; ⚙ settings in the menu foot. A group button (`.nav-item[data-group]`) opens its last sub-tab (`lastSub`) and sums the counts; `#subtabs` (`.subtab[role=tab]`, above `#view`) switches between members. **Shelf ids and card `section` values are unchanged** (MCP, `experience.js`, the import read them), so there is no data migration; hidden sections drop out of their group, a one-member group renders as a plain item.
 
 - **Canon ↔ game split:** the world block = Огляд світу (`special: world`), Закони (`special: laws`), dossier sections `w-characters / w-locations / w-factions / w-items` (`dossier: kind`, read entities directly, no statuses), Неузгоджене. Each game has its own Персонажі/Локації/Фракції/Артефакти (ids `characters/locations/factions/items`, `canon: kind`) — the canon seen through the game: status, game fields, its own look/prefab in the game card; the card thumbnail falls back to the world dossier image.
   **A game takes only the canon it picked** (`games/{g}.canonOptIn: true`): an entity is in the game when it has a game card (`canonRef`, not `hidden`). «＋ Додати з канону» opens a picker of entities not in the game yet (multi-select) + «＋ Новий у каноні» (born in the canon and picked at once); «Прибрати з цієї гри» = `hidden: true`, it returns to the picker. Import writes a card for each accepted canon entity. Older games (no flag) are migrated once on open: cards for everything they showed, hidden stays hidden. `gamedevPlan` and MCP `get_design_section` follow the same rule (legacy games without the flag still see the whole canon).

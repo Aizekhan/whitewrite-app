@@ -46,6 +46,12 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 .nav-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:8px 10px; border-radius:8px;
   border:0; background:none; cursor:pointer; color:var(--tx-mid); }
 .nav-item:hover{ background:var(--bg-hover); color:var(--tx-hi); }
+.subtabs{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 14px; padding-bottom:10px; border-bottom:1px solid var(--line); }
+.subtabs[hidden]{ display:none; }
+.subtab{ cursor:pointer; padding:6px 12px; border-radius:999px; border:1px solid var(--line-2); background:transparent; color:var(--tx-mid); font:500 13px "Inter"; }
+.subtab:hover{ color:var(--tx-hi); background:var(--bg-hover); }
+.subtab[aria-selected="true"]{ background:var(--gold-soft); color:var(--tx-hi); border-color:var(--gold-lit); }
+.subtab .n{ opacity:.6; font-size:12px; margin-left:2px; }
 .nav-item[aria-current="true"]{ background:var(--gold-soft); color:var(--tx-hi); box-shadow:inset 2px 0 0 var(--gold-lit); }
 .nav-item .n{ margin-left:auto; font-size:12px; font-variant-numeric:tabular-nums; }
 .nav-item .canon{ font-size:10px; color:var(--violet-lit); letter-spacing:.06em; }
@@ -477,6 +483,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
     <div id="statuses" class="row"></div>
     <input type="file" id="imp-file" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
   </div>
+  <div id="subtabs" class="subtabs" role="tablist" hidden></div>
   <div id="view"></div>
 </main>
 <div class="topline" id="topline"></div><!-- after main: a fresh render's ids in #view are found first -->
