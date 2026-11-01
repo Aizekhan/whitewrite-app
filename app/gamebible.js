@@ -32,19 +32,29 @@
       live: "Зміни зберігаються в світі.", offline: "Немає звʼязку з базою.",
       lockedTitle: "Біблія гри — для геймдеву", lockedText: "Біблія гри та Продакшн-план доступні на тарифі Worldbuilder. Канон світу й історії лишаються з тобою на будь-якому тарифі.",
       upgrade: "Переглянути тарифи", noWorld: "Світ не знайдено.", login: "Увійди, щоб відкрити біблію.",
-      importMd: "⬆ Імпорт .md", importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
+      importMd: "Імпорт нотаток (.md)", importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
       importApply: "Додати відмічене", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли", filesSaveFirst: "Спершу збережи картку — тоді можна додати файли.",
       uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
-      v3d: { open: "🧊 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
+      v3d: { open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
       exportMd: "⬇ Markdown для репозиторію", busyAnalyze: "AI читає всю біблію і складає гейм-диздок… (до хвилини)",
       busyPlan: "AI складає план розробки… Для великої біблії це 5–15 хвилин; можна піти зі сторінки — план зʼявиться тут сам.",
       scTitle: "Чого бракує в біблії", scIntro: "План знайшов, чого не вистачає для розробки. Відмічене зʼявиться порожніми картками зі статусом «В роботі» — заповнюй їх сам або згодом через Claude Code.",
+      exTitle: "Claude Code — виконавець", exIntro: "Claude Code у репозиторії гри підключається до WhiteWrite по MCP: бере наступну готову задачу з усім контекстом (картки, файли, критерії), працює в Unity і здає звіт сюди на перевірку. Ключ діє лише для цієї гри.",
+      exConnect: "Підключити Claude Code", exAnother: "Ще один ключ", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
+      exThen: "Потім у Claude Code: «Візьми наступну задачу з WhiteWrite і виконай її».", exUsed: "останній виклик", exNever: "ще не було", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
+      exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну" },
+      ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
+      progress: "Прогрес", acceptTitle: "Критерії приймання", tests: "Тести", testsNone: "не запускались", report: "Звіт", changes: "Змінені файли",
+      serverCheck: "Перевірка сервера", checkOk: "усі критерії виконано, тести зелені", checkWarn: "не все підтверджено",
+      accept: "Прийняти", giveBack: "Повернути на доопрацювання", returnPh: "Що виправити? (побачить Claude Code)",
+      blocked: "Блокер", needs: "Потрібно", unblock: "Розблоковано", unblockPh: "Що змінилось / відповідь для Claude Code",
+      crTitle: "Запити на зміну від виконавця", crWhy: "Чому", crProposal: "Пропозиція", crImpact: "Вплив", crAccept: "Погодити", crReject: "Відхилити",
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
@@ -74,19 +84,29 @@
       live: "Changes are saved in the world.", offline: "No connection to the database.",
       lockedTitle: "Game Bible — for game dev", lockedText: "The Game Bible and Production Plan are available on the Worldbuilder plan. Your world canon and stories stay with you on any plan.",
       upgrade: "See plans", noWorld: "World not found.", login: "Sign in to open the bible.",
-      importMd: "⬆ Import .md", importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
+      importMd: "Import notes (.md)", importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
       importApply: "Add ticked items", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files", filesSaveFirst: "Save the card first — then you can add files.",
       uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
-      v3d: { open: "🧊 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
+      v3d: { open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
       exportMd: "⬇ Markdown for the repo", busyAnalyze: "AI is reading the whole bible and drafting the GDD… (up to a minute)",
       busyPlan: "AI is building the development plan… For a big bible this takes 5–15 minutes; you can leave — the plan appears here by itself.",
       scTitle: "Missing from the bible", scIntro: "The plan found what development still lacks. Ticked items become empty cards with the “In progress” status — fill them yourself or later through Claude Code.",
+      exTitle: "Claude Code — executor", exIntro: "Claude Code in the game repository connects to WhiteWrite over MCP: it takes the next ready task with its full context (cards, files, criteria), works in Unity and hands a report in here for review. The key works for this game only.",
+      exConnect: "Connect Claude Code", exAnother: "Another key", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
+      exThen: "Then in Claude Code: “Take the next task from WhiteWrite and do it”.", exUsed: "last call", exNever: "never", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
+      exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request" },
+      ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
+      progress: "Progress", acceptTitle: "Acceptance criteria", tests: "Tests", testsNone: "not run", report: "Report", changes: "Changed files",
+      serverCheck: "Server check", checkOk: "all criteria met, tests green", checkWarn: "not everything confirmed",
+      accept: "Accept", giveBack: "Return for rework", returnPh: "What to fix? (Claude Code will see it)",
+      blocked: "Blocker", needs: "Needs", unblock: "Unblocked", unblockPh: "What changed / answer for Claude Code",
+      crTitle: "Change requests from the executor", crWhy: "Why", crProposal: "Proposal", crImpact: "Impact", crAccept: "Approve", crReject: "Reject",
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
@@ -193,12 +213,14 @@
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
+  var MCP_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/mcp";
 
   // ---------- state ----------
   var params = new URLSearchParams(location.search);
   var worldId = params.get("worldId");
   var db = null, world = null, games = [], gameId = null, game = null;
   var cards = [], entities = [], planDoc = {}, canWrite = false, unsub = [];
+  var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   var section = "overview", query = "", statusFilter = {};
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
 
@@ -313,8 +335,8 @@
     var img = (c.files || []).filter(isImage)[0];
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var model = (c.files || []).filter(is3D)[0];
-    if (model) tags.push('<span class="pill s-agreed v3d-pill" role="button" tabindex="0" data-view3d="' + esc(model.id) + '">🧊 3D</span>');
-    return '<button class="card" data-key="' + esc(c.key) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
+    var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
+    return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
@@ -705,6 +727,14 @@
     var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
     if (done.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + STR.answeredTitle + ' <span>' + done.length + '</span></h2></summary>' +
       done.map(function (q) { return '<div class="qa"><div class="muted">' + esc(q.question) + '</div><div>' + esc(answers()[q.id]) + '</div></div>'; }).join("") + '</details></section>';
+    if (plan) html += execHtml();
+    var crs = changeReqs.filter(function (c) { return c.status === "open"; });
+    if (crs.length) html += '<section class="psec"><h2 class="group">' + STR.crTitle + ' <span>' + crs.length + '</span></h2>' + crs.map(function (c) {
+      return '<div class="q"><div class="q__top">' + (c.taskId ? '<span class="mono">' + esc(c.taskId) + '</span> ' : '') + '<b>' + esc(c.what) + '</b></div>' +
+        '<div class="muted">' + STR.crWhy + ': ' + esc(c.why) + '</div>' + (c.proposal ? '<div>' + STR.crProposal + ': ' + esc(c.proposal) + '</div>' : '') +
+        (c.impact ? '<div class="muted">' + STR.crImpact + ': ' + esc(c.impact) + '</div>' : '') +
+        (canWrite ? '<div class="row"><button class="btn primary" data-cr="' + esc(c.id) + '" data-to="accepted">' + STR.crAccept + '</button><button class="btn" data-cr="' + esc(c.id) + '" data-to="rejected">' + STR.crReject + '</button></div>' : '') + '</div>';
+    }).join("") + '</section>';
     if (planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length)) html += scaffoldHtml(planDoc.scaffold);
     if (plan) html += planHtml(plan);
     $("view").innerHTML = html;
@@ -774,17 +804,108 @@
     var c = allCards().filter(function (x) { return x.key === ref; })[0];
     return c ? c.title : ref;
   }
+  // ---------- execution: Claude Code connects over MCP with a per-game key; tasks move todo → in_progress → review → done ----------
+  function execHtml() {
+    var live = keys.filter(function (k) { return !k.revoked; });
+    var html = '<section class="psec"><h2 class="group">' + STR.exTitle + '</h2><p class="muted">' + STR.exIntro + '</p>';
+    if (newKey) html += '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre>' +
+      '<button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>';
+    html += live.map(function (k) {
+      var used = k.lastUsedAt && k.lastUsedAt.toDate ? k.lastUsedAt.toDate().toLocaleString(LANG === "en" ? "en-GB" : "uk-UA") : STR.exNever;
+      return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span> · ' + STR.exUsed + ': ' + esc(used) + '</span>' +
+        (canWrite ? '<button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button>' : '') + '</div>';
+    }).join("");
+    if (canWrite) html += '<div class="row"><button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>';
+    if (execs.length) html += '<h3 class="sub">' + STR.exLog + '</h3><ul class="exlog">' + execs.slice(0, 8).map(function (x) {
+      var at = x.at && x.at.toDate ? x.at.toDate().toLocaleTimeString(LANG === "en" ? "en-GB" : "uk-UA") : "";
+      var what = (x.data && (x.data.message || x.data.summary || x.data.problem || x.data.what)) || "";
+      return '<li><span class="muted">' + esc(at) + '</span> <b>' + esc(STR.exType[x.type] || x.type) + '</b>' + (x.taskId ? ' <span class="mono">' + esc(x.taskId) + '</span>' : '') + (what ? ' — ' + esc(what) : '') + '</li>';
+    }).join("") + '</ul>';
+    return html + '</section>';
+  }
+  async function createKey() {
+    var bytes = crypto.getRandomValues(new Uint8Array(32));
+    var key = "wwk_" + btoa(String.fromCharCode.apply(null, bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    var digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
+    var hash = Array.from(new Uint8Array(digest), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+    await db.collection("mcpKeys").doc(hash).set({ uid: firebase.auth().currentUser.uid, worldId: worldId, gameId: gameId, label: game.title || "",
+      prefix: key.slice(0, 12), createdAt: stamp() });
+    newKey = key; render(); // shown once: only the hash is stored
+  }
+  var liveTask = function (id) { return tasks.filter(function (x) { return x.id === String(id).replace(/[\/\s]/g, "_"); })[0]; };
+  function taskState(t) {
+    var lt = liveTask(t.id); if (!lt) return "";
+    var html = '';
+    if (lt.status === "in_progress" && lt.lastProgress) html += '<div class="muted">⟳ ' + esc(lt.lastProgress) + '</div>';
+    if (lt.status === "blocked" && lt.blocker) html += '<div class="tblock"><b>' + STR.blocked + ':</b> ' + esc(lt.blocker.problem) + (lt.blocker.needs ? '<div class="muted">' + STR.needs + ': ' + esc(lt.blocker.needs) + '</div>' : '') +
+      (canWrite ? '<div class="row"><button class="btn" data-unblock="' + esc(lt.id) + '">' + STR.unblock + '</button></div>' : '') + '</div>';
+    if (lt.status === "review" && lt.report) {
+      var r = lt.report, ck = r.check || {};
+      html += '<div class="treview"><div><b>' + STR.report + ':</b> ' + esc(r.summary) + '</div>' +
+        (r.commit ? '<div class="muted">commit: <span class="mono">' + esc(r.commit) + '</span></div>' : '') +
+        ((r.changes || []).length ? '<details><summary>' + STR.changes + ' (' + r.changes.length + ')</summary><pre>' + esc(r.changes.join("\n")) + '</pre></details>' : '') +
+        '<div>' + STR.tests + ': ' + (r.tests && r.tests.ran ? '✓ ' + r.tests.passed + ' · ✗ ' + r.tests.failed : STR.testsNone) + '</div>' +
+        ((r.criteria || []).length ? '<ul class="crit">' + r.criteria.map(function (c) { return '<li>' + (c.met ? '✅' : '❌') + ' ' + esc(c.criterion) + (c.evidence ? ' <span class="muted">— ' + esc(c.evidence) + '</span>' : '') + '</li>'; }).join("") + '</ul>' : '') +
+        '<div class="muted">' + STR.serverCheck + ': ' + (ck.allCriteriaMet && ck.testsGreen ? '✅ ' + STR.checkOk : '⚠ ' + STR.checkWarn + ((ck.unmet || []).length ? ' (' + esc(ck.unmet.join("; ")) + ')' : '')) + '</div>' +
+        (canWrite ? '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '">' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>' : '') + '</div>';
+    }
+    return html;
+  }
+  async function reviewTask(id, ok) {
+    var lt = liveTask(id); if (!lt) return;
+    var comment = ok ? "" : (prompt(STR.returnPh) || "").trim();
+    if (!ok && !comment) return;
+    var batch = db.batch(), ev = { type: ok ? "accepted" : "returned", by: "author", at: Date.now() };
+    if (comment) ev.comment = comment;
+    batch.set(gref().collection("tasks").doc(lt.id), { status: ok ? "done" : "rework", reviewComment: comment, updatedAt: stamp(),
+      history: firebase.firestore.FieldValue.arrayUnion(ev) }, { merge: true });
+    if (ok) taskLinked(lt).forEach(function (c) { // what the task built is now in the game
+      var body = { status: "ingame", updatedAt: stamp() };
+      if (c.src === "canon") Object.assign(body, { section: c.section, canonRef: c.id });
+      batch.set(gref().collection("cards").doc(c.id), body, { merge: true });
+    });
+    await batch.commit();
+  }
+  function taskLinked(t) {
+    var all = allCards(), out = [];
+    (t.cards || []).forEach(function (r) {
+      var c = r.indexOf("new:") === 0 ? all.filter(function (x) { return x.src === "game" && x.title.toLowerCase() === r.slice(4).toLowerCase(); })[0]
+        : all.filter(function (x) { return x.key === r; })[0];
+      if (c && out.indexOf(c) < 0) out.push(c);
+    });
+    cards.filter(function (c) { return c.planTask === t.id && !c.canonRef; }).forEach(function (c) {
+      var v = all.filter(function (x) { return x.key === "c:" + c.id; })[0]; if (v && out.indexOf(v) < 0) out.push(v);
+    });
+    return out;
+  }
+  async function unblockTask(id) {
+    var lt = liveTask(id); if (!lt) return;
+    var note = (prompt(STR.unblockPh) || "").trim();
+    await gref().collection("tasks").doc(lt.id).set({ status: lt.report ? "rework" : "todo", reviewComment: note, blocker: firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
+      history: firebase.firestore.FieldValue.arrayUnion({ type: "unblocked", by: "author", comment: note, at: Date.now() }) }, { merge: true });
+  }
+
   function planHtml(plan) {
     var html = '<section class="psec"><h2 class="group">' + STR.planTitle + '</h2>' + (plan.overview ? '<p>' + esc(plan.overview) + '</p>' : '');
+    if (tasks.length) {
+      var done = tasks.filter(function (t) { return t.status === "done"; }).length, pct = Math.round(100 * done / tasks.length);
+      html += '<div class="ready"><span>' + STR.progress + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + done + ' / ' + tasks.length + '</b></div>';
+    }
     if (plan.engineNotes) html += '<div class="canonbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
     (plan.milestones || []).forEach(function (m) {
       html += '<div class="ms"><h3>' + esc(m.id) + ' · ' + esc(m.name) + '</h3>' + (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') +
         (m.gate ? '<p class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</p>' : '') +
         (m.tasks || []).map(function (t) {
-          return '<div class="task"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b> <span class="pill s-agreed">' + esc(t.size) + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
+          var lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
+          return '<div class="task' + (lt ? ' t-' + lt.status : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b>' +
+            (lt ? ' <span class="pill tst-' + lt.status + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
+            ' <span class="pill s-agreed">' + esc(t.size) + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
             (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
             (t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
             ((t.cards || []).length ? '<div class="muted task__c">' + STR.taskCards + ': ' + esc(t.cards.map(cardName).join(", ")) + '</div>' : '') +
+            (acc.length ? '<details><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit">' + acc.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul>' +
+              (tst.length ? '<div class="muted">' + STR.tests + ': ' + esc(tst.join("; ")) + '</div>' : '') + '</details>' : '') +
+            taskState(t) +
             (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
         }).join("") + '</div>';
     });
@@ -861,6 +982,14 @@
     if (opt) { opt.closest(".q").querySelector("textarea").value = opt.dataset.opt; return; }
     var ans = e.target.closest("[data-answer]");
     if (ans) { var q = ans.closest(".q"); ans.disabled = true; answerQuestion(q.dataset.q, q.querySelector("textarea").value.trim()).catch(function (er) { planMsg = er.message; render(); }); return; }
+    var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    var rv = e.target.closest("[data-revoke]");
+    if (rv) { if (confirm(STR.exRevokeQ)) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); return; }
+    var acc = e.target.closest("[data-accept]"); if (acc) { acc.disabled = true; reviewTask(acc.dataset.accept, true); return; }
+    var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
+    var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
+    var cr = e.target.closest("[data-cr]");
+    if (cr) { gref().collection("changeRequests").doc(cr.dataset.cr).set({ status: cr.dataset.to, decidedAt: stamp() }, { merge: true }); return; }
     var cp = e.target.closest("[data-copy]");
     if (cp) { navigator.clipboard.writeText(cp.previousElementSibling.textContent).then(function () { cp.textContent = STR.copied; }); return; }
     var v = e.target.closest("[data-view3d]");
@@ -919,7 +1048,7 @@
 
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("t-engine").textContent = STR.engine; $("q").placeholder = STR.search;
-  $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close; $("imp-btn").textContent = STR.importMd;
+  $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close; $("imp-btn").title = STR.importMd; $("imp-btn").setAttribute("aria-label", STR.importMd);
   $("engine").innerHTML = ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("");
   renderStatuses();
 
@@ -945,6 +1074,13 @@
       sync(snap.metadata.fromCache ? "" : "ok", STR.live); render();
     }, function () { sync("bad", STR.offline); }));
     unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }));
+    tasks = []; changeReqs = []; execs = []; keys = []; newKey = null;
+    var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
+    unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }));
+    unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }));
+    unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
+    unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
+      .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan") render(); }, function () {}));
     render();
   }
 

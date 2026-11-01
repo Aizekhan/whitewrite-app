@@ -35,7 +35,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 /* ============================ TOP MENU (gilded) ============================ */
 .rail{ flex:0 0 auto; width:100%; height:118px; z-index:20; position:absolute; top:0; left:0;
   display:flex; flex-direction:row; align-items:center; gap:11px; padding:0 18px;
-  background:transparent; }
+  background:transparent; pointer-events:none; } /* clicks pass to the page below (Game Bible toolbar sits in this strip) */
+.rail button, .rail a{ pointer-events:auto; }
 
 .rail__back{ width:40px; height:40px; border-radius:50%; display:none; place-items:center; cursor:pointer; flex:0 0 auto;
   color:#e9cd92; border:1px solid rgba(201,162,75,0.45);
@@ -344,6 +345,24 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .acc-stat__n{ font-family:"Cinzel",serif; font-weight:700; font-size:26px; color:var(--gold-bright); }
 .acc-stat__l{ font-size:12px; color:var(--tx-mid); margin-top:3px; }
 .plan-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+/* Integrations: Claude Code over MCP (keys are made per game in the Game Bible) */
+.integ{ background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+.integ__row{ display:flex; align-items:flex-start; gap:14px; }
+.integ__ic{ flex:none; width:38px; height:38px; border-radius:10px; display:grid; place-items:center; font-size:18px;
+  background:var(--gold-soft); border:1px solid rgba(217,119,6,0.35); color:var(--gold-bright); }
+.integ__t{ font-family:"Cinzel",serif; font-weight:600; color:var(--tx-hi); font-size:15px; }
+.integ__s{ font-size:13px; color:var(--tx-mid); margin-top:4px; line-height:1.5; }
+.integ__url{ display:flex; gap:8px; align-items:center; margin-top:12px; }
+.integ__url code{ flex:1; min-width:0; overflow:auto; white-space:nowrap; font-size:12px; padding:8px 10px; border-radius:8px;
+  background:rgba(0,0,0,0.35); border:1px solid var(--line); color:var(--gold-lit); }
+.integ__keys{ margin-top:14px; display:grid; gap:6px; }
+.integ__key{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--tx-mid); padding:7px 10px;
+  border:1px solid var(--line); border-radius:8px; }
+.integ__key b{ color:var(--tx-hi); font-weight:600; }
+.integ__key span{ flex:1; }
+.integ__soon{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.integ__chip{ font-size:12px; padding:5px 10px; border-radius:999px; border:1px dashed var(--line); color:var(--tx-mid); }
+.integ .pe-btn{ padding:6px 12px; font-size:12px; }
 .auth-tabs{ display:flex; gap:6px; margin-bottom:16px; }
 .bb-uses{ display:flex; flex-direction:column; gap:10px; text-align:left; }
 .bb-use{ display:flex; align-items:flex-start; gap:11px; padding:11px 13px; border-radius:10px;
@@ -1511,9 +1530,57 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           planCard("novelist", "Novelist", currentLang === 'en' ? "$29/mo" : "$29/міс", ["32000 " + t('plan.tokens'), "≈ 400 Gemini " + t('plan.or') + " 80 Claude " + t('plan.scenes'), t('feature.claudeAPI'), "∞ " + t('plan.projects'), t('feature.reconstruction'), t('feature.analyzeModes'), '<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>'], u.plan, true) +
           planCard("worldbuilder", "Worldbuilder", currentLang === 'en' ? "$69/mo" : "$69/міс", ["180000 " + t('plan.tokens'), "≈ 300 Claude / ∞ Gemini " + t('plan.scenes'), t('feature.claudeAPI'), "∞ " + t('plan.projects'), t('feature.reconstructionPro'), t('feature.apiAccess'), '<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>'], u.plan) +
         '</div>' +
+        integHtml(currentLang) +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">' + t('account.logoutButton') + '</button>' +
       '</div>';
     bindAccount();
+    loadIntegKeys(currentLang);
+  }
+  // Integrations: the MCP server Claude Code connects to (functions/src/mcp.js). Keys are made per game
+  // in the Game Bible → Production plan; here the author sees them all and can revoke any.
+  var MCP_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/mcp";
+  function esc(v) { return String(v).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function integHtml(lang) {
+    var en = lang === 'en';
+    return '<div class="vsec-h">' + svg("sparkle") + (en ? 'Integrations · MCP / API' : 'Інтеграції · MCP / API') + '</div>' +
+      '<div class="integ">' +
+        '<div class="integ__row"><div class="integ__ic">⌘</div><div style="flex:1;min-width:0">' +
+          '<div class="integ__t">' + (en ? 'Claude Code — game executor (MCP)' : 'Claude Code — виконавець гри (MCP)') + '</div>' +
+          '<div class="integ__s">' + (en
+            ? 'Claude Code connects to your game over MCP: takes the next task of the production plan with its canon and bible context, reports progress, hands in the result with acceptance criteria — you accept or return it. Keys are created per game in <b>Game Bible → Production plan → Connect Claude Code</b>.'
+            : 'Claude Code підключається до твоєї гри по MCP: бере наступне завдання продакшн-плану разом із каноном і Біблією, звітує про прогрес, здає результат за критеріями приймання — ти приймаєш або повертаєш. Ключі створюються для кожної гри в <b>Біблія гри → Продакшн-план → Підключити Claude Code</b>.') + '</div>' +
+          '<div class="integ__url"><code>' + MCP_URL + '</code><button class="pe-btn" id="integ-copy">' + (en ? 'Copy' : 'Копіювати') + '</button></div>' +
+          '<div class="integ__keys" id="integ-keys"><div class="integ__s">' + (en ? 'Loading keys…' : 'Завантажую ключі…') + '</div></div>' +
+          '<div class="integ__soon">' +
+            '<span class="integ__chip">REST API — ' + (en ? 'soon' : 'скоро') + '</span>' +
+            '<span class="integ__chip">Unity plugin — ' + (en ? 'soon' : 'скоро') + '</span>' +
+            '<span class="integ__chip">Blender — ' + (en ? 'soon' : 'скоро') + '</span>' +
+            '<span class="integ__chip">Webhooks — ' + (en ? 'soon' : 'скоро') + '</span>' +
+          '</div>' +
+        '</div></div>' +
+      '</div>';
+  }
+  function loadIntegKeys(lang) {
+    var en = lang === 'en', box = document.getElementById("integ-keys"), cp = document.getElementById("integ-copy");
+    if (cp) cp.onclick = function () { navigator.clipboard && navigator.clipboard.writeText(MCP_URL); cp.textContent = en ? 'Copied' : 'Скопійовано'; };
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
+    if (!box) return;
+    if (!user || !fb.db) { box.innerHTML = ''; return; }
+    fb.db.collection("mcpKeys").where("uid", "==", user.uid).get().then(function (snap) {
+      if (!document.body.contains(box)) return;
+      if (snap.empty) { box.innerHTML = '<div class="integ__s">' + (en ? 'No keys yet.' : 'Ключів ще немає.') + '</div>'; return; }
+      box.innerHTML = snap.docs.map(function (d) {
+        var k = d.data(), used = k.lastUsedAt && k.lastUsedAt.toDate ? k.lastUsedAt.toDate().toLocaleString() : (en ? 'never' : 'ще ні');
+        return '<div class="integ__key"><span><b>' + esc(k.label || k.gameId) + '</b> · <code>' + esc(k.prefix || '') + '…</code> · ' +
+          (en ? 'last used: ' : 'використано: ') + used + '</span><button class="pe-btn" data-integ-revoke="' + d.id + '">' + (en ? 'Revoke' : 'Відкликати') + '</button></div>';
+      }).join("");
+      [].forEach.call(box.querySelectorAll("[data-integ-revoke]"), function (b) {
+        b.onclick = function () {
+          if (!confirm(en ? 'Revoke this key? Claude Code using it will lose access.' : 'Відкликати ключ? Claude Code із ним втратить доступ.')) return;
+          fb.db.collection("mcpKeys").doc(b.dataset.integRevoke).delete().then(function () { loadIntegKeys(lang); });
+        };
+      });
+    }).catch(function () { box.innerHTML = ''; });
   }
   function planLabel(id) {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };

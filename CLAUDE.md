@@ -27,6 +27,7 @@
   - `token-service` тарифікує датований id моделі (`claude-sonnet-4-5-2025…`) за аліасом з `ai-models.js`
   - Світ MythRunner перенесено з артефакту (19 сутностей канону, гра «MythRunner», 233 картки, 102 картинки у Storage)
   - **Next**: E2E з реальним AI (імпорт нотаток MythRunner → аналіз → план); підключити каталог можливостей RPG Framework
+  - **Task Engine + MCP**: `plan` пише `games/{g}/tasks/{id}` (accept/tests/cards/prompt, статуси todo→in_progress→review→done | rework | blocked); `functions/src/mcp.js` — MCP-сервер для Claude Code (ключ `wwk_…` на гру, у Firestore лише sha256 у `mcpKeys`); автор приймає/повертає в Продакшн-плані; Акаунт → «Інтеграції · MCP / API» показує URL і всі ключі. Деталі — `ARCHITECTURE.md` §5
 
 ## Архітектура даних (важливо)
 - **`WORLD` (`wt-world.jsx`) — ЄДИНЕ джерело правди.** Усі три стовпи читають із нього.
@@ -225,6 +226,7 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 - Скриншотер (html-to-image) НЕ знімає web-компоненти й fixed-overlay — перевіряти через DOM (eval), а не скриншот. У реальному браузері все рендериться.
 - **НІКОЛИ не переписуй весь файл** — використовуй `Edit` tool для точкових змін (git diff style). Якщо Read повернув 50 lines, а ти змінюєш 2 — Write з усіма 50 lines ЗАБОРОНЕНО. Лише Edit з old_string → new_string.
 - **Завжди працюємо з `app/`, НЕ `public/`!** Перед редагуванням перевіряй, чи правильна директорія.
+- **Архітектурний файл `ARCHITECTURE.md` (корінь) оновлюється разом із кожною зміною** — великою чи малою: нові файли/модулі, Cloud Functions, колекції чи поля Firestore, правила, інтеграції (MCP/API), потоки даних, інваріанти. Оновлюй точково через `Edit` у тому ж коміті, онови `Version`/`Last updated`. Зміна без оновлення архітектури вважається незавершеною.
 
 
 ---

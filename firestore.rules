@@ -56,6 +56,16 @@ service cloud.firestore {
       }
     }
 
+    // Executor keys (Claude Code via the MCP server): the id is sha256 of the key, the key itself is never stored.
+    // The author makes one per game in the Game Bible and can revoke it; the server only reads them.
+    match /mcpKeys/{keyHash} {
+      allow read, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid &&
+                       request.resource.data.keys().hasOnly(['uid', 'worldId', 'gameId', 'label', 'prefix', 'createdAt']) &&
+                       isWorldOwner(request.resource.data.worldId) && hasGameDev();
+      allow update: if false;
+    }
+
     function hasGameDev() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
     }

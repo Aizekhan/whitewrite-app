@@ -108,6 +108,8 @@ function cleanPlan(p) {
         owner: oneOf(t.owner, ['design', 'dev', 'art', 'audio', 'qa'], 'dev'),
         prompt: str(t.prompt, 3000),
         cards: list(t.cards, 20, (c) => str(c, 200) || null),
+        accept: list(t.accept, 8, (a) => str(a, 300) || null),
+        tests: list(t.tests, 6, (a) => str(a, 300) || null),
       } : null)),
     } : null)),
     parallel: list(plan.parallel, 8, (s) => str(s, 300) || null),
@@ -135,6 +137,27 @@ function cleanScaffold(p, shelves) {
       section: target(c.section), title: str(c.title, 160), group: str(c.group, 80), need: str(c.need, 800), task: str(c.task, 16),
     } : null)),
   };
+}
+
+// Task Engine: the plan's tasks become worlds/{w}/games/{g}/tasks/{taskId} with a status the executor (Claude Code via MCP)
+// and the author's review move along: todo → in_progress → review → done (or rework / blocked).
+// A new plan replaces open tasks; tasks already taken, handed in or done are kept.
+async function writeTasks(gameRef, plan) {
+  const old = await gameRef.collection('tasks').get();
+  const kept = new Set();
+  const batch = db.batch();
+  old.docs.forEach((d) => { if (['todo', 'rework'].includes(d.data().status)) batch.delete(d.ref); else kept.add(d.id); });
+  let order = 0;
+  for (const m of plan.milestones) {
+    for (const t of m.tasks) {
+      order++;
+      const id = t.id.replace(/[\/\s]/g, '_');
+      if (!id || kept.has(id)) continue;
+      batch.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, status: 'todo', order, history: [],
+        createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+    }
+  }
+  await batch.commit();
 }
 
 function cleanImport(p, shelves, entities, world) {
@@ -212,7 +235,7 @@ function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
 
 Rules:
 - Milestones in order (typically: prototype of the core loop → vertical slice → content production → alpha → beta/polish → release; adapt to the game's scope). Each has a goal and a GATE: a concrete, checkable condition that must be true before the next milestone starts.
-- Tasks inside each milestone: id like "M1.3", title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids), size S|M|L, owner design|dev|art|audio|qa, cards — the bible cards this task builds ("c:..." / "e:..." refs, or "new:<title>" for a scaffold card below), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card. 4-8 tasks per milestone.
+- Tasks inside each milestone: id like "M1.3", title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids), size S|M|L, owner design|dev|art|audio|qa, accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task builds ("c:..." / "e:..." refs, or "new:<title>" for a scaffold card below), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card. 4-8 tasks per milestone.
 - parallel: which streams can run at the same time.
 - risks with mitigation.
 - gaps: things the engine/framework likely does not provide (need, missing, desiredApi, workaround). Empty for a generic engine unless obvious.
@@ -230,7 +253,7 @@ BIBLE:
 ${bible}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","cards":["c:..."],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"M2.1"}]}}`;
+{"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","accept":[""],"tests":[""],"cards":["c:..."],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"M2.1"}]}}`;
 }
 
 // Split notes at headings into parts of at most IMPORT_PART_CHARS
@@ -401,6 +424,7 @@ exports.gamedevPlan = onRequest({
           Object.assign(update, { plan: cleanPlan(parsed), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
         }
         await gameRef.collection('plan').doc('current').set(update, { merge: true });
+        if (op === 'plan') await writeTasks(gameRef, update.plan);
       }
 
       const { userCost } = await charge(db, uid, 'generateScene', model, usage, null, {
