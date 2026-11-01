@@ -29,6 +29,11 @@ const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 const lemonSqueezyApiKey = defineSecret('LEMON_SQUEEZY_API_KEY');
 const lemonSqueezyWebhookSecret = defineSecret('LEMON_SQUEEZY_WEBHOOK_SECRET');
+// A secret pasted on Windows can end with \r\n — that broke every webhook signature (LS 401). Trim on read.
+for (const s of [geminiApiKey, claudeApiKey, stripeSecretKey, stripeWebhookSecret, lemonSqueezyApiKey, lemonSqueezyWebhookSecret]) {
+  const read = s.value.bind(s);
+  s.value = () => (read() || '').trim();
+}
 
 // Phase 1.1 + 3.0: Token Budget System — plans live in plans.js (single source of truth)
 
