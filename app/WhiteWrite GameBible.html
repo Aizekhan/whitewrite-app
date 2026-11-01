@@ -156,6 +156,21 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .wrow{ display:flex; gap:8px; align-items:center; margin:6px 0; } .wrow input[data-fk=k]{ flex:0 0 32%; }
 .wlaws{ padding-left:22px; } .wlaws li::marker{ color:var(--gold-lit); }
 .wsave{ justify-content:flex-end; align-items:center; gap:12px; margin:10px 0 4px; }
+/* quests & dialogues (worlds/{w}/quests, /dialogues) — editor on the canvas, graph check below */
+.qbox .field{ display:grid; gap:6px; margin:8px 0; } .qbox .qh{ font-size:12px; color:var(--tx-mid); letter-spacing:.06em; text-transform:uppercase; }
+.qbox input:not([type=checkbox]),.qbox textarea,.qbox select{ width:100%; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; color:var(--tx-hi); font:inherit; }
+.qbox textarea{ resize:vertical; line-height:1.5; }
+.qgrid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:4px 12px; }
+.qstep{ border:1px solid var(--line-2); border-radius:10px; padding:8px 12px; margin:8px 0; background:var(--bg-1); }
+.qstep-h{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; } .qstep-h b{ color:var(--gold-lit); font-weight:600; }
+.qstep-h select{ width:auto; flex:0 1 220px; } .qstep-h .btn{ margin-left:auto; }
+.qchk{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--tx); cursor:pointer; }
+.qbranch select{ flex:0 1 240px; } .qbranch input{ flex:1; }
+.qiss{ margin:4px 0 0; padding-left:2px; list-style:none; } .qiss li{ margin:3px 0; }
+.qd-error{ color:var(--s-redo); } .qd-warn{ color:var(--s-work); } .qd-ok{ color:var(--s-game); margin:4px 0 0; }
+.qd-lock{ color:var(--tx-mid); font-style:italic; margin:10px 0; }
+.ap-draft{ color:var(--s-idea); } .ap-review{ color:var(--s-work); } .ap-approved{ color:var(--s-game); } .ap-archived{ color:var(--tx-mid); }
+.qed > header .btn{ margin-bottom:6px; }
 /* world map — locations by drag (entity.mapPos) */
 .wmap{ margin-top:6px; border:1px solid var(--line-2); border-radius:14px; background:radial-gradient(circle at 50% 40%,rgba(240,169,59,.07),transparent 70%),var(--bg-1); overflow:hidden; }
 .wmap svg{ display:block; width:100%; height:auto; touch-action:none; user-select:none; }
@@ -555,6 +570,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 <script src="firebase/firebase-init.js"></script>
 <script src="firebase/paid-features.js"></script>
+<script src="firebase/narrative-validate.js"></script>
 <script src="firebase/token-budget.js"></script>
 <script src="gamebible.js"></script>
 </body>

@@ -8,6 +8,7 @@
 const crypto = require('crypto');
 const { onRequest, admin, db, getPlanBudget } = require('./common');
 const { telemetrySchema, intentText } = require('./experience')._experience;
+const NV = require('../narrative-validate.js');
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const OPEN = ['todo', 'rework'];
@@ -58,6 +59,11 @@ const TOOLS = [
     inputSchema: { type: 'object', required: ['issue_id', 'summary', 'outcome'], properties: {
       issue_id: { type: 'string' }, task_id: { type: 'string' }, summary: { type: 'string' }, build: { type: 'string' },
       outcome: { type: 'string', enum: ['improved', 'no_change', 'worse', 'inconclusive'] }, evidence: { type: 'string' } } } },
+  // Quests & dialogues of the world (World Bible «Квести» / «Діалоги»): only the ones the author approved
+  { name: 'get_quest_context', description: 'A quest of the world, approved by the author: type, giver, characters / locations / factions / artifacts (canon refs with descriptions), objectives, stages with branches and conditions (the first stage is the start; end / fail stages finish it), rewards, prerequisites, repetition, its dialogues and the graph check. Without an id — the list of approved quests.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Quest id or title' } } } },
+  { name: 'get_dialogue_context', description: 'A dialogue of the world, approved by the author: type, participants, location, quest + stage, trigger, lines (speaker, text, localisation key, condition, effects, next) and player choices (text, target line, condition); the first line is the start. Without an id — the list of approved dialogues.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Dialogue id or title' } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -179,6 +185,55 @@ const sky = (world) => { const s = world.cosmos; if (!s || !s.planet) return nul
 const issueView = (x) => ({ id: x.id, title: x.title, category: x.category, priority: x.priority, status: x.status, scope: x.scope, evidence: x.evidence, sample: x.sample,
   hypothesis: x.hypothesis, alternatives: x.alternatives, confidence: x.confidence, confidence_basis: x.confidenceWhy, player_impact: x.impact, suggested_actions: x.actions,
   validation_plan: x.validation, baseline: x.baseline, validations: (x.validations || []).slice(-5), related: x.related, task: x.taskId || '' });
+
+// ---------- quests & dialogues (worlds/{w}/quests, /dialogues; checks: functions/narrative-validate.js) ----------
+async function narrative(ctx) {
+  if (!ctx.narr) {
+    const [q, d] = await Promise.all([ctx.wref.collection('quests').get(), ctx.wref.collection('dialogues').get()]);
+    const rows = (s) => s.docs.map((x) => ({ id: x.id, ...x.data() }));
+    ctx.narr = { quests: rows(q), dialogues: rows(d) };
+  }
+  return ctx.narr;
+}
+const entRef = (ctx, id) => {
+  const e = ctx.entities.find((x) => x.id === id);
+  return e ? { ref: 'e:' + e.id, kind: e.kind, name: e.name || e.title || '', description: str(e.desc || e.description, 600) } : { ref: 'e:' + id, missing: true };
+};
+const refs = (ctx, ids) => list(ids, 50, (id) => entRef(ctx, id));
+function findApproved(items, id, what) {
+  const n = str(id, 160).toLowerCase();
+  const x = items.find((y) => y.id.toLowerCase() === n) || items.find((y) => str(y.title, 160).toLowerCase() === n);
+  if (!x) throw rpcError(-32602, `${what} not found: ${id}. Call without an id for the approved list.`);
+  if (x.approval !== 'approved') throw rpcError(-32602, `${what} «${x.title || x.id}» is not approved yet (${x.approval || 'draft'}). Ask the author to approve it in the World Bible.`);
+  return x;
+}
+function questView(ctx, n, q) {
+  const checkCtx = { entities: ctx.entities, quests: n.quests };
+  return { id: q.id, title: q.title || '', type: q.type || '', status: q.status || 'idea', summary: q.summary || '',
+    giver: q.giver ? entRef(ctx, q.giver) : null, characters: refs(ctx, q.characters), locations: refs(ctx, q.locations),
+    factions: refs(ctx, q.factions), artifacts: refs(ctx, q.artifacts),
+    objectives: String(q.objectives || '').split('\n').map((x) => x.trim()).filter(Boolean),
+    start: ((q.stages || [])[0] || {}).id || '',
+    stages: (q.stages || []).map((s) => ({ id: s.id, title: s.title || '', objective: s.objective || '', end: !!s.end, fail: !!s.fail,
+      next: (s.next || []).filter((b) => b && b.to).map((b) => ({ to: b.to, condition: b.cond || '' })) })),
+    rewards: q.rewards || '', repeat: q.repeat || { mode: 'once' },
+    prerequisites: (q.prereqs || []).map((id) => { const p = n.quests.find((x) => x.id === id); return { id, title: p ? p.title || '' : '', approval: p ? p.approval || 'draft' : 'missing' }; }),
+    dialogues: n.dialogues.filter((d) => d.questId === q.id).map((d) => ({ id: d.id, title: d.title || '', stage: d.stageId || '', approval: d.approval || 'draft' })),
+    hooks: q.hooks || '', notes: q.notes || '', checks: NV.validateQuest(q, checkCtx),
+    rules: 'Implement the quest as approved: stage ids and branch conditions are the contract. A change to the design goes through submit_change_request.' };
+}
+function dialogueView(ctx, n, d) {
+  const q = n.quests.find((x) => x.id === d.questId);
+  const who = (id) => (id === 'player' || id === 'narrator' || !id ? id || '' : (entRef(ctx, id).name || id));
+  return { id: d.id, title: d.title || '', type: d.type || '', status: d.status || 'idea', participants: refs(ctx, d.participants),
+    location: d.location ? entRef(ctx, d.location) : null, quest: q ? { id: q.id, title: q.title || '', stage: d.stageId || '' } : null, trigger: d.trigger || '',
+    start: ((d.nodes || [])[0] || {}).id || '',
+    nodes: (d.nodes || []).map((x) => ({ id: x.id, speaker: x.speaker || '', speaker_name: who(x.speaker), text: x.text || '', loc_key: x.locKey || '',
+      condition: x.cond || '', effects: x.effects || '', next: x.next || '', end: !!x.end,
+      choices: (x.choices || []).map((c) => ({ text: c.text || '', to: c.to || '', condition: c.cond || '' })) })),
+    notes: d.notes || '', checks: NV.validateDialogue(d, { entities: ctx.entities, quests: n.quests }),
+    rules: 'Node ids and localisation keys are the contract between the dialogue data and the game. A change to the lines goes through submit_change_request.' };
+}
 
 // ---------- writes ----------
 async function logExecution(ctx, key, type, taskId, data) {
@@ -310,6 +365,18 @@ async function callTool(name, args, key) {
       await ref.set({ validations: admin.firestore.FieldValue.arrayUnion(v), status: d.data().status === 'resolved' ? 'resolved' : 'validating', updatedAt: ts() }, { merge: true });
       await logExecution(ctx, key, 'validation', v.taskId, { issue: d.id, verdict: v.verdict });
       return { ok: true, status: 'validating', message: 'Recorded. The author confirms it against the metrics of a new playtest (baseline vs after) in «Досвід гравців».' };
+    }
+    case 'get_quest_context': {
+      const n = await narrative(ctx);
+      if (!args.id) return { quests: n.quests.filter((q) => q.approval === 'approved').map((q) => ({ id: q.id, title: q.title || '', type: q.type || '', status: q.status || 'idea' })),
+        drafts: n.quests.filter((q) => q.approval !== 'approved').length };
+      return questView(ctx, n, findApproved(n.quests, args.id, 'Quest'));
+    }
+    case 'get_dialogue_context': {
+      const n = await narrative(ctx);
+      if (!args.id) return { dialogues: n.dialogues.filter((d) => d.approval === 'approved').map((d) => ({ id: d.id, title: d.title || '', type: d.type || '', quest: d.questId || '' })),
+        drafts: n.dialogues.filter((d) => d.approval !== 'approved').length };
+      return dialogueView(ctx, n, findApproved(n.dialogues, args.id, 'Dialogue'));
     }
     case 'submit_change_request': {
       const cr = { taskId: str(args.task_id, 32), what: str(args.what, 2000), why: str(args.why, 2000), proposal: str(args.proposal, 4000),

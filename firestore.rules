@@ -56,6 +56,17 @@ service cloud.firestore {
         allow read, write: if isAuthenticated() && isWorldOwner(worldId);
       }
 
+      // Quests and dialogues of the world (World Bible «Квести» / «Діалоги», functions/narrative-validate.js checks them).
+      // World level, so Novelist (no game dev) can write them; games and Claude Code read the approved ones via MCP.
+      match /quests/{questId} {
+        allow read, delete: if isAuthenticated() && isWorldOwner(worldId); // delete: the author removing the world on any plan
+        allow create, update: if isAuthenticated() && isWorldOwner(worldId) && hasQuests();
+      }
+      match /dialogues/{dialogueId} {
+        allow read, delete: if isAuthenticated() && isWorldOwner(worldId); // delete: the author removing the world on any plan
+        allow create, update: if isAuthenticated() && isWorldOwner(worldId) && hasQuests();
+      }
+
       // Games built on this canon (one canon → many games): game doc + cards + production plan.
       // Writing needs a plan with allowGameDev (functions/plans.js); reading stays with the owner whatever the plan.
       // Only the subcollections the Game Bible page itself edits are client-writable; everything else under a game
@@ -98,6 +109,11 @@ service cloud.firestore {
 
     function hasGameDev() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
+    }
+
+    // allowQuests in functions/paid-features.js (from Novelist)
+    function hasQuests() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['novelist', 'worldbuilder', 'worldforge'];
     }
 
     // Projects collection

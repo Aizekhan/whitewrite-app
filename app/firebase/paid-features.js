@@ -80,6 +80,10 @@ const FEATURES = [
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },
     en: { name: 'World Bible: canon editing', desc: 'Overview, laws, dossiers, culture, chronicle, location map.' },
     where: 'Біблія світу', server: 'firestore.rules (власник світу)' },
+  { id: 'quests', kind: 'gate', flag: 'allowQuests', minPlan: 'novelist',
+    uk: { name: 'Квести й діалоги', desc: 'Квести з етапами й розгалуженнями, діалоги з вузлами й виборами, звʼязки з каноном і перевірка графа.' },
+    en: { name: 'Quests & dialogues', desc: 'Quests with stages and branches, dialogues with nodes and choices, canon links and a graph check.' },
+    where: 'Біблія світу → Квести · Діалоги', server: 'firestore.rules (worlds/{w}/quests, dialogues) · mcp' },
   // ── Claude models (MODEL_TIERS) ──
   { id: 'modelSonnet', kind: 'gate', flag: 'allowSonnet', minPlan: 'storyteller',
     uk: { name: 'Модель Claude Sonnet', desc: 'Вибір моделі в Акаунті: Haiku або Sonnet.' },
