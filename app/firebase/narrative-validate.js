@@ -114,7 +114,7 @@ function validateDialogue(d, ctx) {
 
 const worst = (issues) => (issues.some((x) => x.level === 'error') ? 'error' : issues.length ? 'warn' : '');
 
-// ---------- export to RPG Framework (≥ 0.32.0) content import: format "rpgframework.content/1" ----------
+// ---------- export to RPG Framework (≥ 0.32.1 — a line with no next ends the talk only from 0.32.1) content import: format "rpgframework.content/1" ----------
 // Unity: -executeMethod RPGFramework.ContentImport.Editor.ContentAssetImport.ImportFromCommandLine -contentFile <file>
 // (exit 0 imported · 1 errors, nothing written · 2 failed). Refs (c:<card> / canon ids) travel as opaque strings.
 const CONTENT_FORMAT = 'rpgframework.content/1';
