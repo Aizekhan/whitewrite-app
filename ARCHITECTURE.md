@@ -495,6 +495,7 @@ firebase deploy                   # Deploy everything
 - **DEPRECATED:** `public/` folder (old files, ignore)
 - **Active development:** `app/` folder
 - **Documentation:** `handoff/` folder
+- **Game dev platform concept v3:** `docs/AI_GAME_DEV_PLATFORM_v3.md` (concept v2 mapped onto this architecture; MCP spec, Task Engine, next phases)
 - **Session logs:** Track major changes (e.g., `PAGINATION_SESSION_2026-06-21.md`)
 
 ---
