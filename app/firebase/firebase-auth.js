@@ -51,6 +51,8 @@ window.__firebaseAuth = {
 
             // Subscription status (for UI display)
             window.__wwUser.subscriptionStatus = userData.subscriptionStatus || null;
+            window.__wwUser.pendingPlan = userData.pendingPlan || null; // a downgrade scheduled for the next billing month
+            window.__wwUser.pendingFrom = userData.pendingFrom && userData.pendingFrom.toDate ? userData.pendingFrom.toDate() : null;
 
             // Usage breakdown (for analytics)
             window.__wwUser.usage = userData.usage || {};

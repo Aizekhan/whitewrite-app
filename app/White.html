@@ -1632,12 +1632,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   function planCard(id, name, price, feats, cur, popular) {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
-    var active = id === cur;
+    var active = id === cur, u = window.__wwUser || {}, pending = u.pendingPlan === id && u.pendingFrom;
+    var en = window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === 'en';
+    var btn = active ? '<div class="plan__badge">' + t('plan.current') + '</div>'
+      : pending ? '<div class="plan__badge">' + t('plan.pendingFrom').replace('{d}', u.pendingFrom.toLocaleDateString(en ? 'en-GB' : 'uk-UA')) + '</div><button class="plan__btn plan__btn--undo" data-undo="1">' + t('plan.undoPending') + '</button>'
+      : '<button class="plan__btn" data-plan="' + id + '">' + t('plan.choose') + '</button>';
     return '<div class="plan ' + (active ? "is-cur" : "") + (popular ? " is-popular" : "") + '">' +
       (popular ? '<div class="plan__pop-badge">' + t('plan.popular') + '</div>' : '') +
       '<div class="plan__name">' + name + '</div><div class="plan__price">' + price + '</div>' +
       '<ul class="plan__feats">' + feats.map(function (f) { return '<li>' + f + '</li>'; }).join("") + '</ul>' +
-      (active ? '<div class="plan__badge">' + t('plan.current') + '</div>' : '<button class="plan__btn" data-plan="' + id + '">' + t('plan.choose') + '</button>') +
+      btn +
       '</div>';
   }
   function bindAccount() {
@@ -1671,8 +1675,42 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     [].forEach.call(document.querySelectorAll(".plan__btn"), function (b) {
       b.onclick = async function () {
         var targetPlan = b.dataset.plan;
+        var LS = window.__lemonSqueezy;
+        var fill = function (k, o) { return Object.keys(o).reduce(function (m, x) { return m.split('{' + x + '}').join(o[x]); }, t(k)); };
+        var en = window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === 'en';
+        var day = function (iso) { return new Date(iso).toLocaleDateString(en ? 'en-GB' : 'uk-UA'); };
+        var reload = function () { setTimeout(function () { location.reload(); }, 400); };
 
-        // Free plan - downgrade
+        // a scheduled downgrade can be undone
+        if (b.dataset.undo) {
+          try { b.disabled = true; await LS.changePlan('cancelPending'); reload(); } catch (e) { alert(t('alert.checkoutError') + ' ' + e.message); b.disabled = false; }
+          return;
+        }
+        // an active subscription changes in place: up now (difference + a small fee), down from the next month
+        if (u.plan !== 'free' && u.subscriptionStatus === 'active' && LS && LS.changePlan) {
+          try {
+            b.disabled = true; b.textContent = t('btn.loading');
+            var q = await LS.changePlan('quote', targetPlan);
+            if (q.portal) { window.open(q.portal, '_blank'); return; }
+            if (!q.noSubscription) {
+              var names = function (p) { return (window.__PAID_FEATURES && window.__PAID_FEATURES.PLANS[p] || {}).name || p; };
+              var msg = q.kind === 'up'
+                ? fill('plan.upAsk', { from: names(q.from), to: names(q.to), usd: q.quote.usd.toFixed(2), tokens: q.quote.tokens.toLocaleString(), fee: q.quote.fee.toLocaleString(), date: day(q.renewsAt) })
+                : fill(targetPlan === 'free' ? 'plan.freeAsk' : 'plan.downAsk', { from: names(q.from), to: names(q.to), date: day(q.renewsAt) });
+              if (!confirm(msg)) return;
+              await LS.changePlan('change', targetPlan);
+              alert(q.kind === 'up' ? fill('plan.upDone', { to: names(q.to) }) : fill('plan.downDone', { to: names(q.to), date: day(q.renewsAt) }));
+              reload();
+              return;
+            }
+          } catch (error) {
+            console.error('Plan change error:', error);
+            alert(t('alert.checkoutError') + ' ' + error.message);
+            return;
+          } finally { b.disabled = false; b.textContent = t('plan.choose'); }
+        }
+
+        // Free plan without a paid subscription — nothing to buy
         if (targetPlan === 'free') {
           alert(t('alert.downgradeUnavailable'));
           return;

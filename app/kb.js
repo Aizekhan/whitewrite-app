@@ -575,6 +575,12 @@
         body: [
           ["plans"],
           ["p", "Тариф змінюється в Акаунті; поточний підсвічено."],
+          ["h", "Зміна тарифу"],
+          ["ul", [
+            "<b>Вищий тариф — одразу.</b> Списується різниця в ціні до кінця оплаченого місяця; токени нового тарифу додаються пропорційно до днів, що лишились, мінус невелика комісія за перехід (3% місячного бюджету нового тарифу). Перед переходом сервіс показує суми.",
+            "<b>Нижчий тариф — з наступного місяця підписки.</b> До кінця оплаченого місяця лишається поточний тариф, повернення за нього немає. На картці нижчого тарифу зʼявляється «З дати» і кнопка «Скасувати перехід».",
+            "<b>Free</b> — скасування підписки з кінця оплаченого періоду; до того все працює.",
+          ]],
           ["h", "Ліміт проєктів"],
           ["p", "Кожен тариф має ліміт проєктів (історій): Free — 1, Storyteller — 5, Novelist і Worldbuilder — без обмежень. Сервер перевіряє його під час створення історії."],
           ["p", "Коли ліміт зайнято, сервіс запропонує <b>додатковий проєкт за 500 токенів</b>: слот лишається назавжди, навіть після зміни тарифу. «Скасувати» відкриває тарифи. Якщо токенів не вистачає — поповни баланс або обери вищий тариф."],
@@ -1136,6 +1142,12 @@
         body: [
           ["plans"],
           ["p", "Change the plan in the Account; the current one is highlighted."],
+          ["h", "Changing the plan"],
+          ["ul", [
+            "<b>A higher plan — at once.</b> The price difference until the end of the paid month is charged; the new plan's tokens are added in proportion to the days left, minus a small switch fee (3% of the new plan's monthly budget). The service shows the amounts before the switch.",
+            "<b>A lower plan — from the next subscription month.</b> You keep the current plan until the paid month ends; it is not refunded. The lower plan's card shows “From date” and “Undo the change”.",
+            "<b>Free</b> — the subscription is cancelled at the end of the paid period; everything works until then.",
+          ]],
           ["h", "Project limit"],
           ["p", "Every plan has a project (story) limit: Free — 1, Storyteller — 5, Novelist and Worldbuilder — unlimited. The server checks it when a story is created."],
           ["p", "When the limit is full, the service offers <b>an extra project for 500 tokens</b>: the slot stays forever, even after a plan change. “Cancel” opens the plans. Not enough tokens — top up or choose a higher plan."],

@@ -7,7 +7,90 @@ const {
   lemonSqueezyApiKey,
   lemonSqueezyWebhookSecret,
   requireAdmin,
+  getPlanBudget,
+  getBalance,
+  verifyAuth,
 } = require('./common');
+const { PLAN_ORDER, planRank, upgradeQuote } = require('../paid-features.js');
+
+const LS_API = 'https://api.lemonsqueezy.com/v1/subscriptions/';
+const lsHeaders = () => ({ 'Accept': 'application/vnd.api+json', 'Content-Type': 'application/vnd.api+json', 'Authorization': `Bearer ${lemonSqueezyApiKey.value()}` });
+const MONTH_MS = 30 * 24 * 3600 * 1000;
+
+/**
+ * Change an ACTIVE subscription's plan (owner decision 2026-11-02):
+ *  - up:   now — LS PATCH variant + invoice_immediately (prorated difference charged at once);
+ *          tokens: the budget difference opens prorated to the days left, minus the switch fee (paid-features upgradeQuote)
+ *  - down: from the next billing month — LS PATCH variant + disable_prorations (new price at renewal, no credit);
+ *          the plan stays until renews_at (users.pendingPlan / pendingFrom; the webhook applies it after that date)
+ *  - free: cancel at the period end (LS cancelled: true; the webhook keeps the plan until ends_at)
+ * Body: { op: 'quote'|'change'|'cancelPending', plan }
+ */
+exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: true, timeoutSeconds: 60 }, async (req, res) => {
+  return cors(req, res, async () => {
+    let uid = null;
+    try { uid = await verifyAuth(req.headers.authorization); } catch (e) { uid = null; }
+    if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+    try {
+      const { op = 'quote', plan: target } = req.body || {};
+      const userRef = db.collection('users').doc(uid);
+      const user = (await userRef.get()).data() || {};
+      const subId = user.lemonSqueezySubscriptionId;
+      if (!subId || user.subscriptionStatus !== 'active') return res.status(409).json({ code: 'NO_SUBSCRIPTION', error: 'No active subscription — use checkout' });
+      const lsConfig = (await db.collection('config').doc('lemon_squeezy').get()).data() || {};
+      const variants = lsConfig.variants || {};
+      const cur = user.plan || 'free';
+
+      const sr = await fetch(LS_API + subId, { headers: lsHeaders() });
+      const sub = (await sr.json()).data;
+      if (!sr.ok || !sub) return res.status(502).json({ error: 'Lemon Squeezy: subscription not found' });
+      const A = sub.attributes;
+      if (A.payment_processor === 'paypal') return res.json({ portal: A.urls && A.urls.customer_portal_update_subscription }); // LS can't PATCH PayPal
+      const renewsAt = Date.parse(A.renews_at || '') || (Date.now() + MONTH_MS);
+      const left = Math.min(1, Math.max(0, (renewsAt - Date.now()) / MONTH_MS));
+      const patch = (attributes) => fetch(LS_API + subId, { method: 'PATCH', headers: lsHeaders(),
+        body: JSON.stringify({ data: { type: 'subscriptions', id: String(subId), attributes } }) })
+        .then(async (r) => { if (!r.ok) throw new Error('Lemon Squeezy: ' + JSON.stringify((await r.json().catch(() => ({}))).errors || r.status)); });
+
+      if (op === 'cancelPending') {
+        if (!user.pendingPlan) return res.json({ ok: true });
+        if (user.pendingPlan === 'free') await patch({ cancelled: false });
+        else await patch({ variant_id: Number(variants[cur]), disable_prorations: true });
+        await userRef.update({ pendingPlan: null, pendingFrom: null, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+        return res.json({ ok: true });
+      }
+
+      if (!PLAN_ORDER.includes(target) || target === cur) return res.status(400).json({ error: 'Unknown or current plan' });
+      if (target !== 'free' && !variants[target]) return res.status(400).json({ error: 'No variant for plan' });
+      const kind = planRank(target) > planRank(cur) ? 'up' : 'down';
+      const quote = kind === 'up' ? upgradeQuote(cur, target, left) : null;
+      if (op === 'quote') return res.json({ kind, from: cur, to: target, renewsAt: new Date(renewsAt).toISOString(), left, quote });
+      if (op !== 'change') return res.status(400).json({ error: 'Unknown op' });
+
+      if (kind === 'up') {
+        await patch({ variant_id: Number(variants[target]), invoice_immediately: true });
+        // tokens for the rest of the period: the old plan's unused part stays, the new plan adds its difference × left; the fee is taken
+        const b = getBalance(user);
+        const newMonthly = getPlanBudget(target).monthly;
+        const used = Math.max(0, newMonthly - (b.monthlyLeft + quote.tokens - quote.fee));
+        const upd = { plan: target, tokensUsed: used, pendingPlan: null, pendingFrom: null, lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now() },
+          updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+        if (b.expired) upd.periodStart = admin.firestore.Timestamp.now();
+        await userRef.update(upd);
+        await db.collection('usage_logs').add({ uid, operation: 'plan_upgrade_fee', userTokensCharged: quote.fee, realApiCostUSD: 0, billing: 'fixed',
+          from: cur, to: target, timestamp: admin.firestore.FieldValue.serverTimestamp() });
+        return res.json({ ok: true, kind, plan: target, quote });
+      }
+      if (target === 'free') await patch({ cancelled: true });
+      else await patch({ variant_id: Number(variants[target]), disable_prorations: true });
+      await userRef.update({ pendingPlan: target, pendingFrom: admin.firestore.Timestamp.fromMillis(renewsAt), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      return res.json({ ok: true, kind, plan: cur, pendingPlan: target, pendingFrom: new Date(renewsAt).toISOString() });
+    } catch (error) {
+      console.error('[changeSubscription]', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
 
 
 /**
@@ -165,6 +248,8 @@ exports.initLemonSqueezyConfig = onRequest({}, async (req, res) => {
 async function downgradeToFree(uid) {
   await db.collection('users').doc(uid).update({
     plan: 'free',
+    pendingPlan: null,
+    pendingFrom: null,
     lemonSqueezySubscriptionId: null,
     subscriptionStatus: 'canceled',
     cancelAtPeriodEnd: false,
@@ -273,7 +358,12 @@ exports.lemonSqueezyWebhook = onRequest({
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
         const variantPlan = planByVariant[String(subscription.attributes.variant_id)];
-        if (status === 'active' && variantPlan) updates.plan = variantPlan;
+        const u = userDoc.data(), pendingFrom = u.pendingFrom && u.pendingFrom.toMillis ? u.pendingFrom.toMillis() : 0;
+        if (status === 'active' && variantPlan) {
+          // a scheduled downgrade (changeSubscription) only takes effect from the next billing month
+          const waiting = u.pendingPlan === variantPlan && pendingFrom > Date.now(); // keep the paid plan until pendingFrom
+          if (!waiting) { updates.plan = variantPlan; if (u.pendingPlan === variantPlan) { updates.pendingPlan = null; updates.pendingFrom = null; } }
+        }
         await db.collection('users').doc(uid).update(updates);
 
         console.log(`[LemonSqueezy] Subscription ${status} for ${uid}`);
@@ -312,6 +402,18 @@ exports.lemonSqueezyWebhook = onRequest({
         }
         console.log(`[LemonSqueezy] Subscription over for ${uid}, downgrading to free`);
         await downgradeToFree(uid);
+        break;
+      }
+
+      case 'subscription_payment_success': { // renewal paid: a scheduled downgrade becomes the plan
+        const subscriptionId = String(event.data.attributes.subscription_id || '');
+        const snap = await db.collection('users').where('lemonSqueezySubscriptionId', '==', subscriptionId).limit(1).get();
+        if (snap.empty) break;
+        const u = snap.docs[0].data(), from = u.pendingFrom && u.pendingFrom.toMillis ? u.pendingFrom.toMillis() : 0;
+        if (u.pendingPlan && u.pendingPlan !== 'free' && from <= Date.now() + 3600 * 1000) {
+          await snap.docs[0].ref.update({ plan: u.pendingPlan, pendingPlan: null, pendingFrom: null, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+          console.log(`[LemonSqueezy] Scheduled downgrade applied for ${snap.docs[0].id} → ${u.pendingPlan}`);
+        }
         break;
       }
 

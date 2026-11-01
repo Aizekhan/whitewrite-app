@@ -83,11 +83,26 @@ async function createTokenTopUpCheckout(userEmail) {
   return data.url;
 }
 
+// Change an active subscription (changeSubscription): op 'quote' | 'change' | 'cancelPending'
+async function changePlan(op, plan) {
+  const idToken = await window.__firebase.auth.currentUser.getIdToken();
+  const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/changeSubscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+    body: JSON.stringify({ op, plan })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (response.status === 409) return { noSubscription: true };
+  if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+  return data;
+}
+
 // Export to window
 window.__lemonSqueezy = {
   loadConfig: loadLemonSqueezyConfig,
   createSubscriptionCheckout,
-  createTokenTopUpCheckout
+  createTokenTopUpCheckout,
+  changePlan
 };
 
 // Load config on init

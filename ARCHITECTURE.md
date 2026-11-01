@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.17.0 (2026-11-02)
+**Version:** 2.18.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -265,11 +265,13 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 
 **Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
 
+**Plan change (v2.18, `changeSubscription` in `functions/src/lemon.js`):** body `{op:'quote'|'change'|'cancelPending', plan}`, needs an active LS subscription (else 409 → the client falls back to checkout; PayPal → `{portal}` = LS `customer_portal_update_subscription`). It reads the LS subscription (`renews_at`); `left` = days to renewal / 30. **Up** → LS `PATCH /v1/subscriptions/{id} {variant_id, invoice_immediately:true}` (LS charges the prorated difference now), then `users.plan = target` and `tokensUsed` set so that available = old monthly left + `upgradeQuote().tokens` (budget difference × left) − `fee` (`UPGRADE_FEE` 3% of the new monthly), logged `usage_logs {operation:'plan_upgrade_fee'}`, `lastUpgrade`. **Down** → `PATCH {variant_id, disable_prorations:true}` (the new price at renewal, no credit) + `users.pendingPlan / pendingFrom = renews_at`; **free** → `PATCH {cancelled:true}` + pending. `cancelPending` reverts (variant back / `cancelled:false`). Webhook: `subscription_updated` keeps the plan while `pendingPlan === variant plan && pendingFrom > now`, applies it after; `subscription_payment_success` (renewal) applies a due pending plan. UI: plan cards (`planCard` in White.html) show «З дати» + «Скасувати перехід» on the pending plan; `.plan__btn` quotes then confirms (`plan.upAsk/downAsk/freeAsk`). `__wwUser.pendingPlan/pendingFrom` from `firebase-auth.js`.
+
 **Story creation (v2.17):** Bible dossier «＋ Історія» asks *how*: `mode:'ai'` → the shell opens `WhiteWrite.html?new=1&worldId&title&about&reveal&revealNote` → `StoryForm` prefilled (`initial`, keeps `subjects/reveal/revealNote`); `mode:'self'` adds `free=1` → the sheet. `enterBook` waits up to 10 s for `__wwUser`/`__firebaseProjects` before creating (the race used to skip creation and open the demo «Попіл Орелії»); a failure never falls into the demo. The last «Що далі?» spread (`SceneIntentRight actions`) also offers write on / edit the last scene / save the story (`updateProject` stamp + postMessage `ww-story-saved` → the shell reopens the world's stories). `token-budget.js` takes `__TOKEN_COSTS.sceneGemini/sceneClaude/analyzeScene` from the registry.
 
 **Project limit (v2.16):** stories are created ONLY by the `createProject` Cloud Function (`functions/src/projects.js`; `firestore.rules` → `projects` `allow create: if false`). It counts `projects where owner == uid` against `planBudget(plan).maxProjects + users/{uid}.extraProjects`; over the limit it answers 403 `{code:'PROJECT_LIMIT', limit, count, plan, slotCost, tokensRemaining}`, and with `buySlot: true` reserves the registry price of `projectSlot` (500 tokens, fixed), increments `extraProjects` (a permanent slot, survives plan changes) and logs `usage_logs {operation:'project_slot'}`. The server whitelists and caps the story fields; `worldId` must be the caller's world. Client: `__firebaseProjects.createProject(data, buySlot?)` — confirm «купити слот» (i18n `project.limitAsk`) or open the plans; `OUT_OF_TOKENS` → alert `project.slotNoTokens`; both throw `err.silent` so `app.jsx` shows no second alert.
 
-**Known gaps (audit 2026-11-02):** the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); plan upgrades open a new LS subscription without cancelling the old one. (Margin fixed in v2.15.)
+**Known gaps (audit 2026-11-02):** the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); (Margin fixed in v2.15; plan changes in place since v2.18.)
 
 ---
 

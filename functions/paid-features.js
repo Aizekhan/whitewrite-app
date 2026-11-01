@@ -28,6 +28,12 @@ const PLANS = {
 
 const USD_PER_TOKEN = 0.00015; // API dollars one token pays for (see MARGIN above)
 
+// Plan change (Lemon Squeezy, functions/src/lemon.js changeSubscription):
+//  up   — now: LS charges the prorated price difference at once; the new budget opens prorated to the days left,
+//         minus a small switch fee of UPGRADE_FEE × the new plan's monthly tokens;
+//  down — from the next billing month (LS bills the new price at renewal, no credit); free = cancel at period end.
+const UPGRADE_FEE = 0.03;
+
 const SCENE_COST = { gemini: 40, claude: 300 }; // reserves — defaults of economy_operations/generateScene
 const SCENE_TYPICAL = { gemini: 30, claude: 150 }; // what a 700-word scene usually costs (shown on plan cards and in the KB)
 
@@ -157,7 +163,14 @@ function byOp(op) { return FEATURES.find((f) => f.op === op || f.id === op) || n
 // Tokens for a call that cost `usd` in API (the charge; never 0 for a paid call)
 function tokensForUsd(usd) { return usd > 0 ? Math.max(1, Math.ceil(usd / USD_PER_TOKEN - 1e-9)) : 0; }
 
-const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, SCENE_COST, SCENE_TYPICAL, USD_PER_TOKEN, planRank, unlocked, planBudget, featureCost, byOp, tokensForUsd };
+// Upgrade terms for the days left: money ≈ the price difference × left, tokens = budget difference × left − fee
+function upgradeQuote(from, to, left) {
+  const a = PLANS[from] || PLANS.free, b = PLANS[to] || PLANS.free, f = Math.min(1, Math.max(0, left));
+  return { usd: Math.max(0, Math.round((b.price - a.price) * f * 100) / 100),
+    tokens: Math.max(0, Math.round((b.monthly - a.monthly) * f)), fee: Math.round(b.monthly * UPGRADE_FEE) };
+}
+
+const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, SCENE_COST, SCENE_TYPICAL, USD_PER_TOKEN, UPGRADE_FEE, upgradeQuote, planRank, unlocked, planBudget, featureCost, byOp, tokensForUsd };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
 if (typeof window !== 'undefined') window.__PAID_FEATURES = PAID_FEATURES;
