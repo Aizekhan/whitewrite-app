@@ -27,11 +27,19 @@ button,input,select,textarea{ font:inherit; color:inherit; }
 h1,h2,h3{ font-family:"Cinzel",serif; font-weight:600; color:var(--tx-hi); margin:0; letter-spacing:.02em; }
 :focus-visible{ outline:2px solid var(--gold-lit); outline-offset:2px; border-radius:5px; }
 .ww-embed body{ padding-top:0; }
+/* scrollbars in the house style: thin, dark, gold on hover */
+*{ scrollbar-width:thin; scrollbar-color:#2c2a30 transparent; }
+*::-webkit-scrollbar{ width:9px; height:9px; }
+*::-webkit-scrollbar-track{ background:transparent; }
+*::-webkit-scrollbar-thumb{ background:#2c2a30; border:2px solid transparent; background-clip:padding-box; border-radius:9px; }
+*::-webkit-scrollbar-thumb:hover{ background:rgba(217,160,70,0.55); background-clip:padding-box; }
+*::-webkit-scrollbar-corner{ background:transparent; }
 
 /* spine */
 nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid var(--line); padding:22px 14px;
   overflow-y:auto; height:100vh; position:sticky; top:0; display:flex; flex-direction:column; gap:3px; }
-.ww-embed nav{ padding-top:128px; padding-bottom:84px; } /* clear the shell's user dock */
+.ww-embed nav{ margin-top:118px; height:calc(100vh - 118px); padding-top:14px; padding-bottom:84px;
+  -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 18px); mask-image:linear-gradient(to bottom, transparent 0, #000 18px); } /* scrolls below the shell's logo, clears its user dock */
 .brand{ font:700 1.35rem/1.15 "Cinzel",serif; color:var(--tx-hi); margin:0 6px; }
 .brand small{ display:block; font:500 11px "Inter"; color:var(--gold-lit); letter-spacing:.24em; text-transform:uppercase; margin-top:7px; }
 .rule{ height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:.45; margin:14px 0 10px; }
@@ -54,7 +62,7 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 
 /* main */
 main{ min-width:0; padding:0 30px 60px; height:100vh; overflow-y:auto; }
-.ww-embed main{ padding-top:110px; }
+.ww-embed main{ margin-top:118px; height:calc(100vh - 118px); } /* scrolls below the shell's logo, never under it */
 .bar{ position:sticky; top:0; z-index:3; background:var(--bg-0); padding:16px 0 12px; display:flex; flex-wrap:wrap; gap:8px;
   align-items:center; border-bottom:1px solid var(--line); }
 #q{ flex:1 1 220px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 11px; }
@@ -140,7 +148,7 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .v3d-stage{ flex:1; min-height:0; border:1px solid var(--line-2); border-radius:12px; overflow:hidden; }
 .v3d-stage canvas{ display:block; touch-action:none; }
 .v3d-hint{ margin:0; font-size:12px; text-align:center; }
-.ww-embed .v3d{ padding-top:124px; padding-bottom:64px; } /* clear the shell's home button and bottom fabs */
+.ww-embed .v3d{ padding-top:124px; padding-bottom:64px; } /* clear the shell's logo and bottom fabs */
 
 /* canon vs game, game picker */
 .navh{ margin:14px 6px 4px; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); }

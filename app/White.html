@@ -169,11 +169,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .ncard__edit:hover{ color:#fff; border-color:rgba(240,200,120,0.85); background:rgba(50,33,15,0.8); }
 
 /* persistent token + avatar dock (bottom-left, whole service) */
-.homefab{ position:fixed; top:max(2vh,14px); right:max(2vw,18px); z-index:75; cursor:pointer;
-  font-family:"Cinzel",serif; font-weight:600; font-size:13px; color:#e9cd92; padding:9px 16px; border-radius:999px;
-  background:linear-gradient(180deg, rgba(40,28,14,0.92), rgba(22,15,8,0.95)); border:1px solid rgba(201,162,75,0.5);
-  box-shadow:0 8px 22px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,235,180,0.12); transition:.18s; }
-.homefab:hover{ color:#1c1308; background:linear-gradient(180deg,#e9c878,#bd9040); border-color:transparent; transform:translateY(-1px); }
 .userdock{ position:fixed; left:16px; bottom:16px; z-index:70;display:flex; align-items:center; gap:11px;
   padding:8px 16px 8px 8px; border-radius:999px; cursor:pointer;
   background:linear-gradient(180deg, rgba(40,28,14,0.92), rgba(22,15,8,0.95));
@@ -467,7 +462,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   </main>
   <div class="kb-reader" id="kb-reader"></div>
 
-  <button class="homefab" id="homefab" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну" style="display:none"><span data-i18n="ui.home">⌂ На головну</span></button>
 
   <button class="userdock is-loading" id="userdock" data-i18n-title="ui.account" title="Акаунт" data-i18n-aria="ui.account" aria-label="Акаунт">
     <span class="userdock__av">Г</span>
@@ -824,7 +818,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   function renderRail() {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
-    document.getElementById("homefab").style.display = (inWork || (mode && mode !== "home")) ? "block" : "none";
     var col = document.getElementById("rail-collapse");
     if (col) col.style.display = (inWork && mode === "book") ? "grid" : "none";
     if (!(inWork && mode === "book")) document.querySelector(".rail").classList.remove("is-collapsed");
@@ -836,12 +829,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       });
     } else {
       Object.keys(SECTIONS).forEach(function (s) {
-        if (s === "worlds" && !window.__wwAuth) return; // Світи only when logged in
+        if (s === "worlds") return; // Світи live on the home page; the logo leads home
         if (s === "market" && !window.__features?.marketplace) return; // Marketplace coming soon
         var on = mode === s || (s === "worlds" && (mode === "narr" || mode === "bible")); // a world's hub belongs to Світи
         railItems.appendChild(railBtn(s, getSectionLabel(s), SECTIONS[s].icon, on, function () { showView(s); }));
       });
     }
+    document.querySelector(".rail__div").style.display = railItems.children.length ? "" : "none";
     // account now lives in the persistent bottom-left userdock (whole service)
   }
   // Export for firebase-auth.js to call after auth state changes
@@ -1136,7 +1130,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
   document.getElementById("logo").addEventListener("click", showHome);
   document.getElementById("rail-collapse").addEventListener("click", function () { document.querySelector(".rail").classList.toggle("is-collapsed"); });
-  document.getElementById("homefab").addEventListener("click", showHome);
   document.getElementById("backbtn").addEventListener("click", goBack);
   document.getElementById("userdock").addEventListener("click", function () {
     if (!window.__wwAuth) { openAuth(); return; }
