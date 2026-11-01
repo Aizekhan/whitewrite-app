@@ -35,6 +35,10 @@
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше",
       group: "Підзаголовок", noGroup: "— без підзаголовка —", newGroup: "＋ Створити підзаголовок", newGroupPh: "Назва нового підзаголовка",
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
+      editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
+      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", file: "Файли (префаби, моделі…)" },
+      fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
+      rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки",
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Канон світу редагується у Дереві всесвіту. Тут — те, на що спирається кожна гра.",
@@ -98,6 +102,10 @@
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other",
       group: "Subheading", noGroup: "— no subheading —", newGroup: "＋ Create subheading", newGroupPh: "Name of the new subheading",
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
+      editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
+      ftypes: { text: "Text", table: "Table", image: "Images", file: "Files (prefabs, models…)" },
+      fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
+      rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images",
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "The world canon is edited in the Universe tree. Here is what every game stands on.",
@@ -257,6 +265,7 @@
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   var section = "overview", query = "", statusFilter = {};
   var canonFolded = false; try { canonFolded = !!localStorage.getItem("ww-bible-fold"); } catch (e) {}
+  var editMode = false; // card field structure editing (names, types, deletion) — never survives closing the card
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -292,7 +301,7 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: s.defs.concat(extra), extraDefs: extra, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden };
   }
   function gameCard(c) {
     var s = sec(c.section);
@@ -347,7 +356,7 @@
       games.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === gameId ? " selected" : "") + '>' + esc(g.title) + '</option>'; }).join("") +
       '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option></select></div>' : "";
     // the world block folds away so the author can work on the game alone
-    $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr">▾</span>' + STR.canonGroup + '</button>' +
+    $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>' + STR.canonGroup + '</button>' +
       (canonFolded ? "" : CANON.map(function (s) { return navItem(s, all); }).join("")) +
       pick + (game ? gameSections().map(function (s) { return navItem(s, all); }).join("") : "");
     $("newsec-slot").innerHTML = game ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
@@ -442,8 +451,9 @@
   // ---------- editor ----------
   function openCard(c) {
     open = c;
-    draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.slice(),
-      canonDesc: c.canonDesc ? c.canonDesc.value : null };
+    draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
+      canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull };
+    setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
@@ -476,9 +486,101 @@
     html += filesHtml();
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
     var gk = groupKey(sec(open.section)); // edited through the subheading menu in the head
-    draft.defs.forEach(function (d) { if (d.key !== gk) html += fieldHtml(d.key, d.label, draft.fields[d.key] || ""); });
-    html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '"><button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
+    draft.defs.forEach(function (d) { if (d.key !== gk) html += defHtml(d); });
+    html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
+      typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
+  }
+  var FTYPES = ["text", "table", "image", "file"];
+  function typeSelect(id, cur, key) {
+    return '<select ' + (id ? 'id="' + id + '"' : 'data-ftype="' + esc(key) + '"') + ' aria-label="' + esc(STR.fieldType) + '">' +
+      FTYPES.map(function (t) { return '<option value="' + t + '"' + (t === cur ? " selected" : "") + '>' + esc(STR.ftypes[t]) + '</option>'; }).join("") + '</select>';
+  }
+  // One field of the card: its head (a label, or name/type/✕ in editing mode) and its value by type.
+  function defHtml(d) {
+    var type = d.type || "text", v = draft.fields[d.key] || "";
+    var head = editMode
+      ? '<div class="fhead"><input class="flabel" data-flabel="' + esc(d.key) + '" value="' + esc(d.label) + '" aria-label="' + esc(STR.fieldLabel) + '">' +
+        typeSelect(null, type, d.key) + '<button class="fdel" data-delfield="' + esc(d.key) + '" title="' + esc(STR.fieldDel) + '" aria-label="' + esc(STR.fieldDel + " " + d.label) + '">✕</button></div>'
+      : '<label>' + esc(d.label) + '</label>';
+    var body = type === "table" ? tableHtml(d.key, v)
+      : type === "image" || type === "file" ? fieldFilesHtml(d.key, type)
+      : '<div class="shown' + (v ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + (v ? md(v) : STR.blank) + '</div>';
+    return '<div class="field' + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
+  }
+  // Tables are kept as Markdown tables in the field, so AI, MCP and exports read them as text.
+  function parseTable(v) {
+    var lines = String(v || "").split("\n").filter(function (l) { return /^\s*\|/.test(l); });
+    var rows = lines.filter(function (l, i) { return !(i === 1 && /^[\s|:-]+$/.test(l)); })
+      .map(function (l) { return l.trim().replace(/^\||\|$/g, "").split("|").map(function (c) { return c.trim(); }); });
+    if (!rows.length) rows = [[STR.col + " 1", STR.col + " 2"], [String(v || "").trim(), ""]];
+    var w = Math.max.apply(null, rows.map(function (r) { return r.length; }));
+    return rows.map(function (r) { while (r.length < w) r.push(""); return r; });
+  }
+  function tableMd(rows) {
+    var cell = function (c) { return String(c || "").replace(/\|/g, "/").replace(/\n/g, " "); };
+    return rows.map(function (r, i) { return "| " + r.map(cell).join(" | ") + " |" + (i === 0 ? "\n|" + r.map(function () { return "---"; }).join("|") + "|" : ""); }).join("\n");
+  }
+  function tableHtml(key, v) {
+    var rows = parseTable(v);
+    return '<div class="tbl" data-tbl="' + esc(key) + '"><table>' + rows.map(function (r, i) {
+      return '<tr>' + r.map(function (c, j) { return '<td><input data-cell="' + i + ',' + j + '" value="' + esc(c) + '"></td>'; }).join("") +
+        '<td class="tx">' + (i ? '<button data-rmrow="' + i + '" title="' + esc(STR.rmRow) + '" aria-label="' + esc(STR.rmRow) + '">✕</button>' : '') + '</td></tr>';
+    }).join("") + (rows[0].length > 1 ? '<tr>' + rows[0].map(function (c, j) { return '<td class="tx"><button class="rmcol" data-rmcol="' + j + '" title="' + esc(STR.rmCol) + '" aria-label="' + esc(STR.rmCol) + '">✕</button></td>'; }).join("") + '</tr>' : '') +
+      '</table><div class="row"><button class="btn" data-addrow>' + STR.addRow + '</button><button class="btn" data-addcol>' + STR.addCol + '</button></div></div>';
+  }
+  function readTable(box) {
+    var rows = [];
+    [].forEach.call(box.querySelectorAll("[data-cell]"), function (inp) { var ij = inp.dataset.cell.split(","); (rows[ij[0]] = rows[ij[0]] || [])[ij[1]] = inp.value; });
+    return rows;
+  }
+  function fieldFilesHtml(key, type) {
+    var files = (open.files || []).filter(function (f) { return f.field === key; });
+    var list = type === "image"
+      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' +
+          (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
+      : files.map(fileRow).join("");
+    var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
+      : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : STR.filesAdd) + '</label>';
+    return '<div class="field files">' + list + add + '</div>';
+  }
+  function setEditMode(on) {
+    editMode = !!on;
+    var b = $("e-edit"); b.setAttribute("aria-pressed", String(editMode));
+    b.title = editMode ? STR.editOn : STR.editFields; b.setAttribute("aria-label", b.title);
+  }
+  // Structure changes (names, types, deleted fields) are written at once, so closing the card or reloading keeps them.
+  async function saveStructure(removed) {
+    if (!open || open.isNew) return;
+    var body = { defs: draft.defs, updatedAt: stamp() };
+    if (open.src === "canon") { draft.defsFull = true; Object.assign(body, { section: open.section, canonRef: open.id, defsFull: true }); }
+    if (removed && removed.length) { body.fields = {}; removed.forEach(function (k) { body.fields[k] = firebase.firestore.FieldValue.delete(); }); }
+    try { await gref().collection("cards").doc(open.id).set(body, { merge: true }); } catch (e) { msg(STR.failed + ": " + (e.code || e.message || e)); }
+  }
+  function flushLabels() {
+    if (!open || !editMode) return false;
+    var changed = false;
+    [].forEach.call(document.querySelectorAll("#e-body [data-flabel]"), function (inp) {
+      var d = draft.defs.filter(function (x) { return x.key === inp.dataset.flabel; })[0], t = inp.value.trim();
+      if (d && t && t !== d.label) { d.label = t; changed = true; }
+    });
+    if (changed) saveStructure();
+    return changed;
+  }
+  async function deleteField(key) {
+    [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
+    flushLabels();
+    draft.defs = draft.defs.filter(function (d) { return d.key !== key; });
+    delete draft.fields[key];
+    renderFields();
+    await saveStructure([key]);
+    // files that lived in this field go with it
+    var gone = (open.files || []).filter(function (f) { return f.field === key; });
+    for (var f of gone) {
+      await firebase.storage().ref(f.path).delete().catch(function () {});
+      await gref().collection("cards").doc(open.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f) }, { merge: true });
+    }
+    if (gone.length) open.files = open.files.filter(function (f) { return f.field !== key; });
   }
   // ---------- files on a card: prefabs, models, images… (Storage: worlds/{w}/games/{g}/files/{cardId}/…) ----------
   var MAX_FILE = 200 * 1024 * 1024;
@@ -489,19 +591,19 @@
   }
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
-  function filesHtml() {
-    var files = open.files || [];
-    var list = files.map(function (f) {
+  function fileRow(f) {
       return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
         '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
-    }).join("");
+  }
+  function filesHtml() {
+    var list = (open.files || []).filter(function (f) { return !f.field; }).map(fileRow).join("");
     var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
       : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
     return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + STR.filesHint + '</span></label>' + list + add + '</div>';
   }
-  async function uploadFiles(list) {
+  async function uploadFiles(list, field) {
     var card = open, done = 0;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
@@ -512,6 +614,7 @@
         task.on("state_changed", function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
         await task;
         var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
+        if (field) meta.field = field;
         var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() };
         if (card.src === "canon") body.canonRef = card.id;
         await gref().collection("cards").doc(card.id).set(body, { merge: true });
@@ -546,6 +649,7 @@
   }
   function msg(t) { $("e-msg").textContent = t; }
   function closeLeaf() {
+    flushLabels(); setEditMode(false);
     open = null; draft = null;
     $("leaf").classList.remove("open"); $("leaf").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
   }
@@ -573,7 +677,7 @@
         // this game's view of the entity
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
         await gref().collection("cards").doc(open.id).set({ section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
-          fields: draft.fields, defs: extra, hidden: false, updatedAt: stamp() }, { merge: true });
+          fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() }, { merge: true });
       } else {
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
@@ -1094,7 +1198,7 @@
     if (!c) return;
     var want = (q.target.field || q.topic || "").toLowerCase();
     var def = c.defs.filter(function (d) { return d.key.toLowerCase() === want || d.label.toLowerCase() === want; })[0];
-    var defs = c.src === "canon" ? (c.extraDefs || []).slice() : c.defs.slice();
+    var defs = c.src === "canon" && !c.defsFull ? (c.extraDefs || []).slice() : c.defs.slice();
     if (!def) { def = { key: fieldKey(want), label: q.target.field || q.topic || "—" }; defs.push(def); }
     var prev = c.fields[def.key] || "";
     var fields = {}; fields[def.key] = prev ? prev + "\n\n" + text : text;
@@ -1189,16 +1293,46 @@
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var v3 = e.target.closest("[data-view3d]"); if (v3) { view3d(open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0], open.files); return; }
-    if (e.target.id === "nf-add") {
-      var label = $("nf").value.trim(); if (!label) return;
-      var key = fieldKey(label);
-      [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
-      if (!draft.defs.some(function (d) { return d.key === key; })) draft.defs.push({ key: key, label: label });
-      renderFields(); editField(key);
+    var del = e.target.closest("[data-delfield]"); if (del) { deleteField(del.dataset.delfield); return; }
+    var tb = e.target.closest(".tbl");
+    if (tb && e.target.closest("[data-addrow],[data-addcol],[data-rmrow],[data-rmcol]")) {
+      var rows = readTable(tb), b = e.target.closest("button");
+      if (b.hasAttribute("data-addrow")) rows.push(rows[0].map(function () { return ""; }));
+      else if (b.hasAttribute("data-addcol")) rows.forEach(function (r, i) { r.push(i ? "" : STR.col + " " + (r.length + 1)); });
+      else if (b.dataset.rmrow) rows.splice(+b.dataset.rmrow, 1);
+      else rows.forEach(function (r) { r.splice(+b.dataset.rmcol, 1); });
+      [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); flushLabels();
+      draft.fields[tb.dataset.tbl] = tableMd(rows); renderFields(); return;
     }
+    if (e.target.id === "nf-add") {
+      var label = $("nf").value.trim(), type = $("nf-type").value; if (!label) return;
+      var key = fieldKey(label);
+      [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); flushLabels();
+      if (!draft.defs.some(function (d) { return d.key === key; })) { draft.defs.push(type === "text" ? { key: key, label: label } : { key: key, label: label, type: type }); saveStructure(); }
+      renderFields(); if (type === "text") editField(key);
+    }
+  });
+  $("e-body").addEventListener("input", function (e) {
+    var tb = e.target.dataset.cell && e.target.closest(".tbl");
+    if (tb) draft.fields[tb.dataset.tbl] = tableMd(readTable(tb));
   });
   $("e-body").addEventListener("change", function (e) {
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(list); }
+    if (e.target.dataset.fup && e.target.files.length) { var fl = [].slice.call(e.target.files), fk = e.target.dataset.fup; e.target.value = ""; uploadFiles(fl, fk); }
+    if (e.target.dataset.flabel) flushLabels();
+    if (e.target.dataset.ftype) {
+      var d = draft.defs.filter(function (x) { return x.key === e.target.dataset.ftype; })[0]; if (!d) return;
+      [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); flushLabels();
+      if (e.target.value === "text") delete d.type; else d.type = e.target.value;
+      if (d.type === "table") draft.fields[d.key] = tableMd(parseTable(draft.fields[d.key]));
+      renderFields(); saveStructure();
+    }
+  });
+  $("e-edit").addEventListener("click", function () {
+    if (!open) return;
+    if (editMode) flushLabels();
+    [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
+    setEditMode(!editMode); renderFields();
   });
   $("e-body").addEventListener("keydown", function (e) {
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
@@ -1242,7 +1376,7 @@
 
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search;
-  $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
+  setEditMode(false); $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }

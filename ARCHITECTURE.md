@@ -362,6 +362,9 @@ User: Generate next scene following canon.
 - **Standard 14 sections:** overview, lore, mechanics, progression, levels, enemies, gear, assets, materials, animation, audio, ui, refs, tech (+ custom) and the Production plan.
 - Cards have subheadings (`fields.group` / `category`): each section has **standard subheadings** (`groups` in `GAME[]`, e.g. Mechanics: Рух, Бій, Здібності, Взаємодія, Камера й керування, Смерть і відродження, Перемога й поразка) + the author's own («＋ Створити підзаголовок» opens a styled dialog). Standard ones go first in menus and on the page and are sent to AI (`shelves[].groups`) for import and scaffold.
 - Real files (Storage) and a 3D viewer (corner «🧊 3D» on the card). Saving a card closes its panel.
+- **Field editing mode** (pencil in the card's top-left; gold = off, red pulsing = on): rename fields (`defs[].label`, key stays), change type, delete (✕), add typed fields.
+  Types (`defs[].type`): `text` (default), `table` (stored as a Markdown table in `fields[key]` — AI/MCP read it as text), `image` / `file` (Storage files with `files[].field = key`; card-level files have no `field`).
+  Structure changes are written immediately (`saveStructure`), so closing or reloading keeps them; the mode itself always resets to off. A canon card whose layout was edited stores the full list with `defsFull: true` on its game card.
 - Embedded in the shell, the section title and its actions sit on the logo strip (`#topline`, filled by a MutationObserver after each render); the shell's `.rail` lets clicks through (`pointer-events:none`, buttons `auto`).
 - `gamedevPlan` ops: `import` (.md notes → proposal, chunked + streaming), `analyze` (GDD + questions), `plan` (milestones with gates + tasks with `accept`/`tests`/`cards`/`prompt` + `scaffold` of missing sections/cards).
 - Applying the scaffold creates ticked cards with status `work`.

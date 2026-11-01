@@ -57,7 +57,7 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 /* world block folds away (arrow), the game picker follows it, project settings close the menu */
 .navtoggle{ display:flex; align-items:center; gap:6px; width:calc(100% - 12px); background:none; border:0; cursor:pointer; padding:0; text-align:left; }
 .navtoggle:hover{ color:var(--gold-lit); }
-.navtoggle .arr{ display:inline-block; font-size:10px; transition:transform .15s; }
+.navtoggle .arr{ display:inline-grid; place-items:center; color:var(--gold-lit); transition:transform .15s; }
 .navtoggle[aria-expanded="false"] .arr{ transform:rotate(-90deg); }
 .gamerow{ display:flex; align-items:center; gap:8px; margin:16px 6px 6px; }
 .gamerow label{ font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); flex:none; }
@@ -141,6 +141,38 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .scrim.open{ display:block; }
 .leaf-head{ padding:18px 22px 12px; border-bottom:1px solid var(--line); display:grid; gap:10px; }
 .ww-embed .leaf-head{ padding-top:110px; }
+.leaf-head .kicker{ padding-left:36px; }
+/* field structure editing: the small gold pencil in the card's top-left corner; red and pulsing while on */
+.leaf-head{ position:relative; }
+.editbtn{ position:absolute; top:12px; left:12px; width:28px; height:28px; border-radius:50%; display:grid; place-items:center; padding:0; cursor:pointer;
+  color:var(--gold-lit); background:var(--gold-soft); border:1px solid rgba(240,169,59,.5); transition:background .15s, color .15s, border-color .15s; }
+.editbtn svg{ width:15px; height:15px; }
+.editbtn:hover{ border-color:var(--gold-lit); }
+.ww-embed .editbtn{ top:72px; }
+.editbtn[aria-pressed="true"]{ color:#fff; background:#b8382e; border-color:#e0564f; animation:editpulse 1.4s ease-in-out infinite; }
+@keyframes editpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(224,86,79,.55); } 50%{ box-shadow:0 0 0 7px rgba(224,86,79,0); } }
+@media (prefers-reduced-motion:reduce){ .editbtn[aria-pressed="true"]{ animation:none; } }
+.fhead{ display:flex; gap:6px; align-items:center; }
+.fhead .flabel{ flex:1; min-width:0; background:var(--bg-2); border:1px solid var(--line-2); border-radius:7px; padding:5px 8px; font-size:13px; }
+.fhead select{ flex:none; font-size:12.5px; }
+.fdel{ flex:none; width:28px; height:28px; border-radius:7px; border:1px solid rgba(208,103,90,.5); background:rgba(208,103,90,.08); color:#e0564f; cursor:pointer; }
+.fdel:hover{ background:rgba(208,103,90,.2); }
+.field.editing{ border:1px dashed rgba(224,86,79,.35); border-radius:10px; padding:8px; }
+.newfield select{ flex:none; }
+/* table fields */
+.tbl{ overflow-x:auto; }
+.tbl table{ border-collapse:collapse; font-size:13px; }
+.tbl td{ border:1px solid var(--line-2); padding:0; }
+.tbl td input{ width:100%; min-width:90px; background:transparent; border:0; padding:5px 7px; color:var(--tx); }
+.tbl tr:first-child td input{ font-weight:600; color:var(--tx-hi); background:#ffffff08; }
+.tbl td.tx{ border:0; padding-left:4px; }
+.tbl td.tx button, .tbl .rmcol{ background:none; border:0; color:var(--tx-low); cursor:pointer; padding:2px 5px; }
+.tbl td.tx button:hover, .tbl .rmcol:hover{ color:#e0564f; }
+.tbl .row{ margin-top:6px; } .tbl .row .btn{ padding:3px 9px; font-size:12.5px; }
+.fimgs{ display:flex; flex-wrap:wrap; gap:8px; }
+.fimg{ position:relative; }
+.fimg img{ width:120px; height:80px; object-fit:cover; border-radius:7px; display:block; border:1px solid var(--line-2); }
+.fimg button{ position:absolute; top:3px; right:3px; padding:0 6px; font-size:12px; }
 .kicker{ font-size:12px; color:var(--tx-mid); letter-spacing:.12em; text-transform:uppercase; }
 #e-title{ font:600 1.6rem/1.15 "Cinzel",serif; color:var(--tx-hi); background:transparent; border:1px solid transparent; border-radius:8px; padding:2px 6px; margin-left:-6px; width:100%; }
 #e-title:hover,#e-title:focus{ border-color:var(--line-2); background:#0003; }
@@ -271,6 +303,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 <div class="scrim" id="scrim"></div>
 <aside class="leaf" id="leaf" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="leaf-head">
+    <button class="editbtn" id="e-edit" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <div class="kicker" id="e-kicker"></div>
     <input id="e-title" />
     <div class="row">

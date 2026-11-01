@@ -63,7 +63,10 @@ const named = (c) => {
   const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
   return Object.fromEntries(Object.entries(c.fields || {}).filter(([, v]) => str(v, 1)).map(([k, v]) => [labels[k] || k, v]));
 };
-const files = (c) => (c.files || []).map((f) => ({ name: f.name, url: f.url, size: f.size, type: f.type }));
+const files = (c) => {
+  const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
+  return (c.files || []).map((f) => ({ name: f.name, url: f.url, size: f.size, type: f.type, ...(f.field ? { field: labels[f.field] || f.field } : {}) }));
+};
 
 function cardView(ctx, ref) {
   if (ref.startsWith('e:')) {
