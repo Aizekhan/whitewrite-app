@@ -23,7 +23,7 @@ const {
 } = require('./common');
 const { intentText } = require('./experience')._experience;
 const { featureCost, byOp } = require('../paid-features.js');
-const { modelFor } = require('./claude');
+const { modelFor, withFallback } = require('./claude');
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;
@@ -567,12 +567,13 @@ exports.gamedevPlan = onRequest({
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       else if (op !== 'import' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
-      const messages = await Promise.all(prompts.map((content) => anthropic.messages.stream({
-        model,
+      // a model that vanished mid-flight → the whole batch retries on a working one (claude.js withFallback)
+      const messages = await withFallback(model, (m) => Promise.all(prompts.map((content) => anthropic.messages.stream({
+        model: m,
         max_tokens: op === 'plan' ? 48000 : 24000, // thinking counts toward max_tokens
         messages: [{ role: 'user', content }],
         output_config: { effort: 'medium' }
-      }).finalMessage()));
+      }).finalMessage())));
       if (messages.some((m) => m.stop_reason === 'refusal')) throw new Error('Claude відмовився виконати запит');
       if (messages.some((m) => m.stop_reason === 'max_tokens')) throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
       const results = messages.map((m) => parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')));
@@ -604,7 +605,7 @@ exports.gamedevPlan = onRequest({
         if (op === 'plan') await writeTasks(gameRef, update.plan);
       }
 
-      const { userCost } = await charge(db, uid, 'generateScene', model, usage, null, {
+      const { userCost } = await charge(db, uid, 'generateScene', messages[0].model || model, usage, null, {
         provider: 'claude',
         targetWords: Math.round(usage.output_tokens * 0.75),
         estimatedInputTokens: Math.ceil(prompt.length / 4),

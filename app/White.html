@@ -1591,7 +1591,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     // the live version of each tier (config/ai_models, switched by modelWatch)
     if (fb && fb.db && user) fb.db.collection('config').doc('ai_models').get().then(function (d) {
       var c = d.exists ? d.data() : {}, act = c.active || {}, snap = c.snapshot || {};
-      [].forEach.call(document.querySelectorAll('[data-aimv]'), function (el) { var id = act[el.dataset.aimv]; if (id && snap[id]) el.textContent = snap[id].name.replace(/^Claude \w+ /, ''); });
+      [].forEach.call(document.querySelectorAll('[data-aimv]'), function (el) { var id = act[el.dataset.aimv]; if (c.broken && c.broken[id]) id = c.broken[id].to; if (id && snap[id]) el.textContent = snap[id].name.replace(/^Claude \w+ /, ''); });
     }).catch(function () {});
     [].forEach.call(document.querySelectorAll('[data-aim]'), function (b) {
       b.onclick = function () {
