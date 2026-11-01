@@ -302,6 +302,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   color:var(--gold-bright); background:transparent; border:1px solid rgba(217,160,70,0.45); }
 .art__copy:hover{ background:rgba(217,160,70,0.12); }
 .art__rel{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line); }
+.art__link{ color:var(--gold-lit); text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
 .art__rel-h{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-low); margin-bottom:12px; }
 .art__rel-b{ display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left; cursor:pointer;
   font-family:"Cinzel",serif; font-size:14px; color:var(--tx); padding:12px 14px; margin-bottom:8px; border-radius:10px;
@@ -1153,6 +1154,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (e.origin !== window.location.origin) return;
     var d = e.data || {};
     if (d.type === "ww-news") { showView("news"); return; }
+    if (d.type === "ww-kb-article") { fillKb(); showView("kb"); openArticle(String(d.id || "")); return; } // the Bible links a KB article
     if (d.type === "ww-agent-guide") { if (window.WW_KB) { window.WW_KB.__cat = "agent"; window.WW_KB.__q = ""; } fillKb(); showView("kb"); return; }
     if (d.type === "ww-world-cta") {
       if (!window.__wwAuth) { openAuth(); return; }
@@ -1449,7 +1451,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       var p = PF.PLANS[id], fs = PF.FEATURES.filter(function (f) { return f.minPlan === id && !f.planned; });
       return '<h3 class="art__h">' + p.name + ' — $' + p.price + (en ? '/mo' : '/міс') + '</h3><ul class="art__ul"><li>' +
         p.monthly.toLocaleString() + (en ? ' tokens a month, ' : ' токенів на місяць, ') + (p.maxProjects >= 999 ? '∞' : p.maxProjects) + (en ? ' projects' : ' проєкт(и)') + '</li>' +
-        fs.map(function (f) { return '<li><b>' + L(f).name + '</b> — ' + L(f).desc + '</li>'; }).join("") + '</ul>';
+        fs.map(function (f) { return '<li><b>' + L(f).name + '</b>' + (f.soon ? (en ? ' (soon)' : ' (скоро)') : '') + ' — ' + L(f).desc + '</li>'; }).join("") + '</ul>';
     }).join("");
     return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
       var pr = f.price, c = PF.featureCost(f);
@@ -1485,7 +1487,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () {});
       });
     });
-    [].forEach.call(ov.querySelectorAll(".art__rel-b"), function (b) {
+    [].forEach.call(ov.querySelectorAll(".art__rel-b, .art__link"), function (b) { // related + in-text links to other articles
       b.addEventListener("click", function () { openArticle(b.dataset.art); ov.scrollTop = 0; });
     });
   }
@@ -1621,7 +1623,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       PF.FEATURES.forEach(function (f) {
         if (f.minPlan !== id || f.planned || f.id === 'scenes' || f.id === 'genesis') return;
         var L = en ? f.en : f.uk;
-        feats.push('<span title="' + esc(L.desc) + '">' + L.name + '</span>');
+        feats.push('<span title="' + esc(L.desc) + '">' + L.name + (f.soon ? ' <i style="opacity:.7">· ' + (en ? 'soon' : 'скоро') + '</i>' : '') + '</span>');
       });
       feats.push('<span style="font-size:11px;opacity:0.7">' + t('plan.sceneNote') + '</span>');
       return planCard(id, p.name, "$" + p.price + (en ? "/mo" : "/міс"), feats, cur, p.popular);

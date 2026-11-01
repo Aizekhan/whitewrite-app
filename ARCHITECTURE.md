@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.13.0 (2026-11-02)
+**Version:** 2.14.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -90,7 +90,11 @@ White.html (Shell)
     │        hero card «🤖 Як говорити з агентом» (flow.jsx, posts `ww-agent-guide`) → Knowledge base on the «agent» category
     ├─ Knowledge base (`kb.js` → `window.WW_KB`, rendered by `fillKb` / `openArticle`; «?» fab): categories start · agent ·
     │        book · world · game · framework · account, uk + en; blocks p/h/ul/tip/warn/prompt («prompt» = a ready request
-    │        for Claude Code with a «Копіювати» button), plans/prices (rendered from the paid-features registry).
+    │        for Claude Code with a «Копіювати» button), plans/prices (rendered from the paid-features registry);
+    │        in-text links `<a class="art__link" data-art="id">` open another article; the Bible opens one with
+    │        postMessage `{type:'ww-kb-article', id}`. The «agent» category is a numbered path: overview → 1 PC (Git, Unity Hub,
+    │        Unity CLI, Unity 6, Claude Code in PowerShell) → 2 with/without RPG Framework → 3 folder + launch → 4 MCP →
+    │        5 GDD import → 6 first session → 7 task loop → 8 GitHub; «framework» adds fw-access (token) and fw-files.
     │        Every service change updates its article in the same commit.
     ├─ Auth (Firebase Auth)
     ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
@@ -212,7 +216,8 @@ Frontend (re-render)
 
 #### **`worlds/{w}/games/{g}`** — Game Bible (one canon → many games)
 ```javascript
-{ title, engine: { profile }, sections: [...custom], createdAt }
+{ title, engine: { profile }, sections: [...custom], createdAt,
+  launch?: { dir, model: 'opus'|'sonnet'|'', skip } } // «Запуск Claude Code» in the game's settings → PowerShell lines `cd "dir"` + `claude [--model m] [--dangerously-skip-permissions]`
 ```
 - `cards/{cardId}` — game cards: `{ section, title, status: idea|work|agreed|ingame, fields: {..., group}, note, files: [{id,name,url,path,size}], canonRef?, planTask? }`.
   Game fields of a canon entity live here (`canonRef`), **not** on the entity.
@@ -252,7 +257,8 @@ One row per charge: `uid, projectId, operation (logAs), model, usage, apiCostUSD
 **Single source of truth:** `functions/paid-features.js` (v2.13). `app/firebase/paid-features.js` is a copy made by `scripts/build-app.mjs` (the same step copies `functions/ai-models.js` → `app/firebase/ai-models.js`, so the two never drift again) — edit only the `functions/` file.
 - `PLAN_ORDER` free → storyteller → novelist → worldbuilder; `PLANS {name, price, monthly, maxProjects, popular?}`; `worldforge` is a hidden dev plan `as: 'worldbuilder'`.
 - `FEATURES[]`: `{ id, kind: gate|ai|free, flag, alias?, minPlan, price?: {scene}|{factor}|{fixed, per?}, op?, uk/en {name, desc}, where, server, planned? }`. A feature is on from `minPlan` upward; `planBudget(plan)` derives the old `{monthly, maxProjects, allow…}` shape; `featureCost(feature, claudeCost)` = the tokens reserved before a run (`factor` × the economy Claude scene price, or `fixed`); `byOp(op)`.
-- Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowCanonExtraction` (+ alias `allowCanonSync`) — Storyteller; `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder.
+- `soon: true` features are announced on the plan cards and in the KB but not live: `framework` (`allowFramework`, Storyteller) — a personal RPG Framework access token tied to the account, blocked on foreign use, renewed while the subscription is active (issuing not built yet).
+- Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowCanonExtraction` (+ alias `allowCanonSync`), `allowFramework` (soon) — Storyteller; `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder.
 - Readers: `functions/plans.js` (`PLAN_BUDGETS` / `getPlanBudget` for every server gate), `gamedevPlan` / `experience` / `cosmographAccess` reserves (`featureCost(byOp(op))`), `token-budget.js` (overwrites `window.__PLAN_BUDGETS` flags/budgets/prices), the Account plan cards (`planCards` in `White.html`: tokens, ≈ scenes, projects, «Усе з X +» and the features new at that plan), the Bible `costOf` / `costMark` (✦ price on the button and in the confirm), and the knowledge base blocks `["plans"]` / `["prices"]` (`kbRegistry` in `White.html`).
 - Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage priced by `economy_operations` (the difference is debited or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
 

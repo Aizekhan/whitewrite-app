@@ -25,6 +25,7 @@ const PLANS = {
 const SCENE_COST = { gemini: 20, claude: 300 }; // defaults of economy_operations/generateScene
 
 // kind: 'gate' — a capability (flag) · 'ai' — spends tokens (price before the run) · 'free' — included, no tokens
+// soon: announced on the plan cards and in the knowledge base («скоро»), not live yet
 const FEATURES = [
   // ── Book ──
   { id: 'scenes', kind: 'ai', minPlan: 'free', price: { scene: true },
@@ -39,6 +40,10 @@ const FEATURES = [
     uk: { name: 'Експорт книги DOCX / PDF', desc: 'Уся історія одним файлом: Word або друк у PDF.' },
     en: { name: 'Book export DOCX / PDF', desc: 'The whole story in one file: Word or print to PDF.' },
     where: 'Книга → ⤓ Експорт', server: '— (у браузері)' },
+  { id: 'framework', kind: 'gate', flag: 'allowFramework', minPlan: 'storyteller', soon: true,
+    uk: { name: 'Доступ до RPG Framework', desc: 'Особистий токен до фреймворку для Unity: привʼязаний до акаунта, блокується при чужому використанні, оновлюється, поки підписка активна.' },
+    en: { name: 'RPG Framework access', desc: 'A personal token for the Unity framework: tied to the account, blocked if used by someone else, renewed while the subscription is active.' },
+    where: 'База знань → RPG Framework → Доступ', server: '— (готується)' },
   // ── Canon ──
   { id: 'bible', kind: 'gate', flag: 'allowWorldTree', minPlan: 'storyteller',
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },

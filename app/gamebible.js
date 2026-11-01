@@ -145,6 +145,9 @@
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно до {n} токенів (точна сума залежить від обсягу). Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ до {n})",
       ops: { analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту" },
+      launch: { title: "Запуск Claude Code", hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
+        dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)",
+        copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено", kb: "Як підготувати ПК і почати: ", kbLink: "База знань → шлях з агентом" },
       repo: { title: "GitHub-репозиторій гри", hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
         repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
         connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
@@ -321,6 +324,9 @@
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs up to about {n} tokens (the exact amount depends on the volume). Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ up to {n})",
       ops: { analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan" },
+      launch: { title: "Launch Claude Code", hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
+        dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)",
+        copy: "Copy the commands", copied: "Copied", saved: "Saved", kb: "How to prepare your PC and start: ", kbLink: "Knowledge base → the path with the agent" },
       repo: { title: "The game's GitHub repository", hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
         repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenPh: "GitHub token — only for a private repo",
         connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
@@ -2168,7 +2174,7 @@
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
         '<div class="setrow"><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
-        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' + repoHtml() +
+        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' + launchHtml() + repoHtml() +
         '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p><div class="shownsecs">' + GAME.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0) ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div>' +
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
@@ -2193,7 +2199,7 @@
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
     $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); };
-    bindRepo();
+    bindRepo(); bindLaunch();
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = function () {
         var hidden = (game.hiddenSections || []).filter(function (x) { return x !== cb.dataset.showsec; });
@@ -2354,6 +2360,31 @@
   }
 
   // ---------- the game's GitHub repository: connect, then «Звірити з репо» on demand (the proposal reuses the import view) ----------
+  // «Запуск Claude Code»: per game, games/{g}.launch { dir, model, skip } → the PowerShell lines to start a session in its folder
+  function launchText(l) {
+    return 'cd "' + (l.dir || STR.launch.dirPh) + '"\nclaude' + (l.model ? ' --model ' + l.model : '') + (l.skip === false ? '' : ' --dangerously-skip-permissions');
+  }
+  function launchNow() { return { dir: $("ln-dir").value.trim(), model: $("ln-model").value, skip: $("ln-skip").checked }; }
+  function launchHtml() {
+    var l = Object.assign({ model: "opus" }, game.launch), R = STR.launch;
+    return '<h2>' + R.title + '</h2><p class="hint">' + R.hint + '</p>' +
+      '<div class="setrow"><input id="ln-dir" aria-label="' + esc(R.dir) + '" placeholder="' + esc(R.dirPh) + '" value="' + esc(l.dir || "") + '">' +
+      '<select id="ln-model" aria-label="' + esc(R.model) + '">' + [["opus", R.opus], ["sonnet", "Sonnet"], ["", R.dflt]].map(function (m) {
+        return '<option value="' + m[0] + '"' + (m[0] === (l.model || "") ? " selected" : "") + '>' + esc(m[1]) + '</option>'; }).join("") + '</select></div>' +
+      '<label class="imp"><input type="checkbox" id="ln-skip"' + (l.skip === false ? '' : ' checked') + '><span>' + esc(R.skip) + '</span></label>' +
+      '<pre class="ln-cmd" id="ln-cmd">' + esc(launchText(l)) + '</pre>' +
+      '<div class="setrow"><button class="btn primary" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>' +
+      '<p class="hint">' + R.kb + '<a href="#" class="kblink" data-kb="agent-launch">' + R.kbLink + '</a></p>';
+  }
+  function bindLaunch() {
+    var show = function () { $("ln-cmd").textContent = launchText(launchNow()); };
+    var save = function () { show(); gref().set({ launch: launchNow(), updatedAt: stamp() }, { merge: true }).then(function () { $("ln-msg").textContent = STR.launch.saved; }); };
+    $("ln-dir").oninput = show; $("ln-dir").onchange = save; $("ln-model").onchange = save; $("ln-skip").onchange = save;
+    $("ln-copy").onclick = function () {
+      var b = this; if (navigator.clipboard) navigator.clipboard.writeText($("ln-cmd").textContent).then(function () { b.textContent = STR.launch.copied; setTimeout(function () { b.textContent = STR.launch.copy; }, 1600); });
+    };
+    [].forEach.call(document.querySelectorAll("#view [data-kb]"), function (a) { a.onclick = function (e) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: a.dataset.kb }); }; });
+  }
   function repoHtml() {
     var r = game.repo, R = STR.repo, d = r && r.syncedAt ? (r.syncedAt.toDate ? r.syncedAt.toDate() : new Date(r.syncedAt)) : null;
     return '<h2>' + R.title + '</h2><p class="hint">' + R.hint + '</p>' + (r && r.full
