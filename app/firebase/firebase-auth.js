@@ -45,7 +45,6 @@ window.__firebaseAuth = {
 
             // Feature gates (from plan config)
             window.__wwUser.allowClaude = planConfig.allowClaude || false;
-            window.__wwUser.allowImages = planConfig.allowImages || false;
             window.__wwUser.allowReconstruction = planConfig.allowReconstruction || false;
             window.__wwUser.allowExport = planConfig.allowExport || false;
             window.__wwUser.allowAPI = planConfig.allowAPI || false;

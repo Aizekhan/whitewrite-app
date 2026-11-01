@@ -49,7 +49,7 @@
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settings: "Налаштування проєкту", settingsAbout: "Назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
-      stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти.",
+      stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
       stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
       stSections: "Власні розділи гри", stNoSections: "Власних розділів немає. Стандартні розділи не видаляються.",
       stDanger: "Небезпечна зона", stDelGame: "Видалити гру", stDelWorld: "Видалити світ",
@@ -77,14 +77,14 @@
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
       poly: { tip: "{n} полігонів — понад 100 000: важко для гри, варто спростити (LOD / ретопологія)", n: "полігонів" },
-      lic: { title: "Ліцензія і права", info: "Ліцензія і права — докладніше", green: "Комерційно можна", yellow: "Комерційно — з умовами", red: "Комерційно не можна",
+      lic: { title: "Ліцензія і права", info: "Ліцензія і права — докладніше", green: "Комерційно можна", yellow: "Комерційно — з умовами", red: "Комерційно не можна", blue: "Невідома або власна",
         src: { file: "Визначено автоматично з метаданих файлу", text: "Визначено автоматично з файлу «{f}» на картці", author: "Вказав автор", none: "Ліцензію не знайдено ні в файлі, ні поруч — вкажи її" },
         found: "Що сказано у файлі", pick: "Ліцензія", by: "Автор / атрибуція", byPh: "Напр.: «Dragon» by Jane Doe (Sketchfab)", url: "Джерело", urlPh: "Посилання на сторінку моделі чи ліцензії",
         save: "Зберегти", cancel: "Скасувати",
-        names: { own: "Власна робота", cc0: "CC0 / суспільне надбання", royalty: "Royalty-free (куплено)", unity: "Unity Asset Store EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND",
+        names: { own: "Власна робота", cc0: "CC0 / суспільне надбання", royalty: "Royalty-free (куплено)", unity: "Unity Asset Store EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", revcap: "До порогу доходу",
           ccbync: "CC BY-NC (некомерційна)", editorial: "Лише редакційне", personal: "Лише особисте", unknown: "Ліцензія невідома" },
-        short: { own: "Своє", cc0: "CC0", royalty: "Куплено", unity: "Unity EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", ccbync: "NC", editorial: "Редакц.", personal: "Особисте", unknown: "?" },
-        what: { own: "Твоя модель — усі права твої.", cc0: "Будь-яке використання, зокрема комерційне, без умов.",
+        short: { own: "Своє", cc0: "CC0", royalty: "Куплено", unity: "Unity EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", revcap: "Поріг доходу", ccbync: "NC", editorial: "Редакц.", personal: "Особисте", unknown: "?" },
+        what: { own: "Твоя модель, додана тобою, — права твої; сервіс їх не перевіряє.", revcap: "Комерційно можна, доки дохід компанії не перевищить поріг ліцензії; далі — роялті чи інша ліцензія.", cc0: "Будь-яке використання, зокрема комерційне, без умов.",
           royalty: "Куплено з правом комерційного використання; сам ассет перепродавати чи викладати не можна.",
           unity: "Можна в іграх, зокрема комерційних; поширювати як вихідний ассет не можна.",
           ccby: "Комерційно можна, але автора треба вказати (титри / «Про гру»).", ccbysa: "Комерційно можна з автором; змінену модель — лише під тією ж ліцензією.",
@@ -187,7 +187,7 @@
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settings: "Project settings", settingsAbout: "Names, engine, import and export, safe deletion.", gameLabel: "Game:",
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
-      stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept.",
+      stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
       stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
       stSections: "Custom game sections", stNoSections: "No custom sections. Standard sections cannot be deleted.",
       stDanger: "Danger zone", stDelGame: "Delete game", stDelWorld: "Delete world",
@@ -215,14 +215,14 @@
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
       poly: { tip: "{n} polygons — over 100,000: heavy for a game, worth simplifying (LOD / retopology)", n: "polygons" },
-      lic: { title: "Licence & rights", info: "Licence & rights — details", green: "Commercial use OK", yellow: "Commercial use — with conditions", red: "No commercial use",
+      lic: { title: "Licence & rights", info: "Licence & rights — details", green: "Commercial use OK", yellow: "Commercial use — with conditions", red: "No commercial use", blue: "Unknown or own work",
         src: { file: "Detected automatically from the file's metadata", text: "Detected automatically from “{f}” on the card", author: "Set by the author", none: "No licence found in the file or next to it — set it" },
         found: "What the file says", pick: "Licence", by: "Author / attribution", byPh: "E.g.: “Dragon” by Jane Doe (Sketchfab)", url: "Source", urlPh: "Link to the model's or the licence's page",
         save: "Save", cancel: "Cancel",
-        names: { own: "Own work", cc0: "CC0 / public domain", royalty: "Royalty-free (purchased)", unity: "Unity Asset Store EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND",
+        names: { own: "Own work", cc0: "CC0 / public domain", royalty: "Royalty-free (purchased)", unity: "Unity Asset Store EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", revcap: "Up to a revenue threshold",
           ccbync: "CC BY-NC (non-commercial)", editorial: "Editorial only", personal: "Personal use only", unknown: "Licence unknown" },
-        short: { own: "Own", cc0: "CC0", royalty: "Bought", unity: "Unity EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", ccbync: "NC", editorial: "Editorial", personal: "Personal", unknown: "?" },
-        what: { own: "Your model — all rights are yours.", cc0: "Any use, commercial included, no conditions.",
+        short: { own: "Own", cc0: "CC0", royalty: "Bought", unity: "Unity EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", revcap: "Revenue cap", ccbync: "NC", editorial: "Editorial", personal: "Personal", unknown: "?" },
+        what: { own: "Your own model, added by you — the rights are yours; the service doesn't check them.", revcap: "Commercial use OK until the company's revenue passes the licence's threshold; then royalties or another licence.", cc0: "Any use, commercial included, no conditions.",
           royalty: "Bought with commercial rights; the asset itself may not be resold or published.",
           unity: "Usable in games, commercial included; may not be redistributed as a source asset.",
           ccby: "Commercial use OK, but credit the author (credits / “About”).", ccbysa: "Commercial use OK with credit; a modified model only under the same licence.",
@@ -1641,10 +1641,10 @@
     catch (e) {} finally { URL.revokeObjectURL(url); }
   }
 
-  // ---------- licence & rights of prefabs and models: green (commercial OK) · yellow (with conditions) · red (not allowed / unknown) ----------
+  // ---------- licence & rights of prefabs and models: green (full) · yellow (with conditions: credit, revenue cap…) · red (strict / not commercial) · blue (unknown or own work) ----------
   // file.license { id, source: file|author, text, by, url } on the file itself; a licence/readme text on the same card carries licenseFound { id, text }.
-  var LIC_COLOR = { own: "green", cc0: "green", royalty: "green", unity: "green", ccby: "yellow", ccbysa: "yellow", ccbynd: "yellow",
-    ccbync: "red", editorial: "red", personal: "red", unknown: "red" };
+  var LIC_COLOR = { cc0: "green", royalty: "green", unity: "green", ccby: "yellow", ccbysa: "yellow", ccbynd: "yellow", revcap: "yellow",
+    ccbync: "red", editorial: "red", personal: "red", own: "blue", unknown: "blue" };
   var ASSET_EXT = /\.(glb|gltf|fbx|obj|stl|prefab|unitypackage|uasset|blend|max|ma|mb|c4d|3ds|dae|usdz?|zip|rar|7z)$/i;
   function isAsset(f) { return ASSET_EXT.test(f.name || ""); }
   function isLicText(f) { return /(licen[cs]e|copyright|attribution|readme|credits?)[^\/]*\.(txt|md)$/i.test(f.name || "") && (f.size || 0) < 200000; }
@@ -1653,6 +1653,7 @@
     if (/by-nc|\bnc\b|non-?commercial|некомерц/.test(t)) id = "ccbync";
     else if (/editorial/.test(t)) id = "editorial";
     else if (/personal use only|personal use|особист/.test(t)) id = "personal";
+    else if (/revenue (threshold|cap|limit)|gross revenue|annual revenue|річн\S* дох|поріг доход/.test(t)) id = "revcap";
     else if (/cc0|cc-zero|publicdomain\/zero|public domain|суспільн/.test(t)) id = "cc0";
     else if (/by-sa|sharealike|share-alike|share alike/.test(t)) id = "ccbysa";
     else if (/by-nd|noderiv|no derivatives/.test(t)) id = "ccbynd";
@@ -1669,18 +1670,18 @@
     return { id: "unknown", source: f.license && f.license.text ? "file" : "none", text: f.license && f.license.text };
   }
   function licChip(f, files, attr) {
-    var l = licOf(f, files), c = LIC_COLOR[l.id] || "red", t = STR.lic[c] + " · " + STR.lic.names[l.id];
+    var l = licOf(f, files), c = LIC_COLOR[l.id] || "blue", t = STR.lic[c] + " · " + STR.lic.names[l.id];
     return '<' + (attr ? 'button type="button" ' + attr + '="' + esc(f.id) + '"' : 'span') + ' class="lic lic-' + c + '" title="' + esc(attr ? STR.lic.info + " — " + t : t) + '" aria-label="' + esc(t) + '">© ' +
       esc(STR.lic.short[l.id]) + (attr ? ' <i>ⓘ</i>' : '') + '</' + (attr ? 'button' : 'span') + '>';
   }
   function worstLic(files) { // the card shows its least permissive asset
-    var rank = { red: 0, yellow: 1, green: 2 }, worst = null;
-    (files || []).filter(isAsset).forEach(function (f) { var c = LIC_COLOR[licOf(f, files).id] || "red"; if (!worst || rank[c] < rank[worst.c]) worst = { f: f, c: c }; });
+    var rank = { red: 0, blue: 1, yellow: 2, green: 3 }, worst = null;
+    (files || []).filter(isAsset).forEach(function (f) { var c = LIC_COLOR[licOf(f, files).id] || "blue"; if (!worst || rank[c] < rank[worst.c]) worst = { f: f, c: c }; });
     return worst ? licChip(worst.f, files) : "";
   }
   // ⓘ: what the licence allows, where it came from, and the author's own answer
   function licDialog(f, files, save) {
-    var l = licOf(f, files), c = LIC_COLOR[l.id] || "red", box = document.createElement("div");
+    var l = licOf(f, files), c = LIC_COLOR[l.id] || "blue", box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box lic-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.lic.title) + '">' +
       '<div class="lic-head lic-' + c + '"><b>' + esc(STR.lic[c]) + '</b><span>' + esc(STR.lic.names[l.id]) + '</span></div>' +
@@ -1689,7 +1690,7 @@
       (l.text ? '<div class="lic-text"><span class="muted">' + STR.lic.found + '</span><q>' + esc(l.text) + '</q></div>' : '') +
       (l.by || l.url ? '<p>' + esc(l.by || "") + (l.url ? ' · <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.url) + '</a>' : '') + '</p>' : '') +
       (canWrite ? '<label class="field"><span>' + STR.lic.pick + '</span><select id="lic-id">' + Object.keys(LIC_COLOR).map(function (k) {
-          return '<option value="' + k + '"' + (k === l.id ? ' selected' : '') + '>' + ({ green: "🟢 ", yellow: "🟡 ", red: "🔴 " })[LIC_COLOR[k]] + esc(STR.lic.names[k]) + '</option>'; }).join("") + '</select></label>' +
+          return '<option value="' + k + '"' + (k === l.id ? ' selected' : '') + '>' + ({ green: "🟢 ", yellow: "🟡 ", red: "🔴 ", blue: "🔵 " })[LIC_COLOR[k]] + esc(STR.lic.names[k]) + '</option>'; }).join("") + '</select></label>' +
         '<label class="field"><span>' + STR.lic.by + '</span><input id="lic-by" value="' + esc(l.by || "") + '" placeholder="' + esc(STR.lic.byPh) + '"></label>' +
         '<label class="field"><span>' + STR.lic.url + '</span><input id="lic-url" value="' + esc(l.url || "") + '" placeholder="' + esc(STR.lic.urlPh) + '"></label>' : '') +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + (canWrite ? STR.lic.cancel : STR.close) + '</button>' + (canWrite ? '<button class="btn primary" id="lic-ok">' + STR.lic.save + '</button>' : '') + '</div></form>';

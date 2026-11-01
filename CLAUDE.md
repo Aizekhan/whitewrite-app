@@ -35,6 +35,8 @@
   - Ліцензії префабів: чип 🟢/🟡/🔴 за комерційним використанням + ⓘ (автовизначення з glTF-метаданих і license.txt на картці, ручне уточнення)
   - **Режисер прибрано** (макет розкадровки/LoRA без бекенду): лишились Книга + Біблія світу; обіцянки зображень/LoRA/відео прибрано з тарифів і Бази знань (Free/Storyteller/Novelist/Worldbuilder), мертві i18n-ключі Дерева/Режисера видалено
   - **Переміщення карток**: меню підрозділу в картці/досьє + перетягування (порядок `order`, зміна підрозділу)
+  - Ліцензії: 🟢 повна · 🟡 з умовами (автор, поріг доходу `revcap`) · 🔴 жорстка/некомерційна · 🔵 невідома або власна; мертві прапорці зображень/LoRA (`allowImages`, `allowLoRA`, `loraSlots`, вартості image/storyboard/LoRA) видалено
+  - Ідея власника: підключення GitHub-репо гри в налаштуваннях → дотягувати дані / розбіжності в «Неузгоджене» (не почато)
   - **Next**: E2E з реальним AI (Порадити, Узгодити сцени) і реальними префабами (полігони/ліцензії зі Storage); вирішити тексти тарифів про зображення/LoRA
 
 ## Архітектура даних (важливо)
@@ -60,7 +62,7 @@
 - План-базована система токенів (місячний бюджет + витрати)
 - UI: dock показує баланс, toast після генерації, upgrade modal при нестачі
 - `window.__firebaseAuth.consumeTokens(operation)` — універсальна функція споживання
-- Feature gates: `allowClaude`, `allowImages`, `allowReconstruction` (прив'язані до плану)
+- Feature gates: `allowClaude`, `allowReconstruction`, `allowAnalyze`, `allowGameDev` (прив'язані до плану)
 
 **Phase 2: Stripe Integration** — повністю працює ✅
 
@@ -90,7 +92,6 @@ UI Classes (app/White.html):
 Token Costs (`window.__TOKEN_COSTS`):
 - sceneGemini: 20 tokens
 - sceneClaude: 100 tokens
-- imageGeneration: 50 tokens (майбутнє)
 
 Margins:
 - Free: 200 tokens/mo (cost: -$0.005, втрата)

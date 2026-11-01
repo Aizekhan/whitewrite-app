@@ -1,5 +1,5 @@
 // Token Budget System for WhiteWrite
-// Universal metering for all AI operations (scenes, images, canon, etc.)
+// Universal metering for all AI operations (scenes, canon, analysis, games, etc.)
 
 // ============================================================================
 // TOKEN COSTS — How much each operation consumes
@@ -12,9 +12,6 @@ window.__TOKEN_COSTS = {
   sceneGemini: 20,           // ~$0.0003 per scene (Gemini Flash)
   sceneClaude: 300,          // ~$0.0135 per scene (Claude Sonnet)
 
-  // ===== IMAGES =====
-  imageGenerate: 3500,       // ~$0.05 per image (DALL-E 3 / Midjourney)
-  imageVariant: 2000,        // ~$0.03 per variant (cheaper, reuse base)
 
   // ===== CANON (cheap operations) =====
   canonSuggestion: 10,       // Extract entities from scene (legacy)
@@ -24,10 +21,6 @@ window.__TOKEN_COSTS = {
   locationCard: 15,          // Generate location profile
   eventCard: 15,             // Generate event profile
 
-  // ===== DIRECTOR (storyboard) =====
-  storyboardBreakdown: 5,    // Break scene into shots (cheap)
-  shotImageGen: 3500,        // Generate shot image (same as imageGenerate)
-  loraTraining: 50000,       // ~$0.75 per LoRA model (expensive, rare)
 
   // ===== RECONSTRUCTION =====
   sceneReconstruct: 30,      // Regenerate scene with new canon (slightly > new scene)
@@ -53,7 +46,6 @@ window.__PLAN_BUDGETS = {
 
     // Feature gates
     allowClaude: false,
-    allowImages: false,
     allowReconstruction: false,
     allowExport: false,
     allowAPI: false,
@@ -76,7 +68,6 @@ window.__PLAN_BUDGETS = {
     monthly: 2400,             // 120 Gemini scenes (120 × 20 = 2400)
 
     allowClaude: false,
-    allowImages: false,
     allowReconstruction: false,
     allowExport: true,         // ← Unlock DOCX/PDF export
     allowAPI: false,
@@ -95,15 +86,12 @@ window.__PLAN_BUDGETS = {
   novelist: {
     name: "Novelist",
     price: 29,
-    monthly: 32000,            // Flexible: 400 Gemini (8000) OR 80 Claude (24000) + 100 images (350000)
-                               // Reality: most will use hybrid (200 Gemini + 40 Claude + 50 images ≈ 29000)
+    monthly: 32000,            // Flexible: 400 Gemini (8000) OR 80 Claude (24000)
 
     allowClaude: true,         // ← Unlock Claude Sonnet
-    allowImages: true,         // ← Unlock image generation
     allowReconstruction: true, // ← Unlock Universe Reconstruction (moat!)
     allowExport: true,
     allowAPI: false,
-    allowLoRA: true,           // ← Unlock LoRA training
     allowWorldTree: true,           // ✅ WorldTree access
     allowCanonExtraction: true,     // ✅ Auto-extraction
     allowCanonSync: true,           // ✅ Canon sync
@@ -112,8 +100,6 @@ window.__PLAN_BUDGETS = {
     allowGameDev: false,
 
     maxProjects: Infinity,
-    imageCreditsGuideline: 100, // Soft limit (UI shows "100 images recommended")
-    loraSlots: 3,              // 3 LoRA models per project (one-time training)
 
     description: "32K токенів: ~400 Gemini / 80 Claude + узгодження сцен + ANALYZE/IMPROVE"
   },
@@ -121,14 +107,12 @@ window.__PLAN_BUDGETS = {
   worldbuilder: {
     name: "Worldbuilder",
     price: 69,
-    monthly: 180000,           // 300 Claude (90000) + 500 images (175000) OR mix
+    monthly: 180000,           // 300 Claude (90000) OR mix
 
     allowClaude: true,
-    allowImages: true,
     allowReconstruction: true,
     allowExport: true,
     allowAPI: true,            // ← Unlock API access
-    allowLoRA: true,
     priority: true,            // Priority queue for generation
     allowWorldTree: true,
     allowCanonExtraction: true,
@@ -138,8 +122,6 @@ window.__PLAN_BUDGETS = {
     allowGameDev: true,           // ✅ Game Bible + Production Plan
 
     maxProjects: Infinity,
-    imageCreditsGuideline: 500,
-    loraSlots: 10,             // 10 LoRA models per project
 
     description: "180K токенів: ~300 Claude / ∞ Gemini + Біблія гри + API + ANALYZE/IMPROVE"
   },
@@ -151,7 +133,6 @@ window.__PLAN_BUDGETS = {
     monthly: 180000,           // Same as worldbuilder for testing
 
     allowClaude: true,
-    allowImages: true,
     allowReconstruction: true,
     allowExport: true,
     allowAPI: true,
@@ -164,8 +145,6 @@ window.__PLAN_BUDGETS = {
     allowGameDev: true,           // ✅ Game Bible + Production Plan
 
     maxProjects: Infinity,
-    imageCreditsGuideline: 500,
-    loraCreditsGuideline: 3,
 
     description: "180,000 токенів (dev plan)"
   }
@@ -203,7 +182,6 @@ window.__estimateCapacity = function(tokensRemaining) {
   return {
     geminiScenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneGemini),
     claudeScenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneClaude),
-    images: Math.floor(tokensRemaining / window.__TOKEN_COSTS.imageGenerate),
     // Show most relevant capacity in UI
     primary: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneGemini) + ' Gemini сцен'
   };
