@@ -357,7 +357,9 @@ User: Generate next scene following canon.
 **Access:** plans with `allowGameDev` (worldbuilder, worldforge); reading stays with the owner.
 
 - **Standard 14 sections:** overview, lore, mechanics, progression, levels, enemies, gear, assets, materials, animation, audio, ui, refs, tech (+ custom) and the Production plan.
-- Cards have subheadings (`fields.group`, «＋ Створити підзаголовок»), real files (Storage) and a 3D viewer (corner «🧊 3D» on the card).
+- Cards have subheadings (`fields.group` / `category`): each section has **standard subheadings** (`groups` in `GAME[]`, e.g. Mechanics: Рух, Бій, Здібності, Взаємодія, Камера й керування, Смерть і відродження, Перемога й поразка) + the author's own («＋ Створити підзаголовок» opens a styled dialog). Standard ones go first in menus and on the page and are sent to AI (`shelves[].groups`) for import and scaffold.
+- Real files (Storage) and a 3D viewer (corner «🧊 3D» on the card). Saving a card closes its panel.
+- Embedded in the shell, the section title and its actions sit on the logo strip (`#topline`, filled by a MutationObserver after each render); the shell's `.rail` lets clicks through (`pointer-events:none`, buttons `auto`).
 - `gamedevPlan` ops: `import` (.md notes → proposal, chunked + streaming), `analyze` (GDD + questions), `plan` (milestones with gates + tasks with `accept`/`tests`/`cards`/`prompt` + `scaffold` of missing sections/cards).
 - Applying the scaffold creates ticked cards with status `work`.
 - `plan` also writes the **Task Engine** docs (`writeTasks`): open `todo`/`rework` tasks are replaced, taken/done ones are kept.

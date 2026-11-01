@@ -165,46 +165,58 @@
       about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — у «Світ і закони».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
       defs: [F("text", "Опис", "Description")] },
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
+      groups: { uk: ["Рух", "Бій", "Здібності", "Взаємодія", "Камера й керування", "Смерть і відродження", "Перемога й поразка"], en: ["Movement", "Combat", "Abilities", "Interaction", "Camera & controls", "Death & respawn", "Win & lose"] },
       about: { uk: "Правила гри з числами. Правка тут — це завдання змінити гру.", en: "Game rules with numbers. An edit here is a task to change the game." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Правила й числа", "Rules & numbers"), F("deps", "Залежить від", "Depends on")] },
     { id: "progression", uk: "Прогресія й економіка", en: "Progression & economy", group: "group",
+      groups: { uk: ["Досвід і рівні", "Валюти", "Лут і нагороди", "Магазин", "Апгрейди", "Баланс"], en: ["XP & levels", "Currencies", "Loot & rewards", "Shop", "Upgrades", "Balance"] },
       about: { uk: "Досвід, рівні, валюти, лут, магазин, апгрейди — і баланс чисел між ними.", en: "XP, levels, currencies, loot, shop, upgrades — and the balance of numbers between them." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Числа й формули", "Numbers & formulas"), F("sinks", "Звідки береться / куди йде", "Sources / sinks")] },
     { id: "levels", uk: "Рівні й контент", en: "Levels & content", group: "group",
+      groups: { uk: ["Туторіал", "Основні рівні", "Рівні босів", "Хаби", "Побічний контент"], en: ["Tutorial", "Main levels", "Boss levels", "Hubs", "Side content"] },
       about: { uk: "Рівні, траси, хвилі, енкаунтери: розмір, тривалість, хто й що там. Місце з канону — у «Локаціях».", en: "Levels, tracks, waves, encounters: size, length, who and what is there. The canon place is in “Locations”." },
       defs: [F("group", "Група", "Group"), F("location", "Локація канону", "Canon location"), F("layout", "Структура й розмір", "Layout & size"),
              F("encounters", "Вороги й події", "Enemies & events"), F("goal", "Мета гравця", "Player goal"), F("length", "Тривалість", "Length")] },
     { id: "enemies", uk: "Вороги й боси", en: "Enemies & bosses", group: "group",
+      groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити.", en: "Who stands in the way, how it hits and where to hit it." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
              F("weakness", "Як перемогти", "How to beat"), F("numbers", "Числа", "Numbers"), F("model", "Модель / префаб", "Model / prefab")] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
+      groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
       defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon")] },
     { id: "assets", uk: "Ассети й префаби", en: "Assets & prefabs", group: "category",
+      groups: { uk: ["Персонажі", "Вороги", "Оточення", "Пропси", "Зброя й предмети", "Ефекти", "UI"], en: ["Characters", "Enemies", "Environment", "Props", "Weapons & items", "Effects", "UI"] },
       about: { uk: "Моделі й префаби: що вже є і що треба зробити — функція, розмір, пріоритет, промпт. Моделі відкриваються в 3D.", en: "Models and prefabs: what exists and what to make — function, size, priority, prompt. Models open in 3D." },
       defs: [F("category", "Категорія", "Category"), F("function", "Функція", "Function"), F("size", "Розмір", "Size"),
              F("priority", "Пріоритет", "Priority"), F("prompt", "Промпт генерації", "Generation prompt"), F("source", "Джерело", "Source")] },
     { id: "materials", uk: "Матеріали й текстури", en: "Materials & textures", group: "category",
+      groups: { uk: ["Персонажі", "Оточення", "Рослинність", "Шейдери", "Небо й освітлення"], en: ["Characters", "Environment", "Foliage", "Shaders", "Sky & lighting"] },
       about: { uk: "Поверхні, текстури, шейдери, рослинність: карти, розмір, джерело чи ліцензія.", en: "Surfaces, textures, shaders, foliage: maps, resolution, source or licence." },
       defs: [F("category", "Група", "Group"), F("what", "Що це", "What it is"), F("where", "Де використовується", "Where it is used"), F("maps", "Карти", "Maps"),
              F("resolution", "Розмір", "Resolution"), F("source", "Джерело / ліцензія", "Source / licence")] },
     { id: "animation", uk: "Анімації й VFX", en: "Animation & VFX", group: "group",
+      groups: { uk: ["Персонаж", "Вороги", "VFX бою", "VFX оточення", "UI-анімації"], en: ["Character", "Enemies", "Combat VFX", "Environment VFX", "UI animation"] },
       about: { uk: "Анімації персонажів і ворогів, ефекти, частинки: хто, що, тривалість, джерело.", en: "Character and enemy animations, effects, particles: who, what, length, source." },
       defs: [F("group", "Група", "Group"), F("who", "Для кого / чого", "For whom / what"), F("what", "Що відбувається", "What happens"),
              F("timing", "Тривалість і тайминг", "Length & timing"), F("source", "Джерело", "Source")] },
     { id: "audio", uk: "Звук і музика", en: "Sound & music", group: "group",
+      groups: { uk: ["Музика", "Звукові ефекти", "Озвучка", "Амбієнт", "Звуки UI"], en: ["Music", "Sound effects", "Voice", "Ambience", "UI sounds"] },
       about: { uk: "Музика, ефекти, озвучка, амбієнт: настрій, де звучить, джерело.", en: "Music, sound effects, voice, ambience: mood, where it plays, source." },
       defs: [F("group", "Група", "Group"), F("mood", "Настрій і опис", "Mood & description"), F("where", "Де звучить", "Where it plays"),
              F("length", "Тривалість / цикл", "Length / loop"), F("source", "Джерело / промпт", "Source / prompt")] },
     { id: "ui", uk: "UI / UX", en: "UI / UX", group: "group",
+      groups: { uk: ["HUD", "Меню", "Інвентар", "Діалоги", "Онбординг", "Налаштування"], en: ["HUD", "Menus", "Inventory", "Dialogue", "Onboarding", "Settings"] },
       about: { uk: "Екрани, HUD, меню, онбординг: що на екрані, дії гравця, переходи.", en: "Screens, HUD, menus, onboarding: what is on screen, player actions, transitions." },
       defs: [F("group", "Група", "Group"), F("purpose", "Навіщо екран", "Purpose"), F("elements", "Елементи", "Elements"),
              F("actions", "Дії гравця й переходи", "Player actions & transitions"), F("refs", "Референси", "References")] },
     { id: "refs", uk: "Референси", en: "References", group: "group",
+      groups: { uk: ["Візуал", "Геймплей", "Звук", "UI"], en: ["Visuals", "Gameplay", "Sound", "UI"] },
       about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
       defs: [F("group", "Група", "Group"), F("what", "Що беремо", "What we take"), F("avoid", "Чого уникаємо", "What we avoid"), F("link", "Посилання", "Link")] },
     { id: "tech", uk: "Технічне", en: "Technical", group: "group",
+      groups: { uk: ["Рушій і збірка", "Платформи", "Перформанс", "Сейви", "Мультиплеєр", "Інструменти"], en: ["Engine & build", "Platforms", "Performance", "Saves", "Multiplayer", "Tools"] },
       about: { uk: "Рушій, платформи, збірка, перформанс, сейви, мультиплеєр, інструменти.", en: "Engine, platforms, build, performance, saves, multiplayer, tools." },
       defs: [F("group", "Група", "Group"), F("decision", "Рішення", "Decision"), F("constraints", "Обмеження й бюджети", "Constraints & budgets"), F("status", "Стан зараз", "Current state")] },
   ];
@@ -241,8 +253,9 @@
   function sections() { return CANON.concat(gameSections()); }
   // Subheadings: every ordinary section groups its cards by one field (mechanics "group", assets "category", others "group")
   function groupKey(s) { return s.special ? "" : (s.group || "group"); }
+  // Standard subheadings of the section first (s.groups), then the author's own ones in order of appearance.
   function groupsOf(s) {
-    var k = groupKey(s), seen = [];
+    var k = groupKey(s), seen = s.groups ? (s.groups[LANG] || s.groups.uk).slice() : [];
     allCards().forEach(function (c) { var g = c.section === s.id && c.fields[k]; if (g && seen.indexOf(g) < 0) seen.push(g); });
     return seen;
   }
@@ -358,6 +371,8 @@
     else if (!query && list.some(function (c) { return c.fields[groupKey(s)]; })) {
       var groups = {}, order = [];
       list.forEach(function (c) { var g = c.fields[groupKey(s)] || STR.other; if (!groups[g]) { groups[g] = []; order.push(g); } groups[g].push(c); });
+      var std = groupsOf(s); // standard subheadings keep their order, the rest follow
+      order.sort(function (a, b) { var ia = std.indexOf(a), ib = std.indexOf(b); return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib); });
       order.forEach(function (g) { html += '<h2 class="group">' + esc(g) + ' <span>' + groups[g].length + '</span></h2><div class="grid">' + groups[g].map(cardHtml).join("") + '</div>'; });
     } else html += '<div class="grid">' + list.map(cardHtml).join("") + '</div>';
     $("view").innerHTML = html;
@@ -598,7 +613,8 @@
   // The sections as the AI sees them: id, name in the author's language, field labels
   function shelves() {
     return sections().filter(function (x) { return !x.special; }).map(function (x) {
-      return { id: x.id, name: L(x), kind: x.canon ? "canon" : "game", canonKind: x.canon || "", fields: (x.defs || []).map(function (d) { return d.label; }) };
+      return { id: x.id, name: L(x), kind: x.canon ? "canon" : "game", canonKind: x.canon || "", fields: (x.defs || []).map(function (d) { return d.label; }),
+        groups: groupKey(x) ? groupsOf(x) : [] };
     });
   }
 

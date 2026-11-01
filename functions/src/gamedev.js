@@ -182,7 +182,7 @@ function cleanImport(p, shelves, entities, world) {
 const answeredText = (answered) => (answered.length ? `\nAlready decided by the author:\n${answered.map((a) => `- Q: ${a.q}\n  A: ${a.a}`).join('\n')}\n` : '');
 
 function importPrompt(markdown, shelves, entities, world, languageName, cards) {
-  const shelfText = shelves.map((s) => `- ${s.id} (${s.kind === 'canon' ? `CANON ${s.canonKind}` : 'game'}): ${s.name}${s.fields.length ? ` — fields: ${s.fields.join(' | ')}` : ''}`).join('\n');
+  const shelfText = shelves.map((s) => `- ${s.id} (${s.kind === 'canon' ? `CANON ${s.canonKind}` : 'game'}): ${s.name}${s.fields.length ? ` — fields: ${s.fields.join(' | ')}` : ''}${s.groups.length ? ` — subheadings (put the fitting one into the first field): ${s.groups.join(' | ')}` : ''}`).join('\n');
   const known = entities.filter((e) => CANON_KINDS.includes(e.kind)).map((e) => `- ${e.id} [${e.kind}] ${e.name || ''}`).join('\n');
   return `You are the librarian of WhiteWrite. The author uploaded their notes about a world and a game. Sort EVERYTHING useful onto the shelves below — do not invent content that is not in the notes, do not drop details (numbers, names, prompts, references).
 
@@ -243,7 +243,7 @@ Rules:
 - scaffold — what the plan needs but the bible does NOT have yet, so the author can fill it in: cards (section = one of the game sections below by id, title, group = a subheading inside the section when it fits, need = what exactly must be made or decided, task = the task id that needs it) for missing prefabs, models, textures, animations, sounds, UI screens, references, mechanics, levels, items… Never duplicate a card that already exists (check titles; a card whose files include a model is already made). Add a new section only when no game section fits (name, about, why); then use its name as the card's section. Max 60 cards.
 
 GAME SECTIONS (id — name):
-${(shelves || []).filter((s) => s.kind === 'game').map((s) => `- ${s.id} — ${s.name}`).join('\n')}
+${(shelves || []).filter((s) => s.kind === 'game').map((s) => `- ${s.id} — ${s.name}${s.groups.length ? ` (subheadings: ${s.groups.join(' | ')})` : ''}`).join('\n')}
 
 Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
 
@@ -312,6 +312,7 @@ function cleanShelves(a) {
   return list(a, 40, (s) => (s && str(s.id, 60) && str(s.name, 80) ? {
     id: str(s.id, 60), name: str(s.name, 80), kind: s.kind === 'canon' ? 'canon' : 'game',
     canonKind: CANON_KINDS.includes(s.canonKind) ? s.canonKind : '', fields: list(s.fields, 15, (f) => str(f, 60) || null),
+    groups: list(s.groups, 30, (g) => str(g, 60) || null),
   } : null));
 }
 
