@@ -332,7 +332,7 @@
         lead: "Суперечності й відкриті питання — і твої рішення.",
         min: 2,
         body: [
-          ["p", "У світу є вкладка «Неузгоджене», у кожної гри — підвкладка «Неузгоджене» в пункті «Продакшн-план». Сюди потрапляють суперечності з аудиту канону, аналізу гри, імпорту та звірки з GitHub, а також відкриті питання."],
+          ["p", "У світу є вкладка «Неузгоджене», у кожної гри — підпункт «Неузгоджене» в пункті меню «Продакшн-план». Сюди потрапляють суперечності з аудиту канону, аналізу гри, імпорту та звірки з GitHub, а також відкриті питання."],
           ["p", "Обери варіант або відпиши своїми словами — рішення запишеться туди, куди належить: у картку гри або в опис сутності канону. Вирішене памʼятається, і наступний аудит його не повторює."],
         ] },
       { cat: "world", id: "subsections", icon: "layers", title: "Підрозділи і переміщення карток",
@@ -352,7 +352,7 @@
         lead: "Дизайн гри поверх канону світу.",
         min: 3,
         body: [
-          ["p", "У світі може бути кілька ігор («Гра:» у меню). Меню гри — 11 пунктів; споріднені розділи зібрано в один пункт, а всередині вони — підвкладки над картками:"],
+          ["p", "У світі може бути кілька ігор («Гра:» у меню). Меню гри — 11 пунктів-дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
           ["ul", [
             "<b>Огляд і лор</b> — Огляд гри · Лор гри · Референси",
             "<b>Персонажі й вороги</b> — Персонажі · Фракції · Вороги й боси",
@@ -364,7 +364,9 @@
             "<b>Продакшн-план</b> — План · Неузгоджене",
             "<b>Досвід гравців</b> — Досвід гравців · Телеметрія (каталог подій)",
           ]],
-          ["p", "Пункт меню памʼятає останню відкриту підвкладку і показує сумарну кількість карток. ⚙ Налаштування гри — унизу меню; там же ховається непотрібний стандартний розділ (пункт меню зникає, коли в ньому не лишилось розділів)."],
+          ["p", "Стрілка ▸ розгортає чи згортає пункт; розгорнуті пункти запамʼятовуються. Пункт показує сумарну кількість карток, а розгортання переходить в останній відкритий розділ."],
+          ["p", "Під відкритим розділом у меню — його підрозділи («Усі», Персонажі, Вороги, Оточення…). Обери підрозділ, і на полотні лишиться тільки він; «Усі» повертає весь розділ. Так працюють і досьє світу, і Культура."],
+          ["p", "⚙ Налаштування гри — унизу меню; там же ховається непотрібний стандартний розділ (пункт меню зникає, коли в ньому не лишилось розділів)."],
           ["p", "Персонажі, Локації, Фракції й Артефакти гри — це канон, побачений через гру. Гра бере лише те, що ти обрав: «＋ Додати з канону». Ігрові поля (роль, числа, префаб) належать цій грі й не змінюють канон."],
           ["tip", "«Прибрати з цієї гри» не видаляє сутність із канону — вона повертається у вибір."],
         ] },
@@ -461,7 +463,7 @@
           ["h", "Підключення"],
           ["ul", [
             "«Підключення» → «Створити ключ»: ключ wwi_… лише для запису подій цієї гри, показується один раз; його можна відкликати.",
-            "Каталог подій — підвкладка «Телеметрія» в пункті «Досвід гравців» («＋ Стандартні події» додає стандарт: сесії, рух, бій, взаємодія, прогресія, дослідження, економіка, UI, кооп, опитування); позначай, які події значущі.",
+            "Каталог подій — підпункт «Телеметрія» в пункті меню «Досвід гравців» («＋ Стандартні події» додає стандарт: сесії, рух, бій, взаємодія, прогресія, дослідження, економіка, UI, кооп, опитування); позначай, які події значущі.",
             "id зон, рівнів і механік у подіях — це id карток Біблії; агент отримує їх разом зі схемою через get_telemetry_schema.",
           ]],
           ["prompt", "Виклич get_telemetry_schema і реалізуй телеметрію гри за нею: подія-конверт, локальна черга, пакети раз на 30–60 с і при паузі, повтори з затримкою, нічого не блокує ігровий потік. Аналітика лише за згодою гравця, з вимкненням у налаштуваннях; псевдонімні id. Рух — PositionSample не частіше ніж раз на 5 с. Зони й механіки позначай id з id_map. Покрий тестами чергу, дедуплікацію й повтори."],
@@ -925,7 +927,7 @@
         lead: "Contradictions and open questions — and your decisions.",
         min: 2,
         body: [
-          ["p", "The world has an “Inconsistencies” tab; every game has an “Inconsistencies” sub-tab under “Production plan”. It collects contradictions from the canon audit, the game analysis, imports and the GitHub check, and the open questions."],
+          ["p", "The world has an “Inconsistencies” tab; every game has an “Inconsistencies” sub-item under the “Production plan” menu item. It collects contradictions from the canon audit, the game analysis, imports and the GitHub check, and the open questions."],
           ["p", "Pick an option or answer in your own words — the decision is written where it belongs: into the game card or the canon entity's description. Settled ones are remembered, and the next audit does not repeat them."],
         ] },
       { cat: "world", id: "subsections", icon: "layers", title: "Subsections and moving cards",
@@ -945,7 +947,7 @@
         lead: "The game design on top of the world canon.",
         min: 3,
         body: [
-          ["p", "A world can have several games (“Game:” in the menu). The game menu has 11 items; related sections share one item and appear inside it as sub-tabs above the cards:"],
+          ["p", "A world can have several games (“Game:” in the menu). The game menu is an 11-item tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
           ["ul", [
             "<b>Overview & lore</b> — Game overview · Game lore · References",
             "<b>Characters & enemies</b> — Characters · Factions · Enemies & bosses",
@@ -957,7 +959,9 @@
             "<b>Production plan</b> — Plan · Inconsistencies",
             "<b>Player experience</b> — Player experience · Telemetry (event catalogue)",
           ]],
-          ["p", "A menu item remembers its last open sub-tab and shows the total card count. ⚙ Game settings sit at the bottom of the menu; a standard section you don't need is hidden there (a menu item disappears once none of its sections is left)."],
+          ["p", "The arrow ▸ unfolds or folds an item; unfolded items are remembered. An item shows the total card count, and unfolding it opens the section you had open last."],
+          ["p", "Under the open section the menu lists its subsections (“All”, Characters, Enemies, Environment…). Pick one and only it stays on the canvas; “All” brings the whole section back. World dossiers and Culture work the same way."],
+          ["p", "⚙ Game settings sit at the bottom of the menu; a standard section you don't need is hidden there (a menu item disappears once none of its sections is left)."],
           ["p", "The game's Characters, Locations, Factions and Artifacts are the canon seen through the game. A game takes only what you pick: “＋ Add from canon”. Game fields (role, numbers, prefab) belong to this game and don't change the canon."],
           ["tip", "“Remove from this game” does not delete the entity from the canon — it returns to the picker."],
         ] },
@@ -1054,7 +1058,7 @@
           ["h", "Connecting"],
           ["ul", [
             "“Connect” → “Create a key”: a write-only wwi_… key for this game's events, shown once; it can be revoked.",
-            "The event catalogue is the “Telemetry” sub-tab under “Player experience” (“＋ Standard events” adds the standard: session, movement, combat, interaction, progression, exploration, economy, UI, co-op, surveys); mark which events are meaningful.",
+            "The event catalogue is the “Telemetry” sub-item under the “Player experience” menu item (“＋ Standard events” adds the standard: session, movement, combat, interaction, progression, exploration, economy, UI, co-op, surveys); mark which events are meaningful.",
             "Zone, level and mechanic ids in events are Bible card ids; the agent gets them with the schema from get_telemetry_schema.",
           ]],
           ["prompt", "Call get_telemetry_schema and implement the game's telemetry from it: the event envelope, a local queue, batches every 30–60 s and on pause, retries with backoff, nothing blocks the game thread. Analytics only with the player's consent, switchable off in settings; pseudonymous ids. Movement is a PositionSample at most every 5 s. Tag zones and mechanics with ids from id_map. Cover the queue, deduplication and retries with tests."],

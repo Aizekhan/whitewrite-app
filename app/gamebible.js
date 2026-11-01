@@ -66,7 +66,7 @@
       sectionAbout: "Про що цей розділ (необовʼязково)", create: "Створити", cancel: "Скасувати",
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
-      group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.",
+      group: "Підрозділ", sub: { all: "Усі", add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.",
         general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
@@ -246,7 +246,7 @@
       sectionAbout: "What this section is about (optional)", create: "Create", cancel: "Cancel",
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
-      group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.",
+      group: "Subsection", sub: { all: "All", add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.",
         general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
@@ -585,7 +585,12 @@
     { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues"] },
     { id: "g-exp", uk: "Досвід гравців", en: "Player experience", members: ["experience", "telemetry"] },
   ];
-  var lastSub = {}; // the sub-tab last open in each group: the menu item returns to it
+  var lastSub = {}; // the section last open in each group: opening the group returns to it
+  // the menu is a tree: a group folds with an arrow (navOpen, remembered); the open section lists its subsections,
+  // and picking one shows only that subsection on the canvas (subSel[section]; undefined = all)
+  var navOpen = {}; try { navOpen = JSON.parse(localStorage.getItem("ww-bible-navopen") || "{}") || {}; } catch (e) { navOpen = {}; }
+  var subSel = {};
+  var ARROW = '<span class="arr"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>';
   function navGroupOf(id) { return NAV_GROUPS.filter(function (g) { return g.members && g.members.indexOf(id) >= 0; })[0] || null; }
   function groupMembers(g) { var ids = gameSections().map(function (s) { return s.id; }); return g.members.filter(function (m) { return ids.indexOf(m) >= 0; }); }
   var SETTINGS = { id: "settings", special: "settings", uk: "Налаштування проєкту", en: "Project settings",
@@ -838,9 +843,11 @@
       : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
       : s.special ? "" : all.filter(function (c) { return c.section === s.id; }).length;
   }
-  function navItem(s, all) {
-    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(L(s)) + '<span class="n">' + navCount(s, all) + '</span></button>';
+  function navItem(s, all, label) {
+    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(label || L(s)) + '<span class="n">' + navCount(s, all) + '</span></button>';
   }
+  // a section named like its group gets a short name inside it («Продакшн-план» → «План»)
+  var NAV_SHORT = { plan: { uk: "План", en: "Plan" }, experience: { uk: "Метрики й проблеми", en: "Metrics & issues" } };
   function gameNav(all) {
     var listed = {}, out = [];
     NAV_GROUPS.forEach(function (g) { if (g.members) g.members.forEach(function (m) { listed[m] = 1; }); });
@@ -848,21 +855,26 @@
       if (g === "custom") { gameSections().filter(function (s) { return !listed[s.id]; }).forEach(function (s) { out.push(navItem(s, all)); }); return; }
       var mem = groupMembers(g); if (!mem.length) return;
       if (mem.length === 1) { out.push(navItem(sec(mem[0]), all)); return; }
-      var to = mem.indexOf(lastSub[g.id]) >= 0 ? lastSub[g.id] : mem[0];
+      var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
-      out.push('<button class="nav-item" data-sec="' + esc(to) + '" data-group="' + g.id + '" aria-current="' + (mem.indexOf(section) >= 0 && !imp) + '">' + esc(L(g)) + '<span class="n">' + (n || "") + '</span></button>');
+      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '">' + ARROW + esc(L(g)) + '<span class="n">' + (n || "") + '</span></button>');
+      if (open) mem.forEach(function (m) { out.push(navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"')); });
     });
     return out.join("");
   }
-  // the sub-tabs of the open group, above the view
-  function renderSubtabs() {
-    var g = !imp && !query && game ? navGroupOf(section) : null, mem = g ? groupMembers(g) : [];
-    if (mem.length < 2) { $("subtabs").innerHTML = ""; $("subtabs").hidden = true; return; }
-    lastSub[g.id] = section;
-    var all = allCards();
-    $("subtabs").hidden = false;
-    $("subtabs").innerHTML = mem.map(function (m) { var s = sec(m), n = navCount(s, all);
-      return '<button class="subtab" role="tab" data-sec="' + esc(m) + '" aria-selected="' + (m === section) + '">' + esc(L(s)) + (n ? ' <span class="n">' + n + '</span>' : '') + '</button>'; }).join("");
+  // The open section's subsections, listed under its menu item (read from the rendered .subsec blocks, so canon
+  // dossiers, culture and game shelves work alike); the choice hides the other blocks on the canvas.
+  function renderSubNav() {
+    var old = $("nav").querySelector(".nav-subs"); if (old) old.parentNode.removeChild(old);
+    var blocks = [].slice.call($("view").querySelectorAll(".subsec[data-sub]")), sel = subSel[section];
+    if (sel != null && !blocks.some(function (b) { return b.dataset.sub === sel; })) sel = subSel[section] = undefined;
+    blocks.forEach(function (b) { b.hidden = sel != null && b.dataset.sub !== sel; });
+    var cur = $("nav").querySelector('.nav-item[aria-current="true"]:not(.nav-grp)');
+    if (blocks.length < 2 || !cur || query) return;
+    var item = function (attr, label, n, on) { return '<button class="nav-sub2" ' + attr + ' aria-current="' + on + '">' + esc(label) + (n ? '<span class="n">' + esc(n) + '</span>' : '') + '</button>'; };
+    cur.insertAdjacentHTML("afterend", '<div class="nav-subs" role="group" aria-label="' + esc(STR.group) + '">' + item('data-suball="1"', STR.sub.all, "", sel == null) +
+      blocks.map(function (b) { var h = b.querySelector("h2.group"), c = h && h.querySelector("span");
+        return item('data-subsel="' + esc(b.dataset.sub) + '"', h && h.firstChild ? h.firstChild.textContent.trim() : b.dataset.sub, c ? c.textContent : "", sel === b.dataset.sub); }).join("") + '</div>');
   }
   function renderNav() {
     var all = allCards();
@@ -875,6 +887,7 @@
       pick + (game ? gameNav(all) : "");
     $("newsec-slot").innerHTML = game && canGame ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
     $("nav-foot").innerHTML = navItem(SETTINGS, all).replace('data-sec="settings">', 'data-sec="settings">⚙ ');
+    renderSubNav();
   }
 
   function excerpt(c) {
@@ -908,7 +921,8 @@
   }
 
   function render() {
-    renderNav(); renderSubtabs(); dragCtx = null;
+    var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
+    renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
     $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = cur ? L(cur) : "";
@@ -3057,15 +3071,26 @@
   // ---------- events ----------
   function navClick(e) {
     if (e.target.closest("#canon-toggle")) { canonFolded = !canonFolded; try { localStorage.setItem("ww-bible-fold", canonFolded ? "1" : ""); } catch (er) {} renderNav(); return; }
-    var b = e.target.closest(".nav-item, .subtab"); if (!b) return;
-    if (wdraft && b.dataset.sec !== section && wdirty() && !confirm(STR.dos.unsaved)) return;
-    section = b.dataset.sec; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
+    var sb = e.target.closest(".nav-sub2");
+    if (sb) { if (sb.dataset.suball) delete subSel[section]; else subSel[section] = sb.dataset.subsel; renderSubNav(); $("main").scrollTop = 0; return; }
+    var gb = e.target.closest(".nav-grp");
+    if (gb) { // a group folds / unfolds; unfolding a group you are not in opens its last (or first) section
+      var g = NAV_GROUPS.filter(function (x) { return x.id === gb.dataset.group; })[0], mem = groupMembers(g), open = gb.getAttribute("aria-expanded") !== "true";
+      navOpen[g.id] = open; try { localStorage.setItem("ww-bible-navopen", JSON.stringify(navOpen)); } catch (er) {}
+      if (!open || mem.indexOf(section) >= 0) return renderNav();
+      return goSection(mem.indexOf(lastSub[g.id]) >= 0 ? lastSub[g.id] : mem[0]);
+    }
+    var b = e.target.closest(".nav-item"); if (b) goSection(b.dataset.sec);
+  }
+  function goSection(id) {
+    if (wdraft && id !== section && wdirty() && !confirm(STR.dos.unsaved)) return;
+    section = id; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
   // phones: the sections fold into a drawer under one «☰ section» button
   $("nav-toggle").addEventListener("click", function () { var o = $("spine").classList.toggle("is-open"); this.setAttribute("aria-expanded", String(o)); });
   $("nav").addEventListener("click", navClick);
   $("nav-foot").addEventListener("click", navClick);
-  $("subtabs").addEventListener("click", navClick);
+  new MutationObserver(renderSubNav).observe($("view"), { childList: true }); // each view render re-lists the subsections
   $("nav").addEventListener("change", function (e) {
     if (e.target.id !== "gamepick") return;
     if (section === "settings") section = "overview";
