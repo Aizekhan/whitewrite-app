@@ -4,6 +4,9 @@
 //   op "analyze": a living GDD summary + the open questions that block production
 //   op "plan":    after the author's answers, a precise development plan
 //   op "canonAudit": contradictions inside the WORLD canon (no game needed) → worlds/{w}.audit; the author resolves them
+//   op "repoConnect" / "repoDisconnect": link the game's GitHub repository (free; the token lives only in repoTokens/{w}__{g})
+//   op "repoSync":   on the author's button — the repo's docs + file inventory vs the Bible → a PROPOSAL like import:
+//                    what the repo has and the Bible lacks, and where they disagree (ticked ones go to «Неузгоджене»)
 // analyze/plan results live in worlds/{w}/games/{g}/plan/current (answers are written there by the client).
 const {
   onRequest,
@@ -298,6 +301,104 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 {"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","accept":[""],"tests":[""],"cards":["c:..."],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"M2.1"}]}}`;
 }
 
+// ---------- GitHub: the game's repository, read only on the author's button ----------
+// games/{g}.repo { full, branch, private, connectedAt, syncedAt, sha } — visible to the owner; the token: repoTokens/{w}__{g} (no client access).
+const MAX_REPO_DOC_CHARS = 80000;
+const REPO_SKIP = /(^|\/)(node_modules|Library|Temp|Logs|obj|bin|Builds?|\.git|\.vs|\.idea|\.vscode|vendor|dist)\//;
+const REPO_DOC = /\.(md|markdown|txt)$/i;
+const REPO_ASSET = /\.(prefab|unity|asset|fbx|glb|gltf|obj|blend|cs|uasset|umap|tscn|tres|gd|shader|shadergraph|controller|anim)$/i;
+const docRank = (p) => (/^(readme|game|gdd|design)[^/]*$/i.test(p) ? 0 : /^docs?\//i.test(p) ? 1 : !p.includes('/') ? 2 : 3);
+const repoError = (status, message) => Object.assign(new Error(message), { httpStatus: status });
+function parseRepo(v) {
+  const s = String(v || '').trim().replace(/\.git$/, '');
+  const m = s.match(/github\.com[/:]([\w.-]+)\/([\w.-]+)/) || s.match(/^([\w.-]+)\/([\w.-]+)\/?$/);
+  return m ? m[1] + '/' + m[2] : '';
+}
+async function gh(path, token, raw) {
+  const r = await fetch('https://api.github.com' + path, { headers: Object.assign({ Accept: raw ? 'application/vnd.github.raw' : 'application/vnd.github+json',
+    'User-Agent': 'WhiteWrite', 'X-GitHub-Api-Version': '2022-11-28' }, token ? { Authorization: 'Bearer ' + token } : {}) });
+  if (!r.ok) {
+    throw repoError(400, r.status === 404 ? 'Репозиторій чи гілку не знайдено, або токен не має до них доступу'
+      : r.status === 401 ? 'GitHub не прийняв токен' : r.status === 403 || r.status === 429 ? 'GitHub обмежив запити — додай токен або спробуй пізніше' : 'GitHub: HTTP ' + r.status);
+  }
+  return raw ? r.text() : r.json();
+}
+// The repo as text for the model: what changed since the last check, the asset/code inventory, then the docs (README/GDD/Docs first)
+async function readRepo(full, branch, token, prevSha) {
+  const enc = encodeURIComponent;
+  const sha = (await gh(`/repos/${full}/commits/${enc(branch)}`, token)).sha;
+  const tree = await gh(`/repos/${full}/git/trees/${sha}?recursive=1`, token);
+  const files = (tree.tree || []).filter((t) => t.type === 'blob' && !REPO_SKIP.test(t.path));
+  const docs = files.filter((f) => REPO_DOC.test(f.path) && (f.size || 0) < 300000).sort((a, b) => docRank(a.path) - docRank(b.path) || a.path.length - b.path.length);
+  const parts = [];
+  let budget = MAX_REPO_DOC_CHARS;
+  for (const f of docs.slice(0, 40)) {
+    if (budget < 500) break;
+    const t = String(await gh(`/repos/${full}/contents/${f.path.split('/').map(enc).join('/')}?ref=${sha}`, token, true)).slice(0, budget);
+    budget -= t.length;
+    parts.push(`## FILE ${f.path}\n${t}`);
+  }
+  const assets = files.filter((f) => REPO_ASSET.test(f.path)).map((f) => f.path);
+  const other = {};
+  files.forEach((f) => { if (!REPO_DOC.test(f.path) && !REPO_ASSET.test(f.path)) { const x = (f.path.match(/\.([^./]+)$/) || [0, '-'])[1].toLowerCase(); other[x] = (other[x] || 0) + 1; } });
+  let changed = [];
+  if (prevSha && prevSha !== sha) {
+    try { changed = ((await gh(`/repos/${full}/compare/${prevSha}...${sha}`, token)).files || []).map((f) => `${f.status} ${f.filename}`).slice(0, 150); } catch (e) { /* history rewritten — compare everything */ }
+  }
+  return { sha, text: [`# Repository ${full} @ ${branch} (${sha.slice(0, 7)})`,
+    changed.length ? `## Changed since the last check (${prevSha.slice(0, 7)}):\n${changed.join('\n')}` : '',
+    `## Asset & code inventory (${assets.length} files)\n${assets.join('\n').slice(0, 20000)}`,
+    `Other files by type: ${Object.entries(other).map(([k, v]) => k + ' ' + v).join(', ') || '-'}`,
+    tree.truncated ? '(GitHub truncated the file list)' : '', '# Documents', ...parts].filter(Boolean).join('\n\n') };
+}
+// Connect / disconnect: no AI, no tokens — only the owner of the world
+async function repoLink(op, uid, worldId, gameId, body) {
+  const worldRef = db.collection('worlds').doc(worldId), gameRef = worldRef.collection('games').doc(gameId);
+  const [w, g] = await Promise.all([worldRef.get(), gameRef.get()]);
+  if (!w.exists || w.data().owner !== uid || !g.exists) throw repoError(403, 'Гру не знайдено або немає доступу');
+  const tokRef = db.collection('repoTokens').doc(worldId + '__' + gameId);
+  if (op === 'repoDisconnect') {
+    await tokRef.delete();
+    await gameRef.update({ repo: admin.firestore.FieldValue.delete() });
+    return { success: true };
+  }
+  const full = parseRepo(body.repo);
+  if (!full) throw repoError(400, 'Вкажи репозиторій як owner/назва або посилання на GitHub');
+  const token = str(body.token, 400);
+  const info = await gh(`/repos/${full}`, token);
+  const branch = str(body.branch, 120) || info.default_branch;
+  await gh(`/repos/${info.full_name}/branches/${encodeURIComponent(branch)}`, token);
+  if (token) await tokRef.set({ uid, token, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  else await tokRef.delete();
+  const repo = { full: info.full_name, branch, private: !!info.private, connectedAt: admin.firestore.FieldValue.serverTimestamp() };
+  await gameRef.update({ repo }); // replaces the whole field: a new repo starts without the old sha
+  return { success: true, repo: { full: repo.full, branch, private: repo.private } };
+}
+
+function repoPrompt(repoText, bible, shelves, languageName, cards) {
+  const shelfText = shelves.map((s) => `- ${s.id} (${s.kind === 'canon' ? `CANON ${s.canonKind}` : 'game'}): ${s.name}${s.fields.length ? ` — fields: ${s.fields.join(' | ')}` : ''}${s.groups.length ? ` — subheadings (put the fitting one into the first field): ${s.groups.join(' | ')}` : ''}`).join('\n');
+  return `You are the librarian of WhiteWrite. Below is the Game Bible of one game (the design, written by the author on the world's canon) and the game's code repository (its documents and file inventory). Compare them.
+
+1. What the REPOSITORY has and the BIBLE lacks — mechanics, systems, enemies, bosses, levels, items, prefabs/models, characters, places, laws of the world… Propose it the way a notes import does: canon entities in "canon" (kind characters|locations|factions|artifacts, name, description, "match" = the id of an entity the Bible already has, game-only details in gameFields), hard rules of the world in "laws", everything about the game in "cards" (section = a game shelf id, title, fields {"<field label>": "value"}; reuse an existing card's exact title and section to add to it). Only what is really in the repository — its documents, or assets/scripts whose names leave no doubt; never invent. Do not propose what the Bible already says.
+2. Where the repository and the Bible DISAGREE — a number, a name, a mechanic done differently in code, a feature the Bible plans that the code dropped, an asset a card names that the repository does not have, a document that contradicts the canon → "contradictions": what (both sides, short), where ("repo: <path> · bible: <card title>"), 2-4 options how to resolve it, target — the Bible card ref ("c:..." / "e:...") and the field the decision belongs in.
+3. "questions" — decisions the differences leave open (topic, question, why, options, priority blocker|important|nice).
+If "Changed since the last check" is listed, look at those files first.
+
+SHELVES:
+${shelfText}
+Existing game cards:
+${cards.filter((c) => !c.canonRef).map((c) => `- [${c.section}] ${c.title || ''}`).join('\n') || '(none)'}
+
+BIBLE:
+${bible}
+
+REPOSITORY:
+${repoText}
+
+Write ALL text in ${languageName} unless quoting the repository. Return ONLY valid JSON, no markdown fence:
+{"laws":[""],"canon":[{"kind":"characters","name":"","description":"","match":"","gameFields":{}}],"cards":[{"section":"mechanics","title":"","fields":{}}],"contradictions":[{"what":"","where":"","options":[""],"target":{"card":"","field":""}}],"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"important"}]}`;
+}
+
 // Split notes at headings into parts of at most IMPORT_PART_CHARS
 const IMPORT_PART_CHARS = 20000;
 function splitMarkdown(md) {
@@ -360,7 +461,7 @@ function cleanShelves(a) {
 
 /**
  * Cloud Function: gamedevPlan
- * Input (POST JSON): { worldId, gameId, op: 'import' | 'analyze' | 'plan', language?, markdown?, shelves? }
+ * Input (POST JSON): { worldId, gameId, op: 'import' | 'analyze' | 'plan' | 'canonAudit' | 'repoConnect' | 'repoDisconnect' | 'repoSync', language?, markdown?, shelves?, repo?, branch?, token? }
  * Output: { success, tokensConsumed, tokensRemaining, proposal? } — analyze/plan write worlds/{w}/games/{g}/plan/current
  */
 exports.gamedevPlan = onRequest({
@@ -384,7 +485,7 @@ exports.gamedevPlan = onRequest({
       }
 
       const body = req.body || {};
-      const op = oneOf(body.op, ['import', 'analyze', 'plan', 'canonAudit'], 'analyze');
+      const op = oneOf(body.op, ['import', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
       const worldId = str(body.worldId, 120);
       const gameId = str(body.gameId, 120);
@@ -399,6 +500,10 @@ exports.gamedevPlan = onRequest({
       const userPlan = userData.plan || 'free';
       if (!getPlanBudget(userPlan).allowGameDev) {
         return res.status(403).json({ error: 'Біблія гри доступна на тарифі Worldbuilder', code: 'PLAN_REQUIRED', plan: userPlan });
+      }
+      if (op === 'repoConnect' || op === 'repoDisconnect') {
+        try { return res.status(200).json(await repoLink(op, uid, worldId, gameId, body)); }
+        catch (e) { if (!e.httpStatus) throw e; return res.status(e.httpStatus).json({ error: e.message }); }
       }
       if (userData.subscriptionStatus !== 'active') {
         return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true, plan: userPlan });
@@ -424,6 +529,13 @@ exports.gamedevPlan = onRequest({
       const audit = world.audit || {}, auditAnswers = world.auditAnswers || {};
       if (op === 'plan' && !prev.gdd) return res.status(400).json({ error: 'Спершу проаналізуй біблію', code: 'ANALYZE_FIRST' });
       const shelves = cleanShelves(body.shelves);
+      let repoData = null; // read before any token is reserved: a GitHub error costs nothing
+      if (op === 'repoSync') {
+        if (!game.repo || !game.repo.full) return res.status(400).json({ error: 'Спершу підключи репозиторій', code: 'NO_REPO' });
+        const tok = await db.collection('repoTokens').doc(worldId + '__' + gameId).get();
+        try { repoData = await readRepo(game.repo.full, game.repo.branch, tok.exists ? tok.data().token : '', game.repo.sha); }
+        catch (e) { if (!e.httpStatus) throw e; return res.status(e.httpStatus).json({ error: e.message }); }
+      }
 
       // Priced by real output (scene economy entry), logged separately
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
@@ -443,6 +555,7 @@ exports.gamedevPlan = onRequest({
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
+        : op === 'repoSync' ? [repoPrompt(repoData.text, bibleText(world, entities, cards, game, shelves, lore), shelves, languageName, cards)]
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
       const prompt = prompts.join('');
@@ -450,7 +563,7 @@ exports.gamedevPlan = onRequest({
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      else if (op !== 'import') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      else if (op !== 'import' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       const messages = await Promise.all(prompts.map((content) => anthropic.messages.stream({
         model,
         max_tokens: op === 'plan' ? 32000 : 16000,
@@ -468,6 +581,9 @@ exports.gamedevPlan = onRequest({
           auditRunning: admin.firestore.FieldValue.delete() }, { merge: true });
       } else if (op === 'import') {
         proposal = cleanImport(mergeImports(results), shelves, entities, world);
+      } else if (op === 'repoSync') {
+        proposal = cleanImport(parsed, shelves, entities, world);
+        await gameRef.set({ repo: { syncedAt: admin.firestore.FieldValue.serverTimestamp(), sha: repoData.sha } }, { merge: true });
       } else {
         const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine, running: admin.firestore.FieldValue.delete() };
         if (op === 'analyze') {

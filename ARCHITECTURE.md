@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.10.0 (2026-11-02)
+**Version:** 2.11.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -216,6 +216,14 @@ Frontend (re-render)
 - `executions/{id}` — log of every MCP tool call `{ tool, taskId, at, ... }`
 - `changeRequests/{id}` — executor asks to change the design `{ what, why, taskId, status: open|accepted|rejected }`
 - Files: Firebase Storage `worlds/{w}/games/{g}/files/**` (game) and `worlds/{w}/files/{entityId}/**` (world dossiers); world deletion removes both
+
+- `games/{g}.repo` — the game's GitHub repository `{ full, branch, private, connectedAt, syncedAt, sha }` (written by `gamedevPlan` only)
+
+#### **`repoTokens/{worldId}__{gameId}`** — GitHub tokens
+```javascript
+{ uid, token, updatedAt }   // read-only fine-grained token for a private repo; no client access at all
+```
+`gamedevPlan` op `repoConnect` checks the repo (+ branch, default = the repo's main one) with GitHub, stores the token here and `repo` on the game; `repoDisconnect` removes both. op `repoSync` (the author's button «Звірити з репо» in the game settings, priced like import, nothing is reserved if GitHub fails): reads the branch head — the files changed since `repo.sha` (compare API), an inventory of asset/code paths (.prefab .unity .asset .fbx .glb .cs .uasset .tscn …, build/cache folders skipped), up to 80 000 chars of .md/.txt (README/GAME/GDD → Docs/ → root → the rest) — and compares it with the Bible (`repoPrompt`). The answer is an import-shaped proposal (`cleanImport`): what the repo has and the Bible lacks (canon / laws / cards) + contradictions «repo: path · bible: card» + questions, shown in the import view; ticked items are written by the client like an import, ticked contradictions go to `plan/current.contradictions` (= «Неузгоджене»). `repo.syncedAt` / `sha` are updated.
 
 #### **`mcpKeys/{sha256(key)}`** — executor keys
 ```javascript
@@ -521,6 +529,7 @@ firebase deploy                   # Deploy everything
 - Users can only read/write their own projects
 - Worlds/entities: owner only; `games/**` write requires `allowGameDev` plan (`hasGameDev()`)
 - `mcpKeys`: owner reads/deletes; create only for own world + gamedev plan, fixed field set; no client updates
+- `repoTokens`: no client read or write (only the `gamedevPlan` function)
 - Billing fields on `users/{uid}` are server-only
 - MCP: key hashed (sha256), per-game scope, revocable, plan re-checked on every call; function is public-invoker, auth is in code
 - Canon extraction logs: owner-only read

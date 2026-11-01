@@ -144,7 +144,12 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно до {n} токенів (точна сума залежить від обсягу). Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ до {n})",
-      ops: { analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону" },
+      ops: { analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм" },
+      repo: { title: "GitHub-репозиторій гри", hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
+        repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
+        connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
+        sync: "Звірити з репо", disconnect: "Відключити", busy: "AI читає репозиторій і звіряє його з Біблією… (до кількох хвилин)", result: "Звірка з репозиторієм",
+        intro: "Що є в репозиторії, але немає в Біблії, і де вони розходяться. У картки потрапить лише відмічене, відмічені розбіжності — у «Неузгоджене»." },
       stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати стандартний розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці.",
       stRestore: "Відновити з копії (JSON)", stRestoreHint: "Файл гри відновлюється як нова гра в цьому світі, файл світу — як новий світ.",
       stRestored: "Відновлено", stBadJson: "Це не файл експорту WhiteWrite.",
@@ -282,7 +287,12 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs up to about {n} tokens (the exact amount depends on the volume). Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ up to {n})",
-      ops: { analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit" },
+      ops: { analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check" },
+      repo: { title: "The game's GitHub repository", hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
+        repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenPh: "GitHub token — only for a private repo",
+        connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
+        sync: "Check against the repo", disconnect: "Disconnect", busy: "AI is reading the repository and comparing it with the Bible… (up to a few minutes)", result: "Repository check",
+        intro: "What the repository has and the Bible lacks, and where they disagree. Only ticked items go into the cards; ticked differences go to “Inconsistencies”." },
       stShown: "Game sections in the menu", stShownHint: "Untick to hide a standard section in this game. Cards are not deleted — tick it again and they are back.",
       stRestore: "Restore from a copy (JSON)", stRestoreHint: "A game file is restored as a new game in this world, a world file as a new world.",
       stRestored: "Restored", stBadJson: "This is not a WhiteWrite export file.",
@@ -2028,7 +2038,7 @@
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
         '<div class="setrow"><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
-        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' +
+        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' + repoHtml() +
         '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p><div class="shownsecs">' + GAME.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0) ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div>' +
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
@@ -2053,6 +2063,7 @@
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
     $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); };
+    bindRepo();
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = function () {
         var hidden = (game.hiddenSections || []).filter(function (x) { return x !== cb.dataset.showsec; });
@@ -2211,6 +2222,37 @@
     });
   }
 
+  // ---------- the game's GitHub repository: connect, then «Звірити з репо» on demand (the proposal reuses the import view) ----------
+  function repoHtml() {
+    var r = game.repo, R = STR.repo, d = r && r.syncedAt ? (r.syncedAt.toDate ? r.syncedAt.toDate() : new Date(r.syncedAt)) : null;
+    return '<h2>' + R.title + '</h2><p class="hint">' + R.hint + '</p>' + (r && r.full
+      ? '<p>' + esc(R.connected.replace("{r}", r.full).replace("{b}", r.branch || "")) + (r.private ? ' 🔒' : '') + '</p>' +
+        '<p class="hint">' + (d ? esc(R.synced.replace("{d}", d.toLocaleString(LANG === "en" ? "en-GB" : "uk-UA"))) : R.never) + '</p>' +
+        '<div class="setrow"><button class="btn" id="rp-sync">' + R.sync + costMark("repoSync") + '</button><button class="btn danger" id="rp-off">' + R.disconnect + '</button></div>'
+      : '<div class="setrow"><input id="rp-repo" aria-label="' + esc(R.repo) + '" placeholder="' + esc(R.repoPh) + '"><input id="rp-branch" aria-label="' + esc(R.branch) + '" placeholder="' + esc(R.branchPh) + '"></div>' +
+        '<div class="setrow"><input id="rp-token" type="password" autocomplete="off" aria-label="' + esc(R.token) + '" placeholder="' + esc(R.tokenPh) + '"><button class="btn" id="rp-on">' + R.connect + '</button></div>') +
+      '<p class="hint" id="rp-msg"></p>';
+  }
+  function bindRepo() {
+    var say = function (t) { $("rp-msg").textContent = t; };
+    var on = $("rp-on"), off = $("rp-off"), sync = $("rp-sync");
+    if (on) on.onclick = async function () {
+      if (!$("rp-repo").value.trim()) return $("rp-repo").focus();
+      on.disabled = true; say(STR.repo.connecting);
+      try { await callFn({ op: "repoConnect", repo: $("rp-repo").value, branch: $("rp-branch").value.trim(), token: $("rp-token").value.trim() }); say(""); }
+      catch (e) { say(STR.failed + ": " + e.message); on.disabled = false; }
+    };
+    if (off) off.onclick = async function () { off.disabled = true; try { await callFn({ op: "repoDisconnect" }); } catch (e) { say(STR.failed + ": " + e.message); off.disabled = false; } };
+    if (sync) sync.onclick = function () { confirmCost("repoSync", startRepoSync); };
+  }
+  async function startRepoSync() {
+    closeLeaf();
+    imp = { busy: true, repo: true }; render();
+    try { var data = await callFn({ op: "repoSync", shelves: shelves() }); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {}, repo: true }; }
+    catch (e) { imp = { error: e.message, repo: true }; }
+    render();
+  }
+
   // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
   function startImport(file) {
     var rd = new FileReader();
@@ -2227,9 +2269,9 @@
   }
 
   function renderImport() {
-    var html = '<header class="sec"><div><h1>' + STR.importTitle + '</h1><p>' + (imp.proposal ? STR.importIntro : "") + '</p></div>' +
+    var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : STR.importIntro) : "") + '</p></div>' +
       '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
-    if (imp.busy) html += '<p class="pmsg">' + STR.importBusy + '</p>';
+    if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
     if (imp.done) html += '<p class="pmsg">' + STR.importDone + ': ' + imp.done + '</p>';
     var p = imp.proposal;
