@@ -89,7 +89,7 @@ window.__PLAN_BUDGETS = {
 
     maxProjects: 5,
 
-    description: "120 сцен Gemini, експорт книг, WorldTree + Canon"
+    description: "120 сцен Gemini, експорт книг, Біблія світу + канон"
   },
 
   novelist: {
@@ -115,7 +115,7 @@ window.__PLAN_BUDGETS = {
     imageCreditsGuideline: 100, // Soft limit (UI shows "100 images recommended")
     loraSlots: 3,              // 3 LoRA models per project (one-time training)
 
-    description: "32K токенів: ~400 Gemini / 80 Claude + 100 зображень + 3 LoRA + Reconstruction + ANALYZE/IMPROVE"
+    description: "32K токенів: ~400 Gemini / 80 Claude + узгодження сцен + ANALYZE/IMPROVE"
   },
 
   worldbuilder: {
@@ -141,7 +141,7 @@ window.__PLAN_BUDGETS = {
     imageCreditsGuideline: 500,
     loraSlots: 10,             // 10 LoRA models per project
 
-    description: "180K токенів: ~300 Claude / ∞ Gemini + 500 зображень + 10 LoRA + API + ANALYZE/IMPROVE"
+    description: "180K токенів: ~300 Claude / ∞ Gemini + Біблія гри + API + ANALYZE/IMPROVE"
   },
 
   // Dev/testing plan (legacy)

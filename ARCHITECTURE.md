@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.8.0 (2026-11-02)
+**Version:** 2.9.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -396,7 +396,7 @@ User: Generate next scene following canon.
 - **AI cost marks:** every paid AI action (analyze/audit, plan, import, canon audit) carries a small ✦ with the approximate price and asks for confirmation first (`costOf` mirrors gamedevPlan's reservation: `economy_operations/generateScene.providers.claude.cost` × 2 analyze/audit, × 4 plan/import).
 - **Settings extras:** hide standard sections per game (`games/{g}.hiddenSections`), restore from an export JSON (a game file → new game in this world; a world file → new world; never overwrites).
 - **Standard 14 sections:** overview, lore, mechanics, progression, levels, enemies, gear, assets, materials, animation, audio, ui, refs, tech (+ custom) and the Production plan.
-- **Subsections (one pattern for every card page, the Культура pattern):** each subheading carries «＋ Додати» (a card / dossier / event / culture entry born in that subsection); the top bar always has «＋ Підрозділ» (styled dialog); an empty subsection can be removed (✕). Cards have no subheading menu or field — they belong where they were added (`fields.group` / `category` for game cards, `group` on entities and lore entries; a canon pick writes it into the game card).
+- **Subsections (one pattern for every card page, the Культура pattern):** each subheading carries «＋ Додати» (a card / dossier / event / culture entry born in that subsection); the top bar always has «＋ Підрозділ» (styled dialog); an empty subsection can be removed (✕). A card belongs where it was added (`fields.group` / `category` for game cards, `group` on entities and lore entries; a canon pick writes it into the game card) and can be moved: the subsection menu in the card (`#e-sub`) / dossier (`#d-sub`) header (shown with ≥2 subsections and write access, saved at once), or a pointer drag (mouse/pen; touch uses the menu) — onto a card puts it before/after it, onto a subsection block (`.subsec[data-sub]`) appends it there; the page autoscrolls near the edges. A drop rewrites `order` (0…n) for the whole target subsection and the moved card's group in one batch; lists sort by `order`, then by name (cards without `order` go last).
   Order and the author's own subsections: `games/{g}.subsections[sectionId]` (game sections) / `worlds/{w}.subsections[sectionId]` (canon: dossiers, chronicle, culture); absent → the standard ones (`groups` in `GAME[]`, e.g. Mechanics: Рух, Бій, Здібності…, `LORE` for culture). Standard names are matched in both languages and shown in the current one. A page without subsections shows one block «Загальне» («Лінія часу» in the chronicle); cards outside the list fall into «Інше». In the chronicle every subsection is its own time line; «＋ Нова історія» posts `ww-new-story` → the shell opens the new-story form in this world. Standard subheadings are sent to AI (`shelves[].groups`) for import and scaffold.
 - Real files (Storage) and a 3D viewer (corner «🧊 3D» on the card). Saving a card closes its panel.
 - **Field editing mode** (pencil in the card's top-left; gold = off, red pulsing = on): rename fields (`defs[].label`, key stays), change type, delete (✕), add typed fields.

@@ -266,6 +266,13 @@ h2.group .btn.mini{ margin-left:10px; padding:2px 10px; font:500 12.5px "Inter";
 .rvopt i{ font:400 12px "Inter"; color:var(--tx-mid); font-style:normal; }
 .card.story .who-row{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 6px; }
 .card.story select{ max-width:190px; }
+/* moving cards: a subsection menu in the card head, and drag & drop between places and subsections */
+#e-sub,#d-sub{ max-width:260px; } #e-sub[hidden],#d-sub[hidden]{ display:none; }
+body.is-dragging, body.is-dragging *{ cursor:grabbing !important; user-select:none; }
+.grid > .card.dragging{ opacity:.35; }
+.drag-ghost{ position:fixed; left:0; top:0; z-index:90; pointer-events:none; opacity:.92; transform-origin:0 0; box-shadow:0 18px 40px #000b; rotate:1.5deg; }
+.grid > .card.drop-before{ box-shadow:-4px 0 0 0 var(--gold-lit); } .grid > .card.drop-after{ box-shadow:4px 0 0 0 var(--gold-lit); }
+.subsec.drop-into{ outline:2px dashed rgba(240,169,59,.55); outline-offset:6px; border-radius:12px; }
 h2.group .btn.mini.ghost{ margin-left:0; border-color:transparent; background:none; color:var(--tx-mid); }
 h2.group .btn.mini.ghost:hover{ color:var(--tx); }
 /* Космологія: the Космограф fills the page under its title */
@@ -450,6 +457,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
     <input id="e-title" />
     <div class="row">
       <select id="e-status"></select>
+      <select id="e-sub"></select>
     </div>
   </div>
   <div class="leaf-body" id="e-body"></div>
@@ -465,6 +473,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
   <div class="leaf-head">
     <div class="kicker" id="d-kicker" style="padding-left:0"></div>
     <input id="d-title" />
+    <div class="row"><select id="d-sub"></select></div>
   </div>
   <div class="leaf-body" id="d-body"></div>
   <div class="dtabs" id="d-tabs" role="tablist"></div>

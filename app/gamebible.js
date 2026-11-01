@@ -66,7 +66,8 @@
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.",
-        general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія" },
+        general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія",
+        move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
       ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", file: "Файли (префаби, моделі…)" },
@@ -203,7 +204,8 @@
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.",
-        general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story" },
+        general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story",
+        move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
       ftypes: { text: "Text", table: "Table", image: "Images", file: "Files (prefabs, models…)" },
@@ -494,16 +496,133 @@
       return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span><button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' +
         (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
+    var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
     subs.concat(extra).forEach(function (g) {
       var list = by[g] || [];
-      html += head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>');
+      html += block(g, head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>'));
     });
     if (loose.length || !(subs.length + extra.length)) {
-      var gl = subs.length + extra.length ? STR.other : s.special === "chronicle" ? STR.sub.timeline : STR.sub.general;
-      html += head("", gl, loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>');
+      html += block("", head("", looseLabel(s, subs.length + extra.length), loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>'));
     }
     return html;
   }
+  function looseLabel(s, n) { return n ? STR.other : s.special === "chronicle" ? STR.sub.timeline : STR.sub.general; }
+  // order inside a subsection: the author's (order), then by name
+  function byOrder(name) { return function (a, b) { var x = a.order == null ? 1e9 : a.order, y = b.order == null ? 1e9 : b.order; return x - y || String(name(a)).localeCompare(String(name(b))); }; }
+
+  // ---------- moving cards: the subsection menu in a card / dossier head ----------
+  function subOptions(s, cur, labelOf, used) {
+    var list = subsOf(s); (used || []).concat(cur ? [cur] : []).forEach(function (g) { if (g && list.indexOf(g) < 0) list.push(g); });
+    var opts = list.map(function (g) { return '<option value="' + esc(g) + '"' + (g === cur ? " selected" : "") + '>' + esc(labelOf ? labelOf(g) : g) + '</option>'; });
+    if (s.special !== "culture") opts.push('<option value=""' + (cur ? "" : " selected") + '>' + esc(looseLabel(s, list.length)) + '</option>');
+    return opts.join("");
+  }
+  function cardSubs() { // the game card being edited
+    var s = sec(open.section), k = groupKey(s), el = $("e-sub");
+    el.hidden = !k || !canWrite;
+    if (el.hidden) return;
+    var used = allCards().filter(function (c) { return c.section === s.id; }).map(function (c) { return c.fields[k] && normGroup(s, c.fields[k]); });
+    el.innerHTML = subOptions(s, draft.fields[k] ? normGroup(s, draft.fields[k]) : "", null, used);
+    el.hidden = el.options.length < 2; // nowhere else to go
+    el.title = STR.sub.move; el.setAttribute("aria-label", STR.sub.move);
+  }
+  function dosSec(e) { return e.col === "lore" ? CANON.filter(function (x) { return x.special === "culture"; })[0] : e.kind === "events" ? CHRONICLE : dosSection(e.kind); }
+  function dosSubs() {
+    var e = dos, s = dosSec(e), el = $("d-sub");
+    el.hidden = !s || !canWrite;
+    if (el.hidden) return;
+    var lab = e.col === "lore" ? function (g) { return L(loreGroup(g)); } : null;
+    var used = (e.col === "lore" ? lore : entities.filter(function (x) { return x.kind === e.kind; })).map(function (x) { return x.group; });
+    el.innerHTML = subOptions(s, e.col === "lore" ? (e.group || "customs") : (e.group || ""), lab, used);
+    el.hidden = el.options.length < 2; // nowhere else to go
+    el.title = STR.sub.move; el.setAttribute("aria-label", STR.sub.move);
+  }
+  $("e-sub").addEventListener("change", function () {
+    var s = sec(open.section), k = groupKey(s), g = this.value, c = open;
+    draft.fields[k] = g;
+    if (c.isNew) return; // saved with the card
+    var f = {}; f[k] = g;
+    var body = { fields: f, updatedAt: stamp() };
+    if (c.src === "canon") Object.assign(body, { section: c.section, canonRef: c.id });
+    gref().collection("cards").doc(c.id).set(body, { merge: true }).then(function () { c.fields[k] = g; msg(STR.sub.moved.replace("{s}", g || looseLabel(s, 1))); })
+      .catch(function (er) { msg(STR.failed + ": " + (er.code || er.message)); });
+  });
+  $("d-sub").addEventListener("change", function () {
+    var e = dos, g = this.value, s = dosSec(e);
+    e.group = g;
+    if (e.isNew) return; // saved with the dossier
+    colOf(e).doc(e.id).set({ group: g, updatedAt: stamp() }, { merge: true })
+      .then(function () { dmsg(STR.sub.moved.replace("{s}", (e.col === "lore" ? L(loreGroup(g)) : g) || looseLabel(s, 1))); })
+      .catch(function (er) { dmsg(STR.failed + ": " + (er.code || er.message)); });
+  });
+
+  // ---------- drag a card to another place in its subsection or into another subsection (mouse / pen; touch uses the menu) ----------
+  var dragCtx = null, drag = null, dragBlockClick = false; // dragCtx: the section whose grid is on screen, set by its render
+  function clearDropMarks() { [].forEach.call(document.querySelectorAll(".drop-before,.drop-after,.drop-into"), function (x) { x.classList.remove("drop-before", "drop-after", "drop-into"); }); }
+  function cardRef(el) { return el.dataset.key || (el.dataset.ent ? "ent:" + el.dataset.ent : el.dataset.lore ? "lore:" + el.dataset.lore : ""); }
+  $("view").addEventListener("pointerdown", function (ev) {
+    if (!dragCtx || !canWrite || query || ev.button !== 0 || ev.pointerType === "touch") return;
+    var card = ev.target.closest(".subsec .grid > .card"); if (!card || ev.target.closest("[data-view3d]")) return;
+    drag = { card: card, x: ev.clientX, y: ev.clientY, on: false };
+  });
+  document.addEventListener("pointermove", function (ev) {
+    if (!drag) return;
+    if (!drag.on) {
+      if (Math.abs(ev.clientX - drag.x) + Math.abs(ev.clientY - drag.y) < 8) return;
+      var r = drag.card.getBoundingClientRect();
+      drag.on = true; drag.dx = drag.x - r.left; drag.dy = drag.y - r.top;
+      drag.ghost = drag.card.cloneNode(true); drag.ghost.classList.add("drag-ghost"); drag.ghost.style.width = r.width + "px";
+      document.body.appendChild(drag.ghost); drag.card.classList.add("dragging"); document.body.classList.add("is-dragging");
+    }
+    ev.preventDefault();
+    drag.ghost.style.transform = "translate(" + (ev.clientX - drag.dx) + "px," + (ev.clientY - drag.dy) + "px)";
+    var m = $("main"); if (ev.clientY < 90) m.scrollTop -= 14; else if (ev.clientY > innerHeight - 70) m.scrollTop += 14;
+    clearDropMarks();
+    var el = document.elementFromPoint(ev.clientX, ev.clientY), sub = el && el.closest("#view .subsec");
+    drag.to = null; if (!sub) return;
+    var over = el.closest(".grid > .card");
+    if (over === drag.card) { drag.to = { sub: sub.dataset.sub, same: true }; return; }
+    if (over) {
+      var b = over.getBoundingClientRect(), left = ev.clientX < b.left + b.width / 2;
+      over.classList.add(left ? "drop-before" : "drop-after");
+      drag.to = { sub: sub.dataset.sub, before: left ? over : over.nextElementSibling };
+    } else { sub.classList.add("drop-into"); drag.to = { sub: sub.dataset.sub, before: null }; }
+  });
+  document.addEventListener("pointerup", function () {
+    var d = drag; drag = null; if (!d || !d.on) return;
+    d.ghost.remove(); d.card.classList.remove("dragging"); document.body.classList.remove("is-dragging"); clearDropMarks();
+    dragBlockClick = true; setTimeout(function () { dragBlockClick = false; }, 0);
+    if (d.to && !d.to.same) dropCard(d.card, d.to);
+  });
+  $("view").addEventListener("click", function (ev) { if (dragBlockClick) { ev.stopPropagation(); ev.preventDefault(); } }, true);
+  // The new order of the target subsection (index → order) and the dragged card's subsection; only what changed is written.
+  function dropCard(card, to) {
+    var s = dragCtx, k = groupKey(s), target = $("view").querySelector('.subsec[data-sub="' + CSS.escape(to.sub) + '"]');
+    var grid = target.querySelector(".grid"), list = grid ? [].slice.call(grid.children).filter(function (x) { return x !== card; }) : [];
+    var at = to.before && to.before !== card ? list.indexOf(to.before) : list.length; if (at < 0) at = list.length;
+    list.splice(at, 0, card);
+    if (grid) grid.insertBefore(card, to.before && to.before !== card ? to.before : null); else target.appendChild(card); // shown at once, the live snapshot settles it
+    var cur = {}; // current order / group of every item, by ref
+    if (s.dossier || s.special === "culture") (s.special === "culture" ? lore : entities).forEach(function (x) { cur[(x.col === "lore" ? "lore:" : "ent:") + x.id] = x; });
+    else allCards().forEach(function (c) { cur[c.key] = { order: c.order, group: c.fields[k] ? normGroup(s, c.fields[k]) : "" }; });
+    var dragged = cardRef(card), batch = db.batch(), n = 0;
+    list.forEach(function (el, i) {
+      var ref = cardRef(el), x = cur[ref] || {}, moved = ref === dragged && (x.group || "") !== to.sub;
+      if (x.order === i && !moved) return;
+      var id = ref.slice(ref.indexOf(":") + 1), body = { order: i, updatedAt: stamp() };
+      if (ref.indexOf("ent:") === 0 || ref.indexOf("lore:") === 0) {
+        if (moved) body.group = to.sub;
+        batch.set(wref().collection(ref.indexOf("lore:") === 0 ? "lore" : "entities").doc(id), body, { merge: true });
+      } else {
+        if (moved) { body.fields = {}; body.fields[k] = to.sub; }
+        if (ref.indexOf("e:") === 0) Object.assign(body, { section: s.id, canonRef: id });
+        batch.set(gref().collection("cards").doc(id), body, { merge: true });
+      }
+      n++;
+    });
+    if (n) batch.commit().catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); render(); });
+  }
+
   function newSubsection() {
     var s = sec(section);
     askName(STR.sub.title, STR.sub.ph, function (name) {
@@ -532,7 +651,7 @@
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0] || {};
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
-    return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
+    return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
       canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden };
   }
   function inGame(e) {
@@ -541,7 +660,7 @@
   }
   function gameCard(c) {
     var s = sec(c.section);
-    return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, title: c.title || "", status: c.status || "idea", note: c.note || "",
+    return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
       defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [] };
   }
   function allCards() {
@@ -634,7 +753,7 @@
   }
 
   function render() {
-    renderNav();
+    renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
     $("statuses").hidden = !query && CANON.some(function (x) { return x.id === section; }); // the canon has no game statuses
     if (section === "settings" && !imp) return renderSettings();
@@ -655,7 +774,8 @@
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
     var all = allCards();
-    var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); });
+    var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
+    dragCtx = query || s.special ? null : s;
     var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>' +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
@@ -870,8 +990,7 @@
   function entImage(e) { return ((e && e.files) || []).filter(isImage)[0]; }
   function plain(v) { return String(v || "").replace(/[*`|#>-]+/g, " ").replace(/\s+/g, " ").slice(0, 220); }
   function renderDossiers(s) {
-    var list = entities.filter(function (e) { return e.kind === s.dossier; })
-      .sort(function (a, b) { return String(a.name || a.title || "").localeCompare(String(b.name || b.title || "")); });
+    var list = entities.filter(function (e) { return e.kind === s.dossier; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
     var isMap = s.dossier === "locations" && locView === "map";
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (s.dossier === "locations" ? '<button class="btn" id="loc-view">' + (isMap ? STR.wt.cards : STR.wt.map) + '</button>' : '') +
@@ -879,7 +998,7 @@
       (isMap ? mapHtml(list) : subsHtml(s, list, function (e) { return e.group; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; }));
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var lv = $("loc-view"); if (lv) lv.onclick = function () { locView = isMap ? "cards" : "map"; try { localStorage.setItem("ww-locview", locView); } catch (e) {} render(); };
-    if (isMap) bindMap(list);
+    if (isMap) bindMap(list); else dragCtx = s;
   }
 
   // ---------- world map: locations laid out by the author (drag → entity.mapPos), who stays where (canon), routes from story scenes ----------
@@ -961,7 +1080,7 @@
     dfirst = JSON.stringify(ddraft);
     $("d-kicker").textContent = e.col === "lore" ? L(loreGroup(e.group)) + " · " + L(CULTURE) : (dosSection(e.kind) ? L(dosSection(e.kind)) : STR.dos.kinds[e.kind] || "") + " · " + STR.dos.world;
     $("d-title").value = ddraft.name;
-    renderDossier(); dmsg("");
+    renderDossier(); dosSubs(); dmsg("");
     $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     $("d-title").focus();
   }
@@ -1144,10 +1263,11 @@
   function renderCulture(s) {
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row"><button class="btn primary" id="add-top">' + STR.sub.add + '</button></div></header>';
-    html += subsHtml(s, lore, function (x) { return x.group || "customs"; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; },
+    html += subsHtml(s, lore.slice().sort(byOrder(function (x) { return x.name || ""; })), function (x) { return x.group || "customs"; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; },
       function (g) { return L(loreGroup(g)); });
     $("view").innerHTML = html;
     $("add-top").onclick = newSubsection;
+    dragCtx = s;
   }
   // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
   var COSMO_COST = 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
@@ -1389,7 +1509,7 @@
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-delete").style.display = c.isNew ? "none" : "";
-    renderFields(); msg("");
+    renderFields(); cardSubs(); msg("");
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     $("e-title").focus();
   }
