@@ -3,6 +3,7 @@
 //                 the author ticks what goes in, the client writes it — AI guesses never become canon on their own)
 //   op "analyze": a living GDD summary + the open questions that block production
 //   op "plan":    after the author's answers, a precise development plan
+//   op "canonAudit": contradictions inside the WORLD canon (no game needed) → worlds/{w}.audit; the author resolves them
 // analyze/plan results live in worlds/{w}/games/{g}/plan/current (answers are written there by the client).
 const {
   onRequest,
@@ -46,7 +47,7 @@ function bibleText(world, entities, cards, game, shelves) {
   const own = (game.sections || []).map((s) => ({ id: s.id, name: s.name })).concat((shelves || []).map((s) => ({ id: s.id, name: s.name })));
   const lines = [`# World canon: ${world.title || ''}`, world.tagline || '', world.summary || ''];
   if ((world.rules || []).length) lines.push('Laws of the world:', ...world.rules.map((r) => `- ${r}`));
-  lines.push(`\n# Game: ${game.title || ''}`);
+  if (game.title) lines.push(`\n# Game: ${game.title}`);
   const card = (ref, section, title, status, fields, note, files) => {
     lines.push(`\n## [${ref}] ${title} (section: ${section}, status: ${status || 'idea'})`);
     for (const [k, v] of Object.entries(fields)) if (str(v, 1)) lines.push(`${k}: ${str(v, 800)}`);
@@ -79,7 +80,21 @@ const cleanQuestion = (q, i) => (q && str(q.question, 600) ? {
   priority: oneOf(q.priority, ['blocker', 'important', 'nice'], 'important'),
   target: q.target && str(q.target.card, 80) ? { card: str(q.target.card, 80), field: str(q.target.field, 80) } : null,
 } : null);
-const cleanContradiction = (c) => (c && str(c.what, 500) ? { what: str(c.what, 500), where: str(c.where, 200) } : null);
+// A contradiction is resolved by the author like a question: options to tick or their own words; the id is stable
+// for the same text, so a resolved one is recognised when the next audit finds it again.
+const textId = (s) => 'x_' + require('crypto').createHash('sha1').update(String(s)).digest('hex').slice(0, 10);
+// older contradictions have no id: the same djb2 fallback as gamebible.js cid()
+const djb2 = (s) => { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+const cid = (c) => c.id || 't_' + djb2(c.what || '');
+const cleanContradiction = (c) => (c && str(c.what, 500) ? { id: textId(str(c.what, 500)), what: str(c.what, 500), where: str(c.where, 200),
+  options: list(c.options, 4, (o) => str(o, 200) || null),
+  target: c.target && str(c.target.card, 80) ? { card: str(c.target.card, 80), field: str(c.target.field, 80) } : null } : null);
+// Resolved contradictions are kept (with the answer) and fed back as decisions; fresh ones replace the open ones.
+const mergeContradictions = (prev, answers, fresh) => {
+  const kept = (prev || []).filter((c) => str(answers[cid(c)], 1));
+  return kept.concat(fresh.filter((c) => !kept.some((k) => cid(k) === c.id)));
+};
+const decided = (contras, answers) => (contras || []).filter((c) => str(answers[cid(c)], 1)).map((c) => ({ q: 'Contradiction: ' + c.what, a: str(answers[cid(c)], 2000) }));
 
 function cleanAnalysis(p) {
   const gdd = p && p.gdd ? p.gdd : {};
@@ -218,7 +233,7 @@ Your job: turn it into an interactive game design document. Read everything, the
 2. gdd.readiness — 0-100: how ready the design is to start production.
 3. gdd.sections — for each area of a GDD (vision & pillars, core loop, mechanics, progression, characters, enemies, levels, economy/items, UI/UX, audio, art direction, multiplayer, tech/engine, monetization if relevant): status solid|partial|missing + one-line notes.
 4. questions — the UNRESOLVED decisions that block or weaken production, most important first (max 15). Concrete, answerable questions. For each: topic, question, why (what in production depends on it), 2-4 options when sensible, priority blocker|important|nice, and target — the card ref it belongs to ("c:..." / "e:..." from the bible, or "") and the field it would fill (an existing field name, or a short new field label).
-5. contradictions — places where cards contradict each other or the world laws (what, where).
+5. contradictions — places where cards contradict each other or the world laws: what, where, 2-4 options how to resolve it, target (the card ref and field the resolution belongs in). Do NOT repeat contradictions the author already resolved.
 Do NOT ask what the bible already answers. Do NOT re-ask what the author already decided.
 
 Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
@@ -227,7 +242,19 @@ BIBLE:
 ${bible}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"gdd":{"summary":"","readiness":0,"sections":[{"title":"","status":"partial","notes":""}]},"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"blocker","target":{"card":"","field":""}}],"contradictions":[{"what":"","where":""}]}`;
+{"gdd":{"summary":"","readiness":0,"sections":[{"title":"","status":"partial","notes":""}]},"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"blocker","target":{"card":"","field":""}}],"contradictions":[{"what":"","where":"","options":[""],"target":{"card":"","field":""}}]}`;
+}
+
+function canonAuditPrompt(canon, answered, languageName) {
+  return `You are the continuity editor of a fictional world in WhiteWrite. Below is the world canon: its laws and every entity (characters, locations, factions, artifacts). Stories and games are built on it, so it must not contradict itself.
+
+Find the contradictions and inconsistencies INSIDE the canon (max 15, most serious first): entities that contradict the laws or each other (dates, places, relations, abilities, status), duplicated entities under different names, facts that cannot both be true. Do not invent problems; do not judge style. For each: what (the conflict, concretely), where (the entities/laws involved), options (2-4 ways to resolve it), target (card = the entity ref like "e:char_ab12cd" the fix belongs in, field = "description").
+${answeredText(answered)}
+CANON:
+${canon}
+
+Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
+{"contradictions":[{"what":"","where":"","options":[""],"target":{"card":"","field":"description"}}]}`;
 }
 
 function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
@@ -342,11 +369,12 @@ exports.gamedevPlan = onRequest({
       }
 
       const body = req.body || {};
-      const op = oneOf(body.op, ['import', 'analyze', 'plan'], 'analyze');
+      const op = oneOf(body.op, ['import', 'analyze', 'plan', 'canonAudit'], 'analyze');
+      const isCanon = op === 'canonAudit'; // the world alone: no game
       const worldId = str(body.worldId, 120);
       const gameId = str(body.gameId, 120);
       const languageName = LANGUAGES[body.language] || LANGUAGES.uk;
-      if (!worldId || !gameId) return res.status(400).json({ error: 'Missing worldId/gameId' });
+      if (!worldId || (!isCanon && !gameId)) return res.status(400).json({ error: 'Missing worldId/gameId' });
       const markdown = String(body.markdown || '');
       if (op === 'import' && !markdown.trim()) return res.status(400).json({ error: 'Порожній файл' });
       if (markdown.length > MAX_IMPORT_CHARS) return res.status(400).json({ error: `Файл завеликий. Максимум: ${MAX_IMPORT_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
@@ -362,25 +390,29 @@ exports.gamedevPlan = onRequest({
       }
 
       const worldRef = db.collection('worlds').doc(worldId);
-      const gameRef = worldRef.collection('games').doc(gameId);
+      const gameRef = isCanon ? null : worldRef.collection('games').doc(gameId);
       gameRefForError = gameRef;
+      const none = { exists: false, docs: [] };
       const [worldSnap, gameSnap, entitiesSnap, cardsSnap, planSnap] = await Promise.all([
-        worldRef.get(), gameRef.get(), worldRef.collection('entities').get(), gameRef.collection('cards').get(), gameRef.collection('plan').doc('current').get()]);
-      if (!worldSnap.exists || worldSnap.data().owner !== uid || !gameSnap.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+        worldRef.get(), isCanon ? none : gameRef.get(), worldRef.collection('entities').get(),
+        isCanon ? none : gameRef.collection('cards').get(), isCanon ? none : gameRef.collection('plan').doc('current').get()]);
+      if (!worldSnap.exists || worldSnap.data().owner !== uid || (!isCanon && !gameSnap.exists)) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
 
-      const world = worldSnap.data(), game = gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
+      const world = worldSnap.data(), game = isCanon ? {} : gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
       const entities = entitiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false));
       const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const engine = (game.engine && game.engine.profile) || 'generic';
       const answers = prev.answers || {};
-      const answered = (prev.asked || []).filter((q) => str(answers[q.id], 1)).map((q) => ({ q: q.question, a: str(answers[q.id], 2000) }));
+      const answered = (prev.asked || []).filter((q) => str(answers[q.id], 1)).map((q) => ({ q: q.question, a: str(answers[q.id], 2000) }))
+        .concat(decided(prev.contradictions, prev.resolved || {}));
+      const audit = world.audit || {}, auditAnswers = world.auditAnswers || {};
       if (op === 'plan' && !prev.gdd) return res.status(400).json({ error: 'Спершу проаналізуй біблію', code: 'ANALYZE_FIRST' });
       const shelves = cleanShelves(body.shelves);
 
       // Priced by real output (scene economy entry), logged separately
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
-      const reserveCost = ((providerEconomy && providerEconomy.cost) || 300) * (op === 'analyze' ? 2 : 4);
+      const reserveCost = ((providerEconomy && providerEconomy.cost) || 300) * (op === 'analyze' || isCanon ? 2 : 4); // gamebible.js COST mirrors this
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -393,14 +425,16 @@ exports.gamedevPlan = onRequest({
       }
 
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
-      const prompts = op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
+      const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, []), decided(audit.contradictions, auditAnswers), languageName)]
+        : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves), engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves), engine, answered, languageName)];
       const prompt = prompts.join('');
       const model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet; // configured id — the one MODEL_PRICING knows
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       // the page shows "AI is working" from this marker even after a reload
-      if (op !== 'import') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      else if (op !== 'import') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       const messages = await Promise.all(prompts.map((content) => anthropic.messages.stream({
         model,
         max_tokens: op === 'plan' ? 32000 : 16000,
@@ -412,7 +446,11 @@ exports.gamedevPlan = onRequest({
       const parsed = results[0];
 
       let proposal = null;
-      if (op === 'import') {
+      if (isCanon) {
+        const fresh = list(parsed && parsed.contradictions, 15, cleanContradiction);
+        await worldRef.set({ audit: { contradictions: mergeContradictions(audit.contradictions, auditAnswers, fresh), at: admin.firestore.FieldValue.serverTimestamp() },
+          auditRunning: admin.firestore.FieldValue.delete() }, { merge: true });
+      } else if (op === 'import') {
         proposal = cleanImport(mergeImports(results), shelves, entities, world);
       } else {
         const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine, running: admin.firestore.FieldValue.delete() };
@@ -420,7 +458,8 @@ exports.gamedevPlan = onRequest({
           const a = cleanAnalysis(parsed);
           // keep answered questions; open ones are replaced by the fresh analysis
           const kept = (prev.asked || []).filter((q) => str(answers[q.id], 1));
-          Object.assign(update, { gdd: a.gdd, contradictions: a.contradictions, asked: kept.concat(a.questions), analyzedAt: admin.firestore.FieldValue.serverTimestamp() });
+          Object.assign(update, { gdd: a.gdd, contradictions: mergeContradictions(prev.contradictions, prev.resolved || {}, a.contradictions),
+            asked: kept.concat(a.questions), analyzedAt: admin.firestore.FieldValue.serverTimestamp() });
         } else {
           Object.assign(update, { plan: cleanPlan(parsed), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
         }
@@ -441,6 +480,9 @@ exports.gamedevPlan = onRequest({
     } catch (error) {
       console.error('gamedevPlan error:', error);
       if (gameRefForError) await gameRefForError.collection('plan').doc('current').set({ running: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
+      else if (req.body && req.body.op === 'canonAudit' && req.body.worldId) {
+        await db.collection('worlds').doc(String(req.body.worldId)).set({ auditRunning: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
+      }
       if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[gamedevPlan] Refund failed:', e));
       res.status(500).json({ error: `Помилка біблії гри: ${error.message}` });
     }

@@ -57,7 +57,10 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 /* world block folds away (arrow), the game picker follows it, project settings close the menu */
 .navtoggle{ display:flex; align-items:center; gap:6px; width:calc(100% - 12px); background:none; border:0; cursor:pointer; padding:0; text-align:left; }
 .navtoggle:hover{ color:var(--gold-lit); }
-.navtoggle .arr{ display:inline-grid; place-items:center; color:var(--gold-lit); transition:transform .15s; }
+.navtoggle .arr{ display:inline-grid; place-items:center; width:26px; height:26px; border-radius:7px; color:var(--gold-bright);
+  background:var(--gold-soft); border:1px solid rgba(240,169,59,.4); transition:transform .15s, background .15s; flex:none; }
+.navtoggle:hover .arr{ background:rgba(217,119,6,.28); }
+.navtoggle{ gap:9px; font-size:11.5px; }
 .navtoggle[aria-expanded="false"] .arr{ transform:rotate(-90deg); }
 .gamerow{ display:flex; align-items:center; gap:8px; margin:16px 6px 6px; }
 .gamerow label{ font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); flex:none; }
@@ -73,6 +76,10 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 .setbox.danger{ border-color:rgba(208,103,90,.4); background:rgba(208,103,90,.05); }
 .secrow{ display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); }
 .secrow span{ flex:1; }
+.aicost{ display:inline-block; margin-left:5px; font-size:10px; line-height:1; color:var(--gold-bright); vertical-align:super; opacity:.85; cursor:help; }
+.btn.primary .aicost{ color:inherit; }
+.shownsecs{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:4px 14px; }
+.chip[aria-pressed="true"]{ box-shadow:inset 0 0 0 1px var(--gold-lit); }
 .ask-box .warn{ margin:0; font-size:13.5px; color:var(--tx-mid); line-height:1.5; }
 .ask-box .warn b{ color:var(--tx-hi); }
 .sync{ font-size:12px; color:var(--tx-low); }
