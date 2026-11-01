@@ -213,7 +213,7 @@
           ["p", "Біблія гри → ⚙ Налаштування проєкту → «Unity / середовище розробки». Скопіюй команду в Claude Code:"],
           ["prompt", "Call get_guide {topic:\"unity_env\"} on the whitewrite MCP server and follow it step by step."],
           ["ul", [
-            "Агент перевіряє: чи встановлена версія Unity проєкту (unity editors -i), чи працює Unity CLI (unity --version, unity doctor), чи є ProjectVersion.txt і manifest.json, валідацію даних фреймворку й тести (unity test або Unity.exe -runTests).",
+            "Агент перевіряє: чи встановлена версія Unity проєкту (unity editors -i), чи працює Unity CLI (unity --version, unity doctor), чи є ProjectVersion.txt і manifest.json, валідацію даних фреймворку (з RPG Framework 0.32.0 — ValidateFromCommandLine: 0 — чисто, 1 — є помилки, 2 — перевірка не відбулась) й тести (unity test або Unity.exe -runTests).",
             "Результат зʼявляється в налаштуваннях: 🟢 — усе гаразд, 🟠 — щось не пройшло; біля кожної перевірки — що сталося й код виходу.",
             "Під час перевірки агент нічого не змінює в проєкті й не надсилає шляхів з твоїм іменем.",
           ]],
@@ -225,7 +225,7 @@
         lead: "Що насправді є в Unity-проєкті: сцени, префаби, скрипти, ассети і як вони повʼязані.",
         min: 3,
         body: [
-          ["p", "Біблія гри → «Технічне і знання» → «Знання проєкту». Claude Code індексує проєкт лише на читання — нічого не змінює, редактор не відкриває — і надсилає знімок у WhiteWrite. Скопіюй команду в Claude Code:"],
+          ["p", "Біблія гри → «Технічне і знання» → «Знання проєкту». Claude Code індексує проєкт лише на читання — нічого не змінює — і надсилає знімок у WhiteWrite. З RPG Framework 0.32.0 агент бере за основу готовий індекс фреймворку (ProjectIndex, лише читає файли), без фреймворку — читає файли сам. Скопіюй команду в Claude Code:"],
           ["prompt", "Call get_guide {topic:\"knowledge\"} on the whitewrite MCP server and follow it step by step."],
           ["ul", [
             "«Останній знімок»: коли, повний чи частковий, скільки нових, змінених, без змін, звʼязків, відхилених і зниклих; покриття за типами, версія фреймворку.",
@@ -379,6 +379,8 @@
           ["p", "💡 «Створити квест на основі цього» є на картках гри (персонажі, вороги, локації, рівні, фракції, предмети), у кожному досьє канону, у записі культури й на картці історії в «Історії і хроніці». Квест зʼявляється у відкритій зараз грі з уже заповненим джерелом і очевидними звʼязками (персонаж чи ворог стає тим, хто дає квест; локація, рівень, фракція чи предмет — учасниками; подія канону — у «Події канону»). Джерело можна обрати й вручну — або лишити порожнім."],
           ["p", "✦ «Запропонувати з ШІ» (ціна на кнопці) складає чернетку з канону, законів, карток гри й джерела: концепцію, учасників, цілі, етапи з переходами, нагороди. Пропозиція зʼявляється над формою: кожне поле «Прийняти» чи «Відхилити», або «Прийняти все». ШІ звʼязує лише те, що вже є — картки гри й сутності канону; нове він пише окремо як «Ідеї ШІ» — це нотатки, не канон. У діалозі ✦ пише репліки й вибори голосами персонажів, спираючись на квест діалогу."],
           ["p", "Картка гри внизу і досьє канону на вкладці «Звʼязки» показують квести й діалоги відкритої гри, де вони беруть участь, і квести, що з них виросли. Claude Code бачить лише затверджені квести своєї гри — через get_quest_context і get_dialogue_context (посилання «c:…» — картки гри, «e:…» — канон)."],
+          ["p", "«⤓ JSON для RPG Framework» у «Квестах» завантажує затверджені квести й діалоги у форматі імпорту фреймворку (rpgframework.content/1, з версії 0.32.0). Claude Code бере те саме через get_content_export і сам запускає імпорт: Quest- і Dialogue-ассети створюються або оновлюються за id. Вільні умови стають умовами типу custom, ефекти «give_item:ключ; set_flag:met; give_currency:gold:50» — ефектами фреймворку, «24 год» перезарядки — секундами."],
+          ["prompt", "Виклич get_content_export, збережи content у Assets/Content/WhiteWrite/content.json і запусти імпорт RPG Framework (ImportFromCommandLine з поля how). Код 1 — прочитай коди проблем у лозі й поясни мені, дизайн не змінюй. Потім ValidateFromCommandLine має дати 0. Умови типу custom підʼєднай у коді гри."],
           ["prompt", "Виклич get_quest_context без id, візьми затверджений квест «НАЗВА» і реалізуй його: id етапів і умови переходів — контракт, етап «end» завершує квест, «fail» — провалює. Його діалоги візьми через get_dialogue_context: id реплік і ключі локалізації не змінюй. Покрий тестами всі гілки до фіналу. Якщо в дизайні суперечність — submit_change_request."],
         ] },
       { cat: "world", id: "cosmograph", icon: "universe", title: "Космологія: Космограф",
@@ -549,7 +551,7 @@
           ["prompt", MCP_ADD],
           ["p", "Інструменти агента: get_project_overview, list_tasks, get_next_task, get_task_details, get_design_section, get_card, report_task_progress, report_blocker, submit_task_result, submit_change_request."],
           ["p", "Генерація світу й досвід гравців: get_world_generation_spec, get_biome_profile, get_module_contract, get_environmental_profile, get_telemetry_schema, get_experience_issue, submit_validation_result."],
-          ["p", "Квести й діалоги гри (лише затверджені): get_quest_context, get_dialogue_context."],
+          ["p", "Квести й діалоги гри (лише затверджені): get_quest_context, get_dialogue_context, get_content_export (формат імпорту RPG Framework)."],
           ["warn", "Не публікуй ключ у репозиторії. Сервер перевіряє тариф і доступ на кожен виклик."],
         ] },
       { cat: "game", id: "settings", icon: "edit", title: "Налаштування, експорт і видалення",
@@ -925,7 +927,7 @@
           ["p", "Game Bible → ⚙ Project settings → “Unity / development environment”. Copy the command into Claude Code:"],
           ["prompt", "Call get_guide {topic:\"unity_env\"} on the whitewrite MCP server and follow it step by step."],
           ["ul", [
-            "The agent checks: is the project's Unity version installed (unity editors -i), does the Unity CLI work (unity --version, unity doctor), are ProjectVersion.txt and manifest.json there, the framework data validation and the tests (unity test or Unity.exe -runTests).",
+            "The agent checks: is the project's Unity version installed (unity editors -i), does the Unity CLI work (unity --version, unity doctor), are ProjectVersion.txt and manifest.json there, the framework data validation (from RPG Framework 0.32.0 — ValidateFromCommandLine: 0 clean, 1 errors found, 2 the check failed) and the tests (unity test or Unity.exe -runTests).",
             "The result appears in settings: 🟢 — all fine, 🟠 — something failed; each check shows what happened and its exit code.",
             "During the check the agent changes nothing in the project and sends no paths with your name.",
           ]],
@@ -937,7 +939,7 @@
         lead: "What the Unity project really holds: scenes, prefabs, scripts, assets and how they connect.",
         min: 3,
         body: [
-          ["p", "Game Bible → “Tech & knowledge” → “Project knowledge”. Claude Code indexes the project read-only — it changes nothing and does not open the editor — and sends a snapshot to WhiteWrite. Copy the command into Claude Code:"],
+          ["p", "Game Bible → “Tech & knowledge” → “Project knowledge”. Claude Code indexes the project read-only — it changes nothing — and sends a snapshot to WhiteWrite. With RPG Framework 0.32.0+ the agent starts from the framework's own index (ProjectIndex, reads files only); without the framework it reads the files itself. Copy the command into Claude Code:"],
           ["prompt", "Call get_guide {topic:\"knowledge\"} on the whitewrite MCP server and follow it step by step."],
           ["ul", [
             "“Latest snapshot”: when, full or partial, how many new, changed, unchanged, relations, rejected and missing; coverage by type, the framework version.",
@@ -1091,6 +1093,8 @@
           ["p", "💡 “Create a quest from this” is on game cards (characters, enemies, locations, levels, factions, items), in every canon dossier, every culture entry and on each story card in “History & chronicle”. The quest appears in the game open right now with its source and the obvious links filled in (a character or enemy becomes the quest giver; a location, level, faction or item joins in; a canon event goes to “Canon events”). You can also pick the source by hand — or leave it empty."],
           ["p", "✦ “Propose with AI” (price on the button) drafts from the canon, the laws, the game cards and the source: concept, cast, objectives, branching stages, rewards. The proposal appears above the form: “Accept” or “Reject” each field, or “Accept all”. AI links only what already exists — game cards and canon entities; anything new comes separately as “AI ideas” — notes, not canon. In a dialogue ✦ writes lines and choices in the characters' voices, based on the dialogue's quest."],
           ["p", "A game card (at the bottom) and a canon dossier (on its “Connections” tab) list the open game's quests and dialogues they take part in, and the quests that grew from them. Claude Code sees only the approved quests of its game — through get_quest_context and get_dialogue_context (“c:…” links are game cards, “e:…” the canon)."],
+          ["p", "“⤓ JSON for RPG Framework” in “Quests” downloads the approved quests and dialogues in the framework's import format (rpgframework.content/1, from version 0.32.0). Claude Code gets the same through get_content_export and runs the import itself: Quest and Dialogue assets are created or updated by id. Free-text conditions become custom conditions, effects “give_item:key; set_flag:met; give_currency:gold:50” become framework effects, a “24 h” cooldown becomes seconds."],
+          ["prompt", "Call get_content_export, save content as Assets/Content/WhiteWrite/content.json and run the RPG Framework import (ImportFromCommandLine from the how field). Exit 1 — read the problem codes in the log and explain them to me, do not change the design. Then ValidateFromCommandLine must return 0. Wire custom conditions in the game code."],
           ["prompt", "Call get_quest_context without an id, take the approved quest “TITLE” and implement it: stage ids and transition conditions are the contract, an “end” stage completes the quest, a “fail” stage fails it. Take its dialogues through get_dialogue_context: keep line ids and localisation keys unchanged. Cover every branch to an ending with tests. If the design contradicts itself — submit_change_request."],
         ] },
       { cat: "world", id: "cosmograph", icon: "universe", title: "Cosmology: the Cosmograph",
@@ -1261,7 +1265,7 @@
           ["prompt", MCP_ADD],
           ["p", "The agent's tools: get_project_overview, list_tasks, get_next_task, get_task_details, get_design_section, get_card, report_task_progress, report_blocker, submit_task_result, submit_change_request."],
           ["p", "World generation and player experience: get_world_generation_spec, get_biome_profile, get_module_contract, get_environmental_profile, get_telemetry_schema, get_experience_issue, submit_validation_result."],
-          ["p", "The game's quests and dialogues (approved only): get_quest_context, get_dialogue_context."],
+          ["p", "The game's quests and dialogues (approved only): get_quest_context, get_dialogue_context, get_content_export (the RPG Framework import format)."],
           ["warn", "Never publish a key in a repository. The server checks the plan and access on every call."],
         ] },
       { cat: "game", id: "settings", icon: "edit", title: "Settings, export and deletion",

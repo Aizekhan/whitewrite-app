@@ -30,9 +30,10 @@ const GUIDES = {
 3. **Unity environment**: call \`get_guide {topic:"unity_env"}\`, run its checks, send the result with \`report_unity_environment\`.
 4. **Project Knowledge**: call \`get_guide {topic:"knowledge"}\` and index the project read-only.
 5. **Framework compatibility** (only if Packages/manifest.json has \`com.aizekhan.rpg-framework\`): run
-   \`Unity.exe -batchmode -projectPath "<project>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateAllData -logFile - -quit\`
-   The exit code does NOT tell pass/fail (the method only logs; Unity exits 0 even with errors): read the log after
-   "=== RPG Framework Validation Results ===" — any "Found N error(s):" with N > 0 (and the "  - <error>" lines under it) is a failure; report errors and warnings to the author.
+   \`Unity.exe -batchmode -quit -projectPath "<project>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateFromCommandLine -logFile -\`
+   Framework ≥ 0.32.0: exit 0 = clean, 1 = errors found, 2 = the check itself failed; report errors and warnings from the log to the author.
+   Older framework (the method is missing): run \`...FrameworkValidation.ValidateAllData\` instead — it always exits 0, so read the log after
+   "=== RPG Framework Validation Results ===": any "Found N error(s):" with N > 0 is a failure.
    Then \`git status --porcelain\` must be empty (no unexpected changes).
 6. **End-to-end check**: \`get_next_task\` → make the smallest safe change it asks for → run its tests → \`submit_task_result\` with every acceptance criterion and evidence.
 
@@ -60,7 +61,7 @@ Sources: ${SOURCES.cli} · ${SOURCES.cliRef} · ${SOURCES.editorCli} · ${SOURCE
 | editor | \`unity editors -i --format json\` | the project's Editor version is installed |
 | cli | \`unity --version\` and \`unity doctor\` | both exit 0 |
 | project | files \`ProjectSettings/ProjectVersion.txt\` and \`Packages/manifest.json\` exist | both exist |
-| validation | framework games: \`Unity.exe -batchmode -projectPath "<p>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateAllData -logFile - -quit\`; others: skip | the log after "=== RPG Framework Validation Results ===" has no "Found N error(s)" with N > 0 (the exit code is always 0 — do not use it), and \`git status --porcelain\` is empty |
+| validation | framework games: \`Unity.exe -batchmode -quit -projectPath "<p>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateFromCommandLine -logFile -\` (framework ≥ 0.32.0; older: \`ValidateAllData\`, which always exits 0 — judge by "Found N error(s)" in the log); others: skip | exit 0 (1 = errors found, 2 = the check failed), and \`git status --porcelain\` is empty |
 | tests | \`unity test --timeout 1800 --format json\` (exit 0 = passed, 8 = ran with failures) or \`Unity.exe -runTests -batchmode -projectPath "<p>" -testPlatform EditMode -testResults results.xml\` (no \`-quit\` with \`-runTests\`; read the XML) | tests ran |
 | logs | you can read the exit code and the JSON / NUnit XML / -logFile output | yes |
 
@@ -75,7 +76,10 @@ Never send absolute paths with the user's name — a hint like "Hub default" is 
     title: 'Project Knowledge: index this Unity project (read-only)',
     markdown: `# Project Knowledge — schema ${KNOWLEDGE_SCHEMA}
 
-Index this Unity project for WhiteWrite **read-only**: do not change, import or re-save any file, do not open the Unity Editor.
+Index this Unity project for WhiteWrite **read-only**: do not change, import or re-save any file, do not open the Unity Editor (the framework's batch-mode index below only reads files — that is allowed).
+
+## Shortcut for RPG Framework ≥ 0.32.0
+Run \`Unity.exe -batchmode -quit -projectPath "<project>" -executeMethod RPGFramework.Tools.ProjectIndex.ProjectIndexCommand.ExportFromCommandLine -indexOutput <tmp file>\` (exit 0 = written). It only reads files and writes the index outside Assets (default Library/RPGFramework/ProjectIndex.json). Its JSON ("rpgframework.project-index/1": project, framework modules and users, assets with GUIDs and refs, scenes, prefabs, scripts, assemblies, problems) is the source for the records below — map it, add descriptions and card links, then send. Without the framework, read the files yourself:
 
 ## What to read
 ProjectSettings/ (ProjectVersion.txt, EditorBuildSettings.asset, TagManager.asset), Packages/manifest.json, *.asmdef, *.meta (the \`guid:\`), the YAML of *.unity / *.prefab / *.asset (components, \`guid:\` references), *.cs (classes, namespaces, public API).

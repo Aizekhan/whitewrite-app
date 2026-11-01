@@ -114,6 +114,67 @@ function validateDialogue(d, ctx) {
 
 const worst = (issues) => (issues.some((x) => x.level === 'error') ? 'error' : issues.length ? 'warn' : '');
 
-const NARRATIVE = { validateQuest, validateDialogue, graphIssues, worst, refPool, CARD_ROLES };
+// ---------- export to RPG Framework (≥ 0.32.0) content import: format "rpgframework.content/1" ----------
+// Unity: -executeMethod RPGFramework.ContentImport.Editor.ContentAssetImport.ImportFromCommandLine -contentFile <file>
+// (exit 0 imported · 1 errors, nothing written · 2 failed). Refs (c:<card> / canon ids) travel as opaque strings.
+const CONTENT_FORMAT = 'rpgframework.content/1';
+const UNIT_SEC = { s: 1, sec: 1, с: 1, m: 60, min: 60, хв: 60, h: 3600, hr: 3600, hour: 3600, hours: 3600, год: 3600, d: 86400, day: 86400, days: 86400, дн: 86400, дні: 86400, днів: 86400, доба: 86400 };
+// "24 h" / "30 хв" / "2 дні" → seconds; unknown text → 0
+function cooldownSeconds(t) {
+  const m = String(t || '').trim().toLowerCase().match(/^(\d+(?:[.,]\d+)?)\s*([\p{L}]*)/u);
+  if (!m) return 0;
+  const n = parseFloat(m[1].replace(',', '.')), u = m[2] || 'h', k = Object.keys(UNIT_SEC).find((x) => u === x || (u.length > 1 && x.startsWith(u)) || u.startsWith(x));
+  return k ? Math.round(n * UNIT_SEC[k]) : 0;
+}
+const EFFECT_KINDS = { give_item: 'giveItem', take_item: 'takeItem', give_currency: 'giveCurrency', take_currency: 'takeCurrency', give_gold: 'giveCurrency', take_gold: 'takeCurrency',
+  start_quest: 'acceptQuest', accept_quest: 'acceptQuest', complete_quest: 'completeQuest', signal_quest: 'signalQuest', set_flag: 'setVariable', set_var: 'setVariable',
+  skill_points: 'grantSkillPoints', reputation: 'changeReputation', event: 'raiseEvent' };
+// the author's free text "give_item:key; set_flag:met; give_currency:gold:50" → [{ kind, target, amount }]
+function parseEffects(t) {
+  return String(t || '').split(/[;\n]/).map((x) => x.trim()).filter(Boolean).map((x) => {
+    const p = x.split(':').map((s) => s.trim()), key = p[0].toLowerCase().replace(/[\s-]+/g, '_');
+    const e = { kind: EFFECT_KINDS[key] || p[0], target: p[1] || '' };
+    const amt = parseFloat(p[2]);
+    if (!isNaN(amt)) e.amount = amt; else if (key === 'set_flag') e.amount = 1;
+    return e;
+  });
+}
+const cond = (t) => (String(t || '').trim() ? { type: 'custom', id: String(t).trim() } : undefined);
+function questToContent(q) {
+  const mode = (q.repeat && q.repeat.mode) || 'once', stages = arr(q.stages);
+  const out = { id: q.id, title: q.title || '', type: q.type || '', description: q.summary || '', prerequisites: arr(q.prereqs),
+    repeatable: mode !== 'once',
+    objectives: String(q.objectives || '').split('\n').map((x) => x.trim()).filter(Boolean).map((d, i) => ({ id: 'o' + (i + 1), type: 'custom', description: d })),
+    rewards: String(q.rewards || '').trim() ? [{ type: 'custom', id: String(q.rewards).trim() }] : [],
+    start: (stages[0] || {}).id || '',
+    stages: stages.map((s) => ({ id: s.id, title: s.title || '', description: s.objective || '', objectives: [],
+      next: arr(s.next).filter((b) => b && b.to).map((b) => ({ to: b.to, condition: b.cond || '' })), outcome: s.fail ? 'failure' : s.end ? 'success' : 'none' })),
+    refs: { giver: q.giver || '', characters: arr(q.characters), locations: arr(q.locations), factions: arr(q.factions), artifacts: arr(q.artifacts), events: arr(q.events) } };
+  const cd = mode === 'daily' ? 86400 : mode === 'repeatable' ? cooldownSeconds(q.repeat.cooldown) : 0;
+  if (cd) out.cooldownSeconds = cd;
+  return out;
+}
+function dialogueToContent(d) {
+  const nodes = arr(d.nodes);
+  const out = { id: d.id, title: d.title || '', type: d.type || '', start: (nodes[0] || {}).id || '', participants: arr(d.participants),
+    nodes: nodes.map((n) => {
+      const x = { id: n.id, type: n.end ? 'end' : '', speaker: n.speaker || '', text: n.text || '', key: n.locKey || '', next: n.next ? [n.next] : [],
+        choices: arr(n.choices).map((c, j) => ({ id: 'c' + (j + 1), text: c.text || '', to: c.to || '', ...(cond(c.cond) ? { condition: cond(c.cond) } : {}) })),
+        effects: parseEffects(n.effects) };
+      if (cond(n.cond)) x.condition = cond(n.cond);
+      return x;
+    }) };
+  if (d.questId) { out.quest = d.questId; if (d.stageId) out.stage = d.stageId; }
+  if (d.location) out.location = d.location;
+  return out;
+}
+// only what the author approved goes to the game; meta tells where it came from
+function toFrameworkContent(quests, dialogues, meta) {
+  const ok = (x) => x && x.approval === 'approved';
+  return { format: CONTENT_FORMAT, source: Object.assign({ tool: 'WhiteWrite' }, meta || {}),
+    quests: arr(quests).filter(ok).map(questToContent), dialogues: arr(dialogues).filter(ok).map(dialogueToContent) };
+}
+
+const NARRATIVE = { validateQuest, validateDialogue, graphIssues, worst, refPool, CARD_ROLES, toFrameworkContent, parseEffects, cooldownSeconds, CONTENT_FORMAT };
 if (typeof module !== 'undefined' && module.exports) module.exports = NARRATIVE;
 if (typeof window !== 'undefined') window.__NARRATIVE = NARRATIVE;

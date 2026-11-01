@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.30.0 (2026-11-02)
+**Version:** 2.31.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -432,7 +432,7 @@ claude mcp add --transport http whitewrite https://us-central1-whitewrite-app.cl
 
 **Tools:** `get_project_overview`, `list_tasks`, `get_next_task` (resumes in_progress/rework, else claims first ready todo — ready = all deps done),
 `get_task_details`, `get_design_section`, `get_card` (`c:id` / `e:id`), `report_task_progress`, `report_blocker`, `submit_task_result` (→ review, server `check`), `submit_change_request`.
-Quests & dialogues of the game (v2.30: `ctx.gref` quests/dialogues; approved only, the `narrative-validate.js` check attached; refs resolved through `refPool` — `c:<id>` game cards with their fields, `e:<id>` canon, + `events`): `get_quest_context`, `get_dialogue_context` (no id → the approved list).
+Quests & dialogues of the game (v2.30: `ctx.gref` quests/dialogues; approved only, the `narrative-validate.js` check attached; refs resolved through `refPool` — `c:<id>` game cards with their fields, `e:<id>` canon, + `events`): `get_quest_context`, `get_dialogue_context` (no id → the approved list). `get_content_export` (v2.31) → `{ content, counts, how }`: the approved quests/dialogues in RPG Framework's import format `rpgframework.content/1` (framework ≥ 0.32.0, `ContentAssetImport.ImportFromCommandLine -contentFile`, exit 0/1/2) built by `NV.toFrameworkContent` in `functions/narrative-validate.js` — summary → description, objectives/rewards text → `custom`, repeat → `repeatable` + `cooldownSeconds` (`cooldownSeconds("24 год")`), end/fail → stage `outcome` success/failure, node `end` → `type:"end"`, `locKey` → `key`, choices `c1…`, conditions → `{type:"custom", id}`, effects text → `parseEffects` (`give_item`→`giveItem`, `set_flag`→`setVariable` 1, `start_quest`→`acceptQuest`…), refs as opaque strings under `quest.refs`. The Game Bible «Квести» has the same as a download («⤓ JSON для RPG Framework», `exportFramework`).
 `get_project_overview` → `integrations { marketing { enabled, claude_md_confirmed, instruction }, repo, knowledge }` (v2.29) — the agent keeps the development log when marketing is on.
 Setup & project knowledge (v2.27, texts in `functions/setup-guides.js`): `get_guide {topic: setup|unity_env|knowledge|activity_log}`, `report_unity_environment` (→ `env/current`), `submit_project_knowledge` (parts `begin` manifest → `records` ≤500 per call → `end` reports; idempotent: unchanged records skipped by hash; absolute / `../` paths and unconfirmed `maps_to_card` rejected; a full scan marks unseen assets `missingSince`, never deletes), `get_project_knowledge_status`, `search_project_knowledge {q, guid, type, path_prefix, related_to}`, `submit_development_activity` (`session_id` idempotent; existing entries never overwritten; commit verified against the connected GitHub repo).
 World generation & experience (§6): `get_world_generation_spec`, `get_biome_profile`, `get_module_contract`, `get_environmental_profile`, `get_telemetry_schema`, `get_experience_issue`, `submit_validation_result`.
@@ -566,7 +566,7 @@ firebase deploy                   # Deploy everything
 - Canon extraction logs: owner-only read
 - Admin stats: role-based access
 
-**Tests (v2.24):** `npm test` (`tests/run.mjs`) runs every `tests/*.test.*`: `rules.test.mjs` — `firestore.rules` in Google's Rules Test API (`firebaserules.googleapis.com/v1/projects/whitewrite-app:test`, gcloud token, `get()` mocked; no emulator/Java), `model-watch.test.cjs` / `claude-fallback.test.cjs` (stubbed Firestore/fetch), `plan-gates.test.cjs` (`mcp.js lockedBy`), `narrative-validate.test.cjs` (quest/dialogue graph checks), `narrative-draft.test.cjs` (AI proposal cleaning), `mcp-quests.test.cjs` (MCP quest/dialogue views, approved only, game-card and canon-event refs), `mcp-knowledge.test.cjs` (Project Knowledge parts/idempotency/tombstones/search and the activity log against an in-memory Firestore), `marketing.test.cjs` (drafts only from approved entries, platform limits, polls, the bot-token check). `npm run test:rules` — only the rules. UI flows: Playwright E2E with a mocked Firebase (kept outside the repo).
+**Tests (v2.24):** `npm test` (`tests/run.mjs`) runs every `tests/*.test.*`: `rules.test.mjs` — `firestore.rules` in Google's Rules Test API (`firebaserules.googleapis.com/v1/projects/whitewrite-app:test`, gcloud token, `get()` mocked; no emulator/Java), `model-watch.test.cjs` / `claude-fallback.test.cjs` (stubbed Firestore/fetch), `plan-gates.test.cjs` (`mcp.js lockedBy`), `narrative-validate.test.cjs` (quest/dialogue graph checks), `narrative-draft.test.cjs` (AI proposal cleaning), `mcp-quests.test.cjs` (MCP quest/dialogue views, approved only, game-card and canon-event refs), `mcp-knowledge.test.cjs` (Project Knowledge parts/idempotency/tombstones/search and the activity log against an in-memory Firestore), `marketing.test.cjs` (drafts only from approved entries, platform limits, polls, the bot-token check), `content-export.test.cjs` (v2.31, the `rpgframework.content/1` mapping). `npm run test:rules` — only the rules. UI flows: Playwright E2E with a mocked Firebase (kept outside the repo).
 
 **Authentication:**
 - Firebase Auth (Email/Password, Google)
@@ -584,5 +584,5 @@ firebase deploy                   # Deploy everything
 
 ---
 
-**Last updated:** 2026-11-02 (v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
+**Last updated:** 2026-11-02 (v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
 **Maintained by:** WhiteWrite Team

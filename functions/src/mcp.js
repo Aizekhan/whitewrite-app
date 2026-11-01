@@ -65,6 +65,8 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Quest id or title' } } } },
   { name: 'get_dialogue_context', description: 'A dialogue of this game, approved by the author: type, participants, location, quest + stage, trigger, lines (speaker, text, localisation key, condition, effects, next) and player choices (text, target line, condition); the first line is the start. Without an id — the list of approved dialogues.',
     inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Dialogue id or title' } } } },
+  { name: 'get_content_export', description: 'The approved quests and dialogues of this game in the RPG Framework (≥ 0.32.0) import format "rpgframework.content/1", plus how to import them. Write `content` to a JSON file in the project and run the importer; refs (c:<card> / canon ids) are opaque strings.',
+    inputSchema: { type: 'object', properties: {} } },
   // Setup, Unity environment, Project Knowledge, development activity log (functions/setup-guides.js holds the instructions)
   { name: 'get_guide', description: 'Instructions from WhiteWrite: setup (first run and connection rules), unity_env (environment checks with confirmed Unity CLI / Editor commands), knowledge (how to index the Unity project read-only and send it), activity_log (how and when to report development sessions).',
     inputSchema: { type: 'object', required: ['topic'], properties: { topic: { type: 'string', enum: ['setup', 'unity_env', 'knowledge', 'activity_log'] } } } },
@@ -578,6 +580,16 @@ async function callTool(name, args, key) {
       if (!args.id) return { dialogues: n.dialogues.filter((d) => d.approval === 'approved').map((d) => ({ id: d.id, title: d.title || '', type: d.type || '', quest: d.questId || '' })),
         drafts: n.dialogues.filter((d) => d.approval !== 'approved').length };
       return dialogueView(ctx, n, findApproved(n.dialogues, args.id, 'Dialogue'));
+    }
+    case 'get_content_export': {
+      const n = await narrative(ctx);
+      const content = NV.toFrameworkContent(n.quests, n.dialogues, { game: ctx.game.title || '', exportedAt: new Date().toISOString() });
+      return { content, counts: { quests: content.quests.length, dialogues: content.dialogues.length },
+        how: 'Save `content` as Assets/Content/WhiteWrite/content.json (or where the author keeps content), then run ' +
+          '`Unity.exe -batchmode -quit -projectPath "<project>" -executeMethod RPGFramework.ContentImport.Editor.ContentAssetImport.ImportFromCommandLine -contentFile <file> [-contentFolder Assets/Content] -logFile -`. ' +
+          'Exit 0 = imported (Quest / Dialogue assets created or updated by id), 1 = the file has errors and nothing was written (read the problem codes in the log), 2 = the import failed. ' +
+          'Dialogue effects are not stored in the assets: a kit game keeps them by listing the JSON in Game Setup > Content Files. Then run ValidateFromCommandLine (exit 0 = clean). ' +
+          'Free-text conditions arrive as {type:"custom", id:text} and unknown effect kinds are reported and skipped — wire them in game code, do not edit the design; a design change goes through submit_change_request.' };
     }
     case 'get_guide': {
       const g = GUIDES.guide(str(args.topic, 20));

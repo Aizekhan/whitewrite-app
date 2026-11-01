@@ -1534,6 +1534,7 @@
       triggerPh: "Коли починається: підійти, клік, подія…", nodes: "Репліки", node: "Репліка", speaker: "Хто говорить", player: "Гравець", narrator: "Оповідач",
       text: "Текст репліки", locKey: "Ключ локалізації", cond: "Умова", effects: "Ефекти", effectsPh: "напр. give_item:ключ; set_flag:met", next: "Далі",
       choice: "Текст вибору", addChoice: "＋ Вибір гравця", addNode: "＋ Репліка", endNode: "Кінець розмови",
+      fw: "⤓ JSON для RPG Framework", fwHint: "Затверджені квести й діалоги у форматі імпорту RPG Framework (rpgframework.content/1)", fwNone: "Ще немає затверджених квестів чи діалогів.",
       stagesN: "етапів", nodesN: "реплік", inDossier: "Квести й діалоги", givesIt: "дає квест", fromIt: "джерело",
       bulb: "💡 Створити квест на основі цього", source: "Джерело", srcHint: "Картка гри, історія, досьє чи запис культури, з якого виріс квест", openSrc: "↗ Відкрити джерело",
       srcKinds: { card: "Картка гри", story: "Історія", characters: "Персонаж", locations: "Локація", factions: "Фракція", artifacts: "Артефакт", events: "Подія", lore: "Культура" },
@@ -1566,6 +1567,7 @@
       triggerPh: "When it starts: approach, click, event…", nodes: "Lines", node: "Line", speaker: "Speaker", player: "Player", narrator: "Narrator",
       text: "Line text", locKey: "Localisation key", cond: "Condition", effects: "Effects", effectsPh: "e.g. give_item:key; set_flag:met", next: "Next",
       choice: "Choice text", addChoice: "＋ Player choice", addNode: "＋ Line", endNode: "End of conversation",
+      fw: "⤓ JSON for RPG Framework", fwHint: "Approved quests and dialogues in the RPG Framework import format (rpgframework.content/1)", fwNone: "No approved quests or dialogues yet.",
       stagesN: "stages", nodesN: "lines", inDossier: "Quests & dialogues", givesIt: "gives the quest", fromIt: "source",
       bulb: "💡 Create a quest from this", source: "Source", srcHint: "The game card, story, dossier or culture entry the quest grew from", openSrc: "↗ Open the source",
       srcKinds: { card: "Game card", story: "Story", characters: "Character", locations: "Location", factions: "Faction", artifacts: "Artifact", events: "Event", lore: "Culture" },
@@ -1637,11 +1639,19 @@
     }
     var types = col === "quests" ? QD.qtypes : QD.dtypes, list = qdList(col).slice().sort(byOrder(function (x) { return x.title || ""; }));
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      (canQuest ? '<div class="row"><button class="btn primary" id="add-top">' + STR.sub.add + '</button></div>' : '') + '</header>' +
+      '<div class="row"><button class="btn" id="q-fw" title="' + esc(QD.fwHint) + '">' + QD.fw + '</button>' +
+      (canQuest ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>' +
       (canQuest ? '' : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') +
       subsHtml(s, list, function (x) { return x.type || ""; }, function (l) { return '<div class="grid">' + l.map(function (x) { return qdCardHtml(col, x); }).join("") + '</div>'; },
         function (g) { return types[g] || g; });
     var at = $("add-top"); if (at) at.onclick = newSubsection;
+    $("q-fw").onclick = exportFramework;
+  }
+  // the approved ones in RPG Framework's content import format (functions/narrative-validate.js toFrameworkContent; MCP get_content_export gives the same)
+  function exportFramework() {
+    var c = window.__NARRATIVE.toFrameworkContent(quests, dialogues, { game: game.title || "", exportedAt: new Date().toISOString() });
+    if (!c.quests.length && !c.dialogues.length) { alert(QD.fwNone); return; }
+    download(slugify(game.title || "game") + ".content.json", JSON.stringify(c, null, 2));
   }
   // ---- editor ----
   function pairsOf(o) { return Object.keys(o).map(function (k) { return [k, o[k]]; }); }
