@@ -8,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "build:app": "node scripts/build-app.mjs"
+    "build:app": "node scripts/build-app.mjs",
+    "test": "node tests/run.mjs",
+    "test:rules": "node tests/rules.test.mjs"
   },
   "dependencies": {
     "firebase": "^10.14.1",

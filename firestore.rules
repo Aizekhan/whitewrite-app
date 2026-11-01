@@ -58,9 +58,21 @@ service cloud.firestore {
 
       // Games built on this canon (one canon → many games): game doc + cards + production plan.
       // Writing needs a plan with allowGameDev (functions/plans.js); reading stays with the owner whatever the plan.
-      match /games/{document=**} {
+      // Only the subcollections the Game Bible page itself edits are client-writable; everything else under a game
+      // (telemetry, telemetryDaily, experience metrics, executions, and every future server-side record: activity log,
+      // project knowledge, marketing posts…) is written by Cloud Functions only — the owner reads it.
+      match /games/{gameId} {
         allow read: if isAuthenticated() && isWorldOwner(worldId);
         allow write: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev();
+      }
+      match /games/{gameId}/{sub}/{docId} {
+        allow read: if isAuthenticated() && isWorldOwner(worldId);
+        allow write: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() &&
+                        sub in ['cards', 'plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'];
+        allow delete: if isAuthenticated() && isWorldOwner(worldId) && sub == 'executions'; // the author deleting the game
+      }
+      match /games/{gameId}/{sub}/{docId}/{rest=**} {
+        allow read: if isAuthenticated() && isWorldOwner(worldId);
       }
     }
 
