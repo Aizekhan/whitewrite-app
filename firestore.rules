@@ -48,6 +48,11 @@ service cloud.firestore {
         allow read, write: if isAuthenticated() && isWorldOwner(worldId);
       }
 
+      // Culture of the world (peoples, languages, faith, customs) — World Bible «Культура».
+      match /lore/{loreId} {
+        allow read, write: if isAuthenticated() && isWorldOwner(worldId);
+      }
+
       // Games built on this canon (one canon → many games): game doc + cards + production plan.
       // Writing needs a plan with allowGameDev (functions/plans.js); reading stays with the owner whatever the plan.
       match /games/{document=**} {

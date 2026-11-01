@@ -43,10 +43,17 @@ const labelMap = (o, n, max) => Object.fromEntries(Object.entries(o && typeof o 
   .map(([k, v]) => [str(k, 80), str(v, max)]).filter(([k, v]) => k && v).slice(0, n));
 
 // Canon + this game as compact text; every card carries a ref the model can point questions at.
-function bibleText(world, entities, cards, game, shelves) {
+function bibleText(world, entities, cards, game, shelves, lore) {
   const own = (game.sections || []).map((s) => ({ id: s.id, name: s.name })).concat((shelves || []).map((s) => ({ id: s.id, name: s.name })));
   const lines = [`# World canon: ${world.title || ''}`, world.tagline || '', world.summary || ''];
   if ((world.rules || []).length) lines.push('Laws of the world:', ...world.rules.map((r) => `- ${r}`));
+  if ((lore || []).length) { // World Bible «Культура»: peoples, languages, faith, customs
+    lines.push('\n# Culture of the world');
+    for (const x of lore) {
+      const f = Object.values(x.fields || {}).map((v) => str(v, 400)).filter(Boolean).join(' · ');
+      lines.push(`- [${x.group || 'customs'}] ${x.name || ''}: ${str(x.desc, 500)}${f ? ' — ' + f : ''}`);
+    }
+  }
   if (game.title) lines.push(`\n# Game: ${game.title}`);
   const card = (ref, section, title, status, fields, note, files) => {
     lines.push(`\n## [${ref}] ${title} (section: ${section}, status: ${status || 'idea'})`);
@@ -395,13 +402,14 @@ exports.gamedevPlan = onRequest({
       const gameRef = isCanon ? null : worldRef.collection('games').doc(gameId);
       gameRefForError = gameRef;
       const none = { exists: false, docs: [] };
-      const [worldSnap, gameSnap, entitiesSnap, cardsSnap, planSnap] = await Promise.all([
+      const [worldSnap, gameSnap, entitiesSnap, cardsSnap, planSnap, loreSnap] = await Promise.all([
         worldRef.get(), isCanon ? none : gameRef.get(), worldRef.collection('entities').get(),
-        isCanon ? none : gameRef.collection('cards').get(), isCanon ? none : gameRef.collection('plan').doc('current').get()]);
+        isCanon ? none : gameRef.collection('cards').get(), isCanon ? none : gameRef.collection('plan').doc('current').get(), worldRef.collection('lore').get()]);
       if (!worldSnap.exists || worldSnap.data().owner !== uid || (!isCanon && !gameSnap.exists)) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
 
       const world = worldSnap.data(), game = isCanon ? {} : gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
       const entities = entitiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false));
+      const lore = loreSnap.docs.map((d) => d.data());
       const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const engine = (game.engine && game.engine.profile) || 'generic';
       const answers = prev.answers || {};
@@ -427,10 +435,10 @@ exports.gamedevPlan = onRequest({
       }
 
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
-      const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, []), decided(audit.contradictions, auditAnswers), languageName)]
+      const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
-        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves), engine, answered, prev.gdd, languageName, shelves)
-          : analyzePrompt(bibleText(world, entities, cards, game, shelves), engine, answered, languageName)];
+        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
+          : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
       const prompt = prompts.join('');
       const model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet; // configured id — the one MODEL_PRICING knows
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });

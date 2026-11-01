@@ -15,6 +15,7 @@
   var STR = {
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
+      cult: { add: "＋ Додати", empty: "Ще порожньо.", del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
       chron: { add: "＋ Подія", unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
@@ -108,6 +109,7 @@
     },
     en: {
       brand: "World Bible", engine: "Game engine",
+      cult: { add: "＋ Add", empty: "Empty yet.", del: "Delete entry", delQ: "Delete this culture entry with its files?" },
       chron: { add: "＋ Event", unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
@@ -318,7 +320,21 @@
   var CANON_ISSUES = { id: "canonIssues", special: "canonIssues", uk: "Неузгоджене", en: "Inconsistencies" };
   var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Історія і хроніка", en: "History & chronicle",
     about: { uk: "Події світу на лінії часу та історії, що в ньому написані.", en: "The world's events on the time line, and the stories written in it." } };
-  CANON.push(CANON_ISSUES, CHRONICLE);
+  // Culture lives in worlds/{w}/lore (not entity kinds: the Universe tree, extraction and scenes know exactly five)
+  var CULTURE = { id: "culture", special: "culture", uk: "Культура", en: "Culture",
+    about: { uk: "Народи й раси, мови, віра й міфологія, звичаї — те, чим живуть у цьому світі.", en: "Peoples and races, languages, faith and mythology, customs — how this world lives." } };
+  var LORE = [
+    { id: "peoples", uk: "Народи й раси", en: "Peoples & races",
+      defs: [F("origin", "Походження", "Origin"), F("look", "Вигляд і тіло", "Look & body"), F("society", "Суспільство й звичаї", "Society & customs"), F("lands", "Де живуть", "Where they live")] },
+    { id: "languages", uk: "Мови", en: "Languages",
+      defs: [F("sound", "Звучання", "Sound"), F("script", "Писемність", "Script"), F("phrases", "Слова й фрази", "Words & phrases"), F("speakers", "Хто говорить", "Who speaks it")] },
+    { id: "beliefs", uk: "Віра й міфологія", en: "Faith & mythology",
+      defs: [F("powers", "Божества й сили", "Gods & powers"), F("myths", "Міфи", "Myths"), F("rites", "Обряди", "Rites"), F("believers", "Хто вірить", "Believers")] },
+    { id: "customs", uk: "Звичаї й побут", en: "Customs & daily life",
+      defs: [F("what", "Що це", "What it is"), F("when", "Коли і де", "When & where"), F("meaning", "Значення", "Meaning")] },
+  ];
+  var loreGroup = function (id) { return LORE.filter(function (g) { return g.id === id; })[0] || LORE[3]; };
+  CANON.push(CANON_ISSUES, CHRONICLE, CULTURE);
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
@@ -328,6 +344,7 @@
   var params = new URLSearchParams(location.search);
   var worldId = params.get("worldId");
   var db = null, world = null, games = [], gameId = null, game = null;
+  var lore = []; // culture entries: worlds/{w}/lore/{id} { group, name, desc, fields, files }
   var cards = [], entities = [], planDoc = {}, canWrite = false, unsub = [];
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   var section = "overview", query = "", statusFilter = {};
@@ -420,6 +437,7 @@
   // ---------- render ----------
   function navItem(s, all) {
     var n = s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
+      : s.special === "culture" ? lore.length
       : s.special === "chronicle" ? entities.filter(function (e) { return e.kind === "events"; }).length
       : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
       : s.special ? "" : all.filter(function (c) { return c.section === s.id; }).length;
@@ -475,6 +493,7 @@
       if (cs.special === "laws") return renderLaws(cs);
       if (cs.dossier) return renderDossiers(cs);
       if (cs.special === "chronicle") return renderChronicle(cs);
+      if (cs.special === "culture") return renderCulture(cs);
     }
     if (!game) return renderNewGame();
     if (imp) return renderImport();
@@ -535,9 +554,10 @@
     var img = entImage(e), tags = [];
     if ((e.lifeNotes || []).length) tags.push('<span class="flag">⟡ ' + e.lifeNotes.length + '</span>');
     if ((e.files || []).length) tags.push('<span class="flag">📎 ' + e.files.length + '</span>');
-    return '<button class="card dcard" data-ent="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
+    return '<button class="card dcard" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
       '<h3>' + esc(e.name || e.title || STR.newCard) + '</h3>' + (e.role ? '<p class="sub">' + esc(e.role) + '</p>' : '') +
-      (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation)) + '</p></button>';
+      (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation ||
+        Object.keys(e.fields || {}).map(function (k) { return e.fields[k]; }).join(" "))) + '</p></button>';
   }
   function dmsg(t) { $("d-msg").textContent = t; }
   function openDossier(e) {
@@ -546,10 +566,12 @@
     dos = e; dtab = "story";
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({ story: "", look: "" }, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
+    if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
+    $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
     dfirst = JSON.stringify(ddraft);
-    $("d-kicker").textContent = (dosSection(e.kind) ? L(dosSection(e.kind)) : STR.dos.kinds[e.kind] || "") + " · " + STR.dos.world;
+    $("d-kicker").textContent = e.col === "lore" ? L(loreGroup(e.group)) + " · " + L(CULTURE) : (dosSection(e.kind) ? L(dosSection(e.kind)) : STR.dos.kinds[e.kind] || "") + " · " + STR.dos.world;
     $("d-title").value = ddraft.name;
     renderDossier(); dmsg("");
     $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
@@ -561,6 +583,7 @@
     var d = $("d-desc"); if (d) ddraft.desc = d.value;
     var t = $("d-text"); if (t) ddraft.dossier[t.dataset.k] = t.value;
     ["at", "dur", "when"].forEach(function (k) { var i = $("d-" + k); if (i) ddraft[k] = i.value; });
+    [].forEach.call(document.querySelectorAll("#d-body [data-lf]"), function (t) { ddraft.fields[t.dataset.lf] = t.value; });
   }
   function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
   function eventHtml() {
@@ -630,6 +653,13 @@
     var html = '<div class="field files"><label>' + STR.dos.pics + ' <span class="hint">' + STR.dos.picsHint + '</span></label>' + files.map(dosFileRow).join("") +
       (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
     html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="4">' + esc(ddraft.desc) + '</textarea></div>';
+    if (e.col === "lore") { // culture: its group's fields, no tabs
+      $("d-body").innerHTML = html + loreGroup(e.group).defs.map(function (d) {
+        return '<div class="field"><label for="lf-' + d.key + '">' + esc(d.label) + '</label><textarea id="lf-' + d.key + '" data-lf="' + d.key + '" rows="4">' + esc(ddraft.fields[d.key] || "") + '</textarea></div>';
+      }).join("");
+      $("d-tabs").innerHTML = ""; $("d-tabs").hidden = true; return;
+    }
+    $("d-tabs").hidden = false;
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "links" ? linksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
@@ -675,7 +705,7 @@
         task.on("state_changed", function (sn) { if (dos === e) dmsg(STR.uploading + " " + file.name + " · " + Math.round(100 * sn.bytesTransferred / (sn.totalBytes || 1)) + "%"); });
         await task;
         var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
-        await wref().collection("entities").doc(e.id).set({ files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() }, { merge: true });
+        await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() }, { merge: true });
         e.files = (e.files || []).concat([meta]); done++;
       } catch (er) { dmsg(STR.failed + ": " + file.name + " — " + (er.code || er.message || er)); return; }
     }
@@ -686,14 +716,22 @@
     if (!f || !confirm(STR.confirmFile + " " + f.name + "?")) return;
     try {
       await firebase.storage().ref(f.path).delete().catch(function (er) { if (er.code !== "storage/object-not-found") throw er; });
-      await wref().collection("entities").doc(e.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
+      await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
       e.files = e.files.filter(function (x) { return x.id !== id; });
       if (dos === e) { dcollect(); renderDossier(); }
     } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
   }
+  function colOf(e) { return wref().collection(e.col === "lore" ? "lore" : "entities"); }
   async function saveDossier() {
     if (!dos) return;
     dcollect();
+    if (dos.col === "lore") {
+      var lb = { group: dos.group, name: ddraft.name.trim() || dos.name || STR.newCard, desc: ddraft.desc, fields: ddraft.fields, updatedAt: stamp() };
+      if (dos.isNew) lb.createdAt = stamp();
+      dmsg(STR.saving);
+      try { await colOf(dos).doc(dos.id).set(lb, { merge: true }); closeDossier(); } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+      return;
+    }
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
     if (e.isNew) Object.assign(body, { id: e.id, kind: e.kind, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
@@ -703,6 +741,21 @@
     dmsg(STR.saving);
     try { await wref().collection("entities").doc(e.id).set(body, { merge: true }); closeDossier(); }
     catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+  }
+  async function deleteLore() {
+    var e = dos; if (!e || e.col !== "lore" || !confirm(STR.cult.delQ)) return;
+    await Promise.all((e.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+    await colOf(e).doc(e.id).delete();
+    closeDossier();
+  }
+  function renderCulture(s) {
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>';
+    LORE.forEach(function (g) {
+      var list = lore.filter(function (x) { return (x.group || "customs") === g.id; });
+      html += '<h2 class="group">' + esc(L(g)) + ' <span>' + list.length + '</span><button class="btn mini" data-newlore="' + g.id + '">' + STR.cult.add + '</button></h2>' +
+        (list.length ? '<div class="grid">' + list.map(dosCardHtml).join("") + '</div>' : '<p class="muted">' + STR.cult.empty + '</p>');
+    });
+    $("view").innerHTML = html;
   }
   function switchDossier(id) {
     dcollect();
@@ -1292,9 +1345,9 @@
   }
   async function docsOf(ref) { var s = await ref.get(); return s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }
   async function exportWorld() {
-    var ents = await docsOf(wref().collection("entities"));
+    var ents = await docsOf(wref().collection("entities")), cult = await docsOf(wref().collection("lore"));
     download(slugify(world.title || "world") + ".world.json", JSON.stringify({ format: "whitewrite.world/1", exportedAt: new Date().toISOString(),
-      world: Object.assign({ id: worldId }, world), entities: ents, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
+      world: Object.assign({ id: worldId }, world), entities: ents, lore: cult, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
   }
   // Restore from an export: never overwrites — a game file becomes a new game here, a world file a new world.
   function revive(v) { // exported Firestore timestamps come back as {seconds, nanoseconds}
@@ -1333,6 +1386,7 @@
       w.owner = firebase.auth().currentUser.uid; w.createdAt = stamp(); w.updatedAt = stamp();
       await db.collection("worlds").doc(wid).set(w);
       await writeAll(db.collection("worlds").doc(wid).collection("entities"), data.entities || [], true);
+      await writeAll(db.collection("worlds").doc(wid).collection("lore"), data.lore || [], true);
       note(STR.stRestored + ": " + (w.title || wid));
       tellShell({ type: "ww-worlds-changed" });
       return;
@@ -1399,8 +1453,9 @@
     askDelete(STR.stDelWorld, STR.stDelWorldText, world.title || "", async function () {
       unsub.forEach(function (u) { u(); }); unsub = [];
       for (var g of games) await removeGame(g.id);
-      await Promise.all(entities.reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+      await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
+      await deleteDocs(wref().collection("lore"));
       await wref().delete(); // last: the rules check ownership through the world doc
       tellShell({ type: "ww-worlds-changed", deleted: true });
     });
@@ -1850,6 +1905,8 @@
     var v = e.target.closest("[data-view3d]");
     if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
+    var nl = e.target.closest("[data-newlore]"); if (nl) { openDossier({ id: newId("lore"), col: "lore", group: nl.dataset.newlore, isNew: true }); return; }
+    var dl = e.target.closest("[data-lore]"); if (dl) { openDossier(lore.filter(function (x) { return x.id === dl.dataset.lore; })[0]); return; }
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0]; if (card) openCard(card);
@@ -1933,6 +1990,7 @@
   $("scrim").onclick = function () { if (dos) closeDossier(); else closeLeaf(); };
   $("d-save").onclick = saveDossier;
   $("d-close").onclick = closeDossier;
+  $("d-delete").onclick = deleteLore;
   $("e-delete").onclick = removeCard;
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
   document.addEventListener("keydown", function (e) {
@@ -1951,7 +2009,7 @@
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search;
   setEditMode(false); $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
-  $("d-save").textContent = STR.save; $("d-close").textContent = STR.close;
+  $("d-save").textContent = STR.save; $("d-close").textContent = STR.close; $("d-delete").textContent = STR.cult.del;
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }
@@ -2008,6 +2066,11 @@
         .filter(function (e) { return !(e.origin && e.origin.confirmed === false); }); // inferred canon is not fact yet
       render();
     });
+    wref().collection("lore").onSnapshot(function (snap) {
+      lore = snap.docs.map(function (d) { return Object.assign({ id: d.id, col: "lore" }, d.data()); })
+        .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
+      render();
+    }, function () {});
     var first = true;
     wref().collection("games").onSnapshot(function (snap) {
       games = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
