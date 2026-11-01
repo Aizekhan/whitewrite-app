@@ -51,6 +51,10 @@ const FEATURES = [
     uk: { name: 'Доступ до RPG Framework', desc: 'Особистий токен до фреймворку для Unity: привʼязаний до акаунта, блокується при чужому використанні, оновлюється, поки підписка активна.' },
     en: { name: 'RPG Framework access', desc: 'A personal token for the Unity framework: tied to the account, blocked if used by someone else, renewed while the subscription is active.' },
     where: 'База знань → RPG Framework → Доступ', server: '— (готується)' },
+  { id: 'projectSlot', kind: 'ai', minPlan: 'free', price: { fixed: 500, per: 'project' },
+    uk: { name: 'Додатковий проєкт', desc: 'Понад ліміт тарифу: ще один проєкт за 500 токенів, слот лишається назавжди.' },
+    en: { name: 'Extra project', desc: 'Beyond the plan limit: one more project for 500 tokens, the slot stays forever.' },
+    where: 'Створення історії понад ліміт', server: 'createProject' },
   // ── Canon ──
   { id: 'bible', kind: 'gate', flag: 'allowWorldTree', minPlan: 'storyteller',
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },

@@ -217,6 +217,8 @@
       'error.sceneGeneration': 'Помилка при генерації сцени {number}',
       'error.scenesGenerated': 'Згенеровано {count} з {total} сцен.',
       'error.projectCreation': 'Не вдалося створити проєкт',
+      'project.limitAsk': 'Ліміт тарифу {plan} — проєктів: {limit}, і всі вже зайняті.\n\nДодатковий проєкт — {cost} токенів, слот лишається назавжди (у тебе {have}).\n\nOK — купити слот і створити проєкт.\nСкасувати — відкрити тарифи.',
+      'project.slotNoTokens': 'Для додаткового проєкту потрібно {cost} токенів, у тебе {have}. Поповни баланс або обери вищий тариф.',
 
       // Book / Reading
       'book.act': 'Акт',
@@ -767,6 +769,8 @@
       'error.sceneGeneration': 'Error generating scene {number}',
       'error.scenesGenerated': 'Generated {count} of {total} scenes.',
       'error.projectCreation': 'Failed to create project',
+      'project.limitAsk': 'The {plan} plan limit — projects: {limit}, and all are taken.\n\nAn extra project costs {cost} tokens; the slot stays forever (you have {have}).\n\nOK — buy the slot and create the project.\nCancel — open the plans.',
+      'project.slotNoTokens': 'An extra project needs {cost} tokens, you have {have}. Top up or choose a higher plan.',
 
       // Book / Reading
       'book.act': 'Act',

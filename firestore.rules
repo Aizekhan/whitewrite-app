@@ -92,10 +92,7 @@ service cloud.firestore {
     match /projects/{projectId} {
       allow read: if isAuthenticated() &&
                      resource.data.owner == request.auth.uid;
-      allow create: if isAuthenticated() &&
-                       request.resource.data.owner == request.auth.uid &&
-                       request.resource.data.visibility == 'private' &&
-                       (!('worldId' in request.resource.data) || isWorldOwner(request.resource.data.worldId));
+      allow create: if false; // only the createProject Cloud Function (plan maxProjects + paid extra slots)
       allow update: if isAuthenticated() &&
                        resource.data.owner == request.auth.uid &&
                        request.resource.data.owner == resource.data.owner &&

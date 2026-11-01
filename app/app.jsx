@@ -428,7 +428,7 @@ function App() {
       } catch (error) {
         console.error('Failed to create project:', error);
         const t = window.__i18n ? window.__i18n.t : (k) => k;
-        alert(t('error.projectCreation') + ': ' + error.message);
+        if (!error.silent) alert(t('error.projectCreation') + ': ' + error.message); // silent: the limit dialog already spoke
         setGenerationProgress({ current: 0, total: 0, isGenerating: false });
         return;
       }

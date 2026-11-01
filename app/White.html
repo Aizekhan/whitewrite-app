@@ -1455,8 +1455,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }).join("");
     return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
       var pr = f.price, c = PF.featureCost(f);
-      var n = pr.per === '30d' ? c : pr.scene ? 'Gemini ≈ ' + PF.SCENE_TYPICAL.gemini + ' / Claude ≈ ' + PF.SCENE_TYPICAL.claude : '≈ ' + c;
-      var per = pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : '';
+      var n = pr.per === '30d' || pr.per === 'project' ? c : pr.scene ? 'Gemini ≈ ' + PF.SCENE_TYPICAL.gemini + ' / Claude ≈ ' + PF.SCENE_TYPICAL.claude : '≈ ' + c;
+      var per = pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : pr.per === 'project' ? (en ? ' per project slot' : ' за слот проєкту') : '';
       return '<li><b>' + L(f).name + '</b> — ' + n + per + (en ? ' tokens · from ' : ' токенів · від ') + PF.PLANS[f.minPlan].name + '</li>';
     }).join("") + '</ul>';
   }

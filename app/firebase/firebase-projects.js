@@ -73,62 +73,45 @@ window.__firebaseProjects = {
     };
   },
 
-  // Create new project
-  async createProject(data) {
-    const uid = this.uid;
-    if (!uid) {
+  // Create new project — through the createProject Cloud Function, which holds the plan's project limit.
+  // Over the limit the author may buy a permanent extra slot for tokens, or open the plans.
+  async createProject(data, buySlot) {
+    const user = firebase.auth().currentUser;
+    if (!user) {
       throw new Error('User not authenticated');
     }
-
-    const projectId = 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-    await window.__firebase.db.collection('projects').doc(projectId).set({
-      owner: uid,
-      ...(data.worldId ? { worldId: data.worldId } : {}), // the story lives in this world
-      visibility: 'private', // Future: 'shared' | 'public'
-      title: data.title || 'Без назви',
-      desc: data.desc || '',
-      meta: data.meta || '',
-      cover: data.cover || null,
-      language: data.language || 'uk',         // Language: uk | en | pl | ru
-      scope: data.scope || 'novella',
-      ending: data.ending || 'open',
-      endingNote: data.endingNote || '',       // Custom ending description
-      genres: data.genres || [],
-      creation: data.creation || 'guided',     // Creation mode: guided | auto | free (the author writes)
-      subjects: data.subjects || [],           // canon entity ids the story is about
-      reveal: data.reveal || 'open',           // open (to the reader) | later (revealed later) | internal (canon idea, author only)
-      revealNote: data.revealNote || '',
-      length: data.length || 700,              // Scene length in words (200-2000)
-      dialogue: data.dialogue || 50,           // Dialogue density 0-100%
-      episodes: data.episodes || null,         // Number of episodes (for season scope)
-      written: data.written || 0,
-      active: data.active !== undefined ? data.active : false,
-      badge: data.badge || 'draft',
-      c1: data.c1 || '#2a1c16',
-      c2: data.c2 || '#10131a',
-      canonAware: true,
-      canon: {
-        world: {
-          tagline: '',
-          summary: '',
-          facts: [],
-          rules: [],
-          palette: []
-        },
-        characters: {},
-        locations: {},
-        events: {},
-        factions: {},
-        artifacts: {},
-        inferred: {},      // AI-suggested entities (not facts yet)
-        hiddenCanon: {}    // For plot twists
-      },
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    const token = await user.getIdToken();
+    const r = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/createProject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ project: data, buySlot: !!buySlot })
     });
-
-    return projectId;
+    const out = await r.json().catch(() => ({}));
+    if (r.ok && out.projectId) {
+      if (out.tokensCharged && window.__wwUser) {
+        window.__wwUser.tokensRemaining = Math.max(0, (window.__wwUser.tokensRemaining || 0) - out.tokensCharged);
+        if (typeof window.__syncDockAvatar === 'function') window.__syncDockAvatar();
+      }
+      return out.projectId;
+    }
+    const t = window.__i18n ? window.__i18n.t : (k) => k;
+    const fill = (k, o) => Object.keys(o).reduce((m, x) => m.split('{' + x + '}').join(o[x]), t(k));
+    const openPlans = () => { const w = window.parent && window.parent.__openAccount ? window.parent : window; if (w.__openAccount) w.__openAccount(); };
+    const silent = (msg) => { const e = new Error(msg); e.silent = true; return e; };
+    if (out.code === 'PROJECT_LIMIT') {
+      const plan = window.__getPlanConfig ? window.__getPlanConfig(out.plan).name : out.plan;
+      if (confirm(fill('project.limitAsk', { plan, limit: out.limit, cost: out.slotCost, have: out.tokensRemaining }))) {
+        return this.createProject(data, true);
+      }
+      openPlans();
+      throw silent('PROJECT_LIMIT');
+    }
+    if (out.code === 'OUT_OF_TOKENS') {
+      alert(fill('project.slotNoTokens', { cost: out.tokensNeeded, have: out.tokensRemaining }));
+      openPlans();
+      throw silent('OUT_OF_TOKENS');
+    }
+    throw new Error(out.error || ('HTTP ' + r.status));
   },
 
   // Update project

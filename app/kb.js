@@ -573,6 +573,10 @@
         body: [
           ["plans"],
           ["p", "Тариф змінюється в Акаунті; поточний підсвічено."],
+          ["h", "Ліміт проєктів"],
+          ["p", "Кожен тариф має ліміт проєктів (історій): Free — 1, Storyteller — 5, Novelist і Worldbuilder — без обмежень. Сервер перевіряє його під час створення історії."],
+          ["p", "Коли ліміт зайнято, сервіс запропонує <b>додатковий проєкт за 500 токенів</b>: слот лишається назавжди, навіть після зміни тарифу. «Скасувати» відкриває тарифи. Якщо токенів не вистачає — поповни баланс або обери вищий тариф."],
+          ["tip", "Після переходу на менший тариф наявні історії лишаються, просто нові понад ліміт створюються за слот."],
         ] },
       { cat: "account", id: "projects", icon: "library", title: "Світи й історії: керування",
         lead: "Створення, редагування, видалення.",
@@ -1128,6 +1132,10 @@
         body: [
           ["plans"],
           ["p", "Change the plan in the Account; the current one is highlighted."],
+          ["h", "Project limit"],
+          ["p", "Every plan has a project (story) limit: Free — 1, Storyteller — 5, Novelist and Worldbuilder — unlimited. The server checks it when a story is created."],
+          ["p", "When the limit is full, the service offers <b>an extra project for 500 tokens</b>: the slot stays forever, even after a plan change. “Cancel” opens the plans. Not enough tokens — top up or choose a higher plan."],
+          ["tip", "After moving to a smaller plan your stories stay; only new ones beyond the limit take a slot."],
         ] },
       { cat: "account", id: "projects", icon: "library", title: "Worlds and stories: managing",
         lead: "Create, edit, delete.",

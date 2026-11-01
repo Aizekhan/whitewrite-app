@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.15.0 (2026-11-02)
+**Version:** 2.16.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -265,7 +265,9 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 
 **Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
 
-**Known gaps (audit 2026-11-02):** `maxProjects` is not enforced on the server; the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); plan upgrades open a new LS subscription without cancelling the old one. (Margin fixed in v2.15.)
+**Project limit (v2.16):** stories are created ONLY by the `createProject` Cloud Function (`functions/src/projects.js`; `firestore.rules` → `projects` `allow create: if false`). It counts `projects where owner == uid` against `planBudget(plan).maxProjects + users/{uid}.extraProjects`; over the limit it answers 403 `{code:'PROJECT_LIMIT', limit, count, plan, slotCost, tokensRemaining}`, and with `buySlot: true` reserves the registry price of `projectSlot` (500 tokens, fixed), increments `extraProjects` (a permanent slot, survives plan changes) and logs `usage_logs {operation:'project_slot'}`. The server whitelists and caps the story fields; `worldId` must be the caller's world. Client: `__firebaseProjects.createProject(data, buySlot?)` — confirm «купити слот» (i18n `project.limitAsk`) or open the plans; `OUT_OF_TOKENS` → alert `project.slotNoTokens`; both throw `err.silent` so `app.jsx` shows no second alert.
+
+**Known gaps (audit 2026-11-02):** the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); plan upgrades open a new LS subscription without cancelling the old one. (Margin fixed in v2.15.)
 
 ---
 

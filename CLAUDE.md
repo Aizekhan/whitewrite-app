@@ -47,6 +47,7 @@
   - **База знань — покроковий шлях з агентом** (ПК і команди PowerShell: Git, Unity Hub, Unity CLI, Unity 6, Claude Code → з фреймворком чи без → тека + `claude --dangerously-skip-permissions`, модель Opus → MCP → GDD → перша сесія → задачі → GitHub), посилання між статтями; у «RPG Framework» — «Доступ і токен» (скоро) і «Файли контролю»
   - Налаштування гри → **«Запуск Claude Code»**: тека гри на ПК → готові команди PowerShell з кнопкою «Копіювати» (`games/{g}.launch {dir, model, skip}`)
   - **Маржа**: списання = реальна вартість API ÷ `USD_PER_TOKEN` (0.00015, `functions/paid-features.js`), ціни моделей у `ai-models.js` — справжні; повний бюджет Worldbuilder ≈ $27 API з $69; ціни в UI — «≈ N»
+  - **Ліміт проєктів на сервері**: історії створює лише `createProject` (`functions/src/projects.js`, правила забороняють клієнтський create); понад ліміт — слот за 500 токенів назавжди (`users.extraProjects`) або тарифи
   - **Автоканон скасовано**: сцена сама нічого не пише в канон (лише Хранитель/Біблія); `syncCanonFromProject` → 410
   - **Next (рішення власника)**: видача токенів RPG Framework (від Storyteller, блок при чужому використанні, оновлення з підпискою) (`economy_config/global` vs ціни планів), `maxProjects` на сервері, апгрейд підписки без подвійного списання, правило «AI не перезаписує явний канон» у `mergeSuggestions`
 
