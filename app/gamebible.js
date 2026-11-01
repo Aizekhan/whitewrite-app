@@ -601,7 +601,7 @@
   function gameSections() {
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     var hidden = (game && game.hiddenSections) || [];
-    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE]);
+    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE, KNOWLEDGE, ACTIVITY]);
   }
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
@@ -613,9 +613,9 @@
     { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
     { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["assets", "materials", "animation", "audio"] },
     { id: "g-ui", members: ["ui"] },
-    { id: "g-tech", members: ["tech"] },
+    { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
     "custom",
-    { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues"] },
+    { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues", "activity"] },
     { id: "g-exp", uk: "Досвід гравців", en: "Player experience", members: ["experience", "telemetry"] },
   ];
   var lastSub = {}; // the section last open in each group: opening the group returns to it
@@ -945,7 +945,7 @@
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
-    $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience)$/.test(sec(section).special || "")); // status filters only where there are game cards
+    $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = cur ? L(cur) : "";
     if (section === "settings" && !imp) return renderSettings();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
@@ -966,6 +966,8 @@
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
     if (s.special === "experience" && !query) return renderExperience();
+    if (s.special === "knowledge" && !query) return renderKnowledge(s);
+    if (s.special === "activity" && !query) return renderActivity(s);
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
@@ -2643,6 +2645,166 @@
   }
 
   // ---------- project settings: names, engine, import/export, safe deletion ----------
+  // ---------- Project Knowledge · Журнал розробки · Unity environment — written by Claude Code over MCP, the author reads ----------
+  // games/{g}/knowledge/{snap} (+ kAssets, kRelations), games/{g}/activity/{session}/entries/{id} (the author only re-marks
+  // privacy), games/{g}/env/current. The instructions to copy are functions/setup-guides.js (window.__SETUP_GUIDES) — the same
+  // text the MCP tool get_guide gives the agent.
+  var KN = {
+    uk: { status: "Останній знімок", none: "Знімка ще немає. Попроси Claude Code проіндексувати проєкт — команда нижче.",
+      st: { uploading: "завантажується", imported: "імпортовано" }, scope: { full: "повний", partial: "частковий" },
+      c: { added: "нових", updated: "змінено", skipped: "без змін", relations: "звʼязків", rejected: "відхилено", tombstoned: "зникли" },
+      coverage: "Покриття", found: "знайдено", indexed: "проіндексовано", unknown: "невідомо", framework: "Фреймворк",
+      report: "Звіт сканування", unresolved: "Невизначене", overview: "Огляд проєкту",
+      assets: "Ассети", search: "Пошук: назва, шлях, тип, мітка", loading: "Завантажую…", noAssets: "Нічого не знайдено.", more: "Показано {n} з {t} — уточни пошук.",
+      missing: "зник", deps: "Залежності", rels: "Звʼязки", path: "Шлях", history: "Історія знімків",
+      ask: "Скопіюй у Claude Code:", show: "Повна інструкція для агента",
+      actNone: "Записів ще немає. Встав блок нижче в CLAUDE.md проєкту — і Claude Code звітуватиме після кожної сесії.",
+      actSetup: "Блок для CLAUDE.md проєкту", actSetupHint: "Встав його в CLAUDE.md у теці гри. Агент звітує в кінці сесії й після великих змін; без мережі — зберігає звіт і надсилає наступного разу.",
+      allCats: "Усі категорії", allPriv: "Будь-яка приватність", verify: { commit_found: "✓ коміт є в репо", commit_missing: "⚠ коміту немає в репо", unverified: "не перевірено" },
+      change: { added: "＋", changed: "↻", removed: "−", fixed: "✓" },
+      privacy: { internal: "Внутрішнє", confidential: "Конфіденційне", spoiler: "Спойлер", excluded: "Виключено", marketing_approved: "Для маркетингу" },
+      privHint: "Що з цього можна показувати гравцям — вирішуєш ти. «Для маркетингу» — лише те, що ти схвалив.",
+      cat: { mechanic: "Механіка", level: "Рівень", character: "Персонаж", item: "Предмет", ui: "Інтерфейс", audio: "Аудіо", art: "Арт", performance: "Швидкодія",
+        fix: "Виправлення", tooling: "Інструменти", release: "Реліз", other: "Інше" },
+      stt: { completed: "", partial: "частково", experimental: "експеримент", planned: "заплановано" },
+      tests: "тести {p}/{r}", files: "файлів: {n}",
+      envTitle: "Unity / середовище розробки", envHint: "Claude Code перевіряє Unity Editor, Unity CLI, проєкт, валідацію й тести на твоєму ПК і надсилає результат сюди.",
+      envNone: "Перевірки ще не було.", envAt: "Перевірено {d}", setupTitle: "Перший запуск агента", setupHint: "Покроково: MCP → репозиторій → середовище → знання проєкту → перевірка фреймворку → перша задача." },
+    en: { status: "Latest snapshot", none: "No snapshot yet. Ask Claude Code to index the project — the command is below.",
+      st: { uploading: "uploading", imported: "imported" }, scope: { full: "full", partial: "partial" },
+      c: { added: "new", updated: "changed", skipped: "unchanged", relations: "relations", rejected: "rejected", tombstoned: "missing" },
+      coverage: "Coverage", found: "found", indexed: "indexed", unknown: "unknown", framework: "Framework",
+      report: "Scan report", unresolved: "Unresolved", overview: "Project overview",
+      assets: "Assets", search: "Search: name, path, type, label", loading: "Loading…", noAssets: "Nothing found.", more: "Showing {n} of {t} — narrow the search.",
+      missing: "missing", deps: "Dependencies", rels: "Relations", path: "Path", history: "Snapshot history",
+      ask: "Copy into Claude Code:", show: "The full instruction for the agent",
+      actNone: "No entries yet. Paste the block below into the project's CLAUDE.md — Claude Code will report after every session.",
+      actSetup: "Block for the project's CLAUDE.md", actSetupHint: "Paste it into CLAUDE.md in the game's folder. The agent reports at the end of a session and after big changes; offline it keeps the report and sends it next time.",
+      allCats: "All categories", allPriv: "Any privacy", verify: { commit_found: "✓ commit is in the repo", commit_missing: "⚠ commit not in the repo", unverified: "not verified" },
+      change: { added: "＋", changed: "↻", removed: "−", fixed: "✓" },
+      privacy: { internal: "Internal", confidential: "Confidential", spoiler: "Spoiler", excluded: "Excluded", marketing_approved: "For marketing" },
+      privHint: "You decide what of this players may see. “For marketing” is only what you approved.",
+      cat: { mechanic: "Mechanic", level: "Level", character: "Character", item: "Item", ui: "UI", audio: "Audio", art: "Art", performance: "Performance",
+        fix: "Fix", tooling: "Tooling", release: "Release", other: "Other" },
+      stt: { completed: "", partial: "partial", experimental: "experimental", planned: "planned" },
+      tests: "tests {p}/{r}", files: "files: {n}",
+      envTitle: "Unity / development environment", envHint: "Claude Code checks the Unity Editor, Unity CLI, the project, validation and tests on your PC and sends the result here.",
+      envNone: "No check yet.", envAt: "Checked {d}", setupTitle: "The agent's first run", setupHint: "Step by step: MCP → repository → environment → project knowledge → framework check → first task." },
+  }[LANG];
+  var KNOWLEDGE = { id: "knowledge", special: "knowledge", uk: "Знання проєкту", en: "Project knowledge",
+    about: { uk: "Що є в Unity-проєкті: сцени, префаби, скрипти, ассети й звʼязки між ними. Claude Code індексує проєкт лише на читання.", en: "What the Unity project holds: scenes, prefabs, scripts, assets and how they connect. Claude Code indexes the project read-only." } };
+  var ACTIVITY = { id: "activity", special: "activity", uk: "Журнал розробки", en: "Development log",
+    about: { uk: "Що Claude Code зробив за кожну сесію: зміни, вплив на гравця, докази, приватність.", en: "What Claude Code did in each session: changes, player impact, evidence, privacy." } };
+  var kSnaps = [], kAssets = null, kRels = [], kQ = "", kOpen = null, actSessions = [], actEntries = {}, actCat = "", actPriv = "", envDoc = null;
+  var when = function (t) { var d = t && t.toDate ? t.toDate() : t ? new Date(t) : null; return d && !isNaN(d) ? d.toLocaleString(LANG === "en" ? "en-GB" : "uk-UA") : ""; };
+  function guideHtml(topic) { // the short ask + the full text the agent gets from get_guide
+    var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide(topic); if (!g) return "";
+    return '<p class="hint">' + KN.ask + '</p><pre class="ln-cmd">Call get_guide {topic:"' + topic + '"} on the whitewrite MCP server and follow it step by step.</pre><button class="btn" data-copy>' + STR.copy + '</button>' +
+      '<details class="kn-guide"><summary>' + KN.show + '</summary><pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>';
+  }
+  function loadKnowledge() {
+    kAssets = []; kRels = []; kAssets.loading = true;
+    Promise.all([gref().collection("kAssets").get(), gref().collection("kRelations").get()]).then(function (r) {
+      kAssets = r[0].docs.map(function (d) { return Object.assign({ key: d.id }, d.data()); }).sort(function (a, b) { return String(a.path).localeCompare(String(b.path)); });
+      kRels = r[1].docs.map(function (d) { return d.data(); });
+      if (section === "knowledge") render();
+    }).catch(function () { kAssets = []; });
+  }
+  function knList() {
+    if (kAssets.loading) return '<p class="muted">' + KN.loading + '</p>';
+    var q = kQ.trim().toLowerCase(), hit = kAssets.filter(function (a) {
+      return !q || [a.name, a.path, a.type, a.kind, (a.labels || []).join(" ")].join(" ").toLowerCase().indexOf(q) >= 0; });
+    if (!hit.length) return '<p class="muted">' + KN.noAssets + '</p>';
+    var byGuid = {}; kAssets.forEach(function (a) { if (a.guid) byGuid[a.guid] = a; });
+    return hit.slice(0, 80).map(function (a) {
+      var row = '<button class="kn-row" data-kasset="' + esc(a.key) + '" aria-expanded="' + (kOpen === a.key) + '"><b>' + esc(a.name || a.path) + '</b> <span class="flag">' + esc(a.type || a.kind) + '</span>' +
+        (a.missingSince ? ' <span class="flag qd-error">' + KN.missing + '</span>' : '') + '<span class="muted"> ' + esc(a.path) + '</span></button>';
+      if (kOpen !== a.key) return row;
+      var node = "guid:" + a.guid, rels = kRels.filter(function (r) { return r.from === node || r.to === node; });
+      var nm = function (ref) { var g = String(ref).replace(/^guid:/, ""); return byGuid[g] ? byGuid[g].name || byGuid[g].path : ref; };
+      return row + '<div class="kn-det">' + (a.description ? '<p>' + esc(a.description) + '</p>' : '') +
+        '<p class="muted">' + KN.path + ': ' + esc(a.path) + (a.guid ? ' · GUID ' + esc(a.guid) : '') + '</p>' +
+        (a.details ? '<pre class="ln-cmd">' + esc(JSON.stringify(a.details, null, 2)) + '</pre>' : '') +
+        ((a.deps || []).length ? '<p><b>' + KN.deps + ':</b> ' + a.deps.map(function (d) { return esc(nm(d)); }).join(", ") + '</p>' : '') +
+        (rels.length ? '<p><b>' + KN.rels + ':</b> ' + rels.map(function (r) { return esc(nm(r.from) + " → " + r.rel + " → " + nm(r.to)); }).join("; ") + '</p>' : '') + '</div>';
+    }).join("") + (hit.length > 80 ? '<p class="muted">' + esc(KN.more.replace("{n}", 80).replace("{t}", hit.length)) + '</p>' : '');
+  }
+  function renderKnowledge(s) {
+    if (kAssets === null) loadKnowledge();
+    var last = kSnaps[0], c = (last && last.counts) || {}, cov = last && last.manifest && last.manifest.coverage, fw = last && (last.framework || (last.manifest || {}).framework);
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header><section class="psec"><h2 class="group">' + KN.status + '</h2>';
+    if (last) {
+      html += '<p>' + esc([KN.st[last.status] || last.status, KN.scope[last.scope] || "", when(last.endedAt || last.startedAt)].filter(Boolean).join(" · ")) + '</p><div class="row">' +
+        Object.keys(KN.c).map(function (k) { return '<span class="chip">' + KN.c[k] + ': <b>' + (c[k] || 0) + '</b></span>'; }).join("") + '</div>';
+      if (cov && typeof cov === "object") html += '<table class="kn-cov"><tr><th>' + KN.coverage + '</th><th>' + KN.found + '</th><th>' + KN.indexed + '</th><th>' + KN.unknown + '</th></tr>' +
+        Object.keys(cov).map(function (k) { var v = cov[k] || {}; return '<tr><td>' + esc(k) + '</td><td>' + esc(v.found || 0) + '</td><td>' + esc(v.indexed || 0) + '</td><td>' + esc(v.unknown || 0) + '</td></tr>'; }).join("") + '</table>';
+      if (fw && fw.name) html += '<p>' + KN.framework + ': <b>' + esc(fw.name + (fw.version ? " " + fw.version : "")) + '</b></p>';
+      [["overview", KN.overview], ["report", KN.report], ["unresolved", KN.unresolved]].forEach(function (p) {
+        if (last[p[0]]) html += '<details><summary>' + p[1] + '</summary><pre class="ln-cmd">' + esc(last[p[0]]) + '</pre></details>'; });
+    } else html += '<p class="muted">' + KN.none + '</p>';
+    html += guideHtml("knowledge") + '</section>';
+    if (last) html += '<section class="psec"><h2 class="group">' + KN.assets + (kAssets.loading ? '' : ' · ' + kAssets.length) + '</h2>' +
+      '<input id="kn-q" type="search" aria-label="' + esc(KN.search) + '" placeholder="' + esc(KN.search) + '" value="' + esc(kQ) + '"><div id="kn-list">' + knList() + '</div></section>' +
+      '<section class="psec"><h2 class="group">' + KN.history + '</h2>' + kSnaps.map(function (k) {
+        var n = k.counts || {}; return '<p class="muted">' + esc([when(k.endedAt || k.startedAt), KN.scope[k.scope] || "", KN.st[k.status] || k.status,
+          KN.c.added + " " + (n.added || 0), KN.c.updated + " " + (n.updated || 0), KN.c.tombstoned + " " + (n.tombstoned || 0)].join(" · ")) + '</p>'; }).join("") + '</section>';
+    $("view").innerHTML = html;
+    if ($("kn-q")) $("kn-q").oninput = function () { kQ = this.value; $("kn-list").innerHTML = knList(); };
+  }
+  function loadEntries() {
+    actSessions.forEach(function (s) {
+      if (actEntries[s.id]) return;
+      actEntries[s.id] = { loading: true, list: [] };
+      gref().collection("activity").doc(s.id).collection("entries").get().then(function (snap) {
+        actEntries[s.id] = { list: snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }) };
+        if (section === "activity") render();
+      }).catch(function () { actEntries[s.id] = { list: [] }; });
+    });
+  }
+  function renderActivity(s) {
+    loadEntries();
+    var opt = function (map, cur, all) { return '<option value="">' + esc(all) + '</option>' + Object.keys(map).map(function (k) { return '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + esc(map[k]) + '</option>'; }).join(""); };
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
+      '<div class="row"><select id="act-cat" aria-label="' + esc(KN.allCats) + '">' + opt(KN.cat, actCat, KN.allCats) + '</select>' +
+      '<select id="act-priv" aria-label="' + esc(KN.allPriv) + '">' + opt(KN.privacy, actPriv, KN.allPriv) + '</select></div><p class="hint">' + KN.privHint + '</p>';
+    if (!actSessions.length) html += '<p class="muted">' + KN.actNone + '</p>';
+    actSessions.forEach(function (x) {
+      var es = ((actEntries[x.id] || {}).list || []).filter(function (e) { return (!actCat || e.category === actCat) && (!actPriv || e.privacy === actPriv); });
+      if ((actCat || actPriv) && !es.length) return;
+      html += '<section class="psec act-s"><h2 class="group">' + esc(when(x.receivedAt) || x.endedAt) + '</h2><p class="muted">' + esc([x.branch, x.commit && x.commit.slice(0, 8), KN.verify[x.verify] || ""].filter(Boolean).join(" · ")) + '</p>' +
+        (x.summary ? '<p>' + esc(x.summary) + '</p>' : '') + es.map(function (e) {
+          var ev = e.evidence || {}, t = ev.tests || {};
+          var meta = [KN.cat[e.category] || e.category, KN.stt[e.status], e.taskId, (ev.files || []).length ? KN.files.replace("{n}", ev.files.length) : "",
+            t && t.ran != null ? KN.tests.replace("{p}", t.passed || 0).replace("{r}", t.ran) : ""].filter(Boolean).join(" · ");
+          return '<div class="act-e"><span class="act-c">' + (KN.change[e.change] || "") + '</span><div><p><b>' + esc(e.text) + '</b></p>' +
+            (e.playerImpact ? '<p>' + esc(e.playerImpact) + '</p>' : '') + '<p class="muted">' + esc(meta) + '</p>' +
+            (e.limits ? '<p class="muted">⚠ ' + esc(e.limits) + '</p>' : '') + '</div>' +
+            '<select data-actpriv="' + esc(x.id) + ':' + esc(e.id) + '" aria-label="' + esc(KN.allPriv) + '"' + (canGame ? '' : ' disabled') + '>' +
+            Object.keys(KN.privacy).map(function (k) { return '<option value="' + k + '"' + (k === e.privacy ? ' selected' : '') + '>' + esc(KN.privacy[k]) + '</option>'; }).join("") + '</select></div>';
+        }).join("") + '</section>';
+    });
+    var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log");
+    html += '<section class="psec"><h2 class="group">' + KN.actSetup + '</h2><p class="hint">' + KN.actSetupHint + '</p>' +
+      (g ? '<pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>' : '') + '</section>';
+    $("view").innerHTML = html;
+    $("act-cat").onchange = function () { actCat = this.value; render(); };
+    $("act-priv").onchange = function () { actPriv = this.value; render(); };
+    [].forEach.call(document.querySelectorAll("[data-actpriv]"), function (sel) {
+      sel.onchange = function () {
+        var p = sel.dataset.actpriv.split(":"), e = ((actEntries[p[0]] || {}).list || []).filter(function (x) { return x.id === p[1]; })[0];
+        gref().collection("activity").doc(p[0]).collection("entries").doc(p[1]).update({ privacy: sel.value, reviewedAt: stamp() })
+          .then(function () { if (e) e.privacy = sel.value; }).catch(function (er) { alert(STR.failed + ": " + (er.message || er)); render(); });
+      };
+    });
+  }
+  function envHtml() {
+    var e = envDoc, h = '<h2>' + KN.envTitle + '</h2><p class="hint">' + KN.envHint + '</p>';
+    if (e) h += '<p>' + (e.ok ? '🟢 ' : '🟠 ') + esc([KN.envAt.replace("{d}", when(e.reportedAt)), e.os, e.editor && e.editor.version ? "Unity " + e.editor.version : "",
+        e.cli && e.cli.version ? "CLI " + e.cli.version : ""].filter(Boolean).join(" · ")) + '</p><ul class="kn-checks">' + (e.checks || []).map(function (c) {
+        return '<li>' + (c.ok ? '✓' : '✕') + ' <b>' + esc(c.id) + '</b> ' + esc(c.detail) + (c.exitCode != null ? ' <span class="muted">exit ' + c.exitCode + '</span>' : '') + '</li>'; }).join("") + '</ul>';
+    else h += '<p class="muted">' + KN.envNone + '</p>';
+    return h + guideHtml("unity_env") + '<h2>' + KN.setupTitle + '</h2><p class="hint">' + KN.setupHint + '</p>' + guideHtml("setup");
+  }
   function renderSettings() {
     var own = ((game && game.sections) || []);
     var html = '<header class="sec"><div><h1>' + STR.settings + '</h1><p>' + STR.settingsAbout + '</p></div></header>' +
@@ -2655,7 +2817,7 @@
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
         '<div class="setrow"><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
-        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' + launchHtml() + repoHtml() +
+        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' + launchHtml() + repoHtml() + envHtml() +
         '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p><div class="shownsecs">' + GAME.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0) ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div>' +
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
@@ -2760,7 +2922,10 @@
     var g = gref();
     var out = { format: "whitewrite.game/1", exportedAt: new Date().toISOString(), worldId: worldId, game: Object.assign({}, game),
       cards: await docsOf(g.collection("cards")), plan: await docsOf(g.collection("plan")), tasks: await docsOf(g.collection("tasks")),
-      changeRequests: await docsOf(g.collection("changeRequests")) };
+      changeRequests: await docsOf(g.collection("changeRequests")), environment: await docsOf(g.collection("env")),
+      knowledge: { snapshots: await docsOf(g.collection("knowledge")), assets: await docsOf(g.collection("kAssets")), relations: await docsOf(g.collection("kRelations")) },
+      activity: await Promise.all((await g.collection("activity").get()).docs.map(async function (s) {
+        return Object.assign({ id: s.id }, s.data(), { entries: await docsOf(s.ref.collection("entries")) }); })) };
     download(slugify(game.title || "game") + ".game.json", JSON.stringify(out, null, 2));
   }
   // Safe deletion: the author types the exact name before anything is removed.
@@ -2796,7 +2961,8 @@
     var cs = (await g.collection("cards").get()).docs;
     await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
       return f.path ? firebase.storage().ref(f.path).delete().catch(function () {}) : null; }); })));
-    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests"]) await deleteDocs(g.collection(sub));
+    for (var s of (await g.collection("activity").get()).docs) await deleteDocs(s.ref.collection("entries"));
+    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "knowledge", "kAssets", "kRelations", "activity", "env"]) await deleteDocs(g.collection(sub));
     await callEx({ op: "purge", gameId: id }).catch(function () {}); // telemetry, metrics, issues, playtests, experiments, ingest keys
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
     await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
@@ -3667,6 +3833,7 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
+    var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
     var bl = e.target.closest("[data-bulb]"); if (bl) { questFrom(bl.dataset.bulb.split(":")[0], bl.dataset.bulb.split(":")[1]); return; }
@@ -3865,6 +4032,11 @@
     unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
     unsub.push(gref().collection("experiments").onSnapshot(function (snap) { exExperiments = rows(snap); exRender(); }, function () {}));
     unsub.push(gref().collection("experience").doc("metrics").onSnapshot(function (d) { exMetrics = d.exists ? d.data() : null; exRender(); }, function () {}));
+    kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null;
+    unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
+    unsub.push(gref().collection("activity").orderBy("receivedAt", "desc").limit(20).onSnapshot(function (snap) {
+      snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity") render(); }, function () {}));
+    unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (section === "settings" && !document.activeElement.closest("#view input")) render(); }, function () {}));
     unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
     unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
       .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan") render(); }, function () {}));

@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const { onRequest, admin, db, getPlanBudget } = require('./common');
 const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
+const GUIDES = require('../setup-guides.js');
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const OPEN = ['todo', 'rework'];
@@ -64,6 +65,32 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Quest id or title' } } } },
   { name: 'get_dialogue_context', description: 'A dialogue of the world, approved by the author: type, participants, location, quest + stage, trigger, lines (speaker, text, localisation key, condition, effects, next) and player choices (text, target line, condition); the first line is the start. Without an id — the list of approved dialogues.',
     inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Dialogue id or title' } } } },
+  // Setup, Unity environment, Project Knowledge, development activity log (functions/setup-guides.js holds the instructions)
+  { name: 'get_guide', description: 'Instructions from WhiteWrite: setup (first run and connection rules), unity_env (environment checks with confirmed Unity CLI / Editor commands), knowledge (how to index the Unity project read-only and send it), activity_log (how and when to report development sessions).',
+    inputSchema: { type: 'object', required: ['topic'], properties: { topic: { type: 'string', enum: ['setup', 'unity_env', 'knowledge', 'activity_log'] } } } },
+  { name: 'report_unity_environment', description: 'Send the result of the Unity environment check (get_guide unity_env): OS, Editor and CLI versions, project discovery and each check with its exit code. Replaces the previous report.',
+    inputSchema: { type: 'object', required: ['checks'], properties: {
+      os: { type: 'string' }, editor: { type: 'object', properties: { version: { type: 'string' }, path_hint: { type: 'string' } } },
+      cli: { type: 'object', properties: { name: { type: 'string' }, version: { type: 'string' } } },
+      project: { type: 'object', properties: { found: { type: 'boolean' }, unity_version: { type: 'string' }, packages_ok: { type: 'boolean' } } },
+      checks: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, ok: { type: 'boolean' }, detail: { type: 'string' }, exit_code: { type: 'integer' } } } } } } },
+  { name: 'submit_project_knowledge', description: 'Send the Project Knowledge index of the Unity project in parts (schema whitewrite.knowledge/1, see get_guide knowledge): part "begin" with the manifest, then "records" (≤500 per call), then "end" with the Markdown reports. Idempotent per snapshot_id; unchanged records are skipped.',
+    inputSchema: { type: 'object', required: ['snapshot_id', 'part'], properties: {
+      snapshot_id: { type: 'string' }, part: { type: 'string', enum: ['begin', 'records', 'end'] }, manifest: { type: 'object' },
+      records: { type: 'array', items: { type: 'object' } }, overview_md: { type: 'string' }, unresolved_md: { type: 'string' }, report_md: { type: 'string' } } } },
+  { name: 'get_project_knowledge_status', description: 'The Project Knowledge import: the latest snapshot (or one by id) with status, counts, coverage and the report.',
+    inputSchema: { type: 'object', properties: { snapshot_id: { type: 'string' } } } },
+  { name: 'search_project_knowledge', description: 'Search the indexed Unity project: by text (name / path / label), GUID, type, path prefix, or everything related to a GUID. Returns assets with their dependencies and relations.',
+    inputSchema: { type: 'object', properties: { q: { type: 'string' }, guid: { type: 'string' }, type: { type: 'string' }, path_prefix: { type: 'string' }, related_to: { type: 'string' }, limit: { type: 'integer' } } } },
+  { name: 'submit_development_activity', description: 'Report one working session to the development activity log (see get_guide activity_log): session_id (uuid, idempotent), branch, commit, summary and entries with change, category, status, player impact, evidence and privacy. Call at the end of each session and after large changes.',
+    inputSchema: { type: 'object', required: ['session_id', 'summary', 'entries'], properties: {
+      session_id: { type: 'string' }, schema_version: { type: 'string' }, started_at: { type: 'string' }, ended_at: { type: 'string' },
+      branch: { type: 'string' }, commit: { type: 'string' }, summary: { type: 'string' },
+      entries: { type: 'array', items: { type: 'object', required: ['entry_id', 'text'], properties: {
+        entry_id: { type: 'string' }, change: { type: 'string', enum: ['added', 'changed', 'removed', 'fixed'] }, category: { type: 'string' }, text: { type: 'string' },
+        status: { type: 'string', enum: ['completed', 'partial', 'experimental', 'planned'] }, player_impact: { type: 'string' },
+        evidence: { type: 'object' }, media: { type: 'array', items: { type: 'string' } }, limits: { type: 'string' }, hints: { type: 'string' },
+        privacy: { type: 'string', enum: ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'] }, task_id: { type: 'string' } } } } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -235,6 +262,157 @@ function dialogueView(ctx, n, d) {
     rules: 'Node ids and localisation keys are the contract between the dialogue data and the game. A change to the lines goes through submit_change_request.' };
 }
 
+// ---------- Project Knowledge (games/{g}/knowledge/{snap}, kAssets/{key}, kRelations/{sha1}) ----------
+const sha1 = (x) => crypto.createHash('sha1').update(String(x)).digest('hex');
+const KINDS = ['asset', 'scene', 'prefab', 'script', 'visual'];
+const assetKey = (r) => (/^[0-9a-f]{32}$/i.test(String(r.guid || '')) ? String(r.guid).toLowerCase() : 'p_' + sha1(str(r.path, 500)));
+const clip = (v, depth = 0) => { // keeps detail objects small: strings ≤ 400, arrays ≤ 40, 3 levels
+  if (typeof v === 'string') return v.slice(0, 400);
+  if (Array.isArray(v)) return depth > 2 ? [] : v.slice(0, 40).map((x) => clip(x, depth + 1));
+  if (v && typeof v === 'object') return depth > 2 ? {} : Object.fromEntries(Object.entries(v).slice(0, 30).map(([k, x]) => [k.slice(0, 60), clip(x, depth + 1)]));
+  return typeof v === 'number' || typeof v === 'boolean' ? v : null;
+};
+function normAsset(r) {
+  if (!r || !KINDS.includes(r.kind) || (!r.guid && !r.path)) return null;
+  const path = str(r.path, 500).replace(/\\/g, '/');
+  if (/^([a-z]:)?\//i.test(path) || path.includes('..')) return null; // project-relative paths only
+  const base = { kind: r.kind, guid: /^[0-9a-f]{32}$/i.test(String(r.guid || '')) ? String(r.guid).toLowerCase() : '', path, name: str(r.name, 200) || path.split('/').pop(),
+    type: str(r.type, 80) || r.kind, description: str(r.description || r.responsibility || r.purpose, 1500), labels: list(r.labels, 20, (x) => str(x, 60)),
+    deps: list(r.deps, 200, (x) => str(x, 80)), confidence: ['confirmed', 'inferred', 'unknown'].includes(r.confidence) ? r.confidence : 'inferred' };
+  const skip = new Set(['kind', 'guid', 'path', 'name', 'type', 'description', 'responsibility', 'purpose', 'labels', 'deps', 'confidence']);
+  const details = clip(Object.fromEntries(Object.entries(r).filter(([k]) => !skip.has(k))));
+  return { ...base, details, hash: sha1(JSON.stringify([base, details])) };
+}
+function normRelation(r) {
+  if (!r || r.kind !== 'relation' || !r.from || !r.to) return null;
+  const rel = ['uses', 'contains', 'references', 'implements', 'maps_to_card'].includes(r.rel) ? r.rel : 'references';
+  if (rel === 'maps_to_card' && r.confirmed !== true) return null; // unconfirmed card links belong in unresolved_md
+  return { from: str(r.from, 200), to: str(r.to, 200), rel, evidence: str(r.evidence, 400), confirmed: !!r.confirmed };
+}
+async function knowledgeSubmit(ctx, args) {
+  const snapId = str(args.snapshot_id, 80).replace(/[^\w-]/g, '');
+  if (!snapId) throw rpcError(-32602, 'snapshot_id is required');
+  const kref = ctx.gref.collection('knowledge').doc(snapId), snap = await kref.get(), cur = snap.exists ? snap.data() : null;
+  if (args.part === 'begin') {
+    const m = args.manifest || {};
+    if (m.schema && m.schema !== GUIDES.KNOWLEDGE_SCHEMA) throw rpcError(-32602, `Unsupported schema ${m.schema}; use ${GUIDES.KNOWLEDGE_SCHEMA} (get_guide knowledge)`);
+    if (cur && cur.status === 'imported') return { status: 'duplicate', snapshot_id: snapId, message: 'This snapshot was already imported.' };
+    await kref.set({ schema: GUIDES.KNOWLEDGE_SCHEMA, scope: m.scope === 'partial' ? 'partial' : 'full', manifest: clip(m), status: 'uploading',
+      counts: { added: 0, updated: 0, skipped: 0, relations: 0, rejected: 0, tombstoned: 0 }, startedAt: ts() }, { merge: true });
+    return { ok: true, snapshot_id: snapId, next: 'records (≤500 per call), then end' };
+  }
+  if (!cur) throw rpcError(-32602, 'Call part "begin" first');
+  if (args.part === 'records') {
+    const recs = Array.isArray(args.records) ? args.records.slice(0, 500) : [];
+    const assets = [], rels = []; let rejected = 0;
+    recs.forEach((r) => {
+      if (r && r.kind === 'framework') { assets.push({ framework: clip(r) }); return; }
+      const a = r && r.kind === 'relation' ? null : normAsset(r), l = a ? null : normRelation(r);
+      if (a) assets.push(a); else if (l) rels.push(l); else rejected++;
+    });
+    const fw = assets.filter((a) => a.framework), list2 = assets.filter((a) => !a.framework);
+    const refs = list2.map((a) => ctx.gref.collection('kAssets').doc(assetKey(a)));
+    const old = refs.length ? await db.getAll(...refs) : [];
+    const counts = { added: 0, updated: 0, skipped: 0 }, bw = db.bulkWriter();
+    list2.forEach((a, i) => {
+      const prev = old[i].exists ? old[i].data() : null;
+      if (prev && prev.hash === a.hash) { counts.skipped++; bw.set(refs[i], { lastSnap: snapId, missingSince: admin.firestore.FieldValue.delete() }, { merge: true }); return; }
+      counts[prev ? 'updated' : 'added']++;
+      bw.set(refs[i], { ...a, lastSnap: snapId, seenAt: ts(), missingSince: admin.firestore.FieldValue.delete() }, { merge: true });
+    });
+    rels.forEach((l) => bw.set(ctx.gref.collection('kRelations').doc(sha1(l.from + '|' + l.to + '|' + l.rel)), { ...l, lastSnap: snapId }, { merge: true }));
+    await bw.close();
+    const inc = admin.firestore.FieldValue.increment;
+    await kref.set({ counts: { added: inc(counts.added), updated: inc(counts.updated), skipped: inc(counts.skipped), relations: inc(rels.length), rejected: inc(rejected) },
+      ...(fw.length ? { framework: fw[fw.length - 1].framework } : {}), updatedAt: ts() }, { merge: true });
+    return { ok: true, ...counts, relations: rels.length, rejected, note: rejected ? 'Rejected records: unknown kind, no guid/path, absolute or ../ path, or an unconfirmed maps_to_card.' : '' };
+  }
+  if (args.part === 'end') {
+    let tomb = 0;
+    if (cur.scope === 'full') { // a full scan: what was not seen is marked missing (the author confirms removal), never deleted
+      const all = await ctx.gref.collection('kAssets').select('lastSnap', 'missingSince').get();
+      const bw = db.bulkWriter();
+      all.docs.forEach((d) => { if (d.data().lastSnap !== snapId && !d.data().missingSince) { tomb++; bw.set(d.ref, { missingSince: snapId }, { merge: true }); } });
+      await bw.close();
+    }
+    await kref.set({ status: 'imported', endedAt: ts(), 'counts.tombstoned': tomb, overview: str(args.overview_md, 150000), unresolved: str(args.unresolved_md, 150000),
+      report: str(args.report_md, 150000) }, { merge: true });
+    await ctx.gref.set({ knowledge: { lastSnap: snapId, at: ts() } }, { merge: true });
+    return { ok: true, status: 'imported', tombstoned: tomb };
+  }
+  throw rpcError(-32602, 'part must be begin, records or end');
+}
+async function knowledgeStatus(ctx, args) {
+  let d;
+  if (args.snapshot_id) d = await ctx.gref.collection('knowledge').doc(str(args.snapshot_id, 80)).get();
+  else { const q = await ctx.gref.collection('knowledge').orderBy('startedAt', 'desc').limit(1).get(); d = q.docs[0]; }
+  if (!d || !d.exists) return { status: 'none', message: 'No Project Knowledge yet. Call get_guide {topic:"knowledge"}.' };
+  const x = d.data();
+  return { snapshot_id: d.id, status: x.status, scope: x.scope, counts: x.counts, coverage: (x.manifest || {}).coverage || null, framework: x.framework || (x.manifest || {}).framework || null,
+    report_md: x.report || '', unresolved_md: x.unresolved || '' };
+}
+async function knowledgeSearch(ctx, args) {
+  const lim = Math.max(1, Math.min(100, parseInt(args.limit, 10) || 30)), col = ctx.gref.collection('kAssets');
+  let docs;
+  if (args.guid) { const d = await col.doc(str(args.guid, 40).toLowerCase()).get(); docs = d.exists ? [d] : []; }
+  else docs = (await col.get()).docs;
+  let items = docs.map((d) => ({ key: d.id, ...d.data() }));
+  const q = str(args.q, 120).toLowerCase(), type = str(args.type, 80).toLowerCase(), pre = str(args.path_prefix, 300).replace(/\\/g, '/');
+  if (q) items = items.filter((a) => [a.name, a.path, a.type, a.description, (a.labels || []).join(' ')].join(' ').toLowerCase().includes(q));
+  if (type) items = items.filter((a) => String(a.type || '').toLowerCase() === type || a.kind === type);
+  if (pre) items = items.filter((a) => String(a.path || '').startsWith(pre));
+  let relations = [];
+  if (args.related_to) {
+    const g = str(args.related_to, 80).toLowerCase(), node = 'guid:' + g;
+    const [a, b] = await Promise.all([ctx.gref.collection('kRelations').where('from', '==', node).get(), ctx.gref.collection('kRelations').where('to', '==', node).get()]);
+    relations = a.docs.concat(b.docs).map((d) => d.data()).map((r) => ({ from: r.from, to: r.to, rel: r.rel, evidence: r.evidence }));
+    const near = new Set(relations.flatMap((r) => [r.from, r.to]).filter((x) => x.startsWith('guid:')).map((x) => x.slice(5)));
+    items.filter((x) => x.guid === g).forEach((x) => (x.deps || []).forEach((d) => near.add(d)));
+    items = items.filter((x) => x.guid === g || near.has(x.guid) || (x.deps || []).includes(g));
+  }
+  return { total: items.length, assets: items.slice(0, lim).map((a) => ({ guid: a.guid, path: a.path, kind: a.kind, type: a.type, name: a.name, description: a.description,
+    labels: a.labels, deps: a.deps, confidence: a.confidence, missing: !!a.missingSince, details: a.details })), relations };
+}
+
+// ---------- development activity log (games/{g}/activity/{session}, entries/{entry}) ----------
+const ENTRY_CATS = ['mechanic', 'level', 'character', 'item', 'ui', 'audio', 'art', 'performance', 'fix', 'tooling', 'release', 'other'];
+async function verifyCommit(ctx, key, commit) { // the game's connected GitHub repo (gamedev.js repoConnect); a public repo needs no token
+  const full = ctx.game.repo && ctx.game.repo.full;
+  if (!full || !/^[0-9a-f]{7,40}$/i.test(commit || '')) return 'unverified';
+  const tok = await db.collection('repoTokens').doc(key.worldId + '__' + key.gameId).get();
+  const token = tok.exists ? tok.data().token : '';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${full}/commits/${commit}`, { headers: Object.assign({ Accept: 'application/vnd.github+json', 'User-Agent': 'WhiteWrite' }, token ? { Authorization: 'Bearer ' + token } : {}) });
+    return r.ok ? 'commit_found' : r.status === 404 || r.status === 422 ? 'commit_missing' : 'unverified';
+  } catch (e) { return 'unverified'; }
+}
+async function activitySubmit(ctx, key, args) {
+  const sid = str(args.session_id, 80).replace(/[^\w-]/g, '');
+  if (!sid) throw rpcError(-32602, 'session_id is required (one uuid per session)');
+  const entries = list(args.entries, 200, (e) => {
+    const id = str(e && e.entry_id, 80).replace(/[^\w-]/g, ''); if (!id || !str(e.text, 1)) return null;
+    const ev = e.evidence || {};
+    return { id, change: ['added', 'changed', 'removed', 'fixed'].includes(e.change) ? e.change : 'changed', category: ENTRY_CATS.includes(e.category) ? e.category : 'other',
+      text: str(e.text, 2000), status: ['completed', 'partial', 'experimental', 'planned'].includes(e.status) ? e.status : 'completed', playerImpact: str(e.player_impact, 1000),
+      evidence: { files: list(ev.files, 50, (f) => str(f, 300)), commit: str(ev.commit, 60), pr: str(ev.pr, 200), tests: clip(ev.tests || null) },
+      media: list(e.media, 20, (m) => str(m, 300)), limits: str(e.limits, 800), hints: str(e.hints, 800),
+      privacy: ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'].includes(e.privacy) ? e.privacy : 'internal', taskId: str(e.task_id, 32) };
+  });
+  const aref = ctx.gref.collection('activity').doc(sid);
+  const refs = entries.map((e) => aref.collection('entries').doc(e.id));
+  const old = refs.length ? await db.getAll(...refs) : [];
+  const commit = str(args.commit, 60);
+  const verify = await verifyCommit(ctx, key, commit);
+  const batch = db.batch();
+  batch.set(aref, { sessionId: sid, schemaVersion: str(args.schema_version, 40) || GUIDES.ACTIVITY_SCHEMA, branch: str(args.branch, 120), commit, summary: str(args.summary, 2000),
+    startedAt: str(args.started_at, 40), endedAt: str(args.ended_at, 40), keyPrefix: key.prefix || '', source: 'mcp', verify, receivedAt: ts(), entryCount: entries.length }, { merge: true });
+  let added = 0;
+  entries.forEach((e, i) => { if (old[i].exists) return; added++; const { id, ...rest } = e; batch.set(refs[i], { ...rest, at: ts() }); }); // an entry once received is not overwritten (the author may have re-marked its privacy)
+  await batch.commit();
+  return { ok: true, session_id: sid, accepted: added, duplicates: entries.length - added, verify,
+    note: verify === 'commit_missing' ? 'The commit was not found in the connected repository — push it, or the entries stay unverified.' : '' };
+}
+
 // ---------- writes ----------
 async function logExecution(ctx, key, type, taskId, data) {
   await ctx.gref.collection('executions').add({ type, taskId: taskId || '', data: data || {}, keyPrefix: key.prefix || '', at: ts() });
@@ -378,6 +556,30 @@ async function callTool(name, args, key) {
         drafts: n.dialogues.filter((d) => d.approval !== 'approved').length };
       return dialogueView(ctx, n, findApproved(n.dialogues, args.id, 'Dialogue'));
     }
+    case 'get_guide': {
+      const g = GUIDES.guide(str(args.topic, 20));
+      if (!g) throw rpcError(-32602, 'topic must be setup, unity_env, knowledge or activity_log');
+      return g;
+    }
+    case 'report_unity_environment': {
+      const checks = list(args.checks, 20, (c) => (c && str(c.id, 40) ? { id: str(c.id, 40), ok: !!c.ok, detail: str(c.detail, 400), exitCode: Number.isInteger(c.exit_code) ? c.exit_code : null } : null));
+      await ctx.gref.collection('env').doc('current').set({ os: str(args.os, 80), editor: clip(args.editor || {}), cli: clip(args.cli || {}), project: clip(args.project || {}), checks,
+        ok: checks.length > 0 && checks.every((c) => c.ok), reportedAt: ts(), keyPrefix: key.prefix || '' });
+      await logExecution(ctx, key, 'unity_env', '', { ok: checks.every((c) => c.ok) });
+      return { ok: true, checks: checks.length, all_ok: checks.every((c) => c.ok) };
+    }
+    case 'submit_project_knowledge': {
+      const out = await knowledgeSubmit(ctx, args);
+      if (args.part === 'end') await logExecution(ctx, key, 'knowledge', '', { snapshot: str(args.snapshot_id, 80) });
+      return out;
+    }
+    case 'get_project_knowledge_status': return knowledgeStatus(ctx, args);
+    case 'search_project_knowledge': return knowledgeSearch(ctx, args);
+    case 'submit_development_activity': {
+      const out = await activitySubmit(ctx, key, args);
+      await logExecution(ctx, key, 'activity', '', { session: out.session_id, accepted: out.accepted });
+      return out;
+    }
     case 'submit_change_request': {
       const cr = { taskId: str(args.task_id, 32), what: str(args.what, 2000), why: str(args.why, 2000), proposal: str(args.proposal, 4000),
         impact: str(args.impact, 2000), status: 'open', createdAt: ts() };
@@ -435,7 +637,7 @@ async function authKey(req) {
   return key;
 }
 
-exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 60, memory: '256MiB', invoker: 'public' }, async (req, res) => {
+exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '512MiB', invoker: 'public' }, async (req, res) => {
   if (req.method === 'GET' || req.method === 'DELETE') return res.status(405).set('Allow', 'POST').send(''); // stateless: no SSE stream, no sessions
   if (req.method !== 'POST') return res.status(405).send('');
   const key = await authKey(req).catch((e) => { console.error('[mcp] auth', e); return null; });
@@ -450,3 +652,5 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 60, memory: '25
   const out = await handle(body, key);
   return out ? res.status(200).json(out) : res.status(202).send('');
 });
+
+exports._mcp = { knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset }; // tests only (tests/mcp-knowledge.test.cjs)

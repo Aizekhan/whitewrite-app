@@ -80,10 +80,19 @@ service cloud.firestore {
         allow read: if isAuthenticated() && isWorldOwner(worldId);
         allow write: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() &&
                         sub in ['cards', 'plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'];
-        allow delete: if isAuthenticated() && isWorldOwner(worldId) && sub == 'executions'; // the author deleting the game
+        // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
+        allow delete: if isAuthenticated() && isWorldOwner(worldId) &&
+                         sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env'];
       }
       match /games/{gameId}/{sub}/{docId}/{rest=**} {
         allow read: if isAuthenticated() && isWorldOwner(worldId);
+      }
+      // Development activity log: Claude Code writes entries (MCP); the author only re-marks privacy, or deletes with the game
+      match /games/{gameId}/activity/{sessionId}/entries/{entryId} {
+        allow update: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() &&
+                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['privacy', 'reviewedAt']) &&
+                         request.resource.data.privacy in ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'];
+        allow delete: if isAuthenticated() && isWorldOwner(worldId);
       }
     }
 
