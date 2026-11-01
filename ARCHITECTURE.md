@@ -351,11 +351,14 @@ User: Generate next scene following canon.
 
 ---
 
-### **4. Game Bible & Production Plan**
+### **4. World Bible (Game Bible) & Production Plan**
 
 **Files:** `app/WhiteWrite GameBible.html`, `app/gamebible.js`, `app/gb-3d.js`, `functions/src/gamedev.js`
 **Access:** plans with `allowGameDev` (worldbuilder, worldforge); reading stays with the owner.
 
+- **Menu (World Bible):** head «Біблія світу» + world title; world block (canon sections) folds with an arrow (`localStorage ww-bible-fold`); then «Гра:» picker; game sections; «+ Свій розділ»; **«⚙ Налаштування проєкту»** last (special section `settings`).
+- **Project settings:** rename world (notifies the shell `ww-worlds-changed`) / game, engine profile, `.md` import, JSON export of world (`whitewrite.world/1`) and game (`whitewrite.game/1`), delete custom sections, game, world.
+  Safe deletion = type the exact name. Game delete removes cards (+ Storage files), plan, tasks, executions, changeRequests, its `mcpKeys`, then the game doc. World delete is refused while stories (`projects.worldId`) exist; else games → entities → world doc (last, rules check ownership through it), then the shell reloads and shows the worlds list.
 - **Standard 14 sections:** overview, lore, mechanics, progression, levels, enemies, gear, assets, materials, animation, audio, ui, refs, tech (+ custom) and the Production plan.
 - Cards have subheadings (`fields.group` / `category`): each section has **standard subheadings** (`groups` in `GAME[]`, e.g. Mechanics: Рух, Бій, Здібності, Взаємодія, Камера й керування, Смерть і відродження, Перемога й поразка) + the author's own («＋ Створити підзаголовок» opens a styled dialog). Standard ones go first in menus and on the page and are sent to AI (`shelves[].groups`) for import and scaffold.
 - Real files (Storage) and a 3D viewer (corner «🧊 3D» on the card). Saving a card closes its panel.

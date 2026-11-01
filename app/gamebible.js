@@ -14,7 +14,18 @@
 
   var STR = {
     uk: {
-      brand: "Біблія гри", engine: "Рушій гри", search: "Пошук по канону й грі: назва, опис, примітка…",
+      brand: "Біблія світу", engine: "Рушій гри",
+      settings: "Налаштування проєкту", settingsAbout: "Назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
+      stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
+      stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти.",
+      stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
+      stSections: "Власні розділи гри", stNoSections: "Власних розділів немає. Стандартні розділи не видаляються.",
+      stDanger: "Небезпечна зона", stDelGame: "Видалити гру", stDelWorld: "Видалити світ",
+      stDelGameText: "Буде видалено гру <b>{n}</b>: усі картки, файли, план, завдання, журнал і ключі Claude Code. Канон світу лишиться.",
+      stDelWorldText: "Буде видалено світ <b>{n}</b>: увесь канон і всі ігри з їхніми картками й файлами. Відновити не можна.",
+      stDelSecText: "Буде видалено розділ <b>{n}</b> разом з його картками.",
+      stTypeName: "Щоб підтвердити, введи назву: {n}", stDelete: "Видалити назавжди", stDeleting: "Видаляю…",
+      stHasStories: "У цьому світі є історії ({n}). Спершу видали або перенеси їх — тоді світ можна буде видалити.", search: "Пошук по канону й грі: назва, опис, примітка…",
       canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
       createGame: "Створити гру", firstGame: "Перша гра на цьому каноні",
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
@@ -66,7 +77,18 @@
       st: { solid: "готово", partial: "частково", missing: "бракує" }
     },
     en: {
-      brand: "Game Bible", engine: "Game engine", search: "Search canon and game: title, text, note…",
+      brand: "World Bible", engine: "Game engine",
+      settings: "Project settings", settingsAbout: "Names, engine, import and export, safe deletion.", gameLabel: "Game:",
+      stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
+      stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept.",
+      stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
+      stSections: "Custom game sections", stNoSections: "No custom sections. Standard sections cannot be deleted.",
+      stDanger: "Danger zone", stDelGame: "Delete game", stDelWorld: "Delete world",
+      stDelGameText: "This deletes the game <b>{n}</b>: all cards, files, plan, tasks, log and Claude Code keys. The world canon stays.",
+      stDelWorldText: "This deletes the world <b>{n}</b>: all canon and every game with its cards and files. It cannot be undone.",
+      stDelSecText: "This deletes the section <b>{n}</b> with its cards.",
+      stTypeName: "To confirm, type the name: {n}", stDelete: "Delete forever", stDeleting: "Deleting…",
+      stHasStories: "This world has stories ({n}). Delete or move them first — then the world can be deleted.", search: "Search canon and game: title, text, note…",
       canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
       createGame: "Create game", firstGame: "The first game on this canon",
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
@@ -234,6 +256,7 @@
   var cards = [], entities = [], planDoc = {}, canWrite = false, unsub = [];
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   var section = "overview", query = "", statusFilter = {};
+  var canonFolded = false; try { canonFolded = !!localStorage.getItem("ww-bible-fold"); } catch (e) {}
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -250,7 +273,9 @@
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     return GAME.concat(own, [PLAN]);
   }
-  function sections() { return CANON.concat(gameSections()); }
+  var SETTINGS = { id: "settings", special: "settings", uk: "Налаштування проєкту", en: "Project settings",
+    about: { uk: "Назви, рушій, імпорт і експорт, безпечне видалення.", en: "Names, engine, import and export, safe deletion." } };
+  function sections() { return CANON.concat(gameSections(), [SETTINGS]); }
   // Subheadings: every ordinary section groups its cards by one field (mechanics "group", assets "category", others "group")
   function groupKey(s) { return s.special ? "" : (s.group || "group"); }
   // Standard subheadings of the section first (s.groups), then the author's own ones in order of appearance.
@@ -318,13 +343,15 @@
   }
   function renderNav() {
     var all = allCards();
-    $("gamepick").innerHTML = games.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === gameId ? " selected" : "") + '>' + esc(g.title) + '</option>'; }).join("") +
-      '<option value="__new">' + esc(STR.newGame) + '</option>';
-    $("gamepick").style.display = games.length ? "" : "none";
-    $("nav").innerHTML = '<div class="navh">' + STR.canonGroup + '</div>' + CANON.map(function (s) { return navItem(s, all); }).join("") +
-      (game ? '<div class="navh">' + STR.gameGroup + ' · ' + esc(game.title) + '</div>' + gameSections().map(function (s) { return navItem(s, all); }).join("") : "");
+    var pick = games.length ? '<div class="gamerow"><label for="gamepick">' + STR.gameLabel + '</label><select id="gamepick">' +
+      games.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === gameId ? " selected" : "") + '>' + esc(g.title) + '</option>'; }).join("") +
+      '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option></select></div>' : "";
+    // the world block folds away so the author can work on the game alone
+    $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr">▾</span>' + STR.canonGroup + '</button>' +
+      (canonFolded ? "" : CANON.map(function (s) { return navItem(s, all); }).join("")) +
+      pick + (game ? gameSections().map(function (s) { return navItem(s, all); }).join("") : "");
     $("newsec-slot").innerHTML = game ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
-    $("engine-box").style.display = game ? "" : "none";
+    $("nav-foot").innerHTML = navItem(SETTINGS, all).replace('data-sec="settings">', 'data-sec="settings">⚙ ');
   }
 
   function excerpt(c) {
@@ -356,6 +383,7 @@
 
   function render() {
     renderNav();
+    if (section === "settings" && !imp) return renderSettings();
     if (!game) return renderNewGame();
     if (imp) return renderImport();
     var s = sec(section);
@@ -377,7 +405,7 @@
     } else html += '<div class="grid">' + list.map(cardHtml).join("") + '</div>';
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = addCard;
-    var sd = $("sec-del"); if (sd) sd.onclick = deleteSection;
+    var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
   }
 
   function renderWorld(s) {
@@ -591,13 +619,132 @@
       await gref().set({ sections: (game.sections || []).concat(s), updatedAt: stamp() }, { merge: true });
     };
   }
-  async function deleteSection() {
-    var s = sec(section); if (!s.custom || !confirm(STR.confirmSec)) return;
-    var batch = db.batch();
-    cards.filter(function (c) { return c.section === s.id; }).forEach(function (c) { batch.delete(gref().collection("cards").doc(c.id)); });
-    batch.set(gref(), { sections: game.sections.filter(function (x) { return x.id !== s.id; }) }, { merge: true });
-    section = "overview";
-    await batch.commit();
+  function confirmDeleteSection(s) {
+    if (!s.custom) return;
+    askDelete(STR.deleteSection, STR.stDelSecText, L(s), async function () {
+      var batch = db.batch();
+      cards.filter(function (c) { return c.section === s.id; }).forEach(function (c) { batch.delete(gref().collection("cards").doc(c.id)); });
+      batch.set(gref(), { sections: game.sections.filter(function (x) { return x.id !== s.id; }) }, { merge: true });
+      if (section === s.id) section = "overview";
+      await batch.commit();
+    });
+  }
+
+  // ---------- project settings: names, engine, import/export, safe deletion ----------
+  function renderSettings() {
+    var own = ((game && game.sections) || []);
+    var html = '<header class="sec"><div><h1>' + STR.settings + '</h1><p>' + STR.settingsAbout + '</p></div></header>' +
+      '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
+        '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
+        '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button></div></section>';
+    if (game) html += '<section class="setbox"><h2>' + STR.stGame + ' · ' + esc(game.title) + '</h2>' +
+        '<div class="setrow"><input id="st-gname" aria-label="' + esc(STR.stGameName) + '" value="' + esc(game.title || "") + '"><button class="btn" id="st-gsave">' + STR.stRename + '</button></div>' +
+        '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
+          return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
+        '<div class="setrow"><button class="btn" id="st-import">' + STR.stImport + '</button><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
+        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' +
+        '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
+          return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
+          : '<p class="hint">' + STR.stNoSections + '</p>') + '</section>';
+    html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
+      (game ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '') +
+      '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button></div><p class="hint" id="st-msg"></p></section>';
+    $("view").innerHTML = html;
+    var note = function (t) { $("st-msg").textContent = t; };
+    $("st-wsave").onclick = async function () {
+      var t = $("st-wname").value.trim(); if (!t) return;
+      await wref().set({ title: t, updatedAt: stamp() }, { merge: true });
+      tellShell({ type: "ww-worlds-changed" }); note(STR.stRenamed);
+    };
+    $("st-wexp").onclick = exportWorld;
+    $("st-wdel").onclick = deleteWorld;
+    if (!game) return;
+    $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
+    $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
+    $("st-import").onclick = function () { $("imp-file").click(); };
+    $("st-gexp").onclick = exportGame;
+    $("st-gdel").onclick = function () { askDelete(STR.stDelGame, STR.stDelGameText, game.title || "", deleteGame); };
+    [].forEach.call(document.querySelectorAll("[data-delsec]"), function (b) {
+      b.onclick = function () { confirmDeleteSection(sec(b.dataset.delsec)); };
+    });
+  }
+  function tellShell(msg) { try { window.parent.postMessage(msg, location.origin); } catch (e) {} }
+  function download(name, text, type) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: type || "application/json" }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  async function docsOf(ref) { var s = await ref.get(); return s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }
+  async function exportWorld() {
+    var ents = await docsOf(wref().collection("entities"));
+    download(slugify(world.title || "world") + ".world.json", JSON.stringify({ format: "whitewrite.world/1", exportedAt: new Date().toISOString(),
+      world: Object.assign({ id: worldId }, world), entities: ents, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
+  }
+  async function exportGame() {
+    var g = gref();
+    var out = { format: "whitewrite.game/1", exportedAt: new Date().toISOString(), worldId: worldId, game: Object.assign({}, game),
+      cards: await docsOf(g.collection("cards")), plan: await docsOf(g.collection("plan")), tasks: await docsOf(g.collection("tasks")),
+      changeRequests: await docsOf(g.collection("changeRequests")) };
+    download(slugify(game.title || "game") + ".game.json", JSON.stringify(out, null, 2));
+  }
+  // Safe deletion: the author types the exact name before anything is removed.
+  function askDelete(title, text, name, run) {
+    var box = document.createElement("div");
+    box.className = "ask";
+    box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3>' +
+      '<p class="warn">' + text.replace("{n}", esc(name)) + '</p><p class="warn">' + esc(STR.stTypeName.replace("{n}", name)) + '</p>' +
+      '<input id="ask-in" autocomplete="off">' +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn danger" id="ask-ok" disabled>' + STR.stDelete + '</button></div></form>';
+    document.body.appendChild(box);
+    var input = box.querySelector("input"), ok = box.querySelector("#ask-ok");
+    var close = function () { box.remove(); };
+    input.oninput = function () { ok.disabled = input.value.trim() !== String(name).trim(); };
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault(); if (ok.disabled) return;
+      ok.disabled = true; ok.textContent = STR.stDeleting;
+      try { await run(); close(); } catch (e) { ok.textContent = STR.failed + ": " + (e.code || e.message || e); }
+    };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    input.focus();
+  }
+  async function deleteDocs(ref) {
+    var docs = (await ref.get()).docs;
+    for (var i = 0; i < docs.length; i += 400) {
+      var batch = db.batch(); docs.slice(i, i + 400).forEach(function (d) { batch.delete(d.ref); }); await batch.commit();
+    }
+  }
+  async function removeGame(id) {
+    var g = wref().collection("games").doc(id);
+    var cs = (await g.collection("cards").get()).docs;
+    await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
+      return f.path ? firebase.storage().ref(f.path).delete().catch(function () {}) : null; }); })));
+    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests"]) await deleteDocs(g.collection(sub));
+    var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
+    await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
+    await g.delete();
+  }
+  async function deleteGame() {
+    var id = gameId;
+    unsub.forEach(function (u) { u(); }); unsub = [];
+    await removeGame(id);
+    try { localStorage.removeItem("ww-game-" + worldId); } catch (e) {}
+    var rest = games.filter(function (g) { return g.id !== id; });
+    if (rest.length) { games = rest; selectGame(rest[0].id); } else { game = null; gameId = null; cards = []; planDoc = {}; render(); }
+  }
+  async function deleteWorld() {
+    // stories live outside the world (projects) — never orphan them
+    var stories = await db.collection("projects").where("owner", "==", firebase.auth().currentUser.uid).where("worldId", "==", worldId).get();
+    if (!stories.empty) { $("st-msg").textContent = STR.stHasStories.replace("{n}", stories.size); return; }
+    askDelete(STR.stDelWorld, STR.stDelWorldText, world.title || "", async function () {
+      unsub.forEach(function (u) { u(); }); unsub = [];
+      for (var g of games) await removeGame(g.id);
+      await deleteDocs(wref().collection("entities"));
+      await wref().delete(); // last: the rules check ownership through the world doc
+      tellShell({ type: "ww-worlds-changed", deleted: true });
+    });
   }
 
   // ---------- AI calls ----------
@@ -986,9 +1133,17 @@
   }
 
   // ---------- events ----------
-  $("nav").addEventListener("click", function (e) {
+  function navClick(e) {
+    if (e.target.closest("#canon-toggle")) { canonFolded = !canonFolded; try { localStorage.setItem("ww-bible-fold", canonFolded ? "1" : ""); } catch (er) {} renderNav(); return; }
     var b = e.target.closest(".nav-item"); if (!b) return;
     section = b.dataset.sec; query = ""; imp = null; $("q").value = ""; render(); $("main").scrollTop = 0;
+  }
+  $("nav").addEventListener("click", navClick);
+  $("nav-foot").addEventListener("click", navClick);
+  $("nav").addEventListener("change", function (e) {
+    if (e.target.id !== "gamepick") return;
+    if (section === "settings") section = "overview";
+    if (e.target.value === "__new") { game = null; gameId = null; imp = null; render(); } else selectGame(e.target.value);
   });
   $("newsec-slot").addEventListener("click", function (e) { if (e.target.id === "sec-add") showNewSection(); });
   // Embedded in the shell: lift each view's title and action buttons onto the logo strip (#topline).
@@ -1073,11 +1228,6 @@
   $("e-close").onclick = closeLeaf;
   $("scrim").onclick = closeLeaf;
   $("e-delete").onclick = removeCard;
-  $("engine").addEventListener("change", function (e) { if (game) gref().set({ engine: { profile: e.target.value } }, { merge: true }); });
-  $("gamepick").addEventListener("change", function (e) {
-    if (e.target.value === "__new") { game = null; gameId = null; imp = null; render(); } else selectGame(e.target.value);
-  });
-  $("imp-btn").addEventListener("click", function () { if (game) $("imp-file").click(); });
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && open) closeLeaf();
@@ -1091,9 +1241,8 @@
   });
 
   // ---------- boot ----------
-  $("t-brand").textContent = STR.brand; $("t-engine").textContent = STR.engine; $("q").placeholder = STR.search;
-  $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close; $("imp-btn").title = STR.importMd; $("imp-btn").setAttribute("aria-label", STR.importMd);
-  $("engine").innerHTML = ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("");
+  $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search;
+  $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }
@@ -1111,7 +1260,6 @@
     gameId = id; game = games.filter(function (g) { return g.id === id; })[0] || null;
     cards = []; planDoc = {}; imp = null; closeLeaf();
     try { localStorage.setItem("ww-game-" + worldId, id); } catch (e) {}
-    if (game) $("engine").value = (game.engine && game.engine.profile) || "generic";
     if (!sections().some(function (s) { return s.id === section; })) section = "overview";
     unsub.push(gref().collection("cards").onSnapshot(function (snap) {
       cards = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
@@ -1158,7 +1306,6 @@
         if (pick) return selectGame(pick.id);
       }
       if (gameId) game = games.filter(function (g) { return g.id === gameId; })[0] || null;
-      if (game) $("engine").value = (game.engine && game.engine.profile) || "generic";
       render();
     });
   });

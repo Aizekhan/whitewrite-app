@@ -1166,6 +1166,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
+    // the World Bible renamed or deleted the world: refresh the list (and leave the deleted world)
+    if (d.type === "ww-worlds-changed") { Promise.resolve(loadProjects()).then(function () { if (d.deleted) { CURRENT_WORLD = null; showView("worlds"); } }); return; }
     if (d.type === "ww-nav" && d.pillar) {
       // Auto-inject projectId if available and not already in query
       var query = d.query || "";
@@ -1547,8 +1549,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '<div class="integ__row"><div class="integ__ic">⌘</div><div style="flex:1;min-width:0">' +
           '<div class="integ__t">' + (en ? 'Claude Code — game executor (MCP)' : 'Claude Code — виконавець гри (MCP)') + '</div>' +
           '<div class="integ__s">' + (en
-            ? 'Claude Code connects to your game over MCP: takes the next task of the production plan with its canon and bible context, reports progress, hands in the result with acceptance criteria — you accept or return it. Keys are created per game in <b>Game Bible → Production plan → Connect Claude Code</b>.'
-            : 'Claude Code підключається до твоєї гри по MCP: бере наступне завдання продакшн-плану разом із каноном і Біблією, звітує про прогрес, здає результат за критеріями приймання — ти приймаєш або повертаєш. Ключі створюються для кожної гри в <b>Біблія гри → Продакшн-план → Підключити Claude Code</b>.') + '</div>' +
+            ? 'Claude Code connects to your game over MCP: takes the next task of the production plan with its canon and bible context, reports progress, hands in the result with acceptance criteria — you accept or return it. Keys are created per game in <b>World Bible → Production plan → Connect Claude Code</b>.'
+            : 'Claude Code підключається до твоєї гри по MCP: бере наступне завдання продакшн-плану разом із каноном і Біблією, звітує про прогрес, здає результат за критеріями приймання — ти приймаєш або повертаєш. Ключі створюються для кожної гри в <b>Біблія світу → Продакшн-план → Підключити Claude Code</b>.') + '</div>' +
           '<div class="integ__url"><code>' + MCP_URL + '</code><button class="pe-btn" id="integ-copy">' + (en ? 'Copy' : 'Копіювати') + '</button></div>' +
           '<div class="integ__keys" id="integ-keys"><div class="integ__s">' + (en ? 'Loading keys…' : 'Завантажую ключі…') + '</div></div>' +
           '<div class="integ__soon">' +

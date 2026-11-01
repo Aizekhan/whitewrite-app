@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>WhiteWrite — Біблія гри</title>
+<title>WhiteWrite — Біблія світу</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -54,8 +54,27 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 .nav-add:hover{ color:var(--gold-lit); border-color:rgba(217,160,70,0.45); }
 .newsec{ display:grid; gap:6px; margin-top:6px; }
 .newsec input{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:7px; padding:7px 9px; }
-.engine{ margin:2px 0 6px; padding:10px; border:1px solid var(--line); border-radius:10px; font-size:12.5px; color:var(--tx-mid); display:grid; gap:6px; }
-.engine select{ width:100%; }
+/* world block folds away (arrow), the game picker follows it, project settings close the menu */
+.navtoggle{ display:flex; align-items:center; gap:6px; width:calc(100% - 12px); background:none; border:0; cursor:pointer; padding:0; text-align:left; }
+.navtoggle:hover{ color:var(--gold-lit); }
+.navtoggle .arr{ display:inline-block; font-size:10px; transition:transform .15s; }
+.navtoggle[aria-expanded="false"] .arr{ transform:rotate(-90deg); }
+.gamerow{ display:flex; align-items:center; gap:8px; margin:16px 6px 6px; }
+.gamerow label{ font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); flex:none; }
+.gamerow #gamepick{ flex:1; min-width:0; margin:0; }
+#nav-foot{ margin-top:auto; padding-top:14px; }
+#nav-foot .nav-item{ border-top:1px solid var(--line); border-radius:0 0 8px 8px; padding-top:10px; }
+/* project settings */
+.setbox{ border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin:16px 0; display:grid; gap:12px; background:var(--bg-1); }
+.setbox h2{ margin:0; font-size:18px; }
+.setrow{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.setrow input, .setrow select{ flex:1 1 240px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; }
+.setbox .hint{ margin:0; font-size:13px; color:var(--tx-mid); }
+.setbox.danger{ border-color:rgba(208,103,90,.4); background:rgba(208,103,90,.05); }
+.secrow{ display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); }
+.secrow span{ flex:1; }
+.ask-box .warn{ margin:0; font-size:13.5px; color:var(--tx-mid); line-height:1.5; }
+.ask-box .warn b{ color:var(--tx-hi); }
 .sync{ font-size:12px; color:var(--tx-low); }
 .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--tx-low); margin-right:6px; vertical-align:middle; }
 .dot.ok{ background:var(--s-game); } .dot.bad{ background:var(--s-redo); }
@@ -233,22 +252,17 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 </head>
 <body>
 <nav aria-label="Розділи" id="spine">
-  <div class="brand"><span id="w-title">…</span><small id="t-brand">Біблія гри</small></div>
+  <div class="brand"><span id="w-title">…</span><small id="t-brand">Біблія світу</small></div>
+  <div class="sync" id="sync"><span class="dot"></span>…</div>
   <div class="rule"></div>
-  <select id="gamepick" aria-label="Гра"></select>
-  <div class="engine" id="engine-box">
-    <label for="engine" id="t-engine">Рушій гри</label>
-    <select id="engine"></select>
-    <div class="sync" id="sync"><span class="dot"></span>…</div>
-  </div>
   <div id="nav"></div>
   <div id="newsec-slot"></div>
+  <div id="nav-foot"></div>
 </nav>
 <main id="main">
   <div class="bar" role="toolbar">
     <input id="q" type="search" />
     <div id="statuses" class="row"></div>
-    <button class="btn ico-btn" id="imp-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="M7.5 9.5L12 14l4.5-4.5"/><path d="M4 14v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg></button>
     <input type="file" id="imp-file" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
   </div>
   <div id="view"></div>
