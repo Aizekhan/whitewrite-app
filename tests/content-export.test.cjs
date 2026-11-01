@@ -12,7 +12,8 @@ const d = { id: 'd1', title: 'Talk', type: 'quest', approval: 'approved', partic
     { id: 'n2', speaker: 'player', text: 'Ok', effects: 'give_item:key; set_flag:met; give_currency:gold:50', end: true }] };
 const c = NV.toFrameworkContent([q, { id: 'q9', approval: 'review', stages: [] }], [d, { id: 'd9', approval: 'draft', nodes: [] }], { game: 'G' });
 
-check(c.format, 'rpgframework.content/1', 'the format tag');
+check(c.schema, 'rpgframework.content/1', 'the schema tag the importer checks (badSchema otherwise)');
+check(NV.toFrameworkContent([], [{ id: 'd2', approval: 'approved', nodes: [{ id: 'n1', text: 'Hi', end: true }] }]).dialogues[0].nodes[0].type, '', 'a one-line talk: the start is a plain line, not type end (startIsEnd)');
 check(c.quests.length + '/' + c.dialogues.length, '1/1', 'only approved quests and dialogues are exported');
 const x = c.quests[0];
 check(x.description + '|' + x.prerequisites.join() + '|' + x.start, 'Find it|q0|s1', 'summary → description, prerequisites, start');

@@ -158,7 +158,8 @@ function dialogueToContent(d) {
   const nodes = arr(d.nodes);
   const out = { id: d.id, title: d.title || '', type: d.type || '', start: (nodes[0] || {}).id || '', participants: arr(d.participants),
     nodes: nodes.map((n) => {
-      const x = { id: n.id, type: n.end ? 'end' : '', speaker: n.speaker || '', text: n.text || '', key: n.locKey || '', next: n.next ? [n.next] : [],
+      // the framework refuses a start node of type "end" (startIsEnd): a one-line talk goes as a plain line with no next (ends it too)
+      const x = { id: n.id, type: n.end && n !== nodes[0] ? 'end' : '', speaker: n.speaker || '', text: n.text || '', key: n.locKey || '', next: n.next ? [n.next] : [],
         choices: arr(n.choices).map((c, j) => ({ id: 'c' + (j + 1), text: c.text || '', to: c.to || '', ...(cond(c.cond) ? { condition: cond(c.cond) } : {}) })),
         effects: parseEffects(n.effects) };
       if (cond(n.cond)) x.condition = cond(n.cond);
@@ -171,7 +172,7 @@ function dialogueToContent(d) {
 // only what the author approved goes to the game; meta tells where it came from
 function toFrameworkContent(quests, dialogues, meta) {
   const ok = (x) => x && x.approval === 'approved';
-  return { format: CONTENT_FORMAT, source: Object.assign({ tool: 'WhiteWrite' }, meta || {}),
+  return { schema: CONTENT_FORMAT, source: Object.assign({ tool: 'WhiteWrite' }, meta || {}),
     quests: arr(quests).filter(ok).map(questToContent), dialogues: arr(dialogues).filter(ok).map(dialogueToContent) };
 }
 
