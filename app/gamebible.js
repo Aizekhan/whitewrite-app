@@ -306,7 +306,7 @@
   ];
 
   // Field templates: a new card starts with the structure of its section.
-  var F = function (key, uk, en) { return { key: key, label: LANG === "en" ? en : uk }; };
+  var F = function (key, uk, en, type) { var d = { key: key, label: LANG === "en" ? en : uk }; if (type) d.type = type; return d; };
   var CANON = [
     { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
       about: { uk: "Про що цей світ: суть, тон, ключові факти. Спільне для всіх історій та ігор.", en: "What this world is: its essence, tone and key facts. Shared by every story and game." } },
@@ -334,7 +334,7 @@
     { id: "characters", canon: "characters", uk: "Персонажі", en: "Characters",
       about: { uk: "Персонажі світу в цій грі: роль, здібності, числа і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, numbers and their own look or model. Biography and connections live in the world dossier." },
       defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), F("numbers", "Числа", "Numbers"),
-             F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("model", "Модель / префаб", "Model / prefab")] },
+             F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "locations", canon: "locations", uk: "Локації", en: "Locations",
       about: { uk: "Місця канону як рівні цієї гри: розмір, палітра, світло, хто там живе.", en: "Canon places as this game's levels: size, palette, light, who lives there." },
       defs: [F("level", "Тип рівня", "Level type"), F("size", "Розмір і траса", "Size & route"), F("look", "Палітра й світло", "Palette & light"),
@@ -344,7 +344,7 @@
       defs: [F("gameplay", "Роль у геймплеї", "Role in gameplay"), F("rewards", "Що дає гравцю", "What it gives the player")] },
     { id: "items", canon: "artifacts", uk: "Артефакти", en: "Artifacts",
       about: { uk: "Артефакти канону як ігрові предмети.", en: "Canon artifacts as game items." },
-      defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon")] },
+      defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
       groups: { uk: ["Рух", "Бій", "Здібності", "Взаємодія", "Камера й керування", "Смерть і відродження", "Перемога й поразка"], en: ["Movement", "Combat", "Abilities", "Interaction", "Camera & controls", "Death & respawn", "Win & lose"] },
       about: { uk: "Правила гри з числами. Правка тут — це завдання змінити гру.", en: "Game rules with numbers. An edit here is a task to change the game." },
@@ -362,11 +362,11 @@
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити.", en: "Who stands in the way, how it hits and where to hit it." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
-             F("weakness", "Як перемогти", "How to beat"), F("numbers", "Числа", "Numbers"), F("model", "Модель / префаб", "Model / prefab")] },
+             F("weakness", "Як перемогти", "How to beat"), F("numbers", "Числа", "Numbers"), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
       groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
-      defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon")] },
+      defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
     { id: "assets", uk: "Ассети й префаби", en: "Assets & prefabs", group: "category",
       groups: { uk: ["Персонажі", "Вороги", "Оточення", "Пропси", "Зброя й предмети", "Ефекти", "UI"], en: ["Characters", "Enemies", "Environment", "Props", "Weapons & items", "Effects", "UI"] },
       about: { uk: "Моделі й префаби: що вже є і що треба зробити — функція, розмір, пріоритет, промпт. Моделі відкриваються в 3D.", en: "Models and prefabs: what exists and what to make — function, size, priority, prompt. Models open in 3D." },
@@ -1416,13 +1416,15 @@
   }
   // One field of the card: its head (a label, or name/type/✕ in editing mode) and its value by type.
   function defHtml(d) {
-    var type = d.type || "text", v = draft.fields[d.key] || "";
+    // a card keeps its own copy of the fields (defs) — one saved before a standard field got its type takes it from the section
+    var std = d.type ? null : (sec(open.section).defs || []).filter(function (x) { return x.key === d.key; })[0];
+    var type = d.type || (std && std.type) || "text", v = draft.fields[d.key] || "";
     var head = editMode
       ? '<div class="fhead"><input class="flabel" data-flabel="' + esc(d.key) + '" value="' + esc(d.label) + '" aria-label="' + esc(STR.fieldLabel) + '">' +
         typeSelect(null, type, d.key) + '<button class="fdel" data-delfield="' + esc(d.key) + '" title="' + esc(STR.fieldDel) + '" aria-label="' + esc(STR.fieldDel + " " + d.label) + '">✕</button></div>'
       : '<label>' + esc(d.label) + '</label>';
     var body = type === "table" ? tableHtml(d.key, v)
-      : type === "image" || type === "file" ? fieldFilesHtml(d.key, type)
+      : type === "image" || type === "file" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
       : '<div class="shown' + (v ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + (v ? md(v) : STR.blank) + '</div>';
     return '<div class="field' + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
   }
