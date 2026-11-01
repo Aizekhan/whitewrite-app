@@ -224,6 +224,39 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .field.files > .btn{ justify-self:start; margin-top:8px; cursor:pointer; }
 /* 3D viewer (gb-3d.js) */
 .card{ position:relative; }
+/* Історія і хроніка: comets over the time line */
+.unitbox{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--tx-mid); }
+.unitbox input{ width:90px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 9px; color:var(--tx-hi); }
+.chron{ overflow-x:auto; margin:10px 0 6px; border:1px solid var(--line); border-radius:14px;
+  background:radial-gradient(ellipse at 30% 0%,rgba(124,58,237,.12),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(217,119,6,.08),transparent 55%),#08070b; }
+.chron-track{ position:relative; min-width:100%; }
+.chron .axis{ position:absolute; left:20px; right:20px; height:2px; background:linear-gradient(90deg,transparent,var(--gold) 4%,var(--gold) 96%,transparent); opacity:.7; }
+.chron .tick{ position:absolute; transform:translateX(-50%); padding-top:8px; font:500 11.5px "Inter"; color:var(--tx-mid); }
+.chron .tick::before{ content:""; position:absolute; left:50%; top:-4px; width:1px; height:8px; background:var(--gold-lit); opacity:.6; }
+.chron .unit{ position:absolute; right:24px; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--tx-low); }
+.chron .span{ position:absolute; height:6px; border-radius:3px; background:rgba(240,169,59,.35); }
+.comet{ position:absolute; width:0; height:0; border:none; background:none; padding:0; cursor:pointer; color:inherit; }
+.comet .head{ position:absolute; left:-9px; top:-9px; width:18px; height:18px; border-radius:50%;
+  background:radial-gradient(circle at 40% 40%,#fff,var(--gold-bright) 35%,var(--gold) 70%); box-shadow:0 0 14px 4px rgba(246,207,126,.55),0 0 30px 8px rgba(217,119,6,.25); }
+.comet .tail{ position:absolute; right:0; top:-7px; height:14px; border-radius:7px 0 0 7px; clip-path:polygon(0 50%,100% 0,100% 100%);
+  background:linear-gradient(90deg,transparent,rgba(240,169,59,.25) 30%,rgba(246,207,126,.85)); }
+.comet.star .head{ left:-12px; top:-12px; width:24px; height:24px; border-radius:0; background:var(--gold-bright);
+  clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%); box-shadow:none; filter:drop-shadow(0 0 6px var(--gold-lit)); }
+.comet:hover .head,.comet:focus-visible .head{ filter:brightness(1.25) drop-shadow(0 0 8px var(--gold-bright)); }
+.comet .who{ position:absolute; left:-12px; top:-12px; }
+.comet .who .av{ width:24px; height:24px; font-size:11px; border-color:var(--gold-lit); }
+.comet .lbl{ position:absolute; left:-80px; width:160px; top:16px; text-align:center; display:grid; line-height:1.25; pointer-events:none; }
+.comet .lbl b{ font:600 13px "Cinzel",serif; color:var(--tx-hi); text-shadow:0 1px 4px #000; overflow-wrap:anywhere; }
+.comet .lbl i{ font-style:normal; font-size:11.5px; color:var(--gold-lit); }
+.av{ display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; object-fit:cover; flex:none; background:var(--bg-3);
+  border:1px solid var(--line-2); color:var(--gold-bright); font:600 11px "Inter"; }
+.dlink.who[aria-pressed="true"]{ border-color:var(--gold); background:var(--gold-soft); }
+.dlink.who[aria-pressed="false"]{ opacity:.6; }
+.evrow{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.evrow label{ display:grid; gap:4px; font-size:12px; color:var(--tx-mid); }
+.evrow input{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:7px 9px; color:var(--tx-hi); font-size:14px; }
+.card.story{ cursor:default; } .card.story .btn{ align-self:flex-start; margin-top:auto; }
+
 /* world dossier: tabs at the bottom, life timeline with hanging notes */
 .card .sub{ margin:-4px 0 0; font-size:12.5px; color:var(--gold-lit); }
 .dtabs{ display:flex; gap:4px; padding:8px 14px 0; border-top:1px solid var(--line); overflow-x:auto; flex:none; }

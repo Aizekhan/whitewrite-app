@@ -15,6 +15,10 @@
   var STR = {
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
+      chron: { add: "＋ Подія", unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
+        noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
+        legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
+        at: "Початок (число на лінії часу)", dur: "Тривалість (0 — мить)", when: "Підпис часу", whenPh: "напр. «Весна 340 р.»", who: "Учасники", noChars: "У каноні ще немає персонажів." },
       pick: { add: "＋ Додати з канону", title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
         none: "Усіх з канону вже взято в гру.", newOne: "＋ Новий у каноні", addN: "Додати", picked: "Додано в гру" },
       dos: { newEnt: "＋ Нова сутність", desc: "Опис", pics: "Зображення й моделі світу", picsHint: "спільні для всіх історій та ігор; у грі може бути свій вигляд",
@@ -104,6 +108,10 @@
     },
     en: {
       brand: "World Bible", engine: "Game engine",
+      chron: { add: "＋ Event", unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
+        noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
+        legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
+        at: "Start (a number on the time line)", dur: "Duration (0 — a moment)", when: "Time label", whenPh: "e.g. “Spring of 340”", who: "Participants", noChars: "No characters in the canon yet." },
       pick: { add: "＋ Add from canon", title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
         none: "Everything in the canon is already in the game.", newOne: "＋ New in canon", addN: "Add", picked: "Added to the game" },
       dos: { newEnt: "＋ New entity", desc: "Description", pics: "World images & models", picsHint: "shared by every story and game; a game may have its own look",
@@ -308,7 +316,9 @@
     about: { uk: "Інтерактивний гейм-диздок і точний план розробки, складені з канону та всієї біблії гри.", en: "An interactive game design doc and a precise development plan built from the canon and the whole game bible." } };
   var ISSUES = { id: "issues", special: "issues", uk: "Неузгоджене", en: "Inconsistencies" };
   var CANON_ISSUES = { id: "canonIssues", special: "canonIssues", uk: "Неузгоджене", en: "Inconsistencies" };
-  CANON.push(CANON_ISSUES);
+  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Історія і хроніка", en: "History & chronicle",
+    about: { uk: "Події світу на лінії часу та історії, що в ньому написані.", en: "The world's events on the time line, and the stories written in it." } };
+  CANON.push(CANON_ISSUES, CHRONICLE);
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
@@ -410,6 +420,7 @@
   // ---------- render ----------
   function navItem(s, all) {
     var n = s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
+      : s.special === "chronicle" ? entities.filter(function (e) { return e.kind === "events"; }).length
       : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
       : s.special ? "" : all.filter(function (c) { return c.section === s.id; }).length;
     return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(L(s)) + '<span class="n">' + n + '</span></button>';
@@ -463,6 +474,7 @@
       if (cs.special === "world") return renderWorld(cs);
       if (cs.special === "laws") return renderLaws(cs);
       if (cs.dossier) return renderDossiers(cs);
+      if (cs.special === "chronicle") return renderChronicle(cs);
     }
     if (!game) return renderNewGame();
     if (imp) return renderImport();
@@ -534,6 +546,8 @@
     dos = e; dtab = "story";
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({ story: "", look: "" }, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
+    if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
+      who: (Array.isArray(e.characters) ? e.characters : []).slice() });
     dfirst = JSON.stringify(ddraft);
     $("d-kicker").textContent = (dosSection(e.kind) ? L(dosSection(e.kind)) : STR.dos.kinds[e.kind] || "") + " · " + STR.dos.world;
     $("d-title").value = ddraft.name;
@@ -546,6 +560,21 @@
     ddraft.name = $("d-title").value;
     var d = $("d-desc"); if (d) ddraft.desc = d.value;
     var t = $("d-text"); if (t) ddraft.dossier[t.dataset.k] = t.value;
+    ["at", "dur", "when"].forEach(function (k) { var i = $("d-" + k); if (i) ddraft[k] = i.value; });
+  }
+  function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
+  function eventHtml() {
+    var chars = entities.filter(function (x) { return x.kind === "characters"; });
+    return '<div class="field evrow"><label>' + STR.chron.at + '<input id="d-at" type="number" step="any" value="' + esc(ddraft.at) + '"></label>' +
+      '<label>' + STR.chron.dur + '<input id="d-dur" type="number" min="0" step="any" value="' + esc(ddraft.dur) + '"></label>' +
+      '<label>' + STR.chron.when + '<input id="d-when" placeholder="' + esc(STR.chron.whenPh) + '" value="' + esc(ddraft.when) + '"></label></div>' +
+      '<div class="field"><label>' + STR.chron.who + '</label>' + (chars.length ? '<div class="dlinks">' + chars.map(function (c) {
+        return '<button class="dlink who" data-who="' + esc(c.id) + '" aria-pressed="' + (ddraft.who.indexOf(c.id) >= 0) + '">' + avatar(c) + esc(c.name || "") + '</button>';
+      }).join("") + '</div>' : '<p class="muted">' + STR.chron.noChars + '</p>') + '</div>';
+  }
+  function avatar(c) {
+    var img = entImage(c);
+    return img ? '<img class="av" alt="" src="' + esc(img.url) + '">' : '<span class="av">' + esc(String(c.name || c.title || "?").trim().charAt(0).toUpperCase()) + '</span>';
   }
   function closeDossier() {
     dos = null; ddraft = null;
@@ -593,7 +622,7 @@
     if (!list.length) return '<p class="muted">' + STR.dos.noLinks + '</p>';
     return '<div class="dlinks">' + list.map(function (x) {
       var inner = '<span class="k">' + esc(STR.dos.kinds[x.e.kind] || x.e.kind) + '</span>' + esc(x.e.name || x.e.title || "") + (x.rel ? ' <i>' + esc(x.rel) + '</i>' : '');
-      return dosSection(x.e.kind) ? '<button class="dlink" data-dent="' + esc(x.e.id) + '">' + inner + '</button>' : '<span class="dlink">' + inner + '</span>';
+      return dosSection(x.e.kind) || x.e.kind === "events" ? '<button class="dlink" data-dent="' + esc(x.e.id) + '">' + inner + '</button>' : '<span class="dlink">' + inner + '</span>';
     }).join("") + '</div>';
   }
   function renderDossier() {
@@ -602,6 +631,7 @@
       (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
     html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="4">' + esc(ddraft.desc) + '</textarea></div>';
     if (e.kind === "characters") html += lifeHtml();
+    if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "links" ? linksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc(dtab === "look" ? STR.dos.lookPh : STR.dos.storyPh) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
     $("d-body").innerHTML = html + '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>';
@@ -613,7 +643,8 @@
   async function loadAppearance(e) {
     var out = "";
     try {
-      var inGames = e.isNew ? [] : await Promise.all(games.map(function (g) {
+      var played = GAME.some(function (x) { return x.canon === e.kind; }); // events have no game section
+      var inGames = e.isNew || !played ? [] : await Promise.all(games.map(function (g) {
         return wref().collection("games").doc(g.id).collection("cards").doc(e.id).get().then(function (d) { return { g: g, c: d.exists ? d.data() : {} }; });
       }));
       var uid = firebase.auth().currentUser.uid;
@@ -623,7 +654,7 @@
           .then(function (sn) { return { title: p.data().title || p.data().name || "…", scenes: sn.docs.map(function (d) { return d.data().n; }).filter(function (n) { return n != null; }).sort(function (a, b) { return a - b; }) }; });
       }));
       stories = stories.filter(function (x) { return x.scenes.length; });
-      out = '<h4 class="dsub">' + STR.dos.inGames + '</h4>' + (inGames.length ? '<ul class="dappear">' + inGames.map(function (x) {
+      out = !played ? "" : '<h4 class="dsub">' + STR.dos.inGames + '</h4>' + (inGames.length ? '<ul class="dappear">' + inGames.map(function (x) {
         var st = STATUS[x.c.status] || STATUS.idea;
         return '<li><b>' + esc(x.g.title) + '</b> ' + (x.c.hidden ? '<span class="muted">' + STR.dos.hiddenInGame + '</span>' : '<span class="pill ' + st.cls + '">' + esc(L(st)) + '</span>') +
           (x.c.hidden ? '' : ' <button class="btn" data-ingame="' + esc(x.g.id) + '">' + STR.dos.openInGame + '</button>') + '</li>';
@@ -666,7 +697,8 @@
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
     if (e.isNew) Object.assign(body, { id: e.id, kind: e.kind, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
-    if (e.isNew || name !== (e.name || e.title || "")) { body[e.title !== undefined && e.name === undefined ? "title" : "name"] = name; body.slug = slugify(name); }
+    if (e.isNew || name !== (e.name || e.title || "")) { body[(e.title !== undefined && e.name === undefined) || (e.isNew && e.kind === "events") ? "title" : "name"] = name; body.slug = slugify(name); }
+    if (e.kind === "events") Object.assign(body, { at: num(ddraft.at), dur: num(ddraft.dur), when: ddraft.when.trim(), characters: ddraft.who });
     if (e.isNew || ddraft.desc !== (e[descKeyOf(e)] || "")) body[descKeyOf(e)] = ddraft.desc;
     dmsg(STR.saving);
     try { await wref().collection("entities").doc(e.id).set(body, { merge: true }); closeDossier(); }
@@ -686,6 +718,8 @@
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
     var rm = e.target.closest("[data-drmfile]"); if (rm) { removeEntityFile(rm.dataset.drmfile); return; }
     var v3 = e.target.closest("[data-dview3d]"); if (v3) { view3d(dos.files.filter(function (f) { return f.id === v3.dataset.dview3d; })[0], dos.files); return; }
+    var wh = e.target.closest("[data-who]");
+    if (wh) { dcollect(); var wi = ddraft.who.indexOf(wh.dataset.who); if (wi >= 0) ddraft.who.splice(wi, 1); else ddraft.who.push(wh.dataset.who); renderDossier(); return; }
     var rn = e.target.closest("[data-rmnote]");
     if (rn) { dcollect(); ddraft.lifeNotes = ddraft.lifeNotes.filter(function (n) { return n.id !== rn.dataset.rmnote; }); renderDossier(); return; }
     if (e.target.id === "ln-add") {
@@ -706,6 +740,62 @@
   $("d-body").addEventListener("change", function (e) {
     if (e.target.id === "d-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); }
   });
+
+  // ---------- Історія і хроніка: events as comets over the time line (tail = duration, a star = a moment), stories of the world ----------
+  var worldStories = null;
+  function loadStories() {
+    worldStories = worldStories || db.collection("projects").where("owner", "==", firebase.auth().currentUser.uid).where("worldId", "==", worldId).get()
+      .then(function (sn) { return sn.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }).catch(function () { return []; });
+    return worldStories;
+  }
+  function niceStep(span) { var raw = span / 8, p = Math.pow(10, Math.floor(Math.log10(raw || 1))), m = raw / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
+  function cometsHtml(list) {
+    var lo = Infinity, hi = -Infinity;
+    list.forEach(function (e) { lo = Math.min(lo, e.at); hi = Math.max(hi, e.at + e.dur); });
+    var span = hi - lo || 1, W = Math.max(($("view").clientWidth || 900) - 20, list.length * 190), ppu = (W - 200) / span;
+    var x = function (t) { return 100 + (t - lo) * ppu; }, lanes = [], LH = 112;
+    var items = list.map(function (e) {
+      var x0 = x(e.at), hx = x(e.at + e.dur), lane = 0;
+      while (lanes[lane] !== undefined && lanes[lane] > Math.min(x0, hx - 80)) lane++;
+      lanes[lane] = hx + 80;
+      return { e: e, x0: x0, hx: hx, lane: lane };
+    });
+    var H = lanes.length * LH + 56, axisY = H - 34, html = '';
+    items.forEach(function (it) {
+      var e = it.e, y = axisY - 40 - it.lane * LH - 22, tail = it.hx - it.x0, star = !(e.dur > 0) || tail < 6;
+      var who = (Array.isArray(e.characters) ? e.characters : []).map(function (id) { return entities.filter(function (c) { return c.id === id; })[0]; }).filter(Boolean);
+      html += '<span class="span" style="left:' + it.x0 + 'px;width:' + Math.max(2, tail) + 'px;top:' + (axisY - 2) + 'px"></span>';
+      html += '<button class="comet' + (star ? ' star' : '') + '" data-ent="' + esc(e.id) + '" style="left:' + it.hx + 'px;top:' + y + 'px" title="' + esc((e.title || e.name || "") + (e.when ? " · " + e.when : "")) + '">' +
+        (star ? '' : '<span class="tail" style="width:' + tail + 'px"></span>') + '<span class="head"></span>' +
+        who.slice(0, 6).map(function (c, i) { var a = (-160 + i * 28) * Math.PI / 180; // participants in an arc above the head
+          return '<span class="who" style="transform:translate(' + Math.round(Math.cos(a) * 30) + 'px,' + Math.round(Math.sin(a) * 30) + 'px)" title="' + esc(c.name || "") + '">' + avatar(c) + '</span>'; }).join("") +
+        '<span class="lbl"><b>' + esc(e.title || e.name || "") + '</b>' + (e.when ? '<i>' + esc(e.when) + '</i>' : '') + '</span></button>';
+    });
+    var step = niceStep(span), ticks = '';
+    for (var t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) ticks += '<span class="tick" style="left:' + x(t) + 'px;top:' + axisY + 'px">' + esc(String(+t.toFixed(6))) + '</span>';
+    return '<div class="chron"><div class="chron-track" style="width:' + W + 'px;height:' + H + 'px"><span class="axis" style="top:' + axisY + 'px"></span>' + ticks + html +
+      '<span class="unit" style="top:' + (axisY + 14) + 'px">' + esc((world && world.timeUnit) || STR.chron.unitPh) + '</span></div></div>';
+  }
+  function renderChronicle(s) {
+    var evs = entities.filter(function (e) { return e.kind === "events"; }).map(function (e) { return Object.assign({}, e, { at: num(e.at), dur: Math.max(0, num(e.dur) || 0) }); });
+    var dated = evs.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }), undated = evs.filter(function (e) { return e.at === null; });
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
+      '<div class="row"><label class="unitbox">' + STR.chron.unit + ' <input id="ch-unit" value="' + esc((world && world.timeUnit) || "") + '" placeholder="' + esc(STR.chron.unitPh) + '"></label>' +
+      '<button class="btn primary" id="add-top">' + STR.chron.add + '</button></div></header>';
+    html += dated.length ? '<p class="muted">' + STR.chron.legend + '</p>' + cometsHtml(dated) : '<p class="empty">' + STR.chron.empty + '</p>';
+    if (undated.length) html += '<h2 class="group">' + STR.chron.undated + ' <span>' + undated.length + '</span></h2><div class="grid">' + undated.map(dosCardHtml).join("") + '</div>';
+    html += '<h2 class="group">' + STR.chron.stories + '</h2><div id="ch-stories"><p class="muted">' + STR.dos.loading + '</p></div>';
+    $("view").innerHTML = html;
+    $("add-top").onclick = function () { openDossier({ id: entityId("events"), kind: "events", isNew: true }); };
+    $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
+    loadStories().then(function (list) {
+      var box = $("ch-stories"); if (!box) return;
+      box.innerHTML = list.length ? '<div class="grid">' + list.map(function (p) {
+        return '<div class="card story"><h3>' + esc(p.title || p.name || "…") + '</h3>' + (p.meta ? '<p class="sub">' + esc(p.meta) + '</p>' : '') +
+          '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>';
+      }).join("") + '</div>' : '<p class="muted">' + STR.chron.noStories + '</p>';
+    });
+  }
 
   function renderNewGame() {
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
@@ -1759,6 +1849,7 @@
     if (cp) { navigator.clipboard.writeText(cp.previousElementSibling.textContent).then(function () { cp.textContent = STR.copied; }); return; }
     var v = e.target.closest("[data-view3d]");
     if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
+    var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0]; if (card) openCard(card);

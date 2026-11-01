@@ -1166,6 +1166,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
+    if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId); return; } // World Bible → chronicle → a story of this world
     // the World Bible renamed or deleted the world: refresh the list (and leave the deleted world)
     if (d.type === "ww-worlds-changed") { Promise.resolve(loadProjects()).then(function () { if (d.deleted) { CURRENT_WORLD = null; showView("worlds"); } }); return; }
     if (d.type === "ww-nav" && d.pillar) {
