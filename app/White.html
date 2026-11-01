@@ -639,7 +639,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   /* ---- pillars (iframes) ---- */
   var PILLARS = {
     book:     { src: "WhiteWrite.html",           labelKey: "nav.book",     icon: "book" },
-    universe: { src: "WhiteWrite WorldTree.html", labelKey: "nav.universe", icon: "universe" },
     director: { src: "WhiteWrite Workspace.html", labelKey: "nav.director", icon: "clapper" },
     bible:    { src: "WhiteWrite GameBible.html", labelKey: "worlds.bible", icon: "layers", world: true }, // world-scoped, not a story pillar
   };
@@ -896,6 +895,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   }
   function sep(s) { return s.indexOf("?") >= 0 ? "&" : "?"; }
   function showPillar(p, query) {
+    if (p === "canon" || p === "universe") return openCanon(query); // "universe": the retired Universe tree (old states, deep links)
     if (!PILLARS[p]) return;
     histPush();
     // Don't set inWork=true if opening creation form (new=1) — wait for iframe to notify
@@ -1002,7 +1002,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 
       // Determine which pillar based on filename
       var pillar = null;
-      if (filename.indexOf('WhiteWrite WorldTree.html') >= 0) pillar = 'universe';
+      if (filename.indexOf('GameBible') >= 0 || filename.indexOf('WorldTree') >= 0) pillar = 'canon';
       else if (filename.indexOf('WhiteWrite Workspace.html') >= 0) pillar = 'director';
       else if (filename.indexOf('WhiteWrite.html') >= 0) pillar = 'book';
 
@@ -1036,6 +1036,19 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   function createNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD)); }
   function createWorld() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "newWorld=1"); }
   function openWorld(worldId) { CURRENT_WORLD = worldId; showView("narr"); }
+  // The canon of a story lives in its world's Bible: the book's bookmarks, the Director's visual canon and old tree links land here,
+  // on the named entity if there is one (the Bible opens it once its canon has loaded).
+  function openCanon(query) {
+    var q = new URLSearchParams(query || ""), pid = q.get("projectId") || window.__currentProjectId;
+    var pr = PROJECTS.filter(function (x) { return x.id === pid; })[0];
+    if (pr && pr.worldId) CURRENT_WORLD = pr.worldId;
+    if (!CURRENT_WORLD) { showView("worlds"); return; }
+    var before = frames.bible && frames.bible.getAttribute("src");
+    showBible();
+    var ent = q.get("id"), f = frames.bible; if (!ent || !f) return;
+    var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-focus", ent: ent }, location.origin); } catch (e) {} };
+    if (f.getAttribute("src") !== before) f.addEventListener("load", send, { once: true }); else send(); // a (re)loading Bible gets it once it has loaded
+  }
   // Game Bible of the current world (an iframe, but world-scoped: the rail stays on Світи)
   function showBible() {
     histPush();
@@ -1223,8 +1236,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '<h1 class="vhead__t">' + escapeHtml(world ? (world.title || t('worlds.untitled')) : '…') + '</h1>' +
         (world && (world.tagline || world.summary) ? '<p class="vhead__s">' + escapeHtml(world.tagline || world.summary) + '</p>' : '') +
         '<div class="wtiles">' +
-          '<button class="kb wtile" id="w-tree"' + (stories.length ? '' : ' disabled') + '><div class="kb__ic">' + svg("universe") + '</div>' +
-            '<div class="kb__t">' + t('worlds.tree') + '</div><div class="kb__d">' + (stories.length ? t('worlds.treeHint') : t('worlds.treeNeedsStory')) + '</div></button>' +
           '<button class="kb wtile" id="w-bible"><div class="kb__ic">' + svg("layers") + '</div>' +
             '<div class="kb__t">' + t('worlds.bible') + '</div><div class="kb__d">' + t('worlds.bibleHint') + '</div></button>' +
         '</div>' +
@@ -1251,11 +1262,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (nn) nn.addEventListener("click", createNarrative);
     views.narr.querySelector("#to-worlds").addEventListener("click", function () { showView("worlds"); });
     views.narr.querySelector("#w-bible").addEventListener("click", showBible);
-    var wt = views.narr.querySelector("#w-tree");
-    if (wt && stories.length) wt.addEventListener("click", function () {
-      window.__setCurrentProject(stories[0].p.id); // the tree reads the world through one of its stories
-      showPillar("universe");
-    });
     [].forEach.call(views.narr.querySelectorAll(".ncard__edit"), function (b) {
       b.addEventListener("click", function (e) { e.stopPropagation(); openProjectEdit(+b.dataset.i); });
     });

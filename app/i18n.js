@@ -10,7 +10,7 @@
       // Top Menu / Navigation
       'nav.home': 'Головна',
       'nav.book': 'Книга',
-      'nav.universe': 'Всесвіт',
+      'nav.universe': 'Біблія світу',
       'nav.director': 'Режисер',
       'nav.pillars': 'Стовпи WhiteWrite',
       'nav.account': 'Профіль',
@@ -59,7 +59,7 @@
 
       // Features
       'feature.exportDocs': '✨ Експорт DOCX/PDF',
-      'feature.worldTree': 'WorldTree + Canon',
+      'feature.worldTree': 'Біблія світу + канон',
       'feature.claudeAPI': '✦ Claude Sonnet API',
       'feature.reconstruction': 'Universe Reconstruction',
       'feature.reconstructionPro': '🔥 Universe Reconstruction',
@@ -274,7 +274,7 @@
       'book.reset': 'Скинути',
       'book.readingSettings': 'Налаштування читання',
       'book.sceneCanon': 'Канон сцени',
-      'book.openInWorldTree': '✦ Відкрити у Світовому Дереві',
+      'book.openInWorldTree': '✦ Відкрити в Біблії світу',
       'book.related.characters': 'Персонажі',
       'book.related.locations': 'Локації',
       'book.related.events': 'Події',
@@ -520,9 +520,6 @@
       'worlds.storiesTitle': 'Історії цього світу',
       'worlds.newStory': 'Нова історія',
       'worlds.newStoryHint': 'у цьому світі',
-      'worlds.tree': 'Дерево всесвіту',
-      'worlds.treeHint': 'Канон: персонажі, місця, події, закони',
-      'worlds.treeNeedsStory': 'Створи першу історію, щоб відкрити Дерево',
       'worlds.bible': 'Біблія світу',
       'worlds.bibleHint': 'Ігри на цьому каноні: механіки, ассети, продакшн-план',
       'worlds.formKicker': 'Genesis · новий світ',
@@ -737,7 +734,7 @@
       // Top Menu / Navigation
       'nav.home': 'Home',
       'nav.book': 'Book',
-      'nav.universe': 'Universe',
+      'nav.universe': 'World Bible',
       'nav.director': 'Director',
       'nav.pillars': 'WhiteWrite Pillars',
       'nav.account': 'Profile',
@@ -786,7 +783,7 @@
 
       // Features
       'feature.exportDocs': '✨ Export DOCX/PDF',
-      'feature.worldTree': 'WorldTree + Canon',
+      'feature.worldTree': 'World Bible + canon',
       'feature.claudeAPI': '✦ Claude Sonnet API',
       'feature.reconstruction': 'Universe Reconstruction',
       'feature.reconstructionPro': '🔥 Universe Reconstruction',
@@ -998,7 +995,7 @@
       'book.reset': 'Reset',
       'book.readingSettings': 'Reading Settings',
       'book.sceneCanon': 'Scene Canon',
-      'book.openInWorldTree': '✦ Open in World Tree',
+      'book.openInWorldTree': '✦ Open in the World Bible',
       'book.related.characters': 'Characters',
       'book.related.locations': 'Locations',
       'book.related.events': 'Events',
@@ -1244,9 +1241,6 @@
       'worlds.storiesTitle': 'Stories of this world',
       'worlds.newStory': 'New story',
       'worlds.newStoryHint': 'in this world',
-      'worlds.tree': 'Universe tree',
-      'worlds.treeHint': 'Canon: characters, places, events, laws',
-      'worlds.treeNeedsStory': 'Create the first story to open the tree',
       'worlds.bible': 'World Bible',
       'worlds.bibleHint': 'Games on this canon: mechanics, assets, production plan',
       'worlds.formKicker': 'Genesis · new world',

@@ -48,6 +48,9 @@
         "destination": "/White.html"
       }
     ],
-    "redirects": []
+    "redirects": [
+      { "source": "/WhiteWrite WorldTree.html", "destination": "/", "type": 301 },
+      { "source": "/WhiteWrite%20WorldTree.html", "destination": "/", "type": 301 }
+    ]
   }
 }

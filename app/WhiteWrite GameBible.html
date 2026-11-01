@@ -146,6 +146,33 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .ask-box input:focus{ border-color:var(--gold-lit); outline:none; }
 .ask-box .row{ justify-content:flex-end; }
 .pick-box{ width:min(560px,calc(100vw - 40px)); }
+/* world overview & laws (edited here since the Universe tree retired) */
+.wedit .field{ display:grid; gap:6px; margin:8px 0; } .wedit .field span{ font-size:12px; color:var(--tx-mid); letter-spacing:.06em; text-transform:uppercase; }
+.wedit input,.wedit textarea{ width:100%; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; color:var(--tx-hi); font:inherit; }
+.wedit textarea{ resize:vertical; line-height:1.5; }
+.wrow{ display:flex; gap:8px; align-items:center; margin:6px 0; } .wrow input[data-fk=k]{ flex:0 0 32%; }
+.wlaws{ padding-left:22px; } .wlaws li::marker{ color:var(--gold-lit); }
+.wsave{ justify-content:flex-end; align-items:center; gap:12px; margin:10px 0 4px; }
+/* world map — locations by drag (entity.mapPos) */
+.wmap{ margin-top:6px; border:1px solid var(--line-2); border-radius:14px; background:radial-gradient(circle at 50% 40%,rgba(240,169,59,.07),transparent 70%),var(--bg-1); overflow:hidden; }
+.wmap svg{ display:block; width:100%; height:auto; touch-action:none; user-select:none; }
+
+.wmap-route{ stroke:rgba(240,169,59,.45); stroke-dasharray:6 5; stroke-linecap:round; }
+.wmap-node{ cursor:grab; outline:none; } .wmap-node:active{ cursor:grabbing; }
+.wmap-dot{ fill:rgba(124,58,237,.35); stroke:var(--gold-lit); stroke-width:1.6; }
+.wmap-node:hover .wmap-dot,.wmap-node:focus-visible .wmap-dot{ fill:rgba(240,169,59,.35); }
+.wmap-count{ fill:var(--tx-hi); font:700 12px "Inter"; } .wmap-name{ fill:var(--tx-hi); font:600 14px "Inter"; } .wmap-who{ fill:var(--tx-mid); font:12px "Inter"; }
+.wmap-legend{ margin:0; padding:8px 14px; border-top:1px solid var(--line); font-size:12.5px; }
+/* state over time + «Узгодити сцени» */
+.stl{ margin:6px 0 10px; } .stl ol{ margin:4px 0 0; padding-left:0; list-style:none; display:grid; gap:4px; }
+.stl li{ display:flex; gap:10px; font-size:13.5px; } .stl .scene-n{ color:var(--gold-lit); min-width:64px; }
+.rc-box{ width:min(760px,calc(100vw - 40px)); max-height:88vh; overflow-y:auto; }
+.rc-box select,.rc-box textarea{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; color:var(--tx-hi); font:inherit; }
+.rc-box .field{ display:grid; gap:6px; } .rc-box .field span{ font-size:12px; color:var(--tx-mid); letter-spacing:.06em; text-transform:uppercase; }
+.rc-list{ display:grid; gap:8px; } .rc-row{ padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:var(--bg-2); }
+.rc-row label{ cursor:pointer; } .rc-st{ display:block; font-size:12.5px; margin-top:2px; }
+.rc-diff{ margin:8px 0; max-height:260px; overflow-y:auto; white-space:pre-wrap; font:14px/1.55 "Inter"; color:var(--tx); padding:8px 10px; border-radius:8px; background:var(--bg-1); }
+.rc-del{ color:#ff9b85; text-decoration:line-through; background:rgba(255,120,100,.08); } .rc-ins{ color:#9fe0b4; background:rgba(120,220,160,.1); }
 .picklist{ display:grid; gap:6px; max-height:min(52vh,460px); overflow-y:auto; padding-right:4px; }
 .pickrow{ display:flex; align-items:center; gap:10px; padding:7px 10px; border:1px solid var(--line); border-radius:10px; background:var(--bg-2); cursor:pointer; }
 .pickrow:hover{ border-color:var(--line-2); }
@@ -311,6 +338,9 @@ button.dlink{ cursor:pointer; } button.dlink:hover{ border-color:var(--gold); }
 .v3d-pill{ position:absolute; top:8px; right:8px; z-index:2; cursor:pointer; font-size:11px; font-weight:600; letter-spacing:.03em;
   padding:4px 8px; border-radius:999px; color:var(--gold-lit, #f0c878); background:rgba(10,8,6,0.78); border:1px solid rgba(240,200,120,0.45);
   backdrop-filter:blur(4px); transition:background .15s, border-color .15s; }
+.poly-warn{ position:absolute; top:8px; left:8px; z-index:2; width:18px; height:18px; border-radius:50%; background:#e5484d; color:#fff; font:700 12px/18px "Inter"; text-align:center;
+  box-shadow:0 0 0 2px var(--bg-2), 0 2px 6px #0008; cursor:help; }
+.file .poly-warn{ position:static; display:inline-block; flex:none; margin-left:-2px; }
 .v3d-pill:hover, .v3d-pill:focus-visible{ background:rgba(50,33,15,0.92); border-color:rgba(240,200,120,0.9); }
 .v3d{ position:fixed; inset:0; z-index:60; background:var(--bg-0); display:flex; flex-direction:column; padding:14px 18px; gap:10px; }
 .v3d-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }

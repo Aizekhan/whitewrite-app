@@ -454,7 +454,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
   const goWorkspace = useCallback(() => fadeNav("WhiteWrite Workspace.html"), []);
   const goTree = useCallback(() => {
-    const url = projectId ? `WhiteWrite WorldTree.html?projectId=${encodeURIComponent(projectId)}` : "WhiteWrite WorldTree.html";
+    const url = projectId ? `WhiteWrite GameBible.html?projectId=${encodeURIComponent(projectId)}` : "WhiteWrite GameBible.html";
     fadeNav(url);
   }, [projectId]);
 

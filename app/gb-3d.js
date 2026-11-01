@@ -32,6 +32,14 @@ function load(file, siblings) {
   });
 }
 
+function countTris(root) {
+  let tris = 0;
+  root.traverse((o) => { if (o.isMesh && o.geometry) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+  return Math.round(tris);
+}
+// Polygon (triangle) count of a model file, without showing it — gamebible.js marks models over its polygon budget.
+export async function polyCount(file, siblings) { return countTris((await load(file, siblings)).root); }
+
 export function view3d(file, T, siblings) {
   const box = document.createElement("div");
   box.className = "v3d";
@@ -81,9 +89,7 @@ export function view3d(file, T, siblings) {
     home = { pos: new THREE.Vector3(c.x + r * 1.2, c.y + r * 0.7, c.z + r * 1.6), target: c };
     reset();
     const fmt = (v) => (Math.round(v * 100) / 100).toLocaleString();
-    let tris = 0;
-    model.traverse((o) => { if (o.isMesh && o.geometry) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
-    info.textContent = fmt(s.x) + " × " + fmt(s.y) + " × " + fmt(s.z) + " · " + Math.round(tris).toLocaleString() + " " + T.tris;
+    info.textContent = fmt(s.x) + " × " + fmt(s.y) + " × " + fmt(s.z) + " · " + countTris(model).toLocaleString() + " " + T.tris;
   }
   function reset() { if (!home) return; camera.position.copy(home.pos); controls.target.copy(home.target); controls.update(); }
 

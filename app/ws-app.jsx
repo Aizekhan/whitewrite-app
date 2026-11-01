@@ -49,8 +49,8 @@ function fadeNav(href) {
   requestAnimationFrame(() => { o.style.opacity = "1"; });
   setTimeout(() => { window.location.href = href; }, 580);
 }
-// Visual Canon → open the matching canon entity in the World Tree.
-window.__wsGoCanon = (type, id) => fadeNav("WhiteWrite WorldTree.html?type=" + type + "&id=" + encodeURIComponent(id));
+// Visual Canon → open the matching canon entity in the World Bible.
+window.__wsGoCanon = (type, id) => fadeNav("WhiteWrite GameBible.html?type=" + type + "&id=" + encodeURIComponent(id));
 
 // Unified pillar switcher — identical on all three screens. `here` = active pillar.
 function PillarSwitch({ here }) {
@@ -60,7 +60,7 @@ function PillarSwitch({ here }) {
 
   const items = [
     { id: "book", label: t('nav.book'), icon: "book", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
-    { id: "universe", label: t('nav.universe'), icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "universe", label: t('nav.universe'), icon: "tree", go: () => fadeNav(`WhiteWrite GameBible.html${projectParam}`) },
     { id: "director", label: t('nav.director'), icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
   ];
   return (

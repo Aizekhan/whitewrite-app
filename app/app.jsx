@@ -50,7 +50,7 @@ function PillarSwitch({ here }) {
 
   const items = [
     { id: "book", label: t('nav.book'), icon: "feather", go: () => { try { localStorage.setItem("ww_return", "1"); } catch (e) {} fadeNav(`WhiteWrite.html${projectParam}`); } },
-    { id: "universe", label: t('nav.universe'), icon: "tree", go: () => fadeNav(`WhiteWrite WorldTree.html${projectParam}`) },
+    { id: "universe", label: t('nav.universe'), icon: "tree", go: () => fadeNav(`WhiteWrite GameBible.html${projectParam}`) },
     { id: "director", label: t('nav.director'), icon: "clapper", go: () => fadeNav(`WhiteWrite Workspace.html${projectParam}`) },
   ];
 

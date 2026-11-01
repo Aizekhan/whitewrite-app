@@ -51,8 +51,8 @@
     requestAnimationFrame(() => { o.style.opacity = "1"; });
     setTimeout(() => { window.location.href = href; }, 600);
   }
-  const openEntity = (type, id) => relFade("WhiteWrite%20WorldTree.html?type=" + type + "&id=" + encodeURIComponent(id));
-  const exploreCanon = () => relFade("WhiteWrite%20WorldTree.html");
+  const openEntity = (type, id) => relFade("WhiteWrite%20GameBible.html?type=" + type + "&id=" + encodeURIComponent(id));
+  const exploreCanon = () => relFade("WhiteWrite%20GameBible.html");
 
   // reading typography controls (set CSS vars on the reading root)
   function readingRoot() { return document.querySelector(".world.reading") || document.documentElement; }

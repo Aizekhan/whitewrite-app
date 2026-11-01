@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.5.0 (2026-11-02)
+**Version:** 2.6.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -11,7 +11,7 @@ This document is the **canonical architecture map** of WhiteWrite. All code, fea
 
 **Philosophy:**
 - **Canon-Aware Narrative Generation** — AI generates stories that respect world consistency
-- **Three Pillars** — Book (write), WorldTree (canon), Workspace (visualize)
+- **Three Pillars** — Book (write), World Bible (canon — the home of a world), Workspace (visualize). The Universe tree (WorldTree) is retired.
 - **Single Canon** — All pillars read from one source (`WORLD`)
 - **Reconstruction Engine** — Canon changes cascade through narrative automatically
 - **World-first** — a World (canon) is the root; stories (projects) and games hang off it: **one canon → many stories, many games**
@@ -28,9 +28,8 @@ E:\WhiteWrite/
 ├─ app/                          # Production (deployed to whitewrite.com)
 │  ├─ White.html                 # Shell (navigation, auth, account)
 │  ├─ WhiteWrite.html            # Book pillar (narrative generation)
-│  ├─ WhiteWrite WorldTree.html  # WorldTree pillar (canon management)
 │  ├─ WhiteWrite Workspace.html  # Workspace pillar (storyboard/LoRA)
-│  ├─ WhiteWrite GameBible.html  # Game Bible (world-scoped): sections, cards, files, plan, tasks
+│  ├─ WhiteWrite GameBible.html  # World Bible (world-scoped): canon, stories, games — cards, files, plan, tasks
 │  ├─ gamebible.js               # Game Bible logic (plain JS, no JSX)
 │  ├─ gb-3d.js                   # three.js viewer (GLB/GLTF/FBX/OBJ/STL) for card files
 │  │
@@ -50,7 +49,7 @@ E:\WhiteWrite/
 │  │  ├─ ai-models.js            # AI_MODELS — single source of truth for model ids (front + back)
 │  │  └─ token-budget.js         # Token system + plan budgets
 │  │
-│  ├─ wt-*.jsx                   # WorldTree components
+│  ├─ wt-world.jsx, wt-impact.jsx # WORLD + impact engine (no UI; the tree UI was removed)
 │  ├─ ws-*.jsx                   # Workspace components
 │  └─ assets/                    # Images, fonts, icons
 │
@@ -89,14 +88,16 @@ E:\WhiteWrite/
 whitewrite.com
     ↓
 White.html (Shell)
-    ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (stories, Tree, Game Bible)
+    ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (stories, World Bible)
     ├─ Auth (Firebase Auth)
     ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
     └─ Pillar iframes:
         ├─ WhiteWrite.html?projectId=X (Book)
-        ├─ WhiteWrite WorldTree.html?projectId=X (WorldTree)
         ├─ WhiteWrite Workspace.html?projectId=X (Workspace)
-        └─ WhiteWrite GameBible.html?worldId=W (Game Bible, world-scoped)
+        └─ WhiteWrite GameBible.html?worldId=W (World Bible, world-scoped)
+    Canon links (book bookmarks «✦ Дослідити канон», Director's visual canon, old `WhiteWrite WorldTree.html?type=&id=` links) go through
+    `wwGo` / `ww-nav` as pillar `canon` → shell `openCanon(query)`: world of `projectId` (or the current world) → `showBible()` →
+    `ww-bible-focus {ent}` (the Bible keeps it pending until its canon has loaded). Hosting 301-redirects `/WhiteWrite WorldTree.html` → `/`.
 ```
 
 External executor:
@@ -350,6 +351,15 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 - **Pages are measured, not counted:** `paginateScene` lays each scene into the real page boxes using a hidden probe (`makeProbe`: same `.photobook__pages` size, `cqw`, font and `--book-size`), paragraph by paragraph, splitting the last paragraph by words (binary search); a continued paragraph has no indent (`.prose--cont`), the split one justifies its last line (`.prose--split`). Re-run on resize, font/size (`ww-book-typo` event from the «Aa» bookmark → `localStorage ww-book-typo`) and after `document.fonts.ready`. Phones (≤820px) read one parchment sheet per scene. State keeps the raw scenes (`raw`), spreads are derived.
 - **Free writing:** the story form has a third mode **«Пишу сам»** (`project.creation: "free"`, title is enough) — no generation; the mage ritual (`StartStoryAnim.mp4`) opens the book with «Книга відкривається…», then the writing sheet. **Sheet** (`SceneSheet`): ✎ (this scene) / ＋ (new scene via `addScene`) — title + plain-text area (typing or pasting; a line = a paragraph), autosave 0.9 s → `updateScene({title,text})`, Ctrl+S, Esc/«Готово» closes and re-opens the book on that scene; an untouched new scene is deleted.
 - **«✦ Порадити» (AI advice, paid):** a button in the sheet footer shows the price (`__TOKEN_COSTS.analyzeScene`, server cost from `economy_operations/analyzeScene`); a confirm step first (or a plan note if `allowAnalyze` is off — Novelist and up), then `POST analyzeScene {projectId, sceneText, title, lang}`. The function (`functions/src/canon-sync.js`) reads the world canon via `buildCanonContext` (now in `functions/src/common.js`, shared with `generateScene`) and the story's `reveal` mark, and returns `{summary, improve[{what,why,quote}], canon[{quote,conflict,fact}], unclear[{quote,question}], fixes[{original,suggested,reason}]}`. The advice column sits beside the sheet; «Застосувати» replaces `original` with `suggested` in the text and autosaves. Balance syncs from `tokensConsumed/tokensRemaining`.
+
+**World Bible = the home of a world (the Universe tree retired, 2026-11-02):** what only the tree could do now lives in `app/gamebible.js`:
+- **Огляд світу / Закони** are edited in place → `worlds/{w}.{tagline, summary, facts[{k,v}|string], rules[]}`; the draft survives live re-renders until saved or the section is left.
+- **Локації → «🗺 Карта»** (`localStorage ww-locview`): SVG map, drag → `entity.mapPos {x,y}` (1000×620); who is where from a character's canon `location` / `locations[0]`; dashed routes from `scene.stateChanges` (aspect `location`) of all world stories, per story.
+- **Dossier → «Поява в історіях та іграх»**: + «Стан у часі» (`scene.stateChanges` for this entity, grouped by story) + «Вплив змін»: scenes with `canonRefs[kind] ∋ id` → «✦ Узгодити сцени» dialog: change kind (property/rename/relationship/rewrite) + note → `reconstructScene` per picked scene (pinned scenes skipped; price ≈ `economy_operations/generateScene` per scene), word diff «було → стане», «Прийняти» writes `text` + `reconstruction.{previousText, lastReconstructionAt, lastCause}`.
+- **Plans:** the canon part opens for `allowWorldTree` plans (Storyteller and up, as the tree did); games (Біблія гри, plan, MCP) stay `allowGameDev` — otherwise «🔒 Ігри світу» with the upgrade.
+- Not ported (legacy, dead): CanonSyncBanner (read the old `project.scenes` array), CanonHistoryView, the scene lens. `wt-impact.jsx` stays as the documented engine but no page loads it now.
+
+**Polygon budget (game card files):** 3D files carry `tris` (triangles, counted by `gb-3d.js polyCount`): from the local file before upload (cards and dossiers), and for older uploads in the background, one at a time (≤100 MB, result or `trisFailed` written back to `games/{g}/cards/{id}.files[]`). Over **100 000** → a small red «!» on the card corner and by the file, with the count.
 - An empty story shows «Порожня книга» (+ the «what next?» spread for AI), never the demo; the demo (`buildScenes`) only without a projectId. `?scene=N` opens scene N. `addScene` no longer writes empty `canonRefs` (it raced with server extraction).
 
 **Context Building:**
