@@ -76,6 +76,20 @@
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
       poly: { tip: "{n} полігонів — понад 100 000: важко для гри, варто спростити (LOD / ретопологія)", n: "полігонів" },
+      lic: { title: "Ліцензія і права", info: "Ліцензія і права — докладніше", green: "Комерційно можна", yellow: "Комерційно — з умовами", red: "Комерційно не можна",
+        src: { file: "Визначено автоматично з метаданих файлу", text: "Визначено автоматично з файлу «{f}» на картці", author: "Вказав автор", none: "Ліцензію не знайдено ні в файлі, ні поруч — вкажи її" },
+        found: "Що сказано у файлі", pick: "Ліцензія", by: "Автор / атрибуція", byPh: "Напр.: «Dragon» by Jane Doe (Sketchfab)", url: "Джерело", urlPh: "Посилання на сторінку моделі чи ліцензії",
+        save: "Зберегти", cancel: "Скасувати",
+        names: { own: "Власна робота", cc0: "CC0 / суспільне надбання", royalty: "Royalty-free (куплено)", unity: "Unity Asset Store EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND",
+          ccbync: "CC BY-NC (некомерційна)", editorial: "Лише редакційне", personal: "Лише особисте", unknown: "Ліцензія невідома" },
+        short: { own: "Своє", cc0: "CC0", royalty: "Куплено", unity: "Unity EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", ccbync: "NC", editorial: "Редакц.", personal: "Особисте", unknown: "?" },
+        what: { own: "Твоя модель — усі права твої.", cc0: "Будь-яке використання, зокрема комерційне, без умов.",
+          royalty: "Куплено з правом комерційного використання; сам ассет перепродавати чи викладати не можна.",
+          unity: "Можна в іграх, зокрема комерційних; поширювати як вихідний ассет не можна.",
+          ccby: "Комерційно можна, але автора треба вказати (титри / «Про гру»).", ccbysa: "Комерційно можна з автором; змінену модель — лише під тією ж ліцензією.",
+          ccbynd: "Комерційно можна з автором, але без змін — ні ретопології, ні перефарбування.", ccbync: "Лише некомерційне використання — у платній грі чи з рекламою не можна.",
+          editorial: "Лише для редакційних матеріалів — у грі не можна.", personal: "Лише особисте використання — у грі для інших не можна.",
+          unknown: "Права не з'ясовано. Не використовуй комерційно, доки не знайдеш ліцензію." } },
       wt: { tagline: "Гасло світу", taglinePh: "Одним рядком — про що цей світ", summary: "Про світ", summaryPh: "Що це за світ, яка в ньому напруга, чим він живе…",
         factK: "Що", factV: "Як є", addFact: "＋ Факт", addLaw: "＋ Закон", lawPh: "Закон світу…", noLaws: "Законів ще немає — додай перший: те, чого в цьому світі не можна порушити.",
         save: "Зберегти", dirty: "Є незбережені зміни", map: "🗺 Карта", cards: "▦ Картки", mapHint: "Перетягуй локації, щоб розкласти світ. Клік — досьє.",
@@ -199,6 +213,20 @@
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
       poly: { tip: "{n} polygons — over 100,000: heavy for a game, worth simplifying (LOD / retopology)", n: "polygons" },
+      lic: { title: "Licence & rights", info: "Licence & rights — details", green: "Commercial use OK", yellow: "Commercial use — with conditions", red: "No commercial use",
+        src: { file: "Detected automatically from the file's metadata", text: "Detected automatically from “{f}” on the card", author: "Set by the author", none: "No licence found in the file or next to it — set it" },
+        found: "What the file says", pick: "Licence", by: "Author / attribution", byPh: "E.g.: “Dragon” by Jane Doe (Sketchfab)", url: "Source", urlPh: "Link to the model's or the licence's page",
+        save: "Save", cancel: "Cancel",
+        names: { own: "Own work", cc0: "CC0 / public domain", royalty: "Royalty-free (purchased)", unity: "Unity Asset Store EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND",
+          ccbync: "CC BY-NC (non-commercial)", editorial: "Editorial only", personal: "Personal use only", unknown: "Licence unknown" },
+        short: { own: "Own", cc0: "CC0", royalty: "Bought", unity: "Unity EULA", ccby: "CC BY", ccbysa: "CC BY-SA", ccbynd: "CC BY-ND", ccbync: "NC", editorial: "Editorial", personal: "Personal", unknown: "?" },
+        what: { own: "Your model — all rights are yours.", cc0: "Any use, commercial included, no conditions.",
+          royalty: "Bought with commercial rights; the asset itself may not be resold or published.",
+          unity: "Usable in games, commercial included; may not be redistributed as a source asset.",
+          ccby: "Commercial use OK, but credit the author (credits / “About”).", ccbysa: "Commercial use OK with credit; a modified model only under the same licence.",
+          ccbynd: "Commercial use OK with credit, but unchanged — no retopology, no repaint.", ccbync: "Non-commercial use only — not in a paid or ad-supported game.",
+          editorial: "Editorial use only — not in a game.", personal: "Personal use only — not in a game for others.",
+          unknown: "Rights unknown. Don't use commercially until you find the licence." } },
       wt: { tagline: "Tagline", taglinePh: "One line — what this world is about", summary: "About the world", summaryPh: "What world this is, its tension, what it lives by…",
         factK: "What", factV: "How it is", addFact: "＋ Fact", addLaw: "＋ Law", lawPh: "A law of the world…", noLaws: "No laws yet — add the first: what can never be broken in this world.",
         save: "Save", dirty: "Unsaved changes", map: "🗺 Map", cards: "▦ Cards", mapHint: "Drag locations to lay out the world. Click — the dossier.",
@@ -595,10 +623,11 @@
     if (query && c.section !== section) tags.push('<span class="pill s-agreed">' + esc(L(sec(c.section))) + '</span>');
     var img = (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
+    var lc = worstLic(c.files); if (lc) tags.push(lc);
     var model = (c.files || []).filter(is3D)[0];
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
-    if (hv) corner += polyMark(hv);
+    if (hv) tags.unshift(polyMark(hv));
     return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
@@ -976,6 +1005,7 @@
   function dosFileRow(f) {
     return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
       '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
+      (isAsset(f) ? licChip(f, dos.files, "data-dlic") : '') +
       (is3D(f) ? '<button class="btn" data-dview3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
       '<button class="btn danger" data-drmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button></div>';
   }
@@ -1066,7 +1096,7 @@
         task.on("state_changed", function (sn) { if (dos === e) dmsg(STR.uploading + " " + file.name + " · " + Math.round(100 * sn.bytesTransferred / (sn.totalBytes || 1)) + "%"); });
         await task;
         var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
-        var tris = await localTris(file); if (tris != null) meta.tris = tris;
+        await localInfo(file, meta);
         await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() }, { merge: true });
         e.files = (e.files || []).concat([meta]); done++;
       } catch (er) { dmsg(STR.failed + ": " + file.name + " — " + (er.code || er.message || er)); return; }
@@ -1194,6 +1224,15 @@
     var ds = e.target.closest("[data-story]"); if (ds) { tellShell({ type: "ww-open-story", projectId: ds.dataset.story }); return; }
     var rm = e.target.closest("[data-drmfile]"); if (rm) { removeEntityFile(rm.dataset.drmfile); return; }
     var v3 = e.target.closest("[data-dview3d]"); if (v3) { view3d(dos.files.filter(function (f) { return f.id === v3.dataset.dview3d; })[0], dos.files); return; }
+    var dl = e.target.closest("[data-dlic]");
+    if (dl) {
+      var de = dos, df = de.files.filter(function (f) { return f.id === dl.dataset.dlic; })[0];
+      licDialog(df, de.files, function (lic) {
+        setFileLicense(colOf(de).doc(de.id), df.id, lic).then(function (files) { de.files = files; if (dos === de) { dcollect(); renderDossier(); } })
+          .catch(function (er) { dmsg(STR.failed + ": " + (er.code || er.message)); });
+      });
+      return;
+    }
     var wh = e.target.closest("[data-who]");
     if (wh) { dcollect(); var wi = ddraft.who.indexOf(wh.dataset.who); if (wi >= 0) ddraft.who.splice(wi, 1); else ddraft.who.push(wh.dataset.who); renderDossier(); return; }
     var rn = e.target.closest("[data-rmnote]");
@@ -1470,23 +1509,101 @@
   function heavy(f) { return is3D(f) && f.tris > POLY_MAX; }
   function polyMark(f) { var t = STR.poly.tip.replace("{n}", f.tris.toLocaleString()); return '<span class="poly-warn" title="' + esc(t) + '" aria-label="' + esc(t) + '">!</span>'; }
   function polyInfo(f) { return is3D(f) && f.tris != null ? '<span class="muted">' + f.tris.toLocaleString() + ' ' + STR.poly.n + '</span>' + (heavy(f) ? polyMark(f) : '') : ''; }
-  function polyCount(f, siblings) { return import("./gb-3d.js").then(function (m) { return m.polyCount(f, siblings); }); }
-  async function localTris(file) { // counted from the local file before the upload — nothing to download
-    if (!MODEL_EXT.test(file.name)) return null;
+  function modelInfo(f, siblings) { return import("./gb-3d.js").then(function (m) { return m.modelInfo(f, siblings); }); }
+  // Read from the local file before the upload — nothing to download: a model's polygons and rights, a licence/readme text's licence.
+  async function localInfo(file, meta) {
+    if (isLicText(file)) { try { var t = await file.text(); meta.licenseFound = licenseIn(t); } catch (e) {} return; }
+    if (!MODEL_EXT.test(file.name)) return;
     var url = URL.createObjectURL(file);
-    try { return await polyCount({ name: file.name, url: url }, []); } catch (e) { return null; } finally { URL.revokeObjectURL(url); }
+    try { var info = await modelInfo({ name: file.name, url: url }, []); meta.tris = info.tris; if (info.rights) meta.license = rightsLicense(info.rights); }
+    catch (e) {} finally { URL.revokeObjectURL(url); }
+  }
+
+  // ---------- licence & rights of prefabs and models: green (commercial OK) · yellow (with conditions) · red (not allowed / unknown) ----------
+  // file.license { id, source: file|author, text, by, url } on the file itself; a licence/readme text on the same card carries licenseFound { id, text }.
+  var LIC_COLOR = { own: "green", cc0: "green", royalty: "green", unity: "green", ccby: "yellow", ccbysa: "yellow", ccbynd: "yellow",
+    ccbync: "red", editorial: "red", personal: "red", unknown: "red" };
+  var ASSET_EXT = /\.(glb|gltf|fbx|obj|stl|prefab|unitypackage|uasset|blend|max|ma|mb|c4d|3ds|dae|usdz?|zip|rar|7z)$/i;
+  function isAsset(f) { return ASSET_EXT.test(f.name || ""); }
+  function isLicText(f) { return /(licen[cs]e|copyright|attribution|readme|credits?)[^\/]*\.(txt|md)$/i.test(f.name || "") && (f.size || 0) < 200000; }
+  function licenseIn(text) { // the licence a text names, most restrictive first
+    var t = String(text || "").toLowerCase(), id = null;
+    if (/by-nc|\bnc\b|non-?commercial|некомерц/.test(t)) id = "ccbync";
+    else if (/editorial/.test(t)) id = "editorial";
+    else if (/personal use only|personal use|особист/.test(t)) id = "personal";
+    else if (/cc0|cc-zero|publicdomain\/zero|public domain|суспільн/.test(t)) id = "cc0";
+    else if (/by-sa|sharealike|share-alike|share alike/.test(t)) id = "ccbysa";
+    else if (/by-nd|noderiv|no derivatives/.test(t)) id = "ccbynd";
+    else if (/cc[- ]by|licenses\/by\/|creative commons attribution/.test(t)) id = "ccby";
+    else if (/unity asset store|asset store terms|standard unity/.test(t)) id = "unity";
+    else if (/royalty[- ]free/.test(t)) id = "royalty";
+    return id ? { id: id, text: String(text).trim().slice(0, 600) } : null;
+  }
+  function rightsLicense(rights) { var l = licenseIn(rights); return { id: l ? l.id : "", source: "file", text: rights }; }
+  function licOf(f, files) {
+    if (f.license && f.license.id) return f.license;
+    var t = (files || []).filter(function (x) { return x.licenseFound && x.licenseFound.id; })[0];
+    if (t) return { id: t.licenseFound.id, source: "text", from: t.name, text: t.licenseFound.text };
+    return { id: "unknown", source: f.license && f.license.text ? "file" : "none", text: f.license && f.license.text };
+  }
+  function licChip(f, files, attr) {
+    var l = licOf(f, files), c = LIC_COLOR[l.id] || "red", t = STR.lic[c] + " · " + STR.lic.names[l.id];
+    return '<' + (attr ? 'button type="button" ' + attr + '="' + esc(f.id) + '"' : 'span') + ' class="lic lic-' + c + '" title="' + esc(attr ? STR.lic.info + " — " + t : t) + '" aria-label="' + esc(t) + '">© ' +
+      esc(STR.lic.short[l.id]) + (attr ? ' <i>ⓘ</i>' : '') + '</' + (attr ? 'button' : 'span') + '>';
+  }
+  function worstLic(files) { // the card shows its least permissive asset
+    var rank = { red: 0, yellow: 1, green: 2 }, worst = null;
+    (files || []).filter(isAsset).forEach(function (f) { var c = LIC_COLOR[licOf(f, files).id] || "red"; if (!worst || rank[c] < rank[worst.c]) worst = { f: f, c: c }; });
+    return worst ? licChip(worst.f, files) : "";
+  }
+  // ⓘ: what the licence allows, where it came from, and the author's own answer
+  function licDialog(f, files, save) {
+    var l = licOf(f, files), c = LIC_COLOR[l.id] || "red", box = document.createElement("div");
+    box.className = "ask";
+    box.innerHTML = '<form class="ask-box lic-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.lic.title) + '">' +
+      '<div class="lic-head lic-' + c + '"><b>' + esc(STR.lic[c]) + '</b><span>' + esc(STR.lic.names[l.id]) + '</span></div>' +
+      '<h3>' + esc(f.name) + '</h3><p>' + esc(STR.lic.what[l.id]) + '</p>' +
+      '<p class="muted">' + esc(STR.lic.src[l.source] ? STR.lic.src[l.source].replace("{f}", l.from || "") : STR.lic.src.none) + '</p>' +
+      (l.text ? '<div class="lic-text"><span class="muted">' + STR.lic.found + '</span><q>' + esc(l.text) + '</q></div>' : '') +
+      (l.by || l.url ? '<p>' + esc(l.by || "") + (l.url ? ' · <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.url) + '</a>' : '') + '</p>' : '') +
+      (canWrite ? '<label class="field"><span>' + STR.lic.pick + '</span><select id="lic-id">' + Object.keys(LIC_COLOR).map(function (k) {
+          return '<option value="' + k + '"' + (k === l.id ? ' selected' : '') + '>' + ({ green: "🟢 ", yellow: "🟡 ", red: "🔴 " })[LIC_COLOR[k]] + esc(STR.lic.names[k]) + '</option>'; }).join("") + '</select></label>' +
+        '<label class="field"><span>' + STR.lic.by + '</span><input id="lic-by" value="' + esc(l.by || "") + '" placeholder="' + esc(STR.lic.byPh) + '"></label>' +
+        '<label class="field"><span>' + STR.lic.url + '</span><input id="lic-url" value="' + esc(l.url || "") + '" placeholder="' + esc(STR.lic.urlPh) + '"></label>' : '') +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + (canWrite ? STR.lic.cancel : STR.close) + '</button>' + (canWrite ? '<button class="btn primary" id="lic-ok">' + STR.lic.save + '</button>' : '') + '</div></form>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    box.querySelector("form").onsubmit = function (ev) {
+      ev.preventDefault(); if (!canWrite) return;
+      var id = box.querySelector("#lic-id").value;
+      var lic = { id: id, source: "author", by: box.querySelector("#lic-by").value.trim(), url: box.querySelector("#lic-url").value.trim(), text: l.text || "" };
+      close(); save(lic);
+    };
+    (box.querySelector("#lic-id") || box.querySelector("#ask-x")).focus();
+  }
+  async function setFileLicense(ref, fileId, lic) { // rewrite one entry of the doc's files[]
+    var d = await ref.get(), files = ((d.data() || {}).files || []).map(function (x) { return x.id === fileId ? Object.assign({}, x, { license: lic }) : x; });
+    await ref.update({ files: files, updatedAt: stamp() });
+    return files;
   }
   // Models uploaded before the count existed: counted in the background, one at a time, and stored on the card's file entry.
   function backfillPolys() {
     if (polyBusy || !canWrite || !gameId) return;
     var job = null;
     cards.some(function (c) { return (c.files || []).some(function (f) {
-      if (is3D(f) && f.tris == null && !f.trisFailed && !polyTried[f.id] && (f.size || 0) <= 100 * 1048576) { job = { c: c, f: f }; return true; }
+      if (polyTried[f.id]) return false;
+      if ((is3D(f) && f.tris == null && !f.trisFailed && (f.size || 0) <= 100 * 1048576) || (isLicText(f) && f.licenseFound === undefined)) { job = { c: c, f: f }; return true; }
     }); });
     if (!job) return;
     polyBusy = true; polyTried[job.f.id] = 1;
     var ref = gref().collection("cards").doc(job.c.id);
-    polyCount(job.f, job.c.files).then(function (n) { return { tris: n }; }, function () { return { trisFailed: true }; }).then(function (patch) {
+    var work = isLicText(job.f)
+      ? fetch(job.f.url).then(function (r) { return r.text(); }).then(function (t) { return { licenseFound: licenseIn(t) }; }, function () { return { licenseFound: null }; })
+      : modelInfo(job.f, job.c.files).then(function (n) { var p = { tris: n.tris }; if (n.rights && !job.f.license) p.license = rightsLicense(n.rights); return p; }, function () { return { trisFailed: true }; });
+    work.then(function (patch) {
       return ref.get().then(function (d) {
         var files = (d.data() || {}).files || [];
         return ref.update({ files: files.map(function (x) { return x.id === job.f.id ? Object.assign({}, x, patch) : x; }) });
@@ -1501,6 +1618,7 @@
   function fileRow(f) {
       return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
         '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
+        (isAsset(f) ? licChip(f, open.files, "data-lic") : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
   }
@@ -1521,7 +1639,7 @@
         task.on("state_changed", function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
         await task;
         var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
-        var tris = await localTris(file); if (tris != null) meta.tris = tris;
+        await localInfo(file, meta);
         if (field) meta.field = field;
         var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() };
         if (card.src === "canon") body.canonRef = card.id;
@@ -2424,6 +2542,16 @@
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var v3 = e.target.closest("[data-view3d]"); if (v3) { view3d(open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0], open.files); return; }
+    var lb = e.target.closest("[data-lic]");
+    if (lb) {
+      var card = open, lf = card.files.filter(function (f) { return f.id === lb.dataset.lic; })[0];
+      licDialog(lf, card.files, function (lic) {
+        setFileLicense(gref().collection("cards").doc(card.id), lf.id, lic).then(function (files) {
+          card.files = files; if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
+        }).catch(function (er) { msg(STR.failed + ": " + (er.code || er.message)); });
+      });
+      return;
+    }
     var del = e.target.closest("[data-delfield]"); if (del) { deleteField(del.dataset.delfield); return; }
     var tb = e.target.closest(".tbl");
     if (tb && e.target.closest("[data-addrow],[data-addcol],[data-rmrow],[data-rmcol]")) {

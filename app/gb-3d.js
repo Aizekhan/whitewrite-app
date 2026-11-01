@@ -22,7 +22,7 @@ function load(file, siblings) {
     return hit ? hit.url : url;
   });
   return new Promise((resolve, reject) => {
-    if (ext === "glb" || ext === "gltf") new GLTFLoader(manager).load(file.url, (g) => resolve({ root: g.scene, clips: g.animations }), undefined, reject);
+    if (ext === "glb" || ext === "gltf") new GLTFLoader(manager).load(file.url, (g) => resolve({ root: g.scene, clips: g.animations, meta: gltfRights(g.parser.json) }), undefined, reject);
     else if (ext === "fbx") new FBXLoader(manager).load(file.url, (o) => resolve({ root: o, clips: o.animations }), undefined, reject);
     else if (ext === "obj") new OBJLoader(manager).load(file.url, (o) => resolve({ root: o, clips: [] }), undefined, reject);
     else new STLLoader(manager).load(file.url, (geo) => {
@@ -37,8 +37,14 @@ function countTris(root) {
   root.traverse((o) => { if (o.isMesh && o.geometry) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
   return Math.round(tris);
 }
-// Polygon (triangle) count of a model file, without showing it — gamebible.js marks models over its polygon budget.
-export async function polyCount(file, siblings) { return countTris((await load(file, siblings)).root); }
+// What a glTF says about its own rights: asset.copyright, asset.extras, XMP packets (dc:rights, cc:license…).
+function gltfRights(json) {
+  const a = (json && json.asset) || {}, x = ((json && json.extensions) || {}).KHR_xmp_json_ld;
+  const parts = [a.copyright, a.extras && JSON.stringify(a.extras), x && x.packets && JSON.stringify(x.packets)].filter(Boolean);
+  return parts.length ? parts.join(" · ").slice(0, 600) : "";
+}
+// Polygon (triangle) count and rights text of a model file, without showing it — gamebible.js marks heavy models and their licence.
+export async function modelInfo(file, siblings) { const r = await load(file, siblings); return { tris: countTris(r.root), rights: r.meta || "" }; }
 
 export function view3d(file, T, siblings) {
   const box = document.createElement("div");

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.6.0 (2026-11-02)
+**Version:** 2.7.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -359,7 +359,9 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 - **Plans:** the canon part opens for `allowWorldTree` plans (Storyteller and up, as the tree did); games (Біблія гри, plan, MCP) stay `allowGameDev` — otherwise «🔒 Ігри світу» with the upgrade.
 - Not ported (legacy, dead): CanonSyncBanner (read the old `project.scenes` array), CanonHistoryView, the scene lens. `wt-impact.jsx` stays as the documented engine but no page loads it now.
 
-**Polygon budget (game card files):** 3D files carry `tris` (triangles, counted by `gb-3d.js polyCount`): from the local file before upload (cards and dossiers), and for older uploads in the background, one at a time (≤100 MB, result or `trisFailed` written back to `games/{g}/cards/{id}.files[]`). Over **100 000** → a small red «!» on the card corner and by the file, with the count.
+**Polygon budget (game card files):** 3D files carry `tris` (triangles, counted by `gb-3d.js polyCount`): from the local file before upload (cards and dossiers), and for older uploads in the background, one at a time (≤100 MB, result or `trisFailed` written back to `games/{g}/cards/{id}.files[]`). Over **100 000** → a small red «!» among the card tags and by the file, with the count.
+
+**Licence & rights of prefabs** (asset files: models, .prefab/.unitypackage/.uasset/.blend/…, archives): `file.license { id, source: file|author, text, by, url }`; ids `own cc0 royalty unity` = 🟢 commercial OK, `ccby ccbysa ccbynd` = 🟡 with conditions, `ccbync editorial personal unknown` = 🔴 not allowed / not established. Detected automatically: a glTF's `asset.copyright` / `asset.extras` / `KHR_xmp_json_ld` (`gb-3d.js modelInfo`), or a licence/readme/credits .txt/.md on the same card (`licenseFound { id, text }`) — at upload from the local file, older files in the background with the polygon count. A card shows its least permissive asset as a coloured chip; by each file the chip is an ⓘ button: what the licence allows, where it was found, the quoted text, and the author's override (licence, attribution, source link) written into the doc's `files[]`. Same in world dossiers (`entities/{id}.files`).
 - An empty story shows «Порожня книга» (+ the «what next?» spread for AI), never the demo; the demo (`buildScenes`) only without a projectId. `?scene=N` opens scene N. `addScene` no longer writes empty `canonRefs` (it raced with server extraction).
 
 **Context Building:**
