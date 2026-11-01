@@ -353,6 +353,15 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .acc-stat__l{ font-size:12px; color:var(--tx-mid); margin-top:3px; }
 .plan-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
 /* Integrations: Claude Code over MCP (keys are made per game in the Game Bible) */
+.aim{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+.aim__o{ text-align:left; cursor:pointer; display:flex; flex-direction:column; gap:6px; padding:12px 14px; border-radius:10px; border:1px solid var(--line-2,var(--line)); background:transparent; color:var(--tx-mid); font:13px/1.45 "Inter",sans-serif; }
+.aim__o b{ font-family:"Cinzel",serif; color:var(--tx-hi); font-size:14px; }
+.aim__o.is-on{ border-color:var(--gold-lit,#d4b25f); background:var(--gold-soft,rgba(212,178,95,.12)); }
+.aim__o[disabled]{ opacity:.5; cursor:not-allowed; }
+.aim__v{ font-family:"Inter",sans-serif; font-weight:500; font-size:12px; opacity:.75; }
+.aim__p{ font-size:12px; color:var(--tx-hi); opacity:.85; }
+.notice{ margin-bottom:10px; } .notice--crit{ border-color:rgba(224,86,79,.55); }
+.notice__b{ white-space:pre-wrap; font:12px/1.5 "Inter",sans-serif; color:var(--tx-mid); margin:8px 0 10px; }
 .integ{ background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
 .integ__row{ display:flex; align-items:flex-start; gap:14px; }
 .integ__ic{ flex:none; width:38px; height:38px; border-radius:10px; display:grid; place-items:center; font-size:18px;
@@ -1456,7 +1465,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }).join("");
     return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
       var pr = f.price, c = PF.featureCost(f);
-      var n = pr.per === '30d' || pr.per === 'project' ? c : pr.scene ? 'Gemini ≈ ' + PF.SCENE_TYPICAL.gemini + ' / Claude ≈ ' + PF.SCENE_TYPICAL.claude : '≈ ' + c;
+      var n = pr.per === '30d' || pr.per === 'project' ? c : pr.scene ? PF.MODEL_TIERS.map(function (m) { return m.id.charAt(0).toUpperCase() + m.id.slice(1) + ' ≈ ' + m.typical; }).join(' / ') : '≈ ' + c;
       var per = pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : pr.per === 'project' ? (en ? ' per project slot' : ' за слот проєкту') : '';
       return '<li><b>' + L(f).name + '</b> — ' + n + per + (en ? ' tokens · from ' : ' токенів · від ') + PF.PLANS[f.minPlan].name + '</li>';
     }).join("") + '</ul>';
@@ -1551,11 +1560,68 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
         '<div class="plan-grid">' +
           planCards(u.plan, currentLang === 'en') +
         '</div>' +
+        modelHtml(u, currentLang === 'en') +
+        '<div id="acc-notices"></div>' +
         integHtml(currentLang) +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">' + t('account.logoutButton') + '</button>' +
       '</div>';
     bindAccount();
+    bindModel(currentLang === 'en');
+    loadNotices(currentLang === 'en');
     loadIntegKeys(currentLang);
+  }
+  // «Модель Claude»: WhiteWrite writes ONLY with Claude; the author picks the model their plan opens
+  // (users.settings.aiModel — the server re-checks the plan, functions/src/claude.js modelFor)
+  function modelHtml(u, en) {
+    var PF = window.__PAID_FEATURES; if (!PF) return '';
+    var plan = u.plan || 'free', cur = PF.modelTier(plan, u.aiModel), open = PF.modelTiers(plan).map(function (m) { return m.id; });
+    return '<div class="vsec-h">' + svg("sparkle") + (en ? 'Claude model' : 'Модель Claude') + '</div>' +
+      '<div class="integ"><div class="integ__s" style="margin:0 0 12px">' + (en
+        ? 'WhiteWrite writes only with Claude (Anthropic). A stronger model writes better and costs more tokens per action — you pay the real cost of each call.'
+        : 'WhiteWrite пише лише з Claude (Anthropic). Сильніша модель пише краще й коштує більше токенів за дію — списується реальна вартість кожного виклику.') + '</div>' +
+      '<div class="aim">' + PF.MODEL_TIERS.map(function (m) {
+        var L = en ? m.en : m.uk, ok = open.indexOf(m.id) >= 0;
+        return '<button class="aim__o' + (m.id === cur ? ' is-on' : '') + '" data-aim="' + m.id + '"' + (ok ? '' : ' disabled') + ' aria-pressed="' + (m.id === cur) + '">' +
+          '<b>' + L.name + ' <span class="aim__v" data-aimv="' + m.id + '"></span></b><span>' + L.desc + '</span>' +
+          '<span class="aim__p">' + (ok ? '≈ ' + m.typical + (en ? ' tokens / scene' : ' токенів / сцена') : (en ? 'from ' : 'від ') + PF.PLANS[m.minPlan].name) + '</span></button>';
+      }).join('') + '</div></div>';
+  }
+  function bindModel(en) {
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
+    // the live version of each tier (config/ai_models, switched by modelWatch)
+    if (fb && fb.db && user) fb.db.collection('config').doc('ai_models').get().then(function (d) {
+      var c = d.exists ? d.data() : {}, act = c.active || {}, snap = c.snapshot || {};
+      [].forEach.call(document.querySelectorAll('[data-aimv]'), function (el) { var id = act[el.dataset.aimv]; if (id && snap[id]) el.textContent = snap[id].name.replace(/^Claude \w+ /, ''); });
+    }).catch(function () {});
+    [].forEach.call(document.querySelectorAll('[data-aim]'), function (b) {
+      b.onclick = function () {
+        if (b.disabled || !user) return;
+        var id = b.dataset.aim;
+        fb.db.collection('users').doc(user.uid).set({ settings: { aiModel: id } }, { merge: true }).then(function () {
+          window.__wwUser.aiModel = id;
+          if (window.__wwApplyModel) window.__wwApplyModel();
+          [].forEach.call(document.querySelectorAll('[data-aim]'), function (x) { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b); });
+        }).catch(function (e) { alert((en ? 'Could not save: ' : 'Не вдалося зберегти: ') + e.message); });
+      };
+    });
+  }
+  // Admin notices (functions/src/model-watch.js): a new Claude version switched in, or one waiting for a decision
+  function loadNotices(en) {
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser, box = document.getElementById('acc-notices');
+    if (!box || !user) return;
+    user.getIdTokenResult().then(function (r) {
+      if (!r.claims || r.claims.admin !== true) return;
+      return fb.db.collection('admin_notices').where('resolved', '==', false).limit(20).get().then(function (snap) {
+        if (snap.empty) return;
+        box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'Admin notices · Claude models' : 'Сповіщення адмінам · моделі Claude') + '</div>' +
+          snap.docs.map(function (d) { var n = d.data();
+            return '<div class="integ notice' + (n.severity === 'critical' ? ' notice--crit' : '') + '"><div class="integ__t">' + (n.severity === 'critical' ? '⚠ ' : '') + esc(n.title) + '</div>' +
+              '<pre class="notice__b">' + esc(n.body || '') + '</pre><button class="pe-btn" data-nread="' + d.id + '">' + (en ? '✓ Read' : '✓ Прочитано') + '</button></div>'; }).join('');
+        [].forEach.call(box.querySelectorAll('[data-nread]'), function (b) {
+          b.onclick = function () { fb.db.collection('admin_notices').doc(b.dataset.nread).update({ resolved: true }).then(function () { b.parentNode.remove(); }); };
+        });
+      });
+    }).catch(function (e) { console.warn('notices', e); });
   }
   // Integrations: the MCP server Claude Code connects to (functions/src/mcp.js). Keys are made per game
   // in the Game Bible → Production plan; here the author sees them all and can revoke any.
@@ -1613,12 +1679,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var PF = window.__PAID_FEATURES; if (!PF) return '';
     cur = (PF.PLANS[cur] && PF.PLANS[cur].as) || cur; // the dev plan shows as the plan it mirrors
-    var gem = PF.SCENE_TYPICAL.gemini, cla = PF.SCENE_TYPICAL.claude; // a typical scene, not the reserve
     return PF.PLAN_ORDER.map(function (id, i) {
       var p = PF.PLANS[id], b = PF.planBudget(id), prev = PF.PLAN_ORDER[i - 1];
       var feats = [p.monthly.toLocaleString() + " " + t('plan.tokens'),
-        b.allowClaude ? "≈ " + Math.floor(p.monthly / cla) + " Claude " + t('plan.or') + " " + Math.floor(p.monthly / gem) + " Gemini " + t('plan.scenes')
-                      : "≈ " + Math.floor(p.monthly / gem) + " " + t('plan.scenes') + " (Gemini, 700 " + (en ? 'words' : 'слів') + ")",
+        // only Claude: the plan's default model and, for paid plans, the Haiku count too (a typical 700-word scene)
+        t('plan.claudeOnly') + ": " + PF.modelTiers(id).map(function (m) { return m.id.charAt(0).toUpperCase() + m.id.slice(1); }).join(" · "),
+        (function () { var d = PF.tierInfo(PF.modelTier(id)), h = PF.tierInfo('haiku'), dn = d.id.charAt(0).toUpperCase() + d.id.slice(1);
+          return "≈ " + Math.floor(p.monthly / d.typical) + " " + t('plan.scenes') + " (" + dn + ")" + (d.id !== 'haiku' ? " " + t('plan.or') + " ≈ " + Math.floor(p.monthly / h.typical) + " (Haiku)" : ""); })(),
         (p.maxProjects >= 999 ? "∞ " : p.maxProjects + " ") + (p.maxProjects === 1 ? (en ? 'project' : 'проєкт') : t('plan.projects'))];
       if (prev) feats.push('<b>' + (en ? 'Everything in ' : 'Усе з ') + PF.PLANS[prev].name + ' +</b>');
       PF.FEATURES.forEach(function (f) {

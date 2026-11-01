@@ -44,7 +44,10 @@ window.__firebaseAuth = {
             window.__wwUser.resetDate = userData.resetDate?.toDate() || new Date();
 
             // Feature gates (from plan config)
-            window.__wwUser.allowClaude = planConfig.allowClaude || false;
+            // Claude only — the model the author picked (Account), if the plan opens it, else the plan default
+            const PF = window.__PAID_FEATURES;
+            window.__wwUser.aiModel = PF ? PF.modelTier(window.__wwUser.plan, (userData.settings || {}).aiModel) : 'sonnet';
+            if (window.__wwApplyModel) window.__wwApplyModel();
             window.__wwUser.allowReconstruction = planConfig.allowReconstruction || false;
             window.__wwUser.allowExport = planConfig.allowExport || false;
             window.__wwUser.allowAPI = planConfig.allowAPI || false;

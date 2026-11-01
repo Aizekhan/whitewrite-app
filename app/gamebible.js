@@ -1096,7 +1096,7 @@
   }
   function reconDialog(e, list) {
     var pc = window.__getPlanConfig(((window.__wwUser || {}).plan) || planName || "free");
-    var per = pc.allowClaude ? COST_BASE : ((window.__TOKEN_COSTS || {}).sceneGemini || 20); // the server reserves economy_operations/generateScene per scene
+    var PF = window.__PAID_FEATURES, per = PF ? PF.featureCost(PF.byOp("reconcile"), COST_BASE, (window.__wwUser || {}).aiModel) : COST_BASE; // the server reserves the same per scene (× the Claude model scale)
     var box = document.createElement("div"), rows = {}, running = false, stopped = false;
     box.className = "ask";
     var pinned = function (sc) { return (sc.reconstruction || {}).mode === "pinned"; };
@@ -2193,7 +2193,7 @@
   }
   // AI operations spend tokens: a small ✦ marks them, and the author confirms the approximate price first.
   var COST_BASE = 300; // economy_operations/generateScene providers.claude.cost; × the same factor gamedevPlan reserves
-  function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
+  function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE, (window.__wwUser || {}).aiModel) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   function confirmCost(op, run) {
     var box = document.createElement("div");

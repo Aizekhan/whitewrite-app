@@ -5,22 +5,24 @@
 // Backend (Cloud Functions) imports this file via require().
 // Frontend uses window.__AI_MODELS.
 
+// WhiteWrite uses ONLY Claude (Anthropic). These are the DEFAULT ids per tier; functions/src/model-watch.js
+// may switch a tier to a newer version at runtime (config/ai_models.active + .pricing) after its checks.
 const AI_MODELS = {
-  // Claude models (Anthropic API)
   claude: {
-    opus: 'claude-opus-4-8',          // Highest quality, expensive
-    sonnet: 'claude-sonnet-4-5',      // Balanced quality/cost
-    haiku: 'claude-haiku-4-5'         // Fast, cheap (extraction, analysis)
-  },
-
-  // Gemini models (Google API)
-  gemini: {
-    pro: 'gemini-2.5-flash'           // Stable GA model (free tier); gemini-2.0-flash-exp was retired (404)
+    opus: 'claude-opus-5-5',          // Highest quality, ~2× Sonnet per scene
+    sonnet: 'claude-sonnet-5-5',      // Balanced quality/cost — the paid default
+    haiku: 'claude-haiku-5-5'         // Fast, cheapest — Free default, extraction
   }
 };
 
 // Phase 4.1: API Pricing (per million tokens) — SINGLE SOURCE OF TRUTH
 const MODEL_PRICING = {
+  'claude-opus-5-5': { input: 4.00, output: 20.00, cacheWrite: 5.00, cacheRead: 0.20 },
+  'claude-sonnet-5-5': { input: 2.00, output: 10.00, cacheWrite: 2.50, cacheRead: 0.10 },
+  // Haiku 5.5 is tiered: a prompt over 100 000 tokens is billed at the `over` rates
+  'claude-haiku-5-5': { input: 0.10, output: 0.50, cacheWrite: 0.125, cacheRead: 0.01,
+    over: { tokens: 100000, input: 0.50, output: 2.50, cacheWrite: 0.625, cacheRead: 0.05 } },
+  // older ids — kept so past usage logs and in-flight calls still price correctly
   'claude-opus-4-8': {
     input: 5.00,
     output: 25.00,
@@ -50,8 +52,7 @@ const MODEL_PRICING = {
     output: 5.00,
     cacheWrite: 1.25,
     cacheRead: 0.10
-  },
-  'gemini-2.5-flash': { input: 0.30, output: 2.50 } // paid-tier price (thinking tokens bill as output) — billed so even on the free key
+  }
 };
 
 // Export for Node.js (Cloud Functions)

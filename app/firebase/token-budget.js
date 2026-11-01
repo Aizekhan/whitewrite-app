@@ -9,8 +9,7 @@
 
 window.__TOKEN_COSTS = {
   // ===== SCENES =====
-  sceneGemini: 20,           // ~$0.0003 per scene (Gemini Flash)
-  sceneClaude: 300,          // ~$0.0135 per scene (Claude Sonnet)
+  scene: 160,                // a typical 700-word scene on the author's Claude model (set from MODEL_TIERS below)
 
 
   // ===== CANON (cheap operations) =====
@@ -42,10 +41,9 @@ window.__PLAN_BUDGETS = {
   free: {
     name: "Free",
     price: 0,
-    monthly: 200,              // 10 Gemini scenes (10 × 20 = 200)
+    monthly: 200,              // fallback only — paid-features.js overrides
 
     // Feature gates
-    allowClaude: false,
     allowReconstruction: false,
     allowExport: false,
     allowAPI: false,
@@ -59,15 +57,14 @@ window.__PLAN_BUDGETS = {
     // Soft limits (UI guidance, not hard blocks)
     maxProjects: 1,
 
-    description: "10 сцен Gemini на місяць"
+    description: "Claude Haiku"
   },
 
   storyteller: {
     name: "Storyteller",
     price: 12,
-    monthly: 2400,             // 120 Gemini scenes (120 × 20 = 2400)
+    monthly: 2400,
 
-    allowClaude: false,
     allowReconstruction: false,
     allowExport: true,         // ← Unlock DOCX/PDF export
     allowAPI: false,
@@ -80,15 +77,14 @@ window.__PLAN_BUDGETS = {
 
     maxProjects: 5,
 
-    description: "120 сцен Gemini, експорт книг, Біблія світу + канон"
+    description: "Claude Haiku · Sonnet, експорт книг, Біблія світу + канон"
   },
 
   novelist: {
     name: "Novelist",
     price: 29,
-    monthly: 32000,            // Flexible: 400 Gemini (8000) OR 80 Claude (24000)
+    monthly: 32000,
 
-    allowClaude: true,         // ← Unlock Claude Sonnet
     allowReconstruction: true, // ← Unlock Universe Reconstruction (moat!)
     allowExport: true,
     allowAPI: false,
@@ -101,7 +97,7 @@ window.__PLAN_BUDGETS = {
 
     maxProjects: Infinity,
 
-    description: "32K токенів: ~400 Gemini / 80 Claude + узгодження сцен + ANALYZE/IMPROVE"
+    description: "Claude Haiku · Sonnet · Opus + узгодження сцен + ANALYZE"
   },
 
   worldbuilder: {
@@ -109,7 +105,6 @@ window.__PLAN_BUDGETS = {
     price: 69,
     monthly: 180000,           // 300 Claude (90000) OR mix
 
-    allowClaude: true,
     allowReconstruction: true,
     allowExport: true,
     allowAPI: true,            // ← Unlock API access
@@ -123,7 +118,7 @@ window.__PLAN_BUDGETS = {
 
     maxProjects: Infinity,
 
-    description: "180K токенів: ~300 Claude / ∞ Gemini + Біблія гри + API + ANALYZE/IMPROVE"
+    description: "Claude Haiku · Sonnet · Opus + Біблія гри + API"
   },
 
   // Dev/testing plan (legacy)
@@ -132,7 +127,6 @@ window.__PLAN_BUDGETS = {
     price: 0,
     monthly: 180000,           // Same as worldbuilder for testing
 
-    allowClaude: true,
     allowReconstruction: true,
     allowExport: true,
     allowAPI: true,
@@ -162,8 +156,10 @@ window.__PLAN_BUDGETS = {
   });
   // display / pre-check prices follow the registry too (typical scene, ✦ Порадити)
   var C = window.__TOKEN_COSTS;
-  C.sceneGemini = PF.SCENE_TYPICAL.gemini; C.sceneClaude = PF.SCENE_TYPICAL.claude;
   C.analyzeScene = PF.featureCost(PF.byOp('advise'));
+  // the scene price follows the author's Claude model (__wwUser.aiModel, set at sign-in and in the Account)
+  window.__wwApplyModel = function () { C.scene = PF.tierInfo((window.__wwUser || {}).aiModel || 'sonnet').typical; };
+  window.__wwApplyModel();
 })();
 
 // ============================================================================
@@ -196,10 +192,8 @@ window.__formatTokens = function(tokens) {
 // Estimate what user can do with remaining budget
 window.__estimateCapacity = function(tokensRemaining) {
   return {
-    geminiScenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneGemini),
-    claudeScenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneClaude),
-    // Show most relevant capacity in UI
-    primary: Math.floor(tokensRemaining / window.__TOKEN_COSTS.sceneGemini) + ' Gemini сцен'
+    scenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.scene),
+    primary: Math.floor(tokensRemaining / window.__TOKEN_COSTS.scene) + ' сцен Claude'
   };
 };
 

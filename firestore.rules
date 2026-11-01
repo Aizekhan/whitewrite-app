@@ -162,5 +162,13 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if false; // Only via Cloud Functions or Firebase Console
     }
+
+    // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
+    match /admin_notices/{id} {
+      allow read: if isAuthenticated() && request.auth.token.admin == true;
+      allow update: if isAuthenticated() && request.auth.token.admin == true &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolved']);
+      allow create, delete: if false;
+    }
   }
 }

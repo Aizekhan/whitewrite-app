@@ -4,8 +4,6 @@ const {
   admin,
   db,
   cors,
-  Anthropic,
-  AI_MODELS,
   charge,
   getBalance,
   reserve,
@@ -17,6 +15,7 @@ const {
   buildCanonContext,
 } = require('./common');
 const { extractCanonFromScene } = require('./canon-extract');
+const { modelFor, claudeText } = require('./claude');
 
 
 /**
@@ -276,22 +275,11 @@ At most 5 items per list.`;
 
       console.log('[Analyze] Advising on a scene');
 
-      const anthropic = new Anthropic({
-        apiKey: claudeApiKey.value()
-      });
-
-      const message = await anthropic.messages.create({
-        model: AI_MODELS.claude.sonnet,
-        max_tokens: 4096,
-        temperature: 0.2,  // Low temperature for analytical accuracy
-        system: systemInstruction,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
-      });
-
-      const responseText = message.content[0].text;
+      // the author's Claude model (Account); analysis → effort medium, headroom for thinking
+      const { model: claudeModel } = await modelFor(db, userData, userPlan);
+      const message = await claudeText(claudeApiKey.value(), { model: claudeModel, system: systemInstruction, prompt, maxTokens: 8000, effort: 'medium' });
+      if (message.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      const responseText = message.text;
 
       // Parse JSON
       let analysis;
@@ -312,7 +300,7 @@ At most 5 items per list.`;
         db,
         uid,
         'analyzeScene',
-        message.model || AI_MODELS.claude.sonnet,
+        message.model,
         message.usage || { input_tokens: 0, output_tokens: 0 },
         projectId,
         { provider: 'claude', reserved: reservation }

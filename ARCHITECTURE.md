@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.19.1 (2026-11-02)
+**Version:** 2.20.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -129,7 +129,7 @@ Firebase SDK (app/firebase/*.js)
     ↓
 Cloud Functions (functions/src/*, gen2, us-central1)
     ↓
-External APIs (Claude, Gemini, Firebase)
+External APIs (Claude — the only AI, Firebase)
     ↓
 Firestore (database)
     ↓
@@ -261,7 +261,7 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 - Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowFramework` (soon) — Storyteller; `allowCanonExtraction` / `allowCanonSync` are gone (auto-canon cancelled, v2.15); `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder.
 - Readers: `functions/plans.js` (`PLAN_BUDGETS` / `getPlanBudget` for every server gate), `gamedevPlan` / `experience` / `cosmographAccess` reserves (`featureCost(byOp(op))`), `token-budget.js` (overwrites `window.__PLAN_BUDGETS` flags/budgets/prices), the Account plan cards (`planCards` in `White.html`: tokens, ≈ scenes, projects, «Усе з X +» and the features new at that plan), the Bible `costOf` / `costMark` (✦ price on the button and in the confirm), and the knowledge base blocks `["plans"]` / `["prices"]` (`kbRegistry` in `White.html`).
 - Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage (the difference is debited — overdraft allowed — or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
-- **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices: Opus 4.8 $5/$25, Sonnet 4.5 $3/$15, Haiku 4.5 $1/$5, Gemini 2.5 Flash $0.30/$2.50 incl. thinking tokens — Gemini usage is now captured in generateScene). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical: Sonnet scene ≈ 150, Gemini scene ≈ 30, .md import chunk ≈ 570, Opus game plan ≈ 3000. `SCENE_TYPICAL {gemini 30, claude 150}` feeds the plan cards and the KB; reserves `SCENE_COST {gemini 40, claude 300}`, advise 200, game plan ×12. The UI shows prices as «≈ N».
+- **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices: Opus 4.8 $5/$25, Sonnet 4.5 $3/$15, Haiku 4.5 $1/$5, Gemini 2.5 Flash $0.30/$2.50 incl. thinking tokens — Gemini usage is now captured in generateScene). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical (v2.20, Claude 5.5): Haiku scene ≈ 10, Sonnet ≈ 160, Opus ≈ 320, .md import chunk ≈ 570, Opus game plan ≈ 3000. `SCENE_TYPICAL {gemini 30, claude 150}` feeds the plan cards and the KB; reserves `SCENE_COST {gemini 40, claude 300}`, advise 200, game plan ×12. The UI shows prices as «≈ N».
 
 **Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
 
@@ -322,9 +322,11 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 
 ### **3. AI Generation**
 
-**Models:** only from `app/firebase/ai-models.js` (`AI_MODELS`, shared by front and back) — never hardcode ids.
-- Gemini — default for lower plans
-- Claude — for plans with `allowClaude`
+**Models (v2.20): ONLY Claude.** Gemini is gone (code paths, secret binding, UI texts). Default ids per tier in `functions/ai-models.js` (`claude-haiku-5-5` / `claude-sonnet-5-5` / `claude-opus-5-5`, real prices incl. Haiku's >100k-prompt tier `over`), never hardcoded elsewhere.
+- **One door — `functions/src/claude.js`:** `modelFor(db, user, plan)` → `{tier, model}` = `users.settings.aiModel` if the plan opens it (`paid-features.js MODEL_TIERS` + `modelTier`: Haiku from Free, Sonnet from Storyteller, Opus from Novelist; default Sonnet, Free → Haiku), the id from `activeModels(db)` = `AI_MODELS.claude` overridden by `config/ai_models.active` (cached 5 min). `claudeText(apiKey, {model, prompt, system, maxTokens, effort, stream})` sends the current-model request shape: no `temperature`, `output_config.effort` (prose `low`, analysis `medium`), `max_tokens` with room for thinking; reads text **by block type** (Claude 5.x replies can start with a `thinking` block); `stop_reason: refusal` → error. Used by generateScene, reconstructScene, genesisWorld, analyzeScene, canon extraction (active Haiku), experience; gamedevPlan keeps its parallel streams with the same shape.
+- **Reserves scale with the tier:** `featureCost(feature, claudeCost, tier)` × `MODEL_TIERS.scale` (Haiku 0.1, Sonnet 1, Opus 2) for scene/`factor` features; fixed prices don't scale. Measured 2026-11-02 (700-word scene, effort low): Haiku ≈ 6–10, Sonnet ≈ 160, Opus ≈ 315 tokens → `MODEL_TIERS.typical` 10/160/320 (plan cards, KB, `__TOKEN_COSTS.scene` via `__wwApplyModel`).
+- **Account → «Модель Claude»** (White.html `modelHtml/bindModel`): three options, the closed ones show «від {plan}»; writes `users.settings.aiModel` (client-writable `settings`); the server re-checks the plan. The live version label comes from `config/ai_models.snapshot`.
+- **Model watch — `functions/src/model-watch.js`:** `modelWatch` (schedule, daily 06:00 Kyiv) / `modelWatchRun` (admin HTTP). Lists models (Models API) + parses the official price table (`platform.claude.com/docs/en/about-claude/pricing.md`). Per tier: a newer version switches in automatically only if its price is known, a typical call (1.5k in / 2k out) costs ≤ ×1.25 of the current, it keeps context ≥ 200k / output ≥ 48k / `effort` / adaptive thinking, and a real smoke call in our shape returns text; else it is **held** (`config/ai_models.held`, announced once). The active model's own price change updates `config/ai_models.pricing` (read by `token-service.js` `loadLivePricing`, so the real-cost charge follows) and a rise > 10% raises a critical notice. A retired active model forces the switch. Notices: `admin_notices/{id}` {severity info|critical, tier, from, to, title, body, resolved} (rules: admin read / mark `resolved` only) + a Markdown file `admin/notices/<date>-<tier>-<id>.md` in Storage; admins (custom claim `admin`) see them in the Account. Rollback: set `config/ai_models.active.<tier>`.
 
 **Scene Generation Flow:**
 1. User selects Scene Intent (conflict, world, character, etc.)
@@ -332,7 +334,7 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 3. Cloud Function `generateScene()`:
    - Loads project + canon
    - Builds context (previous 3 scenes + canon)
-   - Calls Claude/Gemini API
+   - Calls Claude (the author's model, `functions/src/claude.js`)
    - Saves scene to Firestore
    - Triggers canon extraction (async)
    - Deducts tokens
@@ -485,8 +487,7 @@ Source: `World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx` (root).
 - Google AI SDK (`@google/generative-ai`)
 
 ### **APIs**
-- Claude API (Sonnet, Haiku)
-- Gemini API (2.5 Flash)
+- Claude API — the only AI (Haiku / Sonnet / Opus 5.5 by default; Models API for the model watch)
 - Firebase Auth, Firestore, Hosting, Storage
 - MCP (Model Context Protocol) — WhiteWrite is an MCP **server** for Claude Code
 - three.js (CDN, import map) — 3D viewer in the Game Bible

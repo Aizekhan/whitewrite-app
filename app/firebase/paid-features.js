@@ -34,16 +34,30 @@ const USD_PER_TOKEN = 0.00015; // API dollars one token pays for (see MARGIN abo
 //  down — from the next billing month (LS bills the new price at renewal, no credit); free = cancel at period end.
 const UPGRADE_FEE = 0.03;
 
-const SCENE_COST = { gemini: 40, claude: 300 }; // reserves — defaults of economy_operations/generateScene
-const SCENE_TYPICAL = { gemini: 30, claude: 150 }; // what a 700-word scene usually costs (shown on plan cards and in the KB)
+// ONLY Claude (Anthropic). The author picks the model in the Account (users.settings.aiModel); the server uses it
+// when the plan allows, else the plan default (modelTier). A stronger model costs more tokens per action — the
+// charge is the real API cost. typical = tokens for a 700-word scene (measured 2026-11-02, effort low);
+// scale = the reserve multiplier against Sonnet (the reserve of every scene/`factor` feature × scale).
+const MODEL_TIERS = [
+  { id: 'haiku', minPlan: 'free', typical: 10, scale: 0.1,
+    uk: { name: 'Claude Haiku', desc: 'Найшвидший і найдешевший: чернетки, короткі сцени.' },
+    en: { name: 'Claude Haiku', desc: 'Fastest and cheapest: drafts, short scenes.' } },
+  { id: 'sonnet', minPlan: 'storyteller', typical: 160, scale: 1,
+    uk: { name: 'Claude Sonnet', desc: 'Баланс якості й ціни — рекомендовано.' },
+    en: { name: 'Claude Sonnet', desc: 'Balanced quality and price — recommended.' } },
+  { id: 'opus', minPlan: 'novelist', typical: 320, scale: 2,
+    uk: { name: 'Claude Opus', desc: 'Найсильніший: складні сюжети, аналіз і плани гри; ≈ вдвічі дорожчий за Sonnet.' },
+    en: { name: 'Claude Opus', desc: 'The strongest: complex plots, analysis and game plans; ≈ twice the price of Sonnet.' } }
+];
+const SCENE_COST = { claude: 300 }; // the Sonnet scene reserve — default of economy_operations/generateScene providers.claude.cost
 
 // kind: 'gate' — a capability (flag) · 'ai' — spends tokens (price before the run) · 'free' — included, no tokens
 // soon: announced on the plan cards and in the knowledge base («скоро»), not live yet
 const FEATURES = [
   // ── Book ──
   { id: 'scenes', kind: 'ai', minPlan: 'free', price: { scene: true },
-    uk: { name: 'Генерація сцен', desc: 'Сцена за каноном світу: Gemini на Free і Storyteller, Claude від Novelist.' },
-    en: { name: 'Scene generation', desc: 'A scene from the world canon: Gemini on Free and Storyteller, Claude from Novelist.' },
+    uk: { name: 'Генерація сцен', desc: 'Сцена за каноном світу. Пише лише Claude — модель обираєш в Акаунті.' },
+    en: { name: 'Scene generation', desc: 'A scene from the world canon. Written only by Claude — pick the model in the Account.' },
     where: 'Книга', server: 'generateScene' },
   { id: 'genesis', kind: 'ai', minPlan: 'free', price: { scene: true },
     uk: { name: 'Genesis — створення світу', desc: 'Світ із кількох рядків: огляд, закони, перші сутності канону.' },
@@ -66,11 +80,15 @@ const FEATURES = [
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },
     en: { name: 'World Bible: canon editing', desc: 'Overview, laws, dossiers, culture, chronicle, location map.' },
     where: 'Біблія світу', server: 'firestore.rules (власник світу)' },
-  // ── Claude ──
-  { id: 'claude', kind: 'gate', flag: 'allowClaude', minPlan: 'novelist',
-    uk: { name: 'Claude замість Gemini', desc: 'Сцени, Genesis і аналіз пише Claude Sonnet — якісніше, дорожче за сцену.' },
-    en: { name: 'Claude instead of Gemini', desc: 'Scenes, Genesis and analysis are written by Claude Sonnet — better, pricier per scene.' },
-    where: 'усюди, де AI пише текст', server: 'generateScene · genesisWorld' },
+  // ── Claude models (MODEL_TIERS) ──
+  { id: 'modelSonnet', kind: 'gate', flag: 'allowSonnet', minPlan: 'storyteller',
+    uk: { name: 'Модель Claude Sonnet', desc: 'Вибір моделі в Акаунті: Haiku або Sonnet.' },
+    en: { name: 'Claude Sonnet model', desc: 'Model choice in the Account: Haiku or Sonnet.' },
+    where: 'Акаунт → Модель Claude', server: 'усі AI-функції (functions/src/claude.js)' },
+  { id: 'modelOpus', kind: 'gate', flag: 'allowOpus', minPlan: 'novelist',
+    uk: { name: 'Модель Claude Opus', desc: 'Найсильніша модель — Haiku, Sonnet або Opus на вибір.' },
+    en: { name: 'Claude Opus model', desc: 'The strongest model — Haiku, Sonnet or Opus to choose from.' },
+    where: 'Акаунт → Модель Claude', server: 'усі AI-функції (functions/src/claude.js)' },
   { id: 'advise', kind: 'ai', flag: 'allowAnalyze', minPlan: 'novelist', price: { fixed: 200 },
     uk: { name: '✦ Порадити', desc: 'Розбір сцени в аркуші: суперечності з каноном, темп, що посилити.' },
     en: { name: '✦ Advise', desc: 'A scene review on the sheet: canon contradictions, pacing, what to strengthen.' },
@@ -103,7 +121,7 @@ const FEATURES = [
     uk: { name: '✦ Аудит канону', desc: 'Перевірка гри на суперечності з каноном світу.' },
     en: { name: '✦ Canon audit', desc: 'Checks the game for contradictions with the world canon.' },
     where: 'Біблія гри', server: 'gamedevPlan {op:canonAudit}' },
-  { id: 'gamePlan', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 12 }, op: 'plan', // Opus, long output
+  { id: 'gamePlan', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 12 }, op: 'plan', // long output
     uk: { name: '✦ Продакшн-план', desc: 'Етапи з воротами і задачі з промптами для Claude Code.' },
     en: { name: '✦ Production plan', desc: 'Milestones with gates and tasks with prompts for Claude Code.' },
     where: 'Біблія гри → План', server: 'gamedevPlan {op:plan}' },
@@ -148,15 +166,24 @@ function planBudget(plan) {
   return out;
 }
 
-// Tokens reserved before the run (the real charge may be lower); claudeCost = economy claude scene price
-function featureCost(feature, claudeCost) {
-  const base = claudeCost || SCENE_COST.claude;
+// Claude tiers this plan may choose, and the tier used: the author's choice when allowed, else Sonnet, else Haiku
+function modelTiers(plan) { return MODEL_TIERS.filter((t) => unlocked(t, plan)); }
+function modelTier(plan, chosen) {
+  const ok = modelTiers(plan).map((t) => t.id);
+  return ok.indexOf(chosen) >= 0 ? chosen : ok.indexOf('sonnet') >= 0 ? 'sonnet' : 'haiku';
+}
+function tierInfo(id) { return MODEL_TIERS.find((t) => t.id === id) || MODEL_TIERS[1]; }
+
+// Tokens reserved before the run (the real charge may be lower); claudeCost = economy claude scene price (Sonnet),
+// tier = the model tier (a scene / `factor` reserve scales with it; fixed prices don't)
+function featureCost(feature, claudeCost, tier) {
+  const base = (claudeCost || SCENE_COST.claude) * (tier ? tierInfo(tier).scale : 1);
   if (!feature) return base * 4; // unknown op: never reserve nothing
   const pr = feature.price;
   if (!pr) return 0;
   if (pr.fixed) return pr.fixed;
-  if (pr.factor) return base * pr.factor;
-  return base; // a scene
+  if (pr.factor) return Math.ceil(base * pr.factor);
+  return Math.ceil(base); // a scene
 }
 function byOp(op) { return FEATURES.find((f) => f.op === op || f.id === op) || null; }
 
@@ -170,7 +197,8 @@ function upgradeQuote(from, to, left) {
     tokens: Math.max(0, Math.round((b.monthly - a.monthly) * f)), fee: Math.round(b.monthly * UPGRADE_FEE) };
 }
 
-const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, SCENE_COST, SCENE_TYPICAL, USD_PER_TOKEN, UPGRADE_FEE, upgradeQuote, planRank, unlocked, planBudget, featureCost, byOp, tokensForUsd };
+const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, MODEL_TIERS, SCENE_COST, USD_PER_TOKEN, UPGRADE_FEE, upgradeQuote, planRank, unlocked, planBudget,
+  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
 if (typeof window !== 'undefined') window.__PAID_FEATURES = PAID_FEATURES;

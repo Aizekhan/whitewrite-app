@@ -287,8 +287,8 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
       return;
     }
 
-    // Get cost for scene generation (default to Gemini)
-    const cost = window.__TOKEN_COSTS?.sceneGemini || 20;
+    // a typical scene on the author's Claude model (token-budget.js; the real cost is charged)
+    const cost = window.__TOKEN_COSTS?.scene || 160;
     if (user.tokensRemaining < cost) {
       console.warn(`Insufficient tokens: need ${cost}, have ${user.tokensRemaining}`);
 

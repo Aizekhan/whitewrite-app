@@ -62,6 +62,7 @@
       'plan.projects': 'проєктів',
       'plan.sceneNote': 'К-ть сцен залежить від довжини й моделі',
       'plan.or': 'або',
+      'plan.claudeOnly': 'Лише Claude',
 
       // Features
       'feature.exportDocs': '✨ Експорт DOCX/PDF',
@@ -630,6 +631,7 @@
       'plan.projects': 'projects',
       'plan.sceneNote': 'Scene count depends on length and model',
       'plan.or': 'or',
+      'plan.claudeOnly': 'Claude only',
 
       // Features
       'feature.exportDocs': '✨ Export DOCX/PDF',

@@ -53,12 +53,14 @@
   - **Меню гри — 11 пунктів** (`NAV_GROUPS` у `gamebible.js`): споріднені розділи — підвкладки (`#subtabs`) одного пункту; id розділів і карток не змінено (MCP/телеметрія/імпорт), лише навігація
   - **Вебхук LS 401 «Invalid signature» виправлено**: секрети в Secret Manager мали `
 ` у кінці (усі доставки з 25.10 падали) — перезаписано чисті версії, `common.js` обрізає секрети при читанні
+  - **Лише Claude** (Gemini прибрано): моделі Claude 5.5 (Haiku/Sonnet/Opus), вибір в Акаунті → «Модель Claude» (`users.settings.aiModel`, Haiku — Free, Sonnet — від Storyteller, Opus — від Novelist), резерв × масштаб моделі, списання — реальна вартість; єдиний вхід `functions/src/claude.js` (effort замість temperature, текст за типом блоку)
+  - **Сторож версій Claude** (`functions/src/model-watch.js`, щодня): нова версія вмикається сама лише якщо ціна відома й ≤ +25%, можливості не гірші, пробний виклик пройшов; інакше — критичне сповіщення адмінам (`admin_notices` + файл `admin/notices/*.md` у Storage, банер в Акаунті) з вимогою перерахувати списання; відкат — `config/ai_models.active`
   - **Автоканон скасовано**: сцена сама нічого не пише в канон (лише Хранитель/Біблія); `syncCanonFromProject` → 410
   - **Next (рішення власника)**: видача токенів RPG Framework (від Storyteller, блок при чужому використанні, оновлення з підпискою) (`economy_config/global` vs ціни планів), `maxProjects` на сервері, апгрейд підписки без подвійного списання, правило «AI не перезаписує явний канон» у `mergeSuggestions`
 
 ## Архітектура даних (важливо)
 - **`WORLD` (`wt-world.jsx`) — ЄДИНЕ джерело правди.** Усі три стовпи читають із нього.
-- **`AI_MODELS` (`firebase/ai-models.js`) — ЄДИНЕ джерело правди для AI моделей.** Frontend (`window.__AI_MODELS`) і Backend (require) використовують один файл. **НІКОЛИ** не хардкодь версії моделей!
+- **`AI_MODELS` (`firebase/ai-models.js`) — ЄДИНЕ джерело правди для AI моделей** (дефолти; сторож версій може перемкнути tier через `config/ai_models.active`). Frontend (`window.__AI_MODELS`) і Backend (require) використовують один файл. **НІКОЛИ** не хардкодь версії моделей!
 - Тришарова модель: **Canon** (characters/locations/events/factions/artifacts/world) → **Narrative** (arcs/chapters/scenes/dialogues) → **Director** (storyboards/shots/images). Звʼязки названі за target-type-plural; реверс деривується.
 
 ## Рушій (`wt-impact.jsx`, під капотом, на `window`)

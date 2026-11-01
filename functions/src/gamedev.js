@@ -14,7 +14,6 @@ const {
   db,
   cors,
   Anthropic,
-  AI_MODELS,
   charge,
   getBalance,
   reserve,
@@ -24,6 +23,7 @@ const {
 } = require('./common');
 const { intentText } = require('./experience')._experience;
 const { featureCost, byOp } = require('../paid-features.js');
+const { modelFor } = require('./claude');
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;
@@ -543,7 +543,8 @@ exports.gamedevPlan = onRequest({
       // Priced by real output (scene economy entry), logged separately
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
-      const reserveCost = featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost); // paid-features.js — gamebible.js costOf reads the same
+      const { tier, model } = await modelFor(db, userData, userData.plan || 'free'); // the author's Claude model (Account)
+      const reserveCost = featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost, tier); // paid-features.js — gamebible.js costOf reads the same
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -562,16 +563,17 @@ exports.gamedevPlan = onRequest({
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
       const prompt = prompts.join('');
-      const model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet; // configured id — the one MODEL_PRICING knows
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       else if (op !== 'import' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       const messages = await Promise.all(prompts.map((content) => anthropic.messages.stream({
         model,
-        max_tokens: op === 'plan' ? 32000 : 16000,
-        messages: [{ role: 'user', content }]
+        max_tokens: op === 'plan' ? 48000 : 24000, // thinking counts toward max_tokens
+        messages: [{ role: 'user', content }],
+        output_config: { effort: 'medium' }
       }).finalMessage()));
+      if (messages.some((m) => m.stop_reason === 'refusal')) throw new Error('Claude відмовився виконати запит');
       if (messages.some((m) => m.stop_reason === 'max_tokens')) throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
       const results = messages.map((m) => parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')));
       const usage = messages.reduce((u, m) => ({ input_tokens: u.input_tokens + (m.usage.input_tokens || 0), output_tokens: u.output_tokens + (m.usage.output_tokens || 0) }), { input_tokens: 0, output_tokens: 0 });

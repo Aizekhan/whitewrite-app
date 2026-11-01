@@ -4,16 +4,14 @@ const {
   admin,
   db,
   cors,
-  Anthropic,
-  AI_MODELS,
   charge,
   getBalance,
   reserve,
   refund,
-  getPlanBudget,
-  geminiApiKey,
   claudeApiKey,
 } = require('./common');
+const { modelFor, claudeText } = require('./claude');
+const { featureCost, byOp } = require('../paid-features.js');
 
 const GENESIS_LANGUAGES = {
   uk: 'Ukrainian', en: 'English', pl: 'Polish', ru: 'Russian', de: 'German', es: 'Spanish',
@@ -52,7 +50,7 @@ function cleanSeed(s) {
  */
 exports.genesisWorld = onRequest({
   region: 'us-central1',
-  secrets: [geminiApiKey, claudeApiKey],
+  secrets: [claudeApiKey],
   timeoutSeconds: 300,
   memory: '512MiB'
 }, async (req, res) => {
@@ -93,18 +91,17 @@ exports.genesisWorld = onRequest({
       const userDoc = await db.collection('users').doc(uid).get();
       const userData = userDoc.exists ? userDoc.data() : {};
       const userPlan = userData.plan || 'free';
-      const planConfig = getPlanBudget(userPlan);
       if (userPlan !== 'free' && userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
         res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true, plan: userPlan });
         return;
       }
 
       // Priced like one generated scene (same economy entry), logged as genesisWorld
-      const useClaudeAPI = planConfig.allowClaude;
-      const provider = useClaudeAPI ? 'claude' : 'gemini';
+      const provider = 'claude';
+      const { tier, model: claudeModel } = await modelFor(db, userData, userPlan);
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
-      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {})[provider] : null;
-      const reserveCost = (providerEconomy && providerEconomy.cost) || (useClaudeAPI ? 300 : 20);
+      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
+      const reserveCost = featureCost(byOp('genesis'), providerEconomy && providerEconomy.cost, tier);
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -140,36 +137,11 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       let outText;
       let apiUsage = { input_tokens: 0, output_tokens: 0 };
       let model;
-      if (useClaudeAPI) {
-        model = AI_MODELS.claude.sonnet;
-        const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
-        const message = await anthropic.messages.create({
-          model,
-          max_tokens: 6000,
-          temperature: 0.9,
-          messages: [{ role: 'user', content: prompt }]
-        });
-        outText = message.content[0].text;
-        apiUsage = message.usage;
-      } else {
-        model = AI_MODELS.gemini.pro;
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${geminiApiKey.value()}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.9, maxOutputTokens: 8192 }
-          })
-        });
-        if (!response.ok) throw new Error(`Gemini HTTP ${response.status}: ${await response.text()}`);
-        const data = await response.json();
-        const cand = data.candidates && data.candidates[0];
-        if (!cand?.content?.parts?.[0]?.text) throw new Error('Gemini: invalid response structure');
-        outText = cand.content.parts[0].text;
-        if (data.usageMetadata) {
-          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0) };
-        }
-      }
+      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: 12000, effort: 'low' });
+      if (out.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      outText = out.text;
+      apiUsage = out.usage;
+      model = out.model;
 
       let parsed;
       try {

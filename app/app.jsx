@@ -319,7 +319,7 @@ function App() {
               return;
             }
 
-            const costPerScene = window.__TOKEN_COSTS?.sceneGemini || 20;
+            const costPerScene = window.__TOKEN_COSTS?.scene || 160; // the author's Claude model (token-budget.js)
             const totalCost = costPerScene * scenesToGenerate;
             if (user.tokensRemaining < totalCost) {
               console.warn(`Insufficient tokens for ${scenesToGenerate} scenes: need ${totalCost}, have ${user.tokensRemaining}`);

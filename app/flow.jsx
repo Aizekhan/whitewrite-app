@@ -270,9 +270,7 @@ function StoryForm({ onBack, onCreate, initial }) {
 
     if (creation === 'guided') {
       // Guided mode: 1 scene only
-      const provider = window.__firebasePricing.getProviderForPlan(userPlan);
-      // Estimate based on provider (conservative)
-      return provider === 'claude' ? 300 : 20;
+      return window.__TOKEN_COSTS?.scene || 160; // a typical scene on the author's Claude model
     } else {
       // Auto Mode: use real pricing formula
       const estimate = window.__firebasePricing.estimateAutoModeCost(episodes, userPlan);

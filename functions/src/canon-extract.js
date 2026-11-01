@@ -1,13 +1,12 @@
 // Canon extraction from scene text (shared by scenes + canon-sync)
 const {
   db,
-  Anthropic,
-  AI_MODELS,
   charge,
   mergeSuggestions,
   claudeApiKey,
 } = require('./common');
 const { toKind } = require('../canon-store.js');
+const { activeModels, claudeText } = require('./claude');
 
 const STATE_ASPECTS = ['status', 'location', 'possession', 'allegiance', 'condition'];
 
@@ -91,27 +90,14 @@ Return JSON with memorySuggestions array:
 
 stateChanges = what is DIFFERENT about an entity at the END of this scene (died, moved, lost/gained an object, changed side, got injured/healed). Only real changes that happen in this scene — not static descriptions. Empty array if nothing changed.`;
 
-    // Call Claude Haiku
-    const anthropic = new Anthropic({
-      apiKey: claudeApiKey.value()
-    });
-
-    const message = await anthropic.messages.create({
-      model: AI_MODELS.claude.haiku,
-      max_tokens: 2048,
-      temperature: 0.2,
-      system: systemInstruction,
-      messages: [{
-        role: 'user',
-        content: prompt
-      }]
-    });
+    // Call Claude Haiku (the active Haiku id — modelWatch may have switched it); low effort, room for thinking
+    const message = await claudeText(claudeApiKey.value(), { model: (await activeModels(db)).haiku, system: systemInstruction, prompt, maxTokens: 6000, effort: 'low' });
 
     // Debug: log usage
     console.log(`[Auto-Extract] API usage:`, JSON.stringify(message.usage));
     console.log(`[Auto-Extract] Model:`, message.model);
 
-    const responseText = message.content[0].text;
+    const responseText = message.text;
 
     // Parse JSON
     let suggestions = [];
@@ -145,7 +131,7 @@ stateChanges = what is DIFFERENT about an entity at the END of this scene (died,
       db,
       uid,
       'extractCanon',
-      message.model || AI_MODELS.claude.haiku,
+      message.model,
       message.usage || { input_tokens: 0, output_tokens: 0 },
       projectId,
       { sceneId, provider: 'claude' }

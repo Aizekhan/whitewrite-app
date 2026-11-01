@@ -4,25 +4,24 @@ const {
   admin,
   db,
   cors,
-  Anthropic,
-  AI_MODELS,
   charge,
   getBalance,
   reserve,
   refund,
   getPlanBudget,
   loadCanon,
-  geminiApiKey,
   claudeApiKey,
   buildCanonContext,
 } = require('./common');
+const { modelFor, claudeText } = require('./claude');
+const { featureCost, byOp } = require('../paid-features.js');
 
 
 /**
  * Cloud Function: Generate Scene
  *
  * Generates a story scene based on project canon and scene intent.
- * Canon-aware generation using Gemini API.
+ * Canon-aware generation — Claude only (the author's model, functions/src/claude.js).
  *
  * Input (POST JSON body):
  *  - projectId: string
@@ -35,7 +34,7 @@ const {
  */
 exports.generateScene = onRequest({
   region: 'us-central1',
-  secrets: [geminiApiKey, claudeApiKey],
+  secrets: [claudeApiKey],
   timeoutSeconds: 540,  // 9 minutes - Claude Opus 4 can be slow
   memory: '512MiB'
 }, async (req, res) => {
@@ -153,29 +152,17 @@ exports.generateScene = onRequest({
       const tokensBudget = balance.monthly;
       const tokensRemaining = balance.available;
 
-      // Determine which AI to use (Phase 1.3: Feature Gates)
-      const useClaudeAPI = planConfig.allowClaude;
+      // Claude only: the author's model (Account → «Модель Claude») if the plan allows it, else the plan default
+      const { tier, model: claudeModel } = await modelFor(db, userData, userPlan);
 
-      // Phase 4: Read token cost from economy_operations (data-driven pricing)
-      // SIMPLE MODEL: providers.{provider}.cost = FINAL user token price (no formula)
-      // Change price without deploy: update Firestore economy_operations/generateScene
+      // Reserve = economy_operations/generateScene providers.claude.cost (the Sonnet scene) × the tier scale
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const economyData = economyDoc.exists ? economyDoc.data() : null;
+      const claudeEconomy = economyData && economyData.providers && economyData.providers.claude;
+      const sceneCost = featureCost(byOp('scenes'), claudeEconomy && claudeEconomy.cost, tier);
+      const providerModel = claudeModel;
 
-      let sceneCost = 20; // fallback (if Firestore unavailable)
-      let providerModel = 'gemini-2.5-flash'; // fallback
-
-      if (economyData && economyData.providers) {
-        if (useClaudeAPI && economyData.providers.claude) {
-          sceneCost = economyData.providers.claude.cost;  // ← SINGLE SOURCE OF TRUTH (e.g. 300)
-          providerModel = economyData.providers.claude.model;
-        } else if (economyData.providers.gemini) {
-          sceneCost = economyData.providers.gemini.cost;  // ← SINGLE SOURCE OF TRUTH (e.g. 20)
-          providerModel = economyData.providers.gemini.model;
-        }
-      }
-
-      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: ${useClaudeAPI ? 'Claude' : 'Gemini'} (${providerModel}), cost: ${sceneCost} tokens`);
+      console.log(`User plan: ${userPlan}, tokens: ${tokensRemaining}/${tokensBudget}, AI: Claude ${tier} (${providerModel}), cost: ${sceneCost} tokens`);
 
       // HARD STOP: Block generation at 0 tokens (no overdraft, no fallback to paid API key)
       if (tokensRemaining <= 0) {
@@ -277,115 +264,23 @@ exports.generateScene = onRequest({
       let apiUsage = null; // Phase 4.1: Track real API usage
       let actualModel = null; // Phase 4.1: Track actual model used
 
-      // Generate scene using Claude or Gemini based on plan
-      if (useClaudeAPI) {
-        // CLAUDE API - all Claude plans use Sonnet (worldbuilder differentiated by budget + features)
-        const claudeModel = AI_MODELS.claude.sonnet;
-
-        try {
-          console.log(`Using Claude API (${claudeModel})`);
-
-          const anthropic = new Anthropic({
-            apiKey: claudeApiKey.value()
-          });
-
-          const message = await anthropic.messages.create({
-            model: claudeModel,
-            max_tokens: 4096,
-            messages: [{
-              role: 'user',
-              content: prompt
-            }]
-          });
-
-          sceneText = message.content[0].text;
-
-          // Phase 4.1: Capture real API usage + model
-          apiUsage = message.usage; // { input_tokens, output_tokens, cache_* }
-          actualModel = message.model || claudeModel; // Claude returns model in response
-
-          // Validate minimum length
-          if (sceneText.length < 500) {
-            throw new Error(`Scene too short (${sceneText.length} chars) - likely incomplete`);
-          }
-
-          console.log(`✓ Claude succeeded (${sceneText.length} chars, stop_reason: ${message.stop_reason}, usage:`, JSON.stringify(apiUsage));
-        } catch (error) {
-          console.error('✗ Claude failed:', error.message);
-          lastError = error;
-        }
-      } else {
-        // GEMINI API (Seed / Storyweaver plans)
-        const apiKey = geminiApiKey.value();
-
-        // Try models with fallback (REST API v1, 2026 models)
-        const modelNames = [
-          AI_MODELS.gemini.pro  // Current Gemini model
-        ];
-
-        for (const modelName of modelNames) {
-        try {
-          console.log(`Trying model: ${modelName}`);
-
-          const apiUrl = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{ text: prompt }]
-              }],
-              generationConfig: {
-                temperature: 0.8,
-                maxOutputTokens: 4096,  // Increased for longer scenes (Ukrainian text needs more tokens)
-                stopSequences: []
-              }
-            })
-          });
-
-          if (!response.ok) {
-            const error = await response.text();
-            throw new Error(`HTTP ${response.status}: ${error}`);
-          }
-
-          const data = await response.json();
-
-          if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-            throw new Error('Invalid response structure');
-          }
-
-          sceneText = data.candidates[0].content.parts[0].text;
-          if (data.usageMetadata) {
-            apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0) };
-            actualModel = modelName;
-          }
-
-          // Check if text was truncated
-          const finishReason = data.candidates[0].finishReason;
-          if (finishReason === 'MAX_TOKENS') {
-            console.warn(`⚠ Model ${modelName} hit token limit - text may be truncated`);
-            throw new Error('Model hit token limit - scene incomplete');
-          }
-
-          // Validate minimum length (scene should be at least ~500 chars for 700 words)
-          if (sceneText.length < 500) {
-            console.warn(`⚠ Model ${modelName} returned too short text (${sceneText.length} chars)`);
-            throw new Error(`Scene too short (${sceneText.length} chars) - likely incomplete`);
-          }
-
-          console.log(`✓ Model ${modelName} succeeded (${sceneText.length} chars, reason: ${finishReason})`);
-          break; // Success
-        } catch (error) {
-          console.warn(`✗ Model ${modelName} failed:`, error.message);
-          lastError = error;
-        }
-        }
+      try {
+        console.log(`Using Claude API (${claudeModel})`);
+        // effort low: prose needs little thinking; thinking counts toward max_tokens, hence the headroom
+        const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: 8000, effort: 'low' });
+        sceneText = out.text;
+        apiUsage = out.usage; // { input_tokens, output_tokens, cache_* }
+        actualModel = out.model;
+        if (out.stopReason === 'max_tokens') throw new Error('Сцена обрізана — задовга');
+        if (sceneText.length < 500) throw new Error(`Scene too short (${sceneText.length} chars) - likely incomplete`);
+        console.log(`✓ Claude succeeded (${sceneText.length} chars, stop_reason: ${out.stopReason}, usage:`, JSON.stringify(apiUsage));
+      } catch (error) {
+        console.error('✗ Claude failed:', error.message);
+        lastError = error;
       }
 
       if (!sceneText) {
-        const aiName = useClaudeAPI ? 'Claude' : 'Gemini';
-        throw new Error(`${aiName} API недоступна. Остання помилка: ${lastError?.message}`);
+        throw new Error(`Claude API недоступна. Остання помилка: ${lastError?.message}`);
       }
 
       // Parse scene (extract title from first line if present)
@@ -411,7 +306,7 @@ exports.generateScene = onRequest({
         actualModel || providerModel,
         apiUsage || { input_tokens: 0, output_tokens: 0 },
         projectId,
-        { provider: useClaudeAPI ? 'claude' : 'gemini', targetWords, estimatedInputTokens, reserved: reservation }
+        { provider: 'claude', tier, targetWords, estimatedInputTokens, reserved: reservation }
       );
       reservation = null; // settled
 
@@ -647,7 +542,7 @@ const RECON_HIDDEN_FIELDS = ['id', 'kind', 'slug', 'origin', 'confirmed', 'creat
 
 exports.reconstructScene = onRequest({
   region: 'us-central1',
-  secrets: [geminiApiKey, claudeApiKey],
+  secrets: [claudeApiKey],
   timeoutSeconds: 300,
   memory: '512MiB'
 }, async (req, res) => {
@@ -721,11 +616,11 @@ exports.reconstructScene = onRequest({
         return;
       }
 
-      const useClaudeAPI = planConfig.allowClaude;
-      const provider = useClaudeAPI ? 'claude' : 'gemini';
+      const provider = 'claude';
+      const { tier, model: claudeModel } = await modelFor(db, userData, userPlan);
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
-      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {})[provider] : null;
-      const reserveCost = (providerEconomy && providerEconomy.cost) || (useClaudeAPI ? 300 : 20);
+      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
+      const reserveCost = featureCost(byOp('reconcile'), providerEconomy && providerEconomy.cost, tier);
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         res.status(403).json({ error: 'Недостатньо токенів для реконструкції', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -774,38 +669,11 @@ ${sceneText}
       let apiUsage = { input_tokens: 0, output_tokens: 0 };
       let model;
 
-      if (useClaudeAPI) {
-        model = AI_MODELS.claude.sonnet;
-        const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
-        const message = await anthropic.messages.create({
-          model,
-          max_tokens: 8192,
-          messages: [{ role: 'user', content: prompt }]
-        });
-        if (message.stop_reason === 'max_tokens') throw new Error('Відповідь обрізана — сцена задовга');
-        outText = message.content[0].text;
-        apiUsage = message.usage;
-        model = message.model || model;
-      } else {
-        model = AI_MODELS.gemini.pro;
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${geminiApiKey.value()}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.3, maxOutputTokens: 8192 }
-          })
-        });
-        if (!response.ok) throw new Error(`Gemini HTTP ${response.status}: ${await response.text()}`);
-        const data = await response.json();
-        const cand = data.candidates && data.candidates[0];
-        if (!cand?.content?.parts?.[0]?.text) throw new Error('Gemini: invalid response structure');
-        if (cand.finishReason === 'MAX_TOKENS') throw new Error('Відповідь обрізана — сцена задовга');
-        outText = cand.content.parts[0].text;
-        if (data.usageMetadata) {
-          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0) };
-        }
-      }
+      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: 12000, effort: 'low' });
+      if (out.stopReason === 'max_tokens') throw new Error('Відповідь обрізана — сцена задовга');
+      outText = out.text;
+      apiUsage = out.usage;
+      model = out.model;
 
       outText = outText.trim().replace(/^<scene>\s*/, '').replace(/\s*<\/scene>$/, '');
       const unchanged = outText === RECON_UNCHANGED || outText === sceneText.trim();

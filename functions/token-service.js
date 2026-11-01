@@ -17,11 +17,19 @@ const { MODEL_PRICING } = require('./ai-models.js');
 const { tokensForUsd, USD_PER_TOKEN } = require('./paid-features.js');
 const { getPlanBudget } = require('./plans.js');
 
-// The API answers with a dated id (claude-sonnet-4-5-20250929); price it by the configured alias it starts with
+// The API answers with a dated id (claude-sonnet-4-5-20250929); price it by the configured alias it starts with.
+// Prices of models switched in by modelWatch live in config/ai_models.pricing (read in charge(), cached 5 min).
+let livePricing = {}, livePricingAt = 0;
+async function loadLivePricing(db) {
+  if (Date.now() - livePricingAt < 5 * 60 * 1000) return;
+  try { livePricing = ((await db.collection('config').doc('ai_models').get()).data() || {}).pricing || {}; } catch (e) { livePricing = {}; }
+  livePricingAt = Date.now();
+}
 function pricingFor(model) {
-  if (MODEL_PRICING[model]) return MODEL_PRICING[model];
-  const alias = Object.keys(MODEL_PRICING).filter((k) => String(model || '').startsWith(k + '-')).sort((x, y) => y.length - x.length)[0];
-  return alias ? MODEL_PRICING[alias] : null;
+  const all = Object.assign({}, MODEL_PRICING, livePricing);
+  if (all[model]) return all[model];
+  const alias = Object.keys(all).filter((k) => String(model || '').startsWith(k + '-')).sort((x, y) => y.length - x.length)[0];
+  return alias ? all[alias] : null;
 }
 
 // ============================================================================
@@ -303,7 +311,9 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   let cacheCreationTokens = usage.cache_creation_input_tokens || 0;
   let cacheReadTokens = usage.cache_read_input_tokens || 0;
 
-  const pricing = pricingFor(model);
+  await loadLivePricing(db);
+  let pricing = pricingFor(model);
+  if (pricing && pricing.over && inputTokens + cacheCreationTokens + cacheReadTokens > pricing.over.tokens) pricing = pricing.over; // long-prompt tier
   if (pricing) {
     const inputCost = inputTokens * pricing.input / 1000000;
     const outputCost = outputTokens * pricing.output / 1000000;

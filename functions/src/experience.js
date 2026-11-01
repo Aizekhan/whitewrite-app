@@ -9,8 +9,9 @@
 // gets `telemetryStats.scaleAlert` (shown in «Досвід гравців») — that is the moment to move raw events to BigQuery
 // (ARCHITECTURE.md §Experience → «Scale»), keeping Firestore for aggregates, issues and playtests.
 const crypto = require('crypto');
-const { onRequest, admin, db, cors, Anthropic, AI_MODELS, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
 const { featureCost, byOp } = require('../paid-features.js');
+const { modelFor, claudeText } = require('./claude');
 
 const RAW_DAYS = 30;
 const DAILY_DAYS = 400;
@@ -528,7 +529,8 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       if (op === 'report' && (!metricsDoc.exists || !(metricsDoc.data().sample || {}).events)) return res.status(400).json({ error: 'Спершу зберіть події й порахуйте метрики', code: 'NO_METRICS' });
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
-      const reserveCost = featureCost(byOp(op === 'report' ? 'expReport' : 'playtest'), providerEconomy && providerEconomy.cost); // paid-features.js
+      const { tier, model } = await modelFor(db, userData, userData.plan || 'free'); // the author's Claude model (Account)
+      const reserveCost = featureCost(byOp(op === 'report' ? 'expReport' : 'playtest'), providerEconomy && providerEconomy.cost, tier); // paid-features.js
       const balance = getBalance(userData);
       if (balance.available < reserveCost) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       try { reservation = await reserve(db, uid, reserveCost); } catch (error) {
@@ -547,11 +549,9 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
           (c.intent ? ' — ' + intentText(c.intent) : '') + ': ' + Object.values(c.fields || {}).map((v) => str(v, 300)).filter(Boolean).join(' · ')).join('\n');
         prompt = playtestPrompt(bible, openIssues, str(body.focus, 600), languageName);
       }
-      const model = AI_MODELS.claude.sonnet;
-      const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
-      const msg = await anthropic.messages.stream({ model, max_tokens: 12000, messages: [{ role: 'user', content: prompt }] }).finalMessage();
-      if (msg.stop_reason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
-      const parsed = parseJson(msg.content.filter((b) => b.type === 'text').map((b) => b.text).join(''));
+      const msg = await claudeText(claudeApiKey.value(), { model, prompt, maxTokens: 20000, effort: 'medium', stream: true });
+      if (msg.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      const parsed = parseJson(msg.text);
       let out = {};
       if (op === 'report') {
         const fresh = list(parsed && parsed.issues, 10, (x, i) => cleanIssue(x, i, flat));
@@ -574,7 +574,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
         out = { playtestId: ref.id };
       }
       const usage = { input_tokens: msg.usage.input_tokens || 0, output_tokens: msg.usage.output_tokens || 0 };
-      const { userCost } = await charge(db, uid, 'generateScene', model, usage, null, { provider: 'claude', targetWords: Math.round(usage.output_tokens * 0.75),
+      const { userCost } = await charge(db, uid, 'generateScene', msg.model, usage, null, { provider: 'claude', targetWords: Math.round(usage.output_tokens * 0.75),
         estimatedInputTokens: Math.ceil(prompt.length / 4), reserved: reservation, logAs: 'experience_' + op });
       reservation = null;
       res.status(200).json({ success: true, ...out, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });

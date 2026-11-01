@@ -121,8 +121,7 @@ function calculateUserTokens(estApiCostUSD, tokenToUSD, marginMultiplier, global
  * @returns {string} Provider name ('gemini' or 'claude')
  */
 function getProviderForPlan(plan) {
-  // novelist + worldbuilder use Claude Sonnet, free/storyteller use Gemini
-  return (plan === 'novelist' || plan === 'worldbuilder') ? 'claude' : 'gemini';
+  return 'claude'; // WhiteWrite uses only Claude (2026-11-02)
 }
 
 /**

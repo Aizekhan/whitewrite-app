@@ -13,3 +13,6 @@ Object.assign(exports, require('./src/cosmograph'));
 const experience = require('./src/experience'); // helpers in experience._experience stay internal (mcp.js uses them)
 exports.telemetryIngest = experience.telemetryIngest;
 exports.experience = experience.experience;
+const modelWatch = require('./src/model-watch'); // Claude versions: daily check + safe auto-switch (helpers stay internal)
+exports.modelWatch = modelWatch.modelWatch;
+exports.modelWatchRun = modelWatch.modelWatchRun;

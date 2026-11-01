@@ -29,8 +29,7 @@ exports.seedEconomy = onRequest({
         generateScene: {
           name: 'Scene Generation',
           providers: {
-            gemini: { cost: 20, model: AI_MODELS.gemini.pro },
-            claude: { cost: 300, model: 'claude-opus-4-20250514' }
+            claude: { cost: 300, model: AI_MODELS.claude.sonnet } // Claude only (2026-11-02)
           }
         },
         extractCanon: {
