@@ -50,7 +50,9 @@
     ],
     "redirects": [
       { "source": "/WhiteWrite WorldTree.html", "destination": "/", "type": 301 },
-      { "source": "/WhiteWrite%20WorldTree.html", "destination": "/", "type": 301 }
+      { "source": "/WhiteWrite%20WorldTree.html", "destination": "/", "type": 301 },
+      { "source": "/WhiteWrite Workspace.html", "destination": "/", "type": 301 },
+      { "source": "/WhiteWrite%20Workspace.html", "destination": "/", "type": 301 }
     ]
   }
 }

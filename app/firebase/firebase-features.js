@@ -4,7 +4,6 @@
 // Default values (used if Firestore not available or document doesn't exist)
 const DEFAULT_FEATURES = {
   universe: false,   // Universe (WorldTree) full access
-  director: false,   // Director (Workspace) full access
   marketplace: false // Marketplace tab visibility
 };
 

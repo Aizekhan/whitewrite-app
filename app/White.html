@@ -639,7 +639,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   /* ---- pillars (iframes) ---- */
   var PILLARS = {
     book:     { src: "WhiteWrite.html",           labelKey: "nav.book",     icon: "book" },
-    director: { src: "WhiteWrite Workspace.html", labelKey: "nav.director", icon: "clapper" },
     bible:    { src: "WhiteWrite GameBible.html", labelKey: "worlds.bible", icon: "layers", world: true }, // world-scoped, not a story pillar
   };
   // Helper to get pillar label with i18n
@@ -908,8 +907,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var target = PILLARS[p].src + sep(PILLARS[p].src) + "embed=1" + (query ? "&" + query : "") + cacheBust;
     if (!loaded[p]) { f.src = target; loaded[p] = true; }
     else if (query) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; }
-    // FORCE reload for Workspace to bypass cache
-    else if (p === 'director') { f.src = target; }
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === p); });
     renderRail();
@@ -1003,7 +1000,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       // Determine which pillar based on filename
       var pillar = null;
       if (filename.indexOf('GameBible') >= 0 || filename.indexOf('WorldTree') >= 0) pillar = 'canon';
-      else if (filename.indexOf('WhiteWrite Workspace.html') >= 0) pillar = 'director';
       else if (filename.indexOf('WhiteWrite.html') >= 0) pillar = 'book';
 
       if (pillar) {
@@ -1244,11 +1240,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
           (PROJECTS_LOADING ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
            stories.map(function (x) { return narrCard(x.p, x.i); }).join("")) +
           '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + t('worlds.newStory') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + t('worlds.newStoryHint') + '</span></button>' +
-        '</div>' +
-        '<div class="director-announcement" style="margin-top:32px;padding:20px 24px;border-radius:16px;background:linear-gradient(135deg,rgba(147,51,234,0.12),rgba(79,70,229,0.12));border:2px solid rgba(147,51,234,0.35)">' +
-          '<div style="font-size:12px;letter-spacing:0.25em;text-transform:uppercase;color:#c4b5fd;margin-bottom:14px;font-weight:700">🎬 ' + t('director.newFeatureBadge') + '</div>' +
-          '<h3 style="font-family:Cinzel,serif;font-size:18px;font-weight:600;color:var(--tx);margin:0 0 10px 0">' + t('director.newFeatureTitle') + '</h3>' +
-          '<p style="font-size:14.5px;line-height:1.65;color:var(--tx-mid);margin:0">' + t('director.newFeatureText') + '</p>' +
         '</div>' +
       '</div>';
     [].forEach.call(views.narr.querySelectorAll('[data-open]'), function (btn) {
@@ -1815,7 +1806,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       [t('news.post1.badge'), t('news.post1.title'), t('news.post1.desc'), t('news.post1.time'), "#c2542a", "#2a1c16"],
       [t('news.post2.badge'), t('news.post2.title'), t('news.post2.desc'), t('news.post2.time'), "#3a2c5a", "#12131a"],
       [t('news.post3.badge'), t('news.post3.title'), t('news.post3.desc'), t('news.post3.time'), "#243a5a", "#101418"],
-      [t('news.post4.badge'), t('news.post4.title'), t('news.post4.desc'), t('news.post4.time'), "#143a36", "#0e1414"],
     ];
     views.news.innerHTML =
       '<div class="vwrap">' +

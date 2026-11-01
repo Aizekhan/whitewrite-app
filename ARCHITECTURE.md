@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.7.0 (2026-11-02)
+**Version:** 2.8.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -11,7 +11,7 @@ This document is the **canonical architecture map** of WhiteWrite. All code, fea
 
 **Philosophy:**
 - **Canon-Aware Narrative Generation** — AI generates stories that respect world consistency
-- **Three Pillars** — Book (write), World Bible (canon — the home of a world), Workspace (visualize). The Universe tree (WorldTree) is retired.
+- **Two spaces** — Book (write) and World Bible (canon — the home of a world, its stories and games). The Universe tree (WorldTree) and the Director (Workspace: a storyboard/LoRA mock-up with no backend) are retired; real image generation, when it comes, belongs in the Bible's dossiers and the book's scenes.
 - **Single Canon** — All pillars read from one source (`WORLD`)
 - **Reconstruction Engine** — Canon changes cascade through narrative automatically
 - **World-first** — a World (canon) is the root; stories (projects) and games hang off it: **one canon → many stories, many games**
@@ -28,7 +28,6 @@ E:\WhiteWrite/
 ├─ app/                          # Production (deployed to whitewrite.com)
 │  ├─ White.html                 # Shell (navigation, auth, account)
 │  ├─ WhiteWrite.html            # Book pillar (narrative generation)
-│  ├─ WhiteWrite Workspace.html  # Workspace pillar (storyboard/LoRA)
 │  ├─ WhiteWrite GameBible.html  # World Bible (world-scoped): canon, stories, games — cards, files, plan, tasks
 │  ├─ gamebible.js               # Game Bible logic (plain JS, no JSX)
 │  ├─ gb-3d.js                   # three.js viewer (GLB/GLTF/FBX/OBJ/STL) for card files
@@ -50,7 +49,6 @@ E:\WhiteWrite/
 │  │  └─ token-budget.js         # Token system + plan budgets
 │  │
 │  ├─ wt-world.jsx, wt-impact.jsx # WORLD + impact engine (no UI; the tree UI was removed)
-│  ├─ ws-*.jsx                   # Workspace components
 │  └─ assets/                    # Images, fonts, icons
 │
 ├─ functions/
@@ -93,11 +91,10 @@ White.html (Shell)
     ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
     └─ Pillar iframes:
         ├─ WhiteWrite.html?projectId=X (Book)
-        ├─ WhiteWrite Workspace.html?projectId=X (Workspace)
         └─ WhiteWrite GameBible.html?worldId=W (World Bible, world-scoped)
-    Canon links (book bookmarks «✦ Дослідити канон», Director's visual canon, old `WhiteWrite WorldTree.html?type=&id=` links) go through
+    Canon links (book bookmarks «✦ Дослідити канон», old `WhiteWrite WorldTree.html?type=&id=` links) go through
     `wwGo` / `ww-nav` as pillar `canon` → shell `openCanon(query)`: world of `projectId` (or the current world) → `showBible()` →
-    `ww-bible-focus {ent}` (the Bible keeps it pending until its canon has loaded). Hosting 301-redirects `/WhiteWrite WorldTree.html` → `/`.
+    `ww-bible-focus {ent}` (the Bible keeps it pending until its canon has loaded). Hosting 301-redirects `/WhiteWrite WorldTree.html` and `/WhiteWrite Workspace.html` → `/`.
 ```
 
 External executor:
@@ -445,8 +442,7 @@ Every tool call is logged in `executions` (activity feed in the Game Bible).
 ```
 .pillswitch (fixed top)
   ├─ Книга (book icon)
-  ├─ Всесвіт (tree icon)
-  └─ Режисер (clapper icon)
+  └─ Біблія світу (`nav.universe`, tree icon) → the story's World Bible
 ```
 
 ### **Modals & Overlays**

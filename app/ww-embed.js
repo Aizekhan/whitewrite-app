@@ -29,7 +29,6 @@
   function hrefToPillar(href) {
     if (!href) return "book";
     if (href.indexOf("GameBible") >= 0 || href.indexOf("WorldTree") >= 0) return "canon"; // the shell opens the story's World Bible
-    if (href.indexOf("Workspace") >= 0) return "director";
     return "book";
   }
 

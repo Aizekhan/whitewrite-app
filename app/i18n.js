@@ -11,7 +11,6 @@
       'nav.home': 'Головна',
       'nav.book': 'Книга',
       'nav.universe': 'Біблія світу',
-      'nav.director': 'Режисер',
       'nav.pillars': 'Стовпи WhiteWrite',
       'nav.account': 'Профіль',
       'nav.logout': 'Вийти',
@@ -137,9 +136,6 @@
       'buyBook.comingSoonText': 'Ми кропітко працюємо над друком справжніх фоліантів. Щойно це стане можливим — ти дізнаєшся одним із перших. ✦',
 
       // Director Feature Announcement
-      'director.newFeatureBadge': 'Beta',
-      'director.newFeatureTitle': '🎬 Візуалізуй свою історію у відео',
-      'director.newFeatureText': 'Хочеш більше? Розкадруй сцени на шоти та натренуй LoRA-референси для персонажів — твій світ готовий стати відео-серіалом з узгодженою візуальністю.',
 
       // Knowledge Base
       'kb.tip': 'Порада.',
@@ -282,12 +278,6 @@
       'book.related.artifacts': 'Артефакти',
 
       // Workspace / Director
-      'director.storyboard': 'Розкадровка',
-      'director.visualCanon': 'Візуальний канон',
-      'director.calculating': 'Розраховую…',
-      'director.calculateShots': 'Розрахувати кадри',
-      'director.availableOnStoryboard': 'Доступно на вкладці Розкадровка',
-      'director.loadingProject': 'Завантаження проєкту...',
 
       // WorldTree / Canon
       'canon.characters': 'Персонажі',
@@ -457,7 +447,6 @@
       'reconstruct.runningNote': 'Виконується послідовно: Наратив → Режисер.',
       'reconstruct.previewNote': 'Прев\'ю режиму Universe Reconstruction. Запуск — демонстраційний.',
       'reconstruct.layer.narrative': 'Наратив',
-      'reconstruct.layer.director': 'Режисер',
       'reconstruct.status.pending': 'Очікує',
       'reconstruct.status.running': 'Регенерується…',
       'reconstruct.status.done': 'Готово',
@@ -635,10 +624,6 @@
       'news.post3.title': 'Як вести історію через Scene Intent',
       'news.post3.desc': 'Ти не пишеш текст — ти задаєш напрям. Розбираємо, як скеровувати Хранителя сцена за сценою.',
       'news.post3.time': 'тиждень тому',
-      'news.post4.badge': 'Режисер',
-      'news.post4.title': 'Варіанти кадрів і LoRA-референси',
-      'news.post4.desc': 'Тепер кожен кадр має до 5 варіантів, а персонажі — сталу зовнішність між серіями.',
-      'news.post4.time': 'тиждень тому',
 
       // Toast
       'toast.sceneGenerated': '✦ Сцена згенерована!',
@@ -735,7 +720,6 @@
       'nav.home': 'Home',
       'nav.book': 'Book',
       'nav.universe': 'World Bible',
-      'nav.director': 'Director',
       'nav.pillars': 'WhiteWrite Pillars',
       'nav.account': 'Profile',
       'nav.logout': 'Logout',
@@ -861,9 +845,6 @@
       'buyBook.comingSoonText': 'We are meticulously working on printing real tomes. As soon as it becomes possible — you\'ll be among the first to know. ✦',
 
       // Director Feature Announcement
-      'director.newFeatureBadge': 'Beta',
-      'director.newFeatureTitle': '🎬 Take your story to video',
-      'director.newFeatureText': 'Want more? Storyboard scenes into shots and train LoRA references for characters — your world is ready to become a video series with consistent visuals.',
 
       // Knowledge Base
       'kb.tip': 'Tip.',
@@ -1003,12 +984,6 @@
       'book.related.artifacts': 'Artifacts',
 
       // Workspace / Director
-      'director.storyboard': 'Storyboard',
-      'director.visualCanon': 'Visual Canon',
-      'director.calculating': 'Calculating…',
-      'director.calculateShots': 'Calculate Shots',
-      'director.availableOnStoryboard': 'Available on Storyboard tab',
-      'director.loadingProject': 'Loading project...',
 
       // WorldTree / Canon
       'canon.characters': 'Characters',
@@ -1178,7 +1153,6 @@
       'reconstruct.runningNote': 'Running sequentially: Narrative → Director.',
       'reconstruct.previewNote': 'Universe Reconstruction mode preview. Demo run.',
       'reconstruct.layer.narrative': 'Narrative',
-      'reconstruct.layer.director': 'Director',
       'reconstruct.status.pending': 'Pending',
       'reconstruct.status.running': 'Regenerating…',
       'reconstruct.status.done': 'Done',
@@ -1360,10 +1334,6 @@
       'news.post3.title': 'How to Guide Your Story with Scene Intent',
       'news.post3.desc': 'You don\'t write text — you set direction. Learn how to steer the Keeper scene by scene.',
       'news.post3.time': 'a week ago',
-      'news.post4.badge': 'Director',
-      'news.post4.title': 'Shot Variants & LoRA References',
-      'news.post4.desc': 'Now each shot has up to 5 variants, and characters maintain consistent appearance across series.',
-      'news.post4.time': 'a week ago',
 
       // Toast
       'toast.sceneGenerated': '✦ Scene Generated!',
