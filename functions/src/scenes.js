@@ -16,7 +16,6 @@ const {
   claudeApiKey,
   buildCanonContext,
 } = require('./common');
-const { extractCanonFromScene } = require('./canon-extract');
 
 
 /**
@@ -357,6 +356,10 @@ exports.generateScene = onRequest({
           }
 
           sceneText = data.candidates[0].content.parts[0].text;
+          if (data.usageMetadata) {
+            apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0) };
+            actualModel = modelName;
+          }
 
           // Check if text was truncated
           const finishReason = data.candidates[0].finishReason;
@@ -414,28 +417,8 @@ exports.generateScene = onRequest({
 
       console.log(`✅ Scene generated: -${userCost} tokens, $${apiCostUSD.toFixed(4)} API cost`);
 
-      // Phase 3.1b: Auto-extraction (for paid users only)
-      if (planConfig.allowCanonExtraction) {
-        try {
-          console.log('[Auto-Extract] Starting canon extraction...');
-
-          // NOTE: Token check happens inside extractCanonFromScene via token-service
-          const sceneId = req.body.sceneId;
-          const projectLanguage = project.language || 'uk'; // Default to Ukrainian
-
-          extractCanonFromScene(projectId, worldId, sceneContent, canon, uid, sceneId, projectLanguage)
-              .then(result => {
-                console.log(`[Auto-Extract] ✅ Extracted ${result.suggestions.length} suggestions, linked to scene ${sceneId}`);
-              })
-              .catch(error => {
-                console.error('[Auto-Extract] ❌ Failed (non-critical):', error.message);
-                // Don't fail scene generation if extraction fails
-              });
-        } catch (error) {
-          console.error('[Auto-Extract] Error (non-critical):', error);
-          // Don't fail scene generation
-        }
-      }
+      // Auto-canon is OFF (owner decision 2026-11-02): a scene never writes to the canon by itself —
+      // new names reach the canon only through the Keeper's «так» or the Bible.
 
       res.status(200).json({
         success: true,
@@ -820,7 +803,7 @@ ${sceneText}
         if (cand.finishReason === 'MAX_TOKENS') throw new Error('Відповідь обрізана — сцена задовга');
         outText = cand.content.parts[0].text;
         if (data.usageMetadata) {
-          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: data.usageMetadata.candidatesTokenCount || 0 };
+          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0) };
         }
       }
 

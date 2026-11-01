@@ -14,6 +14,7 @@
 
 const admin = require('firebase-admin');
 const { MODEL_PRICING } = require('./ai-models.js');
+const { tokensForUsd, USD_PER_TOKEN } = require('./paid-features.js');
 const { getPlanBudget } = require('./plans.js');
 
 // The API answers with a dated id (claude-sonnet-4-5-20250929); price it by the configured alias it starts with
@@ -287,9 +288,9 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
 
   console.log(`[TokenService] Margin multiplier: ${marginMultiplier}`);
 
-  // 4. Calculate final user cost with margin (NEW FORMULA: ceil at end only!)
+  // 4. Estimate-based cost — used only when the real API cost is unknown (unpriced model / no usage)
   // userTokens = ceil( (estApiCostUSD / tokenToUSD) × marginMultiplier × globalMargin )
-  const userCost = Math.ceil(
+  let userCost = Math.ceil(
     (estApiCostUSD / tokenToUSD) * marginMultiplier * globalMarginMultiplier
   );
 
@@ -320,6 +321,11 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   } else {
     console.warn(`[TokenService] ⚠️ Unknown model pricing: ${model} — apiCostUSD will be $0.0000`);
   }
+
+  // MARGIN: the charge is the REAL API cost in tokens (paid-features.js USD_PER_TOKEN); the estimate is a fallback
+  const billing = apiCostUSD > 0 ? 'actual' : 'estimate';
+  if (billing === 'actual') userCost = tokensForUsd(apiCostUSD);
+  console.log(`[TokenService] Billing (${billing}): ${userCost} tokens for $${apiCostUSD.toFixed(4)} API`);
 
   // 5. Deduct user tokens (transactional; settles against a prior reserve() if given)
   const userRef = db.collection('users').doc(uid);
@@ -360,7 +366,9 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     tokenToUSD,                           // Conversion rate at time of use
     marginMultiplier,                     // Operation-specific margin
     globalMarginMultiplier,               // Global margin at time of use
-    userTokensCharged: userCost,          // Final: ceil((est/tokenToUSD) × margin × global)
+    billing,                              // 'actual' = ceil(realApiCostUSD / usdPerToken) · 'estimate' = old formula
+    usdPerToken: USD_PER_TOKEN,
+    userTokensCharged: userCost,
     userPaidUSD: parseFloat((userCost * tokenToUSD).toFixed(4)),  // What user paid in $
 
     // Real API usage

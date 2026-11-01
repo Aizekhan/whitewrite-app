@@ -8,9 +8,13 @@
 // token-budget.js (flags), the World/Game Bible (✦ prices before a run) and every server gate.
 //
 // A feature is unlocked on its `minPlan` and every plan after it in PLAN_ORDER.
-// Prices are what the server RESERVES before an AI call (the final charge is by real usage,
-// economy_operations); `factor` multiplies the Claude scene price (economy_operations/generateScene
-// providers.claude.cost, 300 by default).
+// Prices are what the server RESERVES before an AI call; the final charge is the REAL API cost of
+// the call (usage × MODEL_PRICING in ai-models.js) ÷ USD_PER_TOKEN, rounded up (token-service.js charge()).
+// `factor` multiplies the Claude scene reserve (economy_operations/generateScene providers.claude.cost, 300 by default).
+//
+// MARGIN: one token covers USD_PER_TOKEN of API cost. The cheapest token sold is Worldbuilder's
+// ($69 / 180 000 = $0.000383), so even a fully spent Worldbuilder budget costs 39% of its price in API
+// ($27 of $69); Novelist 17%, Storyteller 3%. Raise USD_PER_TOKEN only together with the plan budgets.
 
 const PLAN_ORDER = ['free', 'storyteller', 'novelist', 'worldbuilder'];
 
@@ -22,7 +26,10 @@ const PLANS = {
   worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, hidden: true, as: 'worldbuilder' } // dev/testing
 };
 
-const SCENE_COST = { gemini: 20, claude: 300 }; // defaults of economy_operations/generateScene
+const USD_PER_TOKEN = 0.00015; // API dollars one token pays for (see MARGIN above)
+
+const SCENE_COST = { gemini: 40, claude: 300 }; // reserves — defaults of economy_operations/generateScene
+const SCENE_TYPICAL = { gemini: 30, claude: 150 }; // what a 700-word scene usually costs (shown on plan cards and in the KB)
 
 // kind: 'gate' — a capability (flag) · 'ai' — spends tokens (price before the run) · 'free' — included, no tokens
 // soon: announced on the plan cards and in the knowledge base («скоро»), not live yet
@@ -49,16 +56,12 @@ const FEATURES = [
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },
     en: { name: 'World Bible: canon editing', desc: 'Overview, laws, dossiers, culture, chronicle, location map.' },
     where: 'Біблія світу', server: 'firestore.rules (власник світу)' },
-  { id: 'canonExtraction', kind: 'gate', flag: 'allowCanonExtraction', alias: ['allowCanonSync'], minPlan: 'storyteller', price: { fixed: 15, per: 'scene' },
-    uk: { name: 'Автоканон', desc: 'Після кожної сцени AI дописує в канон нових персонажів, місця, події та стан.' },
-    en: { name: 'Auto-canon', desc: 'After every scene AI adds new characters, places, events and state to the canon.' },
-    where: 'Книга (після генерації), синхронізація проєкту', server: 'generateScene · syncProjectCanon' },
   // ── Claude ──
   { id: 'claude', kind: 'gate', flag: 'allowClaude', minPlan: 'novelist',
     uk: { name: 'Claude замість Gemini', desc: 'Сцени, Genesis і аналіз пише Claude Sonnet — якісніше, дорожче за сцену.' },
     en: { name: 'Claude instead of Gemini', desc: 'Scenes, Genesis and analysis are written by Claude Sonnet — better, pricier per scene.' },
     where: 'усюди, де AI пише текст', server: 'generateScene · genesisWorld' },
-  { id: 'advise', kind: 'ai', flag: 'allowAnalyze', minPlan: 'novelist', price: { fixed: 50 },
+  { id: 'advise', kind: 'ai', flag: 'allowAnalyze', minPlan: 'novelist', price: { fixed: 200 },
     uk: { name: '✦ Порадити', desc: 'Розбір сцени в аркуші: суперечності з каноном, темп, що посилити.' },
     en: { name: '✦ Advise', desc: 'A scene review on the sheet: canon contradictions, pacing, what to strengthen.' },
     where: 'Книга → аркуш', server: 'analyzeScene' },
@@ -90,7 +93,7 @@ const FEATURES = [
     uk: { name: '✦ Аудит канону', desc: 'Перевірка гри на суперечності з каноном світу.' },
     en: { name: '✦ Canon audit', desc: 'Checks the game for contradictions with the world canon.' },
     where: 'Біблія гри', server: 'gamedevPlan {op:canonAudit}' },
-  { id: 'gamePlan', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 4 }, op: 'plan',
+  { id: 'gamePlan', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 12 }, op: 'plan', // Opus, long output
     uk: { name: '✦ Продакшн-план', desc: 'Етапи з воротами і задачі з промптами для Claude Code.' },
     en: { name: '✦ Production plan', desc: 'Milestones with gates and tasks with prompts for Claude Code.' },
     where: 'Біблія гри → План', server: 'gamedevPlan {op:plan}' },
@@ -147,7 +150,10 @@ function featureCost(feature, claudeCost) {
 }
 function byOp(op) { return FEATURES.find((f) => f.op === op || f.id === op) || null; }
 
-const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, SCENE_COST, planRank, unlocked, planBudget, featureCost, byOp };
+// Tokens for a call that cost `usd` in API (the charge; never 0 for a paid call)
+function tokensForUsd(usd) { return usd > 0 ? Math.max(1, Math.ceil(usd / USD_PER_TOKEN - 1e-9)) : 0; }
+
+const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, SCENE_COST, SCENE_TYPICAL, USD_PER_TOKEN, planRank, unlocked, planBudget, featureCost, byOp, tokensForUsd };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
 if (typeof window !== 'undefined') window.__PAID_FEATURES = PAID_FEATURES;

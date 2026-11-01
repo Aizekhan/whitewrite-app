@@ -72,8 +72,8 @@ window.__PLAN_BUDGETS = {
     allowExport: true,         // ← Unlock DOCX/PDF export
     allowAPI: false,
     allowWorldTree: true,           // ✅ WorldTree access
-    allowCanonExtraction: true,     // ✅ Auto-extraction (15 tokens/scene)
-    allowCanonSync: true,           // ✅ "Синхронізувати" button
+    allowCanonExtraction: false,     // ✅ Auto-extraction (15 tokens/scene)
+    allowCanonSync: false,           // ✅ "Синхронізувати" button
     allowAnalyze: false,            // ❌ ANALYZE mode (too expensive for this tier)
     allowImprove: false,            // ❌ IMPROVE mode (too expensive for this tier)
     allowGameDev: false,
@@ -93,8 +93,8 @@ window.__PLAN_BUDGETS = {
     allowExport: true,
     allowAPI: false,
     allowWorldTree: true,           // ✅ WorldTree access
-    allowCanonExtraction: true,     // ✅ Auto-extraction
-    allowCanonSync: true,           // ✅ Canon sync
+    allowCanonExtraction: false,     // ✅ Auto-extraction
+    allowCanonSync: false,           // ✅ Canon sync
     allowAnalyze: true,             // ✅ ANALYZE mode (50 tokens)
     allowImprove: true,             // ✅ IMPROVE mode (80 tokens)
     allowGameDev: false,
@@ -115,8 +115,8 @@ window.__PLAN_BUDGETS = {
     allowAPI: true,            // ← Unlock API access
     priority: true,            // Priority queue for generation
     allowWorldTree: true,
-    allowCanonExtraction: true,
-    allowCanonSync: true,
+    allowCanonExtraction: false,
+    allowCanonSync: false,
     allowAnalyze: true,
     allowImprove: true,
     allowGameDev: true,           // ✅ Game Bible + Production Plan
@@ -138,8 +138,8 @@ window.__PLAN_BUDGETS = {
     allowAPI: true,
     priority: true,
     allowWorldTree: true,
-    allowCanonExtraction: true,
-    allowCanonSync: true,
+    allowCanonExtraction: false,
+    allowCanonSync: false,
     allowAnalyze: true,
     allowImprove: true,
     allowGameDev: true,           // ✅ Game Bible + Production Plan

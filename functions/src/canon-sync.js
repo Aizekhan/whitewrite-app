@@ -64,11 +64,9 @@ exports.syncCanonFromProject = onRequest({
       const userPlan = userData.plan || 'free';
       const planConfig = getPlanBudget(userPlan);
 
-      // Check if canon sync is allowed
+      // Auto-canon is OFF (owner decision 2026-11-02): no bulk extraction into the canon
       if (!planConfig.allowCanonExtraction) {
-        return res.status(403).json({
-          error: 'Canon sync не доступний на вашому плані. Upgrade до Storyteller або вище.'
-        });
+        return res.status(410).json({ error: 'Автоканон вимкнено: канон змінюється лише за твоїм рішенням (Хранитель або Біблія світу).' });
       }
 
       // Load project

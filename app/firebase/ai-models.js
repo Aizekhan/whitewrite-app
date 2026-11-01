@@ -22,10 +22,10 @@ const AI_MODELS = {
 // Phase 4.1: API Pricing (per million tokens) — SINGLE SOURCE OF TRUTH
 const MODEL_PRICING = {
   'claude-opus-4-8': {
-    input: 15.00,
-    output: 75.00,
-    cacheWrite: 18.75,  // Cache creation (25% more expensive)
-    cacheRead: 1.50     // Cache read (90% cheaper)
+    input: 5.00,
+    output: 25.00,
+    cacheWrite: 6.25,   // Cache creation (25% more expensive)
+    cacheRead: 0.50     // Cache read (90% cheaper)
   },
   'claude-opus-4-20250514': {
     input: 15.00,
@@ -40,18 +40,18 @@ const MODEL_PRICING = {
     cacheRead: 0.30
   },
   'claude-haiku-4-5': {
-    input: 0.80,
-    output: 4.00,
-    cacheWrite: 1.00,
-    cacheRead: 0.08
+    input: 1.00,
+    output: 5.00,
+    cacheWrite: 1.25,
+    cacheRead: 0.10
   },
   'claude-haiku-4-5-20251001': {
-    input: 0.80,
-    output: 4.00,
-    cacheWrite: 1.00,
-    cacheRead: 0.08
+    input: 1.00,
+    output: 5.00,
+    cacheWrite: 1.25,
+    cacheRead: 0.10
   },
-  'gemini-2.5-flash': { input: 0, output: 0 } // Free tier
+  'gemini-2.5-flash': { input: 0.30, output: 2.50 } // paid-tier price (thinking tokens bill as output) — billed so even on the free key
 };
 
 // Export for Node.js (Cloud Functions)

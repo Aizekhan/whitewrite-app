@@ -167,7 +167,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
         if (!cand?.content?.parts?.[0]?.text) throw new Error('Gemini: invalid response structure');
         outText = cand.content.parts[0].text;
         if (data.usageMetadata) {
-          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: data.usageMetadata.candidatesTokenCount || 0 };
+          apiUsage = { input_tokens: data.usageMetadata.promptTokenCount || 0, output_tokens: (data.usageMetadata.candidatesTokenCount || 0) + (data.usageMetadata.thoughtsTokenCount || 0) };
         }
       }
 

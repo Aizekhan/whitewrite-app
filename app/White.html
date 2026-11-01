@@ -1455,7 +1455,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     }).join("");
     return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
       var pr = f.price, c = PF.featureCost(f);
-      var n = pr.fixed ? c : pr.factor ? '≈ ' + c : (en ? 'Gemini ' + PF.SCENE_COST.gemini + ' / Claude ' + PF.SCENE_COST.claude : 'Gemini ' + PF.SCENE_COST.gemini + ' / Claude ' + PF.SCENE_COST.claude);
+      var n = pr.per === '30d' ? c : pr.scene ? 'Gemini ≈ ' + PF.SCENE_TYPICAL.gemini + ' / Claude ≈ ' + PF.SCENE_TYPICAL.claude : '≈ ' + c;
       var per = pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : '';
       return '<li><b>' + L(f).name + '</b> — ' + n + per + (en ? ' tokens · from ' : ' токенів · від ') + PF.PLANS[f.minPlan].name + '</li>';
     }).join("") + '</ul>';
@@ -1612,7 +1612,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var PF = window.__PAID_FEATURES; if (!PF) return '';
     cur = (PF.PLANS[cur] && PF.PLANS[cur].as) || cur; // the dev plan shows as the plan it mirrors
-    var gem = PF.SCENE_COST.gemini, cla = PF.SCENE_COST.claude;
+    var gem = PF.SCENE_TYPICAL.gemini, cla = PF.SCENE_TYPICAL.claude; // a typical scene, not the reserve
     return PF.PLAN_ORDER.map(function (id, i) {
       var p = PF.PLANS[id], b = PF.planBudget(id), prev = PF.PLAN_ORDER[i - 1];
       var feats = [p.monthly.toLocaleString() + " " + t('plan.tokens'),

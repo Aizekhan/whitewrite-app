@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.14.0 (2026-11-02)
+**Version:** 2.15.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -243,10 +243,10 @@ Frontend (re-render)
 The key `wwk_…` is shown once; only its sha256 is stored. Created per game in Game Bible → Production plan; listed/revoked in Account → Integrations.
 
 #### **`economy_operations/{operationId}`** (live)
-Data-driven pricing read by `token-service.js charge()`: `providers.{claude|gemini}.cost` (the reserve per scene; 300 / 20 by default), margin multipliers; `economy_config/global` holds `tokenToUSD` and the global multiplier. Edited in the admin economy panel (`economy-admin.js`).
+Reserves read by the servers: `providers.{claude|gemini}.cost` (the reserve per scene; 300 / 40 by default; `analyzeScene` 200). Since v2.15 `charge()` bills the REAL API cost (see §1), so the margin multipliers, `estimatedCostPer700Words` and `economy_config/global` (`tokenToUSD`, global multiplier) only price a call whose model has no `MODEL_PRICING` entry or that returned no usage. Edited in the admin economy panel (`economy-admin.js`).
 
 #### **`usage_logs/{logId}`** (live)
-One row per charge: `uid, projectId, operation (logAs), model, usage, apiCostUSD, userTokens, realMarginRatio, timestamp`.
+One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outputTokens/cache…, realApiCostUSD, billing ('actual'|'estimate'), usdPerToken, userTokensCharged, timestamp` (+ the legacy estimate fields).
 
 ---
 
@@ -258,13 +258,14 @@ One row per charge: `uid, projectId, operation (logAs), model, usage, apiCostUSD
 - `PLAN_ORDER` free → storyteller → novelist → worldbuilder; `PLANS {name, price, monthly, maxProjects, popular?}`; `worldforge` is a hidden dev plan `as: 'worldbuilder'`.
 - `FEATURES[]`: `{ id, kind: gate|ai|free, flag, alias?, minPlan, price?: {scene}|{factor}|{fixed, per?}, op?, uk/en {name, desc}, where, server, planned? }`. A feature is on from `minPlan` upward; `planBudget(plan)` derives the old `{monthly, maxProjects, allow…}` shape; `featureCost(feature, claudeCost)` = the tokens reserved before a run (`factor` × the economy Claude scene price, or `fixed`); `byOp(op)`.
 - `soon: true` features are announced on the plan cards and in the KB but not live: `framework` (`allowFramework`, Storyteller) — a personal RPG Framework access token tied to the account, blocked on foreign use, renewed while the subscription is active (issuing not built yet).
-- Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowCanonExtraction` (+ alias `allowCanonSync`), `allowFramework` (soon) — Storyteller; `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder.
+- Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowFramework` (soon) — Storyteller; `allowCanonExtraction` / `allowCanonSync` are gone (auto-canon cancelled, v2.15); `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder.
 - Readers: `functions/plans.js` (`PLAN_BUDGETS` / `getPlanBudget` for every server gate), `gamedevPlan` / `experience` / `cosmographAccess` reserves (`featureCost(byOp(op))`), `token-budget.js` (overwrites `window.__PLAN_BUDGETS` flags/budgets/prices), the Account plan cards (`planCards` in `White.html`: tokens, ≈ scenes, projects, «Усе з X +» and the features new at that plan), the Bible `costOf` / `costMark` (✦ price on the button and in the confirm), and the knowledge base blocks `["plans"]` / `["prices"]` (`kbRegistry` in `White.html`).
-- Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage priced by `economy_operations` (the difference is debited or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
+- Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage (the difference is debited — overdraft allowed — or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
+- **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices: Opus 4.8 $5/$25, Sonnet 4.5 $3/$15, Haiku 4.5 $1/$5, Gemini 2.5 Flash $0.30/$2.50 incl. thinking tokens — Gemini usage is now captured in generateScene). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical: Sonnet scene ≈ 150, Gemini scene ≈ 30, .md import chunk ≈ 570, Opus game plan ≈ 3000. `SCENE_TYPICAL {gemini 30, claude 150}` feeds the plan cards and the KB; reserves `SCENE_COST {gemini 40, claude 300}`, advise 200, game plan ×12. The UI shows prices as «≈ N».
 
 **Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
 
-**Known gaps (audit 2026-11-02):** `maxProjects` is not enforced on the server; the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); plan upgrades open a new LS subscription without cancelling the old one; check `economy_config/global` margins against plan prices (a full Worldbuilder budget may cost more in API than $69).
+**Known gaps (audit 2026-11-02):** `maxProjects` is not enforced on the server; the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); plan upgrades open a new LS subscription without cancelling the old one. (Margin fixed in v2.15.)
 
 ---
 
@@ -303,10 +304,10 @@ canon: {
 **Storage (since 2026-10-31):** canon lives in `worlds/{w}` + `entities/{id}` (see schema), not in `project.canon`.
 Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 
-**Canon Extraction:**
-- After scene generation → `extractCanonFromScene()` (Claude Haiku)
-- Extracts entities → stores in `memorySuggestions` (inferred canon)
-- User reviews → approves → moves to `canon`
+**Canon Extraction — auto-canon CANCELLED (v2.15, owner decision 2026-11-02):**
+- `generateScene` no longer calls `extractCanonFromScene()`; `syncCanonFromProject` answers 410. A scene never writes to the canon by itself.
+- New names reach the canon only through the Keeper (`book-edit.jsx`: local detection + the author's «так») or the Bible. `canon-extract.js` stays in the code (unused by scenes) for a possible on-demand tool.
+- Consequence: `scene.stateChanges` / scene canonRefs are no longer filled automatically for new scenes («Стан у часі» shows what earlier scenes recorded).
 
 ---
 
