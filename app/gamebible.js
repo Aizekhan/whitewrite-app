@@ -536,9 +536,7 @@
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
-      open.isNew = false;
-      $("e-delete").style.display = "";
-      msg(STR.saved + " · " + new Date().toLocaleTimeString(LANG === "en" ? "en-GB" : "uk-UA"));
+      closeLeaf();
     } catch (e) {
       msg(STR.failed + ": " + (e.code || e.message || e));
     }
@@ -977,7 +975,21 @@
     section = b.dataset.sec; query = ""; imp = null; $("q").value = ""; render(); $("main").scrollTop = 0;
   });
   $("newsec-slot").addEventListener("click", function (e) { if (e.target.id === "sec-add") showNewSection(); });
-  $("view").addEventListener("click", function (e) {
+  // Embedded in the shell: lift each view's title and action buttons onto the logo strip (#topline).
+  // Runs after every render (the observer fires once the render has bound its buttons, so handlers move with them).
+  if (document.documentElement.classList.contains("ww-embed")) {
+    new MutationObserver(function () {
+      var top = $("topline"), head = $("view").querySelector("header.sec");
+      top.innerHTML = "";
+      if (!head) return;
+      var h1 = head.querySelector("h1"), actions = head.querySelector(":scope > .row");
+      if (h1) top.appendChild(h1);
+      if (actions) top.appendChild(actions);
+    }).observe($("view"), { childList: true });
+  }
+  $("topline").addEventListener("click", function (e) { viewClick(e); });
+  $("view").addEventListener("click", viewClick);
+  function viewClick(e) {
     var opt = e.target.closest("[data-opt]");
     if (opt) { opt.closest(".q").querySelector("textarea").value = opt.dataset.opt; return; }
     var ans = e.target.closest("[data-answer]");
@@ -996,7 +1008,7 @@
     if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0]; if (card) openCard(card);
-  });
+  }
   $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); render(); });
   $("statuses").addEventListener("click", function (e) {
     var b = e.target.closest("[data-status]"); if (!b) return;
@@ -1022,9 +1034,25 @@
   });
   $("e-group").addEventListener("change", function (e) {
     if (e.target.value !== "__new") { e.target.dataset.cur = e.target.value; return; }
-    var name = (prompt(STR.newGroupPh) || "").trim();
-    fillGroups(name || e.target.dataset.cur, name ? [name] : []);
+    var sel = e.target;
+    askName(STR.newGroup.replace(/^＋\s*/, ""), STR.newGroupPh, function (name) { fillGroups(name || sel.dataset.cur, name ? [name] : []); sel.focus(); });
   });
+  // A small dialog in the service's style instead of the browser's prompt(); done(name) gets "" on cancel.
+  function askName(title, ph, done) {
+    var box = document.createElement("div");
+    box.className = "ask";
+    box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3>' +
+      '<input id="ask-in" autocomplete="off" placeholder="' + esc(ph) + '">' +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.create + '</button></div></form>';
+    document.body.appendChild(box);
+    var input = box.querySelector("input");
+    function finish(v) { box.remove(); done(v); }
+    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) finish(v); else input.focus(); };
+    box.querySelector("#ask-x").onclick = function () { finish(""); };
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(""); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(""); } });
+    input.focus();
+  }
   $("e-save").onclick = save;
   $("e-close").onclick = closeLeaf;
   $("scrim").onclick = closeLeaf;

@@ -65,11 +65,6 @@ main{ min-width:0; padding:0 30px 60px; height:100vh; overflow-y:auto; }
 .ww-embed main{ margin-top:118px; height:calc(100vh - 118px); } /* scrolls below the shell's logo, never under it */
 .bar{ position:sticky; top:0; z-index:3; background:var(--bg-0); padding:16px 0 12px; display:flex; flex-wrap:wrap; gap:8px;
   align-items:center; border-bottom:1px solid var(--line); }
-/* embedded: search, filters and import live on the shell's logo strip, right of the logo */
-.ww-embed .bar{ position:fixed; top:0; left:300px; right:24px; height:118px; padding:0; border:0; background:transparent;
-  flex-wrap:nowrap; z-index:6; }
-.ww-embed .bar #statuses{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
-.ww-embed .bar #q{ flex:1 1 200px; max-width:420px; }
 .ico-btn{ display:inline-grid; place-items:center; width:36px; height:36px; padding:0; flex:none; color:var(--gold-lit); }
 .ico-btn svg{ width:19px; height:19px; }
 #q{ flex:1 1 220px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 11px; }
@@ -109,6 +104,21 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
   box-shadow:-20px 0 50px #0009; z-index:10; display:flex; flex-direction:column; transform:translateX(105%); transition:transform .22s ease; }
 .leaf.open{ transform:none; }
 .scrim{ position:fixed; inset:0; background:#0007; z-index:9; display:none; }
+/* embedded: the section title and its actions sit on the shell's logo strip, right of the logo */
+.topline{ display:none; }
+.ww-embed .topline{ position:fixed; top:0; left:300px; right:24px; height:118px; z-index:5; display:flex; align-items:center; gap:18px; pointer-events:none; }
+.ww-embed .topline > *{ pointer-events:auto; }
+.ww-embed .topline h1{ font-size:clamp(24px,2.6vw,36px); line-height:1.05; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ww-embed .topline .row{ flex:none; }
+.ww-embed header.sec{ grid-template-columns:1fr; padding-top:16px; }
+.ww-embed header.sec > div:empty{ display:none; }
+.ask{ position:fixed; inset:0; z-index:40; display:grid; place-items:center; background:#000a; backdrop-filter:blur(3px); }
+.ask-box{ width:min(420px,calc(100vw - 40px)); background:var(--bg-1); border:1px solid rgba(240,169,59,.35); border-radius:14px;
+  box-shadow:0 24px 60px #000c, 0 0 0 1px #0006; padding:20px 22px 18px; display:grid; gap:12px; }
+.ask-box h3{ margin:0; font-size:17px; }
+.ask-box input{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:9px 11px; font-size:15px; }
+.ask-box input:focus{ border-color:var(--gold-lit); outline:none; }
+.ask-box .row{ justify-content:flex-end; }
 .scrim.open{ display:block; }
 .leaf-head{ padding:18px 22px 12px; border-bottom:1px solid var(--line); display:grid; gap:10px; }
 .ww-embed .leaf-head{ padding-top:110px; }
@@ -243,6 +253,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
   </div>
   <div id="view"></div>
 </main>
+<div class="topline" id="topline"></div><!-- after main: a fresh render's ids in #view are found first -->
 <div class="scrim" id="scrim"></div>
 <aside class="leaf" id="leaf" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="leaf-head">
