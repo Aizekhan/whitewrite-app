@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>WhiteWrite</title>
-<link rel="icon" type="image/png" href="/assets/LogoWhiteTree.png" />
+<link rel="icon" type="image/png" href="/assets/LogoG-icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Spectral:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
@@ -53,9 +53,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .rail__logo img{ height:108px !important; width:auto !important; object-fit:contain; display:block; transform:none; }
 .rail__div{ width:1px; height:30px; margin:0 6px; flex:0 0 auto;
   background:linear-gradient(180deg, transparent, rgba(201,162,75,0.4), transparent); }
-.rail__brand{ font-family:"Cinzel",serif; font-weight:700; font-size:19px; letter-spacing:.04em;
-  color:#f3e4bb; text-shadow:0 1px 10px rgba(0,0,0,0.6); flex:0 0 auto; margin-left:-4px; }
-.rail__brand b{ color:var(--gold-bright); font-weight:700; }
 .rail__collapse{ width:30px; height:30px; border-radius:8px; display:grid; place-items:center; cursor:pointer; flex:0 0 auto;
   color:#caa765; background:rgba(40,26,12,0.5); border:1px solid rgba(201,162,75,0.4); transition:.2s; }
 .rail__collapse svg{ width:17px; height:17px; }
@@ -423,7 +420,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   .ritem__lbl{ display:none; }
   .rail__logo{ height:66px; } .rail__logo svg{ width:22px; height:22px; }
   .rail__logo img{ height:66px !important; }
-  .rail__brand{ display:none; }
 }
 
 /* Phase 1.2: Token balance indicator on Scene Intent Page */
@@ -470,9 +466,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
     <button class="rail__logo" id="logo" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну">
-      <img src="assets/LogoWhiteTree.png" alt="White Tree" draggable="false" />
+      <img src="assets/LogoG.png" alt="WhiteWrite" draggable="false" />
     </button>
-    <span class="rail__brand">WhiteWrite</span>
     <button class="rail__collapse" id="rail-collapse" data-i18n-title="ui.hideMenu" title="Сховати меню для читання" aria-label="Сховати меню" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
     </button>

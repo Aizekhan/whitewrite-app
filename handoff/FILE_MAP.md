@@ -50,7 +50,7 @@
 ph-characters, ph-locations, ph-events, ph-factions, ph-artifacts, ph-project, ph-shot.
 Категорійні арти дерева: cat-characters/locations/events/factions/world/artifacts.
 Фони: StartBack.jpg (маг), DeskBg.jpg, pergament.png, Scroll.png, OpenedBook.jpg, CleanBook.png, world-tree.jpg.
-Лого: LogoWhiteTree.png. Відео: StartStoryAnim.mp4. Шрифти: assets/fonts/ (Philosopher).
+Лого: LogoG.png (шапка), LogoG-icon.png (favicon). Відео: StartStoryAnim.mp4. Шрифти: assets/fonts/ (Philosopher).
 
 ## Правило
 Перед портом КОЖНОГО екрана — відкрий його HTML + усі його JSX зі списку вище, і копіюй розмітку/CSS/копірайт ДОСЛІВНО. Перевірка: відкрий відповідний `prototype/*.html` у браузері — має збігатися піксель-в-піксель.

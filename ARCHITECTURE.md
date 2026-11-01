@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.22.0 (2026-11-02)
+**Version:** 2.22.1 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -49,7 +49,7 @@ E:\WhiteWrite/
 │  │  └─ token-budget.js         # Token system + plan budgets
 │  │
 │  ├─ wt-world.jsx, wt-impact.jsx # WORLD + impact engine (no UI; the tree UI was removed)
-│  └─ assets/                    # Images, fonts, icons
+│  └─ assets/                    # Images, fonts, icons (logo: LogoG.png in the top bar — it carries the name, no text beside it; LogoG-icon.png = favicon)
 │
 ├─ functions/
 │  ├─ index.js                   # only assembles functions/src/*
