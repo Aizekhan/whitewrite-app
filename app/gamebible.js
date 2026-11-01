@@ -15,6 +15,17 @@
   var STR = {
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
+      pick: { add: "＋ Додати з канону", title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
+        none: "Усіх з канону вже взято в гру.", newOne: "＋ Новий у каноні", addN: "Додати", picked: "Додано в гру" },
+      dos: { newEnt: "＋ Нова сутність", desc: "Опис", pics: "Зображення й моделі світу", picsHint: "спільні для всіх історій та ігор; у грі може бути свій вигляд",
+        links: "Звʼязки", appear: "Поява в історіях та іграх", life: "Хронологія життя", lifeHint: "замітки на лінії життя; упорядковуються за першим числом («12 років», «рік 340»)",
+        lifeAdd: "＋ Замітка", lifeWhen: "Коли: вік, рік, епоха", lifeText: "Що сталося", lifeEmpty: "Ще немає заміток. Додай першу — вона повисне на лінії життя.",
+        noLinks: "Звʼязків поки немає. Їх додають у Дереві всесвіту.", inGames: "Ігри", inStories: "Історії", notInGames: "Ще немає ігор у цьому світі.",
+        notInStories: "Ще не зʼявлявся в історіях.", scenes: "сцени", loading: "Шукаю…", openInGame: "Відкрити в грі", hiddenInGame: "прибрано з гри",
+        unsaved: "Є незбережені зміни. Перейти без збереження?", world: "досьє світу", saveFirst: "Спершу збережи — тоді можна додати файли.",
+        storyPh: "Пиши вільно: звідки, що пережив, чого прагне…", lookPh: "Як виглядає: риси, одяг, кольори, деталі, впізнавані знаки…",
+        kinds: { characters: "персонаж", locations: "локація", events: "подія", factions: "фракція", artifacts: "артефакт" },
+        tabs: { characters: ["Біографія", "Зовнішність"], locations: ["Історія місця", "Вигляд"], factions: ["Історія й мета", "Символіка"], artifacts: ["Походження", "Вигляд"], events: ["Перебіг", "Вигляд"] } },
       settings: "Налаштування проєкту", settingsAbout: "Назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти.",
@@ -93,6 +104,17 @@
     },
     en: {
       brand: "World Bible", engine: "Game engine",
+      pick: { add: "＋ Add from canon", title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
+        none: "Everything in the canon is already in the game.", newOne: "＋ New in canon", addN: "Add", picked: "Added to the game" },
+      dos: { newEnt: "＋ New entity", desc: "Description", pics: "World images & models", picsHint: "shared by every story and game; a game may have its own look",
+        links: "Connections", appear: "Appears in stories & games", life: "Life timeline", lifeHint: "notes on the life line, ordered by their first number (“age 12”, “year 340”)",
+        lifeAdd: "＋ Note", lifeWhen: "When: age, year, era", lifeText: "What happened", lifeEmpty: "No notes yet. Add the first — it hangs on the life line.",
+        noLinks: "No connections yet. They are added in the Universe tree.", inGames: "Games", inStories: "Stories", notInGames: "No games in this world yet.",
+        notInStories: "Has not appeared in stories yet.", scenes: "scenes", loading: "Looking…", openInGame: "Open in game", hiddenInGame: "removed from the game",
+        unsaved: "There are unsaved changes. Leave without saving?", world: "world dossier", saveFirst: "Save first — then files can be added.",
+        storyPh: "Write freely: where from, what they went through, what they want…", lookPh: "How it looks: features, clothes, colours, details, signs…",
+        kinds: { characters: "character", locations: "location", events: "event", factions: "faction", artifacts: "artifact" },
+        tabs: { characters: ["Biography", "Appearance"], locations: ["History of the place", "Look"], factions: ["History & aim", "Symbols"], artifacts: ["Origin", "Look"], events: ["Course", "Look"] } },
       settings: "Project settings", settingsAbout: "Names, engine, import and export, safe deletion.", gameLabel: "Game:",
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept.",
@@ -189,12 +211,33 @@
   // Field templates: a new card starts with the structure of its section.
   var F = function (key, uk, en) { return { key: key, label: LANG === "en" ? en : uk }; };
   var CANON = [
-    { id: "world", special: "world", uk: "Світ і закони", en: "World & laws",
-      about: { uk: "Опис світу, закони й факти — фундамент кожної гри на цьому каноні.", en: "The world, its laws and facts — the ground of every game on this canon." } },
+    { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
+      about: { uk: "Про що цей світ: суть, тон, ключові факти. Спільне для всіх історій та ігор.", en: "What this world is: its essence, tone and key facts. Shared by every story and game." } },
+    { id: "laws", special: "laws", uk: "Закони", en: "Laws",
+      about: { uk: "Непорушні правила цього всесвіту: фізика, магія, межі можливого. Їм підкоряється кожна історія й гра.", en: "The unbreakable rules of this universe: physics, magic, the limits of the possible. Every story and game obeys them." } },
+    { id: "w-characters", dossier: "characters", uk: "Персонажі", en: "Characters",
+      about: { uk: "Хто живе в цьому світі: біографія, звʼязки, зовнішність, хронологія життя.", en: "Who lives in this world: biography, connections, appearance, life timeline." } },
+    { id: "w-locations", dossier: "locations", uk: "Локації", en: "Locations",
+      about: { uk: "Місця світу: їхня історія, вигляд і хто з ними повʼязаний.", en: "The places of the world: their history, look and who is tied to them." } },
+    { id: "w-factions", dossier: "factions", uk: "Фракції", en: "Factions",
+      about: { uk: "Сили світу: історія, мета, символіка і хто до них належить.", en: "The powers of the world: history, aim, symbols and who belongs to them." } },
+    { id: "w-items", dossier: "artifacts", uk: "Артефакти", en: "Artifacts",
+      about: { uk: "Речі, що мають вагу у світі: походження, сила, вигляд.", en: "Things that matter in the world: origin, power, look." } },
+  ];
+  var GAME = [
+    { id: "overview", uk: "Огляд гри", en: "Game overview",
+      about: { uk: "Що це за гра: логлайн, жанр, стовпи, ігровий цикл, платформа, референси.", en: "What the game is: logline, genre, pillars, core loop, platform, references." },
+      defs: [F("logline", "Логлайн", "Logline"), F("genre", "Жанр", "Genre"), F("pillars", "Стовпи гри (3–4)", "Game pillars (3–4)"),
+             F("loop", "Ігровий цикл", "Core loop"), F("platform", "Платформа", "Platform"), F("session", "Тривалість сесії", "Session length"),
+             F("players", "Гравці (соло / кооп / PvP)", "Players (solo / co-op / PvP)"), F("refs", "Референси: гра → що саме беремо", "References: game → what we take"),
+             F("style", "Візуальний стиль", "Visual style")] },
+    { id: "lore", uk: "Лор гри", en: "Game lore",
+      about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — в «Огляді світу» і «Законах».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
+      defs: [F("text", "Опис", "Description")] },
     { id: "characters", canon: "characters", uk: "Персонажі", en: "Characters",
-      about: { uk: "Герої й NPC канону. Імʼя й опис — спільні; роль, числа і модель — лише цієї гри.", en: "Canon heroes and NPCs. Name and description are shared; role, numbers and model belong to this game." },
+      about: { uk: "Персонажі світу в цій грі: роль, здібності, числа і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, numbers and their own look or model. Biography and connections live in the world dossier." },
       defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), F("numbers", "Числа", "Numbers"),
-             F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("model", "Модель / префаб", "Model / prefab")] },
+             F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("model", "Модель / префаб", "Model / prefab")] },
     { id: "locations", canon: "locations", uk: "Локації", en: "Locations",
       about: { uk: "Місця канону як рівні цієї гри: розмір, палітра, світло, хто там живе.", en: "Canon places as this game's levels: size, palette, light, who lives there." },
       defs: [F("level", "Тип рівня", "Level type"), F("size", "Розмір і траса", "Size & route"), F("look", "Палітра й світло", "Palette & light"),
@@ -205,17 +248,6 @@
     { id: "items", canon: "artifacts", uk: "Артефакти", en: "Artifacts",
       about: { uk: "Артефакти канону як ігрові предмети.", en: "Canon artifacts as game items." },
       defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get")] },
-  ];
-  var GAME = [
-    { id: "overview", uk: "Огляд гри", en: "Game overview",
-      about: { uk: "Що це за гра: логлайн, жанр, стовпи, ігровий цикл, платформа, референси.", en: "What the game is: logline, genre, pillars, core loop, platform, references." },
-      defs: [F("logline", "Логлайн", "Logline"), F("genre", "Жанр", "Genre"), F("pillars", "Стовпи гри (3–4)", "Game pillars (3–4)"),
-             F("loop", "Ігровий цикл", "Core loop"), F("platform", "Платформа", "Platform"), F("session", "Тривалість сесії", "Session length"),
-             F("players", "Гравці (соло / кооп / PvP)", "Players (solo / co-op / PvP)"), F("refs", "Референси: гра → що саме беремо", "References: game → what we take"),
-             F("style", "Візуальний стиль", "Visual style")] },
-    { id: "lore", uk: "Лор гри", en: "Game lore",
-      about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — у «Світ і закони».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
-      defs: [F("text", "Опис", "Description")] },
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
       groups: { uk: ["Рух", "Бій", "Здібності", "Взаємодія", "Камера й керування", "Смерть і відродження", "Перемога й поразка"], en: ["Movement", "Combat", "Abilities", "Interaction", "Camera & controls", "Death & respawn", "Win & lose"] },
       about: { uk: "Правила гри з числами. Правка тут — це завдання змінити гру.", en: "Game rules with numbers. An edit here is a task to change the game." },
@@ -329,6 +361,10 @@
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
       canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden };
   }
+  function inGame(e) {
+    var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
+    return c ? !c.hidden : !(game && game.canonOptIn);
+  }
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, title: c.title || "", status: c.status || "idea", note: c.note || "",
@@ -336,8 +372,8 @@
   }
   function allCards() {
     var out = [];
-    CANON.forEach(function (s) {
-      if (s.canon) entities.filter(function (e) { return e.kind === s.canon; }).forEach(function (e) { var c = canonCard(e, s); if (!c.hidden) out.push(c); });
+    gameSections().forEach(function (s) {
+      if (s.canon) entities.filter(function (e) { return e.kind === s.canon && inGame(e); }).forEach(function (e) { out.push(canonCard(e, s)); });
     });
     cards.forEach(function (c) { if (!c.canonRef) out.push(gameCard(c)); });
     return out;
@@ -374,6 +410,7 @@
   // ---------- render ----------
   function navItem(s, all) {
     var n = s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
+      : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
       : s.special ? "" : all.filter(function (c) { return c.section === s.id; }).length;
     return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(L(s)) + '<span class="n">' + n + '</span></button>';
   }
@@ -408,7 +445,7 @@
     if (c.src === "canon") tags.push('<span class="pill canon-pill">' + STR.canonTag + '</span>');
     if (c.note) tags.push('<span class="flag">' + STR.note + '</span>');
     if (query && c.section !== section) tags.push('<span class="pill s-agreed">' + esc(L(sec(c.section))) + '</span>');
-    var img = (c.files || []).filter(isImage)[0];
+    var img = (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var model = (c.files || []).filter(is3D)[0];
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
@@ -421,18 +458,23 @@
     renderNav();
     if (section === "settings" && !imp) return renderSettings();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
+    var cs = CANON.filter(function (x) { return x.id === section; })[0];
+    if (cs && !imp && !query) {
+      if (cs.special === "world") return renderWorld(cs);
+      if (cs.special === "laws") return renderLaws(cs);
+      if (cs.dossier) return renderDossiers(cs);
+    }
     if (!game) return renderNewGame();
     if (imp) return renderImport();
     var s = sec(section);
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
-    if (s.special === "world" && !query) return renderWorld(s);
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); });
     var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>' +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
-        '<button class="btn primary" id="add-top">' + STR.addCard + '</button></div>') + '</header>';
+        '<button class="btn primary" id="add-top">' + (s.canon ? STR.pick.add : STR.addCard) + '</button></div>') + '</header>';
     if (!list.length) html += '<p class="empty">' + STR.nothing + '</p>';
     else if (!query && list.some(function (c) { return c.fields[groupKey(s)]; })) {
       var groups = {}, order = [];
@@ -451,10 +493,219 @@
     var fact = function (f) { return typeof f === "string" ? esc(f) : '<b>' + esc(f.k) + ':</b> ' + esc(f.v); };
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
       '<div class="canonbox"><h4>' + STR.worldCanon + '</h4>' + (w.tagline ? '<p><i>' + esc(w.tagline) + '</i></p>' : '') + (w.summary ? '<p>' + esc(w.summary) + '</p>' : '') +
-      ((w.rules || []).length ? '<h4 style="margin-top:12px">' + STR.laws + '</h4><ol>' + w.rules.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ol>' : '') +
       ((w.facts || []).length ? '<h4 style="margin-top:12px">' + STR.facts + '</h4><ul>' + w.facts.map(function (f) { return '<li>' + fact(f) + '</li>'; }).join("") + '</ul>' : '') +
       '</div><p class="muted">' + STR.worldReadonly + '</p>';
   }
+
+  function renderLaws(s) {
+    var rules = (world && world.rules) || [];
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
+      (rules.length ? '<div class="canonbox"><h4>' + STR.laws + '</h4><ol>' + rules.map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ol></div>' : '<p class="empty">' + STR.nothing + '</p>') +
+      '<p class="muted">' + STR.worldReadonly + '</p>';
+  }
+
+  // ---------- world dossiers: the canon entity itself (worlds/{w}/entities/{id}) — no game statuses ----------
+  // entity.dossier { story, look }, entity.lifeNotes [{ id, at, text }], entity.files [] (Storage worlds/{w}/files/{entityId}/…)
+  var dos = null, ddraft = null, dfirst = "", dtab = "story";
+  function descKeyOf(e) { return e.desc !== undefined || e.description === undefined ? "desc" : "description"; }
+  function dosSection(kind) { return CANON.filter(function (s) { return s.dossier === kind; })[0]; }
+  function entImage(e) { return ((e && e.files) || []).filter(isImage)[0]; }
+  function plain(v) { return String(v || "").replace(/[*`|#>-]+/g, " ").replace(/\s+/g, " ").slice(0, 220); }
+  function renderDossiers(s) {
+    var list = entities.filter(function (e) { return e.kind === s.dossier; })
+      .sort(function (a, b) { return String(a.name || a.title || "").localeCompare(String(b.name || b.title || "")); });
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
+      '<div class="row"><button class="btn primary" id="add-top">' + STR.dos.newEnt + '</button></div></header>' +
+      (list.length ? '<div class="grid">' + list.map(dosCardHtml).join("") + '</div>' : '<p class="empty">' + STR.nothing + '</p>');
+    var at = $("add-top"); if (at) at.onclick = function () { openDossier({ id: entityId(s.dossier), kind: s.dossier, isNew: true }); };
+  }
+  function dosCardHtml(e) {
+    var img = entImage(e), tags = [];
+    if ((e.lifeNotes || []).length) tags.push('<span class="flag">⟡ ' + e.lifeNotes.length + '</span>');
+    if ((e.files || []).length) tags.push('<span class="flag">📎 ' + e.files.length + '</span>');
+    return '<button class="card dcard" data-ent="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
+      '<h3>' + esc(e.name || e.title || STR.newCard) + '</h3>' + (e.role ? '<p class="sub">' + esc(e.role) + '</p>' : '') +
+      (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation)) + '</p></button>';
+  }
+  function dmsg(t) { $("d-msg").textContent = t; }
+  function openDossier(e) {
+    if (!e) return;
+    if (open) closeLeaf();
+    dos = e; dtab = "story";
+    ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({ story: "", look: "" }, e.dossier),
+      lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
+    dfirst = JSON.stringify(ddraft);
+    $("d-kicker").textContent = (dosSection(e.kind) ? L(dosSection(e.kind)) : STR.dos.kinds[e.kind] || "") + " · " + STR.dos.world;
+    $("d-title").value = ddraft.name;
+    renderDossier(); dmsg("");
+    $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
+    $("d-title").focus();
+  }
+  function dcollect() {
+    if (!ddraft) return;
+    ddraft.name = $("d-title").value;
+    var d = $("d-desc"); if (d) ddraft.desc = d.value;
+    var t = $("d-text"); if (t) ddraft.dossier[t.dataset.k] = t.value;
+  }
+  function closeDossier() {
+    dos = null; ddraft = null;
+    $("dos").classList.remove("open"); $("dos").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
+  }
+  function lifeOrder(n) { var m = String(n.at || "").match(/-?\d+(?:[.,]\d+)?/); return m ? parseFloat(m[0].replace(",", ".")) : Infinity; }
+  function lifeHtml() {
+    var notes = ddraft.lifeNotes.slice().sort(function (a, b) { return lifeOrder(a) - lifeOrder(b); });
+    return '<div class="field"><label>' + STR.dos.life + ' <span class="hint">' + STR.dos.lifeHint + '</span></label>' +
+      (notes.length ? '<div class="life"><div class="life-track">' + notes.map(function (n, i) {
+        return '<div class="ln' + (i % 2 ? ' up' : '') + '"><span class="ln-dot"></span><div class="ln-note"><b>' + esc(n.at || "…") + '</b>' + esc(n.text) +
+          '<button class="ln-x" data-rmnote="' + esc(n.id) + '" aria-label="' + esc(STR.remove + " " + (n.at || "")) + '">✕</button></div></div>';
+      }).join("") + '</div></div>' : '<p class="muted">' + STR.dos.lifeEmpty + '</p>') +
+      '<div class="newfield"><input id="ln-at" style="flex:.5" placeholder="' + esc(STR.dos.lifeWhen) + '"><input id="ln-text" placeholder="' + esc(STR.dos.lifeText) + '">' +
+      '<button class="btn" id="ln-add">' + STR.dos.lifeAdd + '</button></div></div>';
+  }
+  function dosFileRow(f) {
+    return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
+      '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' +
+      (is3D(f) ? '<button class="btn" data-dview3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
+      '<button class="btn danger" data-drmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button></div>';
+  }
+  // Connections, derived both ways like wConnections() in wt-world.jsx (reverse links are never stored)
+  var KINDS = ["characters", "locations", "events", "factions", "artifacts"];
+  function entLinks(e) {
+    var out = [], seen = {};
+    var push = function (id, rel) {
+      if (typeof id !== "string" || id === e.id || seen[id]) return;
+      var o = entities.filter(function (x) { return x.id === id; })[0]; if (!o) return;
+      seen[id] = 1; out.push({ e: o, rel: rel || "" });
+    };
+    KINDS.forEach(function (k) { (Array.isArray(e[k]) ? e[k] : []).forEach(function (id) { push(id); }); });
+    (e.relations || []).forEach(function (r) { if (r) push(r.id, r.kind); });
+    push(e.owner); push(e.location); push(e.faction);
+    entities.forEach(function (o) {
+      if (o.id === e.id) return;
+      if ((Array.isArray(o[e.kind]) ? o[e.kind] : []).indexOf(e.id) >= 0) push(o.id);
+      var r = (o.relations || []).filter(function (x) { return x && x.id === e.id; })[0]; if (r) push(o.id, r.kind);
+      if (o.owner === e.id || o.location === e.id || o.faction === e.id) push(o.id);
+    });
+    return out;
+  }
+  function linksHtml(e) {
+    var list = entLinks(e);
+    if (!list.length) return '<p class="muted">' + STR.dos.noLinks + '</p>';
+    return '<div class="dlinks">' + list.map(function (x) {
+      var inner = '<span class="k">' + esc(STR.dos.kinds[x.e.kind] || x.e.kind) + '</span>' + esc(x.e.name || x.e.title || "") + (x.rel ? ' <i>' + esc(x.rel) + '</i>' : '');
+      return dosSection(x.e.kind) ? '<button class="dlink" data-dent="' + esc(x.e.id) + '">' + inner + '</button>' : '<span class="dlink">' + inner + '</span>';
+    }).join("") + '</div>';
+  }
+  function renderDossier() {
+    var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [];
+    var html = '<div class="field files"><label>' + STR.dos.pics + ' <span class="hint">' + STR.dos.picsHint + '</span></label>' + files.map(dosFileRow).join("") +
+      (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
+    html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="4">' + esc(ddraft.desc) + '</textarea></div>';
+    if (e.kind === "characters") html += lifeHtml();
+    var body = dtab === "links" ? linksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
+      : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc(dtab === "look" ? STR.dos.lookPh : STR.dos.storyPh) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
+    $("d-body").innerHTML = html + '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>';
+    $("d-tabs").innerHTML = [["story", t[0]], ["links", STR.dos.links], ["look", t[1]], ["appear", STR.dos.appear]].map(function (x) {
+      return '<button role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dtab) + '">' + esc(x[1]) + '</button>';
+    }).join("");
+    if (dtab === "appear") loadAppearance(e);
+  }
+  async function loadAppearance(e) {
+    var out = "";
+    try {
+      var inGames = e.isNew ? [] : await Promise.all(games.map(function (g) {
+        return wref().collection("games").doc(g.id).collection("cards").doc(e.id).get().then(function (d) { return { g: g, c: d.exists ? d.data() : {} }; });
+      }));
+      var uid = firebase.auth().currentUser.uid;
+      var projects = e.isNew ? { docs: [] } : await db.collection("projects").where("owner", "==", uid).where("worldId", "==", worldId).get();
+      var stories = await Promise.all(projects.docs.map(function (p) {
+        return db.collection("projects").doc(p.id).collection("scenes").where("canonRefs." + e.kind, "array-contains", e.id).get()
+          .then(function (sn) { return { title: p.data().title || p.data().name || "…", scenes: sn.docs.map(function (d) { return d.data().n; }).filter(function (n) { return n != null; }).sort(function (a, b) { return a - b; }) }; });
+      }));
+      stories = stories.filter(function (x) { return x.scenes.length; });
+      out = '<h4 class="dsub">' + STR.dos.inGames + '</h4>' + (inGames.length ? '<ul class="dappear">' + inGames.map(function (x) {
+        var st = STATUS[x.c.status] || STATUS.idea;
+        return '<li><b>' + esc(x.g.title) + '</b> ' + (x.c.hidden ? '<span class="muted">' + STR.dos.hiddenInGame + '</span>' : '<span class="pill ' + st.cls + '">' + esc(L(st)) + '</span>') +
+          (x.c.hidden ? '' : ' <button class="btn" data-ingame="' + esc(x.g.id) + '">' + STR.dos.openInGame + '</button>') + '</li>';
+      }).join("") + '</ul>' : '<p class="muted">' + STR.dos.notInGames + '</p>') +
+        '<h4 class="dsub">' + STR.dos.inStories + '</h4>' + (stories.length ? '<ul class="dappear">' + stories.map(function (x) {
+          return '<li><b>' + esc(x.title) + '</b> <span class="muted">· ' + STR.dos.scenes + ' ' + x.scenes.join(", ") + '</span></li>'; }).join("") + '</ul>' : '<p class="muted">' + STR.dos.notInStories + '</p>');
+    } catch (er) { out = '<p class="muted">' + STR.failed + ': ' + esc(er.code || er.message || er) + '</p>'; }
+    if (dos === e && dtab === "appear" && $("d-appear")) $("d-appear").innerHTML = out;
+  }
+  async function uploadEntityFiles(list) {
+    var e = dos, done = 0;
+    for (var i = 0; i < list.length; i++) {
+      var file = list[i];
+      if (file.size > MAX_FILE) { dmsg(STR.fileTooBig + ": " + file.name); continue; }
+      var id = newId("file"), path = "worlds/" + worldId + "/files/" + e.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
+      try {
+        var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
+        task.on("state_changed", function (sn) { if (dos === e) dmsg(STR.uploading + " " + file.name + " · " + Math.round(100 * sn.bytesTransferred / (sn.totalBytes || 1)) + "%"); });
+        await task;
+        var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
+        await wref().collection("entities").doc(e.id).set({ files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() }, { merge: true });
+        e.files = (e.files || []).concat([meta]); done++;
+      } catch (er) { dmsg(STR.failed + ": " + file.name + " — " + (er.code || er.message || er)); return; }
+    }
+    if (dos === e) { dcollect(); renderDossier(); dmsg(STR.filesDone + ": " + done); }
+  }
+  async function removeEntityFile(id) {
+    var e = dos, f = (e.files || []).filter(function (x) { return x.id === id; })[0];
+    if (!f || !confirm(STR.confirmFile + " " + f.name + "?")) return;
+    try {
+      await firebase.storage().ref(f.path).delete().catch(function (er) { if (er.code !== "storage/object-not-found") throw er; });
+      await wref().collection("entities").doc(e.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
+      e.files = e.files.filter(function (x) { return x.id !== id; });
+      if (dos === e) { dcollect(); renderDossier(); }
+    } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+  }
+  async function saveDossier() {
+    if (!dos) return;
+    dcollect();
+    var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
+    if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
+    if (e.isNew) Object.assign(body, { id: e.id, kind: e.kind, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
+    if (e.isNew || name !== (e.name || e.title || "")) { body[e.title !== undefined && e.name === undefined ? "title" : "name"] = name; body.slug = slugify(name); }
+    if (e.isNew || ddraft.desc !== (e[descKeyOf(e)] || "")) body[descKeyOf(e)] = ddraft.desc;
+    dmsg(STR.saving);
+    try { await wref().collection("entities").doc(e.id).set(body, { merge: true }); closeDossier(); }
+    catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+  }
+  function switchDossier(id) {
+    dcollect();
+    if (JSON.stringify(ddraft) !== dfirst && !confirm(STR.dos.unsaved)) return;
+    openDossier(entities.filter(function (x) { return x.id === id; })[0]);
+  }
+  $("d-tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-dtab]"); if (!b || !dos) return;
+    dcollect(); dtab = b.dataset.dtab; renderDossier();
+    var p = $("d-panel"); if (p) p.scrollIntoView({ block: "nearest" });
+  });
+  $("d-body").addEventListener("click", function (e) {
+    var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
+    var rm = e.target.closest("[data-drmfile]"); if (rm) { removeEntityFile(rm.dataset.drmfile); return; }
+    var v3 = e.target.closest("[data-dview3d]"); if (v3) { view3d(dos.files.filter(function (f) { return f.id === v3.dataset.dview3d; })[0], dos.files); return; }
+    var rn = e.target.closest("[data-rmnote]");
+    if (rn) { dcollect(); ddraft.lifeNotes = ddraft.lifeNotes.filter(function (n) { return n.id !== rn.dataset.rmnote; }); renderDossier(); return; }
+    if (e.target.id === "ln-add") {
+      var at = $("ln-at").value.trim(), tx = $("ln-text").value.trim(); if (!at && !tx) { $("ln-at").focus(); return; }
+      dcollect(); ddraft.lifeNotes.push({ id: newId("ln"), at: at, text: tx }); renderDossier(); $("ln-at").focus(); return;
+    }
+    var ig = e.target.closest("[data-ingame]");
+    if (ig) {
+      var ent = dos, gs = GAME.filter(function (x) { return x.canon === ent.kind; })[0];
+      closeDossier();
+      if (ig.dataset.ingame !== gameId) selectGame(ig.dataset.ingame);
+      section = gs ? gs.id : "overview"; render();
+      var c = allCards().filter(function (x) { return x.key === "e:" + ent.id; })[0];
+      if (c && cards.length) openCard(c);
+    }
+  });
+  $("d-body").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.target.id === "ln-at" || e.target.id === "ln-text")) { e.preventDefault(); $("ln-add").click(); } });
+  $("d-body").addEventListener("change", function (e) {
+    if (e.target.id === "d-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); }
+  });
 
   function renderNewGame() {
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
@@ -465,7 +716,7 @@
     $("ng-ok").onclick = async function () {
       var title = $("ng-title").value.trim(); if (!title) return;
       var id = newId("game");
-      await wref().collection("games").doc(id).set({ title: title, engine: { profile: $("ng-engine").value }, sections: [], createdAt: stamp(), updatedAt: stamp() });
+      await wref().collection("games").doc(id).set({ title: title, engine: { profile: $("ng-engine").value }, sections: [], canonOptIn: true, createdAt: stamp(), updatedAt: stamp() });
       selectGame(id);
     };
     var x = $("ng-x"); if (x) x.onclick = function () { selectGame(games[0].id); };
@@ -731,12 +982,58 @@
     closeLeaf();
   }
 
-  function addCard() {
+  function addCard(fresh) {
     var s = sec(section);
+    if (s.canon && fresh !== true) return pickFromCanon(s);
     var c = s.canon
       ? { key: "new", src: "canon", id: entityId(s.canon), section: s.id, title: "", status: "idea", note: "", canonDesc: { key: "desc", value: "" }, defs: s.defs.slice(), fields: {}, isNew: true }
       : { key: "new", src: "game", id: newId("card"), section: s.id, title: "", status: "idea", note: "", defs: (s.defs || CUSTOM_DEFS).slice(), fields: {}, isNew: true };
     openCard(c);
+  }
+
+  // The game takes canon entities by choice: a picker of those not in the game yet, or a new one born in the canon.
+  function pickFromCanon(s) {
+    var free = entities.filter(function (e) { return e.kind === s.canon && !inGame(e); })
+      .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
+    var box = document.createElement("div");
+    box.className = "ask";
+    box.innerHTML = '<form class="ask-box pick-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.pick.title) + '"><h3>' + esc(STR.pick.title) + ' · ' + esc(L(s)) + '</h3>' +
+      (free.length ? '<p class="warn">' + STR.pick.hint + '</p><div class="picklist">' + free.map(function (e) {
+        var img = entImage(e);
+        return '<label class="pickrow"><input type="checkbox" value="' + esc(e.id) + '">' + (img ? '<img alt="" src="' + esc(img.url) + '">' : '<span class="pi"></span>') +
+          '<span><b>' + esc(e.name || e.title || "") + '</b><i>' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story).slice(0, 90)) + '</i></span></label>';
+      }).join("") + '</div>' : '<p class="warn">' + STR.pick.none + '</p>') +
+      '<div class="row"><button type="button" class="btn" id="pick-new">' + STR.pick.newOne + '</button><span style="flex:1"></span>' +
+      '<button type="button" class="btn" id="ask-x">' + STR.cancel + '</button>' + (free.length ? '<button class="btn primary" id="pick-ok" disabled>' + STR.pick.addN + '</button>' : '') + '</div></form>';
+    document.body.appendChild(box);
+    function close() { box.remove(); }
+    box.querySelector("#ask-x").onclick = close;
+    box.querySelector("#pick-new").onclick = function () { close(); addCard(true); };
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    box.addEventListener("change", function () { var ok = box.querySelector("#pick-ok"); if (ok) ok.disabled = !box.querySelector(".picklist input:checked"); });
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault();
+      var ids = [].map.call(box.querySelectorAll(".picklist input:checked"), function (i) { return i.value; }); if (!ids.length) return;
+      var batch = db.batch();
+      ids.forEach(function (id) { batch.set(gref().collection("cards").doc(id), { section: s.id, canonRef: id, hidden: false, status: "idea", updatedAt: stamp() }, { merge: true }); });
+      await batch.commit(); close();
+    };
+    var first = box.querySelector(".picklist input") || box.querySelector("#pick-new"); first.focus();
+  }
+  // Older games saw the whole canon; on first open they keep exactly what they showed, then switch to picking.
+  async function migrateCanonOptIn(g) {
+    if (!g || g.canonOptIn || !canWrite) return;
+    var snap = await gref().collection("cards").get(), have = {};
+    snap.docs.forEach(function (d) { var c = d.data(); if (c.canonRef) have[c.canonRef] = 1; });
+    var batch = db.batch();
+    GAME.forEach(function (s) {
+      if (s.canon) entities.filter(function (e) { return e.kind === s.canon && !have[e.id]; }).forEach(function (e) {
+        batch.set(gref().collection("cards").doc(e.id), { section: s.id, canonRef: e.id, hidden: false, updatedAt: stamp() }, { merge: true });
+      });
+    });
+    batch.update(gref(), { canonOptIn: true });
+    await batch.commit();
   }
 
   // ---------- own sections ----------
@@ -1012,6 +1309,7 @@
     askDelete(STR.stDelWorld, STR.stDelWorldText, world.title || "", async function () {
       unsub.forEach(function (u) { u(); }); unsub = [];
       for (var g of games) await removeGame(g.id);
+      await Promise.all(entities.reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
       await wref().delete(); // last: the rules check ownership through the world doc
       tellShell({ type: "ww-worlds-changed", deleted: true });
@@ -1063,7 +1361,7 @@
       var box = function (kind, i, label, detail) { return '<label class="imp"><input type="checkbox"' + (imp.off[kind + ':' + i] ? '' : ' checked') + ' data-imp="' + kind + ':' + i + '"><span><b>' + esc(label) + '</b>' + (detail ? '<span class="muted"> — ' + esc(detail) + '</span>' : '') + '</span></label>'; };
       if (p.laws.length) html += '<h2 class="group">' + STR.importLaws + '</h2>' + p.laws.map(function (l, i) { return box("law", i, l); }).join("");
       if (p.canon.length) html += '<h2 class="group">' + STR.importCanon + '</h2>' + p.canon.map(function (e, i) {
-        return box("canon", i, e.name + " · " + L(sec(CANON.filter(function (s) { return s.canon === e.kind; })[0].id)), (e.match ? STR.importMatch : STR.importNew) + (e.description ? ": " + e.description : "")); }).join("");
+        return box("canon", i, e.name + " · " + L(GAME.filter(function (s) { return s.canon === e.kind; })[0]), (e.match ? STR.importMatch : STR.importNew) + (e.description ? ": " + e.description : "")); }).join("");
       if (p.cards.length) html += '<h2 class="group">' + STR.importCards + '</h2>' + p.cards.map(function (c, i) {
         return box("card", i, c.title + " · " + L(sec(c.section)), Object.keys(c.fields).join(", ")); }).join("");
       if (p.contradictions.length) html += '<h2 class="group">' + STR.importContra + '</h2>' + p.contradictions.map(function (c, i) { return box("contra", i, c.what, c.where); }).join("");
@@ -1094,12 +1392,12 @@
     if (laws.length) { batch.set(wref(), { rules: (world.rules || []).concat(laws), updatedAt: stamp() }, { merge: true }); n += laws.length; }
     p.canon.forEach(function (e, i) {
       if (!on("canon", i)) return;
-      var s = CANON.filter(function (x) { return x.canon === e.kind; })[0];
+      var s = GAME.filter(function (x) { return x.canon === e.kind; })[0];
       var id = e.match || entityId(e.kind);
       if (!e.match) batch.set(wref().collection("entities").doc(id), { id: id, kind: e.kind, name: e.name, slug: slugify(e.name), desc: e.description,
         origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" }, createdAt: stamp(), updatedAt: stamp() }); // the author ticked it
       var f = toFields(e.gameFields, s.defs);
-      if (Object.keys(f.fields).length || !e.match) batch.set(gref().collection("cards").doc(id), { section: s.id, canonRef: id, fields: f.fields, defs: f.extra, hidden: false, updatedAt: stamp() }, { merge: true });
+      batch.set(gref().collection("cards").doc(id), { section: s.id, canonRef: id, fields: f.fields, defs: f.extra, hidden: false, updatedAt: stamp() }, { merge: true });
       n++;
     });
     p.cards.forEach(function (c, i) {
@@ -1461,6 +1759,7 @@
     if (cp) { navigator.clipboard.writeText(cp.previousElementSibling.textContent).then(function () { cp.textContent = STR.copied; }); return; }
     var v = e.target.closest("[data-view3d]");
     if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
+    var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0]; if (card) openCard(card);
   }
@@ -1540,11 +1839,15 @@
   }
   $("e-save").onclick = save;
   $("e-close").onclick = closeLeaf;
-  $("scrim").onclick = closeLeaf;
+  $("scrim").onclick = function () { if (dos) closeDossier(); else closeLeaf(); };
+  $("d-save").onclick = saveDossier;
+  $("d-close").onclick = closeDossier;
   $("e-delete").onclick = removeCard;
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && open) closeLeaf();
+    if (e.key === "Escape" && dos && !document.querySelector(".v3d")) closeDossier();
+    if ((e.ctrlKey || e.metaKey) && e.key === "s" && dos) { e.preventDefault(); saveDossier(); }
     if ((e.ctrlKey || e.metaKey) && e.key === "s" && open) { e.preventDefault(); save(); }
     if (e.key === "Tab" && open && !document.querySelector(".v3d")) { // keep focus inside the leaf
       var f = [].filter.call($("leaf").querySelectorAll("button,input,select,textarea,[tabindex]"), function (x) { return !x.disabled && x.offsetParent; });
@@ -1557,6 +1860,7 @@
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search;
   setEditMode(false); $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
+  $("d-save").textContent = STR.save; $("d-close").textContent = STR.close;
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }
@@ -1579,6 +1883,7 @@
       cards = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
       sync(snap.metadata.fromCache ? "" : "ok", STR.live); render();
     }, function () { sync("bad", STR.offline); }));
+    migrateCanonOptIn(game).catch(function () {});
     unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }));
     tasks = []; changeReqs = []; execs = []; keys = []; newKey = null;
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };

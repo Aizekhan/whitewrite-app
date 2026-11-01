@@ -61,8 +61,10 @@ function bibleText(world, entities, cards, game, shelves) {
   for (const e of entities) {
     if (!CANON_KINDS.includes(e.kind)) continue;
     const c = cards.find((x) => x.canonRef === e.id) || {};
-    if (c.hidden) continue;
-    card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '', ...named(c) }, c.note, c.files);
+    if (c.hidden || (game.canonOptIn && !c.canonRef)) continue; // a game takes only the canon it picked
+    const d = e.dossier || {}, life = (e.lifeNotes || []).map((n) => `${n.at || ''}: ${n.text || ''}`).join('; ');
+    card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '',
+      ...(d.story ? { 'world dossier: story': d.story } : {}), ...(d.look ? { 'world dossier: look': d.look } : {}), ...(life ? { 'life timeline': life } : {}), ...named(c) }, c.note, c.files);
   }
   for (const c of cards) {
     if (c.canonRef) continue;

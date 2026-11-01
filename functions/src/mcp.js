@@ -167,8 +167,9 @@ async function callTool(name, args, key) {
     case 'get_design_section': {
       const s = str(args.section, 60);
       const out = ctx.cards.filter((c) => c.section === s && !c.hidden).map((c) => cardView(ctx, c.canonRef ? 'e:' + c.canonRef : 'c:' + c.id)).filter(Boolean);
-      if (['characters', 'locations', 'factions', 'artifacts'].includes(s)) {
-        ctx.entities.filter((e) => e.kind === s && !ctx.cards.some((c) => c.canonRef === e.id)).forEach((e) => out.push(cardView(ctx, 'e:' + e.id)));
+      const kind = { characters: 'characters', locations: 'locations', factions: 'factions', items: 'artifacts' }[s];
+      if (kind && !ctx.game.canonOptIn) { // older games see the whole canon; newer ones only what they picked (cards above)
+        ctx.entities.filter((e) => e.kind === kind && !ctx.cards.some((c) => c.canonRef === e.id)).forEach((e) => out.push(cardView(ctx, 'e:' + e.id)));
       }
       return { section: s, cards: out };
     }
