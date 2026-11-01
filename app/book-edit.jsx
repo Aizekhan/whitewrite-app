@@ -242,8 +242,37 @@
       return () => window.removeEventListener("keydown", k, true);
     });
     const words = (text.match(/\S+/g) || []).length;
+    // ✦ Порадити: functions/src/canon-sync.js analyzeScene — improve / canon conflicts / unclear + quick fixes (paid, confirmed first)
+    const [adv, setAdv] = useState(null); // null | { ask } | { busy } | { error } | { data }
+    const cost = (window.__TOKEN_COSTS && window.__TOKEN_COSTS.analyzeScene) || 50;
+    const plan = window.__wwUser && window.__wwUser.plan;
+    const allowed = !!(window.__getPlanConfig && plan && window.__getPlanConfig(plan).allowAnalyze);
+    const advise = async () => {
+      setAdv({ busy: true });
+      try {
+        const token = await firebase.auth().currentUser.getIdToken();
+        const r = await fetch("https://us-central1-whitewrite-app.cloudfunctions.net/analyzeScene", { method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+          body: JSON.stringify({ projectId, sceneText: text, title, lang: window.__i18n ? window.__i18n.getLanguage() : "uk" }) });
+        const d = await r.json().catch(() => ({ error: "HTTP " + r.status }));
+        if (!r.ok || !d.analysis) throw new Error(d.error || "HTTP " + r.status);
+        if (window.__wwUser && d.tokensConsumed) {
+          window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + d.tokensConsumed;
+          window.__wwUser.tokensRemaining = d.tokensRemaining;
+          if (typeof window.__showTokenToast === "function") window.__showTokenToast(d.tokensConsumed, d.tokensRemaining);
+          if (typeof window.__syncDockAvatar === "function") window.__syncDockAvatar();
+        }
+        setAdv({ data: d.analysis, spent: d.tokensConsumed });
+      } catch (e) { setAdv({ error: e.message }); }
+    };
+    const applyFix = (f) => {
+      if (!f.original || text.indexOf(f.original) < 0) return;
+      const v = text.replace(f.original, f.suggested || ""); setText(v); change({ title, text: v });
+      setAdv((a) => ({ ...a, data: { ...a.data, fixes: a.data.fixes.filter((x) => x !== f) } }));
+    };
+    const list = (items, render) => (items && items.length ? <ul className="adv__list">{items.map(render)}</ul> : <p className="adv__none">{tt('book.adv.none')}</p>);
     return (
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={tt('book.sheetTitle')}>
+      <div className={"sheet" + (adv ? " sheet--adv" : "")} role="dialog" aria-modal="true" aria-label={tt('book.sheetTitle')}>
         <div className="sheet__paper">
           <div className="sheet__kicker">{tt('book.scene')} {scene.n} · {tt('book.sheetTitle')}</div>
           <input className="sheet__title" value={title} placeholder={tt('book.sheetTitlePh')}
@@ -254,9 +283,40 @@
             <span className={"sheet__state is-" + state}>{tt('book.sheet.' + state)}</span>
             <span className="sheet__count">{words} {tt('book.words')}</span>
             <span style={{ flex: 1 }} />
+            <button className="sheet__adv" type="button" disabled={!text.trim() || !!(adv && adv.busy)} onClick={() => setAdv({ ask: true })}
+              title={tt('book.adv.tip').replace('{n}', cost)}>✦ {tt('book.adv.btn')} <span className="sheet__cost">{cost}</span></button>
             <button className="sheet__done" type="button" onClick={close}>{tt('book.sheetDone')}</button>
           </div>
         </div>
+        {adv && (
+          <aside className="adv" aria-live="polite">
+            <div className="adv__head"><b>✦ {tt('book.adv.title')}</b><button className="adv__x" type="button" aria-label={tt('ui.close')} onClick={() => setAdv(null)}>✕</button></div>
+            {adv.ask && (allowed ? (
+              <div className="adv__ask">
+                <p>{tt('book.adv.ask').replace('{n}', cost)}</p>
+                <div className="adv__row"><button className="sheet__done" type="button" onClick={advise}>{tt('book.adv.go')}</button><button className="adv__btn" type="button" onClick={() => setAdv(null)}>{tt('book.adv.cancel')}</button></div>
+              </div>
+            ) : <p className="adv__note">{tt('book.adv.plan')}</p>)}
+            {adv.busy && <p className="adv__note">{tt('book.adv.busy')}</p>}
+            {adv.error && <p className="adv__note is-error">{adv.error}</p>}
+            {adv.data && (
+              <div className="adv__body">
+                {adv.data.summary && <p className="adv__sum">{adv.data.summary}</p>}
+                <h4>{tt('book.adv.improve')}</h4>
+                {list(adv.data.improve, (x, i) => <li key={i}><b>{x.what}</b>{x.why && <span> — {x.why}</span>}{x.quote && <q>{x.quote}</q>}</li>)}
+                <h4>{tt('book.adv.canon')}</h4>
+                {list(adv.data.canon, (x, i) => <li key={i} className="is-canon"><q>{x.quote}</q><span>{x.conflict}</span>{x.fact && <i>{x.fact}</i>}</li>)}
+                <h4>{tt('book.adv.unclear')}</h4>
+                {list(adv.data.unclear, (x, i) => <li key={i}><q>{x.quote}</q><span>{x.question}</span></li>)}
+                {adv.data.fixes && adv.data.fixes.length > 0 && <h4>{tt('book.adv.fixes')}</h4>}
+                {adv.data.fixes && adv.data.fixes.length > 0 && <ul className="adv__list">{adv.data.fixes.map((f, i) => (
+                  <li key={i} className="adv__fix"><del>{f.original}</del><ins>{f.suggested}</ins>{f.reason && <span>{f.reason}</span>}
+                    {text.indexOf(f.original) >= 0 && <button className="adv__btn" type="button" onClick={() => applyFix(f)}>{tt('book.adv.apply')}</button>}</li>))}</ul>}
+                {adv.spent != null && <p className="adv__spent">−{adv.spent} {tt('book.adv.tokens')}</p>}
+              </div>
+            )}
+          </aside>
+        )}
       </div>
     );
   }

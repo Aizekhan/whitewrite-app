@@ -12,6 +12,7 @@ const {
   loadCanon,
   claudeApiKey,
   verifyAuth,
+  buildCanonContext,
 } = require('./common');
 const { extractCanonFromScene } = require('./canon-extract');
 
@@ -185,7 +186,7 @@ exports.analyzeScene = onRequest({
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const { projectId, sceneText } = req.body;
+      const { projectId, sceneText } = req.body; // + title, lang
 
       if (!projectId || !sceneText) {
         return res.status(400).json({ error: 'Missing projectId or sceneText' });
@@ -233,71 +234,37 @@ exports.analyzeScene = onRequest({
       if (projectDoc.data().owner !== uid) {
         return res.status(403).json({ error: 'Forbidden: not project owner' });
       }
-      const { canon } = await loadCanon(db, projectId, projectDoc.data(), uid);
+      const project = projectDoc.data();
+      const { canon } = await loadCanon(db, projectId, project, uid);
+      const replyIn = (req.body.lang === 'en') ? 'English' : 'Ukrainian';
+      const reveal = { open: 'open to the reader', later: 'a secret the reader learns later' + (project.revealNote ? ` (${project.revealNote})` : ''), internal: 'internal canon — for the author only, not for readers' }[project.reveal || 'open'];
 
-      // Build analysis prompt (inspired by White-Tree)
-      const systemInstruction = `You are a narrative analysis expert. Perform a complete diagnostic of the provided scene text.
+      // The author's advisor (the writing sheet «✦ Порадити»): what to improve, what contradicts the canon, what is unclear.
+      const systemInstruction = `You are a careful literary editor and keeper of a fictional world's canon. The author wrote this scene themselves; you advise, you never rewrite it whole.
+Judge the scene against the canon below: the world's laws are unbreakable, facts and the entities' descriptions and current states are true.
+Be concrete: quote the exact words from the scene you are talking about (short quotes, verbatim). No praise padding. If a list has nothing real, return it empty.
+Reply in ${replyIn}. Return ONLY valid JSON, no markdown.
 
-CRITICAL ANALYSIS TASKS:
-1. Consistency Check: Compare text against canon. Identify contradictions.
-2. Narrative Diagnostic: Provide scores (0-10), strengths, weaknesses, suggestions.
-3. Tension Analysis: Break down narrative into 6-8 segments and evaluate tension (0-10) for each.
-4. Quick Fixes: Suggest specific inline improvements (original → suggested).
+The story: "${project.title || ''}" — ${reveal}.
 
-SCORING GUIDELINES (0-10):
-- 0-3: Critical issues. 4-6: Functional but lacking. 7-8: Good. 9-10: Exceptional.
+CANON:
+${buildCanonContext(canon)}`;
 
-Return ONLY valid JSON, no markdown wrapping.
+      const prompt = `Scene${req.body.title ? ` "${String(req.body.title).slice(0, 200)}"` : ''}:
 
-Canon Context:
-- Characters: ${Object.values(canon.characters || {}).map(e => e.name || e.title).filter(Boolean).join(', ') || 'None'}
-- Locations: ${Object.values(canon.locations || {}).map(e => e.name || e.title).filter(Boolean).join(', ') || 'None'}
-- Events: ${Object.values(canon.events || {}).map(e => e.name || e.title).filter(Boolean).join(', ') || 'None'}`;
-
-      const prompt = `Analyze this scene:
-
-${sceneText}
+${String(sceneText).slice(0, 60000)}
 
 Return JSON:
 {
-  "score": <number 0-10>,
-  "detailedScores": {
-    "plot": <number 0-10>,
-    "characters": <number 0-10>,
-    "conflict": <number 0-10>,
-    "atmosphere": <number 0-10>,
-    "dialogue": <number 0-10>,
-    "style": <number 0-10>
-  },
-  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "weaknesses": ["<weakness 1>", "<weakness 2>", "<weakness 3>"],
-  "suggestions": ["<suggestion 1>", "<suggestion 2>", "<suggestion 3>"],
-  "consistencyIssues": [
-    {
-      "type": "character" | "timeline" | "location" | "event" | "logic",
-      "description": "Issue description",
-      "contradiction": "What contradicts what"
-    }
-  ],
-  "tensionAnalysis": [
-    {
-      "segment": "Brief segment description",
-      "level": <number 0-10>,
-      "pacing": "slow" | "moderate" | "fast",
-      "note": "Why this tension level"
-    }
-  ],
-  "quickFixes": [
-    {
-      "original": "Original text snippet",
-      "suggested": "Suggested replacement",
-      "reason": "Why this improves the text"
-    }
-  ]
-}`;
+  "summary": "<one or two sentences: the main thing to work on>",
+  "improve": [ { "what": "<what to improve>", "why": "<why it matters>", "quote": "<verbatim words from the scene, or empty>" } ],
+  "canon": [ { "quote": "<verbatim words from the scene>", "conflict": "<what in the canon it contradicts>", "fact": "<the canon law/fact/description it breaks>" } ],
+  "unclear": [ { "quote": "<verbatim words from the scene>", "question": "<what a reader would not understand>" } ],
+  "fixes": [ { "original": "<verbatim snippet>", "suggested": "<replacement>", "reason": "<why>" } ]
+}
+At most 5 items per list.`;
 
-      // Call Claude Opus (expensive, high quality)
-      console.log('[Analyze] Using Claude Opus for narrative analysis');
+      console.log('[Analyze] Advising on a scene');
 
       const anthropic = new Anthropic({
         apiKey: claudeApiKey.value()
@@ -341,7 +308,7 @@ Return JSON:
         { provider: 'claude' }
       );
 
-      console.log(`[Analyze] ✅ Analysis complete (score: ${analysis.score}/10, -${userCost} tokens, $${apiCostUSD.toFixed(4)})`);
+      console.log(`[Analyze] ✅ Advice ready (-${userCost} tokens, $${apiCostUSD.toFixed(4)})`);
 
       res.status(200).json({
         success: true,

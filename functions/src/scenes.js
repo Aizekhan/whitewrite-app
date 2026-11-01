@@ -14,6 +14,7 @@ const {
   loadCanon,
   geminiApiKey,
   claudeApiKey,
+  buildCanonContext,
 } = require('./common');
 const { extractCanonFromScene } = require('./canon-extract');
 
@@ -463,76 +464,6 @@ exports.generateScene = onRequest({
 /**
  * Build canon context string for prompt
  */
-function buildCanonContext(canon) {
-  const sections = [];
-  const world = canon.world || {};
-  // Entities come from two writers: AI extraction (name/description/trait…) and
-  // the WorldTree editor (title/desc/motivation…) — read both.
-  const nameOf = (x) => x.name || x.title || 'без назви';
-  const descOf = (x) => x.description || x.desc || x.motivation ||
-    [x.role, x.trait, x.goal].filter(Boolean).join('; ') || 'немає опису';
-  // Current state = state at the end of the latest scene (continuity)
-  const stateOf = (x) => {
-    const parts = [x.status && `статус: ${x.status}`, x.location && `де: ${x.location}`].filter(Boolean);
-    return parts.length ? ` [зараз — ${parts.join('; ')}]` : '';
-  };
-
-  // World — summary, facts, and laws first: they frame everything below
-  const worldText = world.summary || world.description;
-  if (worldText) {
-    sections.push('**Всесвіт:**\n' + worldText);
-  }
-  const facts = (world.facts || []).filter(f => f && f.k && f.v);
-  if (facts.length > 0) {
-    sections.push('**Факти світу:**\n' + facts.map(f => `- ${f.k}: ${f.v}`).join('\n'));
-  }
-  const rules = (world.rules || []).map(r => String(r).trim()).filter(Boolean);
-  if (rules.length > 0) {
-    sections.push('**ЗАКОНИ СВІТУ (непорушні — фізика цього всесвіту):**\n' + rules.map((r, i) => `${i + 1}. ${r}`).join('\n'));
-  }
-
-  // Characters
-  const chars = Object.values(canon.characters || {});
-  if (chars.length > 0) {
-    sections.push('**Персонажі:**\n' + chars.map(c =>
-      `- ${nameOf(c)}: ${descOf(c)}${stateOf(c)}`
-    ).join('\n'));
-  }
-
-  // Locations
-  const locs = Object.values(canon.locations || {});
-  if (locs.length > 0) {
-    sections.push('**Локації:**\n' + locs.map(l =>
-      `- ${nameOf(l)}: ${descOf(l)}`
-    ).join('\n'));
-  }
-
-  // Events
-  const events = Object.values(canon.events || {});
-  if (events.length > 0) {
-    sections.push('**Події:**\n' + events.map(e =>
-      `- ${nameOf(e)}: ${descOf(e)}`
-    ).join('\n'));
-  }
-
-  // Factions
-  const factions = Object.values(canon.factions || {});
-  if (factions.length > 0) {
-    sections.push('**Фракції:**\n' + factions.map(f =>
-      `- ${nameOf(f)}: ${descOf(f)}`
-    ).join('\n'));
-  }
-
-  // Artifacts
-  const artifacts = Object.values(canon.artifacts || {});
-  if (artifacts.length > 0) {
-    sections.push('**Артефакти:**\n' + artifacts.map(a =>
-      `- ${nameOf(a)}: ${descOf(a)}${a.owner ? ` [власник: ${a.owner}]` : ''}`
-    ).join('\n'));
-  }
-
-  return sections.length > 0 ? sections.join('\n\n') : 'Канон порожній — ти створюєш світ з нуля.';
-}
 
 /**
  * Build scene generation prompt

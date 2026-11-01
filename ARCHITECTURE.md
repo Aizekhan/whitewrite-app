@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.4.0 (2026-11-02)
+**Version:** 2.5.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -349,6 +349,7 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 **The book (reading & writing, `app/book.jsx`, `app/book-edit.jsx`):**
 - **Pages are measured, not counted:** `paginateScene` lays each scene into the real page boxes using a hidden probe (`makeProbe`: same `.photobook__pages` size, `cqw`, font and `--book-size`), paragraph by paragraph, splitting the last paragraph by words (binary search); a continued paragraph has no indent (`.prose--cont`), the split one justifies its last line (`.prose--split`). Re-run on resize, font/size (`ww-book-typo` event from the «Aa» bookmark → `localStorage ww-book-typo`) and after `document.fonts.ready`. Phones (≤820px) read one parchment sheet per scene. State keeps the raw scenes (`raw`), spreads are derived.
 - **Free writing:** the story form has a third mode **«Пишу сам»** (`project.creation: "free"`, title is enough) — no generation; the mage ritual (`StartStoryAnim.mp4`) opens the book with «Книга відкривається…», then the writing sheet. **Sheet** (`SceneSheet`): ✎ (this scene) / ＋ (new scene via `addScene`) — title + plain-text area (typing or pasting; a line = a paragraph), autosave 0.9 s → `updateScene({title,text})`, Ctrl+S, Esc/«Готово» closes and re-opens the book on that scene; an untouched new scene is deleted.
+- **«✦ Порадити» (AI advice, paid):** a button in the sheet footer shows the price (`__TOKEN_COSTS.analyzeScene`, server cost from `economy_operations/analyzeScene`); a confirm step first (or a plan note if `allowAnalyze` is off — Novelist and up), then `POST analyzeScene {projectId, sceneText, title, lang}`. The function (`functions/src/canon-sync.js`) reads the world canon via `buildCanonContext` (now in `functions/src/common.js`, shared with `generateScene`) and the story's `reveal` mark, and returns `{summary, improve[{what,why,quote}], canon[{quote,conflict,fact}], unclear[{quote,question}], fixes[{original,suggested,reason}]}`. The advice column sits beside the sheet; «Застосувати» replaces `original` with `suggested` in the text and autosaves. Balance syncs from `tokensConsumed/tokensRemaining`.
 - An empty story shows «Порожня книга» (+ the «what next?» spread for AI), never the demo; the demo (`buildScenes`) only without a projectId. `?scene=N` opens scene N. `addScene` no longer writes empty `canonRefs` (it raced with server extraction).
 
 **Context Building:**
@@ -533,5 +534,5 @@ firebase deploy                   # Deploy everything
 
 ---
 
-**Last updated:** 2026-11-01
+**Last updated:** 2026-11-02
 **Maintained by:** WhiteWrite Team
