@@ -130,6 +130,17 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .field.files .fname{ flex:1; overflow-wrap:anywhere; color:var(--tx); }
 .field.files .file .btn{ padding:2px 8px; }
 .field.files > .btn{ justify-self:start; margin-top:8px; cursor:pointer; }
+/* 3D viewer (gb-3d.js) */
+.v3d-pill{ cursor:pointer; }
+.v3d{ position:fixed; inset:0; z-index:60; background:var(--bg-0); display:flex; flex-direction:column; padding:14px 18px; gap:10px; }
+.v3d-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.v3d-head b{ color:var(--tx-hi); overflow-wrap:anywhere; }
+.v3d-head .v3d-info{ margin-right:auto; font-size:13px; }
+.v3d-head .btn[aria-pressed="true"]{ border-color:var(--gold, #c9a45c); }
+.v3d-stage{ flex:1; min-height:0; border:1px solid var(--line-2); border-radius:12px; overflow:hidden; }
+.v3d-stage canvas{ display:block; touch-action:none; }
+.v3d-hint{ margin:0; font-size:12px; text-align:center; }
+.ww-embed .v3d{ padding-top:124px; padding-bottom:64px; } /* clear the shell's home button and bottom fabs */
 
 /* canon vs game, game picker */
 .navh{ margin:14px 6px 4px; font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); }
@@ -210,6 +221,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
     <input id="e-title" />
     <div class="row">
       <select id="e-status"></select>
+      <select id="e-group" aria-label="Підзаголовок"></select>
     </div>
   </div>
   <div class="leaf-body" id="e-body"></div>
@@ -221,6 +233,7 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
   </div>
 </aside>
 
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/" } }</script>
 <script src="ww-embed.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>

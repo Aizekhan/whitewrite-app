@@ -22,6 +22,7 @@
       sectionAbout: "Про що цей розділ (необовʼязково)", create: "Створити", cancel: "Скасувати",
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше",
+      group: "Підзаголовок", noGroup: "— без підзаголовка —", newGroup: "＋ Створити підзаголовок", newGroupPh: "Назва нового підзаголовка",
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
@@ -36,8 +37,10 @@
       importApply: "Додати відмічене", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
-      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ", filesAdd: "＋ Додати файли", filesSaveFirst: "Спершу збережи картку — тоді можна додати файли.",
+      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли", filesSaveFirst: "Спершу збережи картку — тоді можна додати файли.",
       uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
+      v3d: { open: "🧊 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
+        hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
       exportMd: "⬇ Markdown для репозиторію", busyAnalyze: "AI читає всю біблію і складає гейм-диздок… (до хвилини)",
       busyPlan: "AI складає план розробки… (може зайняти кілька хвилин)", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
@@ -59,6 +62,7 @@
       sectionAbout: "What this section is about (optional)", create: "Create", cancel: "Cancel",
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other",
+      group: "Subheading", noGroup: "— no subheading —", newGroup: "＋ Create subheading", newGroupPh: "Name of the new subheading",
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
@@ -73,8 +77,10 @@
       importApply: "Add ticked items", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
-      files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB", filesAdd: "＋ Add files", filesSaveFirst: "Save the card first — then you can add files.",
+      files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files", filesSaveFirst: "Save the card first — then you can add files.",
       uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
+      v3d: { open: "🧊 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
+        hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
       exportMd: "⬇ Markdown for the repo", busyAnalyze: "AI is reading the whole bible and drafting the GDD… (up to a minute)",
       busyPlan: "AI is building the development plan… (may take a few minutes)", costNote: "AI analysis, import and the plan spend tokens from your balance.",
@@ -171,10 +177,17 @@
   var fieldKey = function (label) { return "x_" + String(label).toLowerCase().replace(/[^a-zа-яіїєґ0-9]+/gi, "_").slice(0, 40); };
 
   function gameSections() {
-    var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS }; });
+    var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     return GAME.concat(own, [PLAN]);
   }
   function sections() { return CANON.concat(gameSections()); }
+  // Subheadings: every ordinary section groups its cards by one field (mechanics "group", assets "category", others "group")
+  function groupKey(s) { return s.special ? "" : (s.group || "group"); }
+  function groupsOf(s) {
+    var k = groupKey(s), seen = [];
+    allCards().forEach(function (c) { var g = c.section === s.id && c.fields[k]; if (g && seen.indexOf(g) < 0) seen.push(g); });
+    return seen;
+  }
   function sec(id) { return sections().filter(function (s) { return s.id === id; })[0] || GAME[0]; }
 
   // Unified card view: a canon entity seen through this game, or a game-only card.
@@ -263,6 +276,8 @@
     if (query && c.section !== section) tags.push('<span class="pill s-agreed">' + esc(L(sec(c.section))) + '</span>');
     var img = (c.files || []).filter(isImage)[0];
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
+    var model = (c.files || []).filter(is3D)[0];
+    if (model) tags.push('<span class="pill s-agreed v3d-pill" role="button" tabindex="0" data-view3d="' + esc(model.id) + '">🧊 3D</span>');
     return '<button class="card" data-key="' + esc(c.key) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
@@ -282,9 +297,9 @@
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         '<button class="btn primary" id="add-top">' + STR.addCard + '</button></div>') + '</header>';
     if (!list.length) html += '<p class="empty">' + STR.nothing + '</p>';
-    else if (!query && s.group) {
+    else if (!query && list.some(function (c) { return c.fields[groupKey(s)]; })) {
       var groups = {}, order = [];
-      list.forEach(function (c) { var g = c.fields[s.group] || STR.other; if (!groups[g]) { groups[g] = []; order.push(g); } groups[g].push(c); });
+      list.forEach(function (c) { var g = c.fields[groupKey(s)] || STR.other; if (!groups[g]) { groups[g] = []; order.push(g); } groups[g].push(c); });
       order.forEach(function (g) { html += '<h2 class="group">' + esc(g) + ' <span>' + groups[g].length + '</span></h2><div class="grid">' + groups[g].map(cardHtml).join("") + '</div>'; });
     } else html += '<div class="grid">' + list.map(cardHtml).join("") + '</div>';
     $("view").innerHTML = html;
@@ -331,11 +346,23 @@
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
+    fillGroups(c.fields[groupKey(sec(c.section))] || "");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-delete").style.display = c.isNew ? "none" : "";
     renderFields(); msg("");
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     $("e-title").focus();
+  }
+
+  function fillGroups(cur, extra) {
+    var s = sec(open.section), list = groupsOf(s).concat(extra || []);
+    if (cur && list.indexOf(cur) < 0) list.push(cur);
+    $("e-group").hidden = !groupKey(s);
+    $("e-group").innerHTML = '<option value="">' + STR.noGroup + '</option>' +
+      list.map(function (g) { return '<option' + (g === cur ? " selected" : "") + '>' + esc(g) + '</option>'; }).join("") +
+      '<option value="__new">' + STR.newGroup + '</option>';
+    $("e-group").value = cur;
+    $("e-group").dataset.cur = cur;
   }
 
   function fieldHtml(key, label, value, extra) {
@@ -347,19 +374,26 @@
       '<textarea id="f-note" data-key="__note" rows="2" placeholder="' + esc(STR.notePh) + '">' + esc(draft.note) + '</textarea></div>';
     html += filesHtml();
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
-    draft.defs.forEach(function (d) { html += fieldHtml(d.key, d.label, draft.fields[d.key] || ""); });
+    var gk = groupKey(sec(open.section)); // edited through the subheading menu in the head
+    draft.defs.forEach(function (d) { if (d.key !== gk) html += fieldHtml(d.key, d.label, draft.fields[d.key] || ""); });
     html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '"><button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
   }
   // ---------- files on a card: prefabs, models, images… (Storage: worlds/{w}/games/{g}/files/{cardId}/…) ----------
   var MAX_FILE = 200 * 1024 * 1024;
+  var MODEL_EXT = /\.(glb|gltf|fbx|obj|stl)$/i; // keep in sync with gb-3d.js
+  function is3D(f) { return MODEL_EXT.test(f.name || ""); }
+  function view3d(f, files) {
+    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files); }).catch(function (e) { alert(STR.failed + ": " + (e.message || e)); });
+  }
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
   function filesHtml() {
     var files = open.files || [];
     var list = files.map(function (f) {
-      return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">📦</span>') +
+      return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
         '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' +
+        (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
     }).join("");
     var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
@@ -420,6 +454,11 @@
     [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
     draft.title = $("e-title").value.trim() || open.title || STR.newCard;
     draft.status = $("e-status").value;
+    var gk = groupKey(sec(open.section));
+    if (gk) {
+      draft.fields[gk] = $("e-group").value;
+      if (!draft.defs.some(function (d) { return d.key === gk; })) draft.defs.push({ key: gk, label: STR.group });
+    }
     msg(STR.saving);
     try {
       if (open.src === "canon") {
@@ -729,6 +768,8 @@
     if (ans) { var q = ans.closest(".q"); ans.disabled = true; answerQuestion(q.dataset.q, q.querySelector("textarea").value.trim()).catch(function (er) { planMsg = er.message; render(); }); return; }
     var cp = e.target.closest("[data-copy]");
     if (cp) { navigator.clipboard.writeText(cp.previousElementSibling.textContent).then(function () { cp.textContent = STR.copied; }); return; }
+    var v = e.target.closest("[data-view3d]");
+    if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0]; if (card) openCard(card);
   });
@@ -740,6 +781,7 @@
   $("e-body").addEventListener("click", function (e) {
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
+    var v3 = e.target.closest("[data-view3d]"); if (v3) { view3d(open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0], open.files); return; }
     if (e.target.id === "nf-add") {
       var label = $("nf").value.trim(); if (!label) return;
       var key = fieldKey(label);
@@ -754,6 +796,11 @@
   $("e-body").addEventListener("keydown", function (e) {
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
   });
+  $("e-group").addEventListener("change", function (e) {
+    if (e.target.value !== "__new") { e.target.dataset.cur = e.target.value; return; }
+    var name = (prompt(STR.newGroupPh) || "").trim();
+    fillGroups(name || e.target.dataset.cur, name ? [name] : []);
+  });
   $("e-save").onclick = save;
   $("e-close").onclick = closeLeaf;
   $("scrim").onclick = closeLeaf;
@@ -767,7 +814,7 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && open) closeLeaf();
     if ((e.ctrlKey || e.metaKey) && e.key === "s" && open) { e.preventDefault(); save(); }
-    if (e.key === "Tab" && open) { // keep focus inside the leaf
+    if (e.key === "Tab" && open && !document.querySelector(".v3d")) { // keep focus inside the leaf
       var f = [].filter.call($("leaf").querySelectorAll("button,input,select,textarea,[tabindex]"), function (x) { return !x.disabled && x.offsetParent; });
       if (!f.length) return;
       if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
@@ -777,7 +824,7 @@
 
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("t-engine").textContent = STR.engine; $("q").placeholder = STR.search;
-  $("e-save").textContent = STR.save; $("e-close").textContent = STR.close; $("imp-btn").textContent = STR.importMd;
+  $("e-group").setAttribute("aria-label", STR.group); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close; $("imp-btn").textContent = STR.importMd;
   $("engine").innerHTML = ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("");
   renderStatuses();
 
