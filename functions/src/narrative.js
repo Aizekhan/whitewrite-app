@@ -1,11 +1,12 @@
-// Quests & dialogues (World Bible «Квести» / «Діалоги»): AI drafts from a source — a story, a canon entity or a culture entry.
-// POST { worldId, op: questDraft | dialogueDraft, source?: { type, id }, draft?, wish?, language? } with the author's ID token.
+// Quests & dialogues of a GAME (Game Bible «Квести й діалоги»): AI drafts from a source — a story, a canon entity, a culture entry or a game card.
+// POST { worldId, gameId, op: questDraft | dialogueDraft, source?: { type, id }, draft?, wish?, language? } with the author's ID token.
 // Returns a PROPOSAL only — nothing is written: the author accepts, edits or rejects every field in the editor (spec 2.2).
-// Canon links are kept only when the id exists in the world; anything new the AI invents is returned as `ideas`, never as canon.
-// Access: allowQuests (Novelist+), an active subscription; reserve → Claude → charge the real cost (paid-features.js questDraft / dialogueDraft).
+// Links are kept only when the id exists — a canon entity (its id) or a game card (c:<id>, narrative-validate.js refPool);
+// anything new the AI invents is returned as `ideas`, never as canon. Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js questDraft / dialogueDraft).
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey, buildCanonContext } = require('./common');
 const { emptyCanon, CANON_KINDS } = require('../canon-store.js');
 const { featureCost, byOp } = require('../paid-features.js');
+const { refPool } = require('../narrative-validate.js');
 const { modelFor, claudeText } = require('./claude');
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
@@ -32,7 +33,7 @@ function cleanQuest(p, ents) {
     title: str(p.title, 160), type: oneOf(p.type, QUEST_TYPES, 'side'), summary: str(p.summary, 3000),
     giver: ok('characters')(str(p.giver, 80)) || '',
     characters: list(p.characters, 20, ok('characters')), locations: list(p.locations, 20, ok('locations')),
-    factions: list(p.factions, 20, ok('factions')), artifacts: list(p.artifacts, 20, ok('artifacts')),
+    factions: list(p.factions, 20, ok('factions')), artifacts: list(p.artifacts, 20, ok('artifacts')), events: list(p.events, 20, ok('events')),
     objectives: list(p.objectives, 10, (o) => str(o, 300) || null).join('\n'),
     stages: stages.map((s, i) => ({ id: 's' + (i + 1), title: str(s.title, 160), objective: str(s.objective, 400),
       next: list(s.next, 4, (b) => (b && sid(+b.to) && sid(+b.to) !== 's' + (i + 1) ? { to: sid(+b.to), cond: str(b.cond, 200) } : null)),
@@ -61,7 +62,7 @@ function cleanDialogue(p, ents) {
   };
 }
 
-async function sourceText(uid, worldId, src, ents, lore) {
+async function sourceText(uid, worldId, gref, src, ents, lore) {
   const type = str(src && src.type, 20), id = str(src && src.id, 120);
   if (!type || !id) return '';
   if (type === 'story') {
@@ -73,7 +74,7 @@ async function sourceText(uid, worldId, src, ents, lore) {
     return `A STORY of this world — "${str(p.data().title, 200)}": ${str(p.data().desc, 1500)}\n${text}`;
   }
   if (type === 'quest') { // a dialogue for a quest: the quest is its source
-    const q = await db.collection('worlds').doc(worldId).collection('quests').doc(id).get();
+    const q = await gref.collection('quests').doc(id).get();
     if (!q.exists) return '';
     const d = q.data();
     return `The QUEST this dialogue belongs to — "${str(d.title, 200)}": ${str(d.summary, 2000)}
@@ -85,30 +86,34 @@ Stages: ` +
     const l = lore.find((x) => x.id === id); if (!l) return '';
     return `A CULTURE entry (${l.group || ''}) "${str(l.name, 200)}": ${str(l.desc, 3000)} ${Object.values(l.fields || {}).map((v) => str(v, 1000)).join(' · ')}`;
   }
-  const e = ents.find((x) => x.id === id); if (!e) return '';
+  if (type === 'card') { // a game card: the game's own design
+    const c = ents.find((x) => x.id === 'c:' + id); if (!c) return '';
+    return `A GAME CARD (${c.section}) [${c.id}] "${c.name}": ${str(c.desc, 3000)}`;
+  }
+  const e = ents.find((x) => x.id === id && !x.card); if (!e) return '';
   return `A CANON ${e.kind} [${e.id}] "${e.name || e.title || ''}": ${str(e.desc || e.description, 3000)} ${Object.values(e.dossier || {}).map((v) => str(v, 1500)).join(' · ')}`;
 }
 
 function questPrompt(lang) {
   return `Return ONLY JSON:
 { "title": "", "type": "${QUEST_TYPES.join('|')}", "summary": "<premise, motivation, the quest's role in the world — 2-5 sentences>",
-  "giver": "<canon character id or empty>", "characters": ["<canon ids>"], "locations": ["<canon ids>"], "factions": ["<canon ids>"], "artifacts": ["<canon ids>"],
+  "giver": "<character id or empty>", "characters": ["<ids>"], "locations": ["<ids>"], "factions": ["<ids>"], "artifacts": ["<ids>"], "events": ["<canon event ids the quest builds on>"],
   "objectives": ["<what the player does>"],
   "stages": [ { "title": "", "objective": "", "next": [ { "to": <stage number, 1-based>, "cond": "<condition or empty>" } ], "end": false, "fail": false } ],
   "rewards": "<rewards, no fixed economy numbers unless the canon gives them>", "hooks": "<how the player learns about it>",
   "repeat": { "mode": "once|repeatable|daily", "cooldown": "" },
   "ideas": ["<anything NEW you would add to the world — characters, places, items — as short notes; these are not canon>"] }
 Rules: the first stage is the start; at least one stage has "end": true; every other stage leads somewhere; 3–7 stages; branches only where they matter.
-Use ONLY ids from the canon below for links; never invent ids. Write in ${lang}.`;
+Use ONLY ids from the list below for links (game cards "c:…" and canon ids); never invent ids. Write in ${lang}.`;
 }
 function dialoguePrompt(lang) {
   return `Return ONLY JSON:
-{ "title": "", "type": "${DIALOGUE_TYPES.join('|')}", "trigger": "<when it starts>", "participants": ["<canon character ids>"], "location": "<canon location id or empty>",
+{ "title": "", "type": "${DIALOGUE_TYPES.join('|')}", "trigger": "<when it starts>", "participants": ["<character ids>"], "location": "<location id or empty>",
   "nodes": [ { "speaker": "<a participant id | player | narrator>", "text": "", "cond": "", "effects": "", "next": <line number, 1-based, or null>,
                "choices": [ { "text": "<player choice>", "to": <line number>, "cond": "" } ], "end": false } ],
   "ideas": ["<anything NEW as short notes; not canon>"] }
 Rules: the first line is the start; a line has either "next" or "choices"; the conversation reaches an end ("end": true); 4–16 lines; voices true to the canon.
-Use ONLY ids from the canon below; never invent ids. Write in ${lang}.`;
+Use ONLY ids from the list below (game cards "c:…" and canon ids); never invent ids. Write in ${lang}.`;
 }
 
 exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiKey], timeoutSeconds: 300 }, async (req, res) => {
@@ -121,14 +126,14 @@ exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiK
       try { uid = (await admin.auth().verifyIdToken(auth.slice(7))).uid; } catch (e) { return res.status(401).json({ error: 'Невірний токен автентифікації' }); }
       const body = req.body || {};
       const op = oneOf(body.op, ['questDraft', 'dialogueDraft'], '');
-      const worldId = str(body.worldId, 120);
-      if (!op || !worldId) return res.status(400).json({ error: 'Missing op/worldId' });
+      const worldId = str(body.worldId, 120), gameId = str(body.gameId, 120);
+      if (!op || !worldId || !gameId) return res.status(400).json({ error: 'Missing op/worldId/gameId' });
       const lang = LANGUAGES[body.language] || LANGUAGES.uk;
-      const wref = db.collection('worlds').doc(worldId);
-      const [w, userDoc] = await Promise.all([wref.get(), db.collection('users').doc(uid).get()]);
-      if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Світ не знайдено або немає доступу' });
+      const wref = db.collection('worlds').doc(worldId), gref = wref.collection('games').doc(gameId);
+      const [w, g, userDoc] = await Promise.all([wref.get(), gref.get(), db.collection('users').doc(uid).get()]);
+      if (!w.exists || w.data().owner !== uid || !g.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
       const userData = userDoc.exists ? userDoc.data() : {};
-      if (!getPlanBudget(userData.plan || 'free').allowQuests) return res.status(403).json({ error: 'Квести й діалоги — з тарифу Novelist', code: 'PLAN_REQUIRED' });
+      if (!getPlanBudget(userData.plan || 'free').allowGameDev) return res.status(403).json({ error: 'Квести й діалоги — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
       if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
 
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
@@ -142,24 +147,26 @@ exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiK
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }
 
-      const [entSnap, loreSnap, qSnap] = await Promise.all([wref.collection('entities').get(), wref.collection('lore').get(), wref.collection('quests').get()]);
-      const ents = entSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => CANON_KINDS.includes(e.kind) && !(e.origin && e.origin.confirmed === false));
+      const [entSnap, loreSnap, qSnap, cardSnap] = await Promise.all([wref.collection('entities').get(), wref.collection('lore').get(), gref.collection('quests').get(), gref.collection('cards').get()]);
+      const canonEnts = entSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => CANON_KINDS.includes(e.kind) && !(e.origin && e.origin.confirmed === false));
+      const ents = refPool(canonEnts, cardSnap.docs.map((d) => ({ id: d.id, ...d.data() }))); // canon + the game's own cards
       const lore = loreSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const canon = emptyCanon(), world = w.data();
       ['tagline', 'summary', 'facts', 'rules'].forEach((f) => { if (world[f] !== undefined) canon.world[f] = world[f]; });
-      ents.forEach((e) => { canon[e.kind][e.id] = e; });
-      const ids = ents.map((e) => `${e.id} = ${e.kind.slice(0, -1)} "${e.name || e.title || ''}"`).join('\n');
+      canonEnts.forEach((e) => { canon[e.kind][e.id] = e; });
+      const ids = ents.map((e) => `${e.id} = ${e.card ? 'game card, ' + e.section : 'canon ' + e.kind.slice(0, -1)} "${e.name}"`).join('\n');
       const quests = qSnap.docs.map((d) => `"${str(d.data().title, 120)}" (${d.data().type || ''})`).join('; ');
-      const src = await sourceText(uid, worldId, body.source, ents, lore);
+      const src = await sourceText(uid, worldId, gref, body.source, ents, lore);
       const isQ = op === 'questDraft';
       const draft = body.draft && typeof body.draft === 'object' ? JSON.stringify(body.draft).slice(0, 6000) : '';
-      const system = `You are a game narrative designer working inside an established world. The world's laws are unbreakable; facts and entity descriptions are true.
+      const system = `You are a game narrative designer for the game "${str(g.data().title, 160)}", built inside an established world. The world's laws are unbreakable; facts and entity descriptions are true.
+Quests and dialogues are design decisions of THIS game: prefer its own cards (ids "c:…"), lean on canon characters and events where they fit.
 You PROPOSE drafts; the author decides. Never contradict the canon.
 
 CANON:
 ${buildCanonContext(canon)}
 
-CANON IDS (use exactly these for links):
+IDS (use exactly these for links):
 ${ids || '(none yet)'}
 ${lore.length ? '\nCULTURE: ' + lore.map((l) => `${l.name} — ${str(l.desc, 300)}`).join('; ') : ''}`;
       const prompt = `${isQ ? 'Draft a QUEST' : 'Draft a DIALOGUE'} for this world.

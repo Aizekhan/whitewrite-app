@@ -1,15 +1,30 @@
 // ============================================================================
-// Quests & dialogues — graph checks. SINGLE SOURCE for the World Bible (window.__NARRATIVE, copy in
+// Quests & dialogues — graph checks. SINGLE SOURCE for the Game Bible (window.__NARRATIVE, copy in
 // app/firebase/ made by scripts/build-app.mjs) and the MCP server (require). Edit THIS file.
 // ============================================================================
-// Quest     worlds/{w}/quests/{id}    { title, type, approval, giver, characters[], locations[], factions[], artifacts[],
+// Quests and dialogues are a game-design decision: they live in the GAME and link to the game's cards ("c:<cardId>")
+// and to canon entities (their plain id) — characters, locations, factions, artifacts and canon events.
+// Quest     worlds/{w}/games/{g}/quests/{id}    { title, type, approval, giver, characters[], locations[], factions[], artifacts[], events[],
 //                                       prereqs[questId], repeat {mode once|repeatable|daily, cooldown}, stages[] }
 //   stage   { id, title, objective, next: [{ to, cond }], end, fail }
-// Dialogue  worlds/{w}/dialogues/{id} { title, type, approval, participants[], questId, stageId, location, trigger, nodes[] }
+// Dialogue  worlds/{w}/games/{g}/dialogues/{id} { title, type, approval, participants[], questId, stageId, location, trigger, nodes[] }
 //   node    { id, speaker, text, locKey, cond, effects, choices: [{ text, to, cond }], next, end }
 // The first stage / node is the start. Issues: { level: 'error' | 'warn', code, ...params } — the UI words them.
 
-const REF_FIELDS = ['giver', 'characters', 'locations', 'factions', 'artifacts'];
+const REF_FIELDS = ['giver', 'characters', 'locations', 'factions', 'artifacts', 'events'];
+// game card sections that can take part in a quest, and the role they play (enemies are characters, levels are places…)
+const CARD_ROLES = { characters: 'characters', enemies: 'characters', locations: 'locations', levels: 'locations', factions: 'factions', items: 'artifacts', gear: 'artifacts' };
+
+// Everything a quest or dialogue may link to: confirmed canon entities (id) + the game's own cards (c:<id>) in the role sections.
+// Canon entities seen in the game are cards with canonRef — they are linked by the entity id, so they are not repeated.
+function refPool(entities, cards) {
+  const out = (entities || []).map((e) => ({ id: e.id, kind: e.kind, name: e.name || e.title || '', desc: e.desc || e.description || '' }));
+  (cards || []).forEach((c) => {
+    const kind = !c.canonRef && CARD_ROLES[c.section];
+    if (kind) out.push({ id: 'c:' + c.id, kind, card: true, section: c.section, name: c.title || '', desc: Object.values(c.fields || {}).filter((v) => typeof v === 'string').join(' · ') });
+  });
+  return out;
+}
 const SPEAKERS = ['', 'player', 'narrator'];
 
 const arr = (v) => (Array.isArray(v) ? v : v ? [v] : []);
@@ -52,7 +67,7 @@ function refIssues(doc, fields, entities) {
   return out;
 }
 
-// ctx: { entities: [{ id }], quests: [{ id, prereqs, stages }] }
+// ctx: { entities: refPool(…), quests: [{ id, prereqs, stages }] }
 function validateQuest(q, ctx) {
   const out = [], quests = (ctx && ctx.quests) || [], stages = arr(q.stages);
   if (!String(q.title || '').trim()) out.push({ level: 'warn', code: 'noTitle' });
@@ -99,6 +114,6 @@ function validateDialogue(d, ctx) {
 
 const worst = (issues) => (issues.some((x) => x.level === 'error') ? 'error' : issues.length ? 'warn' : '');
 
-const NARRATIVE = { validateQuest, validateDialogue, graphIssues, worst };
+const NARRATIVE = { validateQuest, validateDialogue, graphIssues, worst, refPool, CARD_ROLES };
 if (typeof module !== 'undefined' && module.exports) module.exports = NARRATIVE;
 if (typeof window !== 'undefined') window.__NARRATIVE = NARRATIVE;

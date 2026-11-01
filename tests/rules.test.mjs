@@ -53,17 +53,16 @@ const cases = [
   T('a stranger cannot read', 'DENY', 'get', G + '/cards/c1', 'u2'),
   T('a stranger cannot write', 'DENY', 'create', G + '/cards/c9', 'u2', 'worldbuilder', { title: 'x' }),
   T('signed-out cannot read', 'DENY', 'get', G + '/cards/c1', null),
-  // quests & dialogues: world level, from Novelist (allowQuests)
-  T('Novelist writes a quest', 'ALLOW', 'create', D + '/worlds/w1/quests/q1', 'u1', 'novelist', { title: 'x' }),
-  T('Novelist writes a dialogue', 'ALLOW', 'update', D + '/worlds/w1/dialogues/d1', 'u1', 'novelist', { title: 'x' }),
-  T('Worldbuilder writes a quest', 'ALLOW', 'create', D + '/worlds/w1/quests/q2', 'u1', 'worldbuilder', { title: 'x' }),
-  T('Storyteller cannot write quests', 'DENY', 'create', D + '/worlds/w1/quests/q3', 'u1', 'storyteller', { title: 'x' }),
-  T('Free cannot write dialogues', 'DENY', 'create', D + '/worlds/w1/dialogues/d2', 'u1', 'free', { title: 'x' }),
-  T('Free may delete its quests (deleting the world)', 'ALLOW', 'delete', D + '/worlds/w1/quests/q1', 'u1', 'free'),
-  T('Free still reads its quests', 'ALLOW', 'get', D + '/worlds/w1/quests/q1', 'u1', 'free'),
+  // quests & dialogues: a game-design decision — games/{g}/quests, /dialogues, Worldbuilder only
+  T('Worldbuilder writes a game quest', 'ALLOW', 'create', G + '/quests/q1', 'u1', 'worldbuilder', { title: 'x' }),
+  T('Worldbuilder writes a game dialogue', 'ALLOW', 'update', G + '/dialogues/d1', 'u1', 'worldbuilder', { title: 'x' }),
+  T('Novelist cannot write game quests', 'DENY', 'create', G + '/quests/q2', 'u1', 'novelist', { title: 'x' }),
+  T('Free cannot write dialogues', 'DENY', 'create', G + '/dialogues/d2', 'u1', 'free', { title: 'x' }),
+  T('Free still reads its quests', 'ALLOW', 'get', G + '/quests/q1', 'u1', 'free'),
+  T('world-level quests are closed', 'DENY', 'create', D + '/worlds/w1/quests/q3', 'u1', 'worldbuilder', { title: 'x' }),
   T('Novelist still cannot write game cards', 'DENY', 'create', G + '/cards/c5', 'u1', 'novelist', { title: 'x' }),
-  T('a stranger cannot read quests', 'DENY', 'get', D + '/worlds/w1/quests/q1', 'u2'),
-  T('a stranger cannot write dialogues', 'DENY', 'create', D + '/worlds/w1/dialogues/d9', 'u2', 'worldbuilder', { title: 'x' }),
+  T('a stranger cannot read quests', 'DENY', 'get', G + '/quests/q1', 'u2'),
+  T('a stranger cannot write dialogues', 'DENY', 'create', G + '/dialogues/d9', 'u2', 'worldbuilder', { title: 'x' }),
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

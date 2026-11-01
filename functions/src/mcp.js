@@ -60,10 +60,10 @@ const TOOLS = [
     inputSchema: { type: 'object', required: ['issue_id', 'summary', 'outcome'], properties: {
       issue_id: { type: 'string' }, task_id: { type: 'string' }, summary: { type: 'string' }, build: { type: 'string' },
       outcome: { type: 'string', enum: ['improved', 'no_change', 'worse', 'inconclusive'] }, evidence: { type: 'string' } } } },
-  // Quests & dialogues of the world (World Bible «Квести» / «Діалоги»): only the ones the author approved
-  { name: 'get_quest_context', description: 'A quest of the world, approved by the author: type, giver, characters / locations / factions / artifacts (canon refs with descriptions), objectives, stages with branches and conditions (the first stage is the start; end / fail stages finish it), rewards, prerequisites, repetition, its dialogues and the graph check. Without an id — the list of approved quests.',
+  // Quests & dialogues of the game (Game Bible «Квести й діалоги»): only the ones the author approved
+  { name: 'get_quest_context', description: 'A quest of this game, approved by the author: type, giver, characters / locations / factions / artifacts (game cards "c:…" and canon entities "e:…", with descriptions), canon events it builds on, objectives, stages with branches and conditions (the first stage is the start; end / fail stages finish it), rewards, prerequisites, repetition, its dialogues and the graph check. Without an id — the list of approved quests.',
     inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Quest id or title' } } } },
-  { name: 'get_dialogue_context', description: 'A dialogue of the world, approved by the author: type, participants, location, quest + stage, trigger, lines (speaker, text, localisation key, condition, effects, next) and player choices (text, target line, condition); the first line is the start. Without an id — the list of approved dialogues.',
+  { name: 'get_dialogue_context', description: 'A dialogue of this game, approved by the author: type, participants, location, quest + stage, trigger, lines (speaker, text, localisation key, condition, effects, next) and player choices (text, target line, condition); the first line is the start. Without an id — the list of approved dialogues.',
     inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Dialogue id or title' } } } },
   // Setup, Unity environment, Project Knowledge, development activity log (functions/setup-guides.js holds the instructions)
   { name: 'get_guide', description: 'Instructions from WhiteWrite: setup (first run and connection rules), unity_env (environment checks with confirmed Unity CLI / Editor commands), knowledge (how to index the Unity project read-only and send it), activity_log (how and when to report development sessions).',
@@ -233,32 +233,34 @@ const issueView = (x) => ({ id: x.id, title: x.title, category: x.category, prio
   hypothesis: x.hypothesis, alternatives: x.alternatives, confidence: x.confidence, confidence_basis: x.confidenceWhy, player_impact: x.impact, suggested_actions: x.actions,
   validation_plan: x.validation, baseline: x.baseline, validations: (x.validations || []).slice(-5), related: x.related, task: x.taskId || '' });
 
-// ---------- quests & dialogues (worlds/{w}/quests, /dialogues; checks: functions/narrative-validate.js) ----------
+// ---------- quests & dialogues (games/{g}/quests, /dialogues; checks: functions/narrative-validate.js) ----------
+// They link to game cards (c:<id>) and canon entities (plain id) — NV.refPool is the list of both.
 async function narrative(ctx) {
   if (!ctx.narr) {
-    const [q, d] = await Promise.all([ctx.wref.collection('quests').get(), ctx.wref.collection('dialogues').get()]);
+    const [q, d] = await Promise.all([ctx.gref.collection('quests').get(), ctx.gref.collection('dialogues').get()]);
     const rows = (s) => s.docs.map((x) => ({ id: x.id, ...x.data() }));
     ctx.narr = { quests: rows(q), dialogues: rows(d) };
   }
   return ctx.narr;
 }
+const pool = (ctx) => ctx.refPool || (ctx.refPool = NV.refPool(ctx.entities, ctx.cards));
 const entRef = (ctx, id) => {
-  const e = ctx.entities.find((x) => x.id === id);
-  return e ? { ref: 'e:' + e.id, kind: e.kind, name: e.name || e.title || '', description: str(e.desc || e.description, 600) } : { ref: 'e:' + id, missing: true };
+  const e = pool(ctx).find((x) => x.id === id), ref = String(id).startsWith('c:') ? id : 'e:' + id;
+  return e ? { ref, kind: e.kind, name: e.name, description: str(e.desc, 600) } : { ref, missing: true };
 };
 const refs = (ctx, ids) => list(ids, 50, (id) => entRef(ctx, id));
 function findApproved(items, id, what) {
   const n = str(id, 160).toLowerCase();
   const x = items.find((y) => y.id.toLowerCase() === n) || items.find((y) => str(y.title, 160).toLowerCase() === n);
   if (!x) throw rpcError(-32602, `${what} not found: ${id}. Call without an id for the approved list.`);
-  if (x.approval !== 'approved') throw rpcError(-32602, `${what} «${x.title || x.id}» is not approved yet (${x.approval || 'draft'}). Ask the author to approve it in the World Bible.`);
+  if (x.approval !== 'approved') throw rpcError(-32602, `${what} «${x.title || x.id}» is not approved yet (${x.approval || 'draft'}). Ask the author to approve it in the Game Bible.`);
   return x;
 }
 function questView(ctx, n, q) {
-  const checkCtx = { entities: ctx.entities, quests: n.quests };
+  const checkCtx = { entities: pool(ctx), quests: n.quests };
   return { id: q.id, title: q.title || '', type: q.type || '', status: q.status || 'idea', summary: q.summary || '',
     giver: q.giver ? entRef(ctx, q.giver) : null, characters: refs(ctx, q.characters), locations: refs(ctx, q.locations),
-    factions: refs(ctx, q.factions), artifacts: refs(ctx, q.artifacts),
+    factions: refs(ctx, q.factions), artifacts: refs(ctx, q.artifacts), events: refs(ctx, q.events),
     objectives: String(q.objectives || '').split('\n').map((x) => x.trim()).filter(Boolean),
     start: ((q.stages || [])[0] || {}).id || '',
     stages: (q.stages || []).map((s) => ({ id: s.id, title: s.title || '', objective: s.objective || '', end: !!s.end, fail: !!s.fail,
@@ -278,7 +280,7 @@ function dialogueView(ctx, n, d) {
     nodes: (d.nodes || []).map((x) => ({ id: x.id, speaker: x.speaker || '', speaker_name: who(x.speaker), text: x.text || '', loc_key: x.locKey || '',
       condition: x.cond || '', effects: x.effects || '', next: x.next || '', end: !!x.end,
       choices: (x.choices || []).map((c) => ({ text: c.text || '', to: c.to || '', condition: c.cond || '' })) })),
-    notes: d.notes || '', checks: NV.validateDialogue(d, { entities: ctx.entities, quests: n.quests }),
+    notes: d.notes || '', checks: NV.validateDialogue(d, { entities: pool(ctx), quests: n.quests }),
     rules: 'Node ids and localisation keys are the contract between the dialogue data and the game. A change to the lines goes through submit_change_request.' };
 }
 

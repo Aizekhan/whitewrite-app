@@ -579,12 +579,13 @@
   var loreGroup = function (id) { return LORE.filter(function (g) { return g.id === id; })[0] || { id: id, uk: id || L(LORE[3]), en: id || L(LORE[3]), defs: id ? [] : LORE[3].defs }; };
   var COSMOLOGY = { id: "cosmology", special: "cosmology", uk: "Космологія", en: "Cosmology",
     about: { uk: "Небо світу: планета, сонця, супутники, календар — у Космографі.", en: "The sky of the world: planet, suns, moons, calendar — in the Cosmograph." } };
-  // Quests & dialogues live in worlds/{w}/quests and /dialogues (world level: Novelist writes them without a game); subsections = their types
+  // Quests & dialogues are a game-design decision: games/{g}/quests and /dialogues (Worldbuilder), linked to the game's cards
+  // (c:<id>) and to canon characters, places and events; subsections = their types
   var QUESTS = { id: "quests", special: "quests", uk: "Квести", en: "Quests",
-    about: { uk: "Квести світу: етапи з розгалуженнями, хто дає, де, нагороди, передумови. Перевірка графа — під кожним квестом.", en: "The world's quests: branching stages, giver, places, rewards, prerequisites. A graph check under each quest." } };
+    about: { uk: "Квести гри: етапи з розгалуженнями, хто дає, де, нагороди, передумови — на картках гри й на персонажах та подіях канону. Перевірка графа — під кожним квестом.", en: "The game's quests: branching stages, giver, places, rewards, prerequisites — on the game cards and on canon characters and events. A graph check under each quest." } };
   var DIALOGUES = { id: "dialogues", special: "dialogues", uk: "Діалоги", en: "Dialogues",
-    about: { uk: "Розмови світу: учасники, репліки, вибори гравця, умови й ефекти, звʼязок із квестом.", en: "The world's conversations: participants, lines, player choices, conditions and effects, the quest link." } };
-  CANON.push(CANON_ISSUES, CHRONICLE, CULTURE, QUESTS, DIALOGUES, COSMOLOGY);
+    about: { uk: "Розмови в грі: хто говорить, коли і за яких умов, репліки, вибори гравця, ефекти, звʼязок із квестом.", en: "Conversations in the game: who speaks, when and under which conditions, lines, player choices, effects, the quest link." } };
+  CANON.push(CANON_ISSUES, CHRONICLE, CULTURE, COSMOLOGY);
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
@@ -617,7 +618,7 @@
   function gameSections() {
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     var hidden = (game && game.hiddenSections) || [];
-    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
+    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
   }
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
@@ -626,6 +627,7 @@
     { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies"] },
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen"] },
     { id: "g-scenes", members: ["scenes"] },
+    { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
     { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["assets", "materials", "animation", "audio"] },
@@ -656,7 +658,7 @@
     var g = s.groups, i = g ? g.uk.indexOf(name) : -1; if (g && i < 0) i = g.en.indexOf(name);
     return i >= 0 ? (g[LANG] || g.uk)[i] : name;
   }
-  function inCanon(s) { return !!(s.dossier || s.special === "chronicle" || s.special === "culture" || s.special === "quests" || s.special === "dialogues"); }
+  function inCanon(s) { return !!(s.dossier || s.special === "chronicle" || s.special === "culture"); }
   function subsOf(s) {
     var own = ((inCanon(s) ? world : game) || {}).subsections || {};
     if (Array.isArray(own[s.id])) return own[s.id].map(function (n) { return normGroup(s, n); });
@@ -982,7 +984,6 @@
       if (cs.dossier) return renderDossiers(cs);
       if (cs.special === "chronicle") return renderChronicle(cs);
       if (cs.special === "culture") return renderCulture(cs);
-      if (cs.special === "quests" || cs.special === "dialogues") return renderQD(cs);
       if (cs.special === "cosmology") return renderCosmology(cs);
     }
     if (!canGame) return renderGameLocked();
@@ -995,6 +996,7 @@
     if (s.special === "knowledge" && !query) return renderKnowledge(s);
     if (s.special === "activity" && !query) return renderActivity(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
+    if ((s.special === "quests" || s.special === "dialogues") && !query) return renderQD(s);
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
@@ -1510,15 +1512,16 @@
     $("add-top").onclick = newSubsection;
     dragCtx = s;
   }
-  // ---------- Квести й Діалоги: worlds/{w}/quests, worlds/{w}/dialogues (world level — from Novelist, allowQuests) ----------
+  // ---------- Квести й Діалоги гри: games/{g}/quests, games/{g}/dialogues (Worldbuilder, allowGameDev) ----------
+  // Links: the game's own cards in role sections (c:<id>, narrative-validate.js CARD_ROLES) and canon entities (their id), incl. canon events.
   // Edited on the canvas (the draft survives live re-renders until saved); functions/narrative-validate.js checks the graph
   // (window.__NARRATIVE); the MCP server gives the approved ones to Claude Code (get_quest_context / get_dialogue_context).
   var QD = {
     uk: { newQ: "Новий квест", newD: "Новий діалог", back: "← До списку", title: "Назва", type: "Тип", approval: "Узгодження", status: "Стан у виробництві",
-      locked: "Квести й діалоги редагуються з тарифу Novelist. Наявні видно, змінювати їх не можна.",
-      summary: "Лор і опис", summaryPh: "Про що квест і чому він важливий для світу", stories: "Історії-джерела", noStories: "У цьому світі ще немає історій.",
-      actors: "Персонажі й локації", giver: "Хто дає квест", none: "— немає —", cast: "Персонажі", places: "Локації", factions: "Фракції", artifacts: "Артефакти",
-      noneYet: "У каноні ще немає таких записів.", objectives: "Цілі", objectivesPh: "По одній на рядок",
+      locked: "Квести й діалоги — у тарифі Worldbuilder. Наявні видно, змінювати їх не можна.",
+      summary: "Лор і опис", summaryPh: "Про що квест і чому він важливий для гри", stories: "Історії-джерела", noStories: "У цьому світі ще немає історій.",
+      actors: "Хто і де", giver: "Хто дає квест", none: "— немає —", cast: "Персонажі й вороги", places: "Локації й рівні", factions: "Фракції", artifacts: "Предмети й артефакти",
+      events: "Події канону", gameMark: "гра", noneYet: "У грі й каноні ще немає таких записів.", objectives: "Цілі", objectivesPh: "По одній на рядок",
       stages: "Етапи й розгалуження", stage: "Етап", start: "старт", stageTitle: "Назва етапу", objective: "Що зробити гравцю", end: "Кінець (успіх)", fail: "Провал",
       addStage: "＋ Етап", to: "куди", condPh: "умова (необовʼязково)", addBranch: "＋ Перехід", rm: "Прибрати",
       rewards: "Нагороди", rewardsPh: "Досвід, предмети, репутація, відкриті місця", prereqs: "Передумови й повторення", prereqsHint: "Квести, які треба пройти раніше",
@@ -1532,25 +1535,25 @@
       text: "Текст репліки", locKey: "Ключ локалізації", cond: "Умова", effects: "Ефекти", effectsPh: "напр. give_item:ключ; set_flag:met", next: "Далі",
       choice: "Текст вибору", addChoice: "＋ Вибір гравця", addNode: "＋ Репліка", endNode: "Кінець розмови",
       stagesN: "етапів", nodesN: "реплік", inDossier: "Квести й діалоги", givesIt: "дає квест", fromIt: "джерело",
-      bulb: "💡 Створити квест на основі цього", source: "Джерело", srcHint: "Історія, досьє чи запис культури, з якого виріс квест", openSrc: "↗ Відкрити джерело",
-      srcKinds: { story: "Історія", characters: "Персонаж", locations: "Локація", factions: "Фракція", artifacts: "Артефакт", events: "Подія", lore: "Культура" },
+      bulb: "💡 Створити квест на основі цього", source: "Джерело", srcHint: "Картка гри, історія, досьє чи запис культури, з якого виріс квест", openSrc: "↗ Відкрити джерело",
+      srcKinds: { card: "Картка гри", story: "Історія", characters: "Персонаж", locations: "Локація", factions: "Фракція", artifacts: "Артефакт", events: "Подія", lore: "Культура" },
       ai: "✦ Запропонувати з ШІ", aiHint: "ШІ пропонує, ти вирішуєш: кожне поле приймаєш чи відхиляєш окремо. Нічого не зберігається без «Зберегти».",
       wishPh: "Чого хочеш від цієї чернетки (необовʼязково)", aiBusy: "ШІ складає чернетку…", prop: "Пропозиція ШІ", accept: "Прийняти", reject: "Відхилити",
       acceptAll: "Прийняти все", closeProp: "Закрити пропозицію", ideas: "Ідеї ШІ — не канон, лише нотатки", spent: "Витрачено токенів",
       qtypes: { main: "Основні", side: "Побічні", faction: "Фракційні", companion: "Компаньйонів", contract: "Контракти й доручення", event: "Події світу", tutorial: "Навчальні" },
       dtypes: { narrative: "Сюжетні розмови", quest: "Квестові", ambient: "Фонові репліки (barks)", trader: "Торговці", event: "Події", tutorial: "Навчання", social: "Соціальні" },
       appr: { draft: "чернетка", review: "на розгляді", approved: "затверджено", archived: "в архіві" },
-      iss: { noTitle: "Немає назви", noGiver: "Не вказано, хто дає квест", missingRef: "Посилання на запис, якого немає в каноні: {id}", missingQuest: "Квесту не існує: {id}",
+      iss: { noTitle: "Немає назви", noGiver: "Не вказано, хто дає квест", missingRef: "Посилання на запис, якого немає ні в грі, ні в каноні: {id}", missingQuest: "Квесту не існує: {id}",
         prereqCycle: "Передумови по колу: {path} — квест ніколи не почнеться", noCooldown: "Повторюваний квест без перезарядки",
         noStages: "Немає жодного етапу", noEnd: "Немає етапу «Кінець (успіх)» — квест не можна завершити", dupId: "Повтор id: {id}",
         badLink: "{from} веде на {to}, якого немає", unreachable: "{id}: сюди не веде жоден перехід", loop: "{id}: коло без виходу",
         deadEnd: "{id}: глухий кут — нікуди далі і не позначено кінцем", noParticipants: "Немає учасників", missingStage: "Етапу квесту немає: {id}",
         noNodes: "Немає жодної репліки", emptyText: "{id}: порожня репліка", speakerNotIn: "{id}: говорить не учасник розмови" } },
     en: { newQ: "New quest", newD: "New dialogue", back: "← Back to the list", title: "Title", type: "Type", approval: "Approval", status: "Production state",
-      locked: "Quests and dialogues are edited from the Novelist plan. You can see the existing ones but not change them.",
-      summary: "Lore & description", summaryPh: "What the quest is about and why it matters to the world", stories: "Source stories", noStories: "This world has no stories yet.",
-      actors: "Characters & places", giver: "Quest giver", none: "— none —", cast: "Characters", places: "Locations", factions: "Factions", artifacts: "Artifacts",
-      noneYet: "No such entries in the canon yet.", objectives: "Objectives", objectivesPh: "One per line",
+      locked: "Quests and dialogues are part of the Worldbuilder plan. You can see the existing ones but not change them.",
+      summary: "Lore & description", summaryPh: "What the quest is about and why it matters to the game", stories: "Source stories", noStories: "This world has no stories yet.",
+      actors: "Who & where", giver: "Quest giver", none: "— none —", cast: "Characters & enemies", places: "Locations & levels", factions: "Factions", artifacts: "Items & artifacts",
+      events: "Canon events", gameMark: "game", noneYet: "No such entries in the game or the canon yet.", objectives: "Objectives", objectivesPh: "One per line",
       stages: "Stages & branches", stage: "Stage", start: "start", stageTitle: "Stage title", objective: "What the player does", end: "End (success)", fail: "Failure",
       addStage: "＋ Stage", to: "to", condPh: "condition (optional)", addBranch: "＋ Transition", rm: "Remove",
       rewards: "Rewards", rewardsPh: "XP, items, reputation, unlocked places", prereqs: "Prerequisites & repetition", prereqsHint: "Quests to finish before this one",
@@ -1564,15 +1567,15 @@
       text: "Line text", locKey: "Localisation key", cond: "Condition", effects: "Effects", effectsPh: "e.g. give_item:key; set_flag:met", next: "Next",
       choice: "Choice text", addChoice: "＋ Player choice", addNode: "＋ Line", endNode: "End of conversation",
       stagesN: "stages", nodesN: "lines", inDossier: "Quests & dialogues", givesIt: "gives the quest", fromIt: "source",
-      bulb: "💡 Create a quest from this", source: "Source", srcHint: "The story, dossier or culture entry the quest grew from", openSrc: "↗ Open the source",
-      srcKinds: { story: "Story", characters: "Character", locations: "Location", factions: "Faction", artifacts: "Artifact", events: "Event", lore: "Culture" },
+      bulb: "💡 Create a quest from this", source: "Source", srcHint: "The game card, story, dossier or culture entry the quest grew from", openSrc: "↗ Open the source",
+      srcKinds: { card: "Game card", story: "Story", characters: "Character", locations: "Location", factions: "Faction", artifacts: "Artifact", events: "Event", lore: "Culture" },
       ai: "✦ Propose with AI", aiHint: "AI proposes, you decide: accept or reject each field on its own. Nothing is saved until “Save”.",
       wishPh: "What you want from this draft (optional)", aiBusy: "AI is drafting…", prop: "AI proposal", accept: "Accept", reject: "Reject",
       acceptAll: "Accept all", closeProp: "Close the proposal", ideas: "AI ideas — not canon, just notes", spent: "Tokens spent",
       qtypes: { main: "Main", side: "Side", faction: "Faction", companion: "Companion", contract: "Contracts & errands", event: "World events", tutorial: "Tutorial" },
       dtypes: { narrative: "Story conversations", quest: "Quest", ambient: "Ambient barks", trader: "Traders", event: "Events", tutorial: "Tutorial", social: "Social" },
       appr: { draft: "draft", review: "in review", approved: "approved", archived: "archived" },
-      iss: { noTitle: "No title", noGiver: "No quest giver", missingRef: "A link to an entry missing from the canon: {id}", missingQuest: "No such quest: {id}",
+      iss: { noTitle: "No title", noGiver: "No quest giver", missingRef: "A link to an entry missing from both the game and the canon: {id}", missingQuest: "No such quest: {id}",
         prereqCycle: "Prerequisites go in a circle: {path} — the quest can never start", noCooldown: "A repeatable quest without a cooldown",
         noStages: "No stages", noEnd: "No “End (success)” stage — the quest cannot be completed", dupId: "Duplicate id: {id}",
         badLink: "{from} leads to {to}, which does not exist", unreachable: "{id}: no transition leads here", loop: "{id}: a loop with no way out",
@@ -1581,19 +1584,28 @@
   }[LANG];
   var quests = [], dialogues = [], canQuest = false, qed = null; // qed: { col, id, isNew, d (draft), first }
   var qprop = null, qbusy = "", NARR_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/narrativeDraft"; // qprop: the AI proposal of the open draft
-  var QREFS = ["giver", "characters", "locations", "factions", "artifacts"];
-  function entName(id) { var e = entities.filter(function (x) { return x.id === id; })[0]; return e ? (e.name || e.title || id) : id; }
+  var QREFS = ["giver", "characters", "locations", "factions", "artifacts", "events"];
+  function entName(id) {
+    if (String(id).indexOf("c:") === 0) { var c = cards.filter(function (x) { return "c:" + x.id === id; })[0]; return c ? (c.title || id) : id; }
+    var e = entities.filter(function (x) { return x.id === id; })[0]; return e ? (e.name || e.title || id) : id;
+  }
+  function cardRole(c) { return !c.canonRef && window.__NARRATIVE ? window.__NARRATIVE.CARD_ROLES[c.section] : ""; }
+  // who / where / what a quest can name: the game's own cards first (its design), then the canon entities of that kind
+  function pickOf(k) {
+    return cards.filter(function (c) { return cardRole(c) === k; }).map(function (c) { return { id: "c:" + c.id, card: true, name: c.title || "…" }; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); }).concat(ofKind(k));
+  }
   function ofKind(k) { return entities.filter(function (e) { return e.kind === k; }).sort(byOrder(function (e) { return e.name || e.title || ""; })); }
   function qdList(col) { return col === "quests" ? quests : dialogues; }
   function qTitle(id) { var q = qed && qed.col === "quests" && qed.id === id ? qed.d : quests.filter(function (x) { return x.id === id; })[0]; return q ? q.title || "…" : id; }
   function nvCheck(col, d) {
     var NV = window.__NARRATIVE; if (!NV) return [];
-    var ctx = { entities: entities, quests: quests.map(function (q) { return qed && qed.col === "quests" && q.id === qed.id ? qed.d : q; }) };
+    var ctx = { entities: NV.refPool(entities, cards), quests: quests.map(function (q) { return qed && qed.col === "quests" && q.id === qed.id ? qed.d : q; }) };
     return col === "quests" ? NV.validateQuest(Object.assign({ id: d.id }, d), ctx) : NV.validateDialogue(d, ctx);
   }
   function qdDefaults(col) {
     return col === "quests"
-      ? { title: "", type: "side", approval: "draft", status: "idea", source: { type: "", id: "", title: "" }, summary: "", stories: [], giver: "", characters: [], locations: [], factions: [], artifacts: [], objectives: "",
+      ? { title: "", type: "side", approval: "draft", status: "idea", source: { type: "", id: "", title: "" }, summary: "", stories: [], giver: "", characters: [], locations: [], factions: [], artifacts: [], events: [], objectives: "",
           stages: [{ id: "s1", title: "", objective: "", next: [], end: false, fail: false }], rewards: "", prereqs: [], repeat: { mode: "once", cooldown: "" }, hooks: "", notes: "" }
       : { title: "", type: "narrative", approval: "draft", status: "idea", participants: [], location: "", questId: "", stageId: "", trigger: "",
           nodes: [{ id: "n1", speaker: "", text: "", locKey: "", cond: "", effects: "", choices: [], next: "", end: true }], notes: "" };
@@ -1646,7 +1658,8 @@
   function qtogs(field, list, sel, name) {
     if (!list.length) return '<p class="muted">' + QD.noneYet + '</p>';
     return '<div class="dlinks">' + list.map(function (x) {
-      return '<button class="dlink who" data-qtog="' + field + '" data-id="' + esc(x.id) + '" aria-pressed="' + ((sel || []).indexOf(x.id) >= 0) + '">' + (x.kind === "characters" ? avatar(x) : '') + esc(name ? name(x) : x.name || x.title || "…") + '</button>';
+      return '<button class="dlink who" data-qtog="' + field + '" data-id="' + esc(x.id) + '" aria-pressed="' + ((sel || []).indexOf(x.id) >= 0) + '">' +
+        (x.card ? '<span class="k">' + QD.gameMark + '</span>' : x.kind === "characters" ? avatar(x) : '') + esc(name ? name(x) : x.name || x.title || "…") + '</button>';
     }).join("") + '</div>';
   }
   function stepLabel(list, id, word) {
@@ -1680,12 +1693,13 @@
     qdState();
   }
   function questBody(d) {
-    var chars = ofKind("characters"), others = quests.filter(function (x) { return x.id !== qed.id; }), mine = dialogues.filter(function (x) { return x.questId === qed.id; });
+    var chars = pickOf("characters"), others = quests.filter(function (x) { return x.id !== qed.id; }), mine = dialogues.filter(function (x) { return x.questId === qed.id; });
     var html = qbox(QD.summary, srcHtml(d) + qtxt("summary", d.summary, QD.summaryPh, 4) +
       qblk(QD.stories, stories.length ? qtogs("stories", stories, d.stories, function (x) { return x.title || x.name || "…"; }) : '<p class="muted">' + QD.noStories + '</p>'));
     html += qbox(QD.actors, qfld(QD.giver, qsel("giver", [["", QD.none]].concat(chars.map(function (c) { return [c.id, c.name || c.title || ""]; })), d.giver, QD.giver)) +
-      qblk(QD.cast, qtogs("characters", chars, d.characters)) + qblk(QD.places, qtogs("locations", ofKind("locations"), d.locations)) +
-      qblk(QD.factions, qtogs("factions", ofKind("factions"), d.factions)) + qblk(QD.artifacts, qtogs("artifacts", ofKind("artifacts"), d.artifacts)));
+      qblk(QD.cast, qtogs("characters", chars, d.characters)) + qblk(QD.places, qtogs("locations", pickOf("locations"), d.locations)) +
+      qblk(QD.factions, qtogs("factions", pickOf("factions"), d.factions)) + qblk(QD.artifacts, qtogs("artifacts", pickOf("artifacts"), d.artifacts)) +
+      qblk(QD.events, qtogs("events", ofKind("events"), d.events || [])));
     html += qbox(QD.objectives, qtxt("objectives", d.objectives, QD.objectivesPh, 3));
     html += qbox(QD.stages, d.stages.map(function (st, i) {
       var p = "stages." + i + ".";
@@ -1707,8 +1721,8 @@
   }
   function dlgBody(d) {
     var q = quests.filter(function (x) { return x.id === d.questId; })[0];
-    var html = qbox(QD.setup, qblk(QD.participants, qtogs("participants", ofKind("characters"), d.participants)) +
-      '<div class="qgrid">' + qfld(QD.location, qsel("location", [["", QD.none]].concat(ofKind("locations").map(function (l) { return [l.id, l.name || l.title || ""]; })), d.location, QD.location)) +
+    var html = qbox(QD.setup, qblk(QD.participants, qtogs("participants", pickOf("characters"), d.participants)) +
+      '<div class="qgrid">' + qfld(QD.location, qsel("location", [["", QD.none]].concat(pickOf("locations").map(function (l) { return [l.id, l.name || l.title || ""]; })), d.location, QD.location)) +
       qfld(QD.quest, qsel("questId", [["", QD.none]].concat(quests.map(function (x) { return [x.id, x.title || "…"]; })), d.questId, QD.quest)) +
       (q ? qfld(QD.qStage, qsel("stageId", [["", QD.none]].concat((q.stages || []).map(function (st) { return [st.id, stepLabel(q.stages, st.id, QD.stage)]; })), d.stageId, QD.qStage)) : '') + '</div>' +
       qfld(QD.trigger, qinp("trigger", d.trigger, QD.triggerPh)));
@@ -1742,7 +1756,7 @@
     var t = e.target; if (!qed || !t.dataset || !t.dataset.qf || !$("q-ed")) return;
     if (t.dataset.qf === "srcKey") { // «Джерело»: type:id → { type, id, title }
       if (e.type !== "change") return;
-      var k = t.value.split(":"), it = k[1] ? srcItem(k[0] === "story" || k[0] === "lore" ? k[0] : "e", k[1]) : null;
+      var k = t.value.split(":"), it = k[1] ? srcItem(srcCol(k[0]), k[1]) : null;
       qed.d.source = it ? { type: k[0], id: k[1], title: it.title || it.name || "" } : { type: "", id: "", title: "" }; renderQEditor(); return;
     }
     qdSet(t.dataset.qf, t.type === "checkbox" ? t.checked : t.value);
@@ -1789,37 +1803,41 @@
     var body = Object.assign(JSON.parse(JSON.stringify(q.d)), { updatedAt: stamp() }); if (q.isNew) body.createdAt = stamp();
     btn.disabled = true; $("q-state").textContent = STR.saving;
     try {
-      await wref().collection(q.col).doc(q.id).set(body, { merge: true });
+      await gref().collection(q.col).doc(q.id).set(body, { merge: true });
       if (qed !== q) return;
       q.isNew = false; q.first = JSON.stringify(q.d); renderQEditor(); $("q-state").textContent = STR.saved;
     } catch (er) { if (qed === q) { btn.disabled = false; $("q-state").textContent = STR.failed + ": " + (er.code || er.message); } }
   }
   async function deleteQD() {
     var q = qed; if (!confirm(QD.delQ.replace("{t}", q.d.title || "…"))) return;
-    try { await wref().collection(q.col).doc(q.id).delete(); qed = null; render(); }
+    try { await gref().collection(q.col).doc(q.id).delete(); qed = null; render(); }
     catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   // the dossier lists the quests and dialogues its entity takes part in (derived, nothing stored on the entity)
   // ---- 💡 a quest from a source (spec 2.2): the source travels into the form, the obvious links are prefilled, AI is one click away ----
-  function bulbHtml(type, id) { return '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>'; }
+  function bulbHtml(type, id) { return canQuest && game ? '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>' : ''; }
+  function srcCol(type) { return type === "story" || type === "lore" || type === "card" ? type : "e"; }
   function srcItem(type, id) {
+    if (type === "card") return cards.filter(function (x) { return x.id === id && !x.canonRef; })[0];
     if (type === "story") return stories.filter(function (x) { return x.id === id; })[0];
     if (type === "lore") return lore.filter(function (x) { return x.id === id; })[0];
     return entities.filter(function (x) { return x.id === id; })[0];
   }
   function questFrom(type, id) {
-    if (!canQuest) { alert(QD.locked); return; }
+    if (!canQuest || !game) { alert(QD.locked); return; }
     var x = srcItem(type, id); if (!x) return;
-    var kind = type === "story" || type === "lore" ? type : x.kind, pre = { source: { type: kind, id: id, title: x.title || x.name || "" } };
-    if (kind === "characters") { pre.giver = id; pre.characters = [id]; }
-    else if (kind === "locations" || kind === "factions" || kind === "artifacts") pre[kind] = [id];
-    else if (kind === "events") pre.characters = (x.characters || []).slice();
+    var kind = srcCol(type) === "e" ? x.kind : type, pre = { source: { type: kind, id: id, title: x.title || x.name || "" } };
+    var role = kind === "card" ? cardRole(x) : kind, ref = kind === "card" ? "c:" + id : id;
+    if (role === "characters") { pre.giver = ref; pre.characters = [ref]; }
+    else if (role === "locations" || role === "factions" || role === "artifacts") pre[role] = [ref];
+    else if (kind === "events") { pre.events = [id]; pre.characters = (x.characters || []).slice(); }
     else if (kind === "story") { pre.stories = [id]; pre.characters = (x.subjects || []).filter(function (s) { return entities.some(function (e) { return e.id === s && e.kind === "characters"; }); }); }
     if (dos) closeDossier();
     qed = null; openQD("quests", null, pre);
   }
   function srcPairs() {
     var out = [["", QD.none]];
+    cards.filter(cardRole).forEach(function (c) { out.push(["card:" + c.id, QD.srcKinds.card + " · " + (c.title || "…")]); });
     stories.forEach(function (x) { out.push(["story:" + x.id, QD.srcKinds.story + " · " + (x.title || x.name || "…")]); });
     ["characters", "locations", "factions", "artifacts", "events"].forEach(function (k) { ofKind(k).forEach(function (e) { out.push([k + ":" + e.id, QD.srcKinds[k] + " · " + (e.name || e.title || "…")]); }); });
     lore.forEach(function (l) { out.push(["lore:" + l.id, QD.srcKinds.lore + " · " + (l.name || "…")]); });
@@ -1827,18 +1845,19 @@
   }
   function srcHtml(d) {
     var s = d.source || {}, key = s.type && s.id ? s.type + ":" + s.id : "";
-    return qfld(QD.source + " · " + QD.srcHint, qsel("srcKey", srcPairs(), key, QD.source)) + (key && srcItem(s.type === "story" || s.type === "lore" ? s.type : "e", s.id) ? '<button class="btn mini ghost" data-qact="openSrc">' + QD.openSrc + '</button>' : '');
+    return qfld(QD.source + " · " + QD.srcHint, qsel("srcKey", srcPairs(), key, QD.source)) + (key && srcItem(srcCol(s.type), s.id) ? '<button class="btn mini ghost" data-qact="openSrc">' + QD.openSrc + '</button>' : '');
   }
   function openSrc() {
     var s = qed.d.source || {};
     if (s.type === "story") return tellShell({ type: "ww-open-story", projectId: s.id });
+    if (s.type === "card") { var gc = allCards().filter(function (c) { return c.key === "c:" + s.id; })[0]; if (gc) openCard(gc); return; }
     var x = srcItem(s.type === "lore" ? "lore" : "e", s.id); if (x) openDossier(x);
   }
   // ---- ✦ AI proposal: shown above the form; every field is accepted or rejected on its own ----
-  var PROP_FIELDS = { quests: ["title", "type", "summary", "giver", "characters", "locations", "factions", "artifacts", "objectives", "stages", "rewards", "hooks", "repeat"],
+  var PROP_FIELDS = { quests: ["title", "type", "summary", "giver", "characters", "locations", "factions", "artifacts", "events", "objectives", "stages", "rewards", "hooks", "repeat"],
     dialogues: ["title", "type", "trigger", "participants", "location", "nodes"] };
   var PROP_LABEL = function (k) { return { title: QD.title, type: QD.type, summary: QD.summary, giver: QD.giver, characters: QD.cast, locations: QD.places, factions: QD.factions,
-    artifacts: QD.artifacts, objectives: QD.objectives, stages: QD.stages, rewards: QD.rewards, hooks: QD.hooks, repeat: QD.repeat, trigger: QD.trigger,
+    artifacts: QD.artifacts, events: QD.events, objectives: QD.objectives, stages: QD.stages, rewards: QD.rewards, hooks: QD.hooks, repeat: QD.repeat, trigger: QD.trigger,
     participants: QD.participants, location: QD.location, nodes: QD.nodes }[k] || k; };
   function propText(k, v) {
     var types = qed.col === "quests" ? QD.qtypes : QD.dtypes;
@@ -1874,7 +1893,7 @@
     try {
       var token = await firebase.auth().currentUser.getIdToken();
       var r = await fetch(NARR_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ worldId: worldId, op: isQ ? "questDraft" : "dialogueDraft", source: src && src.id ? { type: src.type, id: src.id } : null, draft: q.d, wish: wish, language: LANG }) });
+        body: JSON.stringify({ worldId: worldId, gameId: gameId, op: isQ ? "questDraft" : "dialogueDraft", source: src && src.id ? { type: src.type, id: src.id } : null, draft: q.d, wish: wish, language: LANG }) });
       var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
       if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
       if (qed !== q) return;
@@ -1890,11 +1909,12 @@
   }
   function qdLinksHtml(e) {
     var has = function (v) { return v === e.id || (Array.isArray(v) && v.indexOf(e.id) >= 0); };
-    var qs = quests.filter(function (q) { return QREFS.some(function (k) { return has(q[k]); }) || (q.source && q.source.id === e.id); });
+    var sid = String(e.id).replace(/^c:/, ""); // a game card is linked as c:<id>, its source id is the bare card id
+    var qs = quests.filter(function (q) { return QREFS.some(function (k) { return has(q[k]); }) || (q.source && q.source.id === sid); });
     var ds = dialogues.filter(function (d) { return has(d.participants) || d.location === e.id; });
     if (!qs.length && !ds.length) return "";
     return '<h4 class="dsub">' + QD.inDossier + '</h4><div class="dlinks">' + qs.map(function (q) {
-      return '<button class="dlink" data-dqd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + (q.giver === e.id ? ' <i>' + QD.givesIt + '</i>' : q.source && q.source.id === e.id ? ' <i>' + QD.fromIt + '</i>' : '') + '</button>';
+      return '<button class="dlink" data-dqd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + (q.giver === e.id ? ' <i>' + QD.givesIt + '</i>' : q.source && q.source.id === sid ? ' <i>' + QD.fromIt + '</i>' : '') + '</button>';
     }).join("") + ds.map(function (d) {
       return '<button class="dlink" data-dqd="dialogues:' + esc(d.id) + '"><span class="k">' + QD.dialogue + '</span>' + esc(d.title || "…") + '</button>';
     }).join("") + '</div>';
@@ -2167,6 +2187,7 @@
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
+    if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + qdLinksHtml({ id: open.src === "canon" ? open.id : "c:" + open.id }) + '</div>';
     html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
@@ -3228,9 +3249,8 @@
   async function docsOf(ref) { var s = await ref.get(); return s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }
   async function exportWorld() {
     var ents = await docsOf(wref().collection("entities")), cult = await docsOf(wref().collection("lore"));
-    var qs = await docsOf(wref().collection("quests")), dl = await docsOf(wref().collection("dialogues"));
     download(slugify(world.title || "world") + ".world.json", JSON.stringify({ format: "whitewrite.world/1", exportedAt: new Date().toISOString(),
-      world: Object.assign({ id: worldId }, world), entities: ents, lore: cult, quests: qs, dialogues: dl, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
+      world: Object.assign({ id: worldId }, world), entities: ents, lore: cult, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
   }
   // Restore from an export: never overwrites — a game file becomes a new game here, a world file a new world.
   function revive(v) { // exported Firestore timestamps come back as {seconds, nanoseconds}
@@ -3260,6 +3280,8 @@
       await writeAll(g.collection("plan"), data.plan || []);
       await writeAll(g.collection("tasks"), data.tasks || []);
       await writeAll(g.collection("changeRequests"), data.changeRequests || []);
+      await writeAll(g.collection("quests"), data.quests || [], true); // dialogues point to quests by id
+      await writeAll(g.collection("dialogues"), data.dialogues || [], true);
       note(STR.stRestored + ": " + (meta.title || gid)); // it appears in the «Гра:» picker
       return;
     }
@@ -3270,10 +3292,6 @@
       await db.collection("worlds").doc(wid).set(w);
       await writeAll(db.collection("worlds").doc(wid).collection("entities"), data.entities || [], true);
       await writeAll(db.collection("worlds").doc(wid).collection("lore"), data.lore || [], true);
-      if (canQuest) { // quests & dialogues need Novelist+ (firestore.rules hasQuests)
-        await writeAll(db.collection("worlds").doc(wid).collection("quests"), data.quests || [], true);
-        await writeAll(db.collection("worlds").doc(wid).collection("dialogues"), data.dialogues || [], true);
-      }
       note(STR.stRestored + ": " + (w.title || wid));
       tellShell({ type: "ww-worlds-changed" });
       return;
@@ -3285,6 +3303,7 @@
     var out = { format: "whitewrite.game/1", exportedAt: new Date().toISOString(), worldId: worldId, game: Object.assign({}, game),
       cards: await docsOf(g.collection("cards")), plan: await docsOf(g.collection("plan")), tasks: await docsOf(g.collection("tasks")),
       changeRequests: await docsOf(g.collection("changeRequests")), environment: await docsOf(g.collection("env")),
+      quests: await docsOf(g.collection("quests")), dialogues: await docsOf(g.collection("dialogues")),
       knowledge: { snapshots: await docsOf(g.collection("knowledge")), assets: await docsOf(g.collection("kAssets")), relations: await docsOf(g.collection("kRelations")) },
       activity: await Promise.all((await g.collection("activity").get()).docs.map(async function (s) {
         return Object.assign({ id: s.id }, s.data(), { entries: await docsOf(s.ref.collection("entries")) }); })),
@@ -3325,7 +3344,7 @@
     await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
       return f.path ? firebase.storage().ref(f.path).delete().catch(function () {}) : null; }); })));
     for (var s of (await g.collection("activity").get()).docs) await deleteDocs(s.ref.collection("entries"));
-    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "knowledge", "kAssets", "kRelations", "activity", "env", "posts", "channels", "marketing"]) await deleteDocs(g.collection(sub));
+    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "quests", "dialogues", "knowledge", "kAssets", "kRelations", "activity", "env", "posts", "channels", "marketing"]) await deleteDocs(g.collection(sub));
     await callEx({ op: "purge", gameId: id }).catch(function () {}); // telemetry, metrics, issues, playtests, experiments, ingest keys
     await mkCall({ op: "purge", gameId: id }).catch(function () {}); // marketing posts, channels, their secrets and the queue
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
@@ -3350,8 +3369,6 @@
       await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
       await deleteDocs(wref().collection("lore"));
-      await deleteDocs(wref().collection("quests"));
-      await deleteDocs(wref().collection("dialogues"));
       var skyMap = world.cosmos && world.cosmos.planet && world.cosmos.planet.map; // an uploaded map of the Космограф
       if (/^https:\/\/firebasestorage\./.test(skyMap || "")) await firebase.storage().refFromURL(skyMap).delete().catch(function () {});
       await wref().delete(); // last: the rules check ownership through the world doc
@@ -4247,6 +4264,8 @@
   });
   $("e-body").addEventListener("click", function (e) {
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
+    var qb = e.target.closest("[data-bulb]"); if (qb) { var bp = qb.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); return; }
+    var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var v3 = e.target.closest("[data-view3d]"); if (v3) { view3d(open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0], open.files); return; }
     var lb = e.target.closest("[data-lic]");
@@ -4391,6 +4410,9 @@
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
     unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }));
     unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }));
+    quests = []; dialogues = []; qed = null; qprop = null; // the open game's quests & dialogues
+    unsub.push(gref().collection("quests").onSnapshot(function (snap) { quests = rows(snap); render(); }, function () {}));
+    unsub.push(gref().collection("dialogues").onSnapshot(function (snap) { dialogues = rows(snap); render(); }, function () {}));
     exIssues = []; exPlaytests = []; exExperiments = []; exMetrics = null; exKey = null;
     var exRender = function () { if (section === "experience" || section === "plan") render(); else renderNav(); };
     unsub.push(gref().collection("experienceIssues").onSnapshot(function (snap) { exIssues = rows(snap).sort(function (a, b) { return ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]; }); exRender(); }, function () {}));
@@ -4422,7 +4444,7 @@
       var u = await db.collection("users").doc(user.uid).get();
       var plan = (u.exists && u.data().plan) || "free";
       var pc = window.__getPlanConfig(plan); planName = plan;
-      canWrite = !!(pc.allowWorldTree || pc.allowGameDev); canGame = !!pc.allowGameDev; canQuest = !!pc.allowQuests; // the canon is the world's home (the Universe tree's plans); games need game dev
+      canWrite = !!(pc.allowWorldTree || pc.allowGameDev); canGame = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game (Worldbuilder); the canon is the world's home (the Universe tree's plans); games need game dev
       if (!canWrite) return locked(STR.lockedTitle, STR.lockedText, true);
       if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";
       var w = await wref().get();
@@ -4447,11 +4469,6 @@
         .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
       render();
     }, function () {});
-    var qdSnap = function (col) {
-      return function (snap) { var l = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); if (col === "quests") quests = l; else dialogues = l; render(); };
-    };
-    wref().collection("quests").onSnapshot(qdSnap("quests"), function () {});
-    wref().collection("dialogues").onSnapshot(qdSnap("dialogues"), function () {});
     var first = true;
     wref().collection("games").onSnapshot(function (snap) {
       games = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })

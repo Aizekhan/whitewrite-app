@@ -5,12 +5,13 @@ const src = fs.readFileSync(path.join(__dirname, '../functions/src/mcp.js'), 'ut
 const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js');
 const { findApproved, questView, dialogueView } = new Function('NV',
-  pick('const str =', '// ---------- tools') + pick('const entRef', '// ---------- writes') +
+  pick('const str =', '// ---------- tools') + pick('const pool', '// ---------- writes') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
   ';return { findApproved, questView, dialogueView };')(NV);
 
-const ctx = { entities: [{ id: 'char_a', kind: 'characters', name: 'Ada', desc: 'A smith' }, { id: 'loc_1', kind: 'locations', name: 'Forge' }] };
-const q1 = { id: 'q1', title: 'The Lost Hammer', approval: 'approved', giver: 'char_a', locations: ['loc_1', 'loc_x'], objectives: 'Find it\nBring it back',
+const ctx = { entities: [{ id: 'char_a', kind: 'characters', name: 'Ada', desc: 'A smith' }, { id: 'loc_1', kind: 'locations', name: 'Forge' }, { id: 'evt_1', kind: 'events', name: 'The Fall' }],
+  cards: [{ id: 'boss1', section: 'enemies', title: 'Rust Golem', fields: { look: 'Iron giant' } }, { id: 'char_a', section: 'characters', canonRef: 'char_a' }, { id: 'm1', section: 'mechanics', title: 'Jump' }] };
+const q1 = { id: 'q1', title: 'The Lost Hammer', approval: 'approved', giver: 'char_a', characters: ['c:boss1'], events: ['evt_1'], locations: ['loc_1', 'loc_x'], objectives: 'Find it\nBring it back',
   stages: [{ id: 's1', title: 'Search', next: [{ to: 's2', cond: 'has_hammer' }] }, { id: 's2', title: 'Return', end: true }] };
 const q2 = { id: 'q2', title: 'Draft', approval: 'review', stages: [] };
 const d1 = { id: 'd1', title: 'Ask Ada', approval: 'approved', questId: 'q1', stageId: 's1', participants: ['char_a'],
@@ -27,6 +28,9 @@ check(/not found/.test(err(() => findApproved(n.quests, 'q9', 'Quest'))), true, 
 const v = questView(ctx, n, q1);
 check(v.giver.name + '|' + v.giver.description, 'Ada|A smith', 'the giver comes with its canon description');
 check(v.locations.map((l) => l.missing ? 'missing' : l.name).join(','), 'Forge,missing', 'a broken canon link is marked missing');
+check(v.characters[0].ref + '|' + v.characters[0].name + '|' + v.characters[0].description, 'c:boss1|Rust Golem|Iron giant', 'a game card (an enemy) resolves with its fields');
+check(v.events[0].ref + '|' + v.events[0].name, 'e:evt_1|The Fall', 'a canon event the quest builds on');
+check(NV.refPool(ctx.entities, ctx.cards).filter((x) => x.card).map((x) => x.id).join(), 'c:boss1', 'the pool takes role sections only, canon-backed cards are not repeated');
 check(v.objectives.length, 2, 'objectives split by line');
 check(v.start + '>' + v.stages[0].next[0].to + ' if ' + v.stages[0].next[0].condition, 's1>s2 if has_hammer', 'start, branch and condition');
 check(v.dialogues.map((d) => d.id + '@' + d.stage).join(), 'd1@s1', 'the quest lists its dialogues with stages');
