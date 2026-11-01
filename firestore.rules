@@ -82,7 +82,7 @@ service cloud.firestore {
                         sub in ['cards', 'plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'];
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) &&
-                         sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env'];
+                         sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];
       }
       match /games/{gameId}/{sub}/{docId}/{rest=**} {
         allow read: if isAuthenticated() && isWorldOwner(worldId);
@@ -103,6 +103,13 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Mini-Marketing: channel credentials and the publishing queue — only the marketing functions touch them
+    match /marketingSecrets/{id} {
+      allow read, write: if false;
+    }
+    match /marketingQueue/{id} {
+      allow read, write: if false;
+    }
     // GitHub tokens of games' repositories — only the gamedevPlan function reads them
     match /repoTokens/{id} {
       allow read, write: if false;

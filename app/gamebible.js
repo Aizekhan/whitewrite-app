@@ -164,7 +164,7 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту" },
+      ops: { questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { title: "Запуск Claude Code", hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено", kb: "Як підготувати ПК і почати: ", kbLink: "База знань → шлях з агентом" },
@@ -363,7 +363,7 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan" },
+      ops: { questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { title: "Launch Claude Code", hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)",
         copy: "Copy the commands", copied: "Copied", saved: "Saved", kb: "How to prepare your PC and start: ", kbLink: "Knowledge base → the path with the agent" },
@@ -617,7 +617,7 @@
   function gameSections() {
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     var hidden = (game && game.hiddenSections) || [];
-    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE, KNOWLEDGE, ACTIVITY]);
+    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
   }
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
@@ -634,6 +634,7 @@
     "custom",
     { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues", "activity"] },
     { id: "g-exp", uk: "Досвід гравців", en: "Player experience", members: ["experience", "telemetry"] },
+    { id: "g-mkt", members: ["marketing"] },
   ];
   var lastSub = {}; // the section last open in each group: opening the group returns to it
   // the menu is a one-level tree: a group folds with an arrow (navOpen, remembered) to its sections; a section's
@@ -970,7 +971,7 @@
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
-    $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity)$/.test(sec(section).special || "")); // status filters only where there are game cards
+    $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = cur ? L(cur) : "";
     if (section === "settings" && !imp) return renderSettings();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
@@ -993,6 +994,7 @@
     if (s.special === "experience" && !query) return renderExperience();
     if (s.special === "knowledge" && !query) return renderKnowledge(s);
     if (s.special === "activity" && !query) return renderActivity(s);
+    if (s.special === "marketing" && !query) return renderMarketing(s);
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
@@ -2824,7 +2826,7 @@
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.costTitle) + '"><h3><span class="aicost">✦</span> ' + esc(STR.costTitle) + '</h3>' +
-      '<p class="warn">' + esc((op === "cosmograph" ? STR.cosmo.costText : STR.costText).replace("{op}", STR.ops[op] || op).replace("{n}", costOf(op))) + '</p>' +
+      '<p class="warn">' + esc((op === "cosmograph" ? STR.cosmo.costText : op === "marketing" ? MK.costText : STR.costText).replace("{op}", STR.ops[op] || op).replace("{n}", costOf(op))) + '</p>' +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.costGo + '</button></div></form>';
     document.body.appendChild(box);
     var close = function () { box.remove(); };
@@ -2948,7 +2950,7 @@
       actEntries[s.id] = { loading: true, list: [] };
       gref().collection("activity").doc(s.id).collection("entries").get().then(function (snap) {
         actEntries[s.id] = { list: snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }) };
-        if (section === "activity") render();
+        if (section === "activity") render(); else if (section === "marketing") mkRender();
       }).catch(function () { actEntries[s.id] = { list: [] }; });
     });
   }
@@ -2985,6 +2987,175 @@
         var p = sel.dataset.actpriv.split(":"), e = ((actEntries[p[0]] || {}).list || []).filter(function (x) { return x.id === p[1]; })[0];
         gref().collection("activity").doc(p[0]).collection("entries").doc(p[1]).update({ privacy: sel.value, reviewedAt: stamp() })
           .then(function () { if (e) e.privacy = sel.value; }).catch(function (er) { alert(STR.failed + ": " + (er.message || er)); render(); });
+      };
+    });
+  }
+  // ---------- Міні-маркетинг: posts from approved development-log entries (functions/src/marketing.js) ----------
+  // Server-only: games/{g}/marketing/state, channels, posts (the page reads them live; every change goes through MKFN).
+  // AI drafts only from entries the author marked «Для маркетингу»; nothing is published without «Схвалити».
+  var MK = {
+    uk: { costText: "Міні-маркетинг для цієї гри коштує {n} токенів за 30 днів. Списуються один раз; місяць не продовжується сам. Кожен пост від ШІ — окремо, за фактом.",
+      off: "Пости про розробку твоєї гри: ШІ пише їх лише з записів «Журналу розробки», які ти позначив «Для маркетингу». Ти редагуєш, схвалюєш і публікуєш — у Telegram, Discord, Mastodon, Bluesky; для X і Reddit — готовий текст і посилання.",
+      enable: "Увімкнути на 30 днів", disable: "Вимкнути", until: "Увімкнено до {d}", expired: "Місяць скінчився — увімкни знову.",
+      prep: "1. Журнал розробки в CLAUDE.md", prepHint: "Встав цей блок у CLAUDE.md у теці гри — тоді Claude Code звітуватиме після кожної сесії, і буде з чого писати пости.",
+      confirm: "Я вставив блок у CLAUDE.md", confirmed: "✓ Блок вставлено {d}",
+      channels: "2. Канали", noChannels: "Каналів ще немає.", disconnect: "Відключити", connect: "Підключити",
+      tgOff: "Telegram-бот платформи ще не налаштований — поки можна копіювати текст.", tgHow: "Додай бота @{b} адміністратором свого каналу з правом «Публікувати повідомлення», потім впиши @назву каналу.",
+      tgPh: "@мій_канал", dcPh: "https://discord.com/api/webhooks/…", dcHow: "Discord: Налаштування каналу → Інтеграції → Вебхуки → Скопіювати URL.",
+      maInst: "сервер, напр. mastodon.social", maTok: "токен доступу", maHow: "Mastodon: Налаштування → Розробка → Новий застосунок (право write:statuses) → токен.",
+      bsHandle: "handle, напр. studio.bsky.social", bsPass: "пароль застосунку", bsHow: "Bluesky: Налаштування → Конфіденційність і безпека → Паролі застосунків. Основний пароль не потрібен.",
+      voice: "3. Голос", tone: "Тон", tones: { friendly: "Дружній", epic: "Епічний", humorous: "З гумором", "dev-diary": "Щоденник розробника", "short-news": "Коротка новина" },
+      lang: "Мова постів", audience: "Аудиторія", audiencePh: "напр. фанати roguelike, 18–30", hashtags: "Хештеги", signature: "Підпис у кінці", save: "Зберегти", saved: "Збережено",
+      draft: "4. ✦ Новий пост", pick: "Записи журналу «Для маркетингу»", noPick: "Схвалених записів ще немає: у «Журналі розробки» постав запису приватність «Для маркетингу».",
+      platform: "Платформа", poll: "Додати опитування (Telegram)", wish: "Побажання", wishPh: "напр. зроби акцент на новій механіці", make: "✦ Скласти пост", making: "ШІ пише пост…",
+      posts: "5. Пости", noPosts: "Постів ще немає.",
+      st: { draft: "чернетка", approved: "схвалено", rejected: "відхилено", scheduled: "заплановано", publishing: "публікується", published: "опубліковано", failed: "помилка" },
+      approve: "Схвалити", reject: "Відхилити", del: "Видалити", saveText: "Зберегти текст", publish: "Опублікувати зараз", schedule: "Запланувати", cancel: "Скасувати план",
+      retry: "Повторити", copy: "Копіювати", copied: "Скопійовано", back: "У чернетки", channel: "Канал", noChannel: "Немає каналу цієї платформи — копіюй текст.",
+      shareX: "Відкрити в X", shareReddit: "Відкрити в Reddit", title: "Заголовок", open: "Відкрити", at: "на {d}", from: "з {n} записів", sure: "Видалити пост?",
+      stuck: "Публікація триває довго — перевір канал; якщо поста немає, натисни «Повторити»." },
+    en: { costText: "Mini-Marketing for this game costs {n} tokens per 30 days. Charged once; the month does not renew by itself. Each AI post is charged separately, by actual use.",
+      off: "Posts about your game's development: AI writes them only from “Development log” entries you marked “For marketing”. You edit, approve and publish — to Telegram, Discord, Mastodon, Bluesky; for X and Reddit — a ready text and a link.",
+      enable: "Turn on for 30 days", disable: "Turn off", until: "On until {d}", expired: "The month is over — turn it on again.",
+      prep: "1. Development log in CLAUDE.md", prepHint: "Paste this block into CLAUDE.md in the game's folder — then Claude Code reports after every session, and there is something to post about.",
+      confirm: "I pasted the block into CLAUDE.md", confirmed: "✓ Block pasted {d}",
+      channels: "2. Channels", noChannels: "No channels yet.", disconnect: "Disconnect", connect: "Connect",
+      tgOff: "The platform's Telegram bot is not set up yet — for now copy the text.", tgHow: "Add the bot @{b} as an admin of your channel with “Post messages”, then enter the channel's @name.",
+      tgPh: "@my_channel", dcPh: "https://discord.com/api/webhooks/…", dcHow: "Discord: Channel settings → Integrations → Webhooks → Copy URL.",
+      maInst: "server, e.g. mastodon.social", maTok: "access token", maHow: "Mastodon: Preferences → Development → New application (write:statuses) → token.",
+      bsHandle: "handle, e.g. studio.bsky.social", bsPass: "app password", bsHow: "Bluesky: Settings → Privacy and security → App passwords. Your main password is not needed.",
+      voice: "3. Voice", tone: "Tone", tones: { friendly: "Friendly", epic: "Epic", humorous: "Humorous", "dev-diary": "Dev diary", "short-news": "Short news" },
+      lang: "Post language", audience: "Audience", audiencePh: "e.g. roguelike fans, 18–30", hashtags: "Hashtags", signature: "Sign-off", save: "Save", saved: "Saved",
+      draft: "4. ✦ New post", pick: "Log entries “For marketing”", noPick: "No approved entries yet: in the “Development log” set an entry's privacy to “For marketing”.",
+      platform: "Platform", poll: "Add a poll (Telegram)", wish: "Wish", wishPh: "e.g. focus on the new mechanic", make: "✦ Write the post", making: "AI is writing the post…",
+      posts: "5. Posts", noPosts: "No posts yet.",
+      st: { draft: "draft", approved: "approved", rejected: "rejected", scheduled: "scheduled", publishing: "publishing", published: "published", failed: "failed" },
+      approve: "Approve", reject: "Reject", del: "Delete", saveText: "Save text", publish: "Publish now", schedule: "Schedule", cancel: "Cancel schedule",
+      retry: "Retry", copy: "Copy", copied: "Copied", back: "Back to drafts", channel: "Channel", noChannel: "No channel for this platform — copy the text.",
+      shareX: "Open in X", shareReddit: "Open in Reddit", title: "Title", open: "Open", at: "at {d}", from: "from {n} entries", sure: "Delete the post?",
+      stuck: "Publishing takes long — check the channel; if the post is not there, press “Retry”." },
+  }[LANG];
+  var MARKETING = { id: "marketing", special: "marketing", uk: "Маркетинг", en: "Marketing",
+    about: { uk: "Пости про розробку гри з записів журналу, які ти схвалив. Ти вирішуєш, що й коли публікувати.", en: "Posts about the game's development from log entries you approved. You decide what goes out and when." } };
+  var MKFN = "https://us-central1-whitewrite-app.cloudfunctions.net/marketing";
+  var MK_PLAT = { telegram: "Telegram", discord: "Discord", mastodon: "Mastodon", bluesky: "Bluesky", x: "X", reddit: "Reddit" };
+  var mkState = null, mkChannels = [], mkPosts = [], mkTg = null, mkBusy = "", mkMsg = "", mkConn = "telegram";
+  async function mkCall(body) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(MKFN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify(Object.assign({ worldId: worldId, gameId: gameId, language: LANG }, body)) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
+    return data;
+  }
+  function mkRender() { // live updates never pull a field from under the author's cursor
+    if (section !== "marketing") return renderNav();
+    var a = document.activeElement; if (a && a.closest && a.closest("#view textarea, #view input, #view select")) return;
+    render();
+  }
+  function mkRun(busy, fn) { mkBusy = busy; mkMsg = ""; render(); return fn().then(function (m) { mkMsg = m || ""; }).catch(function (e) { mkMsg = STR.failed + ": " + e.message; }).then(function () { mkBusy = ""; render(); }); }
+  function mkOn() { return !!(mkState && mkState.enabled && mkState.paidUntil && (mkState.paidUntil.toMillis ? mkState.paidUntil.toMillis() : mkState.paidUntil) > Date.now()); }
+  function mkApproved() {
+    var out = [];
+    actSessions.forEach(function (x) { ((actEntries[x.id] || {}).list || []).forEach(function (e) { if (e.privacy === "marketing_approved") out.push({ ref: x.id + ":" + e.id, e: e, when: when(x.receivedAt) }); }); });
+    return out;
+  }
+  function postHtml(p) {
+    var ed = ["draft", "approved", "rejected", "failed"].indexOf(p.status) >= 0, chs = mkChannels.filter(function (c) { return c.platform === p.platform; });
+    var stuck = p.status === "publishing" && p.leaseAt && Date.now() - p.leaseAt > 10 * 60000;
+    var h = '<div class="mk-post" data-post="' + esc(p.id) + '"><div class="row"><span class="chip">' + esc(MK_PLAT[p.platform] || p.platform) + '</span><span class="pill mk-' + p.status + '">' + esc(MK.st[p.status] || p.status) + '</span>' +
+      '<span class="muted">' + esc([when(p.createdAt), (p.sources || []).length ? MK.from.replace("{n}", p.sources.length) : "", p.status === "scheduled" && p.at ? MK.at.replace("{d}", when(p.at)) : "", p.status === "published" ? when(p.publishedAt) : ""].filter(Boolean).join(" · ")) + '</span></div>';
+    if (p.platform === "reddit") h += '<input data-mktitle value="' + esc(p.title || "") + '" placeholder="' + esc(MK.title) + '"' + (ed ? '' : ' disabled') + '>';
+    h += '<textarea data-mktext rows="' + Math.min(14, Math.max(3, String(p.text || "").split("\n").length + 1)) + '"' + (ed ? '' : ' readonly') + '>' + esc(p.text || "") + '</textarea>';
+    if (p.poll) h += '<p class="muted">📊 ' + esc(p.poll.question) + ' — ' + esc((p.poll.options || []).join(" · ")) + '</p>';
+    if (p.error) h += '<p class="warn">' + esc(p.error) + '</p>';
+    if (stuck) h += '<p class="warn">' + esc(MK.stuck) + '</p>';
+    var btn = function (act, label, cls) { return '<button class="btn' + (cls ? ' ' + cls : '') + '" data-mkact="' + act + '"' + (mkBusy ? ' disabled' : '') + '>' + label + '</button>'; };
+    var row = [btn("copy", MK.copy)];
+    if (p.status === "draft") row.push(btn("edit", MK.saveText), btn("approve", MK.approve, "primary"), btn("reject", MK.reject));
+    if (p.status === "rejected") row.push(btn("edit", MK.back));
+    if (p.status === "approved" || p.status === "failed" || stuck) {
+      if (p.status === "approved") row.push(btn("edit", MK.saveText));
+      if (chs.length) row.push('<select data-mkch aria-label="' + esc(MK.channel) + '">' + chs.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === p.channelId ? ' selected' : '') + '>' + esc(c.title) + '</option>'; }).join("") + '</select>',
+        btn("publish", p.status === "approved" ? MK.publish : MK.retry, "primary"), '<input type="datetime-local" data-mkat aria-label="' + esc(MK.schedule) + '">', btn("schedule", MK.schedule));
+      else if (p.platform === "x") row.push('<a class="btn" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=' + encodeURIComponent(p.text || "") + '">' + MK.shareX + '</a>');
+      else if (p.platform === "reddit") row.push('<a class="btn" target="_blank" rel="noopener" href="https://www.reddit.com/submit?type=TEXT&title=' + encodeURIComponent(p.title || "") + '&text=' + encodeURIComponent(p.text || "") + '">' + MK.shareReddit + '</a>');
+      else row.push('<span class="muted">' + MK.noChannel + '</span>');
+      row.push(btn("reject", MK.reject));
+    }
+    if (p.status === "scheduled") row.push(btn("cancel", MK.cancel));
+    if (p.status === "published" && p.url) row.push('<a class="btn" target="_blank" rel="noopener" href="' + esc(p.url) + '">' + MK.open + '</a>');
+    if (["publishing", "scheduled", "published"].indexOf(p.status) < 0) row.push(btn("delete", MK.del, "danger"));
+    return h + '<div class="row">' + row.join("") + '</div></div>';
+  }
+  function renderMarketing(s) {
+    loadEntries();
+    if (!mkTg) { mkTg = { loading: true }; mkCall({ op: "status" }).then(function (d) { mkTg = d.telegram || {}; if (section === "marketing") render(); }).catch(function () { mkTg = {}; }); }
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>';
+    if (mkMsg || mkBusy) html += '<p class="pmsg">' + esc(mkBusy || mkMsg) + '</p>';
+    if (!mkOn()) {
+      html += '<section class="psec"><p>' + esc(MK.off) + '</p>' + (mkState && mkState.paidUntil ? '<p class="muted">' + MK.expired + '</p>' : '') +
+        '<div class="row"><button class="btn primary" id="mk-on"' + (mkBusy ? ' disabled' : '') + '>' + MK.enable + costMark("marketing") + '</button></div></section>';
+      $("view").innerHTML = html;
+      $("mk-on").onclick = function () { confirmCost("marketing", function () { mkRun("…", function () { return mkCall({ op: "activate" }).then(function (d) { return d.tokensConsumed ? STR.spent + ": " + d.tokensConsumed : ""; }); }); }); };
+      return;
+    }
+    var st = mkState.settings || {}, g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log");
+    html += '<div class="row"><span class="muted">' + esc(MK.until.replace("{d}", when(mkState.paidUntil))) + '</span><button class="btn" id="mk-off">' + MK.disable + '</button></div>';
+    html += '<section class="psec"><h2 class="group">' + MK.prep + '</h2><p class="hint">' + MK.prepHint + '</p>' +
+      (g ? '<details' + (mkState.claudeMdConfirmedAt ? '' : ' open') + '><summary>CLAUDE.md</summary><pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') +
+      (mkState.claudeMdConfirmedAt ? '<p>' + esc(MK.confirmed.replace("{d}", when(mkState.claudeMdConfirmedAt))) + '</p>' : '<button class="btn primary" id="mk-confirm">' + MK.confirm + '</button>') + '</section>';
+    var tgOk = mkTg && mkTg.configured;
+    var form = { telegram: tgOk ? '<p class="hint">' + esc(MK.tgHow.replace("{b}", mkTg.bot)) + '</p><input data-mkf="chat" placeholder="' + esc(MK.tgPh) + '">' : '<p class="muted">' + MK.tgOff + '</p>',
+      discord: '<p class="hint">' + MK.dcHow + '</p><input data-mkf="webhook" placeholder="' + esc(MK.dcPh) + '">',
+      mastodon: '<p class="hint">' + MK.maHow + '</p><input data-mkf="instance" placeholder="' + esc(MK.maInst) + '"><input data-mkf="token" type="password" placeholder="' + esc(MK.maTok) + '">',
+      bluesky: '<p class="hint">' + MK.bsHow + '</p><input data-mkf="handle" placeholder="' + esc(MK.bsHandle) + '"><input data-mkf="appPassword" type="password" placeholder="' + esc(MK.bsPass) + '">' }[mkConn];
+    html += '<section class="psec"><h2 class="group">' + MK.channels + '</h2>' + (mkChannels.length ? mkChannels.map(function (c) {
+        return '<div class="row mk-ch"><span class="chip">' + esc(MK_PLAT[c.platform] || c.platform) + '</span><b>' + esc(c.title) + '</b><button class="btn mini ghost" data-mkdis="' + esc(c.id) + '">' + MK.disconnect + '</button></div>'; }).join("") : '<p class="muted">' + MK.noChannels + '</p>') +
+      '<div class="mk-form"><select id="mk-plat" aria-label="' + esc(MK.platform) + '">' + ["telegram", "discord", "mastodon", "bluesky"].map(function (p) { return '<option value="' + p + '"' + (p === mkConn ? ' selected' : '') + '>' + MK_PLAT[p] + '</option>'; }).join("") + '</select>' +
+      form + (mkConn !== "telegram" || tgOk ? '<button class="btn" id="mk-connect"' + (mkBusy ? ' disabled' : '') + '>' + MK.connect + '</button>' : '') + '</div></section>';
+    var sel = function (id, map, cur) { return '<select id="' + id + '">' + Object.keys(map).map(function (k) { return '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + esc(map[k]) + '</option>'; }).join("") + '</select>'; };
+    html += '<section class="psec"><h2 class="group">' + MK.voice + '</h2><div class="mk-grid">' +
+      '<label>' + MK.tone + sel("mk-tone", MK.tones, st.tone || "friendly") + '</label><label>' + MK.lang + sel("mk-lang", { uk: "Українська", en: "English" }, st.language || LANG) + '</label>' +
+      '<label>' + MK.audience + '<input id="mk-aud" value="' + esc(st.audience || "") + '" placeholder="' + esc(MK.audiencePh) + '"></label><label>' + MK.hashtags + '<input id="mk-tags" value="' + esc(st.hashtags || "") + '" placeholder="#indiedev #gamedev"></label>' +
+      '<label>' + MK.signature + '<input id="mk-sig" value="' + esc(st.signature || "") + '"></label></div><button class="btn" id="mk-voice">' + MK.save + '</button></section>';
+    var ap = mkApproved();
+    html += '<section class="psec"><h2 class="group">' + MK.draft + '</h2><p class="hint">' + MK.pick + '</p>' + (ap.length ? '<div class="mk-picks">' + ap.map(function (a) {
+        return '<label class="imp"><input type="checkbox" data-mkpick="' + esc(a.ref) + '" checked><span><b>' + esc(a.e.text) + '</b>' + (a.e.playerImpact ? ' — ' + esc(a.e.playerImpact) : '') + ' <span class="muted">' + esc(a.when) + '</span></span></label>'; }).join("") + '</div>' +
+        '<div class="row"><label>' + MK.platform + ' <select id="mk-dplat">' + Object.keys(MK_PLAT).map(function (p) { return '<option value="' + p + '">' + MK_PLAT[p] + '</option>'; }).join("") + '</select></label>' +
+        '<label class="imp"><input type="checkbox" id="mk-poll"><span>' + MK.poll + '</span></label></div><input id="mk-wish" placeholder="' + esc(MK.wishPh) + '" aria-label="' + esc(MK.wish) + '">' +
+        '<div class="row"><button class="btn primary" id="mk-make"' + (mkBusy ? ' disabled' : '') + '>' + MK.make + costMark("marketingDraft") + '</button></div>' : '<p class="muted">' + MK.noPick + '</p>') + '</section>';
+    var order = { draft: 0, failed: 1, approved: 2, scheduled: 3, publishing: 4, published: 5, rejected: 6 };
+    html += '<section class="psec"><h2 class="group">' + MK.posts + '</h2>' + (mkPosts.length ? mkPosts.slice().sort(function (a, b) { return (order[a.status] - order[b.status]) || ((b.updatedAt && b.updatedAt.toMillis ? b.updatedAt.toMillis() : 0) - (a.updatedAt && a.updatedAt.toMillis ? a.updatedAt.toMillis() : 0)); }).map(postHtml).join("") : '<p class="muted">' + MK.noPosts + '</p>') + '</section>';
+    $("view").innerHTML = html;
+    var on = function (id, f) { var el = $(id); if (el) el.onclick = f; };
+    on("mk-off", function () { mkRun("…", function () { return mkCall({ op: "deactivate" }); }); });
+    on("mk-confirm", function () { mkRun("…", function () { return mkCall({ op: "confirmClaudeMd" }); }); });
+    $("mk-plat").onchange = function () { mkConn = this.value; render(); };
+    on("mk-connect", function () {
+      var body = { op: "connect", platform: mkConn }; [].forEach.call(document.querySelectorAll("[data-mkf]"), function (i) { body[i.dataset.mkf] = i.value.trim(); });
+      mkRun("…", function () { return mkCall(body).then(function () { return ""; }); });
+    });
+    [].forEach.call(document.querySelectorAll("[data-mkdis]"), function (b) { b.onclick = function () { mkRun("…", function () { return mkCall({ op: "disconnect", channelId: b.dataset.mkdis }); }); }; });
+    on("mk-voice", function () {
+      var settings = { tone: $("mk-tone").value, language: $("mk-lang").value, audience: $("mk-aud").value, hashtags: $("mk-tags").value, signature: $("mk-sig").value };
+      mkRun("…", function () { return mkCall({ op: "settings", settings: settings }).then(function () { return MK.saved; }); });
+    });
+    on("mk-make", function () {
+      var picks = [].filter.call(document.querySelectorAll("[data-mkpick]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.mkpick; });
+      var body = { op: "draft", entries: picks, platform: $("mk-dplat").value, poll: $("mk-poll").checked, wish: $("mk-wish").value.trim() };
+      confirmCost("marketingDraft", function () { mkRun(MK.making, function () { return mkCall(body).then(function (d) { return STR.spent + ": " + d.tokensConsumed; }); }); });
+    });
+    [].forEach.call(document.querySelectorAll("[data-mkact]"), function (b) {
+      b.onclick = function () {
+        var box = b.closest("[data-post]"), id = box.dataset.post, act = b.dataset.mkact, ta = box.querySelector("[data-mktext]"), ti = box.querySelector("[data-mktitle]");
+        if (act === "copy") { navigator.clipboard.writeText((ti && ti.value ? ti.value + "\n\n" : "") + ta.value).then(function () { b.textContent = MK.copied; }); return; }
+        if (act === "delete" && !confirm(MK.sure)) return;
+        var body = { op: act, postId: id };
+        if (act === "edit") { body.text = ta.value; if (ti) body.title = ti.value; }
+        if (act === "publish" || act === "schedule") { var ch = box.querySelector("[data-mkch]"); body.channelId = ch && ch.value; }
+        if (act === "schedule") { var at = box.querySelector("[data-mkat]").value; if (!at) return box.querySelector("[data-mkat]").focus(); body.at = new Date(at).getTime(); }
+        mkRun("…", function () { return mkCall(body).then(function () { return ""; }); });
       };
     });
   }
@@ -3116,7 +3287,8 @@
       changeRequests: await docsOf(g.collection("changeRequests")), environment: await docsOf(g.collection("env")),
       knowledge: { snapshots: await docsOf(g.collection("knowledge")), assets: await docsOf(g.collection("kAssets")), relations: await docsOf(g.collection("kRelations")) },
       activity: await Promise.all((await g.collection("activity").get()).docs.map(async function (s) {
-        return Object.assign({ id: s.id }, s.data(), { entries: await docsOf(s.ref.collection("entries")) }); })) };
+        return Object.assign({ id: s.id }, s.data(), { entries: await docsOf(s.ref.collection("entries")) }); })),
+      marketing: { posts: await docsOf(g.collection("posts")), channels: await docsOf(g.collection("channels")) } };
     download(slugify(game.title || "game") + ".game.json", JSON.stringify(out, null, 2));
   }
   // Safe deletion: the author types the exact name before anything is removed.
@@ -3153,8 +3325,9 @@
     await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
       return f.path ? firebase.storage().ref(f.path).delete().catch(function () {}) : null; }); })));
     for (var s of (await g.collection("activity").get()).docs) await deleteDocs(s.ref.collection("entries"));
-    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "knowledge", "kAssets", "kRelations", "activity", "env"]) await deleteDocs(g.collection(sub));
+    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "knowledge", "kAssets", "kRelations", "activity", "env", "posts", "channels", "marketing"]) await deleteDocs(g.collection(sub));
     await callEx({ op: "purge", gameId: id }).catch(function () {}); // telemetry, metrics, issues, playtests, experiments, ingest keys
+    await mkCall({ op: "purge", gameId: id }).catch(function () {}); // marketing posts, channels, their secrets and the queue
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
     await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
     await g.delete();
@@ -4224,10 +4397,13 @@
     unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
     unsub.push(gref().collection("experiments").onSnapshot(function (snap) { exExperiments = rows(snap); exRender(); }, function () {}));
     unsub.push(gref().collection("experience").doc("metrics").onSnapshot(function (d) { exMetrics = d.exists ? d.data() : null; exRender(); }, function () {}));
-    kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null;
+    kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null; mkState = null; mkChannels = []; mkPosts = []; mkTg = null; mkMsg = "";
+    unsub.push(gref().collection("marketing").doc("state").onSnapshot(function (d) { mkState = d.exists ? d.data() : null; mkRender(); }, function () {}));
+    unsub.push(gref().collection("channels").onSnapshot(function (snap) { mkChannels = rows(snap); mkRender(); }, function () {}));
+    unsub.push(gref().collection("posts").onSnapshot(function (snap) { mkPosts = rows(snap); mkRender(); }, function () {}));
     unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
     unsub.push(gref().collection("activity").orderBy("receivedAt", "desc").limit(20).onSnapshot(function (snap) {
-      snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity") render(); }, function () {}));
+      snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity") render(); else if (section === "marketing") mkRender(); }, function () {}));
     unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (section === "settings" && !document.activeElement.closest("#view input")) render(); }, function () {}));
     unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
     unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)

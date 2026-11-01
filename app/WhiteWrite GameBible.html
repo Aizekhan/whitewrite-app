@@ -436,6 +436,21 @@ button.lic{ cursor:pointer; } .lic i{ font-style:normal; opacity:.8; }
 .sb-thumb{ pointer-events:none; }
 .sb-thumb .sb-stage{ margin:0 0 8px; }
 .sb-thumb .sb-it{ font-size:8px; box-shadow:none; }
+/* Міні-маркетинг */
+.mk-post{ border:1px solid var(--line-2); border-radius:12px; padding:12px 14px; margin:0 0 12px; background:var(--bg-1); }
+.mk-post .row{ flex-wrap:wrap; align-items:center; gap:8px; }
+.mk-post textarea{ margin:8px 0; }
+.mk-post a.btn{ color:inherit; text-decoration:none; }
+.mk-post input[data-mktitle], .mk-form input, .mk-grid input, #mk-wish{ width:100%; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:7px 10px; color:var(--tx-hi); font:inherit; margin:4px 0; }
+.mk-post input[data-mkat]{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:5px 8px; color:var(--tx-hi); }
+.mk-form{ display:grid; gap:6px; max-width:560px; margin-top:10px; }
+.mk-form select{ justify-self:start; }
+.mk-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:10px; }
+.mk-grid label{ display:grid; gap:4px; font-size:13px; color:var(--tx-mid); }
+.mk-picks{ display:grid; gap:6px; margin:6px 0 10px; }
+.mk-ch{ align-items:center; gap:10px; margin:4px 0; }
+.pill.mk-draft{ color:#c9b8ff; } .pill.mk-approved{ color:#7fd6a0; } .pill.mk-scheduled{ color:#ffd27a; } .pill.mk-published{ color:#7fd6a0; font-weight:600; }
+.pill.mk-failed{ color:#ff8a80; } .pill.mk-rejected{ color:var(--tx-mid); } .pill.mk-publishing{ color:#ffd27a; }
 /* Project Knowledge · Журнал розробки */
 #kn-q{ width:100%; margin:6px 0 10px; }
 .kn-row{ display:block; width:100%; text-align:left; background:none; border:0; border-bottom:1px solid rgba(255,255,255,0.06); color:inherit; padding:7px 4px; cursor:pointer; font:inherit; }

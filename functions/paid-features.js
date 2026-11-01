@@ -156,7 +156,15 @@ const FEATURES = [
   { id: 'cosmograph', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { fixed: 2000, per: '30d' }, op: 'cosmograph',
     uk: { name: 'Космограф', desc: 'Небо світу: планета, сонця, місяці, календар. Ціна — за світ на 30 днів.' },
     en: { name: 'Cosmograph', desc: 'The world\'s sky: planet, suns, moons, calendar. Priced per world for 30 days.' },
-    where: 'Біблія → Космологія', server: 'cosmographAccess' }
+    where: 'Біблія → Космологія', server: 'cosmographAccess' },
+  { id: 'marketing', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { fixed: 1500, per: '30d' }, op: 'marketing',
+    uk: { name: 'Міні-маркетинг', desc: 'Пости про розробку гри із записів журналу, які ти схвалив; публікація в Telegram, Discord, Mastodon, Bluesky, тексти для X і Reddit. Ціна — за гру на 30 днів.' },
+    en: { name: 'Mini-Marketing', desc: 'Posts about the game development from log entries you approved; publishing to Telegram, Discord, Mastodon, Bluesky, texts for X and Reddit. Priced per game for 30 days.' },
+    where: 'Біблія гри → Маркетинг', server: 'marketing {op:activate}' },
+  { id: 'marketingDraft', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 0.5 }, op: 'marketingDraft',
+    uk: { name: '✦ Пост', desc: 'AI пише пост лише з обраних схвалених записів журналу; ти редагуєш і схвалюєш.' },
+    en: { name: '✦ Post', desc: 'AI writes a post only from the chosen approved log entries; you edit and approve.' },
+    where: 'Біблія гри → Маркетинг', server: 'marketing {op:draft}' }
 ];
 
 function planRank(plan) {

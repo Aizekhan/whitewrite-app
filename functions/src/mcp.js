@@ -199,6 +199,19 @@ function overview(ctx) {
   };
 }
 
+// What is switched on for this game: the agent keeps the development log when Mini-Marketing is on (get_guide activity_log)
+async function integrations(ctx) {
+  const m = await ctx.gref.collection('marketing').doc('state').get().catch(() => null);
+  const s = m && m.exists ? m.data() : {}, until = s.paidUntil && s.paidUntil.toMillis ? s.paidUntil.toMillis() : 0;
+  const on = !!s.enabled && until > Date.now();
+  return {
+    marketing: { enabled: on, claude_md_confirmed: !!s.claudeMdConfirmedAt,
+      ...(on ? { instruction: 'Report every working session with submit_development_activity (get_guide {topic:"activity_log"}); only entries the author approves are used for posts.' } : {}) },
+    repo: ctx.game.repo && ctx.game.repo.full ? { full: ctx.game.repo.full, branch: ctx.game.repo.branch || '' } : null,
+    knowledge: ctx.game.knowledge ? { last_snapshot: ctx.game.knowledge.lastSnap || '' } : null,
+  };
+}
+
 // ---------- world generation & experience ----------
 const WG_KINDS = [ // the «Генерація світу» subsections, in both languages (gamebible.js GAME worldgen.groups)
   ['biomes', 'Біоми', 'Biomes'], ['route', 'Модулі маршрутів', 'Route modules'], ['environment', 'Модулі оточення', 'Environment modules'],
@@ -438,7 +451,7 @@ function findTask(ctx, id) {
 async function callTool(name, args, key) {
   const ctx = await loadGame(key);
   switch (name) {
-    case 'get_project_overview': return overview(ctx);
+    case 'get_project_overview': return { ...overview(ctx), integrations: await integrations(ctx) };
     case 'list_tasks': return ctx.tasks.filter((t) => !args.status || t.status === args.status)
       .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, owner: t.owner, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
     case 'get_next_task': {
