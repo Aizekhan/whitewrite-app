@@ -43,7 +43,9 @@
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
       exportMd: "⬇ Markdown для репозиторію", busyAnalyze: "AI читає всю біблію і складає гейм-диздок… (до хвилини)",
-      busyPlan: "AI складає план розробки… (може зайняти кілька хвилин)", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
+      busyPlan: "AI складає план розробки… Для великої біблії це 5–15 хвилин; можна піти зі сторінки — план зʼявиться тут сам.",
+      scTitle: "Чого бракує в біблії", scIntro: "План знайшов, чого не вистачає для розробки. Відмічене зʼявиться порожніми картками зі статусом «В роботі» — заповнюй їх сам або згодом через Claude Code.",
+      scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
       answeredTitle: "Ухвалені рішення", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
@@ -83,7 +85,9 @@
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
       exportMd: "⬇ Markdown for the repo", busyAnalyze: "AI is reading the whole bible and drafting the GDD… (up to a minute)",
-      busyPlan: "AI is building the development plan… (may take a few minutes)", costNote: "AI analysis, import and the plan spend tokens from your balance.",
+      busyPlan: "AI is building the development plan… For a big bible this takes 5–15 minutes; you can leave — the plan appears here by itself.",
+      scTitle: "Missing from the bible", scIntro: "The plan found what development still lacks. Ticked items become empty cards with the “In progress” status — fill them yourself or later through Claude Code.",
+      scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
       answeredTitle: "Decisions made", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
@@ -143,14 +147,46 @@
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
       about: { uk: "Правила гри з числами. Правка тут — це завдання змінити гру.", en: "Game rules with numbers. An edit here is a task to change the game." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Правила й числа", "Rules & numbers"), F("deps", "Залежить від", "Depends on")] },
+    { id: "progression", uk: "Прогресія й економіка", en: "Progression & economy", group: "group",
+      about: { uk: "Досвід, рівні, валюти, лут, магазин, апгрейди — і баланс чисел між ними.", en: "XP, levels, currencies, loot, shop, upgrades — and the balance of numbers between them." },
+      defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Числа й формули", "Numbers & formulas"), F("sinks", "Звідки береться / куди йде", "Sources / sinks")] },
+    { id: "levels", uk: "Рівні й контент", en: "Levels & content", group: "group",
+      about: { uk: "Рівні, траси, хвилі, енкаунтери: розмір, тривалість, хто й що там. Місце з канону — у «Локаціях».", en: "Levels, tracks, waves, encounters: size, length, who and what is there. The canon place is in “Locations”." },
+      defs: [F("group", "Група", "Group"), F("location", "Локація канону", "Canon location"), F("layout", "Структура й розмір", "Layout & size"),
+             F("encounters", "Вороги й події", "Enemies & events"), F("goal", "Мета гравця", "Player goal"), F("length", "Тривалість", "Length")] },
     { id: "enemies", uk: "Вороги й боси", en: "Enemies & bosses", group: "group",
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити.", en: "Who stands in the way, how it hits and where to hit it." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
              F("weakness", "Як перемогти", "How to beat"), F("numbers", "Числа", "Numbers"), F("model", "Модель / префаб", "Model / prefab")] },
+    { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
+      about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
+      defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon")] },
     { id: "assets", uk: "Ассети й префаби", en: "Assets & prefabs", group: "category",
-      about: { uk: "Моделі, матеріали, звук: що вже є і що треба зробити — функція, розмір, пріоритет, промпт.", en: "Models, materials, sound: what exists and what to make — function, size, priority, prompt." },
+      about: { uk: "Моделі й префаби: що вже є і що треба зробити — функція, розмір, пріоритет, промпт. Моделі відкриваються в 3D.", en: "Models and prefabs: what exists and what to make — function, size, priority, prompt. Models open in 3D." },
       defs: [F("category", "Категорія", "Category"), F("function", "Функція", "Function"), F("size", "Розмір", "Size"),
              F("priority", "Пріоритет", "Priority"), F("prompt", "Промпт генерації", "Generation prompt"), F("source", "Джерело", "Source")] },
+    { id: "materials", uk: "Матеріали й текстури", en: "Materials & textures", group: "category",
+      about: { uk: "Поверхні, текстури, шейдери, рослинність: карти, розмір, джерело чи ліцензія.", en: "Surfaces, textures, shaders, foliage: maps, resolution, source or licence." },
+      defs: [F("category", "Група", "Group"), F("what", "Що це", "What it is"), F("where", "Де використовується", "Where it is used"), F("maps", "Карти", "Maps"),
+             F("resolution", "Розмір", "Resolution"), F("source", "Джерело / ліцензія", "Source / licence")] },
+    { id: "animation", uk: "Анімації й VFX", en: "Animation & VFX", group: "group",
+      about: { uk: "Анімації персонажів і ворогів, ефекти, частинки: хто, що, тривалість, джерело.", en: "Character and enemy animations, effects, particles: who, what, length, source." },
+      defs: [F("group", "Група", "Group"), F("who", "Для кого / чого", "For whom / what"), F("what", "Що відбувається", "What happens"),
+             F("timing", "Тривалість і тайминг", "Length & timing"), F("source", "Джерело", "Source")] },
+    { id: "audio", uk: "Звук і музика", en: "Sound & music", group: "group",
+      about: { uk: "Музика, ефекти, озвучка, амбієнт: настрій, де звучить, джерело.", en: "Music, sound effects, voice, ambience: mood, where it plays, source." },
+      defs: [F("group", "Група", "Group"), F("mood", "Настрій і опис", "Mood & description"), F("where", "Де звучить", "Where it plays"),
+             F("length", "Тривалість / цикл", "Length / loop"), F("source", "Джерело / промпт", "Source / prompt")] },
+    { id: "ui", uk: "UI / UX", en: "UI / UX", group: "group",
+      about: { uk: "Екрани, HUD, меню, онбординг: що на екрані, дії гравця, переходи.", en: "Screens, HUD, menus, onboarding: what is on screen, player actions, transitions." },
+      defs: [F("group", "Група", "Group"), F("purpose", "Навіщо екран", "Purpose"), F("elements", "Елементи", "Elements"),
+             F("actions", "Дії гравця й переходи", "Player actions & transitions"), F("refs", "Референси", "References")] },
+    { id: "refs", uk: "Референси", en: "References", group: "group",
+      about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
+      defs: [F("group", "Група", "Group"), F("what", "Що беремо", "What we take"), F("avoid", "Чого уникаємо", "What we avoid"), F("link", "Посилання", "Link")] },
+    { id: "tech", uk: "Технічне", en: "Technical", group: "group",
+      about: { uk: "Рушій, платформи, збірка, перформанс, сейви, мультиплеєр, інструменти.", en: "Engine, platforms, build, performance, saves, multiplayer, tools." },
+      defs: [F("group", "Група", "Group"), F("decision", "Рішення", "Decision"), F("constraints", "Обмеження й бюджети", "Constraints & budgets"), F("status", "Стан зараз", "Current state")] },
   ];
   var PLAN = { id: "plan", special: "plan", uk: "Продакшн-план", en: "Production plan",
     about: { uk: "Інтерактивний гейм-диздок і точний план розробки, складені з канону та всієї біблії гри.", en: "An interactive game design doc and a precise development plan built from the canon and the whole game bible." } };
@@ -539,6 +575,13 @@
     return data;
   }
 
+  // The sections as the AI sees them: id, name in the author's language, field labels
+  function shelves() {
+    return sections().filter(function (x) { return !x.special; }).map(function (x) {
+      return { id: x.id, name: L(x), kind: x.canon ? "canon" : "game", canonKind: x.canon || "", fields: (x.defs || []).map(function (d) { return d.label; }) };
+    });
+  }
+
   // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
   function startImport(file) {
     var rd = new FileReader();
@@ -547,10 +590,7 @@
       closeLeaf();
       if (text.length > 100000) { imp = { error: STR.importTooBig }; return render(); }
       imp = { busy: true }; render();
-      var shelves = sections().filter(function (x) { return !x.special; }).map(function (x) {
-        return { id: x.id, name: L(x), kind: x.canon ? "canon" : "game", canonKind: x.canon || "", fields: (x.defs || []).map(function (d) { return d.label; }) };
-      });
-      try { var data = await callFn({ op: "import", markdown: text, shelves: shelves }); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {} }; }
+      try { var data = await callFn({ op: "import", markdown: text, shelves: shelves() }); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {} }; }
       catch (e) { imp = { error: e.message }; }
       render();
     };
@@ -642,13 +682,14 @@
   function renderPlan(s) {
     var gdd = planDoc.gdd, plan = planDoc.plan, oq = openQs();
     var blockers = oq.filter(function (q) { return q.priority === "blocker"; }).length;
-    var busy = !!planBusy;
+    var run = planDoc.running && planDoc.running.at && planDoc.running.at.toMillis && Date.now() - planDoc.running.at.toMillis() < 35 * 60000 ? planDoc.running.op : null;
+    var busy = !!(planBusy || run), busyOp = planBusy || run;
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (plan ? '<button class="btn" id="p-md">' + STR.exportMd + '</button>' : '') +
       '<button class="btn' + (gdd ? '' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + '</button>' +
       (gdd ? '<button class="btn primary" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + '</button>' : '') +
       '</div></header>';
-    html += '<p class="pmsg">' + esc(planBusy === "analyze" ? STR.busyAnalyze : planBusy === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
+    html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
       (busy ? '' : ' <span class="muted">' + STR.costNote + '</span>') + '</p>';
 
     if (gdd) {
@@ -664,12 +705,60 @@
     var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
     if (done.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + STR.answeredTitle + ' <span>' + done.length + '</span></h2></summary>' +
       done.map(function (q) { return '<div class="qa"><div class="muted">' + esc(q.question) + '</div><div>' + esc(answers()[q.id]) + '</div></div>'; }).join("") + '</details></section>';
+    if (planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length)) html += scaffoldHtml(planDoc.scaffold);
     if (plan) html += planHtml(plan);
     $("view").innerHTML = html;
+    [].forEach.call(document.querySelectorAll("[data-sc]"), function (cb) { cb.onchange = function () { scOff[cb.dataset.sc] = !cb.checked; }; });
+    var scb = $("sc-ok"); if (scb) scb.onclick = function () { scb.disabled = true; applyScaffold().catch(function (e) { planMsg = STR.failed + ": " + e.message; render(); }); };
 
     var a = $("p-analyze"); if (a) a.onclick = function () { runPlan("analyze"); };
     var pl = $("p-plan"); if (pl) pl.onclick = function () { runPlan("plan"); };
     var mdb = $("p-md"); if (mdb) mdb.onclick = exportMarkdown;
+  }
+
+  // ---------- what the plan needs but the bible lacks: the author ticks, empty cards appear "in progress" ----------
+  var scOff = {};
+  function scaffoldName(id) { return id.indexOf("new:") === 0 ? id.slice(4) : L(sec(id)); }
+  function scaffoldHtml(sc) {
+    var box = function (k, label, detail) { return '<label class="imp"><input type="checkbox"' + (scOff[k] ? '' : ' checked') + ' data-sc="' + esc(k) + '"><span><b>' + esc(label) + '</b>' +
+      (detail ? '<span class="muted"> — ' + esc(detail) + '</span>' : '') + '</span></label>'; };
+    var html = '<section class="psec"><h2 class="group">' + STR.scTitle + ' <span>' + ((sc.sections || []).length + (sc.cards || []).length) + '</span></h2><p class="muted">' + STR.scIntro + '</p>';
+    if ((sc.sections || []).length) html += '<h3 class="sub">' + STR.scSections + '</h3>' + sc.sections.map(function (x, i) { return box("s:" + i, x.name, x.why || x.about); }).join("");
+    var by = {};
+    (sc.cards || []).forEach(function (c, i) { (by[c.section] = by[c.section] || []).push([c, i]); });
+    Object.keys(by).forEach(function (id) {
+      html += '<h3 class="sub">' + esc(scaffoldName(id)) + '</h3>' + by[id].map(function (x) {
+        return box("c:" + x[1], x[0].title + (x[0].group ? " · " + x[0].group : ""), (x[0].task ? x[0].task + ": " : "") + x[0].need); }).join("");
+    });
+    return html + '<div class="row"><button class="btn primary" id="sc-ok">' + STR.scApply + '</button></div></section>';
+  }
+  async function applyScaffold() {
+    var sc = planDoc.scaffold, batch = db.batch(), n = 0;
+    var own = (game.sections || []).slice(), made = {};
+    (sc.sections || []).forEach(function (x, i) {
+      if (scOff["s:" + i]) return;
+      var id = newId("sec"); made[x.name] = id;
+      own.push({ id: id, name: x.name, about: x.about || "" }); n++;
+    });
+    if (own.length !== (game.sections || []).length) batch.set(gref(), { sections: own, updatedAt: stamp() }, { merge: true });
+    var all = allCards();
+    (sc.cards || []).forEach(function (c, i) {
+      if (scOff["c:" + i]) return;
+      var target = c.section.indexOf("new:") === 0 ? made[c.section.slice(4)] : c.section;
+      if (!target) return; // its new section was unticked
+      var exists = all.some(function (x) { return x.section === target && x.title.trim().toLowerCase() === c.title.trim().toLowerCase(); });
+      if (exists) return;
+      var s = sec(target), defs = (s.defs || CUSTOM_DEFS).slice(), fields = {}, gk = groupKey(s);
+      if (gk && c.group) { fields[gk] = c.group; if (!defs.some(function (d) { return d.key === gk; })) defs.unshift({ key: gk, label: STR.group }); }
+      defs.push({ key: "need", label: STR.scNeed }, { key: "task", label: STR.scTask });
+      fields.need = c.need; fields.task = c.task;
+      batch.set(gref().collection("cards").doc(newId("card")), { section: target, title: c.title, status: "work", note: "", defs: defs, fields: fields,
+        planTask: c.task || "", order: Date.now() + i, createdAt: stamp(), updatedAt: stamp() });
+      n++;
+    });
+    batch.set(gref().collection("plan").doc("current"), { scaffold: { appliedAt: stamp() } }, { merge: true });
+    await batch.commit();
+    planMsg = STR.scDone + ": " + n; render();
   }
 
   function qHtml(q) {
@@ -680,6 +769,11 @@
       '<textarea rows="2" placeholder="' + esc(STR.answerPh) + '"></textarea><div class="row"><button class="btn primary" data-answer>' + STR.answer + '</button></div></div>';
   }
 
+  function cardName(ref) {
+    if (ref.indexOf("new:") === 0) return ref.slice(4);
+    var c = allCards().filter(function (x) { return x.key === ref; })[0];
+    return c ? c.title : ref;
+  }
   function planHtml(plan) {
     var html = '<section class="psec"><h2 class="group">' + STR.planTitle + '</h2>' + (plan.overview ? '<p>' + esc(plan.overview) + '</p>' : '');
     if (plan.engineNotes) html += '<div class="canonbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
@@ -690,6 +784,7 @@
           return '<div class="task"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b> <span class="pill s-agreed">' + esc(t.size) + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
             (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
             (t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
+            ((t.cards || []).length ? '<div class="muted task__c">' + STR.taskCards + ': ' + esc(t.cards.map(cardName).join(", ")) + '</div>' : '') +
             (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
         }).join("") + '</div>';
     });
@@ -703,7 +798,7 @@
   async function runPlan(op) {
     if (planBusy) return;
     planBusy = op; planMsg = ""; render();
-    try { var data = await callFn({ op: op }); planMsg = STR.spent + ": " + data.tokensConsumed; }
+    try { var data = await callFn({ op: op, shelves: shelves() }); planMsg = STR.spent + ": " + data.tokensConsumed; }
     catch (e) { planMsg = e.message; }
     planBusy = null; render();
   }

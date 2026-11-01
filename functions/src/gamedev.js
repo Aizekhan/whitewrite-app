@@ -42,15 +42,16 @@ const labelMap = (o, n, max) => Object.fromEntries(Object.entries(o && typeof o 
   .map(([k, v]) => [str(k, 80), str(v, max)]).filter(([k, v]) => k && v).slice(0, n));
 
 // Canon + this game as compact text; every card carries a ref the model can point questions at.
-function bibleText(world, entities, cards, game) {
-  const own = (game.sections || []).map((s) => ({ id: s.id, name: s.name }));
+function bibleText(world, entities, cards, game, shelves) {
+  const own = (game.sections || []).map((s) => ({ id: s.id, name: s.name })).concat((shelves || []).map((s) => ({ id: s.id, name: s.name })));
   const lines = [`# World canon: ${world.title || ''}`, world.tagline || '', world.summary || ''];
   if ((world.rules || []).length) lines.push('Laws of the world:', ...world.rules.map((r) => `- ${r}`));
   lines.push(`\n# Game: ${game.title || ''}`);
-  const card = (ref, section, title, status, fields, note) => {
+  const card = (ref, section, title, status, fields, note, files) => {
     lines.push(`\n## [${ref}] ${title} (section: ${section}, status: ${status || 'idea'})`);
-    for (const [k, v] of Object.entries(fields)) if (str(v, 1)) lines.push(`${k}: ${str(v, 3000)}`);
-    if (note) lines.push(`Author's note: ${str(note, 1000)}`);
+    for (const [k, v] of Object.entries(fields)) if (str(v, 1)) lines.push(`${k}: ${str(v, 800)}`);
+    if ((files || []).length) lines.push(`Files: ${files.map((f) => f.name).join(', ')}`);
+    if (note) lines.push(`Author's note: ${str(note, 600)}`);
   };
   const named = (c) => {
     const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
@@ -60,11 +61,11 @@ function bibleText(world, entities, cards, game) {
     if (!CANON_KINDS.includes(e.kind)) continue;
     const c = cards.find((x) => x.canonRef === e.id) || {};
     if (c.hidden) continue;
-    card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '', ...named(c) }, c.note);
+    card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '', ...named(c) }, c.note, c.files);
   }
   for (const c of cards) {
     if (c.canonRef) continue;
-    card(`c:${c.id}`, (own.find((s) => s.id === c.section) || {}).name || c.section, c.title || '', c.status, named(c), c.note);
+    card(`c:${c.id}`, `${c.section} — ${(own.find((s) => s.id === c.section) || {}).name || ''}`, c.title || '', c.status, named(c), c.note, c.files);
   }
   return lines.join('\n').slice(0, MAX_BIBLE_CHARS);
 }
@@ -106,11 +107,33 @@ function cleanPlan(p) {
         size: oneOf(t.size, ['S', 'M', 'L'], 'M'),
         owner: oneOf(t.owner, ['design', 'dev', 'art', 'audio', 'qa'], 'dev'),
         prompt: str(t.prompt, 3000),
+        cards: list(t.cards, 20, (c) => str(c, 200) || null),
       } : null)),
     } : null)),
     parallel: list(plan.parallel, 8, (s) => str(s, 300) || null),
     risks: list(plan.risks, 10, (r) => (r && str(r.risk, 300) ? { risk: str(r.risk, 300), mitigation: str(r.mitigation, 400) } : null)),
     gaps: list(plan.gaps, 15, (g) => (g && str(g.need, 300) ? { need: str(g.need, 300), missing: str(g.missing, 300), desiredApi: str(g.desiredApi, 500), workaround: str(g.workaround, 300) } : null)),
+  };
+}
+
+// What the plan needs but the bible lacks: new sections + empty cards ("in progress") for the author to fill
+function cleanScaffold(p, shelves) {
+  const sc = p && p.scaffold ? p.scaffold : {};
+  const gameShelves = shelves.filter((s) => s.kind === 'game' && s.id !== 'plan');
+  const sections = list(sc.sections, 6, (x) => (x && str(x.name, 80) && !gameShelves.some((s) => s.name.toLowerCase() === str(x.name, 80).toLowerCase())
+    ? { name: str(x.name, 80), about: str(x.about, 300), why: str(x.why, 300) } : null));
+  const target = (v) => {
+    const t = str(v, 80);
+    const shelf = gameShelves.find((s) => s.id === t || s.name.toLowerCase() === t.toLowerCase());
+    if (shelf) return shelf.id;
+    const sec = sections.find((s) => s.name.toLowerCase() === t.toLowerCase());
+    return sec ? 'new:' + sec.name : '';
+  };
+  return {
+    sections,
+    cards: list(sc.cards, 80, (c) => (c && str(c.title, 160) && target(c.section) ? {
+      section: target(c.section), title: str(c.title, 160), group: str(c.group, 80), need: str(c.need, 800), task: str(c.task, 16),
+    } : null)),
   };
 }
 
@@ -184,16 +207,20 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 {"gdd":{"summary":"","readiness":0,"sections":[{"title":"","status":"partial","notes":""}]},"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"blocker","target":{"card":"","field":""}}],"contradictions":[{"what":"","where":""}]}`;
 }
 
-function planPrompt(bible, engine, answered, gdd, languageName) {
+function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
   return `You are the producer of this game. Using the Game Bible, the GDD analysis and the author's decisions below, write a precise, actionable DEVELOPMENT PLAN.
 
 Rules:
 - Milestones in order (typically: prototype of the core loop → vertical slice → content production → alpha → beta/polish → release; adapt to the game's scope). Each has a goal and a GATE: a concrete, checkable condition that must be true before the next milestone starts.
-- Tasks inside each milestone: id like "M1.3", title, detail (what exactly, with the numbers/content from the bible), deps (task ids), size S|M|L, owner design|dev|art|audio|qa, and prompt — a ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation brief). Every bible card that must be built should appear in some task.
+- Tasks inside each milestone: id like "M1.3", title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids), size S|M|L, owner design|dev|art|audio|qa, cards — the bible cards this task builds ("c:..." / "e:..." refs, or "new:<title>" for a scaffold card below), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card. 4-8 tasks per milestone.
 - parallel: which streams can run at the same time.
 - risks with mitigation.
 - gaps: things the engine/framework likely does not provide (need, missing, desiredApi, workaround). Empty for a generic engine unless obvious.
 - Ground everything in the bible; where the bible is silent, choose the simplest option and say so in the task detail.
+- scaffold — what the plan needs but the bible does NOT have yet, so the author can fill it in: cards (section = one of the game sections below by id, title, group = a subheading inside the section when it fits, need = what exactly must be made or decided, task = the task id that needs it) for missing prefabs, models, textures, animations, sounds, UI screens, references, mechanics, levels, items… Never duplicate a card that already exists (check titles; a card whose files include a model is already made). Add a new section only when no game section fits (name, about, why); then use its name as the card's section. Max 60 cards.
+
+GAME SECTIONS (id — name):
+${(shelves || []).filter((s) => s.kind === 'game').map((s) => `- ${s.id} — ${s.name}`).join('\n')}
 
 Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
 
@@ -203,7 +230,7 @@ BIBLE:
 ${bible}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]}}`;
+{"plan":{"overview":"","engineNotes":"","milestones":[{"id":"M1","name":"","goal":"","gate":"","tasks":[{"id":"M1.1","title":"","detail":"","deps":[],"size":"M","owner":"dev","cards":["c:..."],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"M2.1"}]}}`;
 }
 
 // Split notes at headings into parts of at most IMPORT_PART_CHARS
@@ -273,12 +300,13 @@ function cleanShelves(a) {
 exports.gamedevPlan = onRequest({
   region: 'us-central1',
   secrets: [claudeApiKey],
-  timeoutSeconds: 540,
+  timeoutSeconds: 1800, // a plan for a big bible is a long generation
   memory: '512MiB'
 }, async (req, res) => {
   return cors(req, res, async () => {
     let uid;
     let reservation = null;
+    let gameRefForError = null;
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const authHeader = req.headers.authorization;
@@ -311,6 +339,7 @@ exports.gamedevPlan = onRequest({
 
       const worldRef = db.collection('worlds').doc(worldId);
       const gameRef = worldRef.collection('games').doc(gameId);
+      gameRefForError = gameRef;
       const [worldSnap, gameSnap, entitiesSnap, cardsSnap, planSnap] = await Promise.all([
         worldRef.get(), gameRef.get(), worldRef.collection('entities').get(), gameRef.collection('cards').get(), gameRef.collection('plan').doc('current').get()]);
       if (!worldSnap.exists || worldSnap.data().owner !== uid || !gameSnap.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
@@ -341,14 +370,16 @@ exports.gamedevPlan = onRequest({
 
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
-        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game), engine, answered, prev.gdd, languageName)
-          : analyzePrompt(bibleText(world, entities, cards, game), engine, answered, languageName)];
+        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves), engine, answered, prev.gdd, languageName, shelves)
+          : analyzePrompt(bibleText(world, entities, cards, game, shelves), engine, answered, languageName)];
       const prompt = prompts.join('');
       const model = op === 'plan' ? AI_MODELS.claude.opus : AI_MODELS.claude.sonnet; // configured id — the one MODEL_PRICING knows
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
+      // the page shows "AI is working" from this marker even after a reload
+      if (op !== 'import') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       const messages = await Promise.all(prompts.map((content) => anthropic.messages.stream({
         model,
-        max_tokens: op === 'analyze' ? 8000 : 16000,
+        max_tokens: op === 'plan' ? 32000 : 16000,
         messages: [{ role: 'user', content }]
       }).finalMessage()));
       if (messages.some((m) => m.stop_reason === 'max_tokens')) throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
@@ -360,14 +391,14 @@ exports.gamedevPlan = onRequest({
       if (op === 'import') {
         proposal = cleanImport(mergeImports(results), shelves, entities, world);
       } else {
-        const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine };
+        const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine, running: admin.firestore.FieldValue.delete() };
         if (op === 'analyze') {
           const a = cleanAnalysis(parsed);
           // keep answered questions; open ones are replaced by the fresh analysis
           const kept = (prev.asked || []).filter((q) => str(answers[q.id], 1));
           Object.assign(update, { gdd: a.gdd, contradictions: a.contradictions, asked: kept.concat(a.questions), analyzedAt: admin.firestore.FieldValue.serverTimestamp() });
         } else {
-          Object.assign(update, { plan: cleanPlan(parsed), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
+          Object.assign(update, { plan: cleanPlan(parsed), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
         }
         await gameRef.collection('plan').doc('current').set(update, { merge: true });
       }
@@ -384,6 +415,7 @@ exports.gamedevPlan = onRequest({
       res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('gamedevPlan error:', error);
+      if (gameRefForError) await gameRefForError.collection('plan').doc('current').set({ running: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
       if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[gamedevPlan] Refund failed:', e));
       res.status(500).json({ error: `Помилка біблії гри: ${error.message}` });
     }
