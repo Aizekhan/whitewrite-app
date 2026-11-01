@@ -27,7 +27,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { claim: { type: 'boolean', description: 'Mark the returned task in_progress (default true)' } } } },
   { name: 'get_task_details', description: 'Full context of one task by id (e.g. "M2.3"): goal, detail, acceptance criteria, tests, related cards with fields and file URLs, deps, review history.',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
-  { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, assets, materials, audio, ui, tech, characters, locations): fields, status and files.',
+  { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status and files. Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
   { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images).',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
@@ -128,7 +128,14 @@ function cardView(ctx, ref) {
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
-  return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '' };
+  const gp = groupPalette(ctx, c);
+  return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
+    ...(gp ? { group_palette: gp } : {}) };
+}
+// «Референси» / «Сцени»: a subsection may carry the group's colour palette (games/{g}.subPalettes[section][group], "#hex — name" per line)
+function groupPalette(ctx, c) {
+  const f = c.fields || {}, g = f.group || f.category;
+  return (g && ((ctx.game.subPalettes || {})[c.section] || {})[g]) || '';
 }
 
 function taskCards(ctx, t) {
@@ -459,7 +466,8 @@ async function callTool(name, args, key) {
       if (kind && !ctx.game.canonOptIn) { // older games see the whole canon; newer ones only what they picked (cards above)
         ctx.entities.filter((e) => e.kind === kind && !ctx.cards.some((c) => c.canonRef === e.id)).forEach((e) => out.push(cardView(ctx, 'e:' + e.id)));
       }
-      return { section: s, cards: out };
+      const pals = (ctx.game.subPalettes || {})[s];
+      return { section: s, cards: out, ...(pals && Object.keys(pals).length ? { group_palettes: pals } : {}) };
     }
     case 'get_card': {
       const c = cardView(ctx, str(args.ref, 120));

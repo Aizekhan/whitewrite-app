@@ -31,7 +31,9 @@ const GUIDES = {
 4. **Project Knowledge**: call \`get_guide {topic:"knowledge"}\` and index the project read-only.
 5. **Framework compatibility** (only if Packages/manifest.json has \`com.aizekhan.rpg-framework\`): run
    \`Unity.exe -batchmode -projectPath "<project>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateAllData -logFile - -quit\`
-   and report errors to the author. Then \`git status --porcelain\` must be empty (no unexpected changes).
+   The exit code does NOT tell pass/fail (the method only logs; Unity exits 0 even with errors): read the log after
+   "=== RPG Framework Validation Results ===" — any "Found N error(s):" with N > 0 (and the "  - <error>" lines under it) is a failure; report errors and warnings to the author.
+   Then \`git status --porcelain\` must be empty (no unexpected changes).
 6. **End-to-end check**: \`get_next_task\` → make the smallest safe change it asks for → run its tests → \`submit_task_result\` with every acceptance criterion and evidence.
 
 Rules:
@@ -58,7 +60,7 @@ Sources: ${SOURCES.cli} · ${SOURCES.cliRef} · ${SOURCES.editorCli} · ${SOURCE
 | editor | \`unity editors -i --format json\` | the project's Editor version is installed |
 | cli | \`unity --version\` and \`unity doctor\` | both exit 0 |
 | project | files \`ProjectSettings/ProjectVersion.txt\` and \`Packages/manifest.json\` exist | both exist |
-| validation | framework games: \`Unity.exe -batchmode -projectPath "<p>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateAllData -logFile - -quit\`; others: open nothing, skip | exit 0 and \`git status --porcelain\` empty |
+| validation | framework games: \`Unity.exe -batchmode -projectPath "<p>" -executeMethod RPGFramework.Editor.Utilities.FrameworkValidation.ValidateAllData -logFile - -quit\`; others: skip | the log after "=== RPG Framework Validation Results ===" has no "Found N error(s)" with N > 0 (the exit code is always 0 — do not use it), and \`git status --porcelain\` is empty |
 | tests | \`unity test --timeout 1800 --format json\` (exit 0 = passed, 8 = ran with failures) or \`Unity.exe -runTests -batchmode -projectPath "<p>" -testPlatform EditMode -testResults results.xml\` (no \`-quit\` with \`-runTests\`; read the XML) | tests ran |
 | logs | you can read the exit code and the JSON / NUnit XML / -logFile output | yes |
 

@@ -71,7 +71,12 @@
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
-      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", file: "Файли (префаби, моделі…)" },
+      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", file: "Файли (префаби, моделі…)", palette: "Палітра кольорів", scene: "Мініпостановка сцени" },
+      pal: { add: "＋ Колір", paste: "Вставити коди", pastePh: "#1e2a44, #e0b050… або посилання coolors.co", fromImg: "🎨 З картинок", namePh: "назва: тло, акцент, світло…",
+        color: "Колір", rm: "Прибрати колір", none: "Гами ще немає.", noImg: "Спершу додай картинки.", imgFail: "Не вдалося прочитати картинки.", groupTitle: "Гама групи «{g}»",
+        groupHint: "Основні кольори групи — помітка для тих, хто малюватиме по цих референсах.", edit: "Гама групи", save: "Зберегти", clear: "Прибрати гаму" },
+      sb: { add: "＋ На сцену", addPh: "Що на сцені: персонаж, предмет, світло, камера…", bg: "Тло", size: "Розмір", label: "Підпис", back: "Назад", front: "Вперед",
+        rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, розмір, підпис. Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки",
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
@@ -265,7 +270,12 @@
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
-      ftypes: { text: "Text", table: "Table", image: "Images", file: "Files (prefabs, models…)" },
+      ftypes: { text: "Text", table: "Table", image: "Images", file: "Files (prefabs, models…)", palette: "Colour palette", scene: "Scene mock-up" },
+      pal: { add: "＋ Colour", paste: "Paste codes", pastePh: "#1e2a44, #e0b050… or a coolors.co link", fromImg: "🎨 From images", namePh: "name: background, accent, light…",
+        color: "Colour", rm: "Remove colour", none: "No palette yet.", noImg: "Add images first.", imgFail: "Could not read the images.", groupTitle: "Palette of “{g}”",
+        groupHint: "The group's main colours — a note for whoever draws from these references.", edit: "Group palette", save: "Save", clear: "Remove palette" },
+      sb: { add: "＋ To the scene", addPh: "What is in the scene: character, prop, light, camera…", bg: "Background", size: "Size", label: "Label", back: "Back", front: "Front",
+        rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, size, label. Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images",
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
@@ -515,6 +525,12 @@
       about: { uk: "Екрани, HUD, меню, онбординг: що на екрані, дії гравця, переходи.", en: "Screens, HUD, menus, onboarding: what is on screen, player actions, transitions." },
       defs: [F("group", "Група", "Group"), F("purpose", "Навіщо екран", "Purpose"), F("elements", "Елементи", "Elements"),
              F("actions", "Дії гравця й переходи", "Player actions & transitions"), F("refs", "Референси", "References")] },
+    { id: "scenes", uk: "Сцени", en: "Scenes", group: "group",
+      groups: { uk: ["Ключові сцени", "Катсцени", "Ігрові моменти", "Бої", "Екрани й меню"], en: ["Key scenes", "Cutscenes", "Gameplay moments", "Fights", "Screens & menus"] },
+      about: { uk: "Сцени гри: що відбувається, настрій і світло, палітра кольорів, мініпостановка — хто й що де стоїть у кадрі.", en: "The game's scenes: what happens, mood and light, the colour palette, a mock-up — who and what stands where in the frame." },
+      defs: [F("group", "Група", "Group"), F("what", "Що відбувається", "What happens"), F("location", "Локація", "Location"), F("mood", "Настрій і світло", "Mood & light"),
+             F("palette", "Палітра кольорів", "Colour palette", "palette"), F("board", "Мініпостановка сцени", "Scene mock-up", "scene"),
+             F("camera", "Камера й кадр", "Camera & framing"), F("refs", "Референси", "References", "image")] },
     { id: "refs", uk: "Референси", en: "References", group: "group",
       groups: { uk: ["Візуал", "Геймплей", "Звук", "UI"], en: ["Visuals", "Gameplay", "Sound", "UI"] },
       about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
@@ -609,6 +625,7 @@
     { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "refs"] },
     { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies"] },
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen"] },
+    { id: "g-scenes", members: ["scenes"] },
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
     { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["assets", "materials", "animation", "audio"] },
@@ -661,7 +678,9 @@
       (by[g] = by[g] || []).push(x);
     });
     var html = "", head = function (g, label, n, canDrop) {
-      return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span><button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' +
+      var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
+      return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
+        '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' +
         (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
     var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
@@ -796,6 +815,7 @@
     askName(STR.sub.title, STR.sub.ph, function (name) {
       if (!name) return;
       var list = subsOf(s); if (list.indexOf(name) < 0) saveSubs(s, list.concat(name));
+      if (game && PAL_SECS.indexOf(s.id) >= 0) groupPalDialog(name);
     });
   }
   function dropSubsection(g) { var s = sec(section); saveSubs(s, subsOf(s).filter(function (x) { return x !== g; })); }
@@ -913,7 +933,10 @@
 
   function excerpt(c) {
     var v = c.canonDesc && c.canonDesc.value;
-    if (!v) { var d = c.defs.filter(function (d) { return c.fields[d.key] && d.key !== "group" && d.key !== "category"; })[0]; v = d ? c.fields[d.key] : ""; }
+    if (!v) {
+      var vis = (sec(c.section).defs || []).concat(c.defs).filter(function (d) { return d.type === "palette" || d.type === "scene"; }).map(function (d) { return d.key; }); // shown as swatches / the mock-up
+      var d = c.defs.filter(function (d) { return c.fields[d.key] && d.key !== "group" && d.key !== "category" && vis.indexOf(d.key) < 0; })[0]; v = d ? c.fields[d.key] : "";
+    }
     return String(v || "").replace(/[*`|#>-]+/g, " ").replace(/\s+/g, " ").slice(0, 220);
   }
   function matches(c) {
@@ -936,8 +959,10 @@
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
     if (hv) tags.unshift(polyMark(hv));
-    return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
-      '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags">' + tags.join("") +
+    var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
+    var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
+    return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : bd ? sceneThumb(c.fields[bd.key]) : '') +
+      '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
 
@@ -2143,8 +2168,172 @@
     html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
+    mountFieldEditors();
   }
-  var FTYPES = ["text", "table", "image", "file"];
+  // ---------- Palettes and scene mock-ups (field types "palette" / "scene") ----------
+  // Both are kept as plain text in the card field, so AI, MCP and exports read them: a palette is one colour per line
+  // ("#1e2a44 — тло"), a mock-up is "bg: #hex" + one element per line ("- Ліра @ 30% 60% · 18% · #e0b050" = centre x/y, width).
+  // A subsection of «Референси» / «Сцени» may carry its own palette: games/{g}.subPalettes[sectionId][group] (same text).
+  var PAL_SECS = ["refs", "scenes"];
+  function parsePal(v) {
+    return String(v || "").split("\n").map(function (l) { var m = l.match(/#([0-9a-f]{6})\b\s*(?:[—–-]\s*)?(.*)/i); return m ? { hex: "#" + m[1].toLowerCase(), name: m[2].trim() } : null; }).filter(Boolean);
+  }
+  function palText(list) { return list.map(function (c) { return c.hex + (c.name ? " — " + c.name : ""); }).join("\n"); }
+  function hexesIn(t) { var out = [], re = /(?:^|[^0-9a-z])#?([0-9a-f]{6})(?![0-9a-z])/gi, m; while ((m = re.exec(String(t || "")))) out.push("#" + m[1].toLowerCase()); return out; }
+  function swatches(v) {
+    var l = parsePal(v);
+    return l.length ? '<span class="sw">' + l.map(function (c) { return '<i style="background:' + c.hex + '" title="' + esc(c.hex + (c.name ? " — " + c.name : "")) + '"></i>'; }).join("") + '</span>' : '';
+  }
+  // the dominant colours of images (a coarse histogram; near colours merge) — Storage serves images with CORS
+  function extractColors(urls, n) {
+    return Promise.all(urls.slice(0, 8).map(function (u) {
+      return new Promise(function (ok) {
+        var img = new Image(); img.crossOrigin = "anonymous";
+        img.onload = function () {
+          try {
+            var c = document.createElement("canvas"), k = 64 / Math.max(img.width, img.height); c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+            var x = c.getContext("2d"); x.drawImage(img, 0, 0, c.width, c.height); ok(x.getImageData(0, 0, c.width, c.height).data);
+          } catch (e) { ok(null); }
+        };
+        img.onerror = function () { ok(null); }; img.src = u;
+      });
+    })).then(function (all) {
+      var bins = {}, got = false;
+      all.forEach(function (d) { if (!d) return; got = true; for (var i = 0; i < d.length; i += 4) { if (d[i + 3] < 128) continue; var key = (d[i] >> 4) + "," + (d[i + 1] >> 4) + "," + (d[i + 2] >> 4), b = bins[key] || (bins[key] = { n: 0, r: 0, g: 0, b: 0 }); b.n++; b.r += d[i]; b.g += d[i + 1]; b.b += d[i + 2]; } });
+      if (!got) throw new Error("cors");
+      var out = [];
+      Object.keys(bins).map(function (k) { var b = bins[k]; return { n: b.n, r: b.r / b.n, g: b.g / b.n, b: b.b / b.n }; }).sort(function (a, b) { return b.n - a.n; }).forEach(function (c) {
+        if (out.length < (n || 6) && out.every(function (o) { return Math.abs(o.r - c.r) + Math.abs(o.g - c.g) + Math.abs(o.b - c.b) > 70; })) out.push(c);
+      });
+      return out.map(function (c) { return "#" + [c.r, c.g, c.b].map(function (x) { return ("0" + Math.round(x).toString(16)).slice(-2); }).join(""); });
+    });
+  }
+  // A palette editor inside el; change(text) on every edit. imgs() → image urls for «З картинок».
+  function palEditor(el, v, change, imgs) {
+    var list = parsePal(v), P = STR.pal;
+    var draw = function (note) {
+      el.innerHTML = (list.length ? '<div class="sw big">' + list.map(function (c) { return '<i style="background:' + c.hex + '"></i>'; }).join("") + '</div>' : '') +
+        list.map(function (c, i) {
+          return '<div class="pal-i"><input type="color" data-pi="' + i + '" value="' + c.hex + '" aria-label="' + esc(P.color + " " + (i + 1)) + '"' + (canWrite ? '' : ' disabled') + '>' +
+            '<input data-pn="' + i + '" value="' + esc(c.name) + '" placeholder="' + esc(P.namePh) + '"' + (canWrite ? '' : ' disabled') + '><code>' + c.hex + '</code>' +
+            (canWrite ? '<button type="button" class="btn mini ghost" data-prm="' + i + '" aria-label="' + esc(P.rm) + '">✕</button>' : '') + '</div>'; }).join("") +
+        (canWrite ? '<div class="row"><button type="button" class="btn mini" data-padd>' + P.add + '</button><button type="button" class="btn mini" data-ppaste>' + P.paste + '</button>' +
+          (imgs ? '<button type="button" class="btn mini" data-pimg>' + P.fromImg + '</button>' : '') + '</div>' : (list.length ? '' : '<p class="muted">' + P.none + '</p>')) +
+        (note ? '<p class="muted">' + esc(note) + '</p>' : '');
+    };
+    var set = function () { change(palText(list)); };
+    draw();
+    el.oninput = function (e) {
+      var t = e.target;
+      if (t.dataset.pi) { list[+t.dataset.pi].hex = t.value; t.parentNode.querySelector("code").textContent = t.value; el.querySelectorAll(".sw.big i")[+t.dataset.pi].style.background = t.value; }
+      else if (t.dataset.pn) list[+t.dataset.pn].name = t.value; else return;
+      set();
+    };
+    el.onclick = function (e) {
+      var b = e.target.closest("button"); if (!b || !el.contains(b)) return;
+      if (b.dataset.prm) { list.splice(+b.dataset.prm, 1); set(); draw(); }
+      else if (b.hasAttribute("data-padd")) { list.push({ hex: list.length ? list[list.length - 1].hex : "#808080", name: "" }); set(); draw(); el.querySelectorAll("[data-pi]")[list.length - 1].click(); }
+      else if (b.hasAttribute("data-ppaste")) askName(P.paste, P.pastePh, function (t) { var h = hexesIn(t); if (!h.length) return; h.forEach(function (x) { list.push({ hex: x, name: "" }); }); set(); draw(); });
+      else if (b.hasAttribute("data-pimg")) {
+        var u = imgs(); if (!u.length) return draw(P.noImg);
+        b.disabled = true;
+        extractColors(u, 6).then(function (h) { h.forEach(function (x) { if (!list.some(function (c) { return c.hex === x; })) list.push({ hex: x, name: "" }); }); set(); draw(); })
+          .catch(function () { draw(P.imgFail); });
+      }
+    };
+  }
+  function parseScene(v) {
+    var sc = { bg: "#1b1f2a", items: [] };
+    String(v || "").split("\n").forEach(function (l) {
+      var b = l.match(/^\s*bg:\s*(#[0-9a-f]{6})/i); if (b) { sc.bg = b[1].toLowerCase(); return; }
+      var m = l.match(/^\s*-\s*(.+?)\s*@\s*(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s*·\s*(\d+(?:\.\d+)?)%\s*·\s*(#[0-9a-f]{6})\s*$/i);
+      if (m) sc.items.push({ label: m[1], x: +m[2], y: +m[3], w: +m[4], hex: m[5].toLowerCase() });
+    });
+    return sc;
+  }
+  function sceneText(sc) {
+    return ["bg: " + sc.bg].concat(sc.items.map(function (it) { return "- " + it.label.replace(/\n/g, " ") + " @ " + Math.round(it.x) + "% " + Math.round(it.y) + "% · " + Math.round(it.w) + "% · " + it.hex; })).join("\n");
+  }
+  var ink = function (hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 140 ? "#111" : "#fff"; };
+  function sceneStage(sc, sel) {
+    return '<div class="sb-stage" style="background:' + sc.bg + '">' + sc.items.map(function (it, i) {
+      return '<div class="sb-it' + (i === sel ? ' is-sel' : '') + '" data-si="' + i + '" tabindex="0" style="left:' + it.x + '%;top:' + it.y + '%;width:' + it.w + '%;background:' + it.hex + ';color:' + ink(it.hex) + '">' + esc(it.label) + '</div>';
+    }).join("") + '</div>';
+  }
+  function sceneThumb(v) { var sc = parseScene(v); return sc.items.length ? '<div class="sb-thumb">' + sceneStage(sc, -1) + '</div>' : ''; }
+  // The mock-up editor: a 16:9 stage, elements dragged by the pointer; pal() → the card's palette for quick colours
+  function sceneEditor(el, v, change, pal) {
+    var sc = parseScene(v), sel = -1, B = STR.sb;
+    var names = cards.map(function (c) { return c.title; }).concat(entities.map(function (e) { return e.name; })).filter(Boolean);
+    var draw = function () {
+      var it = sc.items[sel], cols = parsePal(pal());
+      el.innerHTML = sceneStage(sc, sel) + (sc.items.length ? '' : '<p class="muted">' + B.empty + '</p>') + (!canWrite ? '' :
+        '<div class="row sb-add"><input data-sbnew list="sb-names" placeholder="' + esc(B.addPh) + '"><datalist id="sb-names">' + names.slice(0, 200).map(function (n) { return '<option value="' + esc(n) + '">'; }).join("") + '</datalist>' +
+        '<button type="button" class="btn mini" data-sbadd>' + B.add + '</button><label class="muted">' + B.bg + ' <input type="color" data-sbbg value="' + sc.bg + '"></label></div>' +
+        (it ? '<div class="row sb-ctl"><input data-sblabel value="' + esc(it.label) + '" aria-label="' + esc(B.label) + '"><input type="color" data-sbhex value="' + it.hex + '" aria-label="' + esc(STR.pal.color) + '">' +
+          cols.map(function (c) { return '<button type="button" class="sw-b" data-sbpal="' + c.hex + '" style="background:' + c.hex + '" title="' + esc(c.hex + (c.name ? " — " + c.name : "")) + '"></button>'; }).join("") +
+          '<label class="muted">' + B.size + ' <input type="range" min="4" max="60" data-sbw value="' + it.w + '"></label><button type="button" class="btn mini" data-sbz="-1">' + B.back + '</button>' +
+          '<button type="button" class="btn mini" data-sbz="1">' + B.front + '</button><button type="button" class="btn mini danger" data-sbrm>' + B.rm + '</button></div>' : '') +
+        '<p class="hint">' + B.hint + '</p>');
+    };
+    var set = function () { change(sceneText(sc)); };
+    var stage = function () { return el.querySelector(".sb-stage"); };
+    draw();
+    el.onclick = function (e) {
+      var t = e.target;
+      if (t.closest("[data-sbadd]")) { var inp = el.querySelector("[data-sbnew]"), lb = inp.value.trim(); if (!lb) return inp.focus(); var cs = parsePal(pal()); sc.items.push({ label: lb, x: 25 + (sc.items.length * 17) % 55, y: 55, w: 16, hex: cs.length ? cs[sc.items.length % cs.length].hex : "#e0b050" }); sel = sc.items.length - 1; set(); draw(); return; }
+      var sp = t.closest("[data-sbpal]"); if (sp && sc.items[sel]) { sc.items[sel].hex = sp.dataset.sbpal; set(); draw(); return; }
+      var z = t.closest("[data-sbz]"); if (z && sc.items[sel]) { var j = Math.max(0, Math.min(sc.items.length - 1, sel + +z.dataset.sbz)), mv = sc.items.splice(sel, 1)[0]; sc.items.splice(j, 0, mv); sel = j; set(); draw(); return; }
+      if (t.closest("[data-sbrm]")) { sc.items.splice(sel, 1); sel = -1; set(); draw(); return; }
+    };
+    el.oninput = function (e) {
+      var t = e.target, it = sc.items[sel];
+      if (t.dataset.sbbg !== undefined) { sc.bg = t.value; stage().style.background = t.value; }
+      else if (it && t.dataset.sblabel !== undefined) { it.label = t.value || "…"; stage().children[sel].textContent = it.label; }
+      else if (it && t.dataset.sbhex !== undefined) { it.hex = t.value; stage().children[sel].style.background = t.value; stage().children[sel].style.color = ink(t.value); }
+      else if (it && t.dataset.sbw !== undefined) { it.w = +t.value; stage().children[sel].style.width = t.value + "%"; }
+      else return;
+      set();
+    };
+    el.onkeydown = function (e) { if (e.target.dataset.sbnew !== undefined && e.key === "Enter") { e.preventDefault(); el.querySelector("[data-sbadd]").click(); } };
+    el.onpointerdown = function (e) {
+      var node = e.target.closest(".sb-it"); if (!node) return;
+      var i = +node.dataset.si; if (i !== sel) { sel = i; draw(); node = stage().children[i]; }
+      if (!canWrite) return;
+      e.preventDefault(); var r = stage().getBoundingClientRect(), it = sc.items[i], moved = false;
+      var mv = function (ev) { moved = true; it.x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)); it.y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100)); node.style.left = it.x + "%"; node.style.top = it.y + "%"; };
+      var up = function () { document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); if (moved) set(); };
+      document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up);
+    };
+  }
+  function mountFieldEditors() {
+    var palOf = function () { var d = draft.defs.concat(sec(open.section).defs || []).filter(function (x) { return x.type === "palette"; })[0]; var gp = groupPal(open.section, draft.fields[groupKey(sec(open.section))]); return (d && draft.fields[d.key]) || gp || ""; };
+    [].forEach.call(document.querySelectorAll("#e-body [data-pal]"), function (el) {
+      var k = el.dataset.pal; palEditor(el, draft.fields[k], function (t) { draft.fields[k] = t; }, function () { return (open.files || []).filter(isImage).map(function (f) { return f.url; }); });
+    });
+    [].forEach.call(document.querySelectorAll("#e-body [data-board]"), function (el) { var k = el.dataset.board; sceneEditor(el, draft.fields[k], function (t) { draft.fields[k] = t; }, palOf); });
+  }
+  function groupPal(sid, g) { return g ? (((game && game.subPalettes) || {})[sid] || {})[g] || "" : ""; }
+  // «🎨» at a subheading of Референси / Сцени: the group's main colours (from the group's images or by hand)
+  function groupPalDialog(g) {
+    var s = sec(section), P = STR.pal, text = groupPal(s.id, g);
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(P.groupTitle.replace("{g}", g)) + '"><h3>' + esc(P.groupTitle.replace("{g}", g)) + '</h3><p class="hint">' + P.groupHint + '</p>' +
+      '<div class="pal" id="gp-ed"></div><div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button>' + (text ? '<button type="button" class="btn danger" id="gp-clear">' + P.clear + '</button>' : '') +
+      '<button class="btn primary" id="ask-ok">' + P.save + '</button></div></form>';
+    document.body.appendChild(box);
+    var groupImgs = function () { var k = groupKey(s); return allCards().filter(function (c) { return c.section === s.id && normGroup(s, c.fields[k] || "") === g; })
+      .reduce(function (a, c) { return a.concat((c.files || []).filter(isImage).map(function (f) { return f.url; })); }, []); };
+    palEditor(box.querySelector("#gp-ed"), text, function (t) { text = t; }, groupImgs);
+    var close = function () { box.remove(); };
+    var write = function (v) { var p = { subPalettes: {} }; p.subPalettes[s.id] = {}; p.subPalettes[s.id][g] = v; return gref().set(p, { merge: true }).then(close).catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); }); };
+    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); write(text || firebase.firestore.FieldValue.delete()); };
+    if (box.querySelector("#gp-clear")) box.querySelector("#gp-clear").onclick = function () { write(firebase.firestore.FieldValue.delete()); };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+  }
+  var FTYPES = ["text", "table", "image", "file", "palette", "scene"];
   function typeSelect(id, cur, key) {
     return '<select ' + (id ? 'id="' + id + '"' : 'data-ftype="' + esc(key) + '"') + ' aria-label="' + esc(STR.fieldType) + '">' +
       FTYPES.map(function (t) { return '<option value="' + t + '"' + (t === cur ? " selected" : "") + '>' + esc(STR.ftypes[t]) + '</option>'; }).join("") + '</select>';
@@ -2159,6 +2348,8 @@
         typeSelect(null, type, d.key) + '<button class="fdel" data-delfield="' + esc(d.key) + '" title="' + esc(STR.fieldDel) + '" aria-label="' + esc(STR.fieldDel + " " + d.label) + '">✕</button></div>'
       : '<label>' + esc(d.label) + '</label>';
     var body = type === "table" ? tableHtml(d.key, v)
+      : type === "palette" ? '<div class="pal" data-pal="' + esc(d.key) + '"></div>'
+      : type === "scene" ? '<div class="sb" data-board="' + esc(d.key) + '"></div>'
       : type === "image" || type === "file" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
       : '<div class="shown' + (v ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + (v ? md(v) : STR.blank) + '</div>';
     return '<div class="field' + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
@@ -3870,6 +4061,7 @@
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
     var sd = e.target.closest("[data-subdel]"); if (sd) { dropSubsection(sd.dataset.subdel); return; }
+    var spl = e.target.closest("[data-subpal]"); if (spl) { groupPalDialog(spl.dataset.subpal); return; }
     var dl = e.target.closest("[data-lore]"); if (dl) { openDossier(lore.filter(function (x) { return x.id === dl.dataset.lore; })[0]); return; }
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
