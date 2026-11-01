@@ -295,6 +295,11 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .art__note b{ color:var(--tx-hi); }
 .art__note--tip{ background:rgba(217,160,70,0.1); border:1px solid rgba(217,160,70,0.3); color:var(--tx); }
 .art__note--warn{ background:rgba(192,73,47,0.12); border:1px solid rgba(192,73,47,0.4); color:var(--tx); }
+.art__prompt{ position:relative; margin:14px 0; border-radius:10px; background:var(--bg-1); border:1px solid var(--line); }
+.art__prompt pre{ margin:0; padding:14px 16px 40px; white-space:pre-wrap; word-break:break-word; font:13px/1.55 ui-monospace,Consolas,monospace; color:var(--tx-hi); }
+.art__copy{ position:absolute; right:8px; bottom:8px; font:600 12px "Inter",sans-serif; padding:5px 12px; border-radius:999px; cursor:pointer;
+  color:var(--gold-bright); background:transparent; border:1px solid rgba(217,160,70,0.45); }
+.art__copy:hover{ background:rgba(217,160,70,0.12); }
 .art__rel{ margin-top:30px; padding-top:22px; border-top:1px solid var(--line); }
 .art__rel-h{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-low); margin-bottom:12px; }
 .art__rel-b{ display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left; cursor:pointer;
@@ -364,11 +369,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .integ__chip{ font-size:12px; padding:5px 10px; border-radius:999px; border:1px dashed var(--line); color:var(--tx-mid); }
 .integ .pe-btn{ padding:6px 12px; font-size:12px; }
 .auth-tabs{ display:flex; gap:6px; margin-bottom:16px; }
-.bb-uses{ display:flex; flex-direction:column; gap:10px; text-align:left; }
-.bb-use{ display:flex; align-items:flex-start; gap:11px; padding:11px 13px; border-radius:10px;
-  background:var(--bg-1); border:1px solid var(--line); font-size:13px; line-height:1.5; color:var(--tx); }
-.bb-use b{ color:var(--tx-hi); }
-.bb-use__ic{ font-size:18px; flex:0 0 auto; }
 .feedback-fab{ position:fixed; right:16px; bottom:16px; z-index:70; width:48px; height:48px; border-radius:50%;
   display:grid; place-items:center; cursor:pointer; color:#e9cd92;
   background:linear-gradient(180deg, rgba(40,28,14,0.92), rgba(22,15,8,0.95)); border:1px solid rgba(201,162,75,0.45);
@@ -509,26 +509,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
       <label class="pe-field"><span class="pe-lbl" id="fb-lbl" data-i18n="feedback.bugLabel">Опишіть проблему</span>
         <textarea class="pe-area" id="fb-text" rows="5" data-i18n-placeholder="feedback.placeholder" placeholder="Що сталося / що хотілося б покращити…"></textarea></label>
       <button class="pe-btn pe-btn--save" id="fb-submit" style="width:100%;justify-content:center" onclick="window.__fbSend&&window.__fbSend()" data-i18n="feedback.send">Надіслати</button>
-    </div>
-  </div>
-
-  <div class="proj-edit" id="buybook-modal">
-    <div class="pe-scrim" onclick="document.getElementById('buybook-modal').classList.remove('is-on')"></div>
-    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Buy book" style="width:min(460px,92vw);text-align:center">
-      <button class="pe-x" onclick="document.getElementById('buybook-modal').classList.remove('is-on')" aria-label="Close">✕</button>
-      <div class="pe-kicker" data-i18n="buyBook.badge">📜 Бета</div>
-      <h2 class="pe-title-h" data-i18n="buyBook.title">Надрукуй свою історію у справжній книзі</h2>
-      <p style="font-size:14.5px;line-height:1.65;color:var(--tx);margin:0 0 14px" data-i18n="buyBook.description">Обери стародавню магічну обкладинку — шкіра, тиснене золото, пергаментні сторінки — і тримай свій всесвіт у руках.</p>
-      <div class="bb-uses">
-        <div class="bb-use"><span class="bb-use__ic">🎁</span><span data-i18n-html="buyBook.use1">Подаруй книгу про близьку людину — історію, де <b>герой — саме вона</b></span></div>
-        <div class="bb-use"><span class="bb-use__ic">📚</span><span data-i18n-html="buyBook.use2">Прикрась полицю <b>унікальним фоліантом</b>, якого більше ні в кого немає</span></div>
-        <div class="bb-use"><span class="bb-use__ic">✦</span><span data-i18n-html="buyBook.use3">Збережи свій всесвіт <b>назавжди</b> — не лише на екрані</span></div>
-      </div>
-      <div class="bb-soon" style="margin-top:18px;text-align:center;padding:16px;border-radius:12px;background:rgba(217,160,70,0.1);border:1px solid rgba(217,160,70,0.32)">
-        <div style="font-size:30px;margin-bottom:6px">📜✦</div>
-        <div style="font-family:'Cinzel',serif;font-weight:600;font-size:17px;color:var(--gold-bright)" data-i18n="buyBook.comingSoonTitle">Функція в розробці — уже зовсім скоро</div>
-        <p style="font-family:'Philosopher',serif;font-size:14px;line-height:1.6;color:var(--tx);margin:8px 0 0" data-i18n="buyBook.comingSoonText">Ми кропітко працюємо над друком справжніх фоліантів. Щойно це стане можливим — ти дізнаєшся одним із перших. ✦</p>
-      </div>
     </div>
   </div>
 
@@ -1172,7 +1152,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (e.origin !== window.location.origin) return;
     var d = e.data || {};
     if (d.type === "ww-news") { showView("news"); return; }
-    if (d.type === "ww-buybook") { document.getElementById("buybook-modal").classList.add("is-on"); return; }
+    if (d.type === "ww-agent-guide") { if (window.WW_KB) { window.WW_KB.__cat = "agent"; window.WW_KB.__q = ""; } fillKb(); showView("kb"); return; }
     if (d.type === "ww-world-cta") {
       if (!window.__wwAuth) { openAuth(); return; }
       Promise.resolve(loadProjectsPromise).then(function () { if (WORLDS.length) showView("worlds"); else createWorld(); });
@@ -1455,10 +1435,12 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     if (t === "ul") return '<ul class="art__ul">' + v.map(function (li) { return '<li>' + li + '</li>'; }).join("") + '</ul>';
     if (t === "tip") return '<div class="art__note art__note--tip"><b>' + i18n('kb.tip') + '</b> ' + v + '</div>';
     if (t === "warn") return '<div class="art__note art__note--warn"><b>' + i18n('kb.warning') + '</b> ' + v + '</div>';
+    if (t === "prompt") return '<div class="art__prompt"><pre>' + String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;") + '</pre><button type="button" class="art__copy">' + i18n('kb.copy') + '</button></div>';
     return '';
   }
   function openArticle(id) {
     var KB = window.WW_KB; if (!KB) return;
+    var i18nT = window.__i18n ? window.__i18n.t : function (k) { return k; };
     var a = KB.articles.filter(function (x) { return x.id === id; })[0]; if (!a) return;
     var catName = {}; KB.categories.forEach(function (c) { catName[c.id] = c.label; });
     var related = KB.articles.filter(function (x) { return x.cat === a.cat && x.id !== a.id; }).slice(0, 3);
@@ -1476,6 +1458,13 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
     ov.classList.add("is-on");
     document.getElementById("kb-rx").addEventListener("click", closeArticle);
     ov.onclick = function (e) { if (e.target === ov) closeArticle(); };
+    [].forEach.call(ov.querySelectorAll(".art__copy"), function (b) { // a ready request for the agent → clipboard
+      b.addEventListener("click", function () {
+        var txt = b.previousElementSibling.textContent;
+        var done = function () { b.textContent = i18nT('kb.copied'); setTimeout(function () { b.textContent = i18nT('kb.copy'); }, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, function () {});
+      });
+    });
     [].forEach.call(ov.querySelectorAll(".art__rel-b"), function (b) {
       b.addEventListener("click", function () { openArticle(b.dataset.art); ov.scrollTop = 0; });
     });

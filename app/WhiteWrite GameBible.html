@@ -355,6 +355,21 @@ button.lic{ cursor:pointer; } .lic i{ font-style:normal; opacity:.8; }
 .lic-yellow{ color:#f5c04a; background:rgba(245,192,74,.12); border-color:rgba(245,192,74,.45); }
 .lic-red{ color:#ff7a72; background:rgba(229,72,77,.13); border-color:rgba(229,72,77,.5); }
 .lic-blue{ color:#7cb4ff; background:rgba(84,148,255,.13); border-color:rgba(84,148,255,.5); }
+/* «Досвід гравців» + «Задум досвіду» */
+.ex-tabs{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 14px; } .ex-tabs .n{ margin-left:4px; font-size:11px; opacity:.8; }
+.ex-ctl{ margin:6px 0 12px; } .ex-ctl label{ display:flex; gap:6px; align-items:center; font-size:13px; color:var(--tx-mid); }
+.ex-ctl select, .ex-ctl input{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 8px; color:var(--tx-hi); font:inherit; }
+.ex-scroll{ overflow-x:auto; margin:6px 0 14px; } .ex-table{ border-collapse:collapse; width:100%; font-size:13px; }
+.ex-table th, .ex-table td{ text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; } .ex-table thead th{ color:var(--tx-mid); font-weight:600; font-size:12px; }
+.ex-issue{ border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:10px 0; display:grid; gap:6px; background:var(--bg-1); } .ex-issue p{ margin:0; }
+.ex-dismissed, .ex-resolved{ opacity:.6; } .ex-awaiting{ border-color:rgba(245,192,74,.6); }
+.tst-open{ color:#f5c04a; } .tst-planned{ color:#7cb4ff; } .tst-validating, .tst-awaiting{ color:#f5c04a; } .tst-resolved{ color:#5fe0a1; } .tst-dismissed{ color:var(--tx-mid); }
+.heat{ width:min(480px,100%); height:auto; border:1px solid var(--line); border-radius:10px; display:block; }
+.ex-url{ display:block; padding:8px 10px; border-radius:8px; background:var(--bg-2); word-break:break-all; font-size:12px; }
+.field.intent{ display:grid; gap:6px; padding:10px 12px; border:1px dashed var(--line-2); border-radius:10px; }
+.field.intent input:not([type=checkbox]){ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 8px; color:var(--tx-hi); font:inherit; }
+.itags{ display:flex; flex-wrap:wrap; gap:6px; } .itag{ display:inline-flex; gap:4px; align-items:center; font-size:13px; padding:2px 8px; border:1px solid var(--line-2); border-radius:999px; cursor:pointer; }
+.ipace{ display:flex; gap:6px; align-items:center; font-size:13px; } .ipace input{ width:80px; }
 .lic-box{ width:min(520px,calc(100vw - 40px)); }
 .lic-box .field{ display:grid; gap:6px; } .lic-box .field span{ font-size:12px; color:var(--tx-mid); letter-spacing:.06em; text-transform:uppercase; }
 .lic-box select{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; color:var(--tx-hi); font:inherit; }

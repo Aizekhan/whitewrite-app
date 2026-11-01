@@ -9,3 +9,6 @@ Object.assign(exports, require('./src/genesis'));
 Object.assign(exports, require('./src/gamedev'));
 Object.assign(exports, require('./src/mcp'));
 Object.assign(exports, require('./src/cosmograph'));
+const experience = require('./src/experience'); // helpers in experience._experience stay internal (mcp.js uses them)
+exports.telemetryIngest = experience.telemetryIngest;
+exports.experience = experience.experience;

@@ -66,6 +66,11 @@ service cloud.firestore {
 
     // Executor keys (Claude Code via the MCP server): the id is sha256 of the key, the key itself is never stored.
     // The author makes one per game in the Game Bible and can revoke it; the server only reads them.
+    // Telemetry ingest keys (sha256 of wwi_…) — only the experience / telemetryIngest functions touch them
+    match /ingestKeys/{id} {
+      allow read, write: if false;
+    }
+
     // GitHub tokens of games' repositories — only the gamedevPlan function reads them
     match /repoTokens/{id} {
       allow read, write: if false;

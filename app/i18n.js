@@ -126,20 +126,14 @@
       'auth.googleButton': 'Продовжити з Google',
 
       // Buy Book Modal
-      'buyBook.badge': '📜 Бета',
-      'buyBook.title': 'Надрукуй свою історію у справжній книзі',
-      'buyBook.description': 'Обери стародавню магічну обкладинку — шкіра, тиснене золото, пергаментні сторінки — і тримай свій всесвіт у руках.',
-      'buyBook.use1': 'Подаруй книгу про близьку людину — історію, де <b>герой — саме вона</b>',
-      'buyBook.use2': 'Прикрась полицю <b>унікальним фоліантом</b>, якого більше ні в кого немає',
-      'buyBook.use3': 'Збережи свій всесвіт <b>назавжди</b> — не лише на екрані',
-      'buyBook.comingSoonTitle': 'Функція в розробці — уже зовсім скоро',
-      'buyBook.comingSoonText': 'Ми кропітко працюємо над друком справжніх фоліантів. Щойно це стане можливим — ти дізнаєшся одним із перших. ✦',
 
       // Director Feature Announcement
 
       // Knowledge Base
       'kb.tip': 'Порада.',
       'kb.warning': 'Увага.',
+      'kb.copy': 'Копіювати',
+      'kb.copied': 'Скопійовано ✓',
 
       // UI Elements
       'ui.back': 'Назад',
@@ -162,11 +156,10 @@
       'hero.lede': 'Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.',
       'hero.ctaCreate': 'Створи свій світ',
       'hero.ctaChoose': 'Обери свій світ',
-      'hero.featureBeta': 'нова можливість',
-      'hero.bookBeta': 'бета',
-      'hero.bookTitle': 'Надрукуй свою історію\nу справжній книзі',
-      'hero.bookDesc': 'Стародавня обкладинка · подарунок · унікальний фоліант на полицю',
-      'hero.bookBtn': '📦 Замовити книгу',
+      'hero.agentBeta': 'для творців ігор',
+      'hero.agentTitle': 'Твоя гра —\nз ШІ-агентом',
+      'hero.agentDesc': 'Готові запити для Claude Code: GDD з твоїх нотаток, гра на RPG Framework, звірка з GitHub',
+      'hero.agentBtn': '🤖 Як говорити з агентом',
       'hero.imgAlt': 'Хранитель історій з живою книгою',
 
       // Story Form
@@ -448,7 +441,7 @@
       // Knowledge Base
       'kb.kicker': 'Гайди й принципи',
       'kb.title': 'База знань',
-      'kb.subtitle': 'Усе, що варто знати про WhiteWrite — від першої історії до режисури, канону й токенів.',
+      'kb.subtitle': 'Усе, що варто знати про WhiteWrite: світи, книга, Біблія світу й гри, робота з ШІ-агентом і RPG Framework.',
       'kb.search': 'Пошук у базі знань…',
       'kb.all': 'Усі',
       'kb.empty': 'Нічого не знайдено за запитом',
@@ -487,11 +480,10 @@
       'hero.lede': 'Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.',
       'hero.ctaCreate': 'Створи свій світ',
       'hero.ctaChoose': 'Обери свій світ',
-      'hero.featureBeta': 'нова можливість',
-      'hero.bookBeta': 'бета',
-      'hero.bookTitle': 'Надрукуй свою історію\nу справжній книзі',
-      'hero.bookDesc': 'Стародавня обкладинка · подарунок · унікальний фоліант на полицю',
-      'hero.bookBtn': '📦 Замовити книгу',
+      'hero.agentBeta': 'для творців ігор',
+      'hero.agentTitle': 'Твоя гра —\nз ШІ-агентом',
+      'hero.agentDesc': 'Готові запити для Claude Code: GDD з твоїх нотаток, гра на RPG Framework, звірка з GitHub',
+      'hero.agentBtn': '🤖 Як говорити з агентом',
 
       // Story Form
       'form.kicker': 'Новий всесвіт',
@@ -681,20 +673,14 @@
       'auth.googleButton': 'Continue with Google',
 
       // Buy Book Modal
-      'buyBook.badge': '📜 Beta',
-      'buyBook.title': 'Print your story as a real book',
-      'buyBook.description': 'Choose an ancient magical cover — leather, embossed gold, parchment pages — and hold your universe in your hands.',
-      'buyBook.use1': 'Gift a book about someone you love — a story where <b>they are the hero</b>',
-      'buyBook.use2': 'Decorate your shelf with a <b>unique tome</b> that nobody else has',
-      'buyBook.use3': 'Preserve your universe <b>forever</b> — not just on screen',
-      'buyBook.comingSoonTitle': 'Feature in development — coming very soon',
-      'buyBook.comingSoonText': 'We are meticulously working on printing real tomes. As soon as it becomes possible — you\'ll be among the first to know. ✦',
 
       // Director Feature Announcement
 
       // Knowledge Base
       'kb.tip': 'Tip.',
       'kb.warning': 'Warning.',
+      'kb.copy': 'Copy',
+      'kb.copied': 'Copied ✓',
 
       // UI Elements
       'ui.back': 'Back',
@@ -714,11 +700,10 @@
       'hero.lede': 'Easily create fairy tales, series, anime, novels, and documentaries — any genre.',
       'hero.ctaCreate': 'Create Your World',
       'hero.ctaChoose': 'Choose Your World',
-      'hero.featureBeta': 'new feature',
-      'hero.bookBeta': 'beta',
-      'hero.bookTitle': 'Print Your Story\nin a Real Book',
-      'hero.bookDesc': 'Ancient cover · gift · unique tome for your shelf',
-      'hero.bookBtn': '📦 Order Book',
+      'hero.agentBeta': 'for game makers',
+      'hero.agentTitle': 'Build your game\nwith an AI agent',
+      'hero.agentDesc': 'Ready requests for Claude Code: a GDD from your notes, a game on RPG Framework, a GitHub check',
+      'hero.agentBtn': '🤖 Working with the agent',
       'hero.imgAlt': 'Keeper of stories with a living book',
 
       // Story Form
@@ -1004,7 +989,7 @@
       // Knowledge Base
       'kb.kicker': 'Guides & Principles',
       'kb.title': 'Knowledge Base',
-      'kb.subtitle': 'Everything worth knowing about WhiteWrite — from your first story to directing, canon, and tokens.',
+      'kb.subtitle': 'Everything worth knowing about WhiteWrite: worlds, the book, the World and Game Bibles, working with the AI agent and RPG Framework.',
       'kb.search': 'Search knowledge base…',
       'kb.all': 'All',
       'kb.empty': 'No results found for',
@@ -1043,11 +1028,10 @@
       'hero.lede': 'Easily create fairy tales, series, anime, books, and documentaries — in any genre.',
       'hero.ctaCreate': 'Create Your World',
       'hero.ctaChoose': 'Choose Your World',
-      'hero.featureBeta': 'new feature',
-      'hero.bookBeta': 'beta',
-      'hero.bookTitle': 'Print your story\nin a real book',
-      'hero.bookDesc': 'Ancient cover · gift · unique tome for your shelf',
-      'hero.bookBtn': '📦 Order Book',
+      'hero.agentBeta': 'for game makers',
+      'hero.agentTitle': 'Build your game\nwith an AI agent',
+      'hero.agentDesc': 'Ready requests for Claude Code: a GDD from your notes, a game on RPG Framework, a GitHub check',
+      'hero.agentBtn': '🤖 Working with the agent',
 
       // Story Form
       'form.kicker': 'New Universe',

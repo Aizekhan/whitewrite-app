@@ -144,12 +144,45 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно до {n} токенів (точна сума залежить від обсягу). Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ до {n})",
-      ops: { analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм" },
+      ops: { analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту" },
       repo: { title: "GitHub-репозиторій гри", hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
         repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
         connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
         sync: "Звірити з репо", disconnect: "Відключити", busy: "AI читає репозиторій і звіряє його з Біблією… (до кількох хвилин)", result: "Звірка з репозиторієм",
         intro: "Що є в репозиторії, але немає в Біблії, і де вони розходяться. У картки потрапить лише відмічене, відмічені розбіжності — у «Неузгоджене»." },
+      ex: { title: "Досвід гравців", about: "Що гравці справді роблять у грі — і чи збігається це із задумом. Телеметрія показує поведінку, не почуття: AI формує гіпотези з доказами, плейтести й експерименти їх перевіряють.",
+        tabs: { overview: "Огляд", heat: "Теплові карти", issues: "Проблеми", playtests: "Плейтести", experiments: "Експерименти", connect: "Підключення" },
+        scale: "Подій уже понад {n} на день. Сирі події в Firestore — для плейтестів і раннього запуску; час переносити їх у BigQuery (див. ARCHITECTURE.md → Experience → Scale).",
+        days: "Період", build: "Збірка", buildPh: "усі збірки", recompute: "Перерахувати метрики", computing: "Рахую метрики…", report: "✦ Звіт AI", reporting: "AI шукає можливі проблеми досвіду… (до кількох хвилин)",
+        noData: "Подій ще немає. Підключи гру у вкладці «Підключення» — або попроси Claude Code реалізувати телеметрію за get_telemetry_schema.",
+        noMetrics: "Метрики ще не пораховано.", sample: "Вибірка: {e} подій · {p} гравців · {s} сесій · {from} — {to}", truncated: "прочитано найновіші події — вибірку обрізано",
+        caution: "Метрики описують поведінку. Тиха ділянка може бути задуманою паузою, коротка сесія — не провалом. Дивись на задум і розмір вибірки.",
+        session: "Сесії", sessMedian: "медіана тривалості", sessP90: "90-й перцентиль", perPlayer: "сесій на гравця", menus: "меню за сесію (медіана)",
+        zones: "Зони й рівні", zone: "Зона", players: "Гравці", gap: "Між значущими подіями (медіана / p90)", downtime: "Сесії з «порожнечею»", stay: "Час у зоні", deaths: "Смертей на гравця", stuck: "Застрягли (3+ смерті)", exits: "Виходять тут", hints: "Підказки", intent: "Задум",
+        quests: "Квести", started: "Почали", completion: "Завершили", abandon: "Покинули", levels: "Рівні",
+        mechanics: "Механіки", adoption: "Спробували", useShare: "Частка використань", failRate: "Невдачі",
+        variety: "Різноманітність", dominant: "Домінує «{m}» — {p} усіх використань механік", exploration: "Дослідження", secret: "знайшли секрет", optional: "заходили в необовʼязкове", discovered: "відкрили локацію",
+        surveys: "Опитування", answers: "відповідей",
+        heatZone: "Зона", heatLayer: "Шар", layers: { move: "Рух", death: "Смерті", interact: "Взаємодії", explore: "Дослідження" }, heatNone: "Немає подій з координатами. Рух — це PositionSample раз на кілька секунд, не щокадру.",
+        noIssues: "Проблем ще немає. Порахуй метрики й запусти «✦ Звіт AI».", hypothesis: "Гіпотеза", alternatives: "Інші пояснення", evidence: "Докази", impact: "Кого зачіпає", actions: "Що можна змінити", risk: "ризик",
+        validation: "Як перевірити", target: "Ціль", up: "↑ має зрости", down: "↓ має впасти", confidence: { low: "впевненість низька", medium: "впевненість середня", high: "впевненість висока" },
+        prio: { high: "високий", medium: "середній", low: "низький" }, status: { open: "відкрита", planned: "у плані", validating: "перевіряється", awaiting: "зроблено — перевір", resolved: "вирішено", dismissed: "відхилено" },
+        toPlan: "В план для Claude Code", validate: "Перевірити зміну", dismiss: "Відхилити", resolve: "Вирішено", reopen: "Відкрити знову",
+        validations: "Перевірки", verdict: { improved: "покращилось", mixed: "частково", not_improved: "не покращилось", no_change: "без змін", worse: "погіршилось", inconclusive: "замало даних" },
+        planned: "Задачу {id} додано в Продакшн-план. Після неї — «Перевірити зміну» на новому плейтесті.", msName: "Покращення досвіду", msGoal: "Зміни за проблемами досвіду гравців, кожна — з перевіркою після.",
+        ptFocus: "Що перевірити (необовʼязково)", ptFocusPh: "Напр.: чи зрозуміла мета в Попелястому лісі", ptPlan: "✦ Спланувати плейтест", ptBusy: "AI складає план плейтесту…", ptNone: "Плейтестів ще немає.",
+        ptGoal: "Мета", ptCohort: "Хто тестує", ptTasks: "Завдання тестувальникам", ptQs: "Питання опитування", ptStart: "Запустити", ptStop: "Завершити", ptActive: "активний — гра показує опитування", ptDraft: "чернетка", ptDone: "завершено",
+        abHyp: "Гіпотеза", abHypPh: "Напр.: підказка-світляк допоможе знайти механізм", abVariants: "Варіанти", abVariantsPh: "A, B", abEvent: "Подія успіху", abCreate: "Почати експеримент", abNone: "Експериментів ще немає.",
+        abRunning: "триває", abDone: "завершено", abStop: "Завершити", abRate: "конверсія", abP: "p-значення", abSmall: "Замало гравців для висновку (треба ≥ 30 у кожному варіанті).",
+        endpoint: "Адреса прийому подій", keys: "Ключі гри (лише запис)", keyLabel: "Назва ключа", keyLabelPh: "Напр.: playtest-build", keyCreate: "Створити ключ", keyOnce: "Скопіюй зараз — більше ключ не покажеться:",
+        keyRevoke: "Відкликати", keyNone: "Ключів ще немає.", stats: "Сьогодні отримано подій: {n}", retention: "Сирі події зберігаються 30 днів, денні підсумки — 400 днів; старіші Firestore видаляє сам.",
+        howTitle: "Як підключити гру", how: "Попроси Claude Code у репозиторії гри: «Виклич get_telemetry_schema і реалізуй телеметрію за нею: черга, пакети, згода гравця». Ключ — у Project Settings гри, не в коді репозиторію, якщо репо публічне.",
+        privacy: "Згода: аналітика лише за згодою гравця (opt-in) і з можливістю вимкнути. Лише псевдонімні id, без імен і пошти. Висновки — про дизайн, не про людей.",
+        sampleJson: "Приклад пакета" },
+      intent: { title: "Задум досвіду", hint: "— для аналітики досвіду: що гравець має відчути й зробити тут", tags: { tension: "напруга", exploration: "дослідження", rest: "відпочинок", learning: "навчання", reward: "винагорода", social: "соціальне" },
+        expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
+        critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
+      tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
       stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати стандартний розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці.",
       stRestore: "Відновити з копії (JSON)", stRestoreHint: "Файл гри відновлюється як нова гра в цьому світі, файл світу — як новий світ.",
       stRestored: "Відновлено", stBadJson: "Це не файл експорту WhiteWrite.",
@@ -287,12 +320,45 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs up to about {n} tokens (the exact amount depends on the volume). Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ up to {n})",
-      ops: { analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check" },
+      ops: { analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan" },
       repo: { title: "The game's GitHub repository", hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
         repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenPh: "GitHub token — only for a private repo",
         connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
         sync: "Check against the repo", disconnect: "Disconnect", busy: "AI is reading the repository and comparing it with the Bible… (up to a few minutes)", result: "Repository check",
         intro: "What the repository has and the Bible lacks, and where they disagree. Only ticked items go into the cards; ticked differences go to “Inconsistencies”." },
+      ex: { title: "Player experience", about: "What players really do in the game — and whether it matches the intent. Telemetry shows behaviour, not feelings: AI forms hypotheses with evidence; playtests and experiments check them.",
+        tabs: { overview: "Overview", heat: "Heatmaps", issues: "Issues", playtests: "Playtests", experiments: "Experiments", connect: "Connect" },
+        scale: "Over {n} events a day already. Raw events in Firestore suit playtests and an early launch; time to move them to BigQuery (see ARCHITECTURE.md → Experience → Scale).",
+        days: "Period", build: "Build", buildPh: "all builds", recompute: "Recompute metrics", computing: "Computing metrics…", report: "✦ AI report", reporting: "AI is looking for potential experience issues… (up to a few minutes)",
+        noData: "No events yet. Connect the game in “Connect” — or ask Claude Code to implement telemetry from get_telemetry_schema.",
+        noMetrics: "Metrics not computed yet.", sample: "Sample: {e} events · {p} players · {s} sessions · {from} — {to}", truncated: "the newest events were read — the sample is cut",
+        caution: "Metrics describe behaviour. A quiet stretch can be an intended pause, a short session is not a failure. Look at the intent and the sample size.",
+        session: "Sessions", sessMedian: "median length", sessP90: "90th percentile", perPlayer: "sessions per player", menus: "menus per session (median)",
+        zones: "Zones & levels", zone: "Zone", players: "Players", gap: "Between meaningful events (median / p90)", downtime: "Sessions with a lull", stay: "Time in zone", deaths: "Deaths per player", stuck: "Stuck (3+ deaths)", exits: "Leave here", hints: "Hints", intent: "Intent",
+        quests: "Quests", started: "Started", completion: "Completed", abandon: "Abandoned", levels: "Levels",
+        mechanics: "Mechanics", adoption: "Tried", useShare: "Share of uses", failRate: "Failures",
+        variety: "Variety", dominant: "“{m}” dominates — {p} of all mechanic uses", exploration: "Exploration", secret: "found a secret", optional: "entered optional areas", discovered: "discovered a location",
+        surveys: "Surveys", answers: "answers",
+        heatZone: "Zone", heatLayer: "Layer", layers: { move: "Movement", death: "Deaths", interact: "Interactions", explore: "Exploration" }, heatNone: "No events with positions. Movement is a PositionSample every few seconds, never per frame.",
+        noIssues: "No issues yet. Compute metrics and run “✦ AI report”.", hypothesis: "Hypothesis", alternatives: "Other explanations", evidence: "Evidence", impact: "Who it affects", actions: "What could change", risk: "risk",
+        validation: "How to check", target: "Target", up: "↑ should rise", down: "↓ should fall", confidence: { low: "low confidence", medium: "medium confidence", high: "high confidence" },
+        prio: { high: "high", medium: "medium", low: "low" }, status: { open: "open", planned: "planned", validating: "validating", awaiting: "done — check it", resolved: "resolved", dismissed: "dismissed" },
+        toPlan: "Plan it for Claude Code", validate: "Check the change", dismiss: "Dismiss", resolve: "Resolved", reopen: "Reopen",
+        validations: "Checks", verdict: { improved: "improved", mixed: "partly", not_improved: "not improved", no_change: "no change", worse: "worse", inconclusive: "too little data" },
+        planned: "Task {id} added to the Production plan. After it — “Check the change” on a new playtest.", msName: "Experience improvements", msGoal: "Changes for player-experience issues, each checked afterwards.",
+        ptFocus: "What to check (optional)", ptFocusPh: "E.g.: is the goal clear in the Ash Forest", ptPlan: "✦ Plan a playtest", ptBusy: "AI is planning the playtest…", ptNone: "No playtests yet.",
+        ptGoal: "Goal", ptCohort: "Testers", ptTasks: "Tasks for testers", ptQs: "Survey questions", ptStart: "Start", ptStop: "Finish", ptActive: "active — the game shows the survey", ptDraft: "draft", ptDone: "finished",
+        abHyp: "Hypothesis", abHypPh: "E.g.: a firefly hint helps find the mechanism", abVariants: "Variants", abVariantsPh: "A, B", abEvent: "Success event", abCreate: "Start the experiment", abNone: "No experiments yet.",
+        abRunning: "running", abDone: "finished", abStop: "Finish", abRate: "conversion", abP: "p-value", abSmall: "Too few players for a conclusion (≥ 30 per variant needed).",
+        endpoint: "Ingest endpoint", keys: "Game keys (write-only)", keyLabel: "Key name", keyLabelPh: "E.g.: playtest-build", keyCreate: "Create a key", keyOnce: "Copy it now — it will not be shown again:",
+        keyRevoke: "Revoke", keyNone: "No keys yet.", stats: "Events received today: {n}", retention: "Raw events are kept 30 days, daily totals 400 days; Firestore deletes older ones by itself.",
+        howTitle: "How to connect the game", how: "Ask Claude Code in the game repository: “Call get_telemetry_schema and implement telemetry from it: queue, batches, player consent.” Keep the key in the game's settings, not in the code of a public repo.",
+        privacy: "Consent: analytics only with the player's agreement (opt-in) and a way to turn it off. Pseudonymous ids only, no names or emails. Conclusions are about the design, not people.",
+        sampleJson: "Batch example" },
+      intent: { title: "Design intent", hint: "— for experience analytics: what the player should feel and do here", tags: { tension: "tension", exploration: "exploration", rest: "rest", learning: "learning", reward: "reward", social: "social" },
+        expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
+        critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
+      tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
       stShown: "Game sections in the menu", stShownHint: "Untick to hide a standard section in this game. Cards are not deleted — tick it again and they are back.",
       stRestore: "Restore from a copy (JSON)", stRestoreHint: "A game file is restored as a new game in this world, a world file as a new world.",
       stRestored: "Restored", stBadJson: "This is not a WhiteWrite export file.",
@@ -333,6 +399,8 @@
     { id: "w-items", dossier: "artifacts", uk: "Артефакти", en: "Artifacts",
       about: { uk: "Речі, що мають вагу у світі: походження, сила, вигляд.", en: "Things that matter in the world: origin, power, look." } },
   ];
+  var TL_GROUPS = { uk: ["Сесія", "Рух", "Бій", "Взаємодія", "Прогресія", "Дослідження", "Економіка", "UI / UX", "Кооп", "Плейтест", "Свої події"],
+    en: ["Session", "Movement", "Combat", "Interaction", "Progression", "Exploration", "Economy", "UI / UX", "Co-op", "Playtest", "Custom events"] };
   var GAME = [
     { id: "overview", uk: "Огляд гри", en: "Game overview",
       about: { uk: "Що це за гра: логлайн, жанр, стовпи, ігровий цикл, платформа, референси.", en: "What the game is: logline, genre, pillars, core loop, platform, references." },
@@ -370,6 +438,13 @@
       about: { uk: "Рівні, траси, хвилі, енкаунтери: розмір, тривалість, хто й що там. Місце з канону — у «Локаціях».", en: "Levels, tracks, waves, encounters: size, length, who and what is there. The canon place is in “Locations”." },
       defs: [F("group", "Група", "Group"), F("location", "Локація канону", "Canon location"), F("layout", "Структура й розмір", "Layout & size"),
              F("encounters", "Вороги й події", "Enemies & events"), F("goal", "Мета гравця", "Player goal"), F("length", "Тривалість", "Length")] },
+    { id: "worldgen", uk: "Генерація світу", en: "World generation", group: "group",
+      groups: { uk: ["Біоми", "Модулі маршрутів", "Модулі оточення", "Ігрові модулі", "Атмосферні сценарії", "Правила генерації"], en: ["Biomes", "Route modules", "Environment modules", "Gameplay modules", "Atmospheric scenarios", "Generation rules"] },
+      about: { uk: "Затверджені вимоги до генератора світу: біоми, модулі з контрактами (точки кріплення, порти, габарити), атмосфера, правила й перевірки. Claude Code бере їх через MCP.", en: "Approved requirements for the world generator: biomes, modules with contracts (anchors, ports, bounds), atmosphere, rules and validators. Claude Code reads them over MCP." },
+      defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("contract", "Контракт: точки кріплення, порти, габарити, теги", "Contract: anchors, ports, bounds, tags"),
+             F("rules", "Правила: біоми, ваги, сусідства, щільність", "Rules: biomes, weights, neighbours, density"), F("atmosphere", "Атмосфера: погода, час доби, світло, туман, вітер, звук", "Atmosphere: weather, time of day, light, fog, wind, sound"),
+             F("triggers", "Тригери й пріоритет", "Triggers & priority"), F("deps", "Залежності й версія", "Dependencies & version"),
+             F("validation", "Перевірки: зʼєднання, колізії, навігація, бюджет", "Validators: connections, collisions, navigation, budget"), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "enemies", uk: "Вороги й боси", en: "Enemies & bosses", group: "group",
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити.", en: "Who stands in the way, how it hits and where to hit it." },
@@ -412,7 +487,23 @@
       groups: { uk: ["Рушій і збірка", "Платформи", "Перформанс", "Сейви", "Мультиплеєр", "Інструменти"], en: ["Engine & build", "Platforms", "Performance", "Saves", "Multiplayer", "Tools"] },
       about: { uk: "Рушій, платформи, збірка, перформанс, сейви, мультиплеєр, інструменти.", en: "Engine, platforms, build, performance, saves, multiplayer, tools." },
       defs: [F("group", "Група", "Group"), F("decision", "Рішення", "Decision"), F("constraints", "Обмеження й бюджети", "Constraints & budgets"), F("status", "Стан зараз", "Current state")] },
+    { id: "telemetry", uk: "Телеметрія", en: "Telemetry", group: "group",
+      groups: { uk: TL_GROUPS.uk, en: TL_GROUPS.en },
+      about: { uk: "Каталог подій, які гра надсилає для аналітики досвіду: назва, чи значуща, властивості, привʼязка до зон і механік. Стандарт — у «＋ Стандартні події».", en: "The catalogue of events the game sends for experience analytics: name, meaningful or not, properties, link to zones and mechanics. The standard set — “＋ Standard events”." },
+      defs: [F("group", "Група", "Group"), F("event", "Подія (event_name)", "Event (event_name)"), F("meaningful", "Значуща подія (так / ні)", "Meaningful event (yes / no)"),
+             F("props", "Властивості (properties)", "Properties"), F("link", "Привʼязка: зона / механіка / квест", "Link: zone / mechanic / quest"), F("version", "Версія схеми", "Schema version")] },
   ];
+  // the standard events of the spec (functions/src/experience.js STANDARD_EVENTS, same order as TL_GROUPS)
+  var TL_STD = [["SessionStarted", "SessionPaused", "SessionResumed", "SessionEnded"], ["ZoneEntered", "ZoneExited", "RouteSegmentEntered", "CheckpointReached", "PositionSample"],
+    ["CombatStarted", "EnemyEngaged", "EnemyKilled", "PlayerDamaged", "PlayerDied", "EncounterCompleted"], ["ObjectViewed", "ObjectInteracted", "MechanicUsed", "MechanicFailed"],
+    ["QuestStarted", "QuestStepCompleted", "QuestCompleted", "QuestAbandoned", "LevelCompleted"], ["LocationDiscovered", "SecretFound", "OptionalAreaEntered", "CollectibleFound"],
+    ["ItemAcquired", "ItemSpent", "RewardReceived", "ResourceDepleted"], ["MenuOpened", "MenuClosed", "TutorialShown", "TutorialSkipped", "HintRequested"],
+    ["PlayerJoined", "PlayerLeft", "ReviveRequested", "ReviveCompleted", "TeamObjectiveCompleted"], ["SurveyAnswered"]];
+  var TL_MEANINGFUL = ["CombatStarted", "EncounterCompleted", "CheckpointReached", "QuestStepCompleted", "QuestCompleted", "LevelCompleted", "LocationDiscovered", "SecretFound",
+    "CollectibleFound", "RewardReceived", "ItemAcquired", "ObjectInteracted", "TeamObjectiveCompleted"];
+  var INTENT_SECS = ["levels", "locations", "mechanics", "worldgen"], INTENT_TAGS = ["tension", "exploration", "rest", "learning", "reward", "social"];
+  var EXPERIENCE = { id: "experience", special: "experience", uk: "Досвід гравців", en: "Player experience",
+    about: { uk: "Телеметрія, метрики, теплові карти, проблеми досвіду, плейтести й A/B-тести.", en: "Telemetry, metrics, heatmaps, experience issues, playtests and A/B tests." } };
   var PLAN = { id: "plan", special: "plan", uk: "Продакшн-план", en: "Production plan",
     about: { uk: "Інтерактивний гейм-диздок і точний план розробки, складені з канону та всієї біблії гри.", en: "An interactive game design doc and a precise development plan built from the canon and the whole game bible." } };
   var ISSUES = { id: "issues", special: "issues", uk: "Неузгоджене", en: "Inconsistencies" };
@@ -453,6 +544,8 @@
   var canonFolded = false; try { canonFolded = !!localStorage.getItem("ww-bible-fold"); } catch (e) {}
   var editMode = false; // card field structure editing (names, types, deletion) — never survives closing the card
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
+  var exIssues = [], exPlaytests = [], exExperiments = [], exMetrics = null, exTab = "overview", exBusy = "", exMsg = "", exKey = null, exHeat = { zone: "", layer: "move" }, exDays = 30, exBuild = ""; // «Досвід гравців»
+  var EXFN = "https://us-central1-whitewrite-app.cloudfunctions.net/experience";
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
@@ -467,7 +560,7 @@
   function gameSections() {
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     var hidden = (game && game.hiddenSections) || [];
-    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN]);
+    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, EXPERIENCE]);
   }
   var SETTINGS = { id: "settings", special: "settings", uk: "Налаштування проєкту", en: "Project settings",
     about: { uk: "Назви, рушій, імпорт і експорт, безпечне видалення.", en: "Names, engine, import and export, safe deletion." } };
@@ -662,7 +755,7 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null };
   }
   function inGame(e) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
@@ -671,7 +764,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [] };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null };
   }
   function allCards() {
     var out = [];
@@ -713,6 +806,7 @@
   // ---------- render ----------
   function navItem(s, all) {
     var n = s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
+      : s.special === "experience" ? (exIssues.filter(function (x) { return x.status === "open"; }).length || "")
       : s.special === "culture" ? lore.length
       : s.special === "chronicle" ? entities.filter(function (e) { return e.kind === "events"; }).length
       : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
@@ -783,12 +877,14 @@
     var s = sec(section);
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
+    if (s.special === "experience" && !query) return renderExperience();
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
     var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>' +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
+        (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
@@ -796,6 +892,23 @@
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
+    var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { alert(STR.failed + ": " + e.message); tlb.disabled = false; }); };
+  }
+  // «＋ Стандартні події»: the spec's standard events as Telemetry cards (the ones already there are kept)
+  async function seedTelemetry() {
+    var s = sec("telemetry"), have = {}, batch = db.batch(), n = 0, groups = TL_GROUPS[LANG] || TL_GROUPS.uk;
+    cards.filter(function (c) { return c.section === "telemetry"; }).forEach(function (c) { have[String((c.fields || {}).event || c.title).trim()] = 1; });
+    TL_STD.forEach(function (names, gi) {
+      names.forEach(function (name, i) {
+        if (have[name]) return;
+        batch.set(gref().collection("cards").doc(newId("card")), { section: "telemetry", title: name, status: "agreed", note: "", defs: s.defs.slice(),
+          fields: { group: groups[gi], event: name, meaningful: TL_MEANINGFUL.indexOf(name) >= 0 ? (LANG === "en" ? "yes" : "так") : (LANG === "en" ? "no" : "ні"), version: "1" },
+          order: gi * 100 + i, createdAt: stamp(), updatedAt: stamp() });
+        n++;
+      });
+    });
+    if (n) await batch.commit();
+    alert(STR.tlSeeded.replace("{n}", n));
   }
 
   // ---------- world overview & laws — edited here (they lived in the Universe tree); worlds/{w} { tagline, summary, facts, rules } ----------
@@ -1512,7 +1625,8 @@
   function openCard(c) {
     open = c;
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
-      canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull };
+      canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
+      intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
     setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
@@ -1535,6 +1649,7 @@
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk) html += defHtml(d); });
+    if (draft.intent) html += intentHtml(draft.intent);
     html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
@@ -1802,8 +1917,19 @@
     el.replaceWith(ta); ta.focus();
     ta.addEventListener("blur", function () { collect(ta); renderFields(); });
   }
+  // «Задум досвіду» (spec §14): what the segment is meant to feel like — the analytics compares play with it
+  function intentHtml(it) {
+    var I = STR.intent, inp = function (k, ph) { return '<input data-intent="' + k + '" value="' + esc(it[k] || "") + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; };
+    return '<div class="field intent"><label>' + I.title + ' <span class="hint">' + I.hint + '</span></label>' +
+      '<div class="itags">' + INTENT_TAGS.map(function (t) { return '<label class="itag"><input type="checkbox" data-itag="' + t + '"' + (it.tags.indexOf(t) >= 0 ? ' checked' : '') + '>' + esc(I.tags[t]) + '</label>'; }).join("") + '</div>' +
+      '<span class="muted">' + I.expected + '</span>' + inp("expected", I.expectedPh) +
+      '<span class="muted">' + I.pacing + '</span><div class="ipace">' + I.from + ' <input type="number" min="0" step="0.5" data-intent="pacingMin" value="' + esc(it.pacingMin || "") + '"> ' +
+        I.to + ' <input type="number" min="0" step="0.5" data-intent="pacingMax" value="' + esc(it.pacingMax || "") + '"></div>' +
+      '<span class="muted">' + I.critical + '</span>' + inp("critical") + '<span class="muted">' + I.success + '</span>' + inp("success") + '</div>';
+  }
   function collect(ta) {
     var k = ta.dataset.key;
+    if (!k) return;
     if (k === "__note") draft.note = ta.value; else if (k === "__canon") draft.canonDesc = ta.value; else draft.fields[k] = ta.value;
   }
   function msg(t) { $("e-msg").textContent = t; }
@@ -1832,10 +1958,13 @@
         if (Object.keys(ent).length) { ent.updatedAt = stamp(); await wref().collection("entities").doc(open.id).set(ent, { merge: true }); }
         // this game's view of the entity
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
-        await gref().collection("cards").doc(open.id).set({ section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
-          fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() }, { merge: true });
+        var view = { section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
+          fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() };
+        if (draft.intent) view.intent = draft.intent;
+        await gref().collection("cards").doc(open.id).set(view, { merge: true });
       } else {
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
+        if (draft.intent) body.intent = draft.intent;
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
@@ -2008,7 +2137,7 @@
   }
   // AI operations spend tokens: a small ✦ marks them, and the author confirms the approximate price first.
   var COST_BASE = 300; // economy_operations/generateScene providers.claude.cost; × the same factor gamedevPlan reserves
-  function costOf(op) { if (op === "cosmograph") return COSMO_COST; return COST_BASE * (op === "analyze" || op === "canonAudit" ? 2 : 4); }
+  function costOf(op) { if (op === "cosmograph") return COSMO_COST; return COST_BASE * (op === "analyze" || op === "canonAudit" || op === "expReport" || op === "playtest" ? 2 : 4); }
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦</span>'; }
   function confirmCost(op, run) {
     var box = document.createElement("div");
@@ -2175,6 +2304,7 @@
     await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
       return f.path ? firebase.storage().ref(f.path).delete().catch(function () {}) : null; }); })));
     for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests"]) await deleteDocs(g.collection(sub));
+    await callEx({ op: "purge", gameId: id }).catch(function () {}); // telemetry, metrics, issues, playtests, experiments, ingest keys
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
     await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
     await g.delete();
@@ -2251,6 +2381,224 @@
     try { var data = await callFn({ op: "repoSync", shelves: shelves() }); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {}, repo: true }; }
     catch (e) { imp = { error: e.message, repo: true }; }
     render();
+  }
+
+  // ---------- «Досвід гравців»: telemetry → metrics → issues → plan → validation (spec part II; functions/src/experience.js) ----------
+  async function callEx(body) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(EXFN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify(Object.assign({ worldId: worldId, gameId: gameId, language: LANG }, body)) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
+    return data;
+  }
+  function exName(id) { // a telemetry id → the Bible card's name (ids are card / entity ids, see get_telemetry_schema)
+    var c = cards.filter(function (x) { return x.id === id || x.canonRef === id; })[0];
+    if (c) return c.canonRef ? ((entities.filter(function (e) { return e.id === c.canonRef; })[0] || {}).name || id) : (c.title || id);
+    var e = entities.filter(function (x) { return x.id === id; })[0];
+    return e ? e.name || id : id;
+  }
+  function exIntent(id) { var c = cards.filter(function (x) { return x.id === id || x.canonRef === id; })[0]; return c && c.intent; }
+  var pctTxt = function (v) { return v == null ? "—" : Math.round(v * 100) + "%"; };
+  var secTxt = function (v) { return v == null ? "—" : v >= 90 ? (Math.round(v / 6) / 10) + (LANG === "en" ? " min" : " хв") : Math.round(v) + (LANG === "en" ? " s" : " с"); };
+  var dateTxt = function (t) { return t ? new Date(t).toLocaleDateString(LANG === "en" ? "en-GB" : "uk-UA") : "—"; };
+  function exTable(head, rows) {
+    return '<div class="ex-scroll"><table class="ex-table"><thead><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr>' + r.map(function (c, i) { return i ? '<td>' + c + '</td>' : '<th scope="row">' + c + '</th>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div>';
+  }
+  function issueStatus(x) {
+    if (x.status === "planned" && x.taskId) { var t = tasks.filter(function (y) { return y.id === x.taskId; })[0]; if (t && t.status === "done") return "awaiting"; }
+    return x.status || "open";
+  }
+
+  function renderExperience() {
+    var X = STR.ex, st = (game && game.telemetryStats) || {};
+    var html = '<header class="sec"><div><h1>' + X.title + '</h1><p>' + X.about + '</p></div></header>';
+    if (st.scaleAlert) html += '<p class="pmsg err">⚠ ' + esc(X.scale.replace("{n}", (150000).toLocaleString())) + '</p>';
+    html += '<div class="ex-tabs" role="tablist">' + Object.keys(X.tabs).map(function (k) {
+      var n = k === "issues" ? exIssues.filter(function (x) { return x.status === "open"; }).length : 0;
+      return '<button class="btn' + (exTab === k ? ' primary' : '') + '" role="tab" aria-selected="' + (exTab === k) + '" data-extab="' + k + '">' + X.tabs[k] + (n ? ' <span class="n">' + n + '</span>' : '') + '</button>'; }).join("") + '</div>';
+    if (exBusy) html += '<p class="pmsg">' + esc(exBusy) + '</p>';
+    if (exMsg) html += '<p class="pmsg">' + esc(exMsg) + '</p>';
+    html += ({ overview: exOverview, heat: exHeatmaps, issues: exIssuesHtml, playtests: exPlaytestsHtml, experiments: exExperimentsHtml, connect: exConnect })[exTab]();
+    $("view").innerHTML = html;
+    bindExperience();
+  }
+
+  function exOverview() {
+    var X = STR.ex, m = exMetrics;
+    var html = '<div class="setrow ex-ctl"><label>' + X.days + ' <select id="ex-days">' + [7, 14, 30].map(function (d) { return '<option value="' + d + '"' + (d === exDays ? ' selected' : '') + '>' + d + (LANG === "en" ? " days" : " днів") + '</option>'; }).join("") + '</select></label>' +
+      '<label>' + X.build + ' <input id="ex-build" value="' + esc(exBuild) + '" placeholder="' + esc(X.buildPh) + '"></label>' +
+      '<button class="btn" id="ex-run">' + X.recompute + '</button>' +
+      (m && m.sample && m.sample.events ? '<button class="btn primary" id="ex-report">' + X.report + costMark("expReport") + '</button>' : '') + '</div>';
+    if (!m) return html + '<p class="empty">' + X.noMetrics + '</p><p class="hint">' + X.noData + '</p>';
+    var s = m.sample || {};
+    if (!s.events) return html + '<p class="empty">' + X.noData + '</p>';
+    html += '<p class="muted">' + esc(X.sample.replace("{e}", s.events).replace("{p}", s.players).replace("{s}", s.sessions).replace("{from}", dateTxt(s.from)).replace("{to}", dateTxt(s.to))) +
+      (s.truncated ? ' · ' + X.truncated : '') + (m.build ? ' · ' + esc(m.build) : '') + '</p><p class="hint">' + X.caution + '</p>';
+    var se = m.session || {};
+    html += '<h2 class="group">' + X.session + '</h2><p>' + X.sessMedian + ': <b>' + secTxt(se.medianSec) + '</b> · ' + X.sessP90 + ': ' + secTxt(se.p90Sec) + ' · ' + X.perPlayer + ': ' + (se.perPlayer || 0) + ' · ' + X.menus + ': ' + (se.menusPerSessionMedian || 0) + '</p>';
+    var zones = Object.keys(m.zones || {});
+    if (zones.length) html += '<h2 class="group">' + X.zones + '</h2>' + exTable([X.zone, X.players, X.gap, X.downtime, X.stay, X.deaths, X.stuck, X.exits, X.hints, X.intent], zones.map(function (z) {
+      var v = m.zones[z], it = exIntent(z);
+      return [esc(exName(z)), v.players, secTxt(v.gapMedianSec) + ' / ' + secTxt(v.gapP90Sec), pctTxt(v.downtimeSessionShare), secTxt(v.stayMedianSec), v.deathsPerPlayer, pctTxt(v.stuckShare), pctTxt(v.exitShare), v.hints,
+        it ? esc(((it.tags || []).map(function (t) { return STR.intent.tags[t]; }).join(", ")) + (it.pacingMax ? ' · ≤ ' + it.pacingMax + (LANG === "en" ? " min" : " хв") : '')) : '<span class="muted">—</span>'];
+    }));
+    var qs = Object.keys(m.quests || {});
+    if (qs.length) html += '<h2 class="group">' + X.quests + '</h2>' + exTable(["", X.started, X.completion, X.abandon], qs.map(function (q) { var v = m.quests[q]; return [esc(exName(q)), v.started, pctTxt(v.completionRate), pctTxt(v.abandonRate)]; }));
+    var ls = Object.keys(m.levels || {});
+    if (ls.length) html += '<h2 class="group">' + X.levels + '</h2>' + exTable(["", X.players, X.completion], ls.map(function (l) { var v = m.levels[l]; return [esc(exName(l)), v.players, pctTxt(v.completionRate)]; }));
+    var ms = Object.keys(m.mechanics || {});
+    if (ms.length) html += '<h2 class="group">' + X.mechanics + '</h2>' + exTable(["", X.adoption, X.useShare, X.failRate], ms.map(function (k) { var v = m.mechanics[k]; return [esc(exName(k)), pctTxt(v.adoption), pctTxt(v.useShare), pctTxt(v.failRate)]; }));
+    if (m.variety && m.variety.dominant && m.variety.dominant.useShare > 0.5) html += '<p>' + esc(X.dominant.replace("{m}", exName(m.variety.dominant.mechanic)).replace("{p}", pctTxt(m.variety.dominant.useShare))) + '</p>';
+    var ex = m.exploration || {};
+    html += '<h2 class="group">' + X.exploration + '</h2><p>' + pctTxt(ex.secretShare) + ' ' + X.secret + ' · ' + pctTxt(ex.optionalShare) + ' ' + X.optional + ' · ' + pctTxt(ex.discoveredShare) + ' ' + X.discovered + '</p>';
+    var sv = Object.keys(m.surveys || {});
+    if (sv.length) html += '<h2 class="group">' + X.surveys + '</h2>' + sv.map(function (q) { var v = m.surveys[q];
+      return '<p><b>' + esc(q) + '</b> · ' + v.n + ' ' + X.answers + ': ' + Object.keys(v.answers).map(function (a) { return esc(a) + ' ×' + v.answers[a]; }).join(", ") + '</p>'; }).join("");
+    return html;
+  }
+
+  function exHeatmaps() {
+    var X = STR.ex, hs = (exMetrics && exMetrics.heatmaps) || [];
+    if (!hs.length) return '<p class="empty">' + X.heatNone + '</p>';
+    var h = hs.filter(function (x) { return x.zone === exHeat.zone; })[0] || hs[0];
+    var ly = h.layers[exHeat.layer] || {}, max = Math.max.apply(null, Object.values(ly).concat([1])), N = h.size, cell = 20;
+    var col = { move: "212,175,55", death: "229,72,77", interact: "84,148,255", explore: "62,207,142" }[exHeat.layer];
+    var svg = '<svg class="heat" viewBox="0 0 ' + N * cell + ' ' + N * cell + '" role="img" aria-label="' + esc(X.layers[exHeat.layer] + " · " + exName(h.zone)) + '"><rect width="100%" height="100%" fill="rgba(255,255,255,.03)"/>' +
+      Object.keys(ly).map(function (k) { var i = +k, a = 0.15 + 0.85 * ly[k] / max;
+        return '<rect x="' + (i % N) * cell + '" y="' + (N - 1 - Math.floor(i / N)) * cell + '" width="' + cell + '" height="' + cell + '" fill="rgba(' + col + ',' + a.toFixed(2) + ')"><title>' + ly[k] + '</title></rect>'; }).join("") + '</svg>';
+    return '<div class="setrow ex-ctl"><label>' + X.heatZone + ' <select id="ex-hz">' + hs.map(function (x) { return '<option value="' + esc(x.zone) + '"' + (x === h ? ' selected' : '') + '>' + esc(exName(x.zone)) + ' (' + x.n + ')</option>'; }).join("") + '</select></label>' +
+      '<label>' + X.heatLayer + ' <select id="ex-hl">' + Object.keys(X.layers).map(function (k) { return '<option value="' + k + '"' + (k === exHeat.layer ? ' selected' : '') + '>' + X.layers[k] + '</option>'; }).join("") + '</select></label></div>' +
+      svg + '<p class="muted">x: ' + h.bounds[0] + ' … ' + h.bounds[2] + ' · z: ' + h.bounds[1] + ' … ' + h.bounds[3] + ' · max ' + max + '</p>';
+  }
+
+  function exIssuesHtml() {
+    var X = STR.ex;
+    if (!exIssues.length) return '<p class="empty">' + X.noIssues + '</p>';
+    return exIssues.map(function (x) {
+      var st = issueStatus(x), sc = x.scope || {};
+      var scope = [sc.zone && exName(sc.zone), sc.quest && exName(sc.quest), sc.mechanic && exName(sc.mechanic), sc.ref && cardName(sc.ref), sc.build].filter(Boolean).join(" · ");
+      return '<article class="ex-issue ex-' + st + '" data-issue="' + esc(x.id) + '"><div class="task__h"><b>' + esc(x.title) + '</b> <span class="pill s-idea">' + esc(x.category) + '</span>' +
+        ' <span class="pill s-' + (x.priority === "high" ? "redo" : "agreed") + '">' + esc(X.prio[x.priority] || x.priority) + '</span> <span class="pill s-work">' + esc(X.confidence[x.confidence] || x.confidence) + '</span>' +
+        ' <span class="pill tst-' + st + '">' + esc(X.status[st] || st) + '</span></div>' + (scope ? '<div class="muted">' + esc(scope) + '</div>' : '') +
+        '<p><b>' + X.hypothesis + ':</b> ' + esc(x.hypothesis) + '</p>' +
+        ((x.evidence || []).length ? '<div><b>' + X.evidence + ':</b><ul class="crit">' + x.evidence.map(function (e) { return '<li><code>' + esc(e.metric) + '</code> = ' + (e.value == null ? '—' : esc(e.value)) + (e.note ? ' — ' + esc(e.note) : '') + '</li>'; }).join("") + '</ul></div>' : '') +
+        ((x.alternatives || []).length ? '<div><b>' + X.alternatives + ':</b><ul class="crit">' + x.alternatives.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul></div>' : '') +
+        (x.confidenceWhy ? '<p class="muted">' + esc(x.confidenceWhy) + '</p>' : '') + (x.impact ? '<p><b>' + X.impact + ':</b> ' + esc(x.impact) + '</p>' : '') +
+        ((x.actions || []).length ? '<div><b>' + X.actions + ':</b>' + x.actions.map(function (a, i) {
+          return '<label class="imp"><input type="radio" name="act-' + esc(x.id) + '" value="' + i + '"' + (i === 0 ? ' checked' : '') + (st === "open" ? '' : ' disabled') + '><span>' + esc(a.change) + (a.risk ? ' <span class="muted">— ' + X.risk + ': ' + esc(a.risk) + '</span>' : '') + '</span></label>'; }).join("") + '</div>' : '') +
+        (x.validation && (x.validation.plan || (x.validation.target || []).length) ? '<p><b>' + X.validation + ':</b> ' + esc(x.validation.plan || "") +
+          (x.validation.target || []).map(function (t) { var b = (x.baseline || {})[t.metric]; return ' <code>' + esc(t.metric) + '</code> ' + (t.direction === "up" ? X.up : X.down) + (b != null ? ' (' + esc(b) + ')' : ''); }).join(";") + '</p>' : '') +
+        ((x.validations || []).length ? '<div><b>' + X.validations + ':</b><ul class="crit">' + x.validations.slice(-5).map(function (v) {
+          return '<li>' + dateTxt(v.at) + ' · ' + esc(X.verdict[v.verdict] || v.verdict) + (v.by === "claude-code" ? ' · Claude Code: ' + esc(v.summary) : '') +
+            (v.checks || []).map(function (c) { return ' · <code>' + esc(c.metric) + '</code> ' + esc(c.before) + ' → ' + esc(c.after); }).join("") + '</li>'; }).join("") + '</ul></div>' : '') +
+        (canWrite ? '<div class="row">' + (st === "open" ? '<button class="btn primary" data-explan="' + esc(x.id) + '">' + X.toPlan + '</button>' : '') +
+          (st !== "dismissed" && st !== "resolved" ? '<button class="btn" data-exval="' + esc(x.id) + '">' + X.validate + '</button><button class="btn" data-exset="resolved:' + esc(x.id) + '">' + X.resolve + '</button><button class="btn danger" data-exset="dismissed:' + esc(x.id) + '">' + X.dismiss + '</button>'
+            : '<button class="btn" data-exset="open:' + esc(x.id) + '">' + X.reopen + '</button>') + '</div>' : '') + '</article>';
+    }).join("");
+  }
+
+  function exPlaytestsHtml() {
+    var X = STR.ex, surveys = (exMetrics && exMetrics.surveys) || {};
+    var html = canWrite ? '<div class="setrow ex-ctl"><input id="pt-focus" aria-label="' + esc(X.ptFocus) + '" placeholder="' + esc(X.ptFocusPh) + '"><button class="btn primary" id="pt-plan">' + X.ptPlan + costMark("playtest") + '</button></div>' : '';
+    if (!exPlaytests.length) return html + '<p class="empty">' + X.ptNone + '</p>';
+    return html + exPlaytests.map(function (p) {
+      var stt = p.status === "active" ? X.ptActive : p.status === "done" ? X.ptDone : X.ptDraft;
+      return '<article class="ex-issue"><div class="task__h"><b>' + esc(p.title) + '</b> <span class="pill s-' + (p.status === "active" ? "work" : "idea") + '">' + esc(stt) + '</span>' + (p.build ? ' <span class="muted">' + esc(p.build) + '</span>' : '') + '</div>' +
+        (p.goal ? '<p><b>' + X.ptGoal + ':</b> ' + esc(p.goal) + '</p>' : '') + (p.cohort ? '<p><b>' + X.ptCohort + ':</b> ' + esc(p.cohort) + '</p>' : '') +
+        ((p.tasks || []).length ? '<div><b>' + X.ptTasks + ':</b><ul class="crit">' + p.tasks.map(function (t) { return '<li>' + esc(t.goal) + (t.success ? ' <span class="muted">— ' + esc(t.success) + '</span>' : '') + '</li>'; }).join("") + '</ul></div>' : '') +
+        ((p.questions || []).length ? '<div><b>' + X.ptQs + ':</b><ul class="crit">' + p.questions.map(function (q) { var r = surveys[q.id];
+          return '<li><code>' + esc(q.id) + '</code> ' + esc(q.text) + ' <span class="muted">(' + esc(q.type) + (q.options && q.options.length ? ': ' + esc(q.options.join(" / ")) : '') + (q.when ? ' · ' + esc(q.when) : '') + ')</span>' +
+            (r ? '<div>' + r.n + ' ' + X.answers + ': ' + Object.keys(r.answers).map(function (a) { return esc(a) + ' ×' + r.answers[a]; }).join(", ") + '</div>' : '') + '</li>'; }).join("") + '</ul></div>' : '') +
+        (p.notes ? '<p class="muted">' + esc(p.notes) + '</p>' : '') +
+        (canWrite ? '<div class="row">' + (p.status !== "active" && p.status !== "done" ? '<button class="btn primary" data-ptset="active:' + esc(p.id) + '">' + X.ptStart + '</button>' : '') +
+          (p.status === "active" ? '<button class="btn" data-ptset="done:' + esc(p.id) + '">' + X.ptStop + '</button>' : '') + '</div>' : '') + '</article>';
+    }).join("");
+  }
+
+  function exEventNames() {
+    var own = cards.filter(function (c) { return c.section === "telemetry"; }).map(function (c) { return String((c.fields || {}).event || c.title || "").trim(); }).filter(Boolean);
+    return own.concat([].concat.apply([], TL_STD)).filter(function (x, i, a) { return a.indexOf(x) === i; });
+  }
+  function exExperimentsHtml() {
+    var X = STR.ex, res = {};
+    ((exMetrics && exMetrics.experiments) || []).forEach(function (r) { res[r.id] = r; });
+    var html = canWrite ? '<section class="setbox"><label class="field"><span>' + X.abHyp + '</span><input id="ab-hyp" placeholder="' + esc(X.abHypPh) + '"></label>' +
+      '<div class="setrow"><label>' + X.abVariants + ' <input id="ab-var" value="A, B" placeholder="' + esc(X.abVariantsPh) + '"></label>' +
+      '<label>' + X.abEvent + ' <select id="ab-ev">' + exEventNames().map(function (n) { return '<option>' + esc(n) + '</option>'; }).join("") + '</select></label>' +
+      '<button class="btn primary" id="ab-go">' + X.abCreate + '</button></div></section>' : '';
+    if (!exExperiments.length) return html + '<p class="empty">' + X.abNone + '</p>';
+    return html + exExperiments.map(function (x) {
+      var r = res[x.id];
+      return '<article class="ex-issue"><div class="task__h"><b>' + esc(x.hypothesis) + '</b> <span class="pill s-' + (x.status === "running" ? "work" : "idea") + '">' + (x.status === "running" ? X.abRunning : X.abDone) + '</span>' +
+        ' <span class="muted">' + esc((x.variants || []).join(" / ")) + ' → ' + esc(x.metricEvent) + '</span></div>' +
+        (r ? exTable(["", X.players, X.abRate], Object.keys(r.variants).map(function (v) { var s = r.variants[v]; return [esc(v), s.players, pctTxt(s.rate) + ' (' + s.converted + ')']; })) +
+          (r.pValue != null ? '<p>' + X.abP + ': <b>' + r.pValue + '</b> · z = ' + r.zScore + '</p>' : '') + (r.enough ? '' : '<p class="hint">' + X.abSmall + '</p>') : '<p class="muted">' + X.noMetrics + '</p>') +
+        (canWrite && x.status === "running" ? '<div class="row"><button class="btn" data-abstop="' + esc(x.id) + '">' + X.abStop + '</button></div>' : '') + '</article>';
+    }).join("");
+  }
+
+  function exConnect() {
+    var X = STR.ex, st = (game && game.telemetryStats) || {}, ks = (game && game.ingestKeys) || [];
+    var sample = { events: [{ event_id: "8f1c…-uuid", event_name: "ZoneEntered", schema_version: 1, build_id: "0.4.2", session_id: "s-…", player_id: "salted-hash", timestamp: 1767225600000,
+      zone_id: (cards.filter(function (c) { return c.section === "levels" || c.section === "locations"; })[0] || {}).id || "card_…", position: [12.5, 0, -4], context: { platform: "pc" }, properties: {} }] };
+    return '<section class="setbox"><h2>' + X.endpoint + '</h2><code class="ex-url">https://us-central1-whitewrite-app.cloudfunctions.net/telemetryIngest</code>' +
+      '<p class="hint">' + X.retention + (st.day ? ' ' + esc(X.stats.replace("{n}", st.day === new Date().toISOString().slice(0, 10) ? st.count : 0)) : '') + '</p>' +
+      '<h2>' + X.keys + '</h2>' + (exKey ? '<p class="pmsg">' + X.keyOnce + ' <code class="ex-url">' + esc(exKey) + '</code></p>' : '') +
+      (ks.length ? ks.map(function (k) { return '<div class="secrow"><span><code>' + esc(k.prefix) + '…</code> ' + esc(k.label || "") + ' <span class="muted">' + dateTxt(k.at) + '</span></span>' +
+        (canWrite ? '<button class="btn danger" data-exrevoke="' + esc(k.hash) + '">' + X.keyRevoke + '</button>' : '') + '</div>'; }).join("") : '<p class="muted">' + X.keyNone + '</p>') +
+      (canWrite ? '<div class="setrow"><input id="ex-klabel" aria-label="' + esc(X.keyLabel) + '" placeholder="' + esc(X.keyLabelPh) + '"><button class="btn" id="ex-kmake">' + X.keyCreate + '</button></div>' : '') +
+      '<h2>' + X.howTitle + '</h2><p>' + X.how + '</p><p class="hint">' + X.privacy + '</p>' +
+      '<details><summary>' + X.sampleJson + '</summary><pre>' + esc(JSON.stringify(sample, null, 2)) + '</pre></details></section>';
+  }
+
+  // An issue becomes a task of the Production plan (milestone EXP) — Claude Code takes it with get_next_task; success = the check after it
+  async function issueToPlan(x) {
+    var picked = document.querySelector('input[name="act-' + CSS.escape(x.id) + '"]:checked'), act = (x.actions || [])[picked ? +picked.value : 0] || { change: x.title };
+    var n = tasks.filter(function (t) { return t.milestone === "EXP"; }).length + 1, id = "EX." + n;
+    var accept = [act.change].concat((x.validation && x.validation.target || []).map(function (t) { return (LANG === "en" ? "Expected after a playtest: " : "Очікувано після плейтесту: ") + t.metric + " " + (t.direction === "up" ? "↑" : "↓"); }));
+    var task = { id: id, milestone: "EXP", title: x.title, detail: x.hypothesis + (act.risk ? "\nRisk: " + act.risk : ""), deps: [], size: "S", owner: "dev",
+      cards: [x.scope && x.scope.ref].filter(Boolean), accept: accept, tests: [],
+      prompt: "Experience issue " + x.id + ": call get_experience_issue {\"id\":\"" + x.id + "\"} for the evidence. Implement: " + act.change +
+        ". Keep the approved design (else submit_change_request). Then submit_task_result, and submit_validation_result with how you checked it." };
+    var plan = (planDoc.plan || {}), ms = (plan.milestones || []).filter(function (m) { return m.id !== "EXP"; }), exp = (plan.milestones || []).filter(function (m) { return m.id === "EXP"; })[0];
+    exp = exp ? Object.assign({}, exp, { tasks: (exp.tasks || []).concat([task]) }) : { id: "EXP", name: STR.ex.msName, goal: STR.ex.msGoal, gate: "", tasks: [task] };
+    var batch = db.batch();
+    batch.set(gref().collection("plan").doc("current"), { plan: { milestones: ms.concat([exp]) } }, { merge: true });
+    batch.set(gref().collection("tasks").doc(id), Object.assign({}, task, { status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp() }));
+    batch.set(gref().collection("experienceIssues").doc(x.id), { status: "planned", taskId: id, chosenAction: act.change, updatedAt: stamp() }, { merge: true });
+    await batch.commit();
+    exMsg = STR.ex.planned.replace("{id}", id); render();
+  }
+
+  function exRun(label, fn) {
+    exBusy = label; exMsg = ""; render();
+    return fn().then(function (m) { exBusy = ""; exMsg = m || ""; render(); }, function (e) { exBusy = ""; exMsg = STR.failed + ": " + e.message; render(); });
+  }
+  function bindExperience() {
+    var X = STR.ex, on = function (id, f) { var el = $(id); if (el) el.onclick = f; };
+    [].forEach.call(document.querySelectorAll("[data-extab]"), function (b) { b.onclick = function () { exTab = b.dataset.extab; exMsg = ""; render(); }; });
+    var dd = $("ex-days"); if (dd) dd.onchange = function () { exDays = +dd.value; };
+    var bb = $("ex-build"); if (bb) bb.oninput = function () { exBuild = bb.value.trim(); };
+    on("ex-run", function () { exRun(X.computing, function () { return callEx({ op: "metrics", days: exDays, build: exBuild }).then(function () { return ""; }); }); });
+    on("ex-report", function () { confirmCost("expReport", function () { exRun(X.reporting, function () { return callEx({ op: "report" }).then(function (d) { exTab = "issues"; return STR.spent + ": " + d.tokensConsumed; }); }); }); });
+    var hz = $("ex-hz"); if (hz) hz.onchange = function () { exHeat.zone = hz.value; render(); };
+    var hl = $("ex-hl"); if (hl) hl.onchange = function () { exHeat.layer = hl.value; render(); };
+    on("pt-plan", function () { var focus = $("pt-focus").value.trim(); confirmCost("playtest", function () { exRun(X.ptBusy, function () { return callEx({ op: "playtest", focus: focus }).then(function (d) { return STR.spent + ": " + d.tokensConsumed; }); }); }); });
+    on("ab-go", function () {
+      var hyp = $("ab-hyp").value.trim(), vars = $("ab-var").value.split(",").map(function (v) { return v.trim(); }).filter(Boolean);
+      if (!hyp || vars.length < 2) return $("ab-hyp").focus();
+      gref().collection("experiments").add({ hypothesis: hyp, variants: vars.slice(0, 4), metricEvent: $("ab-ev").value, status: "running", createdAt: stamp() });
+    });
+    on("ex-kmake", function () { exRun("…", function () { return callEx({ op: "keyCreate", label: $("ex-klabel").value.trim() }).then(function (d) { exKey = d.key; return ""; }); }); });
+    var v = $("view");
+    [].forEach.call(v.querySelectorAll("[data-exrevoke]"), function (b) { b.onclick = function () { exRun("…", function () { return callEx({ op: "keyRevoke", hash: b.dataset.exrevoke }).then(function () { exKey = null; return ""; }); }); }; });
+    [].forEach.call(v.querySelectorAll("[data-explan]"), function (b) { b.onclick = function () { b.disabled = true; var x = exIssues.filter(function (i) { return i.id === b.dataset.explan; })[0]; issueToPlan(x).catch(function (e) { exMsg = STR.failed + ": " + e.message; render(); }); }; });
+    [].forEach.call(v.querySelectorAll("[data-exval]"), function (b) { b.onclick = function () { exRun(X.computing, function () { return callEx({ op: "validate", issueId: b.dataset.exval, build: exBuild }).then(function (d) { return X.verdict[d.result.verdict] || d.result.verdict; }); }); }; });
+    [].forEach.call(v.querySelectorAll("[data-exset]"), function (b) { b.onclick = function () { var p = b.dataset.exset.split(":"); gref().collection("experienceIssues").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }); }; });
+    [].forEach.call(v.querySelectorAll("[data-ptset]"), function (b) { b.onclick = function () { var p = b.dataset.ptset.split(":"); gref().collection("playtests").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }); }; });
+    [].forEach.call(v.querySelectorAll("[data-abstop]"), function (b) { b.onclick = function () { gref().collection("experiments").doc(b.dataset.abstop).set({ status: "done", endedAt: stamp() }, { merge: true }); }; });
   }
 
   // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
@@ -2737,6 +3085,10 @@
     }
   });
   $("e-body").addEventListener("input", function (e) {
+    if (e.target.dataset.intent && draft && draft.intent) { var iv = e.target.value; draft.intent[e.target.dataset.intent] = e.target.type === "number" ? (iv === "" ? null : Number(iv)) : iv; return; }
+    if (e.target.dataset.itag && draft && draft.intent) {
+      var tg = e.target.dataset.itag; draft.intent.tags = draft.intent.tags.filter(function (x) { return x !== tg; }); if (e.target.checked) draft.intent.tags.push(tg); return;
+    }
     var tb = e.target.dataset.cell && e.target.closest(".tbl");
     if (tb) draft.fields[tb.dataset.tbl] = tableMd(readTable(tb));
   });
@@ -2845,6 +3197,12 @@
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
     unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }));
     unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }));
+    exIssues = []; exPlaytests = []; exExperiments = []; exMetrics = null; exKey = null;
+    var exRender = function () { if (section === "experience" || section === "plan") render(); else renderNav(); };
+    unsub.push(gref().collection("experienceIssues").onSnapshot(function (snap) { exIssues = rows(snap).sort(function (a, b) { return ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]; }); exRender(); }, function () {}));
+    unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
+    unsub.push(gref().collection("experiments").onSnapshot(function (snap) { exExperiments = rows(snap); exRender(); }, function () {}));
+    unsub.push(gref().collection("experience").doc("metrics").onSnapshot(function (d) { exMetrics = d.exists ? d.data() : null; exRender(); }, function () {}));
     unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
     unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
       .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan") render(); }, function () {}));

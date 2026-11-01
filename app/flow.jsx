@@ -16,13 +16,10 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.lede': 'Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.',
     'hero.ctaCreate': 'Створи свій світ',
     'hero.ctaChoose': 'Обери свій світ',
-    'hero.featureBeta': 'нова можливість',
-    'hero.featureTitle': '🎬 Доведи історію до відео',
-    'hero.featureDesc': 'Хочеш більшого? Розкадруй сцени на кадри й натренуй LoRA-референси персонажів — і твій світ готовий стати серією відеороликів зі сталими образами.',
-    'hero.bookBeta': 'бета',
-    'hero.bookTitle': 'Надрукуй свою історію\nу справжній книзі',
-    'hero.bookDesc': 'Стародавня обкладинка · подарунок · унікальний фоліант на полицю',
-    'hero.bookBtn': '📦 Замовити книгу'
+    'hero.agentBeta': 'для творців ігор',
+    'hero.agentTitle': 'Твоя гра —\nз ШІ-агентом',
+    'hero.agentDesc': 'Готові запити для Claude Code: GDD з твоїх нотаток, гра на RPG Framework, звірка з GitHub',
+    'hero.agentBtn': '🤖 Як говорити з агентом'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
   const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
@@ -49,17 +46,11 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
         </button>
       </div>
 
-      <div className="hero-feature" onClick={(e) => e.stopPropagation()}>
-        <div className="hero-feature__beta">{t('hero.featureBeta')}</div>
-        <div className="hero-feature__t">{t('hero.featureTitle')}</div>
-        <div className="hero-feature__d" dangerouslySetInnerHTML={{__html: t('hero.featureDesc').replace(/LoRA/g, '<b>LoRA</b>')}} />
-      </div>
-
       <div className="hero-buybook" onClick={(e) => e.stopPropagation()}>
-        <div className="hero-buybook__beta">{t('hero.bookBeta')}</div>
-        <div className="hero-buybook__t">{t('hero.bookTitle').split('\n').map((line, i) => i > 0 ? [<br key={i}/>, line] : line)}</div>
-        <div className="hero-buybook__d">{t('hero.bookDesc')}</div>
-        <button className="hero-buybook__btn" type="button" onClick={() => { try { window.parent.postMessage({ type: "ww-buybook" }, window.location.origin); } catch (err) {} }}>{t('hero.bookBtn')}</button>
+        <div className="hero-buybook__beta">{t('hero.agentBeta')}</div>
+        <div className="hero-buybook__t">{t('hero.agentTitle').split('\n').map((line, i) => i > 0 ? [<br key={i}/>, line] : line)}</div>
+        <div className="hero-buybook__d">{t('hero.agentDesc')}</div>
+        <button className="hero-buybook__btn" type="button" onClick={() => { try { window.parent.postMessage({ type: "ww-agent-guide" }, window.location.origin); } catch (err) {} }}>{t('hero.agentBtn')}</button>
       </div>
     </div>
   );

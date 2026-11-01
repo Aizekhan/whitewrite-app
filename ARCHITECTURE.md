@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.11.0 (2026-11-02)
+**Version:** 2.12.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -86,7 +86,11 @@ E:\WhiteWrite/
 whitewrite.com
     ↓
 White.html (Shell)
-    ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (stories, World Bible)
+    ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (stories, World Bible);
+    │        hero card «🤖 Як говорити з агентом» (flow.jsx, posts `ww-agent-guide`) → Knowledge base on the «agent» category
+    ├─ Knowledge base (`kb.js` → `window.WW_KB`, rendered by `fillKb` / `openArticle`; «?» fab): categories start · agent ·
+    │        book · world · game · framework · account, uk + en; blocks p/h/ul/tip/warn/prompt («prompt» = a ready request
+    │        for Claude Code with a «Копіювати» button). Every service change updates its article in the same commit.
     ├─ Auth (Firebase Auth)
     ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
     └─ Pillar iframes:
@@ -428,6 +432,7 @@ claude mcp add --transport http whitewrite https://us-central1-whitewrite-app.cl
 
 **Tools:** `get_project_overview`, `list_tasks`, `get_next_task` (resumes in_progress/rework, else claims first ready todo — ready = all deps done),
 `get_task_details`, `get_design_section`, `get_card` (`c:id` / `e:id`), `report_task_progress`, `report_blocker`, `submit_task_result` (→ review, server `check`), `submit_change_request`.
+World generation & experience (§6): `get_world_generation_spec`, `get_biome_profile`, `get_module_contract`, `get_environmental_profile`, `get_telemetry_schema`, `get_experience_issue`, `submit_validation_result`.
 
 **Cycle:**
 ```
@@ -436,6 +441,27 @@ plan → tasks(todo) → Claude Code: get_next_task (in_progress) → report_tas
      blocked → author answers → todo;   change request → author accepts/rejects
 ```
 Every tool call is logged in `executions` (activity feed in the Game Bible).
+
+### **6. World Generation spec & Player Experience Intelligence**
+
+Source: `World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx` (root). The Unity side (generator, validators, atmosphere runtime, telemetry SDK, editor tools) belongs to RPG Framework (`D:\RPG-Framework`, a separate agent); WhiteWrite is the platform: approved requirements, analytics, plans, reports.
+
+**Approved requirements in the Game Bible**
+- Section `worldgen` «Генерація світу» (groups Біоми · Модулі маршрутів · Модулі оточення · Ігрові модулі · Атмосферні сценарії · Правила генерації; fields: contract (anchors/ports/bounds/tags), rules, atmosphere, triggers, deps & version, validation, model file). MCP maps a card's group (uk or en) to a kind: biomes / route / environment / gameplay / atmosphere / rules.
+- Section `telemetry` «Телеметрія»: the event catalogue (event, meaningful yes/no, properties, link, schema version); «＋ Стандартні події» seeds the spec's standard events (`TL_STD` = `STANDARD_EVENTS`).
+- **Design intent** (`card.intent` on game cards of `levels`, `locations` (on the canon card's game view), `mechanics`, `worldgen`): `{ tags: [tension|exploration|rest|learning|reward|social], expected, pacingMin, pacingMax (minutes), critical, success }` — shown in every AI pass over the Bible (`bibleText`), in metrics (pacing threshold) and in reports.
+
+**Telemetry pipeline** (`functions/src/experience.js`)
+- `telemetryIngest` (public, CORS *): `Authorization: Bearer wwi_…` → sha256 → `ingestKeys/{sha256}` `{ uid, worldId, gameId, label, prefix, revoked }` (owner plan must have `allowGameDev`; 5-min cache). `POST { events: [≤500 envelopes] }`. Envelope: `event_id, event_name, schema_version, build_id, session_id, player_id (pseudonymous, no "@"), timestamp (±7d/+1d), level_id, zone_id, entity_id, mechanic_id, quest_id, position (rounded 0.5 m), context {platform, mode, cohort, variant}, properties (≤20 primitives)`. Stored compact in `games/{g}/telemetry/{event_id}` (`n v b s p t gt l z en m q pos ctx pr expireAt`) — the same event_id overwrites itself (retries dedupe). Daily totals `games/{g}/telemetryDaily/{YYYY-MM-DD}` (`total`, `events.{name}`, `builds.{b}` increments — they count accepted deliveries, retries included; metrics always read the deduplicated raw events). `games/{g}.telemetryStats { day, count, lastAt, scaleAlert? }`.
+- **Retention (automatic):** Firestore TTL policies on `expireAt` for collection groups `telemetry` (30 days) and `telemetryDaily` (400 days) — `firestore.indexes.json` fieldOverrides, enabled with `gcloud firestore fields ttls update expireAt --collection-group=…`. Game deletion calls `experience {op: purge}` (recursive delete of telemetry, daily, experience, issues, playtests, experiments + its ingest keys).
+- **Scale:** raw events in Firestore suit playtests / early launch. Past `SCALE_EVENTS_PER_DAY` (150 000) the game gets `telemetryStats.scaleAlert`, and «Досвід гравців» shows a banner. ⚠ Then: stream raw events to **BigQuery** (ingest writes to BigQuery instead of `telemetry/`, metrics computed by SQL), keep Firestore for daily totals, metrics, issues, playtests. Also revisit the single `telemetryDaily` doc per day (≈1 write/s sustained limit).
+- `experience` (signed-in owner, `allowGameDev`): `keyCreate {label}` → `wwi_` key once (+ `games/{g}.ingestKeys[] {hash(16), prefix, label, at}`), `keyRevoke {hash}`; `metrics {days ≤30, build?}` (free) → reads ≤60 000 newest events, `computeMetrics` → `games/{g}/experience/metrics` `{ sample, session, zones{gapMedianSec, gapP90Sec, downtimeSessionShare, stayMedianSec, deathsPerPlayer, stuckShare, exitShare, hints…}, quests, levels, mechanics, variety, exploration, surveys, experiments (conversion, z, p), heatmaps[≤12 zones × 24×24 × move/death/interact/explore] }`; `report` (AI, ×2 economy) → `games/{g}/experienceIssues/{id}` `{ title, category, priority, scope, evidence[{metric,value,note}], hypothesis, alternatives, confidence, confidenceWhy, impact, actions[{change,risk}], validation{plan,target[{metric,direction}]}, baseline, sample, status open|planned|validating|resolved|dismissed, taskId?, validations[] }` — evidence only by metric keys of `flatten(metrics)`, «Boredom Risk», never claims about people; `playtest {focus}` (AI) → `games/{g}/playtests/{id}` `{ title, goal, build, cohort, tasks, questions[{id,text,type,options,when}], status draft|active|done }`; `validate {issueId}` (free) → re-measures `validation.target` vs `baseline` (±10%) → verdict improved|mixed|not_improved|inconclusive, `improved` resolves.
+- A/B: `games/{g}/experiments/{id}` `{ hypothesis, variants, metricEvent, status running|done }` (client-written); the game puts the variant in `context.variant`.
+- Survey answers: event `SurveyAnswered {playtest, question, answer}`.
+
+**Improvement loop** (§18): issue → «В план для Claude Code» writes task `EX.n` (milestone `EXP` appended to `plan/current.plan.milestones`, `issueId`), issue `planned`; task done → the issue shows «зроблено — перевір»; a new playtest → «Перевірити зміну»; Claude Code may add `submit_validation_result`. Success = the validation, not the task.
+
+**UI:** game tab `experience` «Досвід гравців» (after the plan): Огляд · Теплові карти · Проблеми · Плейтести · Експерименти · Підключення.
 
 ---
 
@@ -530,6 +556,7 @@ firebase deploy                   # Deploy everything
 - Worlds/entities: owner only; `games/**` write requires `allowGameDev` plan (`hasGameDev()`)
 - `mcpKeys`: owner reads/deletes; create only for own world + gamedev plan, fixed field set; no client updates
 - `repoTokens`: no client read or write (only the `gamedevPlan` function)
+- `ingestKeys`: no client read or write (only `experience` / `telemetryIngest`); the ingest key is write-only and per game, so it may ship inside a build; analytics is opt-in, pseudonymous ids, positions rounded
 - Billing fields on `users/{uid}` are server-only
 - MCP: key hashed (sha256), per-game scope, revocable, plan re-checked on every call; function is public-invoker, auth is in code
 - Canon extraction logs: owner-only read

@@ -22,6 +22,7 @@ const {
   getPlanBudget,
   claudeApiKey,
 } = require('./common');
+const { intentText } = require('./experience')._experience;
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;
@@ -64,11 +65,12 @@ function bibleText(world, entities, cards, game, shelves, lore) {
     }
   }
   if (game.title) lines.push(`\n# Game: ${game.title}`);
-  const card = (ref, section, title, status, fields, note, files) => {
+  const card = (ref, section, title, status, fields, note, files, intent) => {
     lines.push(`\n## [${ref}] ${title} (section: ${section}, status: ${status || 'idea'})`);
     for (const [k, v] of Object.entries(fields)) if (str(v, 1)) lines.push(`${k}: ${str(v, 800)}`);
     if ((files || []).length) lines.push(`Files: ${files.map((f) => f.name).join(', ')}`);
     if (note) lines.push(`Author's note: ${str(note, 600)}`);
+    if (intent && intentText(intent)) lines.push(`Design intent: ${intentText(intent)}`);
   };
   const named = (c) => {
     const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
@@ -80,11 +82,11 @@ function bibleText(world, entities, cards, game, shelves, lore) {
     if (c.hidden || (game.canonOptIn && !c.canonRef)) continue; // a game takes only the canon it picked
     const d = e.dossier || {}, life = (e.lifeNotes || []).map((n) => `${n.at || ''}: ${n.text || ''}`).join('; ');
     card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '',
-      ...(d.story ? { 'world dossier: story': d.story } : {}), ...(d.look ? { 'world dossier: look': d.look } : {}), ...(d.outcome ? { 'world dossier: consequences': d.outcome } : {}), ...(life ? { 'life timeline': life } : {}), ...named(c) }, c.note, c.files);
+      ...(d.story ? { 'world dossier: story': d.story } : {}), ...(d.look ? { 'world dossier: look': d.look } : {}), ...(d.outcome ? { 'world dossier: consequences': d.outcome } : {}), ...(life ? { 'life timeline': life } : {}), ...named(c) }, c.note, c.files, c.intent);
   }
   for (const c of cards) {
     if (c.canonRef) continue;
-    card(`c:${c.id}`, `${c.section} — ${(own.find((s) => s.id === c.section) || {}).name || ''}`, c.title || '', c.status, named(c), c.note, c.files);
+    card(`c:${c.id}`, `${c.section} — ${(own.find((s) => s.id === c.section) || {}).name || ''}`, c.title || '', c.status, named(c), c.note, c.files, c.intent);
   }
   return lines.join('\n').slice(0, MAX_BIBLE_CHARS);
 }

@@ -7,6 +7,7 @@
 // proposes change requests. It never edits the bible or the canon: the author reviews every result in the Game Bible.
 const crypto = require('crypto');
 const { onRequest, admin, db, getPlanBudget } = require('./common');
+const { telemetrySchema, intentText } = require('./experience')._experience;
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const OPEN = ['todo', 'rework'];
@@ -40,6 +41,23 @@ const TOOLS = [
       tests: { type: 'object', properties: { ran: { type: 'boolean' }, passed: { type: 'integer' }, failed: { type: 'integer' }, output: { type: 'string' } } },
       criteria: { type: 'array', items: { type: 'object', properties: { criterion: { type: 'string' }, met: { type: 'boolean' }, evidence: { type: 'string' } } } },
     } } },
+  // World generation & experience (spec «World Generation & Game Experience Intelligence»): approved requirements live in the Bible
+  { name: 'get_world_generation_spec', description: 'The approved world-generation spec of this game: the «Генерація світу» section by kind (biomes, route / environment / gameplay modules, atmospheric scenarios, generation rules) with contracts, rules and design intent, plus the world\'s sky/calendar. Read it before building generators.',
+    inputSchema: { type: 'object', properties: {} } },
+  { name: 'get_biome_profile', description: 'One biome profile by name or ref: allowed modules, weights and neighbour rules, atmosphere / audio / lighting, design intent.',
+    inputSchema: { type: 'object', required: ['name'], properties: { name: { type: 'string', description: 'Biome card title or ref "c:<id>"' } } } },
+  { name: 'get_module_contract', description: 'The contract of one world module (route / environment / gameplay): anchors & ports, bounds, tags, dependencies & version, validation rules, prefab files.',
+    inputSchema: { type: 'object', required: ['name'], properties: { name: { type: 'string', description: 'Module card title or ref "c:<id>"' } } } },
+  { name: 'get_environmental_profile', description: 'Weather, time of day, lighting, wind, phenomena and audio requirements: the atmospheric scenarios and each biome\'s atmosphere, plus the world sky (day length, suns, moons, calendar) from the Cosmograph.',
+    inputSchema: { type: 'object', properties: {} } },
+  { name: 'get_telemetry_schema', description: 'How the game reports play: ingest endpoint and key rules, the event envelope, standard + custom events, which events are meaningful, the id map (zone / level / mechanic ids = Bible card ids, with design intent), running A/B experiments and active playtest surveys, privacy rules.',
+    inputSchema: { type: 'object', properties: {} } },
+  { name: 'get_experience_issue', description: 'Player-experience issues found from telemetry: evidence (metric, value), hypothesis, alternative explanations, confidence, suggested actions, validation plan and past validations. Without an id — the list of open ones.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } } } },
+  { name: 'submit_validation_result', description: 'After implementing a change for an experience issue (or its task): report how it was validated — automated test, a playtest run, metrics — and the outcome. Success is the validation result, not the finished task.',
+    inputSchema: { type: 'object', required: ['issue_id', 'summary', 'outcome'], properties: {
+      issue_id: { type: 'string' }, task_id: { type: 'string' }, summary: { type: 'string' }, build: { type: 'string' },
+      outcome: { type: 'string', enum: ['improved', 'no_change', 'worse', 'inconclusive'] }, evidence: { type: 'string' } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -127,6 +145,27 @@ function overview(ctx) {
   };
 }
 
+// ---------- world generation & experience ----------
+const WG_KINDS = [ // the «Генерація світу» subsections, in both languages (gamebible.js GAME worldgen.groups)
+  ['biomes', 'Біоми', 'Biomes'], ['route', 'Модулі маршрутів', 'Route modules'], ['environment', 'Модулі оточення', 'Environment modules'],
+  ['gameplay', 'Ігрові модулі', 'Gameplay modules'], ['atmosphere', 'Атмосферні сценарії', 'Atmospheric scenarios'], ['rules', 'Правила генерації', 'Generation rules']];
+const wgKind = (c) => { const g = str((c.fields || {}).group, 80).toLowerCase(); const k = WG_KINDS.find((x) => x[1].toLowerCase() === g || x[2].toLowerCase() === g); return k ? k[0] : 'other'; };
+const wgCards = (ctx) => ctx.cards.filter((c) => c.section === 'worldgen' && !c.hidden);
+const wgView = (ctx, c) => ({ ...cardView(ctx, 'c:' + c.id), kind: wgKind(c), ...(c.intent ? { design_intent: intentText(c.intent) } : {}) });
+function findWg(ctx, name, kinds) {
+  const n = str(name, 160).toLowerCase().replace(/^c:/, '');
+  const l = wgCards(ctx).filter((c) => !kinds || kinds.includes(wgKind(c)));
+  const c = l.find((x) => x.id.toLowerCase() === n) || l.find((x) => str(x.title, 160).toLowerCase() === n) || l.find((x) => str(x.title, 160).toLowerCase().includes(n));
+  if (!c) throw rpcError(-32602, `Not found: ${name}. Known: ${l.map((x) => x.title).join(', ') || 'none — the author has not written the «Генерація світу» section yet'}`);
+  return c;
+}
+const sky = (world) => { const s = world.cosmos; if (!s || !s.planet) return null;
+  return { planet: s.planet.name || '', dayHours: s.planet.dayHours, axialTilt: s.planet.tilt, yearDays: ((s.calendar && s.calendar.monthDays) || []).reduce((a, b) => a + b, 0),
+    suns: (s.stars || []).map((x) => ({ name: x.name, periodDays: x.periodDays })), moons: (s.moons || []).map((x) => ({ name: x.name, periodDays: x.periodDays })) }; };
+const issueView = (x) => ({ id: x.id, title: x.title, category: x.category, priority: x.priority, status: x.status, scope: x.scope, evidence: x.evidence, sample: x.sample,
+  hypothesis: x.hypothesis, alternatives: x.alternatives, confidence: x.confidence, confidence_basis: x.confidenceWhy, player_impact: x.impact, suggested_actions: x.actions,
+  validation_plan: x.validation, baseline: x.baseline, validations: (x.validations || []).slice(-5), related: x.related, task: x.taskId || '' });
+
 // ---------- writes ----------
 async function logExecution(ctx, key, type, taskId, data) {
   await ctx.gref.collection('executions').add({ type, taskId: taskId || '', data: data || {}, keyPrefix: key.prefix || '', at: ts() });
@@ -209,6 +248,52 @@ async function callTool(name, args, key) {
       await setTask(ctx, t, { status: 'review', report, blocker: admin.firestore.FieldValue.delete() }, { type: 'submitted', summary: report.summary.slice(0, 300) });
       await logExecution(ctx, key, 'submitted', t.id, { summary: report.summary.slice(0, 300) });
       return { ok: true, status: 'review', check: report.check, message: 'Handed in for the author\'s review. Call get_next_task for the next one.' };
+    }
+    case 'get_world_generation_spec': {
+      const byKind = {};
+      wgCards(ctx).forEach((c) => { const k = wgKind(c); (byKind[k] = byKind[k] || []).push(wgView(ctx, c)); });
+      const tech = ctx.cards.filter((c) => c.section === 'tech' && !c.hidden).map((c) => cardView(ctx, 'c:' + c.id));
+      return { spec: byKind, sky: sky(ctx.world), tech_decisions: tech,
+        principles: 'Road, Environment, Gameplay and Atmosphere are conceptual layers, not four monolith classes. One generator works with biome profiles; spline is one tool among others. Deterministic by seed + versions; designer overrides; validators for connections, collisions, navigation, gameplay, biome, performance. Audit the framework first — never duplicate a service or invent an API.',
+        missing: WG_KINDS.filter((k) => !byKind[k[0]]).map((k) => k[1] + ' / ' + k[2]) };
+    }
+    case 'get_biome_profile': {
+      const c = findWg(ctx, args.name, ['biomes']);
+      const t = str(c.title, 160).toLowerCase();
+      const mentions = wgCards(ctx).filter((x) => x.id !== c.id && t && JSON.stringify(x.fields || {}).toLowerCase().includes(t)).map((x) => ({ ref: 'c:' + x.id, title: x.title, kind: wgKind(x) }));
+      return { biome: wgView(ctx, c), mentioned_by: mentions };
+    }
+    case 'get_module_contract': return wgView(ctx, findWg(ctx, args.name, ['route', 'environment', 'gameplay', 'other']));
+    case 'get_environmental_profile': {
+      const scenarios = wgCards(ctx).filter((c) => wgKind(c) === 'atmosphere').map((c) => wgView(ctx, c));
+      const biomes = wgCards(ctx).filter((c) => wgKind(c) === 'biomes').map((c) => ({ ref: 'c:' + c.id, title: c.title, atmosphere: (c.fields || {}).atmosphere || '' }));
+      const audio = ctx.cards.filter((c) => c.section === 'audio' && !c.hidden && /амбієнт|ambien/i.test(str((c.fields || {}).group, 60))).map((c) => cardView(ctx, 'c:' + c.id));
+      return { scenarios, biomes, ambience: audio, sky: sky(ctx.world),
+        rules: 'Weather and lighting interact but are not one switch: fog independent of rain, wind of precipitation, a magic zone may relight a cave without touching global weather. Explicit priorities (global weather < biome < local zone < story scenario < gameplay override) and smooth interpolation. In co-op the host owns seed, time and weather; sync compact state, render cosmetics locally.' };
+    }
+    case 'get_telemetry_schema': {
+      const [ex, pt] = await Promise.all([ctx.gref.collection('experiments').get(), ctx.gref.collection('playtests').get()]);
+      return telemetrySchema(ctx.game, ctx.cards, ctx.entities, ex.docs.map((d) => ({ id: d.id, ...d.data() })), pt.docs.map((d) => ({ id: d.id, ...d.data() })));
+    }
+    case 'get_experience_issue': {
+      if (args.id) {
+        const d = await ctx.gref.collection('experienceIssues').doc(str(args.id, 80)).get();
+        if (!d.exists) throw rpcError(-32602, `Issue ${args.id} not found`);
+        return issueView({ id: d.id, ...d.data() });
+      }
+      const all = await ctx.gref.collection('experienceIssues').get();
+      return { issues: all.docs.map((d) => ({ id: d.id, ...d.data() })).filter((x) => ['open', 'planned', 'validating'].includes(x.status))
+        .map((x) => ({ id: x.id, title: x.title, priority: x.priority, status: x.status, confidence: x.confidence, task: x.taskId || '' })) };
+    }
+    case 'submit_validation_result': {
+      const ref = ctx.gref.collection('experienceIssues').doc(str(args.issue_id, 80));
+      const d = await ref.get();
+      if (!d.exists) throw rpcError(-32602, `Issue ${args.issue_id} not found. Call get_experience_issue.`);
+      const v = { at: Date.now(), by: 'claude-code', taskId: str(args.task_id, 32), build: str(args.build, 40), summary: str(args.summary, 4000),
+        verdict: ['improved', 'no_change', 'worse', 'inconclusive'].includes(args.outcome) ? args.outcome : 'inconclusive', evidence: str(args.evidence, 4000) };
+      await ref.set({ validations: admin.firestore.FieldValue.arrayUnion(v), status: d.data().status === 'resolved' ? 'resolved' : 'validating', updatedAt: ts() }, { merge: true });
+      await logExecution(ctx, key, 'validation', v.taskId, { issue: d.id, verdict: v.verdict });
+      return { ok: true, status: 'validating', message: 'Recorded. The author confirms it against the metrics of a new playtest (baseline vs after) in «Досвід гравців».' };
     }
     case 'submit_change_request': {
       const cr = { taskId: str(args.task_id, 32), what: str(args.what, 2000), why: str(args.why, 2000), proposal: str(args.proposal, 4000),
