@@ -126,7 +126,7 @@ const FEATURES = [
   { id: 'artStyle', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Візуальний стиль гри', desc: 'Загальний стиль і біоми; значок 🖌 на кожній картинці гри — наскільки вона в стилі (за кольором, без токенів). ШІ-перевірка — окремо (styleCheck).' },
     en: { name: 'Game visual style', desc: 'Overall style and biomes; a 🖌 badge on every game picture — how well it fits (by colour, no tokens). AI check — separately (styleCheck).' },
-    where: 'Біблія гри → Арт і аудіо → Візуальний стиль', server: '— (у браузері)' },
+    where: 'Біблія гри → Арт → Візуальний стиль', server: '— (у браузері)' },
   { id: 'mechanics', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Конструктор механік', desc: 'Механіки гри — власні або з шаблонів (UMCF ближнього бою, ухилення, блок і парирування, атрибути, рівні, статуси, інвентар, поведінка ворогів): розділи, таблиці з посиланнями, перевірки й заповненість, без токенів. Claude Code читає їх через MCP.' },
     en: { name: 'Mechanics constructor', desc: 'Game mechanics — your own or from templates (UMCF melee, dodge, block & parry, attributes, levels, status effects, inventory, enemy behaviour): sections, linked tables, checks and completeness, no tokens. Claude Code reads them over MCP.' },

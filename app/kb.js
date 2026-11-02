@@ -504,7 +504,7 @@
         lead: "Один стиль на всю гру й окремо на кожен біом — і значок на кожній картинці: вона в стилі чи вибивається.",
         min: 4,
         body: [
-          ["p", "Гра виглядає цілісно, коли всі ассети, референси й концепти тримаються одного стилю. «Візуальний стиль» — перший підпункт «Арт і аудіо» в меню гри: тут ти описуєш стиль, а Біблія сама стежить, які картинки до нього пасують."],
+          ["p", "Гра виглядає цілісно, коли всі ассети, референси й концепти тримаються одного стилю. «Візуальний стиль» — перший підпункт «Арт» в меню гри: тут ти описуєш стиль, а Біблія сама стежить, які картинки до нього пасують."],
           ["h", "Загальний стиль і біоми"],
           ["ul", [
             "<b>Загальний стиль</b> — перша картка підрозділу «Загальний стиль»: маніфест, палітра стилю, заборонені кольори, світло й настрій, матеріали, форми й силует, бюджет полігонів і текстур, «так / ні», референси стилю.",
@@ -524,7 +524,7 @@
           ["p", "Число — частка кольорів картинки, близьких до палітри стилю (тіні й відблиски не рахуються), мінус штраф за заборонені кольори. Перевірка йде прямо в браузері — без токенів і миттєво; змінив палітру — значки перераховуються самі."],
           ["tip", "Палітру стилю зручно зібрати кнопкою «🎨 З картинок» з референсів стилю на тій самій картці."],
           ["h", "✦ Стиль із референсів"],
-          ["p", "Немає слів для стилю — є картинки? Кнопка <b>«✦ Стиль із референсів»</b> угорі вкладки бере до 6 картинок з розділу «Референси» (поруч у «Арт і аудіо») і з карток стилю, і ШІ складає загальний стиль: маніфест, палітру з кодами кольорів, заборонені кольори, світло й настрій, матеріали, форми, «так / ні». Ти бачиш пропозицію по полях: порожні поля картки «Загальний стиль» відмічено одразу, заповнені — лише якщо хочеш замінити. Картки немає — вона створиться. Ціна ✦ — на кнопці; Worldbuilder."],
+          ["p", "Немає слів для стилю — є картинки? Кнопка <b>«✦ Стиль із референсів»</b> угорі вкладки бере до 6 картинок з розділу «Референси» (поруч у «Арт») і з карток стилю, і ШІ складає загальний стиль: маніфест, палітру з кодами кольорів, заборонені кольори, світло й настрій, матеріали, форми, «так / ні». Ти бачиш пропозицію по полях: порожні поля картки «Загальний стиль» відмічено одразу, заповнені — лише якщо хочеш замінити. Картки немає — вона створиться. Ціна ✦ — на кнопці; Worldbuilder."],
           ["h", "✦ ШІ-перевірка стилю"],
           ["p", "Колір — лише половина стилю. ШІ-перевірка дивиться на все: палітру, світло, матеріали, форми й силует, правила «так / ні» — і порівнює з референсами стилю. Після неї значок стає «🖌 87 ✦», а під файлом у картці видно, що вибивається і як виправити."],
           ["ul", [
@@ -593,7 +593,7 @@
         lead: "Музика, що сама міняється з грою: з дослідницької на бойову й назад — безшовно. Стани, шари, переходи за ігровими подіями, лейтмотиви, мікс і готові промпти для генераторів музики.",
         min: 5,
         body: [
-          ["p", "Біблія гри → «Арт і аудіо» → «Звук і музика» → кнопка <b>«🎼 Фабрика звуку»</b> (або «＋ Додати» під групою «Музика», «Амбієнт», «Звуки UI»…). Це той самий конструктор, що й у «Механіках»: шаблон стає твоєю копією, усе редагується, є перевірки й заповненість. Доступно на будь-якому тарифі, токенів не витрачає. «✎ Звичайна картка» — як раніше: окремий трек чи ефект з описом і файлом."],
+          ["p", "Біблія гри → «Звук і музика» → кнопка <b>«🎼 Фабрика звуку»</b> (або «＋ Додати» під групою «Музика», «Амбієнт», «Звуки UI»…). Це той самий конструктор, що й у «Механіках»: шаблон стає твоєю копією, усе редагується, є перевірки й заповненість. Доступно на будь-якому тарифі, токенів не витрачає. «✎ Звичайна картка» — як раніше: окремий трек чи ефект з описом і файлом."],
           ["h", "Шаблони"],
           ["ul", [
             "<b>Адаптивна музика гри</b> — головний: звучання гри, музичні стани, шари, переходи, лейтмотиви, мікс і тестування. Уже заповнений прикладом фентезі-RPG (дослідження, напруга, бій, бос, перемога, поразка, таверна, підземелля, розмова, меню) — заміни на своє.",
@@ -705,7 +705,8 @@
             "<b>Світ і рівні</b> — Локації · Рівні й контент · Генерація світу · Сцени",
             "<b>Механіки</b> — конструктор: власні механіки й шаблони (UMCF та інші), див. «⚙ Конструктор механік»",
             "<b>Прогресія й предмети</b> — Прогресія й економіка · Предмети й спорядження · Артефакти",
-            "<b>Арт і аудіо</b> — Візуальний стиль · Референси · Ассети й префаби · Матеріали й текстури · Анімації й VFX · Звук і музика (з «🎼 Фабрикою звуку» — адаптивна музика, амбієнт, звуки UI, промпти) · UI / UX",
+            "<b>Арт</b> — Візуальний стиль · Референси · Ассети й префаби · Матеріали й текстури · Анімації й VFX · UI / UX",
+            "<b>Звук і музика</b> — окремий пункт меню, з «🎼 Фабрикою звуку» (адаптивна музика, амбієнт, звуки UI, промпти)",
             "<b>Технічне</b> · твої власні розділи",
             "<b>Продакшн-план</b> — План · Неузгоджене",
             "<b>Досвід гравців</b> — Досвід гравців · Телеметрія (каталог подій)",
@@ -1622,7 +1623,7 @@
         lead: "One style for the whole game and one per biome — and a badge on every picture: does it fit or stand out.",
         min: 4,
         body: [
-          ["p", "A game looks whole when every asset, reference and concept keeps to one style. “Visual style” is the first item under “Art & audio” in the game menu: you describe the style here, and the Bible keeps track of which pictures fit it."],
+          ["p", "A game looks whole when every asset, reference and concept keeps to one style. “Visual style” is the first item under “Art” in the game menu: you describe the style here, and the Bible keeps track of which pictures fit it."],
           ["h", "Overall style and biomes"],
           ["ul", [
             "<b>Overall style</b> — the first card of the “Overall style” subsection: manifesto, style palette, colours to avoid, light & mood, materials, shapes & silhouette, polygon & texture budget, do / don't, style references.",
@@ -1642,7 +1643,7 @@
           ["p", "The number is the share of the picture's colours close to the style palette (shadows and highlights don't count), minus a penalty for colours to avoid. The check runs right in the browser — no tokens, instantly; change the palette and the badges recount themselves."],
           ["tip", "The style palette is easy to build with “🎨 From images” from the style references on the same card."],
           ["h", "✦ Style from references"],
-          ["p", "No words for the style, only pictures? The <b>“✦ Style from references”</b> button at the top of the tab takes up to 6 pictures from the “References” section (next to it in “Art & audio”) and the style cards, and AI writes the overall style: a manifesto, a palette with colour codes, colours to avoid, light and mood, materials, shapes, do / don't. You see the proposal field by field: the empty fields of the “Overall style” card are ticked already, filled ones only if you want to replace them. No card yet — it is created. The ✦ price is on the button; Worldbuilder."],
+          ["p", "No words for the style, only pictures? The <b>“✦ Style from references”</b> button at the top of the tab takes up to 6 pictures from the “References” section (next to it in “Art”) and the style cards, and AI writes the overall style: a manifesto, a palette with colour codes, colours to avoid, light and mood, materials, shapes, do / don't. You see the proposal field by field: the empty fields of the “Overall style” card are ticked already, filled ones only if you want to replace them. No card yet — it is created. The ✦ price is on the button; Worldbuilder."],
           ["h", "✦ The AI style check"],
           ["p", "Colour is only half of a style. The AI check looks at everything: palette, light, materials, shapes and silhouette, the do / don't rules — and compares with the style references. After it the badge reads “🖌 87 ✦”, and under the file in the card you see what breaks the style and how to fix it."],
           ["ul", [
@@ -1711,7 +1712,7 @@
         lead: "Music that changes with the game by itself: from exploration to combat and back — seamlessly. States, layers, transitions on game events, leitmotifs, the mix and ready prompts for music generators.",
         min: 5,
         body: [
-          ["p", "Game Bible → “Art & audio” → “Sound & music” → the <b>“🎼 Sound factory”</b> button (or “＋ Add” under the “Music”, “Ambience”, “UI sounds”… group). It is the same constructor as in “Mechanics”: a template becomes your own copy, everything is editable, with checks and completeness. Available on every plan, spends no tokens. “✎ Plain card” works as before: a single track or effect with a description and a file."],
+          ["p", "Game Bible → “Sound & music” → the <b>“🎼 Sound factory”</b> button (or “＋ Add” under the “Music”, “Ambience”, “UI sounds”… group). It is the same constructor as in “Mechanics”: a template becomes your own copy, everything is editable, with checks and completeness. Available on every plan, spends no tokens. “✎ Plain card” works as before: a single track or effect with a description and a file."],
           ["h", "Templates"],
           ["ul", [
             "<b>Adaptive game music</b> — the main one: the game's sound, music states, layers, transitions, leitmotifs, mix & testing. Pre-filled with a fantasy-RPG example (exploration, tension, combat, boss, victory, defeat, tavern, dungeon, dialogue, menu) — replace it with yours.",
@@ -1823,7 +1824,8 @@
             "<b>World & levels</b> — Locations · Levels & content · World generation · Scenes",
             "<b>Mechanics</b> — the constructor: your own mechanics and templates (UMCF and others), see “⚙ Mechanics constructor”",
             "<b>Progression & items</b> — Progression & economy · Items & gear · Artifacts",
-            "<b>Art & audio</b> — Visual style · References · Assets & prefabs · Materials & textures · Animation & VFX · Sound & music (with the “🎼 Sound factory” — adaptive music, ambience, UI sounds, prompts) · UI / UX",
+            "<b>Art</b> — Visual style · References · Assets & prefabs · Materials & textures · Animation & VFX · UI / UX",
+            "<b>Sound & music</b> — its own menu item, with the “🎼 Sound factory” (adaptive music, ambience, UI sounds, prompts)",
             "<b>Technical</b> · your own sections",
             "<b>Production plan</b> — Plan · Inconsistencies",
             "<b>Player experience</b> — Player experience · Telemetry (event catalogue)",

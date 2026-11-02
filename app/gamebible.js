@@ -770,7 +770,8 @@
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
-    { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["artstyle", "refs", "assets", "materials", "animation", "audio", "ui"] },
+    { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "assets", "materials", "animation", "ui"] },
+    { id: "g-audio", members: ["audio"] }, // «Звук і музика» — its own menu item (the Sound factory lives there)
     { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
     "custom",
     { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues", "activity"] },

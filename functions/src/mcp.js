@@ -510,7 +510,7 @@ async function callTool(name, args, key) {
     }
     case 'get_style_guide': {
       const styleCards = ctx.cards.filter((c) => c.section === 'artstyle' && !c.hidden);
-      if (!styleCards.length) return { style: null, message: 'The author has not described the visual style yet (Game Bible → Art & audio → Visual style).' };
+      if (!styleCards.length) return { style: null, message: 'The author has not described the visual style yet (Game Bible → Art → Visual style).' };
       let names = [str(args.location, 160)];
       const ref = str(args.card_ref, 120);
       if (ref) { const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '')); if (c) names = [c.title, (c.fields || {}).group, (c.fields || {}).category, (c.fields || {}).location]; }
