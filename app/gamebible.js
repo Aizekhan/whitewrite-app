@@ -70,7 +70,7 @@
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settingsGame: "Налаштування гри", settingsGameAbout: "Лише ця гра: підключення Claude Code, назва, рушій, розділи, імпорт і експорт, видалення гри.", settingsWorld: "Налаштування світу", settingsWorldAbout: "Лише світ: назва, експорт і відновлення, Космограф, видалення світу. Налаштування кожної гри — у її GDD.",
       linkedGames: "Повʼязані ігри", pickGame: "У яку гру?",
-      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — окремі вкладки в хабі світу, поруч із «Головною».",
+      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — окремі вкладки в хабі світу, поруч із «Головною»:",
         memberNote: "Налаштування світу бачить лише його власник.",
         tabs: { community: "Спільнота", team: "Команда", market: "Маркет", backup: "Бекап" },
         team: { title: "Команда світу", hint: "Додай друзів у команду цього світу й дай кожному свою роль. Друзів додаєш в Акаунті → «Друзі».",
@@ -227,7 +227,7 @@
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
       ops: { questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
-        dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)",
+        dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
       repo: { hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
         repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
@@ -330,7 +330,7 @@
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settingsGame: "Game settings", settingsGameAbout: "This game only: connecting Claude Code, name, engine, sections, import and export, deleting the game.", settingsWorld: "World settings", settingsWorldAbout: "The world only: name, export and restore, Cosmograph, deleting the world. Each game's settings are in its GDD.",
       linkedGames: "Linked games", pickGame: "Into which game?",
-      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now separate tabs in the world hub, next to “Home”.",
+      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now separate tabs in the world hub, next to “Home”:",
         memberNote: "Only the world's owner sees its settings.",
         tabs: { community: "Community", team: "Team", market: "Market", backup: "Backup" },
         team: { title: "The world team", hint: "Add friends to this world's team and give each a role. You add friends in the Account → “Friends”.",
@@ -487,7 +487,7 @@
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
       ops: { questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
-        dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)",
+        dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
       repo: { hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
         repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenPh: "GitHub token — only for a private repo",
@@ -1103,7 +1103,8 @@
   }
   function navItem(s, all, label) {
     if (!mayRead(s.id)) return "";
-    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(label || L(s)) + '<span class="n">' + navCount(s, all) + '</span></button>';
+    var lock = devLocked(s) ? ' 🔒' : ''; // a Worldbuilder section on a lower plan: seen before it is clicked
+    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(label || L(s)) + lock + '<span class="n">' + navCount(s, all) + '</span></button>';
   }
   // a section named like its group gets a short name inside it («Продакшн-план» → «План»)
   var NAV_SHORT = { plan: { uk: "План", en: "Plan" }, experience: { uk: "Метрики й проблеми", en: "Metrics & issues" } };
@@ -1118,7 +1119,7 @@
       if (mem.length === 1) { out.push(navTop(navItem(sec(mem[0]), all))); return; }
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
-      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '">' + ARROW + esc(L(g)) + '<span class="n">' + (n || "") + '</span></button>');
+      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '">' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
       if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
@@ -1212,7 +1213,7 @@
     if (!game) return renderNewGame();
     if (imp) return renderImport();
     var s = sec(section);
-    if (!canDev && !query && ["plan", "experience", "knowledge", "activity", "marketing"].indexOf(s.special) >= 0) return renderDevLocked(s);
+    if (!query && devLocked(s)) return renderDevLocked(s);
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
     if (s.special === "experience" && !query) return renderExperience();
@@ -2918,6 +2919,7 @@
   function bindDevLock() {
     [].forEach.call(document.querySelectorAll("#view [data-upgrade]"), function (b) { b.onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} }; });
   }
+  function devLocked(s) { return mode === "game" && !canDev && ["plan", "experience", "knowledge", "activity", "marketing"].indexOf(s.special) >= 0; }
   function renderDevLocked(s) {
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1></div></header>' + devLockHtml();
     bindDevLock();
@@ -4170,7 +4172,7 @@
   function fzOpenItem() { return fz.item && fzFind(fzItems(), fz.item); }
   async function fzUpload(o, stageId, list) {
     if (!list.length) return;
-    var note = prompt(FZ.noteQ, ""); if (note === null) return;
+    var note = await askText(FZ.noteQ, { ok: STR.save, optional: true }); if (note === null) return;
     var metas = [];
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
@@ -4191,8 +4193,8 @@
     await gref().collection("cards").doc(o.id).set(body, { merge: true });
     fz.msg = ""; await fzSave(o, f);
   }
-  function fzApprove(c, stageId, revId) {
-    var comment = prompt(FZ.approveQ, ""); if (comment === null) return;
+  async function fzApprove(c, stageId, revId) {
+    var comment = await askText(FZ.approveQ, { ok: FZ.approve, optional: true }); if (comment === null) return;
     var f = fzClone(c.forge), w = fzWho();
     var last = FG.revsOf(f, stageId)[0];
     if (!revId && stageId !== "brief" && last) revId = last.id; // animation / export: their newest upload
@@ -4220,11 +4222,11 @@
     if (!canWrite) return true;
     if (d.fznewchar !== undefined) { goSection("characters"); addCard(false); return true; }
     if (d.fznewitem !== undefined) {
-      var nm = prompt(FZ.item.newQ, ""); if (!nm || !nm.trim()) return true;
+      askName(FZ.item.newQ, "", function (nm) { if (!nm) return;
       var gs = sec("gear"), sl = fz.slot && fzSlots().filter(function (s) { return s.id === fz.slot; })[0], grp = (gs.groups[LANG] || gs.groups.uk)[sl && sl.bind === "rigid" ? 0 : 1];
       var nid = newId("card");
       gref().collection("cards").doc(nid).set({ section: "gear", title: nm.trim(), status: "idea", note: "", defs: gs.defs.slice(), fields: { group: grp },
-        forge: sl ? { slot: sl.id, bind: sl.bind } : {}, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }).then(function () { fz.item = "c:" + nid; render(); });
+        forge: sl ? { slot: sl.id, bind: sl.bind } : {}, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }).then(function () { fz.item = "c:" + nid; render(); }); });
       return true;
     }
     if (d.fzsadd) { fz.setup[d.fzsadd].push(d.fzsadd === "slots" ? { id: newId("slot"), uk: "", en: "", bind: "skinned" } : { id: newId(d.fzsadd === "rigs" ? "rig" : "body"), name: "", notes: "" }); render(); return true; }
@@ -4238,8 +4240,8 @@
       return true;
     }
     if (it) {
-      if (d.fzmanual !== undefined) { var mc = prompt(FZ.item.manualQ, ""); if (!mc || !mc.trim()) return true; var cur = FG.revsOf(it.forge, "model")[0], w = fzWho();
-        fzSetItem(it, function (f) { f.approval = { rev: cur ? cur.id : "", by: w.uid, byName: w.name, at: Date.now(), comment: mc.trim() }; }); return true; }
+      if (d.fzmanual !== undefined) { askName(FZ.item.manualQ, "", function (mc) { if (!mc) return; var cur = FG.revsOf(it.forge, "model")[0], w = fzWho();
+        fzSetItem(it, function (f) { f.approval = { rev: cur ? cur.id : "", by: w.uid, byName: w.name, at: Date.now(), comment: mc }; }); }, "", { ok: FZ.item.manual }); return true; }
       if (d.fzmanualoff !== undefined) { fzSetItem(it, function (f) { delete f.approval; }); return true; }
       if (d.fzrestore) { var rp = fzSplit(d.fzrestore, 2), old = (it.forge.revs || []).filter(function (r) { return r.id === rp[2]; })[0];
         if (old) fzSetItem(it, function (f) { f.revs = (f.revs || []).concat([FG.newRev(f, rp[1], old.files, "", fzWho(), old.id)]); }); return true; }
@@ -4256,7 +4258,7 @@
     if (d.fzaddnote) { var ni = $("view").querySelector("[data-fznote]"), tx = ni && ni.value.trim(); if (!tx) return true;
       f.notes = (f.notes || []).concat([{ stage: d.fzaddnote, text: tx.slice(0, 2000), byName: fzWho().name, at: Date.now() }]); fzSave(c, f); return true; }
     if (d.fzunbind) { var ui = fzFind(fzItems(), d.fzunbind); if (ui) fzSetItem(ui, function (x) { x.owners = (x.owners || []).filter(function (id) { return id !== c.id; }); }); return true; }
-    if (d.fzaddlo !== undefined) { var ln = prompt(FZ.loadoutQ, ""); if (!ln || !ln.trim()) return true; f.loadouts = (f.loadouts || []).concat([{ id: newId("lo"), name: ln.trim(), items: {} }]); fzSave(c, f); return true; }
+    if (d.fzaddlo !== undefined) { askName(FZ.loadoutQ, "", function (ln) { if (!ln) return; f.loadouts = (f.loadouts || []).concat([{ id: newId("lo"), name: ln, items: {} }]); fzSave(c, f); }); return true; }
     if (d.fzlodel) { f.loadouts.splice(+d.fzlodel, 1); fzSave(c, f); return true; }
     if (d.fzaddclip !== undefined) { var cn = $("view").querySelector("[data-fzclipname]"), cv = cn && cn.value.trim(); if (!cv) return true;
       f.clips = FG.clipsOf(f).concat([{ id: newId("clip"), name: cv, en: cv, status: "todo" }]); fzSave(c, f); return true; }
@@ -4624,11 +4626,13 @@
         '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
         '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
         '<p class="hint">' + STR.stRestoreHint + '</p></section>';
-    if (!inGame && mode === "world") html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p></section>';
+    if (!inGame && mode === "world") html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p><div class="setrow">' +
+      [["community", "🌍"], ["team", "🤝"], ["market", "⚖"], ["backup", "⛁"]].map(function (x) { return '<button class="btn" data-hubtab="' + x[0] + '">' + x[1] + ' ' + esc(STR.hub.tabs[x[0]]) + '</button>'; }).join("") + '</div></section>';
     if (inGame || mode === "world") html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (inGame ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button>') + '</div><p class="hint" id="st-msg"></p></section>';
     $("view").innerHTML = html;
     var note = function (t) { $("st-msg").textContent = t; };
+    [].forEach.call(document.querySelectorAll("#view [data-hubtab]"), function (b) { b.onclick = function () { tellShell({ type: "ww-hub", worldId: worldId, tab: b.dataset.hubtab }); }; });
     if (!inGame) {
     if (!$("st-wsave")) return;
     $("st-wsave").onclick = async function () {
@@ -5039,11 +5043,12 @@
       '<select id="ln-model" aria-label="' + esc(R.model) + '">' + [["opus", R.opus], ["sonnet", "Sonnet"], ["", R.dflt]].map(function (m) {
         return '<option value="' + m[0] + '"' + (m[0] === (l.model || "") ? " selected" : "") + '>' + esc(m[1]) + '</option>'; }).join("") + '</select></div>' +
       '<label class="imp"><input type="checkbox" id="ln-skip"' + (l.skip === false ? '' : ' checked') + '><span>' + esc(R.skip) + '</span></label>' +
+      '<p class="hint" id="ln-warn"' + (l.skip === false ? ' hidden' : '') + '>' + esc(R.skipWarn) + '</p>' +
       '<pre class="ln-cmd" id="ln-cmd">' + esc(launchText(l)) + '</pre>' +
       '<div class="setrow"><button class="btn primary" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>';
   }
   function bindLaunch() {
-    var show = function () { $("ln-cmd").textContent = launchText(launchNow()); };
+    var show = function () { $("ln-cmd").textContent = launchText(launchNow()); $("ln-warn").hidden = !$("ln-skip").checked; };
     var save = function () { show(); gref().set({ launch: launchNow(), updatedAt: stamp() }, { merge: true }).then(function () { $("ln-msg").textContent = STR.launch.saved; }); };
     $("ln-dir").oninput = show; $("ln-dir").onchange = save; $("ln-model").onchange = save; $("ln-skip").onchange = save;
     $("ln-copy").onclick = function () {
@@ -5551,7 +5556,7 @@
   }
   async function reviewTask(id, ok) {
     var lt = liveTask(id); if (!lt) return;
-    var comment = ok ? "" : (prompt(STR.returnPh) || "").trim();
+    var comment = ok ? "" : await askText(STR.returnPh, { ok: STR.giveBack });
     if (!ok && !comment) return;
     var batch = db.batch(), ev = { type: ok ? "accepted" : "returned", by: "author", at: Date.now() };
     if (comment) ev.comment = comment;
@@ -5578,7 +5583,7 @@
   }
   async function unblockTask(id) {
     var lt = liveTask(id); if (!lt) return;
-    var note = (prompt(STR.unblockPh) || "").trim();
+    var note = await askText(STR.unblockPh, { ok: STR.unblock, optional: true }); if (note === null) return;
     await gref().collection("tasks").doc(lt.id).set({ status: lt.report ? "rework" : "todo", reviewComment: note, blocker: firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
       history: firebase.firestore.FieldValue.arrayUnion({ type: "unblocked", by: "author", comment: note, at: Date.now() }) }, { merge: true });
   }
@@ -5690,7 +5695,7 @@
   async function setGate(id, to, early) {
     var P = STR.pp, comment = "";
     if (to === "approved" && early && !confirm(P.early)) return;
-    if (to === "returned") { comment = (prompt(P.returnPh) || "").trim(); if (!comment) return; }
+    if (to === "returned") { comment = await askText(P.returnPh, { ok: P.giveBack }); if (!comment) return; }
     var upd = {}; upd[id] = { status: to, at: Date.now(), by: "author", comment: comment };
     await gref().collection("plan").doc("current").set({ gates: upd }, { merge: true });
   }
@@ -5990,7 +5995,10 @@
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
   });
   // A small dialog in the service's style instead of the browser's prompt(); done(name) gets "" on cancel.
-  function askName(title, ph, done, value) {
+  // opts: { ok: the button's label, optional: an empty answer is fine — then cancel gives null }
+  function askText(title, opts) { return new Promise(function (r) { askName(title, "", r, "", opts); }); } // the same, awaited
+  function askName(title, ph, done, value, opts) {
+    opts = opts || {};
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3>' +
@@ -5999,11 +6007,13 @@
     document.body.appendChild(box);
     var input = box.querySelector("input");
     if (value) { input.value = value; box.querySelector("#ask-ok").textContent = STR.save; }
+    if (opts.ok) box.querySelector("#ask-ok").textContent = opts.ok;
+    var none = opts.optional ? null : "";
     function finish(v) { box.remove(); done(v); }
-    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) finish(v); else input.focus(); };
-    box.querySelector("#ask-x").onclick = function () { finish(""); };
-    box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(""); });
-    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(""); } });
+    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v || opts.optional) finish(v); else input.focus(); };
+    box.querySelector("#ask-x").onclick = function () { finish(none); };
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(none); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(none); } });
     input.focus();
   }
   $("e-save").onclick = save;

@@ -407,8 +407,8 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
                 // We're in iframe — ask parent to reload book
                 window.parent.postMessage({ type: 'reloadBook', jumpToLast: true }, window.location.origin);
               } else {
-                // Standalone — just alert user
-                alert('Сцена збережена! Перезавантажте сторінку щоб побачити її.');
+                // Standalone — the scene is saved: reload to show it
+                window.location.reload();
               }
             }
           } catch (saveError) {

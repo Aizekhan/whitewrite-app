@@ -628,6 +628,7 @@ function WorldForm({ onBack, onCreate, initial }) {
 
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack}>{t('form.back')}</button>
+            <span className="form-cost">{(() => { const PF = window.__PAID_FEATURES; const n = PF ? PF.featureCost(PF.byOp('genesis'), null, (window.__wwUser || {}).aiModel) : 0; return n ? t('genesis.cost').replace('{n}', n) : ''; })()}</span>
             <button className={`create-btn ${ready && !creating ? "" : "is-disabled"}`} type="button" onClick={submit} disabled={!ready || creating}>
               <span className="begin-btn__star">✨</span>{creating ? t('form.creating') : t('worlds.create')}
             </button>

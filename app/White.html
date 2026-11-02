@@ -529,8 +529,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   border:1px solid var(--line); border-radius:8px; }
 .integ__key b{ color:var(--tx-hi); font-weight:600; }
 .integ__key span{ flex:1; }
-.integ__soon{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-.integ__chip{ font-size:12px; padding:5px 10px; border-radius:999px; border:1px dashed var(--line); color:var(--tx-mid); }
 .integ .pe-btn{ padding:6px 12px; font-size:12px; }
 .auth-tabs{ display:flex; gap:6px; margin-bottom:16px; }
 .feedback-fab{ position:fixed; right:16px; bottom:16px; z-index:70; width:48px; height:48px; border-radius:50%;
@@ -1210,8 +1208,8 @@ body.at-home .back-fab{ display:none; }
   }
 
   // Create a new narrative (open form, not book)
-  function createNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD)); }
-  function createWorld() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "newWorld=1"); }
+  function createNarrative() { if (!window.__wwAuth) { openAuth(createNarrative); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD)); }
+  function createWorld() { if (!window.__wwAuth) { openAuth(createWorld); return; } showPillar("book", "newWorld=1"); }
   function openWorld(worldId) { CURRENT_WORLD = worldId; try { sessionStorage.removeItem("ww-hubtab-" + worldId); } catch (e) {} showView("narr"); } // a chosen world opens on its home tab
   // The canon of a story lives in its world's Bible: the book's bookmarks, the Director's visual canon and old tree links land here,
   // on the named entity if there is one (the Bible opens it once its canon has loaded).
@@ -1268,7 +1266,14 @@ body.at-home .back-fab{ display:none; }
   }
 
   // ---- auth (login / register) ----
-  function openAuth() { document.getElementById("auth-modal").classList.add("is-on"); }
+  // next: what the visitor was doing when sign-in was asked for — it goes on after the sign-in (not back to the home page)
+  var authNext = null;
+  function openAuth(next) { authNext = typeof next === "function" ? next : null; document.getElementById("auth-modal").classList.add("is-on"); }
+  function afterAuth() {
+    var next = authNext; authNext = null; closeAuth(); showHome();
+    if (!next) return;
+    var tries = 0, go = function () { if (window.__wwAuth || tries++ > 50) Promise.resolve(loadProjects()).then(next); else setTimeout(go, 100); }; go();
+  }
   function closeAuth() { document.getElementById("auth-modal").classList.remove("is-on"); }
   window.__wwAuthDo = async function () {
     var m = document.getElementById("auth-modal");
@@ -1298,8 +1303,7 @@ body.at-home .back-fab{ display:none; }
     btn.disabled = false;
 
     if (result.success) {
-      closeAuth();
-      showHome();
+      afterAuth();
     } else {
       alert(result.error || "Помилка входу");
     }
@@ -1316,8 +1320,7 @@ body.at-home .back-fab{ display:none; }
     btn.disabled = false;
 
     if (result.success) {
-      closeAuth();
-      showHome();
+      afterAuth();
     } else {
       if (result.error !== "Вхід скасовано") {
         alert(result.error || "Помилка входу через Google");
@@ -1383,11 +1386,16 @@ body.at-home .back-fab{ display:none; }
     if (d.type === "ww-community") { openCommunity(d.pubId ? String(d.pubId) : null); return; } // home cards and the Bible's «Відкрити у спільноті»
     if (d.type === "ww-agent-guide") { if (window.WW_KB) { window.WW_KB.__cat = "agent"; window.WW_KB.__q = ""; } fillKb(); showView("kb"); return; }
     if (d.type === "ww-world-cta") {
-      if (!window.__wwAuth) { openAuth(); return; }
-      Promise.resolve(loadProjectsPromise).then(function () { if (WORLDS.length) showView("worlds"); else createWorld(); });
+      var cta = function () { if (WORLDS.length) showView("worlds"); else createWorld(); };
+      if (!window.__wwAuth) { openAuth(cta); return; }
+      Promise.resolve(loadProjectsPromise).then(cta);
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
+    if (d.type === "ww-hub" && d.worldId) { // the Bible's settings link a hub tab (Спільнота · Команда · Маркет · Бекап)
+      CURRENT_WORLD = d.worldId; try { sessionStorage.setItem("ww-hubtab-" + d.worldId, String(d.tab || "home")); } catch (e) {}
+      showView("narr"); return;
+    }
     // the Bible switched its section: the section left becomes a step of «Назад» (a freshly loaded Bible's first section is not)
     if (d.type === "ww-bible-at" && d.section) {
       if (mode !== "bible" || inWork || d.worldId !== CURRENT_WORLD) return;
@@ -2476,7 +2484,7 @@ body.at-home .back-fab{ display:none; }
     }).catch(function (e) { console.warn('costs', e); });
   }
   // Integrations: the MCP server Claude Code connects to (functions/src/mcp.js). Keys are made per game
-  // in the Game Bible → Production plan; here the author sees them all and can revoke any.
+  // in the game's ⚙ Settings → Claude Code; here the author sees them all and can revoke any.
   var MCP_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/mcp";
   function esc(v) { return String(v).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
   function integHtml(lang) {
@@ -2486,16 +2494,10 @@ body.at-home .back-fab{ display:none; }
         '<div class="integ__row"><div class="integ__ic">⌘</div><div style="flex:1;min-width:0">' +
           '<div class="integ__t">' + (en ? 'Claude Code — game executor (MCP)' : 'Claude Code — виконавець гри (MCP)') + '</div>' +
           '<div class="integ__s">' + (en
-            ? 'Claude Code connects to your game over MCP: takes the next task of the production plan with its canon and bible context, reports progress, hands in the result with acceptance criteria — you accept or return it. Keys are created per game in <b>World Bible → Production plan → Connect Claude Code</b>.'
-            : 'Claude Code підключається до твоєї гри по MCP: бере наступне завдання продакшн-плану разом із каноном і Біблією, звітує про прогрес, здає результат за критеріями приймання — ти приймаєш або повертаєш. Ключі створюються для кожної гри в <b>Біблія світу → Продакшн-план → Підключити Claude Code</b>.') + '</div>' +
+            ? 'Claude Code connects to your game over MCP: takes the next task of the production plan with its canon and bible context, reports progress, hands in the result with acceptance criteria — you accept or return it. Keys are created per game in <b>the game (GDD) → ⚙ Settings → Claude Code → MCP key</b>.'
+            : 'Claude Code підключається до твоєї гри по MCP: бере наступне завдання продакшн-плану разом із каноном і Біблією, звітує про прогрес, здає результат за критеріями приймання — ти приймаєш або повертаєш. Ключі створюються для кожної гри в <b>гра (GDD) → ⚙ Налаштування → Claude Code → Ключ MCP</b>.') + '</div>' +
           '<div class="integ__url"><code>' + MCP_URL + '</code><button class="pe-btn" id="integ-copy">' + (en ? 'Copy' : 'Копіювати') + '</button></div>' +
           '<div class="integ__keys" id="integ-keys"><div class="integ__s">' + (en ? 'Loading keys…' : 'Завантажую ключі…') + '</div></div>' +
-          '<div class="integ__soon">' +
-            '<span class="integ__chip">REST API — ' + (en ? 'soon' : 'скоро') + '</span>' +
-            '<span class="integ__chip">Unity plugin — ' + (en ? 'soon' : 'скоро') + '</span>' +
-            '<span class="integ__chip">Blender — ' + (en ? 'soon' : 'скоро') + '</span>' +
-            '<span class="integ__chip">Webhooks — ' + (en ? 'soon' : 'скоро') + '</span>' +
-          '</div>' +
         '</div></div>' +
       '</div>';
   }
