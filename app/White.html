@@ -329,6 +329,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .wtabs button[aria-selected="true"]{ color:var(--gold-lit); border-bottom-color:var(--gold-lit); font-weight:600; }
 .whub{ display:grid; grid-template-columns:minmax(260px,340px); gap:22px; margin-top:26px; align-items:start; }
 .whub__panel{ display:block; width:100%; height:520px; margin-top:22px; border:0; background:transparent; }
+.whub__panel[hidden]{ display:none; } /* the home tab must not show the panel under the cards */
 .whub__note{ grid-column:1/-1; max-width:640px; }
 /* the hub's games: smaller and wide, on a gold «branch» under the World Bible — the world is the root, games grow from it */
 .wgames{ margin-top:34px; padding-left:22px; border-left:2px solid rgba(212,175,55,.35); }
@@ -1211,7 +1212,7 @@ body.at-home .back-fab{ display:none; }
   // Create a new narrative (open form, not book)
   function createNarrative() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD)); }
   function createWorld() { if (!window.__wwAuth) { openAuth(); return; } showPillar("book", "newWorld=1"); }
-  function openWorld(worldId) { CURRENT_WORLD = worldId; showView("narr"); }
+  function openWorld(worldId) { CURRENT_WORLD = worldId; try { sessionStorage.removeItem("ww-hubtab-" + worldId); } catch (e) {} showView("narr"); } // a chosen world opens on its home tab
   // The canon of a story lives in its world's Bible: the book's bookmarks, the Director's visual canon and old tree links land here,
   // on the named entity if there is one (the Bible opens it once its canon has loaded).
   function openCanon(query) {
