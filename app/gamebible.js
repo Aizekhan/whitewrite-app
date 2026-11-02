@@ -2463,7 +2463,7 @@
       search: "Пошук шаблону…", all: "Усі категорії", create: "Створити", preview: "Що всередині", sections: "розділів", complexity: "Складність", cancel: "Скасувати", choose: "Нова механіка",
       back: "← До механік", general: "Загальне", title: "Назва", cat: "Категорія", sub: "Підкатегорія", stage: "Стадія розробки", status: "Стан у виробництві", type: "Тип механіки",
       purpose: "Призначення", purposePh: "Яку проблему гри вона вирішує і що відчуває гравець", rules: "Правила роботи", rulesPh: "Як вона працює — по кроках або списком", tags: "Теги", tagsPh: "через кому",
-      links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна", basic: "Базовий вигляд", adv: "Розширений вигляд",
+      links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна", moreTabs: "＋ ще {n} у розширеному", basic: "Базовий вигляд", adv: "Розширений вигляд",
       advHint: "Розширений показує всі поля шаблону; базовий — головні.", files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
       fill: "Заповнено", req: "обовʼязкові", rec: "рекомендовані", checks: "Перевірка", clean: "Без проблем", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
       rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Поле", fieldName: "Назва поля", fieldType: "Тип", rmField: "Прибрати поле",
@@ -2475,7 +2475,7 @@
       search: "Search templates…", all: "All categories", create: "Create", preview: "What is inside", sections: "sections", complexity: "Complexity", cancel: "Cancel", choose: "New mechanic",
       back: "← To mechanics", general: "General", title: "Name", cat: "Category", sub: "Subcategory", stage: "Development stage", status: "Production status", type: "Mechanic type",
       purpose: "Purpose", purposePh: "Which design problem it solves and what the player feels", rules: "How it works", rulesPh: "Step by step or as a list", tags: "Tags", tagsPh: "comma separated",
-      links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own", basic: "Basic view", adv: "Advanced view",
+      links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own", moreTabs: "＋ {n} more in advanced", basic: "Basic view", adv: "Advanced view",
       advHint: "Advanced shows every template field; basic — the main ones.", files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
       fill: "Filled", req: "required", rec: "recommended", checks: "Checks", clean: "No problems", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
       rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Field", fieldName: "Field name", fieldType: "Type", rmField: "Remove field",
@@ -2715,12 +2715,15 @@
   function mTabsHtml(r) {
     var cnt = function (id) { return r.issues.filter(function (i) { return i.sec === id && i.level !== "tip"; }).length; };
     var tab = function (id, label) { var n = cnt(id); return '<button type="button" class="mtab" role="tab" data-mtab="' + esc(id) + '" aria-selected="' + (med.tab === id) + '">' + esc(label) + (n ? ' <span class="qd-warn">' + n + '</span>' : '') + '</button>'; };
-    return '<div class="mtabs" role="tablist">' + tab("general", MC.general) + med.m.sections.map(function (s) { return tab(s.id, ml(s.title)); }).join("") +
+    var hid = med.adv ? 0 : med.m.sections.filter(function (s) { return s.adv; }).length;
+    return '<div class="mtabs" role="tablist">' + tab("general", MC.general) + med.m.sections.filter(function (s) { return med.adv || !s.adv; }).map(function (s) { return tab(s.id, ml(s.title)); }).join("") +
+      (hid ? '<button type="button" class="btn ghost mini" data-mact="adv" title="' + esc(MC.advHint) + '">' + esc(MC.moreTabs.replace("{n}", hid)) + '</button>' : '') +
       (canWrite ? '<button type="button" class="btn ghost mini" data-mact="addSec:fields">' + MC.addSec + '</button><button type="button" class="btn ghost mini" data-mact="addSec:table">' + MC.addTable + '</button>' : '') + '</div>';
   }
   function renderMEditor() {
     var r = MX().check(med.m), s = med.tab === "general" ? null : msec(med.tab), si = s ? med.m.sections.indexOf(s) : -1;
     if (med.tab !== "general" && !s) { med.tab = "general"; return renderMEditor(); }
+    if (s && s.adv && !med.adv) { med.tab = "general"; return renderMEditor(); }
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
       (s.kind === "table" ? mTableHtml(s, si) : mFieldsHtml(s, si)) +
       (canWrite ? '<div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
@@ -2851,8 +2854,8 @@
     var sr = e.target.closest("[data-sndrm]"); if (sr) { var sl = mslot(sr.dataset.sndrm); sl.o[sl.key] = (sl.o[sl.key] || []).filter(function (x) { return x !== sr.dataset.v; }); renderMEditor(); return true; }
     var sk = e.target.closest("[data-sndpick]"); if (sk) { sndPick(sk.dataset.sndpick); return true; }
     if (e.target.closest("[data-sndup]")) return true; // the file picker opens by itself
-    var tb = e.target.closest("[data-mtab]"); if (tb) { med.tab = tb.dataset.mtab; renderMEditor(); var n = document.querySelector('[data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
-    var go = e.target.closest("[data-mgo]"); if (go) { med.tab = go.dataset.mgo; renderMEditor(); $("m-ed").scrollIntoView({ block: "start" }); return true; }
+    var tb = e.target.closest("[data-mtab]"); if (tb) { med.tab = tb.dataset.mtab; if ((msec(med.tab) || {}).adv) med.adv = true; /* a check pointing into an advanced tab opens the advanced view */ renderMEditor(); var n = document.querySelector('[data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
+    var go = e.target.closest("[data-mgo]"); if (go) { med.tab = go.dataset.mgo; if ((msec(med.tab) || {}).adv) med.adv = true; renderMEditor(); $("m-ed").scrollIntoView({ block: "start" }); return true; }
     var so = e.target.closest("[data-msort]"); if (so) {
       var sp = so.dataset.msort.split(":"), cur = med.sort[sp[0]];
       med.sort[sp[0]] = cur && cur[0] === sp[1] ? (cur[1] > 0 ? [sp[1], -1] : null) : [sp[1], 1]; renderMEditor(); return true;

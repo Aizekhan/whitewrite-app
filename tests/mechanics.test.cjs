@@ -124,5 +124,15 @@ check(alib.missing.some((w) => w.row === st(v2, 'states').rows[0]._id), false, '
 check(alib.missing.filter((w) => w.sec === 'transitions').length, st(v2, 'transitions').rows.filter((r) => r.stinger).length, 'a stinger file is missing only where a stinger is described');
 check(JSON.stringify(M.exportMech({ id: 'm', mech: v2 }, 'en', alib.assets).sections.find((s) => s.id === 'states').rows[0].sound[0].files.map((f) => f.url)), '["u1","u2"]', 'the agent gets the files of a slot');
 
+// basic / advanced view: older audio cards take the template's split, the author's own fields keep theirs
+const v3 = M.instantiate('adaptive_music'); v3.tplVersion = 3;
+v3.sections.forEach((s) => { delete s.adv; s.fields.forEach((f) => { delete f.adv; }); });
+st(v3, 'states').fields.push({ k: 'mine', l: 'Моє', t: 'text', custom: true, adv: true });
+M.upgrade(v3);
+check(v3.sections.filter((s) => s.adv).map((s) => s.id).join(), 'motifs,mix', 'leitmotifs and the mix are advanced tabs after the upgrade');
+check(st(v3, 'states').fields.filter((f) => f.adv).map((f) => f.k).join(), 'style,bars,where,notes,mine', 'states: the template’s advanced fields + the author’s own keeps its flag');
+check(['name', 'situation', 'bpm', 'sound'].every((k) => !st(v3, 'states').fields.find((f) => f.k === k).adv), true, 'the main state fields stay in the basic view');
+check(v3.tplVersion, M.template('adaptive_music').version, 'the upgrade stamps the template version');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);
