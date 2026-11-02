@@ -96,7 +96,7 @@
           enabled: "Увімкнено, перший бекап зроблено.", done: "Бекап зроблено.", disabled: "Вимкнено (оплачений місяць лишається).", disconnected: "GitHub відключено." } },
       stats: { followers: "Фоловери — стежать за світом чи грою у Спільноті", rating: "Рейтинг — ♥ від спільноти" },
       team: { noAi: "✦ AI-дії в цьому світі запускають лише власник і адмін команди (на токенах власника)." },
-      wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Розмір на плашці", uploading: "Завантажую…" },
+      wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Висота назви", sizeMax: "більше не влазить у ширину рядка", uploading: "Завантажую…" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
       stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
@@ -343,7 +343,7 @@
           enabled: "On; the first backup is done.", done: "Backed up.", disabled: "Off (the paid month stays).", disconnected: "GitHub disconnected." } },
       stats: { followers: "Followers — following the world or game in the Community", rating: "Rating — ♥ from the community" },
       team: { noAi: "✦ AI actions in this world are run only by the owner and a team admin (on the owner's tokens)." },
-      wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Size on the bar", uploading: "Uploading…" },
+      wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Title height", sizeMax: "wider would not fit the line", uploading: "Uploading…" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
       stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
@@ -1243,23 +1243,34 @@
       (own ? '<button class="wname__ed" type="button" data-wname title="' + esc(STR.wname.edit) + '" aria-label="' + esc(STR.wname.edit) + '">✎</button>' : '') + '</h1>';
   }
   function editWorldName() {
-    var W = STR.wname, ta = Object.assign({ h: 72 }, world.titleArt || {}), up = null, old = world.titleArt && world.titleArt.path;
+    var W = STR.wname, W_ = W, ta = Object.assign({ h: 72 }, world.titleArt || {}), up = null, old = world.titleArt && world.titleArt.path;
     var box = document.createElement("div"); box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(W.edit) + '"><h3>' + esc(W.edit) + '</h3>' +
       '<label class="field"><span>' + W.title + '</span><input id="wn-t" value="' + esc(world.title || "") + '"></label>' +
       '<div class="field"><span>' + W.art + '</span><p class="hint">' + W.artHint + '</p><div class="wn-prev" id="wn-prev"></div>' +
       '<div class="row"><label class="btn"><input type="file" accept="image/*" hidden id="wn-f">' + W.artPick + '</label><button type="button" class="btn ghost" id="wn-del">' + W.artDel + '</button></div>' +
-      '<label class="field" id="wn-sz"><span>' + W.size + ' · <b id="wn-h"></b></span><input type="range" min="28" max="110" step="2" id="wn-r"></label></div>' +
+      '<label class="field" id="wn-sz"><span>' + W.size + ' · <b id="wn-h"></b></span><input type="range" min="28" max="110" step="1" id="wn-r"></label></div>' +
       '<p class="muted" id="wn-msg"></p><div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.save + '</button></div></form>';
     document.body.appendChild(box);
     var q = function (id) { return box.querySelector("#" + id); };
+    // A wide title image is limited by the WIDTH of the name line, not by its height: the slider's top is the largest height
+    // that still fits that line (so every step shows), and the preview is the line itself, scaled down to the dialog.
+    var line = document.querySelector("h1.wname"), aspect = 0;
+    var lineW = function () { if (!line) return 760; var cs = getComputedStyle(line); return Math.max(200, line.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)); };
+    var maxH = function () { return aspect ? Math.max(28, Math.min(110, Math.floor(lineW() / aspect))) : 110; };
+    var measure = function () { if (!ta.url) return; var im = new Image(); im.onload = function () { aspect = im.naturalWidth / im.naturalHeight || 0; draw(); }; im.src = ta.url; };
     var draw = function () {
-      q("wn-prev").innerHTML = ta.url ? '<img src="' + esc(ta.url) + '" alt="" style="height:' + ta.h + 'px">' : '<span class="wn-font">' + esc(q("wn-t").value || "…") + '</span>';
-      q("wn-del").hidden = !ta.url; q("wn-sz").hidden = !ta.url; q("wn-r").value = ta.h; q("wn-h").textContent = ta.h + " px";
-      var live = document.querySelector(".wname img"); if (live && ta.url) { live.src = ta.url; live.style.height = ta.h + "px"; } // the bar shows the size as you drag
+      var top = maxH(); if (ta.h > top) ta.h = top;
+      var W = lineW(), box = q("wn-prev"), k = Math.min(1, (box.clientWidth - 16) / W);
+      box.innerHTML = ta.url ? '<div class="wn-line" style="width:' + Math.round(W * k) + 'px;height:' + Math.round(110 * k) + 'px"><img src="' + esc(ta.url) + '" alt="" style="height:' + Math.round(ta.h * k) + 'px"></div>'
+        : '<span class="wn-font">' + esc(q("wn-t").value || "…") + '</span>';
+      q("wn-del").hidden = !ta.url; q("wn-sz").hidden = !ta.url; q("wn-r").max = top; q("wn-r").value = ta.h;
+      q("wn-h").textContent = ta.h + " px" + (aspect && top < 110 && ta.h >= top ? " — " + W_.sizeMax : "");
+      var live = document.querySelector(".wname img"); if (live && ta.url) { live.src = ta.url; live.style.height = ta.h + "px"; } // the line itself shows the size as you drag
     };
     var close = function () { box.remove(); if (up && up.path !== old) firebase.storage().ref(up.path).delete().catch(function () {}); render(); };
     q("wn-t").oninput = draw;
+    measure();
     q("wn-r").oninput = function () { ta.h = Number(this.value); draw(); };
     q("wn-del").onclick = function () { ta = { h: ta.h }; draw(); };
     q("wn-f").onchange = async function (ev) {
@@ -1270,7 +1281,7 @@
         if (up) firebase.storage().ref(up.path).delete().catch(function () {});
         var path = "worlds/" + worldId + "/cover/title_" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
         var task = await firebase.storage().ref(path).put(f, { contentType: f.type });
-        up = { path: path, url: await task.ref.getDownloadURL() }; ta = { url: up.url, path: path, h: ta.h }; q("wn-msg").textContent = ""; draw();
+        up = { path: path, url: await task.ref.getDownloadURL() }; ta = { url: up.url, path: path, h: ta.h }; q("wn-msg").textContent = ""; aspect = 0; draw(); measure();
       } catch (e) { q("wn-msg").textContent = STR.failed + ": " + (e.code || e.message || e); }
     };
     box.querySelector("form").onsubmit = async function (ev) {
