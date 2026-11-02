@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.31.0 (2026-11-02)
+**Version:** 2.33.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -87,14 +87,19 @@ whitewrite.com
     ↓
 White.html (Shell)
     ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (stories, World Bible);
-    │        hero card «🤖 Як говорити з агентом» (flow.jsx, posts `ww-agent-guide`) → Knowledge base on the «agent» category
+    │        hero (flow.jsx, i18n `hero.*`): «Твій світ чекає» — one world's canon → books and games; game card
+    │        «Від задуму — до гри» / «🤖 Шлях з агентом» (posts `ww-agent-guide`) → Knowledge base on the «agent» category
     ├─ Knowledge base (`kb.js` → `window.WW_KB`, rendered by `fillKb` / `openArticle`; «?» fab): categories start · agent ·
     │        book · world · game · framework · account, uk + en; blocks p/h/ul/tip/warn/prompt («prompt» = a ready request
     │        for Claude Code with a «Копіювати» button), plans/prices (rendered from the paid-features registry);
     │        in-text links `<a class="art__link" data-art="id">` open another article; the Bible opens one with
-    │        postMessage `{type:'ww-kb-article', id}`. The «agent» category is a numbered path: overview → 1 PC (Git, Unity Hub,
-    │        Unity CLI, Unity 6, Claude Code in PowerShell) → 2 with/without RPG Framework → 3 folder + launch → 4 MCP →
-    │        5 GDD import → 6 first session → 7 task loop → 8 GitHub; «framework» adds fw-access (token) and fw-files.
+    │        postMessage `{type:'ww-kb-article', id}`. The «agent» category is drawn as a road (`fillKb`: articles with
+    │        `step`/`stage`, stage labels `WW_KB.stages`; a dashed line with numbered nodes; the rest under «Довідка»):
+    │        overview → stage pc: 1 PC (Git, Unity Hub, Unity CLI, Unity 6, Claude Code) · 2 with/without RPG Framework →
+    │        stage game (= ⚙ Project settings → «Claude Code»): 3 folder + launch · 4 MCP key · 5 design → plan (.md import) ·
+    │        6 first session (new game: START-NEW-GAME / no-framework prompt; existing project: `get_guide setup`) ·
+    │        7 development log (CLAUDE.md) → stage daily: 8 task loop · 9 GitHub; reference: agent-env, agent-knowledge.
+    │        «framework» adds fw-access (token) and fw-files.
     │        Every service change updates its article in the same commit.
     ├─ Auth (Firebase Auth)
     ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
@@ -399,9 +404,10 @@ User: Generate next scene following canon.
 - **Language:** every label is built for one language at load (`LANG` from the shell's `__i18n` / `localStorage ww-lang`); the account switch (`i18n.setLanguage`) dispatches `ww-language-change` into the frame → the Bible reloads in place on the same section (`sessionStorage ww-bible-sec-{w}`), after an open card/dossier is closed. The game-status chips are hidden on canon pages. Shell: `i18n.js` loads before the shell script; on a switch the shell re-renders rail, dock, news, world hub, worlds list, marketplace, KB.
 - **Біблія ↔ книга (the Bible is the home of a world):** a canon dossier has a block **«Історії»** — the stories about it (`projects.subjects` contains the entity id; live listener on `projects where owner, worldId`) with their reveal mark, «Відкрити», and **«＋ Історія»**: a dialog (title from the entity, reveal mark, «коли розкриється» for *later*) → `ww-write-story` → the shell opens `WhiteWrite.html?new=1&free=1&worldId&title&about&reveal&revealNote` → the book creates the story at once (`creation: free`, no form), the mage ritual opens it («Книга відкривається…»), then the writing sheet. Opening a story from the Bible (`ww-open-story`) also plays the ritual (`ritual=1`).
   **Reveal marks** (`projects.reveal`): `open` «Відкрита читачеві» · `later` «Розкриється згодом» (+ `revealNote`) · `internal` «Внутрішній канон» (author only). Shown as chips; changeable on the chronicle's story cards (which also show who the story is about).
+  **Shell chrome (`White.html renderRail` → `body.at-home` / `body.in-work`):** the user dock (avatar, balance, Account) shows on the home page only, desktop and phone. Phones (≤ 820 px), off home and outside a story: no top rail, views start at `top:0`, the Bible frame drops its 118 px offset (its own ≤ 820 px rules), and `#home-fab` (logo) in the dock's place leads home; a story keeps the rail (Bible ↔ Book switch, paged layout). History: `goBack()` never re-records the screen it leaves (`_back` in `histPush`) and skips entries equal to the current screen — the Account ✕ used to loop back into the Account.
   **Back:** in a story the shell rail starts with **«Біблія світу»** (`CURRENT_WORLD` from the story's `worldId`) → `showBible()` keeps the frame, so the same dossier is still open; `ww-bible-focus {ent}` opens a given entity. Frames crossfade (`.frame` opacity .5 s).
 - **Menu (World Bible):** head «Біблія світу» + world title; world block (canon sections) folds with an arrow (`localStorage ww-bible-fold`); then «Гра:» picker; game sections; «+ Свій розділ»; **«⚙ Налаштування проєкту»** last (special section `settings`).
-- **Project settings:** rename world (notifies the shell `ww-worlds-changed`) / game, engine profile, `.md` import, JSON export of world (`whitewrite.world/1`) and game (`whitewrite.game/1`), delete custom sections, game, world.
+- **Project settings:** top to bottom — **«Claude Code»** (`agentRoadHtml`, only with a game): the KB road's once-per-game steps with the same numbers, each ticked from live data — 3 folder + launch (`games/{g}.launch.dir`), 4 MCP key (a live `mcpKeys` doc; «Створити ключ» = `createKey`, the key + `claude mcp add` shown once), 5 design → plan (`.md` import button, → Продакшн-план; `plan/current.plan`), 6 first session (`get_guide setup`; `env/current` status + «Перевірити середовище ще раз» = `get_guide unity_env`), 7 development log (`get_guide activity_log` block for CLAUDE.md, a copy button; any `activity` session), 9 GitHub repo (optional; `games/{g}.repo`); «Докладніше» opens the KB step (`ww-kb-article`), `data-gosec` jumps to a section. The key/activity/env listeners re-render the settings unless the author is typing (`settingsIdle`). Then the game (rename, engine profile, sections shown, custom sections, JSON export `whitewrite.game/1`) → the world (rename — notifies the shell `ww-worlds-changed`; JSON export `whitewrite.world/1` / restore) → Космограф → danger zone (delete game, world).
   Safe deletion = type the exact name. Game delete removes cards (+ Storage files), plan, tasks, executions, changeRequests, quests, dialogues, its `mcpKeys`, then the game doc. World delete is refused while stories (`projects.worldId`) exist; else games → entities → world doc (last, rules check ownership through it), then the shell reloads and shows the worlds list.
 - **Неузгоджене** (inconsistencies): a game tab before the Production plan (`special: issues`) lists `plan/current.contradictions` not yet in `plan/current.resolved` + open questions; the world block has its own tab (`special: canonIssues`) fed by op `canonAudit` → `worlds/{w}.audit.contradictions`, answers in `worlds/{w}.auditAnswers`.
   Contradictions carry `id` (sha1 of the text; older ones fall back to djb2 `t_…` on both sides), `options`, `target {card, field}`. Resolving writes the decision into the target card (game) or appends it to the entity description (canon, explicit). Resolved ones are kept and fed back to the next audit as decisions.
@@ -584,5 +590,5 @@ firebase deploy                   # Deploy everything
 
 ---
 
-**Last updated:** 2026-11-02 (v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
+**Last updated:** 2026-11-02 (v2.33 home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks; v2.32 shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops; v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
 **Maintained by:** WhiteWrite Team

@@ -48,7 +48,7 @@
           factions: [["story", "Історія й мета", "Як виникла, хто її веде, чого прагне, з ким ворогує…"], ["look", "Символіка", "Герб, кольори, знаки, одяг, гасла…"]],
           artifacts: [["story", "Походження", "Хто й навіщо створив, через чиї руки пройшов, яку має силу…"], ["look", "Вигляд", "Матеріал, розмір, знаки, як відчувається в руці…"]],
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
-      settings: "Налаштування проєкту", settingsAbout: "Назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
+      settings: "Налаштування проєкту", settingsAbout: "Підключення Claude Code, назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
       stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
@@ -165,10 +165,10 @@
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
       ops: { questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
-      launch: { title: "Запуск Claude Code", hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
+      launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)",
-        copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено", kb: "Як підготувати ПК і почати: ", kbLink: "База знань → шлях з агентом" },
-      repo: { title: "GitHub-репозиторій гри", hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
+        copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
+      repo: { hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
         repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
         connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
         sync: "Звірити з репо", disconnect: "Відключити", busy: "AI читає репозиторій і звіряє його з Біблією… (до кількох хвилин)", result: "Звірка з репозиторієм",
@@ -247,7 +247,7 @@
           factions: [["story", "History & aim", "How it arose, who leads it, what it wants, whom it fights…"], ["look", "Symbols", "Coat of arms, colours, signs, garb, mottos…"]],
           artifacts: [["story", "Origin", "Who made it and why, whose hands it passed through, what power it has…"], ["look", "Look", "Material, size, markings, how it feels in the hand…"]],
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
-      settings: "Project settings", settingsAbout: "Names, engine, import and export, safe deletion.", gameLabel: "Game:",
+      settings: "Project settings", settingsAbout: "Connecting Claude Code, names, engine, import and export, safe deletion.", gameLabel: "Game:",
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
       stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
@@ -364,10 +364,10 @@
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
       ops: { questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
-      launch: { title: "Launch Claude Code", hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
+      launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)",
-        copy: "Copy the commands", copied: "Copied", saved: "Saved", kb: "How to prepare your PC and start: ", kbLink: "Knowledge base → the path with the agent" },
-      repo: { title: "The game's GitHub repository", hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
+        copy: "Copy the commands", copied: "Copied", saved: "Saved" },
+      repo: { hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
         repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenPh: "GitHub token — only for a private repo",
         connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
         sync: "Check against the repo", disconnect: "Disconnect", busy: "AI is reading the repository and comparing it with the Bible… (up to a few minutes)", result: "Repository check",
@@ -2892,8 +2892,20 @@
         fix: "Виправлення", tooling: "Інструменти", release: "Реліз", other: "Інше" },
       stt: { completed: "", partial: "частково", experimental: "експеримент", planned: "заплановано" },
       tests: "тести {p}/{r}", files: "файлів: {n}",
-      envTitle: "Unity / середовище розробки", envHint: "Claude Code перевіряє Unity Editor, Unity CLI, проєкт, валідацію й тести на твоєму ПК і надсилає результат сюди.",
-      envNone: "Перевірки ще не було.", envAt: "Перевірено {d}", setupTitle: "Перший запуск агента", setupHint: "Покроково: MCP → репозиторій → середовище → знання проєкту → перевірка фреймворку → перша задача." },
+      envNone: "Перевірки ще не було.", envAt: "Перевірено {d}",
+      // ⚙ Налаштування → «Claude Code»: the once-per-game steps 3–7 and 9 of the KB road (kb.js), each ticked from real data
+      road: { title: "Claude Code — підключення гри", hint: "Зроби кроки по черзі — галочки ставляться самі. Номери ті самі, що в Базі знань → «Шлях з агентом» (кроки 1–2 — один раз на ПК).",
+        done: "Готово {n} з {t}", ok: "готово", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
+        launch: "Тека гри й запуск", key: "Ключ MCP", design: "Дизайн гри → продакшн-план", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
+        keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри.",
+        keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
+        designHint: "Агент бере задачі з продакшн-плану, а план AI складає з Біблії гри. Є документи чи нотатки — імпортуй їх; потім «Аналіз і аудит» ✦ → «Продакшн-план» ✦.",
+        planYes: "Продакшн-план є.", planNo: "Плану ще немає.", toPlan: "До продакшн-плану →",
+        firstHint: "Нова гра — запит із кроку 6 Бази знань (з фреймворком чи без). Unity-проєкт уже є — ця команда: агент перевірить підключення, середовище, знання проєкту, фреймворк і виконає найменшу задачу.",
+        envAgain: "Перевірити середовище ще раз",
+        logHint: "Встав цей блок у CLAUDE.md у теці гри — і агент звітуватиме після кожної сесії (з цього пишуться й пости маркетингу).",
+        logBlock: "Показати блок", logCopy: "Копіювати блок для CLAUDE.md", logs: "Отримано звітів: {n}", toLog: "До журналу →",
+        repoHint: "Коли код і дизайн могли розійтися — AI звірить репозиторій з Біблією за кнопкою." } },
     en: { status: "Latest snapshot", none: "No snapshot yet. Ask Claude Code to index the project — the command is below.",
       st: { uploading: "uploading", imported: "imported" }, scope: { full: "full", partial: "partial" },
       c: { added: "new", updated: "changed", skipped: "unchanged", relations: "relations", rejected: "rejected", tombstoned: "missing" },
@@ -2912,8 +2924,19 @@
         fix: "Fix", tooling: "Tooling", release: "Release", other: "Other" },
       stt: { completed: "", partial: "partial", experimental: "experimental", planned: "planned" },
       tests: "tests {p}/{r}", files: "files: {n}",
-      envTitle: "Unity / development environment", envHint: "Claude Code checks the Unity Editor, Unity CLI, the project, validation and tests on your PC and sends the result here.",
-      envNone: "No check yet.", envAt: "Checked {d}", setupTitle: "The agent's first run", setupHint: "Step by step: MCP → repository → environment → project knowledge → framework check → first task." },
+      envNone: "No check yet.", envAt: "Checked {d}",
+      road: { title: "Claude Code — connecting the game", hint: "Do the steps in order — the ticks set themselves. The numbers match Knowledge base → “The path with the agent” (steps 1–2 are once per PC).",
+        done: "Done {n} of {t}", ok: "done", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
+        launch: "Game folder and launch", key: "MCP key", design: "Game design → production plan", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
+        keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder.",
+        keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
+        designHint: "The agent takes tasks from the production plan, and AI builds the plan from the Game Bible. Have documents or notes — import them; then “Analysis & audit” ✦ → “Production plan” ✦.",
+        planYes: "The production plan exists.", planNo: "No plan yet.", toPlan: "To the production plan →",
+        firstHint: "A new game — the request from step 6 of the Knowledge base (with the framework or without). The Unity project exists — this command: the agent checks the connection, the environment, the project knowledge, the framework and does the smallest task.",
+        envAgain: "Check the environment again",
+        logHint: "Paste this block into CLAUDE.md in the game's folder — and the agent reports after every session (marketing posts are written from it too).",
+        logBlock: "Show the block", logCopy: "Copy the block for CLAUDE.md", logs: "Reports received: {n}", toLog: "To the log →",
+        repoHint: "When code and design may have drifted — AI checks the repository against the Bible on a button." } },
   }[LANG];
   var KNOWLEDGE = { id: "knowledge", special: "knowledge", uk: "Знання проєкту", en: "Project knowledge",
     about: { uk: "Що є в Unity-проєкті: сцени, префаби, скрипти, ассети й звʼязки між ними. Claude Code індексує проєкт лише на читання.", en: "What the Unity project holds: scenes, prefabs, scripts, assets and how they connect. Claude Code indexes the project read-only." } };
@@ -3191,31 +3214,59 @@
     });
   }
   function envHtml() {
-    var e = envDoc, h = '<h2>' + KN.envTitle + '</h2><p class="hint">' + KN.envHint + '</p>';
+    var e = envDoc, h = '';
     if (e) h += '<p>' + (e.ok ? '🟢 ' : '🟠 ') + esc([KN.envAt.replace("{d}", when(e.reportedAt)), e.os, e.editor && e.editor.version ? "Unity " + e.editor.version : "",
         e.cli && e.cli.version ? "CLI " + e.cli.version : ""].filter(Boolean).join(" · ")) + '</p><ul class="kn-checks">' + (e.checks || []).map(function (c) {
         return '<li>' + (c.ok ? '✓' : '✕') + ' <b>' + esc(c.id) + '</b> ' + esc(c.detail) + (c.exitCode != null ? ' <span class="muted">exit ' + c.exitCode + '</span>' : '') + '</li>'; }).join("") + '</ul>';
     else h += '<p class="muted">' + KN.envNone + '</p>';
-    return h + guideHtml("unity_env") + '<h2>' + KN.setupTitle + '</h2><p class="hint">' + KN.setupHint + '</p>' + guideHtml("setup");
+    return h + '<details class="kn-guide"><summary>' + KN.road.envAgain + '</summary>' + guideHtml("unity_env") + '</details>';
+  }
+  // ⚙ Налаштування → «Claude Code»: one road of the once-per-game steps, numbered as in the KB (kb.js agent-* step 3–7, 9)
+  function agentRoadHtml() {
+    var R = KN.road, live = keys.filter(function (k) { return !k.revoked; }), G = window.__SETUP_GUIDES, logMd = G && G.guide("activity_log");
+    var step = function (n, title, done, kb, body, optional) {
+      return '<li class="sroad__s' + (done ? ' is-done' : '') + '"><span class="sroad__n">' + n + '</span><div class="sroad__b">' +
+        '<h3>' + title + (optional ? ' <span class="muted">· ' + R.opt + '</span>' : '') + (done ? ' <span class="sroad__ok">' + R.ok + '</span>' : '') + '</h3>' + body +
+        '<a href="#" class="kblink" data-kb="' + kb + '">' + R.more + '</a></div></li>';
+    };
+    var s = [
+      [3, R.launch, !!(game.launch && game.launch.dir), "agent-launch", launchHtml()],
+      [4, R.key, live.length > 0, "agent-new-game", '<p class="hint">' + R.keyHint + '</p>' +
+        (newKey ? '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
+        '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
+        (canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>'],
+      [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
+        '<button class="btn" data-gosec="plan">' + R.toPlan + '</button><span class="muted">' + (planDoc.plan ? R.planYes : R.planNo) + '</span></div><p class="hint">' + STR.stImportHint + '</p>'],
+      [6, R.first, !!envDoc, "agent-first", '<p class="hint">' + R.firstHint + '</p>' + guideHtml("setup") + envHtml()],
+      [7, R.log, actSessions.length > 0, "agent-activity", '<p class="hint">' + R.logHint + '</p>' +
+        (logMd ? '<pre hidden>' + esc(logMd.markdown) + '</pre><button class="btn' + (actSessions.length ? '' : ' primary') + '" data-copy>' + R.logCopy + '</button>' + // copy at once; the long text only on demand
+          '<details class="kn-guide"><summary>' + R.logBlock + '</summary><pre class="ln-cmd">' + esc(logMd.markdown) + '</pre></details>' : '') +
+        '<div class="setrow">' + (actSessions.length ? '<span class="muted">' + R.logs.replace("{n}", actSessions.length) + '</span>' : '') + '<button class="btn" data-gosec="activity">' + R.toLog + '</button></div>'],
+      [9, R.repo, !!(game.repo && game.repo.full), "agent-github", '<p class="hint">' + R.repoHint + '</p>' + repoHtml(), true]];
+    var need = s.filter(function (x) { return !x[5]; }), ok = need.filter(function (x) { return x[2]; }).length;
+    return '<section class="setbox"><h2>' + R.title + ' <span class="sroad__count">' + R.done.replace("{n}", ok).replace("{t}", need.length) + '</span></h2>' +
+      '<p class="hint">' + R.hint + ' <a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p>' +
+      '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
   function renderSettings() {
     var own = ((game && game.sections) || []);
-    var html = '<header class="sec"><div><h1>' + STR.settings + '</h1><p>' + STR.settingsAbout + '</p></div></header>' +
-      '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
-        '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
-        '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
-        '<p class="hint">' + STR.stRestoreHint + '</p></section>';
+    // order: the Claude Code road (once per game) → the game → the world → Космограф → danger zone
+    var html = '<header class="sec"><div><h1>' + STR.settings + '</h1><p>' + STR.settingsAbout + '</p></div></header>' + (game ? agentRoadHtml() : '');
     if (game) html += '<section class="setbox"><h2>' + STR.stGame + ' · ' + esc(game.title) + '</h2>' +
         '<div class="setrow"><input id="st-gname" aria-label="' + esc(STR.stGameName) + '" value="' + esc(game.title || "") + '"><button class="btn" id="st-gsave">' + STR.stRename + '</button></div>' +
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
-        '<div class="setrow"><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
-        '<p class="hint">' + STR.stImportHint + ' ' + STR.stExportHint + '</p>' + launchHtml() + repoHtml() + envHtml() +
+        '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
+        '<p class="hint">' + STR.stExportHint + '</p>' +
         '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p><div class="shownsecs">' + GAME.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0) ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div>' +
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
           : '<p class="hint">' + STR.stNoSections + '</p>') + '</section>';
+    html += '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
+        '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
+        '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
+        '<p class="hint">' + STR.stRestoreHint + '</p></section>';
     html += cosmoSettingsHtml();
     html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (game ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '') +
@@ -3249,6 +3300,8 @@
       b.onclick = function () { confirmDeleteSection(sec(b.dataset.delsec)); };
     });
   }
+  // the settings' «Claude Code» ticks follow live data, but never re-render under the author's typing
+  function settingsIdle() { return section === "settings" && !document.activeElement.closest("#view input"); }
   function tellShell(msg) { try { window.parent.postMessage(msg, location.origin); } catch (e) {} }
   function download(name, text, type) {
     var a = document.createElement("a");
@@ -3412,14 +3465,13 @@
   function launchNow() { return { dir: $("ln-dir").value.trim(), model: $("ln-model").value, skip: $("ln-skip").checked }; }
   function launchHtml() {
     var l = Object.assign({ model: "opus" }, game.launch), R = STR.launch;
-    return '<h2>' + R.title + '</h2><p class="hint">' + R.hint + '</p>' +
+    return '<p class="hint">' + R.hint + '</p>' + // the title is the step's (agentRoadHtml)
       '<div class="setrow"><input id="ln-dir" aria-label="' + esc(R.dir) + '" placeholder="' + esc(R.dirPh) + '" value="' + esc(l.dir || "") + '">' +
       '<select id="ln-model" aria-label="' + esc(R.model) + '">' + [["opus", R.opus], ["sonnet", "Sonnet"], ["", R.dflt]].map(function (m) {
         return '<option value="' + m[0] + '"' + (m[0] === (l.model || "") ? " selected" : "") + '>' + esc(m[1]) + '</option>'; }).join("") + '</select></div>' +
       '<label class="imp"><input type="checkbox" id="ln-skip"' + (l.skip === false ? '' : ' checked') + '><span>' + esc(R.skip) + '</span></label>' +
       '<pre class="ln-cmd" id="ln-cmd">' + esc(launchText(l)) + '</pre>' +
-      '<div class="setrow"><button class="btn primary" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>' +
-      '<p class="hint">' + R.kb + '<a href="#" class="kblink" data-kb="agent-launch">' + R.kbLink + '</a></p>';
+      '<div class="setrow"><button class="btn primary" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>';
   }
   function bindLaunch() {
     var show = function () { $("ln-cmd").textContent = launchText(launchNow()); };
@@ -3432,7 +3484,7 @@
   }
   function repoHtml() {
     var r = game.repo, R = STR.repo, d = r && r.syncedAt ? (r.syncedAt.toDate ? r.syncedAt.toDate() : new Date(r.syncedAt)) : null;
-    return '<h2>' + R.title + '</h2><p class="hint">' + R.hint + '</p>' + (r && r.full
+    return '<p class="hint">' + R.hint + '</p>' + (r && r.full
       ? '<p>' + esc(R.connected.replace("{r}", r.full).replace("{b}", r.branch || "")) + (r.private ? ' 🔒' : '') + '</p>' +
         '<p class="hint">' + (d ? esc(R.synced.replace("{d}", d.toLocaleString(LANG === "en" ? "en-GB" : "uk-UA"))) : R.never) + '</p>' +
         '<div class="setrow"><button class="btn" id="rp-sync">' + R.sync + costMark("repoSync") + '</button><button class="btn danger" id="rp-off">' + R.disconnect + '</button></div>'
@@ -4254,6 +4306,7 @@
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
     var cr = e.target.closest("[data-cr]");
     if (cr) { gref().collection("changeRequests").doc(cr.dataset.cr).set({ status: cr.dataset.to, decidedAt: stamp() }, { merge: true }); return; }
+    var gs = e.target.closest("[data-gosec]"); if (gs) { goSection(gs.dataset.gosec); return; } // ⚙ Налаштування → «Claude Code» steps lead to their sections
     var cp = e.target.closest("[data-copy]");
     if (cp) { navigator.clipboard.writeText(cp.previousElementSibling.textContent).then(function () { cp.textContent = STR.copied; }); return; }
     var v = e.target.closest("[data-view3d]");
@@ -4435,11 +4488,11 @@
     unsub.push(gref().collection("posts").onSnapshot(function (snap) { mkPosts = rows(snap); mkRender(); }, function () {}));
     unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
     unsub.push(gref().collection("activity").orderBy("receivedAt", "desc").limit(20).onSnapshot(function (snap) {
-      snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity") render(); else if (section === "marketing") mkRender(); }, function () {}));
-    unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (section === "settings" && !document.activeElement.closest("#view input")) render(); }, function () {}));
+      snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity" || settingsIdle()) render(); else if (section === "marketing") mkRender(); }, function () {}));
+    unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (settingsIdle()) render(); }, function () {}));
     unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
     unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
-      .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan") render(); }, function () {}));
+      .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan" || settingsIdle()) render(); }, function () {}));
     render();
   }
 

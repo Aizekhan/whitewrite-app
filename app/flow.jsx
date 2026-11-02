@@ -11,15 +11,15 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
   const FALLBACK = {
     'hero.mark': 'WhiteWrite',
     'hero.by': 'by White Tree',
-    'hero.quote': '«Історії — це магія, що творить світи.»',
-    'hero.title': 'Твоя історія\nчекає',
-    'hero.lede': 'Легко створюй казки, серіали, аніме, книги й документалки — будь-якого жанру.',
+    'hero.quote': '«Один світ — безліч історій і ігор.»',
+    'hero.title': 'Твій світ\nчекає',
+    'hero.lede': 'Збери канон свого світу — і твори з нього книги та ігри, вірні цьому світу.',
     'hero.ctaCreate': 'Створи свій світ',
     'hero.ctaChoose': 'Обери свій світ',
     'hero.agentBeta': 'для творців ігор',
-    'hero.agentTitle': 'Твоя гра —\nз ШІ-агентом',
-    'hero.agentDesc': 'Готові запити для Claude Code: GDD з твоїх нотаток, гра на RPG Framework, звірка з GitHub',
-    'hero.agentBtn': '🤖 Як говорити з агентом'
+    'hero.agentTitle': 'Від задуму —\nдо гри',
+    'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
+    'hero.agentBtn': '🤖 Шлях з агентом'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
   const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
