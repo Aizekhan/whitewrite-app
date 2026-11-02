@@ -481,19 +481,70 @@ var CHECKLIST = O([['role', 'Роль кожної теми визначено',
   ['adaptive', 'Адаптивні елементи визначено', 'Adaptive elements defined'], ['mix', 'Мікс не глушить ефекти й діалоги', 'The mix leaves room for SFX and dialogue'],
   ['tested', 'Перевірено в грі (A/B)', 'Tested in the game (A/B)'], ['docs', 'Маркери петель і шарів задокументовано', 'Loop and layer markers documented']]);
 
+// The music direction of a game: one choice → every state's ♪ prompt. Generators (Suno, Udio, ElevenLabs Music, Stable Audio)
+// understand comma-separated English tags best; the prompt names 2–4 instruments, production details and an «Exclude» line —
+// without those they fall back to the bland "fantasy flute" the owner heard.
+var DIRECTIONS = [
+  { id: 'hybrid', uk: 'Гібридний оркестр (сучасний AAA-екшн)', en: 'Hybrid orchestral (modern AAA action)', base: 'modern hybrid orchestral, AAA game soundtrack, cinematic',
+    low: 'warm evolving synth pads, felt piano, airy strings, soft pulsing arpeggio', mid: 'string ostinato, light hybrid percussion, synth bass pulse, rising swells',
+    high: 'huge taiko and hybrid percussion, staccato strings, distorted synth bass, brass stabs, braams, risers', exclude: 'medieval folk, solo flute, lute, renaissance, cheesy' },
+  { id: 'darkfantasy', uk: 'Dark fantasy (Soulslike)', en: 'Dark fantasy (Soulslike)', base: 'dark fantasy, gothic, grim, cinematic',
+    low: 'cello drones, distant wordless choir, low brass swells, sparse ritual percussion', mid: 'tremolo strings, chanting choir, slow war drums, dissonant brass',
+    high: 'pounding war drums, massive gothic choir chanting, pipe organ, dissonant low brass, aggressive strings', exclude: 'cheerful, light, flute, folk dance, pop' },
+  { id: 'nordic', uk: 'Нордичний трайбл + сучасні ударні', en: 'Nordic tribal + modern percussion', base: 'dark nordic tribal folk, primal, earthy, cinematic',
+    low: 'throat-singing drones, tagelharpa, soft frame drum, wind textures', mid: 'frame drums, tagelharpa riff, deep chant, low drones',
+    high: 'heavy tribal drums, war horns, chanting, distorted sub bass, relentless rhythm', exclude: 'medieval flute melody, lute, renaissance, cheerful, pop' },
+  { id: 'synthwave', uk: 'Synthwave / ретровейв', en: 'Synthwave / retrowave', base: 'synthwave, retro 80s, analog synths, gated reverb drums',
+    low: 'dreamy pads, slow shimmering arpeggios, soft bass', mid: 'pulsing bassline, arpeggiator, steady drum machine, nostalgic lead',
+    high: 'driving bassline, punchy gated drums, heavy sidechain, soaring lead synth hook', exclude: 'orchestra, folk, acoustic' },
+  { id: 'cyber', uk: 'Cyberpunk / darksynth', en: 'Cyberpunk / darksynth', base: 'darksynth, cyberpunk, industrial, gritty',
+    low: 'dark ambient textures, glitch, pulsing sub bass, cold pads', mid: 'mechanical arpeggios, industrial percussion, distorted bass pulse',
+    high: 'aggressive distorted reese bass, industrial drums, heavy sidechain, screaming synth leads, glitch stabs', exclude: 'orchestra, acoustic, folk, flute' },
+  { id: 'metal', uk: 'Метал / рок (у стилі DOOM)', en: 'Metal / rock (DOOM-style)', base: 'modern heavy metal, aggressive, tight modern production',
+    low: 'clean ambient guitar, dark drones, sparse toms', mid: 'chugging palm-muted riffs, steady drums, industrial synths',
+    high: 'downtuned 8-string djent riffs, double kick drums, industrial synth layers, huge breakdowns', exclude: 'acoustic, folk, flute, soft' },
+  { id: 'dnb', uk: 'Екшн-електроніка (drum & bass)', en: 'Action electronic (drum & bass)', base: 'cinematic electronic, drum and bass, breakbeat',
+    low: 'liquid atmospheric pads, soft rolling breaks, warm sub', mid: 'rolling breakbeats, reese bass, tense string swells',
+    high: 'fast breakbeats, heavy reese bass, glitchy synth stabs, energetic drops', exclude: 'orchestra only, folk, flute, slow' },
+  { id: 'jrpg', uk: 'Аніме / J-RPG', en: 'Anime / J-RPG', base: 'anime JRPG soundtrack, orchestral pop rock, melodic',
+    low: 'piano, gentle strings, music box bells', mid: 'strings, piano, light rock drums, warm brass',
+    high: 'fast strings, electric guitar, energetic rock drums, soaring brass melody', exclude: 'medieval flute, lute, dark ambient' },
+  { id: 'horror', uk: 'Хорор / dark ambient', en: 'Horror / dark ambient', base: 'dark ambient horror, unsettling, atonal textures',
+    low: 'drones, reversed sounds, eerie whispers, sparse detuned piano', mid: 'creeping string clusters, metallic scrapes, slow heartbeat pulse',
+    high: 'dissonant string clusters, metallic impacts, fast heartbeat pulse, sudden stabs', exclude: 'melodic, happy, folk, flute, pop' },
+  { id: 'chiptune', uk: 'Сучасний чіптюн / піксель', en: 'Modern chiptune / pixel', base: 'modern chiptune, 16-bit, retro game, catchy',
+    low: 'soft square-wave arpeggios, gentle triangle bass', mid: 'bouncy arpeggios, noise drums, catchy lead',
+    high: 'fast arpeggios, punchy noise drums, fuzzy guitar riff, energetic lead', exclude: 'orchestra, realistic instruments' },
+  { id: 'cozy', uk: 'Затишний інді / lo-fi', en: 'Cozy indie / lo-fi', base: 'cozy indie game, lo-fi, warm',
+    low: 'soft acoustic guitar, rhodes, vinyl crackle, light brushes', mid: 'acoustic guitar, glockenspiel, soft boom-bap drums, warm bass',
+    high: 'upbeat ukulele, bouncy bass, claps, bright glockenspiel hook', exclude: 'dark, aggressive, epic orchestra, flute solo' },
+  { id: 'own', uk: 'Свій напрям (зі «Стилю» й «Інструментів»)', en: 'Own direction (from “Style” and “Instruments”)', base: '', low: '', mid: '', high: '', exclude: '' },
+];
+var DIRECTION_OPTS = DIRECTIONS.map(function (d) { return { v: d.id, l: { uk: d.uk, en: d.en } }; });
+// what a situation asks of the music: energy 0–4 and the words for it
+var SCENE = { explore: [1, 'exploration theme, open and wandering, evolving, gentle forward motion, sense of discovery'], tension: [2, 'tension underscore, suspenseful ostinato, rising, unresolved'],
+  stealth: [1, 'stealth underscore, sparse and muted, ticking percussion, held breath'], combat: [3, 'combat theme, driving and relentless, punchy, strong memorable riff'],
+  boss: [4, 'boss battle, massive and menacing, signature boss motif, big impacts, builds and drops'], victory: [3, 'victory fanfare, triumphant, bold'],
+  defeat: [1, 'defeat, somber falling phrase'], town: [2, 'town theme, warm and lively, bustling, hopeful'], tavern: [2, 'tavern hub theme, upbeat groove, playful, catchy'],
+  dungeon: [1, 'dungeon, ominous, cavernous reverb, deep drones, creeping'], dialogue: [0, 'dialogue underscore, unobtrusive bed, no drums, leaves space for voices'],
+  lyrical: [1, 'emotional lyrical moment, intimate, beautiful memorable melody'], cutscene: [2, 'cinematic cutscene score, narrative build, emotional swell'],
+  menu: [1, 'main menu theme, iconic, inviting, memorable hook'], other: [2, ''] };
 var MUSIC = {
-  id: 'adaptive_music', sec: 'audio', version: 1, cat: 'music', sub: 'adaptive', complexity: 3, name: T('Адаптивна музика гри', 'Adaptive game music'),
+  id: 'adaptive_music', sec: 'audio', version: 2, cat: 'music', sub: 'adaptive', complexity: 3, name: T('Адаптивна музика гри', 'Adaptive game music'),
   desc: T('Музичні стани гри (дослідження, напруга, бій, бос, перемога, місто, меню…), шари, що вмикаються з інтенсивністю, переходи між станами за ігровими подіями, лейтмотиви, мікс — і готовий промпт для генератора музики для кожного стану.',
     'The game\'s music states (exploration, tension, combat, boss, victory, town, menu…), layers that switch on with intensity, transitions between states on game events, leitmotifs, the mix — and a ready prompt for a music generator for every state.'),
   purpose: T('Музика сама міняється разом із грою: з дослідницької на бойову й назад — безшовно, без різких обривів, і щоразу підкреслює те, що зараз відчуває гравець.', 'The music changes with the game by itself: from exploration to combat and back — seamlessly, without hard cuts, always backing what the player feels right now.'),
   sections: [
     { id: 'palette', title: T('Звучання гри', 'The game\'s sound'), kind: 'fields', hint: T('Спільне для всіх станів: стан бере ці значення, якщо свої не задано.', 'Shared by all states: a state takes these when it has none of its own.'),
-      fields: [F('style', 'Стиль / жанр', 'Style / genre', 'text', X(R, { h: T('напр. «оркестр + слов\'янський фольк», «чіптюн», «темний ембієнт»', 'e.g. “orchestra + Slavic folk”, “chiptune”, “dark ambient”') })),
-        F('instruments', 'Палітра інструментів', 'Instrument palette', 'long', R), F('key', 'Основний лад / тональність', 'Main key / mode', 'text', X(REC, { h: T('мінор — напруга, мажор — підйом, модальний (дорійський, фригійський) — «не цей світ»', 'minor — tension, major — uplift, modal (Dorian, Phrygian) — “not of this world”') })),
+      fields: [F('direction', 'Музичний напрям гри', 'The game\'s music direction', 'sel', X(R, { o: DIRECTION_OPTS, since: 2,
+          h: T('Один вибір — і ♪ кожного стану дає сучасний промпт цього напряму (англійською — так генератори розуміють найкраще). «Свій напрям» — промпт зі «Стилю» й «Інструментів» нижче.',
+            'One choice — and every state\'s ♪ gives a modern prompt in that direction (in English — generators understand it best). “Own direction” — the prompt from “Style” and “Instruments” below.') })),
+        F('style', 'Стиль / жанр', 'Style / genre', 'text', X(REC, { h: T('для «Свого напряму» — краще англійською: «hybrid orchestral, dark synth bass, taiko»', 'for “Own direction” — e.g. “hybrid orchestral, dark synth bass, taiko”') })),
+        F('instruments', 'Палітра інструментів', 'Instrument palette', 'long', REC), F('key', 'Основний лад / тональність', 'Main key / mode', 'text', X(REC, { h: T('мінор — напруга, мажор — підйом, модальний (дорійський, фригійський) — «не цей світ»', 'minor — tension, major — uplift, modal (Dorian, Phrygian) — “not of this world”') })),
         F('engine', 'Аудіорушій', 'Audio engine', 'sel', X(REC, { o: O([['unity', 'Unity Audio', 'Unity Audio'], ['fmod', 'FMOD', 'FMOD'], ['wwise', 'Wwise', 'Wwise'], ['other', 'Інший', 'Other']]) })),
         F('fade', 'Кросфейд за замовчуванням', 'Default crossfade', 'time', X(REC, { u: 's', min: 0, max: 10 })),
         F('reference', 'Референси (ігри, треки)', 'References (games, tracks)', 'long', { req: 'opt', adv: true })],
-      values: { style: 'Епічний оркестр із фольк-інструментами', instruments: 'струнні, валторни, литаври, хор; флейта, арфа, скрипка-соло; для міст — лютня, акордеон', key: 'ре мінор / дорійський', engine: 'unity', fade: 2 } },
+      values: { direction: 'hybrid', style: 'Гібридний оркестр (сучасний AAA-екшн)', instruments: 'струнні остинато, тайко й гібридні ударні, дисторшн-синт-бас, брас-стаби, браами, пади, фортепіано', key: 'ре мінор', engine: 'unity', fade: 2 } },
     { id: 'states', title: T('Музичні стани', 'Music states'), kind: 'table', rowLabel: 'name', prefix: 'S', prompt: true,
       hint: T('Стан — це музика для однієї ігрової ситуації. ♪ біля рядка копіює промпт для генератора музики. Темп: бій 120–150 BPM, дослідження 60–90.', 'A state is the music for one game situation. ♪ by a row copies a music-generator prompt. Tempo: combat 120–150 BPM, exploration 60–90.'),
       fields: [F('name', 'Назва', 'Name', 'text', R), F('situation', 'Ситуація', 'Situation', 'sel', X(R, { o: SITUATIONS })), F('mood', 'Настрій', 'Mood', 'multi', X(REC, { o: MOODS })),
@@ -501,16 +552,16 @@ var MUSIC = {
         F('instruments', 'Інструменти', 'Instruments', 'long', REC), F('bars', 'Петля', 'Loop', 'num', X(REC, { u: 'тактів / bars', min: 2, max: 64 })), F('length', 'Тривалість', 'Length', 'time', X(REC, { u: 's', min: 5, max: 600 })),
         F('where', 'Де звучить', 'Where it plays', 'text', REC), F('notes', 'Примітки', 'Notes', 'text', { req: 'opt', adv: true })],
       rows: [
-        { _id: 'S1', name: 'Дослідження', situation: 'explore', mood: ['calm', 'dreamy'], bpm: 90, key: 'ре дорійський', instruments: 'флейта, гобой, арфа (пульсуюче арпеджіо), мʼякий бас', bars: 16, length: 60, where: 'відкритий світ, ліс' },
-        { _id: 'S2', name: 'Напруга', situation: 'tension', mood: ['tense', 'mystic'], bpm: 90, key: 'ре мінор', instruments: 'остинато віолончелей, низькі литаври, тремоло скрипок', bars: 8, length: 30, where: 'ворог поруч' },
-        { _id: 'S3', name: 'Бій', situation: 'combat', mood: ['epic', 'tense'], bpm: 140, key: 'ре мінор', instruments: 'агресивні струнні, хор, литаври, маршові барабани, валторни', bars: 16, length: 60, where: 'звичайні бої' },
-        { _id: 'S4', name: 'Бос', situation: 'boss', mood: ['dark', 'epic'], bpm: 150, key: 'ре фригійський', instruments: 'хор, величезні барабани, валторни з наполегливим мотивом, орган', bars: 32, length: 120, where: 'арени босів' },
-        { _id: 'S5', name: 'Перемога', situation: 'victory', mood: ['triumph'], bpm: 100, key: 'ре мажор', instruments: 'фанфари валторн, хор, литаври', bars: 4, length: 8, where: 'після бою' },
-        { _id: 'S6', name: 'Поразка', situation: 'defeat', mood: ['sad'], bpm: 60, key: 'ре мінор', instruments: 'соло віолончелі, фортепіано, тихі струнні', bars: 4, length: 10 },
-        { _id: 'S7', name: 'Таверна', situation: 'tavern', mood: ['cheerful'], bpm: 110, key: 'соль міксолідійський', instruments: 'лютня, скрипка, акордеон, бубон', bars: 16, length: 45, where: 'таверни, свята' },
-        { _id: 'S8', name: 'Підземелля', situation: 'dungeon', mood: ['mystic', 'dark'], bpm: 70, key: 'до мінор', instruments: 'низький бас-дрон, дзвоноподібні ефекти, шепіт хору', bars: 16, length: 60, where: 'печери, крипти' },
-        { _id: 'S9', name: 'Розмова', situation: 'dialogue', mood: ['calm'], bpm: 70, key: 'фа мажор', instruments: 'повільні пади, легка арфа, без ударних', bars: 8, length: 30 },
-        { _id: 'S10', name: 'Меню', situation: 'menu', mood: ['calm'], bpm: 70, key: 'ре мінор', instruments: 'фортепіано з реверберацією, мʼякі пади', bars: 8, length: 20 },
+        { _id: 'S1', name: 'Дослідження', situation: 'explore', mood: ['calm', 'dreamy'], bpm: 90, key: 'ре дорійський', instruments: 'теплі пади, фортепіано, легке синт-арпеджіо, повітряні струнні', bars: 16, length: 60, where: 'відкритий світ, ліс' },
+        { _id: 'S2', name: 'Напруга', situation: 'tension', mood: ['tense', 'mystic'], bpm: 90, key: 'ре мінор', instruments: 'пульсуючий суб-бас, остинато віолончелей, тікаючі хай-хети, наростання', bars: 8, length: 30, where: 'ворог поруч' },
+        { _id: 'S3', name: 'Бій', situation: 'combat', mood: ['epic', 'tense'], bpm: 140, key: 'ре мінор', instruments: 'тайко й гібридні ударні, стакато-струнні, дисторшн-синт-бас, брас-стаби', bars: 16, length: 60, where: 'звичайні бої' },
+        { _id: 'S4', name: 'Бос', situation: 'boss', mood: ['dark', 'epic'], bpm: 150, key: 'ре фригійський', instruments: 'хор, величезні ударні, браами, агресивний синт-бас, мотив боса в мідних', bars: 32, length: 120, where: 'арени босів' },
+        { _id: 'S5', name: 'Перемога', situation: 'victory', mood: ['triumph'], bpm: 100, key: 'ре мажор', instruments: 'мідні, хор, гібридний удар, райзер', bars: 4, length: 8, where: 'після бою' },
+        { _id: 'S6', name: 'Поразка', situation: 'defeat', mood: ['sad'], bpm: 60, key: 'ре мінор', instruments: 'фортепіано, низькі струнні, реверс-ефект', bars: 4, length: 10 },
+        { _id: 'S7', name: 'Таверна', situation: 'tavern', mood: ['cheerful'], bpm: 110, key: 'соль міксолідійський', instruments: 'харді-гарді, скрипка, фолк-рок ударні, плескання, бас', bars: 16, length: 45, where: 'таверни, свята' },
+        { _id: 'S8', name: 'Підземелля', situation: 'dungeon', mood: ['mystic', 'dark'], bpm: 70, key: 'до мінор', instruments: 'низький дрон, металеві текстури, далекий хор, глухі удари', bars: 16, length: 60, where: 'печери, крипти' },
+        { _id: 'S9', name: 'Розмова', situation: 'dialogue', mood: ['calm'], bpm: 70, key: 'фа мажор', instruments: 'мʼякі пади, фортепіано, без ударних', bars: 8, length: 30 },
+        { _id: 'S10', name: 'Меню', situation: 'menu', mood: ['calm'], bpm: 70, key: 'ре мінор', instruments: 'головна тема: фортепіано, струнні, пади', bars: 8, length: 20 },
       ] },
     { id: 'layers', title: T('Шари (vertical layering)', 'Layers (vertical layering)'), kind: 'table', rowLabel: 'name', prefix: 'L',
       hint: T('Шари одного стану звучать разом і вмикаються з інтенсивністю: база завжди, далі — ударні, духові, хор. Так музика росте без зміни треку.', 'Layers of one state play together and switch on with intensity: the base always, then percussion, brass, choir. The music grows without changing the track.'),
@@ -518,11 +569,11 @@ var MUSIC = {
         F('when', 'Коли вмикається', 'Switches on when', 'text', X(R, { h: T('напр. «завжди», «інтенсивність ≥ 2», «ворогів ≥ 3», «здоровʼя < 30%»', 'e.g. “always”, “intensity ≥ 2”, “enemies ≥ 3”, “health < 30%”') })),
         F('level', 'Рівень інтенсивності', 'Intensity level', 'num', X(REC, { min: 0, max: 5 })), F('fadeIn', 'Поява', 'Fade in', 'time', X(REC, { u: 's', min: 0, max: 10 })), F('db', 'Гучність', 'Volume', 'num', X({ req: 'opt', adv: true }, { u: 'dB', min: -40, max: 6 }))],
       rows: [
-        { _id: 'L1', state: 'S1', name: 'База', instruments: 'флейта, арфа, бас', when: 'завжди', level: 0, fadeIn: 2 },
-        { _id: 'L2', state: 'S1', name: 'Рух', instruments: 'легка перкусія', when: 'гравець біжить', level: 1, fadeIn: 1.5 },
-        { _id: 'L3', state: 'S3', name: 'База', instruments: 'струнні остинато', when: 'завжди', level: 0, fadeIn: 0.5 },
-        { _id: 'L4', state: 'S3', name: 'Ударні', instruments: 'литаври, барабани', when: 'інтенсивність ≥ 1', level: 1, fadeIn: 0.5 },
-        { _id: 'L5', state: 'S3', name: 'Кульмінація', instruments: 'валторни, хор', when: 'ворогів ≥ 3 або здоровʼя < 30%', level: 2, fadeIn: 1 },
+        { _id: 'L1', state: 'S1', name: 'База', instruments: 'пади, фортепіано, бас', when: 'завжди', level: 0, fadeIn: 2 },
+        { _id: 'L2', state: 'S1', name: 'Рух', instruments: 'легкі електронні ударні', when: 'гравець біжить', level: 1, fadeIn: 1.5 },
+        { _id: 'L3', state: 'S3', name: 'База', instruments: 'стакато-струнні, синт-бас', when: 'завжди', level: 0, fadeIn: 0.5 },
+        { _id: 'L4', state: 'S3', name: 'Ударні', instruments: 'тайко, гібридні ударні', when: 'інтенсивність ≥ 1', level: 1, fadeIn: 0.5 },
+        { _id: 'L5', state: 'S3', name: 'Кульмінація', instruments: 'мідні, хор, браами', when: 'ворогів ≥ 3 або здоровʼя < 30%', level: 2, fadeIn: 1 },
       ] },
     { id: 'transitions', title: T('Переходи (horizontal re-sequencing)', 'Transitions (horizontal re-sequencing)'), kind: 'table', rowLabel: 'trigger', prefix: 'T',
       hint: T('Перехід — коли й як музика переходить з одного стану в інший. «На такт» і «наприкінці петлі» звучать непомітно; «одразу» — лише зі стінгером або кросфейдом. «Затримка» не дає музиці смикатися туди-сюди.',
@@ -554,7 +605,7 @@ var MUSIC = {
       fields: [F('name', 'Назва', 'Name', 'text', R), F('owner', 'Чий мотив', 'Whose motif', 'text', X(REC, { h: T('персонаж, місце, фракція', 'a character, a place, a faction') })),
         F('notes', 'Ноти', 'Notes', 'long', X(REC, { h: T('напр. «D4 ♩ F4 ♩ A4 𝅗𝅥 | C5 ♩ D5 ♩ пауза 𝅗𝅥», 4/4', 'e.g. “D4 ♩ F4 ♩ A4 𝅗𝅥 | C5 ♩ D5 ♩ rest 𝅗𝅥”, 4/4') })),
         F('states', 'Звучить у станах', 'Plays in states', 'refs', X(REC, { ref: 'states' })), F('variations', 'Варіації', 'Variations', 'text', REC)],
-      rows: [{ _id: 'M1', name: 'Головна тема', owner: 'герой / світ', notes: 'ре мінор, 4/4, 100 BPM: D4 ♩ F4 ♩ A4 𝅗𝅥 | C5 ♩ D5 ♩ пауза 𝅗𝅥', states: ['S1', 'S3', 'S5'], variations: 'флейта в дослідженні, валторни в бою, фанфара в перемозі' }] },
+      rows: [{ _id: 'M1', name: 'Головна тема', owner: 'герой / світ', notes: 'ре мінор, 4/4, 100 BPM: D4 ♩ F4 ♩ A4 𝅗𝅥 | C5 ♩ D5 ♩ пауза 𝅗𝅥', states: ['S1', 'S3', 'S5'], variations: 'фортепіано в дослідженні, мідні над ударними в бою, фанфара в перемозі' }] },
     { id: 'mix', title: T('Мікс і тестування', 'Mix & testing'), kind: 'fields', hint: T('Однакова гучність треків, місце для ефектів і діалогів, безшовні петлі — і перевірка в самій грі.', 'Equal loudness, room for effects and dialogue, seamless loops — and a check inside the game.'),
       fields: [F('lufs', 'Цільова гучність', 'Target loudness', 'num', X(REC, { u: 'LUFS', min: -30, max: -8, h: T('для музики в грі зазвичай −23…−16', 'game music is usually −23…−16') })),
         F('duck', 'Приглушення під діалог', 'Ducking under dialogue', 'num', X(REC, { u: 'dB', min: -30, max: 0 })), F('loopXfade', 'Кросфейд на межі петлі', 'Crossfade at the loop point', 'num', X(REC, { u: 'ms', min: 0, max: 2000 })),
@@ -642,65 +693,97 @@ function uiChecks(m, add, rowsOf, nameOf) {
   });
 }
 var PROMPTS = {
-  id: 'music_prompts', sec: 'audio', version: 1, cat: 'music', sub: 'prompts', complexity: 1, name: T('Бібліотека промптів для музики', 'Music prompt library'),
-  desc: T('20+ готових промптів для генераторів музики за сценами (бій, бос, дослідження, місто, таверна, підземелля, тиха сцена, меню) і шаблон із параметрами — копіюй ♪ і змінюй під свою гру.',
-    '20+ ready music-generator prompts by scene (combat, boss, exploration, town, tavern, dungeon, quiet scene, menu) and a parametric template — copy ♪ and adapt to your game.'),
-  purpose: T('Швидко отримати чернетки треків потрібного настрою, темпу й довжини.', 'Get draft tracks of the right mood, tempo and length quickly.'),
+  id: 'music_prompts', sec: 'audio', version: 2, cat: 'music', sub: 'prompts', complexity: 1, name: T('Бібліотека промптів для музики', 'Music prompt library'),
+  desc: T('23 сучасні промпти для генераторів музики (Suno, Udio, ElevenLabs Music, Stable Audio) — гібридний оркестр, dark fantasy, synthwave, cyberpunk, метал, drum & bass, хорор, чіптюн, lo-fi — і шаблон. Англійською, з продакшном і рядком «Exclude».',
+    '23 modern prompts for music generators (Suno, Udio, ElevenLabs Music, Stable Audio) — hybrid orchestral, dark fantasy, synthwave, cyberpunk, metal, drum & bass, horror, chiptune, lo-fi — and a template. In English, with production words and an “Exclude” line.'),
+  purpose: T('Швидко отримати чернетки треків, що звучать як сучасна гра, а не як середньовічна флейта.', 'Get draft tracks that sound like a modern game, not a medieval flute.'),
   sections: [
-    { id: 'template', title: T('Шаблон промпту', 'Prompt template'), kind: 'fields', hint: T('Заповни дужки — і отримаєш промпт. Для адаптивності скажи прямо, які шари й коли додаються.', 'Fill the brackets to get a prompt. For adaptivity, say which layers come in and when.'),
+    { id: 'template', title: T('Шаблон промпту', 'Prompt template'), kind: 'fields', hint: T('Генератори краще розуміють англійські теги через кому. «Exclude» — у поле виключень (у Suno — «Exclude styles»).', 'Generators understand comma-separated English tags best. “Exclude” goes into the exclusions field (Suno: “Exclude styles”).'),
       fields: [F('template', 'Шаблон', 'Template', 'long', R), F('tips', 'Поради', 'Tips', 'long', REC)],
-      values: { template: '(стиль: [епічна / чіптюн / ембієнт / фольк / електроніка / мінімалізм] музика), (настрій: [епічний / сумний / таємничий / веселий / напружений]), (довжина: [15 / 30 / 60] секунд / луп), (BPM: [темп]), (лад: [мажор / мінор / модальний]), (інструменти: [список]), (структура: [інтро з … / петля / варіація / перехід]), (динаміка: [наростання до кульмінації / рівна / поступове згасання]), (адаптивність: [вертикальні шари / перехід у бій при високій інтенсивності])',
-        tips: 'Бій 120–150 BPM, дослідження 60–90. Для лупа проси «seamless loop». Додай, який шар вмикається на появу ворога. Генератори часто краще розуміють англійську — переклади промпт, якщо результат слабкий.' } },
+      values: { template: '[genre + subgenre], [scene: combat / exploration / boss…], [energy: driving / relentless / sparse], [2–4 lead instruments + 1 production detail: sidechained synth bass, gated drums, braams, risers], [mood], [BPM] BPM, [seamless loop, N bars | short stinger], instrumental, modern punchy mix\nExclude: [what it must NOT sound like], vocals, lyrics',
+        tips: 'Пиши англійською, жанр — першим. Називай 2–4 інструменти й одну «фішку» продакшну (sidechain, gated reverb, distorted bass, taiko, braams) — без неї виходить пресно. Енергію задавай словами driving / relentless / sparse. Завжди додавай «Exclude»: що це НЕ має бути (medieval folk, solo flute, cheesy). Бій 130–160 BPM, дослідження 80–100. Імена артистів генератори часто блокують — описуй звук.' } },
     { id: 'presets', title: T('Готові промпти', 'Ready prompts'), kind: 'table', rowLabel: 'name', prefix: 'P', prompt: true,
       fields: [F('name', 'Назва', 'Name', 'text', R), F('scene', 'Сцена', 'Scene', 'sel', X(REC, { o: SITUATIONS })), F('style', 'Стиль', 'Style', 'text', REC), F('mood', 'Настрій', 'Mood', 'text', REC),
         F('length', 'Довжина', 'Length', 'time', X(REC, { u: 's' })), F('bpm', 'Темп', 'Tempo', 'num', X(REC, { u: 'BPM', min: 40, max: 200 })), F('prompt', 'Промпт', 'Prompt', 'long', R)],
       rows: [
-        { _id: 'P1', name: 'Епічний героїчний', scene: 'combat', style: 'оркестр', mood: 'героїчний', length: 60, bpm: 130, prompt: 'епічний оркестровий бойовий трек, героїчний настрій, 60 секунд, 130 BPM, повний оркестр з хорами, валторнами та литаврами, структура: інтро з наростанням, основний луп з потужними ударами, динамічні кульмінації, підкреслити перемогу' },
-        { _id: 'P2', name: 'Оркестрова битва', scene: 'combat', style: 'оркестр', mood: 'агресивний, драматичний', length: 60, bpm: 140, prompt: 'епічна бойова тема, агресивний драматичний настрій, 60 секунд, 140 BPM, литаври й барабани, хор, поривчасті струнні; швидкий вступ, основний луп з акцентами на кожен такт, кульмінація з хоровим гімном' },
-        { _id: 'P3', name: 'Темна бойова', scene: 'combat', style: 'оркестр', mood: 'напружений', length: 60, bpm: 140, prompt: 'епічна темна бойова музика, напружений настрій, 60 секунд, 140 BPM, агресивні струнні, хор, литаври, маршові барабани, тяжкі духові, різкий динамічний розвиток' },
-        { _id: 'P4', name: 'Бій з босом', scene: 'boss', style: 'оркестр + хор', mood: 'гнівний', length: 90, bpm: 150, prompt: 'епічний оркестровий трек для битви з босом, гнівний настрій, 90 секунд, 150 BPM, хор на фоні, величезні барабани, стрімкі ритми, розмір 9/8, драма й емоція' },
-        { _id: 'P5', name: 'Фінальний бос', scene: 'boss', style: 'оркестр + хор', mood: 'урочисто-грізний', length: 120, bpm: 150, prompt: 'епічний оркестр із хором, урочисто-грізний настрій, 120 секунд, 150 BPM, хор, литаври, навʼязливий мотив валторн, довгі затяжні фрази в переходах' },
-        { _id: 'P6', name: 'Містичний бос', scene: 'boss', style: 'оркестр', mood: 'таємничий, сумний', length: 60, bpm: 90, prompt: 'містична оркестрова тема для боса, таємничий і сумний настрій, 60 секунд, 90 BPM, гобої, хор, контрабас із фортепіано, плавна зловісна мелодія, повільне наростання' },
-        { _id: 'P7', name: 'Легка подорож', scene: 'explore', style: 'фентезі-оркестр', mood: 'спокійний', length: 60, bpm: 90, prompt: 'мирна мелодія для подорожі, спокійний настрій, 60 секунд, 90 BPM, флейта, гобой, мʼякий бас, пульсуючий малюнок арфи, плавний перехід при вході в нову зону, seamless loop' },
-        { _id: 'P8', name: 'Ліс', scene: 'explore', style: 'ембієнт', mood: 'мрійливий', length: 60, bpm: 80, prompt: 'мелодійна ембієнтна музика для лісу, мрійливий настрій, 60 секунд, 80 BPM, флейта, гобой, тихий бас, довгі легкі ударні, seamless loop' },
-        { _id: 'P9', name: 'Синтвейв-дослідження', scene: 'explore', style: 'синтвейв', mood: 'оптимістичний', length: 30, bpm: 130, prompt: 'танцювальна електроніка майбутнього для дослідження, оптимістичний настрій, 30 секунд, 130 BPM, арпеджіатор синтезатора, ударні 808, бас-гітара, структура: інтро → основний луп' },
-        { _id: 'P10', name: 'Таверна', scene: 'tavern', style: 'фольк', mood: 'радісний', length: 45, bpm: 110, prompt: 'народна танцювальна мелодія для таверни, радісний настрій, 45 секунд, 110 BPM, акордеон, скрипка, бубон, легкий кельтський акорд, танцювальний ритм' },
-        { _id: 'P11', name: 'Сільський фольк', scene: 'town', style: 'фольк', mood: 'веселий', length: 30, bpm: 90, prompt: 'сільська весела мелодія для міста, веселий настрій, 30 секунд, 90 BPM, гітара, скрипка, сопілка, приємний вальс, жвава ритміка' },
-        { _id: 'P12', name: 'Міський джаз', scene: 'town', style: 'джаз', mood: 'спокійний', length: 30, bpm: 100, prompt: 'джазова тема для міста, спокійний настрій, 30 секунд, 100 BPM, саксофон, контрабас, щітки на барабанах, коротка джазова петля з паузами між тактами' },
-        { _id: 'P13', name: 'Нічне місто', scene: 'town', style: 'електроніка', mood: 'романтичний', length: 30, bpm: 90, prompt: 'електронний трек із поп-елементами, романтичний настрій, 30 секунд, 90 BPM, електрогітара з ревербом, синтезаторний бас, спокійні ударні, мʼяка структура лупа' },
-        { _id: 'P14', name: 'Тиха загроза', scene: 'dungeon', style: 'ембієнт', mood: 'похмурий', length: 60, bpm: 70, prompt: 'таємнича ембієнтна музика, похмурий настрій, 60 секунд, 70 BPM, низькочастотний бас, дзвоноподібні ефекти, шепіт хору на фоні, повільна наростаюча динаміка' },
-        { _id: 'P15', name: 'Чіптюн-підземелля', scene: 'dungeon', style: 'чіптюн', mood: 'таємничий', length: 60, bpm: 100, prompt: 'чіптюн для RPG-підземелля, таємничий настрій, 60 секунд, 100 BPM, ретро-синтезатор з арпеджіо, низький бас, повільний ритм, відчуття дослідження печери' },
-        { _id: 'P16', name: 'Активне підземелля', scene: 'dungeon', style: 'чіптюн-рок', mood: 'напружений', length: 45, bpm: 130, prompt: 'чіптюн-рок трек, напружений настрій, 45 секунд, 130 BPM, восьмибітний синтезатор, електрогітара з фуззом, драм-машина, складна ритмічна петля з модуляцією в переході' },
-        { _id: 'P17', name: 'Ліричний момент', scene: 'lyrical', style: 'фортепіано', mood: 'сумний, задумливий', length: 30, bpm: 60, prompt: 'сповільнений фортепіанний трек, сумний задумливий настрій, 30 секунд, 60 BPM, рояль з реверберацією, ніжні струнні, легка зміна акордів' },
-        { _id: 'P18', name: 'Сумна фолк-балада', scene: 'lyrical', style: 'фольк', mood: 'меланхолійний', length: 30, bpm: 80, prompt: 'фолк-балада для тиші, сумна мелодія, 30 секунд, 80 BPM, акустична гітара, скрипка, мʼяке фортепіано, мінімальний ритм, лагідна динаміка' },
-        { _id: 'P19', name: 'Розмова персонажів', scene: 'dialogue', style: 'ембієнт', mood: 'нейтральний', length: 15, bpm: 70, prompt: 'дзвінкий ембієнт, нейтральний настрій, 15 секунд, 70 BPM, повільні синтезаторні пади, легка мелодія арфи, без ударних, seamless loop' },
-        { _id: 'P20', name: 'Перемога (хор)', scene: 'victory', style: 'оркестр + хор', mood: 'тріумфальний', length: 30, bpm: 100, prompt: 'епічний хор із повним оркестром, тріумфальний настрій, 30 секунд, 100 BPM, хор без слів, струнні ведуть мелодію, барабани, прискорення на фінал' },
-        { _id: 'P21', name: 'Церемонія', scene: 'cutscene', style: 'духовна', mood: 'урочистий', length: 60, bpm: 70, prompt: 'дзвінкий духовний трек, урочистий настрій, 60 секунд, 70 BPM, орган, церковний хор, струнні в октаву, повільний кроковий темп' },
-        { _id: 'P22', name: 'Меню', scene: 'menu', style: 'мінімалізм', mood: 'спокійний', length: 15, bpm: 60, prompt: 'мінімалістичний спокійний луп для меню, спокійний настрій, 15 секунд, 60 BPM, мʼякі синтезаторні пади, легке фортепіано, майже без ритму, дуже тихо, seamless loop' },
-        { _id: 'P23', name: 'Інвентар', scene: 'menu', style: 'фортепіано', mood: 'нейтральний', length: 20, bpm: 80, prompt: 'легка мелодія фортепіано для меню персонажа, нейтральний настрій, 20 секунд, 80 BPM, чистий рояль, невелике ехо, мінімальні зміни' },
+        { _id: 'P1', name: 'AAA-бій (гібрид)', scene: 'combat', style: 'гібридний оркестр', mood: 'героїчний, нестримний', length: 60, bpm: 140, prompt: 'modern hybrid orchestral action, AAA game combat theme, huge taiko and hybrid percussion, staccato string ostinato, distorted synth bass, brass stabs, braams and risers, driving and relentless, heroic memorable hook, 140 BPM, seamless 60-second loop, instrumental, punchy modern mix\nExclude: medieval folk, solo flute, lute, renaissance, cheesy, vocals, lyrics' },
+        { _id: 'P2', name: 'Soulslike-бос', scene: 'boss', style: 'dark fantasy', mood: 'загрозливий', length: 120, bpm: 150, prompt: 'dark fantasy boss battle, gothic and menacing, massive wordless choir chanting, pipe organ, dissonant low brass, pounding war drums, aggressive tremolo strings, 7/8 accents, relentless signature boss motif, phase-change build with a huge drop, 150 BPM, cinematic, instrumental\nExclude: cheerful, light, flute, folk dance, pop, vocals with lyrics' },
+        { _id: 'P3', name: 'Кіберпанк-бій', scene: 'combat', style: 'darksynth', mood: 'агресивний', length: 60, bpm: 145, prompt: 'darksynth cyberpunk combat, aggressive distorted reese bass, industrial drums, heavy sidechain, gritty analog synth leads, glitch stabs, mechanical and relentless, 145 BPM, seamless loop, instrumental, loud modern mix\nExclude: orchestra, acoustic, folk, flute, vocals' },
+        { _id: 'P4', name: 'Метал-бос', scene: 'boss', style: 'метал', mood: 'лютий', length: 90, bpm: 160, prompt: 'modern heavy metal boss fight, downtuned 8-string djent riffs, double kick drums, industrial synth layers, huge breakdown, aggressive and furious, 160 BPM, tight modern production, instrumental\nExclude: acoustic, folk, flute, soft, vocals, lyrics' },
+        { _id: 'P5', name: 'Нордична битва', scene: 'combat', style: 'нордичний трайбл', mood: 'первісний', length: 60, bpm: 130, prompt: 'dark nordic tribal war music, heavy frame drums and tribal percussion, war horns, deep throat-singing drones, tagelharpa, distorted sub bass, primal and relentless, 130 BPM, seamless loop, cinematic, instrumental\nExclude: medieval flute melody, lute, renaissance, cheerful, pop' },
+        { _id: 'P6', name: 'Погоня (drum & bass)', scene: 'combat', style: 'drum & bass', mood: 'адреналін', length: 60, bpm: 172, prompt: 'cinematic drum and bass chase, fast breakbeats, reese bass, glitchy synth stabs, tense string swells, energetic drops, 172 BPM, seamless loop, instrumental, punchy mix\nExclude: orchestra only, folk, flute, slow, vocals' },
+        { _id: 'P7', name: 'Дослідження (кіно-ембієнт)', scene: 'explore', style: 'кіно-ембієнт', mood: 'подив', length: 90, bpm: 85, prompt: 'cinematic ambient exploration theme, warm evolving synth pads, felt piano motif, soft pulsing arpeggio, airy strings, subtle electronic percussion, sense of wonder and discovery, 85 BPM, seamless 16-bar loop, instrumental, spacious modern mix\nExclude: medieval folk, solo flute, lute, harp-only, cheesy fantasy, vocals' },
+        { _id: 'P8', name: 'Нічне місто (synthwave)', scene: 'explore', style: 'synthwave', mood: 'ностальгійний', length: 60, bpm: 100, prompt: 'synthwave night drive exploration, retro 80s analog synths, gated reverb drums, pulsing bassline, shimmering arpeggios, nostalgic lead synth hook, 100 BPM, seamless loop, instrumental\nExclude: orchestra, folk, acoustic, vocals' },
+        { _id: 'P9', name: 'Руїни (dark fantasy)', scene: 'explore', style: 'dark fantasy', mood: 'меланхолія', length: 90, bpm: 75, prompt: 'dark fantasy exploration of ancient ruins, melancholic cello melody, distant wordless choir, low brass swells, deep drones, sparse ritual percussion, lonely and vast, 75 BPM, seamless loop, cinematic, instrumental\nExclude: happy, flute, lute, folk dance, pop' },
+        { _id: 'P10', name: 'Таверна (фолк-рок)', scene: 'tavern', style: 'фолк-рок', mood: 'запальний', length: 60, bpm: 118, prompt: 'upbeat folk-rock tavern groove, hurdy-gurdy and fiddle hook over punchy drums and electric bass, foot stomps and claps, catchy and rowdy, 118 BPM, seamless loop, instrumental, modern production\nExclude: slow, solo flute, renaissance recorder, sleepy, vocals' },
+        { _id: 'P11', name: 'Затишне містечко (lo-fi)', scene: 'town', style: 'cozy lo-fi', mood: 'тепло', length: 60, bpm: 88, prompt: 'cozy indie game town theme, lo-fi, warm acoustic guitar, rhodes piano, soft glockenspiel, light brushed drums, gentle vinyl texture, warm and hopeful, 88 BPM, seamless loop, instrumental\nExclude: dark, aggressive, epic orchestra, flute solo, vocals' },
+        { _id: 'P12', name: 'Нуар-місто (джаз)', scene: 'town', style: 'нео-нуар джаз', mood: 'таємничий', length: 60, bpm: 92, prompt: 'neo-noir jazz city theme, smoky tenor saxophone, upright bass, brushed drums, muted trumpet, dark rhodes chords, subtle trip-hop beat, rainy and mysterious, 92 BPM, seamless loop, instrumental\nExclude: medieval, folk, flute, cheerful pop, vocals' },
+        { _id: 'P13', name: 'Скрадання', scene: 'stealth', style: 'мінімал-електроніка', mood: 'напружений', length: 60, bpm: 95, prompt: 'minimal stealth underscore, ticking hi-hats, muted plucked synths, pulsing sub bass, tense string swells, sparse and focused, held breath, 95 BPM, seamless loop, instrumental\nExclude: loud drums, heroic brass, flute, folk, vocals' },
+        { _id: 'P14', name: 'Хорор-підземелля', scene: 'dungeon', style: 'dark ambient', mood: 'моторошний', length: 90, bpm: 60, prompt: 'dark ambient horror dungeon, unsettling drones, reversed textures, metallic scrapes, distant whispers, slow heartbeat pulse, sudden low impacts, oppressive and claustrophobic, 60 BPM, seamless loop, instrumental\nExclude: melodic, happy, folk, flute, pop' },
+        { _id: 'P15', name: 'Піксельне підземелля', scene: 'dungeon', style: 'сучасний чіптюн', mood: 'таємничий', length: 60, bpm: 110, prompt: 'modern chiptune dungeon, 16-bit, mysterious square-wave arpeggios, deep triangle bass, punchy noise drums, catchy minor-key hook, 110 BPM, seamless loop, retro game, instrumental\nExclude: orchestra, realistic instruments, vocals' },
+        { _id: 'P16', name: 'Чіптюн-рок екшн', scene: 'combat', style: 'чіптюн-рок', mood: 'енергійний', length: 60, bpm: 150, prompt: 'chiptune rock action, fast 8-bit arpeggios, fuzzy electric guitar riff, punchy drum machine, energetic lead melody, 150 BPM, seamless loop, instrumental\nExclude: orchestra, slow, folk, vocals' },
+        { _id: 'P17', name: 'Емоційна сцена', scene: 'lyrical', style: 'фортепіано + струнні', mood: 'щемливо', length: 60, bpm: 70, prompt: 'emotional cinematic piano and strings, intimate felt piano melody, warm cello, slow swelling string ensemble, subtle ambient pads, heartfelt and bittersweet, 70 BPM, instrumental, film score quality\nExclude: medieval, flute, harp-only, cheesy, vocals' },
+        { _id: 'P18', name: 'Тема героя (J-RPG)', scene: 'cutscene', style: 'anime / J-RPG', mood: 'надія', length: 90, bpm: 128, prompt: 'anime JRPG hero theme, soaring string melody, piano, electric guitar, energetic rock drums, bright brass, emotional and hopeful, catchy memorable melody, 128 BPM, orchestral pop rock, instrumental\nExclude: medieval flute, lute, dark ambient, vocals' },
+        { _id: 'P19', name: 'Підкладка під діалог', scene: 'dialogue', style: 'ембієнт', mood: 'нейтральний', length: 60, bpm: 70, prompt: 'unobtrusive dialogue underscore, soft evolving pads, sparse piano notes, light sub bass, no drums, leaves space for voices, calm and neutral, 70 BPM, seamless loop, instrumental\nExclude: drums, melody-heavy, flute, vocals' },
+        { _id: 'P20', name: 'Стінгер перемоги', scene: 'victory', style: 'гібридний оркестр', mood: 'тріумф', length: 8, bpm: 120, prompt: 'short victory stinger, 8 seconds, triumphant hybrid orchestral hit, bold brass fanfare, choir swell, big final impact, clear ending, no loop, instrumental\nExclude: long intro, folk, flute, vocals' },
+        { _id: 'P21', name: 'Стінгер поразки', scene: 'defeat', style: 'кіно', mood: 'похмуро', length: 6, bpm: 60, prompt: 'short defeat stinger, 6 seconds, somber falling piano and low strings, reversed swell, dark sub drop, fades out, no loop, cinematic, instrumental\nExclude: upbeat, folk, flute, vocals' },
+        { _id: 'P22', name: 'Головне меню', scene: 'menu', style: 'гібридний оркестр', mood: 'епічно, запрошує', length: 90, bpm: 90, prompt: 'iconic main menu theme for a modern action RPG, memorable main motif on piano then strings, slow build with hybrid percussion and synth pads, epic yet inviting, 90 BPM, seamless loop, instrumental, polished AAA mix\nExclude: medieval folk, flute, lute, cheesy, vocals' },
+        { _id: 'P23', name: 'Інвентар / крамниця', scene: 'menu', style: 'lo-fi', mood: 'спокійно', length: 60, bpm: 84, prompt: 'chill lo-fi shop and inventory loop, mellow rhodes, soft boom-bap drums, warm bass, gentle vinyl crackle, relaxed, 84 BPM, seamless loop, instrumental\nExclude: aggressive, epic orchestra, flute, vocals' },
       ] },
   ],
 };
+// the template's own sample instruments (current and v1) — a direction replaces them; the author's own words stay in the prompt
+function hashStr(s) { var x = 5381; String(s).split('').forEach(function (c) { x = ((x * 33) ^ c.charCodeAt(0)) >>> 0; }); return x.toString(36); }
+var SAMPLE_V1 = ['ancquf', '1lz5lvb', '1khlui6', '1e5tgvq', '1vq09w8', '1o6jvl6', '1a1r9gs', 'i4axyd', '1t5ngqg', '19xhvyd', '15jvw80', 'urtnsp', '17ozuxz', 'csrr9j', 'm59442', '19u0rbt'];
+var STYLE_V1 = '1urzqpu', PRESETS_V1 = { P1: '6xrf0b', P2: 'spdrw2', P3: '18gy96d', P4: '1tz2kwc', P5: '1mmkxyy', P6: '11m76zf', P7: '5231od', P8: 'yjghum', P9: 'tc6xj8', P10: 'u3n4mf',
+  P11: 'ep4hza', P12: 'x2aarw', P13: 'h2w126', P14: '1q98emw', P15: '9kdeog', P16: '1lfx1ey', P17: '13k9a5h', P18: 'stmaj7', P19: '1kvnk04', P20: '1m1o148', P21: 'nr0r84', P22: 'xc3oxo', P23: 'lpgwhz' };
+function isSample(text) {
+  if (!text) return true;
+  var h = hashStr(text); if (SAMPLE_V1.indexOf(h) >= 0) return true;
+  return MUSIC.sections.some(function (s) { return (s.rows || []).some(function (r) { return r.instruments && hashStr(r.instruments) === h; }) || (s.values && s.values.instruments && hashStr(s.values.instruments) === h); });
+}
+// an instance made before the direction existed: an untouched v1 style → the hybrid direction, an author's own style → «own»
+function directionOf(pal) { return pal.direction || (!pal.style || hashStr(pal.style) === STYLE_V1 ? 'hybrid' : 'own'); }
 // a ready prompt for a music generator from a state row (Адаптивна музика) or the preset's own text (Бібліотека промптів)
 function rowPrompt(m, secId, row, lang) {
   if (!m || !row) return '';
-  if (m.tpl === 'music_prompts' && secId === 'presets') return String(row.prompt || '');
+  if (m.tpl === 'music_prompts' && secId === 'presets') { // an untouched v1 preset gives its modern replacement
+    var nu = PRESETS_V1[row._id] === hashStr(row.prompt || '') && PROMPTS.sections[1].rows.filter(function (r) { return r._id === row._id; })[0];
+    return String(nu ? nu.prompt : row.prompt || '');
+  }
   if (m.tpl !== 'adaptive_music' || secId !== 'states') return '';
-  var en = lang === 'en', secs = m.sections || [], sv = function (id) { var s = secs.filter(function (x) { return x.id === id; })[0]; return s ? s.values || {} : {}; };
+  var secs = m.sections || [], sv = function (id) { var s = secs.filter(function (x) { return x.id === id; })[0]; return s ? s.values || {} : {}; };
   var rows = function (id) { var s = secs.filter(function (x) { return x.id === id; })[0]; return s ? s.rows || [] : []; }, pal = sv('palette');
-  var optL = function (list, v) { var o = list.filter(function (x) { return x.v === v; })[0]; return o ? lbl(o.l, en ? 'en' : 'uk').toLowerCase() : ''; };
-  var moods = (Array.isArray(row.mood) ? row.mood : []).map(function (v) { return optL(MOODS, v); }).filter(Boolean).join(', ');
-  var layers = rows('layers').filter(function (l) { return l.state === row._id; }).map(function (l) { return (l.name || '') + (l.instruments ? ' (' + l.instruments + ')' : '') + (l.when ? ' — ' + l.when : ''); });
-  var sit = row.situation, dyn = (sit === 'combat' || sit === 'boss') ? (en ? 'builds to a climax' : 'наростання до кульмінації') : sit === 'victory' ? (en ? 'a short climax and a clear ending' : 'коротка кульмінація й чітке завершення')
-    : sit === 'defeat' ? (en ? 'gradual fade-out' : 'поступове згасання') : (en ? 'even and soft' : 'рівна, мʼяка');
-  var short = sit === 'victory' || sit === 'defeat';
-  var parts = [
-    [en ? 'style' : 'стиль', row.style || pal.style], [en ? 'scene' : 'сцена', optL(SITUATIONS, sit)], [en ? 'mood' : 'настрій', moods],
-    [en ? 'length' : 'довжина', num(row.length) ? row.length + (en ? ' s' : ' с') + (short ? '' : en ? ', seamless loop' + (num(row.bars) ? ' of ' + row.bars + ' bars' : '') : ', безшовний луп' + (num(row.bars) ? ' на ' + row.bars + ' тактів' : '')) : ''],
-    [en ? 'tempo' : 'темп', num(row.bpm) ? row.bpm + ' BPM' : ''], [en ? 'key' : 'лад', row.key || pal.key], [en ? 'instruments' : 'інструменти', row.instruments || pal.instruments],
-    [en ? 'structure' : 'структура', short ? (en ? 'one short phrase, no loop' : 'одна коротка фраза без петлі') : (en ? 'short intro → main loop → variation, the loop end flows into its start' : 'короткий вступ → основний луп → варіація, кінець петлі плавно переходить у початок')],
-    [en ? 'dynamics' : 'динаміка', dyn], [en ? 'adaptivity' : 'адаптивність', layers.length ? (en ? 'separate stems: ' : 'окремі шари (стеми): ') + layers.join('; ') : '']];
-  return parts.filter(function (p) { return p[1]; }).map(function (p) { return '(' + p[0] + ': ' + p[1] + ')'; }).join(', ') + (en ? '. Instrumental, no lyrics.' : '. Інструментал, без слів.');
+  var optL = function (list, v) { var o = list.filter(function (x) { return x.v === v; })[0]; return o ? lbl(o.l, 'en').toLowerCase() : ''; };
+  var d = DIRECTIONS.filter(function (x) { return x.id === directionOf(pal); })[0] || DIRECTIONS[0], own = d.id === 'own';
+  var sc = SCENE[row.situation] || SCENE.other, e = sc[0], short = row.situation === 'victory' || row.situation === 'defeat';
+  var moods = (Array.isArray(row.mood) ? row.mood : []).map(function (v) { return optL(MOODS, v); }).filter(Boolean).join(' and ');
+  var mine = function (t) { return t && !isSample(t) ? String(t) : ''; }; // the author's own words — written in any language, kept as they are
+  var layers = rows('layers').filter(function (l) { return l.state === row._id; });
+  var style = row.style || (own ? pal.style : '') || '', instr = mine(row.instruments) || (own ? pal.instruments || '' : '');
+  var tags = [own ? style : d.base, sc[1], own ? '' : (e <= 1 ? d.low : e === 2 ? d.mid : d.high), instr ? 'featuring ' + instr : '', moods ? moods + ' mood' : '',
+    num(row.bpm) ? row.bpm + ' BPM' : '',
+    short ? 'short ' + (num(row.length) ? row.length + '-second ' : '') + 'stinger, clear ending, no loop'
+      : 'seamless ' + (num(row.length) ? row.length + '-second ' : '') + 'loop' + (num(row.bars) ? ', ' + row.bars + ' bars' : '') + ', loop end flows into its start',
+    'instrumental', 'modern punchy mix'].filter(Boolean);
+  var out = tags.join(', ');
+  if (layers.length > 1) out += '\nStems: ' + layers.map(function (l) { return mine(l.instruments) || ['base', 'rhythm', 'climax', 'extra'][Math.min(3, Math.max(0, +l.level || 0))]; }).join(' / ') + ' — each layer must work alone and together';
+  out += '\nExclude: ' + [own ? '' : d.exclude, 'vocals', 'lyrics'].filter(Boolean).join(', ');
+  return out;
+}
+// an instance made before a template field existed gets the field (additive only: values, rows and the author's own fields stay)
+function upgrade(m) {
+  var t = m && template(m.tpl); if (!t || (m.tplVersion || 0) >= t.version) return m;
+  (m.sections || []).forEach(function (s) {
+    var ts = t.sections.filter(function (x) { return x.id === s.id; })[0]; if (!ts || !s.fields) return;
+    ts.fields.forEach(function (f, i) {
+      if (!f.since || f.since <= (m.tplVersion || 0) || s.fields.some(function (x) { return x.k === f.k; })) return;
+      s.fields.splice(Math.min(i, s.fields.length), 0, clone(f));
+      if (s.values && s.values[f.k] == null && f.k === 'direction') s.values.direction = directionOf(s.values);
+    });
+  });
+  m.tplVersion = t.version;
+  return m;
 }
 
 var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, MUSIC, AMBIENCE, UISOUND, PROMPTS]; // sec: 'audio' — Фабрика звуку, the rest — Mechanics
@@ -802,7 +885,7 @@ function exportMech(card, lang) {
 
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
   AUDIO_CATEGORIES: AUDIO_CATEGORIES, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
-  FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech };
+  FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;
 })();

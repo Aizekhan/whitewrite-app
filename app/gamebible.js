@@ -2286,7 +2286,7 @@
     if (medDirty() && !confirm(STR.dos.unsaved)) return;
     var raw = c && cards.filter(function (x) { return x.id === c.id; })[0], m;
     if (preset) m = preset;
-    else if (raw && raw.mech) m = JSON.parse(JSON.stringify(raw.mech));
+    else if (raw && raw.mech) m = MX().upgrade(JSON.parse(JSON.stringify(raw.mech))); // a field added to the template later (e.g. the music direction) appears, values stay
     else { // an older Mechanics card: its text fields become the purpose and the rules
       var f = (raw && raw.fields) || {};
       m = MX().instantiate(""); m.cat = catOfGroup(f.group || ""); m.purpose = f.text || "";

@@ -80,7 +80,24 @@ check(codes(mx, 'warn').some((i) => i.row === 'S4' && /ніколи не заз�
 const self = M.instantiate('adaptive_music'); st(self, 'transitions').rows[0].to = 'S1';
 check(codes(self, 'error').some((i) => i.row === 'T1'), true, 'a transition into the same state');
 const pr = M.rowPrompt(mu, 'states', st(mu, 'states').rows.find((r) => r._id === 'S3'), 'en');
-check(/140 BPM/.test(pr) && /seamless loop of 16 bars/.test(pr) && /Ударні/.test(pr), true, 'the combat prompt has tempo, loop and its layers');
+check(/140 BPM/.test(pr) && /seamless 60-second loop, 16 bars/.test(pr) && /Stems: base \/ rhythm \/ climax/.test(pr), true, 'the combat prompt has tempo, loop and its layers');
+check(/taiko/.test(pr) && /\nExclude: .*solo flute/.test(pr), true, 'the default direction (hybrid orchestral) gives a modern combat prompt with an Exclude line');
+check(/[а-яіїє]/i.test(pr), false, 'the generator prompt is in English');
+// an instance from v1 (no direction, the flute sample): the field is added, the sample instruments are replaced by the direction
+const v1 = M.instantiate('adaptive_music'), pal1 = st(v1, 'palette');
+v1.tplVersion = 1; pal1.fields = pal1.fields.filter((f) => f.k !== 'direction'); delete pal1.values.direction; pal1.values.style = 'Епічний оркестр із фольк-інструментами';
+const ex1 = st(v1, 'states').rows[0]; ex1.instruments = 'флейта, гобой, арфа (пульсуюче арпеджіо), мʼякий бас';
+M.upgrade(v1);
+check(pal1.fields[0].k + '|' + pal1.values.direction + '|' + v1.tplVersion, 'direction|hybrid|2', 'an old instance gets the direction field (hybrid)');
+check(/flute|флейта/.test(M.rowPrompt(v1, 'states', ex1).split('\nExclude')[0]), false, 'the old flute sample is not in the prompt');
+ex1.instruments = 'дудук'; check(/featuring дудук/.test(M.rowPrompt(v1, 'states', ex1)), true, "the author's own instruments stay");
+pal1.values.direction = 'cyber'; check(/darksynth/.test(M.rowPrompt(v1, 'states', ex1)), true, 'another direction changes every state prompt');
+pal1.values.direction = 'own'; pal1.values.style = 'balkan brass trap'; check(/^balkan brass trap/.test(M.rowPrompt(v1, 'states', ex1)), true, "«own» direction takes the author's style");
+// an untouched v1 preset gives its modern replacement; an edited one stays
+const lib = M.instantiate('music_prompts'), p7 = st(lib, 'presets').rows.find((r) => r._id === 'P7');
+p7.prompt = 'мирна мелодія для подорожі, спокійний настрій, 60 секунд, 90 BPM, флейта, гобой, мʼякий бас, пульсуючий малюнок арфи, плавний перехід при вході в нову зону, seamless loop';
+check(/cinematic ambient/.test(M.rowPrompt(lib, 'presets', p7)), true, 'an untouched v1 preset gives its modern replacement');
+p7.prompt = 'моя власна версія'; check(M.rowPrompt(lib, 'presets', p7), 'моя власна версія', "an edited preset stays the author's");
 check(M.rowPrompt(mu, 'transitions', st(mu, 'transitions').rows[0], 'en'), '', 'no prompt for a transition row');
 const xa = M.exportMech({ id: 'a1', title: 'Music', mech: mu }, 'en');
 check(xa.category + '|' + !!st(xa, 'states').rows[0].generator_prompt, 'Music|true', 'the MCP export carries the state prompts');
