@@ -11,6 +11,7 @@ const SG = require('../style-guide.js');
 const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
 const MECH = require('../mechanics.js');
+const FORGE = require('../forge.js');
 const GUIDES = require('../setup-guides.js');
 const STYLE = require('./style')._style;
 
@@ -106,6 +107,12 @@ const TOOLS = [
       category: { type: 'string', description: 'A category id — mechanics: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose; audio: music, sfx, voice, ambience, uisound; empty = all' } } } },
   { name: 'get_mechanic', description: 'One mechanic (or a Sound factory card) in full: purpose, rules, every section with typed fields (unit, required) and table rows (links between rows resolved to { id, name }), what RPG Framework already has for each part (framework: exists | partial | missing + the classes), and the constructor checks. Adaptive-music state rows carry generator_prompt; transitions say from → to, the game event, when to switch (beat / bar / loop end / stinger), crossfade and hold — build the music system from them. Numbers are the author design — implement them; a change goes through submit_change_request.',
     inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string', description: '"c:<cardId>" or the title' } } } },
+  { name: 'get_character_forge', description: 'The Character Forge (Кузня персонажів): every character / enemy with its type (hero, npc, enemy, boss), production stages (brief → concept → base mesh → rig → equipment → integration → animation → export) and which are approved. With ref — one character\'s manifest (schema whitewrite.character/1): the brief, rig and body profiles, each stage with its APPROVED version\'s files (download URLs — use these, not newer unapproved uploads), animation clips, the bound equipment with its technical passport (slot, skinned | rigid, rig / body profile, body mask, attachment points, format, units, maps, LOD, polygon target, validation status and issues) and loadouts.',
+    inputSchema: { type: 'object', properties: { ref: { type: 'string', description: '"c:<cardId>", "e:<entityId>" or the name; empty = the list' } } } },
+  { name: 'report_forge_check', description: 'Report what you checked in Unity or Blender for a Character Forge equipment item — the platform cannot see clipping, deformation or skeleton compatibility itself. check: skeleton | clipping | deformation | materials | lod | polycount | scale; result: passed | warning | failed. The latest report per check replaces the previous one; a failed one blocks the integration stage until fixed, a warning needs the author\'s manual approval.',
+    inputSchema: { type: 'object', required: ['item', 'check', 'result'], properties: { item: { type: 'string', description: '"c:<cardId>" of the item or its name' },
+      check: { type: 'string', enum: ['skeleton', 'clipping', 'deformation', 'materials', 'lod', 'polycount', 'scale'] }, result: { type: 'string', enum: ['passed', 'warning', 'failed'] },
+      details: { type: 'string', description: 'What exactly you saw (bone, region, numbers)' }, source: { type: 'string', description: 'Unity | Blender | another DCC' } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -542,6 +549,31 @@ async function callTool(name, args, key) {
       if (!c) throw rpcError(-32602, `Mechanic ${r} not found`);
       if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', constructor: false, fields: named(c), message: 'An older card, not yet opened in the constructor: only its text fields.' };
       return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en'), framework_version: MECH.FRAMEWORK.version };
+    }
+    case 'get_character_forge': {
+      const nameOf = (c) => c.title || (ctx.entities.find((e) => e.id === c.canonRef) || {}).name || '';
+      const chars = ctx.cards.filter((c) => (c.section === 'characters' || c.section === 'enemies') && !c.hidden)
+        .map((c) => ({ id: c.id, canon: !!c.canonRef, section: c.section, title: nameOf(c), fields: c.fields || {}, files: c.files || [], forge: { ...(c.forge || {}), type: FORGE.typeOf(c) } }));
+      const items = ctx.cards.filter((c) => c.section === 'gear' && !c.canonRef).map((c) => ({ id: c.id, title: c.title || '', files: c.files || [], forge: c.forge || {} }));
+      const r = str(args.ref, 200);
+      if (!r) return { characters: chars.map((c) => { const p = FORGE.progress(c);
+        return { ref: (c.canon ? 'e:' : 'c:') + c.id, name: c.title, type: c.forge.type, approved: p.done + '/' + p.all, next_stage: p.next,
+          stages: FORGE.pipeline(c.forge).map((s) => ({ id: s.id, approved: FORGE.isApproved(c.forge, s.id) })) }; }),
+        items: items.length, providers: FORGE.PROVIDERS.map((p) => ({ id: p.id, live: p.live })) };
+      const id = r.replace(/^[ce]:/, ''), c = chars.find((x) => x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase());
+      if (!c) throw rpcError(-32602, `Character ${r} not found`);
+      return FORGE.manifest(c, items, ctx.game, 'en');
+    }
+    case 'report_forge_check': {
+      const r = str(args.item, 200), id = r.replace(/^c:/, '');
+      const c = ctx.cards.find((x) => x.section === 'gear' && !x.canonRef && (x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));
+      if (!c) throw rpcError(-32602, `Item ${r} not found`);
+      const check = FORGE.EXTERNAL.includes(args.check) ? args.check : null, result = ['passed', 'warning', 'failed'].includes(args.result) ? args.result : null;
+      if (!check || !result) throw rpcError(-32602, 'check and result are required');
+      const rep = { check, result, details: str(args.details, 1500), source: str(args.source, 40) || 'Unity', at: Date.now() };
+      const external = ((c.forge || {}).external || []).filter((x) => x.check !== check).concat([rep]).slice(-20);
+      await ctx.gref.collection('cards').doc(c.id).set({ forge: { external }, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      return { ok: true, item: 'c:' + c.id, validation: FORGE.validation({ ...c, forge: { ...(c.forge || {}), external } }, null, ctx.game).status };
     }
     case 'get_card': {
       const c = cardView(ctx, str(args.ref, 120));

@@ -753,13 +753,13 @@
   function gameSections() {
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     var hidden = (game && game.hiddenSections) || [];
-    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
+    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
   }
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
   var NAV_GROUPS = [
     { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "refs"] },
-    { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies"] },
+    { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies", "forge"] },
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen", "scenes"] },
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
@@ -1043,7 +1043,7 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {} };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null };
   }
   function inGame(e) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
@@ -1052,7 +1052,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null };
   }
   function allCards() {
     var out = [];
@@ -1194,7 +1194,7 @@
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
-    $("statuses").hidden = mode === "world" || !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing)$/.test(sec(section).special || "")); // status filters only where there are game cards
+    $("statuses").hidden = mode === "world" || !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing|forge)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = section === "settings" ? (mode === "game" ? STR.settingsGame : STR.settingsWorld) : cur ? L(cur) : "";
     if (section === "settings" && !imp) return renderSettings();
     if (mode === "world" && query) return renderCanonSearch();
@@ -1220,6 +1220,10 @@
     if (s.special === "activity" && !query) return renderActivity(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
     if ((s.special === "quests" || s.special === "dialogues") && !query) return renderQD(s);
+    if (s.special === "forge" && !query) { // a live snapshot must not wipe what the author is typing
+      var fe = document.activeElement; if (fe && $("view").contains(fe) && /^(INPUT|TEXTAREA)$/.test(fe.tagName) && !/^(checkbox|file|search)$/.test(fe.type)) return;
+      return renderForge(s);
+    }
     if (med && med.sec === s.id && !query) { // a live snapshot must not pull the field from under the author's cursor
       var me = $("m-ed"); if (me && me.dataset.id === med.id && me.contains(document.activeElement) && document.activeElement !== me && document.activeElement.type !== "button" && document.activeElement.tagName !== "BUTTON") return;
       return renderMEditor();
@@ -3879,6 +3883,417 @@
         logBlock: "Show the block", logCopy: "Copy the block for CLAUDE.md", logs: "Reports received: {n}", toLog: "To the log →",
         repoHint: "When code and design may have drifted — AI checks the repository against the Bible on a button." } },
   }[LANG];
+  // ---------- ⚒ Кузня персонажів (functions/forge.js — stages, checks, the manifest) ----------
+  // A workspace over the cards the game already has: characters ("characters", canon-linked) and enemies are the heroes,
+  // «Предмети й спорядження» ("gear") cards are the equipment. The data is one map `forge` on those cards; files are card files
+  // (field "forge" — they stay out of the leaf's file list, so a revision's files are never deleted from under it).
+  var FORGE_SEC = { id: "forge", special: "forge", uk: "Кузня персонажів", en: "Character forge",
+    about: { uk: "Виробництво персонажа крок за кроком: бриф → концепт → модель → риг → екіпірування → інтеграція → анімації → експорт. Версії, затвердження, сумісність предметів.", en: "A character's production step by step: brief → concept → model → rig → equipment → integration → animation → export. Versions, approvals, item compatibility." } };
+  var FG = window.__FORGE;
+  var fz = { tab: "chars", open: null, stage: null, item: null, q: "", type: "", slot: "", cmp: [], setup: null, msg: "" };
+  var FZ = {
+    uk: { chars: "Персонажі", items: "Екіпірування", setup: "⚙ Слоти й профілі", addChar: "＋ Персонаж", addItem: "＋ Предмет", back: "‹ Кузня", search: "Пошук…",
+      allTypes: "Усі типи", allSlots: "Усі слоти", noChars: "Ще немає персонажів. Додай їх у «Персонажі» чи «Вороги й боси» — вони зʼявляться тут.", noItems: "Ще немає предметів.",
+      next: "Далі", doneAll: "Усі етапи затверджено", type: "Тип", rig: "Профіль рига", body: "Профіль тіла", none: "— не вибрано —", stages: "Етапи",
+      st: { approved: "Затверджено", ready: "Можна затверджувати", progress: "У роботі", todo: "Не почато", locked: "Чекає попередній етап" },
+      off: "Вимкнути цей етап для персонажа", offOn: "Етап вимкнено для цього персонажа", turnOn: "Увімкнути", what: "Що тут", done: "Коли готово",
+      blockers: "Що заважає затвердити", approve: "✓ Затвердити", approveRev: "✓ Затвердити цю", approveQ: "Коментар до затвердження (необовʼязково):", unapprove: "Зняти затвердження",
+      unapproveQ: "Зняти затвердження етапу? Версії лишаються.", approvedBy: "Затверджено", versions: "Версії", noVersions: "Ще немає версій.", upload: "⤒ Нова версія",
+      noteQ: "Що в цій версії (необовʼязково):", restore: "↺ Повернути версію", restored: "Повернуто з v{n}", compare: "Порівняти", compareHint: "Познач дві версії, щоб порівняти.",
+      cmpClose: "Закрити порівняння", gen: "✦ Згенерувати · Meshy — скоро", genTip: "Генерація 3D через Meshy — наступний етап; поки — ручне завантаження.",
+      brief: { race: "Раса", cls: "Клас", role: "Роль у грі", silhouette: "Силует", proportions: "Пропорції", palette: "Палітра", refs: "Референси й обмеження" },
+      context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
+      slots: "Слоти", bindItem: "＋ привʼязати предмет…", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
+      clips: "Кліпи", clipSt: { todo: "Не почато", done: "Є", checked: "Перевірено на моделі" }, addClip: "＋ Кліп", clipPh: "Назва кліпу",
+      manifest: "⤓ Маніфест (JSON)", manifestHint: "Маніфест — затверджені версії, профілі, екіпірування з паспортами, кліпи й набори. Claude Code бере те саме через MCP get_character_forge.",
+      integHint: "Кліпінг, деформації й сумісність скелета перевіряються в Unity чи Blender: Claude Code надсилає результат через MCP report_forge_check — він зʼявиться біля предмета.",
+      item: { slot: "Слот", bind: "Кріплення", skinned: "Зі скіном (за вагами скелета)", rigid: "Жорстке (на кістку / точку)", mask: "Ховає частини тіла", attach: "Точки кріплення",
+        attachPh: "кістка : точка — по рядку, напр. hand_r : grip", format: "Формат", units: "Масштаб і одиниці", unitsPh: "1 unit = 1 m", maps: "Карти текстур", lod: "LOD", lodPh: "LOD0 / LOD1 / LOD2",
+        poly: "Ціль полігонів", owners: "Чиє", concept: "Концепт предмета", model: "3D-модель", checks: "Перевірки", noIssues: "Перевірки пройдено.", status: "Статус",
+        manual: "✓ Затвердити вручну", manualQ: "Чому застереження прийнятні (коментар):", manualOff: "Зняти ручне затвердження", ext: "Звіти Unity / Blender", newQ: "Назва предмета:" },
+      val: { pending: "Очікує", passed: "Пройдено", warning: "Є застереження", failed: "Не пройдено", manual: "Затверджено вручну" },
+      setupHint: "Слоти, профілі ригів (скелетів) і тіл цієї гри. Предмет зі скіном сідає лише на персонажа з тим самим профілем рига.",
+      rigs: "Профілі ригів", bodies: "Профілі тіла", name: "Назва", notesF: "Нотатки", addRow: "＋ Додати", save: "Зберегти", saved: "Збережено.", resetSlots: "Стандартні слоти",
+      maskNames: null, sec: { characters: "Персонаж", enemies: "Ворог" } },
+    en: { chars: "Characters", items: "Equipment", setup: "⚙ Slots & profiles", addChar: "＋ Character", addItem: "＋ Item", back: "‹ Forge", search: "Search…",
+      allTypes: "All types", allSlots: "All slots", noChars: "No characters yet. Add them in «Characters» or «Enemies & bosses» — they show up here.", noItems: "No items yet.",
+      next: "Next", doneAll: "All stages approved", type: "Type", rig: "Rig profile", body: "Body profile", none: "— not set —", stages: "Stages",
+      st: { approved: "Approved", ready: "Ready to approve", progress: "In progress", todo: "Not started", locked: "Waits for an earlier stage" },
+      off: "Switch this stage off for the character", offOn: "This stage is off for the character", turnOn: "Switch on", what: "What it holds", done: "Done when",
+      blockers: "What blocks approval", approve: "✓ Approve", approveRev: "✓ Approve this", approveQ: "Approval comment (optional):", unapprove: "Withdraw approval",
+      unapproveQ: "Withdraw the stage's approval? The versions stay.", approvedBy: "Approved", versions: "Versions", noVersions: "No versions yet.", upload: "⤒ New version",
+      noteQ: "What is in this version (optional):", restore: "↺ Restore version", restored: "Restored from v{n}", compare: "Compare", compareHint: "Tick two versions to compare.",
+      cmpClose: "Close the comparison", gen: "✦ Generate · Meshy — soon", genTip: "3D generation through Meshy is the next step; for now — manual import.",
+      brief: { race: "Race", cls: "Class", role: "Game role", silhouette: "Silhouette", proportions: "Proportions", palette: "Palette", refs: "References & constraints" },
+      context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
+      slots: "Slots", bindItem: "＋ bind an item…", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
+      clips: "Clips", clipSt: { todo: "Not started", done: "Exists", checked: "Checked on the model" }, addClip: "＋ Clip", clipPh: "Clip name",
+      manifest: "⤓ Manifest (JSON)", manifestHint: "The manifest — approved versions, profiles, equipment with passports, clips and loadouts. Claude Code gets the same through MCP get_character_forge.",
+      integHint: "Clipping, deformation and skeleton compatibility are checked in Unity or Blender: Claude Code sends the result through MCP report_forge_check — it shows next to the item.",
+      item: { slot: "Slot", bind: "Binding", skinned: "Skinned (follows the skeleton)", rigid: "Rigid (on a bone / point)", mask: "Hides body parts", attach: "Attachment points",
+        attachPh: "bone : point — one per line, e.g. hand_r : grip", format: "Format", units: "Scale & units", unitsPh: "1 unit = 1 m", maps: "Texture maps", lod: "LOD", lodPh: "LOD0 / LOD1 / LOD2",
+        poly: "Polygon target", owners: "Whose", concept: "Item concept", model: "3D model", checks: "Checks", noIssues: "Checks pass.", status: "Status",
+        manual: "✓ Approve manually", manualQ: "Why the warnings are acceptable (comment):", manualOff: "Withdraw manual approval", ext: "Unity / Blender reports", newQ: "Item name:" },
+      val: { pending: "Pending", passed: "Passed", warning: "Warning", failed: "Failed", manual: "Manually approved" },
+      setupHint: "This game's slots, rig (skeleton) and body profiles. A skinned item fits only a character with the same rig profile.",
+      rigs: "Rig profiles", bodies: "Body profiles", name: "Name", notesF: "Notes", addRow: "＋ Add", save: "Save", saved: "Saved.", resetSlots: "Default slots",
+      maskNames: null, sec: { characters: "Character", enemies: "Enemy" } },
+  }[LANG];
+  var FZ_VCLS = { pending: "s-idea", passed: "s-game", warning: "s-work", failed: "s-redo", manual: "s-agreed" };
+  var FZ_SCLS = { approved: "s-game", ready: "s-agreed", progress: "s-work", todo: "s-idea", locked: "s-idea" };
+  function fzType(c) { return FG.typeOf(c); }
+  function fzChar(c) { return { id: c.id, key: c.key, src: c.src, section: c.section, title: c.title, fields: c.fields, files: c.files || [], forge: Object.assign({}, c.forge || {}, { type: fzType(c) }) }; }
+  function fzChars() { return allCards().filter(function (c) { return c.section === "characters" || c.section === "enemies"; }).map(fzChar); }
+  function fzItems() { return allCards().filter(function (c) { return c.section === "gear"; }).map(function (c) { return { id: c.id, key: c.key, src: c.src, section: c.section, title: c.title, fields: c.fields, files: c.files || [], forge: c.forge || {} }; }); }
+  function fzCtx() { return { items: fzItems(), game: game }; }
+  function fzWho() { var u = firebase.auth().currentUser; return { uid: u ? u.uid : "", name: u ? (u.displayName || "") : "" }; }
+  function fzSlots() { return FG.slotsOf(game); }
+  function fzProf() { return (game && game.forge) || {}; }
+  function fzL(o) { return FG.lbl(o, LANG); }
+  function fzClone(o) { return JSON.parse(JSON.stringify(o || {})); }
+  // one write per change: the whole `forge` map replaces the stored one (mergeFields), so removed keys really go
+  function fzSave(c, forge) {
+    var body = { section: c.section, forge: forge, updatedAt: stamp() }, fields = ["section", "forge", "updatedAt"];
+    if (c.src === "canon") { body.canonRef = c.id; fields.push("canonRef"); }
+    return gref().collection("cards").doc(c.id).set(body, { mergeFields: fields }).catch(function (e) { fz.msg = STR.failed + ": " + (e.code || e.message); render(); });
+  }
+  function fzImg(c) {
+    var f = c.forge || {}, by = function (id) { return (c.files || []).filter(function (x) { return x.id === id; })[0]; };
+    var r = FG.approvedRev(f, "concept") || FG.revsOf(f, "concept")[0], pic = r && (r.files || []).map(by).filter(function (x) { return x && isImage(x); })[0];
+    return pic || (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0])) || null;
+  }
+  function fzFind(list, key) { return list.filter(function (x) { return x.key === key; })[0] || null; }
+
+  function renderForge(s) {
+    var tabs = '<div class="ptabs" role="tablist">' + [["chars", FZ.chars], ["items", FZ.items], ["setup", FZ.setup]].map(function (t) {
+      return '<button class="chip" role="tab" data-fztab="' + t[0] + '" aria-selected="' + (fz.tab === t[0] && !fz.open && !fz.item) + '">' + esc(t[1]) + '</button>'; }).join("") + '</div>';
+    var body, head;
+    var oc = fz.open && fzFind(fzChars(), fz.open), oi = fz.item && fzFind(fzItems(), fz.item);
+    if (fz.open && !oc) fz.open = null; if (fz.item && !oi) fz.item = null;
+    if (oi) { head = esc(oi.title || STR.newCard); body = '<section class="fz-main">' + fzItemHtml(oi) + '</section>'; }
+    else if (oc) { head = esc(oc.title || STR.newCard); body = fzWorkHtml(oc); }
+    else { head = esc(L(s)); body = tabs + (fz.tab === "items" ? fzItemsHtml() : fz.tab === "setup" ? fzSetupHtml() : fzCharsHtml()); }
+    var acts = (oc || oi) ? '<button class="btn" data-fzback>' + FZ.back + '</button>'
+      : canWrite ? (fz.tab === "items" ? '<button class="btn primary" data-fznewitem>' + FZ.addItem + '</button>' : fz.tab === "chars" ? '<button class="btn primary" data-fznewchar>' + FZ.addChar + '</button>' : '') : '';
+    $("view").innerHTML = '<header class="sec"><div><h1>' + head + '</h1>' + (oc || oi ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div><div class="row">' + acts + '</div></header>' +
+      (fz.msg ? '<p class="warn">' + esc(fz.msg) + '</p>' : '') + body;
+  }
+  function fzCharsHtml() {
+    var ctx = fzCtx(), q = fz.q.trim().toLowerCase();
+    var list = fzChars().filter(function (c) { return (!fz.type || c.forge.type === fz.type) && (!q || String(c.title).toLowerCase().indexOf(q) >= 0); });
+    var html = '<div class="row fz-filters"><input type="search" data-fzq value="' + esc(fz.q) + '" placeholder="' + esc(FZ.search) + '" aria-label="' + esc(FZ.search) + '">' +
+      '<select data-fztype aria-label="' + esc(FZ.type) + '"><option value="">' + esc(FZ.allTypes) + '</option>' + FG.TYPES.map(function (t) { return '<option value="' + t.id + '"' + (fz.type === t.id ? ' selected' : '') + '>' + esc(fzL(t)) + '</option>'; }).join("") + '</select></div>';
+    if (!list.length) return html + '<p class="empty">' + FZ.noChars + '</p>';
+    return html + '<div class="grid">' + list.map(function (c) {
+      var p = FG.progress(c), img = fzImg(c), nx = p.next && FG.stage(p.next);
+      return '<button class="card fz-card" data-fzopen="' + esc(c.key) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
+        '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags"><span class="pill s-agreed">' + esc(fzL(FG.type(c.forge.type))) + '</span><span class="pill">' + esc(FZ.sec[c.section]) + '</span></div>' +
+        '<div class="fz-bar" role="progressbar" aria-valuenow="' + p.pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + p.pct + '%"></i></div>' +
+        '<p class="ex">' + p.done + ' / ' + p.all + ' · ' + esc(nx ? FZ.next + ": " + fzL(nx) + " — " + FZ.st[FG.stageState(c, nx.id, ctx)] : FZ.doneAll) + '</p></button>';
+    }).join("") + '</div>';
+  }
+  function fzItemsHtml() {
+    var chars = fzChars(), slots = fzSlots(), q = fz.q.trim().toLowerCase();
+    var list = fzItems().filter(function (i) { return (!fz.slot || i.forge.slot === fz.slot) && (!q || String(i.title).toLowerCase().indexOf(q) >= 0); });
+    var html = '<div class="row fz-filters"><input type="search" data-fzq value="' + esc(fz.q) + '" placeholder="' + esc(FZ.search) + '" aria-label="' + esc(FZ.search) + '">' +
+      '<select data-fzslotf aria-label="' + esc(FZ.item.slot) + '"><option value="">' + esc(FZ.allSlots) + '</option>' + slots.map(function (s) { return '<option value="' + esc(s.id) + '"' + (fz.slot === s.id ? ' selected' : '') + '>' + esc(fzL(s)) + '</option>'; }).join("") + '</select></div>';
+    if (!list.length) return html + '<p class="empty">' + FZ.noItems + '</p>';
+    return html + '<div class="grid">' + list.map(function (i) {
+      var own = chars.filter(function (c) { return (i.forge.owners || []).indexOf(c.id) >= 0; }), v = FG.validation(i, own[0] || null, game), sl = slots.filter(function (s) { return s.id === i.forge.slot; })[0];
+      var img = (i.files || []).filter(isImage)[0];
+      return '<button class="card fz-card" data-fzitem="' + esc(i.key) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
+        '<h3>' + esc(i.title || STR.newCard) + '</h3><div class="tags">' + (sl ? '<span class="pill s-agreed">' + esc(fzL(sl)) + '</span>' : '') +
+        '<span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span></div><p class="ex">' + esc(own.map(function (c) { return c.title; }).join(", ")) + '</p></button>';
+    }).join("") + '</div>';
+  }
+  function fzSel(attr, list, cur, withNone) {
+    return '<select ' + attr + (canWrite ? '' : ' disabled') + '>' + (withNone ? '<option value="">' + esc(FZ.none) + '</option>' : '') +
+      list.map(function (o) { return '<option value="' + esc(o.id) + '"' + (o.id === cur ? ' selected' : '') + '>' + esc(o.name || fzL(o)) + '</option>'; }).join("") + '</select>';
+  }
+  // the character workspace: preview + profiles on the left, the stage list, the open stage on the right
+  function fzWorkHtml(c) {
+    var ctx = fzCtx(), f = c.forge, all = FG.type(f.type).stages.map(FG.stage), on = FG.pipeline(f).map(function (s) { return s.id; });
+    if (!fz.stage || all.every(function (s) { return s.id !== fz.stage; })) fz.stage = FG.progress(c).next || all[0].id;
+    var img = fzImg(c), p = FG.progress(c), P = fzProf();
+    var side = '<aside class="fz-side">' + (img ? '<img class="fz-hero" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '<div class="fz-hero fz-ph">⚒</div>') +
+      '<div class="fz-bar"><i style="width:' + p.pct + '%"></i></div><p class="muted">' + p.done + ' / ' + p.all + '</p>' +
+      '<label class="fz-lb">' + FZ.type + fzSel('data-fzf="type"', FG.TYPES, f.type) + '</label>' +
+      '<label class="fz-lb">' + FZ.rig + fzSel('data-fzf="rig"', P.rigs || [], f.rig || "", true) + '</label>' +
+      '<label class="fz-lb">' + FZ.body + fzSel('data-fzf="body"', P.bodies || [], f.body || "", true) + '</label>' +
+      '<button class="btn mini ghost" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button>' +
+      '<h4 class="fz-h">' + FZ.stages + '</h4><ol class="fz-stages">' + all.map(function (s) {
+        var off = on.indexOf(s.id) < 0, st = off ? "" : FG.stageState(c, s.id, ctx);
+        return '<li><button class="fz-st' + (fz.stage === s.id ? ' on' : '') + (off ? ' off' : '') + '" data-fzstage="' + s.id + '"><span class="fz-dot ' + (FZ_SCLS[st] || '') + '">' + (st === "approved" ? "✓" : st === "locked" ? "🔒" : "●") + '</span>' +
+          esc(fzL(s)) + '<small>' + esc(off ? FZ.offOn : FZ.st[st]) + '</small></button></li>';
+      }).join("") + '</ol></aside>';
+    return '<div class="fz-work">' + side + '<section class="fz-main">' + fzStageHtml(c, FG.stage(fz.stage), on.indexOf(fz.stage) < 0, ctx) + '</section></div>';
+  }
+  function fzStageHtml(c, s, off, ctx) {
+    var f = c.forge, a = f.stages && f.stages[s.id] && f.stages[s.id].approved, st = off ? "" : FG.stageState(c, s.id, ctx), bl = off ? [] : FG.blockers(c, s.id, ctx);
+    var html = '<h2 class="group">' + esc(fzL(s)) + (st ? ' <span class="pill ' + FZ_SCLS[st] + '">' + esc(FZ.st[st]) + '</span>' : '') + '</h2>' +
+      '<p><b>' + FZ.what + ':</b> ' + esc(fzL(s.what)) + '<br><b>' + FZ.done + ':</b> ' + esc(fzL(s.done)) + '</p>';
+    if (off) return html + '<p class="muted">' + FZ.offOn + '</p>' + (canWrite ? '<button class="btn" data-fzoff="' + s.id + '">' + FZ.turnOn + '</button>' : '');
+    if (a) html += '<p class="fz-ok">✓ ' + FZ.approvedBy + (a.byName ? ' · ' + esc(a.byName) : '') + ' · ' + esc(when(a.at)) + (a.comment ? ' — «' + esc(a.comment) + '»' : '') +
+      (canWrite ? ' <button class="btn mini ghost" data-fzunapp="' + s.id + '">' + FZ.unapprove + '</button>' : '') + '</p>';
+    else if (bl.length) html += '<div class="fz-block"><b>' + FZ.blockers + ':</b><ul>' + bl.map(function (b) { return '<li>' + esc(fzL(b)) + '</li>'; }).join("") + '</ul></div>';
+    if (s.kind === "brief") html += fzBriefHtml(c);
+    if (s.kind === "equip") html += fzEquipHtml(c, ctx);
+    if (s.kind === "integrate") html += fzIntegHtml(c, ctx);
+    if (s.kind === "anim") html += fzClipsHtml(c);
+    if (s.kind === "export") html += '<p class="hint">' + FZ.manifestHint + '</p><button class="btn" data-fzmanifest>' + FZ.manifest + '</button>';
+    if (s.kind === "files" || s.kind === "anim" || s.kind === "export") html += fzRevsHtml(c, s.id, true);
+    if (canWrite && !a && s.kind !== "files") html += '<div class="row"><button class="btn primary" data-fzapp="' + s.id + '"' + (bl.length ? ' disabled' : '') + '>' + FZ.approve + '</button></div>';
+    if (canWrite && s.id !== "brief" && s.id !== "export") html += '<p><button class="btn mini ghost" data-fzoff="' + s.id + '">' + FZ.off + '</button></p>';
+    var notes = (f.notes || []).filter(function (n) { return n.stage === s.id; });
+    html += '<h4 class="fz-h">' + FZ.notes + '</h4>' + notes.map(function (n) { return '<p class="fz-note"><b>' + esc(n.byName || "") + '</b> <span class="muted">' + esc(when(n.at)) + '</span><br>' + esc(n.text) + '</p>'; }).join("") +
+      (canWrite ? '<div class="row"><input data-fznote placeholder="' + esc(FZ.notePh) + '" aria-label="' + esc(FZ.notePh) + '"><button class="btn" data-fzaddnote="' + s.id + '">' + FZ.addNote + '</button></div>' : '');
+    return html;
+  }
+  function fzBriefHtml(c) {
+    var b = c.forge.brief || {}, ro = c.forge.stages && c.forge.stages.brief && c.forge.stages.brief.approved;
+    var ent = c.src === "canon" && entities.filter(function (e) { return e.id === c.id; })[0], fl = c.fields || {};
+    var ctxText = [ent ? FZ.fromCanon + ": " + plain(ent[descKeyOf(ent)] || (ent.dossier || {}).story || "").slice(0, 600) : "",
+      sec(c.section).defs.filter(function (d) { return d.type !== "file" && fl[d.key]; }).map(function (d) { return d.label + ": " + fl[d.key]; }).join("\n")].filter(Boolean).join("\n\n");
+    return (ctxText ? '<details class="fz-ctx" open><summary>' + FZ.context + '</summary><pre class="ln-cmd">' + esc(ctxText) + '</pre></details>' : '') +
+      '<div class="fz-brief">' + Object.keys(FZ.brief).map(function (k) {
+        return '<label class="fz-lb">' + esc(FZ.brief[k]) + '<textarea rows="2" data-fzb="' + k + '"' + (canWrite && !ro ? '' : ' readonly') + '>' + esc(b[k] || "") + '</textarea></label>';
+      }).join("") + '</div>';
+  }
+  // the versions of a stage (or of an item: concept / model): newest first, the approved one marked, compare two side by side
+  function fzRevsHtml(o, stageId, isChar) {
+    var f = o.forge || {}, revs = FG.revsOf(f, stageId), ap = FG.approvedRev(f, stageId), by = function (id) { return (o.files || []).filter(function (x) { return x.id === id; })[0]; };
+    var fileHtml = function (x) {
+      return x ? '<span class="fz-file">' + (isImage(x) ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener"><img alt="" src="' + esc(x.url) + '"></a>' : '<span class="ico">' + (is3D(x) ? '🧊' : '📦') + '</span>') +
+        '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" download="' + esc(x.name) + '">' + esc(x.name) + '</a>' + polyInfo(x) +
+        (is3D(x) ? ' <button class="btn mini" data-fzv3d="' + esc(o.key) + ':' + esc(x.id) + '">' + STR.v3d.open + '</button>' : '') + '</span>' : '';
+    };
+    var html = '<h4 class="fz-h">' + FZ.versions + '</h4>' + (canWrite ? '<div class="row"><label class="btn"><input type="file" multiple hidden data-fzup="' + esc(o.key) + ':' + stageId + '">' + FZ.upload + '</label>' +
+      (FG.stage(stageId) && FG.stage(stageId).kind === "files" || !isChar ? '<button class="btn" disabled title="' + esc(FZ.genTip) + '">' + FZ.gen + '</button>' : '') + '</div>' : '');
+    if (!revs.length) return html + '<p class="muted">' + FZ.noVersions + '</p>';
+    if (revs.length > 1) html += '<p class="hint">' + FZ.compareHint + '</p>';
+    html += revs.map(function (r) {
+      var isAp = ap && ap.id === r.id, from = r.from && (f.revs || []).filter(function (x) { return x.id === r.from; })[0];
+      return '<div class="fz-rev' + (isAp ? ' ap' : '') + '"><div class="row"><b>v' + r.n + '</b>' + (isAp ? ' <span class="pill s-game">✓ ' + FZ.approvedBy + '</span>' : '') +
+        '<span class="muted">' + esc([r.byName, when(r.at), from ? FZ.restored.replace("{n}", from.n) : ""].filter(Boolean).join(" · ")) + '</span><span style="flex:1"></span>' +
+        (revs.length > 1 ? '<label class="muted"><input type="checkbox" data-fzcmp="' + r.id + '"' + (fz.cmp.indexOf(r.id) >= 0 ? ' checked' : '') + '> ' + FZ.compare + '</label>' : '') +
+        (canWrite && isChar && !isAp ? '<button class="btn mini" data-fzapprev="' + stageId + ':' + r.id + '">' + FZ.approveRev + '</button>' : '') +
+        (canWrite && revs[0].id !== r.id ? '<button class="btn mini ghost" data-fzrestore="' + esc(o.key) + ':' + stageId + ':' + r.id + '">' + FZ.restore + '</button>' : '') + '</div>' +
+        (r.note ? '<p>' + esc(r.note) + '</p>' : '') + '<div class="fz-files">' + (r.files || []).map(function (id) { return fileHtml(by(id)); }).join("") + '</div></div>';
+    }).join("");
+    var cmp = fz.cmp.map(function (id) { return revs.filter(function (r) { return r.id === id; })[0]; }).filter(Boolean);
+    if (cmp.length === 2) html = '<div class="fz-cmp">' + cmp.map(function (r) { return '<div><b>v' + r.n + '</b>' + (r.files || []).map(function (id) { return fileHtml(by(id)); }).join("") + '</div>'; }).join("") +
+      '<button class="btn mini ghost" data-fzcmpx>' + FZ.cmpClose + '</button></div>' + html;
+    return html;
+  }
+  function fzEquipHtml(c, ctx) {
+    var mine = FG.itemsOf(c, ctx.items), slots = fzSlots(), f = c.forge;
+    var html = '<h4 class="fz-h">' + FZ.slots + '</h4><table class="fz-slots">' + slots.map(function (s) {
+      var here = mine.filter(function (i) { return i.forge.slot === s.id; }), cand = ctx.items.filter(function (i) { return i.forge.slot === s.id && here.indexOf(i) < 0; });
+      return '<tr><th>' + esc(fzL(s)) + '</th><td>' + here.map(function (i) {
+        var v = FG.validation(i, c, game);
+        return '<span class="fz-chip"><button class="linkish" data-fzitem="' + esc(i.key) + '">' + esc(i.title) + '</button> <span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span>' +
+          (canWrite ? ' <button class="btn mini ghost" data-fzunbind="' + esc(i.key) + '" aria-label="' + esc(FZ.unbind + " " + i.title) + '">✕</button>' : '') + '</span>';
+      }).join("") + (canWrite && cand.length ? '<select data-fzbind aria-label="' + esc(FZ.bindItem) + '"><option value="">' + esc(FZ.bindItem) + '</option>' + cand.map(function (i) { return '<option value="' + esc(i.key) + '">' + esc(i.title) + '</option>'; }).join("") + '</select>' : '') + '</td></tr>';
+    }).join("") + '</table>';
+    html += '<h4 class="fz-h">' + FZ.loadouts + '</h4>' + (f.loadouts || []).map(function (l, li) {
+      return '<div class="fz-rev"><b>' + esc(l.name) + '</b>' + (canWrite ? ' <button class="btn mini ghost" data-fzlodel="' + li + '" aria-label="' + esc(STR.remove + " " + l.name) + '">✕</button>' : '') +
+        '<div class="fz-lo">' + slots.filter(function (s) { return mine.some(function (i) { return i.forge.slot === s.id; }); }).map(function (s) {
+          return '<label class="fz-lb">' + esc(fzL(s)) + '<select data-fzlo="' + li + ':' + esc(s.id) + '"' + (canWrite ? '' : ' disabled') + '><option value="">' + FZ.empty + '</option>' +
+            mine.filter(function (i) { return i.forge.slot === s.id; }).map(function (i) { return '<option value="' + esc(i.id) + '"' + ((l.items || {})[s.id] === i.id ? ' selected' : '') + '>' + esc(i.title) + '</option>'; }).join("") + '</select></label>';
+        }).join("") + '</div></div>';
+    }).join("") + (canWrite ? '<button class="btn" data-fzaddlo>' + FZ.addLoadout + '</button>' : '');
+    return html;
+  }
+  function fzIssuesHtml(iss) {
+    return iss.length ? '<ul class="fz-iss">' + iss.map(function (i) { return '<li class="qd-' + (i.level === "tip" ? "ok" : i.level) + '">' + (i.level === "error" ? "✕ " : i.level === "warn" ? "⚠ " : "· ") + esc(fzL(i)) + '</li>'; }).join("") + '</ul>' : '<p class="qd-ok">' + FZ.item.noIssues + '</p>';
+  }
+  function fzIntegHtml(c, ctx) {
+    return '<p class="hint">' + FZ.integHint + '</p>' + FG.itemsOf(c, ctx.items).map(function (i) {
+      var v = FG.validation(i, c, game);
+      return '<div class="fz-rev"><div class="row"><button class="linkish" data-fzitem="' + esc(i.key) + '"><b>' + esc(i.title) + '</b></button><span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span></div>' + fzIssuesHtml(v.issues) + '</div>';
+    }).join("");
+  }
+  function fzClipsHtml(c) {
+    var clips = FG.clipsOf(c.forge);
+    return '<h4 class="fz-h">' + FZ.clips + '</h4><table class="fz-slots">' + clips.map(function (k, i) {
+      return '<tr><th>' + esc(LANG === "en" ? k.en || k.name : k.name) + '</th><td><select data-fzclip="' + i + '"' + (canWrite ? '' : ' disabled') + '>' + Object.keys(FZ.clipSt).map(function (s) {
+        return '<option value="' + s + '"' + (k.status === s ? ' selected' : '') + '>' + esc(FZ.clipSt[s]) + '</option>'; }).join("") + '</select>' +
+        (canWrite ? ' <button class="btn mini ghost" data-fzclipdel="' + i + '" aria-label="' + esc(STR.remove + " " + k.name) + '">✕</button>' : '') + '</td></tr>';
+    }).join("") + '</table>' + (canWrite ? '<div class="row"><input data-fzclipname placeholder="' + esc(FZ.clipPh) + '" aria-label="' + esc(FZ.clipPh) + '"><button class="btn" data-fzaddclip>' + FZ.addClip + '</button></div>' : '');
+  }
+  // the item's technical passport
+  function fzItemHtml(i) {
+    var f = i.forge, I = FZ.item, P = fzProf(), slots = fzSlots(), chars = fzChars(), dis = canWrite ? '' : ' disabled';
+    var own = chars.filter(function (c) { return (f.owners || []).indexOf(c.id) >= 0; }), v = FG.validation(i, own[0] || null, game);
+    var sl = slots.filter(function (s) { return s.id === f.slot; })[0], bind = f.bind || (sl && sl.bind) || "skinned";
+    var inp = function (k, ph, type) { return '<input data-fzi="' + k + '"' + (type ? ' type="' + type + '" min="0"' : '') + ' value="' + esc(f[k] || "") + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + (canWrite ? '' : ' readonly') + '>'; };
+    var html = '<div class="row"><span class="pill ' + FZ_VCLS[v.status] + '">' + esc(I.status + ": " + FZ.val[v.status]) + '</span><button class="btn mini ghost" data-openref="' + esc(i.key) + '">' + FZ.openCard + '</button></div>' +
+      '<div class="fz-pass">' +
+      '<label class="fz-lb">' + I.slot + fzSel('data-fzi="slot"', slots, f.slot || "", true) + '</label>' +
+      '<label class="fz-lb">' + I.bind + '<select data-fzi="bind"' + dis + '>' + ["skinned", "rigid"].map(function (b) { return '<option value="' + b + '"' + (bind === b ? ' selected' : '') + '>' + esc(I[b]) + '</option>'; }).join("") + '</select></label>' +
+      '<label class="fz-lb">' + FZ.rig + fzSel('data-fzi="rig"', P.rigs || [], f.rig || "", true) + '</label>' +
+      '<label class="fz-lb">' + FZ.body + fzSel('data-fzi="body"', P.bodies || [], f.body || "", true) + '</label>' +
+      '<label class="fz-lb">' + I.format + inp("format", "FBX / GLB") + '</label><label class="fz-lb">' + I.units + inp("units", I.unitsPh) + '</label>' +
+      '<label class="fz-lb">' + I.lod + inp("lod", I.lodPh) + '</label><label class="fz-lb">' + I.poly + inp("polyTarget", "", "number") + '</label></div>' +
+      '<fieldset class="fz-set"><legend>' + I.mask + '</legend>' + FG.MASK.map(function (m) { return '<label><input type="checkbox" data-fzmask="' + m.id + '"' + ((f.mask || []).indexOf(m.id) >= 0 ? ' checked' : '') + dis + '> ' + esc(fzL(m)) + '</label>'; }).join("") + '</fieldset>' +
+      '<fieldset class="fz-set"><legend>' + I.maps + '</legend>' + FG.MAPS.map(function (m) { return '<label><input type="checkbox" data-fzmap="' + m + '"' + ((f.maps || []).indexOf(m) >= 0 ? ' checked' : '') + dis + '> ' + esc(m) + '</label>'; }).join("") + '</fieldset>' +
+      '<label class="fz-lb">' + I.attach + '<textarea rows="2" data-fzattach placeholder="' + esc(I.attachPh) + '"' + (canWrite ? '' : ' readonly') + '>' + esc((f.attach || []).map(function (a) { return a.bone + (a.point ? " : " + a.point : ""); }).join("\n")) + '</textarea></label>' +
+      '<fieldset class="fz-set"><legend>' + I.owners + '</legend>' + chars.map(function (c) { return '<label><input type="checkbox" data-fzowner="' + esc(c.id) + '"' + ((f.owners || []).indexOf(c.id) >= 0 ? ' checked' : '') + dis + '> ' + esc(c.title) + '</label>'; }).join("") + '</fieldset>' +
+      '<h4 class="fz-h">' + I.checks + '</h4>' + fzIssuesHtml(v.issues);
+    if (canWrite && v.status === "warning") html += '<button class="btn" data-fzmanual>' + I.manual + '</button>';
+    if (f.approval && v.status === "manual") html += '<p class="fz-ok">✓ ' + esc(FZ.val.manual + " · " + (f.approval.byName || "") + " · " + when(f.approval.at)) + (f.approval.comment ? ' — «' + esc(f.approval.comment) + '»' : '') +
+      (canWrite ? ' <button class="btn mini ghost" data-fzmanualoff>' + I.manualOff + '</button>' : '') + '</p>';
+    if ((f.external || []).length) html += '<h4 class="fz-h">' + I.ext + '</h4><ul class="fz-iss">' + f.external.map(function (x) {
+      return '<li class="qd-' + (x.result === "failed" ? "error" : x.result === "warning" ? "warn" : "ok") + '">' + esc(x.check + " · " + x.result + (x.details ? " — " + x.details : "") + " · " + (x.source || "") + " · " + when(x.at)) + '</li>'; }).join("") + '</ul>';
+    return html + '<h2 class="group">' + I.concept + '</h2>' + fzRevsHtml(i, "concept", false) + '<h2 class="group">' + I.model + '</h2>' + fzRevsHtml(i, "model", false);
+  }
+  function fzSetupHtml() {
+    var d = fz.setup || (fz.setup = { slots: fzClone(fzSlots()), rigs: fzClone(fzProf().rigs || []), bodies: fzClone(fzProf().bodies || []) }), dis = canWrite ? '' : ' disabled';
+    var rows = function (k, cols) {
+      return '<table class="fz-slots">' + d[k].map(function (r, i) { return '<tr>' + cols.map(function (c) {
+        if (c === "bind") return '<td><select data-fzs="' + k + ':' + i + ':bind"' + dis + '>' + ["skinned", "rigid"].map(function (b) { return '<option value="' + b + '"' + (r.bind === b ? ' selected' : '') + '>' + esc(FZ.item[b]) + '</option>'; }).join("") + '</select></td>';
+        if (c === "rig") return '<td><select data-fzs="' + k + ':' + i + ':rig"' + dis + '><option value="">' + esc(FZ.none) + '</option>' + d.rigs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (r.rig === x.id ? ' selected' : '') + '>' + esc(x.name) + '</option>'; }).join("") + '</select></td>';
+        var key = c === "name" && k === "slots" ? (LANG === "en" ? "en" : "uk") : c;
+        return '<td><input data-fzs="' + k + ':' + i + ':' + key + '" value="' + esc(r[key] || "") + '" placeholder="' + esc(c === "notes" ? FZ.notesF : FZ.name) + '" aria-label="' + esc(c === "notes" ? FZ.notesF : FZ.name) + '"' + (canWrite ? '' : ' readonly') + '></td>';
+      }).join("") + (canWrite ? '<td><button class="btn mini ghost" data-fzsdel="' + k + ':' + i + '" aria-label="' + esc(STR.remove) + '">✕</button></td>' : '') + '</tr>'; }).join("") + '</table>' +
+        (canWrite ? '<button class="btn" data-fzsadd="' + k + '">' + FZ.addRow + '</button>' : '');
+    };
+    return '<p class="hint">' + FZ.setupHint + '</p><h2 class="group">' + FZ.slots + '</h2>' + rows("slots", ["name", "bind"]) + (canWrite ? ' <button class="btn ghost" data-fzsreset>' + FZ.resetSlots + '</button>' : '') +
+      '<h2 class="group">' + FZ.rigs + '</h2>' + rows("rigs", ["name", "notes"]) + '<h2 class="group">' + FZ.bodies + '</h2>' + rows("bodies", ["name", "rig", "notes"]) +
+      (canWrite ? '<div class="row wsave"><button class="btn primary" data-fzssave>' + FZ.save + '</button></div>' : '');
+  }
+
+  // ---------- Forge actions ----------
+  // "<card key>:a:b" — the key itself has a colon ("e:<id>", "c:<id>"): split the last n parts off
+  function fzSplit(s, n) { var p = String(s).split(":"); return [p.slice(0, p.length - n).join(":")].concat(p.slice(p.length - n)); }
+  function fzOpenChar() { return fz.open && fzFind(fzChars(), fz.open); }
+  function fzOpenItem() { return fz.item && fzFind(fzItems(), fz.item); }
+  async function fzUpload(o, stageId, list) {
+    if (!list.length) return;
+    var note = prompt(FZ.noteQ, ""); if (note === null) return;
+    var metas = [];
+    for (var i = 0; i < list.length; i++) {
+      var file = list[i];
+      if (file.size > MAX_FILE) { fz.msg = STR.fileTooBig + ": " + file.name; render(); return; }
+      var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + o.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
+      try {
+        fz.msg = STR.uploading + " " + file.name; render();
+        var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
+        await task;
+        var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now(), field: "forge" };
+        await localInfo(file, meta);
+        metas.push(meta);
+      } catch (e) { fz.msg = STR.failed + ": " + file.name + " — " + (e.code || e.message || e); render(); return; }
+    }
+    var f = fzClone(o.forge); f.revs = (f.revs || []).concat([FG.newRev(f, stageId, metas.map(function (m) { return m.id; }), note.trim(), fzWho())]);
+    var body = { section: o.section, files: firebase.firestore.FieldValue.arrayUnion.apply(null, metas), updatedAt: stamp() };
+    if (o.src === "canon") body.canonRef = o.id;
+    await gref().collection("cards").doc(o.id).set(body, { merge: true });
+    fz.msg = ""; await fzSave(o, f);
+  }
+  function fzApprove(c, stageId, revId) {
+    var comment = prompt(FZ.approveQ, ""); if (comment === null) return;
+    var f = fzClone(c.forge), w = fzWho();
+    var last = FG.revsOf(f, stageId)[0];
+    if (!revId && stageId !== "brief" && last) revId = last.id; // animation / export: their newest upload
+    if (!revId) { // nothing uploaded: the approval points at a frozen snapshot (the brief, the clips) or the stage itself
+      var snap = FG.newRev(f, stageId, [], "", w); if (stageId === "brief") snap.brief = fzClone(f.brief); if (stageId === "anim") snap.clips = fzClone(FG.clipsOf(f));
+      f.revs = (f.revs || []).concat([snap]); revId = snap.id;
+    }
+    f.stages = f.stages || {}; f.stages[stageId] = { approved: { rev: revId, by: w.uid, byName: w.name, at: Date.now(), comment: comment.trim() } };
+    fzSave(c, f);
+  }
+  function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
+  function forgeClick(e) {
+    if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d]");
+    if (!t) return false;
+    var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
+    if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
+    if (d.fzopen) { fz.open = d.fzopen; fz.item = null; fz.stage = null; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
+    if (d.fzitem) { fz.item = d.fzitem; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
+    if (d.fzback !== undefined) { if (fz.item && fz.open) fz.item = null; else { fz.item = null; fz.open = null; } fz.cmp = []; fz.msg = ""; render(); return true; }
+    if (d.fzstage) { fz.stage = d.fzstage; fz.cmp = []; render(); return true; }
+    if (d.fzcmpx !== undefined) { fz.cmp = []; render(); return true; }
+    if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
+    if (d.fzmanifest !== undefined && c) { download(slugify(c.title || "character") + ".forge.json", JSON.stringify(FG.manifest(c, fzItems(), game, LANG), null, 2)); return true; }
+    if (!canWrite) return true;
+    if (d.fznewchar !== undefined) { goSection("characters"); addCard(false); return true; }
+    if (d.fznewitem !== undefined) {
+      var nm = prompt(FZ.item.newQ, ""); if (!nm || !nm.trim()) return true;
+      var gs = sec("gear"), sl = fz.slot && fzSlots().filter(function (s) { return s.id === fz.slot; })[0], grp = (gs.groups[LANG] || gs.groups.uk)[sl && sl.bind === "rigid" ? 0 : 1];
+      var nid = newId("card");
+      gref().collection("cards").doc(nid).set({ section: "gear", title: nm.trim(), status: "idea", note: "", defs: gs.defs.slice(), fields: { group: grp },
+        forge: sl ? { slot: sl.id, bind: sl.bind } : {}, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }).then(function () { fz.item = "c:" + nid; render(); });
+      return true;
+    }
+    if (d.fzsadd) { fz.setup[d.fzsadd].push(d.fzsadd === "slots" ? { id: newId("slot"), uk: "", en: "", bind: "skinned" } : { id: newId(d.fzsadd === "rigs" ? "rig" : "body"), name: "", notes: "" }); render(); return true; }
+    if (d.fzsdel) { var sp = d.fzsdel.split(":"); fz.setup[sp[0]].splice(+sp[1], 1); render(); return true; }
+    if (d.fzsreset !== undefined) { fz.setup.slots = fzClone(FG.SLOTS); render(); return true; }
+    if (d.fzssave !== undefined) {
+      var sd = fz.setup, clean = function (l, k) { return l.filter(function (r) { return String(r[k] || r.uk || r.en || "").trim(); }); };
+      var slots = clean(sd.slots, "uk").map(function (s) { return { id: s.id, uk: s.uk || s.en, en: s.en || s.uk, bind: s.bind || "skinned" }; });
+      gref().update({ forge: { slots: slots, rigs: clean(sd.rigs, "name"), bodies: clean(sd.bodies, "name") }, updatedAt: stamp() })
+        .then(function () { fz.setup = null; fz.msg = FZ.saved; render(); }).catch(function (er) { fz.msg = STR.failed + ": " + er.message; render(); });
+      return true;
+    }
+    if (it) {
+      if (d.fzmanual !== undefined) { var mc = prompt(FZ.item.manualQ, ""); if (!mc || !mc.trim()) return true; var cur = FG.revsOf(it.forge, "model")[0], w = fzWho();
+        fzSetItem(it, function (f) { f.approval = { rev: cur ? cur.id : "", by: w.uid, byName: w.name, at: Date.now(), comment: mc.trim() }; }); return true; }
+      if (d.fzmanualoff !== undefined) { fzSetItem(it, function (f) { delete f.approval; }); return true; }
+      if (d.fzrestore) { var rp = fzSplit(d.fzrestore, 2), old = (it.forge.revs || []).filter(function (r) { return r.id === rp[2]; })[0];
+        if (old) fzSetItem(it, function (f) { f.revs = (f.revs || []).concat([FG.newRev(f, rp[1], old.files, "", fzWho(), old.id)]); }); return true; }
+      return true;
+    }
+    if (!c) return true;
+    var f = fzClone(c.forge);
+    if (d.fzapp) { fzApprove(c, d.fzapp, ""); return true; }
+    if (d.fzapprev) { var ap = d.fzapprev.split(":"); var abl = FG.blockers(c, ap[0], fzCtx()); if (abl.length) { alert(abl.map(fzL).join("\n")); return true; } fzApprove(c, ap[0], ap[1]); return true; }
+    if (d.fzunapp) { if (!confirm(FZ.unapproveQ)) return true; delete (f.stages || {})[d.fzunapp]; fzSave(c, f); return true; }
+    if (d.fzrestore) { var rq = fzSplit(d.fzrestore, 2), ro = (f.revs || []).filter(function (r) { return r.id === rq[2]; })[0];
+      if (ro) { f.revs.push(FG.newRev(f, rq[1], ro.files, "", fzWho(), ro.id)); fzSave(c, f); } return true; }
+    if (d.fzoff) { f.off = f.off || []; var oi = f.off.indexOf(d.fzoff); if (oi >= 0) f.off.splice(oi, 1); else f.off.push(d.fzoff); fzSave(c, f); return true; }
+    if (d.fzaddnote) { var ni = $("view").querySelector("[data-fznote]"), tx = ni && ni.value.trim(); if (!tx) return true;
+      f.notes = (f.notes || []).concat([{ stage: d.fzaddnote, text: tx.slice(0, 2000), byName: fzWho().name, at: Date.now() }]); fzSave(c, f); return true; }
+    if (d.fzunbind) { var ui = fzFind(fzItems(), d.fzunbind); if (ui) fzSetItem(ui, function (x) { x.owners = (x.owners || []).filter(function (id) { return id !== c.id; }); }); return true; }
+    if (d.fzaddlo !== undefined) { var ln = prompt(FZ.loadoutQ, ""); if (!ln || !ln.trim()) return true; f.loadouts = (f.loadouts || []).concat([{ id: newId("lo"), name: ln.trim(), items: {} }]); fzSave(c, f); return true; }
+    if (d.fzlodel) { f.loadouts.splice(+d.fzlodel, 1); fzSave(c, f); return true; }
+    if (d.fzaddclip !== undefined) { var cn = $("view").querySelector("[data-fzclipname]"), cv = cn && cn.value.trim(); if (!cv) return true;
+      f.clips = FG.clipsOf(f).concat([{ id: newId("clip"), name: cv, en: cv, status: "todo" }]); fzSave(c, f); return true; }
+    if (d.fzclipdel) { f.clips = FG.clipsOf(f); f.clips.splice(+d.fzclipdel, 1); fzSave(c, f); return true; }
+    return true;
+  }
+  function forgeInput(e) {
+    if (section !== "forge") return;
+    var t = e.target, d = t.dataset || {};
+    if (d.fzq !== undefined) { if (e.type !== "input") return; fz.q = t.value; var pos = t.selectionStart; render(); var n = $("view").querySelector("[data-fzq]"); if (n) { n.focus(); n.setSelectionRange(pos, pos); } return; }
+    if (e.type !== "change") return;
+    if (d.fztype !== undefined) { fz.type = t.value; render(); return; }
+    if (d.fzslotf !== undefined) { fz.slot = t.value; render(); return; }
+    if (d.fzcmp) { var k = fz.cmp.indexOf(d.fzcmp); if (k >= 0) fz.cmp.splice(k, 1); else { fz.cmp.push(d.fzcmp); if (fz.cmp.length > 2) fz.cmp.shift(); } render(); return; }
+    if (d.fzs) { var sp = d.fzs.split(":"); fz.setup[sp[0]][+sp[1]][sp[2]] = t.value; return; }
+    if (!canWrite) return;
+    if (d.fzup) { var up = fzSplit(d.fzup, 1), o = fzFind(fzChars().concat(fzItems()), up[0]); if (o) fzUpload(o, up[1], [].slice.call(t.files)); return; }
+    var c = fzOpenChar(), it = fzOpenItem();
+    if (it && !d.fzbind) {
+      if (d.fzi) { fzSetItem(it, function (f) { var v = t.value.trim(); if (d.fzi === "polyTarget") v = v ? Math.max(0, parseInt(v, 10) || 0) : ""; if (v === "") delete f[d.fzi]; else f[d.fzi] = v;
+        if (d.fzi === "slot") { var sl = fzSlots().filter(function (s) { return s.id === v; })[0]; if (sl) f.bind = sl.bind; } }); return; }
+      var tog = function (k, id) { return function (f) { f[k] = (f[k] || []).filter(function (x) { return x !== id; }); if (t.checked) f[k].push(id); }; };
+      if (d.fzmask) { fzSetItem(it, tog("mask", d.fzmask)); return; }
+      if (d.fzmap) { fzSetItem(it, tog("maps", d.fzmap)); return; }
+      if (d.fzowner) { fzSetItem(it, tog("owners", d.fzowner)); return; }
+      if (d.fzattach !== undefined) { fzSetItem(it, function (f) { f.attach = t.value.split("\n").map(function (l) { var p = l.split(":"); return { bone: (p[0] || "").trim().slice(0, 80), point: p.slice(1).join(":").trim().slice(0, 80) }; }).filter(function (a) { return a.bone; }); }); return; }
+      return;
+    }
+    if (!c) return;
+    var f = fzClone(c.forge);
+    if (d.fzf) { if (t.value) f[d.fzf] = t.value; else delete f[d.fzf]; fzSave(c, f); return; }
+    if (d.fzb) { f.brief = f.brief || {}; f.brief[d.fzb] = t.value.slice(0, 4000); fzSave(c, f); return; }
+    if (d.fzbind) { var bi = fzFind(fzItems(), t.value); if (bi) fzSetItem(bi, function (x) { x.owners = (x.owners || []).concat([c.id]); }); return; }
+    if (d.fzlo) { var lp = d.fzlo.split(":"); f.loadouts[+lp[0]].items = f.loadouts[+lp[0]].items || {}; if (t.value) f.loadouts[+lp[0]].items[lp[1]] = t.value; else delete f.loadouts[+lp[0]].items[lp[1]]; fzSave(c, f); return; }
+    if (d.fzclip) { f.clips = FG.clipsOf(f); f.clips[+d.fzclip].status = t.value; fzSave(c, f); return; }
+  }
+
   var KNOWLEDGE = { id: "knowledge", special: "knowledge", uk: "Знання проєкту", en: "Project knowledge",
     about: { uk: "Що є в Unity-проєкті: сцени, префаби, скрипти, ассети й звʼязки між ними. Claude Code індексує проєкт лише на читання.", en: "What the Unity project holds: scenes, prefabs, scripts, assets and how they connect. Claude Code indexes the project read-only." } };
   var ACTIVITY = { id: "activity", special: "activity", uk: "Журнал розробки", en: "Development log",
@@ -5416,6 +5831,8 @@
   $("view").addEventListener("change", qdInput);
   $("view").addEventListener("input", medInput);
   $("view").addEventListener("change", medInput);
+  $("view").addEventListener("input", forgeInput);
+  $("view").addEventListener("change", forgeInput);
   $("view").addEventListener("change", function (e) {
     var rv = e.target.closest("[data-reveal]");
     if (rv) db.collection("projects").doc(rv.dataset.reveal).update({ reveal: rv.value, updatedAt: stamp() });
@@ -5447,6 +5864,7 @@
     if (e.target.closest("[data-gcover]")) return editGameCover();
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     if (mechClick(e)) return;
+    if (forgeClick(e)) return;
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
     var bl = e.target.closest("[data-bulb]"); if (bl) { questFrom(bl.dataset.bulb.split(":")[0], bl.dataset.bulb.split(":")[1]); return; }

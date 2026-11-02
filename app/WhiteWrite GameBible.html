@@ -641,6 +641,39 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .dod ul{ margin:6px 0 0; padding-left:18px; }
 .ptabs{ display:flex; gap:6px; margin:14px 0 6px; }
 .ptabs .chip[aria-selected="true"]{ background:var(--gold-soft); color:var(--tx-hi); border-color:var(--gold-lit); }
+/* ⚒ Кузня персонажів */
+.fz-filters{ margin:10px 0 0; gap:8px; } .fz-filters input{ flex:1; min-width:160px; }
+#view [data-fzq], .fz-main input:not([type=checkbox]):not([type=file]), .fz-main textarea, .fz-main select, .fz-side select{ background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; color:var(--tx-hi); font:inherit; }
+.fz-main input:not([type=checkbox]):not([type=file]), .fz-main textarea{ width:100%; box-sizing:border-box; } .fz-main .row input{ flex:1; width:auto; }
+.fz-file a, .fz-cmp a{ color:var(--tx); }
+.fz-bar{ height:6px; border-radius:999px; background:var(--bg-3, rgba(255,255,255,.06)); overflow:hidden; } .fz-bar i{ display:block; height:100%; background:var(--gold-lit); }
+.fz-work{ display:grid; grid-template-columns:260px 1fr; gap:22px; margin-top:14px; align-items:start; }
+.fz-side{ display:grid; gap:8px; position:sticky; top:12px; }
+.fz-hero{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:12px; border:1px solid var(--line); background:var(--bg-2); }
+.fz-ph{ display:grid; place-items:center; font-size:48px; color:var(--tx-mid); }
+.fz-lb{ display:grid; gap:4px; font-size:12.5px; color:var(--tx-mid); }
+.fz-h{ margin:18px 0 6px; font:600 12px "Inter"; letter-spacing:.12em; text-transform:uppercase; color:var(--tx-mid); }
+.fz-stages{ list-style:none; margin:0; padding:0; display:grid; gap:4px; }
+.fz-st{ width:100%; text-align:left; display:grid; grid-template-columns:22px 1fr; column-gap:6px; background:none; border:1px solid transparent; border-radius:8px; padding:6px 8px; cursor:pointer; color:var(--tx); }
+.fz-st small{ grid-column:2; color:var(--tx-mid); font-size:11.5px; } .fz-st.on{ border-color:var(--gold-lit); background:var(--gold-soft); } .fz-st.off{ opacity:.5; }
+.fz-dot{ grid-row:span 2; text-align:center; }
+.fz-main{ min-width:0; } .fz-main .btn.mini, .fz-side .btn.mini{ padding:2px 10px; font-size:12.5px; } .fz-main .btn.ghost, .fz-side .btn.ghost{ background:none; }
+.fz-block{ margin:10px 0; padding:10px 14px; border:1px solid rgba(240,169,59,.35); border-radius:10px; background:rgba(240,169,59,.06); } .fz-block ul{ margin:4px 0 0; padding-left:18px; }
+.fz-ok{ color:var(--s-game); }
+.fz-brief, .fz-pass{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-top:10px; }
+.fz-rev{ margin:8px 0; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg-2); } .fz-rev.ap{ border-color:var(--s-game); }
+.fz-rev .row{ gap:8px; align-items:center; flex-wrap:wrap; } .fz-rev p{ margin:6px 0 0; }
+.fz-files{ display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; }
+.fz-file{ display:inline-flex; align-items:center; gap:6px; font-size:13px; } .fz-file img{ width:64px; height:64px; object-fit:cover; border-radius:6px; }
+.fz-cmp{ display:grid; grid-template-columns:1fr 1fr auto; gap:12px; margin:10px 0; padding:10px; border:1px solid var(--gold-lit); border-radius:10px; }
+.fz-cmp .fz-file{ display:flex; flex-direction:column; align-items:flex-start; } .fz-cmp .fz-file img{ width:100%; height:auto; max-height:420px; object-fit:contain; }
+.fz-slots{ border-collapse:collapse; width:100%; } .fz-slots th, .fz-slots td{ text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:middle; } .fz-slots th{ width:34%; font-weight:500; }
+.fz-chip{ display:inline-flex; align-items:center; gap:4px; margin:2px 8px 2px 0; }
+.linkish{ background:none; border:0; padding:0; color:var(--gold-lit); cursor:pointer; text-decoration:underline; font:inherit; }
+.fz-lo{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px; margin-top:6px; }
+.fz-set{ border:1px solid var(--line); border-radius:10px; margin:10px 0; display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; } .fz-set legend{ color:var(--tx-mid); font-size:12.5px; }
+.fz-iss{ margin:4px 0; padding-left:18px; } .fz-note{ margin:6px 0; font-size:13.5px; }
+@media (max-width:820px){ .fz-work{ grid-template-columns:1fr; } .fz-side{ position:static; } .fz-hero{ aspect-ratio:16/10; } .fz-cmp{ grid-template-columns:1fr; } }
 .gpath{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:14px 0 4px; }
 .gstep{ padding:6px 12px; border-radius:999px; border:1px solid var(--line-2); color:var(--tx-mid); font-size:13px; text-decoration:none; }
 .gstep span{ opacity:.75; } .gs-ok{ color:var(--s-game); border-color:currentColor; } .gs-now{ color:var(--gold-lit); border-color:var(--gold-lit); background:var(--gold-soft); }
@@ -782,6 +815,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/setup-guides.js"></script>
 <script src="firebase/style-guide.js"></script>
 <script src="firebase/mechanics.js"></script>
+<script src="firebase/forge.js"></script>
 <script src="firebase/token-budget.js"></script>
 <script src="frame-pick.js"></script>
 <script src="gamebible.js"></script>
