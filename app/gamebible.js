@@ -177,7 +177,7 @@
       upgrade: "Переглянути тарифи", noWorld: "Світ не знайдено.", login: "Увійди, щоб відкрити біблію.",
       importMd: "Імпорт нотаток (.md)", importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
-      importApply: "Додати відмічене", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
+      importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
@@ -437,7 +437,7 @@
       upgrade: "See plans", noWorld: "World not found.", login: "Sign in to open the bible.",
       importMd: "Import notes (.md)", importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
-      importApply: "Add ticked items", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
+      importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
@@ -5365,7 +5365,8 @@
       '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
     if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
-    if (imp.done) html += '<p class="pmsg">' + STR.importDone + ': ' + imp.done + '</p>';
+    if (imp.done) html += '<p class="pmsg">' + STR.importDone + ': ' + imp.done + '</p>' + (canDev && !imp.repo ? // the next step in one click: the analysis asks, the author answers, then the plan
+      '<p class="hint">' + esc(STR.importNext) + '</p><div class="row"><button class="btn primary" id="imp-next">✦ ' + esc(STR.ops.analyze) + ' →' + costMark("analyze") + '</button></div>' : '');
     var p = imp.proposal;
     if (p && !imp.done) {
       if (imp.spent) html += '<p class="muted">' + STR.spent + ': ' + imp.spent + '</p>';
@@ -5380,6 +5381,7 @@
     }
     $("view").innerHTML = html;
     $("imp-x").onclick = function () { imp = null; render(); };
+    if ($("imp-next")) $("imp-next").onclick = function () { confirmCost("analyze", function () { imp = null; goSection("plan"); runPlan("analyze"); }); };
     [].forEach.call(document.querySelectorAll("[data-imp]"), function (cb) { cb.onchange = function () { imp.off[cb.dataset.imp] = !cb.checked; }; }); // survives re-renders from live snapshots
     var ok = $("imp-ok"); if (ok) ok.onclick = function () { ok.disabled = true; applyImport().catch(function (e) { imp.error = e.message; render(); }); };
   }
