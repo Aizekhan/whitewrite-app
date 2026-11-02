@@ -22,6 +22,7 @@ const community = require('./src/community'); // Спільнота: public show
 exports.community = community.community;
 exports.communityRotate = community.communityRotate;
 exports.styleCheck = require('./src/style').styleCheck; // the AI check of a picture against the game's visual style
+exports.styleFromRefs = require('./src/style').styleFromRefs; // ✦ the overall style proposed from the reference pictures
 const modelWatch = require('./src/model-watch'); // Claude versions: daily check + safe auto-switch (helpers stay internal)
 exports.modelWatch = modelWatch.modelWatch;
 exports.modelWatchRun = modelWatch.modelWatchRun;

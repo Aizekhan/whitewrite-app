@@ -523,6 +523,8 @@
           ]],
           ["p", "Число — частка кольорів картинки, близьких до палітри стилю (тіні й відблиски не рахуються), мінус штраф за заборонені кольори. Перевірка йде прямо в браузері — без токенів і миттєво; змінив палітру — значки перераховуються самі."],
           ["tip", "Палітру стилю зручно зібрати кнопкою «🎨 З картинок» з референсів стилю на тій самій картці."],
+          ["h", "✦ Стиль із референсів"],
+          ["p", "Немає слів для стилю — є картинки? Кнопка <b>«✦ Стиль із референсів»</b> угорі вкладки бере до 6 картинок з розділу «Референси» (і з карток стилю), і ШІ складає загальний стиль: маніфест, палітру з кодами кольорів, заборонені кольори, світло й настрій, матеріали, форми, «так / ні». Ти бачиш пропозицію по полях: порожні поля картки «Загальний стиль» відмічено одразу, заповнені — лише якщо хочеш замінити. Картки немає — вона створиться. Ціна ✦ — на кнопці; Worldbuilder."],
           ["h", "✦ ШІ-перевірка стилю"],
           ["p", "Колір — лише половина стилю. ШІ-перевірка дивиться на все: палітру, світло, матеріали, форми й силует, правила «так / ні» — і порівнює з референсами стилю. Після неї значок стає «🖌 87 ✦», а під файлом у картці видно, що вибивається і як виправити."],
           ["ul", [
@@ -1639,6 +1641,8 @@
           ]],
           ["p", "The number is the share of the picture's colours close to the style palette (shadows and highlights don't count), minus a penalty for colours to avoid. The check runs right in the browser — no tokens, instantly; change the palette and the badges recount themselves."],
           ["tip", "The style palette is easy to build with “🎨 From images” from the style references on the same card."],
+          ["h", "✦ Style from references"],
+          ["p", "No words for the style, only pictures? The <b>“✦ Style from references”</b> button at the top of the tab takes up to 6 pictures from the “References” section (and the style cards), and AI writes the overall style: a manifesto, a palette with colour codes, colours to avoid, light and mood, materials, shapes, do / don't. You see the proposal field by field: the empty fields of the “Overall style” card are ticked already, filled ones only if you want to replace them. No card yet — it is created. The ✦ price is on the button; Worldbuilder."],
           ["h", "✦ The AI style check"],
           ["p", "Colour is only half of a style. The AI check looks at everything: palette, light, materials, shapes and silhouette, the do / don't rules — and compares with the style references. After it the badge reads “🖌 87 ✦”, and under the file in the card you see what breaks the style and how to fix it."],
           ["ul", [

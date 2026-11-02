@@ -16,6 +16,7 @@
     uk: {
       brand: "Біблія світу", brandGame: "GDD гри", engine: "Рушій гри",
       frameTip: "Кадр на картці: яку частину видно або вся картинка",
+      sfr: { btn: "✦ Стиль із референсів", none: "Спершу додай картинки в «Референси» гри (або на картку стилю).", busy: "ШІ дивиться референси…", title: "Стиль із референсів", intro: "ШІ склав загальний стиль із {n} картинок. Відмічені поля потраплять у картку «{c}»; порожні поля картки відмічено одразу, заповнені — лише якщо замінити.", apply: "Взяти відмічене", replaces: "замінить наявне" },
       sm: { ok: "у стилі", mid: "частково в стилі", bad: "вибивається зі стилю", na: "не вдалося прочитати картинку", by: "за кольором, у браузері", ai: "ШІ-перевірка — кнопкою у «Візуальному стилі»", aiBy: "оцінка ШІ", stale: "оцінка ШІ застаріла — стиль змінився", issues: "Що вибивається", fixes: "Як виправити",
         all: "✦ Перевірити всі", allTip: "ШІ-перевірка всіх картинок гри без свіжої оцінки (нові й застарілі)", allNone: "Усі картинки вже мають свіжу оцінку ШІ.",
         allAsk: "Перевірити {n} картинок за стилем? ≈ {t} токенів (списується реальна вартість).", allRun: "Перевіряю стиль", allDone: "Перевірено картинок", noStyle: "Спершу задай палітру стилю." },
@@ -225,7 +226,7 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
+      ops: { styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
@@ -279,6 +280,7 @@
     en: {
       brand: "World Bible", brandGame: "Game GDD", engine: "Game engine",
       frameTip: "Frame on the card: which part shows, or the whole picture",
+      sfr: { btn: "✦ Style from references", none: "First add pictures to the game's “References” (or to the style card).", busy: "AI is looking at the references…", title: "Style from references", intro: "AI wrote the overall style from {n} pictures. The ticked fields go into the card “{c}”; the card's empty fields are ticked already, filled ones only if you want to replace them.", apply: "Take the ticked", replaces: "replaces what is there" },
       sm: { ok: "fits the style", mid: "partly in style", bad: "off-style", na: "could not read the picture", by: "by colour, in the browser", ai: "AI check — the button in «Visual style»", aiBy: "AI score", stale: "the AI score is stale — the style changed", issues: "What breaks it", fixes: "How to fix",
         all: "✦ Check all", allTip: "AI check of every game picture without a fresh score (new and stale)", allNone: "Every picture already has a fresh AI score.",
         allAsk: "Check {n} pictures against the style? ≈ {t} tokens (the real cost is charged).", allRun: "Checking the style", allDone: "Pictures checked", noStyle: "Set the style palette first." },
@@ -487,7 +489,7 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
+      ops: { styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
@@ -1242,6 +1244,7 @@
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
+        (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
@@ -1252,6 +1255,7 @@
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
     var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
+    var sfr = $("st-refs"); if (sfr) sfr.onclick = function () { styleFromRefs(sfr); };
     var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { alert(STR.failed + ": " + e.message); tlb.disabled = false; }); };
   }
   // the World Bible's search: dossiers, events and culture entries
@@ -3194,6 +3198,55 @@
       }
     } finally { btn.disabled = false; btn.textContent = STR.sm.all + " · ≈ " + costOf("styleCheck"); }
     msg(STR.sm.allDone + ": " + done + " / " + todo.length);
+  }
+  // «✦ Стиль із референсів» (functions/src/style.js styleFromRefs): up to 6 reference pictures → a proposal for the overall
+  // style card; the author ticks the fields (empty ones pre-ticked) and only those are written
+  var SFR_FIELDS = ["manifesto", "palette", "avoid", "light", "materials", "shapes", "rules"];
+  function styleFromRefs(btn) {
+    var pics = cards.filter(function (c) { return c.section === "refs"; }).concat(cards.filter(function (c) { return c.section === "artstyle"; }))
+      .reduce(function (a, c) { return a.concat((c.files || []).filter(isImage)); }, []).slice(0, 6);
+    if (!pics.length) return alert(STR.sfr.none);
+    confirmCost("styleFromRefs", async function () {
+      var label = btn.innerHTML; btn.disabled = true; btn.textContent = STR.sfr.busy;
+      try {
+        var images = [];
+        for (var i = 0; i < pics.length; i++) { try { images.push({ data: await jpegOf(pics[i].url, 768), mediaType: "image/jpeg" }); } catch (e) {} }
+        if (!images.length) throw new Error(STR.sfr.none);
+        var token = await firebase.auth().currentUser.getIdToken();
+        var r = await fetch("https://us-central1-whitewrite-app.cloudfunctions.net/styleFromRefs", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+          body: JSON.stringify({ worldId: worldId, gameId: gameId, images: images, language: LANG }) });
+        var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+        if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
+        if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
+        sfrPick(data.proposal, images.length);
+      } catch (e) { alert(STR.failed + ": " + e.message); }
+      btn.disabled = false; btn.innerHTML = label;
+    });
+  }
+  function sfrPick(p, n) {
+    var s = sec("artstyle"), o = window.__STYLE.resolveStyle(cards.filter(function (c) { return c.section === "artstyle"; }), []).overall;
+    var groups = s.groups[LANG] || s.groups.uk, cur = (o && o.fields) || {}, name = (o && o.title) || groups[0];
+    var label = function (k) { var d = s.defs.filter(function (x) { return x.key === k; })[0]; return d ? d.label : k; };
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box is-long" role="dialog" aria-modal="true" aria-label="' + esc(STR.sfr.title) + '"><h3>✦ ' + esc(STR.sfr.title) + '</h3>' +
+      '<p class="warn">' + esc(STR.sfr.intro.replace("{n}", n).replace("{c}", name)) + '</p><div class="sfr-list">' +
+      SFR_FIELDS.filter(function (k) { return p[k]; }).map(function (k) {
+        return '<label class="imp"><input type="checkbox" data-sfr="' + k + '"' + (String(cur[k] || "").trim() ? '' : ' checked') + '><span><b>' + esc(label(k)) + '</b>' +
+          (String(cur[k] || "").trim() ? ' <span class="muted">· ' + esc(STR.sfr.replaces) + '</span>' : '') +
+          '<pre class="ln-cmd">' + esc(p[k]) + '</pre></span></label>'; }).join("") + '</div>' +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.sfr.apply + '</button></div></form>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault();
+      var take = {}; [].forEach.call(box.querySelectorAll("[data-sfr]:checked"), function (cb) { take[cb.dataset.sfr] = p[cb.dataset.sfr]; });
+      var nk = Object.keys(take).length; close(); if (!nk) return;
+      if (o) await gref().collection("cards").doc(o.id).set({ fields: take, updatedAt: stamp() }, { merge: true });
+      else await gref().collection("cards").doc(newId("card")).set({ section: "artstyle", title: groups[0], status: "idea", note: "", defs: s.defs.slice(),
+        fields: Object.assign({ group: groups[0] }, take), order: Date.now(), createdAt: stamp(), updatedAt: stamp() });
+    };
   }
   // A palette editor inside el; change(text) on every edit. imgs() → image urls for «З картинок».
   function palEditor(el, v, change, imgs) {

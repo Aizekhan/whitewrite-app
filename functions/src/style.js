@@ -120,4 +120,69 @@ exports.styleCheck = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
   });
 });
 
+// «✦ Стиль із референсів»: up to 6 reference pictures (downscaled in the browser) → a proposal for the overall style card
+// { manifesto, palette, avoid, light, materials, shapes, rules } — the author ticks the fields to take (nothing is written here).
+// POST { worldId, gameId, images: [{ data, mediaType }], language? }; Worldbuilder, active subscription; priced styleFromRefs.
+const PROPOSAL_FIELDS = ['manifesto', 'palette', 'avoid', 'light', 'materials', 'shapes', 'rules'];
+exports.styleFromRefs = onRequest({ region: 'us-central1', secrets: [claudeApiKey], timeoutSeconds: 180 }, async (req, res) => {
+  return cors(req, res, async () => {
+    let uid, reservation = null;
+    try {
+      if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+      const auth = req.headers.authorization || '';
+      if (!auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Потрібна автентифікація' });
+      try { uid = (await admin.auth().verifyIdToken(auth.slice(7))).uid; } catch (e) { return res.status(401).json({ error: 'Невірний токен автентифікації' }); }
+      const body = req.body || {};
+      uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
+      const worldId = str(body.worldId, 120), gameId = str(body.gameId, 120);
+      if (!worldId || !gameId) return res.status(400).json({ error: 'Missing worldId/gameId' });
+      const images = (Array.isArray(body.images) ? body.images : []).slice(0, 6).map((r) => imageBlock(r && r.data, (r && r.mediaType) || 'image/jpeg')).filter(Boolean);
+      if (!images.length) return res.status(400).json({ error: 'Додай картинки в «Референси» гри', code: 'NO_REFS' });
+      const wref = db.collection('worlds').doc(worldId), gref = wref.collection('games').doc(gameId);
+      const [w, g, userDoc] = await Promise.all([wref.get(), gref.get(), db.collection('users').doc(uid).get()]);
+      if (!w.exists || w.data().owner !== uid || !g.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
+      const userData = userDoc.exists ? userDoc.data() : {};
+      if (!getPlanBudget(userData.plan || 'free').allowGameDev) return res.status(403).json({ error: 'Візуальний стиль з ШІ — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
+      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для ШІ', requiresSubscription: true });
+
+      const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
+      const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
+      const { tier, model } = await modelFor(db, userData, userData.plan || 'free');
+      const reserveCost = featureCost(byOp('styleFromRefs'), providerEconomy && providerEconomy.cost, tier); // gamebible.js shows the same price
+      const balance = getBalance(userData);
+      if (balance.available < reserveCost) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+      try { reservation = await reserve(db, uid, reserveCost); } catch (e) {
+        if (e.code !== 'OUT_OF_TOKENS') throw e;
+        return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+      }
+      const lang = LANGUAGES[body.language] || LANGUAGES.uk, game = g.data();
+      const system = `You are the art director of the game "${str(game.title, 160)}". From the author's reference pictures, write the game's overall visual style guide —
+what the pictures share, stated so an artist and an AI can check any new picture against it. Describe the common ground, not each picture.`;
+      const content = [{ type: 'text', text: 'REFERENCE PICTURES:' }].concat(images, [{ type: 'text', text: `Return ONLY JSON:
+{ "manifesto": "<2-4 sentences: the feel of the style>",
+  "palette": "<5-8 lines, each '#rrggbb — name / role' (base, accents, shadows), taken from the pictures>",
+  "avoid": "<2-4 lines '#rrggbb — why' of colours that would break it>",
+  "light": "<light and mood>", "materials": "<materials and textures>", "shapes": "<shapes, proportions, silhouette>",
+  "rules": "<4-8 lines 'Так: …' / 'Ні: …' (in English 'Do: …' / 'Don't: …')>" }
+Short, concrete, no invented lore. Write in ${lang}.` }]);
+      const msg = await claudeText(claudeApiKey.value(), { model, system, prompt: content, maxTokens: 4000, effort: 'low' });
+      if (msg.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      const p = parseJson(msg.text), proposal = {};
+      PROPOSAL_FIELDS.forEach((k) => { const v = str(p && p[k], 3000); if (v) proposal[k] = v; });
+      if (!Object.keys(proposal).length) throw new Error('AI не дав стилю');
+      const usage = { input_tokens: msg.usage.input_tokens || 0, output_tokens: msg.usage.output_tokens || 0 };
+      const { userCost } = await charge(db, uid, 'generateScene', msg.model, usage, null, { provider: 'claude', targetWords: Math.round(usage.output_tokens * 0.75),
+        estimatedInputTokens: Math.ceil(system.length / 4) + 1600 * images.length, reserved: reservation, logAs: 'style_from_refs' });
+      reservation = null;
+      return res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
+    } catch (error) {
+      console.error('styleFromRefs error:', error);
+      return res.status(500).json({ error: `Помилка стилю з референсів: ${error.message}` });
+    } finally {
+      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[styleFromRefs] Refund failed:', e));
+    }
+  });
+});
+
 exports._style = { runCheck, imageBlock, CheckError };
