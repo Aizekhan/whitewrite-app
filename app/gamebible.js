@@ -15,6 +15,7 @@
   var STR = {
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
+      frameTip: "Кадр на картці: яку частину видно або вся картинка",
       comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити публікацію».",
         world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n}", hidden: "Приховано модератором після скарги — у спільноті не видно.",
         tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
@@ -224,6 +225,7 @@
     },
     en: {
       brand: "World Bible", engine: "Game engine",
+      frameTip: "Frame on the card: which part shows, or the whole picture",
       comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the publication”.",
         world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n}", hidden: "Hidden by a moderator after a report — not shown in the community.",
         tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
@@ -993,7 +995,7 @@
     if (hv) tags.unshift(polyMark(hv));
     var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
     var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
-    return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : bd ? sceneThumb(c.fields[bd.key]) : '') +
+    return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
@@ -1259,6 +1261,19 @@
   function descKeyOf(e) { return e.desc !== undefined || e.description === undefined ? "desc" : "description"; }
   function dosSection(kind) { return CANON.filter(function (s) { return s.dossier === kind; })[0]; }
   function entImage(e) { return ((e && e.files) || []).filter(isImage)[0]; }
+  // the author's frame of a face picture (⌖, frame-pick.js): which part fills the 16:9 thumb, or all of it
+  function frameAttr(f) { return f && f.frame && window.wwFrame ? ' style="' + window.wwFrame.style(f.frame) + '"' : ''; }
+  function pickFrame(target, id) {
+    var f = (target.files || []).filter(function (x) { return x.id === id; })[0]; if (!f || !window.wwFrame) return;
+    window.wwFrame.pick({ url: f.url, frame: f.frame, lang: LANG, onSave: async function (fr) {
+      var list = target.files.map(function (x) { return x.id === id ? Object.assign({}, x, { frame: fr }) : x; });
+      var ref = target === dos ? colOf(dos).doc(dos.id) : gref().collection("cards").doc(target.id);
+      try { await ref.set({ files: list, updatedAt: stamp() }, { merge: true }); }
+      catch (e) { (target === dos ? dmsg : msg)(STR.failed + ": " + (e.code || e.message || e)); throw e; }
+      target.files = list;
+      if (target === dos) renderDossier(); else if (open === target) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
+    } });
+  }
   function plain(v) { return String(v || "").replace(/[*`|#>-]+/g, " ").replace(/\s+/g, " ").slice(0, 220); }
   function renderDossiers(s) {
     var list = entities.filter(function (e) { return e.kind === s.dossier; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
@@ -1332,7 +1347,7 @@
     var img = entImage(e), tags = [];
     if ((e.lifeNotes || []).length) tags.push('<span class="flag">⟡ ' + e.lifeNotes.length + '</span>');
     if ((e.files || []).length) tags.push('<span class="flag">📎 ' + e.files.length + '</span>');
-    return '<button class="card dcard" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '">' : '') +
+    return '<button class="card dcard" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
       '<h3>' + esc(e.name || e.title || STR.newCard) + '</h3>' + (e.role ? '<p class="sub">' + esc(e.role) + '</p>' : '') +
       (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation ||
         Object.keys(e.fields || {}).map(function (k) { return e.fields[k]; }).join(" "))) + '</p></button>';
@@ -1397,6 +1412,7 @@
       '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
       (isAsset(f) ? licChip(f, dos.files, "data-dlic") : '') +
       (is3D(f) ? '<button class="btn" data-dview3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
+      (isImage(f) ? '<button class="btn" data-dframe="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
       '<button class="btn danger" data-drmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button></div>';
   }
   // Connections, derived both ways like wConnections() in wt-world.jsx (reverse links are never stored)
@@ -2036,6 +2052,7 @@
     if (e.target.closest("#d-recon")) { var re = dos; worldScenes().then(function (sc) { reconDialog(re, affectedScenes(sc, re)); }); return; }
     var ds = e.target.closest("[data-story]"); if (ds) { tellShell({ type: "ww-open-story", projectId: ds.dataset.story }); return; }
     var rm = e.target.closest("[data-drmfile]"); if (rm) { removeEntityFile(rm.dataset.drmfile); return; }
+    var dfr = e.target.closest("[data-dframe]"); if (dfr) { pickFrame(dos, dfr.dataset.dframe); return; }
     var v3 = e.target.closest("[data-dview3d]"); if (v3) { view3d(dos.files.filter(function (f) { return f.id === v3.dataset.dview3d; })[0], dos.files); return; }
     var dl = e.target.closest("[data-dlic]");
     if (dl) {
@@ -2451,6 +2468,7 @@
     var files = (open.files || []).filter(function (f) { return f.field === key; });
     var list = type === "image"
       ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' +
+          (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
     var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
@@ -2616,6 +2634,7 @@
         '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
         (isAsset(f) ? licChip(f, open.files, "data-lic") : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
+        (isImage(f) ? (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') : '') +
         (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
   }
   function filesHtml() {
@@ -4472,6 +4491,7 @@
     var qb = e.target.closest("[data-bulb]"); if (qb) { var bp = qb.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); return; }
     var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
+    var fr = e.target.closest("[data-frame]"); if (fr) { pickFrame(open, fr.dataset.frame); return; }
     var v3 = e.target.closest("[data-view3d]"); if (v3) { view3d(open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0], open.files); return; }
     var lb = e.target.closest("[data-lic]");
     if (lb) {

@@ -60,7 +60,7 @@
           ]],
           ["p", "Імпорт і звірка з репозиторієм — частина Біблії гри (тариф Worldbuilder). Чому Біблія гри замінює гейм-диздок — <a class=\"art__link\" data-art=\"gdd\">окрема стаття</a>."],
           ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб: картка «Біблія світу» (канон та ігри) і історії світу."],
-          ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Без своєї обкладинки світ показує стандартну — золоте дерево."],
+          ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево."],
           ["tip", "Кілька історій можуть жити в одному світі й ділити канон. Новий персонаж з однієї історії доступний в іншій і в грі."],
         ] },
       { cat: "start", id: "community", icon: "compass", title: "Спільнота",
@@ -139,7 +139,7 @@
         lead: "Спершу виріши, чи береш наш фреймворк, — від цього залежить, що ставити на ПК.",
         min: 2,
         body: [
-          ["p", "<b>Що таке RPG Framework.</b> Наш фреймворк для Unity 6 — готові модулі гри: бій, стати, квести, інвентар, лут, збереження, UI, кооп. Заточений під RPG, але підходить і для інших жанрів (roguelike, раннер, survival…). Архітектура модульна: компоненти не залежать один від одного напряму й спілкуються через події, тож гра легко росте, а агент додає нове, не ламаючи старого. Доступ — на платному тарифі (<a class=\"art__link\" data-art=\"fw-access\">токен фреймворку</a>); докладніше — <a class=\"art__link\" data-art=\"fw-what\">що таке RPG Framework</a>."],
+          ["p", "<b>Що таке RPG Framework.</b> Наш фреймворк для Unity 6 — готові модулі гри: бій, стати, квести, інвентар, лут, збереження, UI і мультиплеєр (кооператив до 8 гравців). Заточений під RPG, але підходить і для інших жанрів (roguelike, раннер, survival…). Архітектура модульна: компоненти не залежать один від одного напряму й спілкуються через події, тож гра легко росте, а агент додає нове, не ламаючи старого. Доступ — на платному тарифі (<a class=\"art__link\" data-art=\"fw-access\">токен фреймворку</a>); докладніше — <a class=\"art__link\" data-art=\"fw-what\">що таке RPG Framework</a>."],
           ["h", "З RPG Framework (Unity 6)"],
           ["ul", [
             "Агент не пише бій, квести чи інвентар заново — бере готові модулі.",
@@ -390,7 +390,7 @@
         lead: "Усе про сутність на одній сторінці.",
         min: 3,
         body: [
-          ["p", "Досьє: імʼя, опис, файли світу (зображення, моделі), у персонажів — «Хронологія життя» (нотатки на золотій лінії). Вкладки знизу: історія (біографія), Звʼязки, вигляд, «Поява в історіях та іграх»."],
+          ["p", "Досьє: імʼя, опис, файли світу (зображення, моделі), у персонажів — «Хронологія життя» (нотатки на золотій лінії). Вкладки знизу: історія (біографія), Звʼязки, вигляд, «Поява в історіях та іграх». Перше зображення стає фасадом картки (16:9); ⌖ біля картинки — «Кадр на картці»: перетягни, яку частину видно, або «Показати повністю»."],
           ["ul", [
             "Звʼязки — усі повʼязані сутності, клікабельно, в обидва боки.",
             "Поява — ігрові картки цієї сутності в кожній грі та сцени історій, де вона є.",
@@ -521,7 +521,7 @@
         lead: "Усе, що потрібно агенту для роботи.",
         min: 3,
         body: [
-          ["p", "Статуси: ідея · погоджено · в роботі · в грі · замінити. Олівець у кутку картки вмикає режим полів: перейменувати, змінити тип (текст, таблиця, зображення, файл, палітра кольорів, мініпостановка сцени), видалити чи додати поле."],
+          ["p", "Статуси: ідея · погоджено · в роботі · в грі · замінити. Олівець у кутку картки вмикає режим полів: перейменувати, змінити тип (текст, таблиця, зображення, файл, палітра кольорів, мініпостановка сцени), видалити чи додати поле. Перше зображення стає фасадом картки (16:9); ⌖ біля картинки — «Кадр на картці»: перетягни, яку частину видно, або «Показати повністю»."],
           ["p", "«Модель / префаб» і «Модель / іконка» — файлові поля. Файли (до 200 МБ) лежать у сховищі; 3D-моделі відкриваються кнопкою «🧊 3D» прямо в браузері."],
           ["p", "Агент бачить картки, поля й посилання на файли через MCP."],
         ] },
@@ -860,7 +860,7 @@
           ]],
           ["p", "The import and the repository check are part of the Game Bible (the Worldbuilder plan). Why the Game Bible replaces a game design document — <a class=\"art__link\" data-art=\"gdd\">a separate article</a>."],
           ["p", "“Choose your world” — your worlds. An open world is its hub: the “World Bible” card (canon and games) and the world's stories."],
-          ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. Without a cover of its own a world shows the default one — the golden tree."],
+          ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree."],
           ["tip", "Several stories can live in one world and share the canon. A new character from one story is there for another and for the game."],
         ] },
       { cat: "start", id: "community", icon: "compass", title: "Community",
@@ -939,7 +939,7 @@
         lead: "First decide whether you take our framework — it decides what to install on the PC.",
         min: 2,
         body: [
-          ["p", "<b>What RPG Framework is.</b> Our framework for Unity 6 — ready game modules: combat, stats, quests, inventory, loot, saves, UI, co-op. Built mainly for RPGs, but it fits other genres too (roguelike, runner, survival…). The architecture is modular: components don't depend on each other directly and talk through events, so the game grows easily and the agent adds new things without breaking the old. Access is on a paid plan (<a class=\"art__link\" data-art=\"fw-access\">the framework token</a>); more — <a class=\"art__link\" data-art=\"fw-what\">what RPG Framework is</a>."],
+          ["p", "<b>What RPG Framework is.</b> Our framework for Unity 6 — ready game modules: combat, stats, quests, inventory, loot, saves, UI and multiplayer (co-op for up to 8 players). Built mainly for RPGs, but it fits other genres too (roguelike, runner, survival…). The architecture is modular: components don't depend on each other directly and talk through events, so the game grows easily and the agent adds new things without breaking the old. Access is on a paid plan (<a class=\"art__link\" data-art=\"fw-access\">the framework token</a>); more — <a class=\"art__link\" data-art=\"fw-what\">what RPG Framework is</a>."],
           ["h", "With RPG Framework (Unity 6)"],
           ["ul", [
             "The agent doesn't rewrite combat, quests or inventory — it takes the ready modules.",
@@ -1190,7 +1190,7 @@
         lead: "Everything about an entity on one page.",
         min: 3,
         body: [
-          ["p", "A dossier: name, description, world files (images, models), and for characters a “Life timeline” (notes on a gold line). Tabs at the bottom: story (biography), Connections, look, “Appears in stories and games”."],
+          ["p", "A dossier: name, description, world files (images, models), and for characters a “Life timeline” (notes on a gold line). Tabs at the bottom: story (biography), Connections, look, “Appears in stories and games”. The first image becomes the card face (16:9); ⌖ next to a picture is “Frame on the card”: drag which part shows, or “Show it whole”."],
           ["ul", [
             "Connections — every linked entity, clickable, both ways.",
             "Appears — this entity's game cards in every game and the story scenes it is in.",
@@ -1321,7 +1321,7 @@
         lead: "Everything the agent needs to work.",
         min: 3,
         body: [
-          ["p", "Statuses: idea · agreed · in progress · in game · replace. The pencil in the card's corner turns on field mode: rename, change the type (text, table, image, file, colour palette, scene mock-up), delete or add a field."],
+          ["p", "Statuses: idea · agreed · in progress · in game · replace. The pencil in the card's corner turns on field mode: rename, change the type (text, table, image, file, colour palette, scene mock-up), delete or add a field. The first image becomes the card face (16:9); ⌖ next to a picture is “Frame on the card”: drag which part shows, or “Show it whole”."],
           ["p", "“Model / prefab” and “Model / icon” are file fields. Files (up to 200 MB) are kept in storage; 3D models open with “🧊 3D” right in the browser."],
           ["p", "The agent sees cards, fields and file links over MCP."],
         ] },

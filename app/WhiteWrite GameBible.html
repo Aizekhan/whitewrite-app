@@ -248,6 +248,7 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .fimg{ position:relative; }
 .fimg img{ width:120px; height:80px; object-fit:cover; border-radius:7px; display:block; border:1px solid var(--line-2); }
 .fimg button{ position:absolute; top:3px; right:3px; padding:0 6px; font-size:12px; }
+.fimg button[data-frame]{ right:auto; left:3px; }
 .kicker{ font-size:12px; color:var(--tx-mid); letter-spacing:.12em; text-transform:uppercase; }
 #e-title,#d-title{ font:600 1.6rem/1.15 "Cinzel",serif; color:var(--tx-hi); background:transparent; border:1px solid transparent; border-radius:8px; padding:2px 6px; margin-left:-6px; width:100%; }
 #e-title:hover,#e-title:focus,#d-title:hover,#d-title:focus{ border-color:var(--line-2); background:#0003; }
@@ -656,6 +657,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/narrative-validate.js"></script>
 <script src="firebase/setup-guides.js"></script>
 <script src="firebase/token-budget.js"></script>
+<script src="frame-pick.js"></script>
 <script src="gamebible.js"></script>
 </body>
 </html>

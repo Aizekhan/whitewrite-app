@@ -147,6 +147,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .ncard__open svg{ width:15px; height:15px; }
 .ncard__media{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .ncard--bible{ cursor:pointer; }
+.ncard--world .ncard__cover, .ncard--bible .ncard__cover, #we-cover{ height:auto; aspect-ratio:16/9; } /* world covers: the screen's 16:9, framed with ⌖ */
 .pe-cover .ncard__media{ border-radius:12px; }
 .ncard--new{ align-items:center; justify-content:center; cursor:pointer; border-style:dashed; min-height:230px; color:var(--tx-mid); }
 .ncard--new:hover{ color:var(--gold-lit); border-color:rgba(217,160,70,0.5); }
@@ -1360,7 +1361,7 @@ body:not(.at-home) .userdock{ display:none; }
         '<div class="grid grid--narr" style="margin-top:28px">' +
           (PROJECTS_LOADING && !WORLDS.length ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
            WORLDS.map(function (w) {
-             return '<article class="ncard" data-world="' + escapeHtml(w.id) + '">' +
+             return '<article class="ncard ncard--world" data-world="' + escapeHtml(w.id) + '">' +
                '<div class="ncard__cover">' + worldMediaHtml(w) +
                  '<button class="ncard__edit" data-wedit title="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '" aria-label="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '">' + svg("edit") + '</button></div>' +
                '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(w.title || t('worlds.untitled')) + '</div>' +
@@ -1384,9 +1385,10 @@ body:not(.at-home) .userdock{ display:none; }
   function worldMediaHtml(w) {
     var c = w && w.cover;
     if (!c || !c.url) return '<img class="ncard__media" src="assets/ph-world.jpg" alt="" loading="lazy">'; // the default cover of every world
+    var st = c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : ''; // ⌖ the author's frame (frame-pick.js)
     return c.type === "video"
-      ? '<video class="ncard__media" src="' + escapeHtml(c.url) + '" muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
-      : '<img class="ncard__media" src="' + escapeHtml(c.url) + '" alt="" loading="lazy">';
+      ? '<video class="ncard__media" src="' + escapeHtml(c.url) + '"' + st + ' muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
+      : '<img class="ncard__media" src="' + escapeHtml(c.url) + '"' + st + ' alt="" loading="lazy">';
   }
   var COVER_MAX = { image: 10, video: 50 }; // MB, the same as storage.rules
   function openWorldEdit(id) {
@@ -1395,13 +1397,14 @@ body:not(.at-home) .userdock{ display:none; }
     if (!ov) {
       ov = document.createElement("div"); ov.className = "proj-edit"; ov.id = "world-edit"; document.body.appendChild(ov);
     }
-    var file = null, removed = false;
+    var file = null, removed = false, frame = w.cover && w.cover.frame ? w.cover.frame : null, shown = null;
     ov.innerHTML = '<div class="pe-scrim" data-wx></div><div class="pe-card" role="dialog" aria-modal="true" aria-labelledby="we-h">' +
       '<button class="pe-x" data-wx aria-label="' + escapeHtml(cmT("Закрити", "Close")) + '">✕</button>' +
       '<div class="pe-kicker">' + cmT("Світ", "World") + '</div><h2 class="pe-title-h" id="we-h">' + cmT("Редагувати світ", "Edit the world") + '</h2>' +
       '<div class="pe-field"><span class="pe-lbl">' + cmT("Обкладинка — картинка або відео", "Cover — an image or a video") + '</span>' +
         '<div class="pe-cover" id="we-cover"><span class="pe-cover__ph">' + cmT("Своя обкладинка світу", "Your world's cover") + '</span>' +
           '<label class="pe-cover__btn"><span>' + cmT("Завантажити", "Upload") + '</span><input type="file" accept="image/*,video/mp4,video/webm" id="we-file" style="display:none"></label>' +
+          '<button class="pe-cover__del" id="we-frame" type="button">⌖ ' + cmT("Кадр", "Frame") + '</button>' +
           '<button class="pe-cover__del" id="we-del" type="button">' + cmT("Прибрати", "Remove") + '</button></div>' +
         '<span class="pe-hint">' + cmT("Картинка до 10 МБ або відео MP4/WebM до 50 МБ — грає по колу без звуку.", "An image up to 10 MB or an MP4/WebM video up to 50 MB — loops silently.") + '</span></div>' +
       '<label class="pe-field"><span class="pe-lbl">' + cmT("Назва", "Name") + '</span><input class="pe-input" id="we-title" maxlength="160"></label>' +
@@ -1412,8 +1415,8 @@ body:not(.at-home) .userdock{ display:none; }
     q("#we-title").value = w.title || ""; q("#we-tag").value = w.tagline || "";
     var preview = function (c) {
       var box = q("#we-cover"), old = box.querySelector(".ncard__media"); if (old) old.remove();
-      box.insertAdjacentHTML("afterbegin", worldMediaHtml({ cover: c }));
-      q(".pe-cover__ph").style.display = c ? "none" : ""; q("#we-del").style.display = c ? "" : "none";
+      shown = c; box.insertAdjacentHTML("afterbegin", worldMediaHtml({ cover: c ? Object.assign({}, c, { frame: frame }) : null }));
+      q(".pe-cover__ph").style.display = c ? "none" : ""; q("#we-del").style.display = c ? "" : "none"; q("#we-frame").style.display = c ? "" : "none";
     };
     preview(w.cover && w.cover.url ? w.cover : null);
     q("#we-file").onchange = function (e) {
@@ -1421,10 +1424,14 @@ body:not(.at-home) .userdock{ display:none; }
       var type = /^video\//.test(f.type) ? "video" : /^image\//.test(f.type) ? "image" : "";
       if (!type || (type === "video" && !/^video\/(mp4|webm)$/.test(f.type))) { say(cmT("Підходять картинки та відео MP4 / WebM.", "Images and MP4 / WebM videos only.")); return; }
       if (f.size > COVER_MAX[type] * 1024 * 1024) { say(cmT("Завеликий файл: ", "The file is too big: ") + "≤ " + COVER_MAX[type] + cmT(" МБ", " MB")); return; }
-      file = { f: f, type: type }; removed = false; say("");
+      file = { f: f, type: type }; removed = false; frame = null; say("");
       preview({ url: URL.createObjectURL(f), type: type });
     };
-    q("#we-del").onclick = function () { file = null; removed = true; preview(null); };
+    q("#we-del").onclick = function () { file = null; removed = true; frame = null; preview(null); };
+    q("#we-frame").onclick = function () {
+      if (!shown || !window.wwFrame) return;
+      window.wwFrame.pick({ url: shown.url, video: shown.type === "video", frame: frame, lang: cmT("uk", "en"), onSave: function (fr) { frame = fr; preview(shown); } });
+    };
     var close = function () { ov.classList.remove("is-on"); document.removeEventListener("keydown", onKey); };
     var onKey = function (e) { if (e.key === "Escape") close(); };
     document.addEventListener("keydown", onKey);
@@ -1441,11 +1448,13 @@ body:not(.at-home) .userdock{ display:none; }
           task.on("state_changed", function (s) { say(cmT("Завантаження… ", "Uploading… ") + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
           await task;
           patch.cover = { url: await task.snapshot.ref.getDownloadURL(), path: path, type: file.type };
+          if (frame) patch.cover.frame = frame;
         } else if (removed) patch.cover = firebase.firestore.FieldValue.delete();
+        else if (w.cover && w.cover.url && frame) patch.cover = Object.assign({}, w.cover, { frame: frame }); // only the frame changed
         await db.collection("worlds").doc(id).set(patch, { merge: true });
         if ((file || removed) && oldPath) firebase.storage().ref(oldPath).delete().catch(function () {}); // the replaced file
         Object.assign(w, { title: patch.title, tagline: patch.tagline });
-        if (file) w.cover = patch.cover; else if (removed) delete w.cover;
+        if (file || (!removed && patch.cover)) w.cover = patch.cover; else if (removed) delete w.cover;
         close(); fillWorlds(); if (CURRENT_WORLD === id) fillHome();
       } catch (er) { btn.disabled = false; say(cmT("Не вдалося зберегти: ", "Could not save: ") + (er.code || er.message)); }
     };
@@ -2428,6 +2437,7 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 }
 </script>
 
+<script src="frame-pick.js"></script>
 <script src="kb.js"></script>
 
 <!-- Pricing integration removed - now in Account modal -->
