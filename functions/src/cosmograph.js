@@ -3,6 +3,7 @@
 // once per 30 days for that world. worlds/{w}.cosmograph { enabled, paidUntil, paidAt } is written only here
 // (firestore.rules keep it read-only for clients); the sky itself lives in worlds/{w}.cosmos (client-written).
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget } = require('./common');
+const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 
 const { featureCost, byOp } = require('../paid-features.js');
 const COSMOGRAPH_COST = featureCost(byOp('cosmograph')); // paid-features.js (gamebible.js reads the same)
@@ -55,6 +56,7 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
       }
       const until = admin.firestore.Timestamp.fromMillis(now + PERIOD_MS);
       await worldRef.set({ cosmograph: { enabled: true, paidUntil: until, paidAt: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      ledger.record(db, uid, { type: 'spend', op: 'cosmograph_month', amount: -COSMOGRAPH_COST, balance: reservation.available, ref: { worldId } });
       reservation = null;
       await db.collection('usage_logs').add({ uid, operation: 'cosmograph_month', worldId, userTokensCharged: COSMOGRAPH_COST,
         realApiCostUSD: 0, timestamp: admin.firestore.FieldValue.serverTimestamp() }).catch((e) => console.error('[cosmograph] log failed:', e));

@@ -273,6 +273,14 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .cb-form input:not([type=checkbox]), .cb-form textarea, .cb-form select{ font:inherit; font-size:14px; color:var(--tx-hi); background:var(--bg-1); border:1px solid var(--line-2); border-radius:9px; padding:9px 10px; }
 .cm-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:22px 0 18px; }
 .cm-bar__sp{ flex:1; }
+.ledger{ overflow-x:auto; border:1px solid var(--line-2); border-radius:12px; }
+.ledger table{ width:100%; border-collapse:collapse; font-size:13px; }
+.ledger th,.ledger td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line-2); color:var(--tx-mid); }
+.ledger th{ font-weight:600; color:var(--tx-hi, #eadfca); position:sticky; top:0; background:var(--bg-2); }
+.ledger .num{ text-align:right; white-space:nowrap; } .ledger .is-in{ color:#7fd8a0; } .ledger .is-out{ color:#e8c26a; }
+.ledger__n{ opacity:.7; font-size:12px; } .ledger__r{ background:none; border:none; cursor:pointer; font-size:15px; }
+.ledger tbody{ display:block; max-height:420px; overflow:auto; } .ledger thead,.ledger tbody tr{ display:table; width:100%; table-layout:fixed; }
+.ledger th:nth-child(1),.ledger td:nth-child(1){ width:24%; } .ledger th:nth-child(3),.ledger td:nth-child(3),.ledger th:nth-child(4),.ledger td:nth-child(4){ width:14%; } .ledger th:nth-child(5),.ledger td:nth-child(5){ width:8%; }
 /* Спільнота: one bar at the top with every control of the tab and ✕ (back to the home page) */
 .cm-top{ position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px clamp(20px,4vw,44px);
   background:rgba(12,10,14,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line-2); }
@@ -1990,12 +1998,70 @@ body:not(.at-home) .userdock{ display:none; }
         modelHtml(u, currentLang === 'en') +
         '<div id="acc-notices"></div>' +
         integHtml(currentLang) +
+        '<div id="acc-ledger"></div>' +
         '<button class="pe-btn" style="margin-top:22px;color:var(--st-draft);border-color:rgba(224,86,79,0.4)" onclick="window.__wwLogout&&window.__wwLogout()">' + t('account.logoutButton') + '</button>' +
       '</div>';
     bindAccount();
     bindModel(currentLang === 'en');
     loadNotices(currentLang === 'en');
     loadIntegKeys(currentLang);
+    loadLedger(currentLang === 'en');
+  }
+  // «Історія токенів»: users/{uid}/ledger (written only by the server, functions/src/ledger.js) + a printable receipt for any entry
+  var LEDGER_OPS = {
+    monthly: ["Бюджет тарифу на місяць", "The plan's monthly budget"], plan_upgrade: ["Перехід на вищий тариф", "Upgrade to a higher plan"],
+    plan_upgrade_fee: ["Комісія за зміну тарифу", "Plan switch fee"], topup: ["Поповнення токенів", "Token top-up"],
+    project_slot: ["Додатковий слот проєкту", "Extra project slot"], cosmograph_month: ["Космограф · 30 днів", "Cosmograph · 30 days"],
+    marketing_month: ["Міні-маркетинг · 30 днів", "Mini-Marketing · 30 days"], generateScene: ["Сцена", "Scene"], analyzeScene: ["✦ Порадити", "✦ Advise"],
+    style_check: ["ШІ-перевірка стилю", "AI style check"], style_check_mcp: ["Перевірка стилю (Claude Code)", "Style check (Claude Code)"],
+    marketing_draft: ["Пост для маркетингу", "Marketing post"], licence_review: ["Перевірка на ліцензію продажу", "Licence review for sale"]
+  };
+  function ledgerOp(e, en) { var o = LEDGER_OPS[e.op] || (/^narrative_/.test(e.op) ? ["Чернетка квесту / діалогу", "Quest / dialogue draft"] : null); return o ? o[en ? 1 : 0] : e.op; }
+  function ledgerDate(e) { var d = e.at && e.at.toDate ? e.at.toDate() : null; return d ? d.toLocaleString() : "—"; }
+  function loadLedger(en) {
+    var box = document.getElementById('acc-ledger'), fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
+    if (!box || !user) return;
+    fb.db.collection('users').doc(user.uid).collection('ledger').orderBy('at', 'desc').limit(100).get().then(function (snap) {
+      var rows = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      window.__wwLedger = rows;
+      box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'Token history' : 'Історія токенів') + '</div>' +
+        (rows.length ? '<div class="ledger"><table><thead><tr><th>' + (en ? 'Date' : 'Дата') + '</th><th>' + (en ? 'What' : 'Що') + '</th><th class="num">' + (en ? 'Tokens' : 'Токени') +
+          '</th><th class="num">' + (en ? 'Balance' : 'Залишок') + '</th><th></th></tr></thead><tbody>' + rows.map(function (e) {
+            return '<tr><td>' + esc(ledgerDate(e)) + '</td><td>' + esc(ledgerOp(e, en)) + (e.note ? ' <span class="ledger__n">· ' + esc(e.note) + '</span>' : '') + '</td>' +
+              '<td class="num ' + (e.amount > 0 ? 'is-in' : 'is-out') + '">' + (e.amount > 0 ? '+' : '−') + Math.abs(e.amount).toLocaleString() + '</td>' +
+              '<td class="num">' + (e.balance != null ? e.balance.toLocaleString() : '—') + '</td>' +
+              '<td><button class="ledger__r" data-receipt="' + esc(e.id) + '" title="' + (en ? 'Receipt' : 'Квитанція') + '" aria-label="' + (en ? 'Receipt' : 'Квитанція') + '">🧾</button></td></tr>';
+          }).join("") + '</tbody></table></div>'
+        : '<p class="vhead__s">' + (en ? 'No token moves yet. Every top-up, monthly budget and paid action will show here.' : 'Ще немає рухів токенів. Тут зʼявляться поповнення, місячні бюджети й кожна платна дія.') + '</p>');
+      [].forEach.call(box.querySelectorAll('[data-receipt]'), function (b) { b.onclick = function () { printReceipt(b.dataset.receipt, en); }; });
+    }).catch(function (e) { console.warn('ledger', e); });
+  }
+  function printReceipt(id, en) {
+    var e = (window.__wwLedger || []).filter(function (x) { return x.id === id; })[0], u = window.__wwUser || {}, fb = window.__firebase, au = fb && fb.auth && fb.auth.currentUser;
+    if (!e) return;
+    var RL = { orderId: ["Замовлення", "Order"], plan: ["Тариф", "Plan"], model: ["Модель", "Model"], worldId: ["Світ", "World"], gameId: ["Гра", "Game"],
+      projectId: ["Історія", "Story"], licenceId: ["Ліцензія", "Licence"], dealId: ["Угода", "Deal"] };
+    var ref = e.ref || {}, refs = Object.keys(ref).map(function (k) { return '<tr><th>' + esc(RL[k] ? RL[k][en ? 1 : 0] : k) + '</th><td>' + esc(ref[k]) + '</td></tr>'; }).join("");
+    var T = en ? { t: 'Receipt', no: 'No.', date: 'Date', who: 'Account', what: 'Operation', type: 'Type', amt: 'Tokens', bal: 'Balance after', note: 'Note',
+        foot: 'A receipt for a move of tokens inside WhiteWrite. Money payments (subscriptions, top-ups) are receipted by our payment provider Lemon Squeezy, the seller of record.',
+        types: { grant: 'Plan budget', topup: 'Top-up', spend: 'Spent', refund: 'Refund', adjust: 'Correction' } }
+      : { t: 'Квитанція', no: '№', date: 'Дата', who: 'Акаунт', what: 'Операція', type: 'Тип', amt: 'Токени', bal: 'Залишок після', note: 'Примітка',
+        foot: 'Квитанція про рух токенів усередині WhiteWrite. Платежі грошима (підписки, поповнення) підтверджує чек нашого платіжного провайдера Lemon Squeezy — продавця від нашого імені.',
+        types: { grant: 'Бюджет тарифу', topup: 'Поповнення', spend: 'Витрата', refund: 'Повернення', adjust: 'Коригування' } };
+    var w = window.open('', '_blank', 'width=640,height=760'); if (!w) return;
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + T.t + ' ' + esc(e.id) + '</title><style>body{font:14px/1.5 system-ui,sans-serif;color:#111;max-width:560px;margin:32px auto;padding:0 16px}' +
+      'h1{font:600 22px Georgia,serif;margin:0 0 4px}.k{color:#666;font-size:12px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{text-align:left;padding:7px 4px;border-bottom:1px solid #ddd;vertical-align:top}' +
+      'th{width:38%;color:#555;font-weight:500}.amt{font-size:20px;font-weight:700}p{color:#555;font-size:12px}@media print{button{display:none}}</style></head><body>' +
+      '<div class="k">WhiteWrite · whitewrite.com</div><h1>' + T.t + '</h1><div class="k">' + T.no + ' ' + esc(e.id) + '</div><table>' +
+      '<tr><th>' + T.date + '</th><td>' + esc(ledgerDate(e)) + '</td></tr>' +
+      '<tr><th>' + T.who + '</th><td>' + esc(u.name || '') + (au && au.email ? ' · ' + esc(au.email) : '') + '</td></tr>' +
+      '<tr><th>' + T.type + '</th><td>' + esc(T.types[e.type] || e.type) + '</td></tr>' +
+      '<tr><th>' + T.what + '</th><td>' + esc(ledgerOp(e, en)) + '</td></tr>' +
+      '<tr><th>' + T.amt + '</th><td class="amt">' + (e.amount > 0 ? '+' : '−') + Math.abs(e.amount).toLocaleString() + '</td></tr>' +
+      '<tr><th>' + T.bal + '</th><td>' + (e.balance != null ? e.balance.toLocaleString() : '—') + '</td></tr>' +
+      (e.note ? '<tr><th>' + T.note + '</th><td>' + esc(e.note) + '</td></tr>' : '') + refs + '</table><p>' + T.foot + '</p>' +
+      '<button onclick="print()">' + (en ? 'Print / save as PDF' : 'Друк / зберегти PDF') + '</button></body></html>');
+    w.document.close();
   }
   // «Модель Claude»: WhiteWrite writes ONLY with Claude; the author picks the model their plan opens
   // (users.settings.aiModel — the server re-checks the plan, functions/src/claude.js modelFor)

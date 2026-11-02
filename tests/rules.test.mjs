@@ -80,6 +80,10 @@ const cases = [
   P('a user reads their own like', 'ALLOW', 'get', '/community/w1/likes/u2', 'u2', { at: 1 }),
   P('a guest reads the home page cards', 'ALLOW', 'get', '/community_home/current', null, { top: [] }),
   P('a user CANNOT read reports', 'DENY', 'get', '/community_reports/w1__u2', 'u2', { uid: 'u2' }),
+  // «Історія токенів»: the owner reads their ledger, nobody writes it from the client
+  P('the owner reads their token ledger', 'ALLOW', 'get', '/users/u2/ledger/e1', 'u2', { type: 'spend', amount: -5 }),
+  P('a stranger CANNOT read a token ledger', 'DENY', 'get', '/users/u2/ledger/e1', 'u3', { type: 'spend', amount: -5 }),
+  P('the owner CANNOT write their token ledger', 'DENY', 'create', '/users/u2/ledger/e2', 'u2', { type: 'topup', amount: 99999 }),
   // «Співтворці»: own posts only, one per type, the server owns hidden / reports
   P('a user posts their offer', 'ALLOW', 'create', '/collab/u2_offer', 'u2', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
   P('a user CANNOT post under another id', 'DENY', 'create', '/collab/u3_offer', 'u2', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),

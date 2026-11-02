@@ -16,6 +16,7 @@ const admin = require('firebase-admin');
 const { MODEL_PRICING } = require('./ai-models.js');
 const { tokensForUsd, USD_PER_TOKEN } = require('./paid-features.js');
 const { getPlanBudget } = require('./plans.js');
+const ledger = require('./src/ledger.js'); // users/{uid}/ledger — what the user sees in «Історія токенів»
 
 // The API answers with a dated id (claude-sonnet-4-5-20250929); price it by the configured alias it starts with.
 // Prices of models switched in by modelWatch live in config/ai_models.pricing (read in charge(), cached 5 min).
@@ -73,7 +74,10 @@ function applyDebit(tx, ref, userData, amount, allowOverdraft) {
     tokensUsed: b.used + fromMonthly + overflow,
     bonusTokens: b.bonus - fromBonus
   };
-  if (b.expired) updates.periodStart = admin.firestore.Timestamp.now();
+  if (b.expired) {
+    updates.periodStart = admin.firestore.Timestamp.now();
+    ledger.txRecord(tx, ref.firestore, ref.id, { type: 'grant', op: 'monthly', amount: b.monthly, balance: b.available, ref: { plan: b.plan } }); // a new period opened
+  }
   tx.update(ref, updates);
   return { fromMonthly: fromMonthly + overflow, fromBonus, available: b.available - amount };
 }
@@ -342,14 +346,18 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(userRef);
     const userData = snap.exists ? snap.data() : {};
+    let delta = userCost;
     if (options.reserved) {
       const reservedTotal = (options.reserved.fromMonthly || 0) + (options.reserved.fromBonus || 0);
-      const delta = userCost - reservedTotal;
+      delta = userCost - reservedTotal;
       if (delta > 0) applyDebit(tx, userRef, userData, delta, true);
       else if (delta < 0) applyCredit(tx, userRef, userData, { fromMonthly: -delta, fromBonus: 0 });
     } else {
       applyDebit(tx, userRef, userData, userCost, true);
     }
+    const b = getBalance(userData);
+    ledger.txRecord(tx, db, uid, { type: 'spend', op: options.logAs || operation, amount: -userCost, balance: (b.expired ? b.monthly + b.bonus : b.available) - delta,
+      ref: { projectId: projectId || null, model } });
   });
 
   console.log(`[TokenService] ✅ Deducted ${userCost} tokens from user ${uid}`);

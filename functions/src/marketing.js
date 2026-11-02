@@ -14,6 +14,7 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
 
@@ -198,6 +199,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
         try { reservation = await reserve(db, uid, MARKETING_COST); } catch (e) { if (e.code !== 'OUT_OF_TOKENS') throw e; return res.status(403).json({ error: 'Недостатньо токенів', code: 'OUT_OF_TOKENS' }); }
         const until = admin.firestore.Timestamp.fromMillis(now() + PERIOD_MS);
         await sref.set({ enabled: true, paidUntil: until, paidAt: ts() }, { merge: true });
+        ledger.record(db, uid, { type: 'spend', op: 'marketing_month', amount: -MARKETING_COST, balance: reservation.available, ref: { worldId, gameId } });
         reservation = null;
         await db.collection('usage_logs').add({ uid, operation: 'marketing_month', worldId, gameId, userTokensCharged: MARKETING_COST, realApiCostUSD: 0, timestamp: ts() }).catch(() => {});
         return res.status(200).json({ success: true, tokensConsumed: MARKETING_COST, paidUntil: until.toMillis() });

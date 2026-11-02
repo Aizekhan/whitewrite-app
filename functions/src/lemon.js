@@ -11,6 +11,7 @@ const {
   getBalance,
   verifyAuth,
 } = require('./common');
+const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { PLAN_ORDER, planRank, upgradeQuote } = require('../paid-features.js');
 
 const LS_API = 'https://api.lemonsqueezy.com/v1/subscriptions/';
@@ -77,6 +78,8 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
           updatedAt: admin.firestore.FieldValue.serverTimestamp() };
         if (b.expired) upd.periodStart = admin.firestore.Timestamp.now();
         await userRef.update(upd);
+        ledger.record(db, uid, { type: 'grant', op: 'plan_upgrade', amount: Math.max(0, quote.tokens), ref: { plan: target }, note: cur + ' → ' + target });
+        ledger.record(db, uid, { type: 'spend', op: 'plan_upgrade_fee', amount: -quote.fee, ref: { plan: target } });
         await db.collection('usage_logs').add({ uid, operation: 'plan_upgrade_fee', userTokensCharged: quote.fee, realApiCostUSD: 0, billing: 'fixed',
           from: cur, to: target, timestamp: admin.firestore.FieldValue.serverTimestamp() });
         return res.json({ ok: true, kind, plan: target, quote });
@@ -324,6 +327,7 @@ exports.lemonSqueezyWebhook = onRequest({
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
+        ledger.record(db, uid, { type: 'grant', op: 'monthly', amount: getPlanBudget(plan).monthly, ref: { plan }, note: 'subscription' });
         console.log(`[LemonSqueezy] User ${uid} upgraded to ${plan}`);
         break;
       }
@@ -444,6 +448,8 @@ exports.lemonSqueezyWebhook = onRequest({
             console.log(`[LemonSqueezy] Order ${orderId} already processed, skipping`);
             return false;
           }
+          ledger.txRecord(tx, db, uid, { type: 'topup', op: 'topup', amount: tokens, balance: getBalance(userDoc.data()).available + tokens, ref: { orderId: String(orderId) },
+            note: order.attributes && order.attributes.total_formatted ? 'Lemon Squeezy · ' + order.attributes.total_formatted : 'Lemon Squeezy' });
           tx.update(userRef, {
             bonusTokens: admin.firestore.FieldValue.increment(tokens),
             processedOrders: admin.firestore.FieldValue.arrayUnion(orderId),

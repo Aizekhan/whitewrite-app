@@ -32,6 +32,11 @@ service cloud.firestore {
                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(clientUserFields());
       allow delete: if false; // Users can't delete themselves via client
     }
+    // «Історія токенів» (functions/src/ledger.js): every move of the user's tokens — the owner reads, only the server writes
+    match /users/{userId}/ledger/{entryId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if false;
+    }
 
     // Worlds (canon = source of truth). Stories (projects) reference a world via worldId.
     function isWorldOwner(worldId) {

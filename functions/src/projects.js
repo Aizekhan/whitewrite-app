@@ -1,6 +1,7 @@
 // Projects (stories) are created ONLY here, so the plan's maxProjects holds (firestore.rules deny client creates).
 // Over the limit the author may buy a permanent extra slot for tokens (paid-features.js «projectSlot»).
 const { onRequest, admin, db, cors, getPlanBudget, getBalance, reserve, refund, verifyAuth } = require('./common');
+const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { byOp, featureCost } = require('../paid-features.js');
 
 const SLOT_COST = featureCost(byOp('projectSlot')); // tokens per extra project slot
@@ -72,6 +73,7 @@ exports.createProject = onRequest({ cors: true, timeoutSeconds: 30 }, async (req
         }
         await userRef.update({ extraProjects: admin.firestore.FieldValue.increment(1) });
         reservation.granted = true;
+        ledger.record(db, uid, { type: 'spend', op: 'project_slot', amount: -SLOT_COST, balance: reservation.available });
         await db.collection('usage_logs').add({ uid, operation: 'project_slot', userTokensCharged: SLOT_COST, realApiCostUSD: 0,
           billing: 'fixed', timestamp: admin.firestore.FieldValue.serverTimestamp() });
       }
