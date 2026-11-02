@@ -677,6 +677,14 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .fz-slots{ border-collapse:collapse; width:100%; } .fz-slots th, .fz-slots td{ text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:middle; } .fz-slots th{ width:34%; font-weight:500; }
 .fz-chip{ display:inline-flex; align-items:center; gap:4px; margin:2px 8px 2px 0; }
 .linkish{ background:none; border:0; padding:0; color:var(--gold-lit); cursor:pointer; text-decoration:underline; font:inherit; }
+/* 🎧 Аудіотека: ▶ on sound cards, the library list, Sound factory slots */
+.aplay{ display:inline-grid; place-items:center; min-width:26px; height:22px; padding:0 6px; border-radius:11px; border:1px solid var(--line-2); background:var(--bg-3); color:var(--gold-lit); cursor:pointer; font-size:11px; }
+.aplay:hover,.aplay:focus-visible,.aplay.is-on,[data-aplay].is-on,[data-sndplay].is-on{ border-color:var(--gold); background:var(--gold-soft); }
+.snd-file audio{ height:32px; max-width:280px; }
+.alib-miss{ list-style:none; padding:0; margin:0 0 18px; display:grid; gap:6px; max-height:320px; overflow:auto; }
+.alib-q{ width:100%; max-width:360px; margin:0 0 10px; background:var(--bg-2); color:var(--tx-hi); border:1px solid var(--line-2); border-radius:8px; padding:7px 10px; font:inherit; }
+.alib-t{ width:100%; border-collapse:collapse; } .alib-t td{ padding:7px 8px; border-top:1px solid var(--line); vertical-align:top; } .alib-t td:first-child{ width:40px; }
+.msnd{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; } .msnd-i{ display:inline-flex; align-items:center; gap:2px; padding:1px 4px 1px 1px; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-3); font-size:12px; }
 .fz-lo{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px; margin-top:6px; }
 .fz-set{ border:1px solid var(--line); border-radius:10px; margin:10px 0; display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; } .fz-set legend{ color:var(--tx-mid); font-size:12.5px; }
 .fz-iss{ margin:4px 0; padding-left:18px; } .fz-note{ margin:6px 0; font-size:13.5px; }

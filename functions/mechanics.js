@@ -10,12 +10,16 @@
 // FieldDef: { k, l: label ({uk,en} or the author's string), t: type, u: unit, req: 'r' (required) | 'rec' (recommended) | 'opt',
 //             adv: true (advanced view only), h: hint, o: options [{ v, l: {uk,en} }], ref: section id (rows of that table), min, max, custom: added by the author }
 // Types: text · long · num · pct · time (s) · bool · sel · multi · ref · refs · formula · range ("min–max") · json
+//        · sound — sounds of the game's Audio library (Аудіотека): [cardId] of «Звук і музика» cards with audio files; several = variations
+//          (the game picks one at random); lib: the library subsection an upload in the slot goes to (music | sfx | voice | ambience | ui);
+//          need: a field of the same row that must be filled for the slot to count as missing (e.g. the stinger text)
 
 (function () { // a closure: in the browser this file is a plain <script> sharing the global scope
-var TYPES = ['text', 'long', 'num', 'pct', 'time', 'bool', 'sel', 'multi', 'ref', 'refs', 'formula', 'range', 'json'];
+var TYPES = ['text', 'long', 'num', 'pct', 'time', 'bool', 'sel', 'multi', 'ref', 'refs', 'formula', 'range', 'json', 'sound'];
 var TYPE_NAMES = { text: ['Текст', 'Text'], long: ['Довгий текст', 'Long text'], num: ['Число', 'Number'], pct: ['Відсоток', 'Percent'], time: ['Час, с', 'Time, s'],
   bool: ['Перемикач', 'Toggle'], sel: ['Вибір зі списку', 'Choice'], multi: ['Множинний вибір', 'Multiple choice'], ref: ['Посилання на запис', 'Link to a row'],
-  refs: ['Посилання на кілька записів', 'Links to rows'], formula: ['Формула', 'Formula'], range: ['Діапазон', 'Range'], json: ['JSON / структуровані дані', 'JSON / structured data'] };
+  refs: ['Посилання на кілька записів', 'Links to rows'], formula: ['Формула', 'Formula'], range: ['Діапазон', 'Range'], json: ['JSON / структуровані дані', 'JSON / structured data'],
+  sound: ['Звук з Аудіотеки', 'Sound from the Audio library'] };
 var STAGES = [['concept', 'Концепція', 'Concept'], ['dev', 'У розробці', 'In development'], ['testing', 'Тестується', 'Testing'], ['ready', 'Готова', 'Ready']];
 
 // The categories of the Mechanics section: game SYSTEMS (rules, numbers, how they connect). Concrete content — the enemies,
@@ -530,7 +534,7 @@ var SCENE = { explore: [1, 'exploration theme, open and wandering, evolving, gen
   lyrical: [1, 'emotional lyrical moment, intimate, beautiful memorable melody'], cutscene: [2, 'cinematic cutscene score, narrative build, emotional swell'],
   menu: [1, 'main menu theme, iconic, inviting, memorable hook'], other: [2, ''] };
 var MUSIC = {
-  id: 'adaptive_music', sec: 'audio', version: 2, cat: 'music', sub: 'adaptive', complexity: 3, name: T('Адаптивна музика гри', 'Adaptive game music'),
+  id: 'adaptive_music', sec: 'audio', version: 3, cat: 'music', sub: 'adaptive', complexity: 3, name: T('Адаптивна музика гри', 'Adaptive game music'),
   desc: T('Музичні стани гри (дослідження, напруга, бій, бос, перемога, місто, меню…), шари, що вмикаються з інтенсивністю, переходи між станами за ігровими подіями, лейтмотиви, мікс — і готовий промпт для генератора музики для кожного стану.',
     'The game\'s music states (exploration, tension, combat, boss, victory, town, menu…), layers that switch on with intensity, transitions between states on game events, leitmotifs, the mix — and a ready prompt for a music generator for every state.'),
   purpose: T('Музика сама міняється разом із грою: з дослідницької на бойову й назад — безшовно, без різких обривів, і щоразу підкреслює те, що зараз відчуває гравець.', 'The music changes with the game by itself: from exploration to combat and back — seamlessly, without hard cuts, always backing what the player feels right now.'),
@@ -550,7 +554,8 @@ var MUSIC = {
       fields: [F('name', 'Назва', 'Name', 'text', R), F('situation', 'Ситуація', 'Situation', 'sel', X(R, { o: SITUATIONS })), F('mood', 'Настрій', 'Mood', 'multi', X(REC, { o: MOODS })),
         F('bpm', 'Темп', 'Tempo', 'num', X(R, { u: 'BPM', min: 40, max: 200 })), F('key', 'Лад', 'Key / mode', 'text', REC), F('style', 'Стиль (якщо інший)', 'Style (if different)', 'text', { req: 'opt', adv: true }),
         F('instruments', 'Інструменти', 'Instruments', 'long', REC), F('bars', 'Петля', 'Loop', 'num', X(REC, { u: 'тактів / bars', min: 2, max: 64 })), F('length', 'Тривалість', 'Length', 'time', X(REC, { u: 's', min: 5, max: 600 })),
-        F('where', 'Де звучить', 'Where it plays', 'text', REC), F('notes', 'Примітки', 'Notes', 'text', { req: 'opt', adv: true })],
+        F('where', 'Де звучить', 'Where it plays', 'text', REC), F('notes', 'Примітки', 'Notes', 'text', { req: 'opt', adv: true }),
+        F('sound', 'Трек', 'Track', 'sound', { req: 'opt', since: 3, lib: 'music', h: T('файл з Аудіотеки або новий — він теж ляже в Аудіотеку', 'a file from the Audio library or a new one — it goes into the library too') })],
       rows: [
         { _id: 'S1', name: 'Дослідження', situation: 'explore', mood: ['calm', 'dreamy'], bpm: 90, key: 'ре дорійський', instruments: 'теплі пади, фортепіано, легке синт-арпеджіо, повітряні струнні', bars: 16, length: 60, where: 'відкритий світ, ліс' },
         { _id: 'S2', name: 'Напруга', situation: 'tension', mood: ['tense', 'mystic'], bpm: 90, key: 'ре мінор', instruments: 'пульсуючий суб-бас, остинато віолончелей, тікаючі хай-хети, наростання', bars: 8, length: 30, where: 'ворог поруч' },
@@ -567,7 +572,7 @@ var MUSIC = {
       hint: T('Шари одного стану звучать разом і вмикаються з інтенсивністю: база завжди, далі — ударні, духові, хор. Так музика росте без зміни треку.', 'Layers of one state play together and switch on with intensity: the base always, then percussion, brass, choir. The music grows without changing the track.'),
       fields: [F('state', 'Стан', 'State', 'ref', X(R, { ref: 'states' })), F('name', 'Шар', 'Layer', 'text', R), F('instruments', 'Інструменти', 'Instruments', 'text', REC),
         F('when', 'Коли вмикається', 'Switches on when', 'text', X(R, { h: T('напр. «завжди», «інтенсивність ≥ 2», «ворогів ≥ 3», «здоровʼя < 30%»', 'e.g. “always”, “intensity ≥ 2”, “enemies ≥ 3”, “health < 30%”') })),
-        F('level', 'Рівень інтенсивності', 'Intensity level', 'num', X(REC, { min: 0, max: 5 })), F('fadeIn', 'Поява', 'Fade in', 'time', X(REC, { u: 's', min: 0, max: 10 })), F('db', 'Гучність', 'Volume', 'num', X({ req: 'opt', adv: true }, { u: 'dB', min: -40, max: 6 }))],
+        F('level', 'Рівень інтенсивності', 'Intensity level', 'num', X(REC, { min: 0, max: 5 })), F('fadeIn', 'Поява', 'Fade in', 'time', X(REC, { u: 's', min: 0, max: 10 })), F('sound', 'Звук шару', 'Layer audio', 'sound', { req: 'opt', since: 3, lib: 'music' }), F('db', 'Гучність', 'Volume', 'num', X({ req: 'opt', adv: true }, { u: 'dB', min: -40, max: 6 }))],
       rows: [
         { _id: 'L1', state: 'S1', name: 'База', instruments: 'пади, фортепіано, бас', when: 'завжди', level: 0, fadeIn: 2 },
         { _id: 'L2', state: 'S1', name: 'Рух', instruments: 'легкі електронні ударні', when: 'гравець біжить', level: 1, fadeIn: 1.5 },
@@ -580,7 +585,7 @@ var MUSIC = {
         'A transition is when and how the music moves between states. “On the bar” and “at the end of the loop” sound seamless; “immediately” only with a stinger or a crossfade. “Hold” keeps the music from flip-flopping.'),
       fields: [F('from', 'Звідки', 'From', 'ref', X(R, { ref: 'states' })), F('to', 'Куди', 'To', 'ref', X(R, { ref: 'states' })), F('trigger', 'Подія', 'Event', 'sel', X(R, { o: TRIGGERS })),
         F('timing', 'Коли перемкнути', 'When to switch', 'sel', X(R, { o: TIMINGS })), F('fade', 'Кросфейд', 'Crossfade', 'time', X(REC, { u: 's', min: 0, max: 10 })),
-        F('stinger', 'Стінгер', 'Stinger', 'text', REC), F('hold', 'Затримка перед поверненням', 'Hold before returning', 'time', X({ req: 'opt', adv: true }, { u: 's', min: 0, max: 30 }))],
+        F('stinger', 'Стінгер', 'Stinger', 'text', REC), F('stingerSound', 'Файл стінгера', 'Stinger file', 'sound', { req: 'opt', since: 3, lib: 'music', need: 'stinger' }), F('hold', 'Затримка перед поверненням', 'Hold before returning', 'time', X({ req: 'opt', adv: true }, { u: 's', min: 0, max: 30 }))],
       rows: [
         { _id: 'T1', from: 'S1', to: 'S2', trigger: 'spotted', timing: 'bar', fade: 1.5 },
         { _id: 'T2', from: 'S2', to: 'S3', trigger: 'combatStart', timing: 'beat', fade: 0.5, stinger: 'удар литаври + хоровий вигук' },
@@ -646,17 +651,18 @@ function musicChecks(m, add, rowsOf, nameOf, val) {
   if (has('dialogue') && !(num(duck) && +duck < 0)) add('tip', 'mix', '', 'Є діалоги — приглуши музику під голос (напр. −6…−10 dB).', 'There is dialogue — duck the music under voices (e.g. −6…−10 dB).');
 }
 var AMBIENCE = {
-  id: 'ambience', sec: 'audio', version: 1, cat: 'ambience', sub: 'biome', complexity: 1, name: T('Амбієнт локації', 'Location ambience'),
+  id: 'ambience', sec: 'audio', version: 2, cat: 'ambience', sub: 'biome', complexity: 1, name: T('Амбієнт локації', 'Location ambience'),
   desc: T('Звукове тло біома чи локації: постійна основа й випадкові одиночні звуки (птахи, крапель, далекий грім) з інтервалами, умовами й гучністю.', 'The sound bed of a biome or location: a constant base and random one-shots (birds, drips, distant thunder) with intervals, conditions and volume.'),
   purpose: T('Світ звучить живим і не повторюється.', 'The world sounds alive and never repeats.'),
   sections: [
     { id: 'bed', title: T('Основа', 'Bed'), kind: 'fields',
       fields: [F('location', 'Біом / локація', 'Biome / location', 'text', R), F('loop', 'Постійна петля', 'Constant loop', 'text', R), F('length', 'Довжина петлі', 'Loop length', 'time', X(REC, { u: 's', min: 5, max: 600 })),
-        F('db', 'Гучність', 'Volume', 'num', X(REC, { u: 'dB', min: -40, max: 0 })), F('variants', 'День / ніч / погода', 'Day / night / weather', 'text', REC)],
+        F('db', 'Гучність', 'Volume', 'num', X(REC, { u: 'dB', min: -40, max: 0 })), F('variants', 'День / ніч / погода', 'Day / night / weather', 'text', REC),
+        F('loopSound', 'Файл петлі', 'Loop file', 'sound', { req: 'opt', since: 2, lib: 'ambience' })],
       values: { location: 'Ліс', loop: 'шелест листя, вітер у кронах', length: 60, db: -18, variants: 'вночі — цвіркуни й сова; у дощ — краплі по листю' } },
     { id: 'oneshots', title: T('Одиночні звуки', 'One-shots'), kind: 'table', rowLabel: 'name', prefix: 'A',
       fields: [F('name', 'Звук', 'Sound', 'text', R), F('interval', 'Інтервал (від–до)', 'Interval (min–max)', 'range', X(R, { u: 's' })), F('db', 'Гучність', 'Volume', 'num', X(REC, { u: 'dB', min: -40, max: 0 })),
-        F('distance', 'Відстань / простір', 'Distance / space', 'text', REC), F('when', 'Умова', 'Condition', 'text', REC), F('variations', 'Варіацій', 'Variations', 'num', X(REC, { min: 1, max: 20 }))],
+        F('distance', 'Відстань / простір', 'Distance / space', 'text', REC), F('when', 'Умова', 'Condition', 'text', REC), F('variations', 'Варіацій', 'Variations', 'num', X(REC, { min: 1, max: 20 })), F('sound', 'Файли', 'Files', 'sound', { req: 'opt', since: 2, lib: 'ambience', h: T('кілька файлів — варіації', 'several files are variations') })],
       rows: [{ _id: 'A1', name: 'Птахи', interval: '4–12', db: -22, distance: 'далеко, зі всіх боків', when: 'день', variations: 6 }, { _id: 'A2', name: 'Тріск гілки', interval: '20–60', db: -20, distance: 'поруч, позаду', variations: 3 }] },
   ],
 };
@@ -668,7 +674,7 @@ function ambienceChecks(m, add, rowsOf, nameOf) {
   });
 }
 var UISOUND = {
-  id: 'ui_sounds', sec: 'audio', version: 1, cat: 'uisound', sub: 'menu', complexity: 1, name: T('Звуки інтерфейсу й подій', 'Interface & event sounds'),
+  id: 'ui_sounds', sec: 'audio', version: 2, cat: 'uisound', sub: 'menu', complexity: 1, name: T('Звуки інтерфейсу й подій', 'Interface & event sounds'),
   desc: T('Список звуків для кнопок, меню, сповіщень і ігрових подій (рівень, предмет, квест): характер, довжина, пріоритет, кількість варіацій.', 'The sounds for buttons, menus, notifications and game events (level up, item, quest): character, length, priority, variation count.'),
   purpose: T('Кожна дія гравця має чітку звукову відповідь, а часті звуки не набридають.', 'Every player action gets a clear sound response, and frequent sounds never get tiresome.'),
   sections: [
@@ -676,7 +682,8 @@ var UISOUND = {
       fields: [F('event', 'Подія', 'Event', 'text', R), F('sound', 'Як звучить', 'How it sounds', 'text', R), F('ms', 'Довжина', 'Length', 'num', X(REC, { u: 'ms', min: 10, max: 5000 })),
         F('frequent', 'Часта подія', 'Frequent event', 'bool', REC), F('variations', 'Варіацій', 'Variations', 'num', X(REC, { min: 1, max: 20 })),
         F('pitch', 'Випадкова висота', 'Random pitch', 'pct', X({ req: 'opt', adv: true }, { min: 0, max: 30 })),
-        F('priority', 'Пріоритет', 'Priority', 'sel', X(REC, { o: O([['high', 'Високий', 'High'], ['mid', 'Середній', 'Medium'], ['low', 'Низький', 'Low']]) }))],
+        F('priority', 'Пріоритет', 'Priority', 'sel', X(REC, { o: O([['high', 'Високий', 'High'], ['mid', 'Середній', 'Medium'], ['low', 'Низький', 'Low']]) })),
+        F('file', 'Файл', 'File', 'sound', { req: 'opt', since: 2, lib: 'ui', h: T('кілька файлів — варіації (гра бере випадковий)', 'several files are variations (the game picks one at random)') })],
       rows: [
         { _id: 'U1', event: 'Наведення на кнопку', sound: 'тихий деревʼяний тук', ms: 60, frequent: true, variations: 3, pitch: 5, priority: 'low' },
         { _id: 'U2', event: 'Натискання кнопки', sound: 'мʼякий клац пергаменту', ms: 120, frequent: true, variations: 3, pitch: 5, priority: 'mid' },
@@ -863,15 +870,52 @@ function check(m) {
   var all = req[1] + rec[1], done = req[0] + rec[0];
   return { issues: issues, req: req, rec: rec, pct: all ? Math.round((req[0] * 2 + rec[0]) / (req[1] * 2 + rec[1]) * 100) : (String(m.purpose || '').trim() ? 100 : 0), done: done, all: all };
 }
+// ---- the Audio library (Аудіотека): «Звук і музика» cards holding audio files; the Sound factory slots point at them ----
+var AUDIO_EXT = /\.(wav|mp3|ogg|oga|flac|m4a|aac|aiff?|opus|weba)$/i;
+function isAudio(f) { return !!f && (/^audio\//.test(f.type || '') || AUDIO_EXT.test(f.name || '')); }
+var LIB_GROUPS = { music: 0, sfx: 1, voice: 2, ambience: 3, ui: 4 }; // index into the «Звук і музика» subsections (gamebible.js)
+// every sound slot of a Sound factory card: { sec, secTitle, row, rowName, k, label, lib, refs, need }
+function soundSlots(m, lang) {
+  var out = [];
+  ((m && m.sections) || []).forEach(function (s) {
+    (s.fields || []).filter(function (f) { return f.t === 'sound'; }).forEach(function (f) {
+      var one = function (o, r) {
+        var refs = Array.isArray(o[f.k]) ? o[f.k] : [];
+        out.push({ sec: s.id, secTitle: lbl(s.title, lang), row: r ? r._id : '', rowName: r ? rowName(s, r) : '', k: f.k, label: lbl(f.l, lang), lib: f.lib || 'sfx',
+          refs: refs, need: !f.need || !empty(o[f.need]) });
+      };
+      if (s.kind === 'table') (s.rows || []).forEach(function (r) { one(r, r); }); else one(s.values || {}, null);
+    });
+  });
+  return out;
+}
+// cards → { assets: [{ id, title, group, files }], used: { cardId: [{ card, title, secTitle, rowName, label }] }, missing: [same + card], unused: [id] }
+function audioLibrary(cards, lang) {
+  var list = (cards || []).filter(function (c) { return c.section === 'audio' && !c.canonRef && !c.hidden; });
+  var assets = list.filter(function (c) { return !c.mech && (c.files || []).some(isAudio); }).map(function (c) {
+    return { id: c.id, title: c.title || '', group: (c.fields || {}).group || '', files: (c.files || []).filter(isAudio) };
+  });
+  var used = {}, missing = [];
+  list.filter(function (c) { return c.mech; }).forEach(function (c) {
+    soundSlots(c.mech, lang).forEach(function (sl) {
+      var where = { card: c.id, title: c.title || '', sec: sl.sec, secTitle: sl.secTitle, row: sl.row, rowName: sl.rowName, label: sl.label, lib: sl.lib };
+      sl.refs.forEach(function (id) { (used[id] = used[id] || []).push(where); });
+      if (!sl.refs.length && sl.need) missing.push(where);
+    });
+  });
+  return { assets: assets, used: used, missing: missing, unused: assets.filter(function (a) { return !used[a.id]; }).map(function (a) { return a.id; }) };
+}
 function worst(issues) { return issues.some(function (i) { return i.level === 'error'; }) ? 'error' : issues.some(function (i) { return i.level === 'warn'; }) ? 'warn' : issues.length ? 'tip' : ''; }
 
 // plain values for the agent (MCP): refs become { id, name }, labels in one language
-function exportMech(card, lang) {
+function exportMech(card, lang, lib) { // lib: audioLibrary(cards).assets — sound slots then carry their files
   var m = card.mech || {}, L = lang || 'en', cat = category(m.cat), t = template(m.tpl);
+  var snd = function (id) { var a = (lib || []).filter(function (x) { return x.id === id; })[0];
+    return a ? { ref: 'c:' + id, title: a.title, files: a.files.map(function (f) { return { name: f.name, url: f.url, type: f.type || '', duration: f.duration || null }; }) } : { ref: 'c:' + id, missing: true }; };
   var secs = (m.sections || []).map(function (s) {
     var cols = (s.fields || []).map(function (f) { return { key: f.k, label: lbl(f.l, L), type: f.t, unit: f.u || '', required: f.req === 'r', ref: f.ref || '' }; });
     var name = function (refSec, id) { var rs = (m.sections || []).filter(function (x) { return x.id === refSec; })[0]; var r = rs && (rs.rows || []).filter(function (x) { return x._id === id; })[0]; return r ? { id: id, name: rowName(rs, r) } : { id: id, name: null }; };
-    var plain = function (o) { var out = {}; (s.fields || []).forEach(function (f) { var v = o[f.k]; if (empty(v)) return; out[f.k] = f.t === 'ref' ? name(f.ref, v) : f.t === 'refs' ? v.map(function (id) { return name(f.ref, id); }) : v; }); return out; };
+    var plain = function (o) { var out = {}; (s.fields || []).forEach(function (f) { var v = o[f.k]; if (empty(v)) return; out[f.k] = f.t === 'ref' ? name(f.ref, v) : f.t === 'refs' ? v.map(function (id) { return name(f.ref, id); }) : f.t === 'sound' ? (Array.isArray(v) ? v : []).map(snd) : v; }); return out; };
     var o = { id: s.id, title: lbl(s.title, L), kind: s.kind, fields: cols };
     if (s.kind === 'table') o.rows = (s.rows || []).map(function (r) { var x = Object.assign({ id: r._id }, plain(r)), p = s.prompt && rowPrompt(m, s.id, r, L); if (p) x.generator_prompt = p; return x; }); else o.values = plain(s.values || {});
     return o;
@@ -885,7 +929,8 @@ function exportMech(card, lang) {
 
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
   AUDIO_CATEGORIES: AUDIO_CATEGORIES, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
-  FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech };
+  FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
+  isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;
 })();

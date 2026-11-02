@@ -134,14 +134,14 @@
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
-      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", file: "Файли (префаби, моделі…)", palette: "Палітра кольорів", scene: "Мініпостановка сцени" },
+      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", audio: "Звуки", file: "Файли (префаби, моделі…)", palette: "Палітра кольорів", scene: "Мініпостановка сцени" },
       pal: { add: "＋ Колір", paste: "Вставити коди", pastePh: "#1e2a44, #e0b050… або посилання coolors.co", fromImg: "🎨 З картинок", namePh: "назва: тло, акцент, світло…",
         color: "Колір", rm: "Прибрати колір", none: "Гами ще немає.", noImg: "Спершу додай картинки.", imgFail: "Не вдалося прочитати картинки.", groupTitle: "Гама групи «{g}»",
         groupHint: "Основні кольори групи — помітка для тих, хто малюватиме по цих референсах.", edit: "Гама групи", save: "Зберегти", clear: "Прибрати гаму" },
       sb: { add: "＋ На сцену", addPh: "Що на сцені: персонаж, предмет, світло, камера…", bg: "Тло", size: "Розмір", label: "Підпис", back: "Назад", front: "Вперед",
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, розмір, підпис. Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
-      rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки",
+      rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
@@ -184,6 +184,10 @@
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
+      soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
+      alib: { btn: "🎧 Аудіотека", cards: "▦ Картки", title: "Аудіотека гри", intro: "Усі звуки й треки гри в одному місці. Фабрика звуку бере їх звідси: у кожному стані, шарі, стінгері, амбієнті й звуку UI — «＋ З Аудіотеки» або «⤒ Новий» (новий файл теж лягає сюди).",
+        sum: "{n} звуків · {f} файлів · {m} хв", missing: "Бракує звуку", missingHint: "Слоти Фабрики звуку без жодного файлу.", missingNone: "Усі слоти Фабрики мають звук.", lib: "Звуки", none: "В Аудіотеці ще немає звуків — «⤒ Звуки» вгорі.", unused: "не використано", used: "Де звучить",
+        variants: "варіацій", open: "Відкрити", play: "Слухати", stop: "Зупинити", search: "Пошук звуку…", pick: "＋ З Аудіотеки", up: "⤒ Новий", rm: "Прибрати зі слота", pickTitle: "Звук з Аудіотеки", pickHint: "Позначені звуки ляжуть у слот; кілька — варіації (гра бере випадковий).", add: "Додати", nothing: "Нічого не знайдено" },
       uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
       v3d: { shot: "📷 Знімок для стилю", shotTip: "Зберегти цей ракурс картинкою на картці — її перевірить стиль гри", shotDone: "Знімок збережено на картці", open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
@@ -399,14 +403,14 @@
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
-      ftypes: { text: "Text", table: "Table", image: "Images", file: "Files (prefabs, models…)", palette: "Colour palette", scene: "Scene mock-up" },
+      ftypes: { text: "Text", table: "Table", image: "Images", audio: "Sounds", file: "Files (prefabs, models…)", palette: "Colour palette", scene: "Scene mock-up" },
       pal: { add: "＋ Colour", paste: "Paste codes", pastePh: "#1e2a44, #e0b050… or a coolors.co link", fromImg: "🎨 From images", namePh: "name: background, accent, light…",
         color: "Colour", rm: "Remove colour", none: "No palette yet.", noImg: "Add images first.", imgFail: "Could not read the images.", groupTitle: "Palette of “{g}”",
         groupHint: "The group's main colours — a note for whoever draws from these references.", edit: "Group palette", save: "Save", clear: "Remove palette" },
       sb: { add: "＋ To the scene", addPh: "What is in the scene: character, prop, light, camera…", bg: "Background", size: "Size", label: "Label", back: "Back", front: "Front",
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, size, label. Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
-      rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images",
+      rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
@@ -449,6 +453,10 @@
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
+      soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
+      alib: { btn: "🎧 Audio library", cards: "▦ Cards", title: "The game's Audio library", intro: "Every sound and track of the game in one place. The Sound factory takes them from here: in every state, layer, stinger, ambience and UI sound — “＋ From the library” or “⤒ New” (a new file lands here too).",
+        sum: "{n} sounds · {f} files · {m} min", missing: "Missing sound", missingHint: "Sound factory slots without any file.", missingNone: "Every Sound factory slot has a sound.", lib: "Sounds", none: "No sounds in the library yet — “⤒ Sounds” at the top.", unused: "unused", used: "Where it plays",
+        variants: "variations", open: "Open", play: "Listen", stop: "Stop", search: "Find a sound…", pick: "＋ From the library", up: "⤒ New", rm: "Remove from the slot", pickTitle: "A sound from the library", pickHint: "The ticked sounds go into the slot; several are variations (the game picks one at random).", add: "Add", nothing: "Nothing found" },
       uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
       v3d: { shot: "📷 Snapshot for the style", shotTip: "Save this view as a picture on the card — the game style will check it", shotDone: "Snapshot saved on the card", open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
@@ -650,7 +658,7 @@
     { id: "audio", uk: "Звук і музика", en: "Sound & music", group: "group",
       groups: { uk: ["Музика", "Звукові ефекти", "Озвучка", "Амбієнт", "Звуки UI"], en: ["Music", "Sound effects", "Voice", "Ambience", "UI sounds"] },
       about: { uk: "Музика, ефекти, озвучка, амбієнт: настрій, де звучить, джерело.", en: "Music, sound effects, voice, ambience: mood, where it plays, source." },
-      defs: [F("group", "Група", "Group"), F("mood", "Настрій і опис", "Mood & description"), F("where", "Де звучить", "Where it plays"),
+      defs: [F("group", "Група", "Group"), F("sound", "Звук", "Sound", "audio"), F("mood", "Настрій і опис", "Mood & description"), F("where", "Де звучить", "Where it plays"),
              F("length", "Тривалість / цикл", "Length / loop"), F("source", "Джерело / промпт", "Source / prompt")] },
     { id: "ui", uk: "UI / UX", en: "UI / UX", group: "group",
       groups: { uk: ["HUD", "Меню", "Інвентар", "Діалоги", "Онбординг", "Налаштування"], en: ["HUD", "Menus", "Inventory", "Dialogue", "Onboarding", "Settings"] },
@@ -879,7 +887,8 @@
     var html = "", head = function (g, label, n, canDrop) {
       var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
       return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
-        (s.id === "refs" && canWrite && game ? refsPicker(g, "btn mini", STR.sub.item) : '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>') +
+        (s.id === "refs" && canWrite && game ? bulkPicker("refs", g, "btn mini", STR.sub.item) : '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>') +
+        (s.id === "audio" && canWrite && game ? bulkPicker("audio", g, "btn mini", STR.soundsAdd) : '') +
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
         (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
@@ -892,6 +901,33 @@
       html += block("", head("", looseLabel(s, subs.length + extra.length), loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>'));
     }
     return html;
+  }
+  // ---------- 🎧 Аудіотека: every sound of the game, where it plays, and which Sound factory slots still have none (mechanics.js audioLibrary) ----------
+  function audioLibHtml() {
+    var A = STR.alib, lib = window.__MECH.audioLibrary(cards, LANG), nf = 0, secs = 0;
+    lib.assets.forEach(function (a) { nf += a.files.length; a.files.forEach(function (f) { secs += +f.duration || 0; }); });
+    var miss = lib.missing.slice(0, 200);
+    return '<section class="alib"><p class="hint">' + esc(A.intro) + '</p><p class="muted">' + esc(A.sum.replace("{n}", lib.assets.length).replace("{f}", nf).replace("{m}", Math.round(secs / 6) / 10)) + '</p>' +
+      '<h2 class="group">' + A.missing + ' <span>' + lib.missing.length + '</span></h2><p class="hint">' + esc(lib.missing.length ? A.missingHint : A.missingNone) + '</p>' +
+      (miss.length ? '<ul class="alib-miss">' + miss.map(function (w) {
+        return '<li><button class="btn mini" data-amech="' + esc(w.card) + '">' + A.open + '</button> <b>' + esc(w.title) + '</b> · ' + esc(w.secTitle) + (w.rowName ? ' · ' + esc(w.rowName) : '') + ' · <span class="muted">' + esc(w.label) + '</span></li>'; }).join("") + '</ul>' : '') +
+      '<h2 class="group">' + A.lib + ' <span>' + lib.assets.length + '</span></h2><input type="search" id="alib-q" class="alib-q" value="' + esc(alibQ) + '" placeholder="' + esc(A.search) + '" aria-label="' + esc(A.search) + '">' +
+      '<div id="alib-list">' + audioLibList(lib) + '</div></section>';
+  }
+  function audioLibList(lib) {
+    var A = STR.alib; lib = lib || window.__MECH.audioLibrary(cards, LANG);
+    var q = alibQ.trim().toLowerCase(), list = lib.assets.filter(function (a) { return !q || (a.title + " " + a.group + " " + a.files.map(function (f) { return f.name; }).join(" ")).toLowerCase().indexOf(q) >= 0; });
+    if (!lib.assets.length) return '<p class="muted">' + A.none + '</p>';
+    if (!list.length) return '<p class="muted">' + A.nothing + '</p>';
+    return '<table class="alib-t"><tbody>' + list.map(function (a) {
+      var u = lib.used[a.id] || [], dur = a.files.reduce(function (m, f) { return Math.max(m, +f.duration || 0); }, 0);
+      return '<tr><td><button class="btn mini" data-aplay="' + esc(a.id) + '" title="' + esc(A.play) + '" aria-label="' + esc(A.play + " " + a.title) + '">▶</button></td>' +
+        '<td><button class="linkish" data-aopen="' + esc(a.id) + '">' + esc(a.title || "…") + '</button><div class="muted">' + esc(normGroup(sec("audio"), a.group) || "") + '</div></td>' +
+        '<td class="muted">' + esc(a.files.map(function (f) { return extOf(f.name); }).filter(function (x, i, l) { return x && l.indexOf(x) === i; }).join(", ")) + (dur ? ' · ' + fmtDur(dur) : '') +
+        (a.files.length > 1 ? ' · ' + a.files.length + ' ' + A.variants : '') + '</td>' +
+        '<td>' + (u.length ? u.slice(0, 4).map(function (w) { return '<button class="chip" data-amech="' + esc(w.card) + '">' + esc(w.title + (w.rowName ? " · " + w.rowName : "") + " · " + w.label) + '</button>'; }).join(" ") + (u.length > 4 ? ' +' + (u.length - 4) : '')
+          : '<span class="pill">' + A.unused + '</span>') + '</td></tr>';
+    }).join("") + '</tbody></table>';
   }
   function looseLabel(s, n) { return n ? STR.other : s.special === "chronicle" ? STR.sub.timeline : STR.sub.general; }
   // order inside a subsection: the author's (order), then by name
@@ -944,12 +980,13 @@
   });
 
   // ---------- drag a card to another place in its subsection or into another subsection (mouse / pen; touch uses the menu) ----------
+  var audioLib = false, alibQ = ""; // «Звук і музика» shown as the Audio library (a list of every sound) instead of the cards
   var dragCtx = null, drag = null, dragBlockClick = false; // dragCtx: the section whose grid is on screen, set by its render
   function clearDropMarks() { [].forEach.call(document.querySelectorAll(".drop-before,.drop-after,.drop-into"), function (x) { x.classList.remove("drop-before", "drop-after", "drop-into"); }); }
   function cardRef(el) { return el.dataset.key || (el.dataset.ent ? "ent:" + el.dataset.ent : el.dataset.lore ? "lore:" + el.dataset.lore : ""); }
   $("view").addEventListener("pointerdown", function (ev) {
     if (!dragCtx || !canWrite || query || ev.button !== 0 || ev.pointerType === "touch") return;
-    var card = ev.target.closest(".subsec .grid > .card"); if (!card || ev.target.closest("[data-view3d]")) return;
+    var card = ev.target.closest(".subsec .grid > .card"); if (!card || ev.target.closest("[data-view3d],[data-aplay]")) return;
     drag = { card: card, x: ev.clientX, y: ev.clientY, on: false };
   });
   document.addEventListener("pointermove", function (ev) {
@@ -1183,7 +1220,8 @@
       tags.push('<span class="flag" title="' + esc(MC.fill) + '">▤ ' + mr.pct + '%</span>');
       if (mw === "error" || mw === "warn") tags.push('<span class="flag qd-' + mw + '" title="' + esc(MC.checks) + '">' + (mw === "error" ? "✕ " : "⚠ ") + mr.issues.filter(function (i) { return i.level !== "tip"; }).length + '</span>');
     }
-    var model = (c.files || []).filter(is3D)[0];
+    var model = (c.files || []).filter(is3D)[0], snd = !c.mech && (c.files || []).some(window.__MECH.isAudio);
+    if (snd) tags.unshift('<span class="aplay" role="button" tabindex="0" data-aplay="' + esc(c.id) + '" title="' + esc(STR.alib.play) + '" aria-label="' + esc(STR.alib.play + " " + (c.title || "")) + '">▶</span>');
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
     if (hv) tags.unshift(polyMark(hv));
@@ -1251,14 +1289,18 @@
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
-        (s.id === "refs" && canWrite ? '<span class="hint" id="refs-prog" role="status">' + esc(refsProg) + '</span>' + refsPicker("", "btn", STR.refsAdd) : '') +
+        ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" role="status">' + esc(bulkProg) + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
+        (s.id === "audio" ? '<button class="btn" id="alib-tog" aria-pressed="' + audioLib + '">' + (audioLib ? STR.alib.cards : STR.alib.btn) + '</button>' : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
+    else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
     else html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid);
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
+    var alt = $("alib-tog"); if (alt) alt.onclick = function () { audioLib = !audioLib; render(); };
+    var alq = $("alib-q"); if (alq) alq.oninput = function () { alibQ = alq.value; $("alib-list").innerHTML = audioLibList(); };
     var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var sfr = $("st-refs"); if (sfr) sfr.onclick = function () { styleFromRefs(sfr); };
@@ -2377,10 +2419,63 @@
     if (f.t === "multi") return mchips(path, mopts(f), v, aria);
     if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria);
     if (f.t === "refs") return mchips(path, mrowOpts(f), v, aria);
+    if (f.t === "sound") return msound(path, f, v, inTable);
     if (f.t === "num" || f.t === "pct" || f.t === "time")
       return '<input type="number" step="any" inputmode="decimal" data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + ' aria-label="' + esc(aria) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
     if (f.t === "long" || f.t === "json") return '<textarea data-mf="' + path + '" rows="' + (inTable ? 2 : 3) + '"' + (f.t === "json" ? ' class="mono"' : '') + ' aria-label="' + esc(aria) + '">' + esc(v == null ? "" : v) + '</textarea>';
     return '<input data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.t === "formula" ? ' class="mono"' : '') + (f.t === "range" ? ' placeholder="0.5–1.2"' : ph ? ' placeholder="' + esc(ph) + '"' : '') + ' aria-label="' + esc(aria) + '">';
+  }
+  // a Sound factory slot: sounds of the Audio library (card ids); ▶ plays, ✕ takes it out of the slot (the sound stays in the library)
+  function msound(path, f, v, inTable) {
+    var A = STR.alib, ids = Array.isArray(v) ? v : [];
+    return '<span class="msnd" role="group" aria-label="' + esc(ml(f.l)) + '">' + ids.map(function (id) {
+      var c = cards.filter(function (x) { return x.id === id; })[0], nm = c ? c.title || "…" : id + " ⚠";
+      return '<span class="msnd-i"><button type="button" class="btn ghost mini" data-sndplay="' + esc(id) + '" title="' + esc(A.play) + '" aria-label="' + esc(A.play + " " + nm) + '">▶</button>' + esc(nm) +
+        (canWrite ? '<button type="button" class="btn ghost mini" data-sndrm="' + path + '" data-v="' + esc(id) + '" title="' + esc(A.rm) + '" aria-label="' + esc(A.rm + " " + nm) + '">✕</button>' : '') + '</span>';
+    }).join("") + (canWrite ? '<button type="button" class="btn mini" data-sndpick="' + path + '" title="' + esc(A.pick) + '">' + (inTable ? '＋' : A.pick) + '</button>' +
+      '<label class="btn mini" title="' + esc(A.up) + '">' + (inTable ? '⤒' : A.up) + '<input type="file" multiple hidden accept="audio/*" data-sndup="' + path + '"></label>' : '') + '</span>';
+  }
+  // the object and key a mechanic path points at ("g.key" / "si.-.k" / "si.ri.k") and its field
+  function mslot(path) {
+    var k = path.split("."), s = med.m.sections[+k[0]];
+    return { o: k[1] === "-" ? (s.values = s.values || {}) : s.rows[+k[1]], key: k[2], f: (s.fields || []).filter(function (x) { return x.k === k[2]; })[0] || {} };
+  }
+  function sndAdd(path, ids) {
+    var sl = mslot(path), l = Array.isArray(sl.o[sl.key]) ? sl.o[sl.key].slice() : [];
+    ids.forEach(function (id) { if (l.indexOf(id) < 0) l.push(id); });
+    sl.o[sl.key] = l;
+  }
+  async function sndUpload(path, files) {
+    var d = med, sl = mslot(path), s = sec("audio"), subs = subsOf(s), g = subs[window.__MECH.LIB_GROUPS[sl.f.lib] || 0] || "";
+    var st = $("m-state"); if (st) st.textContent = STR.uploading + "…";
+    var ids = await bulkCards("audio", files, g);
+    if (med !== d || !ids.length) return;
+    sndAdd(path, ids); renderMEditor(); if ($("m-state")) $("m-state").textContent = STR.soundsDone + ": " + ids.length + " · " + STR.wt.dirty;
+  }
+  function sndPick(path) {
+    var A = STR.alib, lib = window.__MECH.audioLibrary(cards, LANG), have = (mslot(path).o[mslot(path).key] || []), q = "";
+    var box = document.createElement("div"); box.className = "ask";
+    var list = function () {
+      var l = lib.assets.filter(function (a) { return !q || (a.title + " " + a.group).toLowerCase().indexOf(q) >= 0; });
+      return l.length ? l.map(function (a) {
+        return '<label class="pickrow"><input type="checkbox" value="' + esc(a.id) + '"' + (have.indexOf(a.id) >= 0 ? ' checked disabled' : '') + '><button type="button" class="btn ghost mini" data-sndplay="' + esc(a.id) + '" aria-label="' + esc(A.play + " " + a.title) + '">▶</button>' +
+          '<span><b>' + esc(a.title || "…") + '</b><i>' + esc((normGroup(s0, a.group) || "") + (a.files.length > 1 ? " · " + a.files.length + " " + A.variants : "")) + '</i></span></label>'; }).join("") : '<p class="muted">' + (lib.assets.length ? A.nothing : A.none) + '</p>';
+    }, s0 = sec("audio");
+    box.innerHTML = '<form class="ask-box pick-box" role="dialog" aria-modal="true" aria-label="' + esc(A.pickTitle) + '"><h3>' + esc(A.pickTitle) + '</h3><p class="hint">' + esc(A.pickHint) + '</p>' +
+      '<input type="search" id="sp-q" placeholder="' + esc(A.search) + '" aria-label="' + esc(A.search) + '"><div class="picklist" id="sp-list">' + list() + '</div>' +
+      '<div class="row"><span style="flex:1"></span><button type="button" class="btn" id="sp-x">' + STR.cancel + '</button><button class="btn primary">' + A.add + '</button></div></form>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector("#sp-q").oninput = function () { q = this.value.trim().toLowerCase(); box.querySelector("#sp-list").innerHTML = list(); };
+    box.querySelector("#sp-x").onclick = close;
+    box.addEventListener("click", function (ev) { var p = ev.target.closest("[data-sndplay]"); if (p) { ev.preventDefault(); playSound(soundUrl(p.dataset.sndplay), p); } });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    box.querySelector("form").onsubmit = function (ev) {
+      ev.preventDefault();
+      var ids = [].map.call(box.querySelectorAll("#sp-list input:checked:not([disabled])"), function (x) { return x.value; });
+      close(); if (ids.length && med) { sndAdd(path, ids); renderMEditor(); }
+    };
+    box.querySelector("#sp-q").focus();
   }
   function mreq(f) { return f.req === "r" ? '<b class="mreq" title="' + esc(MC.req) + '">*</b>' : ""; }
   function mshown(s) { return (s.fields || []).filter(function (f) { return med.adv || !f.adv; }); }
@@ -2391,7 +2486,7 @@
   function mFieldsHtml(s, si) {
     var v = s.values || (s.values = {});
     return '<div class="qgrid mfields">' + mshown(s).map(function (f) {
-      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs";
+      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs" || f.t === "sound";
       return '<div class="field' + (wide ? ' mwide' : '') + '"><span class="qh">' + esc(ml(f.l)) + mreq(f) + (f.u ? ' <i>' + esc(f.u) + '</i>' : '') +
         (f.custom && canWrite ? ' <button type="button" class="btn ghost mini" data-mact="rmField:' + si + ':' + esc(f.k) + '" aria-label="' + esc(MC.rmField + " " + ml(f.l)) + '">✕</button>' : '') + '</span>' + inner +
         (f.h ? '<span class="hint">' + esc(ml(f.h)) + '</span>' : '') + '</div>';
@@ -2462,7 +2557,7 @@
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
       (s.kind === "table" ? mTableHtml(s, si) : mFieldsHtml(s, si)) +
       (canWrite ? '<div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
-        MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs"; }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
+        MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
         '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button><span style="flex:1"></span>' +
         (s.custom ? '<button type="button" class="btn ghost mini" data-mact="rmSec:' + si + '">' + MC.rmSec + '</button>' : '') + '</div>' : ''));
     $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1"><header class="sec"><div><button class="btn ghost" data-mact="back">' + MC.back + '</button>' +
@@ -2585,6 +2680,10 @@
     if (!med || !$("m-ed")) return false;
     var a = e.target.closest("[data-mact]"); if (a) { mAct(a.dataset.mact); return true; }
     var ch = e.target.closest("[data-mchip]"); if (ch) { mChip(ch.dataset.mchip, ch.dataset.v); return true; }
+    var sp = e.target.closest("[data-sndplay]"); if (sp) { playSound(soundUrl(sp.dataset.sndplay), sp); return true; }
+    var sr = e.target.closest("[data-sndrm]"); if (sr) { var sl = mslot(sr.dataset.sndrm); sl.o[sl.key] = (sl.o[sl.key] || []).filter(function (x) { return x !== sr.dataset.v; }); renderMEditor(); return true; }
+    var sk = e.target.closest("[data-sndpick]"); if (sk) { sndPick(sk.dataset.sndpick); return true; }
+    if (e.target.closest("[data-sndup]")) return true; // the file picker opens by itself
     var tb = e.target.closest("[data-mtab]"); if (tb) { med.tab = tb.dataset.mtab; renderMEditor(); var n = document.querySelector('[data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
     var go = e.target.closest("[data-mgo]"); if (go) { med.tab = go.dataset.mgo; renderMEditor(); $("m-ed").scrollIntoView({ block: "start" }); return true; }
     var so = e.target.closest("[data-msort]"); if (so) {
@@ -3036,6 +3135,8 @@
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
     if (c.section === "refs" && !draft.defs.some(function (d) { return d.type === "image"; })) // older reference cards get the pictures field too
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "pics", label: LANG === "en" ? "Pictures" : "Картинки", type: "image" });
+    if (c.section === "audio" && !c.mech && !draft.defs.some(function (d) { return d.type === "audio"; })) // older sound cards get the sound field (Аудіотека)
+      draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "sound", label: LANG === "en" ? "Sound" : "Звук", type: "audio" });
     setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
@@ -3425,7 +3526,7 @@
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
   }
-  var FTYPES = ["text", "table", "image", "file", "palette", "scene"];
+  var FTYPES = ["text", "table", "image", "audio", "file", "palette", "scene"];
   function typeSelect(id, cur, key) {
     return '<select ' + (id ? 'id="' + id + '"' : 'data-ftype="' + esc(key) + '"') + ' aria-label="' + esc(STR.fieldType) + '">' +
       FTYPES.map(function (t) { return '<option value="' + t + '"' + (t === cur ? " selected" : "") + '>' + esc(STR.ftypes[t]) + '</option>'; }).join("") + '</select>';
@@ -3442,7 +3543,7 @@
     var body = type === "table" ? tableHtml(d.key, v)
       : type === "palette" ? '<div class="pal" data-pal="' + esc(d.key) + '"></div>'
       : type === "scene" ? '<div class="sb" data-board="' + esc(d.key) + '"></div>'
-      : type === "image" || type === "file" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
+      : type === "image" || type === "file" || type === "audio" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
       : '<div class="shown' + (v ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + (v ? md(v) : STR.blank) + '</div>';
     return '<div class="field' + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
   }
@@ -3474,13 +3575,17 @@
   }
   function fieldFilesHtml(key, type) {
     var files = (open.files || []).filter(function (f) { return f.field === key; });
-    var list = type === "image"
+    var list = type === "audio"
+      ? files.map(function (f) { return '<div class="file snd-file"><audio controls preload="none" src="' + esc(f.url) + '"></audio><span class="fname">' + esc(f.name) + '</span><span class="muted">' + esc(extOf(f.name)) +
+          (f.duration ? ' · ' + fmtDur(f.duration) : '') + ' · ' + fileSize(f.size || 0) + '</span>' +
+          (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("")
+      : type === "image"
       ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open, f.id) +
           (open.section === "refs" ? '<span class="fext">' + esc(extOf(f.name)) + '</span>' : '') +
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
-    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : STR.filesAdd) + '</label>';
+    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : type === "audio" ? ' accept="audio/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : type === "audio" ? STR.soundAdd : STR.filesAdd) + '</label>';
     return '<div class="field files">' + list + add + '</div>';
   }
   function setEditMode(on) {
@@ -3533,11 +3638,35 @@
   function modelInfo(f, siblings) { return import("./gb-3d.js").then(function (m) { return m.modelInfo(f, siblings); }); }
   // Read from the local file before the upload — nothing to download: a model's polygons and rights, a licence/readme text's licence.
   async function localInfo(file, meta) {
+    if (window.__MECH.isAudio(file)) { var d = await audioDur(file); if (d) meta.duration = d; return; }
     if (isLicText(file)) { try { var t = await file.text(); meta.licenseFound = licenseIn(t); } catch (e) {} return; }
     if (!MODEL_EXT.test(file.name)) return;
     var url = URL.createObjectURL(file);
     try { var info = await modelInfo({ name: file.name, url: url }, []); meta.tris = info.tris; if (info.rights) meta.license = rightsLicense(info.rights); }
     catch (e) {} finally { URL.revokeObjectURL(url); }
+  }
+
+  function audioDur(file) {
+    return new Promise(function (ok) {
+      var a = new Audio(), url = URL.createObjectURL(file), done = function (v) { URL.revokeObjectURL(url); ok(v); };
+      a.preload = "metadata"; a.onloadedmetadata = function () { done(isFinite(a.duration) ? Math.round(a.duration * 10) / 10 : 0); }; a.onerror = function () { done(0); };
+      setTimeout(function () { done(0); }, 5000); a.src = url;
+    });
+  }
+  function fmtDur(s) { s = Math.round(+s || 0); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
+  // one player for the whole Bible: ▶ again stops it
+  var player = null, playing = "";
+  function playSound(url, btn) {
+    if (player) { player.pause(); var was = playing; player = null; playing = ""; [].forEach.call(document.querySelectorAll("[data-aplay].is-on,[data-sndplay].is-on"), function (b) { b.classList.remove("is-on"); }); if (was === url) return; }
+    if (!url) return;
+    player = new Audio(url); playing = url; if (btn) btn.classList.add("is-on");
+    player.onended = function () { if (btn) btn.classList.remove("is-on"); player = null; playing = ""; };
+    player.play().catch(function () { if (btn) btn.classList.remove("is-on"); player = null; playing = ""; });
+  }
+  // the first audio file of a library card; with variations a random one, as the game would
+  function soundUrl(cardId) {
+    var c = cards.filter(function (x) { return x.id === cardId; })[0], fs = c ? (c.files || []).filter(window.__MECH.isAudio) : [];
+    return fs.length ? fs[Math.floor(Math.random() * fs.length)].url : "";
   }
 
   // ---------- licence & rights of prefabs and models: green (full) · yellow (with conditions: credit, revenue cap…) · red (strict / not commercial) · blue (unknown or own work) ----------
@@ -3778,28 +3907,32 @@
     closeLeaf();
   }
 
-  // «Референси»: many pictures at once — each one is its own card named after the file, in the subsection it was picked under
-  var refsProg = "";
-  function refsPicker(g, cls, label) {
-    return '<label class="' + cls + '" title="' + esc(STR.refsTip) + '"><input type="file" multiple hidden accept="image/*" data-refsup="' + esc(g) + '">' + label + '</label>';
+  // «Референси» / «Звук і музика» (Аудіотека): many files at once — each one is its own card named after the file, in the subsection it was picked under
+  var BULK = { refs: { field: "pics", accept: "image/*", ok: function (f) { return isImage(f); }, done: "refsDone" },
+    audio: { field: "sound", accept: "audio/*", ok: function (f) { return window.__MECH.isAudio(f); }, done: "soundsDone" } };
+  var bulkProg = "";
+  function bulkPicker(sid, g, cls, label) {
+    return '<label class="' + cls + '" title="' + esc(sid === "audio" ? STR.soundsTip : STR.refsTip) + '"><input type="file" multiple hidden accept="' + BULK[sid].accept + '" data-bulkup="' + sid + '" data-bulkg="' + esc(g) + '">' + label + '</label>';
   }
-  function refsStatus(t) { refsProg = t; var el = $("refs-prog"); if (el) el.textContent = t; }
-  async function refsBulk(list, group) {
-    var s = sec("refs"), gk = groupKey(s), done = 0, pics = list.filter(isImage);
-    for (var i = 0; i < pics.length; i++) {
-      var file = pics[i];
+  function bulkStatus(t) { bulkProg = t; var el = $("bulk-prog"); if (el) el.textContent = t; }
+  // → the ids of the cards made (a Sound factory slot takes them at once)
+  async function bulkCards(sid, list, group) {
+    var s = sec(sid), b = BULK[sid], gk = groupKey(s), ids = [], files = list.filter(b.ok);
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
       if (file.size > MAX_FILE) { alert(STR.fileTooBig + ": " + file.name); continue; }
-      refsStatus(STR.uploading + " " + (i + 1) + " / " + pics.length + " · " + file.name);
+      bulkStatus(STR.uploading + " " + (i + 1) + " / " + files.length + " · " + file.name);
       var card = { src: "game", id: newId("card"), section: s.id, title: baseName(file.name) || STR.newCard, status: "idea", note: "", defs: s.defs.slice(), fields: {} };
       if (group) card.fields[gk] = group;
       try {
         await gref().collection("cards").doc(card.id).set({ section: card.section, title: card.title, status: card.status, note: "", defs: card.defs, fields: card.fields,
           createdAt: stamp(), updatedAt: stamp(), order: Date.now() }, { merge: true });
-        await putFile(card, file, "pics");
-        done++;
-      } catch (e) { refsStatus(""); alert(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
+        await putFile(card, file, b.field);
+        ids.push(card.id);
+      } catch (e) { bulkStatus(""); alert(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return ids; }
     }
-    refsStatus(STR.refsDone + ": " + done);
+    bulkStatus(STR[b.done] + ": " + ids.length);
+    return ids;
   }
   function addCard(fresh, group) {
     var s = sec(section);
@@ -6041,9 +6174,14 @@
     }).observe($("view"), { childList: true });
   }
   $("topline").addEventListener("click", function (e) { viewClick(e); });
-  function refsChange(e) { if (e.target.dataset.refsup != null && e.target.files.length) { var rl = [].slice.call(e.target.files); e.target.value = ""; refsBulk(rl, e.target.dataset.refsup); } }
-  $("topline").addEventListener("change", refsChange);
-  $("view").addEventListener("change", refsChange);
+  function bulkChange(e) {
+    var t = e.target; if (!t.files || !t.files.length) return;
+    var fl = [].slice.call(t.files);
+    if (t.dataset.bulkup) { t.value = ""; bulkCards(t.dataset.bulkup, fl, t.dataset.bulkg || ""); }
+    if (t.dataset.sndup) { t.value = ""; sndUpload(t.dataset.sndup, fl); } // a Sound factory slot: new files → the library → the slot
+  }
+  $("topline").addEventListener("change", bulkChange);
+  $("view").addEventListener("change", bulkChange);
   $("view").addEventListener("click", viewClick);
   $("view").addEventListener("input", qdInput);
   $("view").addEventListener("change", qdInput);
@@ -6121,7 +6259,10 @@
     var se = e.target.closest("[data-sedit]"); if (se) { tellShell({ type: "ww-edit-story", projectId: se.dataset.sedit }); return; } // the shell's story form
     var sd = e.target.closest("[data-sdel]"); if (sd) { tellShell({ type: "ww-delete-story", projectId: sd.dataset.sdel }); return; } // the shell asks to confirm
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
-    if (e.target.closest("[data-refsup]")) return; // the picture picker of «Референси» opens by itself
+    if (e.target.closest("[data-bulkup],[data-sndup]")) return; // the file pickers open by themselves
+    var ap = e.target.closest("[data-aplay]"); if (ap) { e.stopPropagation(); playSound(soundUrl(ap.dataset.aplay), ap); return; }
+    var am = e.target.closest("[data-amech]"); if (am) { var mc = allCards().filter(function (x) { return x.id === am.dataset.amech; })[0]; if (mc) { audioLib = false; openMech(mc); } return; }
+    var ao = e.target.closest("[data-aopen]"); if (ao) { var oc = allCards().filter(function (x) { return x.id === ao.dataset.aopen; })[0]; if (oc) openCard(oc); return; }
     var sd = e.target.closest("[data-subdel]"); if (sd) { dropSubsection(sd.dataset.subdel); return; }
     var sr = e.target.closest("[data-subren]"); if (sr) { renameSubsection(sr.dataset.subren); return; }
     var spl = e.target.closest("[data-subpal]"); if (spl) { groupPalDialog(spl.dataset.subpal); return; }

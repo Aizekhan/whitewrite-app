@@ -589,6 +589,26 @@
           ["p", "get_character_forge — усі персонажі з етапами; з ref — маніфест одного: бриф, профілі, файли <b>затверджених</b> версій, кліпи, екіпірування з паспортами й наборами."],
           ["prompt", "Виклич get_character_forge, обери персонажа і візьми його маніфест. Імпортуй затверджену модель і екіпірування в Unity: кожен предмет — за паспортом (зі скіном — на той самий скелет, жорсткий — на вказану кістку), маски тіла, набори як пресети. Перевір кліпінг і сумісність скелета й надішли результат кожного предмета через report_forge_check. Спершу план — код потім."],
         ] },
+      { cat: "game", id: "audio-library", icon: "layers", title: "🎧 Аудіотека: усі звуки й треки гри",
+        lead: "Одне місце для музики, ефектів, амбієнту, звуків UI й озвучки. Фабрика звуку бере файли звідси — без копій.",
+        min: 3,
+        body: [
+          ["p", "Біблія гри → «Звук і музика». Кожен звук — окрема картка з файлом; кілька файлів на одній картці — <b>варіації</b> (гра бере випадковий, щоб часті звуки не набридали)."],
+          ["h", "Як додати"],
+          ["ul", [
+            "<b>«⤒ Звуки»</b> угорі розділу — обери одразу багато файлів (mp3, wav, ogg, flac…): кожен стає карткою з назвою файлу (назву можна змінити). «⤒ Звуки» біля підрозділу («Музика», «Звукові ефекти», «Озвучка», «Амбієнт», «Звуки UI») кладе їх одразу туди.",
+            "У картці звуку — поле <b>«Звук»</b>: плеєр біля кожного файлу, формат, тривалість і розмір, «＋ Додати звук» для варіацій.",
+            "На картках розділу — <b>▶</b>: послухати, не відкриваючи; ще раз ▶ — зупинити."
+          ]],
+          ["h", "Фабрика звуку бере звідси"],
+          ["p", "У «Адаптивній музиці» в кожного стану є слот <b>«Трек»</b>, у шару — <b>«Звук шару»</b>, у переходу — <b>«Файл стінгера»</b>; в амбієнті — <b>«Файл петлі»</b> й <b>«Файли»</b> одиночних звуків; у звуках інтерфейсу — <b>«Файл»</b>. У слоті: <b>«＋ З Аудіотеки»</b> — обрати наявні (▶ для проби), <b>«⤒ Новий»</b> — завантажити файл, який одразу ляже в Аудіотеку й у слот. ✕ прибирає звук лише зі слота — в Аудіотеці він лишається. Після змін — «Зберегти». Старі картки Фабрики отримують ці слоти самі."],
+          ["h", "🎧 Аудіотека"],
+          ["p", "Кнопка <b>«🎧 Аудіотека»</b> угорі розділу (назад — «▦ Картки») показує: скільки звуків і хвилин; <b>«Бракує звуку»</b> — слоти Фабрики без файлу (стінгер — лише там, де він описаний), «Відкрити» веде в потрібну картку; список усіх звуків з ▶, форматом, тривалістю, варіаціями й тим, <b>де звучить</b> кожен — або «не використано»."],
+          ["p", "Без токенів, на будь-якому тарифі; файли — у межах ліміту тарифу (до 20 МБ, у Worldbuilder до 200 МБ)."],
+          ["h", "Claude Code"],
+          ["p", "get_audio_library — усі звуки з посиланнями на файли (назва, url, тип, тривалість), де кожен звучить, яких слотів бракує й що не використано. У get_mechanic слоти звуку вже містять файли."],
+          ["prompt", "Виклич get_audio_library і get_mechanic для «Адаптивна музика гри». Завантаж файли кожного стану, шару й стінгера в Assets/Audio/Music/<стан>/ і підключи їх до музичного менеджера; варіації — випадковий вибір. Склади список слотів із missing — що ще треба записати чи згенерувати."]
+        ] },
       { cat: "game", id: "sound-factory", icon: "wand", title: "🎼 Фабрика звуку: адаптивна музика й звукові шаблони",
         lead: "Музика, що сама міняється з грою: з дослідницької на бойову й назад — безшовно. Стани, шари, переходи за ігровими подіями, лейтмотиви, мікс і готові промпти для генераторів музики.",
         min: 5,
@@ -1707,6 +1727,26 @@
           ["h", "Claude Code"],
           ["p", "get_character_forge — every character with its stages; with ref — one character's manifest: the brief, profiles, files of the <b>approved</b> versions, clips, equipment with passports and loadouts."],
           ["prompt", "Call get_character_forge, pick a character and take its manifest. Import the approved model and equipment into Unity: each item by its passport (skinned — onto the same skeleton, rigid — onto the given bone), body masks, loadouts as presets. Check clipping and skeleton compatibility and send each item's result through report_forge_check. Plan first — code later."],
+        ] },
+      { cat: "game", id: "audio-library", icon: "layers", title: "🎧 Audio library: every sound and track of the game",
+        lead: "One place for music, effects, ambience, UI sounds and voice. The Sound factory takes the files from here — no copies.",
+        min: 3,
+        body: [
+          ["p", "Game Bible → “Sound & music”. Every sound is its own card with a file; several files on one card are <b>variations</b> (the game picks one at random, so frequent sounds don't get tiring)."],
+          ["h", "Adding sounds"],
+          ["ul", [
+            "<b>“⤒ Sounds”</b> at the top of the section — pick many files at once (mp3, wav, ogg, flac…): each becomes a card named after the file (the name stays editable). “⤒ Sounds” by a subsection (“Music”, “Sound effects”, “Voice”, “Ambience”, “UI sounds”) puts them straight there.",
+            "A sound card has the <b>“Sound”</b> field: a player by each file, format, length and size, “＋ Add a sound” for variations.",
+            "The section's cards carry <b>▶</b>: listen without opening; ▶ again stops it."
+          ]],
+          ["h", "The Sound factory takes them from here"],
+          ["p", "In “Adaptive music” every state has a <b>“Track”</b> slot, a layer — <b>“Layer audio”</b>, a transition — <b>“Stinger file”</b>; ambience has <b>“Loop file”</b> and the one-shots' <b>“Files”</b>; UI sounds — <b>“File”</b>. In a slot: <b>“＋ From the library”</b> picks existing ones (▶ to try), <b>“⤒ New”</b> uploads a file that goes into the library and the slot at once. ✕ removes a sound from the slot only — it stays in the library. Then “Save”. Older Sound factory cards get these slots by themselves."],
+          ["h", "🎧 Audio library"],
+          ["p", "The <b>“🎧 Audio library”</b> button at the top of the section (back — “▦ Cards”) shows: how many sounds and minutes; <b>“Missing sound”</b> — Sound factory slots without a file (a stinger only where one is described), “Open” goes to the card; the list of every sound with ▶, format, length, variations and <b>where it plays</b> — or “unused”."],
+          ["p", "No tokens, on any plan; files within the plan limit (up to 20 MB, on Worldbuilder up to 200 MB)."],
+          ["h", "Claude Code"],
+          ["p", "get_audio_library — every sound with links to its files (name, url, type, length), where each plays, which slots are missing and what is unused. In get_mechanic the sound slots already carry the files."],
+          ["prompt", "Call get_audio_library and get_mechanic for “Adaptive game music”. Download the files of every state, layer and stinger into Assets/Audio/Music/<state>/ and wire them to the music manager; variations — a random pick. List the missing slots — what still has to be recorded or generated."]
         ] },
       { cat: "game", id: "sound-factory", icon: "wand", title: "🎼 Sound factory: adaptive music & sound templates",
         lead: "Music that changes with the game by itself: from exploration to combat and back — seamlessly. States, layers, transitions on game events, leitmotifs, the mix and ready prompts for music generators.",

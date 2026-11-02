@@ -88,7 +88,7 @@ const v1 = M.instantiate('adaptive_music'), pal1 = st(v1, 'palette');
 v1.tplVersion = 1; pal1.fields = pal1.fields.filter((f) => f.k !== 'direction'); delete pal1.values.direction; pal1.values.style = 'Епічний оркестр із фольк-інструментами';
 const ex1 = st(v1, 'states').rows[0]; ex1.instruments = 'флейта, гобой, арфа (пульсуюче арпеджіо), мʼякий бас';
 M.upgrade(v1);
-check(pal1.fields[0].k + '|' + pal1.values.direction + '|' + v1.tplVersion, 'direction|hybrid|2', 'an old instance gets the direction field (hybrid)');
+check(pal1.fields[0].k + '|' + pal1.values.direction + '|' + v1.tplVersion, 'direction|hybrid|' + M.template('adaptive_music').version, 'an old instance gets the direction field (hybrid)');
 check(/flute|флейта/.test(M.rowPrompt(v1, 'states', ex1).split('\nExclude')[0]), false, 'the old flute sample is not in the prompt');
 ex1.instruments = 'дудук'; check(/featuring дудук/.test(M.rowPrompt(v1, 'states', ex1)), true, "the author's own instruments stay");
 pal1.values.direction = 'cyber'; check(/darksynth/.test(M.rowPrompt(v1, 'states', ex1)), true, 'another direction changes every state prompt');
@@ -107,6 +107,22 @@ check(codes(ui, 'warn').some((i) => i.row === 'U1'), true, 'a long sound on a fr
 
 // old Mechanics groups map to the new categories
 check(M.GROUP_ALIAS['Здібності'], 'Навички й здібності', 'the old «Здібності» group');
+
+// the Audio library: older instances get the sound slots, slots point at sound cards, missing / used / unused
+const v2 = M.instantiate('adaptive_music'); v2.tplVersion = 2; v2.sections.forEach((s) => { s.fields = (s.fields || []).filter((f) => f.t !== 'sound'); });
+M.upgrade(v2);
+check(['states', 'layers', 'transitions'].map((id) => st(v2, id).fields.filter((f) => f.t === 'sound').map((f) => f.k).join()).join('|'), 'sound|sound|stingerSound', 'a v2 music card gets the track, layer and stinger slots');
+check(M.check(v2).pct, M.check(M.instantiate('adaptive_music')).pct, 'empty sound slots do not lower the completeness');
+st(v2, 'states').rows[0].sound = ['snd1'];
+const alib = M.audioLibrary([{ id: 'm', section: 'audio', title: 'Music', mech: v2 },
+  { id: 'snd1', section: 'audio', title: 'Explore', files: [{ name: 'a.ogg', url: 'u1' }, { name: 'b.ogg', type: 'audio/ogg', url: 'u2' }, { name: 'cover.png', type: 'image/png', url: 'u3' }] },
+  { id: 'snd2', section: 'audio', title: 'Spare', files: [{ name: 'c.wav', url: 'u4' }] }, { id: 'n', section: 'audio', title: 'No file', files: [] }], 'en');
+check(alib.assets.map((a) => a.id + ':' + a.files.length).join(), 'snd1:2,snd2:1', 'library = audio cards with audio files (pictures left out)');
+check(alib.used.snd1 && alib.used.snd1[0].rowName, st(v2, 'states').rows[0].name, 'a used sound knows its state');
+check(alib.unused.join(), 'snd2', 'the unused sound');
+check(alib.missing.some((w) => w.row === st(v2, 'states').rows[0]._id), false, 'a filled slot is not missing');
+check(alib.missing.filter((w) => w.sec === 'transitions').length, st(v2, 'transitions').rows.filter((r) => r.stinger).length, 'a stinger file is missing only where a stinger is described');
+check(JSON.stringify(M.exportMech({ id: 'm', mech: v2 }, 'en', alib.assets).sections.find((s) => s.id === 'states').rows[0].sound[0].files.map((f) => f.url)), '["u1","u2"]', 'the agent gets the files of a slot');
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

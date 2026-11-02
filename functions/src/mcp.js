@@ -107,6 +107,8 @@ const TOOLS = [
       category: { type: 'string', description: 'A category id — mechanics: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose; audio: music, sfx, voice, ambience, uisound; empty = all' } } } },
   { name: 'get_mechanic', description: 'One mechanic (or a Sound factory card) in full: purpose, rules, every section with typed fields (unit, required) and table rows (links between rows resolved to { id, name }), what RPG Framework already has for each part (framework: exists | partial | missing + the classes), and the constructor checks. Adaptive-music state rows carry generator_prompt; transitions say from → to, the game event, when to switch (beat / bar / loop end / stinger), crossfade and hold — build the music system from them. Numbers are the author design — implement them; a change goes through submit_change_request.',
     inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string', description: '"c:<cardId>" or the title' } } } },
+  { name: 'get_audio_library', description: 'The game\'s Audio library (Аудіотека, «Звук і музика»): every sound / track card with its files (name, url to download, type, duration s; several files = variations, play one at random), where each plays (Sound factory card · section · row · slot), the slots that still have no sound, and the unused sounds. Sound slots in get_mechanic carry the same files.',
+    inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Filter by title / subsection / file name; empty = all' } } } },
   { name: 'get_character_forge', description: 'The Character Forge (Кузня персонажів): every character / enemy with its type (hero, npc, enemy, boss), production stages (brief → concept → base mesh → rig → equipment → integration → animation → export) and which are approved. With ref — one character\'s manifest (schema whitewrite.character/1): the brief, rig and body profiles, each stage with its APPROVED version\'s files (download URLs — use these, not newer unapproved uploads), animation clips, the bound equipment with its technical passport (slot, skinned | rigid, rig / body profile, body mask, attachment points, format, units, maps, LOD, polygon target, validation status and issues) and loadouts.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string', description: '"c:<cardId>", "e:<entityId>" or the name; empty = the list' } } } },
   { name: 'report_forge_check', description: 'Report what you checked in Unity or Blender for a Character Forge equipment item — the platform cannot see clipping, deformation or skeleton compatibility itself. check: skeleton | clipping | deformation | materials | lod | polycount | scale; result: passed | warning | failed. The latest report per check replaces the previous one; a failed one blocks the integration stage until fixed, a warning needs the author\'s manual approval.',
@@ -548,7 +550,15 @@ async function callTool(name, args, key) {
       const c = ctx.cards.find((x) => (x.section === 'mechanics' || x.section === 'audio') && !x.canonRef && (x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));
       if (!c) throw rpcError(-32602, `Mechanic ${r} not found`);
       if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', constructor: false, fields: named(c), message: 'An older card, not yet opened in the constructor: only its text fields.' };
-      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en'), framework_version: MECH.FRAMEWORK.version };
+      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en', MECH.audioLibrary(ctx.cards, 'en').assets), framework_version: MECH.FRAMEWORK.version };
+    }
+    case 'get_audio_library': {
+      const lib = MECH.audioLibrary(ctx.cards, 'en'), q = str(args.query, 200).toLowerCase();
+      const where = (w) => ({ mechanic: 'c:' + w.card, title: w.title, section: w.secTitle, row: w.rowName || null, slot: w.label });
+      const sounds = lib.assets.filter((a) => !q || (a.title + ' ' + a.group + ' ' + a.files.map((f) => f.name).join(' ')).toLowerCase().includes(q)).map((a) => ({
+        ref: 'c:' + a.id, title: a.title, subsection: a.group, files: a.files.map((f) => ({ name: f.name, url: f.url, type: f.type || '', size: f.size || 0, duration: f.duration || null })),
+        plays_in: (lib.used[a.id] || []).map(where) }));
+      return { sounds, missing: lib.missing.map(where), unused: lib.unused.map((id) => 'c:' + id) };
     }
     case 'get_character_forge': {
       const nameOf = (c) => c.title || (ctx.entities.find((e) => e.id === c.canonRef) || {}).name || '';
