@@ -19,7 +19,14 @@
       sm: { ok: "у стилі", mid: "частково в стилі", bad: "вибивається зі стилю", na: "не вдалося прочитати картинку", by: "за кольором, у браузері", ai: "ШІ-перевірка — кнопкою у «Візуальному стилі»", aiBy: "оцінка ШІ", stale: "оцінка ШІ застаріла — стиль змінився", issues: "Що вибивається", fixes: "Як виправити",
         all: "✦ Перевірити всі", allTip: "ШІ-перевірка всіх картинок гри без свіжої оцінки (нові й застарілі)", allNone: "Усі картинки вже мають свіжу оцінку ШІ.",
         allAsk: "Перевірити {n} картинок за стилем? ≈ {t} токенів (списується реальна вартість).", allRun: "Перевіряю стиль", allDone: "Перевірено картинок", noStyle: "Спершу задай палітру стилю." },
-      comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити публікацію».",
+      comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити Спільноту».",
+        pickTitle: "Що показати спільноті", worldItem: "Сам світ", inside: "усередині карток ігор",
+        planNone: "Нічого не вибрано — постав галочку біля світу чи гри.", planWorld: "Буде одна картка — світу.", planGames: "Карток ігор: {n}. Світ не показується.",
+        planBoth: "Карток ігор: {n}; світ — усередині кожної з них, окремої картки світу не буде.", planRemove: "Знімається з публікації: {list}.",
+        worldInside: "Окремої картки світу не буде: те, що тут позначиш, відкриється всередині кожної вибраної гри (розділи з 🌍).",
+        gameWithWorld: "Світ теж вибрано — у картці гри будуть і розділи світу (🌍).",
+        apply: "Опублікувати вибране", applyUpd: "Оновити Спільноту", applied: "Готово: опубліковано {n}, знято {m}.",
+        confirmDrop: "Зняти з публікації {list}? Їхні ♥ і фоловери зникнуть.",
         world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n} · 👤 {f}", rel: "Гра вийшла? Посилання на реліз", relPh: "https://store.steampowered.com/app/…&#10;https://username.itch.io/…", relHint: "По одному на рядок (Steam, itch.io, Google Play, App Store, Epic, GOG або сайт). Гра зʼявиться у Спільноті → «🎮 Готові ігри» — майбутня функція, що зараз у розробці.", hidden: "Приховано модератором після скарги — у спільноті не видно.",
         tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
         publish: "Опублікувати", update: "Оновити публікацію", unpublish: "Зняти з публікації", open: "Відкрити у спільноті", working: "Публікую…", done: "Опубліковано: {n} карток.", removed: "Знято з публікації.",
@@ -268,7 +275,14 @@
       sm: { ok: "fits the style", mid: "partly in style", bad: "off-style", na: "could not read the picture", by: "by colour, in the browser", ai: "AI check — the button in «Visual style»", aiBy: "AI score", stale: "the AI score is stale — the style changed", issues: "What breaks it", fixes: "How to fix",
         all: "✦ Check all", allTip: "AI check of every game picture without a fresh score (new and stale)", allNone: "Every picture already has a fresh AI score.",
         allAsk: "Check {n} pictures against the style? ≈ {t} tokens (the real cost is charged).", allRun: "Checking the style", allDone: "Pictures checked", noStyle: "Set the style palette first." },
-      comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the publication”.",
+      comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the Community”.",
+        pickTitle: "What the Community sees", worldItem: "The world itself", inside: "inside the game cards",
+        planNone: "Nothing ticked — tick the world or a game.", planWorld: "One card — the world.", planGames: "Game cards: {n}. The world is not shown.",
+        planBoth: "Game cards: {n}; the world opens inside each of them, with no world card of its own.", planRemove: "Unpublished: {list}.",
+        worldInside: "No separate world card: what you tick here opens inside every ticked game (sections marked 🌍).",
+        gameWithWorld: "The world is ticked too — the game card also carries the world's sections (🌍).",
+        apply: "Publish the selection", applyUpd: "Update the Community", applied: "Done: {n} published, {m} unpublished.",
+        confirmDrop: "Unpublish {list}? Their ♥ and followers will be gone.",
         world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n} · 👤 {f}", rel: "Released? Links to the release", relPh: "https://store.steampowered.com/app/…&#10;https://username.itch.io/…", relHint: "One per line (Steam, itch.io, Google Play, App Store, Epic, GOG or a site). The game shows in Community → “🎮 Released games” — a future feature in development.", hidden: "Hidden by a moderator after a report — not shown in the community.",
         tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
         publish: "Publish", update: "Update the publication", unpublish: "Unpublish", open: "Open in the community", working: "Publishing…", done: "Published: {n} cards.", removed: "Unpublished.",
@@ -3718,12 +3732,24 @@
   var COMM_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/community", commPubs = {}; // pubId → community doc | null
   var COMM_CANON = ["laws", "w-characters", "w-locations", "w-factions", "w-items", "chronicle", "culture"];
   var COMM_GAME = ["overview", "lore", "characters", "locations", "factions", "items", "mechanics", "levels", "enemies", "gear", "scenes", "refs"];
+  // The author ticks what the Community sees: the world itself and / or each game. A ticked game is its own card; the world alone
+  // is one world card; the world ticked WITH games has no card of its own — it opens inside every ticked game's card (withWorld).
+  var commCards = {}, commSel = null, commDraft = {}, commMsg = ""; // gid → that game's cards (one read) · the ticks { w, g: {gid: true} } · typed, not yet published
   function commTargets() {
     var t = [{ key: "w", pubId: worldId, gameId: "", title: world.title || "", def: COMM_CANON,
       secs: CANON.filter(function (s) { return COMM_CANON.indexOf(s.id) >= 0; }) }];
-    if (game) t.push({ key: "g", pubId: worldId + "__" + gameId, gameId: gameId, title: game.title || "", def: COMM_GAME,
-      secs: gameSections().filter(function (s) { return !s.special && s.id !== "telemetry"; }) }); // ordinary card shelves only
+    games.forEach(function (g) {
+      t.push({ key: "g:" + g.id, pubId: worldId + "__" + g.id, gameId: g.id, title: g.title || "", def: COMM_GAME,
+        secs: withGame(g.id, function () { return gameSections().filter(function (s) { return !s.special && s.id !== "telemetry"; }); }) }); // ordinary card shelves only
+    });
     return t;
+  }
+  // another game than the open one: its doc and cards stand in while its snapshot is built (all synchronous)
+  function withGame(gid, fn) {
+    if (!gid || gid === gameId) return fn();
+    var g0 = game, id0 = gameId, c0 = cards;
+    game = games.filter(function (g) { return g.id === gid; })[0] || null; gameId = gid; cards = commCards[gid] || [];
+    try { return fn(); } finally { game = g0; gameId = id0; cards = c0; }
   }
   function commItems(t, secIds) {
     var items = [], has = function (id) { return secIds.indexOf(id) >= 0; }, text = function (v) { return typeof v === "string" ? v : ""; };
@@ -3753,33 +3779,82 @@
     }
     return items.filter(function (it) { it.blocks = it.blocks.filter(function (b) { return b.t.trim(); }); return it.title || it.blocks.length || it.imgs.length; });
   }
+  // what is ticked: from the published showcases once they are known (a game showcase carrying the world ticks the world)
+  function commLoaded(ts) { return ts.every(function (t) { return commPubs[t.pubId] !== undefined; }); }
+  function commInit(ts) {
+    if (commSel || !commLoaded(ts)) return;
+    commSel = { w: !!commPubs[worldId], g: {} };
+    ts.forEach(function (t) { if (!t.gameId) return; var p = commPubs[t.pubId]; if (p) { commSel.g[t.gameId] = true; if (p.withWorld) commSel.w = true; } });
+  }
+  function commPicked(t) { return t.gameId ? !!commSel.g[t.gameId] : commSel.w; }
+  function commAnyGame() { return Object.keys(commSel.g).some(function (k) { return commSel.g[k] && games.some(function (g) { return g.id === k; }); }); }
+  // a showcase that goes up: a ticked game; the world only when no game is ticked
+  function commWillPublish(t) { return t.gameId ? commPicked(t) : commSel.w && !commAnyGame(); }
+  // keep what was typed across re-renders (ticking another item re-renders the panel)
+  function commKeep() {
+    [].forEach.call(document.querySelectorAll(".commt[data-ct]"), function (box) {
+      var d = commDraft[box.dataset.ct] = {};
+      [].forEach.call(box.querySelectorAll("[data-cf]"), function (f) { d[f.dataset.cf] = f.type === "checkbox" ? f.checked : f.value; });
+      if (box.querySelector("[data-cs]")) d.secs = [].filter.call(box.querySelectorAll("[data-cs]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cs; });
+      var cv = box.querySelector('input[name="cov-' + box.dataset.ct + '"]:checked'); if (cv) d.cover = cv.value;
+    });
+  }
+  function commCovers(t, withWorldT) {
+    var covers = [], add = function (it) { it.imgs.forEach(function (u) { if (covers.indexOf(u) < 0 && covers.length < 24) covers.push(u); }); };
+    withGame(t.gameId, function () { commItems(t, t.secs.map(function (s) { return s.id; })).forEach(add); });
+    if (withWorldT) commItems(withWorldT, withWorldT.secs.map(function (s) { return s.id; })).forEach(add);
+    return covers;
+  }
+  function commStatus(t) {
+    var C = STR.comm, p = commPubs[t.pubId];
+    if (!t.gameId && commSel.w && commAnyGame()) return C.inside;
+    return p === undefined ? C.loading : !p ? C.off : p.hidden ? C.hidden : C.on.replace("{n}", p.likes || 0).replace("{f}", p.followers || 0);
+  }
+  function commPlan(ts) {
+    var C = STR.comm, n = ts.filter(function (t) { return t.gameId && commWillPublish(t); }).length;
+    var drop = ts.filter(function (t) { return commPubs[t.pubId] && !commWillPublish(t); }).map(function (t) { return "«" + (t.title || "…") + "»"; });
+    var s = n ? (commSel.w ? C.planBoth : C.planGames).replace("{n}", n) : commSel.w ? C.planWorld : C.planNone;
+    return s + (drop.length ? " " + C.planRemove.replace("{list}", drop.join(", ")) : "");
+  }
   function communityHtml() {
-    var C = STR.comm;
-    return '<section class="setbox" id="st-comm"><h2>' + C.title + '</h2><p class="hint">' + C.hint + '</p>' + commTargets().map(function (t) {
-      var p = commPubs[t.pubId], on = !!p, picked = p ? p.sections.map(function (x) { return x.id; }) : t.def;
-      var covers = [];
-      commItems(t, t.secs.map(function (s) { return s.id; })).forEach(function (it) { it.imgs.forEach(function (u) { if (covers.indexOf(u) < 0 && covers.length < 24) covers.push(u); }); });
-      var cover = p && p.cover && covers.indexOf(p.cover) >= 0 ? p.cover : covers[0];
-      var tag = p ? p.tagline : t.key === "w" ? world.tagline || "" : "", sum = p ? p.summary : t.key === "w" ? world.summary || "" : "";
-      return '<div class="commt" data-ct="' + t.key + '"><h3>' + esc((t.key === "w" ? C.world : C.game) + " · " + t.title) + '</h3>' +
-        '<p class="hint">' + (p === undefined ? C.loading : !on ? C.off : p.hidden ? C.hidden : C.on.replace("{n}", p.likes || 0).replace("{f}", p.followers || 0)) + '</p>' +
-        '<label class="field"><span>' + C.tagline + '</span><input data-cf="tagline" maxlength="240" value="' + esc(tag) + '"></label>' +
-        '<label class="field"><span>' + C.summary + '</span><textarea data-cf="summary" rows="3" maxlength="4000">' + esc(sum) + '</textarea></label>' +
-        '<label class="field"><span>' + C.discord + '</span><input data-cf="discord" maxlength="120" inputmode="url" placeholder="' + esc(C.discordPh) + '" value="' + esc((p && p.discord) || "") + '"><span class="hint">' + C.discordHint + '</span></label>' +
-        '<label class="imp commteam"><input type="checkbox" data-cf="team"' + (p && p.lookingForTeam ? ' checked' : '') + '><span>' + C.team + '</span></label>' +
-        '<p class="hint">' + C.teamHint + '</p>' +
-        '<label class="field"><span>' + C.teamNote + '</span><input data-cf="teamNote" maxlength="600" placeholder="' + esc(C.teamNotePh) + '" value="' + esc((p && p.teamNote) || "") + '"></label>' +
-        (t.key === "w" ? '' : '<label class="field"><span>' + C.rel + '</span><textarea data-cf="rel" rows="2" maxlength="3000" placeholder="' + esc(C.relPh) + '">' +
-          esc(((p && p.releases) || []).map(function (r) { return r.url; }).join("\n")) + '</textarea><span class="hint">' + C.relHint + '</span></label>') +
-        '<div class="field"><span>' + C.secs + '</span>' + (t.key === "w" ? '<p class="hint">✓ ' + C.overview + '</p>' : '') + '<div class="shownsecs">' + t.secs.map(function (s) {
+    var C = STR.comm, ts = commTargets();
+    commKeep(); commInit(ts);
+    var head = '<section class="setbox" id="st-comm"><h2>' + C.title + '</h2><p class="hint">' + C.hint + '</p>';
+    if (!commSel) return head + '<p class="hint">' + C.loading + '</p></section>';
+    var anyG = commAnyGame(), wT = ts[0];
+    var pick = '<div class="commpick" role="group" aria-label="' + esc(C.pickTitle) + '"><h3>' + C.pickTitle + '</h3>' + ts.map(function (t) {
+      return '<label class="bigcheck"><input type="checkbox" data-cpick="' + esc(t.key) + '"' + (commPicked(t) ? ' checked' : '') + '><span class="bigcheck__box" aria-hidden="true"></span>' +
+        '<span class="bigcheck__t">' + (t.gameId ? '🎮 ' + esc(C.game + " · " + (t.title || "…")) : '🌍 ' + esc(C.worldItem + " · " + (t.title || "…"))) + '</span>' +
+        '<span class="commst">' + commStatus(t) + '</span></label>'; }).join("") + '</div>' +
+      '<p class="hint commplan">' + commPlan(ts) + '</p>';
+    var forms = ts.filter(commPicked).map(function (t) {
+      var p = commPubs[t.pubId], d = commDraft[t.key] || {}, own = commWillPublish(t), wIn = t.gameId && commSel.w;
+      var val = function (k, dflt) { return d[k] !== undefined ? d[k] : dflt; };
+      var picked = d.secs || (p && p.sections ? p.sections.map(function (x) { return x.id; }) : t.def);
+      var covers = own ? commCovers(t, wIn ? wT : null) : [];
+      var cover = val("cover", p && p.cover && covers.indexOf(p.cover) >= 0 ? p.cover : covers[0]);
+      var team = val("team", !!(p && p.lookingForTeam));
+      return '<div class="commt" data-ct="' + esc(t.key) + '"><h3>' + (t.gameId ? '🎮 ' + esc(C.game + " · " + t.title) : '🌍 ' + esc(C.world + " · " + t.title)) + '</h3>' +
+        (!t.gameId && anyG ? '<p class="hint commin">' + C.worldInside + '</p>' : '') +
+        (wIn ? '<p class="hint commin">' + C.gameWithWorld + '</p>' : '') +
+        '<label class="field"><span>' + C.tagline + '</span><input data-cf="tagline" maxlength="240" value="' + esc(val("tagline", p ? p.tagline : t.gameId ? "" : world.tagline || "")) + '"></label>' +
+        '<label class="field"><span>' + C.summary + '</span><textarea data-cf="summary" rows="3" maxlength="4000">' + esc(val("summary", p ? p.summary : t.gameId ? "" : world.summary || "")) + '</textarea></label>' +
+        (own ? '<label class="field"><span>' + C.discord + '</span><input data-cf="discord" maxlength="120" inputmode="url" placeholder="' + esc(C.discordPh) + '" value="' + esc(val("discord", (p && p.discord) || "")) + '"><span class="hint">' + C.discordHint + '</span></label>' +
+          '<label class="bigcheck commteam"><input type="checkbox" data-cf="team"' + (team ? ' checked' : '') + '><span class="bigcheck__box" aria-hidden="true"></span><span class="bigcheck__t">' + C.team + '</span></label>' +
+          '<div class="commteam-more"' + (team ? '' : ' hidden') + '><p class="hint">' + C.teamHint + '</p>' +
+          '<label class="field"><span>' + C.teamNote + '</span><input data-cf="teamNote" maxlength="600" placeholder="' + esc(C.teamNotePh) + '" value="' + esc(val("teamNote", (p && p.teamNote) || "")) + '"></label></div>' : '') +
+        (own && t.gameId ? '<label class="field"><span>' + C.rel + '</span><textarea data-cf="rel" rows="2" maxlength="3000" placeholder="' + C.relPh + '">' +
+          esc(val("rel", ((p && p.releases) || []).map(function (r) { return r.url; }).join("\n"))) + '</textarea><span class="hint">' + C.relHint + '</span></label>' : '') +
+        '<div class="field"><span>' + C.secs + '</span>' + (!t.gameId ? '<p class="hint">✓ ' + C.overview + '</p>' : '') + '<div class="shownsecs">' + t.secs.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-cs="' + s.id + '"' + (picked.indexOf(s.id) >= 0 ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div></div>' +
-        (covers.length ? '<div class="field"><span>' + C.cover + '</span><div class="commcov">' + covers.map(function (u, i) {
-          return '<label><input type="radio" name="cov-' + t.key + '" value="' + esc(u) + '"' + (u === cover ? ' checked' : '') + '><img loading="lazy" alt="' + esc(C.cover + " " + (i + 1)) + '" src="' + esc(u) + '"></label>'; }).join("") + '</div></div>'
+        (!own ? '' : covers.length ? '<div class="field"><span>' + C.cover + '</span><div class="commcov">' + covers.map(function (u, i) {
+          return '<label><input type="radio" name="cov-' + esc(t.key) + '" value="' + esc(u) + '"' + (u === cover ? ' checked' : '') + '><img loading="lazy" alt="' + esc(C.cover + " " + (i + 1)) + '" src="' + esc(u) + '"></label>'; }).join("") + '</div></div>'
           : '<p class="hint">' + C.noCover + '</p>') +
-        '<div class="setrow"><button class="btn primary" data-cpub>' + (on ? C.update : C.publish) + '</button>' +
-        (on ? '<button class="btn" data-copen>' + C.open + '</button><button class="btn danger" data-cun>' + C.unpublish + '</button>' : '') + '</div>' +
-        '<p class="hint" data-cmsg aria-live="polite"></p></div>';
-    }).join("") + '</section>';
+        (p && own ? '<div class="setrow"><button class="btn" data-copen="' + esc(t.pubId) + '">' + C.open + '</button></div>' : '') + '</div>';
+    }).join("");
+    var any = ts.some(function (t) { return commPubs[t.pubId]; });
+    return head + pick + forms + '<div class="setrow"><button class="btn primary" id="comm-apply">' + (any ? C.applyUpd : C.apply) + '</button></div>' +
+      '<p class="hint" id="comm-msg" aria-live="polite">' + esc(commMsg) + '</p></section>';
   }
   async function commCall(body) {
     var token = await firebase.auth().currentUser.getIdToken();
@@ -3788,39 +3863,76 @@
     if (!r.ok || data.error) throw new Error(data.error || ("HTTP " + r.status));
     return data;
   }
+  // the publish body of one showcase from its form (a game carrying the world adds the world's sections, items and overview)
+  function commBody(t, wT) {
+    var box = document.querySelector('.commt[data-ct="' + t.key + '"]'), q = function (k) { var f = box.querySelector('[data-cf="' + k + '"]'); return f ? (f.type === "checkbox" ? f.checked : f.value.trim()) : ""; };
+    var ids = [].filter.call(box.querySelectorAll("[data-cs]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cs; });
+    var cov = box.querySelector('input[name="cov-' + t.key + '"]:checked');
+    var body = { action: "publish", worldId: worldId, gameId: t.gameId, author: (firebase.auth().currentUser || {}).displayName || "",
+      tagline: q("tagline"), summary: q("summary"), cover: cov ? cov.value : "", discord: q("discord"), lookingForTeam: q("team") === true, teamNote: q("teamNote"),
+      sections: t.secs.filter(function (s) { return ids.indexOf(s.id) >= 0; }).map(function (s) { return { id: s.id, label: L(s) }; }),
+      items: withGame(t.gameId, function () { return commItems(t, ids); }) };
+    if (body.discord && !/^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(body.discord)) throw new Error(STR.comm.badDiscord); // the server checks the same
+    var rel = q("rel"); // a released game: one link per line, the store from the address (community.js checks https)
+    if (t.gameId) body.releases = rel.split(/\s+/).filter(function (u) { return /^https:\/\//.test(u); }).slice(0, 6).map(function (u) {
+      var k = [["steam", /steampowered\.com|steamcommunity\.com/], ["itch", /itch\.io/], ["googleplay", /play\.google\.com/], ["appstore", /apps\.apple\.com/], ["epic", /epicgames\.com/], ["gog", /gog\.com/]]
+        .filter(function (x) { return x[1].test(u); })[0];
+      return { kind: k ? k[0] : "web", url: u }; });
+    var worldPart = function (wbox) { // the world's overview, laws and the canon sections ticked in its form
+      var wids = [].filter.call(wbox.querySelectorAll("[data-cs]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cs; });
+      return { ids: wids, facts: (world.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }), rules: wids.indexOf("laws") >= 0 ? (world.rules || []) : [] };
+    };
+    if (!t.gameId) { var own = worldPart(box); body.facts = own.facts; body.rules = own.rules; }
+    else if (wT) {
+      var wbox = document.querySelector('.commt[data-ct="w"]'), wp = worldPart(wbox);
+      body.withWorld = true; body.facts = wp.facts; body.rules = wp.rules;
+      body.worldTagline = wbox.querySelector('[data-cf="tagline"]').value.trim(); body.worldSummary = wbox.querySelector('[data-cf="summary"]').value.trim();
+      body.sections = body.sections.concat(wT.secs.filter(function (s) { return wp.ids.indexOf(s.id) >= 0; }).map(function (s) { return { id: s.id, label: "🌍 " + L(s) }; }));
+      body.items = body.items.concat(commItems(wT, wp.ids));
+    }
+    return body;
+  }
+  // a game's cards for its snapshot (the open game's are live already)
+  function commLoadCards(gid) {
+    if (!gid || gid === gameId || commCards[gid] !== undefined) return;
+    commCards[gid] = null;
+    wref().collection("games").doc(gid).collection("cards").get().then(function (snap) {
+      commCards[gid] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      if (settingsIdle() || hubIdle()) render();
+    }, function () { commCards[gid] = []; });
+  }
   function bindCommunity() {
-    commTargets().forEach(function (t) {
-      var box = document.querySelector('.commt[data-ct="' + t.key + '"]'); if (!box) return;
-      var say = function (x) { box.querySelector("[data-cmsg]").textContent = x; };
+    var ts = commTargets(), say = function (x) { commMsg = x; var m = $("comm-msg"); if (m) m.textContent = x; };
+    ts.forEach(function (t) {
       if (commPubs[t.pubId] === undefined) db.collection("community").doc(t.pubId).get()
         .then(function (sn) { return sn.exists ? sn.data() : null; }, function () { return null; })
-        .then(function (d) { commPubs[t.pubId] = d; if (settingsIdle() || hubIdle()) render(); });
-      box.querySelector("[data-cpub]").onclick = async function (ev) {
-        var btn = ev.currentTarget, ids = [].filter.call(box.querySelectorAll("[data-cs]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cs; });
-        var cov = box.querySelector('input[name="cov-' + t.key + '"]:checked'), items = commItems(t, ids);
-        var body = { action: "publish", worldId: worldId, gameId: t.gameId, author: (firebase.auth().currentUser || {}).displayName || "",
-          tagline: box.querySelector('[data-cf="tagline"]').value, summary: box.querySelector('[data-cf="summary"]').value, cover: cov ? cov.value : "",
-          sections: t.secs.filter(function (s) { return ids.indexOf(s.id) >= 0; }).map(function (s) { return { id: s.id, label: L(s) }; }), items: items };
-        body.discord = box.querySelector('[data-cf="discord"]').value.trim();
-        if (body.discord && !/^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(body.discord)) { say(STR.comm.badDiscord); return; } // the server checks the same
-        var rel = box.querySelector('[data-cf="rel"]'); // a released game: one link per line, the store from the address (community.js checks https)
-        if (rel) body.releases = rel.value.split(/\s+/).filter(function (u) { return /^https:\/\//.test(u); }).slice(0, 6).map(function (u) {
-          var k = [["steam", /steampowered\.com|steamcommunity\.com/], ["itch", /itch\.io/], ["googleplay", /play\.google\.com/], ["appstore", /apps\.apple\.com/], ["epic", /epicgames\.com/], ["gog", /gog\.com/]]
-            .filter(function (x) { return x[1].test(u); })[0];
-          return { kind: k ? k[0] : "web", url: u }; });
-        body.lookingForTeam = box.querySelector('[data-cf="team"]').checked; body.teamNote = box.querySelector('[data-cf="teamNote"]').value.trim();
-        if (t.key === "w") { body.facts = (world.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }); body.rules = ids.indexOf("laws") >= 0 ? (world.rules || []) : []; }
-        btn.disabled = true; say(STR.comm.working);
-        try { var r = await commCall(body); delete commPubs[t.pubId]; say(STR.comm.done.replace("{n}", r.items)); render(); }
-        catch (er) { btn.disabled = false; say(STR.failed + ": " + er.message); }
-      };
-      var o = box.querySelector("[data-copen]"); if (o) o.onclick = function () { tellShell({ type: "ww-community", pubId: t.pubId }); };
-      var u = box.querySelector("[data-cun]"); if (u) u.onclick = async function () {
-        u.disabled = true;
-        try { await commCall({ action: "unpublish", pubId: t.pubId }); commPubs[t.pubId] = null; render(); }
-        catch (er) { u.disabled = false; say(STR.failed + ": " + er.message); }
-      };
+        .then(function (d) { commPubs[t.pubId] = d; if (commLoaded(commTargets()) && (settingsIdle() || hubIdle() || !commSel)) render(); });
+      if (commSel && commPicked(t)) commLoadCards(t.gameId);
     });
+    [].forEach.call(document.querySelectorAll("[data-cpick]"), function (cb) {
+      cb.onchange = function () { var k = cb.dataset.cpick; if (k === "w") commSel.w = cb.checked; else commSel.g[k.slice(2)] = cb.checked; commMsg = ""; render(); };
+    });
+    [].forEach.call(document.querySelectorAll('.commt [data-cf="team"]'), function (cb) { // «Шукаю команду»: «кого шукаєш» opens only when ticked
+      cb.onchange = function () { cb.closest(".commt").querySelector(".commteam-more").hidden = !cb.checked; };
+    });
+    [].forEach.call(document.querySelectorAll("[data-copen]"), function (b) { b.onclick = function () { tellShell({ type: "ww-community", pubId: b.dataset.copen }); }; });
+    var ap = $("comm-apply"); if (!ap) return;
+    ap.onclick = async function () {
+      var C = STR.comm, wT = ts[0], up = ts.filter(commWillPublish), drop = ts.filter(function (t) { return commPubs[t.pubId] && !commWillPublish(t); });
+      if (!up.length && !drop.length) { say(C.planNone); return; }
+      if (up.some(function (t) { return t.gameId && commCards[t.gameId] === null; })) { say(C.loading); return; } // a game's cards still loading
+      var lose = drop.filter(function (t) { var p = commPubs[t.pubId]; return (p.likes || 0) + (p.followers || 0) > 0; });
+      if (lose.length && !confirm(C.confirmDrop.replace("{list}", lose.map(function (t) { return "«" + (t.title || "…") + "»"; }).join(", ")))) return;
+      var bodies; try { bodies = up.map(function (t) { return commBody(t, t.gameId && commSel.w ? wT : null); }); } catch (er) { say(er.message); return; }
+      ap.disabled = true; say(C.working);
+      var n = 0, m = 0;
+      try {
+        for (var i = 0; i < bodies.length; i++) { await commCall(bodies[i]); n++; }
+        for (var j = 0; j < drop.length; j++) { await commCall({ action: "unpublish", pubId: drop[j].pubId }); m++; }
+        commDraft = {}; ts.forEach(function (t) { delete commPubs[t.pubId]; }); commSel = null; // re-read what is live now
+        render(); say(C.applied.replace("{n}", n).replace("{m}", m));
+      } catch (er) { ap.disabled = false; say(STR.failed + ": " + er.message); }
+    };
   }
   // the settings' «Claude Code» ticks follow live data, but never re-render under the author's typing
   function settingsIdle() { return section === "settings" && !document.activeElement.closest("#view input, #view textarea"); }

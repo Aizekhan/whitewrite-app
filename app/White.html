@@ -252,6 +252,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .vhead__t .wwstats{ margin-left:12px; font-size:13px; }
 .ncard__stats{ margin:6px 0 2px; }
 .cm-follow{ display:inline-flex; align-items:center; gap:6px; }
+.cm-world{ border:1px solid rgba(212,175,55,.3); border-radius:14px; padding:12px 16px; margin:0 0 18px; max-width:860px; background:rgba(30,22,10,.35); } .cm-world h2{ margin:4px 0 6px; font-family:Cinzel,serif; font-size:20px; }
 .cm-future{ border:1px dashed rgba(212,175,55,.5); background:rgba(212,175,55,.06); border-radius:14px; padding:14px 16px; margin:6px 0 20px; max-width:860px; }
 .cm-future p{ margin:6px 0 0; color:var(--tx); line-height:1.6; } .cm-future a{ color:var(--gold-lit); }
 .cm--rel{ display:flex; flex-direction:column; gap:8px; } .cm--rel .cm--in{ flex:1; }
@@ -1785,6 +1786,9 @@ body.at-home .back-fab{ display:none; }
         (p.teamNote ? '<p>' + cmT("Кого шукає: ", "Looking for: ") + escapeHtml(p.teamNote) + '</p>' : '') +
         '<p class="cm-note">' + (p.discord ? cmT("Пиши в Discord цього проєкту.", "Write on this project's Discord.") : cmT("Звʼязок — у «Співтворцях».", "Contact — in “Co-creators”.")) + '</p></div>' : '') +
       (p.summary ? '<p class="cm-sum">' + escapeHtml(p.summary) + '</p>' : '') +
+      // a game showcase that carries its world (the author ticked the world too): the world's overview, its sections are the 🌍 tabs
+      (p.withWorld ? '<div class="cm-world"><div class="cm__kind">' + cmT("Світ гри", "The game's world") + '</div><h2>🌍 ' + escapeHtml(p.worldTitle || "") + '</h2>' +
+        (p.worldTagline ? '<p class="cm-hero__tag">' + escapeHtml(p.worldTagline) + '</p>' : '') + (p.worldSummary ? '<p class="cm-sum">' + escapeHtml(p.worldSummary) + '</p>' : '') + '</div>' : '') +
       (p.facts && p.facts.length ? '<dl class="cm-facts">' + p.facts.map(function (f) { return '<div><dt>' + escapeHtml(f.k) + '</dt><dd>' + escapeHtml(f.v) + '</dd></div>'; }).join("") + '</dl>' : '') +
       '<div class="cm-body" role="tabpanel">' + body + '</div>';
   }

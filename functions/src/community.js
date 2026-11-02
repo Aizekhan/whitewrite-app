@@ -9,6 +9,8 @@
 //   community/{pubId}/items/{i} { sec, group, title, blocks[{l,t}], imgs[] }
 //   community/{pubId}/likes/{uid} { at } — one ♥ per signed-in user; the owner reads their own
 //   community/{pubId}/followers/{uid} { at } — «стежити» (v2.44): one per signed-in user, counter `followers`; the follower reads their own
+//   + on a game showcase: withWorld, worldTagline, worldSummary (v2.47) — the author ticked the world too: it has no card of its own and
+//     opens inside every ticked game (its sections ride along, labelled 🌍; facts / rules are the world's)
 //   + on a game showcase: releases[{kind, url}] + hasRelease — links to the released game (Спільнота → «🎮 Готові ігри», a future feature)
 //   community_reports/{pubId}__{uid} { pubId, uid, title, reason, at, resolved } — admins read
 //   community_home/current      { top[], pool[], at } — the home page cards (public read)
@@ -25,7 +27,7 @@ const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
 const DAY = 24 * 3600 * 1000;
 const HALF_LIFE = 30 * DAY, ACTIVE = 7 * DAY, TOP = 20;
-const LIMITS = { items: 600, blocks: 30, block: 12000, imgs: 8, sections: 60, facts: 40, rules: 60 };
+const LIMITS = { items: 1000, blocks: 30, block: 12000, imgs: 8, sections: 60, facts: 40, rules: 60 };
 // only files of our own Storage bucket are shown (download URLs with a token)
 // a Discord server invite: discord.gg/<code> or discord.com/invite/<code>
 const okDiscord = (u) => typeof u === 'string' && /^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(u.trim());
@@ -141,6 +143,8 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           rules: (Array.isArray(body.rules) ? body.rules : []).slice(0, LIMITS.rules).map((r) => str(r, 600)).filter(Boolean),
           discord: okDiscord(body.discord) ? body.discord.trim() : '',
           lookingForTeam: body.lookingForTeam === true, teamNote: body.lookingForTeam === true ? str(body.teamNote, 600) : '',
+          withWorld: !!gameId && body.withWorld === true,
+          worldTagline: gameId && body.withWorld === true ? str(body.worldTagline, 240) : '', worldSummary: gameId && body.withWorld === true ? str(body.worldSummary, 4000) : '',
           releases: gameId ? (Array.isArray(body.releases) ? body.releases : []).filter(okRelease).slice(0, 6).map((r) => ({ kind: r.kind, url: r.url.trim() })) : [],
           sections, updatedAt: ts(), activeAt: ts(),
         };
