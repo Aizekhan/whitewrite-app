@@ -62,6 +62,39 @@
           artifacts: [["story", "Походження", "Хто й навіщо створив, через чиї руки пройшов, яку має силу…"], ["look", "Вигляд", "Матеріал, розмір, знаки, як відчувається в руці…"]],
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settings: "Налаштування проєкту", settingsAbout: "Підключення Claude Code, назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
+      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — у хабі світу, біля його картки (там, де додаєш історії).",
+        memberNote: "Налаштування світу бачить лише його власник.",
+        tabs: { community: "Спільнота", team: "Команда", market: "Маркет", backup: "Бекап" },
+        team: { title: "Команда світу", hint: "Додай друзів у команду цього світу й дай кожному свою роль. Друзів додаєш в Акаунті → «Друзі».",
+          roles: { admin: "Адмін", editor: "Редактор", viewer: "Перегляд", custom: "Вибрані розділи" },
+          about: { admin: "повна довіра: усе, разом із ✦ AI-діями на твоїх токенах", editor: "повна довіра, але без ✦ (не витрачає токени)", viewer: "лише читає весь світ",
+            custom: "читає й редагує лише відмічені розділи меню" },
+          section: "Розділ", view: "Перегляд", edit: "Редагування", remove: "Прибрати", removeText: "Людина втратить доступ до цього світу. Дружба лишиться.", removed: "Прибрано з команди.",
+          saved: "Збережено.", added: "Додано в команду.", empty: "У команді поки нікого.", add: "Додати в команду", addBtn: "Додати",
+          noFriends: "Немає друзів, яких можна додати.", toFriends: "Акаунт → Друзі" },
+        market: { title: "Маркет: продаж світу", hint: "Продається весь світ (канон, культура, ігри, історії) — лише текст, з повним викупом прав: після оплати світ переходить покупцю, а ти втрачаєш до нього доступ. Спершу — ліцензія: перевірка до 1–2 тижнів (метрики, ШІ-рецензія, ШІ-юрист, модератор), світ на цей час заморожено. Ціна перевірки — за обсягом тексту: {tiers} токенів, лише Worldbuilder. Продавати ліцензований світ можна на будь-якому тарифі; 12% утримує Stripe на користь WhiteWrite.",
+          rules: "Як це працює", payouts: "Виплати Stripe:", payoutsOn: "підключено", payoutsPending: "не завершено", payoutsOff: "не підключено", connect: "Підключити Stripe",
+          connectOpened: "Stripe відкрито в новій вкладці. Після завершення повернись сюди.",
+          status: { review: "На перевірці", moderation: "У модератора", approved: "Ліцензовано й виставлено" }, since: "з", frozen: "Світ заморожено: його можна читати, але не змінювати, доки заявку не відкликано або світ не продано.",
+          listed: "У Маркеті за {price} · рівень «{level}».", openLot: "Відкрити лот", aiReview: "ШІ-рецензія", aiLawyer: "ШІ-юрист",
+          levels: { concept: "Концепт", gdd: "Готовий ГДД", prototype: "Прототип", slice: "Vertical slice", live: "Гра з гравцями" },
+          risk: { low: "ризик низький", medium: "ризик середній", high: "ризик високий" },
+          withdraw: "Відкликати", withdrawText: "Ліцензія стане недійсною, лот зникне, світ розморозиться. Плата за перевірку не повертається.", withdrawn: "Відкликано. Світ розморожено.",
+          rejected: "Заявку відхилено", quote: "Порахувати ціну перевірки", quoting: "Рахую обсяг світу…", quoted: "{chars} символів тексту → перевірка {fee} токенів.",
+          tooLarge: "Світ завеликий для одного лоту (понад 2 млн символів).", quoteFirst: "Спершу порахуй ціну перевірки.",
+          lotTitle: "Назва лоту", pitch: "Опис для покупця", pitchPh: "Що це за світ, для якої гри чи книги, що в ньому готове", declaration: "Декларація автора",
+          declarationPh: "Що створено тобою, з ким (співавтори дали згоду?), що написано з ШІ", price: "Ціна викупу, $",
+          agree: "Погоджуюсь із правилами Маркету, договором продавця й шаблоном договору викупу; розумію, що світ заморожується, а плата за перевірку не повертається.",
+          agreeFirst: "Спершу погодься з правилами й договорами.", apply: "Подати на ліцензію", applyText: "Буде списано {fee} токенів, світ заморозиться на час перевірки (до 1–2 тижнів). Продовжити?",
+          applying: "Роблю знімок світу й подаю заявку…", applied: "Заявку подано. Світ заморожено; ШІ-перевірка почалась." },
+        backup: { title: "Бекап у GitHub", hint: "Щодня текст світу (канон, культура, ігри, історії; без файлів) — у твій приватний репозиторій GitHub: world.json + README, історію змін зберігає git. Ціна — {n} токенів за світ на 30 днів, від Storyteller.",
+          steps: ["GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token.", "Repository access: <b>All repositories</b> (щоб WhiteWrite створив приватний репозиторій).", "Permissions: <b>Administration</b> — Read and write, <b>Contents</b> — Read and write.", "Встав токен нижче. Він зберігається лише на сервері."],
+          token: "Токен GitHub", connect: "Підключити GitHub", repo: "Репозиторій:", on: "щоденний бекап увімкнено", off: "щоденний бекап вимкнено", paid: "оплачено до",
+          last: "Останній бекап:", now: "Зберегти зараз", enable: "Увімкнути щоденний бекап", disable: "Вимкнути", disconnect: "Відключити GitHub",
+          costText: "Щоденний бекап цього світу коштує {n} токенів за 30 днів; далі місяць продовжується сам з твого балансу, доки бекап увімкнено.",
+          disconnectText: "WhiteWrite забуде токен і зупинить бекап. Репозиторій на GitHub лишиться.", working: "Працюю…", connected: "GitHub підключено, приватний репозиторій готовий.",
+          enabled: "Увімкнено, перший бекап зроблено.", done: "Бекап зроблено.", disabled: "Вимкнено (оплачений місяць лишається).", disconnected: "GitHub відключено." } },
+      team: { noAi: "✦ AI-дії в цьому світі запускають лише власник і адмін команди (на токенах власника)." },
       wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Розмір на плашці", uploading: "Завантажую…" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
@@ -275,6 +308,39 @@
           artifacts: [["story", "Origin", "Who made it and why, whose hands it passed through, what power it has…"], ["look", "Look", "Material, size, markings, how it feels in the hand…"]],
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settings: "Project settings", settingsAbout: "Connecting Claude Code, names, engine, import and export, safe deletion.", gameLabel: "Game:",
+      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now in the world hub, next to its card (where you add stories).",
+        memberNote: "Only the world's owner sees its settings.",
+        tabs: { community: "Community", team: "Team", market: "Market", backup: "Backup" },
+        team: { title: "The world team", hint: "Add friends to this world's team and give each a role. You add friends in the Account → “Friends”.",
+          roles: { admin: "Admin", editor: "Editor", viewer: "Viewer", custom: "Chosen sections" },
+          about: { admin: "full trust: everything, including ✦ AI actions on your tokens", editor: "full trust without ✦ (spends no tokens)", viewer: "reads the whole world only",
+            custom: "reads and edits only the ticked menu sections" },
+          section: "Section", view: "View", edit: "Edit", remove: "Remove", removeText: "They lose access to this world. The friendship stays.", removed: "Removed from the team.",
+          saved: "Saved.", added: "Added to the team.", empty: "Nobody in the team yet.", add: "Add to the team", addBtn: "Add",
+          noFriends: "No friends to add.", toFriends: "Account → Friends" },
+        market: { title: "Market: selling the world", hint: "The whole world sells (canon, culture, games, stories) — text only, as a full buyout: after payment the world passes to the buyer and you lose access to it. First a licence: a review of up to 1–2 weeks (metrics, AI review, AI lawyer, moderator), the world frozen meanwhile. The review costs by the text size: {tiers} tokens, Worldbuilder only. A licensed world sells on any plan; Stripe keeps 12% for WhiteWrite.",
+          rules: "How it works", payouts: "Stripe payouts:", payoutsOn: "connected", payoutsPending: "not finished", payoutsOff: "not connected", connect: "Connect Stripe",
+          connectOpened: "Stripe opened in a new tab. Come back here when you finish.",
+          status: { review: "Under review", moderation: "With the moderator", approved: "Licensed and listed" }, since: "since", frozen: "The world is frozen: readable but not changeable until the application is withdrawn or the world is sold.",
+          listed: "In the Market for {price} · level “{level}”.", openLot: "Open the lot", aiReview: "AI review", aiLawyer: "AI lawyer",
+          levels: { concept: "Concept", gdd: "Ready GDD", prototype: "Prototype", slice: "Vertical slice", live: "Game with players" },
+          risk: { low: "low risk", medium: "medium risk", high: "high risk" },
+          withdraw: "Withdraw", withdrawText: "The licence becomes void, the lot goes, the world unfreezes. The review fee is not returned.", withdrawn: "Withdrawn. The world is unfrozen.",
+          rejected: "The application was rejected", quote: "Work out the review price", quoting: "Measuring the world…", quoted: "{chars} characters of text → the review costs {fee} tokens.",
+          tooLarge: "The world is too large for one lot (over 2 million characters).", quoteFirst: "Work out the review price first.",
+          lotTitle: "Lot title", pitch: "Description for the buyer", pitchPh: "What this world is, for which game or book, what is ready", declaration: "The author's declaration",
+          declarationPh: "What you made, with whom (did co-authors agree?), what was written with AI", price: "Buyout price, $",
+          agree: "I agree with the Market rules, the seller agreement and the buyout contract template; I understand the world freezes and the review fee is not returned.",
+          agreeFirst: "Agree with the rules and agreements first.", apply: "Apply for a licence", applyText: "{fee} tokens will be charged and the world frozen for the review (up to 1–2 weeks). Go on?",
+          applying: "Taking the world's snapshot and applying…", applied: "Applied. The world is frozen; the AI review has started." },
+        backup: { title: "GitHub backup", hint: "Every day the world's text (canon, culture, games, stories; no files) goes to your private GitHub repository: world.json + README, git keeps the history. {n} tokens per world per 30 days, from Storyteller.",
+          steps: ["GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token.", "Repository access: <b>All repositories</b> (so WhiteWrite can create a private repository).", "Permissions: <b>Administration</b> — Read and write, <b>Contents</b> — Read and write.", "Paste the token below. It is kept on the server only."],
+          token: "GitHub token", connect: "Connect GitHub", repo: "Repository:", on: "daily backup on", off: "daily backup off", paid: "paid until",
+          last: "Last backup:", now: "Back up now", enable: "Turn the daily backup on", disable: "Turn off", disconnect: "Disconnect GitHub",
+          costText: "The daily backup of this world costs {n} tokens per 30 days; the month then renews from your balance while the backup is on.",
+          disconnectText: "WhiteWrite forgets the token and stops the backup. The GitHub repository stays.", working: "Working…", connected: "GitHub connected, the private repository is ready.",
+          enabled: "On; the first backup is done.", done: "Backed up.", disabled: "Off (the paid month stays).", disconnected: "GitHub disconnected." } },
+      team: { noAi: "✦ AI actions in this world are run only by the owner and a team admin (on the owner's tokens)." },
       wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Size on the bar", uploading: "Uploading…" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
@@ -678,10 +744,18 @@
   var navOpen = {}; try { navOpen = JSON.parse(localStorage.getItem("ww-bible-navopen") || "{}") || {}; } catch (e) { navOpen = {}; }
   var ARROW = '<span class="arr"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span>';
   function navGroupOf(id) { return NAV_GROUPS.filter(function (g) { return g.members && g.members.indexOf(id) >= 0; })[0] || null; }
-  function groupMembers(g) { var ids = gameSections().map(function (s) { return s.id; }); return g.members.filter(function (m) { return ids.indexOf(m) >= 0; }); }
+  function groupMembers(g) { var ids = gameSections().map(function (s) { return s.id; }); return g.members.filter(function (m) { return ids.indexOf(m) >= 0 && mayRead(m); }); }
   var SETTINGS = { id: "settings", special: "settings", uk: "Налаштування проєкту", en: "Project settings",
     about: { uk: "Назви, рушій, імпорт і експорт, безпечне видалення.", en: "Names, engine, import and export, safe deletion." } };
   function sections() { return CANON.concat(gameSections(), [SETTINGS]); }
+  // ---------- Команда: a member's access — worlds/{w}.team.{uid} (functions/src/team.js); firestore.rules enforce the same ----------
+  // owner — everything; admin — everything + ✦ on the owner's tokens; editor — everything but ✦; viewer — reads; custom — chosen sections
+  var ME = { owner: true, role: "owner", view: [], edit: [], viewKinds: [] }, baseWrite = false;
+  function fullRead() { return ME.owner || ME.role !== "custom"; }
+  function mayRead(id) { return id === "settings" ? ME.owner : fullRead() || ME.view.indexOf(id) >= 0; }
+  function mayEdit(id) { return ME.owner || ME.role === "admin" || ME.role === "editor" || (ME.role === "custom" && ME.edit.indexOf(id) >= 0); }
+  function secOfKind(kind) { if (kind === "events") return "chronicle"; var c = CANON.filter(function (x) { return x.dossier === kind; })[0]; return c ? c.id : kind; }
+  function firstReadable() { var s = sections().filter(function (x) { return mayRead(x.id); })[0]; return s ? s.id : "world"; }
   // Subheadings: every ordinary section groups its cards by one field (mechanics "group", assets "category", others "group")
   function groupKey(s) { return s.special ? "" : (s.group || "group"); }
   // Standard subheadings of the section first (s.groups), then the author's own ones in order of appearance.
@@ -950,6 +1024,7 @@
       : s.special ? "" : all.filter(function (c) { return c.section === s.id; }).length;
   }
   function navItem(s, all, label) {
+    if (!mayRead(s.id)) return "";
     return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(label || L(s)) + '<span class="n">' + navCount(s, all) + '</span></button>';
   }
   // a section named like its group gets a short name inside it («Продакшн-план» → «План»)
@@ -972,12 +1047,12 @@
     var all = allCards();
     var pick = !canGame ? '<button class="nav-item" data-sec="overview">🔒 ' + esc(STR.wt.gameLocked) + '</button>' : games.length ? '<div class="gamerow"><label for="gamepick">' + STR.gameLabel + '</label><select id="gamepick">' +
       games.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === gameId ? " selected" : "") + '>' + esc(g.title) + '</option>'; }).join("") +
-      '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option></select></div>' : '<button class="nav-item" data-sec="overview">' + esc(STR.newGame) + '</button>'; // no game yet: the way to the first one
+      (ME.owner ? '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option>' : '') + '</select></div>' : !ME.owner ? '' : '<button class="nav-item" data-sec="overview">' + esc(STR.newGame) + '</button>'; // no game yet: the way to the first one (a team member doesn't create games)
     // the world block folds away so the author can work on the game alone
     $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>' + STR.canonGroup + '</button>' +
       (canonFolded ? "" : CANON.map(function (s) { return navItem(s, all); }).join("")) +
       pick + (game ? gameNav(all) : "");
-    $("newsec-slot").innerHTML = game && canGame ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
+    $("newsec-slot").innerHTML = game && canGame && ME.owner ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
     $("nav-foot").innerHTML = navItem(SETTINGS, all).replace('data-sec="settings">', 'data-sec="settings">⚙ ');
   }
 
@@ -1018,6 +1093,8 @@
   }
 
   function render() {
+    if (PANEL) return renderHubPanel();
+    if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
@@ -1434,6 +1511,7 @@
   function dmsg(t) { $("d-msg").textContent = t; }
   function openDossier(e) {
     if (!e) return;
+    if (!ME.owner) canWrite = baseWrite && mayEdit(e.col === "lore" ? "culture" : secOfKind(e.kind));
     if (open) closeLeaf();
     dos = e; dtab = "story";
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
@@ -2300,6 +2378,7 @@
 
   // ---------- editor ----------
   function openCard(c) {
+    if (!ME.owner) canWrite = baseWrite && mayEdit(c.section);
     open = c;
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
@@ -3140,6 +3219,7 @@
   function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE, (window.__wwUser || {}).aiModel) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   function confirmCost(op, run) {
+    if (!ME.owner && ME.role !== "admin") return alert(STR.team.noAi);
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.costTitle) + '"><h3><span class="aicost">✦</span> ' + esc(STR.costTitle) + '</h3>' +
@@ -3553,7 +3633,7 @@
         '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
         '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
         '<p class="hint">' + STR.stRestoreHint + '</p></section>';
-    html += cosmoSettingsHtml() + communityHtml();
+    html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p></section>';
     html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (game ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '') +
       '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button></div><p class="hint" id="st-msg"></p></section>';
@@ -3567,7 +3647,7 @@
     $("st-wexp").onclick = exportWorld;
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
     $("st-wdel").onclick = deleteWorld;
-    bindCosmoSettings(); bindCommunity();
+    bindCosmoSettings();
     if (!game) return;
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
@@ -3665,7 +3745,7 @@
       var say = function (x) { box.querySelector("[data-cmsg]").textContent = x; };
       if (commPubs[t.pubId] === undefined) db.collection("community").doc(t.pubId).get()
         .then(function (sn) { return sn.exists ? sn.data() : null; }, function () { return null; })
-        .then(function (d) { commPubs[t.pubId] = d; if (settingsIdle()) renderSettings(); });
+        .then(function (d) { commPubs[t.pubId] = d; if (settingsIdle() || hubIdle()) render(); });
       box.querySelector("[data-cpub]").onclick = async function (ev) {
         var btn = ev.currentTarget, ids = [].filter.call(box.querySelectorAll("[data-cs]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cs; });
         var cov = box.querySelector('input[name="cov-' + t.key + '"]:checked'), items = commItems(t, ids);
@@ -3677,13 +3757,13 @@
         body.lookingForTeam = box.querySelector('[data-cf="team"]').checked; body.teamNote = box.querySelector('[data-cf="teamNote"]').value.trim();
         if (t.key === "w") { body.facts = (world.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }); body.rules = ids.indexOf("laws") >= 0 ? (world.rules || []) : []; }
         btn.disabled = true; say(STR.comm.working);
-        try { var r = await commCall(body); delete commPubs[t.pubId]; say(STR.comm.done.replace("{n}", r.items)); renderSettings(); }
+        try { var r = await commCall(body); delete commPubs[t.pubId]; say(STR.comm.done.replace("{n}", r.items)); render(); }
         catch (er) { btn.disabled = false; say(STR.failed + ": " + er.message); }
       };
       var o = box.querySelector("[data-copen]"); if (o) o.onclick = function () { tellShell({ type: "ww-community", pubId: t.pubId }); };
       var u = box.querySelector("[data-cun]"); if (u) u.onclick = async function () {
         u.disabled = true;
-        try { await commCall({ action: "unpublish", pubId: t.pubId }); commPubs[t.pubId] = null; renderSettings(); }
+        try { await commCall({ action: "unpublish", pubId: t.pubId }); commPubs[t.pubId] = null; render(); }
         catch (er) { u.disabled = false; say(STR.failed + ": " + er.message); }
       };
     });
@@ -4615,6 +4695,7 @@
     var gb = e.target.closest(".nav-grp");
     if (gb) { // a group folds / unfolds; unfolding a group you are not in opens its last (or first) section
       var g = NAV_GROUPS.filter(function (x) { return x.id === gb.dataset.group; })[0], mem = groupMembers(g), open = gb.getAttribute("aria-expanded") !== "true";
+      if (open) NAV_GROUPS.forEach(function (x) { if (x.id) navOpen[x.id] = false; }); // an accordion: opening one group folds the rest
       navOpen[g.id] = open; try { localStorage.setItem("ww-bible-navopen", JSON.stringify(navOpen)); } catch (er) {}
       if (!open || mem.indexOf(section) >= 0) return renderNav();
       return goSection(mem.indexOf(lastSub[g.id]) >= 0 ? lastSub[g.id] : mem[0]);
@@ -4859,6 +4940,203 @@
     if (up) up.onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} }; // the shell's account (plans)
   }
 
+  // ---------- The world hub panel (White.html, beside the world card): ?panel=1 renders only these mini-tabs ----------
+  // Спільнота (the showcase, moved here from the settings) · Команда (team.js) · Маркет (market.js) · Бекап (backup.js). Owner only.
+  var PANEL = params.get("panel") === "1";
+  if (PANEL) document.documentElement.classList.add("ww-panel");
+  var FN_AT = function (name) { return "https://us-central1-whitewrite-app.cloudfunctions.net/" + name; };
+  async function fnCall(name, body) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(FN_AT(name), { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(body) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok || data.error) { var e = new Error(data.error || ("HTTP " + r.status)); e.code = data.code; throw e; }
+    return data;
+  }
+  function hubIdle() { return PANEL && !document.activeElement.closest("#view input, #view textarea, #view select"); }
+  var hubTab = "community"; try { hubTab = sessionStorage.getItem("ww-hubtab-" + worldId) || "community"; } catch (e) {}
+  var hubMsg = "", friends = null, mkt = null, mktQuote = null;
+  function askYes(title, text, ok, run) {
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3><p class="warn">' + esc(text) + '</p>' +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + esc(ok) + '</button></div></form>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); close(); run(); };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    box.querySelector("#ask-ok").focus();
+  }
+  function panelHeight() { tellShell({ type: "ww-panel-h", worldId: worldId, h: Math.ceil((document.getElementById("main") || document.body).scrollHeight) + 4 }); }
+  if (PANEL && window.ResizeObserver) new ResizeObserver(panelHeight).observe(document.getElementById("view"));
+  function renderHubPanel() {
+    var H = STR.hub;
+    if (!world.owner) { $("view").innerHTML = '<p class="muted">…</p>'; return; }
+    if (!ME.owner) { $("view").innerHTML = '<p class="muted">' + H.memberNote + '</p>'; return; }
+    var tabs = [["community", "🌍"], ["team", "🤝"], ["market", "⚖"], ["backup", "⛁"]];
+    var body = hubTab === "team" ? teamHtml() : hubTab === "market" ? marketHtml() : hubTab === "backup" ? backupHtml() : communityHtml();
+    $("view").innerHTML = '<div class="hub"><div class="hub__tabs" role="tablist" aria-orientation="vertical">' + tabs.map(function (t) {
+      return '<button role="tab" data-hubtab="' + t[0] + '" aria-selected="' + (t[0] === hubTab) + '"><span aria-hidden="true">' + t[1] + '</span>' + esc(H.tabs[t[0]]) + '</button>'; }).join("") +
+      '</div><div class="hub__body" role="tabpanel">' + body + (hubMsg ? '<p class="hub__msg" role="status">' + esc(hubMsg) + '</p>' : '') + '</div></div>';
+    [].forEach.call($("view").querySelectorAll("[data-hubtab]"), function (b) { b.onclick = function () {
+      hubTab = b.dataset.hubtab; hubMsg = ""; try { sessionStorage.setItem("ww-hubtab-" + worldId, hubTab); } catch (e) {} render(); }; });
+    if (hubTab === "community") bindCommunity();
+    else if (hubTab === "team") bindTeam();
+    else if (hubTab === "market") bindMarket();
+    else bindBackup();
+  }
+  var say = function (t) { hubMsg = t || ""; render(); };
+
+  // ── Команда ──
+  function teamHtml() {
+    var T = STR.hub.team, team = world.team || {}, ids = Object.keys(team);
+    if (friends === null) { friends = []; db.collection("users").doc(firebase.auth().currentUser.uid).collection("friends").get()
+      .then(function (sn) { friends = sn.docs.map(function (d) { return Object.assign({ uid: d.id }, d.data()); }); if (hubIdle()) render(); }, function () {}); }
+    var free = friends.filter(function (f) { return f.status === "accepted" && !team[f.uid]; });
+    var secs = sections().filter(function (x) { return x.id !== "settings"; });
+    var roleSel = function (cur, attr) { return '<select ' + attr + '>' + ["admin", "editor", "viewer", "custom"].map(function (r) { return '<option value="' + r + '"' + (r === cur ? " selected" : "") + '>' + esc(T.roles[r]) + '</option>'; }).join("") + '</select>'; };
+    return '<h2>' + T.title + '</h2><p class="hint">' + T.hint + '</p><ul class="hint tm-roles">' + ["admin", "editor", "viewer", "custom"].map(function (r) { return '<li><b>' + esc(T.roles[r]) + '</b> — ' + esc(T.about[r]) + '</li>'; }).join("") + '</ul>' +
+      (ids.length ? ids.map(function (id) {
+        var m = team[id];
+        return '<div class="tm" data-tm="' + esc(id) + '"><div class="tm__h"><b>' + esc(m.name || m.email || id) + '</b><span class="muted">' + esc(m.email || "") + '</span>' + roleSel(m.role, 'data-trole') +
+          '<button class="btn danger mini" data-tdel>' + T.remove + '</button></div>' +
+          (m.role === "custom" ? '<div class="tm__secs"><div class="tm__sh"><span>' + T.section + '</span><span>' + T.view + '</span><span>' + T.edit + '</span></div>' + secs.map(function (x) {
+            var v = (m.view || []).indexOf(x.id) >= 0, e = (m.edit || []).indexOf(x.id) >= 0;
+            return '<label class="tm__row"><span>' + esc(L(x)) + '</span><input type="checkbox" data-tv="' + x.id + '"' + (v ? " checked" : "") + ' aria-label="' + esc(T.view + " · " + L(x)) + '">' +
+              '<input type="checkbox" data-te="' + x.id + '"' + (e ? " checked" : "") + ' aria-label="' + esc(T.edit + " · " + L(x)) + '"></label>'; }).join("") + '</div>' : '') +
+          '<div class="setrow"><button class="btn primary mini" data-tsave>' + STR.save + '</button></div></div>';
+      }).join("") : '<p class="muted">' + T.empty + '</p>') +
+      '<h3 class="hub__h3">' + T.add + '</h3>' + (free.length
+        ? '<div class="setrow"><select id="tm-friend">' + free.map(function (f) { return '<option value="' + esc(f.uid) + '">' + esc((f.name || f.email) + (f.name && f.email ? " · " + f.email : "")) + '</option>'; }).join("") + '</select>' +
+          roleSel("viewer", 'id="tm-role"') + '<button class="btn primary" id="tm-add">' + T.addBtn + '</button></div>'
+        : '<p class="hint">' + T.noFriends + ' <button class="btn mini" id="tm-friends">' + T.toFriends + '</button></p>');
+  }
+  function bindTeam() {
+    var T = STR.hub.team;
+    var f = $("tm-friends"); if (f) f.onclick = function () { tellShell({ type: "ww-account", tab: "friends" }); };
+    var a = $("tm-add"); if (a) a.onclick = async function () {
+      a.disabled = true;
+      try { await fnCall("team", { op: "set", worldId: worldId, uid: $("tm-friend").value, role: $("tm-role").value, view: [], edit: [] }); say(T.added); }
+      catch (e) { a.disabled = false; say(STR.failed + ": " + e.message); }
+    };
+    [].forEach.call(document.querySelectorAll("[data-tm]"), function (box) {
+      var id = box.dataset.tm, pick = function (attr) { return [].filter.call(box.querySelectorAll("[" + attr + "]"), function (c) { return c.checked; }).map(function (c) { return c.getAttribute(attr); }); };
+      box.querySelector("[data-trole]").onchange = function () { var m = (world.team || {})[id]; if (m) { m.role = this.value; render(); } }; // custom shows its section grid at once
+      [].forEach.call(box.querySelectorAll("[data-te]"), function (c) { c.onchange = function () { if (c.checked) box.querySelector('[data-tv="' + c.dataset.te + '"]').checked = true; }; }); // edit ⇒ view
+      box.querySelector("[data-tsave]").onclick = async function () {
+        try { await fnCall("team", { op: "set", worldId: worldId, uid: id, role: box.querySelector("[data-trole]").value, view: pick("data-tv"), edit: pick("data-te") }); say(T.saved); }
+        catch (e) { say(STR.failed + ": " + e.message); }
+      };
+      box.querySelector("[data-tdel]").onclick = function () {
+        askYes(T.remove, T.removeText, T.remove, async function () {
+          try { await fnCall("team", { op: "remove", worldId: worldId, uid: id }); say(T.removed); } catch (e) { say(STR.failed + ": " + e.message); }
+        });
+      };
+    });
+  }
+
+  // ── Маркет ──
+  function mktLoad() {
+    if (mkt) return;
+    mkt = { loading: true };
+    fnCall("market", { op: "status", worldId: worldId }).then(function (r) {
+      mkt = r;
+      if (r.seller && r.seller.stripeAccountId && !r.seller.chargesEnabled) fnCall("market", { op: "connectStatus" }).then(function (x) { mkt.seller = x.seller; if (hubIdle()) render(); }, function () {});
+      if (hubIdle()) render();
+    }, function (e) { mkt = { error: e.message }; if (hubIdle()) render(); });
+  }
+  function marketHtml() {
+    var K = STR.hub.market, PF = window.__PAID_FEATURES; mktLoad();
+    var tiers = PF ? PF.LICENCE.tiers.map(function (t) { return t.tokens.toLocaleString(); }).join(" / ") : "";
+    var head = '<h2>' + K.title + '</h2><p class="hint">' + K.hint.replace("{tiers}", tiers) + ' <a href="#" data-kb="market">' + K.rules + '</a></p>';
+    if (mkt.loading) return head + '<p class="muted">' + STR.comm.loading + '</p>';
+    if (mkt.error) return head + '<p class="warn">' + esc(mkt.error) + '</p>';
+    var a = mkt.application, sel = mkt.seller, lot = mkt.lot, out = head;
+    var stripe = '<div class="mk-stripe"><b>' + K.payouts + '</b> ' + (sel && sel.chargesEnabled ? '<span class="ok">✓ ' + K.payoutsOn + '</span>'
+      : '<span class="muted">' + (sel && sel.stripeAccountId ? K.payoutsPending : K.payoutsOff) + '</span> <button class="btn mini" id="mk-connect">' + K.connect + '</button>') + '</div>';
+    if (a && ["review", "moderation", "approved"].indexOf(a.status) >= 0) {
+      var r = a.aiReview || {}, lg = a.legal || {};
+      out += '<div class="mk-state"><p><b>' + esc(K.status[a.status]) + '</b> · ' + K.since + ' ' + esc(a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "") + '</p>' +
+        '<p class="warn">❄ ' + K.frozen + '</p>' +
+        (a.status === "approved" && lot ? '<p>' + K.listed.replace("{price}", "$" + (lot.priceCents / 100).toFixed(2)).replace("{level}", K.levels[lot.level] || lot.level) + ' <button class="btn mini" id="mk-open">' + K.openLot + '</button></p>' : '') +
+        (r.summary ? '<p class="hint"><b>' + K.aiReview + ':</b> ' + esc(r.summary) + (r.level ? ' · ' + esc(K.levels[r.level] || r.level) : '') + '</p>' : '') +
+        (lg.risk ? '<p class="hint"><b>' + K.aiLawyer + ':</b> ' + esc(K.risk[lg.risk] || lg.risk) + ((lg.issues || []).length ? ' — ' + esc(lg.issues.slice(0, 3).map(function (x) { return x.what; }).join("; ")) : '') + '</p>' : '') +
+        '<div class="setrow"><button class="btn danger" id="mk-withdraw">' + K.withdraw + '</button></div></div>';
+      return out + stripe;
+    }
+    if (a && a.status === "rejected") out += '<p class="warn">' + K.rejected + (a.moderator && a.moderator.note ? ': ' + esc(a.moderator.note) : '') + '</p>';
+    var q = mktQuote;
+    out += '<div class="mk-form"><div class="setrow"><button class="btn" id="mk-quote">' + K.quote + '</button>' +
+      (q ? '<span class="hint">' + K.quoted.replace("{chars}", q.chars.toLocaleString()).replace("{fee}", q.tooLarge ? "—" : q.fee.toLocaleString()) + '</span>' : '') + '</div>' +
+      (q && q.tooLarge ? '<p class="warn">' + K.tooLarge + '</p>' : '') +
+      '<label class="field"><span>' + K.lotTitle + '</span><input id="mk-title" maxlength="140" value="' + esc(world.title || "") + '"></label>' +
+      '<label class="field"><span>' + K.pitch + '</span><textarea id="mk-pitch" rows="4" maxlength="3000" placeholder="' + esc(K.pitchPh) + '"></textarea></label>' +
+      '<label class="field"><span>' + K.declaration + '</span><textarea id="mk-decl" rows="3" maxlength="2000" placeholder="' + esc(K.declarationPh) + '"></textarea></label>' +
+      '<label class="field"><span>' + K.price + '</span><input id="mk-price" type="number" min="' + (PF ? PF.LICENCE.minUsd : 20) + '" max="' + (PF ? PF.LICENCE.maxUsd : 50000) + '" step="1" value="200"></label>' +
+      '<label class="imp"><input type="checkbox" id="mk-agree"><span>' + K.agree + '</span></label>' +
+      '<div class="setrow"><button class="btn primary" id="mk-apply"' + (q && !q.tooLarge ? '' : ' disabled') + '>' + K.apply + (q && !q.tooLarge ? ' <span class="aicost">✦ ' + q.fee.toLocaleString() + '</span>' : '') + '</button></div>' +
+      (q ? '' : '<p class="hint">' + K.quoteFirst + '</p>') + '</div>';
+    return out + stripe;
+  }
+  function bindMarket() {
+    var K = STR.hub.market;
+    var kb = document.querySelector("[data-kb]"); if (kb) kb.onclick = function (e) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: "market" }); };
+    var c = $("mk-connect"); if (c) c.onclick = async function () {
+      c.disabled = true;
+      try { var r = await fnCall("market", { op: "connect", worldId: worldId }); window.open(r.url, "_blank", "noopener"); say(K.connectOpened); mkt = null; }
+      catch (e) { c.disabled = false; say(STR.failed + ": " + e.message); }
+    };
+    var o = $("mk-open"); if (o) o.onclick = function () { tellShell({ type: "ww-market", lotId: mkt.application.id }); };
+    var w = $("mk-withdraw"); if (w) w.onclick = function () {
+      askYes(K.withdraw, K.withdrawText, K.withdraw, async function () {
+        try { await fnCall("market", { op: "withdraw", applicationId: mkt.application.id }); mkt = null; say(K.withdrawn); } catch (e) { say(STR.failed + ": " + e.message); }
+      });
+    };
+    var q = $("mk-quote"); if (q) q.onclick = async function () {
+      q.disabled = true; say(K.quoting);
+      try { mktQuote = await fnCall("market", { op: "quote", worldId: worldId }); say(""); } catch (e) { q.disabled = false; say(STR.failed + ": " + e.message); }
+    };
+    var ap = $("mk-apply"); if (ap) ap.onclick = function () {
+      if (!$("mk-agree").checked) return say(K.agreeFirst);
+      var body = { op: "apply", worldId: worldId, title: $("mk-title").value, pitch: $("mk-pitch").value, declaration: $("mk-decl").value, priceUsd: Number($("mk-price").value), agree: true };
+      askYes(K.apply, K.applyText.replace("{fee}", mktQuote.fee.toLocaleString()), K.apply, async function () {
+        say(K.applying);
+        try { await fnCall("market", body); mkt = null; mktQuote = null; say(K.applied); } catch (e) { say(STR.failed + ": " + e.message); }
+      });
+    };
+  }
+
+  // ── Бекап у GitHub ──
+  function backupHtml() {
+    var B = STR.hub.backup, b = world.backup, PF = window.__PAID_FEATURES, cost = PF ? PF.featureCost(PF.byOp("githubBackup")) : 300;
+    var head = '<h2>' + B.title + '</h2><p class="hint">' + B.hint.replace("{n}", cost) + '</p>';
+    if (!b || !b.repo) return head + '<ol class="hint">' + B.steps.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>' +
+      '<label class="field"><span>' + B.token + '</span><input id="bk-token" type="password" autocomplete="off" placeholder="github_pat_…"></label>' +
+      '<div class="setrow"><button class="btn primary" id="bk-connect">' + B.connect + '</button></div>';
+    var until = b.paidUntil && b.paidUntil.toMillis ? b.paidUntil.toMillis() : 0, last = b.lastAt && b.lastAt.toMillis ? new Date(b.lastAt.toMillis()).toLocaleString() : "—";
+    return head + '<p>' + B.repo + ' <a href="https://github.com/' + esc(b.repo) + '" target="_blank" rel="noopener">' + esc(b.repo) + '</a> 🔒</p>' +
+      '<p>' + (b.enabled ? '<span class="ok">✓ ' + B.on + '</span>' + (until ? ' · ' + B.paid + ' ' + new Date(until).toLocaleDateString() : '') : '<span class="muted">' + B.off + '</span>') + '</p>' +
+      '<p class="hint">' + B.last + ' ' + esc(last) + (b.lastStatus === "error" ? ' · <span class="warn">' + esc(b.lastError || "") + '</span>' : '') + '</p>' +
+      '<div class="setrow">' + (b.enabled ? '<button class="btn" id="bk-now">' + B.now + '</button><button class="btn" id="bk-off">' + B.disable + '</button>'
+        : '<button class="btn primary" id="bk-on">' + B.enable + (until > Date.now() ? '' : ' <span class="aicost">✦ ' + cost + '</span>') + '</button>') +
+      '<button class="btn danger" id="bk-disc">' + B.disconnect + '</button></div>';
+  }
+  function bindBackup() {
+    var B = STR.hub.backup, PF = window.__PAID_FEATURES, cost = PF ? PF.featureCost(PF.byOp("githubBackup")) : 300;
+    var run = function (op, extra, done) { return async function () {
+      say(B.working);
+      try { await fnCall("backup", Object.assign({ op: op, worldId: worldId }, extra || {})); say(done); } catch (e) { say(STR.failed + ": " + e.message); }
+    }; };
+    var c = $("bk-connect"); if (c) c.onclick = function () { var t = $("bk-token").value.trim(); if (!t) return $("bk-token").focus(); run("connect", { token: t }, B.connected)(); };
+    var on = $("bk-on"); if (on) on.onclick = function () {
+      var b = world.backup || {}, paid = b.paidUntil && b.paidUntil.toMillis && b.paidUntil.toMillis() > Date.now();
+      if (paid) return run("enable", null, B.enabled)();
+      askYes(B.enable, B.costText.replace("{n}", cost), B.enable, run("enable", null, B.enabled));
+    };
+    var nw = $("bk-now"); if (nw) nw.onclick = run("now", null, B.done);
+    var off = $("bk-off"); if (off) off.onclick = run("disable", null, B.disabled);
+    var d = $("bk-disc"); if (d) d.onclick = function () { askYes(B.disconnect, B.disconnectText, B.disconnect, run("disconnect", null, B.disconnected)); };
+  }
+
   // Switch the open game: its cards and plan stream in; the canon stream is shared.
   function selectGame(id) {
     unsub.forEach(function (u) { u(); }); unsub = [];
@@ -4866,19 +5144,27 @@
     cards = []; planDoc = {}; imp = null; closeLeaf();
     try { localStorage.setItem("ww-game-" + worldId, id); } catch (e) {}
     if (!sections().some(function (s) { return s.id === section; })) section = "overview";
-    unsub.push(gref().collection("cards").onSnapshot(function (snap) {
-      cards = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render(); backfillPolys();
-    }, function () { sync("bad", STR.offline); }));
+    var bySec = {}, cardsIn = function (key) { return function (snap) {
+      bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      cards = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render(); if (ME.owner) backfillPolys();
+    }; };
+    if (fullRead()) unsub.push(gref().collection("cards").onSnapshot(cardsIn("*"), function () { sync("bad", STR.offline); }));
+    else ME.view.filter(function (v) { return !CANON.some(function (c) { return c.id === v; }); }).forEach(function (v) { // rules: one section per query
+      unsub.push(gref().collection("cards").where("section", "==", v).onSnapshot(cardsIn(v), function () {}));
+    });
     migrateCanonOptIn(game).catch(function () {});
-    unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }));
+    var may = function (id, on) { if (mayRead(id)) on(); }; // a member's streams: only the sections they may read
+    may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }, function () {})); });
     tasks = []; changeReqs = []; execs = []; keys = []; newKey = null;
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
-    unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }));
-    unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }));
+    may("plan", function () {
+      unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }, function () {}));
+      unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }, function () {}));
+    });
     quests = []; dialogues = []; qed = null; qprop = null; // the open game's quests & dialogues
-    unsub.push(gref().collection("quests").onSnapshot(function (snap) { quests = rows(snap); render(); }, function () {}));
-    unsub.push(gref().collection("dialogues").onSnapshot(function (snap) { dialogues = rows(snap); render(); }, function () {}));
+    may("quests", function () { unsub.push(gref().collection("quests").onSnapshot(function (snap) { quests = rows(snap); render(); }, function () {})); });
+    may("dialogues", function () { unsub.push(gref().collection("dialogues").onSnapshot(function (snap) { dialogues = rows(snap); render(); }, function () {})); });
     exIssues = []; exPlaytests = []; exExperiments = []; exMetrics = null; exKey = null;
     var exRender = function () { if (section === "experience" || section === "plan") render(); else renderNav(); };
     unsub.push(gref().collection("experienceIssues").onSnapshot(function (snap) { exIssues = rows(snap).sort(function (a, b) { return ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]; }); exRender(); }, function () {}));
@@ -4892,6 +5178,7 @@
     unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
     unsub.push(gref().collection("activity").orderBy("receivedAt", "desc").limit(20).onSnapshot(function (snap) {
       snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity" || settingsIdle()) render(); else if (section === "marketing") mkRender(); }, function () {}));
+    if (!ME.owner) { render(); return; } // below: the owner's own streams (environment, executor log, keys)
     unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (settingsIdle()) render(); }, function () {}));
     unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
     unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
@@ -4910,27 +5197,38 @@
       var u = await db.collection("users").doc(user.uid).get();
       var plan = (u.exists && u.data().plan) || "free";
       var pc = window.__getPlanConfig(plan); planName = plan;
-      canWrite = !!(pc.allowWorldTree || pc.allowGameDev); canGame = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game (Worldbuilder); the canon is the world's home (the Universe tree's plans); games need game dev
-      if (!canWrite) return locked(STR.lockedTitle, STR.lockedText, true);
-      if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";
       var w = await wref().get();
       if (!w.exists) return locked(STR.brand, STR.noWorld, false);
+      var tm = w.data().owner !== user.uid ? (w.data().team || {})[user.uid] : null;
+      if (tm) { // a team member works in the owner's world, on the owner's plan (the rules check it); what they see — by role
+        ME = { owner: false, role: tm.role, view: tm.view || [], edit: tm.edit || [], viewKinds: tm.viewKinds || [] };
+        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true;
+        document.documentElement.classList.add("ww-member");
+        if (!mayRead(section)) section = firstReadable();
+      } else {
+        canWrite = baseWrite = !!(pc.allowWorldTree || pc.allowGameDev); canGame = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game (Worldbuilder); the canon is the world's home (the Universe tree's plans); games need game dev
+        if (!canWrite && !PANEL) return locked(STR.lockedTitle, STR.lockedText, true); // the hub panel (Спільнота, Команда…) works on any plan
+        if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";
+      }
     } catch (e) { return locked(STR.brand, STR.noWorld, false); }
 
     wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); });
-    wref().collection("entities").onSnapshot(function (snap) {
-      entities = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+    var byKind = {}, entsIn = function (key) { return function (snap) {
+      byKind[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      entities = [].concat.apply([], Object.keys(byKind).map(function (k) { return byKind[k]; }))
         .filter(function (e) { return !(e.origin && e.origin.confirmed === false); }); // inferred canon is not fact yet
       render();
       if (pendingFocus) { var pf = pendingFocus; pendingFocus = null; window.postMessage({ type: "ww-bible-focus", ent: pf }, location.origin); }
-    });
+    }; };
+    if (fullRead()) wref().collection("entities").onSnapshot(entsIn("*"));
+    else ME.viewKinds.forEach(function (k) { wref().collection("entities").where("kind", "==", k).onSnapshot(entsIn(k), function () {}); }); // rules: one kind per query
     db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
       stories = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
         .sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
       if (section === "chronicle") render();
       var ds = $("d-stories"); if (ds && dos && !dos.isNew && dos.col !== "lore") ds.innerHTML = storiesHtml(dos);
     }, function () {});
-    wref().collection("lore").onSnapshot(function (snap) {
+    if (mayRead("culture")) wref().collection("lore").onSnapshot(function (snap) {
       lore = snap.docs.map(function (d) { return Object.assign({ id: d.id, col: "lore" }, d.data()); })
         .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
       render();

@@ -6,30 +6,46 @@ service firebase.storage {
     function isWorldOwner(worldId) {
       return firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner == request.auth.uid;
     }
+    // Маркет: a world under licence review / on sale is frozen (worlds/{w}.freeze, set only by functions/src/market.js)
+    function worldOpen(worldId) {
+      return firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.get('freeze', null) == null;
+    }
+    // Команда (functions/src/team.js): any member reads the world's files; admin / editor write them (on the owner's plan)
+    function member(worldId) {
+      return firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.get('team', {}).get(request.auth.uid, null);
+    }
+    function canRead(worldId) { return isWorldOwner(worldId) || member(worldId) != null; }
+    function canWrite(worldId) {
+      return isWorldOwner(worldId) || (member(worldId) != null && member(worldId).role in ['admin', 'editor']);
+    }
+    function ownerGameDev(worldId) {
+      return firestore.get(/databases/(default)/documents/users/$(firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
+    }
     function hasGameDev() {
       return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
     }
 
     // World-level files of canon entities (dossier images and models), shared by every story and game.
     match /worlds/{worldId}/files/{rest=**} {
-      allow read: if request.auth != null && isWorldOwner(worldId);
-      allow delete: if request.auth != null && isWorldOwner(worldId) && hasGameDev();
-      allow create, update: if request.auth != null && isWorldOwner(worldId) && hasGameDev() &&
+      allow read: if request.auth != null && canRead(worldId);
+      allow delete: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId);
+      allow create, update: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId) &&
                                request.resource.size < 200 * 1024 * 1024;
     }
 
     // The world's cover on its card (Світи, the world hub): an image ≤ 10 MB or an MP4/WebM video ≤ 50 MB, any plan.
     match /worlds/{worldId}/cover/{file} {
-      allow read, delete: if request.auth != null && isWorldOwner(worldId);
-      allow create, update: if request.auth != null && isWorldOwner(worldId) &&
+      allow read: if request.auth != null && canRead(worldId);
+      allow delete: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId);
+      allow create, update: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId) &&
                                ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
                                 (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
     }
 
     match /worlds/{worldId}/games/{gameId}/files/{rest=**} {
-      allow read: if request.auth != null && isWorldOwner(worldId);
-      allow delete: if request.auth != null && isWorldOwner(worldId) && hasGameDev();
-      allow create, update: if request.auth != null && isWorldOwner(worldId) && hasGameDev() &&
+      allow read: if request.auth != null && canRead(worldId);
+      allow delete: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId);
+      allow create, update: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId) &&
                                request.resource.size < 200 * 1024 * 1024;
     }
   }

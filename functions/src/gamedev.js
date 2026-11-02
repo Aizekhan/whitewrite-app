@@ -21,6 +21,7 @@ const {
   getPlanBudget,
   claudeApiKey,
 } = require('./common');
+const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { intentText } = require('./experience')._experience;
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, withFallback } = require('./claude');
@@ -398,6 +399,7 @@ async function repoLink(op, uid, worldId, gameId, body) {
   const worldRef = db.collection('worlds').doc(worldId), gameRef = worldRef.collection('games').doc(gameId);
   const [w, g] = await Promise.all([worldRef.get(), gameRef.get()]);
   if (!w.exists || w.data().owner !== uid || !g.exists) throw repoError(403, 'Гру не знайдено або немає доступу');
+  if (w.data().freeze) throw repoError(423, 'Світ заморожено (Маркет): зміни недоступні');
   const tokRef = db.collection('repoTokens').doc(worldId + '__' + gameId);
   if (op === 'repoDisconnect') {
     await tokRef.delete();
@@ -527,6 +529,7 @@ exports.gamedevPlan = onRequest({
       }
 
       const body = req.body || {};
+      uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
       const op = oneOf(body.op, ['import', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
       const worldId = str(body.worldId, 120);
@@ -559,6 +562,7 @@ exports.gamedevPlan = onRequest({
         worldRef.get(), isCanon ? none : gameRef.get(), worldRef.collection('entities').get(),
         isCanon ? none : gameRef.collection('cards').get(), isCanon ? none : gameRef.collection('plan').doc('current').get(), worldRef.collection('lore').get()]);
       if (!worldSnap.exists || worldSnap.data().owner !== uid || (!isCanon && !gameSnap.exists)) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      if (worldSnap.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
 
       const world = worldSnap.data(), game = isCanon ? {} : gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
       const entities = entitiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false));

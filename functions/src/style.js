@@ -6,6 +6,7 @@
 // MCP check_style (mcp.js) runs the same check on a screenshot from Unity and returns it without storing.
 // Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js styleCheck).
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
 const S = require('../style-guide.js');
@@ -88,6 +89,7 @@ exports.styleCheck = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       let uid;
       try { uid = (await admin.auth().verifyIdToken(auth.slice(7))).uid; } catch (e) { return res.status(401).json({ error: 'Невірний токен автентифікації' }); }
       const body = req.body || {};
+      uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
       const worldId = str(body.worldId, 120), gameId = str(body.gameId, 120), cardId = str(body.cardId, 160), fileId = str(body.fileId, 120);
       if (!worldId || !gameId || !cardId || !fileId) return res.status(400).json({ error: 'Missing worldId/gameId/cardId/fileId' });
       const image = imageBlock(body.image, body.mediaType || 'image/jpeg');
@@ -97,6 +99,7 @@ exports.styleCheck = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       const [w, g, userDoc, cardDoc, styleSnap] = await Promise.all([wref.get(), gref.get(), db.collection('users').doc(uid).get(),
         gref.collection('cards').doc(cardId).get(), gref.collection('cards').where('section', '==', 'artstyle').get()]);
       if (!w.exists || w.data().owner !== uid || !g.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
       const card = cardDoc.exists ? cardDoc.data() : null;
       const file = card && (card.files || []).find((f) => f.id === fileId);
       if (!file || card.section === 'artstyle') return res.status(404).json({ error: 'Картинку не знайдено на картці' });

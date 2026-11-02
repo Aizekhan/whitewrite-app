@@ -142,9 +142,11 @@ window.__firebaseCanon = {
     const projects = await db.collection('projects').where('owner', '==', uid).get();
     const legacy = projects.docs.filter((d) => !d.data().worldId);
     await Promise.all(legacy.map((d) => this._ensureWorld(d.id).catch((e) => console.error('[Worlds] migrate', d.id, e))));
-    const snap = await db.collection('worlds').where('owner', '==', uid).get();
+    const [snap, shared] = await Promise.all([db.collection('worlds').where('owner', '==', uid).get(),
+      db.collection('worlds').where('teamUids', 'array-contains', uid).get().catch(() => ({ docs: [] }))]); // Команда: worlds of friends who added you
     const ts = (w) => (w.updatedAt && w.updatedAt.toMillis ? w.updatedAt.toMillis() : 0);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => ts(b) - ts(a));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => ts(b) - ts(a))
+      .concat(shared.docs.map((d) => ({ id: d.id, ...d.data(), shared: true })).sort((a, b) => ts(b) - ts(a)));
   },
 
   /**

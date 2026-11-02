@@ -109,7 +109,7 @@ async function ensureWorld(db, projectId, project) {
  * Only CONFIRMED entities are returned (unconfirmed inferred canon is not fact).
  * Throws err.status = 403 if the world isn't owned by uid.
  */
-async function loadCanon(db, projectId, project, uid) {
+async function loadCanon(db, projectId, project, uid, opts = {}) {
   const worldId = await ensureWorld(db, projectId, project);
   const worldRef = db.collection('worlds').doc(worldId);
   const [worldSnap, entitiesSnap] = await Promise.all([worldRef.get(), worldRef.collection('entities').get()]);
@@ -117,6 +117,11 @@ async function loadCanon(db, projectId, project, uid) {
   if (!worldSnap.exists || worldSnap.data().owner !== uid) {
     const err = new Error('Forbidden: world not owned by user');
     err.status = 403;
+    throw err;
+  }
+  if (opts.write && worldSnap.data().freeze) { // Маркет: under licence review / on sale — no new scenes (reading goes on)
+    const err = new Error('Світ заморожено (Маркет): зміни недоступні');
+    err.status = 423;
     throw err;
   }
 

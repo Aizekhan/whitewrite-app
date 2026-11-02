@@ -214,7 +214,7 @@ exports.generateScene = onRequest({
       }
 
       // Load canon from the project's world (lazy-migrates legacy project.canon)
-      const { worldId, canon } = await loadCanon(db, projectId, project, uid);
+      const { worldId, canon } = await loadCanon(db, projectId, project, uid, { write: true });
 
       // Build canon context for prompt
       const canonContext = buildCanonContext(canon);
@@ -634,7 +634,7 @@ exports.reconstructScene = onRequest({
         return;
       }
 
-      const { canon } = await loadCanon(db, projectId, project, uid);
+      const { canon } = await loadCanon(db, projectId, project, uid, { write: true });
       const entity = (canon[entityType] || {})[entityId];
       const entityBlock = entity
         ? JSON.stringify(Object.fromEntries(Object.entries(entity).filter(([k, v]) =>

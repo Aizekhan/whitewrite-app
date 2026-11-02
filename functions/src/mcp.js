@@ -677,6 +677,9 @@ async function handle(msg, key) {
     else if (method === 'tools/list') result = { tools: TOOLS };
     else if (method === 'tools/call') {
       try {
+        // Маркет: a world under licence review / on sale is frozen — reads go on, nothing is written (market.js)
+        if (/^(report_|submit_|get_next_task|check_style)/.test(params.name || '') &&
+            ((await db.collection('worlds').doc(key.worldId).get()).data() || {}).freeze) throw new Error('The world is frozen: it is under licence review or on sale in the WhiteWrite Market — nothing can be changed or claimed until the author withdraws it.');
         const out = await callTool(params.name, params.arguments || {}, key);
         result = { content: [{ type: 'text', text: JSON.stringify(out, null, 2) }] };
       } catch (e) {

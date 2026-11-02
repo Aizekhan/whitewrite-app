@@ -42,23 +42,85 @@ service cloud.firestore {
     function isWorldOwner(worldId) {
       return get(/databases/$(database)/documents/worlds/$(worldId)).data.owner == request.auth.uid;
     }
+    // Маркет (functions/src/market.js): a world under licence review or on sale is FROZEN — worlds/{w}.freeze is set and
+    // cleared only by the server; until then nothing in the world, its games or its stories changes from the client
+    function worldOpen(worldId) {
+      return get(/databases/$(database)/documents/worlds/$(worldId)).data.get('freeze', null) == null;
+    }
+    // Команда (functions/src/team.js): worlds/{w}.team.{uid} = { role: admin|editor|viewer|custom, view[], edit[], viewKinds[], editKinds[] },
+    // written only by the server. admin / editor read and write everything (admin's ✦ is paid by the owner on the server),
+    // viewer reads everything, custom reads `view` and writes `edit` (Bible menu ids; entity kinds for the canon dossiers).
+    function mem(worldId) {
+      return get(/databases/$(database)/documents/worlds/$(worldId)).data.get('team', {}).get(request.auth.uid, null);
+    }
+    function fullRead(worldId) {
+      return isWorldOwner(worldId) || (mem(worldId) != null && mem(worldId).role in ['admin', 'editor', 'viewer']);
+    }
+    function fullEdit(worldId) {
+      return isWorldOwner(worldId) || (mem(worldId) != null && mem(worldId).role in ['admin', 'editor']);
+    }
+    function readSec(worldId, sec) {
+      return fullRead(worldId) || (mem(worldId) != null && sec in mem(worldId).get('view', []));
+    }
+    function editSec(worldId, sec) {
+      return fullEdit(worldId) || (mem(worldId) != null && sec in mem(worldId).get('edit', []));
+    }
+    function readKind(worldId, kind) {
+      return fullRead(worldId) || (mem(worldId) != null && kind in mem(worldId).get('viewKinds', []));
+    }
+    function editKind(worldId, kind) {
+      return fullEdit(worldId) || (mem(worldId) != null && kind in mem(worldId).get('editKinds', []));
+    }
+    function anyAccess(worldId) {
+      return isWorldOwner(worldId) || mem(worldId) != null;
+    }
+    // game writes need Game Dev on the OWNER's plan (members work in the owner's world)
+    function ownerGameDev(worldId) {
+      return get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
+    }
+    // the Bible menu section of a game subcollection (cards carry their own `section`)
+    function subSec(sub) {
+      return sub in ['plan', 'tasks', 'changeRequests', 'executions'] ? 'plan'
+        : sub in ['experienceIssues', 'experiments', 'playtests', 'telemetry', 'telemetryDaily', 'experience'] ? 'experience'
+        : sub in ['knowledge', 'kAssets', 'kRelations'] ? 'knowledge'
+        : sub in ['marketing', 'channels', 'posts'] ? 'marketing'
+        : sub == 'env' ? 'settings' : sub;
+    }
+    function storyOpen(projectId) {
+      let w = get(/databases/$(database)/documents/projects/$(projectId)).data.get('worldId', null);
+      return w == null || worldOpen(w);
+    }
 
     match /worlds/{worldId} {
-      allow read, delete: if isAuthenticated() && resource.data.owner == request.auth.uid;
-      // worlds/{w}.cosmograph (Космограф access, paid monthly) is written only by functions/src/cosmograph.js
+      allow read: if isAuthenticated() && (resource.data.owner == request.auth.uid || request.auth.uid in resource.data.get('teamUids', []));
+      allow delete: if isAuthenticated() && resource.data.owner == request.auth.uid && resource.data.get('freeze', null) == null;
+      // worlds/{w}.cosmograph (Космограф access, paid monthly) is written only by functions/src/cosmograph.js; .freeze — by market.js
+      // .team / .teamUids — team.js; .backup — backup.js
       allow create: if isAuthenticated() && request.resource.data.owner == request.auth.uid &&
-                       !('cosmograph' in request.resource.data);
-      allow update: if isAuthenticated() && resource.data.owner == request.auth.uid &&
-                       request.resource.data.owner == resource.data.owner &&
-                       request.resource.data.get('cosmograph', null) == resource.data.get('cosmograph', null);
+                       !request.resource.data.keys().hasAny(['cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt']);
+      allow update: if isAuthenticated() && resource.data.get('freeze', null) == null &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner', 'cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt']) &&
+                       (resource.data.owner == request.auth.uid || memberWorldEdit());
+      function memberWorldEdit() {
+        let m = resource.data.get('team', {}).get(request.auth.uid, null);
+        let keys = request.resource.data.diff(resource.data).affectedKeys();
+        return m != null && keys.hasOnly(['tagline', 'summary', 'facts', 'rules', 'cosmos', 'updatedAt']) &&
+               (m.role in ['admin', 'editor'] || (
+                 (!keys.hasAny(['tagline', 'summary', 'facts']) || 'world' in m.get('edit', [])) &&
+                 (!keys.hasAny(['rules']) || 'laws' in m.get('edit', [])) &&
+                 (!keys.hasAny(['cosmos']) || 'cosmology' in m.get('edit', []))));
+      }
 
       match /entities/{entityId} {
-        allow read, write: if isAuthenticated() && isWorldOwner(worldId);
+        allow read: if isAuthenticated() && readKind(worldId, resource.data.kind);
+        allow create, update: if isAuthenticated() && editKind(worldId, request.resource.data.kind) && worldOpen(worldId);
+        allow delete: if isAuthenticated() && editKind(worldId, resource.data.kind) && worldOpen(worldId);
       }
 
       // Culture of the world (peoples, languages, faith, customs) — World Bible «Культура».
       match /lore/{loreId} {
-        allow read, write: if isAuthenticated() && isWorldOwner(worldId);
+        allow read: if isAuthenticated() && readSec(worldId, 'culture');
+        allow write: if isAuthenticated() && editSec(worldId, 'culture') && worldOpen(worldId);
       }
 
       // Games built on this canon (one canon → many games): game doc + cards + production plan.
@@ -67,27 +129,61 @@ service cloud.firestore {
       // (telemetry, telemetryDaily, experience metrics, executions, and every future server-side record: activity log,
       // project knowledge, marketing posts…) is written by Cloud Functions only — the owner reads it.
       match /games/{gameId} {
-        allow read: if isAuthenticated() && isWorldOwner(worldId);
-        allow write: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev();
+        allow read: if isAuthenticated() && anyAccess(worldId);
+        allow write: if isAuthenticated() && fullEdit(worldId) && ownerGameDev(worldId) && worldOpen(worldId);
+      }
+      // cards: by their own section (a member with chosen sections queries one section at a time)
+      match /games/{gameId}/cards/{cardId} {
+        allow read: if isAuthenticated() && readSec(worldId, resource.data.section);
+        allow create, update: if isAuthenticated() && editSec(worldId, request.resource.data.section) && ownerGameDev(worldId) && worldOpen(worldId);
+        allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && ownerGameDev(worldId) && worldOpen(worldId);
       }
       match /games/{gameId}/{sub}/{docId} {
-        allow read: if isAuthenticated() && isWorldOwner(worldId);
-        allow write: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() &&
-                        sub in ['cards', 'plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests', 'quests', 'dialogues'];
+        allow read: if isAuthenticated() && sub != 'cards' && readSec(worldId, subSec(sub));
+        allow write: if isAuthenticated() && sub != 'cards' && editSec(worldId, subSec(sub)) && ownerGameDev(worldId) && worldOpen(worldId) &&
+                        sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests', 'quests', 'dialogues'];
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
-        allow delete: if isAuthenticated() && isWorldOwner(worldId) &&
+        allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId) &&
                          sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];
       }
       match /games/{gameId}/{sub}/{docId}/{rest=**} {
-        allow read: if isAuthenticated() && isWorldOwner(worldId);
+        allow read: if isAuthenticated() && readSec(worldId, subSec(sub));
       }
       // Development activity log: Claude Code writes entries (MCP); the author only re-marks privacy, or deletes with the game
       match /games/{gameId}/activity/{sessionId}/entries/{entryId} {
-        allow update: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() &&
+        allow update: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() && worldOpen(worldId) &&
                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['privacy', 'reviewedAt']) &&
                          request.resource.data.privacy in ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'];
         allow delete: if isAuthenticated() && isWorldOwner(worldId);
       }
+    }
+
+    // Друзі (team.js): the owner reads, only the server writes
+    match /users/{userId}/friends/{friendId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if false;
+    }
+    // GitHub tokens of the daily world backup — only backup.js reads them
+    match /backupTokens/{id} {
+      allow read, write: if false;
+    }
+
+    // Маркет: licensed lots are public; applications, deals and seller accounts — the owner / buyer reads, only the server writes
+    match /marketLots/{lotId} {
+      allow read: if resource == null || resource.data.status == 'listed' || (isAuthenticated() && resource.data.seller == request.auth.uid);
+      allow write: if false;
+    }
+    match /licenceApplications/{id} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+    match /marketDeals/{id} {
+      allow read: if isAuthenticated() && (resource.data.seller == request.auth.uid || resource.data.buyer == request.auth.uid);
+      allow write: if false;
+    }
+    match /sellers/{uid} {
+      allow read: if isAuthenticated() && isOwner(uid);
+      allow write: if false;
     }
 
     // Executor keys (Claude Code via the MCP server): the id is sha256 of the key, the key itself is never stored.
@@ -129,15 +225,17 @@ service cloud.firestore {
       allow update: if isAuthenticated() &&
                        resource.data.owner == request.auth.uid &&
                        request.resource.data.owner == resource.data.owner &&
+                       (resource.data.get('worldId', null) == null || worldOpen(resource.data.worldId)) &&
                        (request.resource.data.get('worldId', null) == resource.data.get('worldId', null) ||
                         isWorldOwner(request.resource.data.worldId));
       allow delete: if isAuthenticated() &&
-                       resource.data.owner == request.auth.uid;
+                       resource.data.owner == request.auth.uid &&
+                       (resource.data.get('worldId', null) == null || worldOpen(resource.data.worldId));
 
       // Scenes subcollection
       match /scenes/{sceneId} {
         allow read: if isAuthenticated() && isProjectOwner(projectId);
-        allow write: if isAuthenticated() && isProjectOwner(projectId);
+        allow write: if isAuthenticated() && isProjectOwner(projectId) && storyOpen(projectId);
       }
 
       // Narrative subcollection (future)

@@ -4,6 +4,7 @@
 // Links are kept only when the id exists — a canon entity (its id) or a game card (c:<id>, narrative-validate.js refPool);
 // anything new the AI invents is returned as `ideas`, never as canon. Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js questDraft / dialogueDraft).
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey, buildCanonContext } = require('./common');
+const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { emptyCanon, CANON_KINDS } = require('../canon-store.js');
 const { featureCost, byOp } = require('../paid-features.js');
 const { refPool } = require('../narrative-validate.js');
@@ -125,6 +126,7 @@ exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiK
       if (!auth.startsWith('Bearer ')) return res.status(401).json({ error: 'Потрібна автентифікація' });
       try { uid = (await admin.auth().verifyIdToken(auth.slice(7))).uid; } catch (e) { return res.status(401).json({ error: 'Невірний токен автентифікації' }); }
       const body = req.body || {};
+      uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
       const op = oneOf(body.op, ['questDraft', 'dialogueDraft'], '');
       const worldId = str(body.worldId, 120), gameId = str(body.gameId, 120);
       if (!op || !worldId || !gameId) return res.status(400).json({ error: 'Missing op/worldId/gameId' });
@@ -132,6 +134,7 @@ exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiK
       const wref = db.collection('worlds').doc(worldId), gref = wref.collection('games').doc(gameId);
       const [w, g, userDoc] = await Promise.all([wref.get(), gref.get(), db.collection('users').doc(uid).get()]);
       if (!w.exists || w.data().owner !== uid || !g.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
       const userData = userDoc.exists ? userDoc.data() : {};
       if (!getPlanBudget(userData.plan || 'free').allowGameDev) return res.status(403).json({ error: 'Квести й діалоги — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
       if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });

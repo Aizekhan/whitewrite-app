@@ -172,8 +172,32 @@ const FEATURES = [
   { id: 'marketingDraft', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 0.5 }, op: 'marketingDraft',
     uk: { name: '✦ Пост', desc: 'AI пише пост лише з обраних схвалених записів журналу; ти редагуєш і схвалюєш.' },
     en: { name: '✦ Post', desc: 'AI writes a post only from the chosen approved log entries; you edit and approve.' },
-    where: 'Біблія гри → Маркетинг', server: 'marketing {op:draft}' }
+    where: 'Біблія гри → Маркетинг', server: 'marketing {op:draft}' },
+  // ── Команда й бекап (TOKENOMICS.md §7) ──
+  { id: 'team', kind: 'free', minPlan: 'free',
+    uk: { name: 'Друзі й команда світу', desc: 'Друзі за поштою; у команду світу — з ролями: адмін (усе, ✦ на токенах власника), редактор (усе без ✦), перегляд, або вибрані розділи на перегляд і редагування.' },
+    en: { name: 'Friends & the world team', desc: 'Friends by e-mail; the world team with roles: admin (everything, ✦ on the owner’s tokens), editor (everything but ✦), viewer, or chosen sections to view and edit.' },
+    where: 'Акаунт → Друзі · хаб світу → Команда', server: 'team · firestore.rules' },
+  { id: 'githubBackup', kind: 'ai', flag: 'allowBackup', minPlan: 'storyteller', price: { fixed: 300, per: '30d' }, op: 'githubBackup',
+    uk: { name: 'Бекап у GitHub щодня', desc: 'Щодня текст світу (канон, культура, ігри, історії) — у твій приватний репозиторій GitHub. Ціна — за світ на 30 днів.' },
+    en: { name: 'Daily GitHub backup', desc: 'Every day the world’s text (canon, culture, games, stories) goes to your private GitHub repository. Priced per world for 30 days.' },
+    where: 'Хаб світу → Бекап', server: 'backup · backupDaily' },
+  // ── Маркет (MARKETPLACE_SPEC.md, TOKENOMICS.md §5) ──
+  { id: 'licenceReview', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { fixed: 60000, per: 'licence', tiers: true }, op: 'licenceReview',
+    uk: { name: 'Ліцензія на продаж світу', desc: 'Перевірка світу перед продажем (1–2 тижні): метрики, ШІ-рецензія, ШІ-юрист і модератор. Світ на цей час заморожено. Ціна — за обсягом тексту: 60 000 / 90 000 / 120 000 токенів.' },
+    en: { name: 'Licence to sell a world', desc: 'The review of a world before sale (1–2 weeks): metrics, AI review, AI lawyer and a moderator. The world is frozen meanwhile. Priced by the text size: 60,000 / 90,000 / 120,000 tokens.' },
+    where: 'Хаб світу → Маркет', server: 'market {op:apply}' },
+  { id: 'marketSell', kind: 'free', minPlan: 'free',
+    uk: { name: 'Продаж ліцензованого світу', desc: 'Ліцензований світ продається на будь-якому тарифі. Покупець платить продавцю через Stripe; 12% утримується на користь WhiteWrite.' },
+    en: { name: 'Selling a licensed world', desc: 'A licensed world sells on any plan. The buyer pays the seller through Stripe; 12% goes to WhiteWrite.' },
+    where: 'Спільнота → Маркет', server: 'market {op:checkout} · marketWebhook' }
 ];
+
+// Маркет: the licence review fee by the size of the text snapshot (chars), the platform fee on a sale and the price range.
+// 100% margin on our cost (moderator time + two Opus passes) valued at the cheapest token sold — see TOKENOMICS.md §5.
+const LICENCE = { tiers: [{ upTo: 150000, tokens: 60000 }, { upTo: 600000, tokens: 90000 }, { upTo: 2000000, tokens: 120000 }],
+  maxChars: 2000000, platformFee: 0.12, minUsd: 20, maxUsd: 50000 };
+function licenceFee(chars) { const t = LICENCE.tiers.find((x) => chars <= x.upTo); return t ? t.tokens : null; }
 
 function planRank(plan) {
   const p = PLANS[plan] && PLANS[plan].as || plan;
@@ -225,7 +249,7 @@ function upgradeQuote(from, to, left) {
     tokens: Math.max(0, Math.round((b.monthly - a.monthly) * f)), fee: Math.round(b.monthly * UPGRADE_FEE) };
 }
 
-const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, MODEL_TIERS, SCENE_COST, USD_PER_TOKEN, UPGRADE_FEE, upgradeQuote, planRank, unlocked, planBudget,
+const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, MODEL_TIERS, SCENE_COST, USD_PER_TOKEN, UPGRADE_FEE, LICENCE, licenceFee, upgradeQuote, planRank, unlocked, planBudget,
   modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
