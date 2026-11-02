@@ -65,6 +65,29 @@ check(x.sections.find((s) => s.id === 'warping').framework.status, 'exists', 'th
 check(x.sections.find((s) => s.id === 'adaptation').framework.status, 'missing', 'AI adaptation is still missing');
 check(x.category, 'Combat', 'the category in the asked language');
 
+// Фабрика звуку: audio templates live apart from the mechanics, their categories are the audio section's groups
+check(M.templatesFor('audio').map((t) => t.id).join(','), 'adaptive_music,ambience,ui_sounds,music_prompts', 'the Sound factory catalog');
+check(M.templatesFor('mechanics').some((t) => t.sec === 'audio'), false, 'no audio template among the mechanics');
+check(M.categoriesFor('audio').map((c) => c.uk).join('|'), 'Музика|Звукові ефекти|Озвучка|Амбієнт|Звуки UI', 'audio categories = the section groups');
+const mu = M.instantiate('adaptive_music'), st = (m, id) => m.sections.find((s) => s.id === id);
+check(codes(mu).filter((i) => i.level !== 'tip').length, 0, 'the adaptive music sample has no warnings');
+const mc = M.instantiate('adaptive_music'); st(mc, 'states').rows.find((r) => r._id === 'S3').bpm = 80;
+check(codes(mc, 'warn').some((i) => /Бій не швидший/.test(i.uk)), true, 'combat slower than exploration');
+const mt = M.instantiate('adaptive_music'), t2 = st(mt, 'transitions').rows.find((r) => r._id === 'T2'); t2.timing = 'now'; t2.fade = 0; t2.stinger = '';
+check(codes(mt, 'warn').some((i) => i.row === 'T2' && /обрив/.test(i.uk)), true, 'a hard cut without crossfade or stinger');
+const mx = M.instantiate('adaptive_music'); st(mx, 'transitions').rows = st(mx, 'transitions').rows.filter((r) => r.to !== 'S4');
+check(codes(mx, 'warn').some((i) => i.row === 'S4' && /ніколи не зазвучить/.test(i.uk)), true, 'an unreachable music state');
+const self = M.instantiate('adaptive_music'); st(self, 'transitions').rows[0].to = 'S1';
+check(codes(self, 'error').some((i) => i.row === 'T1'), true, 'a transition into the same state');
+const pr = M.rowPrompt(mu, 'states', st(mu, 'states').rows.find((r) => r._id === 'S3'), 'en');
+check(/140 BPM/.test(pr) && /seamless loop of 16 bars/.test(pr) && /Ударні/.test(pr), true, 'the combat prompt has tempo, loop and its layers');
+check(M.rowPrompt(mu, 'transitions', st(mu, 'transitions').rows[0], 'en'), '', 'no prompt for a transition row');
+const xa = M.exportMech({ id: 'a1', title: 'Music', mech: mu }, 'en');
+check(xa.category + '|' + !!st(xa, 'states').rows[0].generator_prompt, 'Music|true', 'the MCP export carries the state prompts');
+check(st(M.instantiate('music_prompts'), 'presets').rows.length >= 20, true, '20+ ready music prompts');
+const ui = M.instantiate('ui_sounds'); st(ui, 'events').rows[0].ms = 900;
+check(codes(ui, 'warn').some((i) => i.row === 'U1'), true, 'a long sound on a frequent UI event');
+
 // old Mechanics groups map to the new categories
 check(M.GROUP_ALIAS['Здібності'], 'Навички й здібності', 'the old «Здібності» group');
 

@@ -1023,7 +1023,7 @@
     if (s.special === "chronicle") return openDossier({ id: entityId("events"), kind: "events", isNew: true, group: g });
     if (s.special === "culture") return openDossier({ id: newId("lore"), col: "lore", group: g || "customs", isNew: true });
     if (s.special === "quests" || s.special === "dialogues") { if (canQuest) openQD(s.special, null, g ? { type: g } : null); return; }
-    if (s.id === "mechanics") return mechNew(g);
+    if (s.id === "mechanics" || s.id === "audio") return mechNew(g);
     addCard(false, g);
   }
   function groupsOf(s) {
@@ -1216,7 +1216,7 @@
     if (s.special === "activity" && !query) return renderActivity(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
     if ((s.special === "quests" || s.special === "dialogues") && !query) return renderQD(s);
-    if (s.id === "mechanics" && med && !query) { // a live snapshot must not pull the field from under the author's cursor
+    if (med && med.sec === s.id && !query) { // a live snapshot must not pull the field from under the author's cursor
       var me = $("m-ed"); if (me && me.dataset.id === med.id && me.contains(document.activeElement) && document.activeElement !== me && document.activeElement.type !== "button" && document.activeElement.tagName !== "BUTTON") return;
       return renderMEditor();
     }
@@ -1227,7 +1227,7 @@
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
-        (s.id === "mechanics" && canWrite ? '<button class="btn" id="mech-new">' + MC.add + '</button>' : '') +
+        ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
@@ -2199,17 +2199,29 @@
       lvl: { error: "error", warn: "warning", tip: "tip" }, legacy: "An older card: its description and numbers moved into “Purpose” and “How it works”. Save it and it becomes a constructor mechanic.",
       sortBy: "Sort by", rmRowQ: "Delete row “{t}”? Links to it will show up as errors.", copyOf: "copy" }
   }[LANG];
+  // «🎼 Фабрика звуку» — the same constructor in the «Звук і музика» section (templates with sec: 'audio' in mechanics.js)
+  var MC0 = MC, MCA = Object.assign({}, MC0, {
+    uk: { add: "🎼 Фабрика звуку", own: "✎ Звичайна картка", ownHint: "Трек, ефект чи озвучка: опис, настрій і файл — без шаблону.", choose: "🎼 Фабрика звуку",
+      catHint: "Шаблони звуку для ігрових ситуацій: музичні стани й переходи (дослідження → бій → перемога), шари, амбієнт, звуки інтерфейсу, промпти для генераторів. Усе редагується.",
+      back: "← До звуку", type: "Тип", links: "Повʼязані картки звуку", noLinks: "Інших карток звуку поки немає.", newM: "Звуковий шаблон", delQ: "Видалити «{t}»?",
+      purposePh: "Що має відчувати гравець і коли звучить", prompt: "♪ Промпт", promptHint: "Копіювати промпт для генератора музики", copied: "Промпт скопійовано" },
+    en: { add: "🎼 Sound factory", own: "✎ Plain card", ownHint: "A track, an effect or a voice line: description, mood and a file — no template.", choose: "🎼 Sound factory",
+      catHint: "Sound templates for game situations: music states and transitions (exploration → combat → victory), layers, ambience, interface sounds, generator prompts. Everything is editable.",
+      back: "← To sound", type: "Type", links: "Related sound cards", noLinks: "No other sound cards yet.", newM: "Sound template", delQ: "Delete “{t}”?",
+      purposePh: "What the player should feel and when it plays", prompt: "♪ Prompt", promptHint: "Copy a music-generator prompt", copied: "Prompt copied" }
+  }[LANG]);
+  function mcFor(id) { MC = id === "audio" ? MCA : MC0; }
   var med = null; // the open mechanic: { id, isNew, card, title, status, m (draft), first, tab, adv, find: {secId: text}, sort: {secId: [key, dir]} }
   var MX = function () { return window.__MECH; };
   function ml(x) { return MX().lbl(x, LANG); }
   function catLabel(id) { var c = MX().category(id); return c ? ml(c) : ""; }
   function catOfGroup(g) { // a Mechanics subsection name (either language, old names too) → category id
     var A = MX().GROUP_ALIAS, n = A[g] || g;
-    return (MX().CATEGORIES.filter(function (c) { return c.uk === n || c.en === n; })[0] || {}).id || "";
+    return (MX().CATEGORIES.concat(MX().AUDIO_CATEGORIES).filter(function (c) { return c.uk === n || c.en === n; })[0] || {}).id || "";
   }
   function medDirty() { return !!med && JSON.stringify([med.title, med.status, med.m]) !== med.first; }
   function medLeave() { if (medDirty() && !confirm(STR.dos.unsaved)) return false; med = null; return true; }
-  function openMech(c, preset) {
+  function openMech(c, preset, secId) {
     if (medDirty() && !confirm(STR.dos.unsaved)) return;
     var raw = c && cards.filter(function (x) { return x.id === c.id; })[0], m;
     if (preset) m = preset;
@@ -2220,18 +2232,20 @@
       m.rules = [f.numbers, f.deps ? (LANG === "en" ? "Depends on: " : "Залежить від: ") + f.deps : ""].filter(Boolean).join("\n\n"); m.legacy = !!raw;
     }
     med = { id: raw ? raw.id : newId("card"), isNew: !raw, card: c, title: (raw && raw.title) || (preset && preset.tpl ? ml(MX().template(preset.tpl).name) : ""),
-      status: (raw && raw.status) || "idea", m: m, tab: "general", adv: false, find: {}, sort: {} };
+      status: (raw && raw.status) || "idea", m: m, tab: "general", adv: false, find: {}, sort: {},
+      sec: (raw && raw.section) || secId || (preset && MX().template(preset.tpl) && MX().template(preset.tpl).sec) || "mechanics" };
+    mcFor(med.sec);
     delete med.m.legacy; med.legacy = !!(raw && !raw.mech);
     med.first = JSON.stringify([med.title, med.status, med.m]);
-    mode = "game"; if (section !== "mechanics") { section = "mechanics"; query = ""; imp = null; $("q").value = ""; }
+    mode = "game"; if (section !== med.sec) { section = med.sec; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
   }
   // «＋ Механіка» / «＋ Додати» under a category: own or from the template catalog
-  function mechNew(group) {
-    var M = MX(), cat0 = group ? catOfGroup(group) : "";
+  function mechNew(group, secId) {
+    var M = MX(), cat0 = group ? catOfGroup(group) : "", sid = secId || section, aud = sid === "audio"; mcFor(sid);
     var box = document.createElement("div"); box.className = "ask";
     var tplHtml = function (q, cat) {
-      var list = M.TEMPLATES.filter(function (t) {
+      var list = M.templatesFor(sid).filter(function (t) {
         var hay = (ml(t.name) + " " + ml(t.desc) + " " + catLabel(t.cat)).toLowerCase();
         return (!cat || t.cat === cat) && (!q || q.toLowerCase().split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; }));
       });
@@ -2248,7 +2262,7 @@
       '<button type="button" class="mown" data-mown="1"><b>' + MC.own + '</b><span>' + esc(MC.ownHint) + '</span></button>' +
       '<h4>' + MC.catalog + '</h4><p class="hint">' + esc(MC.catHint) + '</p>' +
       '<div class="row"><input type="search" id="mt-q" placeholder="' + esc(MC.search) + '" aria-label="' + esc(MC.search) + '"><select id="mt-cat" aria-label="' + esc(MC.cat) + '"><option value="">' + MC.all + '</option>' +
-      M.CATEGORIES.map(function (c) { return '<option value="' + c.id + '"' + (c.id === cat0 ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }).join("") + '</select></div>' +
+      M.categoriesFor(sid).map(function (c) { return '<option value="' + c.id + '"' + (c.id === cat0 ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }).join("") + '</select></div>' +
       '<div class="mtpls" id="mt-list">' + tplHtml("", cat0) + '</div><div class="row"><span style="flex:1"></span><button type="button" class="btn" id="ask-x">' + MC.cancel + '</button></div></div>';
     document.body.appendChild(box);
     var close = function () { box.remove(); }, upd = function () { box.querySelector("#mt-list").innerHTML = tplHtml(box.querySelector("#mt-q").value.trim(), box.querySelector("#mt-cat").value); };
@@ -2258,9 +2272,10 @@
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
     box.addEventListener("click", function (ev) {
       var t = ev.target.closest("[data-mtpl]"), o = ev.target.closest("[data-mown]"); if (!t && !o) return;
+      if (o && aud) { close(); addCard(false, group); return; }
       var m = M.instantiate(t ? t.dataset.mtpl : "");
       if (o) { m.cat = cat0 || box.querySelector("#mt-cat").value; m.purpose = ""; }
-      close(); openMech(null, m);
+      close(); openMech(null, m, sid);
     });
     box.querySelector("#mt-q").focus();
   }
@@ -2325,7 +2340,8 @@
     var body = rows.map(function (x) {
       var p = si + "." + x.i + ".";
       return '<tr><th scope="row" class="mono">' + esc(x.r._id) + '</th>' + cols.map(function (f) { return '<td class="mt-' + f.t + '">' + minput(p + f.k, f, x.r[f.k], true) + '</td>'; }).join("") +
-        '<td class="mrowact"><button type="button" class="btn ghost mini" data-mact="dupRow:' + si + ':' + x.i + '" title="' + esc(MC.dupRow) + '" aria-label="' + esc(MC.dupRow + " " + x.r._id) + '">⧉</button>' +
+        '<td class="mrowact">' + (s.prompt ? '<button type="button" class="btn ghost mini" data-mact="prompt:' + si + ':' + x.i + '" title="' + esc(MC.promptHint) + '" aria-label="' + esc(MC.promptHint + " " + x.r._id) + '">♪</button>' : '') +
+        '<button type="button" class="btn ghost mini" data-mact="dupRow:' + si + ':' + x.i + '" title="' + esc(MC.dupRow) + '" aria-label="' + esc(MC.dupRow + " " + x.r._id) + '">⧉</button>' +
         '<button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + x.r._id) + '">✕</button></td></tr>';
     }).join("");
     return '<div class="row mtbar"><input type="search" data-mfind="' + esc(s.id) + '" value="' + esc(med.find[s.id] || "") + '" placeholder="' + esc(MC.rowSearch) + '" aria-label="' + esc(MC.rowSearch) + '">' +
@@ -2333,11 +2349,11 @@
       ((s.rows || []).length ? '<div class="mtable"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<p class="muted">' + MC.noRows + '</p>');
   }
   function mGeneralHtml() {
-    var m = med.m, M = MX(), c = M.category(m.cat), others = cards.filter(function (x) { return x.section === "mechanics" && x.id !== med.id; });
+    var m = med.m, M = MX(), c = M.category(m.cat), others = cards.filter(function (x) { return x.section === med.sec && x.id !== med.id; });
     var t = M.template(m.tpl);
     return qbox(MC.general, (med.legacy ? '<p class="hint">' + esc(MC.legacy) + '</p>' : '') + '<div class="qgrid">' +
       qfld(MC.title, '<input data-mg="title" value="' + esc(med.title) + '">') +
-      qfld(MC.cat, mselect("g.cat", M.CATEGORIES.map(function (x) { return [x.id, ml(x)]; }), m.cat, MC.cat)) +
+      qfld(MC.cat, mselect("g.cat", M.categoriesFor(med.sec).map(function (x) { return [x.id, ml(x)]; }), m.cat, MC.cat)) +
       (c && c.subs.length ? qfld(MC.sub, mselect("g.sub", c.subs.map(function (x) { return [x[0], x[LANG === "en" ? 2 : 1]]; }), m.sub, MC.sub)) : '') +
       qfld(MC.stage, '<select data-mf="g.stage" aria-label="' + esc(MC.stage) + '">' + M.STAGES.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === m.stage ? " selected" : "") + '>' + esc(x[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") + '</select>') +
       qfld(MC.status, '<select data-mg="status" aria-label="' + esc(MC.status) + '">' + STATUSES.map(function (x) { return '<option value="' + x.id + '"' + (x.id === med.status ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select>') +
@@ -2429,6 +2445,11 @@
     if (p[0] === "save") return saveMech();
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
+    if (p[0] === "prompt") { // the row → a music-generator prompt (mechanics.js rowPrompt), to the clipboard
+      var txt = MX().rowPrompt(m, s.id, s.rows[i], LANG), st = $("m-state"); if (!txt) return;
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { if (st) st.textContent = MC.copied; }, function () { prompt(MC.promptHint, txt); }); else prompt(MC.promptHint, txt);
+      return;
+    }
     if (p[0] === "files") { if (medDirty() && !confirm(STR.dos.unsaved)) return; var c = allCards().filter(function (x) { return x.key === "c:" + med.id; })[0]; med = null; render(); if (c) openCard(c); return; }
     if (p[0] === "addRow") {
       var row = { _id: MX().newRowId(s) };
@@ -2467,8 +2488,9 @@
     var d = med, btn = $("m-save"), raw = cards.filter(function (x) { return x.id === d.id; })[0];
     d.title = String(d.title || "").trim() || (MX().template(d.m.tpl) ? ml(MX().template(d.m.tpl).name) : MC.newM);
     var fields = Object.assign({}, (raw && raw.fields) || {}, { group: catLabel(d.m.cat) || ((raw && raw.fields) || {}).group || "", text: d.m.purpose || "" });
-    var body = { section: "mechanics", title: d.title, status: d.status, fields: JSON.parse(JSON.stringify(fields)), mech: JSON.parse(JSON.stringify(d.m)), updatedAt: stamp() };
-    if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec("mechanics").defs.slice(); }
+    var body = { section: d.sec, title: d.title, status: d.status, fields: JSON.parse(JSON.stringify(fields)), mech: JSON.parse(JSON.stringify(d.m)), updatedAt: stamp() };
+    if (d.sec === "audio") body.fields.mood = d.m.purpose || ""; // the audio cards' description field
+    if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec(d.sec).defs.slice(); }
     btn.disabled = true; $("m-state").textContent = STR.saving;
     try {
       await gref().collection("cards").doc(d.id).set(body, { merge: true });
@@ -5409,7 +5431,7 @@
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0];
-    if (card && card.section === "mechanics" && card.src === "game") return openMech(card); // mechanics open in the constructor
+    if (card && card.src === "game" && (card.section === "mechanics" || card.section === "audio" && card.mech)) return openMech(card); // mechanics and Фабрика звуку open in the constructor
     if (card) openCard(card);
   }
   $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); render(); });
