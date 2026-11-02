@@ -183,11 +183,11 @@ const FEATURES = [
     en: { name: 'Daily GitHub backup', desc: 'Every day the world’s text (canon, culture, games, stories) goes to your private GitHub repository. Priced per world for 30 days.' },
     where: 'Хаб світу → Бекап', server: 'backup · backupDaily' },
   // ── Маркет (MARKETPLACE_SPEC.md, TOKENOMICS.md §5) ──
-  { id: 'licenceReview', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { fixed: 60000, per: 'licence', tiers: true }, op: 'licenceReview',
+  { id: 'licenceReview', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', soon: true, price: { fixed: 60000, per: 'licence', tiers: true }, op: 'licenceReview',
     uk: { name: 'Ліцензія на продаж світу', desc: 'Перевірка світу перед продажем (1–2 тижні): метрики, ШІ-рецензія, ШІ-юрист і модератор. Світ на цей час заморожено. Ціна — за обсягом тексту: 60 000 / 90 000 / 120 000 токенів.' },
     en: { name: 'Licence to sell a world', desc: 'The review of a world before sale (1–2 weeks): metrics, AI review, AI lawyer and a moderator. The world is frozen meanwhile. Priced by the text size: 60,000 / 90,000 / 120,000 tokens.' },
     where: 'Хаб світу → Маркет', server: 'market {op:apply}' },
-  { id: 'marketSell', kind: 'free', minPlan: 'free',
+  { id: 'marketSell', kind: 'free', minPlan: 'free', soon: true,
     uk: { name: 'Продаж ліцензованого світу', desc: 'Ліцензований світ продається на будь-якому тарифі. Покупець платить продавцю через Stripe; 12% утримується на користь WhiteWrite.' },
     en: { name: 'Selling a licensed world', desc: 'A licensed world sells on any plan. The buyer pays the seller through Stripe; 12% goes to WhiteWrite.' },
     where: 'Спільнота → Маркет', server: 'market {op:checkout} · marketWebhook' }

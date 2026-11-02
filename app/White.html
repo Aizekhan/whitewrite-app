@@ -1723,7 +1723,7 @@ body.at-home .back-fab{ display:none; }
       return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</span><span class="cm-top__div"></span>';
     if (CM.tab === "mkt") {
       views.market.innerHTML = top(tabs + (CM.lot || CM.mview !== "lots" ? '<button class="cm-chip" data-mkback>← ' + cmT("Усі лоти", "All lots") + '</button>' : '') +
-        '<button class="cm-chip' + (CM.mview === "deals" ? ' is-on' : '') + '" data-mkview="deals">' + cmT("Мої угоди", "My deals") + '</button>' +
+        (CM.admin || !(window.__PAID_FEATURES && (window.__PAID_FEATURES.byOp("licenceReview") || {}).soon) ? '<button class="cm-chip' + (CM.mview === "deals" ? ' is-on' : '') + '" data-mkview="deals">' + cmT("Мої угоди", "My deals") + '</button>' : '') +
         (CM.admin ? '<button class="cm-chip' + (CM.mview === "queue" ? ' is-on' : '') + '" data-mkview="queue">' + cmT("Модерація", "Moderation") + '</button>' : '')) + '<div class="vwrap">' + mktHtml() + '</div>';
       bindMarket(); bindMkt(views.market); return;
     }
@@ -1917,6 +1917,9 @@ body.at-home .back-fab{ display:none; }
     }, function () { CM.lots = []; fillMarket(); });
   }
   function mktHtml() {
+    var soon = window.__PAID_FEATURES && window.__PAID_FEATURES.byOp && (window.__PAID_FEATURES.byOp("licenceReview") || {}).soon;
+    if (soon && !CM.admin) return '<h1 class="vhead__t">' + cmT("Маркет світів", "World Market") + '</h1><div class="cm-future"><b>' + cmT("🚧 Планується — зараз у розробці", "🚧 Planned — in development now") + '</b><p>' +
+      cmT("Маркет світів — місце, де автори зможуть продати свій світ іншим творцям чи студіям: канон, культуру, ігровий дизайн (картки, план, квести, діалоги) та історії. Продаж — повний викуп прав: світ переходить покупцю. Перед продажем світ отримує ліцензію WhiteWrite — перевірку, щоб покупець знав, що купує, а продавець продавав законно: метрики, ШІ-рецензія, ШІ-юрист і модератор-людина. Покупець платить продавцю напряму, WhiteWrite утримує комісію. Зараз Маркет у розробці: запустимо після перевірки договорів юристом і налаштування виплат продавцям.", "The World Market is where authors will be able to sell their world to other creators or studios: the canon, culture, game design (cards, plan, quests, dialogues) and stories. A sale is a full buyout of the rights: the world passes to the buyer. Before a sale the world gets a WhiteWrite licence — a review so the buyer knows what they buy and the seller sells lawfully: metrics, an AI review, an AI lawyer and a human moderator. The buyer pays the seller directly; WhiteWrite keeps a fee. The Market is in development now: it launches after a lawyer reviews the contracts and seller payouts are set up.") + ' <a href="#" data-kbmarket>' + cmT("Як це працюватиме", "How it will work") + '</a></p></div>';
     var intro = '<h1 class="vhead__t">' + cmT("Маркет світів", "World Market") + '</h1><p class="vhead__s">' + cmT(
       "Ліцензовані світи авторів — з каноном, культурою, ігровим дизайном та історіями. Купівля — повний викуп прав: світ переходить у твій акаунт, автор втрачає до нього доступ. Лише текст, без файлів. Кожен лот пройшов перевірку: метрики, ШІ-рецензія, ШІ-юрист, модератор.",
       "Licensed worlds of authors — with canon, culture, game design and stories. A purchase is a full buyout: the world moves to your account, the author loses access to it. Text only, no files. Every lot passed a review: metrics, AI review, AI lawyer, moderator.") +

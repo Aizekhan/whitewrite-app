@@ -72,7 +72,8 @@
           section: "Розділ", view: "Перегляд", edit: "Редагування", remove: "Прибрати", removeText: "Людина втратить доступ до цього світу. Дружба лишиться.", removed: "Прибрано з команди.",
           saved: "Збережено.", added: "Додано в команду.", empty: "У команді поки нікого.", add: "Додати в команду", addBtn: "Додати",
           noFriends: "Немає друзів, яких можна додати.", toFriends: "Акаунт → Друзі" },
-        market: { title: "Маркет: продаж світу", hint: "Продається весь світ (канон, культура, ігри, історії) — лише текст, з повним викупом прав: після оплати світ переходить покупцю, а ти втрачаєш до нього доступ. Спершу — ліцензія: перевірка до 1–2 тижнів (метрики, ШІ-рецензія, ШІ-юрист, модератор), світ на цей час заморожено. Ціна перевірки — за обсягом тексту: {tiers} токенів, лише Worldbuilder. Продавати ліцензований світ можна на будь-якому тарифі; 12% утримує Stripe на користь WhiteWrite.",
+        market: { soonTitle: "Маркет світів", soonBadge: "Планується — зараз у розробці", soonIdea: "Маркет світів — місце, де автори зможуть продати свій світ іншим творцям чи студіям: канон, культуру, ігровий дизайн (картки, план, квести, діалоги) та історії. Продаж — повний викуп прав: світ переходить покупцю. Перед продажем світ отримує ліцензію WhiteWrite — перевірку, щоб покупець знав, що купує, а продавець продавав законно: метрики, ШІ-рецензія, ШІ-юрист і модератор-людина. Покупець платить продавцю напряму, WhiteWrite утримує комісію. Зараз Маркет у розробці: запустимо після перевірки договорів юристом і налаштування виплат продавцям.", soonNow: "Що вже можна зробити зараз: наповнювати світ і гру, публікувати вітрину в «Спільноті» й збирати фоловерів — це стане основою лоту.", soonTest: "Тестовий режим (лише адмін)",
+          title: "Маркет: продаж світу", hint: "Продається весь світ (канон, культура, ігри, історії) — лише текст, з повним викупом прав: після оплати світ переходить покупцю, а ти втрачаєш до нього доступ. Спершу — ліцензія: перевірка до 1–2 тижнів (метрики, ШІ-рецензія, ШІ-юрист, модератор), світ на цей час заморожено. Ціна перевірки — за обсягом тексту: {tiers} токенів, лише Worldbuilder. Продавати ліцензований світ можна на будь-якому тарифі; 12% утримує Stripe на користь WhiteWrite.",
           rules: "Як це працює", payouts: "Виплати Stripe:", payoutsOn: "підключено", payoutsPending: "не завершено", payoutsOff: "не підключено", connect: "Підключити Stripe",
           connectOpened: "Stripe відкрито в новій вкладці. Після завершення повернись сюди.",
           status: { review: "На перевірці", moderation: "У модератора", approved: "Ліцензовано й виставлено" }, since: "з", frozen: "Світ заморожено: його можна читати, але не змінювати, доки заявку не відкликано або світ не продано.",
@@ -319,7 +320,8 @@
           section: "Section", view: "View", edit: "Edit", remove: "Remove", removeText: "They lose access to this world. The friendship stays.", removed: "Removed from the team.",
           saved: "Saved.", added: "Added to the team.", empty: "Nobody in the team yet.", add: "Add to the team", addBtn: "Add",
           noFriends: "No friends to add.", toFriends: "Account → Friends" },
-        market: { title: "Market: selling the world", hint: "The whole world sells (canon, culture, games, stories) — text only, as a full buyout: after payment the world passes to the buyer and you lose access to it. First a licence: a review of up to 1–2 weeks (metrics, AI review, AI lawyer, moderator), the world frozen meanwhile. The review costs by the text size: {tiers} tokens, Worldbuilder only. A licensed world sells on any plan; Stripe keeps 12% for WhiteWrite.",
+        market: { soonTitle: "World Market", soonBadge: "Planned — in development now", soonIdea: "The World Market is where authors will be able to sell their world to other creators or studios: the canon, culture, game design (cards, plan, quests, dialogues) and stories. A sale is a full buyout of the rights: the world passes to the buyer. Before a sale the world gets a WhiteWrite licence — a review so the buyer knows what they buy and the seller sells lawfully: metrics, an AI review, an AI lawyer and a human moderator. The buyer pays the seller directly; WhiteWrite keeps a fee. The Market is in development now: it launches after a lawyer reviews the contracts and seller payouts are set up.", soonNow: "What you can do now: fill your world and game, publish a showcase in the “Community” and gather followers — this becomes the base of a lot.", soonTest: "Test mode (admin only)",
+          title: "Market: selling the world", hint: "The whole world sells (canon, culture, games, stories) — text only, as a full buyout: after payment the world passes to the buyer and you lose access to it. First a licence: a review of up to 1–2 weeks (metrics, AI review, AI lawyer, moderator), the world frozen meanwhile. The review costs by the text size: {tiers} tokens, Worldbuilder only. A licensed world sells on any plan; Stripe keeps 12% for WhiteWrite.",
           rules: "How it works", payouts: "Stripe payouts:", payoutsOn: "connected", payoutsPending: "not finished", payoutsOff: "not connected", connect: "Connect Stripe",
           connectOpened: "Stripe opened in a new tab. Come back here when you finish.",
           status: { review: "Under review", moderation: "With the moderator", approved: "Licensed and listed" }, since: "since", frozen: "The world is frozen: readable but not changeable until the application is withdrawn or the world is sold.",
@@ -5018,7 +5020,7 @@
   if (PANEL && window.ResizeObserver) new ResizeObserver(panelHeight).observe(document.getElementById("view"));
   function renderHubPanel() {
     var H = STR.hub;
-    if (!world.owner) { $("view").innerHTML = '<p class="muted">…</p>'; return; }
+    if (!world || !world.owner) { $("view").innerHTML = '<p class="muted">…</p>'; return; }
     if (!ME.owner) { $("view").innerHTML = '<p class="muted">' + H.memberNote + '</p>'; return; }
     var tabs = [["community", "🌍"], ["team", "🤝"], ["market", "⚖"], ["backup", "⛁"]];
     var body = hubTab === "team" ? teamHtml() : hubTab === "market" ? marketHtml() : hubTab === "backup" ? backupHtml() : communityHtml();
@@ -5092,8 +5094,13 @@
       if (hubIdle()) render();
     }, function (e) { mkt = { error: e.message }; if (hubIdle()) render(); });
   }
+  var mktTest = false; // an admin opens the working Market form while it is «скоро»
+  function marketSoon() { var PF = window.__PAID_FEATURES, f = PF && PF.byOp && PF.byOp("licenceReview"); return !!(f && f.soon); }
   function marketHtml() {
-    var K = STR.hub.market, PF = window.__PAID_FEATURES; mktLoad();
+    var K = STR.hub.market, PF = window.__PAID_FEATURES;
+    if (marketSoon() && !mktTest) return '<h2>' + K.soonTitle + '</h2><div class="mk-soon"><b>🚧 ' + K.soonBadge + '</b><p>' + K.soonIdea + '</p>' +
+      '<p class="hint">' + K.soonNow + ' <a href="#" data-kb="market">' + K.rules + '</a></p></div>' + (mktAdmin ? '<button class="btn ghost" id="mk-test">' + K.soonTest + '</button>' : '');
+    mktLoad();
     var tiers = PF ? PF.LICENCE.tiers.map(function (t) { return t.tokens.toLocaleString(); }).join(" / ") : "";
     var head = '<h2>' + K.title + '</h2><p class="hint">' + K.hint.replace("{tiers}", tiers) + ' <a href="#" data-kb="market">' + K.rules + '</a></p>';
     if (mkt.loading) return head + '<p class="muted">' + STR.comm.loading + '</p>';
@@ -5125,8 +5132,11 @@
       (q ? '' : '<p class="hint">' + K.quoteFirst + '</p>') + '</div>';
     return out + stripe;
   }
+  var mktAdmin = false;
+  try { firebase.auth().onAuthStateChanged(function (u) { if (u) u.getIdTokenResult().then(function (r) { mktAdmin = !!(r.claims && r.claims.admin); if (hubIdle()) render(); }, function () {}); }); } catch (e) {}
   function bindMarket() {
     var K = STR.hub.market;
+    var t = $("mk-test"); if (t) t.onclick = function () { mktTest = true; render(); };
     var kb = document.querySelector("[data-kb]"); if (kb) kb.onclick = function (e) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: "market" }); };
     var c = $("mk-connect"); if (c) c.onclick = async function () {
       c.disabled = true;

@@ -19,7 +19,9 @@ const { defineSecret } = require('firebase-functions/params');
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, claudeApiKey, stripeSecretKey, MODEL_PRICING } = require('./common');
 const { activeModels, claudeText } = require('./claude');
 const ledger = require('./ledger');
-const { LICENCE, licenceFee, USD_PER_TOKEN } = require('../paid-features.js');
+const { LICENCE, licenceFee, USD_PER_TOKEN, byOp } = require('../paid-features.js');
+// The Market is announced but not launched (paid-features `licenceReview.soon`): applying, Stripe onboarding and buying are admin-only until then
+const MARKET_SOON = () => !!(byOp('licenceReview') || {}).soon;
 
 const stripeConnectWebhookSecret = defineSecret('STRIPE_CONNECT_WEBHOOK_SECRET');
 const SITE = 'https://whitewrite.com';
@@ -174,6 +176,7 @@ const appView = (d) => { const a = d.data(); return Object.assign({ id: d.id }, 
 
 async function handle(op, b, tok) {
   const uid = tok.uid, isAdmin = tok.admin === true;
+  if (MARKET_SOON() && !isAdmin && ['apply', 'connect', 'checkout'].indexOf(op) >= 0) throw fail(503, 'Маркет ще в розробці — продаж і купівля відкриються після запуску', { code: 'SOON' });
 
   if (op === 'quote') { // the fee for this world, before anything is frozen
     const worldId = str(b.worldId, 120);
