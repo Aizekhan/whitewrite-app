@@ -3,8 +3,7 @@
 
 // Default values (used if Firestore not available or document doesn't exist)
 const DEFAULT_FEATURES = {
-  universe: false,   // Universe (WorldTree) full access
-  marketplace: false // Marketplace tab visibility
+  universe: false    // Universe (WorldTree) full access
 };
 
 // Load feature flags from Firestore

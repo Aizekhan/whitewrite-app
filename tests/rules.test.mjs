@@ -20,6 +20,12 @@ const T = (name, expectation, method, path, uid = 'u1', plan, data) => ({ name, 
   request: Object.assign({ auth: uid ? { uid } : null, path, method }, data ? { resource: { data } } : {}),
   resource: method === 'create' || method === 'get' ? undefined : { data: {} } } });
 
+// community: `res` is the doc itself, `parent` mocks get(community/w1) for the items rule
+const P = (name, expectation, method, path, uid, res, parent) => ({ name, tc: {
+  expectation, functionMocks: parent ? [{ function: 'get', args: [{ exactValue: D + '/community/w1' }], result: { value: { data: parent } } }] : [],
+  request: Object.assign({ auth: uid ? { uid } : null, path: D + path, method }, method !== 'get' && res ? { resource: { data: res } } : {}),
+  resource: res && method !== 'create' ? { data: res } : undefined } });
+
 const cases = [
   T('owner writes a card', 'ALLOW', 'create', G + '/cards/c1', 'u1', 'worldbuilder', { title: 'x' }),
   T('owner writes the plan (gates)', 'ALLOW', 'update', G + '/plan/current', 'u1', 'worldbuilder', { gates: {} }),
@@ -63,6 +69,17 @@ const cases = [
   T('Novelist still cannot write game cards', 'DENY', 'create', G + '/cards/c5', 'u1', 'novelist', { title: 'x' }),
   T('a stranger cannot read quests', 'DENY', 'get', G + '/quests/q1', 'u2'),
   T('a stranger cannot write dialogues', 'DENY', 'create', G + '/dialogues/d9', 'u2', 'worldbuilder', { title: 'x' }),
+  // Спільнота: public showcases — anyone reads what is not hidden, only the server writes
+  P('a guest reads a showcase', 'ALLOW', 'get', '/community/w1', null, { owner: 'u1', hidden: false }),
+  P('a guest CANNOT read a hidden showcase', 'DENY', 'get', '/community/w1', null, { owner: 'u1', hidden: true }),
+  P('the owner reads their hidden showcase', 'ALLOW', 'get', '/community/w1', 'u1', { owner: 'u1', hidden: true }),
+  P('a guest reads showcase items', 'ALLOW', 'get', '/community/w1/items/i0001', null, null, { owner: 'u1', hidden: false }),
+  P('a guest CANNOT read items of a hidden showcase', 'DENY', 'get', '/community/w1/items/i0001', null, null, { owner: 'u1', hidden: true }),
+  P('the owner CANNOT write a showcase directly', 'DENY', 'update', '/community/w1', 'u1', { owner: 'u1', hidden: false, likes: 999 }),
+  P('a user CANNOT write a like directly', 'DENY', 'create', '/community/w1/likes/u2', 'u2'),
+  P('a user reads their own like', 'ALLOW', 'get', '/community/w1/likes/u2', 'u2', { at: 1 }),
+  P('a guest reads the home page cards', 'ALLOW', 'get', '/community_home/current', null, { top: [] }),
+  P('a user CANNOT read reports', 'DENY', 'get', '/community_reports/w1__u2', 'u2', { uid: 'u2' }),
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

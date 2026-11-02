@@ -15,6 +15,11 @@
   var STR = {
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
+      comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити публікацію».",
+        world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n}", hidden: "Приховано модератором після скарги — у спільноті не видно.",
+        tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
+        publish: "Опублікувати", update: "Оновити публікацію", unpublish: "Зняти з публікації", open: "Відкрити у спільноті", working: "Публікую…", done: "Опубліковано: {n} карток.", removed: "Знято з публікації.",
+        overview: "Огляд світу (слоган, опис, факти) — завжди", when: "Коли" },
       cosmo: { name: "Космограф", off: "Космограф вимкнено", offText: "Космограф — живе небо твого світу: планета з картою, сонця й супутники на справжніх орбітах, календар, доба й пори року, затемнення. Він вимкнений за замовчуванням і вмикається в налаштуваннях проєкту.",
         toSettings: "До налаштувань", expired: "Місяць Космографа скінчився", expiredText: "Небо збережене. Щоб знову ним керувати, продовж Космограф ще на 30 днів.",
         renew: "Продовжити на 30 днів", setTitle: "Космограф", setOff: "Вимкнено. Коли увімкнеш, з балансу спишеться {n} токенів, і Космограф працюватиме 30 днів.",
@@ -216,6 +221,11 @@
     },
     en: {
       brand: "World Bible", engine: "Game engine",
+      comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the publication”.",
+        world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n}", hidden: "Hidden by a moderator after a report — not shown in the community.",
+        tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
+        publish: "Publish", update: "Update the publication", unpublish: "Unpublish", open: "Open in the community", working: "Publishing…", done: "Published: {n} cards.", removed: "Unpublished.",
+        overview: "World overview (tagline, description, facts) — always", when: "When" },
       cosmo: { name: "Cosmograph", off: "The Cosmograph is off", offText: "The Cosmograph is the living sky of your world: a planet with its map, suns and moons on real orbits, a calendar, day and seasons, eclipses. It is off by default and is turned on in the project settings.",
         toSettings: "To settings", expired: "The Cosmograph month is over", expiredText: "The sky is saved. To work with it again, extend the Cosmograph for another 30 days.",
         renew: "Extend for 30 days", setTitle: "Cosmograph", setOff: "Off. Turning it on spends {n} tokens, and the Cosmograph works for 30 days.",
@@ -3285,7 +3295,7 @@
         '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
         '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
         '<p class="hint">' + STR.stRestoreHint + '</p></section>';
-    html += cosmoSettingsHtml();
+    html += cosmoSettingsHtml() + communityHtml();
     html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (game ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '') +
       '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button></div><p class="hint" id="st-msg"></p></section>';
@@ -3299,7 +3309,7 @@
     $("st-wexp").onclick = exportWorld;
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
     $("st-wdel").onclick = deleteWorld;
-    bindCosmoSettings();
+    bindCosmoSettings(); bindCommunity();
     if (!game) return;
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
@@ -3318,8 +3328,103 @@
       b.onclick = function () { confirmDeleteSection(sec(b.dataset.delsec)); };
     });
   }
+  // ---------- Спільнота: a public showcase of the world or the game (functions/src/community.js) ----------
+  // The snapshot is built here from what the author sees; the server checks ownership, trims and stores it.
+  var COMM_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/community", commPubs = {}; // pubId → community doc | null
+  var COMM_CANON = ["laws", "w-characters", "w-locations", "w-factions", "w-items", "chronicle", "culture"];
+  var COMM_GAME = ["overview", "lore", "characters", "locations", "factions", "items", "mechanics", "levels", "enemies", "gear", "scenes", "refs"];
+  function commTargets() {
+    var t = [{ key: "w", pubId: worldId, gameId: "", title: world.title || "", def: COMM_CANON,
+      secs: CANON.filter(function (s) { return COMM_CANON.indexOf(s.id) >= 0; }) }];
+    if (game) t.push({ key: "g", pubId: worldId + "__" + gameId, gameId: gameId, title: game.title || "", def: COMM_GAME,
+      secs: gameSections().filter(function (s) { return !s.special && s.id !== "telemetry"; }) }); // ordinary card shelves only
+    return t;
+  }
+  function commItems(t, secIds) {
+    var items = [], has = function (id) { return secIds.indexOf(id) >= 0; }, text = function (v) { return typeof v === "string" ? v : ""; };
+    var imgs = function (files) { return (files || []).filter(isImage).map(function (f) { return f.url; }).filter(Boolean); };
+    if (t.key === "w") {
+      entities.forEach(function (e) {
+        var s = e.kind === "events" ? CHRONICLE : CANON.filter(function (x) { return x.dossier === e.kind; })[0];
+        if (!s || !has(s.id)) return;
+        var tabs = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, dos = e.dossier || {};
+        var blocks = [{ l: STR.dos.desc, t: text(e[descKeyOf(e)]) }].concat(tabs.map(function (x) { return { l: x[1], t: text(dos[x[0]]) }; }));
+        if (e.kind === "events" && e.when) blocks.unshift({ l: STR.comm.when, t: text(e.when) });
+        items.push({ sec: s.id, group: e.group || "", title: e.name || e.title || "", blocks: blocks, imgs: imgs(e.files) });
+      });
+      if (has("culture")) lore.forEach(function (e) {
+        var g = loreGroup(e.group);
+        items.push({ sec: "culture", group: L(g), title: e.name || e.title || "", imgs: imgs(e.files),
+          blocks: [{ l: STR.dos.desc, t: text(e[descKeyOf(e)]) }].concat(g.defs.map(function (d) { return { l: d.label, t: text((e.fields || {})[d.key]) }; })) });
+      });
+    } else {
+      allCards().forEach(function (c) {
+        if (c.hidden || !has(c.section)) return;
+        var gk = groupKey(sec(c.section)); // the card's note and its image / file fields stay private
+        var blocks = (c.canonDesc && c.canonDesc.value ? [{ l: STR.dos.desc, t: c.canonDesc.value }] : []).concat((c.defs || []).filter(function (d) {
+          return d.key !== gk && d.type !== "image" && d.type !== "file"; }).map(function (d) { return { l: d.label, t: text(c.fields[d.key]) }; }));
+        items.push({ sec: c.section, group: (gk && text(c.fields[gk])) || "", title: c.title, blocks: blocks, imgs: imgs(c.files) });
+      });
+    }
+    return items.filter(function (it) { it.blocks = it.blocks.filter(function (b) { return b.t.trim(); }); return it.title || it.blocks.length || it.imgs.length; });
+  }
+  function communityHtml() {
+    var C = STR.comm;
+    return '<section class="setbox" id="st-comm"><h2>' + C.title + '</h2><p class="hint">' + C.hint + '</p>' + commTargets().map(function (t) {
+      var p = commPubs[t.pubId], on = !!p, picked = p ? p.sections.map(function (x) { return x.id; }) : t.def;
+      var covers = [];
+      commItems(t, t.secs.map(function (s) { return s.id; })).forEach(function (it) { it.imgs.forEach(function (u) { if (covers.indexOf(u) < 0 && covers.length < 24) covers.push(u); }); });
+      var cover = p && p.cover && covers.indexOf(p.cover) >= 0 ? p.cover : covers[0];
+      var tag = p ? p.tagline : t.key === "w" ? world.tagline || "" : "", sum = p ? p.summary : t.key === "w" ? world.summary || "" : "";
+      return '<div class="commt" data-ct="' + t.key + '"><h3>' + esc((t.key === "w" ? C.world : C.game) + " · " + t.title) + '</h3>' +
+        '<p class="hint">' + (p === undefined ? C.loading : !on ? C.off : p.hidden ? C.hidden : C.on.replace("{n}", p.likes || 0)) + '</p>' +
+        '<label class="field"><span>' + C.tagline + '</span><input data-cf="tagline" maxlength="240" value="' + esc(tag) + '"></label>' +
+        '<label class="field"><span>' + C.summary + '</span><textarea data-cf="summary" rows="3" maxlength="4000">' + esc(sum) + '</textarea></label>' +
+        '<div class="field"><span>' + C.secs + '</span>' + (t.key === "w" ? '<p class="hint">✓ ' + C.overview + '</p>' : '') + '<div class="shownsecs">' + t.secs.map(function (s) {
+          return '<label class="imp"><input type="checkbox" data-cs="' + s.id + '"' + (picked.indexOf(s.id) >= 0 ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div></div>' +
+        (covers.length ? '<div class="field"><span>' + C.cover + '</span><div class="commcov">' + covers.map(function (u, i) {
+          return '<label><input type="radio" name="cov-' + t.key + '" value="' + esc(u) + '"' + (u === cover ? ' checked' : '') + '><img loading="lazy" alt="' + esc(C.cover + " " + (i + 1)) + '" src="' + esc(u) + '"></label>'; }).join("") + '</div></div>'
+          : '<p class="hint">' + C.noCover + '</p>') +
+        '<div class="setrow"><button class="btn primary" data-cpub>' + (on ? C.update : C.publish) + '</button>' +
+        (on ? '<button class="btn" data-copen>' + C.open + '</button><button class="btn danger" data-cun>' + C.unpublish + '</button>' : '') + '</div>' +
+        '<p class="hint" data-cmsg aria-live="polite"></p></div>';
+    }).join("") + '</section>';
+  }
+  async function commCall(body) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(COMM_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(body) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok || data.error) throw new Error(data.error || ("HTTP " + r.status));
+    return data;
+  }
+  function bindCommunity() {
+    commTargets().forEach(function (t) {
+      var box = document.querySelector('.commt[data-ct="' + t.key + '"]'); if (!box) return;
+      var say = function (x) { box.querySelector("[data-cmsg]").textContent = x; };
+      if (commPubs[t.pubId] === undefined) db.collection("community").doc(t.pubId).get()
+        .then(function (sn) { return sn.exists ? sn.data() : null; }, function () { return null; })
+        .then(function (d) { commPubs[t.pubId] = d; if (settingsIdle()) renderSettings(); });
+      box.querySelector("[data-cpub]").onclick = async function (ev) {
+        var btn = ev.currentTarget, ids = [].filter.call(box.querySelectorAll("[data-cs]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cs; });
+        var cov = box.querySelector('input[name="cov-' + t.key + '"]:checked'), items = commItems(t, ids);
+        var body = { action: "publish", worldId: worldId, gameId: t.gameId, author: (firebase.auth().currentUser || {}).displayName || "",
+          tagline: box.querySelector('[data-cf="tagline"]').value, summary: box.querySelector('[data-cf="summary"]').value, cover: cov ? cov.value : "",
+          sections: t.secs.filter(function (s) { return ids.indexOf(s.id) >= 0; }).map(function (s) { return { id: s.id, label: L(s) }; }), items: items };
+        if (t.key === "w") { body.facts = (world.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }); body.rules = ids.indexOf("laws") >= 0 ? (world.rules || []) : []; }
+        btn.disabled = true; say(STR.comm.working);
+        try { var r = await commCall(body); delete commPubs[t.pubId]; say(STR.comm.done.replace("{n}", r.items)); renderSettings(); }
+        catch (er) { btn.disabled = false; say(STR.failed + ": " + er.message); }
+      };
+      var o = box.querySelector("[data-copen]"); if (o) o.onclick = function () { tellShell({ type: "ww-community", pubId: t.pubId }); };
+      var u = box.querySelector("[data-cun]"); if (u) u.onclick = async function () {
+        u.disabled = true;
+        try { await commCall({ action: "unpublish", pubId: t.pubId }); commPubs[t.pubId] = null; renderSettings(); }
+        catch (er) { u.disabled = false; say(STR.failed + ": " + er.message); }
+      };
+    });
+  }
   // the settings' «Claude Code» ticks follow live data, but never re-render under the author's typing
-  function settingsIdle() { return section === "settings" && !document.activeElement.closest("#view input"); }
+  function settingsIdle() { return section === "settings" && !document.activeElement.closest("#view input, #view textarea"); }
   function tellShell(msg) { try { window.parent.postMessage(msg, location.origin); } catch (e) {} }
   function download(name, text, type) {
     var a = document.createElement("a");

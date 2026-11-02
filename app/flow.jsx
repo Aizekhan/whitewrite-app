@@ -19,7 +19,8 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.agentBeta': 'для творців ігор',
     'hero.agentTitle': 'Від задуму — до гри',
     'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
-    'hero.agentBtn': '🤖 Від чистого ПК до Гри'
+    'hero.agentBtn': '🤖 Від чистого ПК до Гри',
+    'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
   const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
@@ -52,6 +53,47 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
         <div className="hero-buybook__d">{t('hero.agentDesc')}</div>
         <button className="hero-buybook__btn" type="button" onClick={() => { try { window.parent.postMessage({ type: "ww-agent-guide" }, window.location.origin); } catch (err) {} }}>{t('hero.agentBtn')}</button>
       </div>
+
+      <HomeCommunity t={t} />
+    </div>
+  );
+}
+
+// ── Спільнота on the home page: community_home/current (functions/src/community.js, rebuilt hourly) ──
+// «Вибір спільноти» walks the top 20 authors (paid promotion first) through the day, ~24h / N each;
+// «Відкрий нового автора» is a random showcase below the top whose author was active in the last 7 days.
+function pickTop(top) {
+  if (!top || !top.length) return null;
+  const now = new Date(), day = now.getHours() * 3600000 + now.getMinutes() * 60000 + now.getSeconds() * 1000;
+  return top[Math.floor(day / (86400000 / top.length)) % top.length];
+}
+function HomeCommunity({ t }) {
+  const [home, setHome] = useFState(null);
+  const [rnd] = useFState(Math.random());
+  const [, tick] = useFState(0);
+  React.useEffect(() => {
+    const db = window.__firebase && window.__firebase.db;
+    if (db) db.collection('community_home').doc('current').get().then((s) => setHome(s.exists ? s.data() : {}), () => setHome({}));
+    const id = setInterval(() => tick((n) => n + 1), 60000); // the top card moves on while the page stays open
+    return () => clearInterval(id);
+  }, []);
+  const go = (pubId) => { try { window.parent.postMessage({ type: 'ww-community', pubId: pubId || null }, window.location.origin); } catch (err) {} };
+  const top = pickTop(home && home.top), pool = (home && home.pool) || [];
+  const fresh = pool.length ? pool[Math.floor(rnd * pool.length)] : null;
+  const card = (c, label, cls) => c && (
+    <button type="button" className={'hcomm__card ' + cls} onClick={(e) => { e.stopPropagation(); go(c.id); }}
+      style={c.cover ? { backgroundImage: 'url("' + c.cover.replace(/"/g, '%22') + '")' } : undefined}>
+      <span className="hcomm__label">{label}</span>
+      <span className="hcomm__t">{c.title}</span>
+      {c.tagline ? <span className="hcomm__tag">{c.tagline}</span> : null}
+      <span className="hcomm__by">{t('hero.commBy')} {c.author}{c.likes ? ' · ♥ ' + c.likes : ''}</span>
+    </button>
+  );
+  return (
+    <div className="hcomm" onClick={(e) => e.stopPropagation()}>
+      {card(top, t('hero.commTop'), 'hcomm__card--top')}
+      {card(fresh, t('hero.commNew'), 'hcomm__card--new')}
+      <button type="button" className="hcomm__all" onClick={() => go(null)}>✦ {t('hero.commAll')}</button>
     </div>
   );
 }

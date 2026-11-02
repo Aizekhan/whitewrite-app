@@ -191,6 +191,32 @@ service cloud.firestore {
       allow write: if false; // Only via Cloud Functions or Firebase Console
     }
 
+    // Спільнота (functions/src/community.js): public showcases of worlds and games — anyone (even signed out) reads what
+    // is not hidden; the owner and admins also read a hidden one. Only the server writes.
+    function canSeePub(d) {
+      return d.hidden != true || (request.auth != null && (d.owner == request.auth.uid || request.auth.token.admin == true));
+    }
+    match /community/{pubId} {
+      allow read: if resource == null || canSeePub(resource.data); // a missing doc reads as «not published»
+      allow write: if false;
+      match /items/{itemId} {
+        allow read: if canSeePub(get(/databases/$(database)/documents/community/$(pubId)).data);
+        allow write: if false;
+      }
+      match /likes/{uid} {
+        allow read: if isAuthenticated() && request.auth.uid == uid;
+        allow write: if false;
+      }
+    }
+    match /community_home/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /community_reports/{id} {
+      allow read: if isAuthenticated() && request.auth.token.admin == true;
+      allow write: if false;
+    }
+
     // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
     match /admin_notices/{id} {
       allow read: if isAuthenticated() && request.auth.token.admin == true;

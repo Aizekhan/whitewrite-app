@@ -16,7 +16,7 @@
       'nav.logout': 'Вийти',
       'nav.projects': 'Проекти',
       'nav.knowledgeBase': 'База знань',
-      'nav.marketplace': 'Маркетплейс',
+      'nav.marketplace': 'Спільнота',
 
       // Account Modal
       'account.title': 'Акаунт',
@@ -171,6 +171,7 @@
       'hero.agentTitle': 'Від задуму — до гри',
       'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
       'hero.agentBtn': '🤖 Від чистого ПК до Гри',
+      'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор',
       'hero.imgAlt': 'Хранитель історій з живою книгою',
 
       // Story Form
@@ -506,6 +507,7 @@
       'hero.agentTitle': 'Від задуму — до гри',
       'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
       'hero.agentBtn': '🤖 Від чистого ПК до Гри',
+      'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор',
 
       // Story Form
       'form.kicker': 'Новий всесвіт',
@@ -585,7 +587,7 @@
       'nav.logout': 'Logout',
       'nav.projects': 'Projects',
       'nav.knowledgeBase': 'Knowledge Base',
-      'nav.marketplace': 'Marketplace',
+      'nav.marketplace': 'Community',
 
       // Account Modal
       'account.title': 'Account',
@@ -737,6 +739,7 @@
       'hero.agentTitle': 'From idea to game',
       'hero.agentDesc': 'The Game Bible and the production plan live in WhiteWrite; Claude Code builds the game from them. You just accept the work.',
       'hero.agentBtn': '🤖 From a clean PC to a game',
+      'hero.commTop': 'Community pick', 'hero.commNew': 'Discover a new author', 'hero.commAll': 'Community — all worlds & games', 'hero.commBy': 'by',
       'hero.imgAlt': 'Keeper of stories with a living book',
 
       // Story Form
@@ -1076,6 +1079,7 @@
       'hero.agentTitle': 'From idea to game',
       'hero.agentDesc': 'The Game Bible and the production plan live in WhiteWrite; Claude Code builds the game from them. You just accept the work.',
       'hero.agentBtn': '🤖 From a clean PC to a game',
+      'hero.commTop': 'Community pick', 'hero.commNew': 'Discover a new author', 'hero.commAll': 'Community — all worlds & games', 'hero.commBy': 'by',
 
       // Story Form
       'form.kicker': 'New Universe',
