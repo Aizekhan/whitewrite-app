@@ -468,15 +468,15 @@
         lead: "Дизайн гри поверх канону світу.",
         min: 3,
         body: [
-          ["p", "У світі може бути кілька ігор («Гра:» у меню). Меню гри — 11 пунктів-дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
+          ["p", "У світі може бути кілька ігор («Гра:» у меню). Меню гри — дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
           ["ul", [
             "<b>Огляд і лор</b> — Огляд гри · Лор гри · Референси",
             "<b>Персонажі й вороги</b> — Персонажі · Фракції · Вороги й боси",
-            "<b>Світ і рівні</b> — Локації · Рівні й контент · Генерація світу",
+            "<b>Світ і рівні</b> — Локації · Рівні й контент · Генерація світу · Сцени",
             "<b>Механіки</b>",
             "<b>Прогресія й предмети</b> — Прогресія й економіка · Предмети й спорядження · Артефакти",
-            "<b>Арт і аудіо</b> — Ассети й префаби · Матеріали й текстури · Анімації й VFX · Звук і музика",
-            "<b>UI / UX</b> · <b>Технічне</b> · твої власні розділи",
+            "<b>Арт і аудіо</b> — Ассети й префаби · Матеріали й текстури · Анімації й VFX · Звук і музика · UI / UX",
+            "<b>Технічне</b> · твої власні розділи",
             "<b>Продакшн-план</b> — План · Неузгоджене",
             "<b>Досвід гравців</b> — Досвід гравців · Телеметрія (каталог подій)",
           ]],
@@ -497,7 +497,7 @@
         lead: "Як виглядає кожна сцена гри — словами, кольорами й простою постановкою.",
         min: 3,
         body: [
-          ["p", "«Сцени» — окремий пункт меню гри. Групи: ключові сцени, катсцени, ігрові моменти, бої, екрани й меню (і свої — «＋ Підрозділ»). У картці сцени: що відбувається, локація, настрій і світло, палітра кольорів, мініпостановка, камера й кадр, референси-картинки."],
+          ["p", "«Сцени» — підпункт «Світ і рівні» в меню гри. Групи: ключові сцени, катсцени, ігрові моменти, бої, екрани й меню (і свої — «＋ Підрозділ»). У картці сцени: що відбувається, локація, настрій і світло, палітра кольорів, мініпостановка, камера й кадр, референси-картинки."],
           ["h", "Палітра кольорів"],
           ["ul", [
             "«＋ Колір» — додати колір і назвати його (тло, акцент, світло…).",
@@ -1236,15 +1236,15 @@
         lead: "The game design on top of the world canon.",
         min: 3,
         body: [
-          ["p", "A world can have several games (“Game:” in the menu). The game menu is an 11-item tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
+          ["p", "A world can have several games (“Game:” in the menu). The game menu is a tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
           ["ul", [
             "<b>Overview & lore</b> — Game overview · Game lore · References",
             "<b>Characters & enemies</b> — Characters · Factions · Enemies & bosses",
-            "<b>World & levels</b> — Locations · Levels & content · World generation",
+            "<b>World & levels</b> — Locations · Levels & content · World generation · Scenes",
             "<b>Mechanics</b>",
             "<b>Progression & items</b> — Progression & economy · Items & gear · Artifacts",
-            "<b>Art & audio</b> — Assets & prefabs · Materials & textures · Animation & VFX · Sound & music",
-            "<b>UI / UX</b> · <b>Technical</b> · your own sections",
+            "<b>Art & audio</b> — Assets & prefabs · Materials & textures · Animation & VFX · Sound & music · UI / UX",
+            "<b>Technical</b> · your own sections",
             "<b>Production plan</b> — Plan · Inconsistencies",
             "<b>Player experience</b> — Player experience · Telemetry (event catalogue)",
           ]],
@@ -1265,7 +1265,7 @@
         lead: "What each scene of the game looks like — in words, colours and a simple mock-up.",
         min: 3,
         body: [
-          ["p", "“Scenes” is its own item in the game menu. Groups: key scenes, cutscenes, gameplay moments, fights, screens & menus (and your own — “＋ Subsection”). A scene card holds: what happens, location, mood and light, colour palette, the mock-up, camera and framing, reference images."],
+          ["p", "“Scenes” sits under “World & levels” in the game menu. Groups: key scenes, cutscenes, gameplay moments, fights, screens & menus (and your own — “＋ Subsection”). A scene card holds: what happens, location, mood and light, colour palette, the mock-up, camera and framing, reference images."],
           ["h", "Colour palette"],
           ["ul", [
             "“＋ Colour” — add a colour and name it (background, accent, light…).",
