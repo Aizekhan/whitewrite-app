@@ -250,6 +250,47 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .qd-lock{ color:var(--tx-mid); font-style:italic; margin:10px 0; }
 .ap-draft{ color:var(--s-idea); } .ap-review{ color:var(--s-work); } .ap-approved{ color:var(--s-game); } .ap-archived{ color:var(--tx-mid); }
 .qed > header .btn{ margin-bottom:6px; }
+/* the mechanics constructor */
+.mhead{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:4px 0 10px; }
+.mbar{ flex:0 1 260px; height:8px; border-radius:6px; background:var(--bg-2); border:1px solid var(--line-2); overflow:hidden; }
+.mbar i{ display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-lit)); }
+.mtabs{ display:flex; flex-wrap:wrap; gap:6px; margin:0 0 10px; }
+.mtab{ font:inherit; font-size:13px; padding:6px 12px; border-radius:999px; border:1px solid var(--line-2); background:var(--bg-1); color:var(--tx-mid); cursor:pointer; }
+.mtab[aria-selected="true"]{ border-color:var(--gold); color:var(--gold-lit); background:var(--bg-2); }
+.mtab:focus-visible,.mchip:focus-visible,.mth:focus-visible,.mgo:focus-visible{ outline:2px solid var(--gold-lit); outline-offset:2px; }
+.med .mfields .mwide{ grid-column:1/-1; } .med .qh i{ text-transform:none; font-style:normal; color:var(--tx-low); }
+.mreq{ color:var(--gold-lit); margin-left:2px; }
+.mfw{ font-size:13px; border-left:3px solid var(--line-2); padding:4px 10px; margin:6px 0 10px; color:var(--tx-mid); }
+.mfw-exists{ border-color:var(--s-game); } .mfw-partial{ border-color:var(--s-work); } .mfw-missing{ border-color:var(--s-redo); }
+.mtbar{ align-items:center; gap:10px; margin:6px 0; } .mtbar input{ max-width:260px; }
+.mtable{ overflow:auto; max-height:70vh; border:1px solid var(--line-2); border-radius:10px; }
+.mtable table{ border-collapse:separate; border-spacing:0; min-width:100%; font-size:13px; }
+.mtable th,.mtable td{ padding:4px 6px; border-bottom:1px solid var(--line-2); vertical-align:top; text-align:left; }
+.mtable thead th{ position:sticky; top:0; background:var(--bg-2); z-index:1; white-space:nowrap; }
+.mtable tbody th{ position:sticky; left:0; background:var(--bg-1); color:var(--tx-low); font-weight:500; }
+.mth{ font:inherit; font-size:12px; color:var(--tx-mid); background:none; border:0; cursor:pointer; padding:2px 0; text-transform:uppercase; letter-spacing:.04em; }
+.qbox .mtable input:not([type=checkbox]),.qbox .mtable select,.qbox .mtable textarea{ min-width:90px; padding:5px 7px; }
+.qbox .mtable td.mt-text input,.qbox .mtable td.mt-formula input,.qbox .mtable td.mt-range input{ min-width:150px; } .qbox .mtable td.mt-long textarea{ min-width:220px; }
+.qbox .mtable td.mt-sel select,.qbox .mtable td.mt-ref select{ min-width:140px; }
+.qbox .mtable td.mt-num input,.qbox .mtable td.mt-pct input,.qbox .mtable td.mt-time input{ min-width:70px; width:84px; }
+.mrowact{ white-space:nowrap; }
+.mchips{ display:flex; flex-wrap:wrap; gap:4px; }
+.mchip{ font:inherit; font-size:12px; padding:3px 9px; border-radius:999px; border:1px solid var(--line-2); background:var(--bg-1); color:var(--tx-mid); cursor:pointer; white-space:nowrap; }
+.mchip[aria-pressed="true"]{ border-color:var(--gold); color:var(--gold-lit); background:var(--bg-2); }
+.mono{ font-family:ui-monospace,Consolas,monospace; }
+.maddf{ gap:8px; align-items:center; margin-top:12px; } .maddf input{ max-width:220px; } .maddf select{ width:auto; }
+.mgo{ font:inherit; color:inherit; background:none; border:0; padding:0; text-align:left; cursor:pointer; }
+.mgo:hover{ text-decoration:underline; }
+.sr{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.mpick{ width:min(760px,94vw); max-height:88vh; overflow:auto; }
+.mpick h4{ margin:16px 0 2px; } .mpick .row{ gap:8px; } .mpick input[type=search]{ flex:1; }
+.mown{ display:grid; gap:4px; width:100%; text-align:left; font:inherit; padding:12px 14px; border-radius:12px; border:1px dashed var(--gold); background:var(--bg-1); color:var(--tx-hi); cursor:pointer; margin-top:6px; }
+.mown span{ color:var(--tx-mid); font-size:13px; }
+.mtpls{ display:grid; gap:10px; margin:10px 0; }
+.mtpl{ border:1px solid var(--line-2); border-radius:12px; padding:10px 14px; background:var(--bg-1); }
+.mtpl-h{ display:flex; flex-wrap:wrap; gap:6px 12px; align-items:baseline; } .mtpl p{ margin:6px 0; color:var(--tx-mid); font-size:13px; }
+.mtpl details{ font-size:13px; margin:4px 0 8px; } .mtpl ul{ margin:4px 0; padding-left:18px; }
+.mdots{ color:var(--gold-lit); letter-spacing:2px; margin-left:auto; } .mdots i{ color:var(--line-2); font-style:normal; }
 .qprop{ border-color:rgba(240,169,59,.45); background:rgba(240,169,59,.06); }
 .qprow{ border-bottom:1px solid var(--line); padding:8px 0; } .qprow pre{ white-space:pre-wrap; font:13.5px/1.5 "Inter"; color:var(--tx-hi); margin:4px 0 6px; }
 .qai{ gap:10px; } .qai input{ flex:1; } .btn.bulb{ justify-self:start; }
@@ -734,6 +775,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/narrative-validate.js"></script>
 <script src="firebase/setup-guides.js"></script>
 <script src="firebase/style-guide.js"></script>
+<script src="firebase/mechanics.js"></script>
 <script src="firebase/token-budget.js"></script>
 <script src="frame-pick.js"></script>
 <script src="gamebible.js"></script>

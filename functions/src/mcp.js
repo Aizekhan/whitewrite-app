@@ -10,6 +10,7 @@ const { onRequest, admin, db, getPlanBudget, claudeApiKey } = require('./common'
 const SG = require('../style-guide.js');
 const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
+const MECH = require('../mechanics.js');
 const GUIDES = require('../setup-guides.js');
 const STYLE = require('./style')._style;
 
@@ -100,6 +101,10 @@ const TOOLS = [
   { name: 'check_style', description: 'Ask the art director (Claude, on the author\'s tokens) whether a picture fits the game\'s visual style: a Unity screenshot of a scene, a render of a prefab or a texture. Send a PNG/JPEG/WebP as base64, ≤ 1568 px on the long side and ≤ 5 MB. Returns score 0-100 (70+ fits, 40-69 partly, below 40 off-style), summary, issues and fixes. Nothing is stored; use it after visual work and before submit_task_result.',
     inputSchema: { type: 'object', required: ['image_base64'], properties: { image_base64: { type: 'string' }, media_type: { type: 'string', enum: ['image/png', 'image/jpeg', 'image/webp'] },
       location: { type: 'string', description: 'The location / level shown — picks its biome' }, what: { type: 'string', description: 'What the picture is (scene, prefab, texture…)' } } } },
+  { name: 'get_mechanics', description: 'The game mechanics from the Game Bible constructor: each with category, template (e.g. UMCF — Universal Melee Combat Framework), stage, purpose, completeness % and the count of open problems. Then read one with get_mechanic.',
+    inputSchema: { type: 'object', properties: { category: { type: 'string', description: 'A category id (movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose); empty = all' } } } },
+  { name: 'get_mechanic', description: 'One mechanic in full: purpose, rules, every section with typed fields (unit, required) and table rows (links between rows resolved to { id, name }), what RPG Framework already has for each part (framework: exists | partial | missing + the classes), and the constructor checks. Numbers are the author design — implement them; a change goes through submit_change_request.',
+    inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string', description: '"c:<cardId>" or the mechanic title' } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -519,6 +524,23 @@ async function callTool(name, args, key) {
           lang: 'English', what: str(args.what, 200) || 'a screenshot from the Unity project', logAs: 'style_check_mcp' });
         return { style: SG.styleName(r), applies: r.biome ? 'biome' : 'overall', ...out.result, tokens_spent: out.tokensConsumed };
       } catch (e) { if (e instanceof STYLE.CheckError) throw new Error(e.body.error + (e.body.code ? ' (' + e.body.code + ')' : '')); throw e; }
+    }
+    case 'get_mechanics': {
+      const cat = str(args.category, 40);
+      const list = ctx.cards.filter((c) => c.section === 'mechanics' && !c.canonRef && !c.hidden && (!cat || (c.mech && c.mech.cat === cat)));
+      return { mechanics: list.map((c) => {
+        if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', group: (c.fields || {}).group || '', constructor: false, fields: named(c) };
+        const r = MECH.check(c.mech), t = MECH.template(c.mech.tpl);
+        return { ref: 'c:' + c.id, title: c.title || '', category: c.mech.cat, template: t ? MECH.lbl(t.name, 'en') : null, stage: c.mech.stage, status: c.status || 'idea',
+          purpose: c.mech.purpose || '', completeness: r.pct, problems: r.issues.filter((i) => i.level !== 'tip').length };
+      }) };
+    }
+    case 'get_mechanic': {
+      const r = str(args.ref, 200), id = r.replace(/^c:/, '');
+      const c = ctx.cards.find((x) => x.section === 'mechanics' && !x.canonRef && (x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));
+      if (!c) throw rpcError(-32602, `Mechanic ${r} not found`);
+      if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', constructor: false, fields: named(c), message: 'An older card, not yet opened in the constructor: only its text fields.' };
+      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en'), framework_version: MECH.FRAMEWORK.version };
     }
     case 'get_card': {
       const c = cardView(ctx, str(args.ref, 120));

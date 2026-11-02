@@ -584,8 +584,8 @@
       about: { uk: "Артефакти канону як ігрові предмети.", en: "Canon artifacts as game items." },
       defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
-      groups: { uk: ["Рух", "Бій", "Здібності", "Взаємодія", "Камера й керування", "Смерть і відродження", "Перемога й поразка"], en: ["Movement", "Combat", "Abilities", "Interaction", "Camera & controls", "Death & respawn", "Win & lose"] },
-      about: { uk: "Правила гри з числами. Правка тут — це завдання змінити гру.", en: "Game rules with numbers. An edit here is a task to change the game." },
+      groups: { uk: window.__MECH.CATEGORIES.map(function (c) { return c.uk; }), en: window.__MECH.CATEGORIES.map(function (c) { return c.en; }) }, // functions/mechanics.js
+      about: { uk: "Системи гри: правила, числа й звʼязки між ними — власні або з шаблонів (UMCF та інші). Правка тут — це завдання змінити гру.", en: "The game's systems: rules, numbers and how they connect — your own or from templates (UMCF and others). An edit here is a task to change the game." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Правила й числа", "Rules & numbers"), F("deps", "Залежить від", "Depends on")] },
     { id: "progression", uk: "Прогресія й економіка", en: "Progression & economy", group: "group",
       groups: { uk: ["Досвід і рівні", "Валюти", "Лут і нагороди", "Магазин", "Апгрейди", "Баланс"], en: ["XP & levels", "Currencies", "Loot & rewards", "Shop", "Upgrades", "Balance"] },
@@ -781,6 +781,7 @@
   // Their order lives in games/{g}.subsections[sectionId] (game sections) or worlds/{w}.subsections[sectionId] (canon);
   // standard names are stored in either language and shown in the current one.
   function normGroup(s, name) {
+    if (s.id === "mechanics" && window.__MECH.GROUP_ALIAS[name]) name = window.__MECH.GROUP_ALIAS[name]; // the Mechanics groups renamed in v2.48
     var g = s.groups, i = g ? g.uk.indexOf(name) : -1; if (g && i < 0) i = g.en.indexOf(name);
     return i >= 0 ? (g[LANG] || g.uk)[i] : name;
   }
@@ -968,6 +969,7 @@
     if (s.special === "chronicle") return openDossier({ id: entityId("events"), kind: "events", isNew: true, group: g });
     if (s.special === "culture") return openDossier({ id: newId("lore"), col: "lore", group: g || "customs", isNew: true });
     if (s.special === "quests" || s.special === "dialogues") { if (canQuest) openQD(s.special, null, g ? { type: g } : null); return; }
+    if (s.id === "mechanics") return mechNew(g);
     addCard(false, g);
   }
   function groupsOf(s) {
@@ -992,7 +994,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {} };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null };
   }
   function allCards() {
     var out = [];
@@ -1101,6 +1103,12 @@
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var lc = worstLic(c.files); if (lc) tags.push(lc);
     if (img) tags.push(styleMark(img.url, c, img.id));
+    if (c.mech) { // a constructor mechanic: its template, how full it is, the worst problem
+      var mr = window.__MECH.check(c.mech), mw = window.__MECH.worst(mr.issues), mt = window.__MECH.template(c.mech.tpl);
+      if (mt) tags.push('<span class="pill">' + esc(window.__MECH.lbl(mt.name, LANG).replace(/\s*\(.*\)$/, "")) + '</span>');
+      tags.push('<span class="flag" title="' + esc(MC.fill) + '">▤ ' + mr.pct + '%</span>');
+      if (mw === "error" || mw === "warn") tags.push('<span class="flag qd-' + mw + '" title="' + esc(MC.checks) + '">' + (mw === "error" ? "✕ " : "⚠ ") + mr.issues.filter(function (i) { return i.level !== "tip"; }).length + '</span>');
+    }
     var model = (c.files || []).filter(is3D)[0];
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
@@ -1144,6 +1152,10 @@
     if (s.special === "activity" && !query) return renderActivity(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
     if ((s.special === "quests" || s.special === "dialogues") && !query) return renderQD(s);
+    if (s.id === "mechanics" && med && !query) { // a live snapshot must not pull the field from under the author's cursor
+      var me = $("m-ed"); if (me && me.dataset.id === med.id && me.contains(document.activeElement) && document.activeElement !== me && document.activeElement.type !== "button" && document.activeElement.tagName !== "BUTTON") return;
+      return renderMEditor();
+    }
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
@@ -1151,6 +1163,7 @@
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
+        (s.id === "mechanics" && canWrite ? '<button class="btn" id="mech-new">' + MC.add + '</button>' : '') +
         (s.id === "artstyle" && canWrite ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
         '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
@@ -1159,6 +1172,7 @@
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
+    var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { alert(STR.failed + ": " + e.message); tlb.disabled = false; }); };
   }
@@ -2085,6 +2099,331 @@
     var q = qed; if (!confirm(QD.delQ.replace("{t}", q.d.title || "…"))) return;
     try { await gref().collection(q.col).doc(q.id).delete(); qed = null; render(); }
     catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
+  }
+  // ---------- the mechanics constructor (functions/mechanics.js → window.__MECH): a mechanic is a card with `mech` ----------
+  // Own or from a template (UMCF and others): sections of fields and tables with links between rows, checks and a completeness bar.
+  // Explicit save like the quest editor; a live snapshot never repaints under the cursor.
+  var MC = {
+    uk: { add: "＋ Механіка", own: "✎ Власна механіка", ownHint: "Порожня механіка: призначення, правила й розділи, які додаси сам.", catalog: "Шаблони", catHint: "Готова структура з прикладами чисел — усе редагується, шаблон лишається незмінним.",
+      search: "Пошук шаблону…", all: "Усі категорії", create: "Створити", preview: "Що всередині", sections: "розділів", complexity: "Складність", cancel: "Скасувати", choose: "Нова механіка",
+      back: "← До механік", general: "Загальне", title: "Назва", cat: "Категорія", sub: "Підкатегорія", stage: "Стадія розробки", status: "Стан у виробництві", type: "Тип механіки",
+      purpose: "Призначення", purposePh: "Яку проблему гри вона вирішує і що відчуває гравець", rules: "Правила роботи", rulesPh: "Як вона працює — по кроках або списком", tags: "Теги", tagsPh: "через кому",
+      links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна", basic: "Базовий вигляд", adv: "Розширений вигляд",
+      advHint: "Розширений показує всі поля шаблону; базовий — головні.", files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
+      fill: "Заповнено", req: "обовʼязкові", rec: "рекомендовані", checks: "Перевірка", clean: "Без проблем", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
+      rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Поле", fieldName: "Назва поля", fieldType: "Тип", rmField: "Прибрати поле",
+      addSec: "＋ Розділ-поля", addTable: "＋ Розділ-таблиця", secName: "Назва розділу", secKind: "Вигляд", kFields: "Поля", kTable: "Таблиця", rmSec: "Прибрати розділ", rmSecQ: "Прибрати розділ «{t}» з усіма даними?",
+      none: "—", save: "Зберегти", del: "Видалити", delQ: "Видалити механіку «{t}»?", newM: "Нова механіка", fw: "RPG Framework", fwS: { exists: "є", partial: "частково", missing: "немає" },
+      lvl: { error: "помилка", warn: "попередження", tip: "порада" }, legacy: "Стара картка: опис і числа перенесено в «Призначення» й «Правила». Збережи — і вона стане механікою конструктора.",
+      sortBy: "Сортувати за", rmRowQ: "Видалити рядок «{t}»? Посилання на нього стануть помилками в перевірці.", copyOf: "копія" },
+    en: { add: "＋ Mechanic", own: "✎ Own mechanic", ownHint: "An empty mechanic: purpose, rules and the sections you add yourself.", catalog: "Templates", catHint: "A ready structure with sample numbers — everything is editable, the template itself never changes.",
+      search: "Search templates…", all: "All categories", create: "Create", preview: "What is inside", sections: "sections", complexity: "Complexity", cancel: "Cancel", choose: "New mechanic",
+      back: "← To mechanics", general: "General", title: "Name", cat: "Category", sub: "Subcategory", stage: "Development stage", status: "Production status", type: "Mechanic type",
+      purpose: "Purpose", purposePh: "Which design problem it solves and what the player feels", rules: "How it works", rulesPh: "Step by step or as a list", tags: "Tags", tagsPh: "comma separated",
+      links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own", basic: "Basic view", adv: "Advanced view",
+      advHint: "Advanced shows every template field; basic — the main ones.", files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
+      fill: "Filled", req: "required", rec: "recommended", checks: "Checks", clean: "No problems", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
+      rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Field", fieldName: "Field name", fieldType: "Type", rmField: "Remove field",
+      addSec: "＋ Fields section", addTable: "＋ Table section", secName: "Section name", secKind: "Layout", kFields: "Fields", kTable: "Table", rmSec: "Remove section", rmSecQ: "Remove section “{t}” with all its data?",
+      none: "—", save: "Save", del: "Delete", delQ: "Delete mechanic “{t}”?", newM: "New mechanic", fw: "RPG Framework", fwS: { exists: "exists", partial: "partial", missing: "missing" },
+      lvl: { error: "error", warn: "warning", tip: "tip" }, legacy: "An older card: its description and numbers moved into “Purpose” and “How it works”. Save it and it becomes a constructor mechanic.",
+      sortBy: "Sort by", rmRowQ: "Delete row “{t}”? Links to it will show up as errors.", copyOf: "copy" }
+  }[LANG];
+  var med = null; // the open mechanic: { id, isNew, card, title, status, m (draft), first, tab, adv, find: {secId: text}, sort: {secId: [key, dir]} }
+  var MX = function () { return window.__MECH; };
+  function ml(x) { return MX().lbl(x, LANG); }
+  function catLabel(id) { var c = MX().category(id); return c ? ml(c) : ""; }
+  function catOfGroup(g) { // a Mechanics subsection name (either language, old names too) → category id
+    var A = MX().GROUP_ALIAS, n = A[g] || g;
+    return (MX().CATEGORIES.filter(function (c) { return c.uk === n || c.en === n; })[0] || {}).id || "";
+  }
+  function medDirty() { return !!med && JSON.stringify([med.title, med.status, med.m]) !== med.first; }
+  function medLeave() { if (medDirty() && !confirm(STR.dos.unsaved)) return false; med = null; return true; }
+  function openMech(c, preset) {
+    if (medDirty() && !confirm(STR.dos.unsaved)) return;
+    var raw = c && cards.filter(function (x) { return x.id === c.id; })[0], m;
+    if (preset) m = preset;
+    else if (raw && raw.mech) m = JSON.parse(JSON.stringify(raw.mech));
+    else { // an older Mechanics card: its text fields become the purpose and the rules
+      var f = (raw && raw.fields) || {};
+      m = MX().instantiate(""); m.cat = catOfGroup(f.group || ""); m.purpose = f.text || "";
+      m.rules = [f.numbers, f.deps ? (LANG === "en" ? "Depends on: " : "Залежить від: ") + f.deps : ""].filter(Boolean).join("\n\n"); m.legacy = !!raw;
+    }
+    med = { id: raw ? raw.id : newId("card"), isNew: !raw, card: c, title: (raw && raw.title) || (preset && preset.tpl ? ml(MX().template(preset.tpl).name) : ""),
+      status: (raw && raw.status) || "idea", m: m, tab: "general", adv: false, find: {}, sort: {} };
+    delete med.m.legacy; med.legacy = !!(raw && !raw.mech);
+    med.first = JSON.stringify([med.title, med.status, med.m]);
+    if (section !== "mechanics") { section = "mechanics"; query = ""; imp = null; $("q").value = ""; }
+    render(); $("main").scrollTop = 0;
+  }
+  // «＋ Механіка» / «＋ Додати» under a category: own or from the template catalog
+  function mechNew(group) {
+    var M = MX(), cat0 = group ? catOfGroup(group) : "";
+    var box = document.createElement("div"); box.className = "ask";
+    var tplHtml = function (q, cat) {
+      var list = M.TEMPLATES.filter(function (t) {
+        var hay = (ml(t.name) + " " + ml(t.desc) + " " + catLabel(t.cat)).toLowerCase();
+        return (!cat || t.cat === cat) && (!q || q.toLowerCase().split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; }));
+      });
+      return list.length ? list.map(function (t) {
+        var sub = (M.category(t.cat).subs.filter(function (s) { return s[0] === t.sub; })[0] || [])[LANG === "en" ? 2 : 1] || "";
+        return '<div class="mtpl"><div class="mtpl-h"><b>' + esc(ml(t.name)) + '</b><span class="muted">' + esc(catLabel(t.cat) + (sub ? " · " + sub : "")) + '</span>' +
+          '<span class="mdots" title="' + esc(MC.complexity) + '" aria-label="' + esc(MC.complexity + " " + t.complexity + "/3") + '">' + "●●●".slice(0, t.complexity) + '<i>' + "●●●".slice(t.complexity) + '</i></span></div>' +
+          '<p>' + esc(ml(t.desc)) + '</p><details><summary>' + MC.preview + ' · ' + t.sections.length + ' ' + MC.sections + '</summary><ul>' +
+          t.sections.map(function (s) { return '<li>' + esc(ml(s.title)) + (s.kind === "table" ? ' <span class="muted">▦ ' + (s.rows || []).length + '</span>' : '') + '</li>'; }).join("") + '</ul></details>' +
+          '<button type="button" class="btn primary mini" data-mtpl="' + esc(t.id) + '">' + MC.create + '</button></div>';
+      }).join("") : '<p class="muted">' + STR.nothing + '</p>';
+    };
+    box.innerHTML = '<div class="ask-box mpick" role="dialog" aria-modal="true" aria-label="' + esc(MC.choose) + '"><h3>' + esc(MC.choose) + '</h3>' +
+      '<button type="button" class="mown" data-mown="1"><b>' + MC.own + '</b><span>' + esc(MC.ownHint) + '</span></button>' +
+      '<h4>' + MC.catalog + '</h4><p class="hint">' + esc(MC.catHint) + '</p>' +
+      '<div class="row"><input type="search" id="mt-q" placeholder="' + esc(MC.search) + '" aria-label="' + esc(MC.search) + '"><select id="mt-cat" aria-label="' + esc(MC.cat) + '"><option value="">' + MC.all + '</option>' +
+      M.CATEGORIES.map(function (c) { return '<option value="' + c.id + '"' + (c.id === cat0 ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }).join("") + '</select></div>' +
+      '<div class="mtpls" id="mt-list">' + tplHtml("", cat0) + '</div><div class="row"><span style="flex:1"></span><button type="button" class="btn" id="ask-x">' + MC.cancel + '</button></div></div>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); }, upd = function () { box.querySelector("#mt-list").innerHTML = tplHtml(box.querySelector("#mt-q").value.trim(), box.querySelector("#mt-cat").value); };
+    box.querySelector("#mt-q").oninput = upd; box.querySelector("#mt-cat").onchange = upd;
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    box.addEventListener("click", function (ev) {
+      var t = ev.target.closest("[data-mtpl]"), o = ev.target.closest("[data-mown]"); if (!t && !o) return;
+      var m = M.instantiate(t ? t.dataset.mtpl : "");
+      if (o) { m.cat = cat0 || box.querySelector("#mt-cat").value; m.purpose = ""; }
+      close(); openMech(null, m);
+    });
+    box.querySelector("#mt-q").focus();
+  }
+  // ---- the editor ----
+  function msec(id) { return med.m.sections.filter(function (s) { return s.id === id; })[0]; }
+  function mopts(f) { return (f.o || []).map(function (o) { return [o.v, ml(o.l)]; }); }
+  function mrowOpts(f) { var rs = msec(f.ref); return rs ? (rs.rows || []).map(function (r) { return [r._id, MX().rowName(rs, r)]; }) : []; }
+  function mselect(path, pairs, cur, aria) {
+    if (cur && !pairs.some(function (p) { return p[0] === cur; })) pairs = pairs.concat([[cur, cur + " ⚠"]]); // a link to a removed row stays visible
+    return '<select data-mf="' + path + '" aria-label="' + esc(aria) + '"><option value="">' + MC.none + '</option>' + pairs.map(function (p) {
+      return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>';
+  }
+  function mchips(path, pairs, cur, aria) {
+    cur = Array.isArray(cur) ? cur : [];
+    pairs = pairs.concat(cur.filter(function (v) { return !pairs.some(function (p) { return p[0] === v; }); }).map(function (v) { return [v, v + " ⚠"]; }));
+    return '<span class="mchips" role="group" aria-label="' + esc(aria) + '">' + (pairs.length ? pairs.map(function (p) {
+      return '<button type="button" class="mchip" data-mchip="' + path + '" data-v="' + esc(p[0]) + '" aria-pressed="' + (cur.indexOf(p[0]) >= 0) + '">' + esc(p[1]) + '</button>'; }).join("") : '<span class="muted">' + MC.none + '</span>') + '</span>';
+  }
+  function minput(path, f, v, inTable) {
+    var aria = ml(f.l), ph = f.u ? f.u : "";
+    if (f.t === "bool") return '<input type="checkbox" data-mf="' + path + '"' + (v ? " checked" : "") + ' aria-label="' + esc(aria) + '">';
+    if (f.t === "sel") return mselect(path, mopts(f), v || "", aria);
+    if (f.t === "multi") return mchips(path, mopts(f), v, aria);
+    if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria);
+    if (f.t === "refs") return mchips(path, mrowOpts(f), v, aria);
+    if (f.t === "num" || f.t === "pct" || f.t === "time")
+      return '<input type="number" step="any" inputmode="decimal" data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + ' aria-label="' + esc(aria) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
+    if (f.t === "long" || f.t === "json") return '<textarea data-mf="' + path + '" rows="' + (inTable ? 2 : 3) + '"' + (f.t === "json" ? ' class="mono"' : '') + ' aria-label="' + esc(aria) + '">' + esc(v == null ? "" : v) + '</textarea>';
+    return '<input data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.t === "formula" ? ' class="mono"' : '') + (f.t === "range" ? ' placeholder="0.5–1.2"' : ph ? ' placeholder="' + esc(ph) + '"' : '') + ' aria-label="' + esc(aria) + '">';
+  }
+  function mreq(f) { return f.req === "r" ? '<b class="mreq" title="' + esc(MC.req) + '">*</b>' : ""; }
+  function mshown(s) { return (s.fields || []).filter(function (f) { return med.adv || !f.adv; }); }
+  function mfw(s) {
+    var n = MX().frameworkNote(med.m.tpl, s.id); if (!n) return "";
+    return '<p class="mfw mfw-' + n.status + '"><b>' + MC.fw + ' · ' + MC.fwS[n.status] + '</b> ' + esc(n[LANG] || n.uk) + '</p>';
+  }
+  function mFieldsHtml(s, si) {
+    var v = s.values || (s.values = {});
+    return '<div class="qgrid mfields">' + mshown(s).map(function (f) {
+      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs";
+      return '<div class="field' + (wide ? ' mwide' : '') + '"><span class="qh">' + esc(ml(f.l)) + mreq(f) + (f.u ? ' <i>' + esc(f.u) + '</i>' : '') +
+        (f.custom && canWrite ? ' <button type="button" class="btn ghost mini" data-mact="rmField:' + si + ':' + esc(f.k) + '" aria-label="' + esc(MC.rmField + " " + ml(f.l)) + '">✕</button>' : '') + '</span>' + inner +
+        (f.h ? '<span class="hint">' + esc(ml(f.h)) + '</span>' : '') + '</div>';
+    }).join("") + '</div>';
+  }
+  function mTableHtml(s, si) {
+    var cols = mshown(s), q = (med.find[s.id] || "").toLowerCase(), so = med.sort[s.id];
+    var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) {
+      if (!q) return true;
+      var hay = x.r._id + " " + (s.fields || []).map(function (f) { var v = x.r[f.k]; return Array.isArray(v) ? v.join(" ") : v == null ? "" : String(v); }).join(" ");
+      return q.split(/\s+/).every(function (w) { return hay.toLowerCase().indexOf(w) >= 0; });
+    });
+    if (so) rows.sort(function (a, b) {
+      var x = a.r[so[0]], y = b.r[so[0]], n = !isNaN(+x) && !isNaN(+y) && x !== "" && y !== "" && x != null && y != null;
+      return (n ? +x - +y : String(x == null ? "" : x).localeCompare(String(y == null ? "" : y))) * so[1];
+    });
+    var head = '<tr><th scope="col">ID</th>' + cols.map(function (f) {
+      var on = so && so[0] === f.k, ar = on ? (so[1] > 0 ? " ▲" : " ▼") : "";
+      return '<th scope="col"' + (on ? ' aria-sort="' + (so[1] > 0 ? "ascending" : "descending") + '"' : '') + '><button type="button" class="mth" data-msort="' + esc(s.id) + ':' + esc(f.k) + '" title="' + esc(MC.sortBy + " " + ml(f.l)) + '">' + esc(ml(f.l)) + mreq(f) + ar + '</button>' +
+        (f.custom && canWrite ? '<button type="button" class="btn ghost mini" data-mact="rmField:' + si + ':' + esc(f.k) + '" aria-label="' + esc(MC.rmField + " " + ml(f.l)) + '">✕</button>' : '') + '</th>';
+    }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr>';
+    var body = rows.map(function (x) {
+      var p = si + "." + x.i + ".";
+      return '<tr><th scope="row" class="mono">' + esc(x.r._id) + '</th>' + cols.map(function (f) { return '<td class="mt-' + f.t + '">' + minput(p + f.k, f, x.r[f.k], true) + '</td>'; }).join("") +
+        '<td class="mrowact"><button type="button" class="btn ghost mini" data-mact="dupRow:' + si + ':' + x.i + '" title="' + esc(MC.dupRow) + '" aria-label="' + esc(MC.dupRow + " " + x.r._id) + '">⧉</button>' +
+        '<button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + x.r._id) + '">✕</button></td></tr>';
+    }).join("");
+    return '<div class="row mtbar"><input type="search" data-mfind="' + esc(s.id) + '" value="' + esc(med.find[s.id] || "") + '" placeholder="' + esc(MC.rowSearch) + '" aria-label="' + esc(MC.rowSearch) + '">' +
+      '<span class="muted">' + (s.rows || []).length + ' ' + MC.rows + '</span><span style="flex:1"></span><button type="button" class="btn mini" data-mact="addRow:' + si + '">' + MC.addRow + '</button></div>' +
+      ((s.rows || []).length ? '<div class="mtable"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<p class="muted">' + MC.noRows + '</p>');
+  }
+  function mGeneralHtml() {
+    var m = med.m, M = MX(), c = M.category(m.cat), others = cards.filter(function (x) { return x.section === "mechanics" && x.id !== med.id; });
+    var t = M.template(m.tpl);
+    return qbox(MC.general, (med.legacy ? '<p class="hint">' + esc(MC.legacy) + '</p>' : '') + '<div class="qgrid">' +
+      qfld(MC.title, '<input data-mg="title" value="' + esc(med.title) + '">') +
+      qfld(MC.cat, mselect("g.cat", M.CATEGORIES.map(function (x) { return [x.id, ml(x)]; }), m.cat, MC.cat)) +
+      (c && c.subs.length ? qfld(MC.sub, mselect("g.sub", c.subs.map(function (x) { return [x[0], x[LANG === "en" ? 2 : 1]]; }), m.sub, MC.sub)) : '') +
+      qfld(MC.stage, '<select data-mf="g.stage" aria-label="' + esc(MC.stage) + '">' + M.STAGES.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === m.stage ? " selected" : "") + '>' + esc(x[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") + '</select>') +
+      qfld(MC.status, '<select data-mg="status" aria-label="' + esc(MC.status) + '">' + STATUSES.map(function (x) { return '<option value="' + x.id + '"' + (x.id === med.status ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select>') +
+      qfld(MC.type, '<input data-mf="g.type" value="' + esc(m.type || "") + '">') +
+      qfld(MC.tpl, '<input value="' + esc(t ? ml(t.name) + " · v" + m.tplVersion : MC.ownTpl) + '" readonly>') + '</div>' +
+      qfld(MC.purpose, '<textarea data-mf="g.purpose" rows="3" placeholder="' + esc(MC.purposePh) + '">' + esc(m.purpose || "") + '</textarea>') +
+      qfld(MC.rules, '<textarea data-mf="g.rules" rows="5" placeholder="' + esc(MC.rulesPh) + '">' + esc(m.rules || "") + '</textarea>') +
+      qfld(MC.tags, '<input data-mf="g.tags" value="' + esc((m.tags || []).join(", ")) + '" placeholder="' + esc(MC.tagsPh) + '">') +
+      qblk(MC.links, others.length ? mchips("g.links", others.map(function (x) { return [x.id, x.title || "…"]; }), m.links, MC.links) : '<p class="muted">' + MC.noLinks + '</p>'));
+  }
+  function mBarHtml(r) {
+    return '<div class="mbar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + r.pct + '" aria-label="' + esc(MC.fill) + '"><i style="width:' + r.pct + '%"></i></div>' +
+      '<span class="muted">' + MC.fill + ' ' + r.pct + '% · ' + MC.req + ' ' + r.req[0] + '/' + r.req[1] + ' · ' + MC.rec + ' ' + r.rec[0] + '/' + r.rec[1] + '</span>';
+  }
+  function mIssuesHtml(r) {
+    var tabName = function (id) { var s = msec(id); return s ? ml(s.title) : MC.general; };
+    return '<h4>' + MC.checks + '</h4>' + (r.issues.length ? '<ul class="qiss">' + r.issues.map(function (i) {
+      return '<li class="qd-' + i.level + '"><button type="button" class="mgo" data-mgo="' + esc(i.sec === "general" ? "general" : i.sec) + '">' + (i.level === "error" ? "✕ " : i.level === "warn" ? "⚠ " : "💡 ") +
+        '<span class="sr">' + MC.lvl[i.level] + ': </span>' + esc(tabName(i.sec) + (i.row ? " · " + i.row : "") + " — " + (LANG === "en" ? i.en : i.uk)) + '</button></li>'; }).join("") + '</ul>' : '<p class="qd-ok">✓ ' + MC.clean + '</p>');
+  }
+  function mTabsHtml(r) {
+    var cnt = function (id) { return r.issues.filter(function (i) { return i.sec === id && i.level !== "tip"; }).length; };
+    var tab = function (id, label) { var n = cnt(id); return '<button type="button" class="mtab" role="tab" data-mtab="' + esc(id) + '" aria-selected="' + (med.tab === id) + '">' + esc(label) + (n ? ' <span class="qd-warn">' + n + '</span>' : '') + '</button>'; };
+    return '<div class="mtabs" role="tablist">' + tab("general", MC.general) + med.m.sections.map(function (s) { return tab(s.id, ml(s.title)); }).join("") +
+      (canWrite ? '<button type="button" class="btn ghost mini" data-mact="addSec:fields">' + MC.addSec + '</button><button type="button" class="btn ghost mini" data-mact="addSec:table">' + MC.addTable + '</button>' : '') + '</div>';
+  }
+  function renderMEditor() {
+    var r = MX().check(med.m), s = med.tab === "general" ? null : msec(med.tab), si = s ? med.m.sections.indexOf(s) : -1;
+    if (med.tab !== "general" && !s) { med.tab = "general"; return renderMEditor(); }
+    var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
+      (s.kind === "table" ? mTableHtml(s, si) : mFieldsHtml(s, si)) +
+      (canWrite ? '<div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
+        MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs"; }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
+        '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button><span style="flex:1"></span>' +
+        (s.custom ? '<button type="button" class="btn ghost mini" data-mact="rmSec:' + si + '">' + MC.rmSec + '</button>' : '') + '</div>' : ''));
+    $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1"><header class="sec"><div><button class="btn ghost" data-mact="back">' + MC.back + '</button>' +
+      '<h1>' + esc(med.title || MC.newM) + '</h1></div><div class="row"><button class="btn" data-mact="adv" aria-pressed="' + med.adv + '" title="' + esc(MC.advHint) + '">' + (med.adv ? MC.basic : MC.adv) + '</button>' +
+      (med.isNew ? '' : '<button class="btn" data-mact="files">' + MC.files + '</button>') + '</div></header>' +
+      '<div class="mhead" id="m-bar">' + mBarHtml(r) + '</div>' + mTabsHtml(r) + body +
+      '<div class="canonbox qbox" id="m-issues" aria-live="polite">' + mIssuesHtml(r) + '</div>' +
+      (canWrite ? '<div class="row wsave"><span class="muted" id="m-state"></span>' + (med.isNew ? '' : '<button class="btn danger" data-mact="delete">' + MC.del + '</button>') +
+        '<button class="btn primary" data-mact="save" id="m-save">' + MC.save + '</button></div>' : '') + '</div>';
+    if (!canWrite) [].forEach.call($("m-ed").querySelectorAll("input,textarea,select,[data-mchip],[data-mact^=add],[data-mact^=rm],[data-mact^=dup]"), function (el) { el.disabled = true; });
+    mState();
+  }
+  function mState() {
+    var st = $("m-state"); if (st) st.textContent = medDirty() ? STR.wt.dirty : "";
+    var r = MX().check(med.m), b = $("m-bar"), is = $("m-issues");
+    if (b) b.innerHTML = mBarHtml(r);
+    if (is) is.innerHTML = mIssuesHtml(r);
+  }
+  function mval(f, t) {
+    if (t.type === "checkbox") return t.checked;
+    if (f && (f.t === "num" || f.t === "pct" || f.t === "time")) return t.value === "" ? "" : isNaN(+t.value) ? t.value : +t.value;
+    return t.value;
+  }
+  function medInput(e) {
+    var t = e.target; if (!med || !$("m-ed") || !t.dataset) return;
+    if (t.dataset.mfind !== undefined) { if (e.type !== "input") return; med.find[t.dataset.mfind] = t.value; var pos = t.selectionStart; renderMEditor(); var n = document.querySelector('[data-mfind="' + t.dataset.mfind + '"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } return; }
+    if (t.dataset.mg) { med[t.dataset.mg] = t.value; if (t.dataset.mg === "title") { var h = document.querySelector("#m-ed header h1, #topline h1"); if (h) h.textContent = t.value || MC.newM; } mState(); return; }
+    var p = t.dataset.mf; if (!p) return;
+    var k = p.split("."), m = med.m;
+    if (k[0] === "g") {
+      if (k[1] === "tags") m.tags = t.value.split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+      else m[k[1]] = t.value;
+      if (k[1] === "cat" && e.type === "change") { m.sub = ""; renderMEditor(); return; }
+      mState(); return;
+    }
+    var s = m.sections[+k[0]], f = (s.fields || []).filter(function (x) { return x.k === k[2]; })[0];
+    if (k[1] === "-") s.values[k[2]] = mval(f, t); else s.rows[+k[1]][k[2]] = mval(f, t);
+    if (e.type === "change" && s.kind === "table" && k[2] === s.rowLabel) { renderMEditor(); return; } // names of rows show in the links
+    mState();
+  }
+  function mChip(path, v) {
+    var k = path.split("."), m = med.m, o, key;
+    if (k[0] === "g") { o = m; key = k[1]; } else { var s = m.sections[+k[0]]; o = k[1] === "-" ? s.values : s.rows[+k[1]]; key = k[2]; }
+    var l = Array.isArray(o[key]) ? o[key].slice() : [], i = l.indexOf(v);
+    if (i >= 0) l.splice(i, 1); else l.push(v);
+    o[key] = l; renderMEditor();
+  }
+  function mKey(label, taken) {
+    var b = slugify(label).replace(/-/g, "_") || "f", k = b, n = 2;
+    while (taken.indexOf(k) >= 0) k = b + "_" + n++;
+    return k;
+  }
+  function mAct(a) {
+    var p = a.split(":"), m = med.m, s = m.sections[+p[1]], i = +p[2];
+    if (p[0] === "back") { if (!medLeave()) return; render(); return; }
+    if (p[0] === "save") return saveMech();
+    if (p[0] === "delete") return deleteMech();
+    if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
+    if (p[0] === "files") { if (medDirty() && !confirm(STR.dos.unsaved)) return; var c = allCards().filter(function (x) { return x.key === "c:" + med.id; })[0]; med = null; render(); if (c) openCard(c); return; }
+    if (p[0] === "addRow") {
+      var row = { _id: MX().newRowId(s) };
+      (s.fields || []).forEach(function (f) { if (f.t === "bool") row[f.k] = false; });
+      s.rows = (s.rows || []).concat([row]); med.find[s.id] = "";
+    } else if (p[0] === "dupRow") {
+      var cp = JSON.parse(JSON.stringify(s.rows[i])); cp._id = MX().newRowId(s);
+      if (s.rowLabel && cp[s.rowLabel]) cp[s.rowLabel] += " (" + MC.copyOf + ")";
+      s.rows.splice(i + 1, 0, cp);
+    } else if (p[0] === "rmRow") {
+      if (!confirm(MC.rmRowQ.replace("{t}", MX().rowName(s, s.rows[i])))) return;
+      s.rows.splice(i, 1);
+    } else if (p[0] === "addField") {
+      var nm = $("mf-name").value.trim(), ty = $("mf-type").value; if (!nm) { $("mf-name").focus(); return; }
+      s.fields.push({ k: mKey(nm, s.fields.map(function (f) { return f.k; })), l: nm, t: ty, req: "opt", custom: true });
+    } else if (p[0] === "rmField") {
+      s.fields = s.fields.filter(function (f) { return f.k !== p[2]; });
+      if (s.values) delete s.values[p[2]]; (s.rows || []).forEach(function (r) { delete r[p[2]]; });
+    } else if (p[0] === "addSec") {
+      var table = p[1] === "table";
+      askName(table ? MC.addTable : MC.addSec, MC.secName, function (name) {
+        if (!name) return;
+        var id = mKey(name, m.sections.map(function (x) { return x.id; }).concat(["general"]));
+        m.sections.push(table ? { id: id, title: name, hint: "", kind: "table", fields: [{ k: "name", l: LANG === "en" ? "Name" : "Назва", t: "text", req: "r", custom: true }], rows: [], rowLabel: "name", prefix: "R", custom: true }
+          : { id: id, title: name, hint: "", kind: "fields", fields: [], values: {}, custom: true });
+        med.tab = id; renderMEditor();
+      });
+      return;
+    } else if (p[0] === "rmSec") {
+      if (!confirm(MC.rmSecQ.replace("{t}", ml(s.title)))) return;
+      m.sections.splice(+p[1], 1); med.tab = "general";
+    }
+    renderMEditor();
+  }
+  async function saveMech() {
+    var d = med, btn = $("m-save"), raw = cards.filter(function (x) { return x.id === d.id; })[0];
+    d.title = String(d.title || "").trim() || (MX().template(d.m.tpl) ? ml(MX().template(d.m.tpl).name) : MC.newM);
+    var fields = Object.assign({}, (raw && raw.fields) || {}, { group: catLabel(d.m.cat) || ((raw && raw.fields) || {}).group || "", text: d.m.purpose || "" });
+    var body = { section: "mechanics", title: d.title, status: d.status, fields: JSON.parse(JSON.stringify(fields)), mech: JSON.parse(JSON.stringify(d.m)), updatedAt: stamp() };
+    if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec("mechanics").defs.slice(); }
+    btn.disabled = true; $("m-state").textContent = STR.saving;
+    try {
+      await gref().collection("cards").doc(d.id).set(body, { merge: true });
+      if (med !== d) return;
+      d.isNew = false; d.legacy = false; d.first = JSON.stringify([d.title, d.status, d.m]); renderMEditor(); $("m-state").textContent = STR.saved;
+    } catch (er) { if (med === d) { btn.disabled = false; $("m-state").textContent = STR.failed + ": " + (er.code || er.message); } }
+  }
+  async function deleteMech() {
+    var d = med, raw = cards.filter(function (x) { return x.id === d.id; })[0]; if (!confirm(MC.delQ.replace("{t}", d.title || "…"))) return;
+    try {
+      await Promise.all(((raw && raw.files) || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+      await gref().collection("cards").doc(d.id).delete(); med = null; render();
+    } catch (er) { $("m-state").textContent = STR.failed + ": " + (er.code || er.message); }
+  }
+  function mechClick(e) {
+    if (!med || !$("m-ed")) return false;
+    var a = e.target.closest("[data-mact]"); if (a) { mAct(a.dataset.mact); return true; }
+    var ch = e.target.closest("[data-mchip]"); if (ch) { mChip(ch.dataset.mchip, ch.dataset.v); return true; }
+    var tb = e.target.closest("[data-mtab]"); if (tb) { med.tab = tb.dataset.mtab; renderMEditor(); var n = document.querySelector('[data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
+    var go = e.target.closest("[data-mgo]"); if (go) { med.tab = go.dataset.mgo; renderMEditor(); $("m-ed").scrollIntoView({ block: "start" }); return true; }
+    var so = e.target.closest("[data-msort]"); if (so) {
+      var sp = so.dataset.msort.split(":"), cur = med.sort[sp[0]];
+      med.sort[sp[0]] = cur && cur[0] === sp[1] ? (cur[1] > 0 ? [sp[1], -1] : null) : [sp[1], 1]; renderMEditor(); return true;
+    }
+    return false;
   }
   // the dossier lists the quests and dialogues its entity takes part in (derived, nothing stored on the entity)
   // ---- 💡 a quest from a source (spec 2.2): the source travels into the form, the obvious links are prefilled, AI is one click away ----
@@ -4873,6 +5212,7 @@
   function goSection(id) {
     if (wdraft && id !== section && wdirty() && !confirm(STR.dos.unsaved)) return;
     if (qdDirty() && !confirm(STR.dos.unsaved)) return;
+    if (!medLeave()) return;
     qed = null;
     section = id; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
@@ -4902,6 +5242,8 @@
   $("view").addEventListener("click", viewClick);
   $("view").addEventListener("input", qdInput);
   $("view").addEventListener("change", qdInput);
+  $("view").addEventListener("input", medInput);
+  $("view").addEventListener("change", medInput);
   $("view").addEventListener("change", function (e) {
     var rv = e.target.closest("[data-reveal]");
     if (rv) db.collection("projects").doc(rv.dataset.reveal).update({ reveal: rv.value, updatedAt: stamp() });
@@ -4925,6 +5267,7 @@
   function viewClick(e) {
     if (e.target.closest("[data-wname]")) return editWorldName();
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
+    if (mechClick(e)) return;
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
     var bl = e.target.closest("[data-bulb]"); if (bl) { questFrom(bl.dataset.bulb.split(":")[0], bl.dataset.bulb.split(":")[1]); return; }
@@ -4969,7 +5312,9 @@
     var dl = e.target.closest("[data-lore]"); if (dl) { openDossier(lore.filter(function (x) { return x.id === dl.dataset.lore; })[0]); return; }
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
-    var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0]; if (card) openCard(card);
+    var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0];
+    if (card && card.section === "mechanics" && card.src === "game") return openMech(card); // mechanics open in the constructor
+    if (card) openCard(card);
   }
   $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); render(); });
   $("statuses").addEventListener("click", function (e) {
@@ -5345,7 +5690,7 @@
       unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }, function () {}));
       unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }, function () {}));
     });
-    quests = []; dialogues = []; qed = null; qprop = null; // the open game's quests & dialogues
+    quests = []; dialogues = []; qed = null; qprop = null; med = null; // the open game's quests & dialogues
     may("quests", function () { unsub.push(gref().collection("quests").onSnapshot(function (snap) { quests = rows(snap); render(); }, function () {})); });
     may("dialogues", function () { unsub.push(gref().collection("dialogues").onSnapshot(function (snap) { dialogues = rows(snap); render(); }, function () {})); });
     exIssues = []; exPlaytests = []; exExperiments = []; exMetrics = null; exKey = null;
