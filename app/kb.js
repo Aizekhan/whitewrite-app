@@ -866,6 +866,7 @@
           ["h", "Підключення"],
           ["ul", [
             "«Підключення» → «Створити ключ»: ключ wwi_… лише для запису подій цієї гри, показується один раз; його можна відкликати.",
+            "Найшвидше — «⧉ Ключ + запит для Claude Code»: новий ключ і готовий запит з адресою й ключем одразу в буфері; встав його в сесію агента в репозиторії гри.",
             "Каталог подій — підпункт «Телеметрія» в пункті меню «Досвід гравців» («＋ Стандартні події» додає стандарт: сесії, рух, бій, взаємодія, прогресія, дослідження, економіка, UI, кооп, опитування); позначай, які події значущі.",
             "id зон, рівнів і механік у подіях — це id карток Біблії; агент отримує їх разом зі схемою через get_telemetry_schema.",
           ]],
@@ -1980,6 +1981,7 @@
           ["h", "Connecting"],
           ["ul", [
             "“Connect” → “Create a key”: a write-only wwi_… key for this game's events, shown once; it can be revoked.",
+            "Fastest — “⧉ Key + request for Claude Code”: a new key and a ready request with the endpoint and the key go straight to the clipboard; paste it into the agent's session in the game repository.",
             "The event catalogue is the “Telemetry” sub-item under the “Player experience” menu item (“＋ Standard events” adds the standard: session, movement, combat, interaction, progression, exploration, economy, UI, co-op, surveys); mark which events are meaningful.",
             "Zone, level and mechanic ids in events are Bible card ids; the agent gets them with the schema from get_telemetry_schema.",
           ]],

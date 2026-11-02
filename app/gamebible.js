@@ -260,6 +260,8 @@
         abRunning: "триває", abDone: "завершено", abStop: "Завершити", abRate: "конверсія", abP: "p-значення", abSmall: "Замало гравців для висновку (треба ≥ 30 у кожному варіанті).",
         endpoint: "Адреса прийому подій", keys: "Ключі гри (лише запис)", keyLabel: "Назва ключа", keyLabelPh: "Напр.: playtest-build", keyCreate: "Створити ключ", keyOnce: "Скопіюй зараз — більше ключ не покажеться:",
         keyRevoke: "Відкликати", keyNone: "Ключів ще немає.", stats: "Сьогодні отримано подій: {n}", retention: "Сирі події зберігаються 30 днів, денні підсумки — 400 днів; старіші Firestore видаляє сам.",
+        oneBtn: "⧉ Ключ + запит для Claude Code", oneHint: "Одним кліком: новий ключ запису і готовий запит для Claude Code з адресою й ключем — встав його в сесію агента в репозиторії гри.", oneDone: "Скопійовано — встав у Claude Code (новий ключ уже створено).",
+        onePrompt: "Підключи телеметрію гри до WhiteWrite. Виклич get_telemetry_schema і реалізуй її: черга подій, пакети, повтори, згода гравця, без особистих даних. Адреса прийому: {url}. Ключ запису: {key} — збережи його в налаштуваннях збірки поза кодом (файл у .gitignore або змінна середовища), не в публічному репозиторії. Спершу план — код потім.",
         howTitle: "Як підключити гру", how: "Попроси Claude Code у репозиторії гри: «Виклич get_telemetry_schema і реалізуй телеметрію за нею: черга, пакети, згода гравця». Ключ — у Project Settings гри, не в коді репозиторію, якщо репо публічне.",
         privacy: "Згода: аналітика лише за згодою гравця (opt-in) і з можливістю вимкнути. Лише псевдонімні id, без імен і пошти. Висновки — про дизайн, не про людей.",
         sampleJson: "Приклад пакета" },
@@ -520,6 +522,8 @@
         abRunning: "running", abDone: "finished", abStop: "Finish", abRate: "conversion", abP: "p-value", abSmall: "Too few players for a conclusion (≥ 30 per variant needed).",
         endpoint: "Ingest endpoint", keys: "Game keys (write-only)", keyLabel: "Key name", keyLabelPh: "E.g.: playtest-build", keyCreate: "Create a key", keyOnce: "Copy it now — it will not be shown again:",
         keyRevoke: "Revoke", keyNone: "No keys yet.", stats: "Events received today: {n}", retention: "Raw events are kept 30 days, daily totals 400 days; Firestore deletes older ones by itself.",
+        oneBtn: "⧉ Key + request for Claude Code", oneHint: "One click: a new write key and a ready request for Claude Code with the endpoint and the key — paste it into the agent's session in the game repository.", oneDone: "Copied — paste it into Claude Code (a new key has been created).",
+        onePrompt: "Connect the game's telemetry to WhiteWrite. Call get_telemetry_schema and implement it: an event queue, batches, retries, player consent, no personal data. Ingest endpoint: {url}. Write key: {key} — keep it in the build settings outside the code (a .gitignored file or an environment variable), not in a public repository. Plan first — code later.",
         howTitle: "How to connect the game", how: "Ask Claude Code in the game repository: “Call get_telemetry_schema and implement telemetry from it: queue, batches, player consent.” Keep the key in the game's settings, not in the code of a public repo.",
         privacy: "Consent: analytics only with the player's agreement (opt-in) and a way to turn it off. Pseudonymous ids only, no names or emails. Conclusions are about the design, not people.",
         sampleJson: "Batch example" },
@@ -5271,11 +5275,13 @@
     }).join("");
   }
 
+  var INGEST_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/telemetryIngest";
   function exConnect() {
     var X = STR.ex, st = (game && game.telemetryStats) || {}, ks = (game && game.ingestKeys) || [];
     var sample = { events: [{ event_id: "8f1c…-uuid", event_name: "ZoneEntered", schema_version: 1, build_id: "0.4.2", session_id: "s-…", player_id: "salted-hash", timestamp: 1767225600000,
       zone_id: (cards.filter(function (c) { return c.section === "levels" || c.section === "locations"; })[0] || {}).id || "card_…", position: [12.5, 0, -4], context: { platform: "pc" }, properties: {} }] };
-    return '<section class="setbox"><h2>' + X.endpoint + '</h2><code class="ex-url">https://us-central1-whitewrite-app.cloudfunctions.net/telemetryIngest</code>' +
+    return (canWrite ? '<section class="setbox"><p class="hint">' + X.oneHint + '</p><div class="setrow"><button class="btn primary" id="ex-one">' + X.oneBtn + '</button></div></section>' : '') +
+      '<section class="setbox"><h2>' + X.endpoint + '</h2><code class="ex-url">' + INGEST_URL + '</code>' +
       '<p class="hint">' + X.retention + (st.day ? ' ' + esc(X.stats.replace("{n}", st.day === new Date().toISOString().slice(0, 10) ? st.count : 0)) : '') + '</p>' +
       '<h2>' + X.keys + '</h2>' + (exKey ? '<p class="pmsg">' + X.keyOnce + ' <code class="ex-url">' + esc(exKey) + '</code></p>' : '') +
       (ks.length ? ks.map(function (k) { return '<div class="secrow"><span><code>' + esc(k.prefix) + '…</code> ' + esc(k.label || "") + ' <span class="muted">' + dateTxt(k.at) + '</span></span>' +
@@ -5322,6 +5328,12 @@
       var hyp = $("ab-hyp").value.trim(), vars = $("ab-var").value.split(",").map(function (v) { return v.trim(); }).filter(Boolean);
       if (!hyp || vars.length < 2) return $("ab-hyp").focus();
       gref().collection("experiments").add({ hypothesis: hyp, variants: vars.slice(0, 4), metricEvent: $("ab-ev").value, status: "running", createdAt: stamp() });
+    });
+    on("ex-one", function () { // the key and the agent's request in one copy
+      exRun("…", function () { return callEx({ op: "keyCreate", label: "claude-code" }).then(function (d) {
+        exKey = d.key; var X = STR.ex;
+        return navigator.clipboard.writeText(X.onePrompt.replace("{url}", INGEST_URL).replace("{key}", d.key)).then(function () { return X.oneDone; });
+      }); });
     });
     on("ex-kmake", function () { exRun("…", function () { return callEx({ op: "keyCreate", label: $("ex-klabel").value.trim() }).then(function (d) { exKey = d.key; return ""; }); }); });
     var v = $("view");
