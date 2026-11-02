@@ -14,7 +14,7 @@
 
   var STR = {
     uk: {
-      brand: "Біблія світу", engine: "Рушій гри",
+      brand: "Біблія світу", brandGame: "GDD гри", engine: "Рушій гри",
       frameTip: "Кадр на картці: яку частину видно або вся картинка",
       sm: { ok: "у стилі", mid: "частково в стилі", bad: "вибивається зі стилю", na: "не вдалося прочитати картинку", by: "за кольором, у браузері", ai: "ШІ-перевірка — кнопкою у «Візуальному стилі»", aiBy: "оцінка ШІ", stale: "оцінка ШІ застаріла — стиль змінився", issues: "Що вибивається", fixes: "Як виправити",
         all: "✦ Перевірити всі", allTip: "ШІ-перевірка всіх картинок гри без свіжої оцінки (нові й застарілі)", allNone: "Усі картинки вже мають свіжу оцінку ШІ.",
@@ -68,7 +68,8 @@
           factions: [["story", "Історія й мета", "Як виникла, хто її веде, чого прагне, з ким ворогує…"], ["look", "Символіка", "Герб, кольори, знаки, одяг, гасла…"]],
           artifacts: [["story", "Походження", "Хто й навіщо створив, через чиї руки пройшов, яку має силу…"], ["look", "Вигляд", "Матеріал, розмір, знаки, як відчувається в руці…"]],
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
-      settings: "Налаштування проєкту", settingsAbout: "Підключення Claude Code, назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
+      settingsGame: "Налаштування гри", settingsGameAbout: "Лише ця гра: підключення Claude Code, назва, рушій, розділи, імпорт і експорт, видалення гри.", settingsWorld: "Налаштування світу", settingsWorldAbout: "Лише світ: назва, експорт і відновлення, Космограф, видалення світу. Налаштування кожної гри — у її GDD.",
+      linkedGames: "Повʼязані ігри", pickGame: "У яку гру?",
       hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — у хабі світу, біля його картки.",
         memberNote: "Налаштування світу бачить лише його власник.",
         tabs: { community: "Спільнота", team: "Команда", market: "Маркет", backup: "Бекап" },
@@ -270,7 +271,7 @@
       st: { solid: "готово", partial: "частково", missing: "бракує" }
     },
     en: {
-      brand: "World Bible", engine: "Game engine",
+      brand: "World Bible", brandGame: "Game GDD", engine: "Game engine",
       frameTip: "Frame on the card: which part shows, or the whole picture",
       sm: { ok: "fits the style", mid: "partly in style", bad: "off-style", na: "could not read the picture", by: "by colour, in the browser", ai: "AI check — the button in «Visual style»", aiBy: "AI score", stale: "the AI score is stale — the style changed", issues: "What breaks it", fixes: "How to fix",
         all: "✦ Check all", allTip: "AI check of every game picture without a fresh score (new and stale)", allNone: "Every picture already has a fresh AI score.",
@@ -323,7 +324,8 @@
           factions: [["story", "History & aim", "How it arose, who leads it, what it wants, whom it fights…"], ["look", "Symbols", "Coat of arms, colours, signs, garb, mottos…"]],
           artifacts: [["story", "Origin", "Who made it and why, whose hands it passed through, what power it has…"], ["look", "Look", "Material, size, markings, how it feels in the hand…"]],
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
-      settings: "Project settings", settingsAbout: "Connecting Claude Code, names, engine, import and export, safe deletion.", gameLabel: "Game:",
+      settingsGame: "Game settings", settingsGameAbout: "This game only: connecting Claude Code, name, engine, sections, import and export, deleting the game.", settingsWorld: "World settings", settingsWorldAbout: "The world only: name, export and restore, Cosmograph, deleting the world. Each game's settings are in its GDD.",
+      linkedGames: "Linked games", pickGame: "Into which game?",
       hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now in the world hub, next to its card.",
         memberNote: "Only the world's owner sees its settings.",
         tabs: { community: "Community", team: "Team", market: "Market", backup: "Backup" },
@@ -719,7 +721,9 @@
   var cards = [], entities = [], planDoc = {}, canWrite = false, canGame = false, unsub = [];
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   var section = "world", query = "", statusFilter = {}, planName = null, pendingFocus = null;
-  var canonFolded = false; try { canonFolded = !!localStorage.getItem("ww-bible-fold"); } catch (e) {}
+  // Two Bibles in one page: the World Bible (mode "world": the canon + «Повʼязані ігри» at the foot of its menu) and a game's
+  // GDD (mode "game": its own menu, «Канон світу» on top leads back). The canon streams stay loaded in both.
+  var mode = "world", startGame = params.get("gameId") || "", lastSec = { world: "world" };
   var editMode = false; // card field structure editing (names, types, deletion) — never survives closing the card
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
   var exIssues = [], exPlaytests = [], exExperiments = [], exMetrics = null, exTab = "overview", exBusy = "", exMsg = "", exKey = null, exHeat = { zone: "", layer: "move" }, exDays = 30, exBuild = ""; // «Досвід гравців»
@@ -773,7 +777,50 @@
   function mayRead(id) { return id === "settings" ? ME.owner : fullRead() || ME.view.indexOf(id) >= 0; }
   function mayEdit(id) { return ME.owner || ME.role === "admin" || ME.role === "editor" || (ME.role === "custom" && ME.edit.indexOf(id) >= 0); }
   function secOfKind(kind) { if (kind === "events") return "chronicle"; var c = CANON.filter(function (x) { return x.dossier === kind; })[0]; return c ? c.id : kind; }
-  function firstReadable() { var s = sections().filter(function (x) { return mayRead(x.id); })[0]; return s ? s.id : "world"; }
+  function firstReadable() { var s = navSections().filter(function (x) { return mayRead(x.id); })[0]; return s ? s.id : "world"; }
+  function isCanon(id) { return CANON.some(function (x) { return x.id === id; }); }
+  function navSections() { return mode === "game" ? gameSections() : CANON; } // what the open Bible's menu lists
+  // where the page stands: "<gameId>/<section>" in a game ("__new" — the new-game form), "<section>" in the world (the shell's «Назад» keeps it)
+  function pos() { return (mode === "game" ? (gameId || "__new") + "/" : "") + section; }
+  function goPos(p) { var i = String(p || "").indexOf("/"); if (i > 0) enterGame(p.slice(0, i), p.slice(i + 1)); else enterWorld(p); }
+  // leaving what is open: unsaved world overview / quest / mechanic drafts ask first
+  function leaveOk(id) {
+    if (wdraft && id !== section && wdirty() && !confirm(STR.dos.unsaved)) return false;
+    if (qdDirty() && !confirm(STR.dos.unsaved)) return false;
+    if (!medLeave()) return false;
+    qed = null; return true;
+  }
+  function enterWorld(sec) {
+    if (mode === "world" && (!sec || sec === section)) return render();
+    if (!leaveOk("")) return;
+    mode = "world"; closeLeaf();
+    goSection(sec && (isCanon(sec) || sec === "settings") ? sec : lastSec.world || "world");
+  }
+  function enterGame(gid, sec) {
+    if (mode === "game" && gid === (gameId || "__new") && (!sec || sec === section)) return render();
+    if (!leaveOk("")) return;
+    var to = sec && !isCanon(sec) ? sec : lastSec["g:" + gid] || "overview"; // picked before a game switch repaints
+    mode = "game"; section = to; closeLeaf();
+    if (gid === "__new") { unsub.forEach(function (u) { u(); }); unsub = []; game = null; gameId = null; cards = []; planDoc = {}; }
+    else if (gid !== gameId) selectGame(gid);
+    goSection(to);
+  }
+  // a game for something born in the canon (💡 a quest): the only one, or the author picks
+  function pickGame(done) {
+    if (mode === "game" && game) return done(gameId);
+    if (games.length === 1) return done(games[0].id);
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<div class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.pickGame) + '"><h3>' + esc(STR.pickGame) + '</h3><div class="pickgames">' +
+      games.map(function (g) { return '<button type="button" class="btn" data-pg="' + esc(g.id) + '">🎮 ' + esc(g.title || "…") + '</button>'; }).join("") +
+      '</div><div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button></div></div>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") close(); });
+    box.addEventListener("click", function (ev) { var b = ev.target.closest("[data-pg]"); if (b) { close(); done(b.dataset.pg); } });
+    (box.querySelector("[data-pg]") || box.querySelector("#ask-x")).focus();
+  }
   // Subheadings: every ordinary section groups its cards by one field (mechanics "group", assets "category", others "group")
   function groupKey(s) { return s.special ? "" : (s.group || "group"); }
   // Standard subheadings of the section first (s.groups), then the author's own ones in order of appearance.
@@ -1067,15 +1114,19 @@
   }
   function renderNav() {
     var all = allCards();
-    var pick = !canGame ? '<button class="nav-item" data-sec="overview">🔒 ' + esc(STR.wt.gameLocked) + '</button>' : games.length ? '<div class="gamerow"><label for="gamepick">' + STR.gameLabel + '</label><select id="gamepick">' +
-      games.map(function (g) { return '<option value="' + esc(g.id) + '"' + (g.id === gameId ? " selected" : "") + '>' + esc(g.title) + '</option>'; }).join("") +
-      (ME.owner ? '<option value="__new"' + (game ? "" : " selected") + '>' + esc(STR.newGame) + '</option>' : '') + '</select></div>' : !ME.owner ? '' : '<button class="nav-item" data-sec="overview">' + esc(STR.newGame) + '</button>'; // no game yet: the way to the first one (a team member doesn't create games)
-    // the world block folds away so the author can work on the game alone
-    $("nav").innerHTML = '<button class="navh navtoggle" id="canon-toggle" aria-expanded="' + !canonFolded + '"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>' + STR.canonGroup + '</button>' +
-      (canonFolded ? "" : CANON.map(function (s) { return navItem(s, all); }).join("")) +
-      pick + (game ? gameNav(all) : "");
-    $("newsec-slot").innerHTML = game && canGame && ME.owner ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
-    $("nav-foot").innerHTML = navItem(SETTINGS, all).replace('data-sec="settings">', 'data-sec="settings">⚙ ');
+    if (mode === "game") { // a game's GDD: «Канон світу» on top leads to the World Bible, then only this game's menu
+      $("nav").innerHTML = '<button class="navh navtoggle" id="to-world"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></span>' + STR.canonGroup + '</button>' +
+        '<div class="navh gamehead">🎮 ' + esc(game ? game.title || "…" : canGame ? STR.newGame.replace(/^\+\s*/, "") : STR.wt.gameLocked) + '</div>' + (game && canGame ? gameNav(all) : "");
+    } else { // the World Bible: the canon, then the games that grow from it
+      $("nav").innerHTML = CANON.map(function (s) { return navItem(s, all); }).join("") +
+        (games.length || (canGame && ME.owner) ? '<div class="navh navgames">' + STR.linkedGames + '</div>' + games.map(function (g) {
+          return '<button class="nav-item nav-game" data-opengame="' + esc(g.id) + '">🎮 ' + esc(g.title || "…") + '</button>'; }).join("") +
+          (canGame && ME.owner ? '<button class="nav-item nav-game" data-opengame="__new">' + esc(STR.newGame) + '</button>' : '') : ''); // a team member doesn't create games
+    }
+    $("t-brand").textContent = mode === "game" ? STR.brandGame : STR.brand; // which Bible is open
+    $("nav").classList.toggle("has-open", !!$("nav").querySelector('.nav-grp[aria-expanded="true"]')); // the other groups step back
+    $("newsec-slot").innerHTML = mode === "game" && game && canGame && ME.owner ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
+    $("nav-foot").innerHTML = navItem(SETTINGS, all, mode === "game" ? STR.settingsGame : STR.settingsWorld).replace('data-sec="settings">', 'data-sec="settings">⚙ ');
   }
 
   function excerpt(c) {
@@ -1123,14 +1174,18 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
-    if (section !== toldSec) { toldSec = section; tellShell({ type: "ww-bible-at", worldId: worldId, section: section }); }
+    if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
+    if (mode === "game" && isCanon(section)) section = "overview";
+    lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
+    if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); }
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
-    $("statuses").hidden = !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing)$/.test(sec(section).special || "")); // status filters only where there are game cards
-    var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = cur ? L(cur) : "";
+    $("statuses").hidden = mode === "world" || !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing)$/.test(sec(section).special || "")); // status filters only where there are game cards
+    var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = section === "settings" ? (mode === "game" ? STR.settingsGame : STR.settingsWorld) : cur ? L(cur) : "";
     if (section === "settings" && !imp) return renderSettings();
+    if (mode === "world" && query) return renderCanonSearch();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
     var cs = CANON.filter(function (x) { return x.id === section; })[0];
     if (cs && !imp && !query) {
@@ -1175,6 +1230,12 @@
     var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { alert(STR.failed + ": " + e.message); tlb.disabled = false; }); };
+  }
+  // the World Bible's search: dossiers, events and culture entries
+  function renderCanonSearch() {
+    var words = query.split(/\s+/), hit = function (e) { var h = [e.name, e.title, e.role, e[descKeyOf(e)], e.group].join(" ").toLowerCase(); return words.every(function (w) { return h.indexOf(w) >= 0; }); };
+    var list = entities.concat(lore).filter(hit);
+    $("view").innerHTML = '<header class="sec"><div><h1>' + STR.found + ": " + list.length + '</h1></div></header>' + (list.length ? '<div class="grid">' + list.map(dosCardHtml).join("") + '</div>' : '<p class="empty">' + STR.nothing + '</p>');
   }
   // «＋ Стандартні події»: the spec's standard events as Telemetry cards (the ones already there are kept)
   async function seedTelemetry() {
@@ -1895,7 +1956,7 @@
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
     if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order"].indexOf(k) < 0) own[k] = x[k]; });
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
-    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d }; qed.first = JSON.stringify(d); qprop = null; qbusy = "";
+    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game";
     if (section !== col) { section = col; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
   }
@@ -2153,7 +2214,7 @@
       status: (raw && raw.status) || "idea", m: m, tab: "general", adv: false, find: {}, sort: {} };
     delete med.m.legacy; med.legacy = !!(raw && !raw.mech);
     med.first = JSON.stringify([med.title, med.status, med.m]);
-    if (section !== "mechanics") { section = "mechanics"; query = ""; imp = null; $("q").value = ""; }
+    mode = "game"; if (section !== "mechanics") { section = "mechanics"; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
   }
   // «＋ Механіка» / «＋ Додати» under a category: own or from the template catalog
@@ -2427,7 +2488,7 @@
   }
   // the dossier lists the quests and dialogues its entity takes part in (derived, nothing stored on the entity)
   // ---- 💡 a quest from a source (spec 2.2): the source travels into the form, the obvious links are prefilled, AI is one click away ----
-  function bulbHtml(type, id) { return canQuest && game ? '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>' : ''; }
+  function bulbHtml(type, id) { return canQuest && (mode === "game" ? game : games.length) ? '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>' : ''; }
   function srcCol(type) { return type === "story" || type === "lore" || type === "card" ? type : "e"; }
   function srcItem(type, id) {
     if (type === "card") return cards.filter(function (x) { return x.id === id && !x.canonRef; })[0];
@@ -2436,7 +2497,8 @@
     return entities.filter(function (x) { return x.id === id; })[0];
   }
   function questFrom(type, id) {
-    if (!canQuest || !game) { alert(QD.locked); return; }
+    if (!canQuest || !games.length) { alert(QD.locked); return; }
+    if (mode !== "game" || !game) return pickGame(function (gid) { if (dos) closeDossier(); enterGame(gid); if (mode === "game" && game) questFrom(type, id); });
     var x = srcItem(type, id); if (!x) return;
     var kind = srcCol(type) === "e" ? x.kind : type, pre = { source: { type: kind, id: id, title: x.title || x.name || "" } };
     var role = kind === "card" ? cardRole(x) : kind, ref = kind === "card" ? "c:" + id : id;
@@ -2632,8 +2694,7 @@
     if (ig) {
       var ent = dos, gs = GAME.filter(function (x) { return x.canon === ent.kind; })[0];
       closeDossier();
-      if (ig.dataset.ingame !== gameId) selectGame(ig.dataset.ingame);
-      section = gs ? gs.id : "overview"; render();
+      enterGame(ig.dataset.ingame, gs ? gs.id : "overview");
       var c = allCards().filter(function (x) { return x.key === "e:" + ent.id; })[0];
       if (c && cards.length) openCard(c);
     }
@@ -2761,7 +2822,7 @@
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
-      '<div class="row">' + (games.length ? '<button class="btn" id="ng-x">' + STR.cancel + '</button>' : '') + '<button class="btn primary" id="ng-ok">' + STR.createGame + '</button></div></div>';
+      '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button></div></div>';
     $("ng-title").focus();
     $("ng-ok").onclick = async function () {
       var title = $("ng-title").value.trim(); if (!title) return;
@@ -2769,7 +2830,7 @@
       await wref().collection("games").doc(id).set({ title: title, engine: { profile: $("ng-engine").value }, sections: [], canonOptIn: true, createdAt: stamp(), updatedAt: stamp() });
       selectGame(id);
     };
-    var x = $("ng-x"); if (x) x.onclick = function () { selectGame(games[0].id); };
+    $("ng-x").onclick = function () { enterWorld(); };
   }
 
   function renderStatuses() {
@@ -4019,8 +4080,9 @@
   function renderSettings() {
     var own = ((game && game.sections) || []);
     // order: the Claude Code road (once per game) → the game → the world → Космограф → danger zone
-    var html = '<header class="sec"><div><h1>' + STR.settings + '</h1><p>' + STR.settingsAbout + '</p></div></header>' + (game ? agentRoadHtml() : '');
-    if (game) html += '<section class="setbox"><h2>' + STR.stGame + ' · ' + esc(game.title) + '</h2>' +
+    var inGame = mode === "game" && game;
+    var html = '<header class="sec"><div><h1>' + (inGame ? STR.settingsGame + ' · ' + esc(game.title || "") : STR.settingsWorld) + '</h1><p>' + (inGame ? STR.settingsGameAbout : STR.settingsWorldAbout) + '</p></div></header>' + (inGame ? agentRoadHtml() : '');
+    if (inGame) html += '<section class="setbox"><h2>' + STR.stGame + ' · ' + esc(game.title) + '</h2>' +
         '<div class="setrow"><input id="st-gname" aria-label="' + esc(STR.stGameName) + '" value="' + esc(game.title || "") + '"><button class="btn" id="st-gsave">' + STR.stRename + '</button></div>' +
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
@@ -4031,16 +4093,17 @@
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
           : '<p class="hint">' + STR.stNoSections + '</p>') + '</section>';
-    html += '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
+    if (!inGame && mode === "world") html += '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
         '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
         '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
         '<p class="hint">' + STR.stRestoreHint + '</p></section>';
-    html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p></section>';
-    html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
-      (game ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '') +
-      '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button></div><p class="hint" id="st-msg"></p></section>';
+    if (!inGame && mode === "world") html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p></section>';
+    if (inGame || mode === "world") html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
+      (inGame ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button>') + '</div><p class="hint" id="st-msg"></p></section>';
     $("view").innerHTML = html;
     var note = function (t) { $("st-msg").textContent = t; };
+    if (!inGame) {
+    if (!$("st-wsave")) return;
     $("st-wsave").onclick = async function () {
       var t = $("st-wname").value.trim(); if (!t) return;
       await wref().set({ title: t, updatedAt: stamp() }, { merge: true });
@@ -4050,7 +4113,8 @@
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
     $("st-wdel").onclick = deleteWorld;
     bindCosmoSettings();
-    if (!game) return;
+    return;
+    }
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
     $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); };
@@ -4393,9 +4457,8 @@
     var id = gameId;
     unsub.forEach(function (u) { u(); }); unsub = [];
     await removeGame(id);
-    try { localStorage.removeItem("ww-game-" + worldId); } catch (e) {}
-    var rest = games.filter(function (g) { return g.id !== id; });
-    if (rest.length) { games = rest; selectGame(rest[0].id); } else { game = null; gameId = null; cards = []; planDoc = {}; render(); }
+    games = games.filter(function (g) { return g.id !== id; });
+    game = null; gameId = null; cards = []; planDoc = {}; mode = "world"; section = "world"; render(); // back to the World Bible
   }
   async function deleteWorld() {
     // stories live outside the world (projects) — never orphan them
@@ -5198,7 +5261,8 @@
 
   // ---------- events ----------
   function navClick(e) {
-    if (e.target.closest("#canon-toggle")) { canonFolded = !canonFolded; try { localStorage.setItem("ww-bible-fold", canonFolded ? "1" : ""); } catch (er) {} renderNav(); return; }
+    if (e.target.closest("#to-world")) { enterWorld(); return; }
+    var og = e.target.closest("[data-opengame]"); if (og) { enterGame(og.dataset.opengame); return; }
     var gb = e.target.closest(".nav-grp");
     if (gb) { // a group folds / unfolds; unfolding a group you are not in opens its last (or first) section
       var g = NAV_GROUPS.filter(function (x) { return x.id === gb.dataset.group; })[0], mem = groupMembers(g), open = gb.getAttribute("aria-expanded") !== "true";
@@ -5210,21 +5274,14 @@
     var b = e.target.closest(".nav-item"); if (b) goSection(b.dataset.sec);
   }
   function goSection(id) {
-    if (wdraft && id !== section && wdirty() && !confirm(STR.dos.unsaved)) return;
-    if (qdDirty() && !confirm(STR.dos.unsaved)) return;
-    if (!medLeave()) return;
-    qed = null;
+    if (!leaveOk(id)) return;
+    if (isCanon(id)) mode = "world"; else if (id !== "settings" && gameSections().some(function (s) { return s.id === id; })) mode = "game"; // a link across opens the other Bible
     section = id; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
   // phones: the sections fold into a drawer under one «☰ section» button
   $("nav-toggle").addEventListener("click", function () { var o = $("spine").classList.toggle("is-open"); this.setAttribute("aria-expanded", String(o)); });
   $("nav").addEventListener("click", navClick);
   $("nav-foot").addEventListener("click", navClick);
-  $("nav").addEventListener("change", function (e) {
-    if (e.target.id !== "gamepick") return;
-    if (section === "settings") section = "overview";
-    if (e.target.value === "__new") { game = null; gameId = null; imp = null; render(); } else selectGame(e.target.value);
-  });
   $("newsec-slot").addEventListener("click", function (e) { if (e.target.id === "sec-add") showNewSection(); });
   // Embedded in the shell: lift each view's title and action buttons onto the logo strip (#topline).
   // Runs after every render (the observer fires once the render has bound its buttons, so handlers move with them).
@@ -5256,12 +5313,18 @@
   // the shell after «Зберегти історію»: open «Історії і хроніка»
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-section") return;
-    if (sections().some(function (s) { return s.id === ev.data.section; }) && ev.data.section !== section) goSection(ev.data.section);
+    if (pos() !== ev.data.section) goPos(ev.data.section);
+  });
+  // the hub: «Відкрити Біблію світу» (gameId "") or a game card's «Відкрити GDD» / «Створити нову гру» ("__new")
+  window.addEventListener("message", function (ev) {
+    if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-open") return;
+    if (!games.length && ev.data.gameId && ev.data.gameId !== "__new") { startGame = ev.data.gameId; return; } // still loading: the games snapshot picks it up
+    if (ev.data.gameId) enterGame(ev.data.gameId); else enterWorld();
   });
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-focus") return;
     var x = entities.filter(function (y) { return y.id === ev.data.ent; })[0]; if (!x) { pendingFocus = ev.data.ent; return; }
-    var s = x.kind === "events" ? CHRONICLE : dosSection(x.kind); if (s) { section = s.id; render(); }
+    var s = x.kind === "events" ? CHRONICLE : dosSection(x.kind); if (s) { mode = "world"; section = s.id; render(); }
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
@@ -5435,14 +5498,15 @@
   var langNext = null;
   function applyLang() {
     if (!langNext || open || dos) return;
-    try { sessionStorage.setItem("ww-bible-sec-" + worldId, section); } catch (e) {}
+    try { sessionStorage.setItem("ww-bible-sec-" + worldId, pos()); } catch (e) {}
     location.reload();
   }
   window.addEventListener("ww-language-change", function (ev) {
     var l = ev.detail && ev.detail.lang; if (!l || (l === "en" ? "en" : "uk") === LANG) return;
     langNext = l; applyLang();
   });
-  try { var keep = sessionStorage.getItem("ww-bible-sec-" + worldId); if (keep) { section = keep; sessionStorage.removeItem("ww-bible-sec-" + worldId); } } catch (e) {}
+  try { var keep = sessionStorage.getItem("ww-bible-sec-" + worldId); if (keep) { sessionStorage.removeItem("ww-bible-sec-" + worldId); var ki = keep.indexOf("/"); if (ki > 0) { startGame = keep.slice(0, ki); section = keep.slice(ki + 1) || "overview"; } else section = keep; } } catch (e) {}
+  if (startGame) mode = "game";
   $("spine").setAttribute("aria-label", STR.sectionsAria);
 
   // ---------- boot ----------
@@ -5670,8 +5734,7 @@
     unsub.forEach(function (u) { u(); }); unsub = [];
     gameId = id; game = games.filter(function (g) { return g.id === id; })[0] || null;
     cards = []; planDoc = {}; imp = null; closeLeaf();
-    try { localStorage.setItem("ww-game-" + worldId, id); } catch (e) {}
-    if (!sections().some(function (s) { return s.id === section; })) section = "overview";
+    if (!gameSections().some(function (s) { return s.id === section; }) && section !== "settings") section = "overview";
     var bySec = {}, cardsIn = function (key) { return function (snap) {
       bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       cards = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
@@ -5768,9 +5831,9 @@
         .sort(function (a, b) { return ((a.createdAt && a.createdAt.toMillis && a.createdAt.toMillis()) || 0) - ((b.createdAt && b.createdAt.toMillis && b.createdAt.toMillis()) || 0); });
       if (first) {
         first = false;
-        var saved = null; try { saved = params.get("gameId") || localStorage.getItem("ww-game-" + worldId); } catch (e) {}
-        var pick = games.filter(function (g) { return g.id === saved; })[0] || games[0];
-        if (pick && canGame) return selectGame(pick.id);
+        var pick = games.filter(function (g) { return g.id === startGame; })[0]; // a game's GDD only when one was asked for
+        if (pick) { mode = "game"; return selectGame(pick.id); }
+        if (startGame && startGame !== "__new") mode = "world"; // a game that is gone
       }
       if (gameId) game = games.filter(function (g) { return g.id === gameId; })[0] || null;
       render();

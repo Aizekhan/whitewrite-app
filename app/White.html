@@ -327,6 +327,24 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .whub__panel{ width:100%; height:520px; border:1px solid var(--line,rgba(212,175,55,.25)); border-radius:14px; background:transparent; }
 .whub__note{ grid-column:1/-1; max-width:640px; }
 @media (max-width:860px){ .whub--own{ grid-template-columns:1fr; } }
+/* the hub's games: smaller and wide, on a gold «branch» under the World Bible — the world is the root, games grow from it */
+.wgames{ margin-top:34px; padding-left:22px; border-left:2px solid rgba(212,175,55,.35); }
+.wgames__h{ margin:0; font-family:"Cinzel",serif; font-size:19px; color:var(--tx-hi); } .wgames__h span{ color:var(--tx-low); font-size:15px; }
+.wgames__s{ margin:6px 0 16px; color:var(--tx-mid); font-size:13.5px; max-width:640px; }
+.wgames__row{ display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
+.gcard{ position:relative; display:flex; gap:14px; align-items:center; padding:14px 16px; border-radius:14px; background:var(--bg-2); border:1px solid var(--line); cursor:pointer; text-align:left; font:inherit; color:inherit; }
+.gcard:first-child::before{ content:""; position:absolute; left:-24px; top:50%; width:22px; border-top:2px solid rgba(212,175,55,.35); }
+.gcard:hover{ border-color:rgba(217,160,70,.55); }
+.gcard__mark{ flex:none; display:grid; place-items:center; width:56px; height:56px; border-radius:12px; font-family:"Cinzel",serif; font-weight:700; font-size:26px; color:var(--gold-bright);
+  background:radial-gradient(circle at 30% 25%, rgba(240,169,59,.28), rgba(217,119,6,.08) 70%); border:1px solid rgba(212,175,55,.35); }
+.gcard__b{ min-width:0; display:grid; gap:3px; }
+.gcard__k{ font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--tx-low); }
+.gcard__t{ font-family:"Cinzel",serif; font-weight:600; font-size:16px; color:var(--tx-hi); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gcard__open{ justify-self:start; display:inline-flex; align-items:center; gap:6px; margin-top:4px; padding:5px 10px; border-radius:8px; border:1px solid rgba(212,175,55,.4); background:none; color:var(--gold-lit); font:inherit; font-size:12.5px; cursor:pointer; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gcard__open svg{ width:14px; height:14px; flex:none; }
+.gcard--new{ flex-direction:column; justify-content:center; gap:4px; border-style:dashed; color:var(--tx-mid); min-height:86px; }
+.gcard--new svg{ width:24px; height:24px; } .gcard--new span{ font-family:"Cinzel",serif; font-weight:600; } .gcard--new small{ color:var(--tx-low); font-size:12px; }
+.gcard--new:hover{ color:var(--gold-lit); }
 /* Account: Профіль · Друзі */
 .acc-tabs{ display:flex; gap:8px; margin:6px 0 18px; }
 .fr-add{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 6px; max-width:620px; }
@@ -1221,13 +1239,17 @@ body.at-home .back-fab{ display:none; }
     var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-section", section: "chronicle" }, location.origin); } catch (e) {} };
     if (f.getAttribute("src") !== before) f.addEventListener("load", send, { once: true }); else send();
   }
-  // Game Bible of the current world (an iframe, but world-scoped: the rail stays on Світи)
-  function showBible() {
+  // The Bible of the current world (an iframe, world-scoped: the rail stays on Світи). open { gameId }: "" — the World Bible,
+  // a game id — its GDD, "__new" — the new-game form; without it the Bible stays where it was.
+  function showBible(open) {
     histPush();
     inWork = false; mode = "bible";
     var f = ensureFrame("bible");
     var target = PILLARS.bible.src + "?embed=1&worldId=" + encodeURIComponent(CURRENT_WORLD);
-    if (f.getAttribute("src") !== target) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; bibleSec = null; } // another world: its first section is no step back
+    if (f.getAttribute("src") !== target) { // another world: its first section is no step back
+      if (open && open.gameId) try { sessionStorage.setItem("ww-bible-sec-" + CURRENT_WORLD, open.gameId + "/"); } catch (e) {}
+      f.__loader && f.__loader.classList.add("is-on"); f.src = target; bibleSec = null;
+    } else if (open) try { f.contentWindow.postMessage({ type: "ww-bible-open", gameId: open.gameId || "" }, location.origin); } catch (e) {}
     loaded.bible = true;
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "bible"); });
@@ -1440,10 +1462,42 @@ body.at-home .back-fab{ display:none; }
           (world && !world.shared ? '<iframe class="whub__panel" id="w-panel" title="' + escapeHtml(cmT("Спільнота, команда, маркет і бекап світу", "The world's community, team, market and backup")) + '" src="WhiteWrite GameBible.html?embed=1&panel=1&worldId=' + encodeURIComponent(world.id) + '"></iframe>'
             : world ? '<p class="vhead__s whub__note">🤝 ' + cmT("Це світ твоєї команди: Біблія відкривається з тими розділами, які дозволив власник. Історії світу веде власник.", "This is your team's world: the Bible opens with the sections the owner allowed. The owner keeps the world's stories.") + '</p>' : '') +
         '</div>' +
+        (world ? '<section class="wgames" aria-labelledby="wg-h"><h2 class="wgames__h" id="wg-h">🎮 ' + cmT("Ігри цього світу", "Games of this world") + ' <span id="wg-n"></span></h2>' +
+          '<p class="wgames__s">' + cmT("Кожна гра — свій GDD на спільному каноні: механіки, рівні, ассети, план. Канон світу лишається один.", "Each game is its own GDD on the shared canon: mechanics, levels, assets, plan. The world canon stays one.") + '</p>' +
+          '<div class="wgames__row" id="w-games"></div></section>' : '') +
       '</div>';
     views.narr.querySelector("#to-worlds").addEventListener("click", function () { showView("worlds"); });
-    views.narr.querySelector("#w-bible").addEventListener("click", showBible);
+    views.narr.querySelector("#w-bible").addEventListener("click", function () { showBible({ gameId: "" }); });
+    if (world) watchHubGames(world);
     var we = views.narr.querySelector("#w-edit"); if (we) we.addEventListener("click", function (e) { e.stopPropagation(); openWorldEdit(CURRENT_WORLD); });
+  }
+  // The hub's games: worlds/{w}/games live; a game card opens its GDD (the Bible in game mode), «＋» opens the new-game form there
+  var hubGamesOff = null, hubGamesOf = null, hubGamesList = [];
+  function watchHubGames(world) {
+    var paint = function (list) {
+      var row = views.narr.querySelector("#w-games"); if (!row) return;
+      views.narr.querySelector("#wg-n").textContent = list.length ? "· " + list.length : "";
+      var ENG = { unity: "Unity", unreal: "Unreal", godot: "Godot" };
+      row.innerHTML = list.map(function (g) {
+        var name = g.title || cmT("Гра без назви", "Untitled game"), eng = ENG[(g.engine && g.engine.profile) || ""] || "";
+        return '<article class="gcard" data-game="' + escapeHtml(g.id) + '"><div class="gcard__mark" aria-hidden="true">' + escapeHtml(Array.from(name.trim())[0] || "?") + '</div>' +
+          '<div class="gcard__b"><div class="gcard__k">GDD' + (eng ? ' · ' + eng : '') + '</div><div class="gcard__t">' + escapeHtml(name) + '</div>' +
+          '<button class="gcard__open">' + svg("open") + cmT("Відкрити GDD «", "Open the GDD “") + escapeHtml(name) + cmT("»", "”") + '</button></div></article>';
+      }).join("") + (world.shared ? '' : '<button class="gcard gcard--new" id="w-newgame">' + svg("plus") + '<span>' + cmT("Створити нову гру", "Create a new game") + '</span><small>' + cmT("на каноні цього світу", "on this world's canon") + '</small></button>');
+      [].forEach.call(row.querySelectorAll("[data-game]"), function (c) { c.addEventListener("click", function () { showBible({ gameId: c.dataset.game }); }); });
+      var ng = row.querySelector("#w-newgame"); if (ng) ng.addEventListener("click", function () { showBible({ gameId: "__new" }); });
+    };
+    if (hubGamesOf === world.id && hubGamesOff) { paint(hubGamesList); return; }
+    if (hubGamesOff) hubGamesOff();
+    hubGamesOf = world.id; hubGamesList = []; paint([]);
+    var db = cmDb(); if (!db) return;
+    var off = db.collection("worlds").doc(world.id).collection("games").onSnapshot(function (snap) {
+      var list = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) { return ((a.createdAt && a.createdAt.toMillis && a.createdAt.toMillis()) || 0) - ((b.createdAt && b.createdAt.toMillis && b.createdAt.toMillis()) || 0); });
+      if (hubGamesOf !== world.id) return;
+      hubGamesList = list; if (CURRENT_WORLD === world.id) paint(list);
+    }, function () { paint([]); });
+    hubGamesOff = function () { off(); hubGamesOff = null; hubGamesOf = null; };
   }
   // Світи: every world of the author; entering one opens its hub.
   function fillWorlds() {
