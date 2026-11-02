@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.35.1 (2026-11-02)
+**Version:** 2.35.2 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -591,5 +591,5 @@ firebase deploy                   # Deploy everything
 
 ---
 
-**Last updated:** 2026-11-02 (v2.35.1 KB road: step 1 = choose the path (RPG Framework explained), step 2 = prepare the PC; v2.35 KB: «Світи на головній» (ready frame, fill from your materials), new «Біблія гри — живий гейм-диздок»; hero button «Від чистого ПК до Гри»; v2.34 «Історії і хроніка»: story tags scope/games, subsection rename, clickable event names; story form keeps «Біблія світу» (`ww-mode: create`); v2.33 home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks; v2.32 shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops; v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
+**Last updated:** 2026-11-02 (v2.35.2 hero «Від задуму — до гри» on one line (nowrap); v2.35.1 KB road: step 1 = choose the path (RPG Framework explained), step 2 = prepare the PC; v2.35 KB: «Світи на головній» (ready frame, fill from your materials), new «Біблія гри — живий гейм-диздок»; hero button «Від чистого ПК до Гри»; v2.34 «Історії і хроніка»: story tags scope/games, subsection rename, clickable event names; story form keeps «Біблія світу» (`ww-mode: create`); v2.33 home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks; v2.32 shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops; v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
 **Maintained by:** WhiteWrite Team

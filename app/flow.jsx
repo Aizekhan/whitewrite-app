@@ -17,7 +17,7 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.ctaCreate': 'Створи свій світ',
     'hero.ctaChoose': 'Обери свій світ',
     'hero.agentBeta': 'для творців ігор',
-    'hero.agentTitle': 'Від задуму —\nдо гри',
+    'hero.agentTitle': 'Від задуму — до гри',
     'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
     'hero.agentBtn': '🤖 Від чистого ПК до Гри'
   };
