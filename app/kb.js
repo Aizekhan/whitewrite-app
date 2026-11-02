@@ -61,7 +61,7 @@
             "<b>З GitHub</b> — підключи репозиторій гри, і «Звірити з репо» ✦ покаже, що є в коді й документах, але бракує в Біблії (<a class=\"art__link\" data-art=\"agent-github\">крок 9</a>).",
           ]],
           ["p", "Імпорт і звірка з репозиторієм — частина Біблії гри (тариф Worldbuilder). Чому Біблія гри замінює гейм-диздок — <a class=\"art__link\" data-art=\"gdd\">окрема стаття</a>."],
-          ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб: картка «Біблія світу» (кнопка «Відкрити Біблію світу») і, для власника, панель Спільнота · Команда · Маркет · Бекап. Історії світу живуть лише в Біблії — розділ «Історії і хроніка»."],
+          ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб із вкладками 🏠 Головна · 🌍 Спільнота · 🤝 Команда · ⚖ Маркет · ⛁ Бекап (вкладки бачить власник; учасник команди — лише Головну). На «Головній» — картка «Біблія світу» (кнопка «Відкрити Біблію світу») і ігри світу; інші вкладки відкриваються окремо, на всю ширину, щоб їхні налаштування не мішались із картками. Історії світу живуть лише в Біблії — розділ «Історії і хроніка»."],
           ["p", "Під Біблією — «🎮 Ігри цього світу»: менші широкі картки, що відгалужуються від світу золотою лінією. Кожна гра — свій GDD на спільному каноні: «Відкрити GDD «Назва»» веде прямо в гру, пунктирна «＋ Створити нову гру» — у форму нової гри. Біблія світу й GDD гри — окремі: у Біблії лише канон, у грі — лише її розділи."],
           ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Кнопка ⏸ на відео (у хабі світу й на «Огляді світу») зупиняє його на першому кадрі, ▶ — запускає знову; вибір запамʼятовується для світу. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево. Та сама обкладинка відкриває «Огляд світу» в Біблії — над гаслом і описом."],
           ["p", "Угорі «Огляду світу» — назва світу великим фентезійним шрифтом по центру. Власник світу бачить ✎ при наведенні: змінити назву або поставити замість неї картинку назви (логотип, PNG з прозорим тлом найкраще) і повзунком «Висота назви» підібрати її розмір. Прев'ю у вікні — зменшений рядок назви; широку картинку обмежує ширина рядка, тож повзунок доходить лише до висоти, яка ще влазить."],
@@ -82,7 +82,7 @@
           ["p", "«Спільнота» — вітрини, які автори відкрили для всіх: обкладинка, слоган, опис і обрані розділи Біблії лише для читання. Дивитися може будь-хто, навіть без входу; публікувати — на будь-якому тарифі, навіть Free."],
           ["h", "Як опублікувати"],
           ["ul", [
-            "Світи → твій світ: біля картки «Біблія світу» — бічні вкладки 🌍 Спільнота · 🤝 Команда · ⚖ Маркет · ⛁ Бекап.",
+            "Світи → твій світ: угорі хабу — вкладки 🏠 Головна · 🌍 Спільнота · 🤝 Команда · ⚖ Маркет · ⛁ Бекап.",
             "Угорі «Спільноти» — список «Що показати спільноті» з великими галочками: <b>Сам світ</b> і кожна гра цього світу окремо. Поки нічого не позначено, полів для заповнення немає.",
             "Постав галочку — під списком відкриється форма саме для цього: слоган, опис, розділи, відкриті для всіх, обкладинка, Discord, посилання на реліз (у гри).",
             "«🤝 Шукаю команду для спільної розробки» — теж велика галочка; поле «Кого шукаєш» зʼявляється лише коли вона стоїть.",
@@ -944,7 +944,7 @@
             "«Прибрати» розриває дружбу — людина також виходить з команд усіх твоїх світів.",
           ]],
           ["h", "Команда світу"],
-          ["p", "Світи → твій світ → вкладка «🤝 Команда» біля картки Біблії. Вибери друга і роль, «Додати»:"],
+          ["p", "Світи → твій світ → вкладка «🤝 Команда» угорі хабу. Вибери друга і роль, «Додати»:"],
           ["ul", [
             "<b>Адмін</b> — повна довіра: читає й редагує все і запускає ✦ AI-дії. Токени за них списуються <b>з твого</b> балансу.",
             "<b>Редактор</b> — повна довіра, але без ✦: редагує все, токени не витрачає.",
@@ -1089,7 +1089,7 @@
             "<b>From GitHub</b> — connect the game's repository, and “Check against the repo” ✦ shows what the code and docs have that the Bible lacks (<a class=\"art__link\" data-art=\"agent-github\">step 9</a>).",
           ]],
           ["p", "The import and the repository check are part of the Game Bible (the Worldbuilder plan). Why the Game Bible replaces a game design document — <a class=\"art__link\" data-art=\"gdd\">a separate article</a>."],
-          ["p", "“Choose your world” — your worlds. An open world is its hub: the “World Bible” card (the “Open the World Bible” button) and, for the owner, the Community · Team · Market · Backup panel. The world's stories live only in the Bible — the “Stories & chronicle” section."],
+          ["p", "“Choose your world” — your worlds. An open world is its hub with tabs 🏠 Home · 🌍 Community · 🤝 Team · ⚖ Market · ⛁ Backup (the owner sees the tabs; a team member only Home). “Home” holds the “World Bible” card (the “Open the World Bible” button) and the world's games; the other tabs open on their own, full width, so their settings don't mix with the cards. The world's stories live only in the Bible — the “Stories & chronicle” section."],
           ["p", "Under the Bible is “🎮 Games of this world”: smaller wide cards branching off the world on a gold line. Each game is its own GDD on the shared canon: “Open the GDD “Name”” goes straight into the game, the dashed “＋ Create a new game” — to the new-game form. The World Bible and a game's GDD are separate: the Bible holds only the canon, a game only its own sections."],
           ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The ⏸ button on the video (in the world hub and on “World overview”) stops it on its first frame, ▶ plays it again; the choice is remembered per world. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree. The same cover opens the “World overview” in the Bible — above the tagline and description."],
           ["p", "The top of the “World overview” carries the world name in a large fantasy font, centred. The world owner sees ✎ on hover: change the name or put a title image (a logo; a PNG with a transparent background works best) in its place and set its size with the “Title height” slider. The preview in the dialog is the name line scaled down; a wide image is limited by the line's width, so the slider only goes up to the height that still fits."],
@@ -1110,7 +1110,7 @@
           ["p", "“Community” holds showcases that authors opened to everyone: a cover, a tagline, a description and the chosen Bible sections, read-only. Anyone can look, even signed out; anyone can publish, on any plan, even Free."],
           ["h", "How to publish"],
           ["ul", [
-            "Worlds → your world: beside the “World Bible” card — side tabs 🌍 Community · 🤝 Team · ⚖ Market · ⛁ Backup.",
+            "Worlds → your world: at the top of the hub — tabs 🏠 Home · 🌍 Community · 🤝 Team · ⚖ Market · ⛁ Backup.",
             "At the top of “Community” — the list “What the Community sees” with big ticks: <b>The world itself</b> and each game of this world separately. Until something is ticked there are no fields to fill.",
             "Tick an item — its own form opens below the list: tagline, description, sections open to everyone, cover, Discord, release links (for a game).",
             "“🤝 Looking for a team to build it together” is a big tick too; the “Who you are looking for” field appears only while it is ticked.",
@@ -1972,7 +1972,7 @@
             "“Remove” ends the friendship — the person also leaves the teams of all your worlds.",
           ]],
           ["h", "The world team"],
-          ["p", "Worlds → your world → the “🤝 Team” tab beside the Bible card. Pick a friend and a role, “Add”:"],
+          ["p", "Worlds → your world → the “🤝 Team” tab at the top of the hub. Pick a friend and a role, “Add”:"],
           ["ul", [
             "<b>Admin</b> — full trust: reads and edits everything and runs ✦ AI actions. Their tokens come from <b>your</b> balance.",
             "<b>Editor</b> — full trust but no ✦: edits everything, spends no tokens.",

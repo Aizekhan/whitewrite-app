@@ -150,10 +150,7 @@ header.sec p{ margin:8px 0 0; color:var(--tx-mid); max-width:70ch; font-style:it
 .ww-panel body{ display:block; background:transparent; }
 .ww-panel nav, .ww-panel .topline, .ww-panel .bar{ display:none !important; }
 .ww-panel main, .ww-embed.ww-panel main{ margin:0; height:auto; padding:0; overflow:visible; }
-.hub{ display:grid; grid-template-columns:150px 1fr; gap:18px; align-items:start; }
-.hub__tabs{ display:flex; flex-direction:column; gap:6px; position:sticky; top:0; }
-.hub__tabs button{ display:flex; gap:9px; align-items:center; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid var(--line-2); background:var(--bg-2); color:var(--tx-mid); cursor:pointer; font-weight:600; }
-.hub__tabs button[aria-selected="true"]{ color:var(--tx-hi); border-color:var(--gold-lit); background:linear-gradient(180deg,#2a2114,#1a150e); }
+.hub{ display:block; } /* the tabs are the shell's (White.html .wtabs) */
 .hub__body{ min-width:0; border:1px solid var(--line-2); border-radius:14px; background:var(--bg-1); padding:16px 18px; }
 .hub__body h2{ font-size:20px; margin-bottom:6px; } .hub__h3{ font-size:15px; margin:16px 0 8px; } .hub__msg{ margin-top:12px; color:var(--gold-lit); }
 .hub__body .setbox{ border:0; padding:0; margin:0; background:none; } .hub__body .setbox > h2{ display:none; }
@@ -167,7 +164,7 @@ header.sec p{ margin:8px 0 0; color:var(--tx-mid); max-width:70ch; font-style:it
 .mk-state, .mk-form{ margin-top:10px; } .mk-stripe{ margin-top:14px; padding-top:10px; border-top:1px solid var(--line); }
 .mk-form .imp{ display:flex; gap:10px; align-items:flex-start; } .mk-form .imp input{ width:auto; margin:3px 0 0; flex:none; } .hub__body .hint a{ color:var(--gold-lit); }
 .ok{ color:#7fd08a; }
-@media (max-width:640px){ .hub{ grid-template-columns:1fr; } .hub__tabs{ flex-direction:row; flex-wrap:wrap; position:static; } }
+
 /* «Огляд світу»: the world's name (or its title image) centred on the bar, ✎ for the owner on hover only */
 h1.wname{ position:relative; text-align:center; font:700 clamp(30px,3.6vw,52px)/1.1 "Cinzel",serif; color:var(--tx-hi); letter-spacing:.04em; padding:0 44px; }
 h1.wname img{ max-width:100%; max-height:110px; object-fit:contain; vertical-align:middle; }

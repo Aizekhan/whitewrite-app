@@ -70,7 +70,7 @@
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settingsGame: "Налаштування гри", settingsGameAbout: "Лише ця гра: підключення Claude Code, назва, рушій, розділи, імпорт і експорт, видалення гри.", settingsWorld: "Налаштування світу", settingsWorldAbout: "Лише світ: назва, експорт і відновлення, Космограф, видалення світу. Налаштування кожної гри — у її GDD.",
       linkedGames: "Повʼязані ігри", pickGame: "У яку гру?",
-      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — у хабі світу, біля його картки.",
+      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — окремі вкладки в хабі світу, поруч із «Головною».",
         memberNote: "Налаштування світу бачить лише його власник.",
         tabs: { community: "Спільнота", team: "Команда", market: "Маркет", backup: "Бекап" },
         team: { title: "Команда світу", hint: "Додай друзів у команду цього світу й дай кожному свою роль. Друзів додаєш в Акаунті → «Друзі».",
@@ -328,7 +328,7 @@
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settingsGame: "Game settings", settingsGameAbout: "This game only: connecting Claude Code, name, engine, sections, import and export, deleting the game.", settingsWorld: "World settings", settingsWorldAbout: "The world only: name, export and restore, Cosmograph, deleting the world. Each game's settings are in its GDD.",
       linkedGames: "Linked games", pickGame: "Into which game?",
-      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now in the world hub, next to its card.",
+      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now separate tabs in the world hub, next to “Home”.",
         memberNote: "Only the world's owner sees its settings.",
         tabs: { community: "Community", team: "Team", market: "Market", backup: "Backup" },
         team: { title: "The world team", hint: "Add friends to this world's team and give each a role. You add friends in the Account → “Friends”.",
@@ -5570,7 +5570,11 @@
     return data;
   }
   function hubIdle() { return PANEL && !document.activeElement.closest("#view input, #view textarea, #view select"); }
-  var hubTab = "community"; try { hubTab = sessionStorage.getItem("ww-hubtab-" + worldId) || "community"; } catch (e) {}
+  var hubTab = params.get("tab") || "community"; // the shell's tabs pick the panel (White.html HUB_TABS); it shows one, without its own tab list
+  if (PANEL) window.addEventListener("message", function (ev) {
+    if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-hub-tab" || ev.data.tab === hubTab) return;
+    hubTab = ev.data.tab; hubMsg = ""; if ($("view")) render(); // signed out / locked: no view to paint
+  });
   var hubMsg = "", friends = null, mkt = null, mktQuote = null;
   function askYes(title, text, ok, run) {
     var box = document.createElement("div"); box.className = "ask";
@@ -5589,13 +5593,9 @@
     var H = STR.hub;
     if (!world || !world.owner) { $("view").innerHTML = '<p class="muted">…</p>'; return; }
     if (!ME.owner) { $("view").innerHTML = '<p class="muted">' + H.memberNote + '</p>'; return; }
-    var tabs = [["community", "🌍"], ["team", "🤝"], ["market", "⚖"], ["backup", "⛁"]];
     var body = hubTab === "team" ? teamHtml() : hubTab === "market" ? marketHtml() : hubTab === "backup" ? backupHtml() : communityHtml();
-    $("view").innerHTML = '<div class="hub"><div class="hub__tabs" role="tablist" aria-orientation="vertical">' + tabs.map(function (t) {
-      return '<button role="tab" data-hubtab="' + t[0] + '" aria-selected="' + (t[0] === hubTab) + '"><span aria-hidden="true">' + t[1] + '</span>' + esc(H.tabs[t[0]]) + '</button>'; }).join("") +
-      '</div><div class="hub__body" role="tabpanel">' + body + (hubMsg ? '<p class="hub__msg" role="status">' + esc(hubMsg) + '</p>' : '') + '</div></div>';
-    [].forEach.call($("view").querySelectorAll("[data-hubtab]"), function (b) { b.onclick = function () {
-      hubTab = b.dataset.hubtab; hubMsg = ""; try { sessionStorage.setItem("ww-hubtab-" + worldId, hubTab); } catch (e) {} render(); }; });
+    $("view").innerHTML = '<div class="hub"><div class="hub__body" role="tabpanel" aria-label="' + esc(H.tabs[hubTab] || H.tabs.community) + '">' + body +
+      (hubMsg ? '<p class="hub__msg" role="status">' + esc(hubMsg) + '</p>' : '') + '</div></div>';
     if (hubTab === "community") bindCommunity();
     else if (hubTab === "team") bindTeam();
     else if (hubTab === "market") bindMarket();
