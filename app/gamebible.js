@@ -1047,17 +1047,19 @@
   }
   // a section named like its group gets a short name inside it («Продакшн-план» → «План»)
   var NAV_SHORT = { plan: { uk: "План", en: "Plan" }, experience: { uk: "Метрики й проблеми", en: "Metrics & issues" } };
+  // a top-level section without subsections: as bold as a group, its name in line with the groups' names (after the arrow)
+  function navTop(h) { return h.replace('class="nav-item"', 'class="nav-item nav-top"'); }
   function gameNav(all) {
     var listed = {}, out = [];
     NAV_GROUPS.forEach(function (g) { if (g.members) g.members.forEach(function (m) { listed[m] = 1; }); });
     NAV_GROUPS.forEach(function (g) {
-      if (g === "custom") { gameSections().filter(function (s) { return !listed[s.id]; }).forEach(function (s) { out.push(navItem(s, all)); }); return; }
+      if (g === "custom") { gameSections().filter(function (s) { return !listed[s.id]; }).forEach(function (s) { out.push(navTop(navItem(s, all))); }); return; }
       var mem = groupMembers(g); if (!mem.length) return;
-      if (mem.length === 1) { out.push(navItem(sec(mem[0]), all)); return; }
+      if (mem.length === 1) { out.push(navTop(navItem(sec(mem[0]), all))); return; }
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
       out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '">' + ARROW + esc(L(g)) + '<span class="n">' + (n || "") + '</span></button>');
-      if (open) mem.forEach(function (m) { out.push(navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"')); });
+      if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
   }

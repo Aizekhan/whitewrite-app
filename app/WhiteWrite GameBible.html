@@ -48,7 +48,12 @@ nav{ background:linear-gradient(180deg,#0e0d10,#09080a); border-right:1px solid 
 .nav-item:hover{ background:var(--bg-hover); color:var(--tx-hi); }
 .nav-grp .arr{ display:inline-flex; transition:transform .18s; opacity:.75; margin-right:-4px; }
 .nav-grp[aria-expanded="true"] .arr{ transform:rotate(90deg); }
-.nav-sub{ padding-left:28px; font-size:14px; }
+.nav-grp, .nav-top{ font-weight:600; color:var(--tx-hi); letter-spacing:.01em; }
+.nav-top{ padding-left:30px; }
+.nav-grp[aria-expanded="true"]{ color:var(--gold-lit); }
+.nav-subs{ display:flex; flex-direction:column; gap:2px; margin:1px 0 6px 17px; padding-left:8px; border-left:1px solid rgba(216,180,106,.35); }
+.nav-sub{ padding:6px 10px; font-size:13.5px; }
+.nav-sub[aria-current="true"]{ font-weight:600; }
 .nav-item[aria-current="true"]{ background:var(--gold-soft); color:var(--tx-hi); box-shadow:inset 2px 0 0 var(--gold-lit); }
 .nav-item .n{ margin-left:auto; font-size:12px; font-variant-numeric:tabular-nums; }
 .nav-item .canon{ font-size:10px; color:var(--violet-lit); letter-spacing:.06em; }
