@@ -20,7 +20,7 @@
         all: "✦ Перевірити всі", allTip: "ШІ-перевірка всіх картинок гри без свіжої оцінки (нові й застарілі)", allNone: "Усі картинки вже мають свіжу оцінку ШІ.",
         allAsk: "Перевірити {n} картинок за стилем? ≈ {t} токенів (списується реальна вартість).", allRun: "Перевіряю стиль", allDone: "Перевірено картинок", noStyle: "Спершу задай палітру стилю." },
       comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити публікацію».",
-        world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n}", hidden: "Приховано модератором після скарги — у спільноті не видно.",
+        world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n} · 👤 {f}", rel: "Гра вийшла? Посилання на реліз", relPh: "https://store.steampowered.com/app/…&#10;https://username.itch.io/…", relHint: "По одному на рядок (Steam, itch.io, Google Play, App Store, Epic, GOG або сайт). Гра зʼявиться у Спільноті → «🎮 Готові ігри» — майбутня функція, що зараз у розробці.", hidden: "Приховано модератором після скарги — у спільноті не видно.",
         tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
         publish: "Опублікувати", update: "Оновити публікацію", unpublish: "Зняти з публікації", open: "Відкрити у спільноті", working: "Публікую…", done: "Опубліковано: {n} карток.", removed: "Знято з публікації.",
         overview: "Огляд світу (слоган, опис, факти) — завжди", when: "Коли",
@@ -94,6 +94,7 @@
           costText: "Щоденний бекап цього світу коштує {n} токенів за 30 днів; далі місяць продовжується сам з твого балансу, доки бекап увімкнено.",
           disconnectText: "WhiteWrite забуде токен і зупинить бекап. Репозиторій на GitHub лишиться.", working: "Працюю…", connected: "GitHub підключено, приватний репозиторій готовий.",
           enabled: "Увімкнено, перший бекап зроблено.", done: "Бекап зроблено.", disabled: "Вимкнено (оплачений місяць лишається).", disconnected: "GitHub відключено." } },
+      stats: { followers: "Фоловери — стежать за світом чи грою у Спільноті", rating: "Рейтинг — ♥ від спільноти" },
       team: { noAi: "✦ AI-дії в цьому світі запускають лише власник і адмін команди (на токенах власника)." },
       wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Розмір на плашці", uploading: "Завантажую…" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
@@ -267,7 +268,7 @@
         all: "✦ Check all", allTip: "AI check of every game picture without a fresh score (new and stale)", allNone: "Every picture already has a fresh AI score.",
         allAsk: "Check {n} pictures against the style? ≈ {t} tokens (the real cost is charged).", allRun: "Checking the style", allDone: "Pictures checked", noStyle: "Set the style palette first." },
       comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the publication”.",
-        world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n}", hidden: "Hidden by a moderator after a report — not shown in the community.",
+        world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n} · 👤 {f}", rel: "Released? Links to the release", relPh: "https://store.steampowered.com/app/…&#10;https://username.itch.io/…", relHint: "One per line (Steam, itch.io, Google Play, App Store, Epic, GOG or a site). The game shows in Community → “🎮 Released games” — a future feature in development.", hidden: "Hidden by a moderator after a report — not shown in the community.",
         tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
         publish: "Publish", update: "Update the publication", unpublish: "Unpublish", open: "Open in the community", working: "Publishing…", done: "Published: {n} cards.", removed: "Unpublished.",
         overview: "World overview (tagline, description, facts) — always", when: "When",
@@ -340,6 +341,7 @@
           costText: "The daily backup of this world costs {n} tokens per 30 days; the month then renews from your balance while the backup is on.",
           disconnectText: "WhiteWrite forgets the token and stops the backup. The GitHub repository stays.", working: "Working…", connected: "GitHub connected, the private repository is ready.",
           enabled: "On; the first backup is done.", done: "Backed up.", disabled: "Off (the paid month stays).", disconnected: "GitHub disconnected." } },
+      stats: { followers: "Followers — following the world or game in the Community", rating: "Rating — ♥ from the community" },
       team: { noAi: "✦ AI actions in this world are run only by the owner and a team admin (on the owner's tokens)." },
       wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Size on the bar", uploading: "Uploading…" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
@@ -1125,7 +1127,7 @@
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
-    var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>' +
+    var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + (s.id === "overview" && game && !query ? statsHtml(gameId) : "") + '</h1>' +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
@@ -1207,9 +1209,23 @@
   }
   // «Огляд світу»: the bar on top carries the world's NAME (Cinzel, centred) or its title image — worlds/{w}.titleArt { url, path, h }
   // (Storage worlds/{w}/cover/). Only the world's owner sees ✎, and only on hover.
+  // 👤 followers · ★ rating (the ♥ of the community) of this world's published showcases (community/{pubId} — community.js)
+  var commStats = {};
+  function loadCommStats() {
+    var me = firebase.auth().currentUser; if (!me || !ME.owner) return;
+    db.collection("community").where("owner", "==", me.uid).where("worldId", "==", worldId).get().then(function (sn) {
+      commStats = {}; sn.docs.forEach(function (d) { commStats[d.id] = { f: d.get("followers") || 0, l: d.get("likes") || 0 }; }); if (world) render();
+    }, function () {});
+  }
+  function statsHtml(gid) { // a game — its showcase; the world — the world and all its games together
+    if (!ME.owner) return "";
+    var f = 0, l = 0; Object.keys(commStats).forEach(function (id) { if (gid ? id === worldId + "__" + gid : true) { f += commStats[id].f; l += commStats[id].l; } });
+    return '<span class="wwstats"><span title="' + esc(STR.stats.followers) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.2"/><path d="M3.8 21.5c0-4.7 3.7-8 8.2-8s8.2 3.3 8.2 8z"/></svg>' + f + '</span>' +
+      '<span title="' + esc(STR.stats.rating) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>' + l + '</span></span>';
+  }
   function worldNameHtml() {
     var ta = world.titleArt, me = firebase.auth().currentUser, own = !!(me && world.owner === me.uid);
-    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(world.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(world.title || "") + '</span>') +
+    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(world.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(world.title || "") + '</span>') + statsHtml() +
       (own ? '<button class="wname__ed" type="button" data-wname title="' + esc(STR.wname.edit) + '" aria-label="' + esc(STR.wname.edit) + '">✎</button>' : '') + '</h1>';
   }
   function editWorldName() {
@@ -3715,13 +3731,15 @@
       var cover = p && p.cover && covers.indexOf(p.cover) >= 0 ? p.cover : covers[0];
       var tag = p ? p.tagline : t.key === "w" ? world.tagline || "" : "", sum = p ? p.summary : t.key === "w" ? world.summary || "" : "";
       return '<div class="commt" data-ct="' + t.key + '"><h3>' + esc((t.key === "w" ? C.world : C.game) + " · " + t.title) + '</h3>' +
-        '<p class="hint">' + (p === undefined ? C.loading : !on ? C.off : p.hidden ? C.hidden : C.on.replace("{n}", p.likes || 0)) + '</p>' +
+        '<p class="hint">' + (p === undefined ? C.loading : !on ? C.off : p.hidden ? C.hidden : C.on.replace("{n}", p.likes || 0).replace("{f}", p.followers || 0)) + '</p>' +
         '<label class="field"><span>' + C.tagline + '</span><input data-cf="tagline" maxlength="240" value="' + esc(tag) + '"></label>' +
         '<label class="field"><span>' + C.summary + '</span><textarea data-cf="summary" rows="3" maxlength="4000">' + esc(sum) + '</textarea></label>' +
         '<label class="field"><span>' + C.discord + '</span><input data-cf="discord" maxlength="120" inputmode="url" placeholder="' + esc(C.discordPh) + '" value="' + esc((p && p.discord) || "") + '"><span class="hint">' + C.discordHint + '</span></label>' +
         '<label class="imp commteam"><input type="checkbox" data-cf="team"' + (p && p.lookingForTeam ? ' checked' : '') + '><span>' + C.team + '</span></label>' +
         '<p class="hint">' + C.teamHint + '</p>' +
         '<label class="field"><span>' + C.teamNote + '</span><input data-cf="teamNote" maxlength="600" placeholder="' + esc(C.teamNotePh) + '" value="' + esc((p && p.teamNote) || "") + '"></label>' +
+        (t.key === "w" ? '' : '<label class="field"><span>' + C.rel + '</span><textarea data-cf="rel" rows="2" maxlength="3000" placeholder="' + esc(C.relPh) + '">' +
+          esc(((p && p.releases) || []).map(function (r) { return r.url; }).join("\n")) + '</textarea><span class="hint">' + C.relHint + '</span></label>') +
         '<div class="field"><span>' + C.secs + '</span>' + (t.key === "w" ? '<p class="hint">✓ ' + C.overview + '</p>' : '') + '<div class="shownsecs">' + t.secs.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-cs="' + s.id + '"' + (picked.indexOf(s.id) >= 0 ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div></div>' +
         (covers.length ? '<div class="field"><span>' + C.cover + '</span><div class="commcov">' + covers.map(function (u, i) {
@@ -3754,6 +3772,11 @@
           sections: t.secs.filter(function (s) { return ids.indexOf(s.id) >= 0; }).map(function (s) { return { id: s.id, label: L(s) }; }), items: items };
         body.discord = box.querySelector('[data-cf="discord"]').value.trim();
         if (body.discord && !/^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(body.discord)) { say(STR.comm.badDiscord); return; } // the server checks the same
+        var rel = box.querySelector('[data-cf="rel"]'); // a released game: one link per line, the store from the address (community.js checks https)
+        if (rel) body.releases = rel.value.split(/\s+/).filter(function (u) { return /^https:\/\//.test(u); }).slice(0, 6).map(function (u) {
+          var k = [["steam", /steampowered\.com|steamcommunity\.com/], ["itch", /itch\.io/], ["googleplay", /play\.google\.com/], ["appstore", /apps\.apple\.com/], ["epic", /epicgames\.com/], ["gog", /gog\.com/]]
+            .filter(function (x) { return x[1].test(u); })[0];
+          return { kind: k ? k[0] : "web", url: u }; });
         body.lookingForTeam = box.querySelector('[data-cf="team"]').checked; body.teamNote = box.querySelector('[data-cf="teamNote"]').value.trim();
         if (t.key === "w") { body.facts = (world.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }); body.rules = ids.indexOf("laws") >= 0 ? (world.rules || []) : []; }
         btn.disabled = true; say(STR.comm.working);
@@ -5210,6 +5233,7 @@
         if (!canWrite && !PANEL) return locked(STR.lockedTitle, STR.lockedText, true); // the hub panel (Спільнота, Команда…) works on any plan
         if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";
       }
+      loadCommStats();
     } catch (e) { return locked(STR.brand, STR.noWorld, false); }
 
     wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); });

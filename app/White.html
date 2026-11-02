@@ -103,6 +103,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 /* no top band: views start at the very top, the logo floats over; where the logo would meet the heading, the heading steps below it */
 @media (max-width:1300px){ .view > .vwrap{ padding-top:max(clamp(28px,5vw,56px), 110px); } }
 @media (max-width:820px){ .view > .vwrap{ padding-top:64px; } body:not(.at-home):not(.in-work) .view > .vwrap{ padding-top:clamp(28px,5vw,56px); } }
+@media (max-width:820px){ .view .cm-top{ padding-left:clamp(20px,4vw,44px); } }
 .vhead__k{ font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold-lit); }
 .vhead__t{ font-size:clamp(26px,3.4vw,40px); line-height:1.05; margin-top:8px; }
 .vhead__s{ font-style:italic; color:var(--tx-mid); margin-top:12px; font-size:15px; max-width:62ch; line-height:1.6; }
@@ -245,6 +246,16 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .cm__author{ font-size:12px; color:var(--tx-mid); font-style:italic; }
 .cm__tag{ font-size:12.5px; color:var(--tx-mid); line-height:1.45; }
 .cm__likes{ margin-top:auto; padding-top:8px; font-size:12.5px; color:var(--gold-lit); }
+.wwstats{ display:inline-flex; gap:8px; vertical-align:middle; font:600 12.5px/1 "Inter",system-ui,sans-serif; letter-spacing:0; color:var(--gold-lit); }
+.wwstats > span{ display:inline-flex; align-items:center; gap:5px; padding:4px 9px 4px 7px; border-radius:999px; border:1px solid rgba(212,175,55,.35); background:rgba(30,22,10,.55); }
+.wwstats svg, .cm-follow svg{ width:13px; height:13px; fill:currentColor; flex:none; }
+.vhead__t .wwstats{ margin-left:12px; font-size:13px; }
+.ncard__stats{ margin:6px 0 2px; }
+.cm-follow{ display:inline-flex; align-items:center; gap:6px; }
+.cm-future{ border:1px dashed rgba(212,175,55,.5); background:rgba(212,175,55,.06); border-radius:14px; padding:14px 16px; margin:6px 0 20px; max-width:860px; }
+.cm-future p{ margin:6px 0 0; color:var(--tx); line-height:1.6; } .cm-future a{ color:var(--gold-lit); }
+.cm--rel{ display:flex; flex-direction:column; gap:8px; } .cm--rel .cm--in{ flex:1; }
+.cm-rel{ display:flex; flex-wrap:wrap; gap:6px; } .cm-rel a{ font-size:12.5px; color:#1c1308; text-decoration:none; padding:5px 10px; border-radius:999px; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
 .cm-team{ position:absolute; top:9px; right:10px; font-size:11px; font-weight:600; color:#1c1308; background:linear-gradient(180deg,#bfe3a8,#7fbf6a);
   border-radius:20px; padding:3px 10px; box-shadow:0 4px 14px rgba(0,0,0,.45); }
 .cm-team--hero{ top:14px; right:16px; font-size:12.5px; padding:5px 12px; }
@@ -285,7 +296,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .ledger tbody{ display:block; max-height:420px; overflow:auto; } .ledger thead,.ledger tbody tr{ display:table; width:100%; table-layout:fixed; }
 .ledger th:nth-child(1),.ledger td:nth-child(1){ width:24%; } .ledger th:nth-child(3),.ledger td:nth-child(3),.ledger th:nth-child(4),.ledger td:nth-child(4){ width:14%; } .ledger th:nth-child(5),.ledger td:nth-child(5){ width:8%; }
 /* Спільнота: one bar at the top with every control of the tab and ✕ (back to the home page) */
-.cm-top{ position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px clamp(20px,4vw,44px);
+.cm-top{ position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px clamp(20px,4vw,44px) 12px 140px;
   background:rgba(12,10,14,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line-2); }
 .cm-top__k{ font:600 15px Cinzel,serif; color:var(--gold-lit); margin-right:6px; }
 .cm-top__div{ width:1px; height:22px; background:var(--line-2); margin:0 4px; }
@@ -1358,7 +1369,7 @@ body:not(.at-home) .userdock{ display:none; }
       '<div class="vwrap">' +
         '<button id="to-worlds" style="background:none;border:0;color:var(--tx-mid);cursor:pointer;padding:0;margin-bottom:14px;font:inherit">' + t('worlds.all') + '</button>' +
         '<div class="vhead__k">' + t('worlds.hubKicker') + '</div>' +
-        '<h1 class="vhead__t">' + escapeHtml(world ? (world.title || t('worlds.untitled')) : '…') + '</h1>' +
+        '<h1 class="vhead__t">' + escapeHtml(world ? (world.title || t('worlds.untitled')) : '…') + (world && world.stats ? ' ' + wwStats(world.stats.f, world.stats.l) : '') + '</h1>' +
         (world && (world.tagline || world.summary) ? '<p class="vhead__s">' + escapeHtml(world.tagline || world.summary) + '</p>' : '') +
         '<div class="whub' + (world && !world.shared ? ' whub--own' : '') + '">' +
           '<article class="ncard ncard--bible" id="w-bible">' +
@@ -1412,6 +1423,7 @@ body:not(.at-home) .userdock{ display:none; }
                '<div class="ncard__cover">' + worldMediaHtml(w) + (mineW ? '' : '<span class="cm-team">🤝 ' + cmT("Команда", "Team") + '</span>') +
                  (!mineW ? '' : '<button class="ncard__edit" data-wedit title="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '" aria-label="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '">' + svg("edit") + '</button>') + '</div>' +
                '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(w.title || t('worlds.untitled')) + '</div>' +
+               (w.stats ? '<div class="ncard__stats">' + wwStats(w.stats.f, w.stats.l) + '</div>' : '') +
                '<div class="ncard__meta">' + count(w.id) + ' ' + (function (n) { var d = n % 10, h = n % 100; return t(d === 1 && h !== 11 ? 'worlds.story1' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? 'worlds.story2' : 'worlds.stories'); })(count(w.id)) + '</div>' +
                '<p class="ncard__desc">' + escapeHtml(w.tagline || w.summary || '') + '</p>' +
                '<button class="ncard__open" data-open-world>' + svg("open") + t('worlds.open') + '</button></div></article>';
@@ -1617,18 +1629,19 @@ body:not(.at-home) .userdock{ display:none; }
     }, function () { CM.list = []; fillMarket(); });
   }
   function openCommunity(pubId) {
-    CM.open = pubId || null; CM.pub = null; CM.items = []; CM.sec = ""; CM.liked = false; CM.report = false; CM.msg = "";
+    CM.open = pubId || null; CM.pub = null; CM.items = []; CM.sec = ""; CM.liked = false; CM.following = false; CM.report = false; CM.msg = "";
     if (mode !== "market") showView("market");
     fillMarket();
     var db = cmDb(); if (!db || !pubId) { if (!CM.list) loadCommunity(); return; }
     var ref = db.collection("community").doc(pubId), fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
     Promise.all([ref.get(), ref.collection("items").get(), user ? ref.collection("likes").doc(user.uid).get().catch(function () { return null; }) : null,
-      user ? user.getIdTokenResult().catch(function () { return null; }) : null]).then(function (r) {
+      user ? user.getIdTokenResult().catch(function () { return null; }) : null,
+      user ? ref.collection("followers").doc(user.uid).get().catch(function () { return null; }) : null]).then(function (r) {
       if (CM.open !== pubId) return;
       if (!r[0].exists) { CM.pub = false; fillMarket(); return; }
       CM.pub = Object.assign({ id: pubId }, r[0].data());
       CM.items = r[1].docs.map(function (d) { return d.data(); });
-      CM.liked = !!(r[2] && r[2].exists); CM.admin = !!(r[3] && r[3].claims && r[3].claims.admin === true);
+      CM.liked = !!(r[2] && r[2].exists); CM.following = !!(r[4] && r[4].exists); CM.admin = !!(r[3] && r[3].claims && r[3].claims.admin === true);
       CM.sec = (CM.pub.sections[0] || {}).id || "";
       fillMarket();
     }, function () { CM.pub = false; fillMarket(); });
@@ -1641,6 +1654,14 @@ body:not(.at-home) .userdock{ display:none; }
     }).then(function (r) { return r.json().catch(function () { return { error: "HTTP " + r.status }; }).then(function (d) { if (!r.ok || d.error) throw new Error(d.error || "HTTP " + r.status); return d; }); });
   }
   function cmCover(url) { return url ? ' style="background-image:url(\'' + escapeHtml(url) + '\')"' : ''; }
+  // 👤 followers · ★ rating (the community's ♥) — on showcase cards, world cards and the world hub
+  var WW_PERSON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.2"/><path d="M3.8 21.5c0-4.7 3.7-8 8.2-8s8.2 3.3 8.2 8z"/></svg>';
+  var WW_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>';
+  function wwStats(f, l) {
+    return '<span class="wwstats"><span title="' + escapeHtml(cmT("Фоловери — стежать у Спільноті", "Followers — following in the Community")) + '">' + WW_PERSON + (f || 0) + '</span>' +
+      '<span title="' + escapeHtml(cmT("Рейтинг — ♥ від спільноти", "Rating — ♥ from the community")) + '">' + WW_STAR + (l || 0) + '</span></span>';
+  }
+  var REL_NAMES = { steam: "Steam", itch: "itch.io", googleplay: "Google Play", appstore: "App Store", epic: "Epic Games", gog: "GOG", web: "Web", other: "↗" };
   function cmCard(p) {
     return '<button class="cm" data-cm="' + escapeHtml(p.id) + '">' +
       '<span class="cm__cover"' + cmCover(p.cover) + '><span class="cm__kind">' + (p.kind === "game" ? cmT("Гра", "Game") : cmT("Світ", "World")) + '</span>' +
@@ -1648,7 +1669,7 @@ body:not(.at-home) .userdock{ display:none; }
       '<span class="cm__b"><span class="cm__title">' + escapeHtml(p.title || "…") + '</span>' +
       '<span class="cm__author">' + escapeHtml(p.author || "") + (p.kind === "game" && p.worldTitle ? ' · ' + escapeHtml(p.worldTitle) : '') + '</span>' +
       (p.tagline ? '<span class="cm__tag">' + escapeHtml(p.tagline) + '</span>' : '') +
-      '<span class="cm__likes">♥ ' + (p.likes || 0) + '</span></span></button>';
+      '<span class="cm__likes">' + wwStats(p.followers, p.likes) + '</span></span></button>';
   }
   function fillMarket() {
     if (!views.market) return;
@@ -1659,13 +1680,29 @@ body:not(.at-home) .userdock{ display:none; }
         '<button class="cm-close" data-cmclose title="' + cmT("Закрити", "Close") + '" aria-label="' + cmT("Закрити спільноту", "Close the community") + '">✕</button></div>';
     };
     if (CM.open) { views.market.innerHTML = top('<button class="cm-chip" data-cmback>← ' + cmT("Усі вітрини", "All showcases") + '</button>' + cmPageBar()) + '<div class="vwrap">' + cmPage() + '</div>'; bindMarket(); return; }
-    var tabs = '<span class="cm-tabs" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")], ["mkt", cmT("⚖ Маркет", "⚖ Market")]].map(function (x) {
+    var tabs = '<span class="cm-tabs" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")], ["games", cmT("🎮 Готові ігри", "🎮 Released games")], ["mkt", cmT("⚖ Маркет", "⚖ Market")]].map(function (x) {
       return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</span><span class="cm-top__div"></span>';
     if (CM.tab === "mkt") {
       views.market.innerHTML = top(tabs + (CM.lot || CM.mview !== "lots" ? '<button class="cm-chip" data-mkback>← ' + cmT("Усі лоти", "All lots") + '</button>' : '') +
         '<button class="cm-chip' + (CM.mview === "deals" ? ' is-on' : '') + '" data-mkview="deals">' + cmT("Мої угоди", "My deals") + '</button>' +
         (CM.admin ? '<button class="cm-chip' + (CM.mview === "queue" ? ' is-on' : '') + '" data-mkview="queue">' + cmT("Модерація", "Moderation") + '</button>' : '')) + '<div class="vwrap">' + mktHtml() + '</div>';
       bindMarket(); bindMkt(views.market); return;
+    }
+    if (CM.tab === "games") {
+      var rel = (CM.list || []).filter(function (p) { return p.kind === "game" && p.hasRelease && (p.releases || []).length; });
+      views.market.innerHTML = top(tabs) + '<div class="vwrap"><h1 class="vhead__t">' + cmT("Ігри, створені з WhiteWrite", "Games made with WhiteWrite") + '</h1>' +
+        '<div class="cm-future"><b>' + cmT("🚧 Майбутня функція — у розробці", "🚧 A future feature — in development") + '</b><p>' + cmT(
+          "Тут буде полиця готових ігор, які автори зібрали у WhiteWrite: від світу й Біблії гри — до релізу в Steam, itch.io, Google Play, App Store чи в браузері. Вже зараз автор може додати посилання на реліз у хабі світу → «Спільнота» → блок гри, і гра зʼявиться тут. Далі — сторінки ігор із трейлерами, «Зроблено з WhiteWrite», підбірки й рейтинг гравців.",
+          "Here will be a shelf of finished games authors built with WhiteWrite: from a world and a game Bible to a release on Steam, itch.io, Google Play, the App Store or in the browser. Already now an author can add release links in the world hub → “Community” → the game block, and the game shows here. Next: game pages with trailers, “Made with WhiteWrite”, collections and player ratings.") +
+          ' <a href="#" data-kbgames>' + cmT("Докладніше", "More") + '</a></p></div>' +
+        (CM.list === null ? '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>'
+          : rel.length ? '<div class="grid grid--mk">' + rel.map(function (p) {
+              return '<div class="cm--rel">' + cmCard(p).replace(/^<button class="cm"/, '<button class="cm cm--in"') +
+                '<span class="cm-rel">' + p.releases.map(function (r) { return '<a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(REL_NAMES[r.kind] || "↗") + '</a>'; }).join("") + '</span></div>'; }).join("") + '</div>'
+          : '<p class="vhead__s">' + cmT("Поки жодна гра не позначила реліз. Твоя може бути першою!", "No game has marked a release yet. Yours can be the first!") + '</p>') + '</div>';
+      bindMarket();
+      var kg = views.market.querySelector("[data-kbgames]"); if (kg) kg.onclick = function (e) { e.preventDefault(); fillKb(); showView("kb"); openArticle("games-shelf"); };
+      return;
     }
     if (CM.tab === "collab") {
       var roles = '<select class="cm-sel" data-cbrole aria-label="' + cmT("Роль", "Role") + '"><option value="">' + cmT("Будь-яка роль", "Any role") + '</option>' +
@@ -1697,8 +1734,9 @@ body:not(.at-home) .userdock{ display:none; }
     return (p.sections.length ? '<span class="cm-top__div"></span><span class="cm-tabs" role="tablist">' + p.sections.map(function (x) {
         return '<button role="tab" class="cm-chip' + (x.id === CM.sec ? ' is-on' : '') + '" aria-selected="' + (x.id === CM.sec) + '" data-cmsec="' + escapeHtml(x.id) + '">' + escapeHtml(x.label) + (x.n ? ' · ' + x.n : '') + '</button>'; }).join("") + '</span>' : '') +
       '<span class="cm-top__div"></span>' +
-      (mine ? '<span class="cm-likes">♥ ' + (p.likes || 0) + '</span>'
-        : '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
+      (mine ? wwStats(p.followers, p.likes)
+        : '<button class="cm-like cm-follow' + (CM.following ? ' is-on' : '') + '" data-cmfollow aria-pressed="' + CM.following + '">' + WW_PERSON + (CM.following ? cmT("Стежу", "Following") : cmT("Стежити", "Follow")) + ' · ' + (p.followers || 0) + '</button>' +
+          '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
       (p.discord ? '<a class="cm-discord" href="' + escapeHtml(p.discord) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
       (mine ? '' : '<button class="cm-chip" data-cmreport>' + cmT("Поскаржитися", "Report") + '</button>') +
       (CM.admin ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
@@ -1948,12 +1986,17 @@ body:not(.at-home) .userdock{ display:none; }
       CM.tab = b.dataset.cmtab; fillMarket();
       if (CM.tab === "collab") { loadCollab(); if (!CM.list) loadCommunity(); }
       if (CM.tab === "mkt") { CM.lot = null; CM.mview = "lots"; loadLots(); }
+      if (CM.tab === "games" && !CM.list) loadCommunity();
     }; });
     if (CM.tab === "collab" && !CM.open) bindCollab(v);
     var q = function (sel) { return v.querySelector(sel); };
     if (q("[data-cmback]")) q("[data-cmback]").onclick = function () { CM.open = null; fillMarket(); loadCommunity(); };
     if (q("[data-cmclose]")) q("[data-cmclose]").onclick = function () { CM.open = null; showHome(); };
     if (q("[data-cbrole]")) q("[data-cbrole]").onchange = function () { CM.cbRole = this.value; fillMarket(); };
+    if (q("[data-cmfollow]")) q("[data-cmfollow]").onclick = function () {
+      var on = !CM.following;
+      cmCall({ action: "follow", pubId: CM.open, on: on }).then(function (r) { CM.following = on; CM.pub.followers = r.followers; fillMarket(); }, function (er) { if (er.message !== "auth") { CM.msg = er.message; fillMarket(); } });
+    };
     if (q("[data-cmlike]")) q("[data-cmlike]").onclick = function () {
       var on = !CM.liked;
       cmCall({ action: "like", pubId: CM.open, on: on }).then(function (r) { CM.liked = on; CM.pub.likes = r.likes; fillMarket(); }, function (er) { if (er.message !== "auth") { CM.msg = er.message; fillMarket(); } });

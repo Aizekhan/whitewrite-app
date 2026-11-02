@@ -310,6 +310,10 @@ service cloud.firestore {
         allow read: if isAuthenticated() && request.auth.uid == uid;
         allow write: if false;
       }
+      match /followers/{uid} {
+        allow read: if isAuthenticated() && request.auth.uid == uid;
+        allow write: if false;
+      }
     }
     // «Співтворці» (unpaid co-creation): one «I offer myself» and one «I am looking for people» post per user,
     // written by its owner; `hidden` and `reports` change only on the server (functions/src/community.js)

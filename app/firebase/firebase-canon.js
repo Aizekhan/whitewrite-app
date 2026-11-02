@@ -145,7 +145,12 @@ window.__firebaseCanon = {
     const [snap, shared] = await Promise.all([db.collection('worlds').where('owner', '==', uid).get(),
       db.collection('worlds').where('teamUids', 'array-contains', uid).get().catch(() => ({ docs: [] }))]); // Команда: worlds of friends who added you
     const ts = (w) => (w.updatedAt && w.updatedAt.toMillis ? w.updatedAt.toMillis() : 0);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => ts(b) - ts(a))
+    const stats = {}; // 👤 followers · ★ ♥ of the owner's showcases (community/{pubId}), summed per world
+    await db.collection('community').where('owner', '==', uid).get().then((cs) => cs.docs.forEach((d) => {
+      const w = stats[d.get('worldId')] || (stats[d.get('worldId')] = { f: 0, l: 0 });
+      w.f += d.get('followers') || 0; w.l += d.get('likes') || 0;
+    })).catch(() => {});
+    return snap.docs.map((d) => ({ id: d.id, ...d.data(), stats: stats[d.id] || { f: 0, l: 0 } })).sort((a, b) => ts(b) - ts(a))
       .concat(shared.docs.map((d) => ({ id: d.id, ...d.data(), shared: true })).sort((a, b) => ts(b) - ts(a)));
   },
 

@@ -8,6 +8,8 @@
 //       likes, score, reports, hidden, promotedUntil?, publishedAt, updatedAt, activeAt }
 //   community/{pubId}/items/{i} { sec, group, title, blocks[{l,t}], imgs[] }
 //   community/{pubId}/likes/{uid} { at } — one ♥ per signed-in user; the owner reads their own
+//   community/{pubId}/followers/{uid} { at } — «стежити» (v2.44): one per signed-in user, counter `followers`; the follower reads their own
+//   + on a game showcase: releases[{kind, url}] + hasRelease — links to the released game (Спільнота → «🎮 Готові ігри», a future feature)
 //   community_reports/{pubId}__{uid} { pubId, uid, title, reason, at, resolved } — admins read
 //   community_home/current      { top[], pool[], at } — the home page cards (public read)
 //   + on the showcase: discord (an invite link), lookingForTeam, teamNote — «🤝 Шукає команду»
@@ -27,6 +29,9 @@ const LIMITS = { items: 600, blocks: 30, block: 12000, imgs: 8, sections: 60, fa
 // only files of our own Storage bucket are shown (download URLs with a token)
 // a Discord server invite: discord.gg/<code> or discord.com/invite/<code>
 const okDiscord = (u) => typeof u === 'string' && /^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(u.trim());
+// a released game: a store page or a web build (https only)
+const RELEASE_KINDS = ['steam', 'itch', 'googleplay', 'appstore', 'epic', 'gog', 'web', 'other'];
+const okRelease = (r) => r && RELEASE_KINDS.indexOf(r.kind) >= 0 && typeof r.url === 'string' && /^https:\/\/[^\s]{4,500}$/.test(r.url.trim());
 const okImg = (u) => typeof u === 'string' && /^https:\/\/firebasestorage\.googleapis\.com\//.test(u) && u.length < 2000;
 
 function cleanItem(it, secIds) {
@@ -63,7 +68,7 @@ async function lastActivity(d) {
   return Math.max(...at);
 }
 
-const homeCard = (id, d) => ({ id, kind: d.kind, title: d.title || '', tagline: d.tagline || '', cover: d.cover || '', author: d.author || '', likes: d.likes || 0, worldTitle: d.worldTitle || '', team: !!d.lookingForTeam });
+const homeCard = (id, d) => ({ id, kind: d.kind, title: d.title || '', tagline: d.tagline || '', cover: d.cover || '', author: d.author || '', likes: d.likes || 0, followers: d.followers || 0, worldTitle: d.worldTitle || '', team: !!d.lookingForTeam });
 
 // rank the showcases and rebuild the home page cards
 async function rebuildHome() {
@@ -73,7 +78,7 @@ async function rebuildHome() {
   for (const doc of snap.docs) {
     const d = doc.data();
     const act = await lastActivity(d);
-    if (act === null) { await deleteSub(doc.ref, 'items'); await deleteSub(doc.ref, 'likes'); await doc.ref.delete(); continue; } // world or game deleted
+    if (act === null) { await deleteSub(doc.ref, 'items'); await deleteSub(doc.ref, 'likes'); await deleteSub(doc.ref, 'followers'); await doc.ref.delete(); continue; } // world or game deleted
     const likes = await doc.ref.collection('likes').where('at', '>', admin.firestore.Timestamp.fromMillis(now - 12 * HALF_LIFE)).get();
     const score = likes.docs.reduce((s, l) => s + Math.pow(0.5, (now - l.get('at').toMillis()) / HALF_LIFE), 0);
     const activeAt = Math.max(act, d.activeAt && d.activeAt.toMillis ? d.activeAt.toMillis() : 0);
@@ -136,9 +141,11 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           rules: (Array.isArray(body.rules) ? body.rules : []).slice(0, LIMITS.rules).map((r) => str(r, 600)).filter(Boolean),
           discord: okDiscord(body.discord) ? body.discord.trim() : '',
           lookingForTeam: body.lookingForTeam === true, teamNote: body.lookingForTeam === true ? str(body.teamNote, 600) : '',
+          releases: gameId ? (Array.isArray(body.releases) ? body.releases : []).filter(okRelease).slice(0, 6).map((r) => ({ kind: r.kind, url: r.url.trim() })) : [],
           sections, updatedAt: ts(), activeAt: ts(),
         };
-        if (!prev.exists) Object.assign(doc, { likes: 0, score: 0, reports: 0, hidden: false, publishedAt: ts() });
+        doc.hasRelease = doc.releases.length > 0;
+        if (!prev.exists) Object.assign(doc, { likes: 0, followers: 0, score: 0, reports: 0, hidden: false, publishedAt: ts() });
         await deleteSub(ref, 'items');
         await ref.set(doc, { merge: true });
         for (let i = 0; i < items.length; i += 400) {
@@ -161,7 +168,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
 
       if (action === 'unpublish') {
         if (d.owner !== uid && !isAdmin) return res.status(403).json({ error: 'Немає доступу' });
-        await deleteSub(ref, 'items'); await deleteSub(ref, 'likes'); await ref.delete();
+        await deleteSub(ref, 'items'); await deleteSub(ref, 'likes'); await deleteSub(ref, 'followers'); await ref.delete();
         await rebuildHome().catch((e) => console.error('[community] home rebuild failed:', e));
         return res.status(200).json({ success: true });
       }
@@ -178,6 +185,20 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           return n;
         });
         return res.status(200).json({ success: true, likes, liked: on });
+      }
+      if (action === 'follow') { // «стежити» за світом чи грою — the followers count on cards, the world hub and the Bible
+        if (d.hidden) return res.status(404).json({ error: 'Публікацію не знайдено' });
+        if (d.owner === uid) return res.status(400).json({ error: 'За своїм не стежать', code: 'OWN' });
+        const on = body.on !== false, fRef = ref.collection('followers').doc(uid);
+        const followers = await db.runTransaction(async (t) => {
+          const [f, cur] = await Promise.all([t.get(fRef), t.get(ref)]);
+          let n = cur.get('followers') || 0;
+          if (on && !f.exists) { t.set(fRef, { at: admin.firestore.Timestamp.now() }); n++; }
+          if (!on && f.exists) { t.delete(fRef); n = Math.max(0, n - 1); }
+          t.update(ref, { followers: n });
+          return n;
+        });
+        return res.status(200).json({ success: true, followers, following: on });
       }
       if (action === 'report') {
         const reason = str(body.reason, 1000);

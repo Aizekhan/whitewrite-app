@@ -87,7 +87,7 @@ function HomeCommunity({ t }) {
       {c.team ? <span className="hcomm__team">🤝 {t('hero.commTeam')}</span> : null}
       <span className="hcomm__t">{c.title}</span>
       {c.tagline ? <span className="hcomm__tag">{c.tagline}</span> : null}
-      <span className="hcomm__by">{t('hero.commBy')} {c.author}{c.likes ? ' · ♥ ' + c.likes : ''}</span>
+      <span className="hcomm__by">{t('hero.commBy')} {c.author}{c.followers ? ' · 👤 ' + c.followers : ''}{c.likes ? ' · ★ ' + c.likes : ''}</span>
     </button>
   );
   return (
