@@ -818,7 +818,7 @@ body:not(.at-home) .userdock{ display:none; }
   var inWork = false;      // are we inside a narrative?
   var suppressWorkUntil = 0; // ignore stale "work" pings right after going home
   var frames = {}, loaded = {};
-  var hist = [], _back = false;
+  var hist = [], _back = false, storyFormWorld = null;
   function histPush() {
     if (mode == null || _back) return; // going back never records the screen it leaves (else ✕ loops back into it)
     var key = mode + "|" + inWork;
@@ -852,7 +852,7 @@ body:not(.at-home) .userdock{ display:none; }
     if (col) col.style.display = (inWork && mode === "book") ? "grid" : "none";
     if (!(inWork && mode === "book")) document.querySelector(".rail").classList.remove("is-collapsed");
     document.body.classList.toggle("at-home", mode === "home" || mode == null); // White.html CSS: avatar on home only, phones drop the top menu elsewhere
-    document.body.classList.toggle("in-work", inWork);
+    document.body.classList.toggle("in-work", inWork || mode === "create"); // phones keep the rail in a story and its form
     railItems.innerHTML = ""; railFoot.innerHTML = "";
     if (inWork) {
       if (CURRENT_WORLD) railItems.appendChild(railBtn("bible", t('worlds.bible'), PILLARS.bible.icon, false, showBible)); // back to the World Bible, as it was left
@@ -861,6 +861,7 @@ body:not(.at-home) .userdock{ display:none; }
         railItems.appendChild(railBtn(p, getPillarLabel(p), PILLARS[p].icon, mode === p, function () { showPillar(p); }));
       });
     } else {
+      if (mode === "create" && storyFormWorld && storyFormWorld === CURRENT_WORLD) railItems.appendChild(railBtn("bible", t('worlds.bible'), PILLARS.bible.icon, false, showBible)); // back from a new story's form
       Object.keys(SECTIONS).forEach(function (s) {
         if (s === "worlds") return; // Світи live on the home page; the logo leads home
         if (s === "market" && !window.__features?.marketplace) return; // Marketplace coming soon
@@ -913,6 +914,7 @@ body:not(.at-home) .userdock{ display:none; }
     histPush();
     // Don't set inWork=true if opening creation form (new=1) — wait for iframe to notify
     var isNewProject = query && (query.indexOf("new=1") >= 0 || query.indexOf("newWorld=1") >= 0);
+    storyFormWorld = isNewProject && query.indexOf("new=1") >= 0 && query.indexOf("worldId=") >= 0 ? CURRENT_WORLD : null; // a story's form knows its world
     if (!isNewProject) {
       inWork = true; mode = p;
     }
@@ -1231,6 +1233,7 @@ body:not(.at-home) .userdock{ display:none; }
     // the book tells the shell whether the reader is on the cover (home) or inside a story (work)
     if (d.type === "ww-mode") {
       if (d.mode === "work") { if (Date.now() < suppressWorkUntil) return; inWork = true; mode = "book"; renderRail(); }
+      else if (d.mode === "create") { inWork = false; mode = "create"; renderRail(); } // a story / world form: «Біблія світу» leads back
       else { inWork = false; mode = "home"; renderRail(); }
     }
   });

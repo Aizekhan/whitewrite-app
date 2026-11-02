@@ -458,7 +458,8 @@ function App() {
   // so the side rail can switch between global sections and the pillars.
   React.useEffect(() => {
     if (window.self === window.top) return;
-    try { window.parent.postMessage({ type: "ww-mode", mode: stage === "book" ? "work" : "home" }, window.location.origin); } catch (e) {}
+    // "create": a story / world form — not the cover, so the shell keeps the way back to the World Bible
+    try { window.parent.postMessage({ type: "ww-mode", mode: stage === "book" ? "work" : stage === "start" ? "home" : "create" }, window.location.origin); } catch (e) {}
   }, [stage]);
 
   // Shell logo → return to the mage cover even if we navigated internally.

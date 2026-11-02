@@ -287,6 +287,12 @@ h2.group .btn.mini{ margin-left:10px; padding:2px 10px; font:500 12.5px "Inter";
 .rvopt i{ font:400 12px "Inter"; color:var(--tx-mid); font-style:normal; }
 .card.story .who-row{ display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 6px; }
 .card.story select{ max-width:190px; }
+.card.story .stags{ flex-wrap:wrap; gap:6px; align-items:center; }
+.gtag{ position:relative; cursor:pointer; }
+.gtag input{ position:absolute; opacity:0; pointer-events:none; }
+.gtag span{ display:inline-block; font:600 11.5px "Inter"; padding:3px 10px; border-radius:999px; border:1px solid var(--line-2); color:var(--tx-mid); }
+.gtag input:checked + span{ color:#1c1308; border-color:transparent; background:linear-gradient(180deg,#f0d398,#c9a24b); }
+.gtag input:focus-visible + span{ outline:2px solid var(--gold-lit); outline-offset:2px; }
 /* moving cards: a subsection menu in the card head, and drag & drop between places and subsections */
 #e-sub,#d-sub{ max-width:260px; } #e-sub[hidden],#d-sub[hidden]{ display:none; }
 body.is-dragging, body.is-dragging *{ cursor:grabbing !important; user-select:none; }
@@ -321,7 +327,8 @@ h2.group .btn.mini.ghost:hover{ color:var(--tx); }
 .comet:hover .head,.comet:focus-visible .head{ filter:brightness(1.25) drop-shadow(0 0 8px var(--gold-bright)); }
 .comet .who{ position:absolute; left:-12px; top:-12px; }
 .comet .who .av{ width:24px; height:24px; font-size:11px; border-color:var(--gold-lit); }
-.comet .lbl{ position:absolute; left:-80px; width:160px; top:16px; text-align:center; display:grid; line-height:1.25; pointer-events:none; }
+.comet .lbl{ position:absolute; left:-80px; width:160px; top:16px; text-align:center; display:grid; line-height:1.25; } /* the name opens the event too */
+.comet .head::after{ content:""; position:absolute; inset:-12px; border-radius:50%; } /* a finger-sized target on phones */
 .comet .lbl b{ font:600 13px "Cinzel",serif; color:var(--tx-hi); text-shadow:0 1px 4px #000; overflow-wrap:anywhere; }
 .comet .lbl i{ font-style:normal; font-size:11.5px; color:var(--gold-lit); }
 .av{ display:inline-grid; place-items:center; width:22px; height:22px; border-radius:50%; object-fit:cover; flex:none; background:var(--bg-3);

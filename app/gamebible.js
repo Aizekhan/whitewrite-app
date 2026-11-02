@@ -29,6 +29,7 @@
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
       chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
+        scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
         at: "Початок (число на лінії часу)", dur: "Тривалість (0 — мить)", when: "Підпис часу", whenPh: "напр. «Весна 340 р.»", who: "Учасники", noChars: "У каноні ще немає персонажів." },
@@ -67,7 +68,7 @@
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.",
-        general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія",
+        general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія", rename: "Перейменувати підрозділ",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
@@ -229,6 +230,7 @@
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
       chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
+        scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
         at: "Start (a number on the time line)", dur: "Duration (0 — a moment)", when: "Time label", whenPh: "e.g. “Spring of 340”", who: "Participants", noChars: "No characters in the canon yet." },
@@ -266,7 +268,7 @@
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.",
-        general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story",
+        general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story", rename: "Rename the subsection",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
@@ -560,7 +562,7 @@
     about: { uk: "Інтерактивний гейм-диздок і точний план розробки, складені з канону та всієї біблії гри.", en: "An interactive game design doc and a precise development plan built from the canon and the whole game bible." } };
   var ISSUES = { id: "issues", special: "issues", uk: "Неузгоджене", en: "Inconsistencies" };
   var CANON_ISSUES = { id: "canonIssues", special: "canonIssues", uk: "Неузгоджене", en: "Inconsistencies" };
-  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Історія і хроніка", en: "History & chronicle",
+  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Історії і хроніка", en: "Stories & chronicle",
     about: { uk: "Події світу на лінії часу та історії, що в ньому написані.", en: "The world's events on the time line, and the stories written in it." } };
   // Culture lives in worlds/{w}/lore (not entity kinds: the Universe tree, extraction and scenes know exactly five)
   var CULTURE = { id: "culture", special: "culture", uk: "Культура", en: "Culture",
@@ -684,6 +686,7 @@
       var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
       return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
         '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' +
+        (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
         (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
     var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
@@ -822,6 +825,18 @@
     });
   }
   function dropSubsection(g) { var s = sec(section); saveSubs(s, subsOf(s).filter(function (x) { return x !== g; })); }
+  // ✎ a subsection of canon entities (a chronicle's time line, a dossier group): the list and every entity's group move together
+  function renameSubsection(g) {
+    var s = sec(section), kind = s.special === "chronicle" ? "events" : s.dossier;
+    askName(STR.sub.rename, g, function (name) {
+      if (!name || name === g) return;
+      var list = subsOf(s), i = list.indexOf(g);
+      if (i >= 0) list[i] = name; else if (list.indexOf(name) < 0) list.push(name);
+      var batch = db.batch();
+      entities.filter(function (e) { return e.kind === kind && e.group === g; }).forEach(function (e) { batch.update(wref().collection("entities").doc(e.id), { group: name, updatedAt: stamp() }); });
+      Promise.all([saveSubs(s, list.filter(function (x, j) { return list.indexOf(x) === j; })), batch.commit()]).catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); });
+    }, g);
+  }
   // «＋ Додати» under a subheading: a card, a dossier, an event or a culture entry born in that subsection
   function addIn(g) {
     var s = sec(section);
@@ -2040,7 +2055,7 @@
     if (e.target.id === "d-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); }
   });
 
-  // ---------- Історія і хроніка: events as comets over the time line (tail = duration, a star = a moment), stories of the world ----------
+  // ---------- Історії і хроніка: events as comets over the time line (tail = duration, a star = a moment), stories of the world ----------
   // ---------- stories of the world (projects with worldId), live; each may be about canon entities and has a reveal mark ----------
   var stories = []; // projects/{p} { title, subjects: [entityId], reveal: open|later|internal, revealNote }
   var REVEALS = ["open", "later", "internal"];
@@ -2137,6 +2152,11 @@
         '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><div class="row"><select data-reveal="' + esc(p.id) + '" aria-label="' + esc(STR.story.revealAria) + '">' +
         REVEALS.map(function (r) { return '<option value="' + r + '"' + ((p.reveal || "open") === r ? " selected" : "") + '>' + esc(STR.story.reveals[r]) + '</option>'; }).join("") + '</select>' +
         '<span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>' +
+        // tags: world-wide or local; which games of the world it belongs to (projects/{p}.scope, .games)
+        '<div class="row stags"><select data-scope="' + esc(p.id) + '" aria-label="' + esc(STR.chron.scopeAria) + '">' + ["world", "local"].map(function (k) {
+          return '<option value="' + k + '"' + ((p.scope || "world") === k ? " selected" : "") + '>' + esc(STR.chron.scopes[k]) + '</option>'; }).join("") + '</select>' +
+        (games.length ? '<span class="muted" title="' + esc(STR.chron.gamesHint) + '">' + STR.chron.gamesLabel + '</span>' + games.map(function (g) {
+          return '<label class="gtag"><input type="checkbox" data-sgame="' + esc(p.id) + '" value="' + esc(g.id) + '"' + ((p.games || []).indexOf(g.id) >= 0 ? " checked" : "") + '><span>' + esc(g.title || "…") + '</span></label>'; }).join("") : '') + '</div>' +
         '<div class="row">' + bulbHtml("story", p.id) + quests.filter(function (q) { return q.source && q.source.id === p.id; }).map(function (q) {
           return '<button class="dlink" data-qd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + '</button>'; }).join("") + '</div></div>';
     }).join("") + '</div>' : '<p class="muted">' + STR.chron.noStories + '</p>';
@@ -4267,6 +4287,10 @@
   $("view").addEventListener("change", function (e) {
     var rv = e.target.closest("[data-reveal]");
     if (rv) db.collection("projects").doc(rv.dataset.reveal).update({ reveal: rv.value, updatedAt: stamp() });
+    var sc = e.target.closest("[data-scope]");
+    if (sc) db.collection("projects").doc(sc.dataset.scope).update({ scope: sc.value, updatedAt: stamp() });
+    var sg = e.target.closest("[data-sgame]");
+    if (sg) db.collection("projects").doc(sg.dataset.sgame).update({ updatedAt: stamp(), games: [].filter.call(document.querySelectorAll('[data-sgame="' + sg.dataset.sgame + '"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) });
   });
   // the shell brings the author back to an entity («Біблія світу» from the book)
   window.addEventListener("message", function (ev) {
@@ -4314,6 +4338,7 @@
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
     var sd = e.target.closest("[data-subdel]"); if (sd) { dropSubsection(sd.dataset.subdel); return; }
+    var sr = e.target.closest("[data-subren]"); if (sr) { renameSubsection(sr.dataset.subren); return; }
     var spl = e.target.closest("[data-subpal]"); if (spl) { groupPalDialog(spl.dataset.subpal); return; }
     var dl = e.target.closest("[data-lore]"); if (dl) { openDossier(lore.filter(function (x) { return x.id === dl.dataset.lore; })[0]); return; }
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
@@ -4390,7 +4415,7 @@
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
   });
   // A small dialog in the service's style instead of the browser's prompt(); done(name) gets "" on cancel.
-  function askName(title, ph, done) {
+  function askName(title, ph, done, value) {
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3>' +
@@ -4398,6 +4423,7 @@
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.create + '</button></div></form>';
     document.body.appendChild(box);
     var input = box.querySelector("input");
+    if (value) { input.value = value; box.querySelector("#ask-ok").textContent = STR.save; }
     function finish(v) { box.remove(); done(v); }
     box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); var v = input.value.trim(); if (v) finish(v); else input.focus(); };
     box.querySelector("#ask-x").onclick = function () { finish(""); };
