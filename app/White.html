@@ -948,13 +948,13 @@ body.at-home .back-fab{ display:none; }
   var inWork = false;      // are we inside a narrative?
   var suppressWorkUntil = 0; // ignore stale "work" pings right after going home
   var frames = {}, loaded = {};
-  var hist = [], _back = false, storyFormWorld = null, shown = null;
+  var hist = [], _back = false, storyFormWorld = null, shown = null, bibleSec = null, bibleExpect = null; // bibleSec: the Bible's open section (its own steps for «Назад»)
   // «Назад» (the round ↶ bottom-left, off the home page): a screen is remembered as it was SHOWN (with its world), so
   // changing the world before the switch never rewrites it; clicking the screen you are on records nothing new, and going
   // back skips every entry equal to the current screen — the step back is the first DIFFERENT screen behind it.
   function here() {
-    var w = mode === "narr" || mode === "bible" || inWork ? CURRENT_WORLD || "" : "";
-    return { key: mode + "|" + inWork + "|" + w, mode: mode, inWork: inWork, world: CURRENT_WORLD };
+    var w = mode === "narr" || mode === "bible" || inWork ? CURRENT_WORLD || "" : "", sec = mode === "bible" && !inWork ? bibleSec || "" : "";
+    return { key: mode + "|" + inWork + "|" + w + "|" + sec, mode: mode, inWork: inWork, world: CURRENT_WORLD, sec: sec };
   }
   function histPush() {
     if (mode == null || _back || !shown) return; // going back never records the screen it leaves (else ✕ loops back into it)
@@ -973,7 +973,7 @@ body.at-home .back-fab{ display:none; }
     _back = true;
     if (s && s.world !== undefined && (s.mode === "narr" || s.mode === "bible" || s.inWork)) CURRENT_WORLD = s.world;
     if (!s) showHome();
-    else if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else if (s.mode === "bible") showBible(); else showView(s.mode);
+    else if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else if (s.mode === "bible") backToBible(s.sec); else showView(s.mode);
     _back = false; updateBack();
   }
 
@@ -1203,6 +1203,15 @@ body.at-home .back-fab{ display:none; }
     var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-focus", ent: ent }, location.origin); } catch (e) {} };
     if (f.getAttribute("src") !== before) f.addEventListener("load", send, { once: true }); else send(); // a (re)loading Bible gets it once it has loaded
   }
+  // «Назад» into the Bible: open it and its remembered section (the section change it reports back is not a new step)
+  function backToBible(sec) {
+    var f0 = frames.bible, target = PILLARS.bible.src + "?embed=1&worldId=" + encodeURIComponent(CURRENT_WORLD);
+    var reload = !f0 || f0.getAttribute("src") !== target;
+    if (sec && reload) try { sessionStorage.setItem("ww-bible-sec-" + CURRENT_WORLD, sec); } catch (e) {} // a reloading Bible opens on it
+    showBible(); if (!sec) return;
+    bibleExpect = sec; bibleSec = sec; shown = here(); updateBack();
+    if (!reload) try { frames.bible.contentWindow.postMessage({ type: "ww-bible-section", section: sec }, location.origin); } catch (e) {}
+  }
   // the World Bible on «Історії і хроніка» — the only home of the world's stories (the hub has none)
   function openChronicle() {
     var before = frames.bible && frames.bible.getAttribute("src");
@@ -1217,7 +1226,7 @@ body.at-home .back-fab{ display:none; }
     inWork = false; mode = "bible";
     var f = ensureFrame("bible");
     var target = PILLARS.bible.src + "?embed=1&worldId=" + encodeURIComponent(CURRENT_WORLD);
-    if (f.getAttribute("src") !== target) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; }
+    if (f.getAttribute("src") !== target) { f.__loader && f.__loader.classList.add("is-on"); f.src = target; bibleSec = null; } // another world: its first section is no step back
     loaded.bible = true;
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "bible"); });
@@ -1352,6 +1361,14 @@ body.at-home .back-fab{ display:none; }
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
+    // the Bible switched its section: the section left becomes a step of «Назад» (a freshly loaded Bible's first section is not)
+    if (d.type === "ww-bible-at" && d.section) {
+      if (mode !== "bible" || inWork || d.worldId !== CURRENT_WORLD) return;
+      if (bibleExpect) { var ex = bibleExpect; bibleExpect = null; if (ex === d.section) return; }
+      if (bibleSec && bibleSec !== d.section) histPush();
+      bibleSec = d.section; shown = here(); updateBack();
+      return;
+    }
     if (d.type === "ww-story-saved") { Promise.resolve(loadProjects()).then(function () { if (CURRENT_WORLD) openChronicle(); else showView("worlds"); }); return; } // book → «Зберегти історію» → the World Bible's «Історії і хроніка»
     // World Bible → «Історії і хроніка» → a story's ✎ / 🗑: the shell's story form and delete confirmation
     if ((d.type === "ww-edit-story" || d.type === "ww-delete-story") && d.projectId) {

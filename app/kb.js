@@ -131,7 +131,7 @@
           ["p", "«Спільнота» (вітрини світів та ігор інших авторів) відкривається лише з головної — кнопкою «✦ Спільнота — усі світи й ігри» або з карток «Вибір спільноти» / «Відкрий нового автора»; усі її кнопки — на плашці вгорі, ✕ повертає на головну. Аватар і меню акаунта — у лівому нижньому куті головної. Логотип завжди повертає на головну, «Назад» — на попередній екран."],
           ["p", "В історії меню починається з «Біблія світу»: перейшов у Біблію — і повернувся в ту саму сцену; відкрите досьє теж лишається відкритим."],
           ["p", "Кнопка «?» внизу праворуч відкриває цю Базу знань, «🐞» — форму відгуку."],
-          ["p", "Кругла кнопка ↶ внизу ліворуч — «Назад», на попередній екран (світ, Біблію, Акаунт, Спільноту…). Повторні натискання на той самий екран не рахуються — «Назад» завжди веде на інший екран. На головній кнопки немає: там у цьому куті твій акаунт."],
+          ["p", "Кругла кнопка ↶ внизу ліворуч — «Назад», на попередній екран (світ, Біблію, Акаунт, Спільноту…). У Біблії світу «Назад» іде по розділах, які ти відкривав (Персонажі → Закони → Огляд…), і лише з першого — на екран до Біблії. Повторні натискання на той самий екран не рахуються — «Назад» завжди веде на інший екран. На головній кнопки немає: там у цьому куті твій акаунт."],
         ] },
 
       // ── РОБОТА З ШІ-АГЕНТОМ ──────────────────────────────────────────
@@ -1074,7 +1074,7 @@
           ["p", "“Community” (showcases of other authors' worlds and games) opens from the home page only — with “✦ Community — all worlds & games” or from the “Community pick” / “Discover a new author” cards; all its buttons sit on the bar at the top, ✕ returns home. The avatar and the account menu sit in the bottom-left corner of the home page. The logo always leads home, “Back” to the previous screen."],
           ["p", "In a story the menu starts with “World Bible”: go to the Bible and come back to the same scene; an open dossier stays open too."],
           ["p", "The “?” button at the bottom right opens this Knowledge Base, “🐞” — the feedback form."],
-          ["p", "The round ↶ button at the bottom left is “Back” — to the previous screen (a world, the Bible, the Account, the Community…). Clicking the screen you are on again does not count — “Back” always leads to a different screen. The home page has no such button: your account sits in that corner."],
+          ["p", "The round ↶ button at the bottom left is “Back” — to the previous screen (a world, the Bible, the Account, the Community…). In the World Bible “Back” steps through the sections you opened (Characters → Laws → Overview…) and only from the first one leaves to the screen before the Bible. Clicking the screen you are on again does not count — “Back” always leads to a different screen. The home page has no such button: your account sits in that corner."],
         ] },
 
       // ── WORKING WITH THE AGENT ───────────────────────────────────────

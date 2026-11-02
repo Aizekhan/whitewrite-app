@@ -1096,8 +1096,10 @@
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
 
+  var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
+    if (section !== toldSec) { toldSec = section; tellShell({ type: "ww-bible-at", worldId: worldId, section: section }); }
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
