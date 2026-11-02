@@ -16,6 +16,7 @@
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
       frameTip: "Кадр на картці: яку частину видно або вся картинка",
+      sm: { ok: "у стилі", mid: "частково в стилі", bad: "вибивається зі стилю", na: "не вдалося прочитати картинку", by: "за кольором, у браузері", ai: "ШІ-перевірка — скоро" },
       comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити публікацію».",
         world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n}", hidden: "Приховано модератором після скарги — у спільноті не видно.",
         tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
@@ -226,6 +227,7 @@
     en: {
       brand: "World Bible", engine: "Game engine",
       frameTip: "Frame on the card: which part shows, or the whole picture",
+      sm: { ok: "fits the style", mid: "partly in style", bad: "off-style", na: "could not read the picture", by: "by colour, in the browser", ai: "AI check — coming soon" },
       comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the publication”.",
         world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n}", hidden: "Hidden by a moderator after a report — not shown in the community.",
         tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
@@ -551,6 +553,14 @@
       defs: [F("group", "Група", "Group"), F("what", "Що відбувається", "What happens"), F("location", "Локація", "Location"), F("mood", "Настрій і світло", "Mood & light"),
              F("palette", "Палітра кольорів", "Colour palette", "palette"), F("board", "Мініпостановка сцени", "Scene mock-up", "scene"),
              F("camera", "Камера й кадр", "Camera & framing"), F("refs", "Референси", "References", "image")] },
+    { id: "artstyle", uk: "Візуальний стиль", en: "Visual style", group: "group",
+      groups: { uk: ["Загальний стиль", "Біоми й локації"], en: ["Overall style", "Biomes & locations"] },
+      about: { uk: "Стиль гри: загальний і для кожного біома. Палітра стилю перевіряє всі картинки гри — значок 🖌 на картці показує, чи вона в стилі. Біом підбирається сам: за назвою картки, її підрозділом чи локацією зі списку «Локації й рівні біома».",
+               en: "The game's style: overall and for each biome. The style palette checks every picture in the game — the 🖌 badge on a card shows whether it fits. The biome is picked automatically: by the card's title, its subsection or location from the biome's «Locations & levels» list." },
+      defs: [F("group", "Група", "Group"), F("manifesto", "Маніфест стилю", "Style manifesto"), F("palette", "Палітра стилю", "Style palette", "palette"),
+             F("avoid", "Заборонені кольори", "Colours to avoid", "palette"), F("light", "Світло й настрій", "Light & mood"), F("materials", "Матеріали й текстури", "Materials & textures"),
+             F("shapes", "Форми й силует", "Shapes & silhouette"), F("budget", "Бюджет полігонів і текстур", "Polygon & texture budget"), F("rules", "Так / ні", "Do / don't"),
+             F("places", "Локації й рівні біома", "The biome's locations & levels"), F("refs", "Референси стилю", "Style references", "image")] },
     { id: "refs", uk: "Референси", en: "References", group: "group",
       groups: { uk: ["Візуал", "Геймплей", "Звук", "UI"], en: ["Visuals", "Gameplay", "Sound", "UI"] },
       about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
@@ -649,7 +659,7 @@
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
-    { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["assets", "materials", "animation", "audio", "ui"] },
+    { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["artstyle", "assets", "materials", "animation", "audio", "ui"] },
     { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
     "custom",
     { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues", "activity"] },
@@ -989,6 +999,7 @@
     var img = (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var lc = worstLic(c.files); if (lc) tags.push(lc);
+    if (img) tags.push(styleMark(img.url, c));
     var model = (c.files || []).filter(is3D)[0];
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
@@ -2292,6 +2303,88 @@
       return out.map(function (c) { return "#" + [c.r, c.g, c.b].map(function (x) { return ("0" + Math.round(x).toString(16)).slice(-2); }).join(""); });
     });
   }
+  // ---------- Visual style (section «artstyle»): the overall style + biomes; a colour check of every game picture ----------
+  // A biome card lists its locations / levels in «places» (one per line): a card whose title, subsection or «location»
+  // field matches a line takes that biome's style, else the overall one. Palette — the biome's if set, else the overall;
+  // colours to avoid add up. Stage 1: free, by colour, in the browser (Lab ΔE to the nearest style colour); AI check later.
+  var styleScores = {}, styleReg = {}, styleBusy = {};
+  try { styleScores = JSON.parse(localStorage.getItem("ww-style-scores") || "{}") || {}; } catch (e) { styleScores = {}; }
+  function styleFor(c) {
+    if (!c || !c.section || c.section === "artstyle") return null;
+    var st = cards.filter(function (x) { return x.section === "artstyle"; }), g0 = sec("artstyle").groups || { uk: [], en: [] };
+    if (!st.length) return null;
+    var low = function (v) { return String(v || "").replace(/^[\s\-*•·]+/, "").trim().toLowerCase(); }, fl = function (x) { return (x && x.fields) || {}; };
+    var overall = st.filter(function (x) { var g = fl(x).group || ""; return !g || g === g0.uk[0] || g === g0.en[0]; })[0];
+    var f = c.fields || {}, names = [c.title, f[groupKey(sec(c.section))], f.location].map(low).filter(Boolean);
+    var biome = st.filter(function (x) { return x !== overall && String(fl(x).places || "").split("\n").some(function (l) { l = low(l); return l && names.indexOf(l) >= 0; }); })[0];
+    var bp = parsePal(fl(biome).palette), op = parsePal(fl(overall).palette);
+    var pal = (bp.length ? bp : op).map(function (x) { return x.hex; });
+    if (!pal.length) return null;
+    var avoid = parsePal(fl(overall).avoid).concat(parsePal(fl(biome).avoid)).map(function (x) { return x.hex; });
+    var name = (biome || overall || {}).title || L(sec("artstyle")), raw = pal.join(",") + "/" + avoid.join(","), h = 5381;
+    for (var i = 0; i < raw.length; i++) h = ((h << 5) + h + raw.charCodeAt(i)) | 0;
+    return { name: name, pal: pal, avoid: avoid, sig: (h >>> 0).toString(36) };
+  }
+  function toLab(r, g, b) {
+    var t = [r, g, b].map(function (v) { v /= 255; return v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92; });
+    var x = (t[0] * 0.4124 + t[1] * 0.3576 + t[2] * 0.1805) / 0.95047, y = t[0] * 0.2126 + t[1] * 0.7152 + t[2] * 0.0722, z = (t[0] * 0.0193 + t[1] * 0.1192 + t[2] * 0.9505) / 1.08883;
+    var q = function (v) { return v > 0.008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116; };
+    return [116 * q(y) - 16, 500 * (q(x) - q(y)), 200 * (q(y) - q(z))];
+  }
+  function hexLab(h) { return toLab(parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)); }
+  function dE(a, b) { return Math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) + (a[2] - b[2]) * (a[2] - b[2])); }
+  function nearest(p, list) { var m = Infinity; for (var i = 0; i < list.length; i++) m = Math.min(m, dE(p, list[i])); return m; }
+  // 0…100: the share of pixels near a style colour (ΔE < 20 counts fully, fading out by 40) minus a penalty for colours
+  // to avoid; near-black and near-white pixels (shadows, highlights) do not count. null — the picture could not be read.
+  function styleScore(url, st) {
+    return new Promise(function (ok) {
+      var img = new Image(); img.crossOrigin = "anonymous";
+      img.onload = function () {
+        try {
+          var c = document.createElement("canvas"), k = 48 / Math.max(img.width, img.height, 1); c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+          var x = c.getContext("2d"); x.drawImage(img, 0, 0, c.width, c.height);
+          var d = x.getImageData(0, 0, c.width, c.height).data, P = st.pal.map(hexLab), A = st.avoid.map(hexLab), n = 0, inn = 0, bad = 0;
+          for (var i = 0; i < d.length; i += 4) {
+            if (d[i + 3] < 128) continue;
+            var p = toLab(d[i], d[i + 1], d[i + 2]); if (p[0] < 8 || p[0] > 95) continue;
+            n++;
+            var m = nearest(p, P); inn += m < 20 ? 1 : m < 40 ? (40 - m) / 20 : 0;
+            if (A.length && nearest(p, A) < 18) bad++;
+          }
+          ok(n < 20 ? null : Math.max(0, Math.min(100, Math.round(100 * inn / n - 150 * bad / n))));
+        } catch (e) { ok(null); }
+      };
+      img.onerror = function () { ok(null); }; img.src = url;
+    });
+  }
+  function smarkLv(v) { return v == null ? "na" : v >= 70 ? "ok" : v >= 40 ? "mid" : "bad"; }
+  function smarkTip(v, st) { var S = STR.sm; return st.name + " · " + (v == null ? S.na : S[smarkLv(v)] + " " + v + "%") + " · " + S.by + " · " + S.ai; }
+  // «🖌 87» on a picture of a game card; "" when the game has no style palette (or the card is a style card itself)
+  function styleMark(url, c) {
+    var st = url && styleFor(c); if (!st) return "";
+    styleReg[st.sig] = st;
+    var k = st.sig + "|" + url, has = Object.prototype.hasOwnProperty.call(styleScores, k), v = styleScores[k];
+    return '<span class="smark" data-smark="' + esc(url) + '" data-ss="' + st.sig + '"' + (has ? ' data-lv="' + smarkLv(v) + '" title="' + esc(smarkTip(v, st)) + '"' : '') + '>🖌' + (has ? " " + (v == null ? "?" : v) : "") + '</span>';
+  }
+  function fillStyleMarks() {
+    [].forEach.call(document.querySelectorAll(".smark:not([data-lv])"), function (el) {
+      var url = el.dataset.smark, st = styleReg[el.dataset.ss]; if (!st) return;
+      var k = st.sig + "|" + url;
+      (styleBusy[k] || (styleBusy[k] = styleScore(url, st).then(function (v) {
+        styleScores[k] = v;
+        var ks = Object.keys(styleScores); if (ks.length > 600) ks.slice(0, ks.length - 600).forEach(function (x) { delete styleScores[x]; });
+        try { localStorage.setItem("ww-style-scores", JSON.stringify(styleScores)); } catch (e) {}
+        return v;
+      }))).then(function (v) {
+        [].forEach.call(document.querySelectorAll('.smark[data-ss="' + st.sig + '"]:not([data-lv])'), function (m) {
+          if (m.dataset.smark !== url) return;
+          m.dataset.lv = smarkLv(v); m.title = smarkTip(v, st); m.textContent = "🖌 " + (v == null ? "?" : v);
+        });
+      });
+    });
+  }
+  var smarkTimer = 0;
+  new MutationObserver(function () { if (!smarkTimer) smarkTimer = setTimeout(function () { smarkTimer = 0; fillStyleMarks(); }, 150); }).observe(document.documentElement, { childList: true, subtree: true });
   // A palette editor inside el; change(text) on every edit. imgs() → image urls for «З картинок».
   function palEditor(el, v, change, imgs) {
     var list = parsePal(v), P = STR.pal;
@@ -2467,7 +2560,7 @@
   function fieldFilesHtml(key, type) {
     var files = (open.files || []).filter(function (f) { return f.field === key; });
     var list = type === "image"
-      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' +
+      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open) +
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
@@ -2632,7 +2725,7 @@
   function fileRow(f) {
       return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
         '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
-        (isAsset(f) ? licChip(f, open.files, "data-lic") : '') +
+        (isAsset(f) ? licChip(f, open.files, "data-lic") : '') + (isImage(f) ? styleMark(f.url, open) : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (isImage(f) ? (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') : '') +
         (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
