@@ -63,6 +63,7 @@
           ["p", "Імпорт і звірка з репозиторієм — частина Біблії гри (тариф Worldbuilder). Чому Біблія гри замінює гейм-диздок — <a class=\"art__link\" data-art=\"gdd\">окрема стаття</a>."],
           ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб: картка «Біблія світу» (канон та ігри) і історії світу."],
           ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево. Та сама обкладинка відкриває «Огляд світу» в Біблії — над гаслом і описом."],
+          ["p", "На плашці вгорі «Огляду світу» — назва світу великим фентезійним шрифтом по центру. Власник світу бачить ✎ при наведенні: змінити назву або поставити замість неї картинку назви (логотип, PNG з прозорим тлом найкраще) і повзунком підібрати її розмір на плашці."],
           ["tip", "Кілька історій можуть жити в одному світі й ділити канон. Новий персонаж з однієї історії доступний в іншій і в грі."],
         ] },
       { cat: "start", id: "community", icon: "compass", title: "🌍 Спільнота: просування, однодумці й команда — безкоштовно",
@@ -569,6 +570,7 @@
         min: 3,
         body: [
           ["p", "Статуси: ідея · погоджено · в роботі · в грі · замінити. Олівець у кутку картки вмикає режим полів: перейменувати, змінити тип (текст, таблиця, зображення, файл, палітра кольорів, мініпостановка сцени), видалити чи додати поле. Перше зображення стає фасадом картки (16:9); ⌖ біля картинки — «Кадр на картці»: перетягни, яку частину видно, або «Показати повністю»."],
+          ["p", "Відкрита картка спершу читається: курсор у назву ставиться лише в новій картці. Файли й картинки додаються одразу, навіть у новій картці — вона збережеться сама перед першим завантаженням. У «Референсах» картка коротка: спершу «＋ Додати картинки», далі «Що беремо» і «Посилання»; нотатка й загальні файли зʼявляються, коли в них щось є."],
           ["p", "«Модель / префаб» і «Модель / іконка» — файлові поля. Файли (до 200 МБ) лежать у сховищі; 3D-моделі відкриваються кнопкою «🧊 3D» прямо в браузері."],
           ["p", "Агент бачить картки, поля й посилання на файли через MCP."],
         ] },
@@ -914,6 +916,7 @@
           ["p", "The import and the repository check are part of the Game Bible (the Worldbuilder plan). Why the Game Bible replaces a game design document — <a class=\"art__link\" data-art=\"gdd\">a separate article</a>."],
           ["p", "“Choose your world” — your worlds. An open world is its hub: the “World Bible” card (canon and games) and the world's stories."],
           ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree. The same cover opens the “World overview” in the Bible — above the tagline and description."],
+          ["p", "The bar on top of the “World overview” carries the world name in a large fantasy font, centred. The world owner sees ✎ on hover: change the name or put a title image (a logo; a PNG with a transparent background works best) in its place and size it on the bar with a slider."],
           ["tip", "Several stories can live in one world and share the canon. A new character from one story is there for another and for the game."],
         ] },
       { cat: "start", id: "community", icon: "compass", title: "🌍 Community: promotion, like-minded people and a team — free",
@@ -1420,6 +1423,7 @@
         min: 3,
         body: [
           ["p", "Statuses: idea · agreed · in progress · in game · replace. The pencil in the card's corner turns on field mode: rename, change the type (text, table, image, file, colour palette, scene mock-up), delete or add a field. The first image becomes the card face (16:9); ⌖ next to a picture is “Frame on the card”: drag which part shows, or “Show it whole”."],
+          ["p", "An opened card is read first: the cursor goes into the title only in a new card. Files and pictures are added at once, even in a new card — it saves itself before the first upload. In “References” a card is short: “＋ Add pictures” first, then “What we take” and “Link”; the note and the general files show once they hold something."],
           ["p", "“Model / prefab” and “Model / icon” are file fields. Files (up to 200 MB) are kept in storage; 3D models open with “🧊 3D” right in the browser."],
           ["p", "The agent sees cards, fields and file links over MCP."],
         ] },

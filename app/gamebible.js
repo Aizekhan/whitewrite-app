@@ -62,6 +62,7 @@
           artifacts: [["story", "Походження", "Хто й навіщо створив, через чиї руки пройшов, яку має силу…"], ["look", "Вигляд", "Матеріал, розмір, знаки, як відчувається в руці…"]],
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settings: "Налаштування проєкту", settingsAbout: "Підключення Claude Code, назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
+      wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Розмір на плашці", uploading: "Завантажую…" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
       stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
@@ -132,7 +133,7 @@
       importApply: "Додати відмічене", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
-      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли", filesSaveFirst: "Спершу збережи картку — тоді можна додати файли.",
+      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
       uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
       v3d: { shot: "📷 Знімок для стилю", shotTip: "Зберегти цей ракурс картинкою на картці — її перевірить стиль гри", shotDone: "Знімок збережено на картці", open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
@@ -274,6 +275,7 @@
           artifacts: [["story", "Origin", "Who made it and why, whose hands it passed through, what power it has…"], ["look", "Look", "Material, size, markings, how it feels in the hand…"]],
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settings: "Project settings", settingsAbout: "Connecting Claude Code, names, engine, import and export, safe deletion.", gameLabel: "Game:",
+      wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Size on the bar", uploading: "Uploading…" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
       stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
@@ -344,7 +346,7 @@
       importApply: "Add ticked items", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
-      files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files", filesSaveFirst: "Save the card first — then you can add files.",
+      files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
       uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
       v3d: { shot: "📷 Snapshot for the style", shotTip: "Save this view as a picture on the card — the game style will check it", shotDone: "Snapshot saved on the card", open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
@@ -568,7 +570,7 @@
     { id: "refs", uk: "Референси", en: "References", group: "group",
       groups: { uk: ["Візуал", "Геймплей", "Звук", "UI"], en: ["Visuals", "Gameplay", "Sound", "UI"] },
       about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
-      defs: [F("group", "Група", "Group"), F("what", "Що беремо", "What we take"), F("avoid", "Чого уникаємо", "What we avoid"), F("link", "Посилання", "Link")] },
+      defs: [F("group", "Група", "Group"), F("pics", "Картинки", "Pictures", "image"), F("what", "Що беремо", "What we take"), F("link", "Посилання", "Link")] },
     { id: "tech", uk: "Технічне", en: "Technical", group: "group",
       groups: { uk: ["Рушій і збірка", "Платформи", "Перформанс", "Сейви", "Мультиплеєр", "Інструменти"], en: ["Engine & build", "Platforms", "Performance", "Saves", "Multiplayer", "Tools"] },
       about: { uk: "Рушій, платформи, збірка, перформанс, сейви, мультиплеєр, інструменти.", en: "Engine, platforms, build, performance, saves, multiplayer, tools." },
@@ -1126,9 +1128,62 @@
       : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
       : '<img src="' + esc(c.url) + '"' + st + ' alt="">') + '</div>';
   }
+  // «Огляд світу»: the bar on top carries the world's NAME (Cinzel, centred) or its title image — worlds/{w}.titleArt { url, path, h }
+  // (Storage worlds/{w}/cover/). Only the world's owner sees ✎, and only on hover.
+  function worldNameHtml() {
+    var ta = world.titleArt, me = firebase.auth().currentUser, own = !!(me && world.owner === me.uid);
+    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(world.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(world.title || "") + '</span>') +
+      (own ? '<button class="wname__ed" type="button" data-wname title="' + esc(STR.wname.edit) + '" aria-label="' + esc(STR.wname.edit) + '">✎</button>' : '') + '</h1>';
+  }
+  function editWorldName() {
+    var W = STR.wname, ta = Object.assign({ h: 72 }, world.titleArt || {}), up = null, old = world.titleArt && world.titleArt.path;
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(W.edit) + '"><h3>' + esc(W.edit) + '</h3>' +
+      '<label class="field"><span>' + W.title + '</span><input id="wn-t" value="' + esc(world.title || "") + '"></label>' +
+      '<div class="field"><span>' + W.art + '</span><p class="hint">' + W.artHint + '</p><div class="wn-prev" id="wn-prev"></div>' +
+      '<div class="row"><label class="btn"><input type="file" accept="image/*" hidden id="wn-f">' + W.artPick + '</label><button type="button" class="btn ghost" id="wn-del">' + W.artDel + '</button></div>' +
+      '<label class="field" id="wn-sz"><span>' + W.size + ' · <b id="wn-h"></b></span><input type="range" min="28" max="110" step="2" id="wn-r"></label></div>' +
+      '<p class="muted" id="wn-msg"></p><div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.save + '</button></div></form>';
+    document.body.appendChild(box);
+    var q = function (id) { return box.querySelector("#" + id); };
+    var draw = function () {
+      q("wn-prev").innerHTML = ta.url ? '<img src="' + esc(ta.url) + '" alt="" style="height:' + ta.h + 'px">' : '<span class="wn-font">' + esc(q("wn-t").value || "…") + '</span>';
+      q("wn-del").hidden = !ta.url; q("wn-sz").hidden = !ta.url; q("wn-r").value = ta.h; q("wn-h").textContent = ta.h + " px";
+      var live = document.querySelector(".wname img"); if (live && ta.url) { live.src = ta.url; live.style.height = ta.h + "px"; } // the bar shows the size as you drag
+    };
+    var close = function () { box.remove(); if (up && up.path !== old) firebase.storage().ref(up.path).delete().catch(function () {}); render(); };
+    q("wn-t").oninput = draw;
+    q("wn-r").oninput = function () { ta.h = Number(this.value); draw(); };
+    q("wn-del").onclick = function () { ta = { h: ta.h }; draw(); };
+    q("wn-f").onchange = async function (ev) {
+      var f = ev.target.files && ev.target.files[0]; ev.target.value = ""; if (!f) return;
+      if (!/^image\//.test(f.type) || f.size > 10 * 1024 * 1024) { q("wn-msg").textContent = W.artHint; return; }
+      q("wn-msg").textContent = W.uploading;
+      try {
+        if (up) firebase.storage().ref(up.path).delete().catch(function () {});
+        var path = "worlds/" + worldId + "/cover/title_" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+        var task = await firebase.storage().ref(path).put(f, { contentType: f.type });
+        up = { path: path, url: await task.ref.getDownloadURL() }; ta = { url: up.url, path: path, h: ta.h }; q("wn-msg").textContent = ""; draw();
+      } catch (e) { q("wn-msg").textContent = STR.failed + ": " + (e.code || e.message || e); }
+    };
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault();
+      var t = q("wn-t").value.trim(); if (!t) return q("wn-t").focus();
+      var body = { title: t, titleArt: ta.url ? { url: ta.url, path: ta.path, h: ta.h } : firebase.firestore.FieldValue.delete(), updatedAt: stamp() };
+      try {
+        await wref().set(body, { merge: true });
+        if (old && old !== ta.path) firebase.storage().ref(old).delete().catch(function () {});
+        up = null; if (t !== world.title) tellShell({ type: "ww-worlds-changed" });
+        box.remove();
+      } catch (e) { q("wn-msg").textContent = STR.failed + ": " + (e.code || e.message || e); }
+    };
+    q("ask-x").onclick = close;
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    draw(); q("wn-t").focus();
+  }
   function renderWorld(s) {
     var d = wd(s.id);
-    $("view").innerHTML = worldCoverHtml() + '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
+    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + worldNameHtml() + '<p>' + esc(L(s.about)) + '</p></div></header>' +
       '<div class="canonbox wedit"><h4>' + STR.worldCanon + '</h4>' +
       '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag" value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
       '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum" rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +
@@ -1392,7 +1447,7 @@
     $("d-title").value = ddraft.name;
     renderDossier(); dosSubs(); dmsg("");
     $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
-    $("d-title").focus();
+    (e.isNew && !ddraft.name ? $("d-title") : $("dos")).focus({ preventScroll: true });
   }
   function dcollect() {
     if (!ddraft) return;
@@ -2249,6 +2304,8 @@
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
+    if (c.section === "refs" && !draft.defs.some(function (d) { return d.type === "image"; })) // older reference cards get the pictures field too
+      draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "pics", label: LANG === "en" ? "Pictures" : "Картинки", type: "image" });
     setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
@@ -2257,7 +2314,7 @@
     $("e-delete").style.display = c.isNew ? "none" : "";
     renderFields(); cardSubs(); msg("");
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
-    $("e-title").focus();
+    (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
   }
 
   function fieldHtml(key, label, value, extra) {
@@ -2265,15 +2322,17 @@
       (value ? md(value) : STR.blank) + '</div></div>';
   }
   function renderFields() {
-    var html = '<div class="field note"><label for="f-note">' + STR.note + ' <span class="hint">' + STR.noteHint + '</span></label>' +
+    // «Референси» stay lean: the pictures first; the note and the general files block only once they hold something
+    var lean = open.section === "refs" && draft.defs.some(function (d) { return d.type === "image"; });
+    var html = lean && !draft.note ? '' : '<div class="field note"><label for="f-note">' + STR.note + ' <span class="hint">' + STR.noteHint + '</span></label>' +
       '<textarea id="f-note" data-key="__note" rows="2" placeholder="' + esc(STR.notePh) + '">' + esc(draft.note) + '</textarea></div>';
-    html += filesHtml();
+    if (!lean || (open.files || []).some(function (f) { return !f.field; })) html += filesHtml();
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
     if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + qdLinksHtml({ id: open.src === "canon" ? open.id : "c:" + open.id }) + '</div>';
-    html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
+    if (!lean || editMode) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
     mountFieldEditors();
@@ -2641,8 +2700,7 @@
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
-    var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
-      : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : STR.filesAdd) + '</label>';
+    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup=""' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : STR.filesAdd) + '</label>';
     return '<div class="field files">' + list + add + '</div>';
   }
   function setEditMode(on) {
@@ -2811,11 +2869,11 @@
   }
   function filesHtml() {
     var list = (open.files || []).filter(function (f) { return !f.field; }).map(fileRow).join("");
-    var add = !canWrite ? "" : open.isNew ? '<p class="muted">' + STR.filesSaveFirst + '</p>'
-      : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
+    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
     return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + STR.filesHint + '</span></label>' + list + add + '</div>';
   }
   async function uploadFiles(list, field) {
+    if (open && open.isNew) { await save(true); if (open.isNew) return; } // a new card: save it first, then the files go straight on it
     var card = open, done = 0;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
@@ -2879,7 +2937,8 @@
     $("leaf").classList.remove("open"); $("leaf").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
   }
 
-  async function save() {
+  // stay: write the card but keep it open (a new card is saved before its first upload)
+  async function save(stay) {
     if (!open) return;
     [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
     draft.title = $("e-title").value.trim() || open.title || STR.newCard;
@@ -2908,6 +2967,7 @@
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
+      if (stay === true) { open.isNew = false; open.title = draft.title; $("e-delete").style.display = ""; msg(""); return; }
       closeLeaf();
     } catch (e) {
       msg(STR.failed + ": " + (e.code || e.message || e));
@@ -4609,6 +4669,7 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
+    if (e.target.closest("[data-wname]")) return editWorldName();
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
