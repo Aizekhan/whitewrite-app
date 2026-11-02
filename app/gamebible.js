@@ -109,7 +109,7 @@
         gEdit: "Редагувати назву гри", gTitle: "Назва гри", cover: "Обкладинка гри", coverEdit: "Змінити обкладинку гри", coverHint: "Картинка до 10 МБ або відео MP4 / WebM до 50 МБ — грає по колу без звуку.",
         coverPick: "＋ Завантажити", coverDel: "Прибрати", frame: "⌖ Кадр", coverType: "Підходять картинки та відео MP4 / WebM.", coverBig: "Завеликий файл: ≤ {n} МБ" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
-      stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
+      stImport: "Імпорт нотаток (.md)", stDraft: "✦ Чернетка GDD з опису", draftQ: "Опиши гру кількома реченнями", draftPh: "Жанр, що робить гравець, яке відчуття, на кого з канону спирається, платформа… Напр.: «Рогалик у руїнах Північного лісу: Елара шукає артефакт, бої короткі й швидкі, ПК».", draftGo: "Скласти чернетку", draftIntro: "Перевір чернетку ШІ. У канон і картки потрапить лише відмічене; питання — рішення, які варто ухвалити далі.", draftHint: "Немає нотаток — опиши задум, і ШІ складе першу версію GDD на каноні світу: огляд, цикл, механіки, ворогів, рівні, арт і звук. Ти відмітиш, що взяти.", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
       stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
       stSections: "Власні розділи гри", stNoSections: "Власних розділів немає. Стандартні розділи не видаляються.",
       stDanger: "Небезпечна зона", stDelGame: "Видалити гру", stDelWorld: "Видалити світ",
@@ -225,7 +225,7 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
+      ops: { draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
@@ -369,7 +369,7 @@
         gEdit: "Edit the game title", gTitle: "Game title", cover: "Game cover", coverEdit: "Change the game cover", coverHint: "An image up to 10 MB or an MP4 / WebM video up to 50 MB — loops silently.",
         coverPick: "＋ Upload", coverDel: "Remove", frame: "⌖ Frame", coverType: "Images and MP4 / WebM videos only.", coverBig: "The file is too big: ≤ {n} MB" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
-      stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
+      stImport: "Import notes (.md)", stDraft: "✦ GDD draft from a description", draftQ: "Describe the game in a few sentences", draftPh: "Genre, what the player does, the feeling, who from the canon it builds on, platform… E.g. “A roguelike in the ruins of the Northern Forest: Elara hunts an artifact, fights are short and fast, PC”.", draftGo: "Write the draft", draftIntro: "Check the AI draft. Only what you tick goes into the canon and cards; the questions are decisions worth making next.", draftHint: "No notes — describe the idea and AI writes the first GDD on the world canon: overview, loop, mechanics, enemies, levels, art and sound. You tick what to take.", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
       stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
       stSections: "Custom game sections", stNoSections: "No custom sections. Standard sections cannot be deleted.",
       stDanger: "Danger zone", stDelGame: "Delete game", stDelWorld: "Delete world",
@@ -485,7 +485,7 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
+      ops: { draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
@@ -4607,8 +4607,8 @@
         (newKey ? '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
         '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
         (canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>'],
-      [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
-        '<button class="btn" data-gosec="plan">' + R.toPlan + '</button><span class="muted">' + (planDoc.plan ? R.planYes : R.planNo) + '</span></div><p class="hint">' + STR.stImportHint + '</p>'],
+      [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn' + (planDoc.plan || cards.length > 2 ? '' : ' primary') + '" id="st-draft">' + STR.stDraft + costMark("draft") + '</button><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
+        '<button class="btn" data-gosec="plan">' + R.toPlan + '</button><span class="muted">' + (planDoc.plan ? R.planYes : R.planNo) + '</span></div><p class="hint">' + STR.draftHint + ' ' + STR.stImportHint + '</p>'],
       [6, R.first, !!envDoc, "agent-first", '<p class="hint">' + R.firstHint + '</p>' + guideHtml("setup") + envHtml()],
       [7, R.log, actSessions.length > 0, "agent-activity", '<p class="hint">' + R.logHint + '</p>' +
         (logMd ? '<pre hidden>' + esc(logMd.markdown) + '</pre><button class="btn' + (actSessions.length ? '' : ' primary') + '" data-copy>' + R.logCopy + '</button>' + // copy at once; the long text only on demand
@@ -4662,7 +4662,7 @@
     }
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
-    if (canDev) { $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); }; bindRepo(); bindLaunch(); }
+    if (canDev) { $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); }
     else bindDevLock();
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = function () {
@@ -5325,16 +5325,28 @@
       var text = String(rd.result || "");
       closeLeaf();
       if (text.length > 100000) { imp = { error: STR.importTooBig }; return render(); }
-      imp = { busy: true }; render();
-      try { var data = await callFn({ op: "import", markdown: text, shelves: shelves() }); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {} }; }
-      catch (e) { imp = { error: e.message }; }
-      render();
+      runImport({ op: "import", markdown: text });
     };
     rd.readAsText(file);
   }
+  // the proposal view (renderImport) for an import or a draft: AI answers, the author ticks
+  async function runImport(body) {
+    var draft = body.op === "draft";
+    imp = { busy: true, draft: draft }; render();
+    try { var data = await callFn(Object.assign({ shelves: shelves() }, body)); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {}, draft: draft }; }
+    catch (e) { imp = { error: e.message, draft: draft }; }
+    render();
+  }
+  // «✦ Чернетка GDD з опису»: the author's idea → the same proposal (gamedevPlan op:draft)
+  function startDraft() {
+    askName(STR.draftQ, STR.draftPh, function (idea) {
+      if (!idea) return;
+      confirmCost("draft", function () { closeLeaf(); runImport({ op: "draft", idea: idea }); });
+    }, "", { long: true, ok: STR.draftGo });
+  }
 
   function renderImport() {
-    var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : STR.importIntro) : "") + '</p></div>' +
+    var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
       '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
     if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
@@ -6009,17 +6021,18 @@
     var s = e.target.closest(".shown"); if (s && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); editField(s.dataset.edit); }
   });
   // A small dialog in the service's style instead of the browser's prompt(); done(name) gets "" on cancel.
-  // opts: { ok: the button's label, optional: an empty answer is fine — then cancel gives null }
+  // opts: { ok: the button's label, optional: an empty answer is fine — then cancel gives null, long: a textarea }
   function askText(title, opts) { return new Promise(function (r) { askName(title, "", r, "", opts); }); } // the same, awaited
   function askName(title, ph, done, value, opts) {
     opts = opts || {};
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3>' +
-      '<input id="ask-in" autocomplete="off" placeholder="' + esc(ph) + '">' +
+      (opts.long ? '<textarea id="ask-in" placeholder="' + esc(ph) + '"></textarea>' : '<input id="ask-in" autocomplete="off" placeholder="' + esc(ph) + '">') +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.create + '</button></div></form>';
     document.body.appendChild(box);
-    var input = box.querySelector("input");
+    if (opts.long) box.querySelector("form").classList.add("is-long");
+    var input = box.querySelector("#ask-in");
     if (value) { input.value = value; box.querySelector("#ask-ok").textContent = STR.save; }
     if (opts.ok) box.querySelector("#ask-ok").textContent = opts.ok;
     var none = opts.optional ? null : "";

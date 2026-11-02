@@ -29,6 +29,7 @@ const { modelFor, withFallback } = require('./claude');
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;
 const MAX_IMPORT_CHARS = 100000;
+const MAX_IDEA_CHARS = 6000; // «✦ Чернетка GDD з опису»
 const CANON_KINDS = ['characters', 'locations', 'factions', 'artifacts'];
 
 const ENGINE_PROFILES = {
@@ -275,6 +276,36 @@ Write ALL text in ${languageName} unless quoting the notes. Return ONLY valid JS
 {"laws":[""],"canon":[{"kind":"characters","name":"","description":"","match":"","gameFields":{}}],"cards":[{"section":"mechanics","title":"","fields":{}}],"contradictions":[{"what":"","where":""}],"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"important"}]}`;
 }
 
+// «✦ Чернетка GDD з опису»: a few sentences of the author's idea → a first GDD proposal on the shelves (the same shape as an import:
+// the author ticks what to take). Unlike the import, it designs — but builds on the canon and invents as little canon as it can.
+function draftPrompt(idea, shelves, entities, world, languageName, cards) {
+  const shelfText = shelves.map((s) => `- ${s.id} (${s.kind === 'canon' ? `CANON ${s.canonKind}` : 'game'}): ${s.name}${s.fields.length ? ` — fields: ${s.fields.join(' | ')}` : ''}${s.groups.length ? ` — subheadings (put the fitting one into the first field): ${s.groups.join(' | ')}` : ''}`).join('\n');
+  const known = entities.filter((e) => CANON_KINDS.includes(e.kind)).map((e) => `- ${e.id} [${e.kind}] ${e.name || ''}: ${str(e.desc || e.description, 200)}`).join('\n');
+  return `You are the lead game designer of WhiteWrite. The author described the game they want in a few words. Draft the first version of its game design document on the shelves below — concrete and playable, a proposal the author will tick through, not a final contract.
+
+SHELVES:
+${shelfText}
+
+Rules:
+- Build the game ON the world canon below. Use its characters, locations, factions and artifacts (put each one the game uses in "canon" with "match" = its id and the game's role / numbers / abilities in gameFields). Add a NEW canon entity only when the game truly needs one the canon lacks — few, clearly named.
+- "cards" (section = a game shelf id, title, fields {"<field label>": "value"}, use the shelf's field labels): one overview card (pitch, genre, audience, platform, 3-4 design pillars, what makes it itself), the core loop, 3-6 key mechanics with numbers to start from, progression, enemies and bosses, levels / world structure, items, art direction, audio direction, UI. Only the shelves that fit this game. Short, specific values; markdown lists are fine.
+- No new world laws unless the idea states them ("laws" may stay empty). No contradictions section unless the idea contradicts the canon.
+- questions: the 5-10 most important decisions the idea leaves open (topic, question, why, 2-4 options, priority blocker|important|nice).
+
+World canon: ${world.title || ''}. ${world.summary || ''}
+Laws: ${(world.rules || []).join(' | ')}
+Canon entities:
+${known || '(none)'}
+Existing game cards (do not duplicate; to extend one, reuse its exact title and section):
+${cards.filter((c) => !c.canonRef).map((c) => `- [${c.section}] ${c.title || ''}`).join('\n') || '(none)'}
+
+THE AUTHOR'S IDEA:
+${idea}
+
+Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown fence:
+{"laws":[],"canon":[{"kind":"characters","name":"","description":"","match":"","gameFields":{}}],"cards":[{"section":"overview","title":"","fields":{}}],"contradictions":[],"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"important"}]}`;
+}
+
 function analyzePrompt(bible, engine, answered, languageName) {
   return `You are the lead game designer and producer of WhiteWrite. Below is the world canon and the Game Bible of one game built on it: structured cards written by the author. Canon cards ([e:...]) are shared with the world's stories and other games; their game fields belong to this game only.
 
@@ -505,7 +536,7 @@ function cleanShelves(a) {
 
 /**
  * Cloud Function: gamedevPlan
- * Input (POST JSON): { worldId, gameId, op: 'import' | 'analyze' | 'plan' | 'canonAudit' | 'repoConnect' | 'repoDisconnect' | 'repoSync', language?, markdown?, shelves?, repo?, branch?, token? }
+ * Input (POST JSON): { worldId, gameId, op: 'import' | 'draft' | 'analyze' | 'plan' | 'canonAudit' | 'repoConnect' | 'repoDisconnect' | 'repoSync', language?, markdown?, idea?, shelves?, repo?, branch?, token? }
  * Output: { success, tokensConsumed, tokensRemaining, proposal? } — analyze/plan write worlds/{w}/games/{g}/plan/current
  */
 exports.gamedevPlan = onRequest({
@@ -530,7 +561,7 @@ exports.gamedevPlan = onRequest({
 
       const body = req.body || {};
       uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
-      const op = oneOf(body.op, ['import', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
+      const op = oneOf(body.op, ['import', 'draft', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
       const worldId = str(body.worldId, 120);
       const gameId = str(body.gameId, 120);
@@ -539,6 +570,8 @@ exports.gamedevPlan = onRequest({
       const markdown = String(body.markdown || '');
       if (op === 'import' && !markdown.trim()) return res.status(400).json({ error: 'Порожній файл' });
       if (markdown.length > MAX_IMPORT_CHARS) return res.status(400).json({ error: `Файл завеликий. Максимум: ${MAX_IMPORT_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
+      const idea = str(body.idea, MAX_IDEA_CHARS);
+      if (op === 'draft' && idea.length < 20) return res.status(400).json({ error: 'Опиши гру хоча б одним-двома реченнями', code: 'IDEA_TOO_SHORT' });
 
       const userDoc = await db.collection('users').doc(uid).get();
       const userData = userDoc.exists ? userDoc.data() : {};
@@ -602,6 +635,7 @@ exports.gamedevPlan = onRequest({
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
+        : op === 'draft' ? [draftPrompt(idea, shelves, entities, world, languageName, cards)]
         : op === 'repoSync' ? [repoPrompt(repoData.text, bibleText(world, entities, cards, game, shelves, lore), shelves, languageName, cards)]
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
@@ -609,7 +643,7 @@ exports.gamedevPlan = onRequest({
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      else if (op !== 'import' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      else if (op !== 'import' && op !== 'draft' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       // a model that vanished mid-flight → the whole batch retries on a working one (claude.js withFallback)
       const messages = await withFallback(model, (m) => Promise.all(prompts.map((content) => anthropic.messages.stream({
         model: m,
@@ -628,7 +662,7 @@ exports.gamedevPlan = onRequest({
         const fresh = list(parsed && parsed.contradictions, 15, cleanContradiction);
         await worldRef.set({ audit: { contradictions: mergeContradictions(audit.contradictions, auditAnswers, fresh), at: admin.firestore.FieldValue.serverTimestamp() },
           auditRunning: admin.firestore.FieldValue.delete() }, { merge: true });
-      } else if (op === 'import') {
+      } else if (op === 'import' || op === 'draft') {
         proposal = cleanImport(mergeImports(results), shelves, entities, world);
       } else if (op === 'repoSync') {
         proposal = cleanImport(parsed, shelves, entities, world);
