@@ -307,6 +307,27 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown fence:
 {"laws":[],"canon":[{"kind":"characters","name":"","description":"","match":"","gameFields":{}}],"cards":[{"section":"overview","title":"","fields":{}}],"contradictions":[],"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"important"}]}`;
 }
 
+// «✦ 3 концепти гри»: the world canon (no game yet) → three DIFFERENT game concepts; the author picks one in the new-game form
+// and it becomes the game's name and its «Огляд гри» card. Nothing is stored here.
+const CONCEPT_FIELDS = ['logline', 'genre', 'pillars', 'loop', 'platform', 'players', 'canon', 'why'];
+function conceptsPrompt(canon, hint, languageName) {
+  return `You are a lead game designer. Below is a story world's canon. Propose THREE different games that could be built on it — different genres, scales and player fantasies (e.g. one small and focused, one mid-size, one ambitious), each clearly rooted in this canon, not generic.
+${hint ? `The author's wish: ${hint}\n` : ''}
+For each: title (the game's name), logline (one sentence), genre, pillars (3-4 short lines), loop (the core loop in one or two lines), platform, players (solo / co-op / PvP), canon (which characters, places, factions or events of the canon it builds on), why (what makes it worth making — the hook, in one sentence).
+
+THE WORLD CANON:
+${canon}
+
+Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown fence:
+{"concepts":[{"title":"","logline":"","genre":"","pillars":"","loop":"","platform":"","players":"","canon":"","why":""}]}`;
+}
+const cleanConcept = (c) => {
+  if (!c || !str(c.title, 120)) return null;
+  const out = { title: str(c.title, 120) };
+  CONCEPT_FIELDS.forEach((k) => { out[k] = str(Array.isArray(c[k]) ? c[k].join('\n') : c[k], 1500); });
+  return out;
+};
+
 function analyzePrompt(bible, engine, answered, languageName) {
   return `You are the lead game designer and producer of WhiteWrite. Below is the world canon and the Game Bible of one game built on it: structured cards written by the author. Canon cards ([e:...]) are shared with the world's stories and other games; their game fields belong to this game only.
 
@@ -563,12 +584,13 @@ exports.gamedevPlan = onRequest({
 
       const body = req.body || {};
       uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
-      const op = oneOf(body.op, ['import', 'draft', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
+      const op = oneOf(body.op, ['import', 'draft', 'concepts', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
+      const noGame = isCanon || op === 'concepts'; // «✦ 3 концепти» — before the game exists
       const worldId = str(body.worldId, 120);
       const gameId = str(body.gameId, 120);
       const languageName = LANGUAGES[body.language] || LANGUAGES.uk;
-      if (!worldId || (!isCanon && !gameId)) return res.status(400).json({ error: 'Missing worldId/gameId' });
+      if (!worldId || (!noGame && !gameId)) return res.status(400).json({ error: 'Missing worldId/gameId' });
       const markdown = String(body.markdown || '');
       if (op === 'import' && !markdown.trim()) return res.status(400).json({ error: 'Порожній файл' });
       if (markdown.length > MAX_IMPORT_CHARS) return res.status(400).json({ error: `Файл завеликий. Максимум: ${MAX_IMPORT_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
@@ -590,16 +612,16 @@ exports.gamedevPlan = onRequest({
       }
 
       const worldRef = db.collection('worlds').doc(worldId);
-      const gameRef = isCanon ? null : worldRef.collection('games').doc(gameId);
+      const gameRef = noGame ? null : worldRef.collection('games').doc(gameId);
       gameRefForError = gameRef;
       const none = { exists: false, docs: [] };
       const [worldSnap, gameSnap, entitiesSnap, cardsSnap, planSnap, loreSnap] = await Promise.all([
-        worldRef.get(), isCanon ? none : gameRef.get(), worldRef.collection('entities').get(),
-        isCanon ? none : gameRef.collection('cards').get(), isCanon ? none : gameRef.collection('plan').doc('current').get(), worldRef.collection('lore').get()]);
-      if (!worldSnap.exists || worldSnap.data().owner !== uid || (!isCanon && !gameSnap.exists)) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+        worldRef.get(), noGame ? none : gameRef.get(), worldRef.collection('entities').get(),
+        noGame ? none : gameRef.collection('cards').get(), noGame ? none : gameRef.collection('plan').doc('current').get(), worldRef.collection('lore').get()]);
+      if (!worldSnap.exists || worldSnap.data().owner !== uid || (!noGame && !gameSnap.exists)) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
       if (worldSnap.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
 
-      const world = worldSnap.data(), game = isCanon ? {} : gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
+      const world = worldSnap.data(), game = noGame ? {} : gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
       const entities = entitiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false));
       const lore = loreSnap.docs.map((d) => d.data());
       const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
@@ -637,6 +659,7 @@ exports.gamedevPlan = onRequest({
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
+        : op === 'concepts' ? [conceptsPrompt(bibleText(world, entities, [], {}, [], lore), str(body.hint, 600), languageName)]
         : op === 'draft' ? [draftPrompt(idea, shelves, entities, world, languageName, cards)]
         : op === 'repoSync' ? [repoPrompt(repoData.text, bibleText(world, entities, cards, game, shelves, lore), shelves, languageName, cards)]
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
@@ -645,7 +668,7 @@ exports.gamedevPlan = onRequest({
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      else if (op !== 'import' && op !== 'draft' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      else if (op !== 'import' && op !== 'draft' && op !== 'concepts' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       // a model that vanished mid-flight → the whole batch retries on a working one (claude.js withFallback)
       const messages = await withFallback(model, (m) => Promise.all(prompts.map((content) => anthropic.messages.stream({
         model: m,
@@ -664,6 +687,9 @@ exports.gamedevPlan = onRequest({
         const fresh = list(parsed && parsed.contradictions, 15, cleanContradiction);
         await worldRef.set({ audit: { contradictions: mergeContradictions(audit.contradictions, auditAnswers, fresh), at: admin.firestore.FieldValue.serverTimestamp() },
           auditRunning: admin.firestore.FieldValue.delete() }, { merge: true });
+      } else if (op === 'concepts') {
+        proposal = { concepts: list(parsed && parsed.concepts, 3, cleanConcept) };
+        if (!proposal.concepts.length) throw new Error('AI не дав концептів');
       } else if (op === 'import' || op === 'draft') {
         proposal = cleanImport(mergeImports(results), shelves, entities, world);
       } else if (op === 'repoSync') {

@@ -19,7 +19,7 @@ const CLIENT_ONLY = {
   allowOpus: 'the model choice — the server picks the tier by MODEL_TIERS (claude.js modelTier), checked below',
 };
 // priced ops whose server code passes the op through a variable (gamedev / narrative / experience)
-const VIA_VARIABLE = { import: 'gamedev.js', draft: 'gamedev.js', analyze: 'gamedev.js', plan: 'gamedev.js', repoSync: 'gamedev.js',
+const VIA_VARIABLE = { import: 'gamedev.js', draft: 'gamedev.js', concepts: 'gamedev.js', analyze: 'gamedev.js', plan: 'gamedev.js', repoSync: 'gamedev.js',
   questDraft: 'narrative.js', dialogueDraft: 'narrative.js', canonAudit: 'gamedev.js', expReport: 'experience.js', playtest: 'experience.js' };
 
 let fails = 0;

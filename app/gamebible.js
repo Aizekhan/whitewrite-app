@@ -120,7 +120,7 @@
       stTypeName: "Щоб підтвердити, введи назву: {n}", stDelete: "Видалити назавжди", stDeleting: "Видаляю…",
       stHasStories: "У цьому світі є історії ({n}). Спершу видали або перенеси їх — тоді світ можна буде видалити.", search: "Пошук по канону й грі: назва, опис, примітка…",
       canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
-      createGame: "Створити гру", firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
+      createGame: "Створити гру", firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", conc: { btn: "✦ 3 концепти з канону", hint: "Не знаєш, яку гру робити? ШІ запропонує три різні ігри на цьому каноні; обрана стане назвою і «Оглядом гри».", busy: "ШІ придумує ігри…", pick: "Обрати", picked: "✓ Обрано", canon: "Канон", why: "Чому варто" }, allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
       gameLimit: "На твоєму тарифі — {n} гра. Видали наявну або перейди на Worldbuilder: там ігор скільки завгодно.",
       devLock: { title: "Це — частина Worldbuilder", text: "GDD гри — розділи, картки, механіки, квести й діалоги, стиль, файли до 20 МБ — відкритий на будь-якому тарифі. Продакшн-план, Claude Code (MCP), імпорт і звірка з ШІ, ✦ чернетки, досвід гравців, маркетинг, GitHub, файли до 200 МБ і скільки завгодно ігор — на Worldbuilder." },
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
@@ -226,7 +226,7 @@
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
+      ops: { concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
@@ -383,7 +383,7 @@
       stTypeName: "To confirm, type the name: {n}", stDelete: "Delete forever", stDeleting: "Deleting…",
       stHasStories: "This world has stories ({n}). Delete or move them first — then the world can be deleted.", search: "Search canon and game: title, text, note…",
       canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
-      createGame: "Create game", firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
+      createGame: "Create game", firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", conc: { btn: "✦ 3 concepts from the canon", hint: "Not sure which game to make? AI proposes three different games on this canon; the picked one becomes the name and the “Game overview”.", busy: "AI is coming up with games…", pick: "Pick", picked: "✓ Picked", canon: "Canon", why: "Why make it" }, allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
       gameLimit: "Your plan has {n} game. Delete the one you have or move to Worldbuilder: any number of games there.",
       devLock: { title: "This is part of Worldbuilder", text: "A game's GDD — sections, cards, mechanics, quests and dialogues, style, files up to 20 MB — is open on every plan. The production plan, Claude Code (MCP), AI import and reconciling, ✦ drafts, player experience, marketing, GitHub, files up to 200 MB and any number of games are on Worldbuilder." },
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
@@ -489,7 +489,7 @@
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
+      ops: { concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
@@ -2946,10 +2946,30 @@
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
+      (canDev && canonN ? '<div class="setrow"><button class="btn" id="ng-conc">' + STR.conc.btn + costMark("concepts") + '</button></div><p class="hint" id="ng-chint">' + esc(STR.conc.hint) + '</p><div id="ng-concepts" class="ng-concepts"></div>' : '') +
       (canonN ? '<label class="imp"><input type="checkbox" id="ng-canon" checked><span>' + esc(STR.allCanon.replace("{n}", canonN)) + '</span></label><p class="hint">' + esc(STR.allCanonHint) + '</p>' : '') +
       '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button>' +
       '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p></div>';
     $("ng-title").focus();
+    var concepts = [], picked = null; // «✦ 3 концепти»: gamedevPlan {op:'concepts'} → three cards; the picked one names the game and fills «Огляд гри»
+    var drawConcepts = function () {
+      var C = STR.conc;
+      $("ng-concepts").innerHTML = concepts.map(function (c, i) {
+        return '<article class="ng-concept' + (picked === c ? ' is-on' : '') + '"><h3>' + esc(c.title) + '</h3><p class="muted">' + esc(c.genre) + '</p><p>' + esc(c.logline) + '</p>' +
+          (c.loop ? '<p class="hint">' + esc(c.loop) + '</p>' : '') + (c.canon ? '<p class="hint"><b>' + esc(C.canon) + ':</b> ' + esc(c.canon) + '</p>' : '') +
+          (c.why ? '<p class="hint"><b>' + esc(C.why) + ':</b> ' + esc(c.why) + '</p>' : '') +
+          '<button class="btn' + (picked === c ? '' : ' primary') + '" data-ngpick="' + i + '">' + (picked === c ? C.picked : C.pick) + '</button></article>'; }).join("");
+      [].forEach.call(document.querySelectorAll("[data-ngpick]"), function (b) { b.onclick = function () { picked = concepts[+b.dataset.ngpick]; $("ng-title").value = picked.title; drawConcepts(); }; });
+    };
+    if ($("ng-conc")) $("ng-conc").onclick = function () {
+      var b = this;
+      confirmCost("concepts", async function () {
+        b.disabled = true; $("ng-chint").textContent = STR.conc.busy;
+        try { var d = await callFn({ op: "concepts" }); concepts = (d.proposal && d.proposal.concepts) || []; picked = null; $("ng-chint").textContent = STR.spent + ": " + d.tokensConsumed; drawConcepts(); }
+        catch (e) { $("ng-chint").textContent = STR.failed + ": " + e.message; }
+        b.disabled = false;
+      });
+    };
     $("ng-up").onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} };
     $("ng-ok").onclick = async function () {
       var title = $("ng-title").value.trim(); if (!title) return;
@@ -2963,6 +2983,13 @@
           all.slice(i, i + 400).forEach(function (x) { b.set(cref.doc(x.e.id), { section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, { merge: true }); });
           try { await b.commit(); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; } // the game exists; the canon can be added by hand
         }
+      }
+      if (picked) { // the picked concept → the game's «Огляд гри» card
+        var ov = sec("overview"), pf = {};
+        ["logline", "genre", "pillars", "loop", "platform", "players"].forEach(function (k) { if (picked[k]) pf[k] = picked[k]; });
+        try { await db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards").doc(newId("card")).set({ section: "overview", title: picked.title, status: "idea",
+          note: [picked.canon && STR.conc.canon + ": " + picked.canon, picked.why && STR.conc.why + ": " + picked.why].filter(Boolean).join("\n"), defs: ov.defs.slice(), fields: pf,
+          order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }
       }
       selectGame(id);
     };
