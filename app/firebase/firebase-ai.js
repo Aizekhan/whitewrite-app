@@ -103,7 +103,7 @@ window.__firebaseAI = {
    * Nothing is saved — the chosen seed is written by __firebaseCanon.createWorld().
    * @returns {Promise<{success: boolean, seeds?: Array, error?: string, code?: string}>}
    */
-  async genesisWorld({ title, premise, genres, language }) {
+  async genesisWorld({ title, premise, genres, language, mode }) {
     try {
       const user = firebase.auth().currentUser;
       if (!user) throw new Error('Користувач не автентифікований');
@@ -111,7 +111,7 @@ window.__firebaseAI = {
       const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/genesisWorld', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ title, premise, genres, language })
+        body: JSON.stringify({ title, premise, genres, language, mode })
       });
       const data = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
       if (!response.ok) return { success: false, error: data.error || `HTTP ${response.status}`, code: data.code };

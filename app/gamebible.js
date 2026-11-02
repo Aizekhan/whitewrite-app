@@ -120,7 +120,8 @@
       stTypeName: "Щоб підтвердити, введи назву: {n}", stDelete: "Видалити назавжди", stDeleting: "Видаляю…",
       stHasStories: "У цьому світі є історії ({n}). Спершу видали або перенеси їх — тоді світ можна буде видалити.", search: "Пошук по канону й грі: назва, опис, примітка…",
       canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
-      createGame: "Створити гру", firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", conc: { btn: "✦ 3 концепти з канону", hint: "Не знаєш, яку гру робити? ШІ запропонує три різні ігри на цьому каноні; обрана стане назвою і «Оглядом гри».", busy: "ШІ придумує ігри…", pick: "Обрати", picked: "✓ Обрано", canon: "Канон", why: "Чому варто" }, allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
+      createGame: "Створити гру", ngDesc: "Опис гри", ngDescPh: "Що це за гра: жанр, що робить гравець, відчуття… (необовʼязково)", ngMd: "⤒ Файл гри (.md)", ngMdHint: "Усе, що вже є про гру, — одним файлом з ПК: після створення ШІ розкладе його по розділах GDD, ти відмітиш, що взяти. Варіантів на вибір не буде.", ngMdLocked: "🔒 Файл гри (.md) розбирає ШІ — це частина Worldbuilder. Опис нижче збережеться в «Огляді гри».", ngMin: "✎ Заповнити мінімально тим, що я дав", ngMinHint: "Без варіантів: гра отримає лише твою назву й опис (картка «Огляд гри»).",
+      firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", conc: { btn: "✦ 3 концепти з канону", hint: "Не знаєш, яку гру робити? ШІ запропонує три різні ігри на цьому каноні; обрана стане назвою і «Оглядом гри».", busy: "ШІ придумує ігри…", pick: "Обрати", picked: "✓ Обрано", canon: "Канон", why: "Чому варто" }, allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
       gameLimit: "На твоєму тарифі — {n} гра. Видали наявну або перейди на Worldbuilder: там ігор скільки завгодно.",
       devLock: { title: "Це — частина Worldbuilder", text: "GDD гри — розділи, картки, механіки, квести й діалоги, стиль, файли до 20 МБ — відкритий на будь-якому тарифі. Продакшн-план, Claude Code (MCP), імпорт і звірка з ШІ, ✦ чернетки, досвід гравців, маркетинг, GitHub, файли до 200 МБ і скільки завгодно ігор — на Worldbuilder." },
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
@@ -384,7 +385,8 @@
       stTypeName: "To confirm, type the name: {n}", stDelete: "Delete forever", stDeleting: "Deleting…",
       stHasStories: "This world has stories ({n}). Delete or move them first — then the world can be deleted.", search: "Search canon and game: title, text, note…",
       canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
-      createGame: "Create game", firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", conc: { btn: "✦ 3 concepts from the canon", hint: "Not sure which game to make? AI proposes three different games on this canon; the picked one becomes the name and the “Game overview”.", busy: "AI is coming up with games…", pick: "Pick", picked: "✓ Picked", canon: "Canon", why: "Why make it" }, allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
+      createGame: "Create game", ngDesc: "Game description", ngDescPh: "What the game is: genre, what the player does, the feeling… (optional)", ngMd: "⤒ Game file (.md)", ngMdHint: "Everything you already have about the game in one file from your PC: after creating, AI sorts it into the GDD sections and you tick what to take. No variants to pick.", ngMdLocked: "🔒 The game file (.md) is read by AI — part of Worldbuilder. The description below is kept in “Game overview”.", ngMin: "✎ Fill it minimally with what I gave", ngMinHint: "No variants: the game gets only your name and description (the “Game overview” card).",
+      firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", conc: { btn: "✦ 3 concepts from the canon", hint: "Not sure which game to make? AI proposes three different games on this canon; the picked one becomes the name and the “Game overview”.", busy: "AI is coming up with games…", pick: "Pick", picked: "✓ Picked", canon: "Canon", why: "Why make it" }, allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
       gameLimit: "Your plan has {n} game. Delete the one you have or move to Worldbuilder: any number of games there.",
       devLock: { title: "This is part of Worldbuilder", text: "A game's GDD — sections, cards, mechanics, quests and dialogues, style, files up to 20 MB — is open on every plan. The production plan, Claude Code (MCP), AI import and reconciling, ✦ drafts, player experience, marketing, GitHub, files up to 200 MB and any number of games are on Worldbuilder." },
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
@@ -2950,12 +2952,26 @@
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
-      (canDev && canonN ? '<div class="setrow"><button class="btn" id="ng-conc">' + STR.conc.btn + costMark("concepts") + '</button></div><p class="hint" id="ng-chint">' + esc(STR.conc.hint) + '</p><div id="ng-concepts" class="ng-concepts"></div>' : '') +
+      // the author's own material first: a .md from the PC (sorted by AI, no variants) or a description
+      (canDev ? '<div class="setrow"><label class="btn"><input type="file" id="ng-md" hidden accept=".md,.markdown,.txt,text/markdown,text/plain">' + STR.ngMd + costMark("import") + '</label><span class="hint" id="ng-mdname"></span></div><p class="hint">' + esc(STR.ngMdHint) + '</p>'
+        : '<p class="hint">' + esc(STR.ngMdLocked) + '</p>') +
+      '<label class="field"><span>' + STR.ngDesc + '</span><textarea id="ng-desc" rows="3" maxlength="3000" placeholder="' + esc(STR.ngDescPh) + '"></textarea></label>' +
+      (canDev && canonN ? '<div id="ng-cbox"><div class="setrow"><button class="btn" id="ng-conc">' + STR.conc.btn + costMark("concepts") + '</button></div><p class="hint" id="ng-chint">' + esc(STR.conc.hint) + '</p><div id="ng-concepts" class="ng-concepts"></div>' +
+        '<div class="setrow" id="ng-minrow" hidden><button class="btn" id="ng-min">' + STR.ngMin + '</button><span class="hint">' + esc(STR.ngMinHint) + '</span></div></div>' : '') +
       (canonN ? '<label class="imp"><input type="checkbox" id="ng-canon" checked><span>' + esc(STR.allCanon.replace("{n}", canonN)) + '</span></label><p class="hint">' + esc(STR.allCanonHint) + '</p>' : '') +
       '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button>' +
       '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p></div>';
     $("ng-title").focus();
-    var concepts = [], picked = null; // «✦ 3 концепти»: gamedevPlan {op:'concepts'} → three cards; the picked one names the game and fills «Огляд гри»
+    var concepts = [], picked = null, mdText = ""; // «✦ 3 концепти»: gamedevPlan {op:'concepts'} → three cards; the picked one names the game and fills «Огляд гри»
+    if ($("ng-md")) $("ng-md").onchange = async function () {
+      var f = this.files && this.files[0]; this.value = ""; if (!f) return;
+      if (f.size > 2 * 1024 * 1024) { $("ng-mdname").textContent = STR.fileTooBig; return; }
+      mdText = (await f.text()).trim();
+      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() : "";
+      if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
+      if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
+      picked = mdText ? null : picked;
+    };
     var drawConcepts = function () {
       var C = STR.conc;
       $("ng-concepts").innerHTML = concepts.map(function (c, i) {
@@ -2969,12 +2985,13 @@
       var b = this;
       confirmCost("concepts", async function () {
         b.disabled = true; $("ng-chint").textContent = STR.conc.busy;
-        try { var d = await callFn({ op: "concepts" }); concepts = (d.proposal && d.proposal.concepts) || []; picked = null; $("ng-chint").textContent = STR.spent + ": " + d.tokensConsumed; drawConcepts(); }
+        try { var d = await callFn({ op: "concepts", hint: $("ng-desc").value.trim() }); concepts = (d.proposal && d.proposal.concepts) || []; picked = null; $("ng-chint").textContent = STR.spent + ": " + d.tokensConsumed; drawConcepts(); $("ng-minrow").hidden = !concepts.length; }
         catch (e) { $("ng-chint").textContent = STR.failed + ": " + e.message; }
         b.disabled = false;
       });
     };
     $("ng-up").onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} };
+    if ($("ng-min")) $("ng-min").onclick = function () { picked = null; drawConcepts(); $("ng-ok").click(); }; // none of the three — only the author's name and description
     $("ng-ok").onclick = async function () {
       var title = $("ng-title").value.trim(); if (!title) return;
       var ok = $("ng-ok"), id; ok.disabled = true; $("ng-msg").textContent = "";
@@ -2994,8 +3011,12 @@
         try { await db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards").doc(newId("card")).set({ section: "overview", title: picked.title, status: "idea",
           note: [picked.canon && STR.conc.canon + ": " + picked.canon, picked.why && STR.conc.why + ": " + picked.why].filter(Boolean).join("\n"), defs: ov.defs.slice(), fields: pf,
           order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }
+      } else if ($("ng-desc").value.trim()) { // the author's own description → «Огляд гри», word for word
+        try { await db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards").doc(newId("card")).set({ section: "overview", title: title, status: "idea", note: "",
+          defs: sec("overview").defs.slice(), fields: { logline: $("ng-desc").value.trim() }, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }
       }
       selectGame(id);
+      if (mdText) runImport({ op: "import", markdown: mdText }); // the game file → the import proposal (the author ticks what to take)
     };
     $("ng-x").onclick = function () { enterWorld(); };
   }

@@ -18,23 +18,27 @@ const GENESIS_LANGUAGES = {
   fr: 'French', it: 'Italian', pt: 'Portuguese', ja: 'Japanese', zh: 'Chinese'
 };
 const MAX_PREMISE_CHARS = 2000;
+const MAX_SOURCE_CHARS = 60000; // mode 'author': the author's own notes (.md from the PC or the description) — nothing invented
 
 // Model output is untrusted: keep only the expected shape, trimmed and capped.
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
-function cleanSeed(s) {
+function cleanSeed(s, author) {
   if (!s || typeof s !== 'object') return null;
+  const n = author ? { facts: 12, rules: 12, characters: 40, locations: 40, factions: 20, artifacts: 30 } : { facts: 6, rules: 6, characters: 4, locations: 4, factions: 3, artifacts: 0 };
   const list = (a, n, f) => (Array.isArray(a) ? a : []).map(f).filter(Boolean).slice(0, n);
   const ent = (e) => (e && str(e.name, 80) ? { name: str(e.name, 80), role: str(e.role, 80), description: str(e.description, 400) } : null);
   const seed = {
     name: str(s.name, 80),
     tagline: str(s.tagline, 160),
     summary: str(s.summary, 900),
-    facts: list(s.facts, 6, (f) => (f && str(f.k, 40) && str(f.v, 120) ? { k: str(f.k, 40), v: str(f.v, 120) } : null)),
-    rules: list(s.rules, 6, (r) => str(r, 240) || null),
-    characters: list(s.characters, 4, ent),
-    locations: list(s.locations, 4, ent),
-    factions: list(s.factions, 3, ent),
+    facts: list(s.facts, n.facts, (f) => (f && str(f.k, 40) && str(f.v, 120) ? { k: str(f.k, 40), v: str(f.v, 120) } : null)),
+    rules: list(s.rules, n.rules, (r) => str(r, 240) || null),
+    characters: list(s.characters, n.characters, ent),
+    locations: list(s.locations, n.locations, ent),
+    factions: list(s.factions, n.factions, ent),
+    artifacts: list(s.artifacts, n.artifacts, ent),
   };
+  if (author) return seed.name || seed.summary ? seed : null; // the author's material: empty lists are fine
   return seed.name && seed.summary && seed.rules.length ? seed : null;
 }
 
@@ -45,9 +49,32 @@ function cleanSeed(s) {
  * laws, key characters/locations/factions). Nothing is saved: the author picks
  * one (or asks again) and the client writes it to the world as explicit canon.
  *
- * Input (POST JSON): { title?, premise, genres?, language? }
+ * Input (POST JSON): { title?, premise, genres?, language?, mode? }
  * Output: { success, seeds: [seed×3], tokensConsumed, tokensRemaining }
+ * mode 'author' — «Заповнити мінімально тим, що надав автор» / a .md file from the PC: ONE seed taken only from the
+ * author's text (up to MAX_SOURCE_CHARS), nothing invented; the client creates the world at once, no choice.
  */
+// «Заповнити мінімально тим, що надав автор»: one seed, every item from the author's text, nothing added
+function authorPrompt(title, source, genres, languageName) {
+  return `You are the archivist of WhiteWrite. The author gave their own material about a world (notes, a description, maybe a whole document).
+Put it into the world's canon EXACTLY as given. Do NOT invent anything: no new characters, places, factions, laws or facts;
+if something is not in the text, leave the field empty or the list empty. Do not embellish; shorten long passages but keep their meaning.
+${title ? `The author named the world «${title}».\n` : ''}${genres.length ? `Genres the author picked: ${genres.join(', ')}\n` : ''}
+THE AUTHOR'S MATERIAL:
+${source}
+
+Return ONE seed:
+- name: the world's name from the text (or the author's name above; else empty)
+- tagline: a line from the text if it has one, else empty
+- summary: what the text says this world is (up to 5 sentences, only from the text)
+- facts: {"k","v"} pairs the text states (era, setting, magic/technology, tone…)
+- rules: the laws / limits of the world the text states
+- characters, locations, factions, artifacts: every one the text names, {"name","role","description"} (role — characters only; description — what the text says)
+
+Write in ${languageName} (keep names as the author wrote them). Return ONLY valid JSON, no markdown:
+{"seeds":[{...}]}`;
+}
+
 exports.genesisWorld = onRequest({
   region: 'us-central1',
   secrets: [claudeApiKey],
@@ -75,13 +102,14 @@ exports.genesisWorld = onRequest({
       }
 
       const body = req.body || {};
-      const premise = str(body.premise, MAX_PREMISE_CHARS + 1);
+      const author = body.mode === 'author', maxChars = author ? MAX_SOURCE_CHARS : MAX_PREMISE_CHARS;
+      const premise = str(body.premise, maxChars + 1);
       if (!premise) {
         res.status(400).json({ error: 'Опишіть задум історії' });
         return;
       }
-      if (premise.length > MAX_PREMISE_CHARS) {
-        res.status(400).json({ error: `Задум задовгий. Максимум: ${MAX_PREMISE_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
+      if (premise.length > maxChars) {
+        res.status(400).json({ error: `Задум задовгий. Максимум: ${maxChars} символів.`, code: 'INPUT_TOO_LONG' });
         return;
       }
       const title = str(body.title, 200);
@@ -101,7 +129,7 @@ exports.genesisWorld = onRequest({
       const { tier, model: claudeModel } = await modelFor(db, userData, userPlan);
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
-      const reserveCost = featureCost(byOp('genesis'), providerEconomy && providerEconomy.cost, tier);
+      const reserveCost = featureCost(author ? byOp('genesisAuthor') : byOp('genesis'), providerEconomy && providerEconomy.cost, tier);
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -115,7 +143,7 @@ exports.genesisWorld = onRequest({
         return;
       }
 
-      const prompt = `You are the world architect of WhiteWrite. The author gave a premise; propose 3 DISTINCT seeds for the world this story lives in. The author will CHOOSE one — so make them genuinely different (tone, source of conflict, nature of magic/technology, scale), yet each must honour the premise.
+      const prompt = author ? authorPrompt(title, premise, genres, languageName) : `You are the world architect of WhiteWrite. The author gave a premise; propose 3 DISTINCT seeds for the world this story lives in. The author will CHOOSE one — so make them genuinely different (tone, source of conflict, nature of magic/technology, scale), yet each must honour the premise.
 
 Premise${title ? ` («${title}»)` : ''}:
 ${premise}
@@ -137,7 +165,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       let outText;
       let apiUsage = { input_tokens: 0, output_tokens: 0 };
       let model;
-      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: 12000, effort: 'low' });
+      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: author ? 24000 : 12000, effort: 'low' });
       if (out.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
       outText = out.text;
       apiUsage = out.usage;
@@ -151,7 +179,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
         if (!m) throw new Error('AI повернув не JSON');
         parsed = JSON.parse(m[1] || m[0]);
       }
-      const seeds = (Array.isArray(parsed.seeds) ? parsed.seeds : []).map(cleanSeed).filter(Boolean).slice(0, 3);
+      const seeds = (Array.isArray(parsed.seeds) ? parsed.seeds : []).map((s) => cleanSeed(s, author)).filter(Boolean).slice(0, author ? 1 : 3);
       if (!seeds.length) throw new Error('AI не запропонував жодного придатного світу');
 
       const { userCost } = await charge(db, uid, 'generateScene', model, apiUsage, null, {
@@ -159,7 +187,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
         targetWords: 900,
         estimatedInputTokens,
         reserved: reservation,
-        logAs: 'genesisWorld'
+        logAs: author ? 'genesisAuthor' : 'genesisWorld'
       });
       reservation = null;
 

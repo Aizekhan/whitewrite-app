@@ -178,7 +178,7 @@ window.__firebaseCanon = {
     });
     this.worldId = worldId;
     this.projectId = null;
-    for (const kind of ['characters', 'locations', 'factions']) {
+    for (const kind of ['characters', 'locations', 'factions', 'artifacts']) {
       for (const e of seed[kind] || []) {
         const entity = { id: this.newEntityId(kind), name: e.name, desc: e.description || '' };
         if (kind === 'characters' && e.role) entity.role = e.role;

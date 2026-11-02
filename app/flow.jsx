@@ -574,7 +574,16 @@ function WorldForm({ onBack, onCreate, initial }) {
   const [language, setLanguage] = useFState(init.language || (window.__i18n ? window.__i18n.getLanguage() : "uk"));
   const [genres, setGenres] = useFState(init.genres || []);
   const [creating, setCreating] = useFState(false);
-  const ready = description.trim().length > 0;
+  const [source, setSource] = useFState(init.sourceName ? { name: init.sourceName, text: init.source } : null); // a .md from the PC: the world is filled only from it
+  const ready = description.trim().length > 0 || !!source;
+  async function pickSource(e) {
+    const f = e.target.files && e.target.files[0]; e.target.value = "";
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { alert(t('worlds.mdTooBig')); return; }
+    const text = (await f.text()).trim();
+    if (!text) { alert(t('worlds.mdEmpty')); return; }
+    setSource({ name: f.name, text: text.slice(0, 60000), cut: text.length > 60000 });
+  }
 
   function toggleGenre(g) {
     setGenres((cur) => cur.includes(g) ? cur.filter((x) => x !== g) : (cur.length >= 4 ? cur : cur.concat(g)));
@@ -582,7 +591,7 @@ function WorldForm({ onBack, onCreate, initial }) {
   async function submit() {
     if (!ready || creating) return;
     setCreating(true);
-    try { await onCreate({ title, description, language, genres }); }
+    try { await onCreate({ title, description, language, genres, source: source ? source.text : "", sourceName: source ? source.name : "", mode: source ? "author" : "" }); }
     catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
   }
 
@@ -616,6 +625,18 @@ function WorldForm({ onBack, onCreate, initial }) {
           </label>
 
           <div className="field">
+            <span className="field__label">{t('worlds.mdLabel')} <span className="field__hint">{t('worlds.mdHint')}</span></span>
+            <div className="chips">
+              <label className={`chip ${source ? "is-on" : ""}`}>
+                ⤒ {source ? source.name : t('worlds.mdBtn')}
+                <input type="file" hidden accept=".md,.markdown,.txt,text/markdown,text/plain" onChange={pickSource} disabled={creating} />
+              </label>
+              {source && <button type="button" className="chip" onClick={() => setSource(null)} disabled={creating}>✕ {t('worlds.mdRemove')}</button>}
+            </div>
+            {source && <span className="field__hint">{t('worlds.mdNote').replace('{n}', source.text.length.toLocaleString())}{source.cut ? ' ' + t('worlds.mdCut') : ''}</span>}
+          </div>
+
+          <div className="field">
             <span className="field__label">{t('form.genreLabel')} <span className="field__hint">{t('form.genreHint')}</span></span>
             <div className="chips">
               {getGenres().map((g) => (
@@ -628,7 +649,7 @@ function WorldForm({ onBack, onCreate, initial }) {
 
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack}>{t('form.back')}</button>
-            <span className="form-cost">{(() => { const PF = window.__PAID_FEATURES; const n = PF ? PF.featureCost(PF.byOp('genesis'), null, (window.__wwUser || {}).aiModel) : 0; return n ? t('genesis.cost').replace('{n}', n) : ''; })()}</span>
+            <span className="form-cost">{(() => { const PF = window.__PAID_FEATURES; const n = PF ? PF.featureCost(PF.byOp(source ? 'genesisAuthor' : 'genesis'), null, (window.__wwUser || {}).aiModel) : 0; return n ? t('genesis.cost').replace('{n}', n) : ''; })()}</span>
             <button className={`create-btn ${ready && !creating ? "" : "is-disabled"}`} type="button" onClick={submit} disabled={!ready || creating}>
               <span className="begin-btn__star">✨</span>{creating ? t('form.creating') : t('worlds.create')}
             </button>
@@ -647,17 +668,21 @@ function GenesisScreen({ data, onChoose, onSkip, onBack }) {
   const [seeds, setSeeds] = useFState(null);
   const [error, setError] = useFState(null);
   const [busy, setBusy] = useFState(false);
-  const [choosing, setChoosing] = useFState(null); // seed index, or "skip"
+  const [choosing, setChoosing] = useFState(null); // seed index, "skip" or "author"
+  const [author, setAuthor] = useFState(data.mode === "author"); // only the author's material, one world, no variants
 
-  async function load() {
-    setBusy(true); setError(null);
+  async function load(mode) {
+    const own = mode === "author";
+    setBusy(true); setError(null); setAuthor(own);
     const r = await window.__firebaseAI.genesisWorld({
-      title: data.title, premise: data.description, genres: data.genres, language: data.language
+      title: data.title, premise: own ? (data.source || data.description) : data.description, genres: data.genres, language: data.language, mode: own ? "author" : undefined
     });
     setBusy(false);
-    if (r.success) setSeeds(r.seeds); else setError(r.error);
+    if (!r.success) { setError(r.error); return; }
+    if (own) { go("author", () => onChoose(Object.assign({}, r.seeds[0], { name: r.seeds[0].name || data.title }))); return; } // nothing to pick: the world is made at once
+    setSeeds(r.seeds);
   }
-  React.useEffect(() => { load(); }, []);
+  React.useEffect(() => { load(data.mode); }, []);
 
   async function go(which, action) {
     if (choosing != null) return;
@@ -675,13 +700,13 @@ function GenesisScreen({ data, onChoose, onSkip, onBack }) {
           <div className="form-head">
             <div className="form-kicker">{t('genesis.kicker')}</div>
             <h2 className="form-title">{t('genesis.title')}</h2>
-            <p className="genesis-lead">{t('genesis.lead')}</p>
+            <p className="genesis-lead">{t(author ? 'genesis.leadAuthor' : 'genesis.lead')}</p>
           </div>
 
-          {busy && <div className="genesis-wait"><span className="genesis-wait__star">✦</span>{t('genesis.loading')}</div>}
+          {(busy || choosing === "author") && <div className="genesis-wait"><span className="genesis-wait__star">✦</span>{t(author ? 'genesis.loadingAuthor' : 'genesis.loading')}</div>}
           {error && <div className="genesis-err">{error}</div>}
 
-          {!busy && seeds && (
+          {!busy && !author && seeds && (
             <div className="genesis-seeds">
               {seeds.map((s, i) => (
                 <article className={`genesis-seed ${choosing === i ? "is-on" : ""}`} key={i}>
@@ -705,7 +730,10 @@ function GenesisScreen({ data, onChoose, onSkip, onBack }) {
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack} disabled={locked}>{t('form.back')}</button>
             <span className="genesis-foot">
-              <button className="link-back" type="button" onClick={load} disabled={locked}>↻ {t('genesis.again')}</button>
+              {author
+                ? <button className="link-back" type="button" onClick={() => load("author")} disabled={locked}>↻ {t('genesis.retry')}</button>
+                : <button className="link-back" type="button" onClick={() => load()} disabled={locked}>↻ {t('genesis.again')}</button>}
+              {!author && <button className="link-back" type="button" onClick={() => load("author")} disabled={locked}>✎ {t('genesis.minimal')}</button>}
               <button className="link-back" type="button" onClick={() => go("skip", onSkip)} disabled={locked}>
                 {choosing === "skip" ? t('genesis.creating') : t('genesis.skip')}
               </button>
