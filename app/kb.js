@@ -107,6 +107,8 @@
         lead: "Що встановити і які команди виконати в PowerShell.",
         min: 5,
         body: [
+          ["p", "<b>Що таке RPG Framework.</b> Наш фреймворк для Unity 6 — готові модулі гри: бій, стати, квести, інвентар, лут, збереження, UI, кооп. Заточений під RPG, але підходить і для інших жанрів (roguelike, раннер, survival…). Архітектура модульна: компоненти не залежать один від одного напряму й спілкуються через події, тож гра легко росте, а агент додає нове, не ламаючи старого. Доступ — на платному тарифі (<a class=\"art__link\" data-art=\"fw-access\">токен фреймворку</a>); докладніше — <a class=\"art__link\" data-art=\"fw-what\">що таке RPG Framework</a>."],
+          ["tip", "Фреймворк не обовʼязковий. Без нього WhiteWrite — база знань і даних для твого агента: Біблія гри, продакшн-план, задачі й MCP працюють так само, навіть якщо гра на іншому рушії (Godot, Unreal…). Тоді пункти 2–3 нижче (Unity) пропусти. Вибір — <a class=\"art__link\" data-art=\"agent-path\">крок 2</a>."],
           ["p", "<b>Unity</b> — ігровий рушій, у якому збирається гра (RPG Framework працює лише на Unity 6, версії 6000.0.x). <b>Unity CLI</b> — офіційна командна утиліта Unity: ставить редактори, створює проєкти, запускає тести й збірки без вікон — саме нею користується агент. <b>Claude Code</b> — ШІ-агент, що пише код у теці гри."],
           ["p", "Відкрий <b>PowerShell</b> (Пуск → «PowerShell») і виконуй команди по черзі."],
           ["h", "1. Git і Git LFS (історія змін, великі файли моделей і текстур)"],
@@ -872,6 +874,8 @@
         lead: "What to install and which commands to run in PowerShell.",
         min: 5,
         body: [
+          ["p", "<b>What RPG Framework is.</b> Our framework for Unity 6 — ready game modules: combat, stats, quests, inventory, loot, saves, UI, co-op. Built mainly for RPGs, but it fits other genres too (roguelike, runner, survival…). The architecture is modular: components don't depend on each other directly and talk through events, so the game grows easily and the agent adds new things without breaking the old. Access is on a paid plan (<a class=\"art__link\" data-art=\"fw-access\">the framework token</a>); more — <a class=\"art__link\" data-art=\"fw-what\">what RPG Framework is</a>."],
+          ["tip", "The framework is optional. Without it WhiteWrite is the knowledge base and data source for your agent: the Game Bible, production plan, tasks and MCP work just the same, even if the game is on another engine (Godot, Unreal…). Then skip items 2–3 below (Unity). The choice — <a class=\"art__link\" data-art=\"agent-path\">step 2</a>."],
           ["p", "<b>Unity</b> is the game engine the game is built in (RPG Framework runs on Unity 6 only, versions 6000.0.x). The <b>Unity CLI</b> is Unity's official command-line tool: it installs editors, creates projects, runs tests and builds without windows — it is what the agent uses. <b>Claude Code</b> is the AI agent that writes code in the game's folder."],
           ["p", "Open <b>PowerShell</b> (Start → “PowerShell”) and run the commands in order."],
           ["h", "1. Git and Git LFS (history, large model and texture files)"],
