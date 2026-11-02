@@ -1919,16 +1919,16 @@ body.at-home .back-fab{ display:none; }
   function mktHtml() {
     var soon = window.__PAID_FEATURES && window.__PAID_FEATURES.byOp && (window.__PAID_FEATURES.byOp("licenceReview") || {}).soon;
     if (soon && !CM.admin) return '<h1 class="vhead__t">' + cmT("Маркет світів", "World Market") + '</h1><div class="cm-future"><b>' + cmT("🚧 Планується — зараз у розробці", "🚧 Planned — in development now") + '</b><p>' +
-      cmT("Маркет світів — місце, де автори зможуть продати свій світ іншим творцям чи студіям: канон, культуру, ігровий дизайн (картки, план, квести, діалоги) та історії. Продаж — повний викуп прав: світ переходить покупцю. Перед продажем світ отримує ліцензію WhiteWrite — перевірку, щоб покупець знав, що купує, а продавець продавав законно: метрики, ШІ-рецензія, ШІ-юрист і модератор-людина. Покупець платить продавцю напряму, WhiteWrite утримує комісію. Зараз Маркет у розробці: запустимо після перевірки договорів юристом і налаштування виплат продавцям.", "The World Market is where authors will be able to sell their world to other creators or studios: the canon, culture, game design (cards, plan, quests, dialogues) and stories. A sale is a full buyout of the rights: the world passes to the buyer. Before a sale the world gets a WhiteWrite licence — a review so the buyer knows what they buy and the seller sells lawfully: metrics, an AI review, an AI lawyer and a human moderator. The buyer pays the seller directly; WhiteWrite keeps a fee. The Market is in development now: it launches after a lawyer reviews the contracts and seller payouts are set up.") + ' <a href="#" data-kbmarket>' + cmT("Як це працюватиме", "How it will work") + '</a></p></div>';
+      cmT("Маркет світів — місце, де автори зможуть продати свій світ іншим творцям чи студіям: канон, культуру, ігровий дизайн (картки, план, квести, діалоги) та історії. Продаж — повний викуп прав: світ переходить покупцю. Перед продажем світ отримує Сертифікацію WhiteWrite — перевірку, щоб покупець знав, що купує, а продавець продавав законно: метрики, ШІ-рецензія, ШІ-юрист і модератор-людина. Покупець платить продавцю напряму, WhiteWrite утримує комісію. Зараз Маркет у розробці: запустимо після перевірки договорів юристом і налаштування виплат продавцям.", "The World Market is where authors will be able to sell their world to other creators or studios: the canon, culture, game design (cards, plan, quests, dialogues) and stories. A sale is a full buyout of the rights: the world passes to the buyer. Before a sale the world gets the WhiteWrite Certification — a review so the buyer knows what they buy and the seller sells lawfully: metrics, an AI review, an AI lawyer and a human moderator. The buyer pays the seller directly; WhiteWrite keeps a fee. The Market is in development now: it launches after a lawyer reviews the contracts and seller payouts are set up.") + ' <a href="#" data-kbmarket>' + cmT("Як це працюватиме", "How it will work") + '</a></p></div>';
     var intro = '<h1 class="vhead__t">' + cmT("Маркет світів", "World Market") + '</h1><p class="vhead__s">' + cmT(
-      "Ліцензовані світи авторів — з каноном, культурою, ігровим дизайном та історіями. Купівля — повний викуп прав: світ переходить у твій акаунт, автор втрачає до нього доступ. Лише текст, без файлів. Кожен лот пройшов перевірку: метрики, ШІ-рецензія, ШІ-юрист, модератор.",
-      "Licensed worlds of authors — with canon, culture, game design and stories. A purchase is a full buyout: the world moves to your account, the author loses access to it. Text only, no files. Every lot passed a review: metrics, AI review, AI lawyer, moderator.") +
+      "Сертифіковані світи авторів — з каноном, культурою, ігровим дизайном та історіями. Купівля — повний викуп прав: світ переходить у твій акаунт, автор втрачає до нього доступ. Лише текст, без файлів. Кожен лот пройшов перевірку: метрики, ШІ-рецензія, ШІ-юрист, модератор.",
+      "Certified worlds of authors — with canon, culture, game design and stories. A purchase is a full buyout: the world moves to your account, the author loses access to it. Text only, no files. Every lot passed a review: metrics, AI review, AI lawyer, moderator.") +
       ' <a href="#" data-kbmarket>' + cmT("Як це працює", "How it works") + '</a></p>' + (CM.mmsg ? '<p class="vhead__s" role="status">' + escapeHtml(CM.mmsg) + '</p>' : '');
     if (CM.mview === "deals") return intro + mkDealsHtml();
     if (CM.mview === "queue") return intro + mkQueueHtml();
     if (CM.lot) return mkLotHtml();
     if (!CM.lots) return intro + '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>';
-    if (!CM.lots.length) return intro + '<p class="vhead__s">' + cmT("Поки немає ліцензованих світів. Свій світ подаєш на ліцензію в хабі світу → «Маркет».", "No licensed worlds yet. Apply with your world in its hub → “Market”.") + '</p>';
+    if (!CM.lots.length) return intro + '<p class="vhead__s">' + cmT("Поки немає сертифікованих світів. Свій світ подаєш на сертифікацію в хабі світу → «Маркет».", "No certified worlds yet. Apply with your world in its hub → “Market”.") + '</p>';
     return intro + '<div class="grid grid--mk">' + CM.lots.map(function (l) {
       return '<button class="cm mk-lot" data-mklot="' + escapeHtml(l.id) + '"><span class="cm__b"><span class="cm__kind">' + escapeHtml(mkLevel(l.level)) + '</span>' +
         '<span class="cm__title">' + escapeHtml(l.title) + '</span><span class="cm__author">' + escapeHtml(l.sellerName || "") + '</span>' +
@@ -1979,7 +1979,7 @@ body.at-home .back-fab{ display:none; }
           return '<li><b>' + escapeHtml(x.what) + '</b> — ' + escapeHtml(x.where || "") + ': ' + escapeHtml(x.why || "") + ' → ' + escapeHtml(x.fix || "") + '</li>'; }).join("") + '</ul>' : '') +
         '<div class="mk-dec"><select data-mklevel>' + Object.keys(MK_LEVELS).map(function (k) { return '<option value="' + k + '"' + (k === r.level ? ' selected' : '') + '>' + escapeHtml(mkLevel(k)) + '</option>'; }).join("") + '</select>' +
         '<input class="pe-input" data-mknote placeholder="' + cmT("Нотатка модератора (бачать продавець і покупці)", "Moderator's note (the seller and buyers see it)") + '">' +
-        '<button class="pe-btn pe-btn--save" data-mkok>' + cmT("Ліцензувати", "License") + '</button><button class="pe-btn" data-mkno>' + cmT("Відхилити", "Reject") + '</button></div></div>'; }).join("")
+        '<button class="pe-btn pe-btn--save" data-mkok>' + cmT("Сертифікувати", "Certify") + '</button><button class="pe-btn" data-mkno>' + cmT("Відхилити", "Reject") + '</button></div></div>'; }).join("")
       : '<p class="vhead__s">' + cmT("Черга порожня.", "The queue is empty.") + '</p>';
   }
   function bindMkt(v) {
@@ -2000,7 +2000,7 @@ body.at-home .back-fab{ display:none; }
     [].forEach.call(v.querySelectorAll("[data-mkq]"), function (box) {
       var decide = function (ok) { return function () {
         mkCall({ op: "decide", applicationId: box.dataset.mkq, approve: ok, level: box.querySelector("[data-mklevel]").value, note: box.querySelector("[data-mknote]").value })
-          .then(function () { CM.queue = null; say(ok ? cmT("Ліцензовано, лот у Маркеті.", "Licensed, the lot is listed.") : cmT("Відхилено, світ розморожено.", "Rejected, the world unfrozen.")); }, function (e) { say(e.message); });
+          .then(function () { CM.queue = null; say(ok ? cmT("Сертифіковано, лот у Маркеті.", "Certified, the lot is listed.") : cmT("Відхилено, світ розморожено.", "Rejected, the world unfrozen.")); }, function (e) { say(e.message); });
       }; };
       box.querySelector("[data-mkok]").onclick = decide(true); box.querySelector("[data-mkno]").onclick = decide(false);
     });
@@ -2301,7 +2301,7 @@ body.at-home .back-fab{ display:none; }
     project_slot: ["Додатковий слот проєкту", "Extra project slot"], cosmograph_month: ["Космограф · 30 днів", "Cosmograph · 30 days"],
     marketing_month: ["Міні-маркетинг · 30 днів", "Mini-Marketing · 30 days"], generateScene: ["Сцена", "Scene"], analyzeScene: ["✦ Порадити", "✦ Advise"],
     style_check: ["ШІ-перевірка стилю", "AI style check"], style_check_mcp: ["Перевірка стилю (Claude Code)", "Style check (Claude Code)"],
-    marketing_draft: ["Пост для маркетингу", "Marketing post"], licence_review: ["Перевірка на ліцензію продажу", "Licence review for sale"],
+    marketing_draft: ["Пост для маркетингу", "Marketing post"], licence_review: ["Перевірка на сертифікацію продажу", "WhiteWrite Certification review"],
     github_backup_month: ["Бекап у GitHub · 30 днів", "GitHub backup · 30 days"]
   };
   function ledgerOp(e, en) { var o = LEDGER_OPS[e.op] || (/^narrative_/.test(e.op) ? ["Чернетка квесту / діалогу", "Quest / dialogue draft"] : null); return o ? o[en ? 1 : 0] : e.op; }
@@ -2328,7 +2328,7 @@ body.at-home .back-fab{ display:none; }
     var e = (window.__wwLedger || []).filter(function (x) { return x.id === id; })[0], u = window.__wwUser || {}, fb = window.__firebase, au = fb && fb.auth && fb.auth.currentUser;
     if (!e) return;
     var RL = { orderId: ["Замовлення", "Order"], plan: ["Тариф", "Plan"], model: ["Модель", "Model"], worldId: ["Світ", "World"], gameId: ["Гра", "Game"],
-      projectId: ["Історія", "Story"], licenceId: ["Ліцензія", "Licence"], dealId: ["Угода", "Deal"] };
+      projectId: ["Історія", "Story"], licenceId: ["Сертифікація WhiteWrite", "WhiteWrite Certification"], dealId: ["Угода", "Deal"] };
     var ref = e.ref || {}, refs = Object.keys(ref).map(function (k) { return '<tr><th>' + esc(RL[k] ? RL[k][en ? 1 : 0] : k) + '</th><td>' + esc(ref[k]) + '</td></tr>'; }).join("");
     var T = en ? { t: 'Receipt', no: 'No.', date: 'Date', who: 'Account', what: 'Operation', type: 'Type', amt: 'Tokens', bal: 'Balance after', note: 'Note',
         foot: 'A receipt for a move of tokens inside WhiteWrite. Money payments (subscriptions, top-ups) are receipted by our payment provider Lemon Squeezy, the seller of record.',

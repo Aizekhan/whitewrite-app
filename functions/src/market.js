@@ -104,7 +104,7 @@ ${text}${cut}`);
     apiTokensEquivalent: Math.ceil(usd / USD_PER_TOKEN), model: review.model, timestamp: ts() }).catch(() => {});
   await ref.update({ status: 'moderation', metrics: m, aiReview: review.out || { error: 'AI не повернув JSON' }, legal: lawyer.out || { error: 'AI не повернув JSON' },
     aiUsd: Math.round(usd * 100) / 100, reviewedAt: ts() });
-  await require('./admin-notice').notify({ kind: 'market', severity: 'info', tier: 'market', title: `Заявка на ліцензію: «${a.title}» чекає модератора`,
+  await require('./admin-notice').notify({ kind: 'market', severity: 'info', tier: 'market', title: `Заявка на сертифікацію: «${a.title}» чекає модератора`,
     body: `Світ ${a.worldId}, ціна ${(a.priceCents / 100).toFixed(2)} ${a.currency}. Рівень від ШІ: ${(review.out || {}).level || '—'}, ризик від ШІ-юриста: ${(lawyer.out || {}).risk || '—'}. Рішення — Спільнота → Маркет → Модерація.` }).catch(() => {});
 }
 
@@ -197,7 +197,7 @@ async function handle(op, b, tok) {
     const userData = u.exists ? u.data() : {};
     if (!w.exists || w.data().owner !== uid) throw fail(403, 'Світ не знайдено або немає доступу');
     if (w.data().freeze) throw fail(409, 'Світ уже на перевірці або в продажу');
-    if (!getPlanBudget(userData.plan || 'free').allowGameDev) throw fail(403, 'Заявку на ліцензію подає лише Worldbuilder', { code: 'PLAN_REQUIRED' });
+    if (!getPlanBudget(userData.plan || 'free').allowGameDev) throw fail(403, 'Заявку на сертифікацію подає лише Worldbuilder', { code: 'PLAN_REQUIRED' });
     if (userData.subscriptionStatus !== 'active') throw fail(403, 'Активна підписка необхідна', { requiresSubscription: true });
     const s = await buildSnapshot(worldId, uid);
     const fee = licenceFee(s.chars);
@@ -294,7 +294,7 @@ async function handle(op, b, tok) {
     const session = await stripeClient().checkout.sessions.create({
       mode: 'payment', customer_email: tok.email || undefined, client_reference_id: uid,
       line_items: [{ quantity: 1, price_data: { currency: held.currency, unit_amount: held.priceCents,
-        product_data: { name: `Викуп світу «${held.title}» (WhiteWrite Market)`, description: `Ліцензія ${lotRef.id} · знімок sha256 ${held.snapshotHash.slice(0, 16)}…` } } }],
+        product_data: { name: `Викуп світу «${held.title}» (WhiteWrite Market)`, description: `Сертифікація ${lotRef.id} · знімок sha256 ${held.snapshotHash.slice(0, 16)}…` } } }],
       payment_intent_data: { application_fee_amount: fee, metadata: { lotId: lotRef.id, buyer: uid, seller: held.seller } },
       metadata: { lotId: lotRef.id, buyer: uid, seller: held.seller, kind: 'ww_market' },
       expires_at: Math.floor((Date.now() + RESERVE_MS - 60000) / 1000),
