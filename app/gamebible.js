@@ -118,6 +118,8 @@
       stHasStories: "У цьому світі є історії ({n}). Спершу видали або перенеси їх — тоді світ можна буде видалити.", search: "Пошук по канону й грі: назва, опис, примітка…",
       canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
       createGame: "Створити гру", firstGame: "Перша гра на цьому каноні",
+      gameLimit: "На твоєму тарифі — {n} гра. Видали наявну або перейди на Worldbuilder: там ігор скільки завгодно.",
+      devLock: { title: "Це — частина Worldbuilder", text: "GDD гри — розділи, картки, механіки, квести й діалоги, стиль, файли до 20 МБ — відкритий на будь-якому тарифі. Продакшн-план, Claude Code (MCP), імпорт і звірка з ШІ, ✦ чернетки, досвід гравців, маркетинг, GitHub, файли до 200 МБ і скільки завгодно ігор — на Worldbuilder." },
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
       addSection: "+ Свій розділ", sectionName: "Назва розділу, напр. «Звук»",
       sectionAbout: "Про що цей розділ (необовʼязково)", create: "Створити", cancel: "Скасувати",
@@ -374,6 +376,8 @@
       stHasStories: "This world has stories ({n}). Delete or move them first — then the world can be deleted.", search: "Search canon and game: title, text, note…",
       canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
       createGame: "Create game", firstGame: "The first game on this canon",
+      gameLimit: "Your plan has {n} game. Delete the one you have or move to Worldbuilder: any number of games there.",
+      devLock: { title: "This is part of Worldbuilder", text: "A game's GDD — sections, cards, mechanics, quests and dialogues, style, files up to 20 MB — is open on every plan. The production plan, Claude Code (MCP), AI import and reconciling, ✦ drafts, player experience, marketing, GitHub, files up to 200 MB and any number of games are on Worldbuilder." },
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
       addSection: "+ Own section", sectionName: "Section name, e.g. “Sound”",
       sectionAbout: "What this section is about (optional)", create: "Create", cancel: "Cancel",
@@ -719,6 +723,9 @@
   var db = null, world = null, games = [], gameId = null, game = null;
   var lore = []; // culture entries: worlds/{w}/lore/{id} { group, name, desc, fields, files }
   var cards = [], entities = [], planDoc = {}, canWrite = false, canGame = false, unsub = [];
+  // canGame — game design (allowGameDesign, every plan); canDev — what costs us: AI, MCP, plan, telemetry, marketing, repo (allowGameDev, Worldbuilder);
+  // canonWrite — canon editing (allowWorldTree). The owner's canWrite follows what is open: the canon or a game
+  var canDev = false, canonWrite = false;
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   var section = "world", query = "", statusFilter = {}, planName = null, pendingFocus = null;
   // Two Bibles in one page: the World Bible (mode "world": the canon + «Повʼязані ігри» at the foot of its menu) and a game's
@@ -1179,6 +1186,7 @@
     lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
     if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); }
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
+    else canWrite = mode === "game" ? canGame : canonWrite;
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
@@ -1200,6 +1208,7 @@
     if (!game) return renderNewGame();
     if (imp) return renderImport();
     var s = sec(section);
+    if (!canDev && !query && ["plan", "experience", "knowledge", "activity", "marketing"].indexOf(s.special) >= 0) return renderDevLocked(s);
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
     if (s.special === "experience" && !query) return renderExperience();
@@ -1219,8 +1228,8 @@
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         (s.id === "mechanics" && canWrite ? '<button class="btn" id="mech-new">' + MC.add + '</button>' : '') +
-        (s.id === "artstyle" && canWrite ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
-        '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div>') + '</header>';
+        (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
+        (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
     else html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid);
@@ -1572,7 +1581,7 @@
     var isMap = s.dossier === "locations" && locView === "map";
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (s.dossier === "locations" ? '<button class="btn" id="loc-view">' + (isMap ? STR.wt.cards : STR.wt.map) + '</button>' : '') +
-      (isMap ? '' : '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>') + '</div></header>' +
+      (isMap || !canWrite ? '' : '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>') + '</div></header>' +
       (isMap ? mapHtml(list) : subsHtml(s, list, function (e) { return e.group; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; }));
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var lv = $("loc-view"); if (lv) lv.onclick = function () { locView = isMap ? "cards" : "map"; try { localStorage.setItem("ww-locview", locView); } catch (e) {} render(); };
@@ -1647,7 +1656,7 @@
   function dmsg(t) { $("d-msg").textContent = t; }
   function openDossier(e) {
     if (!e) return;
-    if (!ME.owner) canWrite = baseWrite && mayEdit(e.col === "lore" ? "culture" : secOfKind(e.kind));
+    if (!ME.owner) canWrite = baseWrite && mayEdit(e.col === "lore" ? "culture" : secOfKind(e.kind)); else canWrite = canonWrite;
     if (open) closeLeaf();
     dos = e; dtab = "story";
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
@@ -1843,11 +1852,11 @@
   }
   function renderCulture(s) {
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row"><button class="btn primary" id="add-top">' + STR.sub.add + '</button></div></header>';
+      '<div class="row">' + (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>';
     html += subsHtml(s, lore.slice().sort(byOrder(function (x) { return x.name || ""; })), function (x) { return x.group || "customs"; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; },
       function (g) { return L(loreGroup(g)); });
     $("view").innerHTML = html;
-    $("add-top").onclick = newSubsection;
+    var at = $("add-top"); if (at) at.onclick = newSubsection;
     dragCtx = s;
   }
   // ---------- Квести й Діалоги гри: games/{g}/quests, games/{g}/dialogues (Worldbuilder, allowGameDev) ----------
@@ -2555,7 +2564,7 @@
       ((qprop.ideas || []).length ? '<div class="field"><span class="qh">' + QD.ideas + '</span><ul class="qiss">' + qprop.ideas.map(function (x) { return '<li>· ' + esc(x) + '</li>'; }).join("") + '</ul></div>' : '') + '</div>';
   }
   function aiHtml() {
-    if (!canQuest) return "";
+    if (!canQuest || !canDev) return ""; // ✦ drafts are AI — Worldbuilder
     var op = qed.col === "quests" ? "questDraft" : "dialogueDraft";
     return '<div class="canonbox qbox"><div class="row qai"><input id="q-wish" placeholder="' + esc(QD.wishPh) + '" aria-label="' + esc(QD.wishPh) + '"' + (qbusy ? " disabled" : "") + '>' +
       '<button class="btn" data-qact="ai"' + (qbusy ? " disabled" : "") + '>' + QD.ai + costMark(op) + '</button></div><p class="muted" id="q-aimsg">' + esc(qbusy || QD.aiHint) + '</p></div>';
@@ -2782,7 +2791,7 @@
     var dated = evs.filter(function (e) { return e.at !== null; });
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row"><label class="unitbox">' + STR.chron.unit + ' <input id="ch-unit" value="' + esc((world && world.timeUnit) || "") + '" placeholder="' + esc(STR.chron.unitPh) + '"></label>' +
-      '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div></header>';
+      (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>';
     html += '<p class="muted">' + (dated.length ? STR.chron.legend : STR.chron.empty) + '</p>';
     // each subsection (an era, a war, a line of the story…) is its own time line
     html += subsHtml(s, evs, function (e) { return e.group; }, function (l) {
@@ -2791,7 +2800,7 @@
     });
     html += '<h2 class="group">' + STR.chron.stories + '<button class="btn mini" id="ch-newstory">' + STR.sub.story + '</button></h2><div id="ch-stories"></div>';
     $("view").innerHTML = html;
-    $("add-top").onclick = newSubsection;
+    var at = $("add-top"); if (at) at.onclick = newSubsection;
     $("ch-newstory").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
     $("ch-stories").innerHTML = stories.length ? '<div class="grid">' + stories.map(function (p) {
@@ -2818,16 +2827,40 @@
       '<div class="row"><button class="btn primary" id="up">' + STR.upgrade + '</button></div></div>';
     $("up").onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} };
   }
+  // what needs Worldbuilder inside a game's GDD (allowGameDev): the section stays in the menu, its page says what opens it
+  function devLockHtml() {
+    return '<section class="setbox devlock"><h2>🔒 ' + esc(STR.devLock.title) + '</h2><p class="hint">' + esc(STR.devLock.text) + '</p>' +
+      '<div class="setrow"><button class="btn primary" data-upgrade>' + STR.upgrade + '</button></div></section>';
+  }
+  function bindDevLock() {
+    [].forEach.call(document.querySelectorAll("#view [data-upgrade]"), function (b) { b.onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} }; });
+  }
+  function renderDevLocked(s) {
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1></div></header>' + devLockHtml();
+    bindDevLock();
+  }
+  // a game is created by the createGame function (the plan's maxGames, functions/src/projects.js)
+  async function createGameDoc(title, engine) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch("https://us-central1-whitewrite-app.cloudfunctions.net/createGame", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify({ worldId: worldId, title: title, engine: engine }) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) { var e = new Error(data.code === "GAME_LIMIT" ? STR.gameLimit.replace("{n}", data.limit) : data.error || "HTTP " + r.status); e.code = data.code; throw e; }
+    return data.gameId;
+  }
   function renderNewGame() {
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
-      '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button></div></div>';
+      '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button>' +
+      '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p></div>';
     $("ng-title").focus();
+    $("ng-up").onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} };
     $("ng-ok").onclick = async function () {
       var title = $("ng-title").value.trim(); if (!title) return;
-      var id = newId("game");
-      await wref().collection("games").doc(id).set({ title: title, engine: { profile: $("ng-engine").value }, sections: [], canonOptIn: true, createdAt: stamp(), updatedAt: stamp() });
+      var ok = $("ng-ok"), id; ok.disabled = true; $("ng-msg").textContent = "";
+      try { id = await createGameDoc(title, $("ng-engine").value); }
+      catch (e) { ok.disabled = false; $("ng-msg").textContent = e.message; if (e.code === "GAME_LIMIT") $("ng-up").hidden = false; return; }
       selectGame(id);
     };
     $("ng-x").onclick = function () { enterWorld(); };
@@ -2841,7 +2874,7 @@
 
   // ---------- editor ----------
   function openCard(c) {
-    if (!ME.owner) canWrite = baseWrite && mayEdit(c.section);
+    if (!ME.owner) canWrite = baseWrite && mayEdit(c.section); else canWrite = canGame;
     open = c;
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
@@ -3432,7 +3465,7 @@
         if (card.src === "canon") body.canonRef = card.id;
         await gref().collection("cards").doc(card.id).set(body, { merge: true });
         card.files = (card.files || []).concat([meta]); done++;
-        if (isImage(meta) && styleFor(card)) styleCheckAi(card, meta).catch(function (e) { if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED") msg(e.message); }); // a new picture is checked against the style at once
+        if (canDev && isImage(meta) && styleFor(card)) styleCheckAi(card, meta).catch(function (e) { if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED") msg(e.message); }); // a new picture is checked against the style at once
       } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
     }
     if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
@@ -3629,8 +3662,8 @@
       items.map(function (x) { return '<div class="qa"><div class="muted">' + esc(x[0]) + '</div><div>' + esc(x[1]) + '</div></div>'; }).join("") + '</details></section>';
   }
   function issuesHead(title, about, id, busy, has) {
-    return '<header class="sec"><div><h1>' + esc(title) + '</h1><p>' + esc(about) + '</p></div><div class="row"><button class="btn primary" id="' + id + '"' + (busy ? ' disabled' : '') + '>' +
-      (has ? STR.audit : STR.auditFirst) + costMark(id === "ci-audit" ? "canonAudit" : "analyze") + '</button></div></header>';
+    return '<header class="sec"><div><h1>' + esc(title) + '</h1><p>' + esc(about) + '</p></div><div class="row">' + (canDev ? '<button class="btn primary" id="' + id + '"' + (busy ? ' disabled' : '') + '>' + // the AI audit — Worldbuilder
+      (has ? STR.audit : STR.auditFirst) + costMark(id === "ci-audit" ? "canonAudit" : "analyze") + '</button>' : '') + '</div></header>';
   }
   function renderIssues() {
     var run = planDoc.running && planDoc.running.at && planDoc.running.at.toMillis && Date.now() - planDoc.running.at.toMillis() < 35 * 60000 ? planDoc.running.op : null;
@@ -4081,7 +4114,7 @@
     var own = ((game && game.sections) || []);
     // order: the Claude Code road (once per game) → the game → the world → Космограф → danger zone
     var inGame = mode === "game" && game;
-    var html = '<header class="sec"><div><h1>' + (inGame ? STR.settingsGame + ' · ' + esc(game.title || "") : STR.settingsWorld) + '</h1><p>' + (inGame ? STR.settingsGameAbout : STR.settingsWorldAbout) + '</p></div></header>' + (inGame ? agentRoadHtml() : '');
+    var html = '<header class="sec"><div><h1>' + (inGame ? STR.settingsGame + ' · ' + esc(game.title || "") : STR.settingsWorld) + '</h1><p>' + (inGame ? STR.settingsGameAbout : STR.settingsWorldAbout) + '</p></div></header>' + (inGame ? (canDev ? agentRoadHtml() : devLockHtml()) : '');
     if (inGame) html += '<section class="setbox"><h2>' + STR.stGame + ' · ' + esc(game.title) + '</h2>' +
         '<div class="setrow"><input id="st-gname" aria-label="' + esc(STR.stGameName) + '" value="' + esc(game.title || "") + '"><button class="btn" id="st-gsave">' + STR.stRename + '</button></div>' +
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
@@ -4117,8 +4150,8 @@
     }
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
-    $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); };
-    bindRepo(); bindLaunch();
+    if (canDev) { $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); }; bindRepo(); bindLaunch(); }
+    else bindDevLock();
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = function () {
         var hidden = (game.hiddenSections || []).filter(function (x) { return x !== cb.dataset.showsec; });
@@ -4375,9 +4408,9 @@
     var data; try { data = JSON.parse(await file.text()); } catch (e) { data = null; }
     var note = function (t) { $("st-msg").textContent = t; };
     if (data && data.format === "whitewrite.game/1" && data.game) {
-      var gid = newId("game"), g = wref().collection("games").doc(gid), meta = revive(Object.assign({}, data.game));
-      delete meta.id; meta.createdAt = stamp(); meta.updatedAt = stamp();
-      await g.set(meta);
+      var meta = revive(Object.assign({}, data.game)), gid = await createGameDoc(meta.title || "", (meta.engine && meta.engine.profile) || ""), g = wref().collection("games").doc(gid);
+      delete meta.id; delete meta.createdAt; meta.updatedAt = stamp();
+      await g.set(meta, { merge: true });
       await writeAll(g.collection("cards"), data.cards || []);
       await writeAll(g.collection("plan"), data.plan || []);
       await writeAll(g.collection("tasks"), data.tasks || []);
@@ -5793,11 +5826,12 @@
       var tm = w.data().owner !== user.uid ? (w.data().team || {})[user.uid] : null;
       if (tm) { // a team member works in the owner's world, on the owner's plan (the rules check it); what they see — by role
         ME = { owner: false, role: tm.role, view: tm.view || [], edit: tm.edit || [], viewKinds: tm.viewKinds || [] };
-        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true;
+        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true; canDev = true; // the server checks the owner's plan
         document.documentElement.classList.add("ww-member");
         if (!mayRead(section)) section = firstReadable();
       } else {
-        canWrite = baseWrite = !!(pc.allowWorldTree || pc.allowGameDev); canGame = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game (Worldbuilder); the canon is the world's home (the Universe tree's plans); games need game dev
+        canonWrite = !!pc.allowWorldTree; canGame = !!pc.allowGameDesign; canDev = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game design
+        canWrite = baseWrite = canonWrite || canGame;
         if (!canWrite && !PANEL) return locked(STR.lockedTitle, STR.lockedText, true); // the hub panel (Спільнота, Команда…) works on any plan
         if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";
       }

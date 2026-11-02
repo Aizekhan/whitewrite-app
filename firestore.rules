@@ -124,24 +124,28 @@ service cloud.firestore {
       }
 
       // Games built on this canon (one canon → many games): game doc + cards + production plan.
-      // Writing needs a plan with allowGameDev (functions/plans.js); reading stays with the owner whatever the plan.
+      // Game design (the game doc, cards, quests, dialogues) is open on every plan (paid-features.js allowGameDesign); a game is
+      // CREATED only by the createGame function (the plan's maxGames). The production plan, tasks and player experience
+      // need allowGameDev on the owner's plan (Worldbuilder). Reading stays with the owner whatever the plan.
       // Only the subcollections the Game Bible page itself edits are client-writable; everything else under a game
       // (telemetry, telemetryDaily, experience metrics, executions, and every future server-side record: activity log,
       // project knowledge, marketing posts…) is written by Cloud Functions only — the owner reads it.
       match /games/{gameId} {
         allow read: if isAuthenticated() && anyAccess(worldId);
-        allow write: if isAuthenticated() && fullEdit(worldId) && ownerGameDev(worldId) && worldOpen(worldId);
+        allow create: if false; // functions/src/projects.js createGame
+        allow update, delete: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId);
       }
       // cards: by their own section (a member with chosen sections queries one section at a time)
       match /games/{gameId}/cards/{cardId} {
         allow read: if isAuthenticated() && readSec(worldId, resource.data.section);
-        allow create, update: if isAuthenticated() && editSec(worldId, request.resource.data.section) && ownerGameDev(worldId) && worldOpen(worldId);
-        allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && ownerGameDev(worldId) && worldOpen(worldId);
+        allow create, update: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
+        allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && worldOpen(worldId);
       }
       match /games/{gameId}/{sub}/{docId} {
         allow read: if isAuthenticated() && sub != 'cards' && readSec(worldId, subSec(sub));
-        allow write: if isAuthenticated() && sub != 'cards' && editSec(worldId, subSec(sub)) && ownerGameDev(worldId) && worldOpen(worldId) &&
-                        sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests', 'quests', 'dialogues'];
+        allow write: if isAuthenticated() && sub != 'cards' && editSec(worldId, subSec(sub)) && worldOpen(worldId) &&
+                        (sub in ['quests', 'dialogues'] ||
+                         (sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'] && ownerGameDev(worldId)));
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId) &&
                          sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];

@@ -19,11 +19,11 @@
 const PLAN_ORDER = ['free', 'storyteller', 'novelist', 'worldbuilder'];
 
 const PLANS = {
-  free:         { name: 'Free',         price: 0,  monthly: 200,    maxProjects: 1 },
-  storyteller:  { name: 'Storyteller',  price: 12, monthly: 2400,   maxProjects: 5 },
-  novelist:     { name: 'Novelist',     price: 29, monthly: 32000,  maxProjects: 999, popular: true },
-  worldbuilder: { name: 'Worldbuilder', price: 69, monthly: 180000, maxProjects: 999 },
-  worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, hidden: true, as: 'worldbuilder' } // dev/testing
+  free:         { name: 'Free',         price: 0,  monthly: 200,    maxProjects: 1,   maxGames: 1 },
+  storyteller:  { name: 'Storyteller',  price: 12, monthly: 2400,   maxProjects: 5,   maxGames: 1 },
+  novelist:     { name: 'Novelist',     price: 29, monthly: 32000,  maxProjects: 999, maxGames: 1, popular: true },
+  worldbuilder: { name: 'Worldbuilder', price: 69, monthly: 180000, maxProjects: 999, maxGames: 999 },
+  worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, maxGames: 999, hidden: true, as: 'worldbuilder' } // dev/testing
 };
 
 const USD_PER_TOKEN = 0.00015; // API dollars one token pays for (see MARGIN above)
@@ -80,7 +80,7 @@ const FEATURES = [
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },
     en: { name: 'World Bible: canon editing', desc: 'Overview, laws, dossiers, culture, chronicle, location map.' },
     where: 'Біблія світу', server: 'firestore.rules (власник світу)' },
-  { id: 'quests', kind: 'gate', flag: 'allowGameDev', minPlan: 'worldbuilder',
+  { id: 'quests', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Квести й діалоги гри', desc: 'Квести з етапами й розгалуженнями, діалоги з репліками й виборами — на картках гри (персонажі, вороги, локації, рівні, предмети) і на персонажах та подіях канону; перевірка графа.' },
     en: { name: 'Game quests & dialogues', desc: 'Quests with stages and branches, dialogues with lines and choices — on the game cards (characters, enemies, locations, levels, items) and on canon characters and events; a graph check.' },
     where: 'Біблія гри → Квести й діалоги', server: 'firestore.rules (games/{g}/quests, dialogues) · mcp' },
@@ -113,18 +113,24 @@ const FEATURES = [
     uk: { name: 'Режим «Покращити»', desc: 'Готується.' }, en: { name: 'Improve mode', desc: 'In the works.' },
     where: '—', server: '—' },
   // ── Game Bible ──
+  // Game design is open on every plan (owner's decision 2026-11-02): one game below Worldbuilder; what costs us — AI, MCP,
+  // telemetry, marketing, a repo, big files — stays Worldbuilder (allowGameDev)
+  { id: 'gamedesign', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
+    uk: { name: 'GDD гри', desc: 'Гра на каноні світу: розділи, картки, механіки, квести й діалоги, візуальний стиль, файли до 20 МБ. Одна гра на тарифах до Worldbuilder.' },
+    en: { name: 'Game GDD', desc: 'A game on the world canon: sections, cards, mechanics, quests and dialogues, visual style, files up to 20 MB. One game on plans below Worldbuilder.' },
+    where: 'Хаб світу → Створити нову гру · GDD гри', server: 'createGame · firestore.rules · storage.rules' },
   { id: 'gamedev', kind: 'gate', flag: 'allowGameDev', minPlan: 'worldbuilder',
-    uk: { name: 'Біблія гри', desc: 'Ігри на каноні світу: розділи, картки, файли й префаби з ліцензіями, продакшн-план.' },
-    en: { name: 'Game Bible', desc: 'Games on the world canon: sections, cards, files and prefabs with licences, production plan.' },
-    where: 'Біблія світу → гра', server: 'gamedevPlan · storage.rules' },
-  { id: 'artStyle', kind: 'gate', flag: 'allowGameDev', minPlan: 'worldbuilder',
+    uk: { name: 'Геймдев-студія', desc: 'Скільки завгодно ігор, файли й префаби до 200 МБ, продакшн-план, Claude Code (MCP), досвід гравців, маркетинг, GitHub.' },
+    en: { name: 'Game dev studio', desc: 'Any number of games, files and prefabs up to 200 MB, production plan, Claude Code (MCP), player experience, marketing, GitHub.' },
+    where: 'GDD гри', server: 'createGame · gamedevPlan · storage.rules' },
+  { id: 'artStyle', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Візуальний стиль гри', desc: 'Загальний стиль і біоми; значок 🖌 на кожній картинці гри — наскільки вона в стилі (за кольором, без токенів). ШІ-перевірка — окремо (styleCheck).' },
     en: { name: 'Game visual style', desc: 'Overall style and biomes; a 🖌 badge on every game picture — how well it fits (by colour, no tokens). AI check — separately (styleCheck).' },
     where: 'Біблія гри → Арт і аудіо → Візуальний стиль', server: '— (у браузері)' },
-  { id: 'mechanics', kind: 'gate', flag: 'allowGameDev', minPlan: 'worldbuilder',
+  { id: 'mechanics', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Конструктор механік', desc: 'Механіки гри — власні або з шаблонів (UMCF ближнього бою, ухилення, блок і парирування, атрибути, рівні, статуси, інвентар, поведінка ворогів): розділи, таблиці з посиланнями, перевірки й заповненість, без токенів. Claude Code читає їх через MCP.' },
     en: { name: 'Mechanics constructor', desc: 'Game mechanics — your own or from templates (UMCF melee, dodge, block & parry, attributes, levels, status effects, inventory, enemy behaviour): sections, linked tables, checks and completeness, no tokens. Claude Code reads them over MCP.' },
-    where: 'Біблія гри → Механіки', server: 'MCP get_mechanics / get_mechanic (allowAPI)' },
+    where: 'GDD гри → Механіки', server: 'firestore.rules · MCP get_mechanics / get_mechanic (allowAPI)' },
   { id: 'styleCheck', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 0.25 }, op: 'styleCheck',
     uk: { name: 'ШІ-перевірка стилю', desc: 'Claude дивиться картинку й каже, чи вона в стилі гри, що вибивається і як виправити. Сама — при завантаженні картинки; усі — кнопкою у «Візуальному стилі»; скриншоти з Unity — через MCP.' },
     en: { name: 'AI style check', desc: 'Claude looks at a picture and says whether it fits the game’s style, what breaks it and how to fix it. Automatic on upload; all at once by a button in «Visual style»; Unity screenshots over MCP.' },
@@ -213,7 +219,7 @@ function unlocked(feature, plan) { return planRank(plan) >= PLAN_ORDER.indexOf(f
 // Plan → { monthly, maxProjects, allow…: bool } — the shape plans.js / token-budget.js always had
 function planBudget(plan) {
   const p = PLANS[plan] || PLANS.free;
-  const out = { monthly: p.monthly, maxProjects: p.maxProjects };
+  const out = { monthly: p.monthly, maxProjects: p.maxProjects, maxGames: p.maxGames || 1 };
   FEATURES.forEach((f) => {
     if (!f.flag) return;
     const on = unlocked(f, PLANS[plan] ? plan : 'free');

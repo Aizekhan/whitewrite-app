@@ -89,3 +89,40 @@ exports.createProject = onRequest({ cors: true, timeoutSeconds: 30 }, async (req
     }
   });
 });
+
+// Games are created ONLY here too, so the plan's maxGames holds (firestore.rules deny client creates of worlds/{w}/games):
+// game design is open on every plan (paid-features.js «gamedesign», allowGameDesign) — one game below Worldbuilder,
+// counted over all the author's worlds. The game doc gets its first fields; the Bible fills the rest (a restore merges its own).
+exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, res) => {
+  return cors(req, res, async () => {
+    let uid = null;
+    try { uid = await verifyAuth(req.headers.authorization); } catch (e) { uid = null; }
+    if (!uid) return res.status(401).json({ error: 'Unauthorized' });
+    const b = req.body || {};
+    try {
+      const wref = db.collection('worlds').doc(String(b.worldId || '-'));
+      const w = await wref.get();
+      if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Not your world' });
+      if (w.data().freeze) return res.status(403).json({ error: 'Світ заморожено', code: 'FROZEN' });
+      const user = (await db.collection('users').doc(uid).get()).data() || {};
+      const budget = getPlanBudget(user.plan || 'free');
+      if (!budget.allowGameDesign) return res.status(403).json({ error: 'Ігри недоступні на цьому тарифі', code: 'PLAN_REQUIRED' });
+      const worlds = await db.collection('worlds').where('owner', '==', uid).get();
+      const counts = await Promise.all(worlds.docs.map((d) => d.ref.collection('games').count().get()));
+      const count = counts.reduce((n, c) => n + c.data().count, 0);
+      const limit = budget.maxGames || 1;
+      if (count >= limit) return res.status(403).json({ code: 'GAME_LIMIT', error: 'Ліміт ігор тарифу', limit, count, plan: user.plan || 'free' });
+      const gameId = 'game_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      await wref.collection('games').doc(gameId).set({
+        title: str(b.title, 200, '') || 'Без назви',
+        engine: { profile: /^[a-z0-9-]{1,40}$/.test(b.engine || '') ? b.engine : 'generic' }, // the Bible's ENGINES ids
+        sections: [], canonOptIn: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      res.json({ gameId, limit, count: count + 1 });
+    } catch (error) {
+      console.error('[createGame]', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
