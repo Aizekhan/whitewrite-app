@@ -170,7 +170,7 @@
       'hero.agentBeta': 'для творців ігор',
       'hero.agentTitle': 'Від задуму —\nдо гри',
       'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
-      'hero.agentBtn': '🤖 Шлях з агентом',
+      'hero.agentBtn': '🤖 Від чистого ПК до Гри',
       'hero.imgAlt': 'Хранитель історій з живою книгою',
 
       // Story Form
@@ -505,7 +505,7 @@
       'hero.agentBeta': 'для творців ігор',
       'hero.agentTitle': 'Від задуму —\nдо гри',
       'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
-      'hero.agentBtn': '🤖 Шлях з агентом',
+      'hero.agentBtn': '🤖 Від чистого ПК до Гри',
 
       // Story Form
       'form.kicker': 'Новий всесвіт',
@@ -736,7 +736,7 @@
       'hero.agentBeta': 'for game makers',
       'hero.agentTitle': 'From idea\nto game',
       'hero.agentDesc': 'The Game Bible and the production plan live in WhiteWrite; Claude Code builds the game from them. You just accept the work.',
-      'hero.agentBtn': '🤖 The path with the agent',
+      'hero.agentBtn': '🤖 From a clean PC to a game',
       'hero.imgAlt': 'Keeper of stories with a living book',
 
       // Story Form
@@ -1075,7 +1075,7 @@
       'hero.agentBeta': 'for game makers',
       'hero.agentTitle': 'From idea\nto game',
       'hero.agentDesc': 'The Game Bible and the production plan live in WhiteWrite; Claude Code builds the game from them. You just accept the work.',
-      'hero.agentBtn': '🤖 The path with the agent',
+      'hero.agentBtn': '🤖 From a clean PC to a game',
 
       // Story Form
       'form.kicker': 'New Universe',

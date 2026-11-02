@@ -19,7 +19,7 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.agentBeta': 'для творців ігор',
     'hero.agentTitle': 'Від задуму —\nдо гри',
     'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
-    'hero.agentBtn': '🤖 Шлях з агентом'
+    'hero.agentBtn': '🤖 Від чистого ПК до Гри'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
   const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
