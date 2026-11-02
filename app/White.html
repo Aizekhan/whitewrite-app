@@ -145,6 +145,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); transition:.18s; }
 .ncard__open:hover{ filter:brightness(1.06); }
 .ncard__open svg{ width:15px; height:15px; }
+.ncard__media{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.ncard--bible{ cursor:pointer; }
+.pe-cover .ncard__media{ border-radius:12px; }
 .ncard--new{ align-items:center; justify-content:center; cursor:pointer; border-style:dashed; min-height:230px; color:var(--tx-mid); }
 .ncard--new:hover{ color:var(--gold-lit); border-color:rgba(217,160,70,0.5); }
 .ncard--new svg{ width:34px; height:34px; margin-bottom:10px; }
@@ -436,8 +439,6 @@ body:not(.at-home) .userdock{ display:none; }
   body:not(.at-home):not(.in-work) .view{ top:0; }
   body:not(.at-home):not(.in-work) .home-fab{ display:grid; }
 }
-.wtiles{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:26px; }
-.wtile:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
 .feedback-fab:hover{ color:#f6e3b5; border-color:rgba(240,200,120,0.8); transform:translateY(-2px) rotate(-6deg);
   box-shadow:0 12px 32px rgba(0,0,0,0.55), 0 0 22px rgba(232,170,80,0.3); }
 .auth-tab{ flex:1; cursor:pointer; font-family:"Cinzel",serif; font-weight:600; font-size:13px; color:var(--tx-mid);
@@ -1283,9 +1284,12 @@ body:not(.at-home) .userdock{ display:none; }
         '<div class="vhead__k">' + t('worlds.hubKicker') + '</div>' +
         '<h1 class="vhead__t">' + escapeHtml(world ? (world.title || t('worlds.untitled')) : '…') + '</h1>' +
         (world && (world.tagline || world.summary) ? '<p class="vhead__s">' + escapeHtml(world.tagline || world.summary) + '</p>' : '') +
-        '<div class="wtiles">' +
-          '<button class="kb wtile" id="w-bible"><div class="kb__ic">' + svg("layers") + '</div>' +
-            '<div class="kb__t">' + t('worlds.bible') + '</div><div class="kb__d">' + t('worlds.bibleHint') + '</div></button>' +
+        '<div class="grid grid--narr" style="margin-top:26px">' +
+          '<article class="ncard ncard--bible" id="w-bible">' +
+            '<div class="ncard__cover">' + worldMediaHtml(world) +
+              (world ? '<button class="ncard__edit" id="w-edit" title="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '" aria-label="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '">' + svg("edit") + '</button>' : '') + '</div>' +
+            '<div class="ncard__b"><div class="ncard__title">' + t('worlds.bible') + '</div><p class="ncard__desc">' + t('worlds.bibleHint') + '</p>' +
+            '<button class="ncard__open">' + svg("open") + cmT("Відкрити Біблію", "Open the Bible") + '</button></div></article>' +
         '</div>' +
         '<div class="vsec-h">' + svg("library") + t('worlds.storiesTitle') + '</div>' +
         '<div class="grid grid--narr">' +
@@ -1305,6 +1309,7 @@ body:not(.at-home) .userdock{ display:none; }
     if (nn) nn.addEventListener("click", createNarrative);
     views.narr.querySelector("#to-worlds").addEventListener("click", function () { showView("worlds"); });
     views.narr.querySelector("#w-bible").addEventListener("click", showBible);
+    var we = views.narr.querySelector("#w-edit"); if (we) we.addEventListener("click", function (e) { e.stopPropagation(); openWorldEdit(CURRENT_WORLD); });
     [].forEach.call(views.narr.querySelectorAll(".ncard__edit"), function (b) {
       b.addEventListener("click", function (e) { e.stopPropagation(); openProjectEdit(+b.dataset.i); });
     });
@@ -1325,7 +1330,8 @@ body:not(.at-home) .userdock{ display:none; }
           (PROJECTS_LOADING && !WORLDS.length ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
            WORLDS.map(function (w) {
              return '<article class="ncard" data-world="' + escapeHtml(w.id) + '">' +
-               '<div class="ncard__cover"></div>' +
+               '<div class="ncard__cover">' + worldMediaHtml(w) +
+                 '<button class="ncard__edit" data-wedit title="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '" aria-label="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '">' + svg("edit") + '</button></div>' +
                '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(w.title || t('worlds.untitled')) + '</div>' +
                '<div class="ncard__meta">' + count(w.id) + ' ' + (function (n) { var d = n % 10, h = n % 100; return t(d === 1 && h !== 11 ? 'worlds.story1' : d >= 2 && d <= 4 && (h < 12 || h > 14) ? 'worlds.story2' : 'worlds.stories'); })(count(w.id)) + '</div>' +
                '<p class="ncard__desc">' + escapeHtml(w.tagline || w.summary || '') + '</p>' +
@@ -1337,7 +1343,82 @@ body:not(.at-home) .userdock{ display:none; }
     [].forEach.call(views.worlds.querySelectorAll('[data-open-world]'), function (b) {
       b.addEventListener("click", function () { openWorld(b.closest('.ncard').dataset.world); });
     });
+    [].forEach.call(views.worlds.querySelectorAll('[data-wedit]'), function (b) {
+      b.addEventListener("click", function (e) { e.stopPropagation(); openWorldEdit(b.closest('.ncard').dataset.world); });
+    });
     views.worlds.querySelector("#new-world").addEventListener("click", createWorld);
+  }
+
+  // A world's cover: an image or a short silent looping video — worlds/{w}.cover { url, path, type } (Storage worlds/{w}/cover/)
+  function worldMediaHtml(w) {
+    var c = w && w.cover;
+    if (!c || !c.url) return '<img class="ncard__media" src="assets/ph-world.jpg" alt="" loading="lazy">'; // the default cover of every world
+    return c.type === "video"
+      ? '<video class="ncard__media" src="' + escapeHtml(c.url) + '" muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
+      : '<img class="ncard__media" src="' + escapeHtml(c.url) + '" alt="" loading="lazy">';
+  }
+  var COVER_MAX = { image: 10, video: 50 }; // MB, the same as storage.rules
+  function openWorldEdit(id) {
+    var w = WORLDS.filter(function (x) { return x.id === id; })[0]; if (!w) return;
+    var ov = document.getElementById("world-edit");
+    if (!ov) {
+      ov = document.createElement("div"); ov.className = "proj-edit"; ov.id = "world-edit"; document.body.appendChild(ov);
+    }
+    var file = null, removed = false;
+    ov.innerHTML = '<div class="pe-scrim" data-wx></div><div class="pe-card" role="dialog" aria-modal="true" aria-labelledby="we-h">' +
+      '<button class="pe-x" data-wx aria-label="' + escapeHtml(cmT("Закрити", "Close")) + '">✕</button>' +
+      '<div class="pe-kicker">' + cmT("Світ", "World") + '</div><h2 class="pe-title-h" id="we-h">' + cmT("Редагувати світ", "Edit the world") + '</h2>' +
+      '<div class="pe-field"><span class="pe-lbl">' + cmT("Обкладинка — картинка або відео", "Cover — an image or a video") + '</span>' +
+        '<div class="pe-cover" id="we-cover"><span class="pe-cover__ph">' + cmT("Своя обкладинка світу", "Your world's cover") + '</span>' +
+          '<label class="pe-cover__btn"><span>' + cmT("Завантажити", "Upload") + '</span><input type="file" accept="image/*,video/mp4,video/webm" id="we-file" style="display:none"></label>' +
+          '<button class="pe-cover__del" id="we-del" type="button">' + cmT("Прибрати", "Remove") + '</button></div>' +
+        '<span class="pe-hint">' + cmT("Картинка до 10 МБ або відео MP4/WebM до 50 МБ — грає по колу без звуку.", "An image up to 10 MB or an MP4/WebM video up to 50 MB — loops silently.") + '</span></div>' +
+      '<label class="pe-field"><span class="pe-lbl">' + cmT("Назва", "Name") + '</span><input class="pe-input" id="we-title" maxlength="160"></label>' +
+      '<label class="pe-field"><span class="pe-lbl">' + cmT("Слоган", "Tagline") + '</span><input class="pe-input" id="we-tag" maxlength="240"></label>' +
+      '<p class="pe-hint" id="we-msg" role="status"></p>' +
+      '<div class="pe-foot"><button class="pe-btn" data-wx>' + cmT("Скасувати", "Cancel") + '</button><button class="pe-btn pe-btn--save" id="we-save">' + cmT("✓ Зберегти", "✓ Save") + '</button></div></div>';
+    var q = function (s) { return ov.querySelector(s); }, say = function (x) { q("#we-msg").textContent = x; };
+    q("#we-title").value = w.title || ""; q("#we-tag").value = w.tagline || "";
+    var preview = function (c) {
+      var box = q("#we-cover"), old = box.querySelector(".ncard__media"); if (old) old.remove();
+      box.insertAdjacentHTML("afterbegin", worldMediaHtml({ cover: c }));
+      q(".pe-cover__ph").style.display = c ? "none" : ""; q("#we-del").style.display = c ? "" : "none";
+    };
+    preview(w.cover && w.cover.url ? w.cover : null);
+    q("#we-file").onchange = function (e) {
+      var f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+      var type = /^video\//.test(f.type) ? "video" : /^image\//.test(f.type) ? "image" : "";
+      if (!type || (type === "video" && !/^video\/(mp4|webm)$/.test(f.type))) { say(cmT("Підходять картинки та відео MP4 / WebM.", "Images and MP4 / WebM videos only.")); return; }
+      if (f.size > COVER_MAX[type] * 1024 * 1024) { say(cmT("Завеликий файл: ", "The file is too big: ") + "≤ " + COVER_MAX[type] + cmT(" МБ", " MB")); return; }
+      file = { f: f, type: type }; removed = false; say("");
+      preview({ url: URL.createObjectURL(f), type: type });
+    };
+    q("#we-del").onclick = function () { file = null; removed = true; preview(null); };
+    var close = function () { ov.classList.remove("is-on"); document.removeEventListener("keydown", onKey); };
+    var onKey = function (e) { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    [].forEach.call(ov.querySelectorAll("[data-wx]"), function (b) { b.onclick = close; });
+    q("#we-save").onclick = async function () {
+      var btn = this, db = window.__firebase.db, patch = { title: q("#we-title").value.trim() || w.title || "", tagline: q("#we-tag").value.trim(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+      var oldPath = w.cover && w.cover.path;
+      btn.disabled = true;
+      try {
+        if (file) {
+          var path = "worlds/" + id + "/cover/" + Date.now() + "_" + file.f.name.replace(/[^\w.\-]+/g, "_").slice(-80);
+          var task = firebase.storage().ref(path).put(file.f, { contentType: file.f.type });
+          task.on("state_changed", function (s) { say(cmT("Завантаження… ", "Uploading… ") + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
+          await task;
+          patch.cover = { url: await task.snapshot.ref.getDownloadURL(), path: path, type: file.type };
+        } else if (removed) patch.cover = firebase.firestore.FieldValue.delete();
+        await db.collection("worlds").doc(id).set(patch, { merge: true });
+        if ((file || removed) && oldPath) firebase.storage().ref(oldPath).delete().catch(function () {}); // the replaced file
+        Object.assign(w, { title: patch.title, tagline: patch.tagline });
+        if (file) w.cover = patch.cover; else if (removed) delete w.cover;
+        close(); fillWorlds(); if (CURRENT_WORLD === id) fillHome();
+      } catch (er) { btn.disabled = false; say(cmT("Не вдалося зберегти: ", "Could not save: ") + (er.code || er.message)); }
+    };
+    ov.classList.add("is-on"); q("#we-title").focus();
   }
 
   // hold-to-confirm delete (5s)
@@ -2181,6 +2262,7 @@ body:not(.at-home) .userdock{ display:none; }
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
 <!-- Firebase Modules -->
 <script src="/firebase/ai-models.js"></script>

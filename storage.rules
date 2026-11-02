@@ -18,6 +18,14 @@ service firebase.storage {
                                request.resource.size < 200 * 1024 * 1024;
     }
 
+    // The world's cover on its card (Світи, the world hub): an image ≤ 10 MB or an MP4/WebM video ≤ 50 MB, any plan.
+    match /worlds/{worldId}/cover/{file} {
+      allow read, delete: if request.auth != null && isWorldOwner(worldId);
+      allow create, update: if request.auth != null && isWorldOwner(worldId) &&
+                               ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
+                                (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
+    }
+
     match /worlds/{worldId}/games/{gameId}/files/{rest=**} {
       allow read: if request.auth != null && isWorldOwner(worldId);
       allow delete: if request.auth != null && isWorldOwner(worldId) && hasGameDev();

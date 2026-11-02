@@ -38,7 +38,7 @@
           { "key": "X-Content-Type-Options", "value": "nosniff" },
           { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
           { "key": "Content-Security-Policy", "value": "frame-ancestors 'self'; object-src 'none'; base-uri 'self'" },
-          { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://www.gstatic.com https://js.stripe.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob:; connect-src 'self' https://*.googleapis.com https://us-central1-whitewrite-app.cloudfunctions.net https://api.stripe.com; frame-src 'self' https://whitewrite-app.firebaseapp.com https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; form-action 'self'" }
+          { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://www.gstatic.com https://js.stripe.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: https://firebasestorage.googleapis.com; connect-src 'self' https://*.googleapis.com https://us-central1-whitewrite-app.cloudfunctions.net https://api.stripe.com; frame-src 'self' https://whitewrite-app.firebaseapp.com https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; form-action 'self'" }
         ]
       }
     ],

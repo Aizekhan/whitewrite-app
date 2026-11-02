@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.36.0 (2026-11-02)
+**Version:** 2.37.0 (2026-11-02)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -214,6 +214,7 @@ Frontend (re-render)
 ```javascript
 { owner: "uid", name, desc, tone, laws: [...], facts: [...], createdAt, updatedAt }
 ```
+- **Cover** (v2.37): `cover: { url, path, type: image|video }` — set in the shell (✎ on a world card in «Світи» and on the hub's «Біблія світу» card, `openWorldEdit` in `White.html`, also renames and edits `tagline`); file in Storage `worlds/{w}/cover/{ts}_{name}` (storage.rules: the owner, any plan, image ≤ 10 MB or `video/mp4|webm` ≤ 50 MB); the replaced file is deleted; world deletion deletes it. No cover → `app/assets/ph-world.jpg` (the default; stories fall back to `assets/ph-project.png`). Videos play `muted autoplay loop playsinline`; CSP `media-src` allows `firebasestorage.googleapis.com`.
 - `worlds/{w}/entities/{id}` — canon entities: `{ kind: "character|location|event|faction|artifact", type, name, slug, desc, ..., mapPos, inferred?, confidence? }`
 - **World dossier** (on the entity itself, no game statuses): `dossier: { story, look | outcome }` (two writing tabs per kind — characters Біографія/Зовнішність, locations Історія місця/Вигляд, factions Історія й мета/Символіка, artifacts Походження/Вигляд, events Перебіг/**Наслідки** (`outcome`, events have no look)), `group` (the subsection it was added in), `lifeNotes: [{ id, at, text }]` (characters' «Хронологія життя», ordered by the first number in `at`), `files: [...]` — world-level images/models in Storage `worlds/{w}/files/{entityId}/**`.
 - `worlds/{w}/lore/{id}` — culture entries (World Bible «Культура»); `worlds/{w}.timeUnit` — the chronicle's time unit.
@@ -239,7 +240,7 @@ Frontend (re-render)
 - `knowledge/{snapshotId}` — a Project Knowledge snapshot `{ schema: whitewrite.knowledge/1, scope: full|partial, manifest, status: uploading|imported, counts{added,updated,skipped,relations,rejected,tombstoned}, framework, overview, report, unresolved }`; `kAssets/{guid | p_<sha1(path)>}` — one asset/scene/prefab/script/visual `{ kind, guid, path (project-relative), type, name, description, labels, deps, details, hash, lastSnap, missingSince? }`; `kRelations/{sha1}` — `{ from, to, rel, evidence, confirmed }`; `games/{g}.knowledge { lastSnap, at }` (all server-only)
 - `activity/{sessionId}` — development log session `{ branch, commit, summary, verify: commit_found|commit_missing|unverified, receivedAt, entryCount }` + `entries/{entryId}` `{ change, category, text, status, playerImpact, evidence, media, limits, hints, privacy, taskId, at, reviewedAt? }` — written by the MCP server, never overwritten; the owner may change only `privacy`/`reviewedAt`
 - `changeRequests/{id}` — executor asks to change the design `{ what, why, taskId, status: open|accepted|rejected }`
-- Files: Firebase Storage `worlds/{w}/games/{g}/files/**` (game) and `worlds/{w}/files/{entityId}/**` (world dossiers); world deletion removes both
+- Files: Firebase Storage `worlds/{w}/games/{g}/files/**` (game), `worlds/{w}/files/{entityId}/**` (world dossiers) and `worlds/{w}/cover/*` (the world card); world deletion removes them all
 
 - `games/{g}.repo` — the game's GitHub repository `{ full, branch, private, connectedAt, syncedAt, sha }` (written by `gamedevPlan` only)
 
@@ -602,5 +603,5 @@ firebase deploy                   # Deploy everything
 
 ---
 
-**Last updated:** 2026-11-02 (v2.36 Спільнота: public showcases of worlds/games (`community.js`, ♥ with decay, reports + admin hide), home cards «Вибір спільноти» (top 20 through the day) / «Відкрий нового автора»; v2.35.3 game menu: «Сцени» under «Світ і рівні», UI/UX under «Арт і аудіо»; v2.35.2 hero «Від задуму — до гри» on one line (nowrap); v2.35.1 KB road: step 1 = choose the path (RPG Framework explained), step 2 = prepare the PC; v2.35 KB: «Світи на головній» (ready frame, fill from your materials), new «Біблія гри — живий гейм-диздок»; hero button «Від чистого ПК до Гри»; v2.34 «Історії і хроніка»: story tags scope/games, subsection rename, clickable event names; story form keeps «Біблія світу» (`ww-mode: create`); v2.33 home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks; v2.32 shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops; v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
+**Last updated:** 2026-11-02 (v2.37 world covers (image / looping video, ✎ on world cards, default `ph-world.jpg`), the hub's «Біблія світу» is a full-size card; v2.36 Спільнота: public showcases of worlds/games (`community.js`, ♥ with decay, reports + admin hide), home cards «Вибір спільноти» (top 20 through the day) / «Відкрий нового автора»; v2.35.3 game menu: «Сцени» under «Світ і рівні», UI/UX under «Арт і аудіо»; v2.35.2 hero «Від задуму — до гри» on one line (nowrap); v2.35.1 KB road: step 1 = choose the path (RPG Framework explained), step 2 = prepare the PC; v2.35 KB: «Світи на головній» (ready frame, fill from your materials), new «Біблія гри — живий гейм-диздок»; hero button «Від чистого ПК до Гри»; v2.34 «Історії і хроніка»: story tags scope/games, subsection rename, clickable event names; story form keeps «Біблія світу» (`ww-mode: create`); v2.33 home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks; v2.32 shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops; v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
 **Maintained by:** WhiteWrite Team

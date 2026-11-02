@@ -3557,6 +3557,7 @@
       await deleteDocs(wref().collection("lore"));
       var skyMap = world.cosmos && world.cosmos.planet && world.cosmos.planet.map; // an uploaded map of the Космограф
       if (/^https:\/\/firebasestorage\./.test(skyMap || "")) await firebase.storage().refFromURL(skyMap).delete().catch(function () {});
+      if (world.cover && world.cover.path) await firebase.storage().ref(world.cover.path).delete().catch(function () {}); // the card's image / video
       await wref().delete(); // last: the rules check ownership through the world doc
       tellShell({ type: "ww-worlds-changed", deleted: true });
     });
