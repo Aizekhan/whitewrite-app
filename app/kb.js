@@ -524,7 +524,7 @@
           ["p", "Число — частка кольорів картинки, близьких до палітри стилю (тіні й відблиски не рахуються), мінус штраф за заборонені кольори. Перевірка йде прямо в браузері — без токенів і миттєво; змінив палітру — значки перераховуються самі."],
           ["tip", "Палітру стилю зручно зібрати кнопкою «🎨 З картинок» з референсів стилю на тій самій картці."],
           ["h", "✦ Стиль із референсів"],
-          ["p", "Немає слів для стилю — є картинки? Кнопка <b>«✦ Стиль із референсів»</b> угорі вкладки бере до 6 картинок з розділу «Референси» (і з карток стилю), і ШІ складає загальний стиль: маніфест, палітру з кодами кольорів, заборонені кольори, світло й настрій, матеріали, форми, «так / ні». Ти бачиш пропозицію по полях: порожні поля картки «Загальний стиль» відмічено одразу, заповнені — лише якщо хочеш замінити. Картки немає — вона створиться. Ціна ✦ — на кнопці; Worldbuilder."],
+          ["p", "Немає слів для стилю — є картинки? Кнопка <b>«✦ Стиль із референсів»</b> угорі вкладки бере до 6 картинок з розділу «Референси» (поруч у «Арт і аудіо») і з карток стилю, і ШІ складає загальний стиль: маніфест, палітру з кодами кольорів, заборонені кольори, світло й настрій, матеріали, форми, «так / ні». Ти бачиш пропозицію по полях: порожні поля картки «Загальний стиль» відмічено одразу, заповнені — лише якщо хочеш замінити. Картки немає — вона створиться. Ціна ✦ — на кнопці; Worldbuilder."],
           ["h", "✦ ШІ-перевірка стилю"],
           ["p", "Колір — лише половина стилю. ШІ-перевірка дивиться на все: палітру, світло, матеріали, форми й силует, правила «так / ні» — і порівнює з референсами стилю. Після неї значок стає «🖌 87 ✦», а під файлом у картці видно, що вибивається і як виправити."],
           ["ul", [
@@ -700,12 +700,12 @@
         body: [
           ["p", "У світі може бути кілька ігор, і кожна — окремий GDD. «Огляд гри» відкривається, як «Огляд світу»: угорі обкладинка гри (картинка до 10 МБ або відео MP4 / WebM до 50 МБ, що грає по колу без звуку, з ⌖ кадром і ⏸/▶) і назва гри — шрифтом або картинкою з повзунком висоти. ✎ на обкладинці й біля назви бачить власник світу, при наведенні. Відкривається гра з хабу світу (картка гри → «Відкрити GDD») або з Біблії світу — «Повʼязані ігри» внизу її меню. У GDD гри меню лише гри; угорі — «‹ Канон світу», що веде назад у Біблію світу. Перемикача між іграми в GDD немає: інша гра — через хаб чи «Повʼязані ігри». Звʼязки з каноном лишаються: «＋ Додати з канону», картки персонажів і локацій канону в грі, квести на сутностях канону, 💡 у досьє (якщо ігор кілька — Біблія спитає, у яку). Меню гри — дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
           ["ul", [
-            "<b>Огляд і лор</b> — Огляд гри · Лор гри · Референси",
+            "<b>Огляд і лор</b> — Огляд гри · Лор гри",
             "<b>Персонажі й вороги</b> — Персонажі · Фракції · Вороги й боси · Кузня персонажів (виробництво персонажа й екіпірування, див. «⚒ Кузня персонажів»)",
             "<b>Світ і рівні</b> — Локації · Рівні й контент · Генерація світу · Сцени",
             "<b>Механіки</b> — конструктор: власні механіки й шаблони (UMCF та інші), див. «⚙ Конструктор механік»",
             "<b>Прогресія й предмети</b> — Прогресія й економіка · Предмети й спорядження · Артефакти",
-            "<b>Арт і аудіо</b> — Візуальний стиль · Ассети й префаби · Матеріали й текстури · Анімації й VFX · Звук і музика (з «🎼 Фабрикою звуку» — адаптивна музика, амбієнт, звуки UI, промпти) · UI / UX",
+            "<b>Арт і аудіо</b> — Візуальний стиль · Референси · Ассети й префаби · Матеріали й текстури · Анімації й VFX · Звук і музика (з «🎼 Фабрикою звуку» — адаптивна музика, амбієнт, звуки UI, промпти) · UI / UX",
             "<b>Технічне</b> · твої власні розділи",
             "<b>Продакшн-план</b> — План · Неузгоджене",
             "<b>Досвід гравців</b> — Досвід гравців · Телеметрія (каталог подій)",
@@ -1642,7 +1642,7 @@
           ["p", "The number is the share of the picture's colours close to the style palette (shadows and highlights don't count), minus a penalty for colours to avoid. The check runs right in the browser — no tokens, instantly; change the palette and the badges recount themselves."],
           ["tip", "The style palette is easy to build with “🎨 From images” from the style references on the same card."],
           ["h", "✦ Style from references"],
-          ["p", "No words for the style, only pictures? The <b>“✦ Style from references”</b> button at the top of the tab takes up to 6 pictures from the “References” section (and the style cards), and AI writes the overall style: a manifesto, a palette with colour codes, colours to avoid, light and mood, materials, shapes, do / don't. You see the proposal field by field: the empty fields of the “Overall style” card are ticked already, filled ones only if you want to replace them. No card yet — it is created. The ✦ price is on the button; Worldbuilder."],
+          ["p", "No words for the style, only pictures? The <b>“✦ Style from references”</b> button at the top of the tab takes up to 6 pictures from the “References” section (next to it in “Art & audio”) and the style cards, and AI writes the overall style: a manifesto, a palette with colour codes, colours to avoid, light and mood, materials, shapes, do / don't. You see the proposal field by field: the empty fields of the “Overall style” card are ticked already, filled ones only if you want to replace them. No card yet — it is created. The ✦ price is on the button; Worldbuilder."],
           ["h", "✦ The AI style check"],
           ["p", "Colour is only half of a style. The AI check looks at everything: palette, light, materials, shapes and silhouette, the do / don't rules — and compares with the style references. After it the badge reads “🖌 87 ✦”, and under the file in the card you see what breaks the style and how to fix it."],
           ["ul", [
@@ -1818,12 +1818,12 @@
         body: [
           ["p", "A world can have several games, and each is its own GDD. “Game overview” opens like “World overview”: the game's cover on top (an image up to 10 MB or an MP4 / WebM video up to 50 MB that loops silently, with a ⌖ frame and ⏸/▶) and the game's name — in the font or as an image with a height slider. The world's owner sees ✎ on the cover and by the name, on hover. A game opens from the world hub (a game card → “Open the GDD”) or from the World Bible — “Linked games” at the foot of its menu. A game's GDD shows only the game's menu; on top, “‹ World canon” leads back to the World Bible. There is no game switcher inside a GDD: another game is through the hub or “Linked games”. The links to the canon stay: “＋ Add from canon”, canon characters and locations in the game, quests on canon entities, 💡 in dossiers (with several games the Bible asks which). The game menu is a tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
           ["ul", [
-            "<b>Overview & lore</b> — Game overview · Game lore · References",
+            "<b>Overview & lore</b> — Game overview · Game lore",
             "<b>Characters & enemies</b> — Characters · Factions · Enemies & bosses · Character forge (a character's and its equipment's production, see “⚒ Character forge”)",
             "<b>World & levels</b> — Locations · Levels & content · World generation · Scenes",
             "<b>Mechanics</b> — the constructor: your own mechanics and templates (UMCF and others), see “⚙ Mechanics constructor”",
             "<b>Progression & items</b> — Progression & economy · Items & gear · Artifacts",
-            "<b>Art & audio</b> — Visual style · Assets & prefabs · Materials & textures · Animation & VFX · Sound & music (with the “🎼 Sound factory” — adaptive music, ambience, UI sounds, prompts) · UI / UX",
+            "<b>Art & audio</b> — Visual style · References · Assets & prefabs · Materials & textures · Animation & VFX · Sound & music (with the “🎼 Sound factory” — adaptive music, ambience, UI sounds, prompts) · UI / UX",
             "<b>Technical</b> · your own sections",
             "<b>Production plan</b> — Plan · Inconsistencies",
             "<b>Player experience</b> — Player experience · Telemetry (event catalogue)",

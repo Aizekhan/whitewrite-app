@@ -764,13 +764,13 @@
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
   var NAV_GROUPS = [
-    { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "refs"] },
+    { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore"] },
     { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies", "forge"] },
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen", "scenes"] },
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
-    { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["artstyle", "assets", "materials", "animation", "audio", "ui"] },
+    { id: "g-art", uk: "Арт і аудіо", en: "Art & audio", members: ["artstyle", "refs", "assets", "materials", "animation", "audio", "ui"] },
     { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
     "custom",
     { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues", "activity"] },
