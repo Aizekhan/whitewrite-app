@@ -105,7 +105,9 @@
           enabled: "Увімкнено, перший бекап зроблено.", done: "Бекап зроблено.", disabled: "Вимкнено (оплачений місяць лишається).", disconnected: "GitHub відключено." } },
       stats: { followers: "Фоловери — стежать за світом чи грою у Спільноті", rating: "Рейтинг — ♥ від спільноти" },
       team: { noAi: "✦ AI-дії в цьому світі запускають лише власник і адмін команди (на токенах власника)." },
-      wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Висота назви", sizeMax: "більше не влазить у ширину рядка", uploading: "Завантажую…" },
+      wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Висота назви", sizeMax: "більше не влазить у ширину рядка", uploading: "Завантажую…",
+        gEdit: "Редагувати назву гри", gTitle: "Назва гри", cover: "Обкладинка гри", coverEdit: "Змінити обкладинку гри", coverHint: "Картинка до 10 МБ або відео MP4 / WebM до 50 МБ — грає по колу без звуку.",
+        coverPick: "＋ Завантажити", coverDel: "Прибрати", frame: "⌖ Кадр", coverType: "Підходять картинки та відео MP4 / WebM.", coverBig: "Завеликий файл: ≤ {n} МБ" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
       stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
@@ -363,7 +365,9 @@
           enabled: "On; the first backup is done.", done: "Backed up.", disabled: "Off (the paid month stays).", disconnected: "GitHub disconnected." } },
       stats: { followers: "Followers — following the world or game in the Community", rating: "Rating — ♥ from the community" },
       team: { noAi: "✦ AI actions in this world are run only by the owner and a team admin (on the owner's tokens)." },
-      wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Title height", sizeMax: "wider would not fit the line", uploading: "Uploading…" },
+      wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Title height", sizeMax: "wider would not fit the line", uploading: "Uploading…",
+        gEdit: "Edit the game title", gTitle: "Game title", cover: "Game cover", coverEdit: "Change the game cover", coverHint: "An image up to 10 MB or an MP4 / WebM video up to 50 MB — loops silently.",
+        coverPick: "＋ Upload", coverDel: "Remove", frame: "⌖ Frame", coverType: "Images and MP4 / WebM videos only.", coverBig: "The file is too big: ≤ {n} MB" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
       stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
@@ -1223,7 +1227,8 @@
     var all = allCards();
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
-    var html = '<header class="sec"><div><h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + (s.id === "overview" && game && !query ? statsHtml(gameId) : "") + '</h1>' +
+    var gov = s.id === "overview" && game && !query; // «Огляд гри»: the game's cover and name, as on «Огляд світу»
+    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? worldNameHtml() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
@@ -1319,11 +1324,63 @@
     [].forEach.call(document.querySelectorAll('[data-vworld="' + id + '"]'), function (v) { if (stop) { v.pause(); v.currentTime = 0; } else v.play().catch(function () {}); });
     b.outerHTML = vStopBtn(id);
   }, true);
+  // the page's owner of the cover and the name: the world, or — on a game's «Огляд гри» — the game (games/{g}.cover / .titleArt, Storage worlds/{w}/games/{g}/cover/)
+  function coverTarget() {
+    var me = firebase.auth().currentUser;
+    return mode === "game" && game ? { d: game, key: worldId + "__" + gameId, ref: gref(), base: "worlds/" + worldId + "/games/" + gameId + "/cover/", gid: gameId, own: !!(me && world && world.owner === me.uid) && canWrite }
+      : { d: world, key: worldId, ref: wref(), base: "worlds/" + worldId + "/cover/", gid: undefined, own: !!(me && world && world.owner === me.uid) };
+  }
   function worldCoverHtml() {
-    var c = world && world.cover, st = c && c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : '';
+    var T = coverTarget(), c = T.d && T.d.cover, st = c && c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : '';
     return '<div class="wcover">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
-      : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' data-vworld="' + esc(worldId) + '" muted' + (vStopped(worldId) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>' + vStopBtn(worldId)
-      : '<img src="' + esc(c.url) + '"' + st + ' alt="">') + '</div>';
+      : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' data-vworld="' + esc(T.key) + '" muted' + (vStopped(T.key) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>' + vStopBtn(T.key)
+      : '<img src="' + esc(c.url) + '"' + st + ' alt="">') +
+      (T.gid && T.own ? '<button type="button" class="wcover__ed" data-gcover title="' + esc(STR.wname.coverEdit) + '" aria-label="' + esc(STR.wname.coverEdit) + '">✎</button>' : '') + '</div>'; // the world's cover is edited on its card in «Світи»
+  }
+  // a game's cover: an image ≤ 10 MB or an MP4 / WebM video ≤ 50 MB with its ⌖ frame — the same as a world's (White.html openWorldEdit)
+  function editGameCover() {
+    var W = STR.wname, T = coverTarget(), cur = T.d.cover && T.d.cover.url ? T.d.cover : null, file = null, removed = false, frame = cur && cur.frame || null, shown = cur;
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(W.coverEdit) + '"><h3>' + esc(W.cover) + '</h3><p class="hint">' + esc(W.coverHint) + '</p>' +
+      '<div class="wcover" id="gc-prev"></div><div class="row"><label class="btn"><input type="file" accept="image/*,video/mp4,video/webm" hidden id="gc-f">' + W.coverPick + '</label>' +
+      '<button type="button" class="btn ghost" id="gc-fr">' + W.frame + '</button><button type="button" class="btn ghost" id="gc-del">' + W.coverDel + '</button></div>' +
+      '<p class="muted" id="gc-msg" role="status"></p><div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.save + '</button></div></form>';
+    document.body.appendChild(box);
+    var q = function (id) { return box.querySelector("#" + id); }, say = function (x) { q("gc-msg").textContent = x; };
+    var draw = function () {
+      var st = frame && window.wwFrame ? ' style="' + window.wwFrame.style(frame) + '"' : '';
+      q("gc-prev").innerHTML = !shown ? '<img src="assets/ph-world.jpg" alt="">' : shown.type === "video" ? '<video src="' + esc(shown.url) + '"' + st + ' muted autoplay loop playsinline aria-hidden="true"></video>' : '<img src="' + esc(shown.url) + '"' + st + ' alt="">';
+      q("gc-del").hidden = !shown; q("gc-fr").hidden = !shown || !window.wwFrame;
+    };
+    q("gc-f").onchange = function (e) {
+      var f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return;
+      var type = /^video\/(mp4|webm)$/.test(f.type) ? "video" : /^image\//.test(f.type) ? "image" : "", max = type === "video" ? 50 : 10;
+      if (!type) return say(W.coverType);
+      if (f.size > max * 1024 * 1024) return say(W.coverBig.replace("{n}", max));
+      file = { f: f, type: type }; removed = false; frame = null; shown = { url: URL.createObjectURL(f), type: type }; say(""); draw();
+    };
+    q("gc-del").onclick = function () { file = null; removed = true; frame = null; shown = null; draw(); };
+    q("gc-fr").onclick = function () { if (shown && window.wwFrame) window.wwFrame.pick({ url: shown.url, video: shown.type === "video", frame: frame, lang: LANG, onSave: function (fr) { frame = fr; draw(); } }); };
+    var close = function () { box.remove(); };
+    q("ask-x").onclick = close;
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault(); q("ask-ok").disabled = true;
+      try {
+        var cover = cur ? Object.assign({}, cur) : null;
+        if (file) {
+          say(W.uploading);
+          var path = T.base + Date.now() + "_" + file.f.name.replace(/[^\w.\-]+/g, "_").slice(-80);
+          var task = await firebase.storage().ref(path).put(file.f, { contentType: file.f.type });
+          cover = { url: await task.ref.getDownloadURL(), path: path, type: file.type };
+        } else if (removed) cover = null;
+        if (cover) { if (frame) cover.frame = frame; else delete cover.frame; }
+        await T.ref.set({ cover: cover || firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true });
+        if (cur && cur.path && (removed || file)) firebase.storage().ref(cur.path).delete().catch(function () {});
+        close();
+      } catch (e) { q("ask-ok").disabled = false; say(STR.failed + ": " + (e.code || e.message || e)); }
+    };
+    draw(); q("ask-ok").focus();
   }
   // «Огляд світу»: the bar on top carries the world's NAME (Cinzel, centred) or its title image — worlds/{w}.titleArt { url, path, h }
   // (Storage worlds/{w}/cover/). Only the world's owner sees ✎, and only on hover.
@@ -1342,15 +1399,15 @@
       '<span title="' + esc(STR.stats.rating) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>' + l + '</span></span>';
   }
   function worldNameHtml() {
-    var ta = world.titleArt, me = firebase.auth().currentUser, own = !!(me && world.owner === me.uid);
-    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(world.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(world.title || "") + '</span>') + statsHtml() +
-      (own ? '<button class="wname__ed" type="button" data-wname title="' + esc(STR.wname.edit) + '" aria-label="' + esc(STR.wname.edit) + '">✎</button>' : '') + '</h1>';
+    var T = coverTarget(), d = T.d, ta = d.titleArt, ed = T.gid ? STR.wname.gEdit : STR.wname.edit;
+    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(d.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(d.title || "") + '</span>') + statsHtml(T.gid) +
+      (T.own ? '<button class="wname__ed" type="button" data-wname title="' + esc(ed) + '" aria-label="' + esc(ed) + '">✎</button>' : '') + '</h1>';
   }
-  function editWorldName() {
-    var W = STR.wname, W_ = W, ta = Object.assign({ h: 72 }, world.titleArt || {}), up = null, old = world.titleArt && world.titleArt.path;
+  function editWorldName() { // the world's name — or the game's on «Огляд гри» (coverTarget)
+    var T = coverTarget(), D = T.d, W = Object.assign({}, STR.wname, T.gid ? { edit: STR.wname.gEdit, title: STR.wname.gTitle } : {}), W_ = W, ta = Object.assign({ h: 72 }, D.titleArt || {}), up = null, old = D.titleArt && D.titleArt.path;
     var box = document.createElement("div"); box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(W.edit) + '"><h3>' + esc(W.edit) + '</h3>' +
-      '<label class="field"><span>' + W.title + '</span><input id="wn-t" value="' + esc(world.title || "") + '"></label>' +
+      '<label class="field"><span>' + W.title + '</span><input id="wn-t" value="' + esc(D.title || "") + '"></label>' +
       '<div class="field"><span>' + W.art + '</span><p class="hint">' + W.artHint + '</p><div class="wn-prev" id="wn-prev"></div>' +
       '<div class="row"><label class="btn"><input type="file" accept="image/*" hidden id="wn-f">' + W.artPick + '</label><button type="button" class="btn ghost" id="wn-del">' + W.artDel + '</button></div>' +
       '<label class="field" id="wn-sz"><span>' + W.size + ' · <b id="wn-h"></b></span><input type="range" min="28" max="110" step="1" id="wn-r"></label></div>' +
@@ -1383,7 +1440,7 @@
       q("wn-msg").textContent = W.uploading;
       try {
         if (up) firebase.storage().ref(up.path).delete().catch(function () {});
-        var path = "worlds/" + worldId + "/cover/title_" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+        var path = T.base + "title_" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
         var task = await firebase.storage().ref(path).put(f, { contentType: f.type });
         up = { path: path, url: await task.ref.getDownloadURL() }; ta = { url: up.url, path: path, h: ta.h }; q("wn-msg").textContent = ""; aspect = 0; draw(); measure();
       } catch (e) { q("wn-msg").textContent = STR.failed + ": " + (e.code || e.message || e); }
@@ -1393,9 +1450,9 @@
       var t = q("wn-t").value.trim(); if (!t) return q("wn-t").focus();
       var body = { title: t, titleArt: ta.url ? { url: ta.url, path: ta.path, h: ta.h } : firebase.firestore.FieldValue.delete(), updatedAt: stamp() };
       try {
-        await wref().set(body, { merge: true });
+        await T.ref.set(body, { merge: true });
         if (old && old !== ta.path) firebase.storage().ref(old).delete().catch(function () {});
-        up = null; if (t !== world.title) tellShell({ type: "ww-worlds-changed" });
+        up = null; if (!T.gid && t !== world.title) tellShell({ type: "ww-worlds-changed" });
         box.remove();
       } catch (e) { q("wn-msg").textContent = STR.failed + ": " + (e.code || e.message || e); }
     };
@@ -5384,6 +5441,7 @@
   });
   function viewClick(e) {
     if (e.target.closest("[data-wname]")) return editWorldName();
+    if (e.target.closest("[data-gcover]")) return editGameCover();
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     if (mechClick(e)) return;
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }

@@ -43,6 +43,14 @@ service firebase.storage {
                                 (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
     }
 
+    // A game's cover and title image («Огляд гри»): the same limits as the world's, any plan.
+    match /worlds/{worldId}/games/{gameId}/cover/{file} {
+      allow read: if request.auth != null && canRead(worldId);
+      allow delete: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId);
+      allow create, update: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId) &&
+                               ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
+                                (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
+    }
     match /worlds/{worldId}/games/{gameId}/files/{rest=**} {
       allow read: if request.auth != null && canRead(worldId);
       allow delete: if request.auth != null && canWrite(worldId) && worldOpen(worldId);
