@@ -3860,6 +3860,7 @@
         launch: "Тека гри й запуск", key: "Ключ MCP", design: "Дизайн гри → продакшн-план", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
         keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри.",
         keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
+        allTitle: "Швидкий старт", allBtn: "⧉ Скопіювати все для PowerShell", allHint: "Одна вставка в PowerShell робить кроки 3, 4 і 7: створює теку гри, підключає WhiteWrite новим ключем MCP, додає блок журналу в CLAUDE.md (один раз) і запускає Claude Code. Ключ — лише в цьому блоці, тож копіюй, коли готовий вставити.", allDir: "Спершу впиши теку гри в кроці 3.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).",
         designHint: "Агент бере задачі з продакшн-плану, а план AI складає з Біблії гри. Є документи чи нотатки — імпортуй їх; потім «Аналіз і аудит» ✦ → «Продакшн-план» ✦.",
         planYes: "Продакшн-план є.", planNo: "Плану ще немає.", toPlan: "До продакшн-плану →",
         firstHint: "Нова гра — запит із кроку 6 Бази знань (з фреймворком чи без). Unity-проєкт уже є — ця команда: агент перевірить підключення, середовище, знання проєкту, фреймворк і виконає найменшу задачу.",
@@ -3891,6 +3892,7 @@
         launch: "Game folder and launch", key: "MCP key", design: "Game design → production plan", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
         keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder.",
         keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
+        allTitle: "Quick start", allBtn: "⧉ Copy everything for PowerShell", allHint: "One paste into PowerShell does steps 3, 4 and 7: creates the game folder, connects WhiteWrite with a new MCP key, adds the log block to CLAUDE.md (once) and starts Claude Code. The key is only in this block, so copy it when you are ready to paste.", allDir: "First type the game folder in step 3.", allDone: "Copied — paste it into PowerShell (a new key has been created).",
         designHint: "The agent takes tasks from the production plan, and AI builds the plan from the Game Bible. Have documents or notes — import them; then “Analysis & audit” ✦ → “Production plan” ✦.",
         planYes: "The production plan exists.", planNo: "No plan yet.", toPlan: "To the production plan →",
         firstHint: "A new game — the request from step 6 of the Knowledge base (with the framework or without). The Unity project exists — this command: the agent checks the connection, the environment, the project knowledge, the framework and does the smallest task.",
@@ -4618,6 +4620,7 @@
     var need = s.filter(function (x) { return !x[5]; }), ok = need.filter(function (x) { return x[2]; }).length;
     return '<section class="setbox"><h2>' + R.title + ' <span class="sroad__count">' + R.done.replace("{n}", ok).replace("{t}", need.length) + '</span></h2>' +
       '<p class="hint">' + R.hint + ' <a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p>' +
+      (canWrite ? '<div class="canonbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow"><button class="btn primary" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div></div>' : '') +
       '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
   function renderSettings() {
@@ -5065,6 +5068,18 @@
     var show = function () { $("ln-cmd").textContent = launchText(launchNow()); $("ln-warn").hidden = !$("ln-skip").checked; };
     var save = function () { show(); gref().set({ launch: launchNow(), updatedAt: stamp() }, { merge: true }).then(function () { $("ln-msg").textContent = STR.launch.saved; }); };
     $("ln-dir").oninput = show; $("ln-dir").onchange = save; $("ln-model").onchange = save; $("ln-skip").onchange = save;
+    if ($("ln-all")) $("ln-all").onclick = async function () {
+      var l = launchNow(), b = this, R = KN.road;
+      var say = function (t) { lnAllMsg = t; if ($("ln-allmsg")) $("ln-allmsg").textContent = t; }; // the key's listener re-renders the page: the note survives it
+      if (!l.dir) { say(R.allDir); $("ln-dir").focus(); return; }
+      b.disabled = true; say("");
+      try {
+        await gref().set({ launch: l, updatedAt: stamp() }, { merge: true });
+        var text = allInOne(l, await createKey());
+        await navigator.clipboard.writeText(text);
+        say(R.allDone);
+      } catch (e) { say(STR.failed + ": " + (e.message || e)); b.disabled = false; }
+    };
     $("ln-copy").onclick = function () {
       var b = this; if (navigator.clipboard) navigator.clipboard.writeText($("ln-cmd").textContent).then(function () { b.textContent = STR.launch.copied; setTimeout(function () { b.textContent = STR.launch.copy; }, 1600); });
     };
@@ -5558,6 +5573,20 @@
     await db.collection("mcpKeys").doc(hash).set({ uid: firebase.auth().currentUser.uid, worldId: worldId, gameId: gameId, label: game.title || "",
       prefix: key.slice(0, 12), createdAt: stamp() });
     newKey = key; render(); // shown once: only the hash is stored
+    return key;
+  }
+  // «Скопіювати все для PowerShell»: steps 3 + 4 + 7 as one paste — the folder, `claude mcp add` with a fresh key (in the folder:
+  // its scope is the folder), the activity-log block appended to CLAUDE.md unless it is there, then the launch lines
+  var lnAllMsg = "";
+  function allInOne(l, key) {
+    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log"), dir = l.dir.replace(/"/g, "");
+    return "# WhiteWrite · " + String(game.title || "").replace(/[\r\n]+/g, " ") + "\n" +
+      'New-Item -ItemType Directory -Force "' + dir + '" | Out-Null\n' +
+      'cd "' + dir + '"\n' +
+      "claude mcp add --transport http whitewrite " + MCP_URL + ' --header "Authorization: Bearer ' + key + '"\n' +
+      (md ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.activity/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
+        "@'\n" + md.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
+      launchText(l);
   }
   var liveTask = function (id) { return tasks.filter(function (x) { return x.id === String(id).replace(/[\/\s]/g, "_"); })[0]; };
   function taskState(t) {
@@ -6318,7 +6347,7 @@
     migrateCanonOptIn(game).catch(function () {});
     var may = function (id, on) { if (mayRead(id)) on(); }; // a member's streams: only the sections they may read
     may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }, function () {})); });
-    tasks = []; changeReqs = []; execs = []; keys = []; newKey = null;
+    tasks = []; changeReqs = []; execs = []; keys = []; newKey = null; lnAllMsg = "";
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
     may("plan", function () {
       unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }, function () {}));

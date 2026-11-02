@@ -224,6 +224,7 @@
         lead: "Одна тека на гру; Claude Code завжди запускається в ній.",
         min: 3,
         body: [
+          ["tip", "Найшвидше: Налаштування гри → «Claude Code» → <b>«Швидкий старт» → «⧉ Скопіювати все для PowerShell»</b>. Впиши теку гри в кроці 3 і натисни — одна вставка в PowerShell створить теку, підключить WhiteWrite новим ключем MCP (крок 4), додасть блок журналу в CLAUDE.md (крок 7, лише якщо його ще немає) і запустить Claude Code. Ключ є тільки в скопійованому блоці — копіюй, коли готовий вставити; кожне натискання створює новий ключ (зайві відкликаються в Акаунті → «Інтеграції»)."],
           ["h", "Нова гра на фреймворку"],
           ["ul", [
             "Створи порожню теку, напр. D:\\Моя гра.",
@@ -1334,6 +1335,7 @@
         lead: "One folder per game; Claude Code always starts in it.",
         min: 3,
         body: [
+          ["tip", "Fastest: game settings → “Claude Code” → <b>“Quick start” → “⧉ Copy everything for PowerShell”</b>. Type the game folder in step 3 and click — one paste into PowerShell creates the folder, connects WhiteWrite with a new MCP key (step 4), adds the log block to CLAUDE.md (step 7, only if it isn't there yet) and starts Claude Code. The key is only in the copied block — copy it when you are ready to paste; each click creates a new key (revoke spare ones in Account → “Integrations”)."],
           ["h", "A new game on the framework"],
           ["ul", [
             "Make an empty folder, e.g. D:\\My Game.",
