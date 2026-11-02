@@ -589,6 +589,34 @@
           ["p", "get_character_forge — усі персонажі з етапами; з ref — маніфест одного: бриф, профілі, файли <b>затверджених</b> версій, кліпи, екіпірування з паспортами й наборами."],
           ["prompt", "Виклич get_character_forge, обери персонажа і візьми його маніфест. Імпортуй затверджену модель і екіпірування в Unity: кожен предмет — за паспортом (зі скіном — на той самий скелет, жорсткий — на вказану кістку), маски тіла, набори як пресети. Перевір кліпінг і сумісність скелета й надішли результат кожного предмета через report_forge_check. Спершу план — код потім."],
         ] },
+      { cat: "game", id: "voice-over", icon: "layers", title: "🎙 Озвучка діалогів: голоси персонажів і файли реплік",
+        lead: "Кожному, хто говорить, — свій голос і сервіс; кожній репліці — свій звук в Аудіотеці.",
+        min: 3,
+        body: [
+          ["p", "GDD гри → «Квести й діалоги» → відкрий діалог → блок <b>«🎙 Озвучка»</b> (зʼявляється, коли в репліках вказано, хто говорить)."],
+          ["h", "Голос персонажа"],
+          ["ul", [
+            "<b>Сервіс</b>: «Браузер» — голос твого компʼютера, безкоштовно, лише щоб почути, як звучить; «Google Text-to-Speech» — справжні файли; ElevenLabs — скоро.",
+            "<b>Мова</b>, <b>голос</b> (у Google поруч — ціна ≈ токенів за 1000 символів), <b>темп</b> (0.5–2) і <b>висота</b> (−10…10; голоси Chirp і Studio висоту не змінюють).",
+            "«▶ Проба» — голосом браузера, безкоштовно. «✦ Проба» — коротка фраза голосом Google за токени. Голоси зберігаються в грі й діють у всіх її діалогах."
+          ]],
+          ["h", "Звук репліки"],
+          ["ul", [
+            "Під текстом кожної репліки — рядок <b>«Озвучка»</b>: ▶ послухати файл, ✕ прибрати з репліки (в Аудіотеці він лишається), 🗣 — прочитати голосом браузера.",
+            "<b>✦</b> — озвучити репліку через Google; <b>⤒</b> — завантажити свій запис (файл ляже в Аудіотеку → «Озвучка» з назвою = ключ репліки). Позначка: «згенеровано» чи «записано».",
+            "<b>«✦ Озвучити всі репліки без звуку»</b> — усі порожні слоти тих, у кого вибрано Google, одним разом. Перед запуском — ціна; спершу збережи діалог."
+          ]],
+          ["h", "Ціна"],
+          ["p", "Google рахує за символи тексту: ≈ 54 токени за 1000 символів голосом Standard, ≈ 214 — WaveNet / Neural2, ≈ 400 — Chirp 3 HD, більше — Studio. Токени резервуються перед озвучкою, за невдалі репліки повертаються. Озвучка Google — у тарифі Worldbuilder; запускають власник і адмін команди (на токенах власника). Голоси, ручні записи й сценарій — на будь-якому тарифі, без токенів."],
+          ["h", "Для студії озвучки"],
+          ["ul", [
+            "<b>«⤓ Сценарій CSV»</b> у діалозі або <b>«⤓ Сценарій озвучки (CSV)»</b> в Аудіотеці (усі діалоги): діалог, репліка, ключ, хто говорить, сервіс, голос, текст, файл, статус — віддай акторам.",
+            "<b>«⤒ Озвучка за ключами»</b> в Аудіотеці: назви файли ключами реплік (напр. <code>dlg.tavern.n3.wav</code>) і завантаж усі разом — кожен ляже в Аудіотеку й у свою репліку. Ключ — «Ключ локалізації» репліки або <code>dlg.&lt;діалог&gt;.&lt;id репліки&gt;</code>."
+          ]],
+          ["h", "Claude Code"],
+          ["p", "get_audio_library показує файли озвучки (група «Озвучка»), get_dialogue_context — репліки з полем voice (картки Аудіотеки)."],
+          ["prompt", "Виклич get_dialogue_context для діалогу «Таверна» і get_audio_library. Завантаж файл озвучки кожної репліки в Assets/Audio/Voice/<ключ>.mp3 і привʼяжи до реплік у діалоговій системі за ключем локалізації. Покажи, яким реплікам ще бракує звуку."]
+        ] },
       { cat: "game", id: "audio-library", icon: "layers", title: "🎧 Аудіотека: усі звуки й треки гри",
         lead: "Одне місце для музики, ефектів, амбієнту, звуків UI й озвучки. Фабрика звуку бере файли звідси — без копій.",
         min: 3,
@@ -1727,6 +1755,34 @@
           ["h", "Claude Code"],
           ["p", "get_character_forge — every character with its stages; with ref — one character's manifest: the brief, profiles, files of the <b>approved</b> versions, clips, equipment with passports and loadouts."],
           ["prompt", "Call get_character_forge, pick a character and take its manifest. Import the approved model and equipment into Unity: each item by its passport (skinned — onto the same skeleton, rigid — onto the given bone), body masks, loadouts as presets. Check clipping and skeleton compatibility and send each item's result through report_forge_check. Plan first — code later."],
+        ] },
+      { cat: "game", id: "voice-over", icon: "layers", title: "🎙 Dialogue voice-over: character voices and line files",
+        lead: "Everyone who speaks gets a voice and a service; every line gets its own sound in the Audio library.",
+        min: 3,
+        body: [
+          ["p", "Game GDD → “Quests & dialogues” → open a dialogue → the <b>“🎙 Voice-over”</b> box (it shows once the lines say who speaks)."],
+          ["h", "A character's voice"],
+          ["ul", [
+            "<b>Service</b>: “Browser” — your computer's voice, free, only to hear how it sounds; “Google Text-to-Speech” — real files; ElevenLabs — soon.",
+            "<b>Language</b>, <b>voice</b> (Google shows the ≈ tokens per 1000 characters), <b>speed</b> (0.5–2) and <b>pitch</b> (−10…10; Chirp and Studio voices ignore pitch).",
+            "“▶ Try” — the browser voice, free. “✦ Try” — a short phrase in the Google voice for tokens. The voices are kept in the game and apply to all its dialogues."
+          ]],
+          ["h", "A line's sound"],
+          ["ul", [
+            "Under every line's text — the <b>“Voice”</b> row: ▶ listen, ✕ remove it from the line (it stays in the library), 🗣 — read it with the browser voice.",
+            "<b>✦</b> — voice the line with Google; <b>⤒</b> — upload your recording (it goes into the library → “Voice”, named after the line's key). Marked “generated” or “recorded”.",
+            "<b>“✦ Voice every line without a sound”</b> — all empty slots of the speakers with a Google voice at once. The price shows first; save the dialogue before."
+          ]],
+          ["h", "Price"],
+          ["p", "Google charges by the characters of text: ≈ 54 tokens per 1000 characters in a Standard voice, ≈ 214 — WaveNet / Neural2, ≈ 400 — Chirp 3 HD, more — Studio. Tokens are reserved before voicing and come back for failed lines. Google voice-over is on Worldbuilder; the owner and a team admin run it (on the owner's tokens). Voices, your own recordings and the script — any plan, no tokens."],
+          ["h", "For a voice studio"],
+          ["ul", [
+            "<b>“⤓ Script CSV”</b> in a dialogue or <b>“⤓ Voice-over script (CSV)”</b> in the Audio library (every dialogue): dialogue, line, key, speaker, service, voice, text, file, status — hand it to the actors.",
+            "<b>“⤒ Voice files by keys”</b> in the Audio library: name the files after the lines' keys (e.g. <code>dlg.tavern.n3.wav</code>) and upload them together — each goes into the library and its line. The key is the line's “Localisation key” or <code>dlg.&lt;dialogue&gt;.&lt;line id&gt;</code>."
+          ]],
+          ["h", "Claude Code"],
+          ["p", "get_audio_library shows the voice files (the “Voice” group), get_dialogue_context — the lines with the voice field (Audio library cards)."],
+          ["prompt", "Call get_dialogue_context for the “Tavern” dialogue and get_audio_library. Download every line's voice file into Assets/Audio/Voice/<key>.mp3 and bind them to the lines in the dialogue system by the localisation key. Show which lines still lack a sound."]
         ] },
       { cat: "game", id: "audio-library", icon: "layers", title: "🎧 Audio library: every sound and track of the game",
         lead: "One place for music, effects, ambience, UI sounds and voice. The Sound factory takes the files from here — no copies.",

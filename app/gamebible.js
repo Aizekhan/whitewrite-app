@@ -908,6 +908,7 @@
     lib.assets.forEach(function (a) { nf += a.files.length; a.files.forEach(function (f) { secs += +f.duration || 0; }); });
     var miss = lib.missing.slice(0, 200);
     return '<section class="alib"><p class="hint">' + esc(A.intro) + '</p><p class="muted">' + esc(A.sum.replace("{n}", lib.assets.length).replace("{f}", nf).replace("{m}", Math.round(secs / 6) / 10)) + '</p>' +
+      (dialogues.length ? '<div class="row"><button type="button" class="btn" data-vcsvall="1">' + VO.scriptAll + '</button>' + (canQuest ? '<label class="btn" title="' + esc(VO.byKeysTip) + '">' + VO.byKeys + '<input type="file" hidden multiple accept="audio/*" data-vkeys="1"></label>' : '') + '</div>' : '') +
       '<h2 class="group">' + A.missing + ' <span>' + lib.missing.length + '</span></h2><p class="hint">' + esc(lib.missing.length ? A.missingHint : A.missingNone) + '</p>' +
       (miss.length ? '<ul class="alib-miss">' + miss.map(function (w) {
         return '<li><button class="btn mini" data-amech="' + esc(w.card) + '">' + A.open + '</button> <b>' + esc(w.title) + '</b> · ' + esc(w.secTitle) + (w.rowName ? ' · ' + esc(w.rowName) : '') + ' · <span class="muted">' + esc(w.label) + '</span></li>'; }).join("") + '</ul>' : '') +
@@ -2202,12 +2203,13 @@
       (q ? qfld(QD.qStage, qsel("stageId", [["", QD.none]].concat((q.stages || []).map(function (st) { return [st.id, stepLabel(q.stages, st.id, QD.stage)]; })), d.stageId, QD.qStage)) : '') + '</div>' +
       qfld(QD.trigger, qinp("trigger", d.trigger, QD.triggerPh)));
     var speakers = [["", QD.none], ["player", QD.player], ["narrator", QD.narrator]].concat(d.participants.map(function (id) { return [id, entName(id)]; }));
+    html += voCastHtml(d);
     var targets = function (n) { return [["", "—"]].concat(d.nodes.filter(function (x) { return x !== n; }).map(function (x) { return [x.id, stepLabel(d.nodes, x.id, QD.node)]; })); };
     html += qbox(QD.nodes, d.nodes.map(function (n, i) {
       var p = "nodes." + i + ".";
       return '<div class="qstep"><div class="qstep-h"><b>' + QD.node + ' ' + (i + 1) + (i === 0 ? ' · ' + QD.start : '') + '</b>' + qsel(p + "speaker", speakers, n.speaker, QD.speaker) +
         qchk(p + "end", n.end, QD.endNode) + '<button class="btn ghost mini" data-qact="rmNode:' + i + '" aria-label="' + esc(QD.rm + " " + QD.node + " " + (i + 1)) + '">✕</button></div>' +
-        qtxt(p + "text", n.text, QD.text, 2) +
+        qtxt(p + "text", n.text, QD.text, 2) + voLineHtml(d, n, i) +
         '<div class="qgrid">' + qfld(QD.next, qsel(p + "next", targets(n), n.next, QD.next)) + qfld(QD.cond, qinp(p + "cond", n.cond, QD.condPh)) +
         qfld(QD.effects, qinp(p + "effects", n.effects, QD.effectsPh)) + qfld(QD.locKey, qinp(p + "locKey", n.locKey, "dlg." + (slugify(d.title) || "talk") + "." + n.id)) + '</div>' +
         (n.choices || []).map(function (c, j) {
@@ -2217,6 +2219,171 @@
         }).join("") + '<button class="btn mini ghost" data-qact="addChoice:' + i + '">' + QD.addChoice + '</button></div>';
     }).join("") + '<button class="btn mini ghost" data-qact="addNode">' + QD.addNode + '</button>');
     return html + qbox(QD.notes, qtxt("notes", d.notes, "", 2));
+  }
+  // ---------- 🎙 Озвучка: a voice per speaker (games/{g}.voices), a voice slot per line (node.voice [cardId of the Audio library], vstatus tts|rec) ----------
+  // Services: the browser voice (free, a try only), Google Text-to-Speech (functions/src/voice.js, paid by characters), ElevenLabs — soon.
+  var VO = {
+    uk: { box: "🎙 Озвучка", hint: "Голос кожного, хто говорить. Проба голосом браузера — безкоштовно; Google озвучує репліки у файли, вони лягають в Аудіотеку («Озвучка») і в слот репліки.",
+      service: "Сервіс", voice: "Голос", lang: "Мова", rate: "Темп", pitch: "Висота", try: "▶ Проба", tryAi: "✦ Проба", browser: "Браузер (безкоштовно, лише проба)", google: "Google Text-to-Speech", eleven: "ElevenLabs — скоро",
+      auto: "— типовий —", loadVoices: "Завантажити голоси Google", loading: "Завантажую голоси…", per1k: "≈ {n} за 1000 символів", noSpeakers: "Спершу вкажи, хто говорить у репліках.",
+      all: "✦ Озвучити всі репліки без звуку", allNone: "Немає реплік без звуку з голосом Google.", csv: "⤓ Сценарій CSV", line: "Озвучка", say: "🗣", sayTip: "Прослухати голосом браузера (безкоштовно)",
+      one: "✦", oneTip: "Озвучити репліку через Google", up: "⤒", upTip: "Завантажити записаний файл", rm: "Прибрати з репліки", st: { tts: "згенеровано", rec: "записано" },
+      confirm: "Озвучити {n} реплік(и) через Google TTS — ≈ {t} токенів (за символи тексту). Продовжити?", busy: "Озвучую…", done: "Озвучено реплік: {n} · витрачено {t}", needGoogle: "У того, хто говорить, не вибрано голос Google.",
+      needText: "Порожня репліка", saveFirst: "Спершу збережи діалог.", sample: "Привіт! Так звучить мій голос.", noBrowser: "Браузер не вміє говорити.",
+      scriptAll: "⤓ Сценарій озвучки (CSV)", byKeys: "⤒ Озвучка за ключами", byKeysTip: "Файли з назвою = ключ локалізації репліки (напр. dlg.tavern.n3.wav) — кожен ляже в Аудіотеку й у свою репліку", byKeysDone: "Привʼязано файлів: {n}; без репліки: {m}" },
+    en: { box: "🎙 Voice-over", hint: "A voice for everyone who speaks. A try with the browser voice is free; Google voices the lines into files that go into the Audio library (“Voice”) and the line's slot.",
+      service: "Service", voice: "Voice", lang: "Language", rate: "Speed", pitch: "Pitch", try: "▶ Try", tryAi: "✦ Try", browser: "Browser (free, a try only)", google: "Google Text-to-Speech", eleven: "ElevenLabs — soon",
+      auto: "— default —", loadVoices: "Load the Google voices", loading: "Loading the voices…", per1k: "≈ {n} per 1000 characters", noSpeakers: "First set who speaks in the lines.",
+      all: "✦ Voice every line without a sound", allNone: "No lines without a sound in a Google voice.", csv: "⤓ Script CSV", line: "Voice", say: "🗣", sayTip: "Listen with the browser voice (free)",
+      one: "✦", oneTip: "Voice the line with Google", up: "⤒", upTip: "Upload a recorded file", rm: "Remove from the line", st: { tts: "generated", rec: "recorded" },
+      confirm: "Voice {n} line(s) with Google TTS — ≈ {t} tokens (by the characters of text). Go on?", busy: "Voicing…", done: "Lines voiced: {n} · spent {t}", needGoogle: "The speaker has no Google voice chosen.",
+      needText: "An empty line", saveFirst: "Save the dialogue first.", sample: "Hello! This is how my voice sounds.", noBrowser: "This browser cannot speak.",
+      scriptAll: "⤓ Voice-over script (CSV)", byKeys: "⤒ Voice files by keys", byKeysTip: "Files named after a line's localisation key (e.g. dlg.tavern.n3.wav) — each goes into the library and its line", byKeysDone: "Files linked: {n}; without a line: {m}" }
+  }[LANG === "en" ? "en" : "uk"];
+  var VO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/voice", VO_LANGS = ["uk-UA", "en-US", "en-GB", "pl-PL", "de-DE", "fr-FR", "es-ES", "it-IT", "pt-BR", "ja-JP", "ko-KR", "zh-CN"];
+  var gVoices = {}, voMsg = ""; // Google voices by language (loaded on demand)
+  async function voCall(body) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(VO_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify(Object.assign({ worldId: worldId, gameId: gameId, language: LANG }, body)) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) { var e = new Error(data.error || "HTTP " + r.status); e.code = data.code; throw e; }
+    return data;
+  }
+  function castOf(who) { return Object.assign({ service: "browser", voice: "", lang: LANG === "en" ? "en-US" : "uk-UA", rate: 1, pitch: 0 }, ((game && game.voices) || {})[who] || {}); }
+  function whoName(who) { return who === "player" ? QD.player : who === "narrator" ? QD.narrator : entName(who); }
+  function lineKey(d, n) { return n.locKey || "dlg." + (slugify(d.title) || "talk") + "." + n.id; }
+  function speakersOf(d) { var l = []; d.nodes.forEach(function (n) { if (n.speaker && l.indexOf(n.speaker) < 0) l.push(n.speaker); }); return l; }
+  function browserVoices(lang) { return window.speechSynthesis ? speechSynthesis.getVoices().filter(function (v) { return v.lang.replace("_", "-").indexOf(lang.split("-")[0]) === 0; }) : []; }
+  function sayBrowser(text, cast) {
+    if (!window.speechSynthesis) return alert(VO.noBrowser);
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text), vs = browserVoices(cast.lang);
+    u.lang = cast.lang; u.voice = vs.filter(function (v) { return v.name === cast.voice; })[0] || vs[0] || null;
+    u.rate = Math.min(2, Math.max(0.5, +cast.rate || 1)); u.pitch = Math.min(2, Math.max(0, 1 + (+cast.pitch || 0) / 10));
+    speechSynthesis.speak(u);
+  }
+  function voCastHtml(d) {
+    var who = speakersOf(d), PF = window.__PAID_FEATURES;
+    if (!who.length) return qbox(VO.box, '<p class="muted">' + VO.noSpeakers + '</p>');
+    return qbox(VO.box, '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(function (w) {
+      var c = castOf(w), opts, gl = gVoices[c.lang];
+      if (c.service === "google") opts = gl === "…" ? [["", VO.loading]] : (gl || []).map(function (v) { return [v.name, v.name + (v.gender ? " · " + v.gender.toLowerCase() : "") + " · ≈ " + v.price]; });
+      else opts = browserVoices(c.lang).map(function (v) { return [v.name, v.name]; });
+      var sel = function (k, pairs, cur) { return '<select data-vcast="' + esc(w) + '" data-k="' + k + '" aria-label="' + esc(VO[k] + " · " + whoName(w)) + '">' + pairs.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + (p[2] ? " disabled" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>'; };
+      return '<div class="vcast"><b>' + esc(whoName(w)) + '</b>' +
+        sel("service", [["browser", VO.browser], ["google", VO.google], ["eleven", VO.eleven, 1]], c.service) +
+        sel("lang", VO_LANGS.map(function (l) { return [l, l]; }), c.lang) +
+        sel("voice", [["", VO.auto]].concat(opts), c.voice) +
+        '<label class="vnum">' + VO.rate + ' <input type="number" step="0.1" min="0.5" max="2" data-vcast="' + esc(w) + '" data-k="rate" value="' + esc(c.rate) + '"></label>' +
+        '<label class="vnum">' + VO.pitch + ' <input type="number" step="1" min="-10" max="10" data-vcast="' + esc(w) + '" data-k="pitch" value="' + esc(c.pitch) + '"></label>' +
+        '<button type="button" class="btn mini" data-vtry="' + esc(w) + '">' + VO.try + '</button>' +
+        (c.service === "google" ? (gl ? '' : '<button type="button" class="btn mini" data-vload="' + esc(c.lang) + '">' + VO.loadVoices + '</button>') +
+          '<button type="button" class="btn mini" data-vtryai="' + esc(w) + '">' + VO.tryAi + ' · ≈ ' + PF.ttsCost(VO.sample.length, c.voice) + '</button><span class="muted">' + esc(VO.per1k.replace("{n}", PF.ttsCost(1000, c.voice || "standard"))) + '</span>' : '') + '</div>';
+    }).join("") + '<div class="row"><button type="button" class="btn" data-vall="1">' + VO.all + '</button><button type="button" class="btn" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>');
+  }
+  function voLineHtml(d, n, i) {
+    var ids = Array.isArray(n.voice) ? n.voice : [];
+    return '<div class="vline"><span class="qh">' + VO.line + '</span>' + ids.map(function (id) {
+      var c = cards.filter(function (x) { return x.id === id; })[0], nm = c ? c.title || "…" : id + " ⚠";
+      return '<span class="msnd-i"><button type="button" class="btn ghost mini" data-sndplay="' + esc(id) + '" aria-label="' + esc(STR.alib.play + " " + nm) + '">▶</button>' + esc(nm) +
+        (canQuest ? '<button type="button" class="btn ghost mini" data-vrm="' + i + '" data-v="' + esc(id) + '" title="' + esc(VO.rm) + '" aria-label="' + esc(VO.rm) + '">✕</button>' : '') + '</span>';
+    }).join("") + (n.vstatus && ids.length ? '<span class="pill">' + esc(VO.st[n.vstatus] || n.vstatus) + '</span>' : '') +
+      '<button type="button" class="btn ghost mini" data-vsay="' + i + '" title="' + esc(VO.sayTip) + '" aria-label="' + esc(VO.sayTip) + '">' + VO.say + '</button>' +
+      (canQuest ? '<button type="button" class="btn ghost mini" data-vone="' + i + '" title="' + esc(VO.oneTip) + '" aria-label="' + esc(VO.oneTip) + '">' + VO.one + '</button>' +
+        '<label class="btn ghost mini" title="' + esc(VO.upTip) + '">' + VO.up + '<input type="file" hidden accept="audio/*" data-vup="' + i + '"></label>' : '') + '</div>';
+  }
+  async function voSetCast(who, k, v) {
+    var c = castOf(who); c[k] = k === "rate" || k === "pitch" ? +v : v;
+    if (k === "service" || k === "lang") c.voice = "";
+    game.voices = Object.assign({}, game.voices || {}); game.voices[who] = c;
+    var patch = { voices: {} }; patch.voices[who] = c;
+    try { await gref().set(patch, { merge: true }); } catch (e) { alert(STR.failed + ": " + (e.code || e.message)); }
+    if (c.service === "google" && !gVoices[c.lang]) voLoad(c.lang); else renderQEditor();
+  }
+  async function voLoad(lang) {
+    gVoices[lang] = "…"; renderQEditor();
+    try { gVoices[lang] = (await voCall({ op: "voices", lang: lang })).voices; } catch (e) { delete gVoices[lang]; voMsg = STR.failed + ": " + e.message; }
+    if (qed) renderQEditor();
+  }
+  function voMark(t) { voMsg = t; var m = $("vo-msg"); if (m) m.textContent = t; }
+  // ✦ Google: the saved dialogue's lines → files in the library → the lines' slots (the server writes the dialogue; the draft takes the same)
+  async function voSynth(idx) {
+    var q = qed, d = q.d, PF = window.__PAID_FEATURES;
+    if (q.isNew || qdDirty()) return alert(VO.saveFirst);
+    var list = idx.map(function (i) { return d.nodes[i]; }).filter(function (n) { return n && String(n.text || "").trim() && n.speaker && castOf(n.speaker).service === "google"; });
+    if (!list.length) return alert(idx.length === 1 ? (String((d.nodes[idx[0]] || {}).text || "").trim() ? VO.needGoogle : VO.needText) : VO.allNone);
+    if (!ME.owner && ME.role !== "admin") return alert(STR.team.noAi);
+    var t = list.reduce(function (s, n) { return s + PF.ttsCost(String(n.text).trim().length, castOf(n.speaker).voice || "standard"); }, 0);
+    if (!confirm(VO.confirm.replace("{n}", list.length).replace("{t}", t))) return;
+    voMark(VO.busy);
+    try {
+      var r = await voCall({ op: "synthesize", dialogueId: q.id, nodeIds: list.map(function (n) { return n.id; }) });
+      if (qed !== q) return;
+      var was = !qdDirty();
+      d.nodes.forEach(function (n) { if (r.done[n.id]) { n.voice = [r.done[n.id]]; n.vstatus = "tts"; } });
+      if (was) q.first = JSON.stringify(q.d);
+      voMsg = VO.done.replace("{n}", Object.keys(r.done).length).replace("{t}", r.tokensConsumed) + (r.failed ? " · " + r.failed : ""); renderQEditor();
+    } catch (e) { voMark(STR.failed + ": " + e.message); }
+  }
+  // a recorded file for one line → the library («Озвучка», titled by the line's key) → the line
+  async function voUpload(i, file) {
+    var q = qed, n = q.d.nodes[i], s = sec("audio"), g = subsOf(s)[window.__MECH.LIB_GROUPS.voice] || "";
+    var ren = new File([file], lineKey(q.d, n) + (/\.[^.]+$/.exec(file.name) || [""])[0], { type: file.type });
+    voMark(STR.uploading + "…");
+    var ids = await bulkCards("audio", [ren], g);
+    if (qed !== q || !ids.length) return;
+    n.voice = ids; n.vstatus = "rec"; voMsg = ""; renderQEditor();
+  }
+  function csvCell(v) { v = String(v == null ? "" : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  function voCsv(list) {
+    var rows = [["dialogue", "line", "key", "speaker", "service", "voice", "text", "file", "status"]];
+    list.forEach(function (d) { (d.nodes || []).forEach(function (n) {
+      var c = n.speaker ? castOf(n.speaker) : {}, f = (Array.isArray(n.voice) ? n.voice : []).map(function (id) { var x = cards.filter(function (y) { return y.id === id; })[0]; return x ? x.title : id; }).join(" | ");
+      rows.push([d.title || "", n.id, lineKey(d, n), n.speaker ? whoName(n.speaker) : "", c.service || "", c.voice || "", n.text || "", f, n.vstatus || ""]);
+    }); });
+    var blob = new Blob(["\ufeff" + rows.map(function (r) { return r.map(csvCell).join(","); }).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = (list.length === 1 ? slugify(list[0].title) || "dialogue" : slugify(game.title) || "game") + "-voice-script.csv";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+  // «⤒ Озвучка за ключами» (Аудіотека): a file named after a line's key goes into the library and that line, in every dialogue
+  async function voByKeys(files) {
+    var keys = {}, s = sec("audio"), g = subsOf(s)[window.__MECH.LIB_GROUPS.voice] || "", n = 0, miss = 0, touched = {};
+    dialogues.forEach(function (d) { (d.nodes || []).forEach(function (x, i) { keys[lineKey(d, x).toLowerCase()] = { d: d, i: i }; }); });
+    for (var k = 0; k < files.length; k++) {
+      var f = files[k], hit = keys[baseName(f.name).replace(/ /g, "_").toLowerCase()] || keys[f.name.replace(/\.[^.]+$/, "").toLowerCase()];
+      if (!hit) { miss++; continue; }
+      var ids = await bulkCards("audio", [f], g); if (!ids.length) continue;
+      var nodes = touched[hit.d.id] || (touched[hit.d.id] = JSON.parse(JSON.stringify(hit.d.nodes)));
+      nodes[hit.i].voice = ids; nodes[hit.i].vstatus = "rec"; n++;
+    }
+    for (var id in touched) { try { await gref().collection("dialogues").doc(id).set({ nodes: touched[id], updatedAt: stamp() }, { merge: true }); } catch (e) { alert(STR.failed + ": " + e.message); } }
+    bulkStatus(VO.byKeysDone.replace("{n}", n).replace("{m}", miss));
+  }
+  function voClick(e) {
+    if (!qed || !$("q-ed")) return false;
+    var t;
+    if ((t = e.target.closest("[data-vtry]"))) { var w = t.dataset.vtry, first = qed.d.nodes.filter(function (x) { return x.speaker === w && String(x.text || "").trim(); })[0]; sayBrowser(first ? first.text : VO.sample, Object.assign(castOf(w), castOf(w).service === "browser" ? {} : { voice: "" })); return true; }
+    if ((t = e.target.closest("[data-vtryai]"))) {
+      var c = castOf(t.dataset.vtryai); if (!ME.owner && ME.role !== "admin") { alert(STR.team.noAi); return true; }
+      voMark(VO.busy);
+      voCall({ op: "preview", text: VO.sample, voice: c.voice, lang: c.lang, rate: c.rate, pitch: c.pitch }).then(function (r) { voMark(STR.spent + ": " + r.tokensConsumed); playSound("data:audio/mpeg;base64," + r.audio); }, function (er) { voMark(STR.failed + ": " + er.message); });
+      return true;
+    }
+    if ((t = e.target.closest("[data-vload]"))) { voLoad(t.dataset.vload); return true; }
+    if ((t = e.target.closest("[data-vall]"))) { voSynth(qed.d.nodes.map(function (x, i) { return !(x.voice || []).length ? i : -1; }).filter(function (i) { return i >= 0; })); return true; }
+    if ((t = e.target.closest("[data-vcsv]"))) { voCsv([qed.d]); return true; }
+    if ((t = e.target.closest("[data-vsay]"))) { var nn = qed.d.nodes[+t.dataset.vsay]; if (!String(nn.text || "").trim()) alert(VO.needText); else sayBrowser(nn.text, Object.assign(castOf(nn.speaker || "narrator"), castOf(nn.speaker || "narrator").service === "browser" ? {} : { voice: "" })); return true; }
+    if ((t = e.target.closest("[data-vone]"))) { voSynth([+t.dataset.vone]); return true; }
+    if ((t = e.target.closest("[data-vrm]"))) { var ln = qed.d.nodes[+t.dataset.vrm]; ln.voice = (ln.voice || []).filter(function (x) { return x !== t.dataset.v; }); if (!ln.voice.length) delete ln.vstatus; renderQEditor(); return true; }
+    if ((t = e.target.closest("[data-sndplay]"))) { playSound(soundUrl(t.dataset.sndplay), t); return true; }
+    if (e.target.closest("[data-vup]")) return true;
+    return false;
+  }
+  function voChange(e) {
+    var t = e.target; if (!qed || !t.dataset) return;
+    if (t.dataset.vcast) { voSetCast(t.dataset.vcast, t.dataset.k, t.value); return; }
+    if (t.dataset.vup != null && t.files && t.files.length) { var f = t.files[0]; t.value = ""; voUpload(+t.dataset.vup, f); }
   }
   function qdState() {
     var st = $("q-state"); if (st) st.textContent = qdDirty() ? STR.wt.dirty : "";
@@ -6178,13 +6345,15 @@
     var t = e.target; if (!t.files || !t.files.length) return;
     var fl = [].slice.call(t.files);
     if (t.dataset.bulkup) { t.value = ""; bulkCards(t.dataset.bulkup, fl, t.dataset.bulkg || ""); }
-    if (t.dataset.sndup) { t.value = ""; sndUpload(t.dataset.sndup, fl); } // a Sound factory slot: new files → the library → the slot
+    if (t.dataset.sndup) { t.value = ""; sndUpload(t.dataset.sndup, fl); }
+    if (t.dataset.vkeys) { t.value = ""; voByKeys(fl); } // 🎙 voice files named after the lines' keys → the library → the lines // a Sound factory slot: new files → the library → the slot
   }
   $("topline").addEventListener("change", bulkChange);
   $("view").addEventListener("change", bulkChange);
   $("view").addEventListener("click", viewClick);
   $("view").addEventListener("input", qdInput);
   $("view").addEventListener("change", qdInput);
+  $("view").addEventListener("change", voChange);
   $("view").addEventListener("input", medInput);
   $("view").addEventListener("change", medInput);
   $("view").addEventListener("input", forgeInput);
@@ -6221,6 +6390,8 @@
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     if (mechClick(e)) return;
     if (forgeClick(e)) return;
+    if (voClick(e)) return;
+    if (e.target.closest("[data-vcsvall]")) { voCsv(dialogues); return; }
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
     var bl = e.target.closest("[data-bulb]"); if (bl) { questFrom(bl.dataset.bulb.split(":")[0], bl.dataset.bulb.split(":")[1]); return; }

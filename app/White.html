@@ -2207,8 +2207,8 @@ body.at-home .back-fab{ display:none; }
     }).join("");
     return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
       var pr = f.price, c = PF.featureCost(f);
-      var n = pr.tiers ? PF.LICENCE.tiers.map(function (t) { return t.tokens.toLocaleString(); }).join(' / ') : pr.per === '30d' || pr.per === 'project' ? c : pr.scene ? PF.MODEL_TIERS.map(function (m) { return m.id.charAt(0).toUpperCase() + m.id.slice(1) + ' ≈ ' + m.typical; }).join(' / ') : '≈ ' + c;
-      var per = pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : pr.per === 'project' ? (en ? ' per project slot' : ' за слот проєкту') : pr.per === 'licence' ? (en ? ' by the text size' : ' за обсягом тексту') : '';
+      var n = pr.perKChars ? ['standard', 'wavenet', 'chirp', 'studio'].map(function (k) { return ({ standard: 'Standard', wavenet: 'WaveNet / Neural2', chirp: 'Chirp 3 HD', studio: 'Studio' })[k] + ' ≈ ' + PF.ttsCost(1000, k); }).join(' / ') : pr.tiers ? PF.LICENCE.tiers.map(function (t) { return t.tokens.toLocaleString(); }).join(' / ') : pr.per === '30d' || pr.per === 'project' ? c : pr.scene ? PF.MODEL_TIERS.map(function (m) { return m.id.charAt(0).toUpperCase() + m.id.slice(1) + ' ≈ ' + m.typical; }).join(' / ') : '≈ ' + c;
+      var per = pr.perKChars ? (en ? ' per 1000 characters' : ' за 1000 символів') : pr.per === 'scene' ? (en ? ' per scene' : ' за сцену') : pr.per === '30d' ? (en ? ' per world / 30 days' : ' за світ / 30 днів') : pr.per === 'project' ? (en ? ' per project slot' : ' за слот проєкту') : pr.per === 'licence' ? (en ? ' by the text size' : ' за обсягом тексту') : '';
       return '<li><b>' + L(f).name + '</b> — ' + n + per + (en ? ' tokens · from ' : ' токенів · від ') + PF.PLANS[f.minPlan].name + '</li>';
     }).join("") + '</ul>';
   }

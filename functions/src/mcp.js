@@ -297,6 +297,14 @@ function questView(ctx, n, q) {
     hooks: q.hooks || '', notes: q.notes || '', checks: NV.validateQuest(q, checkCtx),
     rules: 'Implement the quest as approved: stage ids and branch conditions are the contract. A change to the design goes through submit_change_request.' };
 }
+// 🎙 a line's voice-over: Audio library cards (node.voice) → their audio files; status tts (Google) | rec (recorded)
+function voiceFiles(ctx, x) {
+  const ids = Array.isArray(x.voice) ? x.voice : [];
+  if (!ids.length) return null;
+  return { status: x.vstatus || '', files: ids.map((id) => ctx.cards.find((c) => c.id === id)).filter(Boolean)
+    .flatMap((c) => (c.files || []).filter((f) => /^audio\//.test(f.type || '') || /\.(mp3|wav|ogg|flac|m4a|aac|opus)$/i.test(f.name || ''))
+      .map((f) => ({ card: c.id, name: f.name || '', url: f.url || '', type: f.type || '', duration: f.duration || null }))) };
+}
 function dialogueView(ctx, n, d) {
   const q = n.quests.find((x) => x.id === d.questId);
   const who = (id) => (id === 'player' || id === 'narrator' || !id ? id || '' : (entRef(ctx, id).name || id));
@@ -305,7 +313,8 @@ function dialogueView(ctx, n, d) {
     start: ((d.nodes || [])[0] || {}).id || '',
     nodes: (d.nodes || []).map((x) => ({ id: x.id, speaker: x.speaker || '', speaker_name: who(x.speaker), text: x.text || '', loc_key: x.locKey || '',
       condition: x.cond || '', effects: x.effects || '', next: x.next || '', end: !!x.end,
-      choices: (x.choices || []).map((c) => ({ text: c.text || '', to: c.to || '', condition: c.cond || '' })) })),
+      choices: (x.choices || []).map((c) => ({ text: c.text || '', to: c.to || '', condition: c.cond || '' })),
+      voice: voiceFiles(ctx, x) })),
     notes: d.notes || '', checks: NV.validateDialogue(d, { entities: pool(ctx), quests: n.quests }),
     rules: 'Node ids and localisation keys are the contract between the dialogue data and the game. A change to the lines goes through submit_change_request.' };
 }

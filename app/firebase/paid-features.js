@@ -143,6 +143,14 @@ const FEATURES = [
     uk: { name: 'Аудіотека', desc: 'Усі звуки й треки гри в одному місці: «⤒ Звуки» — багато файлів одразу, ▶ на картках, слоти Фабрики звуку беруть звук з Аудіотеки або новий файл, видно, чого бракує. Без токенів; файли — у межах ліміту тарифу (20 / 200 МБ).' },
     en: { name: 'Audio library', desc: 'Every sound and track of the game in one place: “⤒ Sounds” — many files at once, ▶ on the cards, Sound factory slots take a sound from the library or a new file, and you see what is missing. No tokens; files within the plan limit (20 / 200 MB).' },
     where: 'GDD гри → Звук і музика → 🎧 Аудіотека', server: 'firestore.rules · storage.rules · MCP get_audio_library (allowAPI)' },
+  { id: 'voiceCast', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
+    uk: { name: 'Голоси й озвучка діалогів', desc: 'Голос кожного персонажа (сервіс, голос, мова, темп, висота), слот озвучки біля кожної репліки, безкоштовна проба голосом браузера, сценарій озвучки CSV і завантаження файлів за ключами локалізації.' },
+    en: { name: 'Voices & dialogue voice-over', desc: 'A voice per character (service, voice, language, speed, pitch), a voice slot by every line, a free try with the browser voice, the voice-over script as CSV and uploading files by localisation keys.' },
+    where: 'GDD гри → Квести й діалоги → діалог → 🎙 Озвучка', server: 'firestore.rules · MCP get_audio_library' },
+  { id: 'voiceTts', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { perKChars: true }, op: 'voiceTts',
+    uk: { name: '✦ Озвучити (Google TTS)', desc: 'Репліки діалогу голосами персонажів через Google Text-to-Speech; готові файли лягають в Аудіотеку («Озвучка») і в слот репліки. Ціна — за символи тексту, залежить від класу голосу (див. «≈ N за 1000 символів»).' },
+    en: { name: '✦ Voice it (Google TTS)', desc: 'Dialogue lines in the characters’ voices through Google Text-to-Speech; the files go into the Audio library (“Voice”) and the line’s slot. Priced by the characters of text, by the voice class (see “≈ N per 1000 characters”).' },
+    where: 'GDD гри → діалог → 🎙 Озвучка', server: 'voice {op:synthesize|preview}' },
   { id: 'characterForge', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Кузня персонажів', desc: 'Виробництво персонажа по етапах (бриф → концепт → модель → риг → екіпірування → інтеграція → анімації → експорт): незмінні версії, затвердження, слоти й паспорти сумісності предметів, набори, маніфест для Unity. Ручне завантаження, без токенів; генерація Meshy — згодом, за токени.' },
     en: { name: 'Character forge', desc: 'A character\'s production in stages (brief → concept → model → rig → equipment → integration → animation → export): immutable versions, approvals, slots and item compatibility passports, loadouts, a manifest for Unity. Manual import, no tokens; Meshy generation — later, for tokens.' },
@@ -266,12 +274,24 @@ function tierInfo(id) { return MODEL_TIERS.find((t) => t.id === id) || MODEL_TIE
 
 // Tokens reserved before the run (the real charge may be lower); claudeCost = economy claude scene price (Sonnet),
 // tier = the model tier (a scene / `factor` reserve scales with it; fixed prices don't)
+// Google Cloud Text-to-Speech (voice.js): USD per 1 000 000 characters by the voice class, taken with a margin.
+// Conservative list prices (cloud.google.com/text-to-speech/pricing — check when Google changes them); the charge is chars × price.
+const TTS = { usdPerMChars: { standard: 4, wavenet: 16, neural2: 16, polyglot: 16, news: 16, chirp: 30, studio: 160 }, margin: 2, maxChars: 5000 };
+function ttsClass(voice) {
+  const v = String(voice || '').toLowerCase();
+  return v.includes('studio') ? 'studio' : v.includes('chirp') || v.includes('journey') ? 'chirp' : v.includes('neural2') ? 'neural2' : v.includes('polyglot') ? 'polyglot'
+    : v.includes('news') ? 'news' : v.includes('wavenet') ? 'wavenet' : 'standard';
+}
+function ttsCost(chars, voice) { return chars > 0 ? Math.max(1, Math.ceil(chars * TTS.usdPerMChars[ttsClass(voice)] * TTS.margin / 1e6 / USD_PER_TOKEN)) : 0; }
+function ttsUsd(chars, voice) { return chars * TTS.usdPerMChars[ttsClass(voice)] / 1e6; }
+
 function featureCost(feature, claudeCost, tier) {
   const base = (claudeCost || SCENE_COST.claude) * (tier ? tierInfo(tier).scale : 1);
   if (!feature) return base * 4; // unknown op: never reserve nothing
   const pr = feature.price;
   if (!pr) return 0;
   if (pr.fixed) return pr.fixed;
+  if (pr.perKChars) return ttsCost(1000, 'wavenet'); // ✦ Озвучити: per 1000 characters of a WaveNet / Neural2 voice (ttsCost for the exact one)
   if (pr.factor) return Math.ceil(base * pr.factor);
   return Math.ceil(base); // a scene
 }
@@ -288,7 +308,7 @@ function upgradeQuote(from, to, left) {
 }
 
 const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, MODEL_TIERS, SCENE_COST, USD_PER_TOKEN, UPGRADE_FEE, LICENCE, licenceFee, upgradeQuote, planRank, unlocked, planBudget,
-  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd };
+  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd, TTS, ttsClass, ttsCost, ttsUsd };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
 if (typeof window !== 'undefined') window.__PAID_FEATURES = PAID_FEATURES;
