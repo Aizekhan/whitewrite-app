@@ -1201,6 +1201,14 @@ body.at-home .back-fab{ display:none; }
     var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-focus", ent: ent }, location.origin); } catch (e) {} };
     if (f.getAttribute("src") !== before) f.addEventListener("load", send, { once: true }); else send(); // a (re)loading Bible gets it once it has loaded
   }
+  // the World Bible on «Історії і хроніка» — the only home of the world's stories (the hub has none)
+  function openChronicle() {
+    var before = frames.bible && frames.bible.getAttribute("src");
+    showBible();
+    var f = frames.bible; if (!f) return;
+    var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-section", section: "chronicle" }, location.origin); } catch (e) {} };
+    if (f.getAttribute("src") !== before) f.addEventListener("load", send, { once: true }); else send();
+  }
   // Game Bible of the current world (an iframe, but world-scoped: the rail stays on Світи)
   function showBible() {
     histPush();
@@ -1342,7 +1350,15 @@ body.at-home .back-fab{ display:none; }
       return;
     }
     if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
-    if (d.type === "ww-story-saved") { Promise.resolve(loadProjects()).then(function () { if (CURRENT_WORLD) openWorld(CURRENT_WORLD); else showView("worlds"); }); return; } // book → «Зберегти історію»
+    if (d.type === "ww-story-saved") { Promise.resolve(loadProjects()).then(function () { if (CURRENT_WORLD) openChronicle(); else showView("worlds"); }); return; } // book → «Зберегти історію» → the World Bible's «Історії і хроніка»
+    // World Bible → «Історії і хроніка» → a story's ✎ / 🗑: the shell's story form and delete confirmation
+    if ((d.type === "ww-edit-story" || d.type === "ww-delete-story") && d.projectId) {
+      Promise.resolve(PROJECTS.length ? null : loadProjects()).then(function () {
+        var i = PROJECTS.map(function (p) { return p.id; }).indexOf(d.projectId); if (i < 0) return;
+        if (d.type === "ww-edit-story") openProjectEdit(i); else confirmDelete(i);
+      });
+      return;
+    }
     if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId, true); return; } // World Bible → a story of this world: the mage opens the book
     if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(); return; } // World Bible → chronicle → «＋ Нова історія»
     // World Bible → a dossier → «＋ Історія»: the book opens (the mage ritual) straight into writing, the story is about that entity
@@ -1384,11 +1400,10 @@ body.at-home .back-fab{ display:none; }
   });
 
   /* ============================ VIEW CONTENT ============================ */
-  // The world's hub: its stories (the former "Projects") and the doors into its canon.
+  // The world's hub: the World Bible card (its stories live in the Bible → «Історії і хроніка») and, for the owner, the panel (Спільнота · Команда · Маркет · Бекап).
   function fillHome() {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var world = WORLDS.filter(function (w) { return w.id === CURRENT_WORLD; })[0] || null;
-    var stories = PROJECTS.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return x.p.worldId === CURRENT_WORLD; });
 
     views.narr.innerHTML =
       '<div class="vwrap">' +
@@ -1401,35 +1416,14 @@ body.at-home .back-fab{ display:none; }
             '<div class="ncard__cover">' + worldMediaHtml(world) + (world && world.cover && world.cover.type === "video" && world.cover.url ? vStopBtn(world.id) : '') +
               (world && !world.shared ? '<button class="ncard__edit" id="w-edit" title="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '" aria-label="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '">' + svg("edit") + '</button>' : '') + '</div>' +
             '<div class="ncard__b"><div class="ncard__title">' + t('worlds.bible') + '</div><p class="ncard__desc">' + t('worlds.bibleHint') + '</p>' +
-            '<button class="ncard__open">' + svg("open") + cmT("Відкрити Біблію", "Open the Bible") + '</button></div></article>' +
+            '<button class="ncard__open">' + svg("open") + cmT("Відкрити Біблію світу", "Open the World Bible") + '</button></div></article>' +
           (world && !world.shared ? '<iframe class="whub__panel" id="w-panel" title="' + escapeHtml(cmT("Спільнота, команда, маркет і бекап світу", "The world's community, team, market and backup")) + '" src="WhiteWrite GameBible.html?embed=1&panel=1&worldId=' + encodeURIComponent(world.id) + '"></iframe>'
             : world ? '<p class="vhead__s whub__note">🤝 ' + cmT("Це світ твоєї команди: Біблія відкривається з тими розділами, які дозволив власник. Історії світу веде власник.", "This is your team's world: the Bible opens with the sections the owner allowed. The owner keeps the world's stories.") + '</p>' : '') +
         '</div>' +
-        '<div class="vsec-h">' + svg("library") + t('worlds.storiesTitle') + '</div>' +
-        '<div class="grid grid--narr">' +
-          (PROJECTS_LOADING ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
-           stories.map(function (x) { return narrCard(x.p, x.i); }).join("")) +
-          '<button class="ncard ncard--new" id="new-narr">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + t('worlds.newStory') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + t('worlds.newStoryHint') + '</span></button>' +
-        '</div>' +
       '</div>';
-    [].forEach.call(views.narr.querySelectorAll('[data-open]'), function (btn) {
-      btn.addEventListener("click", function () {
-        var card = btn.closest('.ncard');
-        var projectId = card ? card.dataset.projectId : null;
-        openNarrative(projectId);
-      });
-    });
-    var nn = views.narr.querySelector("#new-narr");
-    if (nn) nn.addEventListener("click", createNarrative);
     views.narr.querySelector("#to-worlds").addEventListener("click", function () { showView("worlds"); });
     views.narr.querySelector("#w-bible").addEventListener("click", showBible);
     var we = views.narr.querySelector("#w-edit"); if (we) we.addEventListener("click", function (e) { e.stopPropagation(); openWorldEdit(CURRENT_WORLD); });
-    [].forEach.call(views.narr.querySelectorAll(".ncard__edit"), function (b) {
-      b.addEventListener("click", function (e) { e.stopPropagation(); openProjectEdit(+b.dataset.i); });
-    });
-    [].forEach.call(views.narr.querySelectorAll(".ncard__del"), function (b) {
-      b.addEventListener("click", function (e) { e.stopPropagation(); armDelete(+b.dataset.di, b); });
-    });
   }
   // Світи: every world of the author; entering one opens its hub.
   function fillWorlds() {
@@ -1559,29 +1553,6 @@ body.at-home .back-fab{ display:none; }
     ov.classList.add("is-on"); q("#we-title").focus();
   }
 
-  // hold-to-confirm delete (5s)
-  var delTimer = null, delRAF = null;
-  function armDelete(i, btn) {
-    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
-    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
-    var card = btn.closest(".ncard");
-    if (card.querySelector(".ncard__delbar")) return; // already arming
-    var bar = document.createElement("div");
-    bar.className = "ncard__delbar";
-    bar.innerHTML = '<div class="delbar__fill"></div><div class="delbar__txt">' + (lang === 'uk' ? 'Видалення… утримуйте • ' : 'Deleting… hold • ') + '<b>' + t('btn.cancel') + '</b></div>';
-    card.appendChild(bar);
-    var start = Date.now(), DUR = 5000;
-    function tick() {
-      var p = Math.min(1, (Date.now() - start) / DUR);
-      bar.querySelector(".delbar__fill").style.width = (p * 100) + "%";
-      if (p < 1) delRAF = requestAnimationFrame(tick);
-      else { bar.remove(); confirmDelete(i); }
-    }
-    delRAF = requestAnimationFrame(tick);
-    bar.querySelector(".delbar__txt").addEventListener("click", function (e) {
-      e.stopPropagation(); cancelAnimationFrame(delRAF); bar.remove();
-    });
-  }
   function confirmDelete(i) {
     var p = PROJECTS[i]; if (!p) return;
     var ov = document.getElementById("del-confirm");
@@ -1623,22 +1594,6 @@ body.at-home .back-fab{ display:none; }
     var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-  }
-
-  function narrCard(p, i) {
-    var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
-    var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
-    var b = p.badge === "active" ? '<span class="ncard__badge badge--active">' + (lang === 'uk' ? 'активний' : 'active') + '</span>' : '<span class="ncard__badge badge--draft">' + (lang === 'uk' ? 'чернетка' : 'draft') + '</span>';
-    var btn = p.active
-      ? '<button class="ncard__open" data-open>' + svg("open") + t('projects.openUniverse') + '</button>'
-      : '<button class="ncard__open" data-open style="background:var(--bg-3);color:var(--tx-mid)">' + svg("open") + (lang === 'uk' ? 'Продовжити' : 'Continue') + '</button>';
-    return '<article class="ncard" data-project-id="' + escapeHtml(p.id) + '" style="--c1:' + escapeHtml(p.c1) + ';--c2:' + escapeHtml(p.c2) + '">' +
-      '<div class="ncard__cover" style="background-image:url(' + escapeHtml(p.cover || "assets/ph-project.png") + ');background-size:cover;background-position:center">' + b +
-        '<button class="ncard__edit" data-i="' + i + '" title="' + (lang === 'uk' ? 'Редагувати всесвіт' : 'Edit universe') + '">' + svg("edit") + '</button>' +
-        '<button class="ncard__del" data-di="' + i + '" title="' + t('projects.deleteUniverse') + '">' + svg("trash") + '</button>' +
-        '<span class="ncard__mark">' + escapeHtml(p.title.charAt(0)) + '</span></div>' +
-      '<div class="ncard__b"><div class="ncard__title">' + escapeHtml(p.title) + '</div><div class="ncard__meta">' + escapeHtml(p.meta) + '</div>' +
-      '<p class="ncard__desc">' + escapeHtml(p.desc) + '</p>' + btn + '</div></article>';
   }
 
   /* ---- Спільнота (functions/src/community.js): public showcases of worlds and games, ♥, reports ---- */

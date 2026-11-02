@@ -40,7 +40,7 @@
         reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
-      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити",
+      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити", editStory: "Редагувати історію", delStory: "Видалити історію",
         scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
@@ -62,7 +62,7 @@
           artifacts: [["story", "Походження", "Хто й навіщо створив, через чиї руки пройшов, яку має силу…"], ["look", "Вигляд", "Матеріал, розмір, знаки, як відчувається в руці…"]],
           events: [["story", "Перебіг", "Як це сталося: причини, хід, ключові моменти…"], ["outcome", "Наслідки", "Що змінилося після: для світу, для учасників, для інших подій…"]] } },
       settings: "Налаштування проєкту", settingsAbout: "Підключення Claude Code, назви, рушій, імпорт і експорт, безпечне видалення.", gameLabel: "Гра:",
-      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — у хабі світу, біля його картки (там, де додаєш історії).",
+      hub: { movedTitle: "Спільнота · Команда · Маркет · Бекап", moved: "Тепер — у хабі світу, біля його картки.",
         memberNote: "Налаштування світу бачить лише його власник.",
         tabs: { community: "Спільнота", team: "Команда", market: "Маркет", backup: "Бекап" },
         team: { title: "Команда світу", hint: "Додай друзів у команду цього світу й дай кожному свою роль. Друзів додаєш в Акаунті → «Друзі».",
@@ -289,7 +289,7 @@
         reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
-      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open",
+      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open", editStory: "Edit the story", delStory: "Delete the story",
         scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
@@ -310,7 +310,7 @@
           artifacts: [["story", "Origin", "Who made it and why, whose hands it passed through, what power it has…"], ["look", "Look", "Material, size, markings, how it feels in the hand…"]],
           events: [["story", "Course", "How it happened: causes, course, key moments…"], ["outcome", "Consequences", "What changed after: for the world, the participants, other events…"]] } },
       settings: "Project settings", settingsAbout: "Connecting Claude Code, names, engine, import and export, safe deletion.", gameLabel: "Game:",
-      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now in the world hub, next to its card (where you add stories).",
+      hub: { movedTitle: "Community · Team · Market · Backup", moved: "Now in the world hub, next to its card.",
         memberNote: "Only the world's owner sees its settings.",
         tabs: { community: "Community", team: "Team", market: "Market", backup: "Backup" },
         team: { title: "The world team", hint: "Add friends to this world's team and give each a role. You add friends in the Account → “Friends”.",
@@ -2382,7 +2382,9 @@
         (about.length ? '<div class="who-row">' + about.map(function (x) { return '<button class="dlink" data-ent="' + esc(x.id) + '">' + avatar(x) + esc(x.name || x.title || "") + '</button>'; }).join("") + '</div>' : '') +
         '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><div class="row"><select data-reveal="' + esc(p.id) + '" aria-label="' + esc(STR.story.revealAria) + '">' +
         REVEALS.map(function (r) { return '<option value="' + r + '"' + ((p.reveal || "open") === r ? " selected" : "") + '>' + esc(STR.story.reveals[r]) + '</option>'; }).join("") + '</select>' +
-        '<span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>' +
+        '<span style="flex:1"></span><button class="btn mini ghost" data-sedit="' + esc(p.id) + '" title="' + esc(STR.chron.editStory) + '" aria-label="' + esc(STR.chron.editStory) + '">✎</button>' +
+        '<button class="btn mini ghost" data-sdel="' + esc(p.id) + '" title="' + esc(STR.chron.delStory) + '" aria-label="' + esc(STR.chron.delStory) + '">🗑</button>' +
+        '<button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>' +
         // tags: world-wide or local; which games of the world it belongs to (projects/{p}.scope, .games)
         '<div class="row stags"><select data-scope="' + esc(p.id) + '" aria-label="' + esc(STR.chron.scopeAria) + '">' + ["world", "local"].map(function (k) {
           return '<option value="' + k + '"' + ((p.scope || "world") === k ? " selected" : "") + '>' + esc(STR.chron.scopes[k]) + '</option>'; }).join("") + '</select>' +
@@ -4793,6 +4795,11 @@
     if (sg) db.collection("projects").doc(sg.dataset.sgame).update({ updatedAt: stamp(), games: [].filter.call(document.querySelectorAll('[data-sgame="' + sg.dataset.sgame + '"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) });
   });
   // the shell brings the author back to an entity («Біблія світу» from the book)
+  // the shell after «Зберегти історію»: open «Історії і хроніка»
+  window.addEventListener("message", function (ev) {
+    if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-section") return;
+    if (sections().some(function (s) { return s.id === ev.data.section; }) && ev.data.section !== section) goSection(ev.data.section);
+  });
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-focus") return;
     var x = entities.filter(function (y) { return y.id === ev.data.ent; })[0]; if (!x) { pendingFocus = ev.data.ent; return; }
@@ -4837,6 +4844,8 @@
     var v = e.target.closest("[data-view3d]");
     if (v) { var vc = allCards().filter(function (x) { return x.key === v.closest(".card").dataset.key; })[0]; view3d(vc.files.filter(function (f) { return f.id === v.dataset.view3d; })[0], vc.files); return; }
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
+    var se = e.target.closest("[data-sedit]"); if (se) { tellShell({ type: "ww-edit-story", projectId: se.dataset.sedit }); return; } // the shell's story form
+    var sd = e.target.closest("[data-sdel]"); if (sd) { tellShell({ type: "ww-delete-story", projectId: sd.dataset.sdel }); return; } // the shell asks to confirm
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
     var sd = e.target.closest("[data-subdel]"); if (sd) { dropSubsection(sd.dataset.subdel); return; }
     var sr = e.target.closest("[data-subren]"); if (sr) { renameSubsection(sr.dataset.subren); return; }

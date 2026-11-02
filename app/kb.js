@@ -61,7 +61,7 @@
             "<b>З GitHub</b> — підключи репозиторій гри, і «Звірити з репо» ✦ покаже, що є в коді й документах, але бракує в Біблії (<a class=\"art__link\" data-art=\"agent-github\">крок 9</a>).",
           ]],
           ["p", "Імпорт і звірка з репозиторієм — частина Біблії гри (тариф Worldbuilder). Чому Біблія гри замінює гейм-диздок — <a class=\"art__link\" data-art=\"gdd\">окрема стаття</a>."],
-          ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб: картка «Біблія світу» (канон та ігри) і історії світу."],
+          ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб: картка «Біблія світу» (кнопка «Відкрити Біблію світу») і, для власника, панель Спільнота · Команда · Маркет · Бекап. Історії світу живуть лише в Біблії — розділ «Історії і хроніка»."],
           ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Кнопка ⏸ на відео (у хабі світу й на «Огляді світу») зупиняє його на першому кадрі, ▶ — запускає знову; вибір запамʼятовується для світу. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево. Та сама обкладинка відкриває «Огляд світу» в Біблії — над гаслом і описом."],
           ["p", "Угорі «Огляду світу» — назва світу великим фентезійним шрифтом по центру. Власник світу бачить ✎ при наведенні: змінити назву або поставити замість неї картинку назви (логотип, PNG з прозорим тлом найкраще) і повзунком «Висота назви» підібрати її розмір. Прев'ю у вікні — зменшений рядок назви; широку картинку обмежує ширина рядка, тож повзунок доходить лише до висоти, яка ще влазить."],
           ["tip", "Кілька історій можуть жити в одному світі й ділити канон. Новий персонаж з однієї історії доступний в іншій і в грі."],
@@ -348,7 +348,7 @@
         lead: "Поступово з AI, усе одразу або пишу сам.",
         min: 3,
         body: [
-          ["p", "Історію створюють у світі: з хабу світу, з хроніки («＋ Нова історія») або з досьє («＋ Історія» — історія про цього героя чи подію)."],
+          ["p", "Історію створюють у Біблії світу: у розділі «Історії і хроніка» («＋ Нова історія») або з досьє («＋ Історія» — історія про цього героя чи подію)."],
           ["ul", [
             "🪶 Поступово (Guided, за замовчуванням) — AI пише по одній сцені, перед кожною наступною питає напрям.",
             "⚡ Автоматично (Auto) — AI пише весь обсяг одразу: оповідання, новела, сезон.",
@@ -451,12 +451,12 @@
           ["p", "Подія має початок, тривалість (хвіст комети; без тривалості — зірка), підпис часу й учасників (аватари над головою комети). Комети не перекриваються, крок шкали підбирається сам; одиницю часу задаєш ти."],
           ["p", "Кожен підрозділ хроніки — своя лінія часу; ✎ біля назви перейменовує її (події переїжджають разом). Події без дати чекають під лінією. Подію відкриває клік по комети або її назві — у досьє змінюєш назву, дату, тривалість і учасників."],
           ["h", "Історії світу"],
-          ["p", "На тій самій сторінці — картки історій світу: позначка розкриття, «Відкрити» і два теги:"],
+          ["p", "На тій самій сторінці — картки історій світу; це єдине місце, де вони живуть (у хабі світу їх більше немає). На картці: позначка розкриття, ✎ (назва, опис, обсяг, фінал, жанри), 🗑 (видалити, з підтвердженням), «Відкрити» і два теги:"],
           ["ul", [
             "Масштаб — «Загальна історія світу» чи «Локальна історія» (про одне місце, героя чи подію).",
             "Ігри — до яких ігор цього світу належить історія (можна кілька або жодної).",
           ]],
-          ["tip", "Почав «＋ Нова історія» і передумав — «Біблія світу» в меню вгорі повертає назад."],
+          ["tip", "Почав «＋ Нова історія» і передумав — «Біблія світу» в меню вгорі повертає назад. Після «Зберегти історію» в кінці книги ти повертаєшся сюди ж."],
         ] },
       { cat: "world", id: "culture", icon: "feather", title: "Культура",
         lead: "Народи, мови, віра, звичаї.",
@@ -968,7 +968,7 @@
         lead: "Створення, редагування, видалення.",
         min: 2,
         body: [
-          ["p", "Історії живуть у світах. Параметри історії (назва, опис, обсяг, фінал, жанри) змінюються олівцем; обсяг не можна зменшити нижче вже написаних сцен."],
+          ["p", "Історії живуть у світах — у Біблії світу, розділ «Історії і хроніка». Параметри історії (назва, опис, обсяг, фінал, жанри) змінюються ✎ на її картці там, 🗑 — видаляє; обсяг не можна зменшити нижче вже написаних сцен."],
           ["warn", "Видалення незворотне й захищене підтвердженням. Світ видаляється лише тоді, коли в ньому немає історій; разом зі світом видаляються його ігри й файли."],
           ["tip", "Перед великими змінами зроби експорт світу в JSON (⚙ Налаштування проєкту)."],
         ] },
@@ -1004,7 +1004,7 @@
             "<b>From GitHub</b> — connect the game's repository, and “Check against the repo” ✦ shows what the code and docs have that the Bible lacks (<a class=\"art__link\" data-art=\"agent-github\">step 9</a>).",
           ]],
           ["p", "The import and the repository check are part of the Game Bible (the Worldbuilder plan). Why the Game Bible replaces a game design document — <a class=\"art__link\" data-art=\"gdd\">a separate article</a>."],
-          ["p", "“Choose your world” — your worlds. An open world is its hub: the “World Bible” card (canon and games) and the world's stories."],
+          ["p", "“Choose your world” — your worlds. An open world is its hub: the “World Bible” card (the “Open the World Bible” button) and, for the owner, the Community · Team · Market · Backup panel. The world's stories live only in the Bible — the “Stories & chronicle” section."],
           ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The ⏸ button on the video (in the world hub and on “World overview”) stops it on its first frame, ▶ plays it again; the choice is remembered per world. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree. The same cover opens the “World overview” in the Bible — above the tagline and description."],
           ["p", "The top of the “World overview” carries the world name in a large fantasy font, centred. The world owner sees ✎ on hover: change the name or put a title image (a logo; a PNG with a transparent background works best) in its place and set its size with the “Title height” slider. The preview in the dialog is the name line scaled down; a wide image is limited by the line's width, so the slider only goes up to the height that still fits."],
           ["tip", "Several stories can live in one world and share the canon. A new character from one story is there for another and for the game."],
@@ -1291,7 +1291,7 @@
         lead: "Step by step with AI, everything at once, or I write it myself.",
         min: 3,
         body: [
-          ["p", "Stories are created in a world: from the world hub, from the chronicle (“＋ New story”) or from a dossier (“＋ Story” — a story about this hero or event)."],
+          ["p", "Stories are created in the World Bible: in “Stories & chronicle” (“＋ New story”) or from a dossier (“＋ Story” — a story about this hero or event)."],
           ["ul", [
             "🪶 Guided (default) — AI writes one scene at a time and asks for the direction before the next.",
             "⚡ Auto — AI writes the whole volume at once: a short story, a novella, a season.",
@@ -1394,12 +1394,12 @@
           ["p", "An event has a start, a duration (the comet's tail; no duration — a star), a time label and participants (avatars above the comet's head). Comets never overlap, the scale step picks itself; you set the time unit."],
           ["p", "Every chronicle subsection is its own time line; ✎ next to its name renames it (its events move along). Undated events wait below the line. A click on a comet or its name opens the event — in the dossier you change its name, date, duration and participants."],
           ["h", "Stories of the world"],
-          ["p", "The same page shows the world's story cards: the reveal mark, “Open” and two tags:"],
+          ["p", "The same page shows the world's story cards; this is the only place they live (the world hub no longer lists them). A card has the reveal mark, ✎ (title, description, length, ending, genres), 🗑 (delete, with a confirmation), “Open” and two tags:"],
           ["ul", [
             "Scope — “World-wide story” or “Local story” (about one place, hero or event).",
             "Games — which games of this world the story belongs to (several or none).",
           ]],
-          ["tip", "Started “＋ New story” and changed your mind — “World Bible” in the top menu leads back."],
+          ["tip", "Started “＋ New story” and changed your mind — “World Bible” in the top menu leads back. After “Save the story” at the end of the book you land here too."],
         ] },
       { cat: "world", id: "culture", icon: "feather", title: "Culture",
         lead: "Peoples, languages, faith, customs.",
@@ -1911,7 +1911,7 @@
         lead: "Create, edit, delete.",
         min: 2,
         body: [
-          ["p", "Stories live in worlds. A story's settings (title, description, length, ending, genres) are edited with the pencil; the length cannot go below the scenes already written."],
+          ["p", "Stories live in worlds — in the World Bible, “Stories & chronicle”. A story's settings (title, description, length, ending, genres) are edited with ✎ on its card there, 🗑 deletes it; the length cannot go below the scenes already written."],
           ["warn", "Deletion is final and protected by a confirmation. A world can be deleted only when it has no stories; its games and files go with it."],
           ["tip", "Before big changes export the world to JSON (⚙ Project settings)."],
         ] },
