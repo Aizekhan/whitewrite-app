@@ -21,6 +21,7 @@ exports.marketingPublisher = marketing.marketingPublisher;
 const community = require('./src/community'); // Спільнота: public showcases, ♥, reports, the home page cards (hourly)
 exports.community = community.community;
 exports.communityRotate = community.communityRotate;
+exports.styleCheck = require('./src/style').styleCheck; // the AI check of a picture against the game's visual style
 const modelWatch = require('./src/model-watch'); // Claude versions: daily check + safe auto-switch (helpers stay internal)
 exports.modelWatch = modelWatch.modelWatch;
 exports.modelWatchRun = modelWatch.modelWatchRun;

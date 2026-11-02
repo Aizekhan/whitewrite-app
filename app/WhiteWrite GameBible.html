@@ -394,6 +394,8 @@ button.dlink{ cursor:pointer; } button.dlink:hover{ border-color:var(--gold); }
 .smark[data-lv=mid]{ color:#e8c26a; border-color:rgba(232,194,106,.6); }
 .smark[data-lv=bad]{ color:#f08a9a; border-color:rgba(240,138,154,.65); }
 .smark[data-lv=na]{ opacity:.6; }
+.smark[data-ai]{ border-width:1.5px; } .smark[data-stale]{ border-style:dashed; }
+.snote{ margin:-2px 0 8px 82px; font-size:12px; line-height:1.45; color:#b9ad98; } .snote b{ color:#e8c26a; font-weight:600; }
 .fimg .smark{ position:absolute; left:3px; bottom:3px; }
 /* licence & rights of prefabs: green — commercial OK, yellow — with conditions, red — not allowed / unknown */
 .lic{ display:inline-flex; align-items:center; gap:4px; flex:none; font:600 11px "Inter"; padding:2px 8px; border-radius:999px; border:1px solid; white-space:nowrap; }
@@ -663,6 +665,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/paid-features.js"></script>
 <script src="firebase/narrative-validate.js"></script>
 <script src="firebase/setup-guides.js"></script>
+<script src="firebase/style-guide.js"></script>
 <script src="firebase/token-budget.js"></script>
 <script src="frame-pick.js"></script>
 <script src="gamebible.js"></script>

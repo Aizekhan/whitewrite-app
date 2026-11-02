@@ -16,7 +16,9 @@
     uk: {
       brand: "Біблія світу", engine: "Рушій гри",
       frameTip: "Кадр на картці: яку частину видно або вся картинка",
-      sm: { ok: "у стилі", mid: "частково в стилі", bad: "вибивається зі стилю", na: "не вдалося прочитати картинку", by: "за кольором, у браузері", ai: "ШІ-перевірка — скоро" },
+      sm: { ok: "у стилі", mid: "частково в стилі", bad: "вибивається зі стилю", na: "не вдалося прочитати картинку", by: "за кольором, у браузері", ai: "ШІ-перевірка — кнопкою у «Візуальному стилі»", aiBy: "оцінка ШІ", stale: "оцінка ШІ застаріла — стиль змінився", issues: "Що вибивається", fixes: "Як виправити",
+        all: "✦ Перевірити всі", allTip: "ШІ-перевірка всіх картинок гри без свіжої оцінки (нові й застарілі)", allNone: "Усі картинки вже мають свіжу оцінку ШІ.",
+        allAsk: "Перевірити {n} картинок за стилем? ≈ {t} токенів (списується реальна вартість).", allRun: "Перевіряю стиль", allDone: "Перевірено картинок", noStyle: "Спершу задай палітру стилю." },
       comm: { title: "Спільнота", hint: "Відкрий вітрину світу чи гри для всіх: обкладинка, опис і лише ті розділи, які ти позначиш. План, задачі, ключі, журнал, телеметрія й нотатки на картках не потрапляють туди ніколи. Публікація — знімок: після змін натисни «Оновити публікацію».",
         world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n}", hidden: "Приховано модератором після скарги — у спільноті не видно.",
         tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
@@ -132,7 +134,7 @@
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли", filesSaveFirst: "Спершу збережи картку — тоді можна додати файли.",
       uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
-      v3d: { open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
+      v3d: { shot: "📷 Знімок для стилю", shotTip: "Зберегти цей ракурс картинкою на картці — її перевірить стиль гри", shotDone: "Знімок збережено на картці", open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
       exportMd: "⬇ Markdown для репозиторію", busyAnalyze: "AI читає всю біблію і складає гейм-диздок… (до хвилини)",
@@ -227,7 +229,9 @@
     en: {
       brand: "World Bible", engine: "Game engine",
       frameTip: "Frame on the card: which part shows, or the whole picture",
-      sm: { ok: "fits the style", mid: "partly in style", bad: "off-style", na: "could not read the picture", by: "by colour, in the browser", ai: "AI check — coming soon" },
+      sm: { ok: "fits the style", mid: "partly in style", bad: "off-style", na: "could not read the picture", by: "by colour, in the browser", ai: "AI check — the button in «Visual style»", aiBy: "AI score", stale: "the AI score is stale — the style changed", issues: "What breaks it", fixes: "How to fix",
+        all: "✦ Check all", allTip: "AI check of every game picture without a fresh score (new and stale)", allNone: "Every picture already has a fresh AI score.",
+        allAsk: "Check {n} pictures against the style? ≈ {t} tokens (the real cost is charged).", allRun: "Checking the style", allDone: "Pictures checked", noStyle: "Set the style palette first." },
       comm: { title: "Community", hint: "Open a showcase of the world or the game to everyone: a cover, a description and only the sections you tick. The plan, tasks, keys, the log, telemetry and card notes never get there. A publication is a snapshot: after changes press “Update the publication”.",
         world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n}", hidden: "Hidden by a moderator after a report — not shown in the community.",
         tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
@@ -342,7 +346,7 @@
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files", filesSaveFirst: "Save the card first — then you can add files.",
       uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
-      v3d: { open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
+      v3d: { shot: "📷 Snapshot for the style", shotTip: "Save this view as a picture on the card — the game style will check it", shotDone: "Snapshot saved on the card", open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
       exportMd: "⬇ Markdown for the repo", busyAnalyze: "AI is reading the whole bible and drafting the GDD… (up to a minute)",
@@ -885,7 +889,7 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "" };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {} };
   }
   function inGame(e) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
@@ -894,7 +898,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "" };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {} };
   }
   function allCards() {
     var out = [];
@@ -999,7 +1003,7 @@
     var img = (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var lc = worstLic(c.files); if (lc) tags.push(lc);
-    if (img) tags.push(styleMark(img.url, c));
+    if (img) tags.push(styleMark(img.url, c, img.id));
     var model = (c.files || []).filter(is3D)[0];
     var corner = model ? '<span class="v3d-pill" role="button" tabindex="0" title="' + esc(STR.v3d.view) + '" aria-label="' + esc(STR.v3d.view) + '" data-view3d="' + esc(model.id) + '">🧊 3D</span>' : '';
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
@@ -1046,6 +1050,7 @@
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
+        (s.id === "artstyle" && canWrite ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
         '<button class="btn primary" id="add-top">' + STR.sub.add + '</button></div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
@@ -1053,6 +1058,7 @@
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
+    var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { alert(STR.failed + ": " + e.message); tlb.disabled = false; }); };
   }
   // «＋ Стандартні події»: the spec's standard events as Telemetry cards (the ones already there are kept)
@@ -2309,21 +2315,18 @@
   // colours to avoid add up. Stage 1: free, by colour, in the browser (Lab ΔE to the nearest style colour); AI check later.
   var styleScores = {}, styleReg = {}, styleBusy = {};
   try { styleScores = JSON.parse(localStorage.getItem("ww-style-scores") || "{}") || {}; } catch (e) { styleScores = {}; }
+  // the names a card is matched to a biome by: its title, subsection and «location» field
+  function styleNames(c) { var f = c.fields || {}; return [c.title, f[groupKey(sec(c.section))], f.location]; }
   function styleFor(c) {
-    if (!c || !c.section || c.section === "artstyle") return null;
-    var st = cards.filter(function (x) { return x.section === "artstyle"; }), g0 = sec("artstyle").groups || { uk: [], en: [] };
-    if (!st.length) return null;
-    var low = function (v) { return String(v || "").replace(/^[\s\-*•·]+/, "").trim().toLowerCase(); }, fl = function (x) { return (x && x.fields) || {}; };
-    var overall = st.filter(function (x) { var g = fl(x).group || ""; return !g || g === g0.uk[0] || g === g0.en[0]; })[0];
-    var f = c.fields || {}, names = [c.title, f[groupKey(sec(c.section))], f.location].map(low).filter(Boolean);
-    var biome = st.filter(function (x) { return x !== overall && String(fl(x).places || "").split("\n").some(function (l) { l = low(l); return l && names.indexOf(l) >= 0; }); })[0];
-    var bp = parsePal(fl(biome).palette), op = parsePal(fl(overall).palette);
-    var pal = (bp.length ? bp : op).map(function (x) { return x.hex; });
+    var SG = window.__STYLE;
+    if (!SG || !c || !c.section || c.section === "artstyle") return null;
+    var r = SG.resolveStyle(cards, styleNames(c)), pp = SG.palettes(r);
+    var pal = pp.palette.map(function (x) { return x.hex; });
     if (!pal.length) return null;
-    var avoid = parsePal(fl(overall).avoid).concat(parsePal(fl(biome).avoid)).map(function (x) { return x.hex; });
-    var name = (biome || overall || {}).title || L(sec("artstyle")), raw = pal.join(",") + "/" + avoid.join(","), h = 5381;
+    var avoid = pp.avoid.map(function (x) { return x.hex; });
+    var name = SG.styleName(r) || L(sec("artstyle")), raw = pal.join(",") + "/" + avoid.join(","), h = 5381;
     for (var i = 0; i < raw.length; i++) h = ((h << 5) + h + raw.charCodeAt(i)) | 0;
-    return { name: name, pal: pal, avoid: avoid, sig: (h >>> 0).toString(36) };
+    return { name: name, pal: pal, avoid: avoid, sig: (h >>> 0).toString(36), aiSig: SG.styleSig(r), res: r };
   }
   function toLab(r, g, b) {
     var t = [r, g, b].map(function (v) { v /= 255; return v > 0.04045 ? Math.pow((v + 0.055) / 1.055, 2.4) : v / 12.92; });
@@ -2358,13 +2361,27 @@
     });
   }
   function smarkLv(v) { return v == null ? "na" : v >= 70 ? "ok" : v >= 40 ? "mid" : "bad"; }
-  function smarkTip(v, st) { var S = STR.sm; return st.name + " · " + (v == null ? S.na : S[smarkLv(v)] + " " + v + "%") + " · " + S.by + " · " + S.ai; }
-  // «🖌 87» on a picture of a game card; "" when the game has no style palette (or the card is a style card itself)
-  function styleMark(url, c) {
+  function smarkTip(v, st, stale) { var S = STR.sm; return st.name + " · " + (v == null ? S.na : S[smarkLv(v)] + " " + v + "%") + " · " + S.by + " · " + (stale ? S.stale : S.ai); }
+  // «🖌 87» on a picture of a game card; "" when the game has no style palette (or the card is a style card itself).
+  // A fresh AI score (card.styleAi[fileId], same style signature) wins over the colour score: «🖌 87 ✦».
+  function styleAiOf(c, fid, st) { var a = fid && c && c.styleAi && c.styleAi[fid]; return a && a.score != null ? { a: a, fresh: a.sig === st.aiSig } : null; }
+  function styleMark(url, c, fid) {
     var st = url && styleFor(c); if (!st) return "";
+    var ai = styleAiOf(c, fid, st);
+    if (ai && ai.fresh) {
+      var tip = (ai.a.style || st.name) + " · " + STR.sm[smarkLv(ai.a.score)] + " " + ai.a.score + "% · " + STR.sm.aiBy + (ai.a.summary ? "\n" + ai.a.summary : "") +
+        (ai.a.issues && ai.a.issues.length ? "\n" + STR.sm.issues + ": " + ai.a.issues.join("; ") : "");
+      return '<span class="smark" data-ai="1" data-lv="' + smarkLv(ai.a.score) + '" title="' + esc(tip) + '">🖌 ' + ai.a.score + ' ✦</span>';
+    }
     styleReg[st.sig] = st;
     var k = st.sig + "|" + url, has = Object.prototype.hasOwnProperty.call(styleScores, k), v = styleScores[k];
-    return '<span class="smark" data-smark="' + esc(url) + '" data-ss="' + st.sig + '"' + (has ? ' data-lv="' + smarkLv(v) + '" title="' + esc(smarkTip(v, st)) + '"' : '') + '>🖌' + (has ? " " + (v == null ? "?" : v) : "") + '</span>';
+    return '<span class="smark" data-smark="' + esc(url) + '" data-ss="' + st.sig + '"' + (ai ? ' data-stale="1"' : '') + (has ? ' data-lv="' + smarkLv(v) + '" title="' + esc(smarkTip(v, st, ai)) + '"' : '') + '>🖌' + (has ? " " + (v == null ? "?" : v) : "") + '</span>';
+  }
+  // what the AI said about a picture, under its file row (only a fresh result with something to fix)
+  function styleNote(c, f) {
+    var st = styleFor(c), ai = st && styleAiOf(c, f.id, st);
+    if (!ai || !ai.fresh || !(ai.a.issues || []).length) return "";
+    return '<div class="snote"><b>✦ ' + esc(STR.sm.issues) + ':</b> ' + esc(ai.a.issues.join("; ")) + ((ai.a.fixes || []).length ? '<br><b>' + esc(STR.sm.fixes) + ':</b> ' + esc(ai.a.fixes.join("; ")) : '') + '</div>';
   }
   function fillStyleMarks() {
     [].forEach.call(document.querySelectorAll(".smark:not([data-lv])"), function (el) {
@@ -2378,13 +2395,66 @@
       }))).then(function (v) {
         [].forEach.call(document.querySelectorAll('.smark[data-ss="' + st.sig + '"]:not([data-lv])'), function (m) {
           if (m.dataset.smark !== url) return;
-          m.dataset.lv = smarkLv(v); m.title = smarkTip(v, st); m.textContent = "🖌 " + (v == null ? "?" : v);
+          m.dataset.lv = smarkLv(v); m.title = smarkTip(v, st, m.dataset.stale); m.textContent = "🖌 " + (v == null ? "?" : v);
         });
       });
     });
   }
   var smarkTimer = 0;
   new MutationObserver(function () { if (!smarkTimer) smarkTimer = setTimeout(function () { smarkTimer = 0; fillStyleMarks(); }, 150); }).observe(document.documentElement, { childList: true, subtree: true });
+  // ---------- The AI style check (functions/src/style.js styleCheck): a downscaled copy of the picture + up to 3 style references ----------
+  var STYLE_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/styleCheck";
+  function jpegOf(url, max) {
+    return new Promise(function (ok, no) {
+      var img = new Image(); img.crossOrigin = "anonymous";
+      img.onload = function () {
+        try {
+          var k = Math.min(1, max / Math.max(img.width, img.height, 1)), c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+          var x = c.getContext("2d"); x.fillStyle = "#808080"; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+          ok(c.toDataURL("image/jpeg", 0.85));
+        } catch (e) { no(e); }
+      };
+      img.onerror = function () { no(new Error("image")); }; img.src = url;
+    });
+  }
+  async function styleCheckAi(c, f) {
+    var st = styleFor(c); if (!st) throw new Error(STR.sm.noStyle);
+    var refs = [st.res.biome, st.res.overall].filter(Boolean).reduce(function (a, x) { return a.concat((x.files || []).filter(isImage)); }, []).slice(0, 3);
+    var image = await jpegOf(f.url, 1024), refData = [];
+    for (var i = 0; i < refs.length; i++) { try { refData.push({ data: await jpegOf(refs[i].url, 512), mediaType: "image/jpeg" }); } catch (e) {} }
+    var token = await firebase.auth().currentUser.getIdToken(), f_ = c.fields || {};
+    var r = await fetch(STYLE_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify({ worldId: worldId, gameId: gameId, cardId: c.id, fileId: f.id, image: image, refs: refData, language: LANG, names: [f_[groupKey(sec(c.section))] || "", f_.location || ""] }) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) { var er = new Error(data.error || "HTTP " + r.status); er.code = data.code; throw er; }
+    [c].concat(cards.filter(function (x) { return x.id === c.id; })).forEach(function (x) { x.styleAi = Object.assign({}, x.styleAi); x.styleAi[f.id] = data.styleAi; }); // the card snapshot brings the same a moment later
+    if (open === c) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); } else render();
+    if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
+    return data;
+  }
+  // «✦ Перевірити всі»: every picture of the game's cards without a fresh AI score (new and stale), one by one
+  async function styleCheckAll(btn) {
+    var todo = [];
+    allCards().forEach(function (c) {
+      var st = styleFor(c); if (!st) return;
+      (c.files || []).filter(isImage).forEach(function (f) { var ai = styleAiOf(c, f.id, st); if (!ai || !ai.fresh) todo.push({ c: c, f: f }); });
+    });
+    if (!todo.length) return alert(cards.some(function (x) { return x.section === "artstyle"; }) ? STR.sm.allNone : STR.sm.noStyle);
+    if (!confirm(STR.sm.allAsk.replace("{n}", todo.length).replace("{t}", todo.length * costOf("styleCheck")))) return;
+    btn.disabled = true;
+    var done = 0;
+    try {
+      for (var i = 0; i < todo.length; i++) {
+        btn.textContent = STR.sm.allRun + " " + (i + 1) + "/" + todo.length + "…";
+        try { await styleCheckAi(todo[i].c, todo[i].f); done++; } catch (e) {
+          if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED" || /підписк|subscription/i.test(e.message)) { alert(e.message); break; }
+          console.warn("[style]", todo[i].f.name, e.message);
+        }
+      }
+    } finally { btn.disabled = false; btn.textContent = STR.sm.all + " · ≈ " + costOf("styleCheck"); }
+    msg(STR.sm.allDone + ": " + done + " / " + todo.length);
+  }
   // A palette editor inside el; change(text) on every edit. imgs() → image urls for «З картинок».
   function palEditor(el, v, change, imgs) {
     var list = parsePal(v), P = STR.pal;
@@ -2560,7 +2630,7 @@
   function fieldFilesHtml(key, type) {
     var files = (open.files || []).filter(function (f) { return f.field === key; });
     var list = type === "image"
-      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open) +
+      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open, f.id) +
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
@@ -2717,18 +2787,20 @@
       });
     }).catch(function () {}).then(function () { polyBusy = false; setTimeout(backfillPolys, 300); });
   }
-  function view3d(f, files) {
-    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files); }).catch(function (e) { alert(STR.failed + ": " + (e.message || e)); });
+  // onShot: in the open card the viewer offers «📷 Знімок для стилю» — the current view becomes a picture on the card
+  // (a prefab has no picture of its own; the snapshot gets the 🖌 badge and the automatic AI style check)
+  function view3d(f, files, onShot) {
+    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files, onShot); }).catch(function (e) { alert(STR.failed + ": " + (e.message || e)); });
   }
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
   function fileRow(f) {
       return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
         '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
-        (isAsset(f) ? licChip(f, open.files, "data-lic") : '') + (isImage(f) ? styleMark(f.url, open) : '') +
+        (isAsset(f) ? licChip(f, open.files, "data-lic") : '') + (isImage(f) ? styleMark(f.url, open, f.id) : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (isImage(f) ? (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') : '') +
-        (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>';
+        (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>' + (isImage(f) ? styleNote(open, f) : '');
   }
   function filesHtml() {
     var list = (open.files || []).filter(function (f) { return !f.field; }).map(fileRow).join("");
@@ -2753,6 +2825,7 @@
         if (card.src === "canon") body.canonRef = card.id;
         await gref().collection("cards").doc(card.id).set(body, { merge: true });
         card.files = (card.files || []).concat([meta]); done++;
+        if (isImage(meta) && styleFor(card)) styleCheckAi(card, meta).catch(function (e) { if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED") msg(e.message); }); // a new picture is checked against the style at once
       } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
     }
     if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
@@ -4585,7 +4658,13 @@
     var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var fr = e.target.closest("[data-frame]"); if (fr) { pickFrame(open, fr.dataset.frame); return; }
-    var v3 = e.target.closest("[data-view3d]"); if (v3) { view3d(open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0], open.files); return; }
+    var v3 = e.target.closest("[data-view3d]"); if (v3) {
+      var card3 = open, f3 = open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0];
+      view3d(f3, open.files, canWrite && !open.isNew ? function (blob) {
+        if (open !== card3) return Promise.reject(new Error("closed"));
+        return uploadFiles([new File([blob], f3.name.replace(/\.[^.]+$/, "") + ".view.png", { type: "image/png" })]);
+      } : null); return;
+    }
     var lb = e.target.closest("[data-lic]");
     if (lb) {
       var card = open, lf = card.files.filter(function (f) { return f.id === lb.dataset.lic; })[0];

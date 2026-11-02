@@ -46,7 +46,7 @@ function gltfRights(json) {
 // Polygon (triangle) count and rights text of a model file, without showing it — gamebible.js marks heavy models and their licence.
 export async function modelInfo(file, siblings) { const r = await load(file, siblings); return { tris: countTris(r.root), rights: r.meta || "" }; }
 
-export function view3d(file, T, siblings) {
+export function view3d(file, T, siblings, onShot) {
   const box = document.createElement("div");
   box.className = "v3d";
   box.setAttribute("role", "dialog");
@@ -56,6 +56,7 @@ export function view3d(file, T, siblings) {
     '<button class="btn" data-a="rotate" aria-pressed="true">' + T.rotate + '</button>' +
     '<button class="btn" data-a="wire" aria-pressed="false">' + T.wire + '</button>' +
     '<button class="btn" data-a="reset">' + T.reset + '</button>' +
+    (onShot ? '<button class="btn" data-a="shot" title="' + T.shotTip + '">' + T.shot + '</button>' : '') +
     '<button class="btn" data-a="close">' + T.close + '</button></div>' +
     '<div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
   box.querySelector("b").textContent = file.name;
@@ -139,6 +140,14 @@ export function view3d(file, T, siblings) {
     const a = b.dataset.a;
     if (a === "close") close();
     else if (a === "reset") reset();
+    else if (a === "shot" && model) { // render now and read the canvas in the same task (no preserveDrawingBuffer needed)
+      b.disabled = true;
+      renderer.render(scene, camera);
+      renderer.domElement.toBlob((blob) => {
+        Promise.resolve(blob && onShot(blob)).then(() => { info.textContent = T.shotDone; }, (er) => { info.textContent = T.failed + ": " + (er && er.message ? er.message : er); })
+          .then(() => { b.disabled = false; });
+      }, "image/png");
+    }
     else if (a === "rotate") { controls.autoRotate = !controls.autoRotate; b.setAttribute("aria-pressed", controls.autoRotate); }
     else if (a === "wire" && model) {
       const on = b.getAttribute("aria-pressed") !== "true";

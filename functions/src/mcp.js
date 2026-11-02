@@ -6,10 +6,12 @@
 // The executor reads the game and its tasks, claims the next ready task, reports progress / blockers / results and
 // proposes change requests. It never edits the bible or the canon: the author reviews every result in the Game Bible.
 const crypto = require('crypto');
-const { onRequest, admin, db, getPlanBudget } = require('./common');
+const { onRequest, admin, db, getPlanBudget, claudeApiKey } = require('./common');
+const SG = require('../style-guide.js');
 const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
 const GUIDES = require('../setup-guides.js');
+const STYLE = require('./style')._style;
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const OPEN = ['todo', 'rework'];
@@ -93,6 +95,11 @@ const TOOLS = [
         status: { type: 'string', enum: ['completed', 'partial', 'experimental', 'planned'] }, player_impact: { type: 'string' },
         evidence: { type: 'object' }, media: { type: 'array', items: { type: 'string' } }, limits: { type: 'string' }, hints: { type: 'string' },
         privacy: { type: 'string', enum: ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'] }, task_id: { type: 'string' } } } } } } },
+  { name: 'get_style_guide', description: 'The game\'s visual style (Game Bible «Візуальний стиль»): the overall style and the biome for a location — manifesto, palette and colours to avoid ("#hex — name" per line), light & mood, materials, shapes & silhouette, polygon & texture budget, do / don\'t, style reference URLs; plus every biome with its locations. Read it before making or placing art, materials, lighting or a scene.',
+    inputSchema: { type: 'object', properties: { location: { type: 'string', description: 'A location / level / card name — picks its biome; empty = the overall style' }, card_ref: { type: 'string', description: '"c:<cardId>" — the style that applies to that card' } } } },
+  { name: 'check_style', description: 'Ask the art director (Claude, on the author\'s tokens) whether a picture fits the game\'s visual style: a Unity screenshot of a scene, a render of a prefab or a texture. Send a PNG/JPEG/WebP as base64, ≤ 1568 px on the long side and ≤ 5 MB. Returns score 0-100 (70+ fits, 40-69 partly, below 40 off-style), summary, issues and fixes. Nothing is stored; use it after visual work and before submit_task_result.',
+    inputSchema: { type: 'object', required: ['image_base64'], properties: { image_base64: { type: 'string' }, media_type: { type: 'string', enum: ['image/png', 'image/jpeg', 'image/webp'] },
+      location: { type: 'string', description: 'The location / level shown — picks its biome' }, what: { type: 'string', description: 'What the picture is (scene, prefab, texture…)' } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -118,7 +125,9 @@ const named = (c) => {
 };
 const files = (c) => {
   const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
-  return (c.files || []).map((f) => ({ name: f.name, url: f.url, size: f.size, type: f.type, ...(f.field ? { field: labels[f.field] || f.field } : {}) }));
+  const ai = c.styleAi || {};
+  return (c.files || []).map((f) => ({ name: f.name, url: f.url, size: f.size, type: f.type, ...(f.field ? { field: labels[f.field] || f.field } : {}),
+    ...(ai[f.id] ? { style_check: { score: ai[f.id].score, verdict: ai[f.id].verdict, issues: ai[f.id].issues || [], fixes: ai[f.id].fixes || [], style: ai[f.id].style || '' } } : {}) }));
 };
 
 function cardView(ctx, ref) {
@@ -486,6 +495,31 @@ async function callTool(name, args, key) {
       const pals = (ctx.game.subPalettes || {})[s];
       return { section: s, cards: out, ...(pals && Object.keys(pals).length ? { group_palettes: pals } : {}) };
     }
+    case 'get_style_guide': {
+      const styleCards = ctx.cards.filter((c) => c.section === 'artstyle' && !c.hidden);
+      if (!styleCards.length) return { style: null, message: 'The author has not described the visual style yet (Game Bible → Art & audio → Visual style).' };
+      let names = [str(args.location, 160)];
+      const ref = str(args.card_ref, 120);
+      if (ref) { const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '')); if (c) names = [c.title, (c.fields || {}).group, (c.fields || {}).category, (c.fields || {}).location]; }
+      const r = SG.resolveStyle(styleCards, names), pp = SG.palettes(r);
+      const view = (c) => (c ? { ref: 'c:' + c.id, title: c.title || '', fields: named(c), references: (c.files || []).filter(SG.isPic).map((f) => f.url) } : null);
+      return { applies: r.biome ? 'biome' : 'overall', overall: view(r.overall), biome: view(r.biome),
+        palette: pp.palette.map((x) => x.hex + (x.name ? ' — ' + x.name : '')), avoid: pp.avoid.map((x) => x.hex + (x.name ? ' — ' + x.name : '')),
+        biomes: styleCards.filter((c) => c !== r.overall && str((c.fields || {}).places, 1)).map((c) => ({ title: c.title || '', locations: String(c.fields.places).split('\n').map((l) => l.replace(/^[\s\-*•·]+/, '').trim()).filter(Boolean) })),
+        brief: SG.styleBrief(r) };
+    }
+    case 'check_style': {
+      const image = STYLE.imageBlock(args.image_base64, args.media_type || 'image/png');
+      if (!image) throw new Error('image_base64 is not a PNG/JPEG/WebP picture ≤ 5 MB');
+      const styleCards = ctx.cards.filter((c) => c.section === 'artstyle' && !c.hidden);
+      const r = SG.resolveStyle(styleCards, [str(args.location, 160)]);
+      const user = await db.collection('users').doc(key.uid).get();
+      try {
+        const out = await STYLE.runCheck({ uid: key.uid, userData: user.exists ? user.data() : {}, game: ctx.game, style: r, image, refs: [],
+          lang: 'English', what: str(args.what, 200) || 'a screenshot from the Unity project', logAs: 'style_check_mcp' });
+        return { style: SG.styleName(r), applies: r.biome ? 'biome' : 'overall', ...out.result, tokens_spent: out.tokensConsumed };
+      } catch (e) { if (e instanceof STYLE.CheckError) throw new Error(e.body.error + (e.body.code ? ' (' + e.body.code + ')' : '')); throw e; }
+    }
     case 'get_card': {
       const c = cardView(ctx, str(args.ref, 120));
       if (!c) throw rpcError(-32602, `Card ${args.ref} not found`);
@@ -672,7 +706,7 @@ async function authKey(req) {
   return key;
 }
 
-exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '512MiB', invoker: 'public' }, async (req, res) => {
+exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '512MiB', invoker: 'public', secrets: [claudeApiKey] }, async (req, res) => {
   if (req.method === 'GET' || req.method === 'DELETE') return res.status(405).set('Allow', 'POST').send(''); // stateless: no SSE stream, no sessions
   if (req.method !== 'POST') return res.status(405).send('');
   const key = await authKey(req).catch((e) => { console.error('[mcp] auth', e); return null; });
