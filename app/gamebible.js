@@ -182,6 +182,7 @@
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
+      refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
       v3d: { shot: "📷 Знімок для стилю", shotTip: "Зберегти цей ракурс картинкою на картці — її перевірить стиль гри", shotDone: "Знімок збережено на картці", open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
@@ -445,6 +446,7 @@
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
+      refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
       v3d: { shot: "📷 Snapshot for the style", shotTip: "Save this view as a picture on the card — the game style will check it", shotDone: "Snapshot saved on the card", open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
@@ -670,7 +672,7 @@
     { id: "refs", uk: "Референси", en: "References", group: "group",
       groups: { uk: ["Візуал", "Геймплей", "Звук", "UI"], en: ["Visuals", "Gameplay", "Sound", "UI"] },
       about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
-      defs: [F("group", "Група", "Group"), F("pics", "Картинки", "Pictures", "image"), F("what", "Що беремо", "What we take"), F("link", "Посилання", "Link")] },
+      defs: [F("group", "Група", "Group"), F("pics", "Картинки", "Pictures", "image")] },
     { id: "tech", uk: "Технічне", en: "Technical", group: "group",
       groups: { uk: ["Рушій і збірка", "Платформи", "Перформанс", "Сейви", "Мультиплеєр", "Інструменти"], en: ["Engine & build", "Platforms", "Performance", "Saves", "Multiplayer", "Tools"] },
       about: { uk: "Рушій, платформи, збірка, перформанс, сейви, мультиплеєр, інструменти.", en: "Engine, platforms, build, performance, saves, multiplayer, tools." },
@@ -875,7 +877,7 @@
     var html = "", head = function (g, label, n, canDrop) {
       var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
       return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
-        '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' +
+        (s.id === "refs" && canWrite && game ? refsPicker(g, "btn mini", STR.sub.item) : '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>') +
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
         (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
@@ -1247,6 +1249,7 @@
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
+        (s.id === "refs" && canWrite ? '<span class="hint" id="refs-prog" role="status">' + esc(refsProg) + '</span>' + refsPicker("", "btn", STR.refsAdd) : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
@@ -3035,7 +3038,7 @@
     if (!lean || (open.files || []).some(function (f) { return !f.field; })) html += filesHtml();
     if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
-    draft.defs.forEach(function (d) { if (d.key !== gk) html += defHtml(d); });
+    draft.defs.forEach(function (d) { if (d.key !== gk && (!lean || editMode || d.type === "image" || draft.fields[d.key])) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
     if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + qdLinksHtml({ id: open.src === "canon" ? open.id : "c:" + open.id }) + '</div>';
     if (!lean || editMode) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
@@ -3452,10 +3455,11 @@
     var files = (open.files || []).filter(function (f) { return f.field === key; });
     var list = type === "image"
       ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open, f.id) +
+          (open.section === "refs" ? '<span class="fext">' + esc(extOf(f.name)) + '</span>' : '') +
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
-    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup=""' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : STR.filesAdd) + '</label>';
+    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : STR.filesAdd) + '</label>';
     return '<div class="field files">' + list + add + '</div>';
   }
   function setEditMode(on) {
@@ -3627,25 +3631,36 @@
     var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
     return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + STR.filesHint + '</span></label>' + list + add + '</div>';
   }
+  // one file onto a card: Storage + the card's files[] (the card's pickers and the bulk «＋ Картинки» of «Референси»)
+  async function putFile(card, file, field, progress) {
+    var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + card.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
+    var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
+    if (progress) task.on("state_changed", progress);
+    await task;
+    var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
+    await localInfo(file, meta);
+    if (field) meta.field = field;
+    var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() };
+    if (card.src === "canon") body.canonRef = card.id;
+    await gref().collection("cards").doc(card.id).set(body, { merge: true });
+    card.files = (card.files || []).concat([meta]);
+    if (canDev && isImage(meta) && styleFor(card)) styleCheckAi(card, meta).catch(function (e) { if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED") msg(e.message); }); // a new picture is checked against the style at once
+    return meta;
+  }
+  function baseName(n) { return String(n || "").replace(/\.[^.]+$/, "").replace(/_+/g, " ").trim(); }
+  function extOf(n) { var m = /\.([^.]+)$/.exec(n || ""); return m ? m[1].toUpperCase() : ""; }
   async function uploadFiles(list, field) {
-    if (open && open.isNew) { await save(true); if (open.isNew) return; } // a new card: save it first, then the files go straight on it
+    // a reference is named after its picture (the name stays editable)
+    var t = $("e-title").value.trim(), named = open && open.section === "refs" && list.length && (!t || t === STR.newCard);
+    if (named) $("e-title").value = baseName(list[0].name);
+    if (open && (open.isNew || named)) { await save(true); if (open.isNew) return; } // a new card: save it first, then the files go straight on it
     var card = open, done = 0;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
       if (file.size > MAX_FILE) { msg(STR.fileTooBig + ": " + file.name); continue; }
-      var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + card.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
       try {
-        var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
-        task.on("state_changed", function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
-        await task;
-        var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
-        await localInfo(file, meta);
-        if (field) meta.field = field;
-        var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() };
-        if (card.src === "canon") body.canonRef = card.id;
-        await gref().collection("cards").doc(card.id).set(body, { merge: true });
-        card.files = (card.files || []).concat([meta]); done++;
-        if (canDev && isImage(meta) && styleFor(card)) styleCheckAi(card, meta).catch(function (e) { if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED") msg(e.message); }); // a new picture is checked against the style at once
+        await putFile(card, file, field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
+        done++;
       } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
     }
     if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
@@ -3742,6 +3757,29 @@
     closeLeaf();
   }
 
+  // «Референси»: many pictures at once — each one is its own card named after the file, in the subsection it was picked under
+  var refsProg = "";
+  function refsPicker(g, cls, label) {
+    return '<label class="' + cls + '" title="' + esc(STR.refsTip) + '"><input type="file" multiple hidden accept="image/*" data-refsup="' + esc(g) + '">' + label + '</label>';
+  }
+  function refsStatus(t) { refsProg = t; var el = $("refs-prog"); if (el) el.textContent = t; }
+  async function refsBulk(list, group) {
+    var s = sec("refs"), gk = groupKey(s), done = 0, pics = list.filter(isImage);
+    for (var i = 0; i < pics.length; i++) {
+      var file = pics[i];
+      if (file.size > MAX_FILE) { alert(STR.fileTooBig + ": " + file.name); continue; }
+      refsStatus(STR.uploading + " " + (i + 1) + " / " + pics.length + " · " + file.name);
+      var card = { src: "game", id: newId("card"), section: s.id, title: baseName(file.name) || STR.newCard, status: "idea", note: "", defs: s.defs.slice(), fields: {} };
+      if (group) card.fields[gk] = group;
+      try {
+        await gref().collection("cards").doc(card.id).set({ section: card.section, title: card.title, status: card.status, note: "", defs: card.defs, fields: card.fields,
+          createdAt: stamp(), updatedAt: stamp(), order: Date.now() }, { merge: true });
+        await putFile(card, file, "pics");
+        done++;
+      } catch (e) { refsStatus(""); alert(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
+    }
+    refsStatus(STR.refsDone + ": " + done);
+  }
   function addCard(fresh, group) {
     var s = sec(section);
     if (s.canon && fresh !== true) return pickFromCanon(s, group);
@@ -5982,6 +6020,9 @@
     }).observe($("view"), { childList: true });
   }
   $("topline").addEventListener("click", function (e) { viewClick(e); });
+  function refsChange(e) { if (e.target.dataset.refsup != null && e.target.files.length) { var rl = [].slice.call(e.target.files); e.target.value = ""; refsBulk(rl, e.target.dataset.refsup); } }
+  $("topline").addEventListener("change", refsChange);
+  $("view").addEventListener("change", refsChange);
   $("view").addEventListener("click", viewClick);
   $("view").addEventListener("input", qdInput);
   $("view").addEventListener("change", qdInput);
@@ -6059,6 +6100,7 @@
     var se = e.target.closest("[data-sedit]"); if (se) { tellShell({ type: "ww-edit-story", projectId: se.dataset.sedit }); return; } // the shell's story form
     var sd = e.target.closest("[data-sdel]"); if (sd) { tellShell({ type: "ww-delete-story", projectId: sd.dataset.sdel }); return; } // the shell asks to confirm
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
+    if (e.target.closest("[data-refsup]")) return; // the picture picker of «Референси» opens by itself
     var sd = e.target.closest("[data-subdel]"); if (sd) { dropSubsection(sd.dataset.subdel); return; }
     var sr = e.target.closest("[data-subren]"); if (sr) { renameSubsection(sr.dataset.subren); return; }
     var spl = e.target.closest("[data-subpal]"); if (spl) { groupPalDialog(spl.dataset.subpal); return; }

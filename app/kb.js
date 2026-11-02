@@ -721,7 +721,7 @@
         min: 3,
         body: [
           ["p", "Статуси: ідея · погоджено · в роботі · в грі · замінити. Олівець у кутку картки вмикає режим полів: перейменувати, змінити тип (текст, таблиця, зображення, файл, палітра кольорів, мініпостановка сцени), видалити чи додати поле. Перше зображення стає фасадом картки (16:9); ⌖ біля картинки — «Кадр на картці»: перетягни, яку частину видно, або «Показати повністю»."],
-          ["p", "Відкрита картка спершу читається: курсор у назву ставиться лише в новій картці. Файли й картинки додаються одразу, навіть у новій картці — вона збережеться сама перед першим завантаженням. У «Референсах» картка коротка: спершу «＋ Додати картинки», далі «Що беремо» і «Посилання»; нотатка й загальні файли зʼявляються, коли в них щось є."],
+          ["p", "Відкрита картка спершу читається: курсор у назву ставиться лише в новій картці. Файли й картинки додаються одразу, навіть у новій картці — вона збережеться сама перед першим завантаженням. У «Референсах» нічого заповнювати не треба: <b>«＋ Картинки»</b> угорі розділу (або «＋ Додати» біля підрозділу) бере одразу кілька картинок — кожна стає окремою карткою з назвою файлу (її можна змінити), на картинці видно формат (PNG, JPG…). Розкласти референси по підрозділах можна потім — меню підрозділу в картці або перетягуванням."],
           ["p", "«Модель / префаб» і «Модель / іконка» — файлові поля. Файли (до 200 МБ) лежать у сховищі; 3D-моделі відкриваються кнопкою «🧊 3D» прямо в браузері."],
           ["p", "Агент бачить картки, поля й посилання на файли через MCP."],
         ] },
@@ -1840,7 +1840,7 @@
         min: 3,
         body: [
           ["p", "Statuses: idea · agreed · in progress · in game · replace. The pencil in the card's corner turns on field mode: rename, change the type (text, table, image, file, colour palette, scene mock-up), delete or add a field. The first image becomes the card face (16:9); ⌖ next to a picture is “Frame on the card”: drag which part shows, or “Show it whole”."],
-          ["p", "An opened card is read first: the cursor goes into the title only in a new card. Files and pictures are added at once, even in a new card — it saves itself before the first upload. In “References” a card is short: “＋ Add pictures” first, then “What we take” and “Link”; the note and the general files show once they hold something."],
+          ["p", "An opened card is read first: the cursor goes into the title only in a new card. Files and pictures are added at once, even in a new card — it saves itself before the first upload. In “References” there is nothing to fill in: <b>“＋ Pictures”</b> at the top of the section (or “＋ Add” by a subsection) takes several pictures at once — each becomes its own card named after the file (the name stays editable), and the picture shows its format (PNG, JPG…). Sort the references into subsections later — with the subsection menu in the card or by dragging."],
           ["p", "“Model / prefab” and “Model / icon” are file fields. Files (up to 200 MB) are kept in storage; 3D models open with “🧊 3D” right in the browser."],
           ["p", "The agent sees cards, fields and file links over MCP."],
         ] },
