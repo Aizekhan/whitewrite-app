@@ -1119,9 +1119,16 @@
     try { await wref().update(Object.assign(up, { updatedAt: stamp() })); wdraft = null; render(); var w = $("w-state"); if (w) w.textContent = STR.saved; }
     catch (er) { btn.disabled = false; $("w-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
+  // the world's cover — the same as on its card in «Світи» (worlds/{w}.cover, ✎ there; default ph-world.jpg), framed with ⌖
+  function worldCoverHtml() {
+    var c = world && world.cover, st = c && c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : '';
+    return '<div class="wcover">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
+      : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
+      : '<img src="' + esc(c.url) + '"' + st + ' alt="">') + '</div>';
+  }
   function renderWorld(s) {
     var d = wd(s.id);
-    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
+    $("view").innerHTML = worldCoverHtml() + '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
       '<div class="canonbox wedit"><h4>' + STR.worldCanon + '</h4>' +
       '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag" value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
       '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum" rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +

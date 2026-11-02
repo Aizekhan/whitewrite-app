@@ -118,6 +118,9 @@ main{ min-width:0; padding:0 30px 60px; height:100vh; overflow-y:auto; }
 header.sec{ display:grid; grid-template-columns:1fr auto; gap:18px; align-items:end; padding:26px 0 8px; }
 header.sec h1{ font-size:clamp(26px,3vw,38px); line-height:1.05; }
 header.sec p{ margin:8px 0 0; color:var(--tx-mid); max-width:70ch; font-style:italic; }
+/* «Огляд світу»: the world's cover first (the same as its card in «Світи»), 16:9 */
+.wcover{ aspect-ratio:16/9; max-height:56vh; width:100%; border-radius:14px; overflow:hidden; border:1px solid var(--line-2); background:#0b0a0d; margin:0 0 18px; }
+.wcover img,.wcover video{ width:100%; height:100%; object-fit:cover; display:block; }
 .canonbox{ margin:16px 0 4px; padding:14px 16px; border:1px solid rgba(157,107,255,0.3); border-radius:12px; background:rgba(124,58,237,0.07); }
 .canonbox h4{ margin:0 0 6px; font:600 12px "Inter"; letter-spacing:.14em; text-transform:uppercase; color:var(--violet-lit); }
 .canonbox ol{ margin:6px 0 0; padding-left:20px; }
