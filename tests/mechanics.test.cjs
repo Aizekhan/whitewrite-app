@@ -61,7 +61,8 @@ check(M.newRowId(ws), 'W6', 'the next weapon id');
 const x = M.exportMech({ id: 'm1', title: 'Melee', mech: M.instantiate('umcf') }, 'en');
 const cx = x.sections.find((s) => s.id === 'combos').rows[0];
 check(cx.weapon.name + '|' + cx.attack.name, 'Короткий кинджал|Quick Thrust', 'links come as { id, name }');
-check(x.sections.find((s) => s.id === 'warping').framework.status, 'missing', 'the framework note for motion warping');
+check(x.sections.find((s) => s.id === 'warping').framework.status, 'exists', 'the framework note for motion warping (0.38.0)');
+check(x.sections.find((s) => s.id === 'adaptation').framework.status, 'missing', 'AI adaptation is still missing');
 check(x.category, 'Combat', 'the category in the asked language');
 
 // old Mechanics groups map to the new categories
