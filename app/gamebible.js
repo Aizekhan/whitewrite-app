@@ -98,7 +98,7 @@
           applying: "Роблю знімок світу й подаю заявку…", applied: "Заявку подано. Світ заморожено; ШІ-перевірка почалась." },
         backup: { title: "Бекап у GitHub", hint: "Щодня текст світу (канон, культура, ігри, історії; без файлів) — у твій приватний репозиторій GitHub: world.json + README, історію змін зберігає git. Ціна — {n} токенів за світ на 30 днів, від Storyteller.",
           steps: ["GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token.", "Repository access: <b>All repositories</b> (щоб WhiteWrite створив приватний репозиторій).", "Permissions: <b>Administration</b> — Read and write, <b>Contents</b> — Read and write.", "Встав токен нижче. Він зберігається лише на сервері."],
-          token: "Токен GitHub", connect: "Підключити GitHub", repo: "Репозиторій:", on: "щоденний бекап увімкнено", off: "щоденний бекап вимкнено", paid: "оплачено до",
+          saved: "Є збережений токен GitHub ({l}) — просто натисни «Підключити GitHub». Інший токен — встав нижче.", token: "Токен GitHub", connect: "Підключити GitHub", repo: "Репозиторій:", on: "щоденний бекап увімкнено", off: "щоденний бекап вимкнено", paid: "оплачено до",
           last: "Останній бекап:", now: "Зберегти зараз", enable: "Увімкнути щоденний бекап", disable: "Вимкнути", disconnect: "Відключити GitHub",
           costText: "Щоденний бекап цього світу коштує {n} токенів за 30 днів; далі місяць продовжується сам з твого балансу, доки бекап увімкнено.",
           disconnectText: "WhiteWrite забуде токен і зупинить бекап. Репозиторій на GitHub лишиться.", working: "Працюю…", connected: "GitHub підключено, приватний репозиторій готовий.",
@@ -230,7 +230,7 @@
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
       repo: { hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
-        repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
+        repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", tokenSaved: "Збережений токен GitHub ({l}) — можна лишити порожнім", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
         connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
         sync: "Звірити з репо", disconnect: "Відключити", busy: "AI читає репозиторій і звіряє його з Біблією… (до кількох хвилин)", result: "Звірка з репозиторієм",
         intro: "Що є в репозиторії, але немає в Біблії, і де вони розходяться. У картки потрапить лише відмічене, відмічені розбіжності — у «Неузгоджене»." },
@@ -360,7 +360,7 @@
           applying: "Taking the world's snapshot and applying…", applied: "Applied. The world is frozen; the AI review has started." },
         backup: { title: "GitHub backup", hint: "Every day the world's text (canon, culture, games, stories; no files) goes to your private GitHub repository: world.json + README, git keeps the history. {n} tokens per world per 30 days, from Storyteller.",
           steps: ["GitHub → Settings → Developer settings → <b>Fine-grained tokens</b> → Generate new token.", "Repository access: <b>All repositories</b> (so WhiteWrite can create a private repository).", "Permissions: <b>Administration</b> — Read and write, <b>Contents</b> — Read and write.", "Paste the token below. It is kept on the server only."],
-          token: "GitHub token", connect: "Connect GitHub", repo: "Repository:", on: "daily backup on", off: "daily backup off", paid: "paid until",
+          saved: "A GitHub token is saved ({l}) — just press “Connect GitHub”. Another token — paste it below.", token: "GitHub token", connect: "Connect GitHub", repo: "Repository:", on: "daily backup on", off: "daily backup off", paid: "paid until",
           last: "Last backup:", now: "Back up now", enable: "Turn the daily backup on", disable: "Turn off", disconnect: "Disconnect GitHub",
           costText: "The daily backup of this world costs {n} tokens per 30 days; the month then renews from your balance while the backup is on.",
           disconnectText: "WhiteWrite forgets the token and stops the backup. The GitHub repository stays.", working: "Working…", connected: "GitHub connected, the private repository is ready.",
@@ -492,7 +492,7 @@
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
       repo: { hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
-        repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenPh: "GitHub token — only for a private repo",
+        repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenSaved: "The saved GitHub token ({l}) — you can leave it empty", tokenPh: "GitHub token — only for a private repo",
         connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
         sync: "Check against the repo", disconnect: "Disconnect", busy: "AI is reading the repository and comparing it with the Bible… (up to a few minutes)", result: "Repository check",
         intro: "What the repository has and the Bible lacks, and where they disagree. Only ticked items go into the cards; ticked differences go to “Inconsistencies”." },
@@ -5089,6 +5089,7 @@
     };
     [].forEach.call(document.querySelectorAll("#view [data-kb]"), function (a) { a.onclick = function (e) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: a.dataset.kb }); }; });
   }
+  var ghLogin = null;
   function repoHtml() {
     var r = game.repo, R = STR.repo, d = r && r.syncedAt ? (r.syncedAt.toDate ? r.syncedAt.toDate() : new Date(r.syncedAt)) : null;
     return '<p class="hint">' + R.hint + '</p>' + (r && r.full
@@ -5096,7 +5097,7 @@
         '<p class="hint">' + (d ? esc(R.synced.replace("{d}", d.toLocaleString(LANG === "en" ? "en-GB" : "uk-UA"))) : R.never) + '</p>' +
         '<div class="setrow"><button class="btn" id="rp-sync">' + R.sync + costMark("repoSync") + '</button><button class="btn danger" id="rp-off">' + R.disconnect + '</button></div>'
       : '<div class="setrow"><input id="rp-repo" aria-label="' + esc(R.repo) + '" placeholder="' + esc(R.repoPh) + '"><input id="rp-branch" aria-label="' + esc(R.branch) + '" placeholder="' + esc(R.branchPh) + '"></div>' +
-        '<div class="setrow"><input id="rp-token" type="password" autocomplete="off" aria-label="' + esc(R.token) + '" placeholder="' + esc(R.tokenPh) + '"><button class="btn" id="rp-on">' + R.connect + '</button></div>') +
+        '<div class="setrow"><input id="rp-token" type="password" autocomplete="off" aria-label="' + esc(R.token) + '" placeholder="' + esc(ghLogin ? R.tokenSaved.replace("{l}", ghLogin) : R.tokenPh) + '"><button class="btn" id="rp-on">' + R.connect + '</button></div>') +
       '<p class="hint" id="rp-msg"></p>';
   }
   function bindRepo() {
@@ -6315,7 +6316,7 @@
   function backupHtml() {
     var B = STR.hub.backup, b = world.backup, PF = window.__PAID_FEATURES, cost = PF ? PF.featureCost(PF.byOp("githubBackup")) : 300;
     var head = '<h2>' + B.title + '</h2><p class="hint">' + B.hint.replace("{n}", cost) + '</p>';
-    if (!b || !b.repo) return head + '<ol class="hint">' + B.steps.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>' +
+    if (!b || !b.repo) return head + (ghLogin ? '<p class="pmsg">' + esc(B.saved.replace("{l}", ghLogin)) + '</p>' : '<ol class="hint">' + B.steps.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>') +
       '<label class="field"><span>' + B.token + '</span><input id="bk-token" type="password" autocomplete="off" placeholder="github_pat_…"></label>' +
       '<div class="setrow"><button class="btn primary" id="bk-connect">' + B.connect + '</button></div>';
     var until = b.paidUntil && b.paidUntil.toMillis ? b.paidUntil.toMillis() : 0, last = b.lastAt && b.lastAt.toMillis ? new Date(b.lastAt.toMillis()).toLocaleString() : "—";
@@ -6332,7 +6333,7 @@
       say(B.working);
       try { await fnCall("backup", Object.assign({ op: op, worldId: worldId }, extra || {})); say(done); } catch (e) { say(STR.failed + ": " + e.message); }
     }; };
-    var c = $("bk-connect"); if (c) c.onclick = function () { var t = $("bk-token").value.trim(); if (!t) return $("bk-token").focus(); run("connect", { token: t }, B.connected)(); };
+    var c = $("bk-connect"); if (c) c.onclick = function () { var t = $("bk-token").value.trim(); if (!t && !ghLogin) return $("bk-token").focus(); run("connect", t ? { token: t } : {}, B.connected)(); };
     var on = $("bk-on"); if (on) on.onclick = function () {
       var b = world.backup || {}, paid = b.paidUntil && b.paidUntil.toMillis && b.paidUntil.toMillis() > Date.now();
       if (paid) return run("enable", null, B.enabled)();
@@ -6400,6 +6401,7 @@
     if (!worldId) return locked(STR.brand, STR.noWorld, false);
     try {
       var u = await db.collection("users").doc(user.uid).get();
+      ghLogin = u.exists && u.data().github ? (u.data().github.login || "✓") : null; // one saved GitHub token (functions/src/github-token.js)
       var plan = (u.exists && u.data().plan) || "free";
       var pc = window.__getPlanConfig(plan); planName = plan;
       var w = await wref().get();

@@ -21,6 +21,7 @@ const {
   getPlanBudget,
   claudeApiKey,
 } = require('./common');
+const { savedGithub, rememberGithub, loginOf } = require('./github-token');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { intentText } = require('./experience')._experience;
 const { featureCost, byOp } = require('../paid-features.js');
@@ -439,10 +440,11 @@ async function repoLink(op, uid, worldId, gameId, body) {
   }
   const full = parseRepo(body.repo);
   if (!full) throw repoError(400, 'Вкажи репозиторій як owner/назва або посилання на GitHub');
-  const token = str(body.token, 400);
+  const pasted = str(body.token, 400), token = pasted || await savedGithub(uid); // one GitHub connection per author (github-token.js)
   const info = await gh(`/repos/${full}`, token);
   const branch = str(body.branch, 120) || info.default_branch;
   await gh(`/repos/${info.full_name}/branches/${encodeURIComponent(branch)}`, token);
+  if (pasted) await rememberGithub(uid, pasted, await loginOf(pasted));
   if (token) await tokRef.set({ uid, token, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
   else await tokRef.delete();
   const repo = { full: info.full_name, branch, private: !!info.private, connectedAt: admin.firestore.FieldValue.serverTimestamp() };

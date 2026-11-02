@@ -7,6 +7,7 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onRequest, admin, db, cors, getBalance, reserve, getPlanBudget } = require('./common');
 const ledger = require('./ledger');
+const { savedGithub, rememberGithub, forgetGithub } = require('./github-token');
 const { buildSnapshot } = require('./snapshot');
 const { featureCost, byOp } = require('../paid-features.js');
 
@@ -67,11 +68,12 @@ async function pay(worldId, uid) {
 }
 
 async function handle(op, b, uid) {
+  if (op === 'forgetGithub') { await forgetGithub(uid); return { forgotten: true }; } // the author's saved token, not a world's
   const worldId = str(b.worldId, 120), wref = db.collection('worlds').doc(worldId), w = await wref.get();
   if (!w.exists || w.data().owner !== uid) throw fail(403, 'Світ не знайдено або немає доступу');
   const cur = w.data().backup || {};
   if (op === 'connect') { // a GitHub token (fine-grained: «Administration» + «Contents» read/write, or classic `repo`) → a private repo
-    const token = str(b.token, 300);
+    const pasted = str(b.token, 300), token = pasted || await savedGithub(uid); // one GitHub connection per author (github-token.js)
     if (!token) throw fail(400, 'Потрібен токен GitHub');
     const me = await gh(token, 'GET', '/user');
     if (!me.ok) throw fail(400, 'GitHub не прийняв токен');
@@ -81,6 +83,7 @@ async function handle(op, b, uid) {
     if (!repo.ok) throw fail(400, `GitHub не дав створити репозиторій (${repo.j.message || repo.status}). Токену потрібні права на створення репозиторіїв і запис вмісту.`);
     if (!repo.j.private) throw fail(400, `Репозиторій ${repo.j.full_name} публічний — бекап пишеться лише в приватний`);
     await db.collection('backupTokens').doc(worldId).set({ token, login: me.j.login, at: ts() });
+    if (pasted) await rememberGithub(uid, pasted, me.j.login);
     await wref.update({ backup: { repo: repo.j.full_name, login: me.j.login, enabled: false, paidUntil: cur.paidUntil || null, connectedAt: ts() } });
     return { repo: repo.j.full_name };
   }

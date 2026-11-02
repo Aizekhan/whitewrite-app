@@ -2499,6 +2499,11 @@ body.at-home .back-fab{ display:none; }
           '<div class="integ__url"><code>' + MCP_URL + '</code><button class="pe-btn" id="integ-copy">' + (en ? 'Copy' : 'Копіювати') + '</button></div>' +
           '<div class="integ__keys" id="integ-keys"><div class="integ__s">' + (en ? 'Loading keys…' : 'Завантажую ключі…') + '</div></div>' +
         '</div></div>' +
+        // one GitHub token for the game repositories and the world backups (functions/src/github-token.js)
+        '<div class="integ__row"><div class="integ__ic">⎇</div><div style="flex:1;min-width:0">' +
+          '<div class="integ__t">GitHub</div>' +
+          '<div class="integ__s" id="integ-gh">' + (en ? 'Loading…' : 'Завантажую…') + '</div>' +
+        '</div></div>' +
       '</div>';
   }
   function loadIntegKeys(lang) {
@@ -2507,6 +2512,22 @@ body.at-home .back-fab{ display:none; }
     var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
     if (!box) return;
     if (!user || !fb.db) { box.innerHTML = ''; return; }
+    var gh = document.getElementById("integ-gh");
+    if (gh) fb.db.collection("users").doc(user.uid).get().then(function (d) {
+      var g = d.exists && d.data().github;
+      gh.innerHTML = g ? (en ? 'A token is saved' : 'Токен збережено') + (g.login ? ' (<b>' + esc(g.login) + '</b>)' : '') + (en
+          ? ' — the game repositories and world backups use it, you paste it once. Connected repositories and backups keep working after “Forget”.'
+          : ' — його беруть репозиторії ігор і бекапи світів, вставляєш один раз. Підключені репо й бекапи після «Забути» працюють далі.') +
+          ' <button class="pe-btn" id="integ-ghx">' + (en ? 'Forget the token' : 'Забути токен') + '</button>'
+        : (en ? "Not connected. Paste a token once — in a game's settings (repository) or the world's ⛁ Backup tab; the other connections will reuse it."
+          : 'Не підключено. Встав токен один раз — у налаштуваннях гри (репозиторій) або у вкладці світу ⛁ Бекап; інші підключення візьмуть його самі.');
+      var x = document.getElementById("integ-ghx");
+      if (x) x.onclick = function () {
+        x.disabled = true;
+        user.getIdToken().then(function (t) { return fetch("https://us-central1-whitewrite-app.cloudfunctions.net/backup", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify({ op: "forgetGithub" }) }); })
+          .then(function () { loadIntegKeys(lang); }, function () { x.disabled = false; });
+      };
+    }, function () { gh.textContent = ''; });
     fb.db.collection("mcpKeys").where("uid", "==", user.uid).get().then(function (snap) {
       if (!document.body.contains(box)) return;
       if (snap.empty) { box.innerHTML = '<div class="integ__s">' + (en ? 'No keys yet.' : 'Ключів ще немає.') + '</div>'; return; }

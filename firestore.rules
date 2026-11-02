@@ -167,6 +167,10 @@ service cloud.firestore {
       allow read: if isAuthenticated() && isOwner(userId);
       allow write: if false;
     }
+    // The author's one saved GitHub token (github-token.js) — reused by the repo and backup connections, server only
+    match /githubTokens/{uid} {
+      allow read, write: if false;
+    }
     // GitHub tokens of the daily world backup — only backup.js reads them
     match /backupTokens/{id} {
       allow read, write: if false;
