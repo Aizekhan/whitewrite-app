@@ -516,12 +516,23 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .feedback-fab.kb-fab{ right:72px; font:600 21px/1 "Cinzel",serif; }
 /* the avatar & account live on the home page only; on phones the other screens drop the top menu and get a logo → home in the avatar's place */
 body:not(.at-home) .userdock{ display:none; }
+.vstop{ position:absolute; right:10px; bottom:10px; z-index:3; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+  color:#e9cd92; background:rgba(22,15,8,.78); border:1px solid rgba(201,162,75,.5); backdrop-filter:blur(4px); transition:.15s; }
+.vstop:hover{ color:#f6e3b5; border-color:rgba(240,200,120,.85); }
+.vstop svg{ width:15px; height:15px; fill:currentColor; }
 .feedback-fab.home-fab{ left:16px; right:auto; display:none; overflow:hidden; }
+/* «Назад» — the previous screen; off the home page (there the account dock sits in this corner) */
+.feedback-fab.back-fab{ left:16px; right:auto; }
+.feedback-fab.back-fab svg{ width:23px; height:23px; }
+.feedback-fab.back-fab:hover{ transform:translateY(-2px) rotate(0); }
+.feedback-fab.back-fab:disabled{ opacity:.4; cursor:default; transform:none; }
+body.at-home .back-fab{ display:none; }
 .home-fab img{ width:32px; height:32px; object-fit:contain; }
 @media (max-width:820px){
   body:not(.at-home):not(.in-work) .rail{ display:none; } /* the book keeps it: its Bible ↔ Book switch and paged layout */
   body:not(.at-home):not(.in-work) .view{ top:0; }
   body:not(.at-home):not(.in-work) .home-fab{ display:grid; }
+  body:not(.at-home):not(.in-work) .back-fab{ left:72px; } /* phones: beside the logo → home */
 }
 .feedback-fab:hover{ color:#f6e3b5; border-color:rgba(240,200,120,0.8); transform:translateY(-2px) rotate(-6deg);
   box-shadow:0 12px 32px rgba(0,0,0,0.55), 0 0 22px rgba(232,170,80,0.3); }
@@ -638,6 +649,7 @@ body:not(.at-home) .userdock{ display:none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7a4 4 0 0 1 8 0v1M6 12h12M5 12a7 7 0 0 0 14 0M12 8v9M9.5 5.5 8 4M14.5 5.5 16 4M5 9 3 8M19 9l2-1M5 15l-2 1M19 15l2 1"/></svg>
   </button>
 
+  <button class="feedback-fab back-fab" id="back-fab" data-i18n-title="ui.back" title="Назад" data-i18n-aria="ui.back" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
   <button class="feedback-fab home-fab" id="home-fab" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну"><img src="assets/LogoG-icon.png" alt="" draggable="false" /></button>
 
   <button class="feedback-fab kb-fab" id="kb-fab" data-i18n-title="kb.fab" title="База знань" data-i18n-aria="kb.fab" aria-label="База знань">?</button>
@@ -934,19 +946,30 @@ body:not(.at-home) .userdock{ display:none; }
   var inWork = false;      // are we inside a narrative?
   var suppressWorkUntil = 0; // ignore stale "work" pings right after going home
   var frames = {}, loaded = {};
-  var hist = [], _back = false, storyFormWorld = null;
+  var hist = [], _back = false, storyFormWorld = null, shown = null;
+  // «Назад» (the round ↶ bottom-left, off the home page): a screen is remembered as it was SHOWN (with its world), so
+  // changing the world before the switch never rewrites it; clicking the screen you are on records nothing new, and going
+  // back skips every entry equal to the current screen — the step back is the first DIFFERENT screen behind it.
+  function here() {
+    var w = mode === "narr" || mode === "bible" || inWork ? CURRENT_WORLD || "" : "";
+    return { key: mode + "|" + inWork + "|" + w, mode: mode, inWork: inWork, world: CURRENT_WORLD };
+  }
   function histPush() {
-    if (mode == null || _back) return; // going back never records the screen it leaves (else ✕ loops back into it)
-    var key = mode + "|" + inWork;
-    if (hist.length && hist[hist.length - 1].key === key) return;
-    hist.push({ key: key, mode: mode, inWork: inWork });
+    if (mode == null || _back || !shown) return; // going back never records the screen it leaves (else ✕ loops back into it)
+    if (hist.length && hist[hist.length - 1].key === shown.key) return;
+    hist.push(shown); if (hist.length > 60) hist.shift();
     updateBack();
   }
-  function updateBack() { var b = document.getElementById("backbtn"); if (b) b.style.display = "none"; }
+  function updateBack() {
+    var b = document.getElementById("backbtn"); if (b) b.style.display = "none"; // the rail's old Back stays retired
+    var f = document.getElementById("back-fab"), cur = here().key;
+    if (f) f.disabled = !hist.some(function (h) { return h.key !== cur; });
+  }
   function goBack() {
-    var cur = mode + "|" + inWork, s;
-    do { s = hist.pop(); } while (s && s.key === cur); // the screen we are on is not a step back
+    var cur = here().key, s;
+    do { s = hist.pop(); } while (s && s.key === cur); // the screen we are on is never a step back
     _back = true;
+    if (s && s.world !== undefined && (s.mode === "narr" || s.mode === "bible" || s.inWork)) CURRENT_WORLD = s.world;
     if (!s) showHome();
     else if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else if (s.mode === "bible") showBible(); else showView(s.mode);
     _back = false; updateBack();
@@ -967,7 +990,8 @@ body:not(.at-home) .userdock{ display:none; }
     var col = document.getElementById("rail-collapse");
     if (col) col.style.display = (inWork && mode === "book") ? "grid" : "none";
     if (!(inWork && mode === "book")) document.querySelector(".rail").classList.remove("is-collapsed");
-    document.body.classList.toggle("at-home", mode === "home" || mode == null); // White.html CSS: avatar on home only, phones drop the top menu elsewhere
+    document.body.classList.toggle("at-home", mode === "home" || mode == null);
+    shown = mode == null ? null : here(); updateBack(); // the screen on view — what «Назад» remembers when we leave it // White.html CSS: avatar on home only, phones drop the top menu elsewhere
     document.body.classList.toggle("in-work", inWork || mode === "create"); // phones keep the rail in a story and its form
     railItems.innerHTML = ""; railFoot.innerHTML = "";
     if (inWork) {
@@ -1294,6 +1318,7 @@ body:not(.at-home) .userdock{ display:none; }
 
   document.getElementById("logo").addEventListener("click", showHome);
   document.getElementById("home-fab").addEventListener("click", showHome);
+  document.getElementById("back-fab").addEventListener("click", goBack);
   document.getElementById("rail-collapse").addEventListener("click", function () { document.querySelector(".rail").classList.toggle("is-collapsed"); });
   document.getElementById("backbtn").addEventListener("click", goBack);
   document.getElementById("userdock").addEventListener("click", function () {
@@ -1373,7 +1398,7 @@ body:not(.at-home) .userdock{ display:none; }
         (world && (world.tagline || world.summary) ? '<p class="vhead__s">' + escapeHtml(world.tagline || world.summary) + '</p>' : '') +
         '<div class="whub' + (world && !world.shared ? ' whub--own' : '') + '">' +
           '<article class="ncard ncard--bible" id="w-bible">' +
-            '<div class="ncard__cover">' + worldMediaHtml(world) +
+            '<div class="ncard__cover">' + worldMediaHtml(world) + (world && world.cover && world.cover.type === "video" && world.cover.url ? vStopBtn(world.id) : '') +
               (world && !world.shared ? '<button class="ncard__edit" id="w-edit" title="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '" aria-label="' + escapeHtml(cmT("Редагувати світ", "Edit the world")) + '">' + svg("edit") + '</button>' : '') + '</div>' +
             '<div class="ncard__b"><div class="ncard__title">' + t('worlds.bible') + '</div><p class="ncard__desc">' + t('worlds.bibleHint') + '</p>' +
             '<button class="ncard__open">' + svg("open") + cmT("Відкрити Біблію", "Open the Bible") + '</button></div></article>' +
@@ -1441,12 +1466,26 @@ body:not(.at-home) .userdock{ display:none; }
   }
 
   // A world's cover: an image or a short silent looping video — worlds/{w}.cover { url, path, type } (Storage worlds/{w}/cover/)
+  // a video cover: ⏸ stops it on its first frame, ▶ plays it again; remembered per world (localStorage ww-vstop-<worldId>, shared with the Bible)
+  function vStopped(id) { try { return !!localStorage.getItem("ww-vstop-" + id); } catch (e) { return false; } }
+  function vStopBtn(id) {
+    var on = vStopped(id), lbl = on ? cmT("Відтворити відео", "Play the video") : cmT("Зупинити відео на першому кадрі", "Stop the video on its first frame");
+    return '<button type="button" class="vstop" data-vstop="' + escapeHtml(id) + '" title="' + lbl + '" aria-label="' + lbl + '" aria-pressed="' + on + '">' + (on ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>') + '</button>';
+  }
+  document.addEventListener("click", function (e) { // capture: the cover's card must not open under the button
+    var b = e.target.closest && e.target.closest("[data-vstop]"); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    var id = b.dataset.vstop, stop = !vStopped(id);
+    try { if (stop) localStorage.setItem("ww-vstop-" + id, "1"); else localStorage.removeItem("ww-vstop-" + id); } catch (er) {}
+    [].forEach.call(document.querySelectorAll('[data-vworld="' + id + '"]'), function (v) { if (stop) { v.pause(); v.currentTime = 0; } else v.play().catch(function () {}); });
+    b.outerHTML = vStopBtn(id);
+  }, true);
   function worldMediaHtml(w) {
     var c = w && w.cover;
     if (!c || !c.url) return '<img class="ncard__media" src="assets/ph-world.jpg" alt="" loading="lazy">'; // the default cover of every world
     var st = c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : ''; // ⌖ the author's frame (frame-pick.js)
     return c.type === "video"
-      ? '<video class="ncard__media" src="' + escapeHtml(c.url) + '"' + st + ' muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
+      ? '<video class="ncard__media" src="' + escapeHtml(c.url) + '"' + st + (w.id ? ' data-vworld="' + escapeHtml(w.id) + '"' : '') + ' muted' + (w.id && vStopped(w.id) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>'
       : '<img class="ncard__media" src="' + escapeHtml(c.url) + '"' + st + ' alt="" loading="lazy">';
   }
   var COVER_MAX = { image: 10, video: 50 }; // MB, the same as storage.rules

@@ -62,7 +62,7 @@
           ]],
           ["p", "Імпорт і звірка з репозиторієм — частина Біблії гри (тариф Worldbuilder). Чому Біблія гри замінює гейм-диздок — <a class=\"art__link\" data-art=\"gdd\">окрема стаття</a>."],
           ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб: картка «Біблія світу» (канон та ігри) і історії світу."],
-          ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево. Та сама обкладинка відкриває «Огляд світу» в Біблії — над гаслом і описом."],
+          ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Кнопка ⏸ на відео (у хабі світу й на «Огляді світу») зупиняє його на першому кадрі, ▶ — запускає знову; вибір запамʼятовується для світу. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево. Та сама обкладинка відкриває «Огляд світу» в Біблії — над гаслом і описом."],
           ["p", "На плашці вгорі «Огляду світу» — назва світу великим фентезійним шрифтом по центру. Власник світу бачить ✎ при наведенні: змінити назву або поставити замість неї картинку назви (логотип, PNG з прозорим тлом найкраще) і повзунком підібрати її розмір на плашці."],
           ["tip", "Кілька історій можуть жити в одному світі й ділити канон. Новий персонаж з однієї історії доступний в іншій і в грі."],
         ] },
@@ -131,6 +131,7 @@
           ["p", "«Спільнота» (вітрини світів та ігор інших авторів) відкривається лише з головної — кнопкою «✦ Спільнота — усі світи й ігри» або з карток «Вибір спільноти» / «Відкрий нового автора»; усі її кнопки — на плашці вгорі, ✕ повертає на головну. Аватар і меню акаунта — у лівому нижньому куті головної. Логотип завжди повертає на головну, «Назад» — на попередній екран."],
           ["p", "В історії меню починається з «Біблія світу»: перейшов у Біблію — і повернувся в ту саму сцену; відкрите досьє теж лишається відкритим."],
           ["p", "Кнопка «?» внизу праворуч відкриває цю Базу знань, «🐞» — форму відгуку."],
+          ["p", "Кругла кнопка ↶ внизу ліворуч — «Назад», на попередній екран (світ, Біблію, Акаунт, Спільноту…). Повторні натискання на той самий екран не рахуються — «Назад» завжди веде на інший екран. На головній кнопки немає: там у цьому куті твій акаунт."],
         ] },
 
       // ── РОБОТА З ШІ-АГЕНТОМ ──────────────────────────────────────────
@@ -1003,7 +1004,7 @@
           ]],
           ["p", "The import and the repository check are part of the Game Bible (the Worldbuilder plan). Why the Game Bible replaces a game design document — <a class=\"art__link\" data-art=\"gdd\">a separate article</a>."],
           ["p", "“Choose your world” — your worlds. An open world is its hub: the “World Bible” card (canon and games) and the world's stories."],
-          ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree. The same cover opens the “World overview” in the Bible — above the tagline and description."],
+          ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The ⏸ button on the video (in the world hub and on “World overview”) stops it on its first frame, ▶ plays it again; the choice is remembered per world. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree. The same cover opens the “World overview” in the Bible — above the tagline and description."],
           ["p", "The bar on top of the “World overview” carries the world name in a large fantasy font, centred. The world owner sees ✎ on hover: change the name or put a title image (a logo; a PNG with a transparent background works best) in its place and size it on the bar with a slider."],
           ["tip", "Several stories can live in one world and share the canon. A new character from one story is there for another and for the game."],
         ] },
@@ -1072,6 +1073,7 @@
           ["p", "“Community” (showcases of other authors' worlds and games) opens from the home page only — with “✦ Community — all worlds & games” or from the “Community pick” / “Discover a new author” cards; all its buttons sit on the bar at the top, ✕ returns home. The avatar and the account menu sit in the bottom-left corner of the home page. The logo always leads home, “Back” to the previous screen."],
           ["p", "In a story the menu starts with “World Bible”: go to the Bible and come back to the same scene; an open dossier stays open too."],
           ["p", "The “?” button at the bottom right opens this Knowledge Base, “🐞” — the feedback form."],
+          ["p", "The round ↶ button at the bottom left is “Back” — to the previous screen (a world, the Bible, the Account, the Community…). Clicking the screen you are on again does not count — “Back” always leads to a different screen. The home page has no such button: your account sits in that corner."],
         ] },
 
       // ── WORKING WITH THE AGENT ───────────────────────────────────────

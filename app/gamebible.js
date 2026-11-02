@@ -1201,10 +1201,24 @@
     catch (er) { btn.disabled = false; $("w-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   // the world's cover — the same as on its card in «Світи» (worlds/{w}.cover, ✎ there; default ph-world.jpg), framed with ⌖
+  // a video cover: ⏸ stops it on its first frame, ▶ plays it again; remembered per world (localStorage ww-vstop-<worldId>, shared with the shell (White.html))
+  function vStopped(id) { try { return !!localStorage.getItem("ww-vstop-" + id); } catch (e) { return false; } }
+  function vStopBtn(id) {
+    var on = vStopped(id), lbl = on ? (LANG === "en" ? "Play the video" : "Відтворити відео") : (LANG === "en" ? "Stop the video on its first frame" : "Зупинити відео на першому кадрі");
+    return '<button type="button" class="vstop" data-vstop="' + esc(id) + '" title="' + lbl + '" aria-label="' + lbl + '" aria-pressed="' + on + '">' + (on ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>') + '</button>';
+  }
+  document.addEventListener("click", function (e) { // capture: the cover's card must not open under the button
+    var b = e.target.closest && e.target.closest("[data-vstop]"); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    var id = b.dataset.vstop, stop = !vStopped(id);
+    try { if (stop) localStorage.setItem("ww-vstop-" + id, "1"); else localStorage.removeItem("ww-vstop-" + id); } catch (er) {}
+    [].forEach.call(document.querySelectorAll('[data-vworld="' + id + '"]'), function (v) { if (stop) { v.pause(); v.currentTime = 0; } else v.play().catch(function () {}); });
+    b.outerHTML = vStopBtn(id);
+  }, true);
   function worldCoverHtml() {
     var c = world && world.cover, st = c && c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : '';
     return '<div class="wcover">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
-      : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' muted autoplay loop playsinline preload="metadata" aria-hidden="true"></video>'
+      : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' data-vworld="' + esc(worldId) + '" muted' + (vStopped(worldId) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>' + vStopBtn(worldId)
       : '<img src="' + esc(c.url) + '"' + st + ' alt="">') + '</div>';
   }
   // «Огляд світу»: the bar on top carries the world's NAME (Cinzel, centred) or its title image — worlds/{w}.titleArt { url, path, h }
