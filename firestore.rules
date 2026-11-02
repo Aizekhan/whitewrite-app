@@ -342,6 +342,11 @@ service cloud.firestore {
     }
 
     // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
+    // AI cost watch (functions/src/cost-watch.js): the daily API dollars per user — admins read, only the server writes
+    match /admin_costs/{day} {
+      allow read: if isAuthenticated() && request.auth.token.admin == true;
+      allow write: if false;
+    }
     match /admin_notices/{id} {
       allow read: if isAuthenticated() && request.auth.token.admin == true;
       allow update: if isAuthenticated() && request.auth.token.admin == true &&

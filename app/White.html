@@ -489,6 +489,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .aim__v{ font-family:"Inter",sans-serif; font-weight:500; font-size:12px; opacity:.75; }
 .aim__p{ font-size:12px; color:var(--tx-hi); opacity:.85; }
 .notice{ margin-bottom:10px; } .notice--crit{ border-color:rgba(224,86,79,.55); }
+.acc-costs__sum{ color:var(--tx-mid); font-size:13px; margin:0 0 8px; } .acc-costs__wrap{ overflow-x:auto; margin-bottom:22px; }
+.acc-costs{ width:100%; border-collapse:collapse; font-size:13px; } .acc-costs th, .acc-costs td{ text-align:left; padding:6px 10px; border-bottom:1px solid rgba(212,175,55,.15); } .acc-costs th{ color:var(--gold-lit); font-weight:600; } .acc-costs tr.is-loss td{ color:#ff8a7a; }
 .notice__b{ white-space:pre-wrap; font:12px/1.5 "Inter",sans-serif; color:var(--tx-mid); margin:8px 0 10px; }
 .integ{ background:var(--bg-2); border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
 .integ__row{ display:flex; align-items:flex-start; gap:14px; }
@@ -2200,7 +2202,7 @@ body.at-home .back-fab{ display:none; }
           planCards(u.plan, currentLang === 'en') +
         '</div>' +
         modelHtml(u, currentLang === 'en') +
-        '<div id="acc-notices"></div>' +
+        '<div id="acc-notices"></div><div id="acc-costs"></div>' +
         integHtml(currentLang) +
         '<div id="acc-ledger"></div>' +
         '</div>' +
@@ -2208,7 +2210,7 @@ body.at-home .back-fab{ display:none; }
       '</div>';
     bindAccount();
     bindModel(currentLang === 'en');
-    loadNotices(currentLang === 'en');
+    loadNotices(currentLang === 'en'); loadCosts(currentLang === 'en');
     loadIntegKeys(currentLang);
     loadLedger(currentLang === 'en');
     [].forEach.call(views.account.querySelectorAll("[data-acctab]"), function (b) { b.onclick = function () { ACC_TAB = b.dataset.acctab; fillAccount(); }; });
@@ -2349,7 +2351,7 @@ body.at-home .back-fab{ display:none; }
       if (!r.claims || r.claims.admin !== true) return;
       return fb.db.collection('admin_notices').where('resolved', '==', false).limit(20).get().then(function (snap) {
         if (snap.empty) return;
-        box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'Admin notices · Claude models' : 'Сповіщення адмінам · моделі Claude') + '</div>' +
+        box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'Admin notices · Claude models and AI costs' : 'Сповіщення адмінам · моделі Claude і витрати ШІ') + '</div>' +
           snap.docs.map(function (d) { var n = d.data();
             return '<div class="integ notice' + (n.severity === 'critical' ? ' notice--crit' : '') + '"><div class="integ__t">' + (n.severity === 'critical' ? '⚠ ' : '') + esc(n.title) + '</div>' +
               '<pre class="notice__b">' + esc(n.body || '') + '</pre><button class="pe-btn" data-nread="' + d.id + '">' + (en ? '✓ Read' : '✓ Прочитано') + '</button></div>'; }).join('');
@@ -2358,6 +2360,24 @@ body.at-home .back-fab{ display:none; }
         });
       });
     }).catch(function (e) { console.warn('notices', e); });
+  }
+  // Admins: the AI cost of the last day per user (functions/src/cost-watch.js → admin_costs/{day}, daily)
+  function loadCosts(en) {
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser, box = document.getElementById('acc-costs');
+    if (!box || !user) return;
+    user.getIdTokenResult().then(function (r) {
+      if (!r.claims || r.claims.admin !== true) return;
+      return fb.db.collection('admin_costs').orderBy('at', 'desc').limit(1).get().then(function (snap) {
+        if (snap.empty) return;
+        var c = snap.docs[0].data(), usd = function (x) { return '$' + (x || 0).toFixed(x >= 1 ? 2 : 4); };
+        box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'AI costs · last 24 h' : 'Витрати ШІ · остання доба') + '</div>' +
+          '<p class="acc-costs__sum">' + esc(c.day) + ' · ' + (en ? 'total ' : 'усього ') + usd(c.totalUsd) + ' API · ' + c.calls + (en ? ' calls · ' : ' викликів · ') + c.users + (en ? ' users' : ' користувачів') + '</p>' +
+          '<div class="acc-costs__wrap"><table class="acc-costs"><thead><tr><th>' + (en ? 'User' : 'Користувач') + '</th><th>' + (en ? 'Plan' : 'Тариф') + '</th><th>API</th><th>' + (en ? 'Paid in tokens' : 'Сплачено токенами') + '</th><th>' + (en ? 'Calls' : 'Виклики') + '</th></tr></thead><tbody>' +
+          (c.top || []).map(function (u) {
+            return '<tr' + (u.paid < u.usd ? ' class="is-loss"' : '') + '><td>' + esc(u.email || u.uid) + '</td><td>' + esc(u.plan || '') + '</td><td>' + usd(u.usd) + '</td><td>' + usd(u.paid) + '</td><td title="' + esc(Object.keys(u.ops || {}).map(function (k) { return k + ' × ' + u.ops[k]; }).join(', ')) + '">' + u.calls + '</td></tr>'; }).join('') +
+          '</tbody></table></div>';
+      });
+    }).catch(function (e) { console.warn('costs', e); });
   }
   // Integrations: the MCP server Claude Code connects to (functions/src/mcp.js). Keys are made per game
   // in the Game Bible → Production plan; here the author sees them all and can revoke any.

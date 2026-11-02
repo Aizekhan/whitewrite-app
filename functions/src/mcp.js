@@ -704,7 +704,7 @@ async function authKey(req) {
   if (!snap.exists || snap.data().revoked) return null;
   const key = { id: hash, ...snap.data() };
   const user = await db.collection('users').doc(key.uid).get();
-  if (!getPlanBudget((user.exists && user.data().plan) || 'free').allowGameDev) return null;
+  if (!getPlanBudget((user.exists && user.data().plan) || 'free').allowAPI) return null; // paid-features `mcp`
   db.collection('mcpKeys').doc(hash).set({ lastUsedAt: ts() }, { merge: true }).catch(() => {});
   return key;
 }

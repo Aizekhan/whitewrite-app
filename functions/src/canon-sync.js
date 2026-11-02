@@ -16,6 +16,7 @@ const {
 } = require('./common');
 const { extractCanonFromScene } = require('./canon-extract');
 const { modelFor, claudeText } = require('./claude');
+const { featureCost, byOp } = require('../paid-features.js');
 
 
 /**
@@ -214,12 +215,8 @@ exports.analyzeScene = onRequest({
       // Check token budget
       const tokensRemaining = getBalance(userData).available;
 
-      // Phase 5.1: Read cost from economy_operations (no hardcode)
-      const economyDoc = await db.collection('economy_operations').doc('analyzeScene').get();
-      if (!economyDoc.exists) {
-        return res.status(500).json({ error: 'economy_operations/analyzeScene not found' });
-      }
-      const analyzeCost = economyDoc.data().providers.claude.cost;
+      // the reserve is the registry price of «✦ Порадити» (paid-features.js `advise`, the same the sheet shows); charge() bills the real cost
+      const analyzeCost = featureCost(byOp('advise'));
 
       if (tokensRemaining < analyzeCost) {
         return res.status(402).json({

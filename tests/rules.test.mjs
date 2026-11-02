@@ -160,6 +160,9 @@ const cases = [
   P('the owner reads their friends', 'ALLOW', 'get', '/users/u2/friends/u3', 'u2', { status: 'accepted' }),
   P('a user CANNOT add a friend directly', 'DENY', 'create', '/users/u2/friends/u3', 'u2', { status: 'accepted' }),
   P('a user CANNOT read backup tokens', 'DENY', 'get', '/backupTokens/w1', 'u1', { token: 'x' }),
+  P('a user CANNOT read the AI cost summary', 'DENY', 'get', '/admin_costs/2026-11-02', 'u1', { totalUsd: 1 }),
+  { name: 'an admin reads the AI cost summary', tc: { expectation: 'ALLOW', request: { auth: { uid: 'a1', token: { admin: true } }, path: D + '/admin_costs/2026-11-02', method: 'get' }, resource: { data: { totalUsd: 1 } } } },
+  { name: 'even an admin CANNOT write the AI cost summary', tc: { expectation: 'DENY', request: { auth: { uid: 'a1', token: { admin: true } }, path: D + '/admin_costs/2026-11-02', method: 'create', resource: { data: { totalUsd: 0 } } } } },
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

@@ -8,7 +8,7 @@
 ```
 
 ## 🗂 Session Logs
-- **2026-06-18**: Canon Extraction System (Phase 3.0-3.4) — `CANON_EXTRACTION_SESSION_2026-06-18.md`
+- **2026-06-18**: Canon Extraction System (Phase 3.0-3.4) — `docs/archive/CANON_EXTRACTION_SESSION_2026-06-18.md`
   - Auto-extraction працює (Claude Haiku), auto-approve режим
   - AI Models — single source of truth (`ai-models.js`)
   - ANALYZE backend готовий (UI немає), Bulk Sync backend готовий (UI немає)
@@ -81,11 +81,12 @@
   - **Next**: власник — Stripe Connect + вебхук `marketWebhook` + секрет `STRIPE_CONNECT_WEBHOOK_SECRET`; юрист-людина — `docs/legal/`; рішення про квоти телеметрії/Storage і ціни докупівлі (`TOKENOMICS.md`)
   - **Візуальний стиль гри** (етап 1, ARCHITECTURE v2.40): розділ гри `artstyle` (перший у «Арт і аудіо»): загальний стиль + біоми (`places` — локації біома, біом підбирається за назвою / підрозділом / полем «Локація»); значок «🖌 NN» на всіх картинках гри — колір у браузері, без токенів; реєстр `artStyle`. Етапи 2–3 зроблено (v2.41): ШІ-перевірка `styleCheck` (`functions/src/style.js`, спільний `functions/style-guide.js`) — сама після завантаження картинки, «✦ Перевірити всі» лише у вкладці стилю (рішення власника), застарілі оцінки (пунктир), 3D «📷 Знімок для стилю», MCP `get_style_guide` / `check_style` (скриншот із Unity)
   - **Історії — лише в Біблії** (v2.45): з хабу світу прибрано «Історії цього світу» й «Нова історія»; історії створюються, відкриваються, редагуються (✎) і видаляються (🗑) у Біблії → «Історії і хроніка» (повідомлення `ww-edit-story` / `ww-delete-story` → форма й підтвердження оболонки); після «Зберегти історію» — повернення в хроніку (`openChronicle`, `ww-bible-section`); кнопка картки — «Відкрити Біблію світу»
+  - **Аудит перед масштабуванням** (v2.46): резерви токенів — транзакції скрізь (єдиний пост-платний `canon-extract` недосяжний: автоканон → 410); MCP ізольований ключем на гру, тепер перевіряє `allowAPI`; «✦ Порадити» резервує ціну з реєстру; `tests/paid-gates.test.cjs` — кожен прапорець і платна дія реєстру діють на сервері (свідомо клієнтські: `allowExport`, `allowWorldTree`, вибір моделі — через `modelTier`); **`aiCostDaily`** (`cost-watch.js`) — щодня витрати API по користувачах → `admin_costs`, Акаунт → «Витрати ШІ» (адмін), тривоги > $5/добу і «списання нижче вартості API»; старі звіти з кореня → `docs/archive/`, у CLAUDE.md прибрано застарілі блоки Stripe/Gemini/маржі
   - База знань: мультиплеєр фреймворку — кооператив і PvP (дуель, TDM, FFA) до 8 гравців, хост авторитетний, LAN + Unity Relay; MMO / виділених серверів немає
   - **Next (рішення власника)**: видача токенів RPG Framework (від Storyteller, блок при чужому використанні, оновлення з підпискою) (`economy_config/global` vs ціни планів), `maxProjects` на сервері, апгрейд підписки без подвійного списання, правило «AI не перезаписує явний канон» у `mergeSuggestions`
 
 ## Архітектура даних (важливо)
-- **`WORLD` (`wt-world.jsx`) — ЄДИНЕ джерело правди.** Усі три стовпи читають із нього.
+- **Канон світу — Firestore `worlds/{w}` + `entities/`, `lore/`, `games/`** (див. інваріант 2 і `ARCHITECTURE.md`). `WORLD` у `wt-world.jsx` — лише легасі-демо для книги, не джерело правди.
 - **`AI_MODELS` (`firebase/ai-models.js`) — ЄДИНЕ джерело правди для AI моделей** (дефолти; сторож версій може перемкнути tier через `config/ai_models.active`). Frontend (`window.__AI_MODELS`) і Backend (require) використовують один файл. **НІКОЛИ** не хардкодь версії моделей!
 - Тришарова модель: **Canon** (characters/locations/events/factions/artifacts/world) → **Narrative** (arcs/chapters/scenes/dialogues) → **Director** (storyboards/shots/images). Звʼязки названі за target-type-plural; реверс деривується.
 
@@ -99,56 +100,13 @@
 
 ## Крос-навігація
 - Книга → Всесвіт: магічні закладки + «✦ Дослідити канон».
-- Deep-links: `WorldTree.html?type=&id=` (відкрити сутність), `WhiteWrite.html?scene=N` (відкрити розворот).
+- Deep-links: старі `WorldTree.html?type=&id=` ведуть у Біблію (`openCanon`), `WhiteWrite.html?scene=N` (відкрити розворот).
 
-## 💳 Платежі та Токени (Phase 1-2, прод-готово)
-
-**Phase 1.1: Token Budget System** — повністю працює ✅
-- План-базована система токенів (місячний бюджет + витрати)
-- UI: dock показує баланс, toast після генерації, upgrade modal при нестачі
-- `window.__firebaseAuth.consumeTokens(operation)` — універсальна функція споживання
-- Feature gates: `allowClaude`, `allowReconstruction`, `allowAnalyze`, `allowGameDev` (прив'язані до плану)
-
-**Phase 2: Stripe Integration** — повністю працює ✅
-
-Файли:
-- `functions/src/stripe.js` — Stripe Cloud Functions
-- `app/White.html` (lines 368-379, 1281-1322) — Frontend + CSS
-- `app/firebase/firebase-auth.js` (lines 192-269) — consumeTokens логіка
-
-Stripe Price IDs (Test Mode):
-```javascript
-storyteller: 'price_1Tj4eVK1XPrHbpbZrmiMvCwh',    // $12/month
-novelist: 'price_1Tj4fBK1XPrHbpbZyhlAANxB',       // $36/month
-worldbuilder: 'price_1Tj5PZK1XPrHbpbZJ8LpKik0'    // $69/month
-```
-
-Webhook Events (handled in `stripeWebhook`):
-- `checkout.session.completed` → update user plan + stripeCustomerId/SubscriptionId
-- `customer.subscription.updated` → sync plan changes
-- `customer.subscription.deleted` → downgrade to free
-
-UI Classes (app/White.html):
-- `.plan.is-cur` — gold border на поточному плані (line 380)
-- `.plan` — flexbox container (line 368-369)
-- `.plan__feats` — flex:1 (розтягується, line 373)
-- `.plan__btn`, `.plan__badge` — margin-top:auto (прибиті до низу, lines 376-379)
-
-Token Costs (`window.__TOKEN_COSTS`):
-- sceneGemini: 20 tokens
-- sceneClaude: 100 tokens
-
-Margins:
-- Free: 200 tokens/mo (cost: -$0.005, втрата)
-- Storyteller: 2000 tokens, $12 → ~99% margin
-- Novelist: 8000 tokens, $36 → ~90% margin
-- Worldbuilder: 20000 tokens, $69 → ~70% margin
-- Реальні margins ~98% (юзери не витрачають весь бюджет)
-
-Наступні кроки (опціонально):
-- Customer Portal (cancel/upgrade підписки)
-- Live Mode (перейти з test на production Stripe keys)
-- Промокоди (вже підтримуються в checkout: `allow_promotion_codes: true`)
+## 💳 Платежі та токени
+- Тарифи, прапорці доступу, ціни AI-дій — **лише `functions/paid-features.js`**; економіка й маржа — `TOKENOMICS.md`.
+- Підписки й токени — **Lemon Squeezy** (`functions/src/lemon.js`, `changeSubscription`); Stripe — лише Connect для майбутнього Маркету (`market.js`). Старий Stripe Checkout (`stripe.js`) — легасі.
+- Списання = реальна вартість API ÷ `USD_PER_TOKEN`; резерв перед викликом ШІ — транзакція (`token-service.js reserve/charge/refund`).
+- Історичні нотатки про ціни/маржі червня 2026 — у `docs/archive/` (не актуальні).
 
 ---
 
@@ -224,53 +182,26 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 
 > Narrative generation must NOT assume full-story generation. Default flow: Canon → Next Scene → User Direction → Next Scene. Full-book/season generation is a separate autonomous mode.
 
-# 🏗 Поточна робота: Підписка з Claude API (червень 2026)
+# 🏗 Продакшн і структура
 
 ## Продакшн
 - **Головний сайт:** `whitewrite.com` (custom domain для Firebase Hosting)
 - **Firebase Hosting:** віддає `dist/` — збірку з `app/` (`npm run build:app`, запускається автоматично як predeploy). Вихідники — `app/`, `dist/` не редагувати й не комітити.
 - **Деплой:** `firebase deploy --only hosting` (або `--only functions` для Cloud Functions)
+- **Тести:** `npm test` (усі), `npm run test:rules` (правила Firestore)
 
 ## Структура файлів (ВАЖЛИВО!)
 - **Робоча директорія:** `app/` — вихідники продакшну (локально працюють як є, з in-browser Babel); на whitewrite.com іде їх збірка `dist/`
-- **Cloud Functions:** `functions/index.js` лише збирає модулі з `functions/src/` (`common`, `scenes`, `canon-extract`, `users`, `stripe`, `canon-sync`, `economy-admin`, `lemon`)
-- **Застаріла директорія:** `public/` — ігнорувати, це старі файли
+- **Cloud Functions:** `functions/index.js` лише збирає модулі з `functions/src/` (перелік — `ARCHITECTURE.md`)
 - **Firebase модулі:** `app/firebase/*.js` (НЕ `app/shared/firebase/`!)
-  - `firebase-init.js` — ініціалізація Firebase
-  - `firebase-auth.js` — автентифікація + завантаження плану користувача
-  - `firebase-projects.js` — робота з проєктами
-  - `firebase-scenes.js` — генерація сцен через Cloud Functions
-  - `firebase-ai.js` — AI-генерація
+- **Документація:** у корені лише `ARCHITECTURE.md` (актуальна архітектура), `CLAUDE.md`, `TOKENOMICS.md`, `MARKETPLACE_SPEC.md`; `docs/archive/` — історія, не джерело правди
 
 ## Підписка: плани користувачів
 - Актуальні тарифи, ціни й що відкриває кожен — **лише в `functions/paid-features.js`** (Free $0 · Storyteller $12 · Novelist $29 · Worldbuilder $69; `worldforge` — прихований dev-план = Worldbuilder). Старі назви seed/storyweaver не використовуються.
 
-## Що вже зроблено ✅
-1. Claude API інтегровано в Cloud Functions (`functions/src/scenes.js`)
-2. `generateScene` перевіряє план користувача і використовує Claude для worldforge
-3. `initializeUser` Cloud Function для створення/оновлення планів користувачів
-4. Firestore: колекція `users/{uid}` з полями `{plan, tokens, tokensMonthly, maxProjects}`
-5. UI перемикання планів викликає `initializeUser` (зберігає в Firestore, не мок)
-6. `app/firebase/firebase-auth.js` завантажує план з Firestore при вході
-
-## Поточний статус ✅
-- ✅ Firebase Auth завантажує план з Firestore
-- ✅ Claude API працює; моделі — лише з `ai-models.js`
-- ✅ Квоти та захист підписки реалізовано
-- ✅ Stripe Checkout інтеграція додана (test mode)
-- ⏳ Потрібен Stripe Webhook для активації підписки після оплати
-
-## UI — НЕ ЧІПАТИ!
-- **Дизайн затверджено.** Не змінювати стилі, тексти, елементи без явної вказівки.
-- Модальне вікно акаунта вже існує з планами seed/storyweaver/worldforge.
-- Перемикання планів вже працює (викликає Cloud Function).
-- Токени відображаються в лівому нижньому куті (dock) — `#tokcount`.
-
-## Наступні кроки (після виправлення завантаження плану)
-1. Перевірити, що `window.__wwUser.plan = 'worldforge'` після входу
-2. Створити проєкт і згенерувати сцену
-3. Переконатись, що використовується Claude API (перевірити логи Cloud Functions)
-4. Перевірити токени (має відніматись з `window.__wwUser.tokens`)
+## UI
+- **Дизайн затверджено.** Не змінювати стилі, тексти, елементи без явної вказівки власника.
+- Токени — у лівому нижньому куті (dock) — `#tokcount`.
 
 # Конвенції
 - Стиль коду — як у наявних файлах. JSX через babel; глобали на `window` (увага до колізій імен; **ніколи** `const styles`).
