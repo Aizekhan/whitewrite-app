@@ -4563,6 +4563,8 @@
     await mkCall({ op: "purge", gameId: id }).catch(function () {}); // marketing posts, channels, their secrets and the queue
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
     await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
+    var gd = (await g.get()).data() || {}; // the «Огляд гри» cover and title image (Storage worlds/{w}/games/{g}/cover/)
+    await Promise.all([gd.cover, gd.titleArt].map(function (x) { return x && x.path ? firebase.storage().ref(x.path).delete().catch(function () {}) : null; }));
     await g.delete();
   }
   async function deleteGame() {
@@ -4585,6 +4587,7 @@
       var skyMap = world.cosmos && world.cosmos.planet && world.cosmos.planet.map; // an uploaded map of the Космограф
       if (/^https:\/\/firebasestorage\./.test(skyMap || "")) await firebase.storage().refFromURL(skyMap).delete().catch(function () {});
       if (world.cover && world.cover.path) await firebase.storage().ref(world.cover.path).delete().catch(function () {}); // the card's image / video
+      if (world.titleArt && world.titleArt.path) await firebase.storage().ref(world.titleArt.path).delete().catch(function () {}); // «Огляд світу» title image
       await wref().delete(); // last: the rules check ownership through the world doc
       tellShell({ type: "ww-worlds-changed", deleted: true });
     });
