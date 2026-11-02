@@ -80,6 +80,17 @@ const cases = [
   P('a user reads their own like', 'ALLOW', 'get', '/community/w1/likes/u2', 'u2', { at: 1 }),
   P('a guest reads the home page cards', 'ALLOW', 'get', '/community_home/current', null, { top: [] }),
   P('a user CANNOT read reports', 'DENY', 'get', '/community_reports/w1__u2', 'u2', { uid: 'u2' }),
+  // «Співтворці»: own posts only, one per type, the server owns hidden / reports
+  P('a user posts their offer', 'ALLOW', 'create', '/collab/u2_offer', 'u2', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
+  P('a user CANNOT post under another id', 'DENY', 'create', '/collab/u3_offer', 'u2', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
+  P('a user CANNOT post a wrong type id', 'DENY', 'create', '/collab/u2_seek', 'u2', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
+  P('a user CANNOT create a hidden-flag post', 'DENY', 'create', '/collab/u2_offer', 'u2', Object.assign({ owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }, { hidden: true })),
+  P('a user CANNOT add extra fields', 'DENY', 'create', '/collab/u2_offer', 'u2', Object.assign({ owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }, { promoted: true })),
+  P('a guest CANNOT post', 'DENY', 'create', '/collab/u2_offer', null, { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
+  P('a guest reads posts', 'ALLOW', 'get', '/collab/u2_offer', null, { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
+  P('a guest CANNOT read a hidden post', 'DENY', 'get', '/collab/u2_offer', null, Object.assign({ owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }, { hidden: true })),
+  P('a stranger CANNOT delete a post', 'DENY', 'delete', '/collab/u2_offer', 'u3', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
+  P('the owner deletes their post', 'ALLOW', 'delete', '/collab/u2_offer', 'u2', { owner: 'u2', type: 'offer', author: 'A', title: '3D', roles: ['art3d'], text: 'x', contact: 'd', pubId: '', hidden: false, reports: 0 }),
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

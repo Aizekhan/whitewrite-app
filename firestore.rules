@@ -208,6 +208,23 @@ service cloud.firestore {
         allow write: if false;
       }
     }
+    // «Співтворці» (unpaid co-creation): one «I offer myself» and one «I am looking for people» post per user,
+    // written by its owner; `hidden` and `reports` change only on the server (functions/src/community.js)
+    function validCollab(d, postId) {
+      return d.owner == request.auth.uid && d.type in ['offer', 'seek'] && postId == request.auth.uid + '_' + d.type &&
+             d.keys().hasOnly(['owner', 'type', 'author', 'title', 'roles', 'text', 'contact', 'pubId', 'hidden', 'reports', 'createdAt', 'updatedAt']) &&
+             d.title is string && d.title.size() > 0 && d.title.size() <= 120 && d.text is string && d.text.size() <= 3000 &&
+             d.contact is string && d.contact.size() <= 300 && d.author is string && d.author.size() <= 80 &&
+             d.roles is list && d.roles.size() <= 12 && d.pubId is string && d.pubId.size() <= 260;
+    }
+    match /collab/{postId} {
+      allow read: if resource == null || canSeePub(resource.data);
+      allow create: if isAuthenticated() && validCollab(request.resource.data, postId) &&
+                       request.resource.data.hidden == false && request.resource.data.reports == 0;
+      allow update: if isAuthenticated() && resource.data.owner == request.auth.uid && validCollab(request.resource.data, postId) &&
+                       request.resource.data.hidden == resource.data.hidden && request.resource.data.reports == resource.data.reports;
+      allow delete: if isAuthenticated() && resource.data.owner == request.auth.uid;
+    }
     match /community_home/{id} {
       allow read: if true;
       allow write: if false;

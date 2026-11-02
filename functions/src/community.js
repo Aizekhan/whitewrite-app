@@ -10,6 +10,9 @@
 //   community/{pubId}/likes/{uid} { at } — one ♥ per signed-in user; the owner reads their own
 //   community_reports/{pubId}__{uid} { pubId, uid, title, reason, at, resolved } — admins read
 //   community_home/current      { top[], pool[], at } — the home page cards (public read)
+//   + on the showcase: discord (an invite link), lookingForTeam, teamNote — «🤝 Шукає команду»
+//   collab/{uid}_{offer|seek}   «Співтворці» (unpaid co-creation): written by the owner through firestore.rules;
+//                               here only reports (`report` with col: 'collab') and admin `hide`
 // Rating: ♥ that fade with age (half weight after 30 days), so the top never freezes. communityRotate (hourly) ranks the
 // showcases: the best one of each author → top 20 (paid promotion, `promotedUntil` set by an admin, goes first);
 // the rest whose author was active in the last 7 days → the pool for the «random author» card.
@@ -22,6 +25,8 @@ const DAY = 24 * 3600 * 1000;
 const HALF_LIFE = 30 * DAY, ACTIVE = 7 * DAY, TOP = 20;
 const LIMITS = { items: 600, blocks: 30, block: 12000, imgs: 8, sections: 60, facts: 40, rules: 60 };
 // only files of our own Storage bucket are shown (download URLs with a token)
+// a Discord server invite: discord.gg/<code> or discord.com/invite/<code>
+const okDiscord = (u) => typeof u === 'string' && /^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(u.trim());
 const okImg = (u) => typeof u === 'string' && /^https:\/\/firebasestorage\.googleapis\.com\//.test(u) && u.length < 2000;
 
 function cleanItem(it, secIds) {
@@ -58,7 +63,7 @@ async function lastActivity(d) {
   return Math.max(...at);
 }
 
-const homeCard = (id, d) => ({ id, kind: d.kind, title: d.title || '', tagline: d.tagline || '', cover: d.cover || '', author: d.author || '', likes: d.likes || 0, worldTitle: d.worldTitle || '' });
+const homeCard = (id, d) => ({ id, kind: d.kind, title: d.title || '', tagline: d.tagline || '', cover: d.cover || '', author: d.author || '', likes: d.likes || 0, worldTitle: d.worldTitle || '', team: !!d.lookingForTeam });
 
 // rank the showcases and rebuild the home page cards
 async function rebuildHome() {
@@ -129,6 +134,8 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           tagline: str(body.tagline, 240), summary: str(body.summary, 4000), cover: okImg(body.cover) ? body.cover : '',
           facts: (Array.isArray(body.facts) ? body.facts : []).slice(0, LIMITS.facts).map((f) => ({ k: str(f && f.k, 120), v: str(f && f.v, 600) })).filter((f) => f.v),
           rules: (Array.isArray(body.rules) ? body.rules : []).slice(0, LIMITS.rules).map((r) => str(r, 600)).filter(Boolean),
+          discord: okDiscord(body.discord) ? body.discord.trim() : '',
+          lookingForTeam: body.lookingForTeam === true, teamNote: body.lookingForTeam === true ? str(body.teamNote, 600) : '',
           sections, updatedAt: ts(), activeAt: ts(),
         };
         if (!prev.exists) Object.assign(doc, { likes: 0, score: 0, reports: 0, hidden: false, publishedAt: ts() });
@@ -145,7 +152,9 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
 
       const pubId = str(body.pubId, 260);
       if (!pubId) return res.status(400).json({ error: 'Missing pubId' });
-      const ref = db.collection('community').doc(pubId);
+      const col = body.col === 'collab' ? 'collab' : 'community'; // reports and moderation also cover «Співтворці» posts
+      if (col === 'collab' && action !== 'report' && action !== 'hide') return res.status(400).json({ error: 'Unknown action' });
+      const ref = db.collection(col).doc(pubId);
       const snap = await ref.get();
       if (!snap.exists) return res.status(404).json({ error: 'Публікацію не знайдено' });
       const d = snap.data();
@@ -175,7 +184,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
         if (!reason) return res.status(400).json({ error: 'Опиши причину' });
         const rRef = db.collection('community_reports').doc(pubId + '__' + uid);
         const had = (await rRef.get()).exists;
-        await rRef.set({ pubId, uid, title: d.title || '', owner: d.owner, reason, at: ts(), resolved: false });
+        await rRef.set({ pubId, col, uid, title: d.title || '', owner: d.owner, reason, at: ts(), resolved: false });
         if (!had) await ref.update({ reports: admin.firestore.FieldValue.increment(1) });
         return res.status(200).json({ success: true });
       }
@@ -185,7 +194,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
         await ref.update({ hidden });
         const reps = await db.collection('community_reports').where('pubId', '==', pubId).get();
         const b = db.batch(); reps.docs.forEach((r) => b.update(r.ref, { resolved: true })); await b.commit();
-        await rebuildHome().catch((e) => console.error('[community] home rebuild failed:', e));
+        if (col === 'community') await rebuildHome().catch((e) => console.error('[community] home rebuild failed:', e));
         return res.status(200).json({ success: true, hidden });
       }
       return res.status(400).json({ error: 'Unknown action' });
@@ -201,4 +210,4 @@ exports.communityRotate = onSchedule({ schedule: 'every 60 minutes', timeoutSeco
   console.log('[community] home rebuilt', r);
 });
 
-exports._community = { cleanItem, okImg, rebuildHome };
+exports._community = { cleanItem, okImg, okDiscord, rebuildHome };

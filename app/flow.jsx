@@ -20,7 +20,7 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.agentTitle': 'Від задуму — до гри',
     'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
     'hero.agentBtn': '🤖 Від чистого ПК до Гри',
-    'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор'
+    'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор', 'hero.commTeam': 'шукає команду'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
   const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
@@ -84,6 +84,7 @@ function HomeCommunity({ t }) {
     <button type="button" className={'hcomm__card ' + cls} onClick={(e) => { e.stopPropagation(); go(c.id); }}
       style={c.cover ? { backgroundImage: 'url("' + c.cover.replace(/"/g, '%22') + '")' } : undefined}>
       <span className="hcomm__label">{label}</span>
+      {c.team ? <span className="hcomm__team">🤝 {t('hero.commTeam')}</span> : null}
       <span className="hcomm__t">{c.title}</span>
       {c.tagline ? <span className="hcomm__tag">{c.tagline}</span> : null}
       <span className="hcomm__by">{t('hero.commBy')} {c.author}{c.likes ? ' · ♥ ' + c.likes : ''}</span>

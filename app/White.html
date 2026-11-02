@@ -241,6 +241,37 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .cm__author{ font-size:12px; color:var(--tx-mid); font-style:italic; }
 .cm__tag{ font-size:12.5px; color:var(--tx-mid); line-height:1.45; }
 .cm__likes{ margin-top:auto; padding-top:8px; font-size:12.5px; color:var(--gold-lit); }
+.cm-team{ position:absolute; top:9px; right:10px; font-size:11px; font-weight:600; color:#1c1308; background:linear-gradient(180deg,#bfe3a8,#7fbf6a);
+  border-radius:20px; padding:3px 10px; box-shadow:0 4px 14px rgba(0,0,0,.45); }
+.cm-team--hero{ top:14px; right:16px; font-size:12.5px; padding:5px 12px; }
+.cm-discord{ font-size:13px; font-weight:600; color:#fff; background:#5865f2; border-radius:20px; padding:7px 14px; text-decoration:none; }
+.cm-discord:hover{ filter:brightness(1.1); }
+.cm-teambox{ border:1px solid rgba(127,191,106,.45); background:rgba(127,191,106,.08); border-radius:12px; padding:12px 14px; margin:0 0 14px; max-width:760px; }
+.cm-teambox p{ margin:6px 0 0; }
+.cm-tabs--top{ margin:12px 0 4px; }
+.cb-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
+.cb{ position:relative; background:var(--bg-2); border:1px solid var(--line); border-radius:13px; padding:14px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
+.cb__cover{ height:90px; margin:-14px -14px 4px; background:linear-gradient(135deg,#241a2e,#101418) center/cover no-repeat; }
+.cb h3{ margin:0; font-family:"Cinzel",serif; font-size:15.5px; color:var(--tx-hi); }
+.cb__type{ align-self:flex-start; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; border-radius:20px; padding:2px 9px; }
+.cb__type--seek{ color:#1c1308; background:linear-gradient(180deg,#bfe3a8,#7fbf6a); }
+.cb__type--offer{ color:#1c1308; background:linear-gradient(180deg,#e9c878,#bd9040); }
+.cb__roles{ display:flex; flex-wrap:wrap; gap:5px; }
+.cb__roles span{ font-size:11.5px; color:var(--tx-mid); border:1px solid var(--line-2); border-radius:20px; padding:2px 8px; }
+.cb-form .cb__roles--pick label{ display:inline-block; cursor:pointer; }
+.cb__roles--pick input{ position:absolute; opacity:0; }
+.cb__roles--pick input:checked + span{ color:#1c1308; border-color:transparent; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
+.cb__roles--pick input:focus-visible + span{ outline:2px solid var(--gold-lit); outline-offset:2px; }
+.cb__text{ margin:0; white-space:pre-wrap; line-height:1.5; font-size:13.5px; color:var(--tx-mid); }
+.cb__contact{ font-size:13px; color:var(--tx-hi); word-break:break-word; }
+.cb__contact a{ color:var(--gold-lit); }
+.cb__act{ display:flex; flex-wrap:wrap; gap:6px; margin-top:auto; padding-top:6px; }
+.cb-form{ display:grid; gap:10px; max-width:640px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:13px; padding:16px; margin-bottom:18px; }
+.cb-form h3{ margin:0; font-family:"Cinzel",serif; color:var(--tx-hi); }
+.cb-form label{ display:grid; gap:5px; font-size:12.5px; color:var(--tx-mid); }
+.cb-form fieldset{ border:none; padding:0; margin:0; } .cb-form legend{ font-size:12.5px; color:var(--tx-mid); margin-bottom:5px; }
+.cb-form input:not([type=checkbox]), .cb-form textarea, .cb-form select{ font:inherit; font-size:14px; color:var(--tx-hi); background:var(--bg-1); border:1px solid var(--line-2); border-radius:9px; padding:9px 10px; }
+.cb-rolebar{ margin-top:-8px; }
 .cm-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:22px 0 18px; }
 .cm-bar__sp{ flex:1; }
 .cm-chip, .cm-back, .cm-like{ font:inherit; font-size:13px; color:var(--tx-mid); background:var(--bg-2); border:1px solid var(--line-2); border-radius:20px; padding:6px 13px; cursor:pointer; }
@@ -1504,7 +1535,21 @@ body:not(.at-home) .userdock{ display:none; }
   }
 
   /* ---- Спільнота (functions/src/community.js): public showcases of worlds and games, ♥, reports ---- */
-  var CM = { list: null, sort: "top", kind: "all", open: null, pub: null, items: [], sec: "", liked: false, admin: false, report: false, msg: "" };
+  var CM = { list: null, sort: "top", kind: "all", open: null, pub: null, items: [], sec: "", liked: false, admin: false, report: false, msg: "",
+    tab: "show", collab: null, cbType: "all", cbRole: "", form: null, cbReport: "", cbMsg: "" }; // tab: showcases | «Співтворці»
+  // «Співтворці» roles: a post's skills (offer) or who is needed (seek)
+  var CB_ROLES = [["design", "Геймдизайн", "Game design"], ["code", "Програмування", "Programming"], ["level", "Левел-дизайн", "Level design"],
+    ["art2d", "2D-арт", "2D art"], ["art3d", "3D-моделі", "3D models"], ["anim", "Анімація", "Animation"], ["writing", "Сценарій і лор", "Writing & lore"],
+    ["audio", "Звук і музика", "Audio & music"], ["qa", "Тестування", "Testing"], ["community", "Маркетинг і спільнота", "Marketing & community"], ["other", "Інше", "Other"]];
+  function cbRole(id) { var r = CB_ROLES.filter(function (x) { return x[0] === id; })[0]; return r ? cmT(r[1], r[2]) : id; }
+  function cmUser() { var fb = window.__firebase; return fb && fb.auth && fb.auth.currentUser; }
+  function loadCollab() {
+    var db = cmDb(); if (!db) return;
+    var u = cmUser(); if (u) u.getIdTokenResult().then(function (r) { CM.admin = !!(r && r.claims && r.claims.admin === true); }, function () {});
+    db.collection("collab").where("hidden", "==", false).limit(300).get().then(function (snap) {
+      CM.collab = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); fillMarket();
+    }, function () { CM.collab = []; fillMarket(); });
+  }
   var COMM_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/community";
   function cmT(uk, en) { return (window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === 'en') ? en : uk; }
   function cmDb() { return window.__firebase && window.__firebase.db; }
@@ -1542,7 +1587,8 @@ body:not(.at-home) .userdock{ display:none; }
   function cmCover(url) { return url ? ' style="background-image:url(\'' + escapeHtml(url) + '\')"' : ''; }
   function cmCard(p) {
     return '<button class="cm" data-cm="' + escapeHtml(p.id) + '">' +
-      '<span class="cm__cover"' + cmCover(p.cover) + '><span class="cm__kind">' + (p.kind === "game" ? cmT("Гра", "Game") : cmT("Світ", "World")) + '</span></span>' +
+      '<span class="cm__cover"' + cmCover(p.cover) + '><span class="cm__kind">' + (p.kind === "game" ? cmT("Гра", "Game") : cmT("Світ", "World")) + '</span>' +
+        (p.lookingForTeam ? '<span class="cm-team">🤝 ' + cmT("Шукає команду", "Looking for a team") + '</span>' : '') + '</span>' +
       '<span class="cm__b"><span class="cm__title">' + escapeHtml(p.title || "…") + '</span>' +
       '<span class="cm__author">' + escapeHtml(p.author || "") + (p.kind === "game" && p.worldTitle ? ' · ' + escapeHtml(p.worldTitle) : '') + '</span>' +
       (p.tagline ? '<span class="cm__tag">' + escapeHtml(p.tagline) + '</span>' : '') +
@@ -1552,6 +1598,9 @@ body:not(.at-home) .userdock{ display:none; }
     if (!views.market) return;
     var head = '<div class="vhead__k">' + cmT("Спільнота", "Community") + '</div>';
     if (CM.open) { views.market.innerHTML = '<div class="vwrap">' + head + cmPage() + '</div>'; bindMarket(); return; }
+    var tabs = '<div class="cm-tabs cm-tabs--top" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")]].map(function (x) {
+      return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</div>';
+    if (CM.tab === "collab") { views.market.innerHTML = '<div class="vwrap">' + head + tabs + collabHtml() + '</div>'; bindMarket(); return; }
     var list = (CM.list || []).filter(function (p) { return CM.kind === "all" || p.kind === CM.kind; });
     var ms = function (x) { return x && x.toMillis ? x.toMillis() : 0; };
     list.sort(CM.sort === "new" ? function (a, b) { return ms(b.publishedAt) - ms(a.publishedAt); }
@@ -1561,7 +1610,7 @@ body:not(.at-home) .userdock{ display:none; }
       '<h1 class="vhead__t">' + cmT("Світи й ігри авторів", "Worlds & games of authors") + '</h1>' +
       '<p class="vhead__s">' + cmT("Вітрини, які автори відкрили для всіх. Став ♥ — найулюбленіші щодня по черзі виходять на головну. Свій світ чи гру відкриваєш у Біблії → ⚙ Налаштування проєкту → «Спільнота».",
         "Showcases authors opened to everyone. Give a ♥ — the most loved take turns on the home page every day. Open your own world or game in the Bible → ⚙ Project settings → “Community”.") + '</p>' +
-      '<div class="cm-bar">' + chip("sort", "top", cmT("Популярні", "Popular")) + chip("sort", "new", cmT("Нові", "New")) + '<span class="cm-bar__sp"></span>' +
+      tabs + '<div class="cm-bar">' + chip("sort", "top", cmT("Популярні", "Popular")) + chip("sort", "new", cmT("Нові", "New")) + '<span class="cm-bar__sp"></span>' +
         chip("kind", "all", cmT("Усе", "All")) + chip("kind", "world", cmT("Світи", "Worlds")) + chip("kind", "game", cmT("Ігри", "Games")) + '</div>' +
       (CM.list === null ? '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>'
         : list.length ? '<div class="grid grid--mk">' + list.map(cmCard).join("") + '</div>'
@@ -1591,10 +1640,12 @@ body:not(.at-home) .userdock{ display:none; }
         '<div class="cm__kind">' + (p.kind === "game" ? cmT("Гра", "Game") : cmT("Світ", "World")) + (p.kind === "game" && p.worldTitle ? ' · ' + escapeHtml(p.worldTitle) : '') + '</div>' +
         '<h1 class="vhead__t">' + escapeHtml(p.title) + '</h1>' +
         (p.tagline ? '<p class="cm-hero__tag">' + escapeHtml(p.tagline) + '</p>' : '') +
-        '<div class="cm-hero__by">' + cmT("Автор: ", "By ") + escapeHtml(p.author || "") + '</div></div></div>' +
+        '<div class="cm-hero__by">' + cmT("Автор: ", "By ") + escapeHtml(p.author || "") + '</div></div>' +
+        (p.lookingForTeam ? '<span class="cm-team cm-team--hero">🤝 ' + cmT("Шукає команду", "Looking for a team") + '</span>' : '') + '</div>' +
       '<div class="cm-act">' +
         (mine ? '<span class="cm-likes">♥ ' + (p.likes || 0) + '</span>'
           : '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
+        (p.discord ? '<a class="cm-discord" href="' + escapeHtml(p.discord) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
         (mine ? '' : '<button class="cm-chip" data-cmreport>' + cmT("Поскаржитися", "Report") + '</button>') +
         (CM.admin ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
           '<span class="cm-note">' + cmT("Скарг: ", "Reports: ") + (p.reports || 0) + '</span>' : '') +
@@ -1602,17 +1653,110 @@ body:not(.at-home) .userdock{ display:none; }
       (CM.report ? '<div class="cm-report"><label for="cm-reason">' + cmT("Що не так з цією вітриною?", "What is wrong with this showcase?") + '</label>' +
         '<textarea id="cm-reason" rows="3" maxlength="1000"></textarea><button class="cm-chip is-on" data-cmsend>' + cmT("Надіслати", "Send") + '</button></div>' : '') +
       (CM.msg ? '<p class="cm-note" role="status">' + escapeHtml(CM.msg) + '</p>' : '') +
+      (p.lookingForTeam ? '<div class="cm-teambox"><b>🤝 ' + cmT("Автор шукає команду для спільної розробки", "The author is looking for a team to build it together") + '</b>' +
+        (p.teamNote ? '<p>' + cmT("Кого шукає: ", "Looking for: ") + escapeHtml(p.teamNote) + '</p>' : '') +
+        '<p class="cm-note">' + (p.discord ? cmT("Пиши в Discord цього проєкту.", "Write on this project's Discord.") : cmT("Звʼязок — у «Співтворцях».", "Contact — in “Co-creators”.")) + '</p></div>' : '') +
       (p.summary ? '<p class="cm-sum">' + escapeHtml(p.summary) + '</p>' : '') +
       (p.facts && p.facts.length ? '<dl class="cm-facts">' + p.facts.map(function (f) { return '<div><dt>' + escapeHtml(f.k) + '</dt><dd>' + escapeHtml(f.v) + '</dd></div>'; }).join("") + '</dl>' : '') +
       (p.sections.length ? '<div class="cm-tabs" role="tablist">' + p.sections.map(function (x) {
         return '<button role="tab" class="cm-chip' + (x.id === CM.sec ? ' is-on' : '') + '" aria-selected="' + (x.id === CM.sec) + '" data-cmsec="' + escapeHtml(x.id) + '">' + escapeHtml(x.label) + (x.n ? ' · ' + x.n : '') + '</button>'; }).join("") + '</div>' : '') +
       '<div class="cm-body" role="tabpanel">' + body + '</div>';
   }
+  function collabHtml() {
+    var u = cmUser(), ms = function (x) { return x && x.toMillis ? x.toMillis() : 0; };
+    var chip = function (k, v, label) { return '<button class="cm-chip' + (CM[k] === v ? ' is-on' : '') + '" data-cmset="' + k + '" data-v="' + v + '" aria-pressed="' + (CM[k] === v) + '">' + label + '</button>'; };
+    // showcases flagged «Шукаю команду» join «Шукають людей» next to the posts
+    var teams = (CM.list || []).filter(function (p) { return p.lookingForTeam; }).map(function (p) {
+      return { id: "pub:" + p.id, pub: p, type: "seek", title: p.title, author: p.author, text: p.teamNote || "", roles: [], contact: p.discord || "", updatedAt: p.updatedAt };
+    });
+    var posts = (CM.collab || []).concat(teams).filter(function (x) {
+      return (CM.cbType === "all" || x.type === CM.cbType) && (!CM.cbRole || (x.roles || []).indexOf(CM.cbRole) >= 0);
+    }).sort(function (a, b) { return ms(b.updatedAt) - ms(a.updatedAt); });
+    var link = function (c) { return /^https:\/\//.test(c) ? '<a href="' + escapeHtml(c) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(c.replace(/^https:\/\//, "")) + '</a>' : escapeHtml(c); };
+    var card = function (x) {
+      var mine = u && x.owner === u.uid, pub = x.pub || (x.pubId && (CM.list || []).filter(function (p) { return p.id === x.pubId; })[0]);
+      return '<article class="cb">' + (x.pub ? '<div class="cb__cover"' + cmCover(x.pub.cover) + '></div>' : '') +
+        '<span class="cb__type cb__type--' + x.type + '">' + (x.type === "seek" ? cmT("Шукає людей", "Looking for people") : cmT("Пропонує себе", "Offers to help")) + '</span>' +
+        '<h3>' + escapeHtml(x.title) + '</h3><div class="cm-note">' + escapeHtml(x.author || "") + '</div>' +
+        ((x.roles || []).length ? '<div class="cb__roles">' + x.roles.map(function (r) { return '<span>' + escapeHtml(cbRole(r)) + '</span>'; }).join("") + '</div>' : '') +
+        (x.text ? '<p class="cb__text">' + escapeHtml(x.text) + '</p>' : '') +
+        (x.contact ? '<div class="cb__contact">' + cmT("Звʼязок: ", "Contact: ") + link(x.contact) + '</div>' : '') +
+        '<div class="cb__act">' + (pub ? '<button class="cm-chip" data-cm="' + escapeHtml(pub.id) + '">' + cmT("Вітрина →", "Showcase →") + '</button>' : '') +
+          (mine ? '<button class="cm-chip" data-cbform="' + x.type + '">' + cmT("Редагувати", "Edit") + '</button>' : '') +
+          (!mine && !x.pub ? '<button class="cm-chip" data-cbrep="' + escapeHtml(x.id) + '">' + cmT("Поскаржитися", "Report") + '</button>' : '') +
+          (CM.admin && !x.pub ? '<button class="cm-chip" data-cbhide="' + escapeHtml(x.id) + '">' + cmT("Приховати", "Hide") + '</button>' : '') + '</div>' +
+        (CM.cbReport === x.id ? '<div class="cm-report"><label for="cb-reason">' + cmT("Що не так з цією анкетою?", "What is wrong with this post?") + '</label>' +
+          '<textarea id="cb-reason" rows="3" maxlength="1000"></textarea><button class="cm-chip is-on" data-cbsend="' + escapeHtml(x.id) + '">' + cmT("Надіслати", "Send") + '</button></div>' : '') +
+        '</article>';
+    };
+    return '<h1 class="vhead__t">' + cmT("Співтворці", "Co-creators") + '</h1>' +
+      '<p class="vhead__s">' + cmT("Співпраця без оплати — на ентузіазмі. Запропонуй себе в команду чи знайди людей для свого світу чи гри. Частки, права й умови ви обговорюєте між собою; WhiteWrite лише знайомить.",
+        "Unpaid co-creation, for the love of it. Offer yourself to a team or find people for your world or game. Shares, rights and terms are yours to agree; WhiteWrite only introduces you.") + '</p>' +
+      '<div class="cm-bar"><button class="cm-chip is-on" data-cbform="offer">＋ ' + cmT("Пропоную себе", "I offer to help") + '</button>' +
+        '<button class="cm-chip is-on" data-cbform="seek">＋ ' + cmT("Шукаю людей", "I am looking for people") + '</button></div>' +
+      (CM.form ? collabForm() : '') +
+      (CM.cbMsg ? '<p class="cm-note" role="status">' + escapeHtml(CM.cbMsg) + '</p>' : '') +
+      '<div class="cm-bar">' + chip("cbType", "all", cmT("Усі", "All")) + chip("cbType", "seek", cmT("Шукають людей", "Looking for people")) + chip("cbType", "offer", cmT("Пропонують себе", "Offering to help")) + '</div>' +
+      '<div class="cm-bar cb-rolebar">' + chip("cbRole", "", cmT("Будь-яка роль", "Any role")) + CB_ROLES.map(function (r) { return chip("cbRole", r[0], cmT(r[1], r[2])); }).join("") + '</div>' +
+      (CM.collab === null ? '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>'
+        : posts.length ? '<div class="cb-list">' + posts.map(card).join("") + '</div>'
+        : '<p class="vhead__s">' + cmT("Поки порожньо. Додай першу анкету!", "Empty for now. Add the first post!") + '</p>');
+  }
+  function collabForm() {
+    var u = cmUser(), type = CM.form, x = (CM.collab || []).filter(function (c) { return c.id === u.uid + "_" + type; })[0] || {};
+    var mine = (CM.list || []).filter(function (p) { return p.owner === u.uid; });
+    return '<form class="cb-form" id="cb-form"><h3>' + (type === "seek" ? cmT("Шукаю людей", "I am looking for people") : cmT("Пропоную себе", "I offer to help")) + '</h3>' +
+      '<label>' + (type === "seek" ? cmT("Проєкт і кого шукаєш", "The project and who you need") : cmT("Хто ти", "Who you are")) +
+        '<input id="cb-title" maxlength="120" required value="' + escapeHtml(x.title || "") + '" placeholder="' + escapeHtml(type === "seek" ? cmT("Темне фентезі RPG — шукаю 3D-художника", "Dark fantasy RPG — need a 3D artist") : cmT("3D-художник, стилізація під пензель", "3D artist, hand-painted style")) + '"></label>' +
+      '<fieldset><legend>' + (type === "seek" ? cmT("Хто потрібен", "Who is needed") : cmT("Що вмієш", "What you do")) + '</legend><div class="cb__roles cb__roles--pick">' + CB_ROLES.map(function (r) {
+        return '<label><input type="checkbox" data-cbrole="' + r[0] + '"' + ((x.roles || []).indexOf(r[0]) >= 0 ? ' checked' : '') + '><span>' + cmT(r[1], r[2]) + '</span></label>'; }).join("") + '</div></fieldset>' +
+      '<label>' + cmT("Розкажи більше", "Tell more") + '<textarea id="cb-text" rows="4" maxlength="3000">' + escapeHtml(x.text || "") + '</textarea></label>' +
+      '<label>' + cmT("Як з тобою звʼязатися (бачать усі)", "How to reach you (everyone sees it)") + '<input id="cb-contact" maxlength="300" value="' + escapeHtml(x.contact || "") + '" placeholder="' + escapeHtml(cmT("Discord-нік або https://discord.gg/…", "Discord name or https://discord.gg/…")) + '"></label>' +
+      (type === "seek" && mine.length ? '<label>' + cmT("Вітрина проєкту", "The project's showcase") + '<select id="cb-pub"><option value="">—</option>' + mine.map(function (p) {
+        return '<option value="' + escapeHtml(p.id) + '"' + (x.pubId === p.id ? ' selected' : '') + '>' + escapeHtml(p.title) + '</option>'; }).join("") + '</select></label>' : '') +
+      '<div class="cb__act"><button class="cm-chip is-on" type="submit">' + cmT("Зберегти", "Save") + '</button><button class="cm-chip" type="button" data-cbcancel>' + cmT("Скасувати", "Cancel") + '</button>' +
+        (x.id ? '<button class="cm-chip" type="button" data-cbdel="' + escapeHtml(x.id) + '">' + cmT("Видалити анкету", "Delete the post") + '</button>' : '') + '</div></form>';
+  }
+  function bindCollab(v) {
+    var db = cmDb(), u = cmUser(), fail = function (er) { CM.cbMsg = cmT("Не вдалося: ", "Failed: ") + (er.code || er.message); fillMarket(); };
+    [].forEach.call(v.querySelectorAll("[data-cbform]"), function (b) { b.onclick = function () {
+      if (!u) { openAuth(); return; }
+      CM.form = b.dataset.cbform; CM.cbMsg = ""; if (!CM.list) loadCommunity(); fillMarket(); var t = v.querySelector("#cb-title"); if (t) t.focus(); }; });
+    var f = v.querySelector("#cb-form");
+    if (f) f.onsubmit = function (e) {
+      e.preventDefault();
+      var id = u.uid + "_" + CM.form, old = (CM.collab || []).filter(function (c) { return c.id === id; })[0];
+      var pub = v.querySelector("#cb-pub");
+      var d = { owner: u.uid, type: CM.form, author: (u.displayName || cmT("Автор", "Author")).slice(0, 80), title: v.querySelector("#cb-title").value.trim().slice(0, 120),
+        roles: [].filter.call(v.querySelectorAll("[data-cbrole]"), function (c) { return c.checked; }).map(function (c) { return c.dataset.cbrole; }),
+        text: v.querySelector("#cb-text").value.trim().slice(0, 3000), contact: v.querySelector("#cb-contact").value.trim().slice(0, 300), pubId: pub ? pub.value : "",
+        hidden: false, reports: old ? old.reports || 0 : 0, createdAt: old && old.createdAt ? old.createdAt : firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+      if (!d.title) return;
+      db.collection("collab").doc(id).set(d).then(function () { CM.form = null; CM.cbMsg = cmT("Анкету збережено.", "The post is saved."); loadCollab(); }, fail);
+    };
+    var c = v.querySelector("[data-cbcancel]"); if (c) c.onclick = function () { CM.form = null; fillMarket(); };
+    var del = v.querySelector("[data-cbdel]"); if (del) del.onclick = function () {
+      db.collection("collab").doc(del.dataset.cbdel).delete().then(function () { CM.form = null; CM.cbMsg = cmT("Анкету видалено.", "The post is deleted."); loadCollab(); }, fail);
+    };
+    [].forEach.call(v.querySelectorAll("[data-cbrep]"), function (b) { b.onclick = function () {
+      if (!u) { openAuth(); return; } CM.cbReport = CM.cbReport === b.dataset.cbrep ? "" : b.dataset.cbrep; fillMarket(); var r = v.querySelector("#cb-reason"); if (r) r.focus(); }; });
+    [].forEach.call(v.querySelectorAll("[data-cbsend]"), function (b) { b.onclick = function () {
+      var reason = v.querySelector("#cb-reason").value.trim(); if (!reason) return;
+      cmCall({ action: "report", col: "collab", pubId: b.dataset.cbsend, reason: reason }).then(function () { CM.cbReport = ""; CM.cbMsg = cmT("Дякуємо, модератор перегляне.", "Thank you, a moderator will look."); fillMarket(); }, fail); }; });
+    [].forEach.call(v.querySelectorAll("[data-cbhide]"), function (b) { b.onclick = function () {
+      cmCall({ action: "hide", col: "collab", pubId: b.dataset.cbhide, hidden: true }).then(function () { loadCollab(); }, fail); }; });
+  }
   function bindMarket() {
     var v = views.market;
     [].forEach.call(v.querySelectorAll("[data-cm]"), function (b) { b.onclick = function () { openCommunity(b.dataset.cm); }; });
     [].forEach.call(v.querySelectorAll("[data-cmset]"), function (b) { b.onclick = function () { CM[b.dataset.cmset] = b.dataset.v; fillMarket(); }; });
     [].forEach.call(v.querySelectorAll("[data-cmsec]"), function (b) { b.onclick = function () { CM.sec = b.dataset.cmsec; fillMarket(); }; });
+    [].forEach.call(v.querySelectorAll("[data-cmtab]"), function (b) { b.onclick = function () {
+      CM.tab = b.dataset.cmtab; fillMarket();
+      if (CM.tab === "collab") { loadCollab(); if (!CM.list) loadCommunity(); }
+    }; });
+    if (CM.tab === "collab" && !CM.open) bindCollab(v);
     var q = function (sel) { return v.querySelector(sel); };
     if (q("[data-cmback]")) q("[data-cmback]").onclick = function () { CM.open = null; fillMarket(); loadCommunity(); };
     if (q("[data-cmlike]")) q("[data-cmlike]").onclick = function () {

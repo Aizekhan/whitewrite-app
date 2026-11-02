@@ -19,7 +19,10 @@
         world: "Світ", game: "Гра", loading: "Перевіряю…", off: "Не опубліковано.", on: "Опубліковано · ♥ {n}", hidden: "Приховано модератором після скарги — у спільноті не видно.",
         tagline: "Короткий слоган", summary: "Опис для вітрини", secs: "Розділи, відкриті для всіх", cover: "Обкладинка", noCover: "Обкладинка — перше зображення з відкритих розділів; поки зображень немає.",
         publish: "Опублікувати", update: "Оновити публікацію", unpublish: "Зняти з публікації", open: "Відкрити у спільноті", working: "Публікую…", done: "Опубліковано: {n} карток.", removed: "Знято з публікації.",
-        overview: "Огляд світу (слоган, опис, факти) — завжди", when: "Коли" },
+        overview: "Огляд світу (слоган, опис, факти) — завжди", when: "Коли",
+        discord: "Discord-сервер", discordPh: "https://discord.gg/…", discordHint: "Запрошення без терміну дії (Discord → сервер → «Запросити людей» → «Змінити посилання» → «Ніколи»). На вітрині зʼявиться кнопка «Приєднатися в Discord».",
+        team: "🤝 Шукаю команду для спільної розробки", teamHint: "Над обкладинкою зʼявиться значок, а вітрина потрапить у «Співтворці» → «Шукають людей».", teamNote: "Кого шукаєш", teamNotePh: "3D-художник, програміст Unity, сценарист…",
+        badDiscord: "Це не схоже на запрошення Discord (https://discord.gg/… або https://discord.com/invite/…)." },
       cosmo: { name: "Космограф", off: "Космограф вимкнено", offText: "Космограф — живе небо твого світу: планета з картою, сонця й супутники на справжніх орбітах, календар, доба й пори року, затемнення. Він вимкнений за замовчуванням і вмикається в налаштуваннях проєкту.",
         toSettings: "До налаштувань", expired: "Місяць Космографа скінчився", expiredText: "Небо збережене. Щоб знову ним керувати, продовж Космограф ще на 30 днів.",
         renew: "Продовжити на 30 днів", setTitle: "Космограф", setOff: "Вимкнено. Коли увімкнеш, з балансу спишеться {n} токенів, і Космограф працюватиме 30 днів.",
@@ -225,7 +228,10 @@
         world: "World", game: "Game", loading: "Checking…", off: "Not published.", on: "Published · ♥ {n}", hidden: "Hidden by a moderator after a report — not shown in the community.",
         tagline: "Short tagline", summary: "Showcase description", secs: "Sections open to everyone", cover: "Cover", noCover: "The cover is the first image of the open sections; there are no images yet.",
         publish: "Publish", update: "Update the publication", unpublish: "Unpublish", open: "Open in the community", working: "Publishing…", done: "Published: {n} cards.", removed: "Unpublished.",
-        overview: "World overview (tagline, description, facts) — always", when: "When" },
+        overview: "World overview (tagline, description, facts) — always", when: "When",
+        discord: "Discord server", discordPh: "https://discord.gg/…", discordHint: "An invite that never expires (Discord → server → “Invite people” → “Edit invite link” → “Never”). The showcase gets a “Join on Discord” button.",
+        team: "🤝 Looking for a team to build it together", teamHint: "A badge appears over the cover, and the showcase joins “Co-creators” → “Looking for people”.", teamNote: "Who you are looking for", teamNotePh: "3D artist, Unity programmer, writer…",
+        badDiscord: "This does not look like a Discord invite (https://discord.gg/… or https://discord.com/invite/…)." },
       cosmo: { name: "Cosmograph", off: "The Cosmograph is off", offText: "The Cosmograph is the living sky of your world: a planet with its map, suns and moons on real orbits, a calendar, day and seasons, eclipses. It is off by default and is turned on in the project settings.",
         toSettings: "To settings", expired: "The Cosmograph month is over", expiredText: "The sky is saved. To work with it again, extend the Cosmograph for another 30 days.",
         renew: "Extend for 30 days", setTitle: "Cosmograph", setOff: "Off. Turning it on spends {n} tokens, and the Cosmograph works for 30 days.",
@@ -3380,6 +3386,10 @@
         '<p class="hint">' + (p === undefined ? C.loading : !on ? C.off : p.hidden ? C.hidden : C.on.replace("{n}", p.likes || 0)) + '</p>' +
         '<label class="field"><span>' + C.tagline + '</span><input data-cf="tagline" maxlength="240" value="' + esc(tag) + '"></label>' +
         '<label class="field"><span>' + C.summary + '</span><textarea data-cf="summary" rows="3" maxlength="4000">' + esc(sum) + '</textarea></label>' +
+        '<label class="field"><span>' + C.discord + '</span><input data-cf="discord" maxlength="120" inputmode="url" placeholder="' + esc(C.discordPh) + '" value="' + esc((p && p.discord) || "") + '"><span class="hint">' + C.discordHint + '</span></label>' +
+        '<label class="imp commteam"><input type="checkbox" data-cf="team"' + (p && p.lookingForTeam ? ' checked' : '') + '><span>' + C.team + '</span></label>' +
+        '<p class="hint">' + C.teamHint + '</p>' +
+        '<label class="field"><span>' + C.teamNote + '</span><input data-cf="teamNote" maxlength="600" placeholder="' + esc(C.teamNotePh) + '" value="' + esc((p && p.teamNote) || "") + '"></label>' +
         '<div class="field"><span>' + C.secs + '</span>' + (t.key === "w" ? '<p class="hint">✓ ' + C.overview + '</p>' : '') + '<div class="shownsecs">' + t.secs.map(function (s) {
           return '<label class="imp"><input type="checkbox" data-cs="' + s.id + '"' + (picked.indexOf(s.id) >= 0 ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div></div>' +
         (covers.length ? '<div class="field"><span>' + C.cover + '</span><div class="commcov">' + covers.map(function (u, i) {
@@ -3410,6 +3420,9 @@
         var body = { action: "publish", worldId: worldId, gameId: t.gameId, author: (firebase.auth().currentUser || {}).displayName || "",
           tagline: box.querySelector('[data-cf="tagline"]').value, summary: box.querySelector('[data-cf="summary"]').value, cover: cov ? cov.value : "",
           sections: t.secs.filter(function (s) { return ids.indexOf(s.id) >= 0; }).map(function (s) { return { id: s.id, label: L(s) }; }), items: items };
+        body.discord = box.querySelector('[data-cf="discord"]').value.trim();
+        if (body.discord && !/^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(body.discord)) { say(STR.comm.badDiscord); return; } // the server checks the same
+        body.lookingForTeam = box.querySelector('[data-cf="team"]').checked; body.teamNote = box.querySelector('[data-cf="teamNote"]').value.trim();
         if (t.key === "w") { body.facts = (world.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }); body.rules = ids.indexOf("laws") >= 0 ? (world.rules || []) : []; }
         btn.disabled = true; say(STR.comm.working);
         try { var r = await commCall(body); delete commPubs[t.pubId]; say(STR.comm.done.replace("{n}", r.items)); renderSettings(); }
