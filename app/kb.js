@@ -108,7 +108,7 @@
         lead: "Одне меню веде крізь увесь сервіс.",
         min: 2,
         body: [
-          ["p", "Угорі — «Спільнота» (вітрини світів та ігор інших авторів); аватар і меню акаунта — у лівому нижньому куті головної. Логотип завжди повертає на головну, «Назад» — на попередній екран."],
+          ["p", "«Спільнота» (вітрини світів та ігор інших авторів) відкривається лише з головної — кнопкою «✦ Спільнота — усі світи й ігри» або з карток «Вибір спільноти» / «Відкрий нового автора»; усі її кнопки — на плашці вгорі, ✕ повертає на головну. Аватар і меню акаунта — у лівому нижньому куті головної. Логотип завжди повертає на головну, «Назад» — на попередній екран."],
           ["p", "В історії меню починається з «Біблія світу»: перейшов у Біблію — і повернувся в ту саму сцену; відкрите досьє теж лишається відкритим."],
           ["p", "Кнопка «?» внизу праворуч відкриває цю Базу знань, «🐞» — форму відгуку."],
         ] },
@@ -956,7 +956,7 @@
         lead: "One menu across the whole service.",
         min: 2,
         body: [
-          ["p", "At the top — “Community” (showcases of other authors' worlds and games); the avatar and the account menu sit in the bottom-left corner of the home page. The logo always leads home, “Back” to the previous screen."],
+          ["p", "“Community” (showcases of other authors' worlds and games) opens from the home page only — with “✦ Community — all worlds & games” or from the “Community pick” / “Discover a new author” cards; all its buttons sit on the bar at the top, ✕ returns home. The avatar and the account menu sit in the bottom-left corner of the home page. The logo always leads home, “Back” to the previous screen."],
           ["p", "In a story the menu starts with “World Bible”: go to the Bible and come back to the same scene; an open dossier stays open too."],
           ["p", "The “?” button at the bottom right opens this Knowledge Base, “🐞” — the feedback form."],
         ] },

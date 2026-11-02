@@ -249,7 +249,6 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .cm-discord:hover{ filter:brightness(1.1); }
 .cm-teambox{ border:1px solid rgba(127,191,106,.45); background:rgba(127,191,106,.08); border-radius:12px; padding:12px 14px; margin:0 0 14px; max-width:760px; }
 .cm-teambox p{ margin:6px 0 0; }
-.cm-tabs--top{ margin:12px 0 4px; }
 .cb-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; }
 .cb{ position:relative; background:var(--bg-2); border:1px solid var(--line); border-radius:13px; padding:14px; display:flex; flex-direction:column; gap:6px; overflow:hidden; }
 .cb__cover{ height:90px; margin:-14px -14px 4px; background:linear-gradient(135deg,#241a2e,#101418) center/cover no-repeat; }
@@ -272,13 +271,21 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .cb-form label{ display:grid; gap:5px; font-size:12.5px; color:var(--tx-mid); }
 .cb-form fieldset{ border:none; padding:0; margin:0; } .cb-form legend{ font-size:12.5px; color:var(--tx-mid); margin-bottom:5px; }
 .cb-form input:not([type=checkbox]), .cb-form textarea, .cb-form select{ font:inherit; font-size:14px; color:var(--tx-hi); background:var(--bg-1); border:1px solid var(--line-2); border-radius:9px; padding:9px 10px; }
-.cb-rolebar{ margin-top:-8px; }
 .cm-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:22px 0 18px; }
 .cm-bar__sp{ flex:1; }
+/* Спільнота: one bar at the top with every control of the tab and ✕ (back to the home page) */
+.cm-top{ position:sticky; top:0; z-index:5; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px clamp(20px,4vw,44px);
+  background:rgba(12,10,14,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line-2); }
+.cm-top__k{ font:600 15px Cinzel,serif; color:var(--gold-lit); margin-right:6px; }
+.cm-top__div{ width:1px; height:22px; background:var(--line-2); margin:0 4px; }
+.cm-top .cm-tabs{ display:inline-flex; gap:8px; margin:0; }
+.cm-sel{ font:inherit; font-size:13px; color:var(--tx-mid); background:var(--bg-2); border:1px solid var(--line-2); border-radius:20px; padding:6px 10px; }
+.cm-close{ font:inherit; font-size:16px; line-height:1; width:34px; height:34px; border-radius:50%; color:var(--tx-mid); background:var(--bg-2); border:1px solid var(--line-2); cursor:pointer; }
+.cm-close:hover{ color:var(--gold-lit); border-color:var(--gold-lit); }
 .cm-chip, .cm-back, .cm-like{ font:inherit; font-size:13px; color:var(--tx-mid); background:var(--bg-2); border:1px solid var(--line-2); border-radius:20px; padding:6px 13px; cursor:pointer; }
 .cm-chip.is-on, .cm-like.is-on{ color:#1c1308; border-color:transparent; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
 .cm-back{ border:none; background:none; padding:6px 0; margin:6px 0 10px; color:var(--gold-lit); }
-.cm-hero{ position:relative; border-radius:18px; border:1px solid var(--line-2); min-height:240px; display:flex; align-items:flex-end; overflow:hidden;
+.cm-hero{ position:relative; margin-bottom:18px; border-radius:18px; border:1px solid var(--line-2); min-height:240px; display:flex; align-items:flex-end; overflow:hidden;
   background:linear-gradient(135deg,#241a2e,#101418) center/cover no-repeat; }
 .cm-hero::before{ content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.82)); }
 .cm-hero__in{ position:relative; padding:24px 26px; }
@@ -927,7 +934,7 @@ body:not(.at-home) .userdock{ display:none; }
     } else {
       if (mode === "create" && storyFormWorld && storyFormWorld === CURRENT_WORLD) railItems.appendChild(railBtn("bible", t('worlds.bible'), PILLARS.bible.icon, false, showBible)); // back from a new story's form
       Object.keys(SECTIONS).forEach(function (s) {
-        if (s === "worlds") return; // Світи live on the home page; the logo leads home
+        if (s === "worlds" || s === "market") return; // Світи and Спільнота open from the home page only; the logo leads home
         var on = mode === s || (s === "worlds" && (mode === "narr" || mode === "bible")); // a world's hub belongs to Світи
         railItems.appendChild(railBtn(s, getSectionLabel(s), SECTIONS[s].icon, on, function () { showView(s); }));
       });
@@ -1605,30 +1612,54 @@ body:not(.at-home) .userdock{ display:none; }
   }
   function fillMarket() {
     if (!views.market) return;
-    var head = '<div class="vhead__k">' + cmT("Спільнота", "Community") + '</div>';
-    if (CM.open) { views.market.innerHTML = '<div class="vwrap">' + head + cmPage() + '</div>'; bindMarket(); return; }
-    var tabs = '<div class="cm-tabs cm-tabs--top" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")]].map(function (x) {
-      return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</div>';
-    if (CM.tab === "collab") { views.market.innerHTML = '<div class="vwrap">' + head + tabs + collabHtml() + '</div>'; bindMarket(); return; }
+    // the top bar holds every control of the tab (tabs, filters, actions) and ✕ — back to the home page
+    var chip = function (k, v, label) { return '<button class="cm-chip' + (CM[k] === v ? ' is-on' : '') + '" data-cmset="' + k + '" data-v="' + v + '" aria-pressed="' + (CM[k] === v) + '">' + label + '</button>'; };
+    var top = function (inner) {
+      return '<div class="cm-top"><span class="cm-top__k">' + cmT("Спільнота", "Community") + '</span>' + inner + '<span class="cm-bar__sp"></span>' +
+        '<button class="cm-close" data-cmclose title="' + cmT("Закрити", "Close") + '" aria-label="' + cmT("Закрити спільноту", "Close the community") + '">✕</button></div>';
+    };
+    if (CM.open) { views.market.innerHTML = top('<button class="cm-chip" data-cmback>← ' + cmT("Усі вітрини", "All showcases") + '</button>' + cmPageBar()) + '<div class="vwrap">' + cmPage() + '</div>'; bindMarket(); return; }
+    var tabs = '<span class="cm-tabs" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")]].map(function (x) {
+      return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</span><span class="cm-top__div"></span>';
+    if (CM.tab === "collab") {
+      var roles = '<select class="cm-sel" data-cbrole aria-label="' + cmT("Роль", "Role") + '"><option value="">' + cmT("Будь-яка роль", "Any role") + '</option>' +
+        CB_ROLES.map(function (r) { return '<option value="' + r[0] + '"' + (CM.cbRole === r[0] ? ' selected' : '') + '>' + cmT(r[1], r[2]) + '</option>'; }).join("") + '</select>';
+      views.market.innerHTML = top(tabs + chip("cbType", "all", cmT("Усі", "All")) + chip("cbType", "seek", cmT("Шукають людей", "Looking for people")) + chip("cbType", "offer", cmT("Пропонують себе", "Offering to help")) + roles +
+        '<span class="cm-top__div"></span><button class="cm-chip is-on" data-cbform="offer">＋ ' + cmT("Пропоную себе", "I offer to help") + '</button>' +
+        '<button class="cm-chip is-on" data-cbform="seek">＋ ' + cmT("Шукаю людей", "I am looking for people") + '</button>') + '<div class="vwrap">' + collabHtml() + '</div>';
+      bindMarket(); return;
+    }
     var list = (CM.list || []).filter(function (p) { return CM.kind === "all" || p.kind === CM.kind; });
     var ms = function (x) { return x && x.toMillis ? x.toMillis() : 0; };
     list.sort(CM.sort === "new" ? function (a, b) { return ms(b.publishedAt) - ms(a.publishedAt); }
       : function (a, b) { return (b.score || 0) - (a.score || 0) || (b.likes || 0) - (a.likes || 0) || ms(b.publishedAt) - ms(a.publishedAt); });
-    var chip = function (k, v, label) { return '<button class="cm-chip' + (CM[k] === v ? ' is-on' : '') + '" data-cmset="' + k + '" data-v="' + v + '" aria-pressed="' + (CM[k] === v) + '">' + label + '</button>'; };
-    views.market.innerHTML = '<div class="vwrap">' + head +
+    views.market.innerHTML = top(tabs + chip("sort", "top", cmT("Популярні", "Popular")) + chip("sort", "new", cmT("Нові", "New")) + '<span class="cm-top__div"></span>' +
+        chip("kind", "all", cmT("Усе", "All")) + chip("kind", "world", cmT("Світи", "Worlds")) + chip("kind", "game", cmT("Ігри", "Games"))) + '<div class="vwrap">' +
       '<h1 class="vhead__t">' + cmT("Світи й ігри авторів", "Worlds & games of authors") + '</h1>' +
       '<p class="vhead__s">' + cmT("Вітрини, які автори відкрили для всіх. Став ♥ — найулюбленіші щодня по черзі виходять на головну. Свій світ чи гру відкриваєш у Біблії → ⚙ Налаштування проєкту → «Спільнота».",
         "Showcases authors opened to everyone. Give a ♥ — the most loved take turns on the home page every day. Open your own world or game in the Bible → ⚙ Project settings → “Community”.") + '</p>' +
-      tabs + '<div class="cm-bar">' + chip("sort", "top", cmT("Популярні", "Popular")) + chip("sort", "new", cmT("Нові", "New")) + '<span class="cm-bar__sp"></span>' +
-        chip("kind", "all", cmT("Усе", "All")) + chip("kind", "world", cmT("Світи", "Worlds")) + chip("kind", "game", cmT("Ігри", "Games")) + '</div>' +
       (CM.list === null ? '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>'
         : list.length ? '<div class="grid grid--mk">' + list.map(cmCard).join("") + '</div>'
         : '<p class="vhead__s">' + cmT("Ще ніхто нічого не опублікував. Будь першим!", "Nothing is published yet. Be the first!") + '</p>') +
       '</div>';
     bindMarket();
   }
+  // the controls of an open showcase — they live in the top bar (fillMarket)
+  function cmPageBar() {
+    var p = CM.pub; if (!p) return '';
+    var mine = window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser && window.__firebase.auth.currentUser.uid === p.owner;
+    return (p.sections.length ? '<span class="cm-top__div"></span><span class="cm-tabs" role="tablist">' + p.sections.map(function (x) {
+        return '<button role="tab" class="cm-chip' + (x.id === CM.sec ? ' is-on' : '') + '" aria-selected="' + (x.id === CM.sec) + '" data-cmsec="' + escapeHtml(x.id) + '">' + escapeHtml(x.label) + (x.n ? ' · ' + x.n : '') + '</button>'; }).join("") + '</span>' : '') +
+      '<span class="cm-top__div"></span>' +
+      (mine ? '<span class="cm-likes">♥ ' + (p.likes || 0) + '</span>'
+        : '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
+      (p.discord ? '<a class="cm-discord" href="' + escapeHtml(p.discord) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
+      (mine ? '' : '<button class="cm-chip" data-cmreport>' + cmT("Поскаржитися", "Report") + '</button>') +
+      (CM.admin ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
+        '<span class="cm-note">' + cmT("Скарг: ", "Reports: ") + (p.reports || 0) + '</span>' : '');
+  }
   function cmPage() {
-    var p = CM.pub, back = '<button class="cm-back" data-cmback>← ' + cmT("Усі вітрини", "All showcases") + '</button>';
+    var p = CM.pub, back = '';
     if (p === null) return back + '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>';
     if (p === false) return back + '<p class="vhead__s">' + cmT("Цю вітрину знято з публікації.", "This showcase is no longer published.") + '</p>';
     var sec = p.sections.filter(function (x) { return x.id === CM.sec; })[0];
@@ -1643,7 +1674,6 @@ body:not(.at-home) .userdock{ display:none; }
               return '<div class="cm-item__b">' + (b.l ? '<b>' + escapeHtml(b.l) + '</b>' : '') + '<p>' + escapeHtml(b.t) + '</p></div>'; }).join("") + '</article>';
         }).join("") + '</div>';
       }).join("");
-    var mine = window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser && window.__firebase.auth.currentUser.uid === p.owner;
     return back +
       '<div class="cm-hero"' + cmCover(p.cover) + '><div class="cm-hero__in">' +
         '<div class="cm__kind">' + (p.kind === "game" ? cmT("Гра", "Game") : cmT("Світ", "World")) + (p.kind === "game" && p.worldTitle ? ' · ' + escapeHtml(p.worldTitle) : '') + '</div>' +
@@ -1651,14 +1681,6 @@ body:not(.at-home) .userdock{ display:none; }
         (p.tagline ? '<p class="cm-hero__tag">' + escapeHtml(p.tagline) + '</p>' : '') +
         '<div class="cm-hero__by">' + cmT("Автор: ", "By ") + escapeHtml(p.author || "") + '</div></div>' +
         (p.lookingForTeam ? '<span class="cm-team cm-team--hero">🤝 ' + cmT("Шукає команду", "Looking for a team") + '</span>' : '') + '</div>' +
-      '<div class="cm-act">' +
-        (mine ? '<span class="cm-likes">♥ ' + (p.likes || 0) + '</span>'
-          : '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
-        (p.discord ? '<a class="cm-discord" href="' + escapeHtml(p.discord) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
-        (mine ? '' : '<button class="cm-chip" data-cmreport>' + cmT("Поскаржитися", "Report") + '</button>') +
-        (CM.admin ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
-          '<span class="cm-note">' + cmT("Скарг: ", "Reports: ") + (p.reports || 0) + '</span>' : '') +
-      '</div>' +
       (CM.report ? '<div class="cm-report"><label for="cm-reason">' + cmT("Що не так з цією вітриною?", "What is wrong with this showcase?") + '</label>' +
         '<textarea id="cm-reason" rows="3" maxlength="1000"></textarea><button class="cm-chip is-on" data-cmsend>' + cmT("Надіслати", "Send") + '</button></div>' : '') +
       (CM.msg ? '<p class="cm-note" role="status">' + escapeHtml(CM.msg) + '</p>' : '') +
@@ -1667,13 +1689,10 @@ body:not(.at-home) .userdock{ display:none; }
         '<p class="cm-note">' + (p.discord ? cmT("Пиши в Discord цього проєкту.", "Write on this project's Discord.") : cmT("Звʼязок — у «Співтворцях».", "Contact — in “Co-creators”.")) + '</p></div>' : '') +
       (p.summary ? '<p class="cm-sum">' + escapeHtml(p.summary) + '</p>' : '') +
       (p.facts && p.facts.length ? '<dl class="cm-facts">' + p.facts.map(function (f) { return '<div><dt>' + escapeHtml(f.k) + '</dt><dd>' + escapeHtml(f.v) + '</dd></div>'; }).join("") + '</dl>' : '') +
-      (p.sections.length ? '<div class="cm-tabs" role="tablist">' + p.sections.map(function (x) {
-        return '<button role="tab" class="cm-chip' + (x.id === CM.sec ? ' is-on' : '') + '" aria-selected="' + (x.id === CM.sec) + '" data-cmsec="' + escapeHtml(x.id) + '">' + escapeHtml(x.label) + (x.n ? ' · ' + x.n : '') + '</button>'; }).join("") + '</div>' : '') +
       '<div class="cm-body" role="tabpanel">' + body + '</div>';
   }
   function collabHtml() {
     var u = cmUser(), ms = function (x) { return x && x.toMillis ? x.toMillis() : 0; };
-    var chip = function (k, v, label) { return '<button class="cm-chip' + (CM[k] === v ? ' is-on' : '') + '" data-cmset="' + k + '" data-v="' + v + '" aria-pressed="' + (CM[k] === v) + '">' + label + '</button>'; };
     // showcases flagged «Шукаю команду» join «Шукають людей» next to the posts
     var teams = (CM.list || []).filter(function (p) { return p.lookingForTeam; }).map(function (p) {
       return { id: "pub:" + p.id, pub: p, type: "seek", title: p.title, author: p.author, text: p.teamNote || "", roles: [], contact: p.discord || "", updatedAt: p.updatedAt };
@@ -1701,12 +1720,8 @@ body:not(.at-home) .userdock{ display:none; }
     return '<h1 class="vhead__t">' + cmT("Співтворці", "Co-creators") + '</h1>' +
       '<p class="vhead__s">' + cmT("Співпраця без оплати — на ентузіазмі. Запропонуй себе в команду чи знайди людей для свого світу чи гри. Частки, права й умови ви обговорюєте між собою; WhiteWrite лише знайомить.",
         "Unpaid co-creation, for the love of it. Offer yourself to a team or find people for your world or game. Shares, rights and terms are yours to agree; WhiteWrite only introduces you.") + '</p>' +
-      '<div class="cm-bar"><button class="cm-chip is-on" data-cbform="offer">＋ ' + cmT("Пропоную себе", "I offer to help") + '</button>' +
-        '<button class="cm-chip is-on" data-cbform="seek">＋ ' + cmT("Шукаю людей", "I am looking for people") + '</button></div>' +
       (CM.form ? collabForm() : '') +
       (CM.cbMsg ? '<p class="cm-note" role="status">' + escapeHtml(CM.cbMsg) + '</p>' : '') +
-      '<div class="cm-bar">' + chip("cbType", "all", cmT("Усі", "All")) + chip("cbType", "seek", cmT("Шукають людей", "Looking for people")) + chip("cbType", "offer", cmT("Пропонують себе", "Offering to help")) + '</div>' +
-      '<div class="cm-bar cb-rolebar">' + chip("cbRole", "", cmT("Будь-яка роль", "Any role")) + CB_ROLES.map(function (r) { return chip("cbRole", r[0], cmT(r[1], r[2])); }).join("") + '</div>' +
       (CM.collab === null ? '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>'
         : posts.length ? '<div class="cb-list">' + posts.map(card).join("") + '</div>'
         : '<p class="vhead__s">' + cmT("Поки порожньо. Додай першу анкету!", "Empty for now. Add the first post!") + '</p>');
@@ -1768,6 +1783,8 @@ body:not(.at-home) .userdock{ display:none; }
     if (CM.tab === "collab" && !CM.open) bindCollab(v);
     var q = function (sel) { return v.querySelector(sel); };
     if (q("[data-cmback]")) q("[data-cmback]").onclick = function () { CM.open = null; fillMarket(); loadCommunity(); };
+    if (q("[data-cmclose]")) q("[data-cmclose]").onclick = function () { CM.open = null; showHome(); };
+    if (q("[data-cbrole]")) q("[data-cbrole]").onchange = function () { CM.cbRole = this.value; fillMarket(); };
     if (q("[data-cmlike]")) q("[data-cmlike]").onclick = function () {
       var on = !CM.liked;
       cmCall({ action: "like", pubId: CM.open, on: on }).then(function (r) { CM.liked = on; CM.pub.likes = r.likes; fillMarket(); }, function (er) { if (er.message !== "auth") { CM.msg = er.message; fillMarket(); } });
