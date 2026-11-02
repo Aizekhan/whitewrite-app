@@ -119,7 +119,7 @@
       stTypeName: "Щоб підтвердити, введи назву: {n}", stDelete: "Видалити назавжди", stDeleting: "Видаляю…",
       stHasStories: "У цьому світі є історії ({n}). Спершу видали або перенеси їх — тоді світ можна буде видалити.", search: "Пошук по канону й грі: назва, опис, примітка…",
       canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
-      createGame: "Створити гру", firstGame: "Перша гра на цьому каноні",
+      createGame: "Створити гру", firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
       gameLimit: "На твоєму тарифі — {n} гра. Видали наявну або перейди на Worldbuilder: там ігор скільки завгодно.",
       devLock: { title: "Це — частина Worldbuilder", text: "GDD гри — розділи, картки, механіки, квести й діалоги, стиль, файли до 20 МБ — відкритий на будь-якому тарифі. Продакшн-план, Claude Code (MCP), імпорт і звірка з ШІ, ✦ чернетки, досвід гравців, маркетинг, GitHub, файли до 200 МБ і скільки завгодно ігор — на Worldbuilder." },
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
@@ -379,7 +379,7 @@
       stTypeName: "To confirm, type the name: {n}", stDelete: "Delete forever", stDeleting: "Deleting…",
       stHasStories: "This world has stories ({n}). Delete or move them first — then the world can be deleted.", search: "Search canon and game: title, text, note…",
       canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
-      createGame: "Create game", firstGame: "The first game on this canon",
+      createGame: "Create game", firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
       gameLimit: "Your plan has {n} game. Delete the one you have or move to Worldbuilder: any number of games there.",
       devLock: { title: "This is part of Worldbuilder", text: "A game's GDD — sections, cards, mechanics, quests and dialogues, style, files up to 20 MB — is open on every plan. The production plan, Claude Code (MCP), AI import and reconciling, ✦ drafts, player experience, marketing, GitHub, files up to 200 MB and any number of games are on Worldbuilder." },
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
@@ -2934,9 +2934,11 @@
     return data.gameId;
   }
   function renderNewGame() {
+    var canonN = canonForGame().length; // «Взяти весь канон»: one tick instead of picking entity by entity
     $("view").innerHTML = '<div class="newgame"><h1>' + STR.firstGame + '</h1><p class="muted">' + STR.firstGameText + '</p>' +
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
+      (canonN ? '<label class="imp"><input type="checkbox" id="ng-canon" checked><span>' + esc(STR.allCanon.replace("{n}", canonN)) + '</span></label><p class="hint">' + esc(STR.allCanonHint) + '</p>' : '') +
       '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button>' +
       '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p></div>';
     $("ng-title").focus();
@@ -2946,6 +2948,14 @@
       var ok = $("ng-ok"), id; ok.disabled = true; $("ng-msg").textContent = "";
       try { id = await createGameDoc(title, $("ng-engine").value); }
       catch (e) { ok.disabled = false; $("ng-msg").textContent = e.message; if (e.code === "GAME_LIMIT") $("ng-up").hidden = false; return; }
+      if ($("ng-canon") && $("ng-canon").checked) {
+        var cref = db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards"), all = canonForGame();
+        for (var i = 0; i < all.length; i += 400) { // a batch holds 500 writes
+          var b = db.batch();
+          all.slice(i, i + 400).forEach(function (x) { b.set(cref.doc(x.e.id), { section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, { merge: true }); });
+          try { await b.commit(); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; } // the game exists; the canon can be added by hand
+        }
+      }
       selectGame(id);
     };
     $("ng-x").onclick = function () { enterWorld(); };
@@ -3697,13 +3707,17 @@
     var snap = await gref().collection("cards").get(), have = {};
     snap.docs.forEach(function (d) { var c = d.data(); if (c.canonRef) have[c.canonRef] = 1; });
     var batch = db.batch();
-    GAME.forEach(function (s) {
-      if (s.canon) entities.filter(function (e) { return e.kind === s.canon && !have[e.id]; }).forEach(function (e) {
-        batch.set(gref().collection("cards").doc(e.id), { section: s.id, canonRef: e.id, hidden: false, updatedAt: stamp() }, { merge: true });
-      });
+    canonForGame(have).forEach(function (x) {
+      batch.set(gref().collection("cards").doc(x.e.id), { section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, { merge: true });
     });
     batch.update(gref(), { canonOptIn: true });
     await batch.commit();
+  }
+  // the canon entities a game's shelves take ({ s: shelf, e: entity }), minus those already on cards
+  function canonForGame(have) {
+    var out = [];
+    GAME.forEach(function (s) { if (s.canon) entities.filter(function (e) { return e.kind === s.canon && !(have && have[e.id]); }).forEach(function (e) { out.push({ s: s, e: e }); }); });
+    return out;
   }
 
   // ---------- own sections ----------
