@@ -3412,6 +3412,10 @@
         try { await db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards").doc(newId("card")).set({ section: "overview", title: picked.title, status: "idea",
           note: [picked.canon && STR.conc.canon + ": " + picked.canon, picked.why && STR.conc.why + ": " + picked.why].filter(Boolean).join("\n"), defs: ov.defs.slice(), fields: pf,
           order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }
+        var loreText = [picked.lore, picked.canon && STR.conc.canon + ": " + picked.canon].filter(Boolean).join("\n\n");
+        if (loreText) try { // and its «Лор гри»: how the game presents the world (older concepts without `lore` still get the canon it builds on)
+          await db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards").doc(newId("card")).set({ section: "lore", title: picked.title, status: "idea", note: "",
+            defs: sec("lore").defs.slice(), fields: { text: loreText }, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }
       } else if ($("ng-desc").value.trim()) { // the author's own description → «Огляд гри», word for word
         try { await db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards").doc(newId("card")).set({ section: "overview", title: title, status: "idea", note: "",
           defs: sec("overview").defs.slice(), fields: { logline: $("ng-desc").value.trim() }, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }

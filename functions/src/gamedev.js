@@ -311,17 +311,17 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown fence:
 
 // «✦ 3 концепти гри»: the world canon (no game yet) → three DIFFERENT game concepts; the author picks one in the new-game form
 // and it becomes the game's name and its «Огляд гри» card. Nothing is stored here.
-const CONCEPT_FIELDS = ['logline', 'genre', 'pillars', 'loop', 'platform', 'players', 'canon', 'why'];
+const CONCEPT_FIELDS = ['logline', 'genre', 'pillars', 'loop', 'platform', 'players', 'canon', 'lore', 'why'];
 function conceptsPrompt(canon, hint, languageName) {
   return `You are a lead game designer. Below is a story world's canon. Propose THREE different games that could be built on it — different genres, scales and player fantasies (e.g. one small and focused, one mid-size, one ambitious), each clearly rooted in this canon, not generic.
 ${hint ? `The author's wish: ${hint}\n` : ''}
-For each: title (the game's name), logline (one sentence), genre, pillars (3-4 short lines), loop (the core loop in one or two lines), platform, players (solo / co-op / PvP), canon (which characters, places, factions or events of the canon it builds on), why (what makes it worth making — the hook, in one sentence).
+For each: title (the game's name), logline (one sentence), genre, pillars (3-4 short lines), loop (the core loop in one or two lines), platform, players (solo / co-op / PvP), canon (which characters, places, factions or events of the canon it builds on), lore (how this game presents the world, 3-5 sentences: when in the canon's history it is set, the game's own plot premise, its tone, the secrets it keeps — only from the canon, nothing that contradicts it), why (what makes it worth making — the hook, in one sentence).
 
 THE WORLD CANON:
 ${canon}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown fence:
-{"concepts":[{"title":"","logline":"","genre":"","pillars":"","loop":"","platform":"","players":"","canon":"","why":""}]}`;
+{"concepts":[{"title":"","logline":"","genre":"","pillars":"","loop":"","platform":"","players":"","canon":"","lore":"","why":""}]}`;
 }
 const cleanConcept = (c) => {
   if (!c || !str(c.title, 120)) return null;
