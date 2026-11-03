@@ -41,7 +41,7 @@ const db = { collection: (c) => col(c), runTransaction: async (fn) => { const op
 const authUsers = { victim: { email: 'victim@x.com' }, buyer: { email: 'buyer@x.com' } };
 const fakeAdmin = { firestore: Object.assign(() => db, { FieldValue: FV, Timestamp: { now: () => TS(Date.now()), fromMillis: TS } }),
   auth: () => ({ getUser: async (uid) => { if (!authUsers[uid]) throw new Error('no user'); return authUsers[uid]; } }) };
-require.cache[require.resolve('firebase-admin', { paths: [path.join(__dirname, '../functions')] })] = { loaded: true, exports: fakeAdmin };
+require.cache[F('admin.js')] = { loaded: true, exports: fakeAdmin }; // functions/admin.js — the namespaced facade over firebase-admin v14
 
 const TSvc = require(F('token-service.js'));
 const { getPlanBudget } = require(F('plans.js'));

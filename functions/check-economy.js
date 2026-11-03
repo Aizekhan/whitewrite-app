@@ -1,5 +1,5 @@
 // Check economy_operations collection for Claude model versions
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 const serviceAccount = require('../whitewrite-app-firebase-adminsdk-fbsvc-4a613380f4.json');
 
 admin.initializeApp({

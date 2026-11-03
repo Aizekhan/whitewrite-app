@@ -10,7 +10,7 @@
 //   ref:    what it was for — { worldId, gameId, projectId, orderId, plan, licenceId, model } (only the ones that apply)
 // Entries are never edited or deleted; the Account shows them («Історія токенів») and prints a receipt for any of them.
 // Internal costs (API dollars, margins) stay in usage_logs — the ledger holds only what the user sees.
-const admin = require('firebase-admin');
+const admin = require('../admin.js'); // firebase-admin v14: the namespaced facade (functions/admin.js)
 
 const TYPES = ['grant', 'topup', 'spend', 'refund', 'adjust'];
 const clean = (o) => Object.fromEntries(Object.entries(o || {}).filter(([, v]) => v !== undefined && v !== null && v !== ''));

@@ -1,5 +1,5 @@
 // One-time migration: seed→free, storyweaver→storyteller, worldforge→worldbuilder
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 
 const LEGACY_MAP = {
   'seed': 'free',

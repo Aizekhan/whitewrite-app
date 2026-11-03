@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 
 // Initialize без service account — використає default credentials
 admin.initializeApp();

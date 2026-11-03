@@ -1,7 +1,7 @@
 // Shared setup for all Cloud Functions modules: admin SDK, CORS, secrets, auth guards.
 const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
-const admin = require('firebase-admin');
+const admin = require('../admin.js'); // firebase-admin v14: the namespaced facade (functions/admin.js)
 const cors = require('cors')({
   origin: [
     'https://whitewrite.com',

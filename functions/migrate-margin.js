@@ -2,7 +2,7 @@
 // Run via Cloud Function: firebase deploy --only functions:migrateMargin
 // Then call: https://<region>-<project>.cloudfunctions.net/migrateMargin
 
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 
 // Initialize Firebase Admin (use default credentials in Cloud Functions)
 if (!admin.apps.length) {

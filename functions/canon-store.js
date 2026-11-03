@@ -14,7 +14,7 @@
 // lazily on first access by ensureWorld(). Ids are preserved (scenes' canonRefs).
 
 const crypto = require('crypto');
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 
 const CANON_KINDS = ['characters', 'locations', 'events', 'factions', 'artifacts'];
 const ID_PREFIX = { characters: 'char', locations: 'loc', events: 'evt', factions: 'fac', artifacts: 'art' };

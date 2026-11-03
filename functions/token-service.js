@@ -12,7 +12,7 @@
 //   const { charge } = require('./token-service.js');
 //   await charge(db, uid, operation, model, usage, projectId);
 
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 const { MODEL_PRICING } = require('./ai-models.js');
 const { tokensForUsd, USD_PER_TOKEN } = require('./paid-features.js');
 const { getPlanBudget } = require('./plans.js');

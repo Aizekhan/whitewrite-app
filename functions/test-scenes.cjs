@@ -1,5 +1,5 @@
 // Test: Check scenes in Firestore for user's project
-const admin = require('firebase-admin');
+const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 
 // Initialize Firebase Admin
 const serviceAccount = require('../whitewrite-app-firebase-adminsdk-fbsvc-4a613380f4.json');
