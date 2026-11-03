@@ -3,10 +3,8 @@ const {
   onRequest,
   admin,
   db,
-  cors,
   stripeSecretKey,
   stripeWebhookSecret,
-  verifyAuth,
 } = require('./common');
 
 
@@ -14,67 +12,9 @@ const {
 // Phase 2: Stripe Integration
 // ============================================================================
 
-const STRIPE_PRICE_IDS = {
-  storyteller: 'price_1Tj4eVK1XPrHbpbZrmiMvCwh',
-  novelist: 'price_1Tj4fBK1XPrHbpbZyhlAANxB',
-  worldbuilder: 'price_1Tj5PZK1XPrHbpbZJ8LpKik0'
-};
-
-/**
- * Create Stripe Checkout Session
- * Called from UI when user clicks "Обрати" plan button
- */
-exports.createCheckoutSession = onRequest({ secrets: [stripeSecretKey] }, async (req, res) => {
-  cors(req, res, async () => {
-    try {
-      const stripe = require('stripe')(stripeSecretKey.value());
-      // Legacy (checkout is Lemon Squeezy now): uid and email ONLY from the verified ID token, never from the body
-      let uid;
-      try { uid = await verifyAuth(req.headers.authorization); } catch (e) { res.status(401).json({ error: 'Unauthorized' }); return; }
-      const email = (await admin.auth().getUser(uid)).email;
-      const { plan } = req.body || {};
-
-      if (!plan || !uid || !email) {
-        res.status(400).json({ error: 'Missing required fields: plan, uid, email' });
-        return;
-      }
-
-      const priceId = STRIPE_PRICE_IDS[plan];
-      if (!priceId) {
-        res.status(400).json({ error: 'Invalid plan: ' + plan });
-        return;
-      }
-
-      console.log(`Creating checkout session for ${email}, plan: ${plan}`);
-
-      const session = await stripe.checkout.sessions.create({
-        mode: 'subscription',
-        payment_method_types: ['card'],
-        line_items: [{
-          price: priceId,
-          quantity: 1
-        }],
-        customer_email: email,
-        client_reference_id: uid, // Link to Firebase user
-        metadata: {
-          plan: plan,
-          uid: uid
-        },
-        success_url: 'https://whitewrite-app.web.app/#account?success=1',
-        cancel_url: 'https://whitewrite-app.web.app/#account?canceled=1',
-        allow_promotion_codes: true,
-        billing_address_collection: 'required'
-      });
-
-      console.log('Checkout session created:', session.id);
-      res.status(200).json({ url: session.url });
-
-    } catch (error) {
-      console.error('createCheckoutSession error:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-});
+// Legacy: subscriptions are sold through Lemon Squeezy (lemon.js). Stripe Checkout (createCheckoutSession) was removed in
+// the 2026-11-03 audit — nothing calls it and it opened real subscriptions without the token period logic. The webhook
+// stays so cancellations of any old Stripe subscription still downgrade the account.
 
 /**
  * Stripe Webhook Handler

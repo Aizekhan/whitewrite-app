@@ -10,6 +10,8 @@ const ledger = require('./ledger');
 const { savedGithub, rememberGithub, forgetGithub } = require('./github-token');
 const { buildSnapshot } = require('./snapshot');
 const { featureCost, byOp } = require('../paid-features.js');
+// outbound calls time out: a hanging remote must not hold the function until its own timeout
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
 const BACKUP_COST = featureCost(byOp('githubBackup'));
 const PERIOD_MS = 30 * 24 * 3600 * 1000, MANUAL_GAP_MS = 10 * 60 * 1000;
@@ -129,18 +131,23 @@ exports.backup = onRequest({ region: 'us-central1', timeoutSeconds: 300, memory:
 });
 
 // Daily: every enabled backup; an unpaid month renews from the owner's tokens, or the backup pauses
-exports.backupDaily = onSchedule({ schedule: 'every 24 hours', timeoutSeconds: 540, memory: '1GiB' }, async () => {
+// Runs every 6 hours, but each world is backed up once a day: worlds backed up in the last 20 h are skipped, 5 run at a time,
+// and no new world starts in the last minutes of the run — the rest go next run, before they are charged again
+exports.backupDaily = onSchedule({ schedule: 'every 6 hours', timeoutSeconds: 540, memory: '1GiB' }, async () => {
+  const started = Date.now(), DAY_GAP = 20 * 3600 * 1000, STOP_AFTER = 420 * 1000;
   const q = await db.collection('worlds').where('backup.enabled', '==', true).get();
-  for (const d of q.docs) {
-    const b = d.data().backup || {};
-    try {
-      if (!b.paidUntil || b.paidUntil.toMillis() < Date.now()) await pay(d.id, d.data().owner);
-      await runBackup(d.id);
-    } catch (e) {
-      console.warn('[backup]', d.id, e.message);
-      await d.ref.update({ 'backup.lastStatus': 'error', 'backup.lastError': str(e.message, 300), ...(e.body && e.body.code ? { 'backup.enabled': false } : {}) }).catch(() => {});
-    }
-  }
+  const due = q.docs.filter((d) => { const l = (d.data().backup || {}).lastAt; return !(l && l.toMillis && Date.now() - l.toMillis() < DAY_GAP); });
+  for (let i = 0; i < due.length && Date.now() - started < STOP_AFTER; i += 5) await Promise.all(due.slice(i, i + 5).map(backupOne));
 });
+async function backupOne(d) {
+  const b = d.data().backup || {};
+  try {
+    if (!b.paidUntil || b.paidUntil.toMillis() < Date.now()) await pay(d.id, d.data().owner);
+    await runBackup(d.id);
+  } catch (e) {
+    console.warn('[backup]', d.id, e.message);
+    await d.ref.update({ 'backup.lastStatus': 'error', 'backup.lastError': str(e.message, 300), ...(e.body && e.body.code ? { 'backup.enabled': false } : {}) }).catch(() => {});
+  }
+}
 
 exports._backup = { slug, runBackup };

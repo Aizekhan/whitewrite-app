@@ -121,7 +121,12 @@ const TOOLS = [
 ];
 
 // ---------- game context ----------
-async function loadGame(key) {
+// one read of the game per request: a JSON-RPC batch shares it (key is per request — authKey)
+function loadGame(key) {
+  if (!key._ctx) key._ctx = readGame(key).catch((e) => { key._ctx = null; throw e; });
+  return key._ctx;
+}
+async function readGame(key) {
   const wref = db.collection('worlds').doc(key.worldId), gref = wref.collection('games').doc(key.gameId);
   const [w, g, ents, cards, plan, tasks] = await Promise.all([wref.get(), gref.get(), wref.collection('entities').get(),
     gref.collection('cards').get(), gref.collection('plan').doc('current').get(), gref.collection('tasks').get()]);
@@ -408,11 +413,12 @@ async function knowledgeStatus(ctx, args) {
   return { snapshot_id: d.id, status: x.status, scope: x.scope, counts: x.counts, coverage: (x.manifest || {}).coverage || null, framework: x.framework || (x.manifest || {}).framework || null,
     report_md: x.report || '', unresolved_md: x.unresolved || '' };
 }
+const KNOWLEDGE_SCAN = 5000;
 async function knowledgeSearch(ctx, args) {
   const lim = Math.max(1, Math.min(100, parseInt(args.limit, 10) || 30)), col = ctx.gref.collection('kAssets');
   let docs;
   if (args.guid) { const d = await col.doc(str(args.guid, 40).toLowerCase()).get(); docs = d.exists ? [d] : []; }
-  else docs = (await col.get()).docs;
+  else docs = (await col.limit(KNOWLEDGE_SCAN).get()).docs; // bounded: a big Unity project has tens of thousands of assets
   let items = docs.map((d) => ({ key: d.id, ...d.data() }));
   const q = str(args.q, 120).toLowerCase(), type = str(args.type, 80).toLowerCase(), pre = str(args.path_prefix, 300).replace(/\\/g, '/');
   if (q) items = items.filter((a) => [a.name, a.path, a.type, a.description, (a.labels || []).join(' ')].join(' ').toLowerCase().includes(q));
@@ -783,6 +789,7 @@ async function authKey(req) {
   return key;
 }
 
+const MAX_BATCH = 20; // each call may read the whole game: an unbounded batch would cost reads and memory
 exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '512MiB', invoker: 'public', secrets: [claudeApiKey] }, async (req, res) => {
   if (req.method === 'GET' || req.method === 'DELETE') return res.status(405).set('Allow', 'POST').send(''); // stateless: no SSE stream, no sessions
   if (req.method !== 'POST') return res.status(405).send('');
@@ -792,6 +799,7 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   }
   const body = req.body;
   if (Array.isArray(body)) {
+    if (body.length > MAX_BATCH) return res.status(400).json({ jsonrpc: '2.0', id: null, error: { code: -32600, message: 'At most ' + MAX_BATCH + ' requests in a batch' } });
     const out = (await Promise.all(body.map((m) => handle(m, key)))).filter(Boolean);
     return out.length ? res.status(200).json(out) : res.status(202).send('');
   }

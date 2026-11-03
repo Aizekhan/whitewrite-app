@@ -13,6 +13,8 @@ const {
 } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { PLAN_ORDER, PLANS, planRank, upgradeQuote } = require('../paid-features.js');
+// outbound calls time out: a hanging remote must not hold the function until its own timeout
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
 const LS_API = 'https://api.lemonsqueezy.com/v1/subscriptions/';
 const lsHeaders = () => ({ 'Accept': 'application/vnd.api+json', 'Content-Type': 'application/vnd.api+json', 'Authorization': `Bearer ${lemonSqueezyApiKey.value()}` });

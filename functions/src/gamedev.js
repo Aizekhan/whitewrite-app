@@ -26,6 +26,8 @@ const { payerFor } = require('./team')._team; // Команда: an admin's ✦ 
 const { intentText } = require('./experience')._experience;
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, withFallback } = require('./claude');
+// outbound calls time out: a hanging remote must not hold the function until its own timeout
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;

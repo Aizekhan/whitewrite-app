@@ -123,7 +123,9 @@ async function resolveKey(token) {
     const k = d.data(), u = await db.collection('users').doc(k.uid).get();
     if (getPlanBudget((u.exists && u.data().plan) || 'free').allowGameDev) key = { ...k, hash: h };
   }
-  keyCache.set(h, { key, until: Date.now() + 5 * 60000 });
+  // only real keys are cached (random wwi_ tokens must not grow the cache), for a minute (a revoked key stops soon:
+  // revoke runs in another function instance), and the cache stays bounded
+  if (key) { if (keyCache.size > 1000) keyCache.clear(); keyCache.set(h, { key, until: Date.now() + 60000 }); }
   return key;
 }
 const num = (v) => (typeof v === 'number' && isFinite(v) ? v : undefined);
@@ -175,8 +177,9 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
     events.forEach((e, i) => { const r = cleanEvent(e, now); if (typeof r === 'string') { if (rejected.length < 20) rejected.push({ i, reason: r }); } else ok.push(r); });
     const gref = db.collection('worlds').doc(key.worldId).collection('games').doc(key.gameId);
     const today = new Date(now).toISOString().slice(0, 10);
-    const st0 = ((await gref.get()).data() || {}).telemetryStats || {};
-    if (st0.day === today && (st0.count || 0) >= DAILY_CAP) { res.set('Retry-After', '3600'); return res.status(429).json({ error: `Daily event cap reached (${DAILY_CAP})`, code: 'DAILY_CAP' }); }
+    // the cap reads the atomic daily counter (telemetryDaily.total, FieldValue.increment) — parallel instances can't overwrite it
+    const d0 = await gref.collection('telemetryDaily').doc(today).get();
+    if (((d0.exists && d0.data().total) || 0) >= DAILY_CAP) { res.set('Retry-After', '3600'); return res.status(429).json({ error: `Daily event cap reached (${DAILY_CAP})`, code: 'DAILY_CAP' }); }
     const exp = expire(RAW_DAYS);
     for (let i = 0; i < ok.length; i += 450) {
       const b = db.batch();
@@ -190,8 +193,8 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
       Object.keys(daily.events).forEach((k) => { daily.events[k] = inc(daily.events[k]); });
       Object.keys(daily.builds).forEach((k) => { daily.builds[k] = inc(daily.builds[k]); });
       await gref.collection('telemetryDaily').doc(day).set(daily, { merge: true });
-      const g = await gref.get(), st = (g.data() || {}).telemetryStats || {};
-      const count = (st.day === day ? st.count || 0 : 0) + ok.length;
+      const [g, dd] = await Promise.all([gref.get(), gref.collection('telemetryDaily').doc(day).get()]), st = (g.data() || {}).telemetryStats || {};
+      const count = (dd.data() || {}).total || ok.length;
       const stats = { day, count, lastAt: ts() };
       if (count > SCALE_EVENTS_PER_DAY) stats.scaleAlert = { day, count };
       else if (st.scaleAlert) stats.scaleAlert = st.scaleAlert; // keeps the reminder until someone acts on it

@@ -12,6 +12,8 @@ const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget }
 const { payerFor } = require('./team')._team;
 const { byOp, ttsCost, ttsUsd, TTS, USD_PER_TOKEN } = require('../paid-features.js');
 const ledger = require('./ledger');
+// outbound calls time out: a hanging remote must not hold the function until its own timeout
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(30000), ...o });
 
 const API = 'https://texttospeech.googleapis.com/v1';
 const LANG_RE = /^[a-z]{2,3}(-[A-Za-z]{2,4})?(-[A-Za-z0-9]+)?$/;

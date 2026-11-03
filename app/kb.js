@@ -103,7 +103,7 @@
             "Рейтинг — ♥, що з часом важать менше (удвічі за 30 днів), тож нові роботи теж мають шанс.",
             "<b>«Вибір спільноти»</b> на головній протягом доби по черзі показує найкращу вітрину кожного з топ-20 авторів.",
             "<b>«Відкрий нового автора»</b> — випадкова вітрина нижче топ-20, якщо її автор працював над світом чи грою за останній тиждень.",
-            "Рейтинг перераховується щогодини.",
+            "Рейтинг перераховується щогодини; нова, знята чи прихована вітрина зʼявляється на головній (або зникає з неї) протягом ~10 хвилин.",
           ]],
           ["h", "Discord і команда"],
           ["ul", [
@@ -1285,7 +1285,7 @@
             "The rating is ♥ that weigh less with time (half after 30 days), so new work has a chance too.",
             "<b>“Community pick”</b> on the home page shows the best showcase of each of the top 20 authors in turn through the day.",
             "<b>“Discover a new author”</b> is a random showcase below the top 20 whose author worked on the world or game in the last week.",
-            "The rating is recounted every hour.",
+            "The rating is recounted every hour; a new, removed or hidden showcase shows up on the home page (or leaves it) within ~10 minutes.",
           ]],
           ["h", "Discord and a team"],
           ["ul", [

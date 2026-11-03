@@ -21,6 +21,8 @@ const { onRequest, admin, db, cors, claudeApiKey, requireAdmin } = require('./co
 const { AI_MODELS, MODEL_PRICING } = require('../ai-models.js');
 const { claudeText } = require('./claude');
 const { notify } = require('./admin-notice');
+// outbound calls time out: a hanging remote must not hold the function until its own timeout
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
 const TIERS = ['haiku', 'sonnet', 'opus'];
 const PRICING_URL = 'https://platform.claude.com/docs/en/about-claude/pricing.md';

@@ -44,7 +44,14 @@ function gltfRights(json) {
   return parts.length ? parts.join(" · ").slice(0, 600) : "";
 }
 // Polygon (triangle) count and rights text of a model file, without showing it — gamebible.js marks heavy models and their licence.
-export async function modelInfo(file, siblings) { const r = await load(file, siblings); return { tris: countTris(r.root), rights: r.meta || "" }; }
+// geometry and textures live on the GPU / in memory until disposed — a model nobody shows must be freed at once
+function disposeTree(root) {
+  root.traverse((o) => {
+    if (o.geometry) o.geometry.dispose();
+    [].concat(o.material || []).forEach((m) => { Object.values(m).forEach((v) => { if (v && v.isTexture) v.dispose(); }); m.dispose(); });
+  });
+}
+export async function modelInfo(file, siblings) { const r = await load(file, siblings); const out = { tris: countTris(r.root), rights: r.meta || "" }; disposeTree(r.root); return out; }
 
 export function view3d(file, T, siblings, onShot) {
   const box = document.createElement("div");
@@ -111,7 +118,7 @@ export function view3d(file, T, siblings, onShot) {
   size();
 
   load(file, siblings).then(({ root, clips }) => {
-    if (!alive) return;
+    if (!alive) { disposeTree(root); return; } // closed while loading: never added to the scene
     model = root;
     scene.add(model);
     if (clips && clips.length) { mixer = new THREE.AnimationMixer(model); mixer.clipAction(clips[0]).play(); }
@@ -123,11 +130,9 @@ export function view3d(file, T, siblings, onShot) {
     renderer.setAnimationLoop(null);
     ro.disconnect();
     controls.dispose();
-    scene.traverse((o) => {
-      if (o.geometry) o.geometry.dispose();
-      [].concat(o.material || []).forEach((m) => { Object.values(m).forEach((v) => { if (v && v.isTexture) v.dispose(); }); m.dispose(); });
-    });
+    disposeTree(scene);
     renderer.dispose();
+    renderer.forceContextLoss(); // browsers cap live WebGL contexts: give this one back now
     document.removeEventListener("keydown", onKey, true);
     box.remove();
     if (opener && opener.focus) opener.focus();

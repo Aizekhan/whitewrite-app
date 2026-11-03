@@ -30,6 +30,9 @@ const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
 const now = () => Date.now();
 const millis = (t) => (t && t.toMillis ? t.toMillis() : typeof t === 'number' ? t : 0);
+// every outbound call has a timeout: a channel's server that hangs must not stall the publisher for everyone
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(15000), ...o });
+const LEASE_MS = 10 * 60 * 1000; // a post stuck in «publishing» longer than this (a crash mid-send) may be retried or deleted
 const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
 
 function botToken() { // the secret holds "unset" until the owner creates the bot (@BotFather)
@@ -116,7 +119,8 @@ async function connect(gref, key, b) {
   }
   if (platform === 'mastodon') {
     const instance = str(b.instance, 120).replace(/^https?:\/\//, '').replace(/\/.*$/, '').toLowerCase(), token = str(b.token, 200);
-    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(instance) || !token) throw fail(400, 'Потрібні сервер Mastodon і токен доступу (Налаштування → Розробка → Новий застосунок, право write:statuses)');
+    // a public host only (the server fetches it): no internal / local names; an IP literal fails the TLD check
+    if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(instance) || /\.(internal|local|localhost|lan|home|corp)$/.test(instance) || !token) throw fail(400, 'Потрібні сервер Mastodon і токен доступу (Налаштування → Розробка → Новий застосунок, право write:statuses)');
     const r = await fetch(`https://${instance}/api/v1/accounts/verify_credentials`, { headers: { Authorization: 'Bearer ' + token } }); const j = await r.json().catch(() => ({}));
     if (!r.ok) throw fail(400, 'Mastodon не прийняв токен');
     await db.collection('marketingSecrets').doc(key + '__' + id).set({ token });
@@ -257,7 +261,8 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       const post = { id: ps.id, ...ps.data() }, hist = admin.firestore.FieldValue.arrayUnion;
       const qref = db.collection('marketingQueue').doc(key + '__' + post.id);
       const setStatus = (s, extra) => pref.set({ status: s, updatedAt: ts(), history: hist({ s, at: now() }), ...(extra || {}) }, { merge: true });
-      if (['published', 'publishing'].includes(post.status) && op !== 'delete') return res.status(409).json({ error: 'Пост уже опубліковано' });
+      const stale = post.status === 'publishing' && now() - millis(post.leaseAt) > LEASE_MS;
+      if ((post.status === 'published' || (post.status === 'publishing' && !stale)) && op !== 'delete') return res.status(409).json({ error: 'Пост уже опубліковано' });
       if (op === 'edit') {
         const pf = PLATFORMS[post.platform] || PLATFORMS.telegram;
         const upd = { text: str(b.text, pf.limit + 200) };
@@ -268,10 +273,10 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       }
       if (op === 'approve') { await setStatus('approved', { approvedAt: ts() }); return res.status(200).json({ success: true }); }
       if (op === 'reject') { if (post.status === 'scheduled') await qref.delete(); await setStatus('rejected'); return res.status(200).json({ success: true }); }
-      if (op === 'delete') { if (post.status === 'publishing') return res.status(409).json({ error: 'Пост публікується' }); await Promise.all([qref.delete(), pref.delete()]); return res.status(200).json({ success: true }); }
+      if (op === 'delete') { if (post.status === 'publishing' && !stale) return res.status(409).json({ error: 'Пост публікується' }); await Promise.all([qref.delete(), pref.delete()]); return res.status(200).json({ success: true }); }
       if (op === 'cancel') { await qref.delete(); await setStatus('approved', { at: admin.firestore.FieldValue.delete() }); return res.status(200).json({ success: true }); }
       if (op === 'schedule' || op === 'publish') {
-        if (!['approved', 'scheduled', 'failed'].includes(post.status)) return res.status(409).json({ error: 'Спершу схвали пост' });
+        if (!['approved', 'scheduled', 'failed'].includes(post.status) && !stale) return res.status(409).json({ error: 'Спершу схвали пост' });
         const ch = await gref.collection('channels').doc(str(b.channelId, 60)).get();
         if (!ch.exists) return res.status(400).json({ error: 'Обери підключений канал' });
         if (op === 'schedule') {
@@ -281,7 +286,14 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
           await setStatus('scheduled', { channelId: ch.id, at });
           return res.status(200).json({ success: true });
         }
-        await setStatus('publishing', { channelId: ch.id, leaseAt: now() });
+        // claimed in a transaction, like the scheduled publisher: a double click or the scheduler on the same post sends it once
+        const claimed = await db.runTransaction(async (t) => {
+          const p = await t.get(pref), x = p.exists ? p.data() : null;
+          const ok = x && (['approved', 'scheduled', 'failed'].includes(x.status) || (x.status === 'publishing' && now() - millis(x.leaseAt) > LEASE_MS));
+          if (ok) t.set(pref, { status: 'publishing', channelId: ch.id, leaseAt: now(), updatedAt: ts(), history: hist({ s: 'publishing', at: now() }) }, { merge: true });
+          return !!ok;
+        });
+        if (!claimed) return res.status(409).json({ error: 'Пост уже публікується' });
         try {
           const sec = await db.collection('marketingSecrets').doc(key + '__' + ch.id).get();
           const out = await publishTo(ch.data(), sec.exists ? sec.data() : {}, post);
@@ -304,28 +316,32 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
 // so two runs never send it twice; a failure stays visible on the post («Повторити» in the Bible).
 exports.marketingPublisher = onSchedule({ schedule: 'every 5 minutes', secrets: [telegramBotToken], timeoutSeconds: 240 }, async () => {
   const due = await db.collection('marketingQueue').where('at', '<=', admin.firestore.Timestamp.now()).limit(25).get();
-  for (const q of due.docs) {
-    const pref = db.doc(q.data().path);
-    const claimed = await db.runTransaction(async (t) => {
-      const p = await t.get(pref);
-      if (!p.exists || p.data().status !== 'scheduled') return null;
-      t.set(pref, { status: 'publishing', leaseAt: now(), updatedAt: ts() }, { merge: true });
-      return { id: p.id, ...p.data() };
-    });
-    await q.ref.delete();
-    if (!claimed) continue;
-    const gref = pref.parent.parent, key = gref.parent.parent.id + '__' + gref.id;
-    const hist = (s) => admin.firestore.FieldValue.arrayUnion({ s, at: now() });
-    try {
-      const [ch, sec] = await Promise.all([gref.collection('channels').doc(claimed.channelId || '-').get(), db.collection('marketingSecrets').doc(key + '__' + claimed.channelId).get()]);
-      if (!ch.exists) throw new Error('Канал відключено');
-      const out = await publishTo(ch.data(), sec.exists ? sec.data() : {}, claimed);
-      await pref.set({ status: 'published', ...out, publishedAt: ts(), updatedAt: ts(), history: hist('published') }, { merge: true });
-    } catch (e) {
-      console.error('[marketingPublisher]', pref.path, e.message);
-      await pref.set({ status: 'failed', error: str(e.message, 500), updatedAt: ts(), history: hist('failed') }, { merge: true });
-    }
-  }
+  for (let i = 0; i < due.docs.length; i += 5) await Promise.all(due.docs.slice(i, i + 5).map(publishDue)); // 5 at a time, each send ≤ 15 s
 });
+async function publishDue(q) {
+  const pref = db.doc(q.data().path);
+  const claimed = await db.runTransaction(async (t) => {
+    const p = await t.get(pref);
+    if (!p.exists || p.data().status !== 'scheduled') return null;
+    t.set(pref, { status: 'publishing', leaseAt: now(), updatedAt: ts() }, { merge: true });
+    return { id: p.id, ...p.data() };
+  });
+  await q.ref.delete();
+  if (!claimed) return;
+  const gref = pref.parent.parent, key = gref.parent.parent.id + '__' + gref.id;
+  const hist = (s) => admin.firestore.FieldValue.arrayUnion({ s, at: now() });
+  try {
+    const [ch, sec] = await Promise.all([gref.collection('channels').doc(claimed.channelId || '-').get(), db.collection('marketingSecrets').doc(key + '__' + claimed.channelId).get()]);
+    if (!ch.exists) throw new Error('Канал відключено');
+    const [st, w] = await Promise.all([gref.collection('marketing').doc('state').get(), gref.parent.parent.get()]); // still paid for, not frozen?
+    if (!st.exists || !st.data().enabled || millis(st.data().paidUntil) <= now()) throw new Error('Маркетинг вимкнено');
+    if (w.exists && w.data().freeze) throw new Error('Світ заморожено (Маркет)');
+    const out = await publishTo(ch.data(), sec.exists ? sec.data() : {}, claimed);
+    await pref.set({ status: 'published', ...out, publishedAt: ts(), updatedAt: ts(), history: hist('published') }, { merge: true });
+  } catch (e) {
+    console.error('[marketingPublisher]', pref.path, e.message);
+    await pref.set({ status: 'failed', error: str(e.message, 500), updatedAt: ts(), history: hist('failed') }, { merge: true });
+  }
+}
 
 exports._marketing = { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken, connect, tgCode }; // tests only

@@ -158,12 +158,12 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           items.slice(i, i + 400).forEach((it, j) => b.set(ref.collection('items').doc('i' + String(i + j).padStart(4, '0')), it));
           await b.commit();
         }
-        await rebuildHome().catch((e) => console.error('[community] home rebuild failed:', e));
+        await markStale();
         return res.status(200).json({ success: true, pubId, items: items.length });
       }
 
       const pubId = str(body.pubId, 260);
-      if (!pubId) return res.status(400).json({ error: 'Missing pubId' });
+      if (!pubId || pubId.includes('/')) return res.status(400).json({ error: 'Missing pubId' }); // '/' would address a sub-document
       const col = body.col === 'collab' ? 'collab' : 'community'; // reports and moderation also cover «Співтворці» posts
       if (col === 'collab' && action !== 'report' && action !== 'hide') return res.status(400).json({ error: 'Unknown action' });
       const ref = db.collection(col).doc(pubId);
@@ -174,7 +174,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
       if (action === 'unpublish') {
         if (d.owner !== uid && !isAdmin) return res.status(403).json({ error: 'Немає доступу' });
         await deleteSub(ref, 'items'); await deleteSub(ref, 'likes'); await deleteSub(ref, 'followers'); await ref.delete();
-        await rebuildHome().catch((e) => console.error('[community] home rebuild failed:', e));
+        await markStale();
         return res.status(200).json({ success: true });
       }
       if (action === 'like') {
@@ -220,7 +220,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
         await ref.update({ hidden });
         const reps = await db.collection('community_reports').where('pubId', '==', pubId).get();
         const b = db.batch(); reps.docs.forEach((r) => b.update(r.ref, { resolved: true })); await b.commit();
-        if (col === 'community') await rebuildHome().catch((e) => console.error('[community] home rebuild failed:', e));
+        if (col === 'community') await markStale();
         return res.status(200).json({ success: true, hidden });
       }
       return res.status(400).json({ error: 'Unknown action' });
@@ -231,7 +231,12 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
   });
 });
 
-exports.communityRotate = onSchedule({ schedule: 'every 60 minutes', timeoutSeconds: 300 }, async () => {
+// publish / unpublish / hide no longer rebuild the home inline (it walks every showcase — anyone could make it run again and
+// again): they mark it stale; communityRotate rebuilds a stale home within 10 minutes, and every hour anyway (♥ ageing)
+const markStale = () => db.collection('community_home').doc('current').set({ stale: true }, { merge: true }).catch((e) => console.error('[community] mark stale failed:', e));
+exports.communityRotate = onSchedule({ schedule: 'every 10 minutes', timeoutSeconds: 300 }, async () => {
+  const cur = (await db.collection('community_home').doc('current').get()).data() || {};
+  if (!cur.stale && cur.at && cur.at.toMillis && Date.now() - cur.at.toMillis() < 55 * 60 * 1000) return;
   const r = await rebuildHome();
   console.log('[community] home rebuilt', r);
 });
