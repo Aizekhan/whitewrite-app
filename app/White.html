@@ -1043,7 +1043,7 @@ body.at-home .back-fab{ display:none; }
     inWork = false; mode = v;
     if (v === "account") fillAccount();
     if (v === "market" && !CM.open) loadCommunity();
-    if (v === "worlds") { fillWorlds(); loadProjects(); }
+    if (v === "worlds") { fillWorlds(); var vw = views.worlds.firstChild; if (vw && vw.style) vw.style.animation = ""; loadProjects(); } // entering plays the entrance again
     if (v === "narr") {
       // Show immediate loader to prevent flash of empty state
       views.narr.innerHTML = '<div style="padding:60px;text-align:center;color:var(--tx-mid)"><div style="font-size:24px;margin-bottom:12px">⏳</div>' + (window.__i18n ? window.__i18n.t('projects.loading') : 'Завантаження проєктів...') + '</div>';
@@ -1529,16 +1529,20 @@ body.at-home .back-fab{ display:none; }
     hubGamesOff = function () { off(); hubGamesOff = null; hubGamesOf = null; };
   }
   // Світи: every world of the author; entering one opens its hub.
+  // The view is drawn from the cached list at once and again when loadProjects returns: the same HTML is not redrawn (no
+  // rebuilt covers, no restarted videos), and a redraw of a view already on screen does not replay its entrance animation
+  var worldsHtml = "", worldsWasLoading = false;
   function fillWorlds() {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var count = function (id) { return PROJECTS.filter(function (p) { return p.worldId === id; }).length; };
-    views.worlds.innerHTML =
+    var loading = PROJECTS_LOADING && !WORLDS.length;
+    var html =
       '<div class="vwrap">' +
         '<div class="vhead__k">' + t('worlds.kicker') + '</div>' +
         '<h1 class="vhead__t">' + t('worlds.title') + '</h1>' +
         '<p class="vhead__s">' + t('worlds.subtitle') + '</p>' +
         '<div class="grid grid--narr" style="margin-top:28px">' +
-          (PROJECTS_LOADING && !WORLDS.length ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
+          (loading ? '<div style="padding:40px;text-align:center;color:var(--tx-mid);grid-column:1/-1">' + t('projects.loadingShort') + '</div>' :
            WORLDS.map(function (w) {
              var mineW = !w.shared;
              return '<article class="ncard ncard--world" data-world="' + escapeHtml(w.id) + '">' +
@@ -1553,6 +1557,11 @@ body.at-home .back-fab{ display:none; }
           '<button class="ncard ncard--new" id="new-world">' + svg("plus") + '<span style="font-family:Cinzel,serif;font-weight:600;font-size:15px">' + t('worlds.new') + '</span><span style="font-size:12.5px;margin-top:6px;color:var(--tx-low)">' + t('worlds.newHint') + '</span></button>' +
         '</div>' +
       '</div>';
+    if (html === worldsHtml) return;
+    var again = !!worldsHtml && !worldsWasLoading && views.worlds.classList.contains("is-on"); // fresh data under the open view
+    worldsHtml = html; worldsWasLoading = loading;
+    views.worlds.innerHTML = html;
+    if (again) views.worlds.firstChild.style.animation = "none";
     [].forEach.call(views.worlds.querySelectorAll('[data-open-world]'), function (b) {
       b.addEventListener("click", function () { openWorld(b.closest('.ncard').dataset.world); });
     });
