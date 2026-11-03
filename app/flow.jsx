@@ -696,8 +696,8 @@ function GenesisScreen({ data, onChoose, onSkip, onBack }) {
         <div className="form-inner">
           <div className="form-head">
             <div className="form-kicker">{t('genesis.kicker')}</div>
-            <h2 className="form-title">{t('genesis.title')}</h2>
-            <p className="genesis-lead">{t(author ? 'genesis.leadAuthor' : 'genesis.lead')}</p>
+            <h2 className="form-title">{t(author ? 'genesis.titleAuthor' : 'genesis.title')}</h2>
+            <p className="genesis-lead">{t(!author ? 'genesis.lead' : data.source ? 'genesis.leadFile' : 'genesis.leadAuthor')}</p>
           </div>
 
           {(busy || choosing === "author") && <div className="genesis-wait"><span className="genesis-wait__star">✦</span>{t(author ? 'genesis.loadingAuthor' : 'genesis.loading')}</div>}
@@ -727,13 +727,14 @@ function GenesisScreen({ data, onChoose, onSkip, onBack }) {
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack} disabled={locked}>{t('form.back')}</button>
             <span className="genesis-foot">
+              {/* the author's material: one world, made at once — retry and an empty world only as a way out of an error */}
               {author
-                ? <button className="link-back" type="button" onClick={() => load("author")} disabled={locked}>↻ {t('genesis.retry')}</button>
+                ? error && !locked && <button className="link-back" type="button" onClick={() => load("author")}>↻ {t('genesis.retry')}</button>
                 : <button className="link-back" type="button" onClick={() => load()} disabled={locked}>↻ {t('genesis.again')}</button>}
               {!author && <button className="link-back" type="button" onClick={() => load("author")} disabled={locked}>✎ {t('genesis.minimal')}</button>}
-              <button className="link-back" type="button" onClick={() => go("skip", onSkip)} disabled={locked}>
-                {choosing === "skip" ? t('genesis.creating') : t('genesis.skip')}
-              </button>
+              {(!author || (error && !busy)) && <button className="link-back" type="button" onClick={() => go("skip", onSkip)} disabled={locked}>
+                {choosing === "skip" ? t('genesis.creating') : t(author ? 'genesis.skipAuthor' : 'genesis.skip')}
+              </button>}
             </span>
           </div>
         </div>
