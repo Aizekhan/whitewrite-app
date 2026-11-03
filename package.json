@@ -6,7 +6,9 @@
   "scripts": {
     "build:app": "node scripts/build-app.mjs",
     "test": "node tests/run.mjs",
-    "test:rules": "node tests/rules.test.mjs"
+    "test:rules": "node tests/rules.test.mjs",
+    "prepare": "git config core.hooksPath scripts/git-hooks",
+    "gate": "node scripts/change-gate.mjs"
   },
   "devDependencies": {
     "@babel/standalone": "7.29.0",

@@ -1,0 +1,3 @@
+#!/bin/sh
+# WhiteWrite commit gate — see scripts/change-gate.mjs
+exec node scripts/change-gate.mjs "$1"
