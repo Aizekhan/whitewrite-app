@@ -3101,6 +3101,7 @@
       (med.isNew ? '' : '<button class="btn" data-mact="files">' + MC.files + '</button>') + '</div></header>' +
       '<div class="mhead" id="m-bar">' + mBarHtml(r) + '</div>' + mTabsHtml(r) + body +
       '<div class="canonbox qbox" id="m-issues" aria-live="polite">' + mIssuesHtml(r) + '</div>' +
+      (!med.isNew && !s ? impactHtml(allCards().filter(function (x) { return x.key === "c:" + med.id; })[0] || { isNew: true }) : '') +
       (canWrite ? '<div class="row wsave"><span class="muted" id="m-state"></span>' + (med.isNew ? '' : '<button class="btn danger" data-mact="delete">' + MC.del + '</button>') +
         '<button class="btn primary" data-mact="save" id="m-save">' + MC.save + '</button></div>' : '') + '</div>';
     if (!canWrite) [].forEach.call($("m-ed").querySelectorAll("input,textarea,select,[data-mchip],[data-mact^=add],[data-mact^=rm],[data-mact^=dup]"), function (el) { el.disabled = true; });
@@ -3352,6 +3353,81 @@
     }).join("") + ds.map(function (d) {
       return '<button class="dlink" data-dqd="dialogues:' + esc(d.id) + '"><span class="k">' + QD.dialogue + '</span>' + esc(d.title || "…") + '</button>';
     }).join("") + '</div>';
+  }
+  // ---------- «🔗 Що зачепить зміна»: everything in the game that points at a card (quests, dialogues and their voice lines,
+  // plan tasks, linked mechanics, Sound factory slots, Кузня owners / loadouts, the style biome) — shown in the card and, after
+  // a save that changed it, as a note; the canon has its own engine (wImpact) ----------
+  var IMP = { uk: { title: "🔗 Що зачепить зміна", none: "Поки ніщо в грі не посилається на цю картку.", canon: "Картка з канону світу: зміна назви чи опису діє в Біблії світу й у всіх іграх світу.",
+      quest: "Квест", dialogue: "Діалог", voice: "Озвучка в діалозі", task: "Задача", mech: "Повʼязана механіка", slot: "Слот звуку", owner: "Власник предмета", item: "Предмет",
+      loadout: "У спорядженні", biome: "Стиль біому", styles: "Задає стиль", saved: "«{t}» збережено. Ця зміна може зачепити:", more: "＋ ще {n}", close: "Закрити" },
+    en: { title: "🔗 What this change touches", none: "Nothing in the game points at this card yet.", canon: "A card from the world canon: a new name or description applies in the World Bible and in every game of the world.",
+      quest: "Quest", dialogue: "Dialogue", voice: "Voice line in a dialogue", task: "Task", mech: "Linked mechanic", slot: "Sound slot", owner: "Item owner", item: "Item",
+      loadout: "In the loadout of", biome: "Biome style", styles: "Sets the style of", saved: "«{t}» saved. This change may touch:", more: "＋ {n} more", close: "Close" } }[LANG];
+  function impactOf(c) {
+    if (!c || c.isNew) return [];
+    var out = [], seen = {}, add = function (k, name, attr, extra) { var id = k + "|" + attr; if (seen[id]) return; seen[id] = 1; out.push({ k: k, name: name || "…", attr: attr, extra: extra || "" }); };
+    var ref = c.src === "canon" ? c.id : "c:" + c.id, has = function (v) { return v === ref || (Array.isArray(v) && v.indexOf(ref) >= 0); };
+    var byId = function (id) { return allCards().filter(function (x) { return x.src === "game" && x.id === id; })[0]; };
+    var chipOf = function (x) { return 'data-openref="' + esc(x.key) + '"'; };
+    quests.forEach(function (q) { if (QREFS.some(function (k) { return has(q[k]); }) || (q.source && q.source.id === c.id)) add("quest", q.title, 'data-dqd="quests:' + esc(q.id) + '"'); });
+    dialogues.forEach(function (d) {
+      var nodes = d.nodes || [];
+      if (has(d.participants) || d.location === ref || nodes.some(function (n) { return n.speaker === ref; })) add("dialogue", d.title, 'data-dqd="dialogues:' + esc(d.id) + '"');
+      if (nodes.some(function (n) { return (n.voice || []).indexOf(c.id) >= 0; })) add("voice", d.title, 'data-dqd="dialogues:' + esc(d.id) + '"');
+    });
+    ((planDoc.plan || {}).milestones || []).forEach(function (m) {
+      (m.tasks || []).forEach(function (t) {
+        var linked = (t.cards || []).some(function (r) { var x = refCard(r); return x && x.key === c.key; }) || cards.some(function (x) { return x.id === c.id && x.planTask === t.id; });
+        var lt = liveTask(t.id);
+        if (linked) add("task", t.id + " · " + t.title, 'data-imptask="' + esc(m.id) + '"', lt ? STR.ts[lt.status] || lt.status : "");
+      });
+    });
+    var mine = byId(c.id), links = mine && mine.mech ? mine.mech.links || [] : [];
+    allCards().forEach(function (x) {
+      if (x.src !== "game" || x.id === c.id) return;
+      if (x.mech) {
+        if ((x.mech.links || []).indexOf(c.id) >= 0 || links.indexOf(x.id) >= 0) add("mech", x.title, chipOf(x));
+        window.__MECH.soundSlots(x.mech, LANG).forEach(function (sl) { if (sl.refs.indexOf(c.id) >= 0) add("slot", x.title, chipOf(x), sl.rowName ? sl.rowName + " · " + sl.label : sl.label); });
+      }
+      var f = x.forge || {};
+      if ((f.owners || []).indexOf(c.id) >= 0) add("item", x.title, chipOf(x));
+      if ((f.loadouts || []).some(function (l) { return Object.keys(l.items || {}).some(function (k) { return l.items[k] === c.id; }); })) add("loadout", x.title, chipOf(x));
+    });
+    var mf = (mine && mine.forge) || {};
+    (mf.owners || []).forEach(function (id) { var x = byId(id); if (x) add("owner", x.title, chipOf(x)); });
+    (mf.loadouts || []).forEach(function (l) { Object.keys(l.items || {}).forEach(function (k) { var x = byId(l.items[k]); if (x) add("item", x.title, chipOf(x)); }); });
+    if (c.section === "artstyle") allCards().forEach(function (x) { var st = x.section !== "artstyle" && styleFor(x); if (st && st.res.biome && st.res.biome.id === c.id) add("styles", x.title, chipOf(x)); });
+    else { var st = styleFor(c); if (st && st.res.biome) { var b = byId(st.res.biome.id); if (b) add("biome", b.title, chipOf(b)); } }
+    return out;
+  }
+  function impactChips(list) {
+    return list.map(function (i) { return '<button class="dlink" ' + i.attr + '><span class="k">' + esc(IMP[i.k]) + '</span>' + esc(i.name) + (i.extra ? ' <i>' + esc(i.extra) + '</i>' : '') + '</button>'; }).join("");
+  }
+  function impactHtml(c) {
+    var list = impactOf(c);
+    return '<div class="field impact"><h4 class="dsub">' + IMP.title + (list.length ? ' <span class="muted">' + list.length + '</span>' : '') + '</h4>' +
+      (c.src === "canon" ? '<p class="hint">' + IMP.canon + '</p>' : '') +
+      (list.length ? '<div class="dlinks">' + impactChips(list) + '</div>' : '<p class="hint">' + IMP.none + '</p>') + '</div>';
+  }
+  // after a save that changed a used card: a note at the page corner with the same links (12 s, or until closed)
+  var impTimer = null;
+  function impactNote(title, list) {
+    var el = $("impact-note");
+    if (!el) { el = document.createElement("div"); el.id = "impact-note"; el.className = "impnote"; el.setAttribute("role", "status"); document.body.appendChild(el); el.addEventListener("click", function (e) {
+      if (e.target.closest("[data-impclose]")) { el.hidden = true; return; }
+      var b = e.target.closest("button"); if (b) { el.hidden = true; impactGo(b); }
+    }); }
+    el.innerHTML = '<p>' + esc(IMP.saved.replace("{t}", title)) + '</p><div class="dlinks">' + impactChips(list.slice(0, 6)) + '</div>' +
+      (list.length > 6 ? '<p class="hint">' + esc(IMP.more.replace("{n}", list.length - 6)) + '</p>' : '') + '<button class="btn mini" data-impclose>' + IMP.close + '</button>';
+    el.hidden = false; clearTimeout(impTimer); impTimer = setTimeout(function () { el.hidden = true; }, 12000);
+  }
+  // a chip of the list → the quest / dialogue, the plan stage of a task, or the card (mechanics open in the constructor)
+  function impactGo(b) {
+    if (b.dataset.dqd) { var qp = b.dataset.dqd.split(":"); if (open) closeLeaf(); openQD(qp[0], qp.slice(1).join(":")); return true; }
+    if (b.dataset.imptask) { var mid = b.dataset.imptask; if (open) closeLeaf(); goSection("plan"); setTimeout(function () { var m = $("ms-" + mid); if (m) m.scrollIntoView({ block: "start" }); }); return true; }
+    if (b.dataset.openref) { var x = allCards().filter(function (y) { return y.key === b.dataset.openref; })[0]; if (!x) return true;
+      if (x.src === "game" && (x.section === "mechanics" || x.section === "audio" && x.mech)) { if (open) closeLeaf(); openMech(x); } else openCard(x); return true; }
+    return false;
   }
   // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
   var COSMO_COST = window.__PAID_FEATURES ? window.__PAID_FEATURES.featureCost(window.__PAID_FEATURES.byOp("cosmograph")) : 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
@@ -3732,7 +3808,8 @@
     draft.defs.forEach(function (d) { if (d.key !== gk && (!lean || editMode || d.type === "image" || draft.fields[d.key])) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
     if (!open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest) html += voCardHtml(voCardKey(open));
-    if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + qdLinksHtml({ id: open.src === "canon" ? open.id : "c:" + open.id }) + '</div>';
+    if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + '</div>';
+    if (!open.isNew) html += impactHtml(open);
     if (!lean || editMode) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
@@ -4466,6 +4543,9 @@
     var gk = groupKey(sec(open.section));
     if (gk && draft.fields[gk] && !draft.defs.some(function (d) { return d.key === gk; })) draft.defs.push({ key: gk, label: STR.group });
     msg(STR.saving);
+    var changed = !open.isNew && (draft.title !== open.title || (draft.note || "") !== (open.note || "") || JSON.stringify(draft.fields) !== JSON.stringify(open.fields || {}) ||
+      (draft.canonDesc !== null && open.canonDesc && draft.canonDesc !== open.canonDesc.value));
+    var touched = changed ? impactOf(open) : [];
     try {
       if (open.src === "canon") {
         var s = sec(open.section);
@@ -4488,7 +4568,9 @@
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
       if (stay === true) { open.isNew = false; open.title = draft.title; $("e-delete").style.display = ""; msg(""); return; }
+      var savedTitle = draft.title;
       closeLeaf();
+      if (touched.length) impactNote(savedTitle, touched);
     } catch (e) {
       msg(STR.failed + ": " + (e.code || e.message || e));
     }
@@ -7004,6 +7086,7 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
+    var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return; // «🔗 Що зачепить зміна» in the mechanics constructor
     if (e.target.closest("[data-wname]")) return editWorldName();
     if (e.target.closest("[data-gcover]")) return editGameCover();
     if (e.target.closest("[data-guide]")) return guideToggle();
@@ -7082,6 +7165,7 @@
   $("e-body").addEventListener("click", function (e) {
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
     var qb = e.target.closest("[data-bulb]"); if (qb) { var bp = qb.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); return; }
+    var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return;
     var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var fr = e.target.closest("[data-frame]"); if (fr) { pickFrame(open, fr.dataset.frame); return; }
