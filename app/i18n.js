@@ -354,6 +354,9 @@
       'genesis.skipAuthor': 'Почати з порожнього світу',
       'worlds.fillLater': '📜 Свої матеріали — нотатки, документи, теки — заллєш одразу на сторінці світу: твій ШІ-агент складе їх у файл за нашим шаблоном.',
       'worlds.ideasTick': '✦ Запропонувати 3 варіанти світу за описом (ШІ)',
+      'worlds.folderBtn': '📂 Завантажити теку з матеріалами',
+      'worlds.folderPicked': '📂 Тека «{d}» · текстових файлів: {n}',
+      'worlds.folderClear': 'Прибрати',
       'genesis.skip': 'Пропустити — почати з порожнього світу',
 
       // Worlds (world-first home)
@@ -383,6 +386,7 @@
       'worlds.create': 'Народити світ',
       'worlds.plan_ideas': 'ШІ запропонує 3 варіанти світу за описом — обереш один',
       'worlds.plan_empty': 'Світ створиться одразу й відкриється в Біблії — там заллєш свої матеріали. Без токенів',
+      'worlds.plan_folder': 'Світ створиться й відкриється в Біблії, ШІ розкладе теку по розділах — побачиш, що додасться, і перенесеш. Ціну (не більше N токенів) покажемо перед запуском',
       'kb.fab': 'База знань',
 
       // Feedback Modal
@@ -929,6 +933,9 @@
       'genesis.skipAuthor': 'Start with an empty world',
       'worlds.fillLater': '📜 Your own material — notes, documents, folders — goes in right on the world’s page: your AI agent puts it into a file by our template.',
       'worlds.ideasTick': '✦ Propose 3 worlds from the description (AI)',
+      'worlds.folderBtn': '📂 Upload a folder of material',
+      'worlds.folderPicked': '📂 Folder «{d}» · text files: {n}',
+      'worlds.folderClear': 'Remove',
       'genesis.skip': 'Skip — start with an empty world',
 
       // Worlds (world-first home)
@@ -958,6 +965,7 @@
       'worlds.create': 'Bring the world to life',
       'worlds.plan_ideas': 'AI proposes 3 worlds from the description — you pick one',
       'worlds.plan_empty': 'The world is created at once and opens in its Bible — pour your material in there. No tokens',
+      'worlds.plan_folder': 'The world is created and opens in its Bible, AI sorts the folder into the sections — you see what will be added and move it in. The price (never above N tokens) is shown before the run',
       'kb.fab': 'Knowledge base',
 
       'ui.feedback': 'Report a bug or write to us',

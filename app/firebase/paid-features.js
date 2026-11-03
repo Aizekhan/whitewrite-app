@@ -235,10 +235,14 @@ const FEATURES = [
     uk: { name: 'Заповни світ своїми матеріалами', desc: 'Твій ШІ-агент (Claude Code, ChatGPT…) складає нотатки й документи в один файл за шаблоном WhiteWrite і правилами «що куди»; сервіс лише переносить дані в розділи канону. Без токенів, на будь-якому тарифі; лише власник світу.' },
     en: { name: 'Fill the world with your material', desc: 'Your AI agent (Claude Code, ChatGPT…) puts notes and documents into one file by the WhiteWrite template and the «what goes where» rules; the service only moves the data into the canon sections. No tokens, on any plan; the world owner only.' },
     where: 'Біблія світу → Огляд світу / Налаштування світу', server: 'немає (у браузері, functions/world-fill.js) · firestore.rules entities/lore' },
-  { id: 'agentWhite', kind: 'ai', flag: 'allowAgent', minPlan: 'storyteller', price: { quote: { partChars: 1000000, outPerPart: 8000, overhead: 2000 } }, op: 'agentWhite', // per step: «не більше N» for the conversation sent
-    uk: { name: '✦ Агент White', desc: 'Чат угорі Біблії: читає теку, яку ти відкриєш у браузері, і пропонує заповнити канон світу чи картки гри (ти відмічаєш, що взяти); відповідає про сервіс з Бази знань; відкриває розділи. Нічого не пише без тебе. Ціна — реальна вартість кожного кроку, не більше показаного.' },
-    en: { name: '✦ Agent White', desc: 'A chat at the top of the Bible: reads the folder you open in the browser and proposes the world canon or game cards (you tick what to take); answers about the service from the Knowledge base; opens sections. Writes nothing without you. Price — the real cost of each step, never above the one shown.' },
-    where: 'Біблія світу / GDD гри → угорі «Агент White»', server: 'agentWhite' },
+  { id: 'worldFolder', kind: 'ai', flag: 'allowFolderFill', minPlan: 'storyteller', price: { quote: { partChars: 20000, outPerPart: 12000 } }, op: 'worldFolder', // the folder known → «не більше N»
+    uk: { name: '📂 Завантажити теку світу ✦', desc: 'Обираєш теку з нотатками — ШІ розкладає текстові файли по розділах канону за правилами «що куди», ти бачиш, що додасться, і натискаєш «Перенести в світ». Ціна — за обсягом теки, не більше показаної.' },
+    en: { name: '📂 Upload a world folder ✦', desc: 'Pick a folder of notes — AI sorts the text files into the canon sections by the «what goes where» rules, you see what will be added and press «Move into the world». Priced by the folder size, never above the shown price.' },
+    where: 'Біблія світу → Огляд світу · форма нового світу', server: 'worldFolder' },
+  { id: 'kbHelper', kind: 'free', minPlan: 'free', limit: { perDay: 20 }, // Haiku, the base in a cached prompt: < $0.001 a question — we pay it
+    uk: { name: 'Запитай Базу знань', desc: 'Поле вгорі Бази знань: коротка відповідь лише з її статей і посилання на них. Нічого не робить у сервісі. Безкоштовно, до 20 питань на добу.' },
+    en: { name: 'Ask the Knowledge base', desc: 'A field at the top of the Knowledge base: a short answer only from its articles, with links to them. Does nothing in the service. Free, up to 20 questions a day.' },
+    where: 'База знань', server: 'kbAsk · kbHelp/{uid} (server only)' },
   { id: 'gameFolder', kind: 'free', minPlan: 'free',
     uk: { name: '📂 Підготувати теку гри', desc: 'Браузер (Chrome / Edge) записує в обрану теку .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і .mcp.json у .gitignore — без PowerShell. Ключ MCP — Worldbuilder.' },
     en: { name: '📂 Prepare the game folder', desc: 'The browser (Chrome / Edge) writes .mcp.json with a new MCP key, the log block in CLAUDE.md and .mcp.json in .gitignore into the picked folder — no PowerShell. The MCP key is Worldbuilder.' },

@@ -206,7 +206,38 @@ function plan(data, cur, opts) {
   return { world: Object.keys(wp).length ? wp : null, writes: writes, counts: counts, kept: kept };
 }
 
-var FILL = { FORMAT: FORMAT, KINDS: KINDS, LORE: LORE, RULES: RULES, TEMPLATE: TEMPLATE, prompt: prompt, parse: parse, plan: plan };
+// Several fill objects (the parts of a big folder, sorted by AI one by one) → one: the same kind + name is one item —
+// an empty field takes the other's value, two different texts are joined, lists (links, life, who) are joined without repeats
+function merge(parts) {
+  var out = { format: FORMAT, world: { tagline: '', summary: '', rules: [], facts: [] }, culture: {} };
+  var key = function (v) { return typeof v === 'object' ? JSON.stringify(v) : String(v); };
+  var join = function (a, b) {
+    if (Array.isArray(a) || Array.isArray(b)) { var seen = {}, r = []; arr(a).concat(arr(b)).forEach(function (x) { var k = key(x); if (!seen[k]) { seen[k] = 1; r.push(x); } }); return r; }
+    if (a == null || a === '' || a === 0) return b; if (b == null || b === '' || b === 0) return a;
+    if (typeof a === 'string' && typeof b === 'string' && norm(a) !== norm(b)) return norm(a).indexOf(norm(b)) >= 0 ? a : norm(b).indexOf(norm(a)) >= 0 ? b : a + '\n\n' + b;
+    return a;
+  };
+  var into = function (list, items) {
+    arr(items).forEach(function (it) {
+      if (!it || !s(it.name)) return;
+      var same = list.filter(function (x) { return norm(x.name) === norm(it.name); })[0];
+      if (!same) { list.push(Object.assign({}, it)); return; }
+      Object.keys(it).forEach(function (k) { same[k] = join(same[k], it[k]); });
+    });
+  };
+  arr(parts).forEach(function (p) {
+    if (!p || typeof p !== 'object') return;
+    var w = p.world || {};
+    out.world.tagline = out.world.tagline || s(w.tagline);
+    out.world.summary = join(out.world.summary, s(w.summary));
+    out.world.rules = join(out.world.rules, w.rules); out.world.facts = join(out.world.facts, w.facts);
+    KINDS.forEach(function (k) { into(out[k] || (out[k] = []), p[k]); });
+    Object.keys(LORE).forEach(function (g) { into(out.culture[g] || (out.culture[g] = []), (p.culture || {})[g]); });
+  });
+  return out;
+}
+
+var FILL = { FORMAT: FORMAT, KINDS: KINDS, LORE: LORE, RULES: RULES, TEMPLATE: TEMPLATE, prompt: prompt, parse: parse, plan: plan, merge: merge };
 if (typeof module !== 'undefined' && module.exports) module.exports = FILL;
 if (typeof window !== 'undefined') window.__FILL = FILL;
 })();

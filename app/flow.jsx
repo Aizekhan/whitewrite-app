@@ -574,13 +574,24 @@ function WorldForm({ onBack, onCreate, initial }) {
   const [description, setDescription] = useFState(init.description || "");
   const [ideas, setIdeas] = useFState(!!init.ideas);
   const [creating, setCreating] = useFState(false);
+  const [folder, setFolder] = useFState(null); // «📂 Завантажити теку»: the picked files wait for the world's Bible (gamebible.js runWorldFolder)
+  const PFw = window.__PAID_FEATURES, canFolder = !!(PFw && window.__wwUser && PFw.planBudget(window.__wwUser.plan || 'free').allowFolderFill);
   const desc = description.trim();
-  const plan = !title.trim() && !desc ? "" : desc && ideas ? "ideas" : "empty";
+  const plan = !title.trim() && !desc && !folder ? "" : folder ? "folder" : desc && ideas ? "ideas" : "empty";
+  function pickFolder(e) {
+    const files = [].slice.call(e.target.files || []); e.target.value = "";
+    if (!files.length) return;
+    const name = (files[0].webkitRelativePath || "").split("/")[0] || files[0].name;
+    const text = files.filter((f) => /\.(md|markdown|txt|json|csv|tsv|ya?ml|xml|html?|fountain|org|rst|ini|toml)$/i.test(f.name)).length;
+    setFolder({ name, files, text }); setIdeas(false);
+    if (!title.trim()) setTitle(name);
+  }
   async function submit() {
     if (!plan || creating) return;
     setCreating(true);
     try {
-      await onCreate({ title: title.trim(), description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
+      try { window.top.__wwPendingFolder = folder ? { name: folder.name, files: folder.files } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
+      await onCreate({ title: title.trim() || (folder && folder.name) || "", description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
     } catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
   }
   const cost = (() => { if (plan !== "ideas") return 0; const PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp('genesis'), null, (window.__wwUser || {}).aiModel) : 0; })();
@@ -607,7 +618,11 @@ function WorldForm({ onBack, onCreate, initial }) {
               onChange={(e) => setDescription(e.target.value)} placeholder={t('worlds.descPlaceholder')} disabled={creating} />
           </label>
 
-          {desc && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
+          {canFolder && (folder
+            ? <p className="wf-tick">{t('worlds.folderPicked').replace('{d}', folder.name).replace('{n}', folder.text)} <button type="button" className="link-back" onClick={() => setFolder(null)} disabled={creating}>{t('worlds.folderClear')}</button></p>
+            : <label className="wf-tick wf-folder"><input type="file" webkitdirectory="" multiple hidden onChange={pickFolder} disabled={creating} /><span>{t('worlds.folderBtn')} ✦</span></label>)}
+
+          {desc && !folder && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
 
           <p className="wf-plan" role="status">{plan ? t('worlds.plan_' + plan) + (cost ? ' · ' + t('genesis.cost').replace('{n}', cost) : '') : t('worlds.fillLater')}</p>
 

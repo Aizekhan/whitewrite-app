@@ -12,7 +12,8 @@ Object.assign(exports, require('./src/mcp'));
 Object.assign(exports, require('./src/cosmograph'));
 const narrative = require('./src/narrative'); // quests & dialogues: AI drafts (helpers stay internal)
 exports.narrativeDraft = narrative.narrativeDraft;
-exports.agentWhite = require('./src/agent').agentWhite; // Агент White: one Claude step of the in-Bible assistant (the page runs the tools)
+exports.worldFolder = require('./src/world-folder').worldFolder; // «📂 Завантажити теку» of a world: AI sorts the notes into whitewrite.fill/1, the author applies
+exports.kbAsk = require('./src/kb-help').kbAsk; // «Запитай Базу знань»: answers only from app/kb.js, free, perDay limit
 const experience = require('./src/experience'); // helpers in experience._experience stay internal (mcp.js uses them)
 exports.telemetryIngest = experience.telemetryIngest;
 exports.experience = experience.experience;

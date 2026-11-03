@@ -233,7 +233,7 @@
       costCap: "AI-операція «{op}» коштуватиме не більше {n} токенів: спишеться фактична робота AI, зазвичай менше, але ніколи не більше. Продовжити?", capShort: "✦ не більше {n} токенів",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
+      ops: { worldFolder: "Тека світу", concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
@@ -291,7 +291,8 @@
         expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
-      agentName: "Агент White", agentIntro: "Агент White пропонує ці картки з твоїх матеріалів. Зніми галочки з того, що не треба, і натисни «Додати відмічене».", stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
+      stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
+      folder: { btn: "📂 Завантажити теку", hint: "Обери теку з нотатками — ШІ розкладе текстові файли (.md, .txt, .json…) по розділах канону, ти побачиш, що додасться, і натиснеш «Перенести в світ». Ціна — за обсягом теки, не більше показаної.", gameHint: "Обери теку з нотатками гри — текстові файли (.md, .txt…) підуть в імпорт ✦, ти відмітиш картки, які взяти.", lock: "📂 Теку світу з ШІ можна завантажити з тарифу Storyteller; без токенів — через свій ШІ-агент нижче.", busy: "ШІ розкладає теку «{d}» ({n} файлів)…", big: "Тека завелика: {n} символів, максимум {max}. Обери меншу теку або прибери з неї зайве.", empty: "У теці немає текстових файлів (.md, .txt, .json, .csv…). .docx і .pdf збережи як .md чи .txt.", bad: "Частини {p} не вдалося розкласти — спробуй теку меншою.", skipped: "пропущено не текстових файлів: {n}", name: "Тека «{d}»" },
       fill: { title: "📜 Заповни світ своїми матеріалами", lead: "Нотатки, документи, теки — усе, що вже написано про світ. Твій ШІ-агент (Claude Code, ChatGPT…) складе їх в один файл за шаблоном WhiteWrite, а сервіс лише перенесе дані в розділи — без токенів, на будь-якому тарифі.",
         dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code", tpl: "⤓ Шаблон і правила (.md)",
         s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
@@ -533,7 +534,7 @@
       costCap: "The AI operation “{op}” will cost no more than {n} tokens: the AI's actual work is charged, usually less, never more. Continue?", capShort: "✦ no more than {n} tokens",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
+      ops: { worldFolder: "World folder", concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
@@ -591,7 +592,8 @@
         expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
-      agentName: "Agent White", agentIntro: "Agent White proposes these cards from your material. Untick what you don't need and press «Add ticked items».", stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
+      stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
+      folder: { btn: "📂 Upload a folder", hint: "Pick a folder of notes — AI sorts the text files (.md, .txt, .json…) into the canon sections, you see what will be added and press «Move into the world». Priced by the folder size, never above the shown price.", gameHint: "Pick a folder of game notes — the text files (.md, .txt…) go to the ✦ import, you tick the cards to take.", lock: "📂 A world folder with AI is from the Storyteller plan; without tokens — through your own AI agent below.", busy: "AI is sorting the folder «{d}» ({n} files)…", big: "The folder is too big: {n} characters, at most {max}. Pick a smaller folder or remove what is not needed.", empty: "The folder has no text files (.md, .txt, .json, .csv…). Save .docx and .pdf as .md or .txt.", bad: "Parts {p} could not be sorted — try a smaller folder.", skipped: "non-text files skipped: {n}", name: "Folder «{d}»" },
       fill: { title: "📜 Fill the world with your material", lead: "Notes, documents, folders — whatever is already written about the world. Your AI agent (Claude Code, ChatGPT…) puts it into one file by the WhiteWrite template, and the service only moves the data into the sections — no tokens, on any plan.",
         dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code", tpl: "⤓ Template and rules (.md)",
         s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
@@ -811,7 +813,7 @@
   var cards = [], entities = [], planDoc = {}, canWrite = false, canGame = false, unsub = [];
   // canGame — game design (allowGameDesign, every plan); canDev — what costs us: AI, MCP, plan, telemetry, marketing, repo (allowGameDev, Worldbuilder);
   // canonWrite — canon editing (allowWorldTree). The owner's canWrite follows what is open: the canon or a game
-  var canDev = false, canonWrite = false;
+  var canDev = false, canonWrite = false, canFolder = false; // canFolder: «📂 Завантажити теку» of the world (allowFolderFill)
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
   // the open game's streams only some sections show: [[section ids], attach] — attached the first time one of them is open
   var lazyStreams = [], lazyDone = {};
@@ -1355,7 +1357,6 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
-    window.dispatchEvent(new Event("ww-bible-ctx")); // Агент White follows the world / game (agent-white.js)
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
     if (mode === "game" && isCanon(section)) section = "overview";
     lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
@@ -1411,6 +1412,7 @@
     var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? worldNameHtml() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
+        (gov && canWrite && canDev ? '<label class="btn" title="' + esc(STR.folder.gameHint) + '"><input type="file" id="ov-folder" hidden webkitdirectory multiple>' + STR.folder.btn + costMark("import") + '</label>' : '') + // «📂 Завантажити теку» → the ✦ import
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
@@ -1667,7 +1669,10 @@
   function fillBoxHtml(always) {
     if (!ME.owner || PANEL || !window.__FILL) return "";
     var X = STR.fill, sparse = entities.length < 5 && !lore.length, dir = ""; try { dir = localStorage.getItem("ww-fill-dir-" + worldId) || ""; } catch (e) {}
-    return '<details class="fillbox canonbox wedit"' + (always || sparse || fillState ? ' open' : '') + '><summary>' + X.title + '</summary><p class="hint">' + X.lead + '</p>' +
+    return '<details class="fillbox canonbox wedit"' + (always || sparse || fillState ? ' open' : '') + '><summary>' + X.title + '</summary>' +
+      (canFolder ? '<div class="fillfolder"><label class="btn primary"><input type="file" id="fill-folder" webkitdirectory multiple hidden>' + STR.folder.btn + ' <span class="aicost">✦</span></label><p class="hint">' + esc(STR.folder.hint) + '</p></div>'
+        : '<p class="hint">' + esc(STR.folder.lock) + '</p>') +
+      '<p class="hint">' + X.lead + '</p>' +
       '<ol class="fillsteps"><li><span>' + X.s1 + '</span><label class="field"><span>' + X.dir + '</span><input id="fill-dir" value="' + esc(dir) + '" placeholder="' + esc(X.dirPh) + '"></label>' +
       '<div class="row"><button class="btn primary" id="fill-copy">' + X.copy + '</button><button class="btn ghost" id="fill-tpl">' + X.tpl + '</button><span class="muted" id="fill-cst" role="status"></span></div></li>' +
       '<li><span>' + X.s2 + '</span></li><li><span>' + X.s3 + '</span><div class="row"><label class="btn"><input type="file" id="fill-file" accept=".json,application/json" hidden>' + X.up + '</label></div></li></ol>' +
@@ -1685,7 +1690,7 @@
     if (c.facts) add.push(esc(X.facts) + ': ' + c.facts);
     if (c.world) upd.push(esc(X.world));
     var any = add.length || upd.length;
-    return '<div class="fillres"><b>📄 ' + esc(f.name) + '</b>' + ((f.parsed.warnings || []).indexOf("noformat") >= 0 ? '<p class="muted">' + esc(X.noformat) + '</p>' : '') +
+    return '<div class="fillres"><b>' + (f.folder ? '' : '📄 ') + esc(f.name) + '</b>' + (f.note ? '<p class="muted">' + esc(f.note) + '</p>' : '') + ((f.parsed.warnings || []).indexOf("noformat") >= 0 ? '<p class="muted">' + esc(X.noformat) + '</p>' : '') +
       (any ? (add.length ? '<p>＋ ' + X.add + ': ' + add.join(" · ") + '</p>' : '') + (upd.length ? '<p>✎ ' + X.upd + ': ' + upd.join(" · ") + '</p>' : '') : '<p class="muted">' + X.none + '</p>') +
       '<label class="imp"><input type="checkbox" id="fill-rep"' + (f.replace ? ' checked' : '') + '><span>' + X.replace + '</span></label>' +
       (p.kept.length ? '<p class="muted">' + esc(X.kept.replace("{n}", p.kept.length)) + '</p>' : '') +
@@ -1707,8 +1712,62 @@
       fillState = r.error ? { msg: (X.err[r.error] || r.error).replace("{d}", r.detail || "") + (r.error === "json" ? r.detail : "") } : { name: file.name, parsed: r, replace: false };
       fillRedraw();
     };
+    if ($("fill-folder")) $("fill-folder").onchange = async function (e) {
+      var list = [].slice.call(e.target.files || []); e.target.value = ""; if (!list.length) return;
+      fillState = { msg: X.reading }; fillRedraw();
+      var F = await readFolder(list, WORLD_FOLDER_MAX);
+      if (F.error) { fillState = { msg: F.error }; return fillRedraw(); }
+      fillState = null; fillRedraw();
+      confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", F.chars));
+    };
     bindFillRes();
   }
+  // «📂 Завантажити теку» of a world (functions/src/world-folder.js): AI sorts the notes → the same preview as the fill file
+  var WORLD_FOLDER_MAX = 400000;
+  async function runWorldFolder(F) {
+    var Y = STR.folder;
+    fillState = { msg: Y.busy.replace("{d}", F.name).replace("{n}", F.files.length) }; fillRedraw();
+    try {
+      var d = await fnCall("worldFolder", { worldId: worldId, files: F.files, language: LANG });
+      var r = window.__FILL.parse(d.fill);
+      fillState = r.error ? { msg: STR.failed + ": " + r.error } : { name: Y.name.replace("{d}", F.name), folder: true, parsed: r, replace: false,
+        note: [d.badParts && d.badParts.length ? Y.bad.replace("{p}", d.badParts.join(", ")) : "", F.skipped ? Y.skipped.replace("{n}", F.skipped) : "", d.tokensConsumed ? STR.spent + ": " + d.tokensConsumed : ""].filter(Boolean).join(" · ") };
+    } catch (e) { fillState = { msg: STR.failed + ": " + e.message }; }
+    fillRedraw();
+  }
+  // a folder picked with <input webkitdirectory> (every browser, read only) → its text files; tool folders (.git, Unity's Library…) skipped
+  var FOLDER_TEXT = /\.(md|markdown|txt|json|csv|tsv|ya?ml|xml|html?|fountain|org|rst|ini|toml)$/i;
+  var FOLDER_SKIP = /(^|\/)(\.git|\.vs|\.idea|node_modules|Library|Temp|Logs|obj|Build|Builds|UserSettings|Packages)\//;
+  async function readFolder(list, max) {
+    var Y = STR.folder, files = [], chars = 0, skipped = 0, name = "";
+    for (var i = 0; i < list.length; i++) {
+      var f = list[i], path = f.webkitRelativePath || f.name;
+      if (!name) name = path.split("/")[0];
+      var rel = path.split("/").slice(1).join("/") || f.name;
+      if (FOLDER_SKIP.test(rel)) continue;
+      if (!FOLDER_TEXT.test(f.name) || f.size > 2 * 1024 * 1024) { skipped++; continue; }
+      var text = (await f.text()).replace(/^\uFEFF/, "");
+      if (!text.trim()) continue;
+      files.push({ path: rel, text: text }); chars += text.length;
+    }
+    if (!files.length) return { error: Y.empty };
+    if (chars > max) return { error: Y.big.replace("{n}", chars.toLocaleString()).replace("{max}", max.toLocaleString()) };
+    files.sort(function (a, b) { return a.path.localeCompare(b.path); });
+    return { name: name, files: files, chars: chars, skipped: skipped };
+  }
+  var GAME_FOLDER_MAX = 100000; // gamedevPlan import takes at most this much (functions/src/gamedev.js MAX_IMPORT_CHARS)
+  // the folder picked in the new-world form (flow.jsx keeps it on the shell): the world's first open asks the price and sorts it
+  var pendingTaken = false;
+  async function takePendingFolder() {
+    if (pendingTaken || PANEL || !ME.owner) return; pendingTaken = true;
+    var pf = null; try { pf = window.parent.__wwPendingFolder; window.parent.__wwPendingFolder = null; } catch (e) {}
+    if (!pf || !pf.files || !canFolder) return;
+    if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; render(); }
+    var F = await readFolder(pf.files, WORLD_FOLDER_MAX);
+    if (F.error) { fillState = { msg: F.error }; return fillRedraw(); }
+    confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", F.chars));
+  }
+  function folderMarkdown(F) { return F.files.map(function (f) { return "# " + f.path + "\n\n" + f.text.trim(); }).join("\n\n"); } // a game folder → one .md for the import
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
   function bindFillRes() {
     if ($("fill-rep")) $("fill-rep").onchange = function () { fillState.replace = this.checked; fillRedraw(); };
@@ -3545,7 +3604,8 @@
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
       // the author's own material first: a .md from the PC (sorted by AI, no variants) or a description
-      (canDev ? '<div class="setrow"><label class="btn"><input type="file" id="ng-md" hidden accept=".md,.markdown,.txt,text/markdown,text/plain">' + STR.ngMd + costMark("import") + '</label><span class="hint" id="ng-mdname"></span></div><p class="hint">' + esc(STR.ngMdHint) + '</p>'
+      (canDev ? '<div class="setrow"><label class="btn"><input type="file" id="ng-md" hidden accept=".md,.markdown,.txt,text/markdown,text/plain">' + STR.ngMd + costMark("import") + '</label>' +
+        '<label class="btn"><input type="file" id="ng-folder" hidden webkitdirectory multiple>' + STR.folder.btn + costMark("import") + '</label><span class="hint" id="ng-mdname"></span></div><p class="hint">' + esc(STR.ngMdHint) + '</p>'
         : '<p class="hint">' + esc(STR.ngMdLocked) + '</p>') +
       '<label class="field"><span>' + STR.ngDesc + '</span><textarea id="ng-desc" rows="3" maxlength="3000" placeholder="' + esc(STR.ngDescPh) + '"></textarea></label>' +
       (canDev && canonN ? '<div id="ng-cbox"><div class="setrow"><button class="btn" id="ng-conc">' + STR.conc.btn + costMark("concepts") + '</button></div><p class="hint" id="ng-chint">' + esc(STR.conc.hint) + '</p><div id="ng-concepts" class="ng-concepts"></div>' +
@@ -3563,6 +3623,16 @@
       if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
       if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
       picked = mdText ? null : picked;
+    };
+    if ($("ng-folder")) $("ng-folder").onchange = async function () { // «📂 Завантажити теку»: the folder's text files → one .md → the same import
+      var list = [].slice.call(this.files || []); this.value = ""; if (!list.length) return;
+      var F = await readFolder(list, GAME_FOLDER_MAX);
+      if (F.error) { $("ng-mdname").textContent = F.error; return; }
+      mdText = folderMarkdown(F);
+      $("ng-mdname").textContent = STR.folder.name.replace("{d}", F.name) + " · " + F.files.length + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText.length).toLocaleString());
+      if (!$("ng-title").value.trim()) $("ng-title").value = F.name;
+      if ($("ng-cbox")) $("ng-cbox").hidden = true;
+      picked = null;
     };
     var drawConcepts = function () {
       var C = STR.conc;
@@ -5332,6 +5402,7 @@
       html += '<section class="psec"><p>' + esc(MK.off) + '</p>' + (mkState && mkState.paidUntil ? '<p class="muted">' + MK.expired + '</p>' : '') +
         '<div class="row"><button class="btn primary" id="mk-on"' + (mkBusy ? ' disabled' : '') + '>' + MK.enable + costMark("marketing") + '</button></div></section>';
       $("view").innerHTML = html;
+    if ($("ov-folder")) $("ov-folder").onchange = function () { var list = [].slice.call(this.files || []); this.value = ""; if (list.length) startFolderImport(list); };
       $("mk-on").onclick = function () { confirmCost("marketing", function () { mkRun("…", function () { return mkCall({ op: "activate" }).then(function (d) { return d.tokensConsumed ? STR.spent + ": " + d.tokensConsumed : ""; }); }); }); };
       return;
     }
@@ -5999,7 +6070,6 @@
       b.disabled = true; say("");
       try {
         var done = await prepareFolder(dir, await createKey());
-        folderSave(dir);
         if (!l.dir) l.dir = dir.name;
         await gref().set({ launch: l, updatedAt: stamp() }, { merge: true });
         say(R.folderDone.replace("{dir}", dir.name).replace("{files}", done.join(", ")) + " claude" + (psModel(l.model) ? " --model " + psModel(l.model) : "") + (l.skip === false ? "" : " --dangerously-skip-permissions"));
@@ -6268,6 +6338,12 @@
   }
 
   // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
+  async function startFolderImport(list) {
+    var F = await readFolder(list, GAME_FOLDER_MAX);
+    if (F.error) { imp = { error: F.error }; return render(); }
+    var text = folderMarkdown(F);
+    confirmCost("import", function () { runImport({ op: "import", markdown: text }); }, quoteOf("import", text.length));
+  }
   function startImport(file) {
     var rd = new FileReader();
     rd.onload = async function () {
@@ -6295,7 +6371,7 @@
   }
 
   function renderImport() {
-    var html = '<header class="sec"><div><h1>' + (imp.agent ? "✦ " + STR.agentName : imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.agent ? STR.agentIntro : imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
+    var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
       '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
     if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
@@ -6526,7 +6602,7 @@
   }
   // «📂 Підготувати теку гри»: the browser's folder picker (Chrome / Edge) writes what the PowerShell paste does, minus installing:
   // .mcp.json (project-scope MCP server with a fresh key — Claude Code asks once to trust it), the activity-log block in CLAUDE.md
-  // (once), .mcp.json in .gitignore (the key never reaches the repo). The folder handle stays in IndexedDB for agent White.
+  // (once), .mcp.json in .gitignore (the key never reaches the repo).
   async function readText(dir, name) {
     try { return await (await (await dir.getFileHandle(name)).getFile()).text(); } catch (e) { return null; }
   }
@@ -6549,23 +6625,6 @@
       await writeText(dir, ".gitignore", (gi ? gi.replace(/\s*$/, "\n") : "") + ".mcp.json\n"); done.push(".gitignore");
     }
     return done;
-  }
-  // the picked folder per world / game, for agent White (IndexedDB keeps handles; after a reload the browser asks for access again)
-  function folderDb() {
-    return new Promise(function (ok, no) {
-      var r = indexedDB.open("ww-folders", 1);
-      r.onupgradeneeded = function () { r.result.createObjectStore("dirs"); };
-      r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); };
-    });
-  }
-  function folderKey() { return worldId + (gameId ? "/" + gameId : ""); }
-  function folderSave(dir) {
-    return folderDb().then(function (d) { d.transaction("dirs", "readwrite").objectStore("dirs").put(dir, folderKey()); }).catch(function () {});
-  }
-  function folderLoad() {
-    return folderDb().then(function (d) { return new Promise(function (ok) {
-      var r = d.transaction("dirs").objectStore("dirs").get(folderKey()); r.onsuccess = function () { ok(r.result || null); }; r.onerror = function () { ok(null); };
-    }); }).catch(function () { return null; });
   }
   var liveTask = function (id) { return tasks.filter(function (x) { return x.id === String(id).replace(/[\/\s]/g, "_"); })[0]; };
   function taskState(t) {
@@ -6982,64 +7041,6 @@
   $("srch-btn").addEventListener("click", function (e) { e.stopPropagation(); searchOpen($("searchbar").hidden); });
   $("srch-x").addEventListener("click", function () { searchOpen(false); $("srch-btn").focus(); });
   $("q").addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); searchOpen(false); $("srch-btn").focus(); } });
-  // ---------- Агент White (agent-white.js): what the page gives the agent's tools — reads of the Bible, the same previews as the
-  // file fill (fillState) and the .md import (imp), the folder handle. Nothing here writes: the author applies every proposal.
-  var canAgent = false;
-  var cut = function (o, n) { var t = JSON.stringify(o); return t.length > n ? t.slice(0, n) + " …[truncated]" : t; };
-  window.__bible = {
-    ctx: function () { return { worldId: worldId, gameId: mode === "game" ? gameId : null, lang: LANG, may: canAgent && !PANEL, owner: ME.owner || ME.role === "admin",
-      title: (mode === "game" && game ? game.title : world && world.title) || "", quote: function (chars) { return quoteOf("agentWhite", chars); } }; },
-    overview: function () {
-      var w = world || {}, by = {};
-      entities.forEach(function (e) { by[e.kind] = (by[e.kind] || 0) + 1; });
-      var out = { world: { title: w.title, tagline: w.tagline, summary: w.summary, rules: w.rules || [], facts: w.facts || [] }, canonCounts: by, culture: lore.length,
-        canonSections: CANON.map(function (x) { return { id: x.id, name: L(x) }; }) };
-      if (mode === "game" && game) out.game = { title: game.title, sections: shelves().filter(function (x) { return x.kind === "game"; }).map(function (x) {
-        return { id: x.id, name: x.name, fields: x.fields, cards: cards.filter(function (c) { return c.section === x.id; }).length }; }) };
-      return cut(out, 30000);
-    },
-    list: function (kind) {
-      if (kind === "lore") return cut(lore.map(function (l) { return (l.group || "") + ": " + l.name; }), 30000);
-      if (CANON_KINDS_ALL.indexOf(kind) >= 0) return cut(entities.filter(function (e) { return e.kind === kind; }).map(function (e) { return e.name; }), 30000);
-      var gs = mode === "game" && sec(kind);
-      if (!gs) return "Unknown kind / section: " + kind;
-      return cut(cards.filter(function (c) { return c.section === kind; }).map(function (c) { return c.title || "(untitled)"; }), 30000);
-    },
-    item: function (kind, name) {
-      var n = String(name || "").trim().toLowerCase(), hit = function (t) { return String(t || "").trim().toLowerCase() === n; };
-      var x = kind === "lore" ? lore.filter(function (l) { return hit(l.name); })[0]
-        : CANON_KINDS_ALL.indexOf(kind) >= 0 ? entities.filter(function (e) { return e.kind === kind && hit(e.name); })[0]
-        : mode === "game" ? cards.filter(function (c) { return c.section === kind && hit(c.title); })[0] : null;
-      return x ? cut(x, 40000) : "Not found: " + kind + " «" + name + "»";
-    },
-    proposeFill: function (data) {
-      if (!window.__FILL) return "The fill module is not loaded";
-      var r = window.__FILL.parse(data);
-      if (r.error) return "Invalid whitewrite.fill/1: " + r.error + (r.detail ? " " + r.detail : "");
-      fillState = { name: "✦ " + STR.agentName, parsed: r, replace: false };
-      if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; imp = null; }
-      render();
-      var c = fillPlan().counts;
-      return "Preview shown to the author (World overview → «Fill the world»): add " + JSON.stringify(c.add) + ", update " + JSON.stringify(c.upd) + ", rules " + c.rules + ", facts " + c.facts + ". The author decides.";
-    },
-    proposeCards: function (list) {
-      if (mode !== "game" || !game) return "No game is open — propose world canon with propose_world_fill instead";
-      var ok = (Array.isArray(list) ? list : []).filter(function (c) { return c && sec(c.section) && !sec(c.section).canon && String(c.title || "").trim(); }).map(function (c) {
-        var f = {}; Object.keys(c.fields || {}).forEach(function (k) { if (c.fields[k] != null && c.fields[k] !== "") f[k] = String(c.fields[k]); });
-        return { section: c.section, title: String(c.title).trim().slice(0, 160), fields: f };
-      });
-      if (!ok.length) return "No valid cards (each needs a game section id from overview and a title)";
-      imp = { proposal: { laws: [], canon: [], cards: ok, contradictions: [], questions: [] }, off: {}, agent: true };
-      render();
-      return "Preview of " + ok.length + " card(s) shown; " + ((list || []).length - ok.length) + " dropped (unknown section or no title). The author ticks what to take.";
-    },
-    open: function (id) {
-      if (id !== "settings" && !sec(id)) return "Unknown section: " + id;
-      goSection(id); return "Opened " + id;
-    },
-    folderLoad: folderLoad, folderSave: folderSave
-  };
-  var CANON_KINDS_ALL = ["characters", "locations", "factions", "artifacts", "events"];
   $("statuses").addEventListener("click", function (e) {
     var b = e.target.closest("[data-status]"); if (!b) return;
     statusFilter[b.dataset.status] = !statusFilter[b.dataset.status]; renderStatuses(); render();
@@ -7476,12 +7477,12 @@
       var tm = w.data().owner !== user.uid ? (w.data().team || {})[user.uid] : null;
       if (tm) { // a team member works in the owner's world, on the owner's plan (the rules check it); what they see — by role
         ME = { owner: false, role: tm.role, view: tm.view || [], edit: tm.edit || [], viewKinds: tm.viewKinds || [] };
-        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true; canDev = true; canAgent = tm.role === "admin"; // the server checks the owner's plan
+        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true; canDev = true; canFolder = tm.role === "admin"; // the server checks the owner's plan
         document.documentElement.classList.add("ww-member");
         if (!mayRead(section)) section = firstReadable();
       } else {
         canonWrite = !!pc.allowWorldTree; canGame = !!pc.allowGameDesign; canDev = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game design
-        canAgent = !!pc.allowAgent;
+        canFolder = !!pc.allowFolderFill;
         canWrite = baseWrite = canonWrite || canGame;
         if (!canWrite && !PANEL) return locked(STR.lockedTitle, STR.lockedText, true); // the hub panel (Спільнота, Команда…) works on any plan
         if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";
@@ -7489,7 +7490,7 @@
       loadCommStats();
     } catch (e) { return locked(STR.brand, STR.noWorld, false); }
 
-    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); });
+    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); takePendingFolder(); });
     var byKind = {}, entsIn = function (key) { return function (snap) {
       byKind[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       entities = [].concat.apply([], Object.keys(byKind).map(function (k) { return byKind[k]; }))

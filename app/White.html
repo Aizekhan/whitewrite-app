@@ -399,6 +399,20 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .kb-search__ic{ color:var(--tx-low); display:grid; } .kb-search__ic svg{ width:18px; height:18px; }
 .kb-search input{ flex:1; background:none; border:none; outline:none; color:var(--tx-hi); font-family:inherit; font-size:15px; }
 .kb-search input::placeholder{ color:var(--tx-low); }
+/* «Запитай Базу знань»: answers only from the articles, with links to them */
+.kb-ask{ display:flex; align-items:center; gap:10px; margin:24px 0 0; padding:8px 8px 8px 16px; border-radius:12px; border:1px solid rgba(240,169,59,.35); background:var(--gold-soft); }
+.kb-ask__ic{ color:var(--gold-lit); font-size:17px; }
+.kb-ask input{ flex:1; min-width:0; background:none; border:none; outline:none; color:var(--tx-hi); font-family:inherit; font-size:15px; }
+.kb-ask input::placeholder{ color:var(--tx-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.kb-ask__go{ padding:8px 16px; border-radius:9px; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); color:#1c1308; font-weight:600; }
+.kb-ask__go[disabled]{ opacity:.6; cursor:default; }
+.kb-ans{ margin:10px 0 0; padding:14px 16px; border-radius:12px; border:1px solid var(--line-2); background:var(--bg-2); display:grid; gap:8px; }
+.kb-ans__q{ color:var(--tx-hi); font-weight:600; }
+.kb-ans__a{ line-height:1.6; padding-bottom:6px; border-bottom:1px solid var(--line); }
+.kb-ans__links{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.kb-ans__links button{ padding:4px 10px; border-radius:8px; border:1px solid rgba(240,169,59,.4); color:var(--gold-bright); font-size:13.5px; }
+.kb-ans__err{ color:#f08a7a; font-size:14px; }
+.kb-ans__foot{ font-size:12.5px; color:var(--tx-low); } .kb-ans__foot button{ color:var(--tx-mid); text-decoration:underline; font-size:12.5px; }
 .kb-search__x{ cursor:pointer; color:var(--tx-mid); background:none; border:none; font-size:15px; }
 /* the agent path in the KB: numbered steps on one dashed road, stage headings as waypoints */
 .kb-road{ max-width:760px; }
@@ -1850,7 +1864,7 @@ body.at-home .back-fab{ display:none; }
           '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
       (safeUrl(p.discord) ? '<a class="cm-discord" href="' + escapeHtml(safeUrl(p.discord)) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
       (mine ? '' : '<button class="cm-chip" data-cmreport>' + cmT("Поскаржитися", "Report") + '</button>') +
-      (CM.admin ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
+      (CM.admin && (!mine || p.hidden) ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
         '<span class="cm-note">' + cmT("Скарг: ", "Reports: ") + (p.reports || 0) + '</span>' : '');
   }
   function cmPage() {
@@ -2176,7 +2190,7 @@ body.at-home .back-fab{ display:none; }
       '<div class="vwrap">' +
         '<div class="vhead__k">' + t('kb.kicker') + '</div>' +
         '<h1 class="vhead__t">' + t('kb.title') + '</h1>' +
-        '<p class="vhead__s">' + t('kb.subtitle') + '</p>' +
+        '<p class="vhead__s">' + t('kb.subtitle') + '</p>' + kbAskHtml() +
         '<div class="kb-search"><span class="kb-search__ic">' + svg("compass") + '</span>' +
           '<input id="kb-q" placeholder="' + t('kb.search') + '" value="' + (KB.__q || "").replace(/"/g, "&quot;") + '" />' +
           (KB.__q ? '<button class="kb-search__x" id="kb-x">✕</button>' : '') + '</div>' +
@@ -2194,6 +2208,46 @@ body.at-home .back-fab{ display:none; }
     if (qi) qi.addEventListener("input", function () { KB.__q = qi.value; var pos = qi.selectionStart; fillKb(); var n = views.kb.querySelector("#kb-q"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} } });
     var qx = views.kb.querySelector("#kb-x");
     if (qx) qx.addEventListener("click", function () { KB.__q = ""; fillKb(); });
+    bindKbAsk();
+  }
+
+  // «Запитай Базу знань» (functions/src/kb-help.js kbAsk): a short answer only from the articles + links to them; free, a daily limit
+  var KBASK = { hist: [], busy: false, err: "", left: null, q: "" };
+  function kbAskT(uk, en) { return window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === "en" ? en : uk; }
+  function kbAskHtml() {
+    var esc = function (x) { return String(x == null ? "" : x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[c]; }); };
+    var md = function (x) { return esc(x).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>"); };
+    return '<form class="kb-ask" id="kb-ask"><span class="kb-ask__ic" aria-hidden="true">✦</span>' +
+      '<input id="kb-ask-q" maxlength="1000" placeholder="' + esc(kbAskT("Запитай Базу знань: «як підключити MCP?», «де змінити модель?»…", "Ask the Knowledge base: «how do I connect MCP?», «where do I change the model?»…")) + '" value="' + esc(KBASK.q) + '"' + (KBASK.busy ? ' disabled' : '') + '>' +
+      '<button class="kb-ask__go" id="kb-ask-go"' + (KBASK.busy ? ' disabled' : '') + '>' + esc(KBASK.busy ? kbAskT("Шукаю…", "Looking…") : kbAskT("Запитати", "Ask")) + '</button></form>' +
+      (KBASK.hist.length || KBASK.err ? '<div class="kb-ans" aria-live="polite">' + KBASK.hist.map(function (h) {
+        return '<div class="kb-ans__q">' + esc(h.q) + '</div><div class="kb-ans__a">' + md(h.a) +
+          (h.articles.length ? '<div class="kb-ans__links">' + h.articles.map(function (a) { return '<button type="button" data-askart="' + esc(a.id) + '">→ ' + esc(a.title) + '</button>'; }).join("") + '</div>' : '') + '</div>';
+      }).join("") + (KBASK.err ? '<div class="kb-ans__err" role="alert">' + esc(KBASK.err) + '</div>' : '') +
+      '<div class="kb-ans__foot">' + (KBASK.left != null ? esc(kbAskT("Сьогодні лишилось питань: ", "Questions left today: ") + KBASK.left) + ' · ' : '') +
+      '<button type="button" id="kb-ask-clear">' + esc(kbAskT("Очистити", "Clear")) + '</button></div></div>' : '');
+  }
+  function bindKbAsk() {
+    var f = views.kb.querySelector("#kb-ask"); if (!f) return;
+    f.onsubmit = async function (e) {
+      e.preventDefault();
+      var inp = views.kb.querySelector("#kb-ask-q"), q = inp.value.trim(); if (!q || KBASK.busy) return;
+      var u = window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser;
+      if (!u) { KBASK.q = q; openAuth(); return; }
+      KBASK.q = q; KBASK.busy = true; KBASK.err = ""; fillKb();
+      try {
+        var r = await fetch("https://us-central1-whitewrite-app.cloudfunctions.net/kbAsk", { method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + await u.getIdToken() },
+          body: JSON.stringify({ question: q, language: kbAskT("uk", "en"), history: KBASK.hist.slice(-3).map(function (h) { return { q: h.q, a: h.a }; }) }) });
+        var d = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+        if (!r.ok) throw new Error(d.error || "HTTP " + r.status);
+        KBASK.hist.push({ q: q, a: d.answer || "", articles: d.articles || [] }); KBASK.left = d.left; KBASK.q = "";
+      } catch (er) { KBASK.err = er.message || String(er); }
+      KBASK.busy = false; fillKb();
+      var ni = views.kb.querySelector("#kb-ask-q"); if (ni) ni.focus();
+    };
+    var c = views.kb.querySelector("#kb-ask-clear"); if (c) c.onclick = function () { KBASK.hist = []; KBASK.err = ""; fillKb(); };
+    [].forEach.call(views.kb.querySelectorAll("[data-askart]"), function (b) { b.onclick = function () { openArticle(b.dataset.askart); }; });
   }
 
   function renderBlock(blk) {
