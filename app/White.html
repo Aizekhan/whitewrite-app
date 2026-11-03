@@ -2297,7 +2297,7 @@ body.at-home .back-fab{ display:none; }
           '<input type="file" id="acc-avfile" accept="image/*" style="display:none" />' +
           '<div class="acc__id">' +
             '<div class="acc__name" id="acc-name">' + u.name + '</div>' +
-            '<span class="acc__plan">' + svg("sparkle") + t('plan.' + u.plan) + (u.subscriptionStatus && u.subscriptionStatus !== 'active' && u.plan !== 'free' ? ' <span style="opacity:0.6">' + t('plan.cancelled') + '</span>' : '') + '</span>' +
+            '<span class="acc__plan">' + svg("sparkle") + t('plan.' + u.plan) + (u.subscriptionStatus && u.subscriptionStatus !== 'active' && u.plan !== 'free' ? ' <span style="opacity:0.6">' + t('plan.cancelled') + '</span>' : '') + (u.paidPlan && u.plan === 'free' ? ' <span style="opacity:0.6">' + t('plan.paused').replace('{plan}', t('plan.' + u.paidPlan)) + '</span>' : '') + '</span>' +
             '<button class="acc__editbtn" id="acc-edit">' + svg("edit") + ' ' + t('account.editProfile') + '</button>' +
           '</div>' +
           '<div class="acc__tokens"><span class="acc__tokn" id="acc-tokn">' + ((u.tokensRemaining !== undefined ? u.tokensRemaining : 0).toLocaleString()) + '</span><span class="acc__tokl">' + t('account.tokensRemaining') + '</span>' +

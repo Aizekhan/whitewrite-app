@@ -160,6 +160,8 @@ exports.createLemonSqueezyCheckout = onRequest({
       if (!topup) {
         const u = (await db.collection('users').doc(userId).get()).data() || {};
         if (u.lemonSqueezySubscriptionId && u.subscriptionStatus === 'active') return res.status(409).json({ code: 'HAS_SUBSCRIPTION', error: 'You already have a subscription — change the plan instead' });
+        // a paused / unpaid / past-due subscription is resumed or paid in the LS portal, not doubled by a second one
+        if (u.lemonSqueezySubscriptionId && ['paused', 'unpaid', 'past_due'].includes(u.subscriptionStatus)) return res.status(409).json({ code: 'SUBSCRIPTION_ON_HOLD', error: 'Your subscription is paused or unpaid — resume it or update the payment in the billing portal' });
       }
 
       console.log(`[LS Checkout] Creating checkout for variant ${variantId}, user ${userId}`);
@@ -285,6 +287,7 @@ exports.initLemonSqueezyConfig = onRequest({}, async (req, res) => {
 async function downgradeToFree(uid) {
   await db.collection('users').doc(uid).update({
     plan: 'free',
+    paidPlan: admin.firestore.FieldValue.delete(),
     pendingPlan: null,
     pendingFrom: null,
     lemonSqueezySubscriptionId: null,
@@ -421,7 +424,13 @@ exports.lemonSqueezyWebhook = onRequest({
         };
         const variantPlan = planByVariant[String(subscription.attributes.variant_id)];
         const u = userDoc.data(), pendingFrom = u.pendingFrom && u.pendingFrom.toMillis ? u.pendingFrom.toMillis() : 0;
-        if (status === 'active' && variantPlan) {
+        // paused, or unpaid after LS gave up retrying: nothing is paid → every plan gate closes (plan free); the paid plan is
+        // remembered and comes back when the subscription is active again. past_due (LS still retrying) keeps the plan.
+        if (status === 'paused' || status === 'unpaid') {
+          if ((u.plan || 'free') !== 'free') { updates.plan = 'free'; updates.paidPlan = u.plan; }
+        } else if (status === 'active' && variantPlan && u.paidPlan) { // resumed: the plan returns as it was, no upgrade proration
+          updates.plan = variantPlan; updates.paidPlan = admin.firestore.FieldValue.delete();
+        } else if (status === 'active' && variantPlan) {
           // a scheduled downgrade (changeSubscription) only takes effect from the next billing month
           const waiting = u.pendingPlan === variantPlan && pendingFrom > Date.now(); // keep the paid plan until pendingFrom
           if (!waiting) { updates.plan = variantPlan; if (u.pendingPlan === variantPlan) { updates.pendingPlan = null; updates.pendingFrom = null; } }

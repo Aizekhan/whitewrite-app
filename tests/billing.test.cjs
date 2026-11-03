@@ -101,6 +101,17 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
   await updated('sub3', V.novelist);
   check(U('u3').tokensUsed === before, 'an update with the same plan changes no tokens');
 
+  // --- a paused / unpaid subscription closes every plan gate; resumed, the plan returns without proration ---
+  await updated('sub3', V.novelist, { status: 'paused' });
+  check(U('u3').plan === 'free' && U('u3').paidPlan === 'novelist', 'paused → plan free, the paid plan remembered');
+  await updated('sub3', V.novelist, { status: 'unpaid' });
+  check(U('u3').plan === 'free' && U('u3').paidPlan === 'novelist', 'a second hold keeps the remembered plan');
+  await updated('sub3', V.novelist);
+  check(U('u3').plan === 'novelist' && !U('u3').paidPlan && U('u3').tokensUsed === before && !(U('u3').lastUpgrade && U('u3').lastUpgrade.to === 'novelist' && U('u3').lastUpgrade.via === 'portal'), 'resumed → the plan returns, no upgrade proration');
+  await updated('sub3', V.novelist, { status: 'past_due' });
+  check(U('u3').plan === 'novelist' && U('u3').subscriptionStatus === 'past_due', 'past_due (LS still retrying) keeps the plan');
+  await updated('sub3', V.novelist);
+
   // --- refunds take back what the money bought, once ---
   store.set('users/buyer', Object.assign(U('buyer'), { bonusTokens: 0 }));
   await hook({ meta: { event_name: 'order_created', custom_data: { user_id: 'buyer', sig: sig('buyer') } }, data: { id: 'o1', attributes: { first_order_item: { variant_id: '99' }, user_email: 'x' } } });

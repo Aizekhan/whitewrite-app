@@ -54,6 +54,7 @@ window.__firebaseAuth = {
 
             // Subscription status (for UI display)
             window.__wwUser.subscriptionStatus = userData.subscriptionStatus || null;
+            window.__wwUser.paidPlan = userData.paidPlan || null; // the paid plan while the subscription is paused / unpaid (plan is free)
             window.__wwUser.pendingPlan = userData.pendingPlan || null; // a downgrade scheduled for the next billing month
             window.__wwUser.pendingFrom = userData.pendingFrom && userData.pendingFrom.toDate ? userData.pendingFrom.toDate() : null;
 
