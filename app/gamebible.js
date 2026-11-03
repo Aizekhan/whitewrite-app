@@ -297,7 +297,7 @@
       fill: { title: "📜 Заповни світ своїми матеріалами", lead: "Нотатки, документи, теки — усе, що вже написано про світ. Твій ШІ-агент (Claude Code, ChatGPT…) складе їх в один файл за шаблоном WhiteWrite, а сервіс лише перенесе дані в розділи — без токенів, на будь-якому тарифі.",
         dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code", tpl: "⤓ Шаблон і правила (.md)",
         s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
-        up: "⤒ Завантажити whitewrite-world.json", reading: "Читаю файл…", add: "Додасться", upd: "Доповниться", none: "У файлі немає нічого нового для цього світу.",
+        up: "⤒ Завантажити файл (.md або .json)", mdTpl: "⤓ Шаблон .md — заповнити самому", mdHint: "Або без агента: заповни шаблон .md сам (Назва, «## Персонажі», «### Імʼя», «Опис: …») і завантаж — той самий перегляд і перенесення.", reading: "Читаю файл…", add: "Додасться", upd: "Доповниться", none: "У файлі немає нічого нового для цього світу.",
         rules: "закони", facts: "факти", world: "огляд світу", replace: "Замінити вже заповнені поля даними з файлу", kept: "Лишаться як є (вже заповнені): {n}. Галочка вище замінить їх.",
         apply: "Перенести в світ", cancel: "Скасувати", applying: "Переношу… {n}/{all}", done: "Готово: перенесено {n} записів.", frozen: "Світ заморожено на час сертифікації чи продажу — переносити не можна.",
         err: { json: "Це не JSON — попроси агента виправити файл: ", format: "Це файл іншого формату ({d}). Потрібен whitewrite.fill/1 — для резервних копій є «Відновити з JSON» у налаштуваннях.", shape: "Файл не схожий на шаблон WhiteWrite.", empty: "У файлі немає даних — перевір, що агент заповнив шаблон." },
@@ -599,7 +599,7 @@
       fill: { title: "📜 Fill the world with your material", lead: "Notes, documents, folders — whatever is already written about the world. Your AI agent (Claude Code, ChatGPT…) puts it into one file by the WhiteWrite template, and the service only moves the data into the sections — no tokens, on any plan.",
         dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code", tpl: "⤓ Template and rules (.md)",
         s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
-        up: "⤒ Upload whitewrite-world.json", reading: "Reading the file…", add: "Will be added", upd: "Will be filled in", none: "The file has nothing new for this world.",
+        up: "⤒ Upload the file (.md or .json)", mdTpl: "⤓ .md template — fill it yourself", mdHint: "Or without an agent: fill the .md template yourself (the name, «## Characters», «### Name», «Description: …») and upload it — the same preview and move.", reading: "Reading the file…", add: "Will be added", upd: "Will be filled in", none: "The file has nothing new for this world.",
         rules: "laws", facts: "facts", world: "world overview", replace: "Replace fields that are already filled with the file's data", kept: "Stay as they are (already filled): {n}. The tick above replaces them.",
         apply: "Move into the world", cancel: "Cancel", applying: "Moving… {n}/{all}", done: "Done: {n} records moved.", frozen: "The world is frozen for certification or a sale — nothing can be moved in.",
         err: { json: "This is not JSON — ask the agent to fix the file: ", format: "This file has another format ({d}). whitewrite.fill/1 is needed — backups go through «Restore from JSON» in the settings.", shape: "The file does not look like the WhiteWrite template.", empty: "The file has no data — check that the agent filled the template." },
@@ -1677,7 +1677,8 @@
       '<p class="hint">' + X.lead + '</p>' +
       '<ol class="fillsteps"><li><span>' + X.s1 + '</span><label class="field"><span>' + X.dir + '</span><input id="fill-dir" value="' + esc(dir) + '" placeholder="' + esc(X.dirPh) + '"></label>' +
       '<div class="row"><button class="btn primary" id="fill-copy">' + X.copy + '</button><button class="btn ghost" id="fill-tpl">' + X.tpl + '</button><span class="muted" id="fill-cst" role="status"></span></div></li>' +
-      '<li><span>' + X.s2 + '</span></li><li><span>' + X.s3 + '</span><div class="row"><label class="btn"><input type="file" id="fill-file" accept=".json,application/json" hidden>' + X.up + '</label></div></li></ol>' +
+      '<li><span>' + X.s2 + '</span></li><li><span>' + X.s3 + '</span><div class="row"><label class="btn"><input type="file" id="fill-file" accept=".md,.markdown,.txt,.json,application/json" hidden>' + X.up + '</label></div></li></ol>' +
+      '<p class="hint">' + X.mdHint + ' <button class="btn ghost mini" id="fill-mdtpl">' + X.mdTpl + '</button></p>' +
       '<div id="fill-res" role="status">' + fillResHtml() + '</div></details>';
   }
   function fillPlan() {
@@ -1707,6 +1708,7 @@
       navigator.clipboard.writeText(txt).then(function () { $("fill-cst").textContent = X.copied; }, function () { download("whitewrite-fill-request.md", txt, "text/markdown"); });
     };
     $("fill-tpl").onclick = function () { download("whitewrite-fill-template.md", window.__FILL.prompt(LANG, dirNow(), world.title || ""), "text/markdown"); };
+    $("fill-mdtpl").onclick = function () { download("whitewrite-world.md", window.__FILL.mdTemplate(LANG), "text/markdown"); }; // the Markdown template filled by hand
     $("fill-file").onchange = async function (e) {
       var file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
       fillState = { msg: X.reading }; fillRedraw();
@@ -1760,14 +1762,16 @@
   var GAME_FOLDER_MAX = 100000; // gamedevPlan import takes at most this much (functions/src/gamedev.js MAX_IMPORT_CHARS)
   // the folder picked in the new-world form (flow.jsx keeps it on the shell): the world's first open asks the price and sorts it
   var pendingTaken = false;
-  async function takePendingFolder() {
+  // the new-world form's «⤒ Завантажити світ із файлу .md» (flow.jsx): the file waits on the shell and fills this new world at once
+  async function takePendingFill() {
     if (pendingTaken || PANEL || !ME.owner) return; pendingTaken = true;
-    var pf = null; try { pf = window.parent.__wwPendingFolder; window.parent.__wwPendingFolder = null; } catch (e) {}
-    if (!pf || !pf.files || !canFolder) return;
+    var pf = null; try { pf = window.parent.__wwPendingFill; window.parent.__wwPendingFill = null; } catch (e) {}
+    if (!pf || !pf.text) return;
     if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; render(); }
-    var F = await readFolder(pf.files, WORLD_FOLDER_MAX);
-    if (F.error) { fillState = { msg: F.error }; return fillRedraw(); }
-    confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", F.chars));
+    var r = window.__FILL.parse(pf.text);
+    if (r.error) { fillState = { msg: (STR.fill.err[r.error] || r.error).replace("{d}", r.detail || "") }; return fillRedraw(); }
+    fillState = { name: pf.name, parsed: r, replace: false };
+    await applyFill();
   }
   function folderMarkdown(F) { return F.files.map(function (f) { return "# " + f.path + "\n\n" + f.text.trim(); }).join("\n\n"); } // a game folder → one .md for the import
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
@@ -1780,7 +1784,7 @@
     var X = STR.fill, p = fillPlan(), all = p.writes.length;
     var say = function (t) { var r = $("fill-res"); if (r) r.innerHTML = '<p class="hint">' + esc(t) + '</p>'; };
     if (world && world.freeze) { say(X.frozen); return; }
-    $("fill-go").disabled = true;
+    if ($("fill-go")) $("fill-go").disabled = true;
     try {
       for (var i = 0; i < all; i += 400) {
         var batch = db.batch();
@@ -7656,7 +7660,7 @@
       loadCommStats();
     } catch (e) { return locked(STR.brand, STR.noWorld, false); }
 
-    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); takePendingFolder(); });
+    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); takePendingFill(); });
     var byKind = {}, entsIn = function (key) { return function (snap) {
       byKind[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       entities = [].concat.apply([], Object.keys(byKind).map(function (k) { return byKind[k]; }))

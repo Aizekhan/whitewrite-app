@@ -87,9 +87,119 @@ var arr = function (v) { return Array.isArray(v) ? v.slice(0, MAX_ITEMS) : []; }
 var norm = function (v) { return String(v || '').toLowerCase().replace(/[«»"'`’]/g, '').replace(/\s+/g, ' ').trim(); };
 var slugify = function (v) { return String(v || '').toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, ''); };
 
-// The file → a clean shape; anything unknown is dropped, nothing is invented
+// ---- the same file written by hand: a Markdown template (one .md = the whole world in one click, no AI) ----
+// # World name / > tagline / summary paragraphs; «## Закони» «## Факти» lists; «## Персонажі» (and the other kinds) with
+// «### Name» items: «Поле: значення» lines + free text (= the story / biography); «## Народи» «## Мови» «## Вірування»
+// «## Звичаї» the same way. Headings and field names in Ukrainian or English, any case.
+var MD_SECTIONS = { 'закони': 'rules', 'laws': 'rules', 'rules': 'rules', 'факти': 'facts', 'facts': 'facts',
+  'персонажі': 'characters', 'characters': 'characters', 'локації': 'locations', 'місця': 'locations', 'locations': 'locations', 'places': 'locations',
+  'фракції': 'factions', 'factions': 'factions', 'артефакти': 'artifacts', 'artifacts': 'artifacts', 'події': 'events', 'events': 'events', 'хроніка': 'events', 'chronicle': 'events',
+  'народи': 'peoples', 'peoples': 'peoples', 'мови': 'languages', 'languages': 'languages', 'вірування': 'beliefs', 'віра': 'beliefs', 'beliefs': 'beliefs', 'звичаї': 'customs', 'customs': 'customs',
+  'суть світу': 'summary', 'опис світу': 'summary', 'summary': 'summary', 'слоган': 'tagline', 'tagline': 'tagline' };
+var MD_FIELDS = { 'група': 'group', 'підрозділ': 'group', 'group': 'group', 'опис': 'desc', 'коротко': 'desc', 'description': 'desc', 'desc': 'desc',
+  'історія': 'story', 'біографія': 'story', 'story': 'story', 'biography': 'story', 'вигляд': 'look', 'зовнішність': 'look', 'look': 'look', 'appearance': 'look',
+  'роль': 'role', 'role': 'role', 'звʼязки': 'links', "зв'язки": 'links', 'звязки': 'links', 'links': 'links', 'життя': 'life', 'life': 'life',
+  'рік': 'at', 'year': 'at', 'at': 'at', 'тривалість': 'dur', 'duration': 'dur', 'коли': 'when', 'when': 'when', 'учасники': 'who', 'хто': 'who', 'who': 'who',
+  'наслідок': 'outcome', 'наслідки': 'outcome', 'outcome': 'outcome',
+  'походження': 'origin', 'origin': 'origin', 'суспільство': 'society', 'society': 'society', 'землі': 'lands', 'lands': 'lands',
+  'звучання': 'sound', 'sound': 'sound', 'письмо': 'script', 'script': 'script', 'фрази': 'phrases', 'phrases': 'phrases', 'носії': 'speakers', 'speakers': 'speakers',
+  'сили': 'powers', 'божества': 'powers', 'powers': 'powers', 'міфи': 'myths', 'myths': 'myths', 'обряди': 'rites', 'rites': 'rites', 'вірні': 'believers', 'believers': 'believers',
+  'що': 'what', 'what': 'what', 'значення': 'meaning', 'meaning': 'meaning' };
+var mdKey = function (v) { return String(v || '').toLowerCase().replace(/[’`]/g, 'ʼ').replace(/[*_]/g, '').trim(); };
+function fromMarkdown(text) {
+  var lines = String(text || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n');
+  var d = { format: FORMAT, world: { tagline: '', summary: '', rules: [], facts: [] }, culture: { peoples: [], languages: [], beliefs: [], customs: [] } };
+  KINDS.forEach(function (k) { d[k] = []; });
+  var title = '', sec = 'summary', item = null, summary = [], lastField = null;
+  var close = function () {
+    if (!item) return;
+    item.story = (item.story ? item.story + '\n\n' : '') + item._text.join('\n').trim(); item.story = item.story.trim(); delete item._text;
+    var list = LORE[sec] ? d.culture[sec] : d[sec]; if (list) list.push(item);
+    item = null; lastField = null;
+  };
+  lines.forEach(function (raw) {
+    var line = raw.replace(/\s+$/, ''), h;
+    if ((h = line.match(/^#\s+(.+)/))) { close(); if (!title) title = h[1].trim(); sec = 'summary'; return; }
+    if ((h = line.match(/^##\s+(.+)/))) { close(); sec = MD_SECTIONS[mdKey(h[1])] || 'skip'; return; }
+    if ((h = line.match(/^###\s+(.+)/))) { close(); if (KINDS.indexOf(sec) >= 0 || LORE[sec]) item = { name: h[1].trim(), _text: [] }; return; }
+    if (sec === 'summary' || sec === 'tagline') {
+      var q = line.match(/^>\s?(.*)/);
+      if (q && !d.world.tagline && !summary.length) { d.world.tagline = q[1].trim(); return; }
+      if (sec === 'tagline') { if (line.trim()) d.world.tagline = (d.world.tagline ? d.world.tagline + ' ' : '') + line.trim(); return; }
+      summary.push(line); return;
+    }
+    if (sec === 'rules' || sec === 'facts') {
+      var b = line.match(/^\s*(?:[-*•]|\d+[.)])\s+(.+)/); if (!b) return;
+      if (sec === 'rules') d.world.rules.push(b[1].trim());
+      else { var kv = b[1].match(/^([^:]{1,80}):\s*(.+)$/); d.world.facts.push(kv ? { k: kv[1].trim(), v: kv[2].trim() } : { k: '', v: b[1].trim() }); }
+      return;
+    }
+    if (!item) return;
+    var f = line.match(/^\s*(?:[-*•]\s+)?\**([^:*]{1,40})\**:\s*(.*)$/), key = f && MD_FIELDS[mdKey(f[1])];
+    if (key) {
+      var v = f[2].trim(); if (/^(…|\.\.\.)$/.test(v)) v = ''; // the template's placeholder
+      if (key === 'links') item.links = v.split(/\s*;\s*/).filter(Boolean).map(function (x) { var p = x.split(/\s+[—–-]\s+/); return { to: p[0].trim(), rel: (p[1] || '').trim() }; });
+      else if (key === 'who') item.who = v.split(/\s*[,;]\s*/).filter(Boolean);
+      else if (key === 'life') item.life = v.split(/\s*;\s*/).filter(Boolean).map(function (x) { var p = x.split(/\s+[—–-]\s+/); return p.length > 1 ? { at: p[0].trim(), text: p.slice(1).join(' — ').trim() } : { at: '', text: x.trim() }; });
+      else item[key] = v;
+      lastField = key === 'links' || key === 'who' || key === 'life' ? null : key; return;
+    }
+    if (!line.trim()) { lastField = null; item._text.push(''); return; }
+    if (lastField && /^\s{2,}\S/.test(raw)) { item[lastField] += ' ' + line.trim(); return; } // an indented line continues the field
+    item._text.push(line);
+  });
+  close();
+  d.world.summary = summary.join('\n').trim();
+  return { data: d, title: title };
+}
+// a Markdown template the author fills by hand (or asks any AI to fill from notes)
+function mdTemplate(lang) {
+  return lang === 'en' ? [
+    '# World name', '> One line that sums up the world', '', 'The essence of the world in a few paragraphs.', '',
+    '## Laws', '- An unbreakable law of the world (magic, physics, limits)', '', '## Facts', '- Capital: …', '- Moons: 2', '',
+    '## Characters', '### Name', 'Group: Royal family', 'Role: role in the world', 'Description: 1–2 sentences', 'Look: appearance',
+    'Links: Another name — who they are to them; Place — born there', 'Life: age 12 — lost the father; age 20 — joined the order', '', 'The biography in free text, as long as you like.', '',
+    '## Locations', '### Name', 'Description: …', 'Look: …', '', 'The history of the place.', '',
+    '## Factions', '### Name', 'Description: an organisation with a goal and members', 'Links: Name — leader', '',
+    '## Artifacts', '### Name', 'Description: a unique named item', '',
+    '## Events', '### Name', 'Year: 340', 'Duration: 2', 'When: Third age, year 340', 'Who: Name, Faction', 'Outcome: what changed', '', 'What happened.', '',
+    '## Peoples', '### Name', 'Origin: …', 'Look: …', 'Society: …', 'Lands: …', '',
+    '## Languages', '### Name', 'Sound: …', 'Script: …', 'Phrases: …', 'Speakers: …', '',
+    '## Beliefs', '### Name', 'Powers: …', 'Myths: …', 'Rites: …', 'Believers: …', '',
+    '## Customs', '### Name', 'What: …', 'When: …', 'Meaning: …', ''
+  ].join('\n') : [
+    '# Назва світу', '> Один рядок, що підсумовує світ', '', 'Суть світу кількома абзацами.', '',
+    '## Закони', '- Непорушний закон світу (магія, фізика, межі можливого)', '', '## Факти', '- Столиця: …', '- Місяців на небі: 2', '',
+    '## Персонажі', '### Імʼя', 'Група: Королівська родина', 'Роль: роль у світі', 'Опис: 1–2 речення', 'Вигляд: зовнішність',
+    'Звʼязки: Інше імʼя — ким доводиться; Місце — родом звідти', 'Життя: 12 років — втратила батька; 20 років — вступила в орден', '', 'Біографія довільним текстом, скільки завгодно.', '',
+    '## Локації', '### Назва', 'Опис: …', 'Вигляд: …', '', 'Історія місця.', '',
+    '## Фракції', '### Назва', 'Опис: організація з метою й членами', 'Звʼязки: Імʼя — очільник', '',
+    '## Артефакти', '### Назва', 'Опис: унікальний іменований предмет', '',
+    '## Події', '### Назва', 'Рік: 340', 'Тривалість: 2', 'Коли: Третя епоха, рік 340', 'Учасники: Імʼя, Фракція', 'Наслідок: що змінилося', '', 'Що сталося.', '',
+    '## Народи', '### Назва', 'Походження: …', 'Вигляд: …', 'Суспільство: …', 'Землі: …', '',
+    '## Мови', '### Назва', 'Звучання: …', 'Письмо: …', 'Фрази: …', 'Носії: …', '',
+    '## Вірування', '### Назва', 'Сили: …', 'Міфи: …', 'Обряди: …', 'Вірні: …', '',
+    '## Звичаї', '### Назва', 'Що: …', 'Коли: …', 'Значення: …', ''
+  ].join('\n');
+}
+
+// The file → a clean shape; anything unknown is dropped, nothing is invented. The file is JSON (whitewrite.fill/1),
+// a .md with a ```json block of it, or the Markdown template above; `title` — the world name from «# …» of a Markdown file
 function parse(text) {
-  var d; try { d = typeof text === 'string' ? JSON.parse(text.replace(/^﻿/, '')) : text; } catch (e) { return { error: 'json', detail: e.message }; }
+  var title = '';
+  if (typeof text === 'string') {
+    var t = text.replace(/^\uFEFF/, '').trim(), block = t.match(/```(?:json)?\s*\n(\{[\s\S]*?\})\s*\n```/);
+    if (t[0] !== '{') {
+      if (block && block[1].indexOf(FORMAT) >= 0) text = block[1];
+      else { var md = fromMarkdown(t); title = md.title; text = md.data; }
+    }
+  }
+  var r = parse1(text);
+  if (title && !r.error) r.title = title;
+  return r;
+}
+function parse1(text) {
+  var d; try { d = typeof text === 'string' ? JSON.parse(text.replace(/^\uFEFF/, '')) : text; } catch (e) { return { error: 'json', detail: e.message }; }
   if (!d || typeof d !== 'object' || Array.isArray(d)) return { error: 'shape' };
   var warn = [];
   if (d.format !== FORMAT) { if (d.format) return { error: 'format', detail: String(d.format) }; warn.push('noformat'); }
@@ -237,7 +347,7 @@ function merge(parts) {
   return out;
 }
 
-var FILL = { FORMAT: FORMAT, KINDS: KINDS, LORE: LORE, RULES: RULES, TEMPLATE: TEMPLATE, prompt: prompt, parse: parse, plan: plan, merge: merge };
+var FILL = { FORMAT: FORMAT, KINDS: KINDS, LORE: LORE, RULES: RULES, TEMPLATE: TEMPLATE, prompt: prompt, parse: parse, plan: plan, merge: merge, fromMarkdown: fromMarkdown, mdTemplate: mdTemplate };
 if (typeof module !== 'undefined' && module.exports) module.exports = FILL;
 if (typeof window !== 'undefined') window.__FILL = FILL;
 })();

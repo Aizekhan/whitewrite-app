@@ -59,5 +59,17 @@ const txt = F.prompt('uk', 'D:\\Morra\\notes', 'Морра');
 check(txt.indexOf('D:\\Morra\\notes\\whitewrite-world.json') >= 0 && txt.indexOf('"format": "whitewrite.fill/1"') >= 0 && txt.indexOf('Раса, вид чи народ — НЕ фракція') >= 0, 'the prompt names the folder, carries the template and the rules');
 check(F.prompt('en', '').indexOf('that I attach') >= 0, 'no folder: the prompt asks for attached notes');
 
+// the same file written by hand: the Markdown template (the new-world form's «⤒ Завантажити світ із файлу .md»)
+const md = F.parse('# Морра\n> Туманний світ\n\nСвіт туманів.\n\n## Закони\n- Магія має ціну\n\n## Факти\n- Столиця: Аркан\n\n## Персонажі\n### Ліра\nГрупа: Мисливці\nОпис: Мисливиця\nЗвʼязки: Орден — членкиня; Аркан — родом\nЖиття: 12 років — втратила батька\n\nБіографія.\n\n## Events\n### Fall\nYear: 340\nWho: Ліра, Орден\n\n## Народи\n### Туманники\nПоходження: туман\nВигляд: …\n');
+check(!md.error && md.title === 'Морра' && md.data.world.tagline === 'Туманний світ' && md.data.world.summary === 'Світ туманів.', 'Markdown: the name, tagline and summary');
+check(md.data.world.rules[0] === 'Магія має ціну' && md.data.world.facts[0].k === 'Столиця', 'Markdown: laws and facts lists');
+const ml = md.data.characters[0];
+check(ml.group + '|' + ml.desc + '|' + ml.story + '|' + ml.links.map((l) => l.to + '=' + l.rel).join(',') + '|' + ml.life[0].at, 'Мисливці|Мисливиця|Біографія.|Орден=членкиня,Аркан=родом|12 років', 'Markdown: fields, links, life and the free text as the story');
+check(md.data.events[0].at === 340 && md.data.events[0].who.length === 2, 'Markdown: English headings and event fields');
+check(md.data.culture.peoples[0].fields.origin === 'туман' && !md.data.culture.peoples[0].fields.look, 'Markdown: culture fields; the template\'s «…» is skipped');
+check(!F.parse(F.mdTemplate('uk')).error && !F.parse(F.mdTemplate('en')).error, 'both Markdown templates parse');
+check(!F.parse('Notes\n\n```json\n' + JSON.stringify({ format: 'whitewrite.fill/1', world: { summary: 'x' } }) + '\n```\n').error, 'a .md carrying the agent\'s JSON block');
+check(F.parse('just some text without any structure').data.world.summary === 'just some text without any structure', 'a .md without headings becomes the summary of the world');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;

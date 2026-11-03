@@ -354,9 +354,13 @@
       'genesis.skipAuthor': 'Почати з порожнього світу',
       'worlds.fillLater': '📜 Свої матеріали — нотатки, документи, теки — заллєш одразу на сторінці світу: твій ШІ-агент складе їх у файл за нашим шаблоном.',
       'worlds.ideasTick': '✦ Запропонувати 3 варіанти світу за описом (ШІ)',
-      'worlds.folderBtn': '📂 Завантажити теку з матеріалами',
-      'worlds.folderPicked': '📂 Тека «{d}» · текстових файлів: {n}',
-      'worlds.folderClear': 'Прибрати',
+      'worlds.mdBtn': '⤒ Завантажити світ із файлу .md',
+      'worlds.mdPicked': '📜 «{d}» · {n}',
+      'worlds.mdClear': 'Прибрати',
+      'worlds.mdTpl': '⤓ Шаблон .md',
+      'worlds.mdHint': 'Склади один .md за шаблоном (сам або попроси будь-який ШІ з твоїх нотаток) — світ створиться й заповниться одним кліком.',
+      'worlds.mdBad': 'Не вийшло прочитати файл: {d}. Візьми «⤓ Шаблон .md».',
+      'worlds.mdCount': { characters: 'персонажів', locations: 'локацій', factions: 'фракцій', artifacts: 'артефактів', events: 'подій', culture: 'записів культури', rules: 'законів' },
       'genesis.skip': 'Пропустити — почати з порожнього світу',
 
       // Worlds (world-first home)
@@ -386,7 +390,7 @@
       'worlds.create': 'Народити світ',
       'worlds.plan_ideas': 'ШІ запропонує 3 варіанти світу за описом — обереш один',
       'worlds.plan_empty': 'Світ створиться одразу й відкриється в Біблії — там заллєш свої матеріали. Без токенів',
-      'worlds.plan_folder': 'Світ створиться й відкриється в Біблії, ШІ розкладе теку по розділах — побачиш, що додасться, і перенесеш. Ціну (не більше N токенів) покажемо перед запуском',
+      'worlds.plan_md': 'Світ створиться й одразу заповниться з файлу — усе по своїх розділах Біблії. Без токенів',
       'kb.fab': 'База знань',
 
       // Feedback Modal
@@ -933,9 +937,13 @@
       'genesis.skipAuthor': 'Start with an empty world',
       'worlds.fillLater': '📜 Your own material — notes, documents, folders — goes in right on the world’s page: your AI agent puts it into a file by our template.',
       'worlds.ideasTick': '✦ Propose 3 worlds from the description (AI)',
-      'worlds.folderBtn': '📂 Upload a folder of material',
-      'worlds.folderPicked': '📂 Folder «{d}» · text files: {n}',
-      'worlds.folderClear': 'Remove',
+      'worlds.mdBtn': '⤒ Load the world from a .md file',
+      'worlds.mdPicked': '📜 «{d}» · {n}',
+      'worlds.mdClear': 'Remove',
+      'worlds.mdTpl': '⤓ .md template',
+      'worlds.mdHint': 'Write one .md by the template (yourself, or ask any AI to fill it from your notes) — the world is created and filled in one click.',
+      'worlds.mdBad': 'Could not read the file: {d}. Take the “⤓ .md template”.',
+      'worlds.mdCount': { characters: 'characters', locations: 'locations', factions: 'factions', artifacts: 'artifacts', events: 'events', culture: 'culture entries', rules: 'laws' },
       'genesis.skip': 'Skip — start with an empty world',
 
       // Worlds (world-first home)
@@ -965,7 +973,7 @@
       'worlds.create': 'Bring the world to life',
       'worlds.plan_ideas': 'AI proposes 3 worlds from the description — you pick one',
       'worlds.plan_empty': 'The world is created at once and opens in its Bible — pour your material in there. No tokens',
-      'worlds.plan_folder': 'The world is created and opens in its Bible, AI sorts the folder into the sections — you see what will be added and move it in. The price (never above N tokens) is shown before the run',
+      'worlds.plan_md': 'The world is created and filled from the file at once — everything in its own section of the Bible. No tokens',
       'kb.fab': 'Knowledge base',
 
       'ui.feedback': 'Report a bug or write to us',

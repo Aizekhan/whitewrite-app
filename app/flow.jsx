@@ -574,24 +574,35 @@ function WorldForm({ onBack, onCreate, initial }) {
   const [description, setDescription] = useFState(init.description || "");
   const [ideas, setIdeas] = useFState(!!init.ideas);
   const [creating, setCreating] = useFState(false);
-  const [folder, setFolder] = useFState(null); // «📂 Завантажити теку»: the picked files wait for the world's Bible (gamebible.js runWorldFolder)
-  const PFw = window.__PAID_FEATURES, canFolder = !!(PFw && window.__wwUser && PFw.planBudget(window.__wwUser.plan || 'free').allowFolderFill);
+  // «⤒ Завантажити світ із файлу .md»: one file by the template (functions/world-fill.js — Markdown or whitewrite.fill/1 JSON) →
+  // the new world's Bible fills it at once (gamebible.js takePendingFill), any plan, no AI
+  const [md, setMd] = useFState(null); // { name, text, summary } | { error }
   const desc = description.trim();
-  const plan = !title.trim() && !desc && !folder ? "" : folder ? "folder" : desc && ideas ? "ideas" : "empty";
-  function pickFolder(e) {
-    const files = [].slice.call(e.target.files || []); e.target.value = "";
-    if (!files.length) return;
-    const name = (files[0].webkitRelativePath || "").split("/")[0] || files[0].name;
-    const text = files.filter((f) => /\.(md|markdown|txt|json|csv|tsv|ya?ml|xml|html?|fountain|org|rst|ini|toml)$/i.test(f.name)).length;
-    setFolder({ name, files, text }); setIdeas(false);
-    if (!title.trim()) setTitle(name);
+  const plan = md && !md.error ? "md" : !title.trim() && !desc ? "" : desc && ideas ? "ideas" : "empty";
+  async function pickMd(e) {
+    const file = e.target.files && e.target.files[0]; e.target.value = "";
+    if (!file) return;
+    const text = await file.text(), F = window.__FILL, r = F ? F.parse(text) : { error: 'no parser' };
+    if (r.error) { setMd({ error: r.detail || r.error, name: file.name }); return; }
+    const C = t('worlds.mdCount'), d = r.data, n = (k) => (d[k] || []).length;
+    const parts = ['characters', 'locations', 'factions', 'artifacts', 'events'].filter((k) => n(k)).map((k) => n(k) + ' ' + C[k]);
+    const cult = Object.keys(d.culture || {}).reduce((x, g) => x + d.culture[g].length, 0);
+    if (cult) parts.push(cult + ' ' + C.culture);
+    if (d.world.rules.length) parts.push(d.world.rules.length + ' ' + C.rules);
+    setMd({ name: file.name, text, summary: parts.join(' · ') }); setIdeas(false);
+    if (!title.trim()) setTitle(r.title || file.name.replace(/\.(md|markdown|txt|json)$/i, ''));
+  }
+  function mdTemplate() {
+    const F = window.__FILL; if (!F) return;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([F.mdTemplate(window.__i18n ? window.__i18n.getLanguage() : 'uk')], { type: 'text/markdown' }));
+    a.download = 'whitewrite-world.md'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   async function submit() {
     if (!plan || creating) return;
     setCreating(true);
     try {
-      try { window.top.__wwPendingFolder = folder ? { name: folder.name, files: folder.files } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
-      await onCreate({ title: title.trim() || (folder && folder.name) || "", description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
+      try { window.top.__wwPendingFill = plan === "md" ? { name: md.name, text: md.text } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
+      await onCreate({ title: title.trim() || (md && md.name.replace(/\.\w+$/, "")) || "", description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
     } catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
   }
   const cost = (() => { if (plan !== "ideas") return 0; const PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp('genesis'), null, (window.__wwUser || {}).aiModel) : 0; })();
@@ -618,11 +629,13 @@ function WorldForm({ onBack, onCreate, initial }) {
               onChange={(e) => setDescription(e.target.value)} placeholder={t('worlds.descPlaceholder')} disabled={creating} />
           </label>
 
-          {canFolder && (folder
-            ? <p className="wf-tick">{t('worlds.folderPicked').replace('{d}', folder.name).replace('{n}', folder.text)} <button type="button" className="link-back" onClick={() => setFolder(null)} disabled={creating}>{t('worlds.folderClear')}</button></p>
-            : <label className="wf-tick wf-folder"><input type="file" webkitdirectory="" multiple hidden onChange={pickFolder} disabled={creating} /><span>{t('worlds.folderBtn')} ✦</span></label>)}
+          {md && !md.error
+            ? <p className="wf-tick">{t('worlds.mdPicked').replace('{d}', md.name).replace('{n}', md.summary)} <button type="button" className="link-back" onClick={() => setMd(null)} disabled={creating}>{t('worlds.mdClear')}</button></p>
+            : <div className="wf-tick"><label className="wf-md"><input type="file" accept=".md,.markdown,.txt,.json" hidden onChange={pickMd} disabled={creating} /><span>{t('worlds.mdBtn')}</span></label>
+                <button type="button" className="link-back" onClick={mdTemplate} title={t('worlds.mdHint')}>{t('worlds.mdTpl')}</button></div>}
+          {md && md.error && <p className="wf-plan" role="alert">{t('worlds.mdBad').replace('{d}', md.error)}</p>}
 
-          {desc && !folder && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
+          {desc && plan !== "md" && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
 
           <p className="wf-plan" role="status">{plan ? t('worlds.plan_' + plan) + (cost ? ' · ' + t('genesis.cost').replace('{n}', cost) : '') : t('worlds.fillLater')}</p>
 

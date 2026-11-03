@@ -1307,7 +1307,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .field__area:focus{ border-color:var(--gold-lit); box-shadow:0 0 0 3px rgba(201,162,75,0.18); }
 /* World form: the ✦ ideas tick and the line on what happens next */
 .wf-tick{ display:flex; align-items:center; gap:10px; margin:-6px 0 12px; font-size:14px; color:#e9dcc0; cursor:pointer; } .wf-tick input{ accent-color:#c9a24b; width:17px; height:17px; }
-.wf-folder span{ padding:9px 16px; border:1px dashed rgba(201,162,75,.7); border-radius:10px; } .wf-folder:hover span{ border-style:solid; background:rgba(201,162,75,.1); }
+.wf-md span{ padding:9px 16px; border:1px dashed rgba(201,162,75,.7); border-radius:10px; } .wf-md:hover span{ border-style:solid; background:rgba(201,162,75,.1); }
 .wf-plan{ margin:4px 0 0; font-style:italic; font-size:13.5px; line-height:1.5; color:rgba(194,161,87,0.9); }
 
 .seg{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -1915,6 +1915,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 <!-- Firebase Modules -->
 <script src="/firebase/firebase-init.js"></script>
 <script src="/firebase/paid-features.js"></script>
+<script src="/firebase/world-fill.js"></script>
 <script src="/firebase/token-budget.js"></script>
 <script src="/firebase/firebase-pricing.js"></script>
 <script src="/firebase/firebase-auth.js"></script>
