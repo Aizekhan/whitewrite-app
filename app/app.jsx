@@ -237,7 +237,8 @@ function App() {
   const [genesisData, setGenesisData] = useAState(null);
   function startGenesis(data) {
     setGenesisData(data);
-    if (!(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return createWorld({ name: data.title, summary: data.description });
+    // only a name (or no AI) → an empty world at once, filled in the Bible; Genesis needs a description or a file
+    if (!(data.description || data.source) || !(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return createWorld({ name: data.title, summary: data.description });
     setStage("genesis");
   }
   async function createWorld(seed) {

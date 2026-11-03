@@ -165,7 +165,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       let outText;
       let apiUsage = { input_tokens: 0, output_tokens: 0 };
       let model;
-      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: author ? 24000 : 12000, effort: 'low' });
+      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: author ? 24000 : 12000, effort: 'low', stream: true }); // stream: the SDK refuses non-streaming calls that may run > 10 min (24k tokens)
       if (out.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', out.model, out.usage);
       outText = out.text;
       apiUsage = out.usage;

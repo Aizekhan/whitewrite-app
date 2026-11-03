@@ -564,36 +564,39 @@ function StoryForm({ onBack, onCreate, initial }) {
   );
 }
 
-// World form — the first step of a world: its premise. Genesis then proposes
-// three seeds; the chosen one becomes the world's canon. Stories come later, inside it.
+// World form — a name, the author's .md about the world (the big drop zone) and an optional description. What happens next
+// follows from what was given: a file → the world is filled only from it (the description is a note to it); only a
+// description → Genesis proposes three worlds to choose from; only a name → an empty world at once (filled in the Bible).
+const WF_MAX = 60000; // genesis.js MAX_SOURCE_CHARS: the file plus the note
 function WorldForm({ onBack, onCreate, initial }) {
   const t = window.__i18n ? window.__i18n.t : (k) => k;
   const init = initial || {}; // restored when returning from Genesis
   const [title, setTitle] = useFState(init.title || "");
   const [description, setDescription] = useFState(init.description || "");
-  const [language, setLanguage] = useFState(init.language || (window.__i18n ? window.__i18n.getLanguage() : "uk"));
-  const [genres, setGenres] = useFState(init.genres || []);
   const [creating, setCreating] = useFState(false);
-  const [source, setSource] = useFState(init.sourceName ? { name: init.sourceName, text: init.source } : null); // a .md from the PC: the world is filled only from it
-  const ready = description.trim().length > 0 || !!source;
-  async function pickSource(e) {
-    const f = e.target.files && e.target.files[0]; e.target.value = "";
+  const [source, setSource] = useFState(init.sourceName ? { name: init.sourceName, text: init.source } : null);
+  const [over, setOver] = useFState(false);
+  const desc = description.trim();
+  const plan = source ? "file" : desc ? "ideas" : title.trim() ? "empty" : "";
+  async function readFile(f) {
     if (!f) return;
+    if (!/\.(md|markdown|txt)$/i.test(f.name) && !/^text\//.test(f.type || "")) { alert(t('worlds.mdType')); return; }
     if (f.size > 2 * 1024 * 1024) { alert(t('worlds.mdTooBig')); return; }
     const text = (await f.text()).trim();
     if (!text) { alert(t('worlds.mdEmpty')); return; }
-    setSource({ name: f.name, text: text.slice(0, 60000), cut: text.length > 60000 });
+    setSource({ name: f.name, text: text.slice(0, WF_MAX), cut: text.length > WF_MAX });
   }
-
-  function toggleGenre(g) {
-    setGenres((cur) => cur.includes(g) ? cur.filter((x) => x !== g) : (cur.length >= 4 ? cur : cur.concat(g)));
-  }
+  function onDrop(e) { e.preventDefault(); setOver(false); if (!creating) readFile(e.dataTransfer.files && e.dataTransfer.files[0]); }
   async function submit() {
-    if (!ready || creating) return;
+    if (!plan || creating) return;
     setCreating(true);
-    try { await onCreate({ title, description, language, genres, source: source ? source.text : "", sourceName: source ? source.name : "", mode: source ? "author" : "" }); }
-    catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
+    const note = source && desc ? "\n\n---\n" + desc : "";
+    try {
+      await onCreate({ title: title.trim(), description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [],
+        source: source ? source.text.slice(0, WF_MAX - note.length) + note : "", sourceName: source ? source.name : "", mode: source ? "author" : "" });
+    } catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
   }
+  const cost = (() => { if (plan !== "file" && plan !== "ideas") return 0; const PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(plan === "file" ? 'genesisAuthor' : 'genesis'), null, (window.__wwUser || {}).aiModel) : 0; })();
 
   return (
     <div className="screen screen--form stage-screen">
@@ -607,50 +610,44 @@ function WorldForm({ onBack, onCreate, initial }) {
 
           <label className="field">
             <span className="field__label">{t('worlds.nameLabel')}</span>
-            <input className="field__input" value={title} onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('worlds.namePlaceholder')} disabled={creating} />
+            <input className="field__input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200}
+              placeholder={t('worlds.namePlaceholder')} disabled={creating} autoFocus />
           </label>
 
-          <label className="field">
-            <span className="field__label">{t('form.languageLabel')}</span>
-            <select className="field__input" value={language} onChange={(e) => setLanguage(e.target.value)} disabled={creating}>
-              {LANGUAGES.map((lang) => <option key={lang.code} value={lang.code}>{lang.name}</option>)}
-            </select>
-          </label>
+          {source ? (
+            <div className="md-drop is-loaded">
+              <span className="md-drop__ic" aria-hidden="true">📜</span>
+              <span className="md-drop__b">
+                <span className="md-drop__t">{source.name}</span>
+                <span className="md-drop__s">{t('worlds.mdNote').replace('{n}', source.text.length.toLocaleString())}{source.cut ? ' · ' + t('worlds.mdCut') : ''}</span>
+              </span>
+              <button type="button" className="md-drop__x" onClick={() => setSource(null)} disabled={creating} aria-label={t('worlds.mdRemove')} title={t('worlds.mdRemove')}>✕</button>
+            </div>
+          ) : (
+            <label className={`md-drop ${over ? "is-over" : ""}`} tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.currentTarget.querySelector("input").click(); } }}
+              onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}>
+              <span className="md-drop__ic" aria-hidden="true">⤒</span>
+              <span className="md-drop__b">
+                <span className="md-drop__t">{t('worlds.mdBtn')}</span>
+                <span className="md-drop__s">{t('worlds.mdDrop')}</span>
+              </span>
+              <input type="file" hidden accept=".md,.markdown,.txt,text/markdown,text/plain" disabled={creating}
+                onChange={(e) => { const f = e.target.files && e.target.files[0]; e.target.value = ""; readFile(f); }} />
+            </label>
+          )}
 
           <label className="field">
             <span className="field__label">{t('worlds.descLabel')}</span>
-            <textarea className="field__area" value={description} rows={6} maxLength={2000}
-              onChange={(e) => setDescription(e.target.value)} placeholder={t('worlds.descPlaceholder')} disabled={creating} />
+            <textarea className="field__area" value={description} rows={4} maxLength={2000}
+              onChange={(e) => setDescription(e.target.value)} placeholder={t(source ? 'worlds.descPlaceholderFile' : 'worlds.descPlaceholder')} disabled={creating} />
           </label>
 
-          <div className="field">
-            <span className="field__label">{t('worlds.mdLabel')} <span className="field__hint">{t('worlds.mdHint')}</span></span>
-            <div className="chips">
-              <label className={`chip ${source ? "is-on" : ""}`}>
-                ⤒ {source ? source.name : t('worlds.mdBtn')}
-                <input type="file" hidden accept=".md,.markdown,.txt,text/markdown,text/plain" onChange={pickSource} disabled={creating} />
-              </label>
-              {source && <button type="button" className="chip" onClick={() => setSource(null)} disabled={creating}>✕ {t('worlds.mdRemove')}</button>}
-            </div>
-            {source && <span className="field__hint">{t('worlds.mdNote').replace('{n}', source.text.length.toLocaleString())}{source.cut ? ' ' + t('worlds.mdCut') : ''}</span>}
-          </div>
-
-          <div className="field">
-            <span className="field__label">{t('form.genreLabel')} <span className="field__hint">{t('form.genreHint')}</span></span>
-            <div className="chips">
-              {getGenres().map((g) => (
-                <button key={g.key} type="button" className={`chip ${genres.includes(g.key) ? "is-on" : ""}`} onClick={() => !creating && toggleGenre(g.key)} disabled={creating}>
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {plan && <p className="wf-plan" role="status">{t('worlds.plan_' + plan)}{cost ? ' · ' + t('genesis.cost').replace('{n}', cost) : ''}</p>}
 
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack}>{t('form.back')}</button>
-            <span className="form-cost">{(() => { const PF = window.__PAID_FEATURES; const n = PF ? PF.featureCost(PF.byOp(source ? 'genesisAuthor' : 'genesis'), null, (window.__wwUser || {}).aiModel) : 0; return n ? t('genesis.cost').replace('{n}', n) : ''; })()}</span>
-            <button className={`create-btn ${ready && !creating ? "" : "is-disabled"}`} type="button" onClick={submit} disabled={!ready || creating}>
+            <button className={`create-btn ${plan && !creating ? "" : "is-disabled"}`} type="button" onClick={submit} disabled={!plan || creating}>
               <span className="begin-btn__star">✨</span>{creating ? t('form.creating') : t('worlds.create')}
             </button>
           </div>

@@ -1305,6 +1305,20 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .field__input:focus{ border-color:var(--gold-lit); box-shadow:0 0 0 3px rgba(201,162,75,0.18); }
 .field__note{ display:block; margin-top:8px; font-style:italic; font-size:12.5px; color:rgba(194,161,87,0.78); }
 .field__area:focus{ border-color:var(--gold-lit); box-shadow:0 0 0 3px rgba(201,162,75,0.18); }
+/* World form: the big .md drop zone */
+.md-drop{ display:flex; align-items:center; gap:18px; margin:6px 0 22px; padding:26px 24px; cursor:pointer;
+  border:2px dashed rgba(201,162,75,0.5); border-radius:6px; background:rgba(20,14,9,0.45);
+  transition:border-color .25s, background .25s, box-shadow .25s; }
+.md-drop:hover, .md-drop.is-over{ border-color:var(--gold-lit); background:rgba(201,162,75,0.10); box-shadow:0 0 0 3px rgba(201,162,75,0.15); }
+.md-drop.is-loaded{ cursor:default; border-style:solid; background:rgba(201,162,75,0.08); }
+.md-drop__ic{ flex:none; font-size:40px; line-height:1; color:var(--gold-lit); }
+.md-drop__b{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
+.md-drop__t{ font-family:"Cinzel",serif; font-size:clamp(17px,1.9vw,21px); letter-spacing:.04em; color:#f0e6cd; overflow-wrap:anywhere; }
+.md-drop__s{ font-style:italic; font-size:13.5px; color:rgba(194,161,87,0.85); }
+.md-drop__x{ flex:none; background:none; border:1px solid rgba(201,162,75,0.4); border-radius:50%; width:32px; height:32px;
+  color:#e9c878; font-size:15px; cursor:pointer; }
+.md-drop__x:hover{ border-color:var(--gold-lit); background:rgba(201,162,75,0.15); }
+.wf-plan{ margin:4px 0 0; font-style:italic; font-size:13.5px; line-height:1.5; color:rgba(194,161,87,0.9); }
 
 .seg{ display:flex; gap:8px; flex-wrap:wrap; }
 .seg__opt{ flex:1 1 0; min-width:fit-content; cursor:pointer;
