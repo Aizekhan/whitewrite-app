@@ -1480,7 +1480,8 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   background:linear-gradient(180deg,#f3e6c8,#e9d7b0); color:var(--ink); border-radius:6px; box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 60px rgba(120,80,30,.18); }
 .sheet__kicker{ font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:#9a5e1c; font-weight:600; }
 .sheet__title{ font:600 26px "Philosopher",serif; color:var(--ink); background:none; border:0; border-bottom:1px solid rgba(90,60,25,.3); padding:4px 0 8px; outline:none; }
-.sheet__text{ flex:1; min-height:0; resize:none; font:18px/1.7 var(--book-font,"Philosopher"),Georgia,serif; color:var(--ink); background:transparent; border:0; outline:none; padding:6px 2px; }
+.sheet__text{ flex:1; min-height:0; resize:none; font:18px/1.7 var(--book-font,"Philosopher"),Georgia,serif; color:var(--ink); background:transparent; border:0; outline:none; padding:6px 2px;
+  white-space:break-spaces; } /* pre-wrap hangs spaces typed at a soft wrap (before a line's first word) — invisible */
 .sheet__text::placeholder,.sheet__title::placeholder{ color:rgba(58,44,29,.45); font-style:italic; }
 .sheet__foot{ display:flex; align-items:center; gap:14px; font:13px "Inter",system-ui,sans-serif; color:var(--ink-soft); border-top:1px solid rgba(90,60,25,.2); padding-top:10px; }
 .sheet__state.is-error{ color:#a3341f; font-weight:600; }
