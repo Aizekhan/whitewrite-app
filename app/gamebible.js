@@ -138,8 +138,8 @@
       pal: { add: "＋ Колір", paste: "Вставити коди", pastePh: "#1e2a44, #e0b050… або посилання coolors.co", fromImg: "🎨 З картинок", namePh: "назва: тло, акцент, світло…",
         color: "Колір", rm: "Прибрати колір", none: "Гами ще немає.", noImg: "Спершу додай картинки.", imgFail: "Не вдалося прочитати картинки.", groupTitle: "Гама групи «{g}»",
         groupHint: "Основні кольори групи — помітка для тих, хто малюватиме по цих референсах.", edit: "Гама групи", save: "Зберегти", clear: "Прибрати гаму" },
-      sb: { add: "＋ На сцену", addPh: "Що на сцені: персонаж, предмет, світло, камера…", bg: "Тло", size: "Розмір", label: "Підпис", back: "Назад", front: "Вперед",
-        rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, розмір, підпис. Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
+      sb: { add: "＋ На сцену", addPh: "Що на сцені: персонаж, предмет, світло, камера…", bg: "Тло", size: "Розмір", sizeX: "Ширина ↔", sizeY: "Висота ↕", round: "Заокруглення", label: "Підпис", back: "Назад", front: "Вперед",
+        rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
@@ -421,8 +421,8 @@
       pal: { add: "＋ Colour", paste: "Paste codes", pastePh: "#1e2a44, #e0b050… or a coolors.co link", fromImg: "🎨 From images", namePh: "name: background, accent, light…",
         color: "Colour", rm: "Remove colour", none: "No palette yet.", noImg: "Add images first.", imgFail: "Could not read the images.", groupTitle: "Palette of “{g}”",
         groupHint: "The group's main colours — a note for whoever draws from these references.", edit: "Group palette", save: "Save", clear: "Remove palette" },
-      sb: { add: "＋ To the scene", addPh: "What is in the scene: character, prop, light, camera…", bg: "Background", size: "Size", label: "Label", back: "Back", front: "Front",
-        rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, size, label. Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
+      sb: { add: "＋ To the scene", addPh: "What is in the scene: character, prop, light, camera…", bg: "Background", size: "Size", sizeX: "Width ↔", sizeY: "Height ↕", round: "Rounding", label: "Label", back: "Back", front: "Front",
+        rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
@@ -599,6 +599,8 @@
 
   // Field templates: a new card starts with the structure of its section.
   var F = function (key, uk, en, type) { var d = { key: key, label: LANG === "en" ? en : uk }; if (type) d.type = type; return d; };
+  // «Числа» of characters, enemies, items, gear: a table by default — «Параметр | Значення» and one empty row
+  var NUM = function () { return Object.assign(F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
   var CANON = [
     { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
       about: { uk: "Про що цей світ: суть, тон, ключові факти. Спільне для всіх історій та ігор.", en: "What this world is: its essence, tone and key facts. Shared by every story and game." } },
@@ -627,7 +629,7 @@
       defs: [F("text", "Опис", "Description")] },
     { id: "characters", canon: "characters", uk: "Персонажі", en: "Characters",
       about: { uk: "Персонажі світу в цій грі: роль, здібності, числа і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, numbers and their own look or model. Biography and connections live in the world dossier." },
-      defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), F("numbers", "Числа", "Numbers"),
+      defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), NUM(),
              F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "locations", canon: "locations", uk: "Локації", en: "Locations",
       about: { uk: "Місця канону як рівні цієї гри: розмір, палітра, світло, хто там живе.", en: "Canon places as this game's levels: size, palette, light, who lives there." },
@@ -638,7 +640,7 @@
       defs: [F("gameplay", "Роль у геймплеї", "Role in gameplay"), F("rewards", "Що дає гравцю", "What it gives the player")] },
     { id: "items", canon: "artifacts", uk: "Артефакти", en: "Artifacts",
       about: { uk: "Артефакти канону як ігрові предмети.", en: "Canon artifacts as game items." },
-      defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
+      defs: [F("type", "Тип", "Type"), F("effect", "Ефект", "Effect"), NUM(), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
     { id: "mechanics", uk: "Механіки", en: "Mechanics", group: "group",
       groups: { uk: window.__MECH.CATEGORIES.map(function (c) { return c.uk; }), en: window.__MECH.CATEGORIES.map(function (c) { return c.en; }) }, // functions/mechanics.js
       about: { uk: "Системи гри: правила, числа й звʼязки між ними — власні або з шаблонів (UMCF та інші). Правка тут — це завдання змінити гру.", en: "The game's systems: rules, numbers and how they connect — your own or from templates (UMCF and others). An edit here is a task to change the game." },
@@ -663,11 +665,11 @@
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити.", en: "Who stands in the way, how it hits and where to hit it." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
-             F("weakness", "Як перемогти", "How to beat"), F("numbers", "Числа", "Numbers"), F("model", "Модель / префаб", "Model / prefab", "file")] },
+             F("weakness", "Як перемогти", "How to beat"), NUM(), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
       groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
-      defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), F("numbers", "Числа", "Numbers"), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
+      defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), NUM(), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
     { id: "assets", uk: "Ассети й префаби", en: "Assets & prefabs", group: "category",
       groups: { uk: ["Персонажі", "Вороги", "Оточення", "Пропси", "Зброя й предмети", "Ефекти", "UI"], en: ["Characters", "Enemies", "Environment", "Props", "Weapons & items", "Effects", "UI"] },
       about: { uk: "Моделі й префаби: що вже є і що треба зробити — функція, розмір, пріоритет, промпт. Моделі відкриваються в 3D.", en: "Models and prefabs: what exists and what to make — function, size, priority, prompt. Models open in 3D." },
@@ -3774,18 +3776,25 @@
     var sc = { bg: "#1b1f2a", items: [] };
     String(v || "").split("\n").forEach(function (l) {
       var b = l.match(/^\s*bg:\s*(#[0-9a-f]{6})/i); if (b) { sc.bg = b[1].toLowerCase(); return; }
-      var m = l.match(/^\s*-\s*(.+?)\s*@\s*(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s*·\s*(\d+(?:\.\d+)?)%\s*·\s*(#[0-9a-f]{6})\s*$/i);
-      if (m) sc.items.push({ label: m[1], x: +m[2], y: +m[3], w: +m[4], hex: m[5].toLowerCase() });
+      // «- Ліра @ 30% 60% · 18% · #e0b050» — a square; «· 18%×30% ·» stretched (width % of the stage width × height % of its height); «· r40%» rounding
+      var m = l.match(/^\s*-\s*(.+?)\s*@\s*(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s*·\s*(\d+(?:\.\d+)?)%(?:\s*[×x]\s*(\d+(?:\.\d+)?)%)?\s*·\s*(#[0-9a-f]{6})(?:\s*·\s*r(\d+(?:\.\d+)?)%)?\s*$/i);
+      if (m) sc.items.push({ label: m[1], x: +m[2], y: +m[3], w: +m[4], h: m[5] ? +m[5] : 0, hex: m[6].toLowerCase(), r: m[7] != null ? +m[7] : null });
     });
     return sc;
   }
   function sceneText(sc) {
-    return ["bg: " + sc.bg].concat(sc.items.map(function (it) { return "- " + it.label.replace(/\n/g, " ") + " @ " + Math.round(it.x) + "% " + Math.round(it.y) + "% · " + Math.round(it.w) + "% · " + it.hex; })).join("\n");
+    return ["bg: " + sc.bg].concat(sc.items.map(function (it) { return "- " + it.label.replace(/\n/g, " ") + " @ " + Math.round(it.x) + "% " + Math.round(it.y) + "% · " + Math.round(it.w) + "%" + (it.h ? "×" + Math.round(it.h) + "%" : "") + " · " + it.hex + (it.r != null ? " · r" + Math.round(it.r) + "%" : ""); })).join("\n");
   }
   var ink = function (hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 140 ? "#111" : "#fff"; };
+  // an element's box: a square by default (h 0); stretched — height % of the stage height; rounding r 0–50 % (50 = circle / ellipse)
+  function sbBox(it) {
+    return 'left:' + it.x + '%;top:' + it.y + '%;width:' + it.w + '%;' + (it.h ? 'height:' + it.h + '%;aspect-ratio:auto;' : '') + (it.r != null ? 'border-radius:' + it.r + '%;' : '');
+  }
+  function sbH(it) { return it.h || Math.min(100, it.w * 16 / 9); } // the height in % of the stage height (a square on the 16:9 stage)
   function sceneStage(sc, sel) {
     return '<div class="sb-stage" style="background:' + sc.bg + '">' + sc.items.map(function (it, i) {
-      return '<div class="sb-it' + (i === sel ? ' is-sel' : '') + '" data-si="' + i + '" tabindex="0" style="left:' + it.x + '%;top:' + it.y + '%;width:' + it.w + '%;background:' + it.hex + ';color:' + ink(it.hex) + '">' + esc(it.label) + '</div>';
+      return '<div class="sb-it' + (i === sel ? ' is-sel' : '') + '" data-si="' + i + '" tabindex="0" style="' + sbBox(it) + 'background:' + it.hex + ';color:' + ink(it.hex) + '">' + esc(it.label) +
+        (i === sel ? '<span class="sb-h sb-hx" data-sbh="x"></span><span class="sb-h sb-hy" data-sbh="y"></span><span class="sb-h sb-hxy" data-sbh="xy"></span>' : '') + '</div>'; // drag handles: stretch X / Y / both
     }).join("") + '</div>';
   }
   function sceneThumb(v) { var sc = parseScene(v); return sc.items.length ? '<div class="sb-thumb">' + sceneStage(sc, -1) + '</div>' : ''; }
@@ -3800,12 +3809,16 @@
         '<button type="button" class="btn mini" data-sbadd>' + B.add + '</button><label class="muted">' + B.bg + ' <input type="color" data-sbbg value="' + sc.bg + '"></label></div>' +
         (it ? '<div class="row sb-ctl"><input data-sblabel value="' + esc(it.label) + '" aria-label="' + esc(B.label) + '"><input type="color" data-sbhex value="' + it.hex + '" aria-label="' + esc(STR.pal.color) + '">' +
           cols.map(function (c) { return '<button type="button" class="sw-b" data-sbpal="' + c.hex + '" style="background:' + c.hex + '" title="' + esc(c.hex + (c.name ? " — " + c.name : "")) + '"></button>'; }).join("") +
-          '<label class="muted">' + B.size + ' <input type="range" min="4" max="60" data-sbw value="' + it.w + '"></label><button type="button" class="btn mini" data-sbz="-1">' + B.back + '</button>' +
+          '<label class="muted">' + B.sizeX + ' <input type="range" min="2" max="100" data-sbw value="' + it.w + '"></label>' +
+          '<label class="muted">' + B.sizeY + ' <input type="range" min="2" max="100" data-sbhh value="' + Math.round(sbH(it)) + '"></label>' +
+          '<label class="muted">' + B.round + ' <input type="range" min="0" max="50" data-sbr value="' + (it.r != null ? it.r : 8) + '"></label>' +
+          '<button type="button" class="btn mini" data-sbz="-1">' + B.back + '</button>' +
           '<button type="button" class="btn mini" data-sbz="1">' + B.front + '</button><button type="button" class="btn mini danger" data-sbrm>' + B.rm + '</button></div>' : '') +
         '<p class="hint">' + B.hint + '</p>');
     };
     var set = function () { change(sceneText(sc)); };
     var stage = function () { return el.querySelector(".sb-stage"); };
+    var sbApply = function (it) { var n = stage().children[sc.items.indexOf(it)]; if (n) n.setAttribute("style", sbBox(it) + 'background:' + it.hex + ';color:' + ink(it.hex)); };
     draw();
     el.onclick = function (e) {
       var t = e.target;
@@ -3817,18 +3830,33 @@
     el.oninput = function (e) {
       var t = e.target, it = sc.items[sel];
       if (t.dataset.sbbg !== undefined) { sc.bg = t.value; stage().style.background = t.value; }
-      else if (it && t.dataset.sblabel !== undefined) { it.label = t.value || "…"; stage().children[sel].textContent = it.label; }
+      else if (it && t.dataset.sblabel !== undefined) { it.label = t.value || "…"; stage().children[sel].firstChild.nodeValue = it.label; } // the text only — the handles stay
       else if (it && t.dataset.sbhex !== undefined) { it.hex = t.value; stage().children[sel].style.background = t.value; stage().children[sel].style.color = ink(t.value); }
-      else if (it && t.dataset.sbw !== undefined) { it.w = +t.value; stage().children[sel].style.width = t.value + "%"; }
+      else if (it && t.dataset.sbw !== undefined) { if (!it.h) it.h = sbH(it); it.w = +t.value; sbApply(it); } // stretching X keeps the height
+      else if (it && t.dataset.sbhh !== undefined) { it.h = +t.value; sbApply(it); }
+      else if (it && t.dataset.sbr !== undefined) { it.r = +t.value; sbApply(it); }
       else return;
       set();
     };
     el.onkeydown = function (e) { if (e.target.dataset.sbnew !== undefined && e.key === "Enter") { e.preventDefault(); el.querySelector("[data-sbadd]").click(); } };
     el.onpointerdown = function (e) {
       var node = e.target.closest(".sb-it"); if (!node) return;
-      var i = +node.dataset.si; if (i !== sel) { sel = i; draw(); node = stage().children[i]; }
+      var i = +node.dataset.si, handle = e.target.closest("[data-sbh]");
+      if (i !== sel) { sel = i; draw(); node = stage().children[i]; }
       if (!canWrite) return;
       e.preventDefault(); var r = stage().getBoundingClientRect(), it = sc.items[i], moved = false;
+      if (handle) { // stretch around the element's centre: X, Y or both
+        var ax = handle.dataset.sbh; if (!it.h) it.h = sbH(it);
+        var rs = function (ev) {
+          moved = true;
+          if (ax !== "y") it.w = Math.max(2, Math.min(100, Math.abs((ev.clientX - r.left) / r.width * 100 - it.x) * 2));
+          if (ax !== "x") it.h = Math.max(2, Math.min(100, Math.abs((ev.clientY - r.top) / r.height * 100 - it.y) * 2));
+          sbApply(it);
+        };
+        var done = function () { document.removeEventListener("pointermove", rs); document.removeEventListener("pointerup", done); if (moved) { set(); draw(); } };
+        document.addEventListener("pointermove", rs); document.addEventListener("pointerup", done);
+        return;
+      }
       var mv = function (ev) { moved = true; it.x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)); it.y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100)); node.style.left = it.x + "%"; node.style.top = it.y + "%"; };
       var up = function () { document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); if (moved) set(); };
       document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up);
@@ -3875,7 +3903,7 @@
       ? '<div class="fhead"><input class="flabel" data-flabel="' + esc(d.key) + '" value="' + esc(d.label) + '" aria-label="' + esc(STR.fieldLabel) + '">' +
         typeSelect(null, type, d.key) + '<button class="fdel" data-delfield="' + esc(d.key) + '" title="' + esc(STR.fieldDel) + '" aria-label="' + esc(STR.fieldDel + " " + d.label) + '">✕</button></div>'
       : '<label>' + esc(d.label) + '</label>';
-    var body = type === "table" ? tableHtml(d.key, v)
+    var body = type === "table" ? tableHtml(d.key, v, (d.cols || (std && std.cols)))
       : type === "palette" ? '<div class="pal" data-pal="' + esc(d.key) + '"></div>'
       : type === "scene" ? '<div class="sb" data-board="' + esc(d.key) + '"></div>'
       : type === "image" || type === "file" || type === "audio" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
@@ -3883,11 +3911,14 @@
     return '<div class="field' + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
   }
   // Tables are kept as Markdown tables in the field, so AI, MCP and exports read them as text.
-  function parseTable(v) {
+  // head: the default column names (a def's cols); text written before a field became a table → one row per line, «назва: значення» split in two
+  function parseTable(v, head) {
     var lines = String(v || "").split("\n").filter(function (l) { return /^\s*\|/.test(l); });
     var rows = lines.filter(function (l, i) { return !(i === 1 && /^[\s|:-]+$/.test(l)); })
       .map(function (l) { return l.trim().replace(/^\||\|$/g, "").split("|").map(function (c) { return c.trim(); }); });
-    if (!rows.length) rows = [[STR.col + " 1", STR.col + " 2"], [String(v || "").trim(), ""]];
+    if (!rows.length) rows = [(head || [STR.col + " 1", STR.col + " 2"]).slice()].concat(String(v || "").split("\n").map(function (l) { return l.replace(/^\s*[-*•]\s*/, "").trim(); }).filter(Boolean)
+      .map(function (l) { var m = l.match(/^(.+?)\s*(?::|=|—|–)\s*(.*)$/); return m ? [m[1].trim(), m[2].trim()] : [l, ""]; }));
+    if (rows.length < 2) rows.push(rows[0].map(function () { return ""; })); // at least one row under the header
     var w = Math.max.apply(null, rows.map(function (r) { return r.length; }));
     return rows.map(function (r) { while (r.length < w) r.push(""); return r; });
   }
@@ -3895,8 +3926,8 @@
     var cell = function (c) { return String(c || "").replace(/\|/g, "/").replace(/\n/g, " "); };
     return rows.map(function (r, i) { return "| " + r.map(cell).join(" | ") + " |" + (i === 0 ? "\n|" + r.map(function () { return "---"; }).join("|") + "|" : ""); }).join("\n");
   }
-  function tableHtml(key, v) {
-    var rows = parseTable(v);
+  function tableHtml(key, v, head) {
+    var rows = parseTable(v, head);
     return '<div class="tbl" data-tbl="' + esc(key) + '"><table>' + rows.map(function (r, i) {
       return '<tr>' + r.map(function (c, j) { return '<td><input data-cell="' + i + ',' + j + '" value="' + esc(c) + '"></td>'; }).join("") +
         '<td class="tx">' + (i ? '<button data-rmrow="' + i + '" title="' + esc(STR.rmRow) + '" aria-label="' + esc(STR.rmRow) + '">✕</button>' : '') + '</td></tr>';
@@ -6762,7 +6793,7 @@
       var d = draft.defs.filter(function (x) { return x.key === e.target.dataset.ftype; })[0]; if (!d) return;
       [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); flushLabels();
       if (e.target.value === "text") delete d.type; else d.type = e.target.value;
-      if (d.type === "table") draft.fields[d.key] = tableMd(parseTable(draft.fields[d.key]));
+      if (d.type === "table") draft.fields[d.key] = tableMd(parseTable(draft.fields[d.key], d.cols));
       renderFields(); saveStructure();
     }
   });

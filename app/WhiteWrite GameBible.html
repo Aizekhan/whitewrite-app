@@ -594,7 +594,9 @@ button.lic{ cursor:pointer; } .lic i{ font-style:normal; opacity:.8; }
 .sb-stage{ position:relative; aspect-ratio:16/9; border-radius:10px; overflow:hidden; border:1px solid var(--line-2); margin:4px 0 8px; touch-action:none; }
 .sb-it{ position:absolute; transform:translate(-50%,-50%); aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; text-align:center; padding:4px;
   border-radius:10px; font:600 12px "Inter"; box-shadow:0 2px 10px rgba(0,0,0,0.35); cursor:grab; user-select:none; overflow:hidden; }
-.sb-it.is-sel{ outline:2px solid #fff; outline-offset:2px; }
+.sb-it.is-sel{ outline:2px solid #fff; outline-offset:2px; overflow:visible; } /* the handles stick out */
+.sb-h{ position:absolute; width:10px; height:10px; background:#fff; border:1px solid #111; border-radius:2px; z-index:1; } /* stretch handles of the selected element */
+.sb-hx{ right:-5px; top:50%; margin-top:-5px; cursor:ew-resize; } .sb-hy{ bottom:-5px; left:50%; margin-left:-5px; cursor:ns-resize; } .sb-hxy{ right:-5px; bottom:-5px; cursor:nwse-resize; }
 .sb-add input[data-sbnew]{ flex:1; min-width:200px; }
 .sb-ctl{ flex-wrap:wrap; align-items:center; }
 .sw-b{ width:22px; height:22px; border-radius:5px; border:1px solid rgba(255,255,255,0.3); cursor:pointer; padding:0; }
