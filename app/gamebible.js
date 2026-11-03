@@ -749,6 +749,9 @@
   // canonWrite — canon editing (allowWorldTree). The owner's canWrite follows what is open: the canon or a game
   var canDev = false, canonWrite = false;
   var tasks = [], changeReqs = [], execs = [], keys = [], newKey = null; // execution: Task Engine + Claude Code (MCP)
+  // the open game's streams only some sections show: [[section ids], attach] — attached the first time one of them is open
+  var lazyStreams = [], lazyDone = {};
+  function attachLazy() { lazyStreams.forEach(function (l, i) { if (!lazyDone[i] && l[0].indexOf(section) >= 0) { lazyDone[i] = true; l[1](); } }); }
   var section = "world", query = "", statusFilter = {}, planName = null, pendingFocus = null;
   // Two Bibles in one page: the World Bible (mode "world": the canon + «Повʼязані ігри» at the foot of its menu) and a game's
   // GDD (mode "game": its own menu, «Канон світу» on top leads back). The canon streams stay loaded in both.
@@ -833,7 +836,7 @@
     if (!leaveOk("")) return;
     var to = sec && !isCanon(sec) ? sec : lastSec["g:" + gid] || "overview"; // picked before a game switch repaints
     mode = "game"; section = to; closeLeaf();
-    if (gid === "__new") { unsub.forEach(function (u) { u(); }); unsub = []; game = null; gameId = null; cards = []; planDoc = {}; }
+    if (gid === "__new") { unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; game = null; gameId = null; cards = []; planDoc = {}; }
     else if (gid !== gameId) selectGame(gid);
     goSection(to);
   }
@@ -1244,6 +1247,7 @@
     if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); }
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     else canWrite = mode === "game" ? canGame : canonWrite;
+    attachLazy();
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
     if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
@@ -5582,7 +5586,7 @@
   }
   async function deleteGame() {
     var id = gameId;
-    unsub.forEach(function (u) { u(); }); unsub = [];
+    unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = [];
     await removeGame(id);
     games = games.filter(function (g) { return g.id !== id; });
     game = null; gameId = null; cards = []; planDoc = {}; mode = "world"; section = "world"; render(); // back to the World Bible
@@ -5592,7 +5596,7 @@
     var stories = await db.collection("projects").where("owner", "==", firebase.auth().currentUser.uid).where("worldId", "==", worldId).get();
     if (!stories.empty) { $("st-msg").textContent = STR.stHasStories.replace("{n}", stories.size); return; }
     askDelete(STR.stDelWorld, STR.stDelWorldText, world.title || "", async function () {
-      unsub.forEach(function (u) { u(); }); unsub = [];
+      unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = [];
       for (var g of games) await removeGame(g.id);
       await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
@@ -6940,8 +6944,8 @@
 
   // Switch the open game: its cards and plan stream in; the canon stream is shared.
   function selectGame(id) {
-    unsub.forEach(function (u) { u(); }); unsub = [];
-    gameId = id; game = games.filter(function (g) { return g.id === id; })[0] || null;
+    unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; lazyDone = {};
+    gameId = id; game =games.filter(function (g) { return g.id === id; })[0] || null;
     cards = []; planDoc = {}; imp = null; closeLeaf();
     if (!gameSections().some(function (s) { return s.id === section; }) && section !== "settings") section = "overview";
     var bySec = {}, cardsIn = function (key) { return function (snap) {
@@ -6968,21 +6972,34 @@
     exIssues = []; exPlaytests = []; exExperiments = []; exMetrics = null; exKey = null;
     var exRender = function () { if (section === "experience" || section === "plan") render(); else renderNav(); };
     unsub.push(gref().collection("experienceIssues").onSnapshot(function (snap) { exIssues = rows(snap).sort(function (a, b) { return ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]; }); exRender(); }, function () {}));
-    unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
-    unsub.push(gref().collection("experiments").onSnapshot(function (snap) { exExperiments = rows(snap); exRender(); }, function () {}));
-    unsub.push(gref().collection("experience").doc("metrics").onSnapshot(function (d) { exMetrics = d.exists ? d.data() : null; exRender(); }, function () {}));
+    // Lazy streams: opened the first time a section that shows them is open (attachLazy in render), kept until the game changes
     kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null; mkState = null; mkChannels = []; mkPosts = []; mkTg = null; mkMsg = "";
-    unsub.push(gref().collection("marketing").doc("state").onSnapshot(function (d) { mkState = d.exists ? d.data() : null; mkRender(); }, function () {}));
-    unsub.push(gref().collection("channels").onSnapshot(function (snap) { mkChannels = rows(snap); mkRender(); }, function () {}));
-    unsub.push(gref().collection("posts").onSnapshot(function (snap) { mkPosts = rows(snap); mkRender(); }, function () {}));
-    unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
-    unsub.push(gref().collection("activity").orderBy("receivedAt", "desc").limit(20).onSnapshot(function (snap) {
-      snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity" || settingsIdle()) render(); else if (section === "marketing") mkRender(); }, function () {}));
-    if (!ME.owner) { render(); return; } // below: the owner's own streams (environment, executor log, keys)
-    unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (settingsIdle()) render(); }, function () {}));
-    unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }));
-    unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
-      .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan" || settingsIdle()) render(); }, function () {}));
+    lazyStreams = [
+      [["experience"], function () {
+        unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
+        unsub.push(gref().collection("experiments").onSnapshot(function (snap) { exExperiments = rows(snap); exRender(); }, function () {}));
+        unsub.push(gref().collection("experience").doc("metrics").onSnapshot(function (d) { exMetrics = d.exists ? d.data() : null; exRender(); }, function () {}));
+      }],
+      [["marketing"], function () {
+        unsub.push(gref().collection("marketing").doc("state").onSnapshot(function (d) { mkState = d.exists ? d.data() : null; mkRender(); }, function () {}));
+        unsub.push(gref().collection("channels").onSnapshot(function (snap) { mkChannels = rows(snap); mkRender(); }, function () {}));
+        unsub.push(gref().collection("posts").onSnapshot(function (snap) { mkPosts = rows(snap); mkRender(); }, function () {}));
+      }],
+      [["knowledge"], function () {
+        unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
+      }],
+      [["activity", "marketing", "settings"], function () { // the log, the marketing drafts' source, the agent road's step 7
+        unsub.push(gref().collection("activity").orderBy("receivedAt", "desc").limit(20).onSnapshot(function (snap) {
+          snap.docChanges().forEach(function (ch) { delete actEntries[ch.doc.id]; }); actSessions = rows(snap); if (section === "activity" || settingsIdle()) render(); else if (section === "marketing") mkRender(); }, function () {}));
+      }]
+    ];
+    if (ME.owner) lazyStreams.push( // the owner's own streams (environment, executor log, keys)
+      [["settings"], function () { unsub.push(gref().collection("env").doc("current").onSnapshot(function (d) { envDoc = d.exists ? d.data() : null; if (settingsIdle()) render(); }, function () {})); }],
+      [["plan"], function () { unsub.push(gref().collection("executions").orderBy("at", "desc").limit(12).onSnapshot(function (snap) { execs = rows(snap); if (section === "plan") render(); }, function () {})); }],
+      [["plan", "settings"], function () {
+        unsub.push(db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id)
+          .onSnapshot(function (snap) { keys = rows(snap); if (section === "plan" || settingsIdle()) render(); }, function () {}));
+      }]);
     render();
   }
 
