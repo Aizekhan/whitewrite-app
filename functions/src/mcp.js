@@ -112,6 +112,8 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Filter by title / subsection / file name; empty = all' } } } },
   { name: 'get_character_forge', description: 'The Character Forge (Кузня персонажів): every character / enemy with its type (hero, npc, enemy, boss), production stages (brief → concept → base mesh → rig → equipment → integration → animation → export) and which are approved. With ref — one character\'s manifest (schema whitewrite.character/1): the brief, rig and body profiles, each stage with its APPROVED version\'s files (download URLs — use these, not newer unapproved uploads), animation clips, the bound equipment with its technical passport (slot, skinned | rigid, rig / body profile, body mask, attachment points, format, units, maps, LOD, polygon target, validation status and issues) and loadouts.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string', description: '"c:<cardId>", "e:<entityId>" or the name; empty = the list' } } } },
+  { name: 'report_framework_capabilities', description: 'Send RPG Framework\'s capabilities.json from the game\'s Unity project (framework ≥ 0.40.0: Library/PackageCache/com.aizekhan.rpg-framework@*/capabilities.json, or Packages/com.aizekhan.rpg-framework/capabilities.json when embedded) — WhiteWrite then checks the game\'s mechanics against the framework version the game really uses. Send it again after updating the framework. See get_guide unity_env.',
+    inputSchema: { type: 'object', required: ['manifest'], properties: { manifest: { type: 'object', description: 'The whole capabilities.json as it is (format rpgframework.capabilities/1)' } } } },
   { name: 'report_forge_check', description: 'Report what you checked in Unity or Blender for a Character Forge equipment item — the platform cannot see clipping, deformation or skeleton compatibility itself. check: skeleton | clipping | deformation | materials | lod | polycount | scale; result: passed | warning | failed. The latest report per check replaces the previous one; a failed one blocks the integration stage until fixed, a warning needs the author\'s manual approval.',
     inputSchema: { type: 'object', required: ['item', 'check', 'result'], properties: { item: { type: 'string', description: '"c:<cardId>" of the item or its name' },
       check: { type: 'string', enum: ['skeleton', 'clipping', 'deformation', 'materials', 'lod', 'polycount', 'scale'] }, result: { type: 'string', enum: ['passed', 'warning', 'failed'] },
@@ -225,6 +227,7 @@ function overview(ctx) {
     gdd: ctx.plan.gdd || null,
     decisions: (ctx.plan.asked || []).filter((q) => answers[q.id]).map((q) => ({ question: q.question, answer: answers[q.id] })),
     canon: ctx.entities.map((e) => ({ ref: 'e:' + e.id, kind: e.kind, name: e.name || '' })),
+    framework: ctx.game.framework ? { version: ctx.game.framework.version, source: 'project' } : { version: MECH.FW_BUILTIN.version, source: 'builtin — send capabilities.json with report_framework_capabilities' },
     sections,
     roadmap: { overview: (ctx.plan.plan || {}).overview || '', total: ctx.tasks.length, byStatus: count,
       inProgress: ctx.tasks.filter((t) => t.status === 'in_progress').map((t) => t.id) },
@@ -568,7 +571,9 @@ async function callTool(name, args, key) {
       const c = ctx.cards.find((x) => (x.section === 'mechanics' || x.section === 'audio') && !x.canonRef && (x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));
       if (!c) throw rpcError(-32602, `Mechanic ${r} not found`);
       if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', constructor: false, fields: named(c), message: 'An older card, not yet opened in the constructor: only its text fields.' };
-      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en', MECH.audioLibrary(ctx.cards, 'en').assets), framework_version: MECH.FRAMEWORK.version };
+      const man = ctx.game.framework || null; // the game's own capabilities.json (report_framework_capabilities), else the built-in snapshot
+      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en', MECH.audioLibrary(ctx.cards, 'en').assets, man || MECH.FW_BUILTIN),
+        framework_version: (man || MECH.FW_BUILTIN).version, framework_source: man ? 'project' : 'builtin' };
     }
     case 'get_audio_library': {
       const lib = MECH.audioLibrary(ctx.cards, 'en'), q = str(args.query, 200).toLowerCase();
@@ -591,6 +596,17 @@ async function callTool(name, args, key) {
       const id = r.replace(/^[ce]:/, ''), c = chars.find((x) => x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase());
       if (!c) throw rpcError(-32602, `Character ${r} not found`);
       return FORGE.manifest(c, items, ctx.game, 'en');
+    }
+    case 'report_framework_capabilities': {
+      const man = MECH.parseCaps(args.manifest);
+      if (typeof man === 'string') throw rpcError(-32602, `capabilities.json: ${man}`);
+      if (JSON.stringify(man).length > 200000) throw rpcError(-32602, 'capabilities.json is too big');
+      const framework = { ...man, source: 'project', reportedAt: Date.now() };
+      await ctx.gref.update({ framework }); // replaces the whole map — capabilities that left the framework do not linger
+      ctx.game.framework = framework;
+      await logExecution(ctx, key, 'framework', '', { version: man.version });
+      const gaps = ctx.cards.filter((c) => c.mech && !c.canonRef && !c.hidden).reduce((n, c) => n + MECH.frameworkGaps(c.mech, framework).length, 0);
+      return { ok: true, version: man.version, capabilities: Object.keys(man.caps).length, missing: Object.keys(man.missing).length, mechanic_gaps: gaps };
     }
     case 'report_forge_check': {
       const r = str(args.item, 200), id = r.replace(/^c:/, '');

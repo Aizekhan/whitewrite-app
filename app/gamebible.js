@@ -198,7 +198,7 @@
       exTitle: "Claude Code — виконавець", exIntro: "Claude Code у репозиторії гри підключається до WhiteWrite по MCP: бере наступну готову задачу з усім контекстом (картки, файли, критерії), працює в Unity і здає звіт сюди на перевірку. Ключ діє лише для цієї гри.",
       exConnect: "Підключити Claude Code", exAnother: "Ще один ключ", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
       exThen: "Потім у Claude Code: «Візьми наступну задачу з WhiteWrite і виконай її».", exUsed: "останній виклик", exNever: "ще не було", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
-      exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну" },
+      exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну", framework: "надіслав маніфест фреймворку" },
       ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
       progress: "Прогрес", acceptTitle: "Критерії приймання", tests: "Тести", testsNone: "не запускались", report: "Звіт", changes: "Змінені файли",
       serverCheck: "Перевірка сервера", checkOk: "усі критерії виконано, тести зелені", checkWarn: "не все підтверджено",
@@ -500,7 +500,7 @@
       exTitle: "Claude Code — executor", exIntro: "Claude Code in the game repository connects to WhiteWrite over MCP: it takes the next ready task with its full context (cards, files, criteria), works in Unity and hands a report in here for review. The key works for this game only.",
       exConnect: "Connect Claude Code", exAnother: "Another key", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
       exThen: "Then in Claude Code: “Take the next task from WhiteWrite and do it”.", exUsed: "last call", exNever: "never", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
-      exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request" },
+      exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request", framework: "sent the framework manifest" },
       ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
       progress: "Progress", acceptTitle: "Acceptance criteria", tests: "Tests", testsNone: "not run", report: "Report", changes: "Changed files",
       serverCheck: "Server check", checkOk: "all criteria met, tests green", checkWarn: "not everything confirmed",
@@ -1425,7 +1425,7 @@
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
     else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
-    else html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid);
+    else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
@@ -2940,8 +2940,76 @@
   }
   function mreq(f) { return f.req === "r" ? '<b class="mreq" title="' + esc(MC.req) + '">*</b>' : ""; }
   function mshown(s) { return (s.fields || []).filter(function (f) { return med.adv || !f.adv; }); }
+  // ---------- 🧩 RPG Framework gaps: what the mechanics rely on (mechanics.js FW_CAPS + the author's picks m.fw.caps) checked against the
+  // game's capabilities.json (games/{g}.framework — MCP report_framework_capabilities), else the built-in 0.40.0 snapshot.
+  // A gap → the author decides: «⚙ Код гри» or «📨 Попросити у фреймворку» (card mech.fw.decisions + fwRequests/{uid}__{game}__{cap}) ----------
+  var FWS = { uk: { title: "🧩 RPG Framework", gaps: "Прогалини фреймворку", ver: "версія {v}", fromProject: "з проєкту гри", builtin: "вбудований список — попроси Claude Code надіслати capabilities.json (get_guide unity_env)",
+      none: "✓ Усе, на що спираються механіки, у фреймворку є.", mech: "Механіка", cap: "Можливість", state: "Стан", what: "Що відомо", decide: "Рішення",
+      st: { partial: "частково", planned: "заплановано", missing: "немає", unknown: "невідомо в цій версії" }, game: "⚙ Код гри", ask: "📨 Попросити у фреймворку",
+      gameT: "Зробить Claude Code у коді гри", askT: "Запит автору фреймворку: побачить, скільки ігор цього просять", undecided: "без рішення: {n}",
+      relies: "Спирається на можливості фреймворку", add: "＋ Можливість…", need: "Чого бракує у фреймворку (своїми словами)", needPh: "Напр.: фази боса з перемиканням атак за здоровʼям", rm: "Прибрати",
+      hint: "Шаблон уже знає свої можливості; додай ті, що використовує саме ця механіка. Рішення щодо прогалин — над списком механік." },
+    en: { title: "🧩 RPG Framework", gaps: "Framework gaps", ver: "version {v}", fromProject: "from the game's project", builtin: "built-in list — ask Claude Code to send capabilities.json (get_guide unity_env)",
+      none: "✓ Everything the mechanics rely on is in the framework.", mech: "Mechanic", cap: "Capability", state: "State", what: "What is known", decide: "Decision",
+      st: { partial: "partial", planned: "planned", missing: "missing", unknown: "unknown in this version" }, game: "⚙ Game code", ask: "📨 Ask the framework",
+      gameT: "Claude Code builds it in the game's code", askT: "A request to the framework's author: they see how many games ask for it", undecided: "undecided: {n}",
+      relies: "Relies on framework capabilities", add: "＋ Capability…", need: "What the framework lacks (in your words)", needPh: "E.g.: boss phases switching attacks by health", rm: "Remove",
+      hint: "The template already knows its capabilities; add the ones this mechanic uses. Gap decisions — above the mechanics list." } }[LANG];
+  function fwMan() { return (game && game.framework) || MX().FW_BUILTIN; }
+  function fwSource() { var m = fwMan(); return FWS.ver.replace("{v}", m.version) + " · " + (m.source === "project" ? FWS.fromProject : FWS.builtin); }
+  function fwRows() {
+    var man = fwMan(), out = [];
+    cards.filter(function (c) { return c.section === "mechanics" && c.mech && !c.canonRef && !c.hidden; }).forEach(function (c) {
+      MX().frameworkGaps(c.mech, man).forEach(function (g) { out.push({ c: c, g: g }); });
+    });
+    return out;
+  }
+  function fwGapsHtml() {
+    var rows = fwRows(), open = rows.filter(function (r) { return !r.g.decision; }).length;
+    var head = '<summary><h2 class="group" style="display:inline-flex">' + FWS.gaps + (rows.length ? ' <span>' + rows.length + '</span>' : '') + '</h2> <span class="muted">' + esc(fwSource()) +
+      (open ? ' · ' + FWS.undecided.replace("{n}", open) : '') + '</span></summary>';
+    if (!rows.length) return '<details class="fwgaps"><summary><h2 class="group" style="display:inline-flex">' + FWS.gaps + '</h2> <span class="muted">' + esc(fwSource()) + '</span></summary><p class="muted">' + FWS.none + '</p></details>';
+    return '<details class="fwgaps"' + (open ? ' open' : '') + '>' + head + '<div class="matrix"><table><tr><th>' + FWS.mech + '</th><th>' + FWS.cap + '</th><th>' + FWS.state + '</th><th>' + FWS.what + '</th><th>' + FWS.decide + '</th></tr>' +
+      rows.map(function (r) {
+        var g = r.g, k = esc(r.c.id) + '|' + esc(g.id);
+        var btn = function (v, label, tip) { return '<button class="btn mini' + (g.decision === v ? ' primary' : '') + '" data-fwdec="' + k + '|' + v + '" aria-pressed="' + (g.decision === v) + '" title="' + esc(tip) + '"' + (canWrite ? '' : ' disabled') + '>' + label + '</button>'; };
+        return '<tr><td><button class="cchip" data-openref="c:' + esc(r.c.id) + '">' + esc(r.c.title || "…") + '</button></td><td>' + (g.id === "custom" ? '' : '<span class="mono">' + esc(g.id) + '</span> ') + esc(g.title) + '</td>' +
+          '<td><span class="pill fw-' + g.status + '">' + esc(FWS.st[g.status] || g.status) + '</span>' + (g.ki ? ' <span class="mono muted">' + esc(g.ki) + '</span>' : '') + '</td>' +
+          '<td class="muted">' + esc(g.notes) + '</td><td class="row">' + btn("game", FWS.game, FWS.gameT) + btn("framework", FWS.ask, FWS.askT) + '</td></tr>';
+      }).join("") + '</table></div></details>';
+  }
+  // a decision on one gap: the card keeps it (MCP get_mechanic shows it to the agent); «ask the framework» also leaves a request the
+  // framework's author reads (admins: Account → «Запити до фреймворку»); pressing the chosen button again clears it
+  async function fwDecide(cardId, cap, v) {
+    var c = cards.filter(function (x) { return x.id === cardId; })[0]; if (!c || !c.mech) return;
+    var cur = ((c.mech.fw || {}).decisions || {})[cap] || "", next = cur === v ? "" : v, dec = {};
+    dec[cap] = next || firebase.firestore.FieldValue.delete();
+    await gref().collection("cards").doc(cardId).set({ mech: { fw: { decisions: dec } }, updatedAt: stamp() }, { merge: true });
+    var uid = firebase.auth().currentUser.uid, rid = uid + "__" + gameId + "__" + (cap === "custom" ? "custom_" + cardId : cap), ref = db.collection("fwRequests").doc(rid);
+    if (next === "framework") {
+      var g = MX().frameworkGaps(c.mech, fwMan()).filter(function (x) { return x.id === cap; })[0] || {};
+      await ref.set({ uid: uid, worldId: worldId, gameId: gameId, game: game.title || "", cap: cap, title: g.title || cap, status: g.status || "", version: fwMan().version, mechanic: c.title || "", at: Date.now() });
+    } else if (cur === "framework") await ref.delete().catch(function () {});
+  }
+  // the mechanic editor: what it relies on (template + picks), what is missing in the author's words, its gaps (decisions above the list)
+  function mFwHtml() {
+    var m = med.m, M = MX(), man = fwMan(), fw = m.fw || {}, own = fw.caps || [], all = M.mechCaps(m);
+    var chip = function (c) { var st = M.capStatus(man, c.id), mine = own.indexOf(c.id) >= 0;
+      return '<span class="dlink"><span class="pill fw-' + st.status + '">' + esc(st.status === "full" ? "✓" : FWS.st[st.status] || st.status) + '</span><span class="mono">' + esc(c.id) + '</span>' +
+        (mine && canWrite ? ' <button type="button" class="btn ghost mini" data-mact="fwrm:' + esc(c.id) + '" aria-label="' + esc(FWS.rm + " " + c.id) + '">✕</button>' : '') + '</span>'; };
+    var mods = M.CAT_MODULES[m.cat] || [], ids = Object.keys(man.caps).filter(function (id) { return all.every(function (c) { return c.id !== id; }); });
+    ids.sort(function (a, b) { var ma = mods.indexOf(a.split(".")[0]) >= 0 ? 0 : 1, mb = mods.indexOf(b.split(".")[0]) >= 0 ? 0 : 1; return ma - mb || (a < b ? -1 : 1); });
+    var gaps = M.frameworkGaps(m, man);
+    return qblk(FWS.title + ' · ' + esc(fwSource()), '<p class="hint">' + FWS.hint + '</p>' +
+      '<div class="dlinks">' + (all.length ? all.map(chip).join("") : '<span class="muted">—</span>') + '</div>' +
+      (canWrite ? '<div class="row" style="margin-top:8px"><select data-mfwadd aria-label="' + esc(FWS.relies) + '"><option value="">' + FWS.add + '</option>' + ids.map(function (id) {
+        var c = man.caps[id]; return '<option value="' + esc(id) + '">' + esc(id + " — " + (c.t || "") + (c.s !== "full" ? " (" + (FWS.st[c.s] || c.s) + ")" : "")) + '</option>'; }).join("") + '</select></div>' : '') +
+      qfld(FWS.need, '<textarea data-mfwneed rows="2" placeholder="' + esc(FWS.needPh) + '">' + esc(fw.need || "") + '</textarea>') +
+      (gaps.length ? '<ul class="qiss">' + gaps.map(function (g) { return '<li class="qd-warn">⚠ ' + esc((g.id === "custom" ? "" : g.id + " · ") + g.title + " — " + (FWS.st[g.status] || g.status) + (g.ki ? " (" + g.ki + ")" : "") +
+        (g.decision ? " · " + (g.decision === "game" ? FWS.game : FWS.ask) : "")) + '</li>'; }).join("") + '</ul>' : ''));
+  }
   function mfw(s) {
-    var n = MX().frameworkNote(med.m.tpl, s.id); if (!n) return "";
+    var n = MX().frameworkNote(med.m.tpl, s.id, fwMan()); if (!n) return "";
     return '<p class="mfw mfw-' + n.status + '"><b>' + MC.fw + ' · ' + MC.fwS[n.status] + '</b> ' + esc(n[LANG] || n.uk) + '</p>';
   }
   function mFieldsHtml(s, si) {
@@ -3066,7 +3134,8 @@
       qfld(MC.purpose, '<textarea data-mf="g.purpose" rows="3" placeholder="' + esc(MC.purposePh) + '">' + esc(m.purpose || "") + '</textarea>') +
       qfld(MC.rules, '<textarea data-mf="g.rules" rows="5" placeholder="' + esc(MC.rulesPh) + '">' + esc(m.rules || "") + '</textarea>') +
       qfld(MC.tags, '<input data-mf="g.tags" value="' + esc((m.tags || []).join(", ")) + '" placeholder="' + esc(MC.tagsPh) + '">') +
-      qblk(MC.links, others.length ? mchips("g.links", others.map(function (x) { return [x.id, x.title || "…"]; }), m.links, MC.links) : '<p class="muted">' + MC.noLinks + '</p>'));
+      qblk(MC.links, others.length ? mchips("g.links", others.map(function (x) { return [x.id, x.title || "…"]; }), m.links, MC.links) : '<p class="muted">' + MC.noLinks + '</p>') +
+      (med.sec === "mechanics" ? mFwHtml() : ''));
   }
   function mBarHtml(r) {
     return '<div class="mbar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + r.pct + '" aria-label="' + esc(MC.fill) + '"><i style="width:' + r.pct + '%"></i></div>' +
@@ -3121,6 +3190,8 @@
   function medInput(e) {
     var t = e.target; if (!med || !$("m-ed") || !t.dataset) return;
     if (t.dataset.mcwho) { if (e.type === "change") { med.cwho = t.value; renderMEditor(); } return; }
+    if (t.dataset.mfwadd !== undefined) { if (e.type !== "change" || !t.value) return; var fwa = med.m.fw = med.m.fw || {}; fwa.caps = (fwa.caps || []).concat([t.value]); renderMEditor(); return; }
+    if (t.dataset.mfwneed !== undefined) { (med.m.fw = med.m.fw || {}).need = t.value; mState(); return; }
     if (t.dataset.mfind !== undefined) { if (e.type !== "input") return; med.find[t.dataset.mfind] = t.value; var pos = t.selectionStart; renderMEditor(); var n = document.querySelector('[data-mfind="' + t.dataset.mfind + '"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } return; }
     if (t.dataset.mg) { med[t.dataset.mg] = t.value; if (t.dataset.mg === "title") { var h = document.querySelector("#m-ed header h1, #topline h1"); if (h) h.textContent = t.value || MC.newM; } mState(); return; }
     var p = t.dataset.mf; if (!p) return;
@@ -3156,6 +3227,7 @@
     if (p[0] === "save") return saveMech();
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
+    if (p[0] === "fwrm") { var fwr = m.fw || {}; fwr.caps = (fwr.caps || []).filter(function (x) { return x !== p[1]; }); renderMEditor(); return; }
     if (p[0] === "prompt") { // the row → a music-generator prompt (mechanics.js rowPrompt), to the clipboard
       var txt = MX().rowPrompt(m, s.id, s.rows[i], LANG), st = $("m-state"); if (!txt) return;
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { if (st) st.textContent = MC.copied; }, function () { prompt(MC.promptHint, txt); }); else prompt(MC.promptHint, txt);
@@ -6033,6 +6105,8 @@
     await mkCall({ op: "purge", gameId: id }).catch(function () {}); // marketing posts, channels, their secrets and the queue
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
     await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
+    var fr = await db.collection("fwRequests").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get().catch(function () { return { docs: [] }; }); // its «📨 Попросити у фреймворку»
+    await Promise.all(fr.docs.map(function (d) { return d.ref.delete(); }));
     await fnCall("integrations", { op: "purge", worldId: worldId, gameId: id }).catch(function () {}); // its 🔌 keys (server only), before the game doc goes
     var gd = (await g.get()).data() || {}; // the «Огляд гри» cover and title image (Storage worlds/{w}/games/{g}/cover/)
     await Promise.all([gd.cover, gd.titleArt].map(function (x) { return x && x.path ? firebase.storage().ref(x.path).delete().catch(function () {}) : null; }));
@@ -7059,6 +7133,7 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
+    var fd = e.target.closest("[data-fwdec]"); if (fd) { var fdp = fd.dataset.fwdec.split("|"); fd.disabled = true; fwDecide(fdp[0], fdp[1], fdp[2]).catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); fd.disabled = false; }); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return; // «🔗 Що зачепить зміна» in the mechanics constructor
     if (e.target.closest("[data-wname]")) return editWorldName();
     if (e.target.closest("[data-gcover]")) return editGameCover();

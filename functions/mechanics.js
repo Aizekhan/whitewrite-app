@@ -509,7 +509,93 @@ var FRAMEWORK = { version: '0.38.0', umcf: {
   status: { effects: ['exists', 'StatusEffectData / StatusEffectAsset: Duration, IsStackable, MaxStacks, TickInterval, Modifiers.', 'StatusEffectData / StatusEffectAsset: Duration, IsStackable, MaxStacks, TickInterval, Modifiers.'] },
   inventory: { layout: ['exists', 'InventoryContainer, EquipmentSlot, ItemStack; ItemAsset.maxStackSize.', 'InventoryContainer, EquipmentSlot, ItemStack; ItemAsset.maxStackSize.'] },
   enemyai: { archetypes: ['partial', 'EnemyBehaviour / EnemyBehaviourAsset (ViewAngle, MemorySeconds, BackOffHealthShare), AttackTokens.MaxPerTarget.', 'EnemyBehaviour / EnemyBehaviourAsset (ViewAngle, MemorySeconds, BackOffHealthShare), AttackTokens.MaxPerTarget.'] } };
-function frameworkNote(tplId, secId) { var t = FRAMEWORK[tplId]; return t && t[secId] ? { status: t[secId][0], uk: t[secId][1], en: t[secId][2] } : null; }
+// ---- RPG Framework capabilities (rpgframework.capabilities/1, the framework's capabilities.json from 0.40.0) ----
+// A game's own manifest comes from its Unity project (MCP report_framework_capabilities → games/{g}.framework); until then the
+// snapshot below (0.40.0) is used. Capability ids are «module.name», never renamed or reused; a removed one moves to «missing».
+var CAPS_FORMAT = 'rpgframework.capabilities/1';
+var FW_BUILTIN = (function () {
+  var P = { 'combat.enemy_parry': 'KI-24', 'combat.combos': 'enemy combo links only; a player combo chain is game code', 'ai.behavior_tree': '', 'ai.pathfinding_steering': 'KI-14', 'stats.point_allocation': '',
+    'save.cloud': 'KI-19', 'multiplayer.relay': 'KI-05', 'multiplayer.replication': '', 'turn_based.battles': 'KI-01', 'game_kit.companions': 'KI-16', 'world.environment': '' };
+  var M = { combat: 'attack_phases hitboxes sweep_arcs hit_reactions dodge block parry enemy_parry stamina_cost motion_warping attack_motions charge held_windup attack_speed combos projectiles timeline animation_bridge damage',
+    ai: 'perception movement_states attack_tokens moves reactive defense unity_body behavior_tree pathfinding_steering', stats: 'container kit_stats point_allocation', progression: 'levels per_player enemy_levels',
+    skills: 'trees abilities', status_effects: 'core', items: 'items affixes inventory equipment loot crafting', economy: 'trading factions', quests: 'core stages requirements graph_check',
+    dialogue: 'core details barks effects graph_check', content: 'import_json project_index', interaction: 'points', pathfinding: 'grid_astar distance_map', save: 'slots kit cloud',
+    multiplayer: 'coop pvp lobby lan relay game_messages turn_sessions replication', turn_based: 'battles', game_kit: 'action_rpg companions achievements', audio: 'cues_music',
+    localization: 'tables settings', tabletop: 'dice cards', world: 'environment spawning' };
+  var caps = {};
+  Object.keys(M).forEach(function (mod) { M[mod].split(' ').forEach(function (n) { var id = mod + '.' + n, part = id in P;
+    caps[id] = { s: part ? 'partial' : 'full', t: n.replace(/_/g, ' '), n: part && !/^KI-/.test(P[id]) ? P[id] : '', ki: part && /^KI-/.test(P[id]) ? P[id] : '', m: mod }; }); });
+  var missing = {};
+  'ai.adaptation ai.boss_phases combat.analytics combat.balancing_simulator content.procedural_generation tools.visual_graph_editors multiplayer.client_prediction multiplayer.host_migration multiplayer.matchmaking physics.kit_2d'
+    .split(' ').forEach(function (id) { missing[id] = { t: id.split('.')[1].replace(/_/g, ' '), n: '', ki: '' }; });
+  return { version: '0.40.0', released: '2026-11-04', caps: caps, missing: missing, source: 'builtin' };
+})();
+// the framework's capabilities.json → the compact form kept on the game (or an error string)
+function parseCaps(j) {
+  if (typeof j === 'string') { try { j = JSON.parse(j); } catch (e) { return 'not JSON'; } }
+  if (!j || j.format !== CAPS_FORMAT) return 'format must be ' + CAPS_FORMAT;
+  var cut = function (v, n) { return String(v == null ? '' : v).slice(0, n); }, caps = {}, missing = {}, ok = /^[a-z0-9_]+\.[a-z0-9_]+$/;
+  (Array.isArray(j.modules) ? j.modules : []).slice(0, 80).forEach(function (mod) {
+    (Array.isArray(mod && mod.capabilities) ? mod.capabilities : []).slice(0, 120).forEach(function (c) {
+      if (!c || !ok.test(c.id || '')) return;
+      caps[c.id] = { s: ['full', 'partial', 'planned'].indexOf(c.status) >= 0 ? c.status : 'partial', t: cut(c.title, 80), n: cut(c.notes, 400), ki: cut(c.ki, 12), m: cut(mod.id, 40), since: cut(c.since, 20),
+        a: (Array.isArray(c.api) ? c.api : []).slice(0, 8).map(function (x) { return cut(x, 80); }) };
+    });
+  });
+  (Array.isArray(j.missing) ? j.missing : []).slice(0, 200).forEach(function (c) { if (c && ok.test(c.id || '')) missing[c.id] = { t: cut(c.title, 80), n: cut(c.notes, 400), ki: cut(c.ki, 12) }; });
+  if (!Object.keys(caps).length) return 'no capabilities';
+  return { version: cut(j.version, 20), released: cut(j.released, 20), caps: caps, missing: missing };
+}
+// one capability in a manifest → { id, status full|partial|planned|missing|unknown, title, notes, ki }
+function capStatus(man, id) {
+  man = man || FW_BUILTIN;
+  var c = man.caps[id]; if (c) return { id: id, status: c.s, title: c.t || id, notes: c.n || '', ki: c.ki || '', api: c.a || [] };
+  var x = man.missing[id]; if (x) return { id: id, status: 'missing', title: x.t || id, notes: x.n || '', ki: x.ki || '' };
+  return { id: id, status: 'unknown', title: id, notes: '', ki: '' };
+}
+// what each template part relies on in the framework (ids of capabilities.json); a section not listed keeps the hand-written note
+var FW_CAPS = {
+  umcf: { attacks: ['combat.attack_phases', 'combat.stamina_cost'], phases: ['combat.attack_phases'], moves: ['combat.attack_motions'], geometry: ['combat.sweep_arcs', 'combat.hitboxes'],
+    combos: ['combat.combos'], distance: ['ai.moves'], feasibility: ['ai.moves', 'ai.attack_tokens'], commitment: ['combat.dodge', 'combat.hit_reactions'], warping: ['combat.motion_warping'],
+    adaptation: ['ai.adaptation'], collision: ['ai.movement_states'], debugger: ['combat.timeline'], analytics: ['combat.analytics'] },
+  dodge: { base: ['combat.dodge'] }, blockparry: { block: ['combat.block'], parry: ['combat.parry'] },
+  attributes: { attrs: ['stats.container'] }, leveling: { curve: ['progression.levels'] }, status: { effects: ['status_effects.core'] },
+  inventory: { layout: ['items.inventory', 'items.equipment'] }, enemyai: { archetypes: ['ai.perception', 'ai.behavior_tree'] },
+};
+// a mechanic's category → the framework modules worth offering when the author picks what it relies on
+var CAT_MODULES = { combat: ['combat', 'ai'], stats: ['stats'], progression: ['progression', 'skills'], abilities: ['skills', 'status_effects'], gear: ['items'], status: ['status_effects'],
+  ai: ['ai', 'pathfinding'], world: ['interaction', 'world', 'pathfinding'], narrative: ['quests', 'dialogue', 'content'], economy: ['economy', 'items'], death: ['save'], movement: ['ai', 'pathfinding'] };
+var RANK = { full: 0, planned: 2, partial: 1, unknown: 3, missing: 3 };
+function frameworkNote(tplId, secId, man) {
+  var ids = (FW_CAPS[tplId] || {})[secId];
+  if (man && ids) { // the game's manifest: the worst of the capabilities this part relies on
+    var st = ids.map(function (id) { return capStatus(man, id); }), worst = st.reduce(function (a, b) { return RANK[b.status] > RANK[a.status] ? b : a; });
+    var txt = st.map(function (c) { return c.title + ' — ' + c.status + (c.ki ? ' (' + c.ki + ')' : '') + (c.notes ? ': ' + c.notes : '') + ((c.api || []).length ? ' · API: ' + c.api.join(', ') : ''); }).join('; ');
+    var status = worst.status === 'full' ? 'exists' : worst.status === 'partial' || worst.status === 'planned' ? 'partial' : 'missing';
+    var hand = (FRAMEWORK[tplId] || {})[secId]; // the hand-written detail (audited at FRAMEWORK.version) stays under the manifest line
+    return { status: status, uk: 'v' + man.version + ' · ' + txt + (hand ? ' · ' + FRAMEWORK.version + ': ' + hand[1] : ''), en: 'v' + man.version + ' · ' + txt + (hand ? ' · ' + FRAMEWORK.version + ': ' + hand[2] : ''), caps: ids };
+  }
+  var t = FRAMEWORK[tplId]; return t && t[secId] ? { status: t[secId][0], uk: t[secId][1], en: t[secId][2], caps: ids || [] } : null;
+}
+// what a mechanic relies on: its template parts (FW_CAPS) + the author's picks (m.fw.caps) → unique ids with the section they came from
+function mechCaps(m) {
+  var out = [], seen = {};
+  var add = function (id, sec) { if (id && !seen[id]) { seen[id] = 1; out.push({ id: id, sec: sec || '' }); } };
+  var map = FW_CAPS[m && m.tpl] || {};
+  ((m && m.sections) || []).forEach(function (s) { (map[s.id] || []).forEach(function (id) { add(id, s.id); }); });
+  ((m && m.fw && m.fw.caps) || []).forEach(function (id) { add(id, ''); });
+  return out;
+}
+// the framework gaps of a mechanic: every capability it relies on that is not «full» in the manifest, plus what the author
+// wrote is missing (m.fw.need) → [{ id, sec, status, title, notes, ki, decision game|framework|'' }]
+function frameworkGaps(m, man) {
+  man = man || FW_BUILTIN;
+  var dec = (m && m.fw && m.fw.decisions) || {};
+  var out = mechCaps(m).map(function (c) { return Object.assign(capStatus(man, c.id), { sec: c.sec, decision: dec[c.id] || '' }); }).filter(function (c) { return c.status !== 'full'; });
+  var need = String((m && m.fw && m.fw.need) || '').trim();
+  if (need) out.push({ id: 'custom', sec: '', status: 'missing', title: need.slice(0, 200), notes: '', ki: '', decision: dec.custom || '' });
+  return out;
+}
 
 // ============================== Фабрика звуку (the Sound & music section) ==============================
 // The same constructor, other templates: cards of the game section "audio" with `mech`; their categories are the section's groups.
@@ -983,7 +1069,7 @@ function audioLibrary(cards, lang) {
 function worst(issues) { return issues.some(function (i) { return i.level === 'error'; }) ? 'error' : issues.some(function (i) { return i.level === 'warn'; }) ? 'warn' : issues.length ? 'tip' : ''; }
 
 // plain values for the agent (MCP): refs become { id, name }, labels in one language
-function exportMech(card, lang, lib) { // lib: audioLibrary(cards).assets — sound slots then carry their files
+function exportMech(card, lang, lib, man) { // lib: audioLibrary(cards).assets — sound slots then carry their files; man: the game's framework manifest
   var m = card.mech || {}, L = lang || 'en', cat = category(m.cat), t = template(m.tpl);
   var snd = function (id) { var a = (lib || []).filter(function (x) { return x.id === id; })[0];
     return a ? { ref: 'c:' + id, title: a.title, files: a.files.map(function (f) { return { name: f.name, url: f.url, type: f.type || '', duration: f.duration || null }; }) } : { ref: 'c:' + id, missing: true }; };
@@ -999,12 +1085,14 @@ function exportMech(card, lang, lib) { // lib: audioLibrary(cards).assets — so
   return { id: card.id, title: card.title || '', template: t ? { id: t.id, name: lbl(t.name, L), version: m.tplVersion } : null,
     category: cat ? lbl(cat, L) : (card.fields && card.fields.group) || '', subcategory: cat && m.sub ? lbl((cat.subs.filter(function (s) { return s[0] === m.sub; })[0] || [])[L === 'uk' ? 1 : 2], L) : '',
     stage: m.stage || 'concept', type: m.type || '', purpose: m.purpose || '', rules: m.rules || '', tags: m.tags || [], links: m.links || [],
-    sections: secs.map(function (x) { var n = frameworkNote(m.tpl, x.id); if (n) x.framework = { status: n.status, note: L === 'uk' ? n.uk : n.en }; return x; }), completeness: c.pct, issues: c.issues.map(function (i) { return { level: i.level, section: i.sec, row: i.row, message: L === 'uk' ? i.uk : i.en }; }) };
+    sections: secs.map(function (x) { var n = frameworkNote(m.tpl, x.id, man); if (n) x.framework = { status: n.status, note: L === 'uk' ? n.uk : n.en, capabilities: n.caps }; return x; }),
+    framework: { version: (man || FW_BUILTIN).version, relies_on: mechCaps(m).map(function (c) { return c.id; }), gaps: frameworkGaps(m, man).map(function (g) {
+      return { capability: g.id, status: g.status, title: g.title, notes: g.notes, ki: g.ki, decision: g.decision === 'game' ? 'build in game code' : g.decision === 'framework' ? 'requested from the framework' : 'undecided' }; }) }, completeness: c.pct, issues: c.issues.map(function (i) { return { level: i.level, section: i.sec, row: i.row, message: L === 'uk' ? i.uk : i.en }; }) };
 }
 
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
   AUDIO_CATEGORIES: AUDIO_CATEGORIES, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
-  FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
+  FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
   isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;

@@ -69,7 +69,10 @@ Unity CLI exit codes: 0 ok · 1 error · 2 usage · 3 auth (\`unity auth login\`
 
 ## Report
 Call \`report_unity_environment\` with { os, editor{version,path_hint}, cli{name:"unity", version}, project{found, unity_version, packages_ok}, checks:[{id, ok, detail, exit_code}] }.
-Never send absolute paths with the user's name — a hint like "Hub default" is enough. Never change project files during the check.`,
+Never send absolute paths with the user's name — a hint like "Hub default" is enough. Never change project files during the check.
+
+## RPG Framework capabilities (framework games, framework ≥ 0.40.0)
+Read \`capabilities.json\` of the installed framework — \`Library/PackageCache/com.aizekhan.rpg-framework@<hash>/capabilities.json\` (the hash from \`Packages/packages-lock.json\`, or glob \`com.aizekhan.rpg-framework@*\`), or \`Packages/com.aizekhan.rpg-framework/capabilities.json\` for an embedded package — and send it unchanged with \`report_framework_capabilities {manifest}\`. WhiteWrite checks the game's mechanics against exactly this version (gaps: what the framework lacks → the author decides: game code or a request to the framework). Send it again after every framework update. No file (older framework) — skip; WhiteWrite falls back to its own list.`,
   },
 
   knowledge: {

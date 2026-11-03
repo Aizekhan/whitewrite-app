@@ -135,10 +135,10 @@ service cloud.firestore {
       match /games/{gameId} {
         allow read: if isAuthenticated() && anyAccess(worldId);
         allow create: if false; // functions/src/projects.js createGame
-        // .repo / .ingestKeys / .integrations — server only (gamedev.js repoConnect, experience.js keys, integrations.js); .launch builds the PowerShell lines
+        // .repo / .ingestKeys / .integrations / .framework — server only (gamedev.js repoConnect, experience.js keys, integrations.js, mcp.js report_framework_capabilities); .launch builds the PowerShell lines
         // the OWNER pastes on their PC (gamebible.js «Запуск Claude Code») — so only the owner changes it
         allow update: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId) &&
-                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys', 'integrations']) &&
+                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys', 'integrations', 'framework']) &&
                          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId));
         allow delete: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId);
       }
@@ -364,6 +364,14 @@ service cloud.firestore {
 
     // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
     // AI cost watch (functions/src/cost-watch.js): the daily API dollars per user — admins read, only the server writes
+    // «Попросити у фреймворку» (gamebible.js frameworkGaps): one doc per author × game × capability, id "<uid>__<gameId>__<capability>";
+    // the author writes / withdraws their own, admins (the framework's author) read the demand
+    match /fwRequests/{id} {
+      allow read: if isAuthenticated() && (request.auth.token.admin == true || resource.data.uid == request.auth.uid);
+      allow create, update: if isAuthenticated() && request.resource.data.uid == request.auth.uid && id.matches(request.auth.uid + '__.+') &&
+                               request.resource.data.keys().hasOnly(['uid', 'worldId', 'gameId', 'game', 'cap', 'title', 'status', 'version', 'mechanic', 'at']);
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
     match /admin_costs/{day} {
       allow read: if isAuthenticated() && request.auth.token.admin == true;
       allow write: if false;

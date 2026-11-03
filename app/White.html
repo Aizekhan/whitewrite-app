@@ -2374,7 +2374,7 @@ body.at-home .back-fab{ display:none; }
           planCards(u.plan, currentLang === 'en') +
         '</div>' +
         modelHtml(u, currentLang === 'en') +
-        '<div id="acc-notices"></div><div id="acc-costs"></div>' +
+        '<div id="acc-notices"></div><div id="acc-costs"></div><div id="acc-fwreq"></div>' +
         integHtml(currentLang) +
         '<div id="acc-ledger"></div>' +
         '</div>' +
@@ -2382,7 +2382,7 @@ body.at-home .back-fab{ display:none; }
       '</div>';
     bindAccount();
     bindModel(currentLang === 'en');
-    loadNotices(currentLang === 'en'); loadCosts(currentLang === 'en');
+    loadNotices(currentLang === 'en'); loadCosts(currentLang === 'en'); loadFwRequests(currentLang === 'en');
     loadIntegKeys(currentLang);
     loadLedger(currentLang === 'en');
     [].forEach.call(views.account.querySelectorAll("[data-acctab]"), function (b) { b.onclick = function () { ACC_TAB = b.dataset.acctab; fillAccount(); }; });
@@ -2534,6 +2534,26 @@ body.at-home .back-fab{ display:none; }
     }).catch(function (e) { console.warn('notices', e); });
   }
   // Admins: the AI cost of the last day per user (functions/src/cost-watch.js → admin_costs/{day}, daily)
+  // Admins (the framework's author): what games ask RPG Framework for — «📨 Попросити у фреймворку» in the Game Bible's
+  // framework gaps (gamebible.js fwDecide → fwRequests/{uid}__{game}__{capability}), grouped by capability, most asked first
+  function loadFwRequests(en) {
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser, box = document.getElementById('acc-fwreq');
+    if (!box || !user) return;
+    user.getIdTokenResult().then(function (r) {
+      if (!r.claims || r.claims.admin !== true) return;
+      return fb.db.collection('fwRequests').orderBy('at', 'desc').limit(500).get().then(function (snap) {
+        if (snap.empty) return;
+        var by = {};
+        snap.docs.forEach(function (d) { var x = d.data(), k = x.cap === 'custom' ? 'custom: ' + x.title : x.cap; var g = by[k] = by[k] || { cap: k, title: x.title, status: x.status, games: [], users: {} };
+          g.games.push(x.game || x.gameId); g.users[x.uid] = 1; });
+        var list = Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return Object.keys(b.users).length - Object.keys(a.users).length || b.games.length - a.games.length; });
+        box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'Framework requests · from the games' : 'Запити до фреймворку · з ігор') + '</div>' +
+          '<div class="acc-costs__wrap"><table class="acc-costs"><thead><tr><th>' + (en ? 'Capability' : 'Можливість') + '</th><th>' + (en ? 'State' : 'Стан') + '</th><th>' + (en ? 'Authors' : 'Автори') + '</th><th>' + (en ? 'Games' : 'Ігри') + '</th></tr></thead><tbody>' +
+          list.map(function (g) { return '<tr><td>' + esc(g.cap) + (g.cap.indexOf('custom') === 0 ? '' : ' <span class="muted">' + esc(g.title || '') + '</span>') + '</td><td>' + esc(g.status || '') + '</td><td>' + Object.keys(g.users).length + '</td><td>' + esc(g.games.slice(0, 5).join(', ') + (g.games.length > 5 ? ' …' : '')) + '</td></tr>'; }).join('') +
+          '</tbody></table></div>';
+      });
+    }).catch(function (e) { console.warn('fwreq', e); });
+  }
   function loadCosts(en) {
     var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser, box = document.getElementById('acc-costs');
     if (!box || !user) return;
