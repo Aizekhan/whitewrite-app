@@ -220,6 +220,10 @@ const FEATURES = [
     en: { name: '✦ Post', desc: 'AI writes a post only from the chosen approved log entries; you edit and approve.' },
     where: 'Біблія гри → Маркетинг', server: 'marketing {op:draft}' },
   // ── Команда й бекап (TOKENOMICS.md §7) ──
+  { id: 'integrations', kind: 'free', minPlan: 'free',
+    uk: { name: 'Інтеграції', desc: 'Свої ключі сторонніх сервісів в одній панелі світу й гри: 3D-генерація моделей (Meshy, Tripo…) і генерація картинок (OpenAI, Google, Stability, Replicate, fal, Leonardo…); ключ гри або, якщо його немає, ключ світу. Ключ лежить лише на сервері, видно сервіс і останні 4 символи. Без токенів: генерацію оплачуєш у самому сервісі.' },
+    en: { name: 'Integrations', desc: 'Your own keys for outside services in one panel per world and per game: 3D model generation (Meshy, Tripo…) and image generation (OpenAI, Google, Stability, Replicate, fal, Leonardo…); the game key, else the world key. The key stays on the server — you see the service and its last 4 characters. No tokens: generation is paid in the service itself.' },
+    where: 'Налаштування світу / гри → 🔌 Інтеграції', server: 'integrations (owner only) · firestore.rules integrationKeys' },
   { id: 'team', kind: 'free', minPlan: 'free',
     uk: { name: 'Друзі й команда світу', desc: 'Друзі за поштою; у команду світу — з ролями: адмін (усе, ✦ на токенах власника), редактор (усе без ✦), перегляд, або вибрані розділи на перегляд і редагування.' },
     en: { name: 'Friends & the world team', desc: 'Friends by e-mail; the world team with roles: admin (everything, ✦ on the owner’s tokens), editor (everything but ✦), viewer, or chosen sections to view and edit.' },

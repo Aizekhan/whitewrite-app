@@ -236,6 +236,20 @@
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
+      integ: { tabMain: "⚙ Загальне", tabInteg: "🔌 Інтеграції",
+        about: "Усі сторонні сервіси в одному місці: ключі, токени, посилання. Ключі зберігаються лише на сервері — тут видно сервіс і останні 4 символи.",
+        gen: "Генерація", m3d: "🧊 3D-моделі", img: "🖼 Картинки",
+        m3dHint: "Ключ сервісу генерації 3D-моделей (Meshy, Tripo…). Його візьме генерація моделей у Кузні й на картках — вона ще в розробці.",
+        imgHint: "Ключ сервісу генерації картинок (OpenAI, Google, Stability, Replicate, fal, Recraft, FLUX…) — для майбутньої генерації за твоїм ключем.",
+        worldNote: "Ключ світу діє для всіх його ігор, у яких немає свого.", gameNote: "Свій ключ гри важливіший за ключ світу.",
+        fromWorld: "Діє ключ світу: {p} ••••{t}", provider: "Сервіс", name: "Назва сервісу", key: "API-ключ", keyPh: "Встав ключ повністю",
+        save: "Зберегти ключ", replace: "Замінити ключ", remove: "Прибрати ключ", checking: "Перевіряю ключ…", saved: "Ключ збережено", removed: "Ключ прибрано",
+        ok: "✓ перевірено", unverified: "⚠ не перевірено (сервіс не відповів або перевірки немає)", none: "Не підключено", ownerOnly: "Ключі додає лише власник світу.",
+        other: "Інший сервіс", repo: "GitHub-репозиторій гри", mcp: "Claude Code · ключі MCP", mcpHint: "Ключ дає агенту Claude Code доступ до цієї гри через MCP. Показується один раз — збережи його.",
+        tele: "Телеметрія · ключі прийому подій", teleHint: "Ключі, якими збірка гри надсилає події гравців у «Досвід гравців».", teleKeys: "Ключів: {n}", teleGo: "Керувати ключами →",
+        mk: "Маркетинг · канали", mkHint: "Telegram, Discord, Mastodon, Bluesky — куди публікуються пости гри.", mkNone: "Каналів ще немає.", mkGo: "Керувати каналами →",
+        voice: "Озвучка", voiceHint: "Google Text-to-Speech працює через WhiteWrite — свого ключа не треба (оплата токенами). ElevenLabs — скоро.",
+        backup: "Бекап у GitHub", comm: "Спільнота · Discord", commHint: "Запрошення в Discord і посилання на релізи — на вітрині світу чи гри.", market: "Маркет · виплати Stripe", marketHint: "Рахунок Stripe для виплат за продаж світу.", open: "Відкрити →" },
       repo: { hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
         repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", tokenSaved: "Збережений токен GitHub ({l}) — можна лишити порожнім", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
         connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
@@ -505,6 +519,20 @@
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
+      integ: { tabMain: "⚙ General", tabInteg: "🔌 Integrations",
+        about: "Every outside service in one place: keys, tokens, links. Keys stay on the server — here you see the service and the last 4 characters.",
+        gen: "Generation", m3d: "🧊 3D models", img: "🖼 Images",
+        m3dHint: "The key of a 3D model generation service (Meshy, Tripo…). Model generation in the Forge and on cards will use it — it is still being built.",
+        imgHint: "The key of an image generation service (OpenAI, Google, Stability, Replicate, fal, Recraft, FLUX…) — for future generation with your key.",
+        worldNote: "The world key works for all its games that have none of their own.", gameNote: "The game's own key comes before the world key.",
+        fromWorld: "The world key is in use: {p} ••••{t}", provider: "Service", name: "Service name", key: "API key", keyPh: "Paste the whole key",
+        save: "Save the key", replace: "Replace the key", remove: "Remove the key", checking: "Checking the key…", saved: "Key saved", removed: "Key removed",
+        ok: "✓ checked", unverified: "⚠ not checked (the service did not answer or has no check)", none: "Not connected", ownerOnly: "Only the world owner adds keys.",
+        other: "Another service", repo: "The game's GitHub repository", mcp: "Claude Code · MCP keys", mcpHint: "A key gives the Claude Code agent access to this game over MCP. It is shown once — save it.",
+        tele: "Telemetry · ingest keys", teleHint: "Keys the game build uses to send player events into “Player experience”.", teleKeys: "Keys: {n}", teleGo: "Manage the keys →",
+        mk: "Marketing · channels", mkHint: "Telegram, Discord, Mastodon, Bluesky — where the game's posts go.", mkNone: "No channels yet.", mkGo: "Manage the channels →",
+        voice: "Voice-over", voiceHint: "Google Text-to-Speech runs through WhiteWrite — no key of your own (paid in tokens). ElevenLabs — soon.",
+        backup: "GitHub backup", comm: "Community · Discord", commHint: "The Discord invite and release links — on the world or game showcase.", market: "Market · Stripe payouts", marketHint: "The Stripe account for payouts from selling the world.", open: "Open →" },
       repo: { hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
         repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenSaved: "The saved GitHub token ({l}) — you can leave it empty", tokenPh: "GitHub token — only for a private repo",
         connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
@@ -5208,11 +5236,89 @@
       (canWrite ? '<div class="canonbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow"><button class="btn primary" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div></div>' : '') +
       '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
+  // ---------- 🔌 Інтеграції: every outside service of the world / the game in one tab (functions/src/integrations.js) ----------
+  var setTab = "main", igMsg = {}; // settings tab: main | integ; a message per key block
+  var IG_PROV = {
+    model3d: [["meshy", "Meshy"], ["tripo", "Tripo"], ["other", ""]],
+    image: [["openai", "OpenAI"], ["google", "Google (Gemini / Imagen)"], ["stability", "Stability AI"], ["replicate", "Replicate"], ["fal", "fal.ai"],
+      ["bfl", "FLUX (Black Forest Labs)"], ["recraft", "Recraft"], ["ideogram", "Ideogram"], ["leonardo", "Leonardo"], ["other", ""]]
+  };
+  var IG_PREFIX = [["msy_", "meshy"], ["tsk_", "tripo"], ["r8_", "replicate"], ["AIza", "google"], ["sk-", "openai"]]; // a pasted key suggests its service
+  function igName(kind, x) { if (x.provider === "other") return x.name || STR.integ.other; var p = IG_PROV[kind].filter(function (q) { return q[0] === x.provider; })[0]; return p ? p[1] : x.provider; }
+  function igBlock(kind) {
+    var I = STR.integ, inGame = mode === "game" && game, cur = ((inGame ? game : world).integrations || {})[kind];
+    var wk = inGame && !cur && (world.integrations || {})[kind];
+    var state = cur ? '<b>' + esc(igName(kind, cur)) + '</b> <span class="mono">••••' + esc(cur.tail) + '</span> · ' + (cur.check === "ok" ? '<span class="ok">' + I.ok + '</span>' : '<span class="warn">' + I.unverified + '</span>')
+      : wk ? esc(I.fromWorld.replace("{p}", igName(kind, wk)).replace("{t}", wk.tail)) : '<span class="muted">' + I.none + '</span>';
+    var form = !ME.owner ? '<p class="hint">' + I.ownerOnly + '</p>' :
+      '<div class="setrow"><select data-igp="' + kind + '" aria-label="' + esc(I.provider) + '">' + IG_PROV[kind].map(function (p) {
+        return '<option value="' + p[0] + '"' + (cur && cur.provider === p[0] ? ' selected' : '') + '>' + esc(p[1] || I.other) + '</option>'; }).join("") + '</select>' +
+      '<input data-ign="' + kind + '" aria-label="' + esc(I.name) + '" placeholder="' + esc(I.name) + '" value="' + esc((cur && cur.name) || "") + '"' + (cur && cur.provider === "other" ? '' : ' hidden') + '></div>' +
+      '<div class="setrow"><input data-igk="' + kind + '" type="password" autocomplete="off" aria-label="' + esc(I.key) + '" placeholder="' + esc(I.keyPh) + '">' +
+      '<button class="btn primary" data-igsave="' + kind + '">' + (cur ? I.replace : I.save) + '</button>' + (cur ? '<button class="btn danger" data-igdel="' + kind + '">' + I.remove + '</button>' : '') + '</div>';
+    return '<h3>' + (kind === "model3d" ? I.m3d : I.img) + '</h3><p class="hint">' + (kind === "model3d" ? I.m3dHint : I.imgHint) + '</p><p>' + state + '</p>' + form +
+      '<p class="hint" role="status" id="ig-msg-' + kind + '">' + esc(igMsg[kind] || "") + '</p>';
+  }
+  function integHtml() {
+    var I = STR.integ, inGame = mode === "game" && game, box = function (title, body) { return '<section class="setbox"><h2>' + title + '</h2>' + body + '</section>'; };
+    var go = function (attr, val, label) { return '<div class="setrow"><button class="btn" ' + attr + '="' + val + '">' + label + '</button></div>'; };
+    var html = '<p class="hint">' + I.about + '</p>' + box(I.gen, igBlock("model3d") + igBlock("image") + '<p class="hint">' + (inGame ? I.gameNote : I.worldNote) + '</p>');
+    if (!inGame) return html +
+      box(I.backup, ME.owner ? backupHtml() + (hubMsg ? '<p class="pmsg" role="status">' + esc(hubMsg) + '</p>' : '') : '<p class="hint">' + I.ownerOnly + '</p>') +
+      box(I.comm, '<p class="hint">' + I.commHint + '</p>' + go("data-hubtab", "community", I.open)) +
+      box(I.market, '<p class="hint">' + I.marketHint + '</p>' + go("data-hubtab", "market", I.open));
+    if (!canDev) return html + devLockHtml() + box(I.voice, '<p class="hint">' + I.voiceHint + '</p>');
+    var live = keys.filter(function (k) { return !k.revoked; });
+    html += box(I.repo, repoHtml());
+    if (ME.owner) html += box(I.mcp, '<p class="hint">' + I.mcpHint + '</p>' +
+      (newKey ? '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
+      live.map(function (k) { return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span>' + (k.label ? ' · ' + esc(k.label) : '') + '</span><button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button></div>'; }).join("") +
+      '<div class="setrow"><button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>');
+    html += box(I.tele, '<p class="hint">' + I.teleHint + '</p><p>' + esc(I.teleKeys.replace("{n}", (game.ingestKeys || []).length)) + '</p>' + go("data-iggo", "experience", I.teleGo));
+    html += box(I.mk, '<p class="hint">' + I.mkHint + '</p>' + (mkChannels.length ? mkChannels.map(function (c) {
+      return '<div class="row mk-ch"><span class="chip">' + esc(MK_PLAT[c.platform] || c.platform) + '</span><b>' + esc(c.title || "") + '</b></div>'; }).join("") : '<p class="muted">' + I.mkNone + '</p>') + go("data-iggo", "marketing", I.mkGo));
+    return html + box(I.voice, '<p class="hint">' + I.voiceHint + '</p>');
+  }
+  function bindInteg() {
+    var I = STR.integ, inGame = mode === "game" && game, v = $("view");
+    var say = function (kind, t) { igMsg[kind] = t; var m = $("ig-msg-" + kind); if (m) m.textContent = t; };
+    [].forEach.call(v.querySelectorAll("[data-igp]"), function (s) { s.onchange = function () { var n = v.querySelector('[data-ign="' + s.dataset.igp + '"]'); n.hidden = s.value !== "other"; s.dataset.touched = "1"; }; });
+    [].forEach.call(v.querySelectorAll("[data-igk]"), function (k) { k.oninput = function () { // a recognisable key picks its service, unless the author chose one
+      var s = v.querySelector('[data-igp="' + k.dataset.igk + '"]'), hit = IG_PREFIX.filter(function (p) { return k.value.trim().indexOf(p[0]) === 0; })[0];
+      if (hit && !s.dataset.touched && [].some.call(s.options, function (o) { return o.value === hit[1]; })) { s.value = hit[1]; s.onchange(); delete s.dataset.touched; }
+    }; });
+    [].forEach.call(v.querySelectorAll("[data-igsave]"), function (b) { b.onclick = async function () {
+      var kind = b.dataset.igsave, key = v.querySelector('[data-igk="' + kind + '"]');
+      if (!key.value.trim()) return key.focus();
+      b.disabled = true; say(kind, I.checking);
+      try {
+        var d = await fnCall("integrations", { op: "set", worldId: worldId, gameId: inGame ? gameId : "", kind: kind, provider: v.querySelector('[data-igp="' + kind + '"]').value,
+          name: v.querySelector('[data-ign="' + kind + '"]').value, key: key.value.trim() });
+        igMsg[kind] = I.saved + " · " + (d.check === "ok" ? I.ok : I.unverified); render(); // the world / game stream brings the new state too
+      } catch (e) { b.disabled = false; say(kind, STR.failed + ": " + e.message); } // the typed key stays for a fix
+    }; });
+    [].forEach.call(v.querySelectorAll("[data-igdel]"), function (b) { b.onclick = async function () {
+      var kind = b.dataset.igdel; b.disabled = true;
+      try { await fnCall("integrations", { op: "remove", worldId: worldId, gameId: inGame ? gameId : "", kind: kind }); igMsg[kind] = I.removed; render(); }
+      catch (e) { b.disabled = false; say(kind, STR.failed + ": " + e.message); }
+    }; });
+    [].forEach.call(v.querySelectorAll("[data-iggo]"), function (b) { b.onclick = function () { if (b.dataset.iggo === "experience") exTab = "connect"; goSection(b.dataset.iggo); }; });
+    [].forEach.call(v.querySelectorAll("[data-hubtab]"), function (b) { b.onclick = function () { tellShell({ type: "ww-hub", worldId: worldId, tab: b.dataset.hubtab }); }; });
+    if (!inGame) { if (ME.owner) bindBackup(); }
+    else if (canDev) bindRepo();
+    else bindDevLock();
+  }
+
   function renderSettings() {
     var own = ((game && game.sections) || []);
     // order: the Claude Code road (once per game) → the game → the world → Космограф → danger zone
     var inGame = mode === "game" && game;
-    var html = '<header class="sec"><div><h1>' + (inGame ? STR.settingsGame + ' · ' + esc(game.title || "") : STR.settingsWorld) + '</h1><p>' + (inGame ? STR.settingsGameAbout : STR.settingsWorldAbout) + '</p></div></header>' + (inGame ? (canDev ? agentRoadHtml() : devLockHtml()) : '');
+    var html = '<header class="sec"><div><h1>' + (inGame ? STR.settingsGame + ' · ' + esc(game.title || "") : STR.settingsWorld) + '</h1><p>' + (inGame ? STR.settingsGameAbout : STR.settingsWorldAbout) + '</p></div></header>';
+    if (inGame || mode === "world") html += '<div class="ex-tabs" role="tablist">' + [["main", STR.integ.tabMain], ["integ", STR.integ.tabInteg]].map(function (x) {
+      return '<button class="btn' + (setTab === x[0] ? ' primary' : '') + '" role="tab" aria-selected="' + (setTab === x[0]) + '" data-settab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</div>';
+    var tabs = function () { [].forEach.call(document.querySelectorAll("#view [data-settab]"), function (b) { b.onclick = function () { if (setTab !== b.dataset.settab) { setTab = b.dataset.settab; igMsg = {}; hubMsg = ""; render(); } }; }); };
+    if (setTab === "integ" && (inGame || mode === "world")) { $("view").innerHTML = html + integHtml(); tabs(); bindInteg(); return; }
+    html += inGame ? (canDev ? agentRoadHtml() : devLockHtml()) : '';
     if (inGame) html += '<section class="setbox"><h2>' + STR.stGame + ' · ' + esc(game.title) + '</h2>' +
         '<div class="setrow"><input id="st-gname" aria-label="' + esc(STR.stGameName) + '" value="' + esc(game.title || "") + '"><button class="btn" id="st-gsave">' + STR.stRename + '</button></div>' +
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
@@ -5233,6 +5339,7 @@
     if (inGame || mode === "world") html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (inGame ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button>') + '</div><p class="hint" id="st-msg"></p></section>';
     $("view").innerHTML = html;
+    tabs();
     var note = function (t) { $("st-msg").textContent = t; };
     [].forEach.call(document.querySelectorAll("#view [data-hubtab]"), function (b) { b.onclick = function () { tellShell({ type: "ww-hub", worldId: worldId, tab: b.dataset.hubtab }); }; });
     if (!inGame) {
@@ -5584,6 +5691,7 @@
     await mkCall({ op: "purge", gameId: id }).catch(function () {}); // marketing posts, channels, their secrets and the queue
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
     await Promise.all(ks.docs.map(function (d) { return d.ref.delete(); }));
+    await fnCall("integrations", { op: "purge", worldId: worldId, gameId: id }).catch(function () {}); // its 🔌 keys (server only), before the game doc goes
     var gd = (await g.get()).data() || {}; // the «Огляд гри» cover and title image (Storage worlds/{w}/games/{g}/cover/)
     await Promise.all([gd.cover, gd.titleArt].map(function (x) { return x && x.path ? firebase.storage().ref(x.path).delete().catch(function () {}) : null; }));
     await g.delete();
@@ -5602,6 +5710,7 @@
     askDelete(STR.stDelWorld, STR.stDelWorldText, world.title || "", async function () {
       unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = [];
       for (var g of games) await removeGame(g.id);
+      await fnCall("integrations", { op: "purge", worldId: worldId }).catch(function () {}); // the world's 🔌 keys
       await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
       await deleteDocs(wref().collection("lore"));
@@ -6986,8 +7095,10 @@
       }],
       [["marketing"], function () {
         unsub.push(gref().collection("marketing").doc("state").onSnapshot(function (d) { mkState = d.exists ? d.data() : null; mkRender(); }, function () {}));
-        unsub.push(gref().collection("channels").onSnapshot(function (snap) { mkChannels = rows(snap); mkRender(); }, function () {}));
         unsub.push(gref().collection("posts").onSnapshot(function (snap) { mkPosts = rows(snap); mkRender(); }, function () {}));
+      }],
+      [["marketing", "settings"], function () { // the channels: the Marketing page and Settings → 🔌 Інтеграції
+        unsub.push(gref().collection("channels").onSnapshot(function (snap) { mkChannels = rows(snap); if (section === "settings") { if (settingsIdle()) render(); } else mkRender(); }, function () {}));
       }],
       [["knowledge"], function () {
         unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));

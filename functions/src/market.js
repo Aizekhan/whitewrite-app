@@ -142,7 +142,7 @@ async function transferWorld(worldId, seller, buyer, licence) {
   (await wref.collection('entities').get()).docs.forEach((d) => { if (d.data().files) bw.update(d.ref, { files: del() }); });
   await recursiveDeleteExcept(wref, SOLD_WORLD_SUBS);
   for (const g of (await wref.collection('games').get()).docs) {
-    bw.update(g.ref, { repo: del(), launch: del(), canonOptIn: g.data().canonOptIn || null });
+    bw.update(g.ref, { repo: del(), launch: del(), integrations: del(), canonOptIn: g.data().canonOptIn || null });
     (await g.ref.collection('cards').get()).docs.forEach((c) => { if (c.data().files || c.data().styleAi) bw.update(c.ref, { files: del(), styleAi: del() }); });
     await recursiveDeleteExcept(g.ref, SOLD_GAME_SUBS);
   }
@@ -152,11 +152,11 @@ async function transferWorld(worldId, seller, buyer, licence) {
   const byWorld = async (col) => (await db.collection(col).where('worldId', '==', worldId).get()).docs.forEach((d) => bw.delete(d.ref));
   const byPrefix = async (col) => (await db.collection(col).where(admin.firestore.FieldPath.documentId(), '>=', worldId + '__')
     .where(admin.firestore.FieldPath.documentId(), '<', worldId + '__~').get()).docs.forEach((d) => bw.delete(d.ref));
-  await Promise.all([byWorld('mcpKeys'), byWorld('ingestKeys'), byPrefix('repoTokens'), byPrefix('marketingSecrets'), byPrefix('marketingQueue')]);
+  await Promise.all([byWorld('mcpKeys'), byWorld('ingestKeys'), byWorld('integrationKeys'), byPrefix('repoTokens'), byPrefix('marketingSecrets'), byPrefix('marketingQueue')]);
   await bw.close();
   for (const c of (await db.collection('community').where('worldId', '==', worldId).get()).docs) await db.recursiveDelete(c.ref);
   await db.collection('backupTokens').doc(worldId).delete().catch(() => {});
-  await wref.update({ team: del(), teamUids: [], backup: del(), owner: buyer, freeze: del(), cover: del(), titleArt: del(), cosmograph: del(), boughtAt: ts(), boughtFrom: seller, licence });
+  await wref.update({ team: del(), teamUids: [], backup: del(), integrations: del(), owner: buyer, freeze: del(), cover: del(), titleArt: del(), cosmograph: del(), boughtAt: ts(), boughtFrom: seller, licence });
 }
 
 // ── Stripe Connect (Standard accounts; the seller owns the account and its obligations) ──

@@ -95,11 +95,11 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (resource.data.owner == request.auth.uid || request.auth.uid in resource.data.get('teamUids', []));
       allow delete: if isAuthenticated() && resource.data.owner == request.auth.uid && resource.data.get('freeze', null) == null;
       // worlds/{w}.cosmograph (Космограф access, paid monthly) is written only by functions/src/cosmograph.js; .freeze — by market.js
-      // .team / .teamUids — team.js; .backup — backup.js
+      // .team / .teamUids — team.js; .backup — backup.js; .integrations — integrations.js
       allow create: if isAuthenticated() && request.resource.data.owner == request.auth.uid &&
-                       !request.resource.data.keys().hasAny(['cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt']);
+                       !request.resource.data.keys().hasAny(['cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']);
       allow update: if isAuthenticated() && resource.data.get('freeze', null) == null &&
-                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner', 'cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt']) &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner', 'cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']) &&
                        (resource.data.owner == request.auth.uid || memberWorldEdit());
       function memberWorldEdit() {
         let m = resource.data.get('team', {}).get(request.auth.uid, null);
@@ -135,10 +135,10 @@ service cloud.firestore {
       match /games/{gameId} {
         allow read: if isAuthenticated() && anyAccess(worldId);
         allow create: if false; // functions/src/projects.js createGame
-        // .repo / .ingestKeys — server only (gamedev.js repoConnect, experience.js keys); .launch builds the PowerShell lines
+        // .repo / .ingestKeys / .integrations — server only (gamedev.js repoConnect, experience.js keys, integrations.js); .launch builds the PowerShell lines
         // the OWNER pastes on their PC (gamebible.js «Запуск Claude Code») — so only the owner changes it
         allow update: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId) &&
-                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys']) &&
+                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys', 'integrations']) &&
                          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId));
         allow delete: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId);
       }
@@ -178,6 +178,10 @@ service cloud.firestore {
     }
     // The author's one saved GitHub token (github-token.js) — reused by the repo and backup connections, server only
     match /githubTokens/{uid} {
+      allow read, write: if false;
+    }
+    // 🔌 the author's own keys for 3D / image generation (integrations.js) — server only; the page sees worlds|games.integrations
+    match /integrationKeys/{id} {
       allow read, write: if false;
     }
     // GitHub tokens of the daily world backup — only backup.js reads them

@@ -174,6 +174,11 @@ const cases = [
   P('the owner reads their friends', 'ALLOW', 'get', '/users/u2/friends/u3', 'u2', { status: 'accepted' }),
   P('a user CANNOT add a friend directly', 'DENY', 'create', '/users/u2/friends/u3', 'u2', { status: 'accepted' }),
   P('a user CANNOT read backup tokens', 'DENY', 'get', '/backupTokens/w1', 'u1', { token: 'x' }),
+  // 🔌 Інтеграції: the author's 3D / image keys — server only; the doc fields only integrations.js writes
+  P('the owner CANNOT read their integration keys', 'DENY', 'get', '/integrationKeys/w1__g1', 'u1', { worldId: 'w1', model3d: { key: 'msy_x' } }),
+  P('the owner CANNOT write an integration key', 'DENY', 'create', '/integrationKeys/w1', 'u1', { worldId: 'w1', image: { key: 'sk-x' } }),
+  M('the owner CANNOT write the world integrations state', 'DENY', 'update', D + '/worlds/w1', 'u1', Object.assign({}, W1, { integrations: { image: { provider: 'openai', check: 'ok' } } }), W1),
+  T('the owner CANNOT write the game integrations state', 'DENY', 'update', G, 'u1', 'worldbuilder', { integrations: { model3d: { provider: 'meshy', check: 'ok' } } }),
   P('a user CANNOT read their own saved GitHub token', 'DENY', 'get', '/githubTokens/u1', 'u1', { token: 'x' }),
   P('a user CANNOT write a saved GitHub token', 'DENY', 'create', '/githubTokens/u1', 'u1', { token: 'x' }),
   P('a user CANNOT read the AI cost summary', 'DENY', 'get', '/admin_costs/2026-11-02', 'u1', { totalUsd: 1 }),

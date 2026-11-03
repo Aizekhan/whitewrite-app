@@ -35,4 +35,5 @@ exports.team = require('./src/team').team; // Друзі й команда св�
 const backup = require('./src/backup'); // daily GitHub backup of the world's text (paid per 30 days)
 exports.backup = backup.backup;
 exports.backupDaily = backup.backupDaily;
+exports.integrations = require('./src/integrations').integrations; // 🔌 the author's own keys for 3D / image generation services (server only)
 exports.aiCostDaily = require('./src/cost-watch').aiCostDaily; // daily API cost per user → admin_costs + alarms
