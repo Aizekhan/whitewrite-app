@@ -2517,7 +2517,7 @@
       m.rules = [f.numbers, f.deps ? (LANG === "en" ? "Depends on: " : "Залежить від: ") + f.deps : ""].filter(Boolean).join("\n\n"); m.legacy = !!raw;
     }
     med = { id: raw ? raw.id : newId("card"), isNew: !raw, card: c, title: (raw && raw.title) || (preset && preset.tpl ? ml(MX().template(preset.tpl).name) : ""),
-      status: (raw && raw.status) || "idea", m: m, tab: "general", adv: false, find: {}, sort: {},
+      status: (raw && raw.status) || "idea", m: m, tab: m.sections.some(function (x) { return x.id === "ctable"; }) ? "ctable" : "general", adv: false, find: {}, sort: {},
       sec: (raw && raw.section) || secId || (preset && MX().template(preset.tpl) && MX().template(preset.tpl).sec) || "mechanics" };
     mcFor(med.sec);
     delete med.m.legacy; med.legacy = !!(raw && !raw.mech);
@@ -2659,6 +2659,78 @@
         (f.h ? '<span class="hint">' + esc(ml(f.h)) + '</span>' : '') + '</div>';
     }).join("") + '</div>';
   }
+  // ---------- ⚔ Combo table & 👁 Through the monster's eyes (UMCF v2 sections ctable / reactions): tabs by strike type, plain dropdowns, the start distance computed ----------
+  var CB = {
+    uk: { all: "Усі", whoAll: "Усі бійці", player: "Гравець", other: "✎ Інший…", otherT: "Хто б’є", otherPh: "напр. Гоблін-розвідник", addG: "＋ Своя", addGT: "Новий тип удару", addGPh: "напр. Із засідки",
+      add: "＋ Комбо", addR: "＋ Відповідь", none: "У цьому типі ще немає комбо — додай перше.", start: "Починати з", time: "Зона удару в часі", from: "{m} з ~{d} м", hold: "тримає замах",
+      ok: "влучить: ціль у межах досяжності", edge: "з самої межі — ціль ступить назад, і буде промах", close: "впритул — зброя впирається", noreach: "у зброї немає дальності (вкладка «База зброї»)",
+      ph: ["замах", "удар", "відновлення"], weight: ["", "рідко", "інколи", "часто", "майже завжди"], noAns: "немає таких ударів у таблиці", fighter: "Боєць" },
+    en: { all: "All", whoAll: "Every fighter", player: "Player", other: "✎ Other…", otherT: "Who strikes", otherPh: "e.g. Goblin scout", addG: "＋ Own", addGT: "New strike type", addGPh: "e.g. From an ambush",
+      add: "＋ Combo", addR: "＋ Answer", none: "No combos of this type yet — add the first one.", start: "Start from", time: "Hit zone in time", from: "{m} from ~{d} m", hold: "holds the wind-up",
+      ok: "lands: the target is within reach", edge: "from the very edge — the target steps back and it misses", close: "point-blank — the weapon jams", noreach: "the weapon has no reach (the “Weapon definitions” tab)",
+      ph: ["wind-up", "hit", "recovery"], weight: ["", "rarely", "sometimes", "often", "almost always"], noAns: "no such strikes in the table", fighter: "Fighter" }
+  }[LANG === "en" ? "en" : "uk"];
+  function cbFighters() { // the player, the game's characters and enemies, and every name already in the tables
+    var l = [CB.player];
+    allCards().forEach(function (c) { if ((c.section === "enemies" || c.section === "characters") && c.title && l.indexOf(c.title) < 0) l.push(c.title); });
+    ["ctable", "reactions"].forEach(function (id) { ((msec(id) || {}).rows || []).forEach(function (r) { if (r.who && l.indexOf(r.who) < 0) l.push(r.who); }); });
+    return l;
+  }
+  function cbWho(path, v) {
+    var l = cbFighters(); if (v && l.indexOf(v) < 0) l.push(v);
+    return '<select data-mf="' + path + '" data-mwho="1" aria-label="' + esc(CB.fighter) + '">' + l.map(function (n) { return '<option' + (n === v ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") +
+      '<option value="__other">' + esc(CB.other) + '</option></select>';
+  }
+  function cbField(s, k) { return (s.fields || []).filter(function (f) { return f.k === k; })[0]; }
+  function cbGroups(s) { return mopts(cbField(s, "group") || cbField(s, "answer") || {}); }
+  function cbBar(c, hold) {
+    var t = c.phases, sum = t[0] + t[1] + t[2] || 1, pc = function (x) { return Math.max(4, Math.round(100 * x / sum)); };
+    return '<span class="cbbar" role="img" aria-label="' + esc(CB.ph.map(function (n, i) { return n + " " + t[i] + " с"; }).join(", ")) + '">' + t.map(function (x, i) {
+      return '<i class="cb' + i + (i === 0 && hold ? " cbhold" : "") + '" style="width:' + pc(x) + '%" title="' + esc(CB.ph[i] + " · " + x + " s" + (i === 0 && hold ? " · " + CB.hold : "")) + '"></i>'; }).join("") + '</span>';
+  }
+  function mComboHtml(s, si) {
+    var gs = cbGroups(s), g = med.cgrp && gs.some(function (x) { return x[0] === med.cgrp; }) ? med.cgrp : (gs[0] || [""])[0], wf = med.cwho || "";
+    var cnt = function (v) { return (s.rows || []).filter(function (r) { return r.group === v && (!wf || r.who === wf); }).length; };
+    var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return x.r.group === g && (!wf || x.r.who === wf); });
+    var F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; }, adv = med.adv ? ["startup", "active", "recovery", "notes"] : [];
+    var head = [CB.fighter, ml(F("weapon").l), ml(F("move").l), ml(F("strike").l), ml(F("hold").l), ml(F("anim").l), CB.start, CB.time].concat(adv.map(function (k) { return ml(F(k).l); }));
+    return '<div class="mtabs cbtabs" role="tablist">' + gs.map(function (x) { var n = cnt(x[0]);
+        return '<button type="button" class="mtab" role="tab" data-mcgrp="' + esc(x[0]) + '" aria-selected="' + (x[0] === g) + '">' + esc(x[1]) + (n ? ' <span class="muted">' + n + '</span>' : '') + '</button>'; }).join("") +
+      (canWrite ? '<button type="button" class="btn ghost mini" data-mact="cbGroup:' + si + '">' + CB.addG + '</button>' : '') + '</div>' +
+      '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
+      '<span style="flex:1"></span>' + (canWrite ? '<button type="button" class="btn mini" data-mact="cbAdd:' + si + '">' + CB.add + '</button>' : '') + '</div>' +
+      (rows.length ? '<div class="mtable"><table class="cbtable"><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr></thead><tbody>' +
+        rows.map(function (x) {
+          var p = si + "." + x.i + ".", r = x.r, c = MX().comboStart(med.m, r), mv = mopts(F("move")).filter(function (o) { return o[0] === r.move; })[0];
+          var st = c.status === "noreach" ? '<span class="cbst cb-warn" title="' + esc(CB.noreach) + '">⚠ —</span>' :
+            '<span class="cbst cb-' + (c.status === "ok" ? "ok" : "warn") + '" title="' + esc(CB[c.status]) + '">' + (c.status === "ok" ? "✓ " : "⚠ ") + c.start + ' м</span>' +
+            (c.from != null && mv ? '<span class="hint">' + esc(CB.from.replace("{m}", mv[1]).replace("{d}", c.from)) + '</span>' : '');
+          return '<tr><td>' + cbWho(p + "who", r.who) + '</td><td>' + minput(p + "weapon", F("weapon"), r.weapon, true) + '</td><td>' + minput(p + "move", F("move"), r.move, true) + '</td>' +
+            '<td>' + minput(p + "strike", F("strike"), r.strike, true) + '</td><td>' + minput(p + "hold", F("hold"), r.hold, true) + '</td><td class="mt-text">' + minput(p + "anim", F("anim"), r.anim, true) + '</td>' +
+            '<td class="cbstart">' + st + '<label class="cbk">k <input type="number" step="0.05" min="0.3" max="1" data-mf="' + p + 'k" value="' + esc(r.k == null ? "" : r.k) + '" placeholder="' + c.k + '" aria-label="k"></label></td>' +
+            '<td>' + cbBar(c, r.hold === "hold") + '</td>' + adv.map(function (k) { return '<td class="mt-' + F(k).t + '">' + minput(p + k, F(k), r[k], true) + '</td>'; }).join("") +
+            '<td class="mrowact"><button type="button" class="btn ghost mini" data-mact="dupRow:' + si + ':' + x.i + '" title="' + esc(MC.dupRow) + '" aria-label="' + esc(MC.dupRow + " " + r._id) + '">⧉</button>' +
+            '<button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + r._id) + '">✕</button></td></tr>';
+        }).join("") + '</tbody></table></div>' : '<p class="muted">' + CB.none + '</p>');
+  }
+  function mReactHtml(s, si) {
+    var F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; }, ct = msec("ctable"), wf = med.cwho || "";
+    var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return !wf || x.r.who === wf; });
+    var wsel = function (p, v) { return '<select data-mf="' + p + '" aria-label="' + esc(ml(F("weight").l)) + '"><option value=""></option>' + [1, 2, 3, 4].map(function (n) {
+      return '<option value="' + n + '"' + (+v === n ? " selected" : "") + '>' + "●●●●".slice(0, n) + "○○○○".slice(n) + " " + CB.weight[n] + '</option>'; }).join("") + '</select>'; };
+    return '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
+      '<span style="flex:1"></span>' + (canWrite ? '<button type="button" class="btn mini" data-mact="cbAddR:' + si + '">' + CB.addR + '</button>' : '') + '</div>' +
+      (rows.length ? '<div class="mtable"><table class="cbtable"><thead><tr>' + [CB.fighter, ml(F("action").l), "", ml(F("answer").l), ml(F("combo").l), ml(F("weight").l)].concat(med.adv ? [ml(F("notes").l)] : []).map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join("") +
+        '<th scope="col"><span class="sr">⋯</span></th></tr></thead><tbody>' + rows.map(function (x) {
+          var p = si + "." + x.i + ".", r = x.r, mine = ((ct && ct.rows) || []).filter(function (c) { return c.who === r.who && c.group === r.answer; });
+          var combo = '<select data-mf="' + p + 'combo" aria-label="' + esc(ml(F("combo").l)) + '"><option value="">' + esc(CB.all) + '</option>' + mine.map(function (c) {
+            return '<option value="' + esc(c._id) + '"' + (c._id === r.combo ? " selected" : "") + '>' + esc(c._id + " · " + (c.anim || "")) + '</option>'; }).join("") + '</select>';
+          return '<tr><td>' + cbWho(p + "who", r.who) + '</td><td>' + minput(p + "action", F("action"), r.action, true) + '</td><td aria-hidden="true">→</td><td>' + minput(p + "answer", F("answer"), r.answer, true) +
+            (r.answer && !mine.length ? '<span class="cbst cb-warn">⚠ ' + esc(CB.noAns) + '</span>' : '') + '</td><td>' + combo + '</td><td>' + wsel(p + "weight", r.weight) + '</td>' +
+            (med.adv ? '<td class="mt-text">' + minput(p + "notes", F("notes"), r.notes, true) + '</td>' : '') +
+            '<td class="mrowact"><button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + r._id) + '">✕</button></td></tr>';
+        }).join("") + '</tbody></table></div>' : '<p class="muted">' + MC.noRows + '</p>');
+  }
   function mTableHtml(s, si) {
     var cols = mshown(s), q = (med.find[s.id] || "").toLowerCase(), so = med.sort[s.id];
     var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) {
@@ -2725,8 +2797,8 @@
     if (med.tab !== "general" && !s) { med.tab = "general"; return renderMEditor(); }
     if (s && s.adv && !med.adv) { med.tab = "general"; return renderMEditor(); }
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
-      (s.kind === "table" ? mTableHtml(s, si) : mFieldsHtml(s, si)) +
-      (canWrite ? '<div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
+      (s.id === "ctable" && s.kind === "table" ? mComboHtml(s, si) : s.id === "reactions" && s.kind === "table" ? mReactHtml(s, si) : s.kind === "table" ? mTableHtml(s, si) : mFieldsHtml(s, si)) +
+      (canWrite && s.id !== "ctable" && s.id !== "reactions" ? '<div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
         MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
         '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button><span style="flex:1"></span>' +
         (s.custom ? '<button type="button" class="btn ghost mini" data-mact="rmSec:' + si + '">' + MC.rmSec + '</button>' : '') + '</div>' : ''));
@@ -2753,6 +2825,7 @@
   }
   function medInput(e) {
     var t = e.target; if (!med || !$("m-ed") || !t.dataset) return;
+    if (t.dataset.mcwho) { if (e.type === "change") { med.cwho = t.value; renderMEditor(); } return; }
     if (t.dataset.mfind !== undefined) { if (e.type !== "input") return; med.find[t.dataset.mfind] = t.value; var pos = t.selectionStart; renderMEditor(); var n = document.querySelector('[data-mfind="' + t.dataset.mfind + '"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } return; }
     if (t.dataset.mg) { med[t.dataset.mg] = t.value; if (t.dataset.mg === "title") { var h = document.querySelector("#m-ed header h1, #topline h1"); if (h) h.textContent = t.value || MC.newM; } mState(); return; }
     var p = t.dataset.mf; if (!p) return;
@@ -2764,7 +2837,9 @@
       mState(); return;
     }
     var s = m.sections[+k[0]], f = (s.fields || []).filter(function (x) { return x.k === k[2]; })[0];
+    if (t.dataset.mwho && t.value === "__other") { if (e.type !== "change") return; askName(CB.otherT, CB.otherPh, function (n) { if (n) s.rows[+k[1]].who = n.trim(); renderMEditor(); }); return; }
     if (k[1] === "-") s.values[k[2]] = mval(f, t); else s.rows[+k[1]][k[2]] = mval(f, t);
+    if (e.type === "change" && (s.id === "ctable" || s.id === "reactions")) { setTimeout(function () { if (med && $("m-ed")) renderMEditor(); }, 0); mState(); return; } // the start distance, the time bar and the combo choices follow
     if (e.type === "change" && s.kind === "table" && k[2] === s.rowLabel) { renderMEditor(); return; } // names of rows show in the links
     mState();
   }
@@ -2792,6 +2867,20 @@
       return;
     }
     if (p[0] === "files") { if (medDirty() && !confirm(STR.dos.unsaved)) return; var c = allCards().filter(function (x) { return x.key === "c:" + med.id; })[0]; med = null; render(); if (c) openCard(c); return; }
+    if (p[0] === "cbAdd" || p[0] === "cbAddR") {
+      var gs0 = cbGroups(s), grp = med.cgrp && gs0.some(function (x) { return x[0] === med.cgrp; }) ? med.cgrp : (gs0[0] || [""])[0];
+      var nr = p[0] === "cbAdd" ? { _id: MX().newRowId(s), group: grp, who: med.cwho || CB.player, hold: "now" } : { _id: MX().newRowId(s), who: med.cwho || ((msec("ctable") || {}).rows || [{}])[0].who || CB.player, weight: 2 };
+      s.rows = (s.rows || []).concat([nr]); renderMEditor(); mState(); return;
+    }
+    if (p[0] === "cbGroup") { // an own strike type: an option of the combo table's «group» and the answers' «answer» (the card's own copy of the fields)
+      askName(CB.addGT, CB.addGPh, function (name) {
+        name = String(name || "").trim(); if (!name) return;
+        var v = "g_" + mKey(name, cbGroups(s).map(function (x) { return x[0]; })), o = { v: v, l: { uk: name, en: name } };
+        [cbField(s, "group"), cbField(msec("reactions") || {}, "answer")].forEach(function (f) { if (f) f.o = (f.o || []).concat([o]); });
+        med.cgrp = v; renderMEditor(); mState();
+      });
+      return;
+    }
     if (p[0] === "addRow") {
       var row = { _id: MX().newRowId(s) };
       (s.fields || []).forEach(function (f) { if (f.t === "bool") row[f.k] = false; });
@@ -2854,6 +2943,7 @@
     var sr = e.target.closest("[data-sndrm]"); if (sr) { var sl = mslot(sr.dataset.sndrm); sl.o[sl.key] = (sl.o[sl.key] || []).filter(function (x) { return x !== sr.dataset.v; }); renderMEditor(); return true; }
     var sk = e.target.closest("[data-sndpick]"); if (sk) { sndPick(sk.dataset.sndpick); return true; }
     if (e.target.closest("[data-sndup]")) return true; // the file picker opens by itself
+    var cg = e.target.closest("[data-mcgrp]"); if (cg) { med.cgrp = cg.dataset.mcgrp; renderMEditor(); var cn = document.querySelector('[data-mcgrp="' + cg.dataset.mcgrp + '"]'); if (cn) cn.focus(); return true; }
     var tb = e.target.closest("[data-mtab]"); if (tb) { med.tab = tb.dataset.mtab; if ((msec(med.tab) || {}).adv) med.adv = true; /* a check pointing into an advanced tab opens the advanced view */ renderMEditor(); var n = document.querySelector('[data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
     var go = e.target.closest("[data-mgo]"); if (go) { med.tab = go.dataset.mgo; if ((msec(med.tab) || {}).adv) med.adv = true; renderMEditor(); $("m-ed").scrollIntoView({ block: "start" }); return true; }
     var so = e.target.closest("[data-msort]"); if (so) {

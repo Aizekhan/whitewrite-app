@@ -18,12 +18,12 @@ M.TEMPLATES.forEach((t) => {
   check(codes(m, 'error').length, 0, t.id + ': the template itself has no errors');
 });
 const umcf = M.TEMPLATES.find((t) => t.id === 'umcf');
-check(umcf.sections.length, 15, 'UMCF has the 15 parts of the spec');
+check(umcf.sections.filter((s) => !s.since).length, 15, 'UMCF has the 15 parts of the spec (+ the combo table and the monster’s eyes)');
 
 // the instance is a copy: editing it never touches the template
 const a = M.instantiate('umcf');
-a.sections[1].rows[0].name = 'Changed';
-check(umcf.sections[1].rows[0].name, 'Короткий кинджал', 'the template stays untouched');
+a.sections[3].rows[0].name = 'Changed';
+check(umcf.sections[3].rows[0].name, 'Короткий кинджал', 'the template stays untouched');
 
 // a combination with an attack the weapon does not have → error
 const combos = (m) => m.sections.find((s) => s.id === 'combos');
@@ -133,6 +133,20 @@ check(v3.sections.filter((s) => s.adv).map((s) => s.id).join(), 'motifs,mix', 'l
 check(st(v3, 'states').fields.filter((f) => f.adv).map((f) => f.k).join(), 'style,bars,where,notes,mine', 'states: the template’s advanced fields + the author’s own keeps its flag');
 check(['name', 'situation', 'bpm', 'sound'].every((k) => !st(v3, 'states').fields.find((f) => f.k === k).adv), true, 'the main state fields stay in the basic view');
 check(v3.tplVersion, M.template('adaptive_music').version, 'the upgrade stamps the template version');
+
+// ⚔ combo table: start = k × the weapon reach, the movement adds its run-up, the checks catch strikes from the edge and answers without strikes
+const cb = M.instantiate('umcf'), cbt = st(cb, 'ctable');
+check(JSON.stringify(M.comboStart(cb, cbt.rows[0])), JSON.stringify({ k: 0.75, reach: 0.9, start: 0.68, from: 2.18, phases: [0.18, 0.08, 0.3], status: 'ok' }), 'a goblin dagger dash-thrust starts at 0.75 × 0.9 m, the dash from ~2.2 m');
+check(M.comboStart(cb, Object.assign({}, cbt.rows[0], { k: 0.95 })).status, 'edge', 'k 0.95 — a strike from the edge of reach');
+check(M.comboStart(cb, Object.assign({}, cbt.rows[0], { weapon: '' })).status, 'noreach', 'no weapon — no distance');
+check(codes(cb, 'warn').filter((i) => i.sec === 'ctable' || i.sec === 'reactions').length, 0, 'the sample combo table and answers are clean');
+st(cb, 'reactions').rows.push({ _id: 'RE9', who: 'Гоблін', action: 'ranged', answer: 'ultimate', weight: 1 });
+check(codes(cb, 'warn').some((i) => i.row === 'RE9'), true, 'an answer with a strike type the fighter has no combos of');
+check(M.exportMech({ id: 'u', mech: cb }, 'en').sections.find((s) => s.id === 'ctable').rows[0].start.start, 0.68, 'the agent gets the computed start');
+const u1 = M.instantiate('umcf'); u1.tplVersion = 1; u1.sections = u1.sections.filter((s) => !['ctable', 'reactions'].includes(s.id)); u1.sections.forEach((s) => { delete s.adv; });
+M.upgrade(u1);
+check(u1.sections.slice(0, 4).map((s) => s.id).join(), 'overview,ctable,reactions,weapons', 'an older combat card gets the combo table and the monster’s eyes after the overview');
+check(u1.sections.filter((s) => s.adv).length, 13, 'the detailed UMCF tabs move to the advanced view');
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

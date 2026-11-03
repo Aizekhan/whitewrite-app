@@ -50,11 +50,25 @@ function O(list) { return list.map(function (o) { return { v: o[0], l: T(o[1], o
 var R = { req: 'r' }, REC = { req: 'rec' };
 function X(a, b) { var o = {}; [a, b].forEach(function (s) { if (s) Object.keys(s).forEach(function (k) { o[k] = s[k]; }); }); return o; }
 
+// ---- ⚔ Combo table (UMCF v2): simple words instead of linked tables — who · weapon · movement before the strike · strike · wind-up ----
+// The start distance is k × the weapon's reach: the attacker closes in to it before striking (a wind-up is held until then), so a started attack lands.
+var COMBO_GROUPS = O([['dash', 'З ривком', 'With a dash'], ['sudden', 'Раптові', 'Sudden'], ['retreat', 'При відступі', 'While retreating'], ['heavy', 'Сильні', 'Heavy'], ['ultimate', 'Ультимативні', 'Ultimate']]);
+var COMBO_MOVES = O([['stand', 'Стоячи', 'Standing'], ['step', 'Крок уперед', 'Step forward'], ['dash', 'Ривок уперед', 'Dash forward'], ['back', 'Відскок назад', 'Hop back'],
+  ['side', 'Зміщення вбік', 'Sidestep'], ['circle', 'Обхід', 'Circle around'], ['jump', 'Стрибок', 'Jump'], ['crouch', 'Присід', 'Crouch']]);
+var MOVE_GAIN = { stand: 0, step: 0.5, dash: 1.5, back: -0.8, side: 0, circle: 0, jump: 1, crouch: 0 }; // metres covered towards the target before the strike
+var COMBO_STRIKES = O([['thrust', 'Тичок', 'Thrust'], ['slash', 'Рубка', 'Slash'], ['diag', 'Рубка навскіс', 'Diagonal slash'], ['overhead', 'Удар згори', 'Overhead'],
+  ['spin', 'З розвороту', 'Spin'], ['lunge', 'Випад', 'Lunge'], ['sweep', 'Підсічка', 'Sweep'], ['bash', 'Поштовх', 'Bash']]);
+var STRIKE_DEF = { thrust: { k: 0.75, t: [0.18, 0.08, 0.3] }, slash: { k: 0.8, t: [0.3, 0.15, 0.4] }, diag: { k: 0.8, t: [0.32, 0.14, 0.42] }, overhead: { k: 0.7, t: [0.6, 0.14, 0.7] },
+  spin: { k: 0.8, t: [0.45, 0.2, 0.55] }, lunge: { k: 0.85, t: [0.25, 0.1, 0.4] }, sweep: { k: 0.75, t: [0.3, 0.12, 0.45] }, bash: { k: 0.7, t: [0.2, 0.1, 0.35] } };
+var COMBO_HOLD = O([['now', 'Одразу', 'At once'], ['hold', 'Тримає до дистанції', 'Held until in range']]);
+var PLAYER_ACTIONS = O([['retreat', 'Відступає', 'Retreats'], ['approach', 'Наближається', 'Approaches'], ['block', 'Ставить блок', 'Blocks'], ['dodgeSide', 'Ухиляється вбік', 'Dodges sideways'],
+  ['dodgeBack', 'Відскакує назад', 'Hops back'], ['attack', 'Атакує', 'Attacks'], ['heal', 'Лікується', 'Heals'], ['idle', 'Стоїть / вагається', 'Stands / hesitates'], ['ranged', 'Стріляє здалеку', 'Shoots from afar']]);
+
 // ============================== UMCF ==============================
 var PHASES = O([['approach', 'Підготовка / зближення', 'Preparation / approach'], ['align', 'Вирівнювання', 'Align'], ['startup', 'Замах (Startup)', 'Startup / wind-up'],
   ['active', 'Удар (Active)', 'Active / strike'], ['recovery', 'Відновлення (Recovery)', 'Recovery / follow-through'], ['reposition', 'Зміна позиції', 'Reposition']]);
 var UMCF = {
-  id: 'umcf', version: 1, cat: 'combat', sub: 'melee', complexity: 3,
+  id: 'umcf', version: 2, cat: 'combat', sub: 'melee', complexity: 3,
   name: T('Universal Melee Combat Framework (UMCF)'),
   desc: T('Ближній бій, де рішення атакувати, підготовка позиції, анімація і влучання — окремі повʼязані етапи: ворог не починає завідомо невдалу атаку.',
     'Melee where the decision to attack, positioning, the animation and the hit are separate linked stages: an enemy never starts an attack that cannot land.'),
@@ -66,6 +80,32 @@ var UMCF = {
         F('lockon', 'Захоплення цілі (lock-on)', 'Target lock-on', 'sel', X(REC, { o: O([['none', 'Немає', 'None'], ['soft', 'Мʼяке', 'Soft'], ['hard', 'Жорстке', 'Hard']]) })),
         F('tick', 'Частота перевірок бою, Гц', 'Combat update rate, Hz', 'num', { req: 'opt', adv: true, min: 10, max: 240, h: T('Як часто рахуються зони ураження. Низька частота + швидка зброя = прохід крізь ціль — тоді потрібні swept hitboxes.', 'How often hit volumes are evaluated. A low rate + a fast weapon = passing through the target — then swept hitboxes are needed.') }),
         F('notes', 'Нотатки', 'Notes', 'long', { req: 'opt' })] },
+    { id: 'ctable', since: 2, title: T('⚔ Комбо-таблиця', '⚔ Combo table'), kind: 'table', rowLabel: 'anim', prefix: 'CT',
+      hint: T('Кожен рядок — одне комбо: хто б’є, якою зброєю, як рухається перед ударом і яким ударом. «Починати з» = k × досяжність зброї: нападник підходить на цю дистанцію (замашистий удар тримає замах до неї) — тоді почата атака влучає, а не б’є повітря.',
+        'Each row is one combo: who strikes, with which weapon, how they move before the strike and which strike. “Start from” = k × the weapon’s reach: the attacker closes in to it (a wind-up is held until then) — so a started attack lands instead of hitting air.'),
+      fields: [F('group', 'Тип удару', 'Strike type', 'sel', X(R, { o: COMBO_GROUPS })), F('who', 'Хто', 'Who', 'text', R), F('weapon', 'Зброя', 'Weapon', 'ref', X(R, { ref: 'weapons' })),
+        F('move', 'Рух перед ударом', 'Movement before the strike', 'sel', X(R, { o: COMBO_MOVES })), F('strike', 'Удар', 'Strike', 'sel', X(R, { o: COMBO_STRIKES })),
+        F('hold', 'Замах', 'Wind-up', 'sel', X(REC, { o: COMBO_HOLD })), F('anim', 'Анімації (рух → удар)', 'Animations (move → strike)', 'text', REC),
+        F('k', 'Коефіцієнт k', 'Coefficient k', 'num', { req: 'opt', min: 0.3, max: 1, h: T('порожньо — за ударом: тичок 0.75, рубка 0.8, згори 0.7, випад 0.85', 'empty — by the strike: thrust 0.75, slash 0.8, overhead 0.7, lunge 0.85') }),
+        F('startup', 'Замах, с', 'Wind-up, s', 'time', { req: 'opt', adv: true, min: 0, max: 3 }), F('active', 'Удар, с', 'Hit, s', 'time', { req: 'opt', adv: true, min: 0, max: 2 }),
+        F('recovery', 'Відновлення, с', 'Recovery, s', 'time', { req: 'opt', adv: true, min: 0, max: 3 }), F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'CT1', group: 'dash', who: 'Гоблін', weapon: 'W1', move: 'dash', strike: 'thrust', hold: 'now', anim: 'Goblin_Dash_01 → Dagger_Thrust_01' },
+        { _id: 'CT2', group: 'sudden', who: 'Гоблін', weapon: 'W1', move: 'side', strike: 'diag', hold: 'now', anim: 'Goblin_Sidestep_L → Dagger_Slash_Diag' },
+        { _id: 'CT3', group: 'heavy', who: 'Гоблін', weapon: 'W1', move: 'step', strike: 'overhead', hold: 'hold', anim: 'Goblin_Windup_Hold → Dagger_Overhead' },
+        { _id: 'CT4', group: 'retreat', who: 'Гоблін', weapon: 'W1', move: 'back', strike: 'slash', hold: 'now', anim: 'Goblin_HopBack → Dagger_Slash_01' },
+        { _id: 'CT5', group: 'dash', who: 'Гравець', weapon: 'W3', move: 'dash', strike: 'slash', hold: 'now', anim: 'Hero_Dash → Sword_Slash_01' },
+        { _id: 'CT6', group: 'ultimate', who: 'Гравець', weapon: 'W3', move: 'jump', strike: 'overhead', hold: 'hold', anim: 'Hero_Leap → Sword_Overhead_Ult' }] },
+    { id: 'reactions', since: 2, title: T('👁 Очима монстра', '👁 Through the monster’s eyes'), kind: 'table', rowLabel: 'action', prefix: 'RE',
+      hint: T('Що робить гравець → яким типом удару відповідає монстр і як часто. Дії гравця й удари монстра описані тими самими словами — так їх можна зіставляти й згодом адаптувати поведінку.',
+        'What the player does → which strike type the monster answers with, and how often. The player’s actions and the monster’s strikes use the same words — so they can be matched and the behaviour adapted later.'),
+      fields: [F('who', 'Хто', 'Who', 'text', R), F('action', 'Що робить гравець', 'What the player does', 'sel', X(R, { o: PLAYER_ACTIONS })),
+        F('answer', 'Відповідає', 'Answers with', 'sel', X(R, { o: COMBO_GROUPS })), F('combo', 'Саме це комбо', 'This exact combo', 'ref', { req: 'opt', ref: 'ctable' }),
+        F('weight', 'Як часто (1–4)', 'How often (1–4)', 'num', X(REC, { min: 1, max: 4 })), F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'RE1', who: 'Гоблін', action: 'retreat', answer: 'dash', weight: 3 }, { _id: 'RE2', who: 'Гоблін', action: 'block', answer: 'heavy', weight: 2 },
+        { _id: 'RE3', who: 'Гоблін', action: 'dodgeSide', answer: 'sudden', weight: 2 }, { _id: 'RE4', who: 'Гоблін', action: 'attack', answer: 'retreat', weight: 1 },
+        { _id: 'RE5', who: 'Гоблін', action: 'heal', answer: 'dash', weight: 4 }] },
     { id: 'weapons', title: T('База зброї', 'Weapon definitions'), kind: 'table', rowLabel: 'name', prefix: 'W',
       hint: T('Кожен рядок — зброя або її варіант (короткий і довгий кинджал — різні рядки). Дистанції — від центру тіла атакувальника.', 'Each row is a weapon or a variant (a short and a long dagger are different rows). Distances are from the attacker\'s body centre.'),
       fields: [F('name', 'Назва', 'Name', 'text', R), F('category', 'Категорія', 'Category', 'sel', X(R, { o: O([['dagger', 'Кинджал', 'Dagger'], ['sword', 'Меч', 'Sword'], ['greatsword', 'Дворучний меч', 'Greatsword'], ['axe', 'Сокира', 'Axe'], ['hammer', 'Молот', 'Hammer'], ['spear', 'Спис', 'Spear'], ['fists', 'Кулаки', 'Fists'], ['claws', 'Пазурі / природна', 'Claws / natural'], ['other', 'Інше', 'Other']]) })),
@@ -84,7 +124,7 @@ var UMCF = {
         { _id: 'W3', name: 'Меч', category: 'sword', length: 0.9, reach: 1.6, prefDist: 1.3, minDist: 0.6, speed: 1, weight: 1.4, attacks: ['A3', 'A4', 'A5', 'A6'], moves: ['M1', 'M2', 'M4', 'M5'], animSet: 'Sword_Set' },
         { _id: 'W4', name: 'Молот', category: 'hammer', length: 1.1, reach: 1.8, prefDist: 1.4, minDist: 0.8, speed: 0.7, weight: 6, attacks: ['A5'], moves: ['M1'], animSet: 'Hammer_Set' },
         { _id: 'W5', name: 'Спис', category: 'spear', length: 2, reach: 2.6, prefDist: 2.2, minDist: 1.2, speed: 0.9, weight: 2.5, attacks: ['A8'], moves: ['M1', 'M2', 'M6'], animSet: 'Spear_Set' }] },
-    { id: 'attacks', title: T('База атак', 'Attack definitions'), kind: 'table', rowLabel: 'name', prefix: 'A',
+    { id: 'attacks', adv: true, title: T('База атак', 'Attack definitions'), kind: 'table', rowLabel: 'name', prefix: 'A',
       hint: T('Кожна атака — окремий запис. Часи фаз налаштовуються тут, не в коді. Коефіцієнт k — частка повної дистанції атаки, з якої її варто починати (див. «Дистанція й вирівнювання»).', 'Each attack is its own row. Phase times are set here, not in code. The k coefficient is the share of the full attack distance to start from (see “Distance & alignment”).'),
       fields: [F('name', 'Назва', 'Name', 'text', R), F('kind', 'Тип', 'Type', 'sel', X(R, { o: O([['quick', 'Швидка', 'Quick'], ['heavy', 'Важка', 'Heavy'], ['thrust', 'Колюча', 'Thrust'], ['slash', 'Рубляча', 'Slash'], ['overhead', 'Згори', 'Overhead'], ['spin', 'Розворот', 'Spin'], ['lunge', 'Випад', 'Lunge'], ['jump', 'У стрибку', 'Jump']]) })),
         F('weapons', 'Сумісна зброя', 'Weapon compatibility', 'refs', X(REC, { ref: 'weapons' })),
@@ -104,7 +144,7 @@ var UMCF = {
         { _id: 'A6', name: 'Heavy Slash', kind: 'heavy', weapons: ['W3'], startup: 0.5, active: 0.18, recovery: 0.6, arc: 160, forward: 0.8, damage: 34, stamina: 20, k: 0.8, interruptible: false, canCombo: false, anim: 'Sword_Heavy_01' },
         { _id: 'A7', name: 'Lunge Attack', kind: 'lunge', weapons: ['W1', 'W2'], startup: 0.28, active: 0.12, recovery: 0.5, arc: 20, forward: 1.6, damage: 18, stamina: 14, k: 0.85, interruptible: false, canCombo: true, anim: 'Dagger_Lunge_01' },
         { _id: 'A8', name: 'Spear Thrust', kind: 'thrust', weapons: ['W5'], startup: 0.32, active: 0.12, recovery: 0.45, arc: 12, forward: 0.5, damage: 22, stamina: 12, k: 0.9, interruptible: true, canCombo: true, anim: 'Spear_Thrust_01' }] },
-    { id: 'phases', title: T('Фази атак', 'Attack phases'), kind: 'table', rowLabel: 'phase', prefix: 'P',
+    { id: 'phases', adv: true, title: T('Фази атак', 'Attack phases'), kind: 'table', rowLabel: 'phase', prefix: 'P',
       hint: T('Правила кожної фази. Без атаки в рядку — правило для всіх атак; з атакою — перевизначення для неї. У Startup удар ще не ранить; в Active діють зони ураження; у Recovery персонаж вразливий.', 'The rules of each phase. A row without an attack applies to all attacks; with one — an override for it. Startup never hurts; Active turns the hit volumes on; Recovery leaves the attacker open.'),
       fields: [F('phase', 'Фаза', 'Phase', 'sel', X(R, { o: PHASES })), F('attack', 'Атака (порожньо — усі)', 'Attack (empty — all)', 'ref', { req: 'opt', ref: 'attacks' }),
         F('duration', 'Тривалість, с', 'Duration, s', 'time', { req: 'opt', h: T('Startup / Active / Recovery беруться з атаки; тут — для інших фаз або перевизначення.', 'Startup / Active / Recovery come from the attack; here — for the other phases or an override.') }),
@@ -120,7 +160,7 @@ var UMCF = {
         { _id: 'P4', phase: 'active', start: 'Кінець Startup', end: 'Минув Active атаки', move: 'root', turn: 0, interrupt: 'never', hits: true },
         { _id: 'P5', phase: 'recovery', start: 'Кінець Active', end: 'Минув Recovery атаки', move: 'none', turn: 0, interrupt: 'hit', hits: false },
         { _id: 'P6', phase: 'reposition', duration: 0.4, start: 'Кінець Recovery', end: 'Нова позиція', move: 'free', turn: 540, interrupt: 'always', hits: false }] },
-    { id: 'moves', title: T('Рух перед атакою', 'Movement before attack'), kind: 'table', rowLabel: 'name', prefix: 'M',
+    { id: 'moves', adv: true, title: T('Рух перед атакою', 'Movement before attack'), kind: 'table', rowLabel: 'name', prefix: 'M',
       hint: T('Профілі руху, якими персонаж готує позицію до удару. Комбінація вибирає один із них.', 'Movement profiles the attacker uses to set up a strike. A combination picks one.'),
       fields: [F('name', 'Назва', 'Name', 'text', R), F('kind', 'Тип руху', 'Movement type', 'sel', X(R, { o: O([['approach', 'Зближення', 'Approach'], ['lunge', 'Випад', 'Lunge'], ['sidestep', 'Крок убік', 'Side step'], ['retreat', 'Відступ', 'Retreat'], ['circle', 'Обхід по колу', 'Circle'], ['jump', 'Стрибок', 'Jump'], ['vertical', 'Вертикальне зміщення', 'Vertical reposition'], ['align', 'Швидке вирівнювання', 'Quick alignment']]) })),
         F('direction', 'Напрямок', 'Direction', 'sel', X(REC, { o: O([['forward', 'Уперед', 'Forward'], ['back', 'Назад', 'Back'], ['left', 'Ліворуч', 'Left'], ['right', 'Праворуч', 'Right'], ['up', 'Вгору', 'Up'], ['any', 'Будь-який', 'Any']]) })),
@@ -137,7 +177,7 @@ var UMCF = {
         { _id: 'M6', name: 'Retreat', kind: 'retreat', direction: 'back', duration: 0.35, speed: 3.5, distance: 1.2, maxAngle: 30, anim: 'Step_Back', when: 'Ціль ближче за мінімальну дистанцію' },
         { _id: 'M7', name: 'Circle Left', kind: 'circle', direction: 'left', duration: 0.8, speed: 2.5, distance: 2, maxAngle: 90, anim: 'Strafe_L', when: 'Шукає відкритий кут' },
         { _id: 'M8', name: 'Quick Alignment', kind: 'align', direction: 'any', duration: 0.1, speed: 0, distance: 0, maxAngle: 90, anim: 'Turn_Quick', when: 'Кут до цілі більший за толерантність' }] },
-    { id: 'geometry', title: T('Геометрія ураження', 'Attack hit geometry'), kind: 'table', rowLabel: 'seg', prefix: 'G',
+    { id: 'geometry', adv: true, title: T('Геометрія ураження', 'Attack hit geometry'), kind: 'table', rowLabel: 'seg', prefix: 'G',
       hint: T('Удар — не один hitbox на всю анімацію, а сегменти в часі вздовж траєкторії зброї. Час — від початку атаки, у межах Active. Для швидкої зброї вмикай swept (безперервна перевірка), щоб вона не проходила крізь ціль між кадрами. Позиції — x,y,z у метрах від атакувальника.', 'A strike is not one hitbox for the whole animation but time segments along the weapon path. Time is from the attack start, inside Active. Turn on swept (continuous detection) for fast weapons so they never pass through a target between frames. Positions — x,y,z in metres from the attacker.'),
       fields: [F('attack', 'Атака', 'Attack', 'ref', X(R, { ref: 'attacks' })), F('seg', 'Сегмент', 'Segment', 'text', R),
         F('t0', 'Початок, с', 'Start time, s', 'time', R), F('t1', 'Кінець, с', 'End time, s', 'time', R),
@@ -153,7 +193,7 @@ var UMCF = {
         { _id: 'G2', attack: 'A3', seg: 'Центр', t0: 0.35, t1: 0.4, p0: '0.4,1.3,1.0', p1: '-0.4,1.3,1.0', width: 0.3, length: 1.3, vRange: '0.8–1.6', mult: 1.2, hitType: 'sweet', swept: true },
         { _id: 'G3', attack: 'A3', seg: 'Вперед → ліворуч', t0: 0.4, t1: 0.45, p0: '-0.4,1.3,1.0', p1: '-0.6,1.3,0.2', width: 0.25, length: 1.1, vRange: '0.8–1.6', mult: 0.8, hitType: 'graze', swept: true },
         { _id: 'G4', attack: 'A1', seg: 'Тичок', t0: 0.18, t1: 0.26, p0: '0.1,1.2,0.4', p1: '0.1,1.2,0.9', width: 0.12, length: 0.5, vRange: '0.9–1.5', mult: 1, hitType: 'normal', swept: true }] },
-    { id: 'combos', title: T('Комбінації атак', 'Attack combinations'), kind: 'table', rowLabel: 'label', prefix: 'C',
+    { id: 'combos', adv: true, title: T('Комбінації атак', 'Attack combinations'), kind: 'table', rowLabel: 'label', prefix: 'C',
       hint: T('Центральна таблиця: зброя + атака + рух перед атакою + анімація (+ геометрія з атаки). Значення беруться із записів баз; колонки «перевизначення» — лише для цієї комбінації. Вищий пріоритет перемагає, коли підходять кілька.', 'The central table: weapon + attack + movement + animation (+ the attack\'s geometry). Values come from the linked rows; the “override” columns apply to this combination only. Higher priority wins when several fit.'),
       fields: [F('label', 'Назва', 'Label', 'text', REC), F('weapon', 'Зброя', 'Weapon', 'ref', X(R, { ref: 'weapons' })), F('attack', 'Атака', 'Attack', 'ref', X(R, { ref: 'attacks' })),
         F('move', 'Рух перед атакою', 'Movement', 'ref', X(R, { ref: 'moves' })), F('anim', 'Анімація', 'Animation', 'text', REC),
@@ -168,7 +208,7 @@ var UMCF = {
         { _id: 'C4', label: 'Меч · горизонтальна рубка', weapon: 'W3', attack: 'A3', move: 'M1', anim: 'Sword_Slash_01', when: 'Ціль перед персонажем', priority: 50, dist: '0.8–1.6', angle: 60 },
         { _id: 'C5', label: 'Меч · важка рубка', weapon: 'W3', attack: 'A6', move: 'M2', anim: 'Sword_Heavy_01', when: 'Достатня дистанція', priority: 35, dist: '1.2–2.2', angle: 45 },
         { _id: 'C6', label: 'Молот · удар згори', weapon: 'W4', attack: 'A5', move: 'M1', anim: 'Hammer_Overhead_01', when: 'Ціль у вертикальній зоні', priority: 45, dist: '1.0–1.8', angle: 25 }] },
-    { id: 'distance', title: T('Дистанція й вирівнювання', 'Distance & alignment'), kind: 'fields',
+    { id: 'distance', adv: true, title: T('Дистанція й вирівнювання', 'Distance & alignment'), kind: 'fields',
       hint: T('D_attack = D_weapon + D_lunge + D_body — повна дистанція, з якої атака дістає ціль; D_optimal = k × D_attack — звідки її починати (k — в атаці). k — стартові значення для тестів, не фізичний закон.', 'D_attack = D_weapon + D_lunge + D_body — the full distance the attack reaches from; D_optimal = k × D_attack — where to start it (k is per attack). k values are test starting points, not a law of physics.'),
       fields: [F('formula', 'Формула дистанції атаки', 'Attack distance formula', 'formula', R), F('optFormula', 'Оптимальна дистанція', 'Optimal distance', 'formula', R),
         F('body', 'D_body: радіус тіла, м', 'D_body: body radius, m', 'num', X(R, { min: 0, max: 3 })),
@@ -181,7 +221,7 @@ var UMCF = {
         F('targetSize', 'Врахування розміру цілі', 'Target size', 'sel', X(REC, { o: O([['radius', 'Радіус капсули цілі', 'Target capsule radius'], ['bounds', 'Габарити цілі', 'Target bounds'], ['none', 'Не враховується', 'Ignored']]) })),
         F('obstacles', 'Перешкоди', 'Obstacles', 'text', { req: 'opt', adv: true })],
       values: { formula: 'D_attack = D_weapon + D_lunge + D_body', optFormula: 'D_optimal = k × D_attack', body: 0.35, tolerance: 0.2, alignTol: 15, maxRot: 45, vTol: 0.6, approachSpeed: 4.5, predict: 0.3, targetSize: 'radius' } },
-    { id: 'feasibility', title: T('Перевірка можливості атаки', 'Attack feasibility'), kind: 'table', rowLabel: 'check', prefix: 'F',
+    { id: 'feasibility', adv: true, title: T('Перевірка можливості атаки', 'Attack feasibility'), kind: 'table', rowLabel: 'check', prefix: 'F',
       hint: T('Що AI перевіряє ДО запуску атаки — по прогнозованій позиції цілі. Невдала перевірка → інша комбінація, зміна позиції або відмова.', 'What the AI checks BEFORE starting an attack — against the predicted target position. A failed check → another combination, repositioning or skipping.'),
       fields: [F('check', 'Перевірка', 'Check', 'text', R), F('on', 'Увімкнена', 'Enabled', 'bool', R), F('threshold', 'Поріг', 'Threshold', 'text', REC),
         F('fail', 'Якщо не пройдено', 'On failure', 'sel', X(R, { o: O([['reposition', 'Змінити позицію', 'Reposition'], ['other', 'Інша комбінація', 'Pick another combination'], ['wait', 'Чекати', 'Wait'], ['skip', 'Не атакувати', 'Skip the attack']]) })),
@@ -195,7 +235,7 @@ var UMCF = {
         { _id: 'F6', check: 'Немає зіткнень з іншими', on: true, threshold: 'Капсула на шляху', fail: 'reposition' },
         { _id: 'F7', check: 'Ціль не вийде з зони до контакту', on: true, threshold: 'Прогноз на Startup', fail: 'wait' },
         { _id: 'F8', check: 'Немає кращої комбінації', on: true, threshold: 'Пріоритет + геометрія', fail: 'other' }] },
-    { id: 'commitment', title: T('Фіксація атаки', 'Attack commitment'), kind: 'table', rowLabel: 'phase', prefix: 'K',
+    { id: 'commitment', adv: true, title: T('Фіксація атаки', 'Attack commitment'), kind: 'table', rowLabel: 'phase', prefix: 'K',
       hint: T('Коли атаку ще можна змінити чи скасувати. Без атаки — правило для всіх; з атакою — для неї.', 'When an attack can still be changed or cancelled. Without an attack — the rule for all; with one — for it.'),
       fields: [F('phase', 'Фаза', 'Phase', 'sel', X(R, { o: PHASES })), F('attack', 'Атака (порожньо — усі)', 'Attack (empty — all)', 'ref', { req: 'opt', ref: 'attacks' }),
         F('cancel', 'Скасування', 'Cancel', 'sel', X(R, { o: O([['free', 'Вільно', 'Freely'], ['cond', 'За умов', 'On conditions'], ['no', 'Заборонено', 'Not allowed']]) })),
@@ -206,14 +246,14 @@ var UMCF = {
         { _id: 'K3', phase: 'startup', cancel: 'cond', window: 30, cond: 'Лише перші 30% Startup: удар по атакувальнику' },
         { _id: 'K4', phase: 'active', cancel: 'no', window: 0, cond: 'Лише спеціальні переривання (оглушення, парирування)' },
         { _id: 'K5', phase: 'recovery', cancel: 'cond', window: 60, cond: 'Комбо або ухилення після 60% Recovery' }] },
-    { id: 'warping', title: T('Motion Warping', 'Motion warping'), kind: 'fields',
+    { id: 'warping', adv: true, title: T('Motion Warping', 'Motion warping'), kind: 'fields',
       hint: T('Обмежена корекція руху під час анімації, щоб удар підлаштувався під реальну позицію цілі без «телепортації».', 'Limited motion correction during the animation so the strike adapts to where the target really is, without teleporting.'),
       fields: [F('maxTrans', 'Макс. зсув, м', 'Max translation correction, m', 'num', X(R, { min: 0, max: 3 })), F('maxRot', 'Макс. поворот, °', 'Max rotation correction, °', 'num', X(R, { min: 0, max: 180 })),
         F('window', 'Вікно корекції (від–до), с', 'Correction window (from–to), s', 'range', R), F('speed', 'Швидкість корекції, м/с', 'Correction speed, m/s', 'num', REC),
         F('predict', 'Прогноз цілі', 'Target prediction', 'bool', REC), F('phases', 'Дозволені фази', 'Allowed phases', 'multi', X(R, { o: PHASES })),
         F('collision', 'Обмеження колізій', 'Collision constraints', 'text', REC)],
       values: { maxTrans: 0.5, maxRot: 30, window: '0–0.3', speed: 3, predict: true, phases: ['align', 'startup'], collision: 'Не проходити крізь стіни й інших персонажів' } },
-    { id: 'adaptation', title: T('Адаптація AI до гравця', 'Combat adaptation'), kind: 'table', rowLabel: 'archetype', prefix: 'E',
+    { id: 'adaptation', adv: true, title: T('Адаптація AI до гравця', 'Combat adaptation'), kind: 'table', rowLabel: 'archetype', prefix: 'E',
       hint: T('Вороги помічають звички гравця (ухиляється вліво, весь час блокує, відступає) і змінюють вибір атак — кожен у міру свого розуму. Зомбі майже не вчиться, найманець — швидко. Не роби ворогів всезнаючими.', 'Enemies notice the player\'s habits (dodges left, always blocks, retreats) and change their attack choice — each as far as its mind allows. A zombie barely learns, a mercenary learns fast. Never make enemies all-knowing.'),
       fields: [F('archetype', 'Архетип ворога', 'Enemy archetype', 'text', R), F('intel', 'Інтелект (0–100)', 'Intelligence (0–100)', 'num', X(R, { min: 0, max: 100 })),
         F('learn', 'Здатність навчатися (0–100)', 'Learning (0–100)', 'num', X(R, { min: 0, max: 100 })), F('adaptSpeed', 'Швидкість адаптації (0–100)', 'Adaptation speed (0–100)', 'num', X(REC, { min: 0, max: 100 })),
@@ -225,20 +265,20 @@ var UMCF = {
         { _id: 'E1', archetype: 'Зомбі', intel: 5, learn: 0, adaptSpeed: 0, memory: 0, aggr: 80, caution: 0, patterns: [], counters: 'Не адаптується' },
         { _id: 'E2', archetype: 'Гоблін', intel: 35, learn: 25, adaptSpeed: 30, memory: 3, aggr: 70, caution: 30, patterns: ['dodgeDir', 'retreat'], counters: 'Частіше випад, якщо гравець відступає' },
         { _id: 'E3', archetype: 'Найманець', intel: 75, learn: 70, adaptSpeed: 60, memory: 5, aggr: 55, caution: 60, patterns: ['dodgeDir', 'block', 'retreat', 'combos'], counters: 'Рубка, що перекриває улюблений бік ухилення; важкі атаки й обхід проти блоку' }] },
-    { id: 'collision', title: T('Колізії тіл', 'Body collision'), kind: 'fields',
+    { id: 'collision', adv: true, title: T('Колізії тіл', 'Body collision'), kind: 'fields',
       hint: T('Як персонажі штовхаються й не проходять одне крізь одного, зокрема під час випадів.', 'How characters push each other and never overlap, including during lunges.'),
       fields: [F('radius', 'Радіус капсули, м', 'Capsule radius, m', 'num', X(R, { min: 0, max: 3 })), F('push', 'Відштовхування', 'Push-back', 'sel', X(R, { o: O([['soft', 'Мʼяке', 'Soft'], ['hard', 'Жорстке', 'Hard'], ['none', 'Немає', 'None']]) })),
         F('overlap', 'Допустимий перетин, м', 'Allowed overlap, m', 'num', X(REC, { min: 0, max: 1 })), F('duringAttack', 'Під час атаки', 'During an attack', 'text', REC),
         F('limits', 'Обмеження переміщення', 'Movement limits', 'text', { req: 'opt' })],
       values: { radius: 0.35, push: 'soft', overlap: 0.05, duringAttack: 'Випад зупиняється на капсулі цілі' } },
-    { id: 'debugger', title: T('Combat Debugger', 'Combat debugger'), kind: 'fields',
+    { id: 'debugger', adv: true, title: T('Combat Debugger', 'Combat debugger'), kind: 'fields',
       hint: T('Що показує налагоджувальний оверлей у грі — щоб бачити, чому удар не влучив або AI не атакував.', 'What the in-game debug overlay shows — to see why a hit missed or the AI did not attack.'),
       fields: [F('phase', 'Поточна фаза атаки', 'Current attack phase', 'bool', REC), F('distance', 'Поточна й бажана дистанція', 'Current and preferred distance', 'bool', REC),
         F('combo', 'Активна комбінація й рух', 'Active combination and movement', 'bool', REC), F('path', 'Траєкторія зброї', 'Weapon path', 'bool', REC),
         F('volumes', 'Активні зони ураження', 'Active hit volumes', 'bool', REC), F('miss', 'Причина промаху', 'Miss reason', 'bool', REC), F('refuse', 'Причина відмови від атаки', 'Reason an attack was skipped', 'bool', REC),
         F('key', 'Як увімкнути', 'How to toggle', 'text', { req: 'opt' })],
       values: { phase: true, distance: true, combo: true, path: true, volumes: true, miss: true, refuse: true, key: 'F3 у dev-збірці' } },
-    { id: 'analytics', title: T('Бойова аналітика', 'Combat analytics'), kind: 'table', rowLabel: 'metric', prefix: 'N',
+    { id: 'analytics', adv: true, title: T('Бойова аналітика', 'Combat analytics'), kind: 'table', rowLabel: 'metric', prefix: 'N',
       hint: T('Метрики для балансу. Через телеметрію гри вони потрапляють у «Досвід гравців».', 'Balancing metrics. Through the game\'s telemetry they reach “Player experience”.'),
       fields: [F('metric', 'Метрика', 'Metric', 'text', R), F('on', 'Збирати', 'Collect', 'bool', R), F('target', 'Ціль', 'Target', 'text', REC), F('event', 'Подія телеметрії', 'Telemetry event', 'text', { req: 'opt', adv: true })],
       rows: [
@@ -251,6 +291,22 @@ var UMCF = {
 
 // checks of UMCF beyond the generic ones (required / links / ranges)
 function umcfChecks(m, add, rowsOf, nameOf) {
+  var CTR = rowsOf('ctable'), RE = rowsOf('reactions'), who = function (x) { return String(x || '').trim().toLowerCase(); };
+  CTR.forEach(function (r) {
+    var c = comboStart(m, r);
+    if (r.weapon && c.status === 'noreach') add('warn', 'ctable', r._id, 'У зброї немає дальності — не порахувати, звідки бити (вкладка «База зброї»).', 'The weapon has no reach — the start distance cannot be computed (the “Weapon definitions” tab).');
+    if (c.status === 'edge') add('warn', 'ctable', r._id, 'k = ' + c.k + ': удар з самої межі досяжності — ціль ступить назад, і буде промах. Звично 0.7–0.8.', 'k = ' + c.k + ': a strike from the very edge of reach — the target steps back and it misses. Usually 0.7–0.8.');
+    if (c.status === 'close') add('warn', 'ctable', r._id, 'k = ' + c.k + ': нападник підходить майже впритул — зброя впирається в ціль.', 'k = ' + c.k + ': the attacker comes almost point-blank — the weapon jams into the target.');
+  });
+  RE.forEach(function (r) {
+    if (!r.answer) return;
+    var mine = CTR.filter(function (c) { return who(c.who) === who(r.who) && c.group === r.answer; });
+    if (!mine.length) add('warn', 'reactions', r._id, 'У «' + (r.who || '?') + '» немає ударів цього типу в комбо-таблиці — відповідь не спрацює.', '“' + (r.who || '?') + '” has no strikes of this type in the combo table — the answer cannot happen.');
+    var cb = r.combo && CTR.filter(function (c) { return c._id === r.combo; })[0];
+    if (cb && (cb.group !== r.answer || who(cb.who) !== who(r.who))) add('warn', 'reactions', r._id, 'Вибране комбо іншого типу або іншого бійця.', 'The chosen combo is of another type or fighter.');
+  });
+  var fighters = []; CTR.forEach(function (c) { var w = who(c.who); if (w && w !== who('Гравець') && w !== 'player' && fighters.indexOf(w) < 0) fighters.push(w); });
+  fighters.forEach(function (w) { if (!RE.some(function (r) { return who(r.who) === w; })) add('tip', 'reactions', '', '«' + w + '» має комбо, але не знає, коли їх обирати — додай відповіді на дії гравця.', '“' + w + '” has combos but no answers to the player’s actions yet.'); });
   var W = rowsOf('weapons'), A = rowsOf('attacks'), M = rowsOf('moves'), G = rowsOf('geometry'), C = rowsOf('combos');
   var byId = function (l, id) { return l.filter(function (r) { return r._id === id; })[0]; };
   W.forEach(function (w) {
@@ -781,6 +837,12 @@ function rowPrompt(m, secId, row, lang) {
 // an instance made before a template field existed gets the field (additive only: values, rows and the author's own fields stay)
 function upgrade(m) {
   var t = m && template(m.tpl); if (!t || (m.tplVersion || 0) >= t.version) return m;
+  m.sections = m.sections || [];
+  t.sections.forEach(function (ts, i) {
+    if (!ts.since || ts.since <= (m.tplVersion || 0) || m.sections.some(function (x) { return x.id === ts.id; })) return;
+    var prev = i ? m.sections.map(function (x) { return x.id; }).indexOf(t.sections[i - 1].id) : -1;
+    m.sections.splice(prev + 1, 0, sectionOf(ts));
+  });
   (m.sections || []).forEach(function (s) {
     var ts = t.sections.filter(function (x) { return x.id === s.id; })[0]; if (!ts || !s.fields) return;
     if (!s.custom) { if (ts.adv) s.adv = true; else delete s.adv; }
@@ -814,13 +876,23 @@ function empty(v) { return v == null || v === '' || (Array.isArray(v) && !v.leng
 function instantiate(tplId) {
   var t = template(tplId);
   var m = { tpl: t ? t.id : '', tplVersion: t ? t.version : 0, cat: t ? t.cat : '', sub: t ? t.sub : '', stage: 'concept', type: '', purpose: t ? lbl(t.purpose, 'uk') : '', rules: '', tags: [], links: [], sections: [] };
-  if (t) m.sections = t.sections.map(function (s) {
-    var o = { id: s.id, title: clone(s.title), hint: clone(s.hint || ''), kind: s.kind, fields: clone(s.fields) };
-    if (s.adv) o.adv = true;
-    if (s.kind === 'table') { o.rows = clone(s.rows || []); o.rowLabel = s.rowLabel || ''; o.prefix = s.prefix || 'R'; if (s.prompt) o.prompt = true; } else o.values = clone(s.values || {});
-    return o;
-  });
+  if (t) m.sections = t.sections.map(sectionOf);
   return m;
+}
+function sectionOf(s) { // a template section → the card's own copy
+  var o = { id: s.id, title: clone(s.title), hint: clone(s.hint || ''), kind: s.kind, fields: clone(s.fields) };
+  if (s.adv) o.adv = true;
+  if (s.kind === 'table') { o.rows = clone(s.rows || []); o.rowLabel = s.rowLabel || ''; o.prefix = s.prefix || 'R'; if (s.prompt) o.prompt = true; } else o.values = clone(s.values || {});
+  return o;
+}
+// ⚔ where a combo starts: k × the weapon's reach (+ what the movement covers before the strike); status ok | edge (k > 0.85 — a step back and it misses) | close (k < 0.5) | noreach
+function comboStart(m, r) {
+  var ws = (m.sections || []).filter(function (x) { return x.id === 'weapons'; })[0], w = ws && (ws.rows || []).filter(function (x) { return x._id === r.weapon; })[0];
+  var d = STRIKE_DEF[r.strike] || {}, k = num(r.k) ? +r.k : d.k || 0.8, reach = w && num(w.reach) ? +w.reach : null, gain = MOVE_GAIN[r.move] || 0;
+  var tm = [r.startup, r.active, r.recovery].map(function (v, i) { return num(v) ? +v : (d.t || [0.3, 0.12, 0.4])[i]; });
+  if (reach == null) return { k: k, reach: null, start: null, from: null, phases: tm, status: 'noreach' };
+  var start = Math.round(k * reach * 100) / 100;
+  return { k: k, reach: reach, start: start, from: gain ? Math.max(0.3, Math.round((start + gain) * 100) / 100) : null, phases: tm, status: k > 0.85 ? 'edge' : k < 0.5 ? 'close' : 'ok' };
 }
 function newRowId(sec) {
   var p = sec.prefix || 'R', n = 0;
@@ -920,7 +992,7 @@ function exportMech(card, lang, lib) { // lib: audioLibrary(cards).assets — so
     var name = function (refSec, id) { var rs = (m.sections || []).filter(function (x) { return x.id === refSec; })[0]; var r = rs && (rs.rows || []).filter(function (x) { return x._id === id; })[0]; return r ? { id: id, name: rowName(rs, r) } : { id: id, name: null }; };
     var plain = function (o) { var out = {}; (s.fields || []).forEach(function (f) { var v = o[f.k]; if (empty(v)) return; out[f.k] = f.t === 'ref' ? name(f.ref, v) : f.t === 'refs' ? v.map(function (id) { return name(f.ref, id); }) : f.t === 'sound' ? (Array.isArray(v) ? v : []).map(snd) : v; }); return out; };
     var o = { id: s.id, title: lbl(s.title, L), kind: s.kind, fields: cols };
-    if (s.kind === 'table') o.rows = (s.rows || []).map(function (r) { var x = Object.assign({ id: r._id }, plain(r)), p = s.prompt && rowPrompt(m, s.id, r, L); if (p) x.generator_prompt = p; return x; }); else o.values = plain(s.values || {});
+    if (s.kind === 'table') o.rows = (s.rows || []).map(function (r) { var x = Object.assign({ id: r._id }, plain(r)), p = s.prompt && rowPrompt(m, s.id, r, L); if (p) x.generator_prompt = p; if (s.id === 'ctable') x.start = comboStart(m, r); return x; }); else o.values = plain(s.values || {});
     return o;
   });
   var c = check(m);
@@ -933,7 +1005,7 @@ function exportMech(card, lang, lib) { // lib: audioLibrary(cards).assets — so
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
   AUDIO_CATEGORIES: AUDIO_CATEGORIES, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
-  isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary };
+  isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;
 })();
