@@ -291,7 +291,7 @@
         expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
-      stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
+      agentName: "Агент White", agentIntro: "Агент White пропонує ці картки з твоїх матеріалів. Зніми галочки з того, що не треба, і натисни «Додати відмічене».", stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
       fill: { title: "📜 Заповни світ своїми матеріалами", lead: "Нотатки, документи, теки — усе, що вже написано про світ. Твій ШІ-агент (Claude Code, ChatGPT…) складе їх в один файл за шаблоном WhiteWrite, а сервіс лише перенесе дані в розділи — без токенів, на будь-якому тарифі.",
         dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code", tpl: "⤓ Шаблон і правила (.md)",
         s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
@@ -591,7 +591,7 @@
         expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
-      stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
+      agentName: "Agent White", agentIntro: "Agent White proposes these cards from your material. Untick what you don't need and press «Add ticked items».", stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
       fill: { title: "📜 Fill the world with your material", lead: "Notes, documents, folders — whatever is already written about the world. Your AI agent (Claude Code, ChatGPT…) puts it into one file by the WhiteWrite template, and the service only moves the data into the sections — no tokens, on any plan.",
         dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code", tpl: "⤓ Template and rules (.md)",
         s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
@@ -1355,6 +1355,7 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
+    window.dispatchEvent(new Event("ww-bible-ctx")); // Агент White follows the world / game (agent-white.js)
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
     if (mode === "game" && isCanon(section)) section = "overview";
     lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
@@ -4666,7 +4667,7 @@
         launch: "Тека гри й запуск", key: "Ключ MCP", design: "Дизайн гри → продакшн-план", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
         keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри.",
         keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
-        allTitle: "Швидкий старт", allBtn: "⧉ Скопіювати все для PowerShell", allHint: "Одна вставка в PowerShell робить кроки 3, 4 і 7: створює теку гри, підключає WhiteWrite новим ключем MCP, додає блок журналу в CLAUDE.md (один раз) і запускає Claude Code. Ключ — лише в цьому блоці, тож копіюй, коли готовий вставити.", allDir: "Спершу впиши теку гри в кроці 3.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).",
+        allTitle: "Швидкий старт", allBtn: "⧉ Скопіювати все для PowerShell", allHint: "Одна вставка в PowerShell робить кроки 3, 4 і 7: створює теку гри, підключає WhiteWrite новим ключем MCP, додає блок журналу в CLAUDE.md (один раз) і запускає Claude Code. Ключ — лише в цьому блоці, тож копіюй, коли готовий вставити.", allDir: "Спершу впиши теку гри в кроці 3.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).", folderBtn: "📂 Підготувати теку гри", folderHint: "📂 — без PowerShell: обери (або створи) теку гри, і браузер сам запише туди .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і рядок .mcp.json у .gitignore (ключ не потрапить у репо). Потім відкрий теку в Провіднику → правий клік → «Відкрити в терміналі» → запусти рядок, який зʼявиться тут. Claude Code один раз спитає, чи довіряти серверу whitewrite з проєкту, — відповідай «так».", folderNo: "📂 Підготувати теку без PowerShell можна в Chrome чи Edge на компʼютері — цей браузер не дає сайтам записувати в теки.", folderDone: "Готово в теці «{dir}»: {files}. Запусти в ній:",
         designHint: "Агент бере задачі з продакшн-плану, а план AI складає з Біблії гри. Є документи чи нотатки — імпортуй їх; потім «Аналіз і аудит» ✦ → «Продакшн-план» ✦.",
         planYes: "Продакшн-план є.", planNo: "Плану ще немає.", toPlan: "До продакшн-плану →",
         firstHint: "Нова гра — запит із кроку 6 Бази знань (з фреймворком чи без). Unity-проєкт уже є — ця команда: агент перевірить підключення, середовище, знання проєкту, фреймворк і виконає найменшу задачу.",
@@ -4698,7 +4699,7 @@
         launch: "Game folder and launch", key: "MCP key", design: "Game design → production plan", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
         keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder.",
         keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
-        allTitle: "Quick start", allBtn: "⧉ Copy everything for PowerShell", allHint: "One paste into PowerShell does steps 3, 4 and 7: creates the game folder, connects WhiteWrite with a new MCP key, adds the log block to CLAUDE.md (once) and starts Claude Code. The key is only in this block, so copy it when you are ready to paste.", allDir: "First type the game folder in step 3.", allDone: "Copied — paste it into PowerShell (a new key has been created).",
+        allTitle: "Quick start", allBtn: "⧉ Copy everything for PowerShell", allHint: "One paste into PowerShell does steps 3, 4 and 7: creates the game folder, connects WhiteWrite with a new MCP key, adds the log block to CLAUDE.md (once) and starts Claude Code. The key is only in this block, so copy it when you are ready to paste.", allDir: "First type the game folder in step 3.", allDone: "Copied — paste it into PowerShell (a new key has been created).", folderBtn: "📂 Prepare the game folder", folderHint: "📂 — no PowerShell: pick (or create) the game folder and the browser writes .mcp.json with a new MCP key, the log block in CLAUDE.md and a .mcp.json line in .gitignore (the key never reaches the repo). Then open the folder in Explorer → right-click → «Open in Terminal» → run the line that appears here. Claude Code asks once whether to trust the project's whitewrite server — answer yes.", folderNo: "📂 Preparing the folder without PowerShell works in Chrome or Edge on a computer — this browser doesn't let sites write to folders.", folderDone: "Done in «{dir}»: {files}. Run in it:",
         designHint: "The agent takes tasks from the production plan, and AI builds the plan from the Game Bible. Have documents or notes — import them; then “Analysis & audit” ✦ → “Production plan” ✦.",
         planYes: "The production plan exists.", planNo: "No plan yet.", toPlan: "To the production plan →",
         firstHint: "A new game — the request from step 6 of the Knowledge base (with the framework or without). The Unity project exists — this command: the agent checks the connection, the environment, the project knowledge, the framework and does the smallest task.",
@@ -5426,7 +5427,8 @@
     var need = s.filter(function (x) { return !x[5]; }), ok = need.filter(function (x) { return x[2]; }).length;
     return '<section class="setbox"><h2>' + R.title + ' <span class="sroad__count">' + R.done.replace("{n}", ok).replace("{t}", need.length) + '</span></h2>' +
       '<p class="hint">' + R.hint + ' <a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p>' +
-      (canWrite ? '<div class="canonbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow"><button class="btn primary" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div></div>' : '') +
+      (canWrite ? '<div class="canonbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow">' + (window.showDirectoryPicker ? '<button class="btn primary" id="ln-folder">' + R.folderBtn + '</button>' : '') + '<button class="btn' + (window.showDirectoryPicker ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
+        '<p class="hint">' + (window.showDirectoryPicker ? R.folderHint : R.folderNo) + '</p></div>' : '') +
       '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
   // ---------- 🔌 Інтеграції: every outside service of the world / the game in one tab (functions/src/integrations.js) ----------
@@ -5989,6 +5991,20 @@
         say(R.allDone);
       } catch (e) { say(STR.failed + ": " + (e.message || e)); b.disabled = false; }
     };
+    if ($("ln-folder")) $("ln-folder").onclick = async function () {
+      var b = this, R = KN.road, l = launchNow();
+      var say = function (t) { lnAllMsg = t; if ($("ln-allmsg")) $("ln-allmsg").textContent = t; };
+      var dir;
+      try { dir = await window.showDirectoryPicker({ id: "ww-game", mode: "readwrite" }); } catch (e) { return; } // closed the picker
+      b.disabled = true; say("");
+      try {
+        var done = await prepareFolder(dir, await createKey());
+        folderSave(dir);
+        if (!l.dir) l.dir = dir.name;
+        await gref().set({ launch: l, updatedAt: stamp() }, { merge: true });
+        say(R.folderDone.replace("{dir}", dir.name).replace("{files}", done.join(", ")) + " claude" + (psModel(l.model) ? " --model " + psModel(l.model) : "") + (l.skip === false ? "" : " --dangerously-skip-permissions"));
+      } catch (e) { say(STR.failed + ": " + (e.message || e)); b.disabled = false; }
+    };
     $("ln-copy").onclick = function () {
       var b = this; if (navigator.clipboard) navigator.clipboard.writeText($("ln-cmd").textContent).then(function () { b.textContent = STR.launch.copied; setTimeout(function () { b.textContent = STR.launch.copy; }, 1600); });
     };
@@ -6279,7 +6295,7 @@
   }
 
   function renderImport() {
-    var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
+    var html = '<header class="sec"><div><h1>' + (imp.agent ? "✦ " + STR.agentName : imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.agent ? STR.agentIntro : imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
       '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
     if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
@@ -6507,6 +6523,49 @@
       (md ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.activity/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
         "@'\n" + md.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
       launchText(l);
+  }
+  // «📂 Підготувати теку гри»: the browser's folder picker (Chrome / Edge) writes what the PowerShell paste does, minus installing:
+  // .mcp.json (project-scope MCP server with a fresh key — Claude Code asks once to trust it), the activity-log block in CLAUDE.md
+  // (once), .mcp.json in .gitignore (the key never reaches the repo). The folder handle stays in IndexedDB for agent White.
+  async function readText(dir, name) {
+    try { return await (await (await dir.getFileHandle(name)).getFile()).text(); } catch (e) { return null; }
+  }
+  async function writeText(dir, name, text) {
+    var w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+    await w.write(text); await w.close();
+  }
+  async function prepareFolder(dir, key) {
+    var done = [], G = window.__SETUP_GUIDES, md = G && G.guide("activity_log");
+    var cfg = {}, raw = await readText(dir, ".mcp.json");
+    if (raw) try { cfg = JSON.parse(raw) || {}; } catch (e) { cfg = {}; }
+    cfg.mcpServers = Object.assign({}, cfg.mcpServers, { whitewrite: { type: "http", url: MCP_URL, headers: { Authorization: "Bearer " + key } } });
+    await writeText(dir, ".mcp.json", JSON.stringify(cfg, null, 2) + "\n"); done.push(".mcp.json");
+    var cl = await readText(dir, "CLAUDE.md");
+    if (md && (cl || "").indexOf("whitewrite.activity/1") < 0) {
+      await writeText(dir, "CLAUDE.md", (cl ? cl.replace(/\s*$/, "\n\n") : "") + md.markdown + "\n"); done.push("CLAUDE.md");
+    }
+    var gi = await readText(dir, ".gitignore");
+    if (!/^\/?\.mcp\.json\s*$/m.test(gi || "")) {
+      await writeText(dir, ".gitignore", (gi ? gi.replace(/\s*$/, "\n") : "") + ".mcp.json\n"); done.push(".gitignore");
+    }
+    return done;
+  }
+  // the picked folder per world / game, for agent White (IndexedDB keeps handles; after a reload the browser asks for access again)
+  function folderDb() {
+    return new Promise(function (ok, no) {
+      var r = indexedDB.open("ww-folders", 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore("dirs"); };
+      r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); };
+    });
+  }
+  function folderKey() { return worldId + (gameId ? "/" + gameId : ""); }
+  function folderSave(dir) {
+    return folderDb().then(function (d) { d.transaction("dirs", "readwrite").objectStore("dirs").put(dir, folderKey()); }).catch(function () {});
+  }
+  function folderLoad() {
+    return folderDb().then(function (d) { return new Promise(function (ok) {
+      var r = d.transaction("dirs").objectStore("dirs").get(folderKey()); r.onsuccess = function () { ok(r.result || null); }; r.onerror = function () { ok(null); };
+    }); }).catch(function () { return null; });
   }
   var liveTask = function (id) { return tasks.filter(function (x) { return x.id === String(id).replace(/[\/\s]/g, "_"); })[0]; };
   function taskState(t) {
@@ -6923,6 +6982,64 @@
   $("srch-btn").addEventListener("click", function (e) { e.stopPropagation(); searchOpen($("searchbar").hidden); });
   $("srch-x").addEventListener("click", function () { searchOpen(false); $("srch-btn").focus(); });
   $("q").addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); searchOpen(false); $("srch-btn").focus(); } });
+  // ---------- Агент White (agent-white.js): what the page gives the agent's tools — reads of the Bible, the same previews as the
+  // file fill (fillState) and the .md import (imp), the folder handle. Nothing here writes: the author applies every proposal.
+  var canAgent = false;
+  var cut = function (o, n) { var t = JSON.stringify(o); return t.length > n ? t.slice(0, n) + " …[truncated]" : t; };
+  window.__bible = {
+    ctx: function () { return { worldId: worldId, gameId: mode === "game" ? gameId : null, lang: LANG, may: canAgent && !PANEL, owner: ME.owner || ME.role === "admin",
+      title: (mode === "game" && game ? game.title : world && world.title) || "", quote: function (chars) { return quoteOf("agentWhite", chars); } }; },
+    overview: function () {
+      var w = world || {}, by = {};
+      entities.forEach(function (e) { by[e.kind] = (by[e.kind] || 0) + 1; });
+      var out = { world: { title: w.title, tagline: w.tagline, summary: w.summary, rules: w.rules || [], facts: w.facts || [] }, canonCounts: by, culture: lore.length,
+        canonSections: CANON.map(function (x) { return { id: x.id, name: L(x) }; }) };
+      if (mode === "game" && game) out.game = { title: game.title, sections: shelves().filter(function (x) { return x.kind === "game"; }).map(function (x) {
+        return { id: x.id, name: x.name, fields: x.fields, cards: cards.filter(function (c) { return c.section === x.id; }).length }; }) };
+      return cut(out, 30000);
+    },
+    list: function (kind) {
+      if (kind === "lore") return cut(lore.map(function (l) { return (l.group || "") + ": " + l.name; }), 30000);
+      if (CANON_KINDS_ALL.indexOf(kind) >= 0) return cut(entities.filter(function (e) { return e.kind === kind; }).map(function (e) { return e.name; }), 30000);
+      var gs = mode === "game" && sec(kind);
+      if (!gs) return "Unknown kind / section: " + kind;
+      return cut(cards.filter(function (c) { return c.section === kind; }).map(function (c) { return c.title || "(untitled)"; }), 30000);
+    },
+    item: function (kind, name) {
+      var n = String(name || "").trim().toLowerCase(), hit = function (t) { return String(t || "").trim().toLowerCase() === n; };
+      var x = kind === "lore" ? lore.filter(function (l) { return hit(l.name); })[0]
+        : CANON_KINDS_ALL.indexOf(kind) >= 0 ? entities.filter(function (e) { return e.kind === kind && hit(e.name); })[0]
+        : mode === "game" ? cards.filter(function (c) { return c.section === kind && hit(c.title); })[0] : null;
+      return x ? cut(x, 40000) : "Not found: " + kind + " «" + name + "»";
+    },
+    proposeFill: function (data) {
+      if (!window.__FILL) return "The fill module is not loaded";
+      var r = window.__FILL.parse(data);
+      if (r.error) return "Invalid whitewrite.fill/1: " + r.error + (r.detail ? " " + r.detail : "");
+      fillState = { name: "✦ " + STR.agentName, parsed: r, replace: false };
+      if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; imp = null; }
+      render();
+      var c = fillPlan().counts;
+      return "Preview shown to the author (World overview → «Fill the world»): add " + JSON.stringify(c.add) + ", update " + JSON.stringify(c.upd) + ", rules " + c.rules + ", facts " + c.facts + ". The author decides.";
+    },
+    proposeCards: function (list) {
+      if (mode !== "game" || !game) return "No game is open — propose world canon with propose_world_fill instead";
+      var ok = (Array.isArray(list) ? list : []).filter(function (c) { return c && sec(c.section) && !sec(c.section).canon && String(c.title || "").trim(); }).map(function (c) {
+        var f = {}; Object.keys(c.fields || {}).forEach(function (k) { if (c.fields[k] != null && c.fields[k] !== "") f[k] = String(c.fields[k]); });
+        return { section: c.section, title: String(c.title).trim().slice(0, 160), fields: f };
+      });
+      if (!ok.length) return "No valid cards (each needs a game section id from overview and a title)";
+      imp = { proposal: { laws: [], canon: [], cards: ok, contradictions: [], questions: [] }, off: {}, agent: true };
+      render();
+      return "Preview of " + ok.length + " card(s) shown; " + ((list || []).length - ok.length) + " dropped (unknown section or no title). The author ticks what to take.";
+    },
+    open: function (id) {
+      if (id !== "settings" && !sec(id)) return "Unknown section: " + id;
+      goSection(id); return "Opened " + id;
+    },
+    folderLoad: folderLoad, folderSave: folderSave
+  };
+  var CANON_KINDS_ALL = ["characters", "locations", "factions", "artifacts", "events"];
   $("statuses").addEventListener("click", function (e) {
     var b = e.target.closest("[data-status]"); if (!b) return;
     statusFilter[b.dataset.status] = !statusFilter[b.dataset.status]; renderStatuses(); render();
@@ -7359,11 +7476,12 @@
       var tm = w.data().owner !== user.uid ? (w.data().team || {})[user.uid] : null;
       if (tm) { // a team member works in the owner's world, on the owner's plan (the rules check it); what they see — by role
         ME = { owner: false, role: tm.role, view: tm.view || [], edit: tm.edit || [], viewKinds: tm.viewKinds || [] };
-        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true; canDev = true; // the server checks the owner's plan
+        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true; canDev = true; canAgent = tm.role === "admin"; // the server checks the owner's plan
         document.documentElement.classList.add("ww-member");
         if (!mayRead(section)) section = firstReadable();
       } else {
         canonWrite = !!pc.allowWorldTree; canGame = !!pc.allowGameDesign; canDev = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game design
+        canAgent = !!pc.allowAgent;
         canWrite = baseWrite = canonWrite || canGame;
         if (!canWrite && !PANEL) return locked(STR.lockedTitle, STR.lockedText, true); // the hub panel (Спільнота, Команда…) works on any plan
         if (!canGame && !CANON.some(function (x) { return x.id === section; })) section = "world";

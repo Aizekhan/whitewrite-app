@@ -133,6 +133,30 @@ main{ min-width:0; padding:0 30px 60px; height:100vh; overflow-y:auto; }
 .bar{ position:sticky; top:0; z-index:3; background:var(--bg-0); padding:16px 0 12px; display:flex; flex-wrap:wrap; gap:8px;
   align-items:center; border-bottom:1px solid var(--line); }
 .bar[hidden]{ display:none; }
+/* Агент White: one input row on top of every Bible page; the chat with tabs unfolds under it */
+.topstick{ position:sticky; top:0; z-index:3; background:var(--bg-0); }
+.topstick .bar{ position:static; }
+.agent{ padding:14px 0 8px; border-bottom:1px solid var(--line); display:grid; gap:8px; }
+.agent[hidden]{ display:none; }
+.ag-row{ display:flex; gap:8px; align-items:flex-end; }
+.ag-row textarea{ flex:1; min-width:0; resize:none; min-height:38px; max-height:160px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:10px; padding:9px 12px; color:var(--tx-hi); font:inherit; line-height:1.4; }
+.ag-row textarea:focus{ border-color:var(--gold-lit); outline:none; }
+.ag-row textarea::placeholder{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ag-mark{ color:var(--gold-lit); font-size:18px; align-self:center; }
+.ag-lock{ align-items:center; color:var(--tx-mid); font-size:13.5px; } .ag-lock span{ flex:1; }
+.ag-cost{ margin:0; font-size:11.5px; color:var(--tx-low); }
+.ag-tabs{ display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+.ag-tab{ display:inline-flex; align-items:center; border:1px solid var(--line-2); border-radius:8px; background:var(--bg-2); font-size:12.5px; color:var(--tx-mid); }
+.ag-tab button, .ag-tab.ag-new{ background:none; border:0; color:inherit; font:inherit; padding:4px 9px; cursor:pointer; }
+.ag-tab.on{ border-color:var(--gold-lit); color:var(--tx-hi); }
+.ag-x{ padding:4px 7px 4px 0 !important; color:var(--tx-low) !important; }
+.ag-fold{ margin-left:auto; background:none; border:0; color:var(--tx-mid); cursor:pointer; font-size:16px; padding:4px 8px; }
+.ag-log{ max-height:46vh; overflow-y:auto; display:grid; gap:8px; padding:4px 2px; }
+.ag-me{ justify-self:end; max-width:80%; background:var(--gold-soft); border:1px solid rgba(216,180,106,.35); border-radius:12px 12px 2px 12px; padding:8px 12px; white-space:pre-wrap; }
+.ag-ai{ max-width:92%; background:var(--bg-2); border:1px solid var(--line-2); border-radius:12px 12px 12px 2px; padding:8px 12px; line-height:1.55; }
+.ag-ai code{ font-size:12.5px; background:rgba(0,0,0,.25); padding:1px 4px; border-radius:4px; }
+.ag-tool, .ag-note{ font-size:12.5px; color:var(--tx-low); } .ag-err{ font-size:13px; color:var(--s-redo); }
+@media (max-width:560px){ .ag-row{ flex-wrap:wrap; } .ag-row textarea{ flex-basis:100%; } .ag-mark{ display:none; } }
 .srch-btn{ position:absolute; right:12px; top:20px; z-index:2; width:32px; height:32px; display:grid; place-items:center; border-radius:8px; border:1px solid var(--line-2);
   background:var(--bg-2); color:var(--gold-lit); cursor:pointer; }
 .srch-btn[aria-expanded="true"]{ border-color:var(--gold-lit); background:var(--gold-soft); }
@@ -809,11 +833,14 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
   <div id="nav-foot"></div>
 </nav>
 <main id="main">
+  <div class="topstick"><!-- Агент White on top (agent-white.js), the search under it when 🔍 opens it -->
+  <section class="agent" id="agent" aria-label="Агент White" hidden></section>
   <div class="bar" role="search" id="searchbar" hidden><!-- opened by 🔍 by the world's / game's name over the menu -->
     <input id="q" type="search" />
     <button class="btn ico-btn" id="srch-x" type="button">✕</button>
     <div id="statuses" class="row"></div>
     <input type="file" id="imp-file" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
+  </div>
   </div>
   <div id="view"></div>
 </main>
@@ -872,5 +899,6 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/token-budget.js"></script>
 <script src="frame-pick.js"></script>
 <script src="gamebible.js"></script>
+<script src="agent-white.js"></script>
 </body>
 </html>

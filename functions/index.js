@@ -12,6 +12,7 @@ Object.assign(exports, require('./src/mcp'));
 Object.assign(exports, require('./src/cosmograph'));
 const narrative = require('./src/narrative'); // quests & dialogues: AI drafts (helpers stay internal)
 exports.narrativeDraft = narrative.narrativeDraft;
+exports.agentWhite = require('./src/agent').agentWhite; // Агент White: one Claude step of the in-Bible assistant (the page runs the tools)
 const experience = require('./src/experience'); // helpers in experience._experience stay internal (mcp.js uses them)
 exports.telemetryIngest = experience.telemetryIngest;
 exports.experience = experience.experience;
