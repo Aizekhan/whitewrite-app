@@ -12,6 +12,7 @@ const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
 const MECH = require('../mechanics.js');
 const FORGE = require('../forge.js');
+const REFS = require('../card-refs.js');
 const GUIDES = require('../setup-guides.js');
 const STYLE = require('./style')._style;
 
@@ -33,7 +34,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
   { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status and files. Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
-  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images).',
+  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
   { name: 'report_task_progress', description: 'A short progress note on the task you are working on (shown live to the author).',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
@@ -605,7 +606,10 @@ async function callTool(name, args, key) {
     case 'get_card': {
       const c = cardView(ctx, str(args.ref, 120));
       if (!c) throw rpcError(-32602, `Card ${args.ref} not found`);
-      return c;
+      const n = await narrative(ctx); // what points at it (functions/card-refs.js) — check these before changing the card
+      const used = REFS.usedBy({ cards: ctx.cards, entities: ctx.entities, quests: n.quests, dialogues: n.dialogues, tasks: ctx.tasks, plan: ctx.plan.plan }, c.ref, 'en');
+      return { ...c, used_by: used.map((r) => ({ kind: r.kind, what: r.label, ...(r.from.type === 'card' ? { ref: r.from.key } : { [r.from.type]: r.from.id }), title: r.from.title || '',
+        ...(r.from.status ? { status: r.from.status } : {}), ...(r.extra ? { detail: r.extra } : {}) })) };
     }
     case 'report_task_progress': {
       const t = findTask(ctx, args.task_id);

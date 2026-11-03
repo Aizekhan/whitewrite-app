@@ -176,6 +176,6 @@ function toFrameworkContent(quests, dialogues, meta) {
     quests: arr(quests).filter(ok).map(questToContent), dialogues: arr(dialogues).filter(ok).map(dialogueToContent) };
 }
 
-const NARRATIVE = { validateQuest, validateDialogue, graphIssues, worst, refPool, CARD_ROLES, toFrameworkContent, parseEffects, cooldownSeconds, CONTENT_FORMAT };
+const NARRATIVE = { REF_FIELDS, validateQuest, validateDialogue, graphIssues, worst, refPool, CARD_ROLES, toFrameworkContent, parseEffects, cooldownSeconds, CONTENT_FORMAT };
 if (typeof module !== 'undefined' && module.exports) module.exports = NARRATIVE;
 if (typeof window !== 'undefined') window.__NARRATIVE = NARRATIVE;

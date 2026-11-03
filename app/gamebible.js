@@ -3358,50 +3358,23 @@
   // plan tasks, linked mechanics, Sound factory slots, Кузня owners / loadouts, the style biome) — shown in the card and, after
   // a save that changed it, as a note; the canon has its own engine (wImpact) ----------
   var IMP = { uk: { title: "🔗 Що зачепить зміна", none: "Поки ніщо в грі не посилається на цю картку.", canon: "Картка з канону світу: зміна назви чи опису діє в Біблії світу й у всіх іграх світу.",
-      quest: "Квест", dialogue: "Діалог", voice: "Озвучка в діалозі", task: "Задача", mech: "Повʼязана механіка", slot: "Слот звуку", owner: "Власник предмета", item: "Предмет",
-      loadout: "У спорядженні", biome: "Стиль біому", styles: "Задає стиль", saved: "«{t}» збережено. Ця зміна може зачепити:", more: "＋ ще {n}", close: "Закрити" },
+      saved: "«{t}» збережено. Ця зміна може зачепити:", more: "＋ ще {n}", close: "Закрити" },
     en: { title: "🔗 What this change touches", none: "Nothing in the game points at this card yet.", canon: "A card from the world canon: a new name or description applies in the World Bible and in every game of the world.",
-      quest: "Quest", dialogue: "Dialogue", voice: "Voice line in a dialogue", task: "Task", mech: "Linked mechanic", slot: "Sound slot", owner: "Item owner", item: "Item",
-      loadout: "In the loadout of", biome: "Biome style", styles: "Sets the style of", saved: "«{t}» saved. This change may touch:", more: "＋ {n} more", close: "Close" } }[LANG];
+      saved: "«{t}» saved. This change may touch:", more: "＋ {n} more", close: "Close" } }[LANG];
+  // the kinds of references live in functions/card-refs.js (window.__CARD_REFS) — shared with MCP get_card → used_by
   function impactOf(c) {
-    if (!c || c.isNew) return [];
-    var out = [], seen = {}, add = function (k, name, attr, extra) { var id = k + "|" + attr; if (seen[id]) return; seen[id] = 1; out.push({ k: k, name: name || "…", attr: attr, extra: extra || "" }); };
-    var ref = c.src === "canon" ? c.id : "c:" + c.id, has = function (v) { return v === ref || (Array.isArray(v) && v.indexOf(ref) >= 0); };
-    var byId = function (id) { return allCards().filter(function (x) { return x.src === "game" && x.id === id; })[0]; };
-    var chipOf = function (x) { return 'data-openref="' + esc(x.key) + '"'; };
-    quests.forEach(function (q) { if (QREFS.some(function (k) { return has(q[k]); }) || (q.source && q.source.id === c.id)) add("quest", q.title, 'data-dqd="quests:' + esc(q.id) + '"'); });
-    dialogues.forEach(function (d) {
-      var nodes = d.nodes || [];
-      if (has(d.participants) || d.location === ref || nodes.some(function (n) { return n.speaker === ref; })) add("dialogue", d.title, 'data-dqd="dialogues:' + esc(d.id) + '"');
-      if (nodes.some(function (n) { return (n.voice || []).indexOf(c.id) >= 0; })) add("voice", d.title, 'data-dqd="dialogues:' + esc(d.id) + '"');
+    if (!c || c.isNew || !window.__CARD_REFS) return [];
+    var G = { cards: cards, entities: entities, quests: quests, dialogues: dialogues, tasks: tasks, plan: planDoc.plan, names: styleNames };
+    return window.__CARD_REFS.usedBy(G, c.key, LANG).map(function (r) {
+      var f = r.from, extra = r.kind === "quest" ? (r.extra === "giver" ? QD.givesIt : r.extra === "source" ? QD.fromIt : "")
+        : r.kind === "task" ? (f.status ? STR.ts[f.status] || f.status : "") : r.kind === "slot" || r.kind === "loadout" ? r.extra : "";
+      var attr = f.type === "quest" ? 'data-dqd="quests:' + esc(f.id) + '"' : f.type === "dialogue" ? 'data-dqd="dialogues:' + esc(f.id) + '"'
+        : f.type === "task" ? 'data-imptask="' + esc(f.milestone) + '"' : 'data-openref="' + esc(f.key) + '"';
+      return { label: r.label, name: (f.type === "task" ? f.id + " · " : "") + (f.title || "…"), attr: attr, extra: extra };
     });
-    ((planDoc.plan || {}).milestones || []).forEach(function (m) {
-      (m.tasks || []).forEach(function (t) {
-        var linked = (t.cards || []).some(function (r) { var x = refCard(r); return x && x.key === c.key; }) || cards.some(function (x) { return x.id === c.id && x.planTask === t.id; });
-        var lt = liveTask(t.id);
-        if (linked) add("task", t.id + " · " + t.title, 'data-imptask="' + esc(m.id) + '"', lt ? STR.ts[lt.status] || lt.status : "");
-      });
-    });
-    var mine = byId(c.id), links = mine && mine.mech ? mine.mech.links || [] : [];
-    allCards().forEach(function (x) {
-      if (x.src !== "game" || x.id === c.id) return;
-      if (x.mech) {
-        if ((x.mech.links || []).indexOf(c.id) >= 0 || links.indexOf(x.id) >= 0) add("mech", x.title, chipOf(x));
-        window.__MECH.soundSlots(x.mech, LANG).forEach(function (sl) { if (sl.refs.indexOf(c.id) >= 0) add("slot", x.title, chipOf(x), sl.rowName ? sl.rowName + " · " + sl.label : sl.label); });
-      }
-      var f = x.forge || {};
-      if ((f.owners || []).indexOf(c.id) >= 0) add("item", x.title, chipOf(x));
-      if ((f.loadouts || []).some(function (l) { return Object.keys(l.items || {}).some(function (k) { return l.items[k] === c.id; }); })) add("loadout", x.title, chipOf(x));
-    });
-    var mf = (mine && mine.forge) || {};
-    (mf.owners || []).forEach(function (id) { var x = byId(id); if (x) add("owner", x.title, chipOf(x)); });
-    (mf.loadouts || []).forEach(function (l) { Object.keys(l.items || {}).forEach(function (k) { var x = byId(l.items[k]); if (x) add("item", x.title, chipOf(x)); }); });
-    if (c.section === "artstyle") allCards().forEach(function (x) { var st = x.section !== "artstyle" && styleFor(x); if (st && st.res.biome && st.res.biome.id === c.id) add("styles", x.title, chipOf(x)); });
-    else { var st = styleFor(c); if (st && st.res.biome) { var b = byId(st.res.biome.id); if (b) add("biome", b.title, chipOf(b)); } }
-    return out;
   }
   function impactChips(list) {
-    return list.map(function (i) { return '<button class="dlink" ' + i.attr + '><span class="k">' + esc(IMP[i.k]) + '</span>' + esc(i.name) + (i.extra ? ' <i>' + esc(i.extra) + '</i>' : '') + '</button>'; }).join("");
+    return list.map(function (i) { return '<button class="dlink" ' + i.attr + '><span class="k">' + esc(i.label) + '</span>' + esc(i.name) + (i.extra ? ' <i>' + esc(i.extra) + '</i>' : '') + '</button>'; }).join("");
   }
   function impactHtml(c) {
     var list = impactOf(c);
