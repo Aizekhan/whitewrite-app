@@ -7,7 +7,7 @@ const {
   charge,
   getBalance,
   reserve,
-  refund,
+  refund, cutOff, settle,
   getPlanBudget,
   loadCanon,
   claudeApiKey,
@@ -275,7 +275,7 @@ At most 5 items per list.`;
       // the author's Claude model (Account); analysis → effort medium, headroom for thinking
       const { model: claudeModel } = await modelFor(db, userData, userPlan);
       const message = await claudeText(claudeApiKey.value(), { model: claudeModel, system: systemInstruction, prompt, maxTokens: 8000, effort: 'medium' });
-      if (message.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      if (message.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', message.model, message.usage);
       const responseText = message.text;
 
       // Parse JSON
@@ -314,7 +314,7 @@ At most 5 items per list.`;
       });
 
     } catch (error) {
-      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[Analyze] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'advise').catch((e) => console.error('[Analyze] Refund failed:', e));
       console.error('[Analyze] Error:', error);
       res.status(500).json({ error: `Помилка analysis: ${error.message}` });
     }

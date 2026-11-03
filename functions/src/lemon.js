@@ -12,11 +12,28 @@ const {
   verifyAuth,
 } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
-const { PLAN_ORDER, planRank, upgradeQuote } = require('../paid-features.js');
+const { PLAN_ORDER, PLANS, planRank, upgradeQuote } = require('../paid-features.js');
 
 const LS_API = 'https://api.lemonsqueezy.com/v1/subscriptions/';
 const lsHeaders = () => ({ 'Accept': 'application/vnd.api+json', 'Content-Type': 'application/vnd.api+json', 'Authorization': `Bearer ${lemonSqueezyApiKey.value()}` });
 const MONTH_MS = 30 * 24 * 3600 * 1000;
+const millis = (t) => (t && t.toMillis ? t.toMillis() : 0);
+
+// Checkout custom data carries the uid AND its HMAC (keyed by the webhook secret). LS hosted checkout links accept
+// checkout[custom][user_id]=… from anyone, so an unsigned uid is trusted only when the buyer's email is that user's.
+const uidSig = (uid) => require('crypto').createHmac('sha256', lemonSqueezyWebhookSecret.value()).update('uid:' + uid).digest('hex').slice(0, 32);
+async function trustedUid(custom, email) {
+  const uid = custom && typeof custom.user_id === 'string' ? custom.user_id : '';
+  if (!uid) return '';
+  if (custom.sig) {
+    const a = Buffer.from(String(custom.sig)), b = Buffer.from(uidSig(uid));
+    if (a.length === b.length && require('crypto').timingSafeEqual(a, b)) return uid;
+  }
+  const u = await admin.auth().getUser(uid).catch(() => null);
+  if (u && u.email && email && u.email.toLowerCase() === String(email).trim().toLowerCase()) return uid;
+  console.error('[LemonSqueezy] Untrusted custom user_id (no valid signature, email differs):', uid);
+  return '';
+}
 
 /**
  * Change an ACTIVE subscription's plan (owner decision 2026-11-02):
@@ -69,12 +86,15 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
       if (op !== 'change') return res.status(400).json({ error: 'Unknown op' });
 
       if (kind === 'up') {
-        await patch({ variant_id: Number(variants[target]), invoice_immediately: true });
+        // the webhook's subscription_updated can arrive before we finish: `upgrading` tells it the tokens are prorated here
+        await userRef.update({ upgrading: { to: target, at: admin.firestore.Timestamp.now() } });
+        try { await patch({ variant_id: Number(variants[target]), invoice_immediately: true }); }
+        catch (e) { await userRef.update({ upgrading: null }); throw e; }
         // tokens for the rest of the period: the old plan's unused part stays, the new plan adds its difference × left; the fee is taken
         const b = getBalance(user);
         const newMonthly = getPlanBudget(target).monthly;
         const used = Math.max(0, newMonthly - (b.monthlyLeft + quote.tokens - quote.fee));
-        const upd = { plan: target, tokensUsed: used, pendingPlan: null, pendingFrom: null, lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now() },
+        const upd = { plan: target, tokensUsed: used, pendingPlan: null, pendingFrom: null, upgrading: null, lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now() },
           updatedAt: admin.firestore.FieldValue.serverTimestamp() };
         if (b.expired) upd.periodStart = admin.firestore.Timestamp.now();
         await userRef.update(upd);
@@ -84,9 +104,15 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
           from: cur, to: target, timestamp: admin.firestore.FieldValue.serverTimestamp() });
         return res.json({ ok: true, kind, plan: target, quote });
       }
-      if (target === 'free') await patch({ cancelled: true });
-      else await patch({ variant_id: Number(variants[target]), disable_prorations: true });
+      // pendingPlan BEFORE the PATCH: LS's subscription_updated may arrive before we return, and must see the downgrade is scheduled
       await userRef.update({ pendingPlan: target, pendingFrom: admin.firestore.Timestamp.fromMillis(renewsAt), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      try {
+        if (target === 'free') await patch({ cancelled: true });
+        else await patch({ variant_id: Number(variants[target]), disable_prorations: true });
+      } catch (e) {
+        await userRef.update({ pendingPlan: user.pendingPlan || null, pendingFrom: user.pendingFrom || null });
+        throw e;
+      }
       return res.json({ ok: true, kind, plan: cur, pendingPlan: target, pendingFrom: new Date(renewsAt).toISOString() });
     } catch (error) {
       console.error('[changeSubscription]', error);
@@ -101,7 +127,7 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
  * Generates checkout URL via Lemon Squeezy API
  */
 exports.createLemonSqueezyCheckout = onRequest({
-  secrets: [lemonSqueezyApiKey],
+  secrets: [lemonSqueezyApiKey, lemonSqueezyWebhookSecret],
   cors: true
 }, async (req, res) => {
   return cors(req, res, async () => {
@@ -128,6 +154,11 @@ exports.createLemonSqueezyCheckout = onRequest({
       if (!variantId) {
         return res.status(400).json({ error: 'Unknown plan or top-up' });
       }
+      // a second subscription would bill twice and fight the first one over users/{uid}: plan changes go through changeSubscription
+      if (!topup) {
+        const u = (await db.collection('users').doc(userId).get()).data() || {};
+        if (u.lemonSqueezySubscriptionId && u.subscriptionStatus === 'active') return res.status(409).json({ code: 'HAS_SUBSCRIPTION', error: 'You already have a subscription — change the plan instead' });
+      }
 
       console.log(`[LS Checkout] Creating checkout for variant ${variantId}, user ${userId}`);
 
@@ -146,7 +177,8 @@ exports.createLemonSqueezyCheckout = onRequest({
               checkout_data: {
                 email: userEmail,
                 custom: {
-                  user_id: userId  // plan/tokens are derived from variant_id in the webhook
+                  user_id: userId,  // plan/tokens are derived from variant_id in the webhook
+                  sig: uidSig(userId) // the webhook trusts user_id only with this (trustedUid)
                 }
               }
             },
@@ -261,6 +293,22 @@ async function downgradeToFree(uid) {
   });
 }
 
+// a refund: bought tokens (bonus) and / or this period's allowance (monthly) go back, once per refund id
+async function takeBack(userRef, refundId, { bonus = 0, monthly = 0 }, op, note) {
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(userRef), d = snap.data() || {};
+    if ((d.processedRefunds || []).includes(refundId)) return;
+    const b = getBalance(d), fromBonus = Math.min(bonus, b.bonus), fromMonthly = Math.min(monthly, b.monthlyLeft);
+    const upd = { processedRefunds: admin.firestore.FieldValue.arrayUnion(refundId), updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+    if (fromBonus) upd.bonusTokens = b.bonus - fromBonus;
+    if (fromMonthly) upd.tokensUsed = b.used + fromMonthly;
+    tx.update(userRef, upd);
+    ledger.txRecord(tx, db, userRef.id, { type: 'spend', op, amount: -(fromBonus + fromMonthly), balance: b.available - fromBonus - fromMonthly, ref: { refundId },
+      note: 'Lemon Squeezy refund' + (note ? ' · ' + note : '') + ((bonus - fromBonus) + (monthly - fromMonthly) > 0 ? ` (already spent: ${(bonus - fromBonus) + (monthly - fromMonthly)})` : '') });
+  });
+  console.log(`[LemonSqueezy] Refund ${refundId}: took back bonus ${bonus}, monthly ${monthly} from ${userRef.id}`);
+}
+
 exports.lemonSqueezyWebhook = onRequest({
   secrets: [lemonSqueezyWebhookSecret]
 }, async (req, res) => {
@@ -306,7 +354,7 @@ exports.lemonSqueezyWebhook = onRequest({
         const subscription = event.data;
         // LS sends checkout custom data in the event's meta.custom_data
         const customData = event.meta?.custom_data || subscription.attributes.first_subscription_item?.meta?.custom_data || {};
-        const uid = customData.user_id;
+        const uid = await trustedUid(customData, subscription.attributes.user_email);
         const plan = planByVariant[String(subscription.attributes.variant_id)];
 
         if (!uid || !plan) {
@@ -316,16 +364,24 @@ exports.lemonSqueezyWebhook = onRequest({
 
         console.log(`[LemonSqueezy] Subscription created: ${uid} → ${plan}`);
 
-        // Update user plan in Firestore (new billing period starts now)
-        await db.collection('users').doc(uid).update({
-          plan: plan,
-          tokensUsed: 0,
-          periodStart: admin.firestore.Timestamp.now(),
-          lemonSqueezyCustomerId: subscription.attributes.customer_id,
-          lemonSqueezySubscriptionId: subscription.id,
-          subscriptionStatus: 'active',
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        // Update user plan in Firestore (new billing period starts now). Idempotent: a redelivered event (LS retry,
+        // «Resend» in the dashboard) must not open a fresh month again.
+        const subRef = db.collection('users').doc(uid);
+        const fresh = await db.runTransaction(async (tx) => {
+          const cur = await tx.get(subRef);
+          if (!cur.exists || String(cur.data().lemonSqueezySubscriptionId || '') === String(subscription.id)) return false;
+          tx.update(subRef, {
+            plan: plan,
+            tokensUsed: 0,
+            periodStart: admin.firestore.Timestamp.now(),
+            lemonSqueezyCustomerId: subscription.attributes.customer_id,
+            lemonSqueezySubscriptionId: subscription.id,
+            subscriptionStatus: 'active',
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          return true;
         });
+        if (!fresh) { console.log(`[LemonSqueezy] Subscription ${subscription.id} already applied (or no user), skipping`); break; }
 
         ledger.record(db, uid, { type: 'grant', op: 'monthly', amount: getPlanBudget(plan).monthly, ref: { plan }, note: 'subscription' });
         console.log(`[LemonSqueezy] User ${uid} upgraded to ${plan}`);
@@ -367,6 +423,20 @@ exports.lemonSqueezyWebhook = onRequest({
           // a scheduled downgrade (changeSubscription) only takes effect from the next billing month
           const waiting = u.pendingPlan === variantPlan && pendingFrom > Date.now(); // keep the paid plan until pendingFrom
           if (!waiting) { updates.plan = variantPlan; if (u.pendingPlan === variantPlan) { updates.pendingPlan = null; updates.pendingFrom = null; } }
+          // a higher plan chosen OUTSIDE the app (LS customer portal — PayPal subscriptions are sent there): open the new
+          // budget prorated to the days left minus the switch fee, exactly like changeSubscription — not the whole month at once
+          const cur = u.plan || 'free';
+          const inApp = u.upgrading && u.upgrading.to === variantPlan && Date.now() - millis(u.upgrading.at) < 15 * 60 * 1000; // changeSubscription prorates itself
+          if (!waiting && !inApp && planRank(variantPlan) > planRank(cur)) {
+            const renewsAt = Date.parse(subscription.attributes.renews_at || '') || (Date.now() + MONTH_MS);
+            const left = Math.min(1, Math.max(0, (renewsAt - Date.now()) / MONTH_MS));
+            const quote = upgradeQuote(cur, variantPlan, left), b = getBalance(u);
+            updates.tokensUsed = Math.max(0, getPlanBudget(variantPlan).monthly - (b.monthlyLeft + quote.tokens - quote.fee));
+            if (b.expired) updates.periodStart = admin.firestore.Timestamp.now();
+            updates.lastUpgrade = { from: cur, to: variantPlan, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now(), via: 'portal' };
+            ledger.record(db, uid, { type: 'grant', op: 'plan_upgrade', amount: Math.max(0, quote.tokens), ref: { plan: variantPlan }, note: cur + ' → ' + variantPlan + ' (portal)' });
+            ledger.record(db, uid, { type: 'spend', op: 'plan_upgrade_fee', amount: -quote.fee, ref: { plan: variantPlan } });
+          }
         }
         await db.collection('users').doc(uid).update(updates);
 
@@ -424,7 +494,7 @@ exports.lemonSqueezyWebhook = onRequest({
       case 'order_created': {
         const order = event.data;
         const customData = event.meta?.custom_data || order.attributes.first_order_item?.meta?.custom_data || {};
-        const uid = customData.user_id;
+        const uid = await trustedUid(customData, order.attributes.user_email);
         const tokens = tokensByVariant[String(order.attributes.first_order_item?.variant_id)] || 0;
         const orderId = order.id;
 
@@ -460,6 +530,29 @@ exports.lemonSqueezyWebhook = onRequest({
         if (!credited) break;
 
         console.log(`[LemonSqueezy] Added ${tokens} tokens to user ${uid}`);
+        break;
+      }
+
+      // Refunds (issued by the store owner in LS) take back what the money bought — proportionally for a partial refund;
+      // once per refund id (processedRefunds). Bought tokens already spent cannot go below zero.
+      case 'order_refunded': { // a token top-up
+        const order = event.data, orderId = order.id, A = order.attributes || {};
+        const tokens = tokensByVariant[String(A.first_order_item?.variant_id)] || 0;
+        if (!tokens) break; // a subscription's order: subscription_payment_refunded handles it
+        const snap = await db.collection('users').where('processedOrders', 'array-contains', orderId).limit(1).get();
+        if (snap.empty) { console.error('[LemonSqueezy] Refund for an unknown top-up order:', orderId); break; }
+        const part = A.total > 0 ? Math.min(1, (A.refunded_amount || A.total) / A.total) : 1;
+        await takeBack(snap.docs[0].ref, 'order_' + orderId, { bonus: Math.round(tokens * part) }, 'topup_refund', A.refunded_amount_formatted || '');
+        break;
+      }
+      case 'subscription_payment_refunded': { // a subscription invoice (first month, renewal or an upgrade's difference)
+        const inv = event.data, A = inv.attributes || {};
+        const snap = await db.collection('users').where('lemonSqueezySubscriptionId', '==', String(A.subscription_id || '')).limit(1).get();
+        if (snap.empty) { console.error('[LemonSqueezy] Refund for an unknown subscription:', A.subscription_id); break; }
+        const plan = snap.docs[0].data().plan || 'free', price = (PLANS[plan] || {}).price || 0;
+        const refunded = (A.refunded_amount || A.total || 0) / 100; // cents → $
+        const monthly = getPlanBudget(plan).monthly;
+        await takeBack(snap.docs[0].ref, 'inv_' + inv.id, { monthly: price > 0 ? Math.min(monthly, Math.round(monthly * refunded / price)) : 0 }, 'subscription_refund', A.refunded_amount_formatted || '');
         break;
       }
 

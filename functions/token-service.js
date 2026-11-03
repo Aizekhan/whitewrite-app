@@ -351,7 +351,10 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
       const reservedTotal = (options.reserved.fromMonthly || 0) + (options.reserved.fromBonus || 0);
       delta = userCost - reservedTotal;
       if (delta > 0) applyDebit(tx, userRef, userData, delta, true);
-      else if (delta < 0) applyCredit(tx, userRef, userData, { fromMonthly: -delta, fromBonus: 0 });
+      else if (delta < 0) { // back where it came from: bonus (bought, kept across periods) first, the rest to the allowance
+        const back = -delta, fromBonus = Math.min(back, options.reserved.fromBonus || 0);
+        applyCredit(tx, userRef, userData, { fromMonthly: back - fromBonus, fromBonus });
+      }
     } else {
       applyDebit(tx, userRef, userData, userCost, true);
     }
@@ -363,8 +366,10 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   console.log(`[TokenService] ✅ Deducted ${userCost} tokens from user ${uid}`);
 
   // 6. Log to usage_logs with cost-based pricing + real margin tracking
-  const realMarginRatio = apiCostUSD > 0 ? (userCost * tokenToUSD) / apiCostUSD : 0;
-  const profitUSD = (userCost * tokenToUSD) - apiCostUSD;
+  // what the user paid in $ = tokens × USD_PER_TOKEN (paid-features.js) — not the legacy tokenToUSD (0.01), which overstated it ~67×
+  const userPaidUSD = userCost * USD_PER_TOKEN;
+  const realMarginRatio = apiCostUSD > 0 ? userPaidUSD / apiCostUSD : 0;
+  const profitUSD = userPaidUSD - apiCostUSD;
   const cacheSavingsUSD = estApiCostUSD - apiCostUSD; // If positive, cache saved money
 
   const logEntry = {
@@ -387,7 +392,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     billing,                              // 'actual' = ceil(realApiCostUSD / usdPerToken) · 'estimate' = old formula
     usdPerToken: USD_PER_TOKEN,
     userTokensCharged: userCost,
-    userPaidUSD: parseFloat((userCost * tokenToUSD).toFixed(4)),  // What user paid in $
+    userPaidUSD: parseFloat(userPaidUSD.toFixed(4)),  // What user paid in $
 
     // Real API usage
     inputTokens,
@@ -406,11 +411,25 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
     rawUsage: usage
   };
 
-  await db.collection('usage_logs').add(logEntry);
+  // the tokens are already settled: a failed log must not make the caller refund the reservation again
+  try { await db.collection('usage_logs').add(logEntry); } catch (e) { console.error('[TokenService] usage_logs write failed:', e.message); }
 
   console.log(`[TokenService] ✅ Logged usage_logs entry (apiCostUSD: $${apiCostUSD.toFixed(4)}, margin tracked)`);
 
   return { userCost, apiCostUSD, marginMultiplier, globalMarginMultiplier };
 }
 
-module.exports = { charge, getBalance, reserve, refund };
+// A cut-off answer (stop_reason max_tokens) is already paid to the API. The caller throws cutOff(…) and its catch calls
+// settle(…) instead of refund(): the real cost is charged against the reservation — otherwise an oversized input would
+// make every call free (the whole reservation refunded while the platform pays Anthropic).
+function cutOff(message, model, usage) { return Object.assign(new Error(message), { paid: { model, usage } }); }
+async function settle(db, uid, reservation, error, logAs) {
+  if (!reservation) return;
+  if (error && error.paid && error.paid.usage) {
+    return charge(db, uid, 'generateScene', error.paid.model, error.paid.usage, null, { provider: 'claude', reserved: reservation, logAs: (logAs || 'ai') + '_cutoff',
+      targetWords: Math.round((error.paid.usage.output_tokens || 0) * 0.75) });
+  }
+  return refund(db, uid, reservation);
+}
+
+module.exports = { charge, getBalance, reserve, refund, cutOff, settle };

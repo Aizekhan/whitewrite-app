@@ -3,7 +3,7 @@
 // Returns a PROPOSAL only — nothing is written: the author accepts, edits or rejects every field in the editor (spec 2.2).
 // Links are kept only when the id exists — a canon entity (its id) or a game card (c:<id>, narrative-validate.js refPool);
 // anything new the AI invents is returned as `ideas`, never as canon. Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js questDraft / dialogueDraft).
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey, buildCanonContext } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, buildCanonContext } = require('./common');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { emptyCanon, CANON_KINDS } = require('../canon-store.js');
 const { featureCost, byOp } = require('../paid-features.js');
@@ -176,7 +176,7 @@ ${lore.length ? '\nCULTURE: ' + lore.map((l) => `${l.name} — ${str(l.desc, 300
 ${src ? 'Base it on this SOURCE:\n' + src + '\n' : ''}${body.wish ? 'The author wants: ' + str(body.wish, 1500) + '\n' : ''}${draft ? 'What the author already filled in (keep it, build on it): ' + draft + '\n' : ''}${isQ && quests ? 'Quests that already exist (do not repeat them): ' + quests + '\n' : ''}
 ${isQ ? questPrompt(lang) : dialoguePrompt(lang)}`;
       const msg = await claudeText(claudeApiKey.value(), { model, system, prompt, maxTokens: 12000, effort: 'medium', stream: true });
-      if (msg.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
       const parsed = parseJson(msg.text) || {};
       const proposal = isQ ? cleanQuest(parsed, ents) : cleanDialogue(parsed, ents);
       const usage = { input_tokens: msg.usage.input_tokens || 0, output_tokens: msg.usage.output_tokens || 0 };
@@ -186,7 +186,7 @@ ${isQ ? questPrompt(lang) : dialoguePrompt(lang)}`;
       return res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('narrativeDraft error:', error);
-      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[narrative] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'narrative').catch((e) => console.error('[narrative] Refund failed:', e));
       return res.status(500).json({ error: `Помилка чернетки: ${error.message}` });
     }
   });

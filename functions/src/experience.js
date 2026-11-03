@@ -9,7 +9,7 @@
 // gets `telemetryStats.scaleAlert` (shown in «Досвід гравців») — that is the moment to move raw events to BigQuery
 // (ARCHITECTURE.md §Experience → «Scale»), keeping Firestore for aggregates, issues and playtests.
 const crypto = require('crypto');
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey } = require('./common');
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
 
@@ -550,7 +550,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
         prompt = playtestPrompt(bible, openIssues, str(body.focus, 600), languageName);
       }
       const msg = await claudeText(claudeApiKey.value(), { model, prompt, maxTokens: 20000, effort: 'medium', stream: true });
-      if (msg.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
       const parsed = parseJson(msg.text);
       let out = {};
       if (op === 'report') {
@@ -580,7 +580,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       res.status(200).json({ success: true, ...out, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('experience error:', error);
-      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[experience] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'experience').catch((e) => console.error('[experience] Refund failed:', e));
       res.status(500).json({ error: `Помилка аналітики досвіду: ${error.message}` });
     }
   });

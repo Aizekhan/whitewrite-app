@@ -43,6 +43,22 @@ function projectDoc(uid, d) {
   };
 }
 
+// count-then-create is not atomic: a short per-user lock (users/{uid}.creating, server-only) serializes creates, so
+// parallel requests cannot pass maxProjects / maxGames together
+async function lockCreate(uid, kind) {
+  const ref = db.collection('users').doc(uid);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) return true;
+    const t = (snap.data().creating || {})[kind], at = t && t.toMillis ? t.toMillis() : 0;
+    if (Date.now() - at < 10000) return false;
+    tx.update(ref, { ['creating.' + kind]: admin.firestore.Timestamp.now() });
+    return true;
+  });
+}
+const unlockCreate = (uid, kind) => db.collection('users').doc(uid).update({ ['creating.' + kind]: admin.firestore.FieldValue.delete() }).catch(() => {});
+const BUSY = { code: 'BUSY', error: 'Зачекай — попереднє створення ще триває' };
+
 exports.createProject = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, res) => {
   return cors(req, res, async () => {
     let uid = null;
@@ -50,12 +66,13 @@ exports.createProject = onRequest({ cors: true, timeoutSeconds: 30 }, async (req
     if (!uid) return res.status(401).json({ error: 'Unauthorized' });
     const data = (req.body && req.body.project) || {};
     const buySlot = !!(req.body && req.body.buySlot);
-    let reservation = null;
+    let reservation = null, locked = false;
     try {
       if (data.worldId) {
         const w = await db.collection('worlds').doc(String(data.worldId)).get();
         if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Not your world' });
       }
+      if (!(locked = await lockCreate(uid, 'project'))) return res.status(429).json(BUSY);
       const userRef = db.collection('users').doc(uid);
       const user = (await userRef.get()).data() || {};
       const plan = user.plan || 'free';
@@ -86,6 +103,8 @@ exports.createProject = onRequest({ cors: true, timeoutSeconds: 30 }, async (req
       // the slot is already granted once extraProjects moved; refund only if the increment never happened
       if (reservation && !reservation.granted) await refund(db, uid, reservation).catch(() => {});
       res.status(500).json({ error: error.message });
+    } finally {
+      if (locked) await unlockCreate(uid, 'project');
     }
   });
 });
@@ -99,11 +118,13 @@ exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, r
     try { uid = await verifyAuth(req.headers.authorization); } catch (e) { uid = null; }
     if (!uid) return res.status(401).json({ error: 'Unauthorized' });
     const b = req.body || {};
+    let locked = false;
     try {
       const wref = db.collection('worlds').doc(String(b.worldId || '-'));
       const w = await wref.get();
       if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Not your world' });
       if (w.data().freeze) return res.status(403).json({ error: 'Світ заморожено', code: 'FROZEN' });
+      if (!(locked = await lockCreate(uid, 'game'))) return res.status(429).json(BUSY);
       const user = (await db.collection('users').doc(uid).get()).data() || {};
       const budget = getPlanBudget(user.plan || 'free');
       if (!budget.allowGameDesign) return res.status(403).json({ error: 'Ігри недоступні на цьому тарифі', code: 'PLAN_REQUIRED' });
@@ -123,6 +144,8 @@ exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, r
     } catch (error) {
       console.error('[createGame]', error);
       res.status(500).json({ error: error.message });
+    } finally {
+      if (locked) await unlockCreate(uid, 'game');
     }
   });
 });

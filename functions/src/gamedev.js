@@ -17,7 +17,7 @@ const {
   charge,
   getBalance,
   reserve,
-  refund,
+  refund, cutOff, settle,
   getPlanBudget,
   claudeApiKey,
 } = require('./common');
@@ -678,7 +678,8 @@ exports.gamedevPlan = onRequest({
         output_config: { effort: 'medium' }
       }).finalMessage())));
       if (messages.some((m) => m.stop_reason === 'refusal')) throw new Error('Claude відмовився виконати запит');
-      if (messages.some((m) => m.stop_reason === 'max_tokens')) throw new Error('Відповідь AI обірвалась — забагато матеріалу для одного проходу');
+      if (messages.some((m) => m.stop_reason === 'max_tokens')) throw cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', messages[0].model || model,
+        messages.reduce((u, m) => ({ input_tokens: u.input_tokens + (m.usage.input_tokens || 0), output_tokens: u.output_tokens + (m.usage.output_tokens || 0) }), { input_tokens: 0, output_tokens: 0 }));
       const results = messages.map((m) => parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')));
       const usage = messages.reduce((u, m) => ({ input_tokens: u.input_tokens + (m.usage.input_tokens || 0), output_tokens: u.output_tokens + (m.usage.output_tokens || 0) }), { input_tokens: 0, output_tokens: 0 });
       const parsed = results[0];
@@ -727,7 +728,7 @@ exports.gamedevPlan = onRequest({
       else if (req.body && req.body.op === 'canonAudit' && req.body.worldId) {
         await db.collection('worlds').doc(String(req.body.worldId)).set({ auditRunning: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
       }
-      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[gamedevPlan] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'gamedev').catch((e) => console.error('[gamedevPlan] Refund failed:', e));
       res.status(500).json({ error: `Помилка біблії гри: ${error.message}` });
     }
   });

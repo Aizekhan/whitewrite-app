@@ -14,7 +14,7 @@ const cors = require('cors')({
 });
 const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('../ai-models.js');
-const { charge, getBalance, reserve, refund } = require('../token-service.js');
+const { charge, getBalance, reserve, refund, cutOff, settle } = require('../token-service.js');
 const { getPlanBudget } = require('../plans.js');
 const { loadCanon, mergeSuggestions } = require('../canon-store.js');
 // Legacy plan migration completed on 2026-06-26, no longer needed
@@ -150,6 +150,8 @@ module.exports = {
   getBalance,
   reserve,
   refund,
+  cutOff,
+  settle,
   getPlanBudget,
   loadCanon,
   mergeSuggestions,

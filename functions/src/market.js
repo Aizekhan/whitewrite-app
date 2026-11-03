@@ -369,7 +369,8 @@ async function completeDeal(session, account) {
   const dealRef = db.collection('marketDeals').doc(session.id), lotRef = db.collection('marketLots').doc(lotId);
   const outcome = await db.runTransaction(async (tx) => {
     const [deal, l] = await Promise.all([tx.get(dealRef), tx.get(lotRef)]);
-    if (deal.exists) return 'done'; // a retried delivery
+    // a retried delivery: done — unless the transfer failed half-way (the buyer paid; transferWorld is safe to run again)
+    if (deal.exists) return deal.data().status === 'transferring' ? 'transfer' : 'done';
     const lot = l.exists ? l.data() : null;
     const sel = lot && (await tx.get(db.collection('sellers').doc(lot.seller))).data();
     const ok = lot && lot.status === 'listed' && sel && sel.stripeAccountId === account && session.amount_total === lot.priceCents && session.payment_status === 'paid';

@@ -7,7 +7,7 @@ const {
   charge,
   getBalance,
   reserve,
-  refund,
+  refund, cutOff, settle,
   claudeApiKey,
 } = require('./common');
 const { modelFor, claudeText } = require('./claude');
@@ -166,7 +166,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       let apiUsage = { input_tokens: 0, output_tokens: 0 };
       let model;
       const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: author ? 24000 : 12000, effort: 'low' });
-      if (out.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      if (out.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', out.model, out.usage);
       outText = out.text;
       apiUsage = out.usage;
       model = out.model;
@@ -200,7 +200,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
     } catch (error) {
       console.error('genesisWorld error:', error);
       if (reservation) {
-        await refund(db, uid, reservation).catch(e => console.error('[genesisWorld] Refund failed:', e));
+        await settle(db, uid, reservation, error, 'genesisWorld').catch(e => console.error('[genesisWorld] Refund failed:', e));
       }
       res.status(500).json({ error: `Помилка Genesis: ${error.message}` });
     }

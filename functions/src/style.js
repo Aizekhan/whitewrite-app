@@ -5,7 +5,7 @@
 // Called by the ✦ button, «✦ Перевірити всі» and automatically after a picture is uploaded (when the game has a style).
 // MCP check_style (mcp.js) runs the same check on a screenshot from Unity and returns it without storing.
 // Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js styleCheck).
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey } = require('./common');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
@@ -67,7 +67,7 @@ ${brief}`;
   "issues": ["<what breaks the style, most important first; empty if none>"], "fixes": ["<concrete changes that bring it into the style>"] }
 At most 4 issues and 4 fixes, short. Write in ${lang}.` });
     const msg = await claudeText(claudeApiKey.value(), { model, system, prompt: content, maxTokens: 3000, effort: 'low' });
-    if (msg.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+    if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
     const result = S.cleanVerdict(parseJson(msg.text));
     if (result.score == null) throw new Error('AI не дав оцінку');
     const usage = { input_tokens: msg.usage.input_tokens || 0, output_tokens: msg.usage.output_tokens || 0 };
@@ -75,8 +75,9 @@ At most 4 issues and 4 fixes, short. Write in ${lang}.` });
       estimatedInputTokens: Math.ceil((system.length + brief.length) / 4) + 1600 * (1 + refs.length), reserved: reservation, logAs: logAs || 'style_check' });
     reservation = null;
     return { result, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) };
-  } finally {
-    if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[style] Refund failed:', e));
+  } catch (error) {
+    if (reservation) { const r = reservation; reservation = null; await settle(db, uid, r, error, logAs || 'style_check').catch((e) => console.error('[style] Refund failed:', e)); }
+    throw error;
   }
 }
 
@@ -167,7 +168,7 @@ what the pictures share, stated so an artist and an AI can check any new picture
   "rules": "<4-8 lines 'Так: …' / 'Ні: …' (in English 'Do: …' / 'Don't: …')>" }
 Short, concrete, no invented lore. Write in ${lang}.` }]);
       const msg = await claudeText(claudeApiKey.value(), { model, system, prompt: content, maxTokens: 4000, effort: 'low' });
-      if (msg.stopReason === 'max_tokens') throw new Error('Відповідь AI обірвалась');
+      if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
       const p = parseJson(msg.text), proposal = {};
       PROPOSAL_FIELDS.forEach((k) => { const v = str(p && p[k], 3000); if (v) proposal[k] = v; });
       if (!Object.keys(proposal).length) throw new Error('AI не дав стилю');
@@ -180,7 +181,7 @@ Short, concrete, no invented lore. Write in ${lang}.` }]);
       console.error('styleFromRefs error:', error);
       return res.status(500).json({ error: `Помилка стилю з референсів: ${error.message}` });
     } finally {
-      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[styleFromRefs] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'styleFromRefs').catch((e) => console.error('[styleFromRefs] Refund failed:', e));
     }
   });
 });
