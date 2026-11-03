@@ -39,16 +39,23 @@ const UPGRADE_FEE = 0.03;
 // charge is the real API cost. typical = tokens for a 700-word scene (measured 2026-11-02, effort low);
 // scale = the reserve multiplier against Sonnet (the reserve of every scene/`factor` feature × scale).
 const MODEL_TIERS = [
-  { id: 'haiku', minPlan: 'free', typical: 10, scale: 0.1,
+  { id: 'haiku', minPlan: 'free', typical: 10, scale: 0.1, base: { input: 0.10, output: 0.50 },
     uk: { name: 'Claude Haiku', desc: 'Найшвидший і найдешевший: чернетки, короткі сцени.' },
     en: { name: 'Claude Haiku', desc: 'Fastest and cheapest: drafts, short scenes.' } },
-  { id: 'sonnet', minPlan: 'storyteller', typical: 160, scale: 1,
+  { id: 'sonnet', minPlan: 'storyteller', typical: 160, scale: 1, base: { input: 2.00, output: 10.00 },
     uk: { name: 'Claude Sonnet', desc: 'Баланс якості й ціни — рекомендовано.' },
     en: { name: 'Claude Sonnet', desc: 'Balanced quality and price — recommended.' } },
-  { id: 'opus', minPlan: 'novelist', typical: 320, scale: 2,
+  { id: 'opus', minPlan: 'novelist', typical: 320, scale: 2, base: { input: 4.00, output: 20.00 },
     uk: { name: 'Claude Opus', desc: 'Найсильніший: складні сюжети, аналіз і плани гри; ≈ вдвічі дорожчий за Sonnet.' },
     en: { name: 'Claude Opus', desc: 'The strongest: complex plots, analysis and game plans; ≈ twice the price of Sonnet.' } }
 ];
+// LIVE PRICES — every token price shown or reserved follows the API price of each tier's ACTIVE model.
+// base (above) = the API price ($ per 1M tokens) the plan numbers were balanced at. modelWatch (functions/src/model-watch.js)
+// writes config/ai_models.priceIndex { haiku, sonnet, opus } = live ÷ base for a typical scene mix (PRICE_MIX); the server
+// (token-service.js) and every page (the loader at the end of this file) read it into setPriceIndex. A price rise moves the
+// ≈ prices on the ✦ buttons, the plan cards and the knowledge base at once; the charge is always the real API cost.
+const PRICE_MIX = { input: 4000, output: 1500 };
+let PRICE_INDEX = {};
 const SCENE_COST = { claude: 300 }; // the Sonnet scene reserve — default of economy_operations/generateScene providers.claude.cost
 
 // kind: 'gate' — a capability (flag) · 'ai' — spends tokens (price before the run) · 'free' — included, no tokens
@@ -105,7 +112,7 @@ const FEATURES = [
     uk: { name: 'Модель Claude Opus', desc: 'Найсильніша модель — Haiku, Sonnet або Opus на вибір.' },
     en: { name: 'Claude Opus model', desc: 'The strongest model — Haiku, Sonnet or Opus to choose from.' },
     where: 'Акаунт → Модель Claude', server: 'усі AI-функції (functions/src/claude.js)' },
-  { id: 'advise', kind: 'ai', flag: 'allowAnalyze', minPlan: 'novelist', price: { fixed: 200 },
+  { id: 'advise', kind: 'ai', flag: 'allowAnalyze', minPlan: 'novelist', price: { fixed: 200, live: true }, // live: a fixed AI price that follows the price index
     uk: { name: '✦ Порадити', desc: 'Розбір сцени в аркуші: суперечності з каноном, темп, що посилити.' },
     en: { name: '✦ Advise', desc: 'A scene review on the sheet: canon contradictions, pacing, what to strengthen.' },
     where: 'Книга → аркуш', server: 'analyzeScene' },
@@ -167,7 +174,7 @@ const FEATURES = [
     uk: { name: 'MCP для Claude Code', desc: 'Claude Code бере задачі плану з каноном і Біблією та здає результат на приймання.' },
     en: { name: 'MCP for Claude Code', desc: 'Claude Code takes plan tasks with the canon and Bible and hands results in for review.' },
     where: 'Продакшн-план → Підключити Claude Code', server: 'mcp' },
-  { id: 'mdImport', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 4 }, op: 'import',
+  { id: 'mdImport', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 4, quote: { partChars: 20000, outPerPart: 8000 } }, op: 'import', // the file known → «не більше N» (quoteChars)
     uk: { name: '✦ Імпорт .md', desc: 'Нотатки й GDD → пропозиція карток, ти відмічаєш, що взяти.' },
     en: { name: '✦ .md import', desc: 'Notes and GDD → proposed cards, you tick what to take.' },
     where: 'Біблія гри', server: 'gamedevPlan {op:import}' },
@@ -224,6 +231,14 @@ const FEATURES = [
     uk: { name: 'Інтеграції', desc: 'Свої ключі сторонніх сервісів в одній панелі світу й гри: 3D-генерація моделей (Meshy, Tripo…) і генерація картинок (OpenAI, Google, Stability, Replicate, fal, Leonardo…); ключ гри або, якщо його немає, ключ світу. Ключ лежить лише на сервері, видно сервіс і останні 4 символи. Без токенів: генерацію оплачуєш у самому сервісі.' },
     en: { name: 'Integrations', desc: 'Your own keys for outside services in one panel per world and per game: 3D model generation (Meshy, Tripo…) and image generation (OpenAI, Google, Stability, Replicate, fal, Leonardo…); the game key, else the world key. The key stays on the server — you see the service and its last 4 characters. No tokens: generation is paid in the service itself.' },
     where: 'Налаштування світу / гри → 🔌 Інтеграції', server: 'integrations (owner only) · firestore.rules integrationKeys' },
+  { id: 'worldFill', kind: 'free', minPlan: 'free',
+    uk: { name: 'Заповни світ своїми матеріалами', desc: 'Твій ШІ-агент (Claude Code, ChatGPT…) складає нотатки й документи в один файл за шаблоном WhiteWrite і правилами «що куди»; сервіс лише переносить дані в розділи канону. Без токенів, на будь-якому тарифі; лише власник світу.' },
+    en: { name: 'Fill the world with your material', desc: 'Your AI agent (Claude Code, ChatGPT…) puts notes and documents into one file by the WhiteWrite template and the «what goes where» rules; the service only moves the data into the canon sections. No tokens, on any plan; the world owner only.' },
+    where: 'Біблія світу → Огляд світу / Налаштування світу', server: 'немає (у браузері, functions/world-fill.js) · firestore.rules entities/lore' },
+  { id: 'gameGuide', kind: 'free', minPlan: 'free',
+    uk: { name: '🧭 Гід розробки гри', desc: 'Розділи гри зʼявляються в меню по етапах (задум → ядро → світ і вороги → наповнення → арт і звук → виробництво → реліз), коли заповнені головні розділи поточного етапу. Вимикається й відновлюється кнопкою на обкладинці «Огляду гри».' },
+    en: { name: '🧭 Game guide', desc: 'The game\'s sections appear in the menu stage by stage (concept → core → world & enemies → content → art & sound → production → release) once the current stage\'s key sections are filled. Turned off and resumed with the button on the «Game overview» cover.' },
+    where: 'Біблія гри → Огляд гри / Налаштування гри', server: 'немає (навігація) · games/{g}.guide' },
   { id: 'team', kind: 'free', minPlan: 'free',
     uk: { name: 'Друзі й команда світу', desc: 'Друзі за поштою; у команду світу — з ролями: адмін (усе, ✦ на токенах власника), редактор (усе без ✦), перегляд, або вибрані розділи на перегляд і редагування.' },
     en: { name: 'Friends & the world team', desc: 'Friends by e-mail; the world team with roles: admin (everything, ✦ on the owner’s tokens), editor (everything but ✦), viewer, or chosen sections to view and edit.' },
@@ -289,17 +304,35 @@ function ttsClass(voice) {
 function ttsCost(chars, voice) { return chars > 0 ? Math.max(1, Math.ceil(chars * TTS.usdPerMChars[ttsClass(voice)] * TTS.margin / 1e6 / USD_PER_TOKEN)) : 0; }
 function ttsUsd(chars, voice) { return chars * TTS.usdPerMChars[ttsClass(voice)] / 1e6; }
 
+// The live price index of a tier (1 until config/ai_models.priceIndex is read) and how modelWatch computes it
+function priceIndex(tier) { const v = +PRICE_INDEX[tier || 'sonnet']; return v > 0 ? v : 1; }
+function setPriceIndex(idx) { PRICE_INDEX = Object.assign({}, idx || {}); }
+function priceIndexFor(tier, live) {
+  const b = tierInfo(tier).base, mix = (p) => p.input * PRICE_MIX.input + p.output * PRICE_MIX.output;
+  return live && live.input > 0 && b ? Math.round(mix(live) / mix(b) * 1000) / 1000 : 1;
+}
+
 function featureCost(feature, claudeCost, tier) {
-  const base = (claudeCost || SCENE_COST.claude) * (tier ? tierInfo(tier).scale : 1);
-  if (!feature) return base * 4; // unknown op: never reserve nothing
+  const base = (claudeCost || SCENE_COST.claude) * (tier ? tierInfo(tier).scale : 1) * priceIndex(tier);
+  if (!feature) return Math.ceil(base * 4); // unknown op: never reserve nothing
   const pr = feature.price;
   if (!pr) return 0;
-  if (pr.fixed) return pr.fixed;
+  if (pr.fixed) return pr.live ? Math.ceil(pr.fixed * priceIndex(tier)) : pr.fixed; // access fees (Космограф, бекап, слот) stay flat
   if (pr.perKChars) return ttsCost(1000, 'wavenet'); // ✦ Озвучити: per 1000 characters of a WaveNet / Neural2 voice (ttsCost for the exact one)
   if (pr.factor) return Math.ceil(base * pr.factor);
   return Math.ceil(base); // a scene
 }
 function byOp(op) { return FEATURES.find((f) => f.op === op || f.id === op) || null; }
+
+// «Не більше N токенів» for an AI action on a big input (price.quote): an upper bound — the input's tokens (chars ÷ 2.5:
+// Cyrillic takes more tokens than Latin), a prompt overhead per part, the output a part may give — at the tier's live price,
+// + 15%. The page shows N before the run, the server reserves N and never charges more (token-service charge cap).
+function quoteChars(feature, chars, tier) {
+  const q = feature && feature.price && feature.price.quote; if (!q || !(chars > 0)) return 0;
+  const parts = Math.max(1, Math.ceil(chars / q.partChars)), b = tierInfo(tier).base;
+  const usd = ((Math.ceil(chars / 2.5) + parts * (q.overhead || 4000)) * b.input + parts * q.outPerPart * b.output) / 1e6 * priceIndex(tier);
+  return tokensForUsd(usd * 1.15);
+}
 
 // Tokens for a call that cost `usd` in API (the charge; never 0 for a paid call)
 function tokensForUsd(usd) { return usd > 0 ? Math.max(1, Math.ceil(usd / USD_PER_TOKEN - 1e-9)) : 0; }
@@ -312,7 +345,22 @@ function upgradeQuote(from, to, left) {
 }
 
 const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, MODEL_TIERS, SCENE_COST, USD_PER_TOKEN, UPGRADE_FEE, LICENCE, licenceFee, upgradeQuote, planRank, unlocked, planBudget,
-  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd, TTS, ttsClass, ttsCost, ttsUsd };
+  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd, TTS, ttsClass, ttsCost, ttsUsd, PRICE_MIX, priceIndex, setPriceIndex, priceIndexFor, quoteChars };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
-if (typeof window !== 'undefined') window.__PAID_FEATURES = PAID_FEATURES;
+if (typeof window !== 'undefined') {
+  window.__PAID_FEATURES = PAID_FEATURES;
+  // pages: once signed in, read the published price index (config/ai_models.priceIndex); prices drawn after it are live,
+  // and 'ww-prices' tells a page that wants to redraw what it already shows
+  (function load(tries) {
+    const fb = window.firebase;
+    if (!fb || !fb.apps || !fb.apps.length || !fb.auth || !fb.firestore) { if (tries < 40) setTimeout(() => load(tries + 1), 250); return; }
+    fb.auth().onAuthStateChanged((u) => {
+      if (!u) return;
+      fb.firestore().collection('config').doc('ai_models').get().then((d) => {
+        const idx = d.exists && d.data().priceIndex;
+        if (idx) { setPriceIndex(idx); window.dispatchEvent(new Event('ww-prices')); }
+      }).catch(() => {});
+    });
+  })(0);
+}

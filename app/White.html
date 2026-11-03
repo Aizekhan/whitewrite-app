@@ -1391,7 +1391,7 @@ body.at-home .back-fab{ display:none; }
       Promise.resolve(loadProjectsPromise).then(cta);
       return;
     }
-    if (d.type === "ww-world-created" && d.worldId) { openWorld(d.worldId); return; }
+    if (d.type === "ww-world-created" && d.worldId) { if (d.fill) { CURRENT_WORLD = d.worldId; showBible(); } else openWorld(d.worldId); return; } // a fresh empty world: straight to «Заповни світ своїми матеріалами»
     if (d.type === "ww-hub" && d.worldId) { // the Bible's settings link a hub tab (Спільнота · Команда · Маркет · Бекап)
       CURRENT_WORLD = d.worldId; try { sessionStorage.setItem("ww-hubtab-" + d.worldId, String(d.tab || "home")); } catch (e) {}
       showView("narr"); return;

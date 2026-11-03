@@ -237,13 +237,13 @@ function App() {
   const [genesisData, setGenesisData] = useAState(null);
   function startGenesis(data) {
     setGenesisData(data);
-    // only a name (or no AI) → an empty world at once, filled in the Bible; Genesis needs a description or a file
-    if (!(data.description || data.source) || !(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return createWorld({ name: data.title, summary: data.description });
+    // the world at once — it opens in its Bible, where the author fills it with their own material; ✦ ideas → Genesis
+    if (!data.ideas || !(window.__firebaseAI && window.__firebaseAI.genesisWorld)) return createWorld({ name: data.title, summary: data.description }, true);
     setStage("genesis");
   }
-  async function createWorld(seed) {
+  async function createWorld(seed, fill) {
     const worldId = await window.__firebaseCanon.createWorld(seed);
-    if (window.self !== window.top) window.parent.postMessage({ type: "ww-world-created", worldId }, window.location.origin);
+    if (window.self !== window.top) window.parent.postMessage({ type: "ww-world-created", worldId, fill: !!fill }, window.location.origin); // fill → its Bible, «Заповни світ»
   }
 
   // Persist the universe title so the workspace ↔ book stay the same world.

@@ -14,7 +14,7 @@
 
 const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 const { MODEL_PRICING } = require('./ai-models.js');
-const { tokensForUsd, USD_PER_TOKEN } = require('./paid-features.js');
+const { tokensForUsd, USD_PER_TOKEN, setPriceIndex } = require('./paid-features.js');
 const { getPlanBudget } = require('./plans.js');
 const ledger = require('./src/ledger.js'); // users/{uid}/ledger — what the user sees in «Історія токенів»
 
@@ -23,7 +23,11 @@ const ledger = require('./src/ledger.js'); // users/{uid}/ledger — what the us
 let livePricing = {}, livePricingAt = 0;
 async function loadLivePricing(db) {
   if (Date.now() - livePricingAt < 5 * 60 * 1000) return;
-  try { livePricing = ((await db.collection('config').doc('ai_models').get()).data() || {}).pricing || {}; } catch (e) { livePricing = {}; }
+  try {
+    const conf = (await db.collection('config').doc('ai_models').get()).data() || {};
+    livePricing = conf.pricing || {};
+    setPriceIndex(conf.priceIndex); // the live price index: every featureCost reserve on this instance follows it (paid-features.js)
+  } catch (e) { livePricing = {}; }
   livePricingAt = Date.now();
 }
 function pricingFor(model) {
@@ -98,6 +102,7 @@ function applyCredit(tx, ref, userData, split) {
  * @returns {Promise<{fromMonthly:number, fromBonus:number, available:number}>}
  */
 async function reserve(db, uid, amount) {
+  loadLivePricing(db).catch(() => {}); // warms the price index for the next reserve on this instance
   const ref = db.collection('users').doc(uid);
   return db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
@@ -339,6 +344,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   // MARGIN: the charge is the REAL API cost in tokens (paid-features.js USD_PER_TOKEN); the estimate is a fallback
   const billing = apiCostUSD > 0 ? 'actual' : 'estimate';
   if (billing === 'actual') userCost = tokensForUsd(apiCostUSD);
+  if (options.cap > 0 && userCost > options.cap) userCost = options.cap; // «не більше N»: the quoted ceiling the author agreed to (paid-features quoteChars)
   console.log(`[TokenService] Billing (${billing}): ${userCost} tokens for $${apiCostUSD.toFixed(4)} API`);
 
   // 5. Deduct user tokens (transactional; settles against a prior reserve() if given)

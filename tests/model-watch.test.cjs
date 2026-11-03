@@ -53,6 +53,7 @@ let fails = 0; const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ')
   // 6. active model's price rises 20% → live pricing updated + critical
   priceRows = priceRows.map((r) => r.startsWith('| Claude Sonnet 6 ') ? row('Claude Sonnet 6', 2.4, 12) : r); await go();
   check(store['config/ai_models'].pricing['claude-sonnet-6'].output === 12 && /зросла/.test(notices.find((x) => /Ціна Claude Sonnet 6/.test(x.title)).title), 'the active model gets 20% pricier → billing follows, critical notice');
+  check(store['config/ai_models'].priceIndex.sonnet === 1.2 && store['config/ai_models'].priceIndex.haiku === 1, 'the price index follows: Sonnet 1.2 → every shown ✦ price +20%');
   // 7. the active Opus is retired → forced to the newest priced one
   models = models.filter((m) => m.id !== 'claude-opus-5-5'); await go();
   check(store['config/ai_models'].active.opus === 'claude-opus-6' && notices[notices.length - 1].severity === 'critical' && /примусово/.test(notices[notices.length - 1].title), 'the active Opus retired → forced switch + critical notice');

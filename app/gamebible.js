@@ -56,7 +56,7 @@
       pick: { title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
         none: "Усіх з канону вже взято в гру.", newOne: "＋ Новий у каноні", addN: "Додати", picked: "Додано в гру" },
       dos: { desc: "Опис", pics: "Зображення й моделі світу", picsHint: "спільні для всіх історій та ігор; у грі може бути свій вигляд",
-        links: "Звʼязки", appear: "Поява в історіях та іграх", life: "Хронологія життя", lifeHint: "замітки на лінії життя; упорядковуються за першим числом («12 років», «рік 340»)",
+        links: "Звʼязки", appear: "Поява в історіях та іграх", life: "Хронологія життя", lifeHint: "особисті моменти; упорядковуються за першим числом («12 років», «рік 340»). Подія, що зачепила світ чи кількох героїв, — у «Хроніці»",
         lifeAdd: "＋ Замітка", lifeWhen: "Коли: вік, рік, епоха", lifeText: "Що сталося", lifeEmpty: "Ще немає заміток. Додай першу — вона повисне на лінії життя.",
         noLinks: "Звʼязків поки немає. Їх додають у Дереві всесвіту.", inGames: "Ігри", inStories: "Історії", notInGames: "Ще немає ігор у цьому світі.",
         notInStories: "Ще не зʼявлявся в історіях.", scenes: "сцени", loading: "Шукаю…", openInGame: "Відкрити в грі", hiddenInGame: "прибрано з гри",
@@ -230,6 +230,7 @@
       audit: "Оновити аудит", auditFirst: "Запустити аудит", auditBusy: "AI перевіряє все й шукає неузгодженості… (до кількох хвилин)",
       auditIntro: "Аудит ще не запускався. AI прочитає все й випише, що не сходиться.", auditClean: "Неузгоджень не знайдено.",
       resolve: "Узгодити", resolvedTitle: "Узгоджено", contraOpen: "Суперечності", resolvePh: "Як це має бути насправді…",
+      costCap: "AI-операція «{op}» коштуватиме не більше {n} токенів: спишеться фактична робота AI, зазвичай менше, але ніколи не більше. Продовжити?", capShort: "✦ не більше {n} токенів",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
       ops: { concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
@@ -290,7 +291,23 @@
         expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
-      stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати стандартний розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці.",
+      stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
+      fill: { title: "📜 Заповни світ своїми матеріалами", lead: "Нотатки, документи, теки — усе, що вже написано про світ. Твій ШІ-агент (Claude Code, ChatGPT…) складе їх в один файл за шаблоном WhiteWrite, а сервіс лише перенесе дані в розділи — без токенів, на будь-якому тарифі.",
+        dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code", tpl: "⤓ Шаблон і правила (.md)",
+        s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
+        up: "⤒ Завантажити whitewrite-world.json", reading: "Читаю файл…", add: "Додасться", upd: "Доповниться", none: "У файлі немає нічого нового для цього світу.",
+        rules: "закони", facts: "факти", world: "огляд світу", replace: "Замінити вже заповнені поля даними з файлу", kept: "Лишаться як є (вже заповнені): {n}. Галочка вище замінить їх.",
+        apply: "Перенести в світ", cancel: "Скасувати", applying: "Переношу… {n}/{all}", done: "Готово: перенесено {n} записів.", frozen: "Світ заморожено на час сертифікації чи продажу — переносити не можна.",
+        err: { json: "Це не JSON — попроси агента виправити файл: ", format: "Це файл іншого формату ({d}). Потрібен whitewrite.fill/1 — для резервних копій є «Відновити з JSON» у налаштуваннях.", shape: "Файл не схожий на шаблон WhiteWrite.", empty: "У файлі немає даних — перевір, що агент заповнив шаблон." },
+        noformat: "У файлі немає «format: whitewrite.fill/1» — читаю як шаблон.",
+        kinds: { characters: "персонажі", locations: "локації", factions: "фракції", artifacts: "артефакти", events: "події", peoples: "народи й раси", languages: "мови", beliefs: "віра й міфологія", customs: "звичаї" } },
+      guide: { btnOn: "Гід · етап {n}/{all}", btnOff: "Гід вимкнено", stage: "Етап {n} з {all}", or: "або", done: "Гід: усі розділи відкрито",
+        next: "Щоб відкрити «{s}», заповни {m}.", opened: "🧭 Відкрито етап «{s}» — нові розділи в меню", atStage: "етап {n} · {s}",
+        about: "розділи гри зʼявляються по етапах, у порядку розробки гри.", turnOff: "Вимкнути гід", resume: "Продовжити за гідом",
+        onT: "Увімкнути гід: розділи відкриватимуться по етапах", offT: "Вимкнути гід і показати всі розділи",
+        onQ: "Продовжити за гідом з етапу {n} «{s}»? Розділи наступних етапів знову сховаються з меню (картки в них лишаються) і зʼявлятимуться, коли заповниш поточні.",
+        offQ: "Вимкнути гід? У меню зʼявляться всі розділи одразу, і покрокова розробка гри зупиниться. Продовжити її з того самого етапу можна кнопкою «🧭 Гід» на обкладинці «Огляду гри».",
+        breakQ: "Розділ «{s}» за гідом ще попереду. Якщо увімкнути його зараз, гід вимкнеться й у меню зʼявляться всі розділи. Продовжити покроковий шлях з того самого етапу можна кнопкою «🧭 Гід» на обкладинці «Огляду гри». Увімкнути?" },
       stRestore: "Відновити з копії (JSON)", stRestoreHint: "Файл гри відновлюється як нова гра в цьому світі, файл світу — як новий світ.",
       stRestored: "Відновлено", stBadJson: "Це не файл експорту WhiteWrite.",
       spent: "Списано токенів", writtenTo: "записано в картку",
@@ -340,7 +357,7 @@
       pick: { title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
         none: "Everything in the canon is already in the game.", newOne: "＋ New in canon", addN: "Add", picked: "Added to the game" },
       dos: { desc: "Description", pics: "World images & models", picsHint: "shared by every story and game; a game may have its own look",
-        links: "Connections", appear: "Appears in stories & games", life: "Life timeline", lifeHint: "notes on the life line, ordered by their first number (“age 12”, “year 340”)",
+        links: "Connections", appear: "Appears in stories & games", life: "Life timeline", lifeHint: "personal moments, ordered by their first number (“age 12”, “year 340”). An event that touched the world or several heroes goes to the “Chronicle”",
         lifeAdd: "＋ Note", lifeWhen: "When: age, year, era", lifeText: "What happened", lifeEmpty: "No notes yet. Add the first — it hangs on the life line.",
         noLinks: "No connections yet. They are added in the Universe tree.", inGames: "Games", inStories: "Stories", notInGames: "No games in this world yet.",
         notInStories: "Has not appeared in stories yet.", scenes: "scenes", loading: "Looking…", openInGame: "Open in game", hiddenInGame: "removed from the game",
@@ -513,6 +530,7 @@
       audit: "Refresh audit", auditFirst: "Run audit", auditBusy: "AI is checking everything for inconsistencies… (up to a few minutes)",
       auditIntro: "No audit yet. AI reads everything and lists what does not add up.", auditClean: "No inconsistencies found.",
       resolve: "Resolve", resolvedTitle: "Resolved", contraOpen: "Contradictions", resolvePh: "How it really should be…",
+      costCap: "The AI operation “{op}” will cost no more than {n} tokens: the AI's actual work is charged, usually less, never more. Continue?", capShort: "✦ no more than {n} tokens",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
       ops: { concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
@@ -573,7 +591,23 @@
         expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
-      stShown: "Game sections in the menu", stShownHint: "Untick to hide a standard section in this game. Cards are not deleted — tick it again and they are back.",
+      stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
+      fill: { title: "📜 Fill the world with your material", lead: "Notes, documents, folders — whatever is already written about the world. Your AI agent (Claude Code, ChatGPT…) puts it into one file by the WhiteWrite template, and the service only moves the data into the sections — no tokens, on any plan.",
+        dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code", tpl: "⤓ Template and rules (.md)",
+        s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
+        up: "⤒ Upload whitewrite-world.json", reading: "Reading the file…", add: "Will be added", upd: "Will be filled in", none: "The file has nothing new for this world.",
+        rules: "laws", facts: "facts", world: "world overview", replace: "Replace fields that are already filled with the file's data", kept: "Stay as they are (already filled): {n}. The tick above replaces them.",
+        apply: "Move into the world", cancel: "Cancel", applying: "Moving… {n}/{all}", done: "Done: {n} records moved.", frozen: "The world is frozen for certification or a sale — nothing can be moved in.",
+        err: { json: "This is not JSON — ask the agent to fix the file: ", format: "This file has another format ({d}). whitewrite.fill/1 is needed — backups go through «Restore from JSON» in the settings.", shape: "The file does not look like the WhiteWrite template.", empty: "The file has no data — check that the agent filled the template." },
+        noformat: "The file has no «format: whitewrite.fill/1» — reading it as the template.",
+        kinds: { characters: "characters", locations: "locations", factions: "factions", artifacts: "artifacts", events: "events", peoples: "peoples & races", languages: "languages", beliefs: "faith & mythology", customs: "customs" } },
+      guide: { btnOn: "Guide · stage {n}/{all}", btnOff: "Guide off", stage: "Stage {n} of {all}", or: "or", done: "Guide: every section is open",
+        next: "To open «{s}», fill {m}.", opened: "🧭 Stage «{s}» is open — new sections in the menu", atStage: "stage {n} · {s}",
+        about: "the game's sections appear stage by stage, in the order a game is made.", turnOff: "Turn the guide off", resume: "Resume the guide",
+        onT: "Turn the guide on: sections open stage by stage", offT: "Turn the guide off and show every section",
+        onQ: "Resume the guide from stage {n} «{s}»? The next stages' sections leave the menu again (their cards stay) and come back as you fill the current ones.",
+        offQ: "Turn the guide off? Every section appears in the menu at once and the step-by-step road stops. Resume it from the same stage with «🧭 Guide» on the «Game overview» cover.",
+        breakQ: "«{s}» is still ahead on the guide. Switching it on now turns the guide off and shows every section. You can resume the step-by-step road from the same stage with «🧭 Guide» on the «Game overview» cover. Switch it on?" },
       stRestore: "Restore from a copy (JSON)", stRestoreHint: "A game file is restored as a new game in this world, a world file as a new world.",
       stRestored: "Restored", stBadJson: "This is not a WhiteWrite export file.",
       spent: "Tokens spent", writtenTo: "written to card",
@@ -611,9 +645,9 @@
     { id: "w-locations", dossier: "locations", uk: "Локації", en: "Locations",
       about: { uk: "Місця світу: їхня історія, вигляд і хто з ними повʼязаний.", en: "The places of the world: their history, look and who is tied to them." } },
     { id: "w-factions", dossier: "factions", uk: "Фракції", en: "Factions",
-      about: { uk: "Сили світу: історія, мета, символіка і хто до них належить.", en: "The powers of the world: history, aim, symbols and who belongs to them." } },
+      about: { uk: "Організації світу — держави, ордени, гільдії, клани, культи: історія, мета, символіка і хто до них належить. Раси й народи — у «Культурі».", en: "The world's organisations — states, orders, guilds, clans, cults: history, aim, symbols and who belongs to them. Races and peoples are in “Culture”." } },
     { id: "w-items", dossier: "artifacts", uk: "Артефакти", en: "Artifacts",
-      about: { uk: "Речі, що мають вагу у світі: походження, сила, вигляд.", en: "Things that matter in the world: origin, power, look." } },
+      about: { uk: "Унікальні іменовані речі світу: походження, сила, вигляд. Звичайні типи речей (мечі, зілля) — не канон, а «Предмети й спорядження» гри.", en: "The world's unique named things: origin, power, look. Ordinary kinds of things (swords, potions) are not canon but the game's “Items & gear”." } },
   ];
   var TL_GROUPS = { uk: ["Сесія", "Рух", "Бій", "Взаємодія", "Прогресія", "Дослідження", "Економіка", "UI / UX", "Кооп", "Плейтест", "Свої події"],
     en: ["Session", "Movement", "Combat", "Interaction", "Progression", "Exploration", "Economy", "UI / UX", "Co-op", "Playtest", "Custom events"] };
@@ -663,7 +697,7 @@
              F("validation", "Перевірки: зʼєднання, колізії, навігація, бюджет", "Validators: connections, collisions, navigation, budget"), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "enemies", uk: "Вороги й боси", en: "Enemies & bosses", group: "group",
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
-      about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити.", en: "Who stands in the way, how it hits and where to hit it." },
+      about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити. Бос із канону — тут лише його бій; біографія — у досьє світу.", en: "Who stands in the way, how it hits and where to hit it. A canon boss keeps only its fight here; the biography is in the world dossier." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
              F("weakness", "Як перемогти", "How to beat"), NUM(), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
@@ -742,7 +776,7 @@
     about: { uk: "Події світу на лінії часу та історії, що в ньому написані.", en: "The world's events on the time line, and the stories written in it." } };
   // Culture lives in worlds/{w}/lore (not entity kinds: the Universe tree, extraction and scenes know exactly five)
   var CULTURE = { id: "culture", special: "culture", uk: "Культура", en: "Culture",
-    about: { uk: "Народи й раси, мови, віра й міфологія, звичаї — те, чим живуть у цьому світі.", en: "Peoples and races, languages, faith and mythology, customs — how this world lives." } };
+    about: { uk: "Народи й раси, мови, віра й міфологія, звичаї — те, чим живуть у цьому світі. Раса — тут, а не у «Фракціях»; божество, що діє як особа, — ще й у «Персонажах».", en: "Peoples and races, languages, faith and mythology, customs — how this world lives. A race lives here, not in “Factions”; a god acting as a person is also in “Characters”." } };
   var LORE = [
     { id: "peoples", uk: "Народи й раси", en: "Peoples & races",
       defs: [F("origin", "Походження", "Origin"), F("look", "Вигляд і тіло", "Look & body"), F("society", "Суспільство й звичаї", "Society & customs"), F("lands", "Де живуть", "Where they live")] },
@@ -803,10 +837,60 @@
   function slugify(name) { return String(name || "").toLowerCase().trim().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-+|-+$/g, ""); }
   var fieldKey = function (label) { return "x_" + String(label).toLowerCase().replace(/[^a-zа-яіїєґ0-9]+/gi, "_").slice(0, 40); };
 
-  function gameSections() {
+  function gameSectionsAll() { // every section of the open game — the menu (gameSections) leaves out the hidden ones
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
+    return GAME.concat(own, [FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
+  }
+  function gameSections() { // «Огляд гри» is never hidden: the game opens on it and the 🧭 Гід switch lives on its cover
     var hidden = (game && game.hiddenSections) || [];
-    return GAME.filter(function (s) { return hidden.indexOf(s.id) < 0; }).concat(own, [FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
+    return gameSectionsAll().filter(function (s) { return s.id === "overview" || hidden.indexOf(s.id) < 0 && !guideHidden(s.id); });
+  }
+  // 🧭 Гід: a new game's menu opens stage by stage — the next stage's sections appear once each «need» of the current stage
+  // has a filled card on one of its shelves (games/{g}.guide { on, stage }; the reached stage only grows, deleting a card
+  // hides nothing). Off = every section, as before. Switching a guide-hidden section on in Settings turns the guide off;
+  // «🧭 Гід» on the «Огляд гри» cover resumes it from the reached stage. Navigation only — cards, MCP and exports see everything.
+  var GUIDE = [
+    { uk: "Задум", en: "Concept", show: ["overview", "lore", "refs", "artstyle"], need: [["overview"]] },
+    { uk: "Ядро гри", en: "Core", show: ["characters", "mechanics"], need: [["characters"], ["mechanics"]] },
+    { uk: "Світ і вороги", en: "World & enemies", show: ["locations", "levels", "enemies", "factions", "scenes"], need: [["levels", "locations"], ["enemies"]] },
+    { uk: "Наповнення", en: "Content", show: ["progression", "gear", "items", "quests", "dialogues", "worldgen"], need: [["progression", "gear", "items"]] },
+    { uk: "Арт і звук", en: "Art & sound", show: ["assets", "materials", "animation", "ui", "audio", "forge"], need: [["assets", "animation", "ui", "audio"]] },
+    { uk: "Виробництво", en: "Production", show: ["tech", "knowledge", "plan", "issues", "activity"], need: [["tech"]] },
+    { uk: "Реліз і гравці", en: "Release & players", show: ["experience", "telemetry", "marketing"], need: [] },
+  ];
+  function guideOn() { return !!(game && game.guide && game.guide.on); }
+  function shelfFilled(id) {
+    var g = GAME.filter(function (s) { return s.id === id; })[0];
+    if (g && g.canon && entities.some(function (e) { return e.kind === g.canon && inGame(e); })) return true;
+    return cards.some(function (c) { return c.section === id && !c.canonRef && (c.mech || Object.keys(c.fields || {}).some(function (k) { return String(c.fields[k] || "").trim(); })); });
+  }
+  function guideNeedMet(i) { return GUIDE[i].need.every(function (any) { return any.some(shelfFilled); }); }
+  function guideStage() {
+    var i = 0; while (i < GUIDE.length - 1 && guideNeedMet(i)) i++;
+    return Math.max((game && game.guide && game.guide.stage) || 0, i);
+  }
+  function guideStageOf(id) { for (var i = 0; i < GUIDE.length; i++) if (GUIDE[i].show.indexOf(id) >= 0) return i; return -1; }
+  function guideHidden(id) { return guideOn() && guideStageOf(id) > guideStage(); }
+  function guideNextHtml() { // under the menu: where the guide stands and what opens the next stage
+    if (!guideOn()) return "";
+    var st = guideStage(), G = STR.guide;
+    if (st >= GUIDE.length - 1) return '<div class="guide-next">🧭 ' + esc(G.done) + '</div>';
+    var miss = GUIDE[st].need.filter(function (any) { return !any.some(shelfFilled); }).map(function (any) {
+      return any.map(function (id) { var s = gameSectionsAll().filter(function (x) { return x.id === id; })[0]; return "«" + (s ? L(s) : id) + "»"; }).join(" " + G.or + " "); });
+    return '<div class="guide-next">🧭 ' + esc(G.stage.replace("{n}", st + 1).replace("{all}", GUIDE.length)) + ' · <b>' + esc(L(GUIDE[st])) + '</b><small>' +
+      esc(G.next.replace("{s}", L(GUIDE[st + 1])).replace("{m}", miss.join(", "))) + '</small></div>';
+  }
+  function guideSave(on) { var st = guideStage(); return gref().set({ guide: { on: on, stage: st }, updatedAt: stamp() }, { merge: true }); }
+  function guideToggle() {
+    var G = STR.guide, st = guideStage();
+    if (guideOn()) { if (confirm(G.offQ)) guideSave(false); return; }
+    if (confirm(G.onQ.replace("{n}", st + 1).replace("{s}", L(GUIDE[st])))) guideSave(true);
+  }
+  function guideCoverBtn() {
+    if (!(mode === "game" && game && canWrite)) return "";
+    var on = guideOn(), G = STR.guide;
+    return '<button type="button" class="wcover__guide' + (on ? ' is-on' : '') + '" data-guide title="' + esc(on ? G.offT : G.onT) + '" aria-pressed="' + on + '">🧭 ' +
+      esc(on ? G.btnOn.replace("{n}", guideStage() + 1).replace("{all}", GUIDE.length) : G.btnOff) + '</button>';
   }
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
@@ -1119,7 +1203,7 @@
     allCards().forEach(function (c) { var g = c.section === s.id && c.fields[k] && normGroup(s, c.fields[k]); if (g && seen.indexOf(g) < 0) seen.push(g); });
     return seen;
   }
-  function sec(id) { return sections().filter(function (s) { return s.id === id; })[0] || GAME[0]; }
+  function sec(id) { return CANON.concat(gameSectionsAll(), [SETTINGS]).filter(function (s) { return s.id === id; })[0] || GAME[0]; } // hidden sections too: their cards keep their fields
 
   // Unified card view: a canon entity seen through this game, or a game-only card.
   function canonCard(e, s) {
@@ -1212,7 +1296,7 @@
     var all = allCards();
     if (mode === "game") { // a game's GDD: «Канон світу» on top leads to the World Bible, then only this game's menu
       $("nav").innerHTML = '<button class="navh navtoggle" id="to-world"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></span>' + STR.canonGroup + '</button>' +
-        '<div class="navh gamehead">🎮 ' + esc(game ? game.title || "…" : canGame ? STR.newGame.replace(/^\+\s*/, "") : STR.wt.gameLocked) + '</div>' + (game && canGame ? gameNav(all) : "");
+        '<div class="navh gamehead">🎮 ' + esc(game ? game.title || "…" : canGame ? STR.newGame.replace(/^\+\s*/, "") : STR.wt.gameLocked) + '</div>' + (game && canGame ? gameNav(all) + guideNextHtml() : "");
     } else { // the World Bible: the canon, then the games that grow from it
       $("nav").innerHTML = CANON.map(function (s) { return navItem(s, all); }).join("") +
         (games.length || (canGame && ME.owner) ? '<div class="navh navgames">' + STR.linkedGames + '</div>' + games.map(function (g) {
@@ -1277,6 +1361,10 @@
     if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); }
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     else canWrite = mode === "game" ? canGame : canonWrite;
+    if (mode === "game" && game && guideOn() && canWrite && guideStage() > ((game.guide && game.guide.stage) || 0)) { // a stage reached: remembered, its sections stay
+      var gst = guideStage(); game.guide = { on: true, stage: gst }; gref().set({ guide: { on: true, stage: gst } }, { merge: true }); sync("ok", STR.guide.opened.replace("{s}", L(GUIDE[gst])));
+    }
+    if (mode === "game" && game && section !== "settings" && !gameSections().some(function (s) { return s.id === section; })) section = "overview"; // a hidden section's link lands on the overview
     attachLazy();
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
@@ -1433,7 +1521,7 @@
     return '<div class="wcover">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
       : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' data-vworld="' + esc(T.key) + '" muted' + (vStopped(T.key) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>' + vStopBtn(T.key)
       : '<img src="' + esc(c.url) + '"' + st + ' alt="">') +
-      (T.gid && T.own ? '<button type="button" class="wcover__ed" data-gcover title="' + esc(STR.wname.coverEdit) + '" aria-label="' + esc(STR.wname.coverEdit) + '">✎</button>' : '') + '</div>'; // the world's cover is edited on its card in «Світи»
+      (T.gid ? guideCoverBtn() : '') + (T.gid && T.own ? '<button type="button" class="wcover__ed" data-gcover title="' + esc(STR.wname.coverEdit) + '" aria-label="' + esc(STR.wname.coverEdit) + '">✎</button>' : '') + '</div>'; // the world's cover is edited on its card in «Світи»
   }
   // a game's cover: an image ≤ 10 MB or an MP4 / WebM video ≤ 50 MB with its ⌖ frame — the same as a world's (White.html openWorldEdit)
   function editGameCover() {
@@ -1560,7 +1648,7 @@
   }
   function renderWorld(s) {
     var d = wd(s.id);
-    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + worldNameHtml() + '<p>' + esc(L(s.about)) + '</p></div></header>' +
+    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + worldNameHtml() + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) +
       '<div class="canonbox wedit"><h4>' + STR.worldCanon + '</h4>' +
       '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag" value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
       '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum" rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +
@@ -1570,7 +1658,79 @@
           '<button class="btn ghost" data-rmfact="' + i + '" aria-label="' + esc(STR.remove) + '">✕</button></div>';
       }).join("") + '<button class="btn mini ghost" id="w-addfact">' + STR.wt.addFact + '</button></div>' +
       wsaveRow() + '<p class="muted">' + STR.worldReadonly + '</p>';
-    wbind(s.id);
+    wbind(s.id); bindFill();
+  }
+  // ---------- 📜 «Заповни світ своїми матеріалами»: the author's agent writes whitewrite.fill/1 (functions/world-fill.js), we only move it ----------
+  // The owner only (it writes every section), any plan, no tokens. Open by itself while the world is nearly empty; a fold after that.
+  var fillState = null; // { name, parsed, replace } — the uploaded file waiting for «Перенести»; { msg } — a line to show
+  function fillBoxHtml(always) {
+    if (!ME.owner || PANEL || !window.__FILL) return "";
+    var X = STR.fill, sparse = entities.length < 5 && !lore.length, dir = ""; try { dir = localStorage.getItem("ww-fill-dir-" + worldId) || ""; } catch (e) {}
+    return '<details class="fillbox canonbox wedit"' + (always || sparse || fillState ? ' open' : '') + '><summary>' + X.title + '</summary><p class="hint">' + X.lead + '</p>' +
+      '<ol class="fillsteps"><li><span>' + X.s1 + '</span><label class="field"><span>' + X.dir + '</span><input id="fill-dir" value="' + esc(dir) + '" placeholder="' + esc(X.dirPh) + '"></label>' +
+      '<div class="row"><button class="btn primary" id="fill-copy">' + X.copy + '</button><button class="btn ghost" id="fill-tpl">' + X.tpl + '</button><span class="muted" id="fill-cst" role="status"></span></div></li>' +
+      '<li><span>' + X.s2 + '</span></li><li><span>' + X.s3 + '</span><div class="row"><label class="btn"><input type="file" id="fill-file" accept=".json,application/json" hidden>' + X.up + '</label></div></li></ol>' +
+      '<div id="fill-res" role="status">' + fillResHtml() + '</div></details>';
+  }
+  function fillPlan() {
+    return window.__FILL.plan(fillState.parsed.data, { world: world || {}, entities: entities, lore: lore }, { replace: fillState.replace, newId: function (k) { return k === "lore" ? newId("lore") : entityId(k); } });
+  }
+  function fillResHtml() {
+    var X = STR.fill, f = fillState; if (!f) return "";
+    if (f.msg) return '<p class="hint">' + esc(f.msg) + '</p>';
+    var p = fillPlan(), c = p.counts, part = function (o) { return Object.keys(o).map(function (k) { return esc(X.kinds[k] || k) + ': ' + o[k]; }); };
+    var add = part(c.add), upd = part(c.upd);
+    if (c.rules) add.push(esc(X.rules) + ': ' + c.rules);
+    if (c.facts) add.push(esc(X.facts) + ': ' + c.facts);
+    if (c.world) upd.push(esc(X.world));
+    var any = add.length || upd.length;
+    return '<div class="fillres"><b>📄 ' + esc(f.name) + '</b>' + ((f.parsed.warnings || []).indexOf("noformat") >= 0 ? '<p class="muted">' + esc(X.noformat) + '</p>' : '') +
+      (any ? (add.length ? '<p>＋ ' + X.add + ': ' + add.join(" · ") + '</p>' : '') + (upd.length ? '<p>✎ ' + X.upd + ': ' + upd.join(" · ") + '</p>' : '') : '<p class="muted">' + X.none + '</p>') +
+      '<label class="imp"><input type="checkbox" id="fill-rep"' + (f.replace ? ' checked' : '') + '><span>' + X.replace + '</span></label>' +
+      (p.kept.length ? '<p class="muted">' + esc(X.kept.replace("{n}", p.kept.length)) + '</p>' : '') +
+      '<div class="row"><button class="btn primary" id="fill-go"' + (any ? '' : ' disabled') + '>' + X.apply + '</button><button class="btn" id="fill-x">' + X.cancel + '</button></div></div>';
+  }
+  function bindFill() {
+    if (!$("fill-copy")) return;
+    var X = STR.fill;
+    var dirNow = function () { var v = $("fill-dir").value.trim(); try { localStorage.setItem("ww-fill-dir-" + worldId, v); } catch (e) {} return v; };
+    $("fill-copy").onclick = function () {
+      var txt = window.__FILL.prompt(LANG, dirNow(), world.title || "");
+      navigator.clipboard.writeText(txt).then(function () { $("fill-cst").textContent = X.copied; }, function () { download("whitewrite-fill-request.md", txt, "text/markdown"); });
+    };
+    $("fill-tpl").onclick = function () { download("whitewrite-fill-template.md", window.__FILL.prompt(LANG, dirNow(), world.title || ""), "text/markdown"); };
+    $("fill-file").onchange = async function (e) {
+      var file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
+      fillState = { msg: X.reading }; fillRedraw();
+      var r = window.__FILL.parse(await file.text());
+      fillState = r.error ? { msg: (X.err[r.error] || r.error).replace("{d}", r.detail || "") + (r.error === "json" ? r.detail : "") } : { name: file.name, parsed: r, replace: false };
+      fillRedraw();
+    };
+    bindFillRes();
+  }
+  function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
+  function bindFillRes() {
+    if ($("fill-rep")) $("fill-rep").onchange = function () { fillState.replace = this.checked; fillRedraw(); };
+    if ($("fill-x")) $("fill-x").onclick = function () { fillState = null; fillRedraw(); };
+    if ($("fill-go")) $("fill-go").onclick = applyFill;
+  }
+  async function applyFill() {
+    var X = STR.fill, p = fillPlan(), all = p.writes.length;
+    var say = function (t) { var r = $("fill-res"); if (r) r.innerHTML = '<p class="hint">' + esc(t) + '</p>'; };
+    if (world && world.freeze) { say(X.frozen); return; }
+    $("fill-go").disabled = true;
+    try {
+      for (var i = 0; i < all; i += 400) {
+        var batch = db.batch();
+        p.writes.slice(i, i + 400).forEach(function (w) {
+          var d = Object.assign({}, w.doc, { updatedAt: stamp() }); if (w.isNew) d.createdAt = stamp();
+          batch.set(wref().collection(w.col).doc(w.id), d, { merge: true });
+        });
+        await batch.commit(); say(X.applying.replace("{n}", Math.min(all, i + 400)).replace("{all}", all));
+      }
+      if (p.world) await wref().update(Object.assign({}, p.world, { updatedAt: stamp() }));
+      wdraft = null; fillState = { msg: X.done.replace("{n}", all + (p.world ? 1 : 0)) }; render();
+    } catch (er) { fillState = null; say(STR.failed + ": " + (er.code || er.message || er)); }
   }
   function renderLaws(s) {
     var d = wd(s.id);
@@ -3398,7 +3558,7 @@
       var f = this.files && this.files[0]; this.value = ""; if (!f) return;
       if (f.size > 2 * 1024 * 1024) { $("ng-mdname").textContent = STR.fileTooBig; return; }
       mdText = (await f.text()).trim();
-      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() : "";
+      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText.length).toLocaleString()) : "";
       if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
       if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
       picked = mdText ? null : picked;
@@ -4457,12 +4617,14 @@
   var COST_BASE = 300; // economy_operations/generateScene providers.claude.cost; × the same factor gamedevPlan reserves
   function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE, (window.__wwUser || {}).aiModel) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
-  function confirmCost(op, run) {
+  // «не більше N» for an AI action on a known input (paid-features quoteChars) — the server reserves the same N and never charges more
+  function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, (window.__wwUser || {}).aiModel) : 0; }
+  function confirmCost(op, run, cap) {
     if (!ME.owner && ME.role !== "admin") return alert(STR.team.noAi);
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.costTitle) + '"><h3><span class="aicost">✦</span> ' + esc(STR.costTitle) + '</h3>' +
-      '<p class="warn">' + esc((op === "cosmograph" ? STR.cosmo.costText : op === "marketing" ? MK.costText : STR.costText).replace("{op}", STR.ops[op] || op).replace("{n}", costOf(op))) + '</p>' +
+      '<p class="warn">' + esc((cap ? STR.costCap : op === "cosmograph" ? STR.cosmo.costText : op === "marketing" ? MK.costText : STR.costText).replace("{op}", STR.ops[op] || op).replace("{n}", cap ? cap.toLocaleString() : costOf(op))) + '</p>' +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.costGo + '</button></div></form>';
     document.body.appendChild(box);
     var close = function () { box.remove(); };
@@ -5340,6 +5502,18 @@
     else bindDevLock();
   }
 
+  // «Розділи гри в меню»: every section of the game in the menu's order (the overview is always there)
+  function shownList() {
+    var all = gameSectionsAll(), seen = {}, out = [];
+    NAV_GROUPS.forEach(function (g) { if (g.members) g.members.forEach(function (m) { var s = all.filter(function (x) { return x.id === m; })[0]; if (s && !seen[m]) { seen[m] = 1; out.push(s); } }); });
+    all.forEach(function (s) { if (!seen[s.id]) out.push(s); });
+    return out.filter(function (s) { return s.id !== "overview"; });
+  }
+  function guideSettingsHtml() {
+    var G = STR.guide, on = guideOn();
+    return '<div class="setrow guide-row"><span>🧭 ' + esc(on ? G.btnOn.replace("{n}", guideStage() + 1).replace("{all}", GUIDE.length) : G.btnOff) + ' — ' + esc(G.about) + '</span>' +
+      '<button class="btn" id="st-guide">' + esc(on ? G.turnOff : G.resume) + '</button></div>';
+  }
   function renderSettings() {
     var own = ((game && game.sections) || []);
     // order: the Claude Code road (once per game) → the game → the world → Космограф → danger zone
@@ -5356,15 +5530,17 @@
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
         '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
         '<p class="hint">' + STR.stExportHint + '</p>' +
-        '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p><div class="shownsecs">' + GAME.map(function (s) {
-          return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0) ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div>' +
+        '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
+          var gh = guideHidden(s.id), st = guideStageOf(s.id);
+          return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0 && !gh) ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
+            (gh ? ' <small class="muted">🧭 ' + esc(STR.guide.atStage.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))) + '</small>' : '') + '</span></label>'; }).join("") + '</div>' +
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
           : '<p class="hint">' + STR.stNoSections + '</p>') + '</section>';
     if (!inGame && mode === "world") html += '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
         '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
         '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
-        '<p class="hint">' + STR.stRestoreHint + '</p></section>';
+        '<p class="hint">' + STR.stRestoreHint + '</p></section>' + fillBoxHtml(true);
     if (!inGame && mode === "world") html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p><div class="setrow">' +
       [["community", "🌍"], ["team", "🤝"], ["market", "⚖"], ["backup", "⛁"]].map(function (x) { return '<button class="btn" data-hubtab="' + x[0] + '">' + x[1] + ' ' + esc(STR.hub.tabs[x[0]]) + '</button>'; }).join("") + '</div></section>';
     if (inGame || mode === "world") html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
@@ -5383,20 +5559,25 @@
     $("st-wexp").onclick = exportWorld;
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
     $("st-wdel").onclick = deleteWorld;
-    bindCosmoSettings();
+    bindFill(); bindCosmoSettings();
     return;
     }
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
-    if (canDev) { $("st-import").onclick = function () { confirmCost("import", function () { $("imp-file").click(); }); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); }
+    if (canDev) { $("st-import").onclick = function () { $("imp-file").click(); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); } // the import price comes once the file is known (startImport)
     else bindDevLock();
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = function () {
-        var hidden = (game.hiddenSections || []).filter(function (x) { return x !== cb.dataset.showsec; });
-        if (!cb.checked) hidden.push(cb.dataset.showsec);
-        gref().set({ hiddenSections: hidden, updatedAt: stamp() }, { merge: true });
+        var id = cb.dataset.showsec, hidden = (game.hiddenSections || []).filter(function (x) { return x !== id; }), up = { hiddenSections: hidden, updatedAt: stamp() };
+        if (!cb.checked) hidden.push(id);
+        else if (guideHidden(id)) { // ahead of the guide: it would break the step-by-step road — warn, then the guide steps aside
+          if (!confirm(STR.guide.breakQ.replace("{s}", L(sec(id))))) { cb.checked = false; return; }
+          up.guide = { on: false, stage: guideStage() };
+        }
+        gref().set(up, { merge: true });
       };
     });
+    if ($("st-guide")) $("st-guide").onclick = guideToggle;
     $("st-gexp").onclick = exportGame;
     $("st-gdel").onclick = function () { askDelete(STR.stDelGame, STR.stDelGameText, game.title || "", deleteGame); };
     [].forEach.call(document.querySelectorAll("[data-delsec]"), function (b) {
@@ -6077,7 +6258,7 @@
       var text = String(rd.result || "");
       closeLeaf();
       if (text.length > 100000) { imp = { error: STR.importTooBig }; return render(); }
-      runImport({ op: "import", markdown: text });
+      confirmCost("import", function () { runImport({ op: "import", markdown: text }); }, quoteOf("import", text.length)); // the file known: «не більше N»
     };
     rd.readAsText(file);
   }
@@ -6673,6 +6854,7 @@
   function viewClick(e) {
     if (e.target.closest("[data-wname]")) return editWorldName();
     if (e.target.closest("[data-gcover]")) return editGameCover();
+    if (e.target.closest("[data-guide]")) return guideToggle();
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     if (mechClick(e)) return;
     if (forgeClick(e)) return;
@@ -6731,6 +6913,16 @@
     if (card) openCard(card);
   }
   $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); render(); });
+  // 🔍 by the name over the menu opens the search with its status filters; closing it clears both
+  function searchOpen(on) {
+    $("searchbar").hidden = !on; $("srch-btn").setAttribute("aria-expanded", String(on));
+    if (on) { $("q").focus(); return; }
+    var had = query || Object.keys(statusFilter).some(function (k) { return statusFilter[k]; });
+    query = ""; $("q").value = ""; statusFilter = {}; renderStatuses(); if (had) render();
+  }
+  $("srch-btn").addEventListener("click", function (e) { e.stopPropagation(); searchOpen($("searchbar").hidden); });
+  $("srch-x").addEventListener("click", function () { searchOpen(false); $("srch-btn").focus(); });
+  $("q").addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); searchOpen(false); $("srch-btn").focus(); } });
   $("statuses").addEventListener("click", function (e) {
     var b = e.target.closest("[data-status]"); if (!b) return;
     statusFilter[b.dataset.status] = !statusFilter[b.dataset.status]; renderStatuses(); render();
@@ -6836,6 +7028,7 @@
   $("d-close").onclick = closeDossier;
   $("d-delete").onclick = deleteLore;
   $("e-delete").onclick = removeCard;
+  window.addEventListener("ww-prices", function () { if (world && !open && !dos) render(); }); // the live price index arrived: the ✦ prices redraw
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && open) closeLeaf();
@@ -6867,7 +7060,7 @@
   $("spine").setAttribute("aria-label", STR.sectionsAria);
 
   // ---------- boot ----------
-  $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search;
+  $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search; $("srch-btn").title = STR.search; $("srch-btn").setAttribute("aria-label", STR.search); $("srch-x").title = STR.close; $("srch-x").setAttribute("aria-label", STR.close);
   setEditMode(false); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
   $("d-save").textContent = STR.save; $("d-close").textContent = STR.close; $("d-delete").textContent = STR.cult.del;
   renderStatuses();

@@ -24,7 +24,7 @@ const {
 const { savedGithub, rememberGithub, loginOf } = require('./github-token');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { intentText } = require('./experience')._experience;
-const { featureCost, byOp } = require('../paid-features.js');
+const { featureCost, byOp, quoteChars } = require('../paid-features.js');
 const { modelFor, withFallback } = require('./claude');
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
@@ -500,7 +500,7 @@ Write ALL text in ${languageName} unless quoting the repository. Return ONLY val
 }
 
 // Split notes at headings into parts of at most IMPORT_PART_CHARS
-const IMPORT_PART_CHARS = 20000;
+const IMPORT_PART_CHARS = byOp('import').price.quote.partChars; // the registry's part size — the quote counts the same parts
 function splitMarkdown(md) {
   const parts = [];
   let cur = '';
@@ -647,7 +647,9 @@ exports.gamedevPlan = onRequest({
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free'); // the author's Claude model (Account)
-      const reserveCost = featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost, tier); // paid-features.js — gamebible.js costOf reads the same
+      // an import is quoted by its size — «не більше N»: reserved now, never charged above (the page showed the same N)
+      const cap = op === 'import' ? quoteChars(byOp('import'), markdown.length, tier) : 0;
+      const reserveCost = cap || featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost, tier); // paid-features.js — gamebible.js costOf reads the same
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -718,7 +720,7 @@ exports.gamedevPlan = onRequest({
         provider: 'claude',
         targetWords: Math.round(usage.output_tokens * 0.75),
         estimatedInputTokens: Math.ceil(prompt.length / 4),
-        reserved: reservation,
+        reserved: reservation, cap,
         logAs: 'gamedev_' + op
       });
       reservation = null;

@@ -19,6 +19,7 @@
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onRequest, admin, db, cors, claudeApiKey, requireAdmin } = require('./common');
 const { AI_MODELS, MODEL_PRICING } = require('../ai-models.js');
+const { priceIndexFor } = require('../paid-features.js');
 const { claudeText } = require('./claude');
 const { notify } = require('./admin-notice');
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
@@ -243,8 +244,13 @@ async function runWatch({ force = false, now = Date.now() } = {}) {
   if (mode !== state.mode) report.push(busy ? 'режим: щодня (є що відстежувати)' : `режим: раз на 2 тижні, наступна ${day(now + FULL_EVERY)}`);
 
   const snapshot = Object.fromEntries(models.filter((m) => tierOfId(m.id)).map((m) => [m.id, { name: m.name, created: m.created, context: m.context, maxTokens: m.maxTokens, effort: m.effort, adaptive: m.adaptive }]));
+  // the live price index (paid-features.js LIVE PRICES): every ≈ price on the pages and every reserve follows it
+  const priceIndex = Object.fromEntries(['haiku', 'sonnet', 'opus'].map((t) => [t, priceIndexFor(t, known(active[t]))]));
+  const oldIdx = state.priceIndex || {};
+  const moved = Object.keys(priceIndex).filter((t) => Math.abs((oldIdx[t] || 1) - priceIndex[t]) >= 0.001);
+  if (moved.length) report.push('індекс цін: ' + moved.map((t) => `${t} ${oldIdx[t] || 1} → ${priceIndex[t]}`).join(', ') + ' — ціни на кнопках, у тарифах і базі знань змінено');
   // the whole doc is written (no merge) so settled keys of held/upcoming/deprecated/broken really disappear
-  await ref.set(Object.assign({}, state, { active, pricing: livePricing, snapshot, held, upcoming, deprecated, broken, mode, fullAt: now,
+  await ref.set(Object.assign({}, state, { active, pricing: livePricing, priceIndex, snapshot, held, upcoming, deprecated, broken, mode, fullAt: now,
     checkedAt: admin.firestore.FieldValue.serverTimestamp(), report }, changed ? { lastChange: admin.firestore.FieldValue.serverTimestamp() } : {}));
   console.log('[modelWatch]', report.join(' · '));
   return report;
