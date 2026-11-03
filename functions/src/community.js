@@ -33,8 +33,9 @@ const LIMITS = { items: 1000, blocks: 30, block: 12000, imgs: 8, sections: 60, f
 const okDiscord = (u) => typeof u === 'string' && /^https:\/\/(discord\.gg|(www\.)?discord\.com\/invite)\/[A-Za-z0-9-]{2,40}\/?$/.test(u.trim());
 // a released game: a store page or a web build (https only)
 const RELEASE_KINDS = ['steam', 'itch', 'googleplay', 'appstore', 'epic', 'gog', 'web', 'other'];
-const okRelease = (r) => r && RELEASE_KINDS.indexOf(r.kind) >= 0 && typeof r.url === 'string' && /^https:\/\/[^\s]{4,500}$/.test(r.url.trim());
-const okImg = (u) => typeof u === 'string' && /^https:\/\/firebasestorage\.googleapis\.com\//.test(u) && u.length < 2000;
+// no double quotes, angle brackets, backslashes or whitespace: the URL is shown inside HTML attributes and CSS url('…')
+const okRelease = (r) => r && RELEASE_KINDS.indexOf(r.kind) >= 0 && typeof r.url === 'string' && /^https:\/\/[^\s"<>\\`]{4,500}$/.test(r.url.trim());
+const okImg = (u) => typeof u === 'string' && /^https:\/\/firebasestorage\.googleapis\.com\/[^\s"<>\\`]+$/.test(u) && u.length < 2000;
 
 function cleanItem(it, secIds) {
   const sec = str(it && it.sec, 80);
@@ -235,4 +236,4 @@ exports.communityRotate = onSchedule({ schedule: 'every 60 minutes', timeoutSeco
   console.log('[community] home rebuilt', r);
 });
 
-exports._community = { cleanItem, okImg, okDiscord, rebuildHome };
+exports._community = { cleanItem, okImg, okDiscord, okRelease, rebuildHome };

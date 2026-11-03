@@ -11,9 +11,9 @@ function doc(p) {
 }
 const db = { getAll: async (...refs) => refs.map((r) => snap(r.path)) };
 const stub = (rel, exports) => { const f = require.resolve(path.join(__dirname, '../functions/src', rel)); require.cache[f] = { id: f, filename: f, loaded: true, exports }; };
-stub('common.js', { onRequest: (o, h) => h, admin: { firestore: { FieldValue: {} } }, db, cors: () => {}, charge: () => {}, getBalance: () => ({}), reserve: () => {}, refund: () => {}, getPlanBudget: () => ({}), claudeApiKey: { value: () => '' } });
+stub('common.js', { onRequest: (o, h) => h, admin: { firestore: { FieldValue: { serverTimestamp: () => 'ts' } } }, db, cors: () => {}, charge: () => {}, getBalance: () => ({}), reserve: () => {}, refund: () => {}, getPlanBudget: () => ({}), claudeApiKey: { value: () => '' } });
 stub('claude.js', { modelFor: () => ({}), claudeText: () => ({}) });
-const { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken } = require('../functions/src/marketing.js')._marketing;
+const { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken, connect, tgCode } = require('../functions/src/marketing.js')._marketing;
 
 let fails = 0;
 const check = (got, want, msg) => { if (msg === undefined) { msg = want; want = true; got = !!got; } const ok = got === want; console.log((ok ? 'PASS ' : 'FAIL ') + msg + (ok ? '' : ` (got ${got}, want ${want})`)); if (!ok) fails++; };
@@ -43,6 +43,23 @@ const check = (got, want, msg) => { if (msg === undefined) { msg = want; want = 
   check(cleanDraft({ text: 'hi', poll: { question: 'Q', options: ['a', 'b'] } }, 'telegram', false).poll, undefined, 'no poll unless asked');
   check(cleanDraft({ title: 'Devlog #3', text: 'body' }, 'reddit', false).title, 'Devlog #3', 'reddit keeps the title');
   check(botToken(), '', 'without a real bot token Telegram counts as not configured');
+
+  // Telegram: the bot being an admin is not enough — the channel description must carry this game's code
+  process.env.TELEGRAM_BOT_TOKEN = '123456:' + 'A'.repeat(35);
+  let desc = '';
+  global.fetch = async (url) => { const m = url.split('/').pop(), r = { getMe: { id: 7, username: 'WhiteWriteServiceBot' },
+    getChat: { id: -1001, type: 'channel', title: 'Victim', username: 'victim', description: desc }, getChatMember: { status: 'administrator', can_post_messages: true } }[m];
+    return { status: 200, json: async () => ({ ok: true, result: r }) }; };
+  const saved = {}, chRef = { collection: () => ({ doc: (id) => ({ set: async (v) => { saved[id] = v; } }) }) };
+  let err = null; try { await connect(chRef, 'w1__g1', { platform: 'telegram', chat: '@victim' }); } catch (e) { err = e; }
+  check(err && err.status === 409 && err.extra.verifyCode === tgCode('w1__g1', -1001) && !Object.keys(saved).length, 'a channel without the code in its description is not connected (someone else’s channel)');
+  check(tgCode('w1__g1', -1001) !== tgCode('w2__g1', -1001) && tgCode('w1__g1', -1001) === tgCode('w1__g1', -1001), 'the code is stable per game + chat and differs between games');
+  desc = 'My devlog · ' + tgCode('w2__g9', -1001);
+  err = null; try { await connect(chRef, 'w1__g1', { platform: 'telegram', chat: '@victim' }); } catch (e) { err = e; }
+  check(err && err.status === 409, "another game's code does not connect this game");
+  desc = 'My devlog · ' + tgCode('w1__g1', -1001);
+  const ok = await connect(chRef, 'w1__g1', { platform: 'telegram', chat: '@victim' });
+  check(ok.channelId === 'tg_m1001' && saved.tg_m1001 && saved.tg_m1001.chatId === -1001, 'with the code in the description the channel connects');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exitCode = fails ? 1 : 0;
 })();

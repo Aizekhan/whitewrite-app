@@ -113,7 +113,9 @@ service cloud.firestore {
 
       match /entities/{entityId} {
         allow read: if isAuthenticated() && readKind(worldId, resource.data.kind);
-        allow create, update: if isAuthenticated() && editKind(worldId, request.resource.data.kind) && worldOpen(worldId);
+        allow create: if isAuthenticated() && editKind(worldId, request.resource.data.kind) && worldOpen(worldId);
+        // the kind it has now too: a member may not pull another kind's entity into theirs
+        allow update: if isAuthenticated() && editKind(worldId, resource.data.kind) && editKind(worldId, request.resource.data.kind) && worldOpen(worldId);
         allow delete: if isAuthenticated() && editKind(worldId, resource.data.kind) && worldOpen(worldId);
       }
 
@@ -133,12 +135,19 @@ service cloud.firestore {
       match /games/{gameId} {
         allow read: if isAuthenticated() && anyAccess(worldId);
         allow create: if false; // functions/src/projects.js createGame
-        allow update, delete: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId);
+        // .repo / .ingestKeys — server only (gamedev.js repoConnect, experience.js keys); .launch builds the PowerShell lines
+        // the OWNER pastes on their PC (gamebible.js «Запуск Claude Code») — so only the owner changes it
+        allow update: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId) &&
+                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys']) &&
+                         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId));
+        allow delete: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId);
       }
       // cards: by their own section (a member with chosen sections queries one section at a time)
       match /games/{gameId}/cards/{cardId} {
         allow read: if isAuthenticated() && readSec(worldId, resource.data.section);
-        allow create, update: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
+        allow create: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
+        // the section it is in now too: a member may not pull another section's card into theirs
+        allow update: if isAuthenticated() && editSec(worldId, resource.data.section) && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
         allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && worldOpen(worldId);
       }
       match /games/{gameId}/{sub}/{docId} {

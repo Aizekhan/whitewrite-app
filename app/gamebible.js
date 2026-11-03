@@ -760,6 +760,8 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  // href from data a team member can write: only http(s) / blob — never javascript:
+  var escUrl = function (u) { u = String(u == null ? "" : u).trim(); return esc(/^(https?:|blob:)/i.test(u) ? u : "#"); };
   var newId = function (p) { return p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
   var stamp = function () { return firebase.firestore.FieldValue.serverTimestamp(); };
   var wref = function () { return db.collection("worlds").doc(worldId); };
@@ -1829,8 +1831,8 @@
       '<button class="btn" id="ln-add">' + STR.dos.lifeAdd + '</button></div></div>';
   }
   function dosFileRow(f) {
-    return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
-      '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
+    return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
+      '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
       (isAsset(f) ? licChip(f, dos.files, "data-dlic") : '') +
       (is3D(f) ? '<button class="btn" data-dview3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
       (isImage(f) ? '<button class="btn" data-dframe="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
@@ -3877,7 +3879,7 @@
           (f.duration ? ' · ' + fmtDur(f.duration) : '') + ' · ' + fileSize(f.size || 0) + '</span>' +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("")
       : type === "image"
-      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open, f.id) +
+      ? '<div class="fimgs">' + files.map(function (f) { return '<div class="fimg"><a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name) + '" src="' + esc(f.url) + '"></a>' + styleMark(f.url, open, f.id) +
           (open.section === "refs" ? '<span class="fext">' + esc(extOf(f.name)) + '</span>' : '') +
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
@@ -4014,7 +4016,7 @@
       '<h3>' + esc(f.name) + '</h3><p>' + esc(STR.lic.what[l.id]) + '</p>' +
       '<p class="muted">' + esc(STR.lic.src[l.source] ? STR.lic.src[l.source].replace("{f}", l.from || "") : STR.lic.src.none) + '</p>' +
       (l.text ? '<div class="lic-text"><span class="muted">' + STR.lic.found + '</span><q>' + esc(l.text) + '</q></div>' : '') +
-      (l.by || l.url ? '<p>' + esc(l.by || "") + (l.url ? ' · <a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.url) + '</a>' : '') + '</p>' : '') +
+      (l.by || l.url ? '<p>' + esc(l.by || "") + (l.url ? ' · <a href="' + escUrl(l.url) + '" target="_blank" rel="noopener">' + esc(l.url) + '</a>' : '') + '</p>' : '') +
       (canWrite ? '<label class="field"><span>' + STR.lic.pick + '</span><select id="lic-id">' + Object.keys(LIC_COLOR).map(function (k) {
           return '<option value="' + k + '"' + (k === l.id ? ' selected' : '') + '>' + ({ green: "🟢 ", yellow: "🟡 ", red: "🔴 ", blue: "🔵 " })[LIC_COLOR[k]] + esc(STR.lic.names[k]) + '</option>'; }).join("") + '</select></label>' +
         '<label class="field"><span>' + STR.lic.by + '</span><input id="lic-by" value="' + esc(l.by || "") + '" placeholder="' + esc(STR.lic.byPh) + '"></label>' +
@@ -4067,8 +4069,8 @@
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
   function fileRow(f) {
-      return '<div class="file">' + (isImage(f) ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
-        '<a class="fname" href="' + esc(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
+      return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
+        '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
         (isAsset(f) ? licChip(f, open.files, "data-lic") : '') + (isImage(f) ? styleMark(f.url, open, f.id) : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (isImage(f) ? (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') : '') +
@@ -4656,8 +4658,8 @@
   function fzRevsHtml(o, stageId, isChar) {
     var f = o.forge || {}, revs = FG.revsOf(f, stageId), ap = FG.approvedRev(f, stageId), by = function (id) { return (o.files || []).filter(function (x) { return x.id === id; })[0]; };
     var fileHtml = function (x) {
-      return x ? '<span class="fz-file">' + (isImage(x) ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener"><img alt="" src="' + esc(x.url) + '"></a>' : '<span class="ico">' + (is3D(x) ? '🧊' : '📦') + '</span>') +
-        '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" download="' + esc(x.name) + '">' + esc(x.name) + '</a>' + polyInfo(x) +
+      return x ? '<span class="fz-file">' + (isImage(x) ? '<a href="' + escUrl(x.url) + '" target="_blank" rel="noopener"><img alt="" src="' + esc(x.url) + '"></a>' : '<span class="ico">' + (is3D(x) ? '🧊' : '📦') + '</span>') +
+        '<a href="' + escUrl(x.url) + '" target="_blank" rel="noopener" download="' + esc(x.name) + '">' + esc(x.name) + '</a>' + polyInfo(x) +
         (is3D(x) ? ' <button class="btn mini" data-fzv3d="' + esc(o.key) + ':' + esc(x.id) + '">' + STR.v3d.open + '</button>' : '') + '</span>' : '';
     };
     var html = '<h4 class="fz-h">' + FZ.versions + '</h4>' + (canWrite ? '<div class="row"><label class="btn"><input type="file" multiple hidden data-fzup="' + esc(o.key) + ':' + stageId + '">' + FZ.upload + '</label>' +
@@ -5003,7 +5005,7 @@
       prep: "1. Журнал розробки в CLAUDE.md", prepHint: "Встав цей блок у CLAUDE.md у теці гри — тоді Claude Code звітуватиме після кожної сесії, і буде з чого писати пости.",
       confirm: "Я вставив блок у CLAUDE.md", confirmed: "✓ Блок вставлено {d}",
       channels: "2. Канали", noChannels: "Каналів ще немає.", disconnect: "Відключити", connect: "Підключити",
-      tgOff: "Telegram-бот платформи ще не налаштований — поки можна копіювати текст.", tgHow: "Додай бота @{b} адміністратором свого каналу з правом «Публікувати повідомлення», потім впиши @назву каналу.",
+      tgOff: "Telegram-бот платформи ще не налаштований — поки можна копіювати текст.", tgHow: "Додай бота @{b} адміністратором свого каналу з правом «Публікувати повідомлення», потім впиши @назву каналу. Один раз сервіс попросить додати в опис каналу код-підтвердження — щоб ніхто інший не підключив твій канал.",
       tgPh: "@мій_канал", dcPh: "https://discord.com/api/webhooks/…", dcHow: "Discord: Налаштування каналу → Інтеграції → Вебхуки → Скопіювати URL.",
       maInst: "сервер, напр. mastodon.social", maTok: "токен доступу", maHow: "Mastodon: Налаштування → Розробка → Новий застосунок (право write:statuses) → токен.",
       bsHandle: "handle, напр. studio.bsky.social", bsPass: "пароль застосунку", bsHow: "Bluesky: Налаштування → Конфіденційність і безпека → Паролі застосунків. Основний пароль не потрібен.",
@@ -5023,7 +5025,7 @@
       prep: "1. Development log in CLAUDE.md", prepHint: "Paste this block into CLAUDE.md in the game's folder — then Claude Code reports after every session, and there is something to post about.",
       confirm: "I pasted the block into CLAUDE.md", confirmed: "✓ Block pasted {d}",
       channels: "2. Channels", noChannels: "No channels yet.", disconnect: "Disconnect", connect: "Connect",
-      tgOff: "The platform's Telegram bot is not set up yet — for now copy the text.", tgHow: "Add the bot @{b} as an admin of your channel with “Post messages”, then enter the channel's @name.",
+      tgOff: "The platform's Telegram bot is not set up yet — for now copy the text.", tgHow: "Add the bot @{b} as an admin of your channel with “Post messages”, then enter the channel's @name. Once, the service asks you to put a confirmation code in the channel description — so nobody else can connect your channel.",
       tgPh: "@my_channel", dcPh: "https://discord.com/api/webhooks/…", dcHow: "Discord: Channel settings → Integrations → Webhooks → Copy URL.",
       maInst: "server, e.g. mastodon.social", maTok: "access token", maHow: "Mastodon: Preferences → Development → New application (write:statuses) → token.",
       bsHandle: "handle, e.g. studio.bsky.social", bsPass: "app password", bsHow: "Bluesky: Settings → Privacy and security → App passwords. Your main password is not needed.",
@@ -5087,7 +5089,7 @@
       row.push(btn("reject", MK.reject));
     }
     if (p.status === "scheduled") row.push(btn("cancel", MK.cancel));
-    if (p.status === "published" && p.url) row.push('<a class="btn" target="_blank" rel="noopener" href="' + esc(p.url) + '">' + MK.open + '</a>');
+    if (p.status === "published" && p.url) row.push('<a class="btn" target="_blank" rel="noopener" href="' + escUrl(p.url) + '">' + MK.open + '</a>');
     if (["publishing", "scheduled", "published"].indexOf(p.status) < 0) row.push(btn("delete", MK.del, "danger"));
     return h + '<div class="row">' + row.join("") + '</div></div>';
   }
@@ -5340,7 +5342,7 @@
   }
   function commPlan(ts) {
     var C = STR.comm, n = ts.filter(function (t) { return t.gameId && commWillPublish(t); }).length;
-    var drop = ts.filter(function (t) { return commPubs[t.pubId] && !commWillPublish(t); }).map(function (t) { return "«" + (t.title || "…") + "»"; });
+    var drop = ts.filter(function (t) { return commPubs[t.pubId] && !commWillPublish(t); }).map(function (t) { return "«" + esc(t.title || "…") + "»"; });
     var s = n ? (commSel.w ? C.planBoth : C.planGames).replace("{n}", n) : commSel.w ? C.planWorld : C.planNone;
     return s + (drop.length ? " " + C.planRemove.replace("{list}", drop.join(", ")) : "");
   }
@@ -5624,8 +5626,11 @@
 
   // ---------- the game's GitHub repository: connect, then «Звірити з репо» on demand (the proposal reuses the import view) ----------
   // «Запуск Claude Code»: per game, games/{g}.launch { dir, model, skip } → the PowerShell lines to start a session in its folder
+  // inside PowerShell double quotes $ and ` run code — the folder keeps neither (nor quotes / line breaks); the model is one of ours
+  var psDir = function (d) { return String(d || "").replace(/["$`\r\n]/g, ""); };
+  var psModel = function (m) { return ["opus", "sonnet"].indexOf(m) >= 0 ? m : ""; };
   function launchText(l) {
-    return 'cd "' + (l.dir || STR.launch.dirPh) + '"\nclaude' + (l.model ? ' --model ' + l.model : '') + (l.skip === false ? '' : ' --dangerously-skip-permissions');
+    return 'cd "' + (psDir(l.dir) || STR.launch.dirPh) + '"\nclaude' + (psModel(l.model) ? ' --model ' + psModel(l.model) : '') + (l.skip === false ? '' : ' --dangerously-skip-permissions');
   }
   function launchNow() { return { dir: $("ln-dir").value.trim(), model: $("ln-model").value, skip: $("ln-skip").checked }; }
   function launchHtml() {
@@ -6165,7 +6170,7 @@
   // its scope is the folder), the activity-log block appended to CLAUDE.md unless it is there, then the launch lines
   var lnAllMsg = "";
   function allInOne(l, key) {
-    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log"), dir = l.dir.replace(/"/g, "");
+    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log"), dir = psDir(l.dir);
     return "# WhiteWrite · " + String(game.title || "").replace(/[\r\n]+/g, " ") + "\n" +
       'New-Item -ItemType Directory -Force "' + dir + '" | Out-Null\n' +
       'cd "' + dir + '"\n' +

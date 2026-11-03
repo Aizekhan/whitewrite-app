@@ -583,6 +583,7 @@ exports.gamedevPlan = onRequest({
       }
 
       const body = req.body || {};
+      const caller = uid; // GitHub connect / disconnect: always the real caller — never the owner's saved token through payerFor
       uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
       const op = oneOf(body.op, ['import', 'draft', 'concepts', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
@@ -604,7 +605,7 @@ exports.gamedevPlan = onRequest({
         return res.status(403).json({ error: 'Біблія гри доступна на тарифі Worldbuilder', code: 'PLAN_REQUIRED', plan: userPlan });
       }
       if (op === 'repoConnect' || op === 'repoDisconnect') {
-        try { return res.status(200).json(await repoLink(op, uid, worldId, gameId, body)); }
+        try { return res.status(200).json(await repoLink(op, caller, worldId, gameId, body)); }
         catch (e) { if (!e.httpStatus) throw e; return res.status(e.httpStatus).json({ error: e.message }); }
       }
       if (userData.subscriptionStatus !== 'active') {

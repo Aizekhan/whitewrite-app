@@ -813,7 +813,7 @@
           ["p", "Скопіюй блок і встав у CLAUDE.md у теці гри, потім натисни «Я вставив блок у CLAUDE.md». Відтоді Claude Code звітує після кожної сесії в «Журнал розробки». Пости пишуться лише з записів, яким ти поставив приватність «Для маркетингу»; внутрішнє, конфіденційне, спойлери й виключене ШІ не бачить."],
           ["h", "2. Канали"],
           ["ul", [
-            "<b>Telegram</b> — додай бота платформи адміністратором свого каналу з правом «Публікувати повідомлення», впиши @назву каналу й натисни «Підключити». Сервіс перевіряє, що бот справді може публікувати.",
+            "<b>Telegram</b> — додай бота платформи адміністратором свого каналу з правом «Публікувати повідомлення», впиши @назву каналу й натисни «Підключити». Сервіс перевіряє, що бот справді може публікувати, і першого разу просить додати в опис каналу код-підтвердження (<code>ww-…</code>) — так ніхто інший не підключить твій канал. Після підключення код можна прибрати з опису.",
             "<b>Discord</b> — посилання вебхука (Налаштування каналу → Інтеграції → Вебхуки).",
             "<b>Mastodon</b> — сервер і токен застосунку з правом write:statuses.",
             "<b>Bluesky</b> — handle і пароль застосунку (не основний пароль).",
@@ -1993,7 +1993,7 @@
           ["p", "Copy the block into CLAUDE.md in the game's folder, then press “I pasted the block into CLAUDE.md”. From then on Claude Code reports after every session to the “Development log”. Posts are written only from entries you set to “For marketing”; AI never sees internal, confidential, spoiler or excluded ones."],
           ["h", "2. Channels"],
           ["ul", [
-            "<b>Telegram</b> — add the platform bot as an admin of your channel with “Post messages”, enter the channel's @name and press “Connect”. The service checks the bot can really post.",
+            "<b>Telegram</b> — add the platform bot as an admin of your channel with “Post messages”, enter the channel's @name and press “Connect”. The service checks the bot can really post and, the first time, asks you to put a confirmation code (<code>ww-…</code>) in the channel description — so nobody else can connect your channel. Once connected, you can remove the code.",
             "<b>Discord</b> — a webhook link (Channel settings → Integrations → Webhooks).",
             "<b>Mastodon</b> — the server and an app token with write:statuses.",
             "<b>Bluesky</b> — handle and an app password (not your main password).",

@@ -42,6 +42,8 @@ async function tg(method, body) {
   if (!j.ok) throw fail(400, 'Telegram: ' + (j.description || 'HTTP ' + r.status));
   return j.result;
 }
+// «this channel is mine»: an HMAC of game + chat keyed by the bot token — the same code on every try, unguessable for others
+const tgCode = (key, chatId) => 'ww-' + require('crypto').createHmac('sha256', botToken()).update(key + ':' + chatId).digest('hex').slice(0, 10);
 let botMe = null;
 async function bot() { if (!botToken()) return null; if (!botMe) botMe = await tg('getMe', {}).catch(() => null); return botMe; }
 
@@ -92,6 +94,12 @@ async function connect(gref, key, b) {
     const m = await tg('getChatMember', { chat_id: c.id, user_id: me.id });
     const can = c.type === 'channel' ? m.status === 'administrator' && !!m.can_post_messages : ['administrator', 'member'].includes(m.status);
     if (!can) throw fail(400, `Додай @${me.username} адміністратором каналу з правом «Публікувати повідомлення» і спробуй ще раз`);
+    // the bot being there proves nothing about WHO connects: another author could name a channel they don't run.
+    // Proof: a code (stable for this game + chat, nothing stored) in the channel's description — only its admins can write it.
+    const code = tgCode(key, c.id);
+    if (!String(c.description || '').includes(code)) {
+      throw fail(409, `Підтверди, що канал твій: додай в опис каналу код ${code} і натисни «Підключити» ще раз. Після підключення код можна прибрати.`, { code: 'TG_VERIFY', verifyCode: code });
+    }
     const id = 'tg_' + String(c.id).replace('-', 'm');
     await col.doc(id).set({ platform, chatId: c.id, title: c.title || c.username || String(c.id), username: c.username || '', type: c.type, ok: true, checkedAt: ts(), createdAt: ts() }, { merge: true });
     return { channelId: id };
@@ -320,4 +328,4 @@ exports.marketingPublisher = onSchedule({ schedule: 'every 5 minutes', secrets: 
   }
 });
 
-exports._marketing = { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken }; // tests only
+exports._marketing = { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken, connect, tgCode }; // tests only

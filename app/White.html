@@ -1692,11 +1692,16 @@ body.at-home .back-fab{ display:none; }
   function fillNarr(){ return fillHome(); }
 
   // XSS protection: escape HTML entities in user input
+  // quotes too: the result also goes into "…" attributes (href/src/style)
   function escapeHtml(text) {
     if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return String(text).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  }
+  // a link / picture from other users' data: plain https only; ' ( ) (allowed in Storage file names) are %-encoded
+  // so nothing can leave the attribute or a CSS url('…')
+  function safeUrl(u) {
+    u = String(u || "").trim();
+    return /^https:\/\/[^\s"<>\\`]+$/.test(u) ? u.replace(/['()]/g, function (c) { return "%" + c.charCodeAt(0).toString(16).toUpperCase(); }) : "";
   }
 
   /* ---- Спільнота (functions/src/community.js): public showcases of worlds and games, ♥, reports ---- */
@@ -1750,7 +1755,7 @@ body.at-home .back-fab{ display:none; }
       return fetch(COMM_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(body) });
     }).then(function (r) { return r.json().catch(function () { return { error: "HTTP " + r.status }; }).then(function (d) { if (!r.ok || d.error) throw new Error(d.error || "HTTP " + r.status); return d; }); });
   }
-  function cmCover(url) { return url ? ' style="background-image:url(\'' + escapeHtml(url) + '\')"' : ''; }
+  function cmCover(url) { url = safeUrl(url); return url ?' style="background-image:url(\'' + escapeHtml(url) + '\')"' : ''; }
   // 👤 followers · ★ rating (the community's ♥) — on showcase cards, world cards and the world hub
   var WW_PERSON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.2"/><path d="M3.8 21.5c0-4.7 3.7-8 8.2-8s8.2 3.3 8.2 8z"/></svg>';
   var WW_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>';
@@ -1795,7 +1800,7 @@ body.at-home .back-fab{ display:none; }
         (CM.list === null ? '<p class="vhead__s">' + cmT("Завантаження…", "Loading…") + '</p>'
           : rel.length ? '<div class="grid grid--mk">' + rel.map(function (p) {
               return '<div class="cm--rel">' + cmCard(p).replace(/^<button class="cm"/, '<button class="cm cm--in"') +
-                '<span class="cm-rel">' + p.releases.map(function (r) { return '<a href="' + escapeHtml(r.url) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(REL_NAMES[r.kind] || "↗") + '</a>'; }).join("") + '</span></div>'; }).join("") + '</div>'
+                '<span class="cm-rel">' + p.releases.filter(function (r) { return safeUrl(r.url); }).map(function (r) { return '<a href="' + escapeHtml(safeUrl(r.url)) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(REL_NAMES[r.kind] || "↗") + '</a>'; }).join("") + '</span></div>'; }).join("") + '</div>'
           : '<p class="vhead__s">' + cmT("Поки жодна гра не позначила реліз. Твоя може бути першою!", "No game has marked a release yet. Yours can be the first!") + '</p>') + '</div>';
       bindMarket();
       var kg = views.market.querySelector("[data-kbgames]"); if (kg) kg.onclick = function (e) { e.preventDefault(); fillKb(); showView("kb"); openArticle("games-shelf"); };
@@ -1834,7 +1839,7 @@ body.at-home .back-fab{ display:none; }
       (mine ? wwStats(p.followers, p.likes)
         : '<button class="cm-like cm-follow' + (CM.following ? ' is-on' : '') + '" data-cmfollow aria-pressed="' + CM.following + '">' + WW_PERSON + (CM.following ? cmT("Стежу", "Following") : cmT("Стежити", "Follow")) + ' · ' + (p.followers || 0) + '</button>' +
           '<button class="cm-like' + (CM.liked ? ' is-on' : '') + '" data-cmlike aria-pressed="' + CM.liked + '">♥ ' + (p.likes || 0) + '</button>') +
-      (p.discord ? '<a class="cm-discord" href="' + escapeHtml(p.discord) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
+      (safeUrl(p.discord) ? '<a class="cm-discord" href="' + escapeHtml(safeUrl(p.discord)) + '" target="_blank" rel="noopener nofollow">' + cmT("Приєднатися в Discord", "Join on Discord") + '</a>' : '') +
       (mine ? '' : '<button class="cm-chip" data-cmreport>' + cmT("Поскаржитися", "Report") + '</button>') +
       (CM.admin ? '<button class="cm-chip" data-cmhide>' + (p.hidden ? cmT("Показати знову", "Show again") : cmT("Приховати (модерація)", "Hide (moderation)")) + '</button>' +
         '<span class="cm-note">' + cmT("Скарг: ", "Reports: ") + (p.reports || 0) + '</span>' : '');
@@ -1849,7 +1854,7 @@ body.at-home .back-fab{ display:none; }
     var body = !sec ? '' : (CM.sec === "laws" && p.rules && p.rules.length ? '<ol class="cm-laws">' + p.rules.map(function (r) { return '<li>' + escapeHtml(r) + '</li>'; }).join("") + '</ol>' : '') +
       groups.map(function (g) {
         return (g ? '<h3 class="cm-group">' + escapeHtml(g) + '</h3>' : '') + '<div class="cm-items">' + items.filter(function (it) { return it.group === g; }).map(function (it) {
-          return '<article class="cm-item">' + (it.imgs && it.imgs.length ? '<div class="cm-item__imgs">' + it.imgs.map(function (u) {
+          return '<article class="cm-item">' + (it.imgs && it.imgs.length ? '<div class="cm-item__imgs">' + it.imgs.filter(safeUrl).map(function (u) {
               return '<a href="' + escapeHtml(u) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + escapeHtml(it.title) + '" src="' + escapeHtml(u) + '"></a>'; }).join("") + '</div>' : '') +
             '<h4>' + escapeHtml(it.title) + '</h4>' + (it.blocks || []).map(function (b) {
               return '<div class="cm-item__b">' + (b.l ? '<b>' + escapeHtml(b.l) + '</b>' : '') + '<p>' + escapeHtml(b.t) + '</p></div>'; }).join("") + '</article>';
@@ -1884,7 +1889,7 @@ body.at-home .back-fab{ display:none; }
     var posts = (CM.collab || []).concat(teams).filter(function (x) {
       return (CM.cbType === "all" || x.type === CM.cbType) && (!CM.cbRole || (x.roles || []).indexOf(CM.cbRole) >= 0);
     }).sort(function (a, b) { return ms(b.updatedAt) - ms(a.updatedAt); });
-    var link = function (c) { return /^https:\/\//.test(c) ? '<a href="' + escapeHtml(c) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(c.replace(/^https:\/\//, "")) + '</a>' : escapeHtml(c); };
+    var link = function (c) { return safeUrl(c) ?'<a href="' + escapeHtml(c) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(c.replace(/^https:\/\//, "")) + '</a>' : escapeHtml(c); };
     var card = function (x) {
       var mine = u && x.owner === u.uid, pub = x.pub || (x.pubId && (CM.list || []).filter(function (p) { return p.id === x.pubId; })[0]);
       return '<article class="cb">' + (x.pub ? '<div class="cb__cover"' + cmCover(x.pub.cover) + '></div>' : '') +
