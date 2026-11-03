@@ -2230,6 +2230,8 @@
       one: "✦", oneTip: "Озвучити репліку через Google", up: "⤒", upTip: "Завантажити записаний файл", rm: "Прибрати з репліки", st: { tts: "згенеровано", rec: "записано" },
       confirm: "Озвучити {n} реплік(и) через Google TTS — ≈ {t} токенів (за символи тексту). Продовжити?", busy: "Озвучую…", done: "Озвучено реплік: {n} · витрачено {t}", needGoogle: "У того, хто говорить, не вибрано голос Google.",
       needText: "Порожня репліка", saveFirst: "Спершу збережи діалог.", sample: "Привіт! Так звучить мій голос.", noBrowser: "Браузер не вміє говорити.",
+      cardTitle: "🎙 Голос", cardHint: "Діє в усіх діалогах цієї гри, де він говорить. Той самий вибір — у діалозі → «🎙 Озвучка».",
+      stop: "■ Стоп", gender: "Стать", gAll: "усі", gF: "жіночі", gM: "чоловічі", gN: "нейтральні", gNames: { FEMALE: "жіночий", MALE: "чоловічий", NEUTRAL: "нейтральний" }, cached: "вже прослухано — без токенів",
       scriptAll: "⤓ Сценарій озвучки (CSV)", byKeys: "⤒ Озвучка за ключами", byKeysTip: "Файли з назвою = ключ локалізації репліки (напр. dlg.tavern.n3.wav) — кожен ляже в Аудіотеку й у свою репліку", byKeysDone: "Привʼязано файлів: {n}; без репліки: {m}" },
     en: { box: "🎙 Voice-over", hint: "A voice for everyone who speaks. A try with the browser voice is free; Google voices the lines into files that go into the Audio library (“Voice”) and the line's slot.",
       service: "Service", voice: "Voice", lang: "Language", rate: "Speed", pitch: "Pitch", try: "▶ Try", tryAi: "✦ Try", browser: "Browser (free, a try only)", google: "Google Text-to-Speech", eleven: "ElevenLabs — soon",
@@ -2238,10 +2240,13 @@
       one: "✦", oneTip: "Voice the line with Google", up: "⤒", upTip: "Upload a recorded file", rm: "Remove from the line", st: { tts: "generated", rec: "recorded" },
       confirm: "Voice {n} line(s) with Google TTS — ≈ {t} tokens (by the characters of text). Go on?", busy: "Voicing…", done: "Lines voiced: {n} · spent {t}", needGoogle: "The speaker has no Google voice chosen.",
       needText: "An empty line", saveFirst: "Save the dialogue first.", sample: "Hello! This is how my voice sounds.", noBrowser: "This browser cannot speak.",
+      cardTitle: "🎙 Voice", cardHint: "Used in every dialogue of this game where they speak. The same choice — in a dialogue → “🎙 Voice-over”.",
+      stop: "■ Stop", gender: "Gender", gAll: "all", gF: "female", gM: "male", gN: "neutral", gNames: { FEMALE: "female", MALE: "male", NEUTRAL: "neutral" }, cached: "already heard — no tokens",
       scriptAll: "⤓ Voice-over script (CSV)", byKeys: "⤒ Voice files by keys", byKeysTip: "Files named after a line's localisation key (e.g. dlg.tavern.n3.wav) — each goes into the library and its line", byKeysDone: "Files linked: {n}; without a line: {m}" }
   }[LANG === "en" ? "en" : "uk"];
   var VO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/voice", VO_LANGS = ["uk-UA", "en-US", "en-GB", "pl-PL", "de-DE", "fr-FR", "es-ES", "it-IT", "pt-BR", "ja-JP", "ko-KR", "zh-CN"];
-  var gVoices = {}, voMsg = ""; // Google voices by language (loaded on demand)
+  var gVoices = {}, voMsg = "", voPlay = "", voReq = 0, voHeard = {}; // Google voices by language (loaded on demand); the speaker whose try plays; paid previews by voice settings
+  function voStop() { voReq++; if (window.speechSynthesis) speechSynthesis.cancel(); playSound(null); voPlay = ""; } // a new choice or a new try silences the old one
   async function voCall(body) {
     var token = await firebase.auth().currentUser.getIdToken();
     var r = await fetch(VO_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
@@ -2255,32 +2260,52 @@
   function lineKey(d, n) { return n.locKey || "dlg." + (slugify(d.title) || "talk") + "." + n.id; }
   function speakersOf(d) { var l = []; d.nodes.forEach(function (n) { if (n.speaker && l.indexOf(n.speaker) < 0) l.push(n.speaker); }); return l; }
   function browserVoices(lang) { return window.speechSynthesis ? speechSynthesis.getVoices().filter(function (v) { return v.lang.replace("_", "-").indexOf(lang.split("-")[0]) === 0; }) : []; }
+  function voKey(c) { return [c.voice, c.lang, c.rate, c.pitch].join("|"); }
   function sayBrowser(text, cast) {
     if (!window.speechSynthesis) return alert(VO.noBrowser);
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text), vs = browserVoices(cast.lang);
     u.lang = cast.lang; u.voice = vs.filter(function (v) { return v.name === cast.voice; })[0] || vs[0] || null;
     u.rate = Math.min(2, Math.max(0.5, +cast.rate || 1)); u.pitch = Math.min(2, Math.max(0, 1 + (+cast.pitch || 0) / 10));
+    u.onend = function () { if (voPlay) { voPlay = ""; voRerender(); } };
     speechSynthesis.speak(u);
   }
   function voCastHtml(d) {
     var who = speakersOf(d), PF = window.__PAID_FEATURES;
     if (!who.length) return qbox(VO.box, '<p class="muted">' + VO.noSpeakers + '</p>');
-    return qbox(VO.box, '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(function (w) {
+    return qbox(VO.box, '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(voRowHtml).join("") + '<div class="row"><button type="button" class="btn" data-vall="1">' + VO.all + '</button><button type="button" class="btn" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>');
+  }
+  // 🎙 the voice of a character / enemy card: the same games/{g}.voices[speaker] the dialogues use (entity id, or "c:<cardId>" for the game's own cards)
+  function voCardKey(c) { return c.src === "canon" ? c.id : "c:" + c.id; }
+  function voCardHtml(key) {
+    return '<div class="field" id="vo-card" data-key="' + esc(key) + '"><label>' + VO.cardTitle + ' <span class="hint">' + esc(VO.cardHint) + '</span></label>' + voRowHtml(key) +
+      '<span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>';
+  }
+  function voRerender() {
+    if (qed && $("q-ed")) renderQEditor();
+    var vc = $("vo-card"); if (vc) vc.outerHTML = voCardHtml(vc.dataset.key);
+  }
+  function voRowHtml(w) {
+    var PF = window.__PAID_FEATURES;
+    {
       var c = castOf(w), opts, gl = gVoices[c.lang];
-      if (c.service === "google") opts = gl === "…" ? [["", VO.loading]] : (gl || []).map(function (v) { return [v.name, v.name + (v.gender ? " · " + v.gender.toLowerCase() : "") + " · ≈ " + v.price]; });
+      if (c.service === "google") opts = gl === "…" ? [["", VO.loading]] : (gl || []).filter(function (v) { return !c.gender || v.gender === c.gender || v.name === c.voice; })
+        .map(function (v) { return [v.name, v.name + (v.gender ? " · " + (VO.gNames[v.gender] || v.gender.toLowerCase()) : "") + " · ≈ " + v.price]; });
       else opts = browserVoices(c.lang).map(function (v) { return [v.name, v.name]; });
       var sel = function (k, pairs, cur) { return '<select data-vcast="' + esc(w) + '" data-k="' + k + '" aria-label="' + esc(VO[k] + " · " + whoName(w)) + '">' + pairs.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + (p[2] ? " disabled" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>'; };
       return '<div class="vcast"><b>' + esc(whoName(w)) + '</b>' +
         sel("service", [["browser", VO.browser], ["google", VO.google], ["eleven", VO.eleven, 1]], c.service) +
         sel("lang", VO_LANGS.map(function (l) { return [l, l]; }), c.lang) +
+        (c.service === "google" ? sel("gender", [["", VO.gAll], ["FEMALE", VO.gF], ["MALE", VO.gM], ["NEUTRAL", VO.gN]], c.gender || "") : "") +
         sel("voice", [["", VO.auto]].concat(opts), c.voice) +
         '<label class="vnum">' + VO.rate + ' <input type="number" step="0.1" min="0.5" max="2" data-vcast="' + esc(w) + '" data-k="rate" value="' + esc(c.rate) + '"></label>' +
         '<label class="vnum">' + VO.pitch + ' <input type="number" step="1" min="-10" max="10" data-vcast="' + esc(w) + '" data-k="pitch" value="' + esc(c.pitch) + '"></label>' +
-        '<button type="button" class="btn mini" data-vtry="' + esc(w) + '">' + VO.try + '</button>' +
+        (voPlay === w ? '<button type="button" class="btn mini" data-vstop="1">' + VO.stop + '</button>' :
+          c.service === "google" ? '<button type="button" class="btn mini" data-vtryai="' + esc(w) + '"' + (voHeard[voKey(c)] ? ' title="' + esc(VO.cached) + '">' + VO.try : '>' + VO.tryAi + ' · ≈ ' + PF.ttsCost(VO.sample.length, c.voice)) + '</button>' :
+          '<button type="button" class="btn mini" data-vtry="' + esc(w) + '">' + VO.try + '</button>') +
         (c.service === "google" ? (gl ? '' : '<button type="button" class="btn mini" data-vload="' + esc(c.lang) + '">' + VO.loadVoices + '</button>') +
-          '<button type="button" class="btn mini" data-vtryai="' + esc(w) + '">' + VO.tryAi + ' · ≈ ' + PF.ttsCost(VO.sample.length, c.voice) + '</button><span class="muted">' + esc(VO.per1k.replace("{n}", PF.ttsCost(1000, c.voice || "standard"))) + '</span>' : '') + '</div>';
-    }).join("") + '<div class="row"><button type="button" class="btn" data-vall="1">' + VO.all + '</button><button type="button" class="btn" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>');
+          '<span class="muted">' + esc(VO.per1k.replace("{n}", PF.ttsCost(1000, c.voice || "standard"))) + '</span>' : '') + '</div>';
+    }
   }
   function voLineHtml(d, n, i) {
     var ids = Array.isArray(n.voice) ? n.voice : [];
@@ -2296,15 +2321,17 @@
   async function voSetCast(who, k, v) {
     var c = castOf(who); c[k] = k === "rate" || k === "pitch" ? +v : v;
     if (k === "service" || k === "lang") c.voice = "";
+    if (k === "gender" && c.voice && (gVoices[c.lang] || []).some(function (x) { return x.name === c.voice && v && x.gender !== v; })) c.voice = ""; // the chosen voice is of the other gender
+    voStop();
     game.voices = Object.assign({}, game.voices || {}); game.voices[who] = c;
     var patch = { voices: {} }; patch.voices[who] = c;
     try { await gref().set(patch, { merge: true }); } catch (e) { alert(STR.failed + ": " + (e.code || e.message)); }
-    if (c.service === "google" && !gVoices[c.lang]) voLoad(c.lang); else renderQEditor();
+    if (c.service === "google" && !gVoices[c.lang]) voLoad(c.lang); else voRerender();
   }
   async function voLoad(lang) {
-    gVoices[lang] = "…"; renderQEditor();
+    gVoices[lang] = "…"; voRerender();
     try { gVoices[lang] = (await voCall({ op: "voices", lang: lang })).voices; } catch (e) { delete gVoices[lang]; voMsg = STR.failed + ": " + e.message; }
-    if (qed) renderQEditor();
+    voRerender();
   }
   function voMark(t) { voMsg = t; var m = $("vo-msg"); if (m) m.textContent = t; }
   // ✦ Google: the saved dialogue's lines → files in the library → the lines' slots (the server writes the dialogue; the draft takes the same)
@@ -2361,13 +2388,22 @@
     bulkStatus(VO.byKeysDone.replace("{n}", n).replace("{m}", miss));
   }
   function voClick(e) {
-    if (!qed || !$("q-ed")) return false;
+    var inCard = !!e.target.closest("#vo-card");
+    if (!inCard && (!qed || !$("q-ed"))) return false;
     var t;
-    if ((t = e.target.closest("[data-vtry]"))) { var w = t.dataset.vtry, first = qed.d.nodes.filter(function (x) { return x.speaker === w && String(x.text || "").trim(); })[0]; sayBrowser(first ? first.text : VO.sample, Object.assign(castOf(w), castOf(w).service === "browser" ? {} : { voice: "" })); return true; }
+    if ((t = e.target.closest("[data-vstop]"))) { voStop(); voRerender(); return true; }
+    if ((t = e.target.closest("[data-vtry]"))) { voStop(); voPlay = t.dataset.vtry; voRerender(); var w = t.dataset.vtry, first = (inCard || !qed ? [] : qed.d.nodes).filter(function (x) { return x.speaker === w && String(x.text || "").trim(); })[0]; sayBrowser(first ? first.text : VO.sample, Object.assign(castOf(w), castOf(w).service === "browser" ? {} : { voice: "" })); return true; }
     if ((t = e.target.closest("[data-vtryai]"))) {
-      var c = castOf(t.dataset.vtryai); if (!ME.owner && ME.role !== "admin") { alert(STR.team.noAi); return true; }
-      voMark(VO.busy);
-      voCall({ op: "preview", text: VO.sample, voice: c.voice, lang: c.lang, rate: c.rate, pitch: c.pitch }).then(function (r) { voMark(STR.spent + ": " + r.tokensConsumed); playSound("data:audio/mpeg;base64," + r.audio); }, function (er) { voMark(STR.failed + ": " + er.message); });
+      var tw = t.dataset.vtryai, c = castOf(tw), key = voKey(c);
+      voStop();
+      var play = function (url) { voPlay = tw; voRerender(); playSound(url, null, function () { if (voPlay === tw) { voPlay = ""; voRerender(); } }); };
+      if (voHeard[key]) { play(voHeard[key]); return true; }
+      if (!ME.owner && ME.role !== "admin") { alert(STR.team.noAi); return true; }
+      var req = voReq; voMark(VO.busy);
+      voCall({ op: "preview", text: VO.sample, voice: c.voice, lang: c.lang, rate: c.rate, pitch: c.pitch }).then(function (r) {
+        voHeard[key] = "data:audio/mpeg;base64," + r.audio; voMsg = STR.spent + ": " + r.tokensConsumed;
+        if (req === voReq) play(voHeard[key]); else voRerender(); // another voice was chosen meanwhile — keep this one silent
+      }, function (er) { voMark(STR.failed + ": " + er.message); });
       return true;
     }
     if ((t = e.target.closest("[data-vload]"))) { voLoad(t.dataset.vload); return true; }
@@ -2381,7 +2417,7 @@
     return false;
   }
   function voChange(e) {
-    var t = e.target; if (!qed || !t.dataset) return;
+    var t = e.target; if (!t.dataset || (!qed && !t.closest("#vo-card"))) return;
     if (t.dataset.vcast) { voSetCast(t.dataset.vcast, t.dataset.k, t.value); return; }
     if (t.dataset.vup != null && t.files && t.files.length) { var f = t.files[0]; t.value = ""; voUpload(+t.dataset.vup, f); }
   }
@@ -3422,6 +3458,7 @@
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk && (!lean || editMode || d.type === "image" || draft.fields[d.key])) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
+    if (!open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest) html += voCardHtml(voCardKey(open));
     if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + qdLinksHtml({ id: open.src === "canon" ? open.id : "c:" + open.id }) + '</div>';
     if (!lean || editMode) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
@@ -3916,12 +3953,13 @@
   function fmtDur(s) { s = Math.round(+s || 0); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
   // one player for the whole Bible: ▶ again stops it
   var player = null, playing = "";
-  function playSound(url, btn) {
+  function playSound(url, btn, done) { // done: the sound ended or could not play
     if (player) { player.pause(); var was = playing; player = null; playing = ""; [].forEach.call(document.querySelectorAll("[data-aplay].is-on,[data-sndplay].is-on"), function (b) { b.classList.remove("is-on"); }); if (was === url) return; }
     if (!url) return;
     player = new Audio(url); playing = url; if (btn) btn.classList.add("is-on");
-    player.onended = function () { if (btn) btn.classList.remove("is-on"); player = null; playing = ""; };
-    player.play().catch(function () { if (btn) btn.classList.remove("is-on"); player = null; playing = ""; });
+    var me = player, end = function () { if (btn) btn.classList.remove("is-on"); if (player === me) { player = null; playing = ""; } if (done) done(); };
+    player.onended = end;
+    player.play().catch(end);
   }
   // the first audio file of a library card; with variations a random one, as the game would
   function soundUrl(cardId) {
@@ -6447,6 +6485,8 @@
   $("view").addEventListener("input", qdInput);
   $("view").addEventListener("change", qdInput);
   $("view").addEventListener("change", voChange);
+  $("e-body").addEventListener("click", voClick);
+  $("e-body").addEventListener("change", voChange);
   $("view").addEventListener("input", medInput);
   $("view").addEventListener("change", medInput);
   $("view").addEventListener("input", forgeInput);

@@ -598,7 +598,9 @@
           ["ul", [
             "<b>Сервіс</b>: «Браузер» — голос твого компʼютера, безкоштовно, лише щоб почути, як звучить; «Google Text-to-Speech» — справжні файли; ElevenLabs — скоро.",
             "<b>Мова</b>, <b>голос</b> (у Google поруч — ціна ≈ токенів за 1000 символів), <b>темп</b> (0.5–2) і <b>висота</b> (−10…10; голоси Chirp і Studio висоту не змінюють).",
-            "«▶ Проба» — голосом браузера, безкоштовно. «✦ Проба» — коротка фраза голосом Google за токени. Голоси зберігаються в грі й діють у всіх її діалогах."
+            "Одна кнопка проби: для браузера «▶ Проба» (безкоштовно), для Google «✦ Проба · ≈ N» (коротка фраза за токени). Поки звучить — «■ Стоп»; новий вибір голосу чи нова проба зупиняє попередню. Уже прослуханий голос з тими самими налаштуваннями грає знову без токенів.",
+            "<b>Стать</b> (лише Google): усі / жіночі / чоловічі / нейтральні — список голосів фільтрується. Віку Google про голоси не повідомляє, тож фільтра за віком немає — допомагають темп і висота.",
+            "Голос <b>можна задати й у картці персонажа чи ворога гри</b> — блок «🎙 Голос». Це той самий вибір: він зберігається в грі й сам діє в усіх її діалогах, де цей персонаж говорить."
           ]],
           ["h", "Звук репліки"],
           ["ul", [
@@ -1776,7 +1778,9 @@
           ["ul", [
             "<b>Service</b>: “Browser” — your computer's voice, free, only to hear how it sounds; “Google Text-to-Speech” — real files; ElevenLabs — soon.",
             "<b>Language</b>, <b>voice</b> (Google shows the ≈ tokens per 1000 characters), <b>speed</b> (0.5–2) and <b>pitch</b> (−10…10; Chirp and Studio voices ignore pitch).",
-            "“▶ Try” — the browser voice, free. “✦ Try” — a short phrase in the Google voice for tokens. The voices are kept in the game and apply to all its dialogues."
+            "One try button: for the browser “▶ Try” (free), for Google “✦ Try · ≈ N” (a short phrase for tokens). While it plays — “■ Stop”; a new voice choice or a new try stops the previous one. A voice already heard with the same settings plays again without tokens.",
+            "<b>Gender</b> (Google only): all / female / male / neutral — the voice list is filtered. Google does not tell the age of its voices, so there is no age filter — speed and pitch help.",
+            "The voice <b>can also be set in a game character or enemy card</b> — the “🎙 Voice” block. It is the same choice: kept in the game and applied by itself to every dialogue where that character speaks."
           ]],
           ["h", "A line's sound"],
           ["ul", [
