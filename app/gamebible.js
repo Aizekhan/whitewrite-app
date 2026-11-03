@@ -210,6 +210,7 @@
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
       answeredTitle: "Ухвалені рішення", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
       pp: { dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
+        who: "Виконавець", nobody: "— не призначено —", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
         trackAbout: { mvp: "П'ять воріт від порожнього проєкту до релізу. Наступний етап відкривається, коли ти приймеш ворота попереднього.",
           expansion: "Більше контенту систем, уже перевірених у MVP: рівні, вороги, предмети. Відкривається після MVP.",
@@ -511,6 +512,7 @@
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
       answeredTitle: "Decisions made", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
       pp: { dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
+        who: "Assignee", nobody: "— not assigned —", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
         trackAbout: { mvp: "Five gates from an empty project to a release. The next stage opens once you approve the gate of the one before.",
           expansion: "More content of systems already proven in the MVP: levels, enemies, items. Opens after the MVP.",
@@ -6498,6 +6500,8 @@
     var pl = $("p-plan"); if (pl) pl.onclick = function () { confirmCost("plan", function () { runPlan("plan"); }); };
     var mdb = $("p-md"); if (mdb) mdb.onclick = exportMarkdown;
     [].forEach.call(document.querySelectorAll("[data-astate]"), function (sel) { sel.onchange = function () { setAssetState(sel.dataset.astate, sel.value); }; });
+    [].forEach.call(document.querySelectorAll("[data-assign]"), function (sel) { sel.onchange = function () { setAssignee(sel.dataset.assign, sel.value); }; });
+    var mo = $("p-mine"); if (mo) mo.onchange = function () { mineOnly = mo.checked; render(); };
   }
 
   // ---------- what the plan needs but the bible lacks: the author ticks, empty cards appear "in progress" ----------
@@ -6704,6 +6708,31 @@
       (role ? '<span class="cchip__r">' + esc(P.role[role] || role) + '</span>' : '') + esc(c ? c.title : cardName(ref)) +
       (c && c.assetState ? ' <span class="muted">· ' + esc(P.state[c.assetState]) + '</span>' : '') + '</button>';
   }
+  // the person a task is given to: tasks/{id}.assignee {uid, name} — the owner or a team member (worlds/{w}.team); «Лише мої задачі»
+  // filters the plan; mcp.js get_next_task leaves a task given to a team member to them
+  var mineOnly = false;
+  var myUid = function () { return firebase.auth().currentUser.uid; };
+  function people() {
+    var P = STR.pp, me = firebase.auth().currentUser, team = world.team || {};
+    var out = [{ uid: world.owner, name: ME.owner ? (me.displayName || me.email || P.ownerLbl) : P.ownerLbl }];
+    Object.keys(team).forEach(function (id) { out.push({ uid: id, name: team[id].name || team[id].email || id }); });
+    return out;
+  }
+  function whoHtml(lt) {
+    var P = STR.pp, a = lt.assignee, ps = people();
+    if (!canWrite) return a ? ' <span class="pill s-idea" title="' + esc(P.who) + '">👤 ' + esc(a.uid === myUid() ? P.meLbl : a.name) + '</span>' : '';
+    if (a && !ps.some(function (x) { return x.uid === a.uid; })) ps.push(a); // someone who left the team still shows
+    if (ps.length < 2 && !a) return ''; // alone in the world: nobody to give it to
+    return ' <select class="twho" data-assign="' + esc(lt.id) + '" aria-label="' + esc(P.who) + '"><option value="">' + esc(P.nobody) + '</option>' + ps.map(function (x) {
+      return '<option value="' + esc(x.uid) + '"' + (a && a.uid === x.uid ? ' selected' : '') + '>👤 ' + esc(x.name + (x.uid === myUid() ? ' (' + P.meLbl + ')' : '')) + '</option>'; }).join("") + '</select>';
+  }
+  function isMine(t) { var lt = liveTask(t.id); return !!(lt && lt.assignee && lt.assignee.uid === myUid()); }
+  async function setAssignee(id, uid) {
+    var lt = liveTask(id); if (!lt) return;
+    var x = people().filter(function (p) { return p.uid === uid; })[0];
+    await gref().collection("tasks").doc(lt.id).set({ assignee: x ? { uid: x.uid, name: x.name } : firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
+      history: firebase.firestore.FieldValue.arrayUnion({ type: "assigned", to: x ? x.name : "", by: "author", at: Date.now() }) }, { merge: true });
+  }
   function taskHtml(t) {
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
     return '<div class="task' + (lt ? ' t-' + lt.status : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b>' +
@@ -6711,6 +6740,7 @@
       (t.priority ? ' <span class="pill pr-' + t.priority + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
       (t.assetState ? ' <span class="pill st-' + t.assetState + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
+      (lt ? whoHtml(lt) : '') +
       (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
       (t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
       ((t.cards || []).length ? '<div class="cchips">' + t.cards.map(function (r) { return cardChip(r, (t.roles || {})[r]); }).join("") + '</div>' : '') +
@@ -6720,14 +6750,14 @@
       (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
   }
   function msHtml(plan, m) {
-    var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [];
+    var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [], shown = mineOnly ? ts.filter(isMine) : ts;
     var done = ts.filter(function (t) { var lt = liveTask(t.id); return lt && lt.status === "done"; }).length;
     var list = function (title, a) { return a && a.length ? '<div class="ms__l"><b>' + title + ':</b><ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' : ''; };
     var head = '<h3>' + esc(m.id) + ' · ' + esc(m.name) + (m.estimateDays ? ' <span class="muted">' + P.days.replace("{n}", m.estimateDays) + '</span>' : '') +
       (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
       (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') + '</h3>';
     var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') +
-      list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + ts.map(taskHtml).join("");
+      list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + shown.map(taskHtml).join("");
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
       ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
@@ -6804,7 +6834,11 @@
     if (plan.engineNotes) html += '<div class="canonbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
     html += '<div class="ptabs" role="tablist">' + ["plan", "matrix"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : P.tabMatrix) + '</button>'; }).join("") + '</div>';
     if (planTab === "matrix") return html + matrixHtml() + '</section>';
-    html += healthHtml(plan);
+    var mineN = tasks.filter(function (t) { return t.assignee && t.assignee.uid === myUid(); }).length;
+    if (mineN || mineOnly) html += '<label class="bigcheck mineonly"><input type="checkbox" id="p-mine"' + (mineOnly ? ' checked' : '') + '><span class="bigcheck__box" aria-hidden="true"></span><span class="bigcheck__t">' + P.mine + ' <span class="muted">' + mineN + '</span></span></label>';
+    if (mineOnly) ms = ms.filter(function (m) { return (m.tasks || []).some(isMine); });
+    if (mineOnly && !ms.length) return html + '<p class="muted">' + P.mineNone + '</p></section>';
+    if (!mineOnly) html += healthHtml(plan);
     var mvp = ms.filter(function (m) { return m.track === "mvp"; });
     if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
       return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '">' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';

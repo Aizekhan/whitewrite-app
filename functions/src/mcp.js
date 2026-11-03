@@ -25,9 +25,9 @@ const list = (a, n, f) => (Array.isArray(a) ? a : []).map(f).filter((x) => x != 
 const TOOLS = [
   { name: 'get_project_overview', description: 'The game this key belongs to: world canon and laws, GDD summary, decisions, engine profile, sections, roadmap progress and the task in progress. Call this first in a session.',
     inputSchema: { type: 'object', properties: {} } },
-  { name: 'list_tasks', description: 'The roadmap: every task with id, milestone, status (todo | in_progress | review | rework | blocked | done), deps and whether it is ready.',
+  { name: 'list_tasks', description: 'The roadmap: every task with id, milestone, status (todo | in_progress | review | rework | blocked | done), deps, whether it is ready and the person it is assigned to (null = anyone).',
     inputSchema: { type: 'object', properties: { status: { type: 'string', description: 'Only tasks with this status' } } } },
-  { name: 'get_next_task', description: 'The task to work on now with its full context (cards, files, acceptance criteria, history). Resumes a task already in progress or returned for rework; otherwise claims the first ready task (all deps done) and marks it in_progress.',
+  { name: 'get_next_task', description: 'The task to work on now with its full context (cards, files, acceptance criteria, history). Resumes a task already in progress or returned for rework; otherwise claims the first ready task (all deps done) and marks it in_progress. Tasks the author assigned to another team member are left to them.',
     inputSchema: { type: 'object', properties: { claim: { type: 'boolean', description: 'Mark the returned task in_progress (default true)' } } } },
   { name: 'get_task_details', description: 'Full context of one task by id (e.g. "M2.3"): goal, detail, acceptance criteria, tests, related cards with fields and file URLs, deps, review history.',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
@@ -199,7 +199,7 @@ const isReady = (ctx, t) => !lockedBy(ctx, t) && (t.deps || []).every((d) => { c
 function taskView(ctx, t) {
   const ms = ((ctx.plan.plan || {}).milestones || []).find((m) => m.id === t.milestone) || {};
   return {
-    id: t.id, title: t.title, status: t.status, owner: t.owner, size: t.size,
+    id: t.id, title: t.title, status: t.status, owner: t.owner, size: t.size, assignee: (t.assignee && t.assignee.name) || null,
     milestone: { id: t.milestone, track: ms.track || '', name: ms.name || '', goal: ms.goal || '', gate: ms.gate || '', gate_checks: ms.accept || [], budgets: ms.budgets || '' },
     priority: t.priority || '', asset_state: t.assetState || '', card_roles: t.roles || {},
     detail: t.detail || '', instructions: t.prompt || '',
@@ -496,13 +496,15 @@ async function callTool(name, args, key) {
   switch (name) {
     case 'get_project_overview': return { ...overview(ctx), integrations: await integrations(ctx) };
     case 'list_tasks': return ctx.tasks.filter((t) => !args.status || t.status === args.status)
-      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, owner: t.owner, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
+      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, owner: t.owner, assignee: (t.assignee && t.assignee.name) || null, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
     case 'get_next_task': {
       if (!ctx.tasks.length) return { task: null, message: 'No roadmap yet: the author has to generate the production plan in the Game Bible first.' };
-      const mine = ctx.tasks.find((t) => t.status === 'in_progress') || ctx.tasks.find((t) => t.status === 'rework' && isReady(ctx, t));
-      const t = mine || ctx.tasks.find((x) => x.status === 'todo' && isReady(ctx, x));
+      const ours = (x) => !x.assignee || x.assignee.uid === key.uid; // the key is the owner's: a task given to a team member is theirs
+      const mine = ctx.tasks.find((t) => t.status === 'in_progress' && ours(t)) || ctx.tasks.find((t) => t.status === 'rework' && ours(t) && isReady(ctx, t));
+      const t = mine || ctx.tasks.find((x) => x.status === 'todo' && ours(x) && isReady(ctx, x));
       if (!t) {
-        const waiting = ctx.tasks.filter((x) => ['review', 'blocked'].includes(x.status)).map((x) => `${x.id} (${x.status})`);
+        const waiting = ctx.tasks.filter((x) => ['review', 'blocked'].includes(x.status)).map((x) => `${x.id} (${x.status})`)
+          .concat(ctx.tasks.filter((x) => OPEN.includes(x.status) && !ours(x)).map((x) => `${x.id} (assigned to ${x.assignee.name || 'a team member'})`));
         const gate = ctx.tasks.filter((x) => x.status === 'todo').map((x) => lockedBy(ctx, x)).find(Boolean);
         if (gate) waiting.push(`the gate ${gate} — the author approves it in the Production plan`);
         return { task: null, message: ctx.tasks.every((x) => x.status === 'done') ? 'All tasks are done.' : `Nothing is ready. Waiting for the author: ${waiting.join(', ') || 'deps not done'}.` };

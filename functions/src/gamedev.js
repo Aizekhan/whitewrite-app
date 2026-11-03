@@ -213,16 +213,16 @@ function cleanScaffold(p, shelves) {
 // A new plan replaces open tasks; tasks already taken, handed in or done are kept.
 async function writeTasks(gameRef, plan) {
   const old = await gameRef.collection('tasks').get();
-  const kept = new Set();
+  const kept = new Set(), who = {}; // who: the person a replaced task was given to — the same task id keeps them
   const batch = db.batch();
-  old.docs.forEach((d) => { if (['todo', 'rework'].includes(d.data().status)) batch.delete(d.ref); else kept.add(d.id); });
+  old.docs.forEach((d) => { if (['todo', 'rework'].includes(d.data().status)) { batch.delete(d.ref); if (d.data().assignee) who[d.id] = d.data().assignee; } else kept.add(d.id); });
   let order = 0;
   for (const m of plan.milestones) {
     for (const t of m.tasks) {
       order++;
       const id = t.id.replace(/[\/\s]/g, '_');
       if (!id || kept.has(id)) continue;
-      batch.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, track: m.track, status: 'todo', order, history: [],
+      batch.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, track: m.track, status: 'todo', order, history: [], ...(who[id] ? { assignee: who[id] } : {}),
         createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
     }
   }
