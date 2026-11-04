@@ -13,13 +13,15 @@
 //        · sound — sounds of the game's Audio library (Аудіотека): [cardId] of «Звук і музика» cards with audio files; several = variations
 //          (the game picks one at random); lib: the library subsection an upload in the slot goes to (music | sfx | voice | ambience | ui);
 //          need: a field of the same row that must be filled for the slot to count as missing (e.g. the stinger text)
+//        · card — other cards of the game (a level, an item, a mechanic, a VFX asset…): [card id] or, typed by hand, card titles separated by
+//          commas (both resolve: cardTokens / resolveCard); secs: the game sections a picker offers (levels, items, assets…). A KIND of card-refs.js
 
 (function () { // a closure: in the browser this file is a plain <script> sharing the global scope
-var TYPES = ['text', 'long', 'num', 'pct', 'time', 'bool', 'sel', 'multi', 'ref', 'refs', 'formula', 'range', 'json', 'sound'];
+var TYPES = ['text', 'long', 'num', 'pct', 'time', 'bool', 'sel', 'multi', 'ref', 'refs', 'formula', 'range', 'json', 'sound', 'card'];
 var TYPE_NAMES = { text: ['Текст', 'Text'], long: ['Довгий текст', 'Long text'], num: ['Число', 'Number'], pct: ['Відсоток', 'Percent'], time: ['Час, с', 'Time, s'],
   bool: ['Перемикач', 'Toggle'], sel: ['Вибір зі списку', 'Choice'], multi: ['Множинний вибір', 'Multiple choice'], ref: ['Посилання на запис', 'Link to a row'],
   refs: ['Посилання на кілька записів', 'Links to rows'], formula: ['Формула', 'Formula'], range: ['Діапазон', 'Range'], json: ['JSON / структуровані дані', 'JSON / structured data'],
-  sound: ['Звук з Аудіотеки', 'Sound from the Audio library'] };
+  sound: ['Звук з Аудіотеки', 'Sound from the Audio library'], card: ['Картки гри', 'Game cards'] };
 var STAGES = [['concept', 'Концепція', 'Concept'], ['dev', 'У розробці', 'In development'], ['testing', 'Тестується', 'Testing'], ['ready', 'Готова', 'Ready']];
 
 // The categories of the Mechanics section: game SYSTEMS (rules, numbers, how they connect). Concrete content — the enemies,
@@ -36,9 +38,15 @@ var CATEGORIES = [
   { id: 'world', uk: 'Взаємодія зі світом', en: 'World interaction', subs: [['objects', 'Обʼєкти й механізми', 'Objects & mechanisms'], ['npc', 'NPC', 'NPCs']] },
   { id: 'narrative', uk: 'Системи квестів і діалогів', en: 'Quest & dialogue systems', subs: [] },
   { id: 'economy', uk: 'Економіка й крафт', en: 'Economy & crafting', subs: [['trade', 'Торгівля й валюти', 'Trade & currencies'], ['crafting', 'Крафт', 'Crafting']] },
-  { id: 'camera', uk: 'Камера й керування', en: 'Camera & controls', subs: [] },
+  { id: 'camera', uk: 'Камера й керування', en: 'Camera & controls', subs: [['input', 'Розкладка керування', 'Input map'], ['access', 'Доступність', 'Accessibility']] },
   { id: 'death', uk: 'Смерть і відродження', en: 'Death & respawn', subs: [] },
   { id: 'winlose', uk: 'Перемога й поразка', en: 'Win & lose', subs: [] },
+  // v2.78 — game-design artefacts beyond the systems: how it feels, what loops it runs, how levels and difficulty are paced, what a release needs
+  { id: 'feel', uk: 'Відчуття гри', en: 'Game feel', subs: [['impact', 'Відгук на дії', 'Action feedback']] },
+  { id: 'loops', uk: 'Ігрові цикли', en: 'Game loops', subs: [] },
+  { id: 'leveldesign', uk: 'Метрики рівнів і темп', en: 'Level metrics & pacing', subs: [] },
+  { id: 'balance', uk: 'Складність і баланс', en: 'Difficulty & balance', subs: [] },
+  { id: 'release', uk: 'Реліз', en: 'Release', subs: [] },
 ];
 // the Mechanics groups before v2.48 that were renamed (cards keep their old group text; it shows under the new one)
 var GROUP_ALIAS = { 'Здібності': 'Навички й здібності', 'Abilities': 'Skills & abilities', 'Взаємодія': 'Взаємодія зі світом', 'Interaction': 'World interaction' };
@@ -943,9 +951,387 @@ function upgrade(m) {
   return m;
 }
 
-var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, MUSIC, AMBIENCE, UISOUND, PROMPTS]; // sec: 'audio' — Фабрика звуку, the rest — Mechanics
+// ============================== v2.78 game-design artefacts ==============================
+// Game feel · controls & input map · accessibility · economy & loot · core & meta loops · level metrics & pacing · difficulty curve ·
+// release checklist. Lean on purpose: the basic view is what a solo author fills; the rest is under `adv`. CALCS turn their numbers into
+// what the author and the agent need (net currency flow per hour, drop % from weights, loop closure, TTK / TTD, what the release still lacks).
+var TODO4 = O([['todo', 'Не зроблено', 'To do'], ['partial', 'Частково', 'Partly'], ['done', 'Готово', 'Done'], ['na', 'Не стосується', 'N/A']]);
+var LVL_SECS = ['levels', 'locations'];
+var FEEL = {
+  id: 'game_feel', version: 1, cat: 'feel', sub: 'impact', complexity: 1, name: T('Відчуття гри (game feel)', 'Game feel'),
+  desc: T('Як гра відповідає на кожну дію: заморозка кадру на ударі (hitstop), тремтіння камери, вібрація, буфер вводу, coyote time, звук і ефект.', 'How the game answers every action: hit freeze (hitstop), camera shake, rumble, input buffer, coyote time, sound and effect.'),
+  purpose: T('Кожна дія гравця відчувається вагомою й чуйною, але не втомлює.', 'Every player action feels weighty and responsive without wearing the player out.'),
+  sections: [
+    { id: 'actions', title: T('Дії', 'Actions'), kind: 'table', rowLabel: 'action', prefix: 'GF',
+      hint: T('Рядок — дія гравця чи подія. Hitstop: легкий удар 40–80 мс, важкий 100–150. Буфер вводу 80–150 мс: натискання трохи раніше все одно спрацює. Coyote time — стрибок ще можна зробити 80–120 мс після краю.', 'A row is a player action or an event. Hitstop: a light hit 40–80 ms, a heavy one 100–150. Input buffer 80–150 ms: a press slightly early still counts. Coyote time — a jump still works 80–120 ms after the ledge.'),
+      fields: [F('action', 'Дія', 'Action', 'text', R), F('hitstop', 'Hitstop', 'Hitstop', 'num', X(REC, { u: 'ms', min: 0, max: 250 })),
+        F('shake', 'Тремтіння камери (0–1)', 'Camera shake (0–1)', 'num', X(REC, { min: 0, max: 1 })), F('shakeDur', 'Тривалість тремтіння', 'Shake duration', 'num', X(REC, { u: 'ms', min: 0, max: 1000 })),
+        F('rumble', 'Вібрація', 'Rumble', 'sel', X(REC, { o: O([['none', 'Немає', 'None'], ['light', 'Легка', 'Light'], ['medium', 'Середня', 'Medium'], ['strong', 'Сильна', 'Strong']]) })),
+        F('buffer', 'Буфер вводу', 'Input buffer', 'num', X(REC, { u: 'ms', min: 0, max: 200 })), F('coyote', 'Coyote time', 'Coyote time', 'num', { req: 'opt', u: 'ms', min: 0, max: 150 }),
+        F('sfx', 'Звук', 'Sound', 'sound', { req: 'opt', lib: 'sfx' }), F('vfx', 'Ефект (VFX)', 'Effect (VFX)', 'card', { req: 'opt', secs: ['assets', 'animation', 'materials'], h: T('картка ефекту з «Ассетів»', 'an effect card from “Assets”') }),
+        F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'GF1', action: 'Легкий удар влучив', hitstop: 60, shake: 0.15, shakeDur: 100, rumble: 'light', buffer: 120 },
+        { _id: 'GF2', action: 'Важкий удар влучив', hitstop: 120, shake: 0.45, shakeDur: 200, rumble: 'strong', buffer: 150 },
+        { _id: 'GF3', action: 'Парирування', hitstop: 150, shake: 0.3, shakeDur: 150, rumble: 'medium', buffer: 150 },
+        { _id: 'GF4', action: 'Гравець отримав удар', hitstop: 80, shake: 0.35, shakeDur: 180, rumble: 'medium' },
+        { _id: 'GF5', action: 'Стрибок', hitstop: 0, shake: 0, rumble: 'none', buffer: 100, coyote: 100 },
+        { _id: 'GF6', action: 'Ухилення', hitstop: 0, shake: 0, rumble: 'light', buffer: 150 }] },
+    { id: 'global', title: T('Загальне', 'Global'), kind: 'fields',
+      fields: [F('shakeOff', 'Тремтіння можна вимкнути', 'Shake can be turned off', 'bool', REC), F('rumbleOff', 'Вібрацію можна вимкнути', 'Rumble can be turned off', 'bool', REC),
+        F('maxShake', 'Найсильніше тремтіння (0–1)', 'Strongest shake (0–1)', 'num', { req: 'opt', adv: true, min: 0, max: 1 }), F('slowmo', 'Уповільнення часу (на чому)', 'Slow motion (on what)', 'text', { req: 'opt', adv: true })],
+      values: { shakeOff: true, rumbleOff: true, maxShake: 0.6 } },
+  ],
+};
+function feelChecks(m, add, rowsOf, nameOf, val) {
+  var shaking = false;
+  rowsOf('actions').forEach(function (r) {
+    if (+r.shake > 0) { shaking = true; if (!(+r.shakeDur > 0)) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: тремтіння без тривалості.', '“' + nameOf(r) + '”: a shake without a duration.'); }
+    if (num(val('global', 'maxShake')) && +r.shake > +val('global', 'maxShake')) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: тремтіння сильніше за загальну межу.', '“' + nameOf(r) + '”: the shake is above the global limit.');
+    if (+r.hitstop > 0 && num(r.buffer) && +r.buffer < +r.hitstop) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: буфер вводу (' + r.buffer + ' мс) коротший за hitstop (' + r.hitstop + ' мс) — натискання під час заморозки губляться.', '“' + nameOf(r) + '”: the input buffer (' + r.buffer + ' ms) is shorter than the hitstop (' + r.hitstop + ' ms) — presses during the freeze are lost.');
+  });
+  if (shaking && !val('global', 'shakeOff')) add('warn', 'global', '', 'Тремтіння камери не вимикається — частину гравців від нього нудить (доступність).', 'Camera shake cannot be turned off — it makes some players sick (accessibility).');
+}
+var CONTROLS = {
+  id: 'controls', version: 1, cat: 'camera', sub: 'input', complexity: 1, name: T('Керування й розкладка', 'Controls & input map'),
+  desc: T('Кожна дія → клавіатура й миша, геймпад, сенсор; чи можна перепризначити; натиснути, тримати чи перемикати. Плюс камера.', 'Every action → keyboard & mouse, gamepad, touch; remappable or not; press, hold or toggle. Plus the camera.'),
+  purpose: T('Керування, що звучить природно на кожному пристрої й не має конфліктів.', 'Controls that feel natural on every device and never conflict.'),
+  sections: [
+    { id: 'support', title: T('Пристрої й камера', 'Devices & camera'), kind: 'fields',
+      fields: [F('devices', 'Пристрої', 'Devices', 'multi', X(R, { o: O([['kbm', 'Клавіатура й миша', 'Keyboard & mouse'], ['pad', 'Геймпад', 'Gamepad'], ['touch', 'Сенсор', 'Touch']]) })),
+        F('view', 'Камера', 'Camera', 'sel', X(REC, { o: O([['third', 'Від третьої особи', 'Third person'], ['first', 'Від першої особи', 'First person'], ['top', 'Ізометрія / згори', 'Isometric / top-down'], ['side', 'Збоку (2.5D)', 'Side (2.5D)']]) })),
+        F('fov', 'Поле зору', 'Field of view', 'num', { req: 'opt', adv: true, u: '°', min: 40, max: 120 }), F('invertY', 'Інверсія осі Y у налаштуваннях', 'Invert Y in settings', 'bool', { req: 'opt', adv: true }),
+        F('sens', 'Чутливість (діапазон)', 'Sensitivity (range)', 'range', { req: 'opt', adv: true })],
+      values: { devices: ['kbm', 'pad'], view: 'third', fov: 70, invertY: true, sens: '0.1–3' } },
+    { id: 'map', title: T('Розкладка', 'Input map'), kind: 'table', rowLabel: 'action', prefix: 'K',
+      hint: T('Дві дії на одній кнопці в тому самому контексті — конфлікт. «Тримати» бажано дати й «перемикати» (доступність).', 'Two actions on one button in the same context are a conflict. “Hold” should also offer “toggle” (accessibility).'),
+      fields: [F('action', 'Дія', 'Action', 'text', R), F('kbm', 'Клавіатура й миша', 'Keyboard & mouse', 'text', REC), F('pad', 'Геймпад', 'Gamepad', 'text', REC), F('touch', 'Сенсор', 'Touch', 'text', { req: 'opt' }),
+        F('remap', 'Можна перепризначити', 'Remappable', 'bool', REC),
+        F('mode', 'Як натискати', 'Press mode', 'sel', X(REC, { o: O([['press', 'Натиснути', 'Press'], ['hold', 'Тримати', 'Hold'], ['toggle', 'Перемикати', 'Toggle'], ['both', 'Тримати або перемикати', 'Hold or toggle']]) })),
+        F('context', 'Контекст', 'Context', 'text', { req: 'opt', adv: true, h: T('бій, меню, транспорт… — однакова кнопка в різних контекстах не конфлікт', 'combat, menu, vehicle… — the same button in different contexts is no conflict') }),
+        F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'K1', action: 'Рух', kbm: 'WASD', pad: 'Лівий стік', remap: true, mode: 'press' }, { _id: 'K2', action: 'Камера', kbm: 'Миша', pad: 'Правий стік', remap: false, mode: 'press' },
+        { _id: 'K3', action: 'Стрибок', kbm: 'Space', pad: 'A / ✕', remap: true, mode: 'press' }, { _id: 'K4', action: 'Атака', kbm: 'ЛКМ', pad: 'X / □', remap: true, mode: 'press' },
+        { _id: 'K5', action: 'Ухилення', kbm: 'Shift', pad: 'B / ○', remap: true, mode: 'press' }, { _id: 'K6', action: 'Блок', kbm: 'ПКМ', pad: 'LB / L1', remap: true, mode: 'both' },
+        { _id: 'K7', action: 'Взаємодія', kbm: 'E', pad: 'Y / △', remap: true, mode: 'press' }, { _id: 'K8', action: 'Меню', kbm: 'Esc', pad: 'Start / Options', remap: false, mode: 'press' }] },
+  ],
+};
+function controlsChecks(m, add, rowsOf, nameOf, val) {
+  var dev = val('support', 'devices') || [], rows = rowsOf('map'), norm = function (v) { return String(v || '').trim().toLowerCase(); };
+  rows.forEach(function (r) {
+    if (dev.indexOf('pad') >= 0 && !norm(r.pad)) add('warn', 'map', r._id, '«' + nameOf(r) + '»: немає кнопки геймпада.', '“' + nameOf(r) + '”: no gamepad button.');
+    if (dev.indexOf('touch') >= 0 && !norm(r.touch)) add('warn', 'map', r._id, '«' + nameOf(r) + '»: немає жесту для сенсора.', '“' + nameOf(r) + '”: no touch gesture.');
+    if (r.mode === 'hold') add('tip', 'map', r._id, '«' + nameOf(r) + '»: дай і «перемикати» — тримати довго важко частині гравців.', '“' + nameOf(r) + '”: offer “toggle” too — holding is hard for some players.');
+  });
+  ['kbm', 'pad', 'touch'].forEach(function (d) {
+    var seen = {};
+    rows.forEach(function (r) { var b = norm(r[d]); if (!b) return; var k = norm(r.context) + '|' + b; if (seen[k]) add('warn', 'map', r._id, '«' + nameOf(r) + '» і «' + nameOf(seen[k]) + '» на одній кнопці «' + r[d] + '».', '“' + nameOf(r) + '” and “' + nameOf(seen[k]) + '” share the button “' + r[d] + '”.'); else seen[k] = r; });
+  });
+}
+var ACCESS = {
+  id: 'accessibility', version: 1, cat: 'camera', sub: 'access', complexity: 1, name: T('Доступність', 'Accessibility'),
+  desc: T('Чекліст: субтитри (розмір, фон, імена мовців), режими для дальтоніків, складність і допомога, перепризначення, «тримати → перемикати», вимкнення тремтіння, попередження про спалахи, розмір тексту.', 'A checklist: subtitles (size, background, speaker names), colour-blind modes, difficulty and assists, remapping, hold → toggle, shake off, a flashing warning, text size.'),
+  purpose: T('У гру може грати більше людей — і магазини та платформи цього очікують.', 'More people can play — and stores and platforms expect it.'),
+  sections: [
+    { id: 'checklist', title: T('Чекліст', 'Checklist'), kind: 'table', rowLabel: 'item', prefix: 'AC',
+      hint: T('★ — базовий мінімум: без нього частина гравців не зможе грати. Значення — як саме зроблено (розміри, варіанти).', '★ is the basic minimum: without it some players cannot play at all. Value — how exactly it is done (sizes, options).'),
+      fields: [F('area', 'Сфера', 'Area', 'sel', X(REC, { o: O([['hearing', 'Слух', 'Hearing'], ['vision', 'Зір', 'Vision'], ['motor', 'Моторика', 'Motor'], ['cognitive', 'Сприйняття', 'Cognitive'], ['photo', 'Світлочутливість', 'Photosensitivity']]) })),
+        F('item', 'Що', 'What', 'text', R), F('status', 'Стан', 'Status', 'sel', X(R, { o: TODO4 })), F('value', 'Як зроблено', 'How it is done', 'text', REC), F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'AC1', _must: true, area: 'hearing', item: '★ Субтитри до всіх реплік (типово увімкнені)', status: 'todo' },
+        { _id: 'AC2', _must: true, area: 'hearing', item: '★ Розмір субтитрів', status: 'todo', value: '3 розміри, найменший ≥ 28 px при 1080p' },
+        { _id: 'AC3', area: 'hearing', item: 'Фон під субтитрами (прозорість)', status: 'todo', value: '0–100 %' },
+        { _id: 'AC4', area: 'hearing', item: 'Імена мовців у субтитрах', status: 'todo' },
+        { _id: 'AC5', area: 'vision', item: 'Режими для дальтоніків / не лише колір', status: 'todo', value: 'протанопія, дейтеранопія, тританопія; значки поряд із кольором' },
+        { _id: 'AC6', _must: true, area: 'vision', item: '★ Розмір тексту інтерфейсу', status: 'todo' },
+        { _id: 'AC7', area: 'cognitive', item: 'Рівні складності й допомога', status: 'todo', value: 'легкий режим, автоприціл, пропуск головоломки' },
+        { _id: 'AC8', _must: true, area: 'motor', item: '★ Перепризначення всіх кнопок', status: 'todo' },
+        { _id: 'AC9', area: 'motor', item: '«Тримати» → «перемикати»', status: 'todo' },
+        { _id: 'AC10', _must: true, area: 'photo', item: '★ Вимкнення тремтіння камери', status: 'todo' },
+        { _id: 'AC11', _must: true, area: 'photo', item: '★ Попередження про спалахи й зменшення спалахів', status: 'todo' }] },
+  ],
+};
+function accessChecks(m, add, rowsOf, nameOf) {
+  rowsOf('checklist').forEach(function (r) {
+    if (r._must && (!r.status || r.status === 'todo')) add('warn', 'checklist', r._id, 'Базовий мінімум не зроблено: «' + String(nameOf(r)).replace(/^★\s*/, '') + '».', 'A basic must-have is not done: “' + String(nameOf(r)).replace(/^★\s*/, '') + '”.');
+  });
+}
+var ECONOMY = {
+  id: 'economy', version: 1, cat: 'economy', sub: 'trade', complexity: 2, name: T('Економіка й лут', 'Economy & loot'),
+  desc: T('Валюти (скільки заробляє й витрачає гравець за годину, межа), таблиці луту з вагами й гарантією (pity) — і симуляція на N годин гри: інфляція, мертва валюта, нестача.', 'Currencies (how much the player earns and spends per hour, a cap), loot tables with weights and pity — and a simulation over N hours of play: inflation, dead currency, shortage.'),
+  purpose: T('Нагороди мають вагу, а гроші завжди є на що витратити.', 'Rewards feel meaningful and money always has something to buy.'),
+  sections: [
+    { id: 'currencies', title: T('Валюти', 'Currencies'), kind: 'table', rowLabel: 'name', prefix: 'CU',
+      hint: T('Дохід і витрати — у середньому за годину гри на старті. Ріст за годину — у «Симуляції».', 'Income and spending are the average per hour of play at the start. Their growth per hour is in “Simulation”.'),
+      fields: [F('name', 'Валюта', 'Currency', 'text', R), F('earn', 'Дохід за годину', 'Earned per hour', 'num', X(R, { min: 0 })), F('sources', 'Звідки', 'Sources', 'text', REC),
+        F('spend', 'Витрати за годину', 'Spent per hour', 'num', X(R, { min: 0 })), F('sinks', 'На що', 'Sinks', 'text', REC), F('cap', 'Межа', 'Cap', 'num', { req: 'opt', min: 0 }),
+        F('start', 'На старті', 'At the start', 'num', { req: 'opt', adv: true, min: 0 }), F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'CU1', name: 'Золото', earn: 1200, sources: 'вороги, скрині, продаж луту', spend: 1000, sinks: 'покращення зброї, зілля, ремонт', cap: 99999, start: 100 },
+        { _id: 'CU2', name: 'Уламки душ', earn: 30, sources: 'еліта, боси', spend: 25, sinks: 'перки, зачарування' },
+        { _id: 'CU3', name: 'Ключі', earn: 2, sources: 'головоломки', spend: 2, sinks: 'закриті скрині' }] },
+    { id: 'sim', title: T('Симуляція', 'Simulation'), kind: 'fields', hint: T('Симуляція годину за годиною: дохід і витрати ростуть разом із гравцем. Інфляція — коли запас більший за 3 години витрат.', 'Hour by hour: income and spending grow with the player. Inflation — when the stock exceeds 3 hours of spending.'),
+      fields: [F('hours', 'Годин гри', 'Hours of play', 'num', X(R, { min: 1, max: 500 })), F('earnGrowth', 'Ріст доходу за годину', 'Income growth per hour', 'pct', X(REC, { min: 0, max: 100 })),
+        F('spendGrowth', 'Ріст витрат за годину', 'Spending growth per hour', 'pct', X(REC, { min: 0, max: 100 }))],
+      values: { hours: 10, earnGrowth: 5, spendGrowth: 5 } },
+    { id: 'loot', title: T('Таблиці луту', 'Loot tables'), kind: 'table', rowLabel: 'item', prefix: 'LT',
+      hint: T('Рядки з однаковою назвою таблиці — одна таблиця. Шанс = вага ÷ сума ваг таблиці (порожній «Шанс» рахується сам). Гарантія (pity) — після скількох спроб без цього предмета він випаде точно.', 'Rows with the same table name are one table. Chance = weight ÷ the sum of the table’s weights (an empty “Chance” is computed). Pity — after how many tries without the item it surely drops.'),
+      fields: [F('table', 'Таблиця', 'Table', 'text', R), F('item', 'Предмет', 'Item', 'card', X(R, { secs: ['items', 'gear'] })), F('weight', 'Вага', 'Weight', 'num', X(R, { min: 0 })),
+        F('drop', 'Шанс', 'Chance', 'pct', { req: 'opt', min: 0, max: 100, h: T('порожньо — з ваги', 'empty — from the weight') }), F('pity', 'Гарантія після (спроб)', 'Pity after (tries)', 'num', { req: 'opt', min: 1 }),
+        F('rarity', 'Рідкість', 'Rarity', 'sel', X(REC, { o: O([['common', 'Звичайний', 'Common'], ['uncommon', 'Незвичайний', 'Uncommon'], ['rare', 'Рідкісний', 'Rare'], ['epic', 'Епічний', 'Epic'], ['legendary', 'Легендарний', 'Legendary']]) }))],
+      rows: [
+        { _id: 'LT1', table: 'Скриня лісу', item: 'Зілля здоровʼя', weight: 60, rarity: 'common' }, { _id: 'LT2', table: 'Скриня лісу', item: 'Стріли', weight: 30, rarity: 'common' },
+        { _id: 'LT3', table: 'Скриня лісу', item: 'Рідкісний меч', weight: 9, pity: 20, rarity: 'rare' }, { _id: 'LT4', table: 'Скриня лісу', item: 'Амулет предків', weight: 1, pity: 60, rarity: 'legendary' }] },
+  ],
+};
+// hour by hour per currency → { rows: [{ id, name, balance: [per hour], end, netEnd, out (hour it ran dry), capped (hour it hit the cap), status ok|dead|nosink|starved|inflation }], hours }
+function econSim(m) {
+  var sec = function (id) { return ((m && m.sections) || []).filter(function (s) { return s.id === id; })[0]; };
+  var sv = (sec('sim') || {}).values || {}, H = Math.max(1, Math.min(500, Math.round(+sv.hours || 10))), g = (+sv.earnGrowth || 0) / 100, sg = (+sv.spendGrowth || 0) / 100;
+  var rows = ((sec('currencies') || {}).rows || []).map(function (r) {
+    var earn = +r.earn || 0, spend = +r.spend || 0, cap = num(r.cap) && +r.cap > 0 ? +r.cap : null, bal = +r.start || 0, out = null, capped = null, series = [], e = 0, s = 0;
+    for (var h = 1; h <= H; h++) {
+      e = earn * Math.pow(1 + g, h - 1); s = spend * Math.pow(1 + sg, h - 1); bal += e - s;
+      if (bal < 0) { if (out == null) out = h; bal = 0; }
+      if (cap != null && bal > cap) { if (capped == null) capped = h; bal = cap; }
+      series.push(Math.round(bal));
+    }
+    var netEnd = Math.round(e - s), status = earn <= 0 ? 'dead' : spend <= 0 ? 'nosink' : out != null ? 'starved' : netEnd > 0 && bal > 3 * s ? 'inflation' : 'ok';
+    return { id: r._id, name: r.name || r._id, balance: series, end: Math.round(bal), netEnd: netEnd, spendEnd: Math.round(s), out: out, capped: capped, status: status };
+  });
+  return { hours: H, rows: rows };
+}
+// loot tables → [{ table, total, items: [{ id, item, weight, chance (% from the weight), drop (the author's %), tries (expected tries without pity), pity }] }]
+function lootChances(m) {
+  var s = ((m && m.sections) || []).filter(function (x) { return x.id === 'loot'; })[0], by = {}, order = [];
+  ((s && s.rows) || []).forEach(function (r) { var t = String(r.table || '').trim() || '—'; if (!by[t]) { by[t] = []; order.push(t); } by[t].push(r); });
+  return order.map(function (t) {
+    var total = by[t].reduce(function (a, r) { return a + (+r.weight > 0 ? +r.weight : 0); }, 0);
+    return { table: t, total: total, items: by[t].map(function (r) {
+      var ch = total && +r.weight > 0 ? Math.round(+r.weight / total * 1000) / 10 : 0;
+      return { id: r._id, item: cardTokens(r.item).join(', '), weight: +r.weight || 0, chance: ch, drop: num(r.drop) ? +r.drop : null, tries: ch ? Math.round(100 / ch * 10) / 10 : null, pity: num(r.pity) ? +r.pity : null };
+    }) };
+  });
+}
+function economyChecks(m, add, rowsOf) {
+  econSim(m).rows.forEach(function (c) {
+    if (c.status === 'dead') add('warn', 'currencies', c.id, '«' + c.name + '»: її ніде не заробити — мертва валюта.', '“' + c.name + '”: it cannot be earned anywhere — a dead currency.');
+    if (c.status === 'nosink') add('warn', 'currencies', c.id, '«' + c.name + '»: на неї нічого не витратити — накопичується без цінності.', '“' + c.name + '”: nothing to spend it on — it piles up worthless.');
+    if (c.status === 'starved') add('warn', 'currencies', c.id, '«' + c.name + '»: закінчується на ' + c.out + '-й годині — гравцю бракує на обовʼязкове.', '“' + c.name + '”: runs dry at hour ' + c.out + ' — the player cannot afford the essentials.');
+    if (c.status === 'inflation') add('warn', 'currencies', c.id, '«' + c.name + '»: інфляція — за ' + econSim(m).hours + ' год запас ' + c.end + ' (більше за 3 години витрат), дохід далі росте швидше. Додай витрати.', '“' + c.name + '”: inflation — after ' + econSim(m).hours + ' h the stock is ' + c.end + ' (over 3 hours of spending) and income keeps outgrowing it. Add sinks.');
+    if (c.capped != null && c.status !== 'inflation') add('tip', 'currencies', c.id, '«' + c.name + '»: упирається в межу на ' + c.capped + '-й годині — далі нагороди марні.', '“' + c.name + '”: hits its cap at hour ' + c.capped + ' — further rewards are wasted.');
+  });
+  lootChances(m).forEach(function (t) {
+    if (!t.total) add('warn', 'loot', '', 'Таблиця «' + t.table + '»: сума ваг 0 — нічого не випаде.', 'Table “' + t.table + '”: the weights sum to 0 — nothing drops.');
+    t.items.forEach(function (i) {
+      if (i.drop != null && Math.abs(i.drop - i.chance) > 1) add('warn', 'loot', i.id, 'Шанс ' + i.drop + '% не збігається з вагою (' + i.chance + '%). Порожній шанс рахується сам.', 'Chance ' + i.drop + '% does not match the weight (' + i.chance + '%). An empty chance is computed.');
+      if (i.pity != null && i.tries != null && i.pity < i.tries / 2) add('tip', 'loot', i.id, 'Гарантія (' + i.pity + ') спрацьовує вдвічі раніше, ніж предмет випадає в середньому (' + i.tries + ' спроб) — шанс майже не важить.', 'Pity (' + i.pity + ') triggers at half the average drop (' + i.tries + ' tries) or sooner — the chance barely matters.');
+    });
+  });
+}
+var LOOPS = {
+  id: 'loops', version: 1, cat: 'loops', sub: '', complexity: 2, name: T('Основний і мета-цикл', 'Core & meta loops'),
+  desc: T('Кроки циклів гри: сесія (хвилини), мета (між сесіями), довгий (тижні) — дія, нагорода, звʼязок із механіками й рівнями та наступний крок. Перевірка: кожен цикл замикається.', 'The steps of the game’s loops: session (minutes), meta (between sessions), long-term (weeks) — action, reward, the linked mechanics and levels and the next step. Check: every loop closes.'),
+  purpose: T('Видно, що гравець робить знову й знову і чому повертається.', 'Shows what the player does again and again and why they come back.'),
+  sections: [
+    { id: 'summary', title: T('Суть', 'Gist'), kind: 'fields',
+      fields: [F('hook', 'Чому гравець повертається', 'Why the player comes back', 'long', REC), F('session', 'Довжина сесії', 'Session length', 'num', X(REC, { u: 'min', min: 1, max: 600 }))],
+      values: { session: 30 } },
+    { id: 'nodes', title: T('Кроки циклів', 'Loop steps'), kind: 'table', rowLabel: 'action', prefix: 'LP',
+      hint: T('Перший крок шару — його початок. Із кожного кроку шару має бути шлях назад до початку (через «Далі»), інакше цикл не замикається і гравець упреться в глухий кут.', 'The first step of a layer is its start. Every step of a layer must lead back to the start (through “Next”), or the loop does not close and the player hits a dead end.'),
+      fields: [F('layer', 'Шар', 'Layer', 'sel', X(R, { o: O([['session', 'Сесія', 'Session'], ['meta', 'Мета', 'Meta'], ['long', 'Довгий', 'Long-term']]) })),
+        F('action', 'Дія гравця', 'Player action', 'text', R), F('reward', 'Нагорода', 'Reward', 'text', REC), F('next', 'Далі', 'Next', 'refs', X(R, { ref: 'nodes' })),
+        F('cards', 'Механіки, рівні, прогресія', 'Mechanics, levels, progression', 'card', { req: 'opt', secs: ['mechanics', 'levels', 'progression'] }), F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'LP1', layer: 'session', action: 'Досліджує локацію', reward: 'ресурси, таємниці', next: ['LP2'] },
+        { _id: 'LP2', layer: 'session', action: 'Бʼється з ворогами', reward: 'досвід, лут', next: ['LP3'] },
+        { _id: 'LP3', layer: 'session', action: 'Забирає лут', reward: 'спорядження', next: ['LP1', 'LP4'] },
+        { _id: 'LP4', layer: 'meta', action: 'Повертається в табір', reward: 'безпека, торгівля', next: ['LP5'] },
+        { _id: 'LP5', layer: 'meta', action: 'Покращує спорядження', reward: 'сила', next: ['LP6', 'LP7'] },
+        { _id: 'LP6', layer: 'meta', action: 'Обирає наступну вилазку', reward: 'нова ціль', next: ['LP1'] },
+        { _id: 'LP7', layer: 'long', action: 'Перемагає боса регіону', reward: 'новий регіон, сюжет', next: ['LP8'] },
+        { _id: 'LP8', layer: 'long', action: 'Відкриває новий регіон', reward: 'нові вороги й лут', next: ['LP4'] }] },
+  ],
+};
+// per layer: its start (the first step) and which of its steps have no way back to the start → [{ layer, start, closed, open: [ids] }]
+function loopClosure(m) {
+  var s = ((m && m.sections) || []).filter(function (x) { return x.id === 'nodes'; })[0], rows = (s && s.rows) || [], by = {};
+  rows.forEach(function (r) { by[r._id] = r; });
+  var nx = function (r) { return (Array.isArray(r.next) ? r.next : r.next ? [r.next] : []).filter(function (id) { return by[id]; }); };
+  var reaches = function (from, target) { var stack = nx(by[from]).slice(), seen = {}; while (stack.length) { var id = stack.pop(); if (id === target) return true; if (seen[id]) continue; seen[id] = 1; stack = stack.concat(nx(by[id])); } return false; };
+  var layers = []; rows.forEach(function (r) { if (r.layer && layers.indexOf(r.layer) < 0) layers.push(r.layer); });
+  return layers.map(function (L) {
+    var mine = rows.filter(function (r) { return r.layer === L; }), start = mine[0]._id;
+    var open = mine.filter(function (r) { return !reaches(r._id, start); }).map(function (r) { return r._id; });
+    return { layer: L, start: start, closed: !open.length, open: open };
+  });
+}
+function loopChecks(m, add, rowsOf, nameOf) {
+  var rows = rowsOf('nodes'), by = {}; rows.forEach(function (r) { by[r._id] = r; });
+  var LN = { session: ['сесії', 'session'], meta: ['мета', 'meta'], long: ['довгий', 'long-term'] };
+  loopClosure(m).forEach(function (l) {
+    var ln = LN[l.layer] || [l.layer, l.layer];
+    l.open.forEach(function (id) { add('warn', 'nodes', id, 'Цикл «' + ln[0] + '» не замикається: з «' + nameOf(by[id]) + '» немає шляху назад до «' + nameOf(by[l.start]) + '».', 'The ' + ln[1] + ' loop does not close: “' + nameOf(by[id]) + '” has no way back to “' + nameOf(by[l.start]) + '”.'); });
+  });
+  if (rows.length && !rows.some(function (r) { return r.layer === 'session'; })) add('tip', 'nodes', '', 'Немає кроків сесії — з чого складається кожні 5–30 хвилин гри?', 'No session steps — what fills every 5–30 minutes of play?');
+}
+var LEVEL_METRICS = {
+  id: 'level_metrics', version: 1, cat: 'leveldesign', sub: '', complexity: 2, name: T('Метрики рівнів і темп', 'Level metrics & pacing'),
+  desc: T('Метрики персонажа для левел-дизайну (висота й довжина стрибка, швидкість, ширина коридору, відстань між укриттями, досяжність) і ритм кожного рівня: такти з інтенсивністю 1–5 і хвилинами.', 'The character metrics level design builds on (jump height and distance, speed, corridor width, cover spacing, reach) and every level’s rhythm: beats with intensity 1–5 and minutes.'),
+  purpose: T('Рівні будуються під справжні можливості персонажа, а напруга чергується з відпочинком.', 'Levels fit what the character can really do, and tension alternates with rest.'),
+  sections: [
+    { id: 'metrics', title: T('Метрики персонажа', 'Character metrics'), kind: 'fields', hint: T('Прогалина, яку треба перестрибнути, — на 0.3–0.5 м коротша за довжину стрибка. Greybox будується з цих чисел.', 'A gap to be jumped is 0.3–0.5 m shorter than the jump distance. The greybox is built from these numbers.'),
+      fields: [F('jumpH', 'Висота стрибка', 'Jump height', 'num', X(R, { u: 'm', min: 0, max: 20 })), F('jumpD', 'Довжина стрибка', 'Jump distance', 'num', X(R, { u: 'm', min: 0, max: 30 })),
+        F('walk', 'Швидкість ходьби', 'Walk speed', 'num', X(REC, { u: 'm/s', min: 0, max: 30 })), F('sprint', 'Швидкість бігу', 'Sprint speed', 'num', X(REC, { u: 'm/s', min: 0, max: 40 })),
+        F('corridor', 'Ширина коридору', 'Corridor width', 'num', X(REC, { u: 'm', min: 0, max: 50 })), F('cover', 'Відстань між укриттями', 'Cover spacing', 'num', X(REC, { u: 'm', min: 0, max: 100 })),
+        F('reach', 'Досяжність (удар, взаємодія)', 'Reach (strike, interaction)', 'num', X(REC, { u: 'm', min: 0, max: 10 })),
+        F('step', 'Висота сходинки', 'Step height', 'num', { req: 'opt', adv: true, u: 'm', min: 0, max: 2 }), F('door', 'Висота дверей', 'Door height', 'num', { req: 'opt', adv: true, u: 'm', min: 0, max: 10 })],
+      values: { jumpH: 1.2, jumpD: 3.5, walk: 4, sprint: 7, corridor: 3, cover: 6, reach: 1.6, step: 0.4, door: 2.4 } },
+    { id: 'beats', title: T('Темп рівнів', 'Level pacing'), kind: 'table', rowLabel: 'beat', prefix: 'BT',
+      hint: T('Рядки одного рівня — по порядку проходження. Інтенсивність 1 — спокій, 5 — пік. Після піку потрібен спад: без нього гравець утомлюється, з рівним темпом — нудьгує.', 'The rows of one level go in play order. Intensity 1 is calm, 5 is the peak. A peak needs a dip after it: without one the player tires, with a flat pace — gets bored.'),
+      fields: [F('level', 'Рівень', 'Level', 'card', X(R, { secs: LVL_SECS })), F('beat', 'Такт', 'Beat', 'text', R),
+        F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: O([['explore', 'Дослідження', 'Exploration'], ['combat', 'Бій', 'Combat'], ['puzzle', 'Головоломка', 'Puzzle'], ['story', 'Сюжет', 'Story'], ['rest', 'Відпочинок', 'Rest'], ['boss', 'Бос', 'Boss']]) })),
+        F('intensity', 'Інтенсивність (1–5)', 'Intensity (1–5)', 'num', X(R, { min: 1, max: 5 })), F('minutes', 'Хвилин', 'Minutes', 'num', X(R, { min: 0, max: 120 }))],
+      rows: [
+        { _id: 'BT1', level: 'Ліс', beat: 'Прибуття', kind: 'explore', intensity: 1, minutes: 3 }, { _id: 'BT2', level: 'Ліс', beat: 'Засідка гоблінів', kind: 'combat', intensity: 3, minutes: 4 },
+        { _id: 'BT3', level: 'Ліс', beat: 'Галявина з вогнищем', kind: 'rest', intensity: 1, minutes: 2 }, { _id: 'BT4', level: 'Ліс', beat: 'Міст-головоломка', kind: 'puzzle', intensity: 2, minutes: 3 },
+        { _id: 'BT5', level: 'Ліс', beat: 'Зграя вовків', kind: 'combat', intensity: 4, minutes: 4 }, { _id: 'BT6', level: 'Ліс', beat: 'Ватажок', kind: 'boss', intensity: 5, minutes: 5 }] },
+  ],
+};
+// per level (rows grouped by their level, in order) → [{ level, beats, minutes, flat, rest (no rest: the longest run at intensity ≥ 4 in beats / minutes), valley }]
+function pacing(m) {
+  var s = ((m && m.sections) || []).filter(function (x) { return x.id === 'beats'; })[0], by = {}, order = [];
+  ((s && s.rows) || []).forEach(function (r) { var k = cardTokens(r.level).join(', ') || '—'; if (!by[k]) { by[k] = []; order.push(k); } by[k].push(r); });
+  return order.map(function (k) {
+    var rs = by[k].filter(function (r) { return num(r.intensity); }), run = 0, runMin = 0, maxRun = 0, maxMin = 0, at = '';
+    rs.forEach(function (r) { if (+r.intensity >= 4) { run++; runMin += +r.minutes || 0; if (run > maxRun || runMin > maxMin) { maxRun = Math.max(maxRun, run); maxMin = Math.max(maxMin, runMin); at = r._id; } } else { run = 0; runMin = 0; } });
+    var flat = rs.length >= 3 && rs.every(function (r) { return +r.intensity === +rs[0].intensity; });
+    var valley = rs.length < 4 || rs.slice(1).some(function (r) { return +r.intensity <= 2; });
+    return { level: k, beats: rs.length, minutes: by[k].reduce(function (a, r) { return a + (+r.minutes || 0); }, 0), flat: flat, peakRun: maxRun, peakMinutes: maxMin, peakAt: at, valley: valley, first: (rs[0] || {})._id || '' };
+  });
+}
+function levelMetricChecks(m, add, rowsOf, nameOf, val) {
+  if (num(val('metrics', 'corridor')) && +val('metrics', 'corridor') < 1.5) add('warn', 'metrics', '', 'Коридор вужчий за 1.5 м — камера від третьої особи впиратиметься в стіни.', 'A corridor under 1.5 m — a third-person camera will clip the walls.');
+  if (num(val('metrics', 'step')) && num(val('metrics', 'jumpH')) && +val('metrics', 'step') >= +val('metrics', 'jumpH')) add('warn', 'metrics', '', 'Сходинка не нижча за висоту стрибка.', 'The step is no lower than the jump height.');
+  if (num(val('metrics', 'cover')) && +val('metrics', 'sprint') > 0 && +val('metrics', 'cover') / +val('metrics', 'sprint') > 2) add('tip', 'metrics', '', 'Між укриттями ' + Math.round(+val('metrics', 'cover') / +val('metrics', 'sprint') * 10) / 10 + ' с бігу під вогнем — звично до 2 с.', 'Between covers ' + Math.round(+val('metrics', 'cover') / +val('metrics', 'sprint') * 10) / 10 + ' s of running under fire — usually up to 2 s.');
+  pacing(m).forEach(function (p) {
+    if (p.flat) add('warn', 'beats', p.first, '«' + p.level + '»: увесь рівень на одній інтенсивності — монотонно.', '“' + p.level + '”: the whole level at one intensity — monotone.');
+    if (p.peakRun >= 3 || p.peakMinutes >= 12) add('warn', 'beats', p.peakAt, '«' + p.level + '»: ' + p.peakRun + ' такти поспіль (' + p.peakMinutes + ' хв) на інтенсивності 4–5 без відпочинку.', '“' + p.level + '”: ' + p.peakRun + ' beats in a row (' + p.peakMinutes + ' min) at intensity 4–5 without rest.');
+    if (!p.valley) add('tip', 'beats', p.first, '«' + p.level + '»: після початку немає жодного спаду (інтенсивність ≤ 2).', '“' + p.level + '”: no dip (intensity ≤ 2) after the start.');
+  });
+}
+var DIFFICULTY = {
+  id: 'difficulty', version: 1, cat: 'balance', sub: '', complexity: 2, name: T('Крива складності й балансу', 'Difficulty & balance curve'),
+  desc: T('Сила гравця й ворогів по рівнях і зонах → час, щоб убити ворога (TTK), і час, за який вороги вбивають гравця (TTD), з цільовими межами.', 'Player and enemy power per level and zone → time to kill an enemy (TTK) and time for the enemies to kill the player (TTD), with target bands.'),
+  purpose: T('Складність росте рівно, без раптових стін і нудних ділянок.', 'Difficulty grows smoothly, without sudden walls or dull stretches.'),
+  sections: [
+    { id: 'targets', title: T('Цілі', 'Targets'), kind: 'fields', hint: T('TTK = здоровʼя ворога ÷ шкода гравця за секунду. TTD = здоровʼя гравця ÷ (шкода ворога за секунду × скільки їх атакує).', 'TTK = enemy HP ÷ player damage per second. TTD = player HP ÷ (enemy damage per second × how many attack).'),
+      fields: [F('ttk', 'TTK звичайного ворога, с', 'TTK of a regular enemy, s', 'range', R), F('ttd', 'TTD гравця, с', 'TTD of the player, s', 'range', R), F('bossTtk', 'TTK боса, с', 'TTK of a boss, s', 'range', REC)],
+      values: { ttk: '2–6', ttd: '15–40', bossTtk: '45–120' } },
+    { id: 'zones', title: T('Рівні й зони', 'Levels & zones'), kind: 'table', rowLabel: 'enemy', prefix: 'Z', hint: T('По порядку проходження.', 'In play order.'),
+      fields: [F('zone', 'Рівень / зона', 'Level / zone', 'card', X(R, { secs: LVL_SECS })), F('enemy', 'Ворог', 'Enemy', 'text', REC), F('boss', 'Бос', 'Boss', 'bool', REC),
+        F('php', 'HP гравця', 'Player HP', 'num', X(R, { min: 1 })), F('pdps', 'Шкода гравця за с', 'Player DPS', 'num', X(R, { min: 0 })),
+        F('ehp', 'HP ворога', 'Enemy HP', 'num', X(R, { min: 1 })), F('edps', 'Шкода ворога за с', 'Enemy DPS', 'num', X(R, { min: 0 })),
+        F('count', 'Атакують одночасно', 'Attacking at once', 'num', X(REC, { min: 1, max: 50 })), F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'Z1', zone: 'Ліс', enemy: 'Гоблін', php: 100, pdps: 20, ehp: 60, edps: 3, count: 2 },
+        { _id: 'Z2', zone: 'Печери', enemy: 'Павук', php: 160, pdps: 30, ehp: 120, edps: 5, count: 2 },
+        { _id: 'Z3', zone: 'Болото', enemy: 'Утопленик', php: 200, pdps: 35, ehp: 175, edps: 4, count: 3 },
+        { _id: 'Z4', zone: 'Болото', enemy: 'Відьма боліт', boss: true, php: 220, pdps: 40, ehp: 3000, edps: 10, count: 1 }] },
+  ],
+};
+// per zone row → { id, zone, enemy, boss, ttk, ttd (s, 1 decimal; null when a DPS is 0), ttkBand, ttdBand, ttkOk, ttdOk }
+function difficultyCurve(m) {
+  var secs = (m && m.sections) || [], tv = ((secs.filter(function (x) { return x.id === 'targets'; })[0]) || {}).values || {};
+  var zs = (secs.filter(function (x) { return x.id === 'zones'; })[0] || {}).rows || [], r1 = function (x) { return Math.round(x * 10) / 10; };
+  var inB = function (v, b) { return v == null || !b ? null : v >= b[0] && v <= b[1]; };
+  return zs.map(function (z) {
+    var ttk = +z.pdps > 0 && num(z.ehp) ? r1(+z.ehp / +z.pdps) : null, ttd = +z.edps > 0 && num(z.php) ? r1(+z.php / (+z.edps * Math.max(1, +z.count || 1))) : null;
+    var kb = range(z.boss ? tv.bossTtk || tv.ttk : tv.ttk), db = range(tv.ttd);
+    return { id: z._id, zone: cardTokens(z.zone).join(', '), enemy: z.enemy || '', boss: !!z.boss, ttk: ttk, ttd: ttd, ttkBand: kb, ttdBand: db, ttkOk: inB(ttk, kb), ttdOk: inB(ttd, db) };
+  });
+}
+function difficultyChecks(m, add) {
+  var prev = null;
+  difficultyCurve(m).forEach(function (z) {
+    var who = (z.zone ? z.zone + ' · ' : '') + (z.enemy || z.id);
+    if (z.ttk == null || z.ttd == null) add('warn', 'zones', z.id, '«' + who + '»: шкода за секунду 0 — TTK / TTD не порахувати.', '“' + who + '”: damage per second is 0 — TTK / TTD cannot be computed.');
+    if (z.ttkOk === false) add('warn', 'zones', z.id, '«' + who + '»: TTK ' + z.ttk + ' с поза ціллю ' + z.ttkBand.join('–') + ' с' + (z.ttk < z.ttkBand[0] ? ' — ворог падає надто швидко.' : ' — бій затягнутий, ворог «губка».'), '“' + who + '”: TTK ' + z.ttk + ' s is outside the ' + z.ttkBand.join('–') + ' s target' + (z.ttk < z.ttkBand[0] ? ' — the enemy drops too fast.' : ' — the fight drags, a bullet sponge.'));
+    if (z.ttdOk === false) add('warn', 'zones', z.id, '«' + who + '»: TTD ' + z.ttd + ' с поза ціллю ' + z.ttdBand.join('–') + ' с' + (z.ttd < z.ttdBand[0] ? ' — гравець гине надто швидко.' : ' — загрози немає.'), '“' + who + '”: TTD ' + z.ttd + ' s is outside the ' + z.ttdBand.join('–') + ' s target' + (z.ttd < z.ttdBand[0] ? ' — the player dies too fast.' : ' — there is no threat.'));
+    if (!z.boss && z.ttd != null) { if (prev && prev.ttd && z.ttd < prev.ttd * 0.6) add('tip', 'zones', z.id, '«' + who + '»: TTD падає на ' + Math.round((1 - z.ttd / prev.ttd) * 100) + '% проти попередньої зони — стіна складності.', '“' + who + '”: TTD drops ' + Math.round((1 - z.ttd / prev.ttd) * 100) + '% against the previous zone — a difficulty wall.'); prev = z; }
+  });
+}
+var PLATFORMS = O([['steam', 'Steam (ПК)', 'Steam (PC)'], ['ios', 'iOS (App Store)', 'iOS (App Store)'], ['android', 'Android (Google Play)', 'Android (Google Play)'], ['console', 'Консолі', 'Consoles'], ['itch', 'itch.io', 'itch.io']]);
+var RELEASE = {
+  id: 'release', version: 1, cat: 'release', sub: '', complexity: 1, name: T('Чекліст релізу', 'Release checklist'),
+  desc: T('Що потрібно для виходу на кожній платформі (Steam, мобільні, консолі, itch.io): капсули й скриншоти з розмірами, тексти магазину, віковий рейтинг, EULA й політика приватності, титри й ліцензії, досягнення, геймпад, розмір збірки.', 'What a launch needs on each platform (Steam, mobile, consoles, itch.io): capsules and screenshots with their sizes, store texts, age rating, EULA and privacy policy, credits and licences, achievements, controller support, build size.'),
+  purpose: T('Реліз-кандидат (ворота G4) — коли все для обраних платформ «Готово» або «Не стосується».', 'The release candidate (gate G4) — when everything for the chosen platforms is “Done” or “N/A”.'),
+  sections: [
+    { id: 'platforms', title: T('Платформи', 'Platforms'), kind: 'fields', hint: T('Рядки інших платформ не враховуються.', 'Rows of other platforms are not counted.'),
+      fields: [F('platforms', 'Платформи', 'Platforms', 'multi', X(R, { o: PLATFORMS })), F('date', 'Дата релізу', 'Release date', 'text', REC)],
+      values: { platforms: ['steam'] } },
+    { id: 'items', title: T('Чекліст', 'Checklist'), kind: 'table', rowLabel: 'item', prefix: 'RL',
+      hint: T('Розміри — актуальні вимоги магазинів на 2026; звір із документацією магазину перед відправкою.', 'Sizes are the stores’ 2026 requirements; verify against the store docs before submitting.'),
+      fields: [F('platform', 'Платформа', 'Platform', 'sel', X(R, { o: O([['all', 'Усі', 'All']]).concat(PLATFORMS) })),
+        F('area', 'Розділ', 'Area', 'sel', X(REC, { o: O([['store', 'Сторінка магазину', 'Store page'], ['legal', 'Право й рейтинг', 'Legal & rating'], ['features', 'Функції', 'Features'], ['build', 'Збірка', 'Build']]) })),
+        F('item', 'Що', 'What', 'text', R), F('spec', 'Вимога', 'Requirement', 'text', REC), F('status', 'Стан', 'Status', 'sel', X(R, { o: O([['todo', 'Не зроблено', 'To do'], ['progress', 'У роботі', 'In progress'], ['done', 'Готово', 'Done'], ['na', 'Не стосується', 'N/A']]) })),
+        F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'RL1', platform: 'all', area: 'legal', item: 'Політика приватності (посилання)', spec: 'обовʼязкова для мобільних і при зборі даних', status: 'todo' },
+        { _id: 'RL2', platform: 'all', area: 'legal', item: 'EULA / умови використання', status: 'todo' },
+        { _id: 'RL3', platform: 'all', area: 'legal', item: 'Титри й ліцензії ассетів', spec: 'усі чипи ліцензій у Біблії 🟢/🟡 з виконаними умовами (автор, поріг доходу)', status: 'todo' },
+        { _id: 'RL4', platform: 'all', area: 'build', item: 'Мінімальні вимоги й розмір збірки', status: 'todo' },
+        { _id: 'RL5', platform: 'steam', area: 'store', item: 'Капсули магазину', spec: 'Header 920×430 · Small 462×174 · Main 1232×706 · Vertical 748×896', status: 'todo' },
+        { _id: 'RL6', platform: 'steam', area: 'store', item: 'Бібліотека Steam', spec: 'Capsule 600×900 · Hero 3840×1240 · Logo 1280×720 (PNG) · Header 920×430', status: 'todo' },
+        { _id: 'RL7', platform: 'steam', area: 'store', item: 'Скриншоти й трейлер', spec: '≥ 5 скриншотів 1920×1080; трейлер', status: 'todo' },
+        { _id: 'RL8', platform: 'steam', area: 'store', item: 'Тексти магазину', spec: 'короткий опис ≤ 300 символів, повний опис, теги', status: 'todo' },
+        { _id: 'RL9', platform: 'steam', area: 'legal', item: 'Опитування про контент (вік, зрілий вміст)', status: 'todo' },
+        { _id: 'RL10', platform: 'steam', area: 'features', item: 'Досягнення', status: 'todo' },
+        { _id: 'RL11', platform: 'steam', area: 'features', item: 'Підтримка геймпада', spec: 'Steam Input; позначка «повна» чи «часткова»', status: 'todo' },
+        { _id: 'RL12', platform: 'ios', area: 'store', item: 'Іконка й скриншоти', spec: 'іконка 1024×1024; скриншоти 6.9″ 1320×2868 (або 1290×2796)', status: 'todo' },
+        { _id: 'RL13', platform: 'ios', area: 'legal', item: 'Віковий рейтинг (анкета App Store Connect)', status: 'todo' },
+        { _id: 'RL14', platform: 'android', area: 'store', item: 'Іконка й банер', spec: 'іконка 512×512; feature graphic 1024×500', status: 'todo' },
+        { _id: 'RL15', platform: 'android', area: 'legal', item: 'Віковий рейтинг IARC (анкета в Play Console)', status: 'todo' },
+        { _id: 'RL16', platform: 'android', area: 'build', item: 'Розмір AAB', spec: 'базовий модуль ≤ 200 МБ, більше — Play Asset Delivery', status: 'todo' },
+        { _id: 'RL17', platform: 'console', area: 'legal', item: 'Рейтинг PEGI / ESRB (або IARC для цифрових магазинів)', status: 'todo' },
+        { _id: 'RL18', platform: 'console', area: 'build', item: 'Сертифікація платформи (TRC / XR / Lotcheck)', spec: 'за документацією девкита', status: 'todo' },
+        { _id: 'RL19', platform: 'itch', area: 'store', item: 'Обкладинка й сторінка', spec: 'обкладинка 630×500, скриншоти', status: 'todo' }] },
+  ],
+};
+// the chosen platforms → { platforms, total, done, left: [{ id, item, platform, status }], green } — G4 (release candidate) wants green
+function releaseStatus(m) {
+  var secs = (m && m.sections) || [], pv = ((secs.filter(function (x) { return x.id === 'platforms'; })[0]) || {}).values || {}, chosen = Array.isArray(pv.platforms) ? pv.platforms : [];
+  var rows = ((secs.filter(function (x) { return x.id === 'items'; })[0]) || {}).rows || [];
+  var mine = rows.filter(function (r) { return r.platform === 'all' || chosen.indexOf(r.platform) >= 0; });
+  var left = mine.filter(function (r) { return r.status !== 'done' && r.status !== 'na'; }).map(function (r) { return { id: r._id, item: r.item || r._id, platform: r.platform || '', status: r.status || 'todo' }; });
+  return { platforms: chosen, total: mine.length, done: mine.length - left.length, left: left, green: mine.length > 0 && !left.length };
+}
+function releaseChecks(m, add) {
+  var r = releaseStatus(m);
+  if (r.left.length) add('tip', 'items', '', 'До реліз-кандидата лишилось ' + r.left.length + ' з ' + r.total + ' пунктів.', r.left.length + ' of ' + r.total + ' items left before the release candidate.');
+}
+// RPG Framework for the new templates — only what this file already knows (FRAMEWORK / FW_BUILTIN); the rest is the game's code
+FRAMEWORK.game_feel = { actions: ['partial', 'Реакції на влучання (рівні влучання, оглушення) і звукові сигнали є; hitstop, тремтіння камери, вібрація, буфер вводу й coyote time — код гри.', 'Hit reactions (hit tiers, stagger) and audio cues exist; hitstop, camera shake, rumble, the input buffer and coyote time are game code.'] };
+FRAMEWORK.controls = { map: ['missing', 'Розкладки вводу у фреймворку немає — Unity Input System і код гри.', 'The framework has no input map — Unity Input System and game code.'] };
+FRAMEWORK.accessibility = { checklist: ['missing', 'Код гри (налаштування, субтитри, режими кольору).', 'Game code (settings, subtitles, colour modes).'] };
+FRAMEWORK.economy = { currencies: ['partial', 'Торгівля (economy.trading) є; валюти з доходом і витратами за годину — дані й код гри.', 'Trading (economy.trading) exists; currencies with hourly income and spending are game data and code.'],
+  loot: ['exists', 'Лут (items.loot) є — ваги й таблиці лягають на нього; гарантія (pity) — код гри.', 'Loot (items.loot) exists — the weights and tables map onto it; pity is game code.'] };
+FRAMEWORK.loops = { nodes: ['missing', 'Дизайн-документ: цикл збирається в коді гри з модулів (квести, прогресія, лут).', 'A design document: the loop is assembled in game code from modules (quests, progression, loot).'] };
+FRAMEWORK.level_metrics = { metrics: ['missing', 'Код гри й рівні в Unity (контролер персонажа, greybox).', 'Game code and the Unity levels (character controller, greybox).'] };
+FRAMEWORK.difficulty = { zones: ['partial', 'Стати (StatContainer) і рівні ворогів (progression.enemy_levels) є; симулятора балансу немає (combat.balancing_simulator).', 'Stats (StatContainer) and enemy levels (progression.enemy_levels) exist; no balancing simulator (combat.balancing_simulator).'] };
+FRAMEWORK.release = { items: ['partial', 'Досягнення — game_kit.achievements; решта — магазини, юридичне й збірка, не фреймворк.', 'Achievements — game_kit.achievements; the rest is stores, legal and the build, not the framework.'] };
+FW_CAPS.economy = { loot: ['items.loot'] };
+FW_CAPS.difficulty = { zones: ['stats.container', 'progression.enemy_levels'] };
+var CALCS = { economy: function (m) { return { simulation: econSim(m), loot: lootChances(m) }; }, loops: function (m) { return { loops: loopClosure(m) }; },
+  level_metrics: function (m) { return { pacing: pacing(m) }; }, difficulty: function (m) { return { zones: difficultyCurve(m) }; }, release: function (m) { return releaseStatus(m); } };
+function calc(m) { var f = m && CALCS[m.tpl]; return f ? f(m) : null; }
+
+var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, FEEL, CONTROLS, ACCESS, ECONOMY, LOOPS, LEVEL_METRICS, DIFFICULTY, RELEASE,
+  MUSIC, AMBIENCE, UISOUND, PROMPTS]; // sec: 'audio' — Фабрика звуку, the rest — Mechanics
 var TEMPLATE_CHECKS = { umcf: umcfChecks, dodge: dodgeChecks, blockparry: blockChecks, attributes: attrChecks, leveling: levelChecks, status: statusChecks,
-  adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks };
+  game_feel: feelChecks, controls: controlsChecks, accessibility: accessChecks, economy: economyChecks, loops: loopChecks, level_metrics: levelMetricChecks,
+  difficulty: difficultyChecks, release: releaseChecks, adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks };
 
 // ---- helpers ----
 function num(v) { return v !== '' && v != null && !isNaN(+v); }
@@ -1050,6 +1436,26 @@ function soundSlots(m, lang) {
   });
   return out;
 }
+// a `card` field's value → its tokens: [card id] from a picker, or card titles typed by hand ("Ліс, Печери"); "c:" is dropped
+function cardTokens(v) {
+  return (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[,;\n]/) : []).map(function (x) { return String(x == null ? '' : x).trim().replace(/^c:/, ''); }).filter(Boolean);
+}
+// one token → the game card it names (by id, else by title, case-insensitive), or null
+function resolveCard(tok, cards) {
+  var t = String(tok || '').trim().replace(/^c:/, ''), lo = t.toLowerCase(), live = (cards || []).filter(function (c) { return !c.hidden; });
+  return t ? live.filter(function (c) { return c.id === t; })[0] || live.filter(function (c) { return !c.canonRef && String(c.title || '').trim().toLowerCase() === lo; })[0] || null : null;
+}
+// every card link of a mechanic: { sec, row, rowName ('' when the row is named by the link itself), k, label, secs, tokens }
+function cardSlots(m, lang) {
+  var out = [];
+  ((m && m.sections) || []).forEach(function (s) {
+    (s.fields || []).filter(function (f) { return f.t === 'card'; }).forEach(function (f) {
+      var one = function (o, r) { out.push({ sec: s.id, row: r ? r._id : '', rowName: r && s.rowLabel !== f.k ? rowName(s, r) : '', k: f.k, label: lbl(f.l, lang), secs: f.secs || [], tokens: cardTokens(o[f.k]) }); }; // a row named by this very link: the label alone
+      if (s.kind === 'table') (s.rows || []).forEach(function (r) { one(r, r); }); else one(s.values || {}, null);
+    });
+  });
+  return out;
+}
 // cards → { assets: [{ id, title, group, files }], used: { cardId: [{ card, title, secTitle, rowName, label }] }, missing: [same + card], unused: [id] }
 function audioLibrary(cards, lang) {
   var list = (cards || []).filter(function (c) { return c.section === 'audio' && !c.canonRef && !c.hidden; });
@@ -1069,31 +1475,36 @@ function audioLibrary(cards, lang) {
 function worst(issues) { return issues.some(function (i) { return i.level === 'error'; }) ? 'error' : issues.some(function (i) { return i.level === 'warn'; }) ? 'warn' : issues.length ? 'tip' : ''; }
 
 // plain values for the agent (MCP): refs become { id, name }, labels in one language
-function exportMech(card, lang, lib, man) { // lib: audioLibrary(cards).assets — sound slots then carry their files; man: the game's framework manifest
+function exportMech(card, lang, lib, man, cards) { // lib: audioLibrary(cards).assets — sound slots then carry their files; man: the game's framework manifest; cards: the game's cards (card links resolve)
   var m = card.mech || {}, L = lang || 'en', cat = category(m.cat), t = template(m.tpl);
+  var crd = function (tok) { var c = resolveCard(tok, cards); return c ? { ref: 'c:' + c.id, title: c.title || '' } : { name: tok, missing: !!cards }; };
   var snd = function (id) { var a = (lib || []).filter(function (x) { return x.id === id; })[0];
     return a ? { ref: 'c:' + id, title: a.title, files: a.files.map(function (f) { return { name: f.name, url: f.url, type: f.type || '', duration: f.duration || null }; }) } : { ref: 'c:' + id, missing: true }; };
   var secs = (m.sections || []).map(function (s) {
     var cols = (s.fields || []).map(function (f) { return { key: f.k, label: lbl(f.l, L), type: f.t, unit: f.u || '', required: f.req === 'r', ref: f.ref || '' }; });
     var name = function (refSec, id) { var rs = (m.sections || []).filter(function (x) { return x.id === refSec; })[0]; var r = rs && (rs.rows || []).filter(function (x) { return x._id === id; })[0]; return r ? { id: id, name: rowName(rs, r) } : { id: id, name: null }; };
-    var plain = function (o) { var out = {}; (s.fields || []).forEach(function (f) { var v = o[f.k]; if (empty(v)) return; out[f.k] = f.t === 'ref' ? name(f.ref, v) : f.t === 'refs' ? v.map(function (id) { return name(f.ref, id); }) : f.t === 'sound' ? (Array.isArray(v) ? v : []).map(snd) : v; }); return out; };
+    var plain = function (o) { var out = {}; (s.fields || []).forEach(function (f) { var v = o[f.k]; if (empty(v)) return; out[f.k] = f.t === 'ref' ? name(f.ref, v) : f.t === 'refs' ? v.map(function (id) { return name(f.ref, id); }) : f.t === 'sound' ? (Array.isArray(v) ? v : []).map(snd) : f.t === 'card' ? cardTokens(v).map(crd) : v; }); return out; };
     var o = { id: s.id, title: lbl(s.title, L), kind: s.kind, fields: cols };
     if (s.kind === 'table') o.rows = (s.rows || []).map(function (r) { var x = Object.assign({ id: r._id }, plain(r)), p = s.prompt && rowPrompt(m, s.id, r, L); if (p) x.generator_prompt = p; if (s.id === 'ctable') x.start = comboStart(m, r); return x; }); else o.values = plain(s.values || {});
     return o;
   });
-  var c = check(m);
-  return { id: card.id, title: card.title || '', template: t ? { id: t.id, name: lbl(t.name, L), version: m.tplVersion } : null,
+  var c = check(m), computed = calc(m);
+  var out = { id: card.id, title: card.title || '', template: t ? { id: t.id, name: lbl(t.name, L), version: m.tplVersion } : null,
     category: cat ? lbl(cat, L) : (card.fields && card.fields.group) || '', subcategory: cat && m.sub ? lbl((cat.subs.filter(function (s) { return s[0] === m.sub; })[0] || [])[L === 'uk' ? 1 : 2], L) : '',
     stage: m.stage || 'concept', type: m.type || '', purpose: m.purpose || '', rules: m.rules || '', tags: m.tags || [], links: m.links || [],
     sections: secs.map(function (x) { var n = frameworkNote(m.tpl, x.id, man); if (n) x.framework = { status: n.status, note: L === 'uk' ? n.uk : n.en, capabilities: n.caps }; return x; }),
     framework: { version: (man || FW_BUILTIN).version, relies_on: mechCaps(m).map(function (c) { return c.id; }), gaps: frameworkGaps(m, man).map(function (g) {
       return { capability: g.id, status: g.status, title: g.title, notes: g.notes, ki: g.ki, decision: g.decision === 'game' ? 'build in game code' : g.decision === 'framework' ? 'requested from the framework' : 'undecided' }; }) }, completeness: c.pct, issues: c.issues.map(function (i) { return { level: i.level, section: i.sec, row: i.row, message: L === 'uk' ? i.uk : i.en }; }) };
+  if (computed) out.computed = computed; // economy flow, drop %, loop closure, pacing, TTK / TTD, what the release lacks
+  return out;
 }
 
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
   AUDIO_CATEGORIES: AUDIO_CATEGORIES, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
-  isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN };
+  isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN,
+  cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
+  difficultyCurve: difficultyCurve, releaseStatus: releaseStatus };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;
 })();

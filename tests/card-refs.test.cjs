@@ -42,12 +42,25 @@ check(REFS.usedBy(G, 'c:sword', 'uk').filter((r) => r.kind === 'task')[0].from.s
 check(rows('c:hero').indexOf('Схований'), -1, 'hidden cards point nowhere');
 check(REFS.usedBy(G, 'c:sword', 'en').filter((r) => r.kind === 'owner')[0].label, 'Item owner', 'labels in English for MCP');
 
+// a mechanic's card field: a picked id or a typed title both point at the card, an unknown title points nowhere (v2.78)
+const G2 = { cards: [{ id: 'lvl', section: 'levels', title: 'Ліс' }, { id: 'pot', section: 'items', title: 'Зілля' },
+  { id: 'eco', section: 'mechanics', title: 'Економіка', mech: { tpl: 'economy', sections: [{ id: 'loot', kind: 'table', rowLabel: 'item', fields: [{ k: 'item', t: 'card', l: 'Предмет' }], rows: [{ _id: 'LT1', item: ['pot'] }, { _id: 'LT2', item: 'ліс, Немає' }] }] } }] };
+check(REFS.usedBy(G2, 'c:pot', 'uk').map((r) => r.kind + ':' + r.side + ':' + r.from.title + ':' + r.extra).join(), 'mechcard:in:Економіка:Предмет', 'a picked card in a mechanic (a row named by the link shows the field)');
+check(REFS.usedBy(G2, 'c:lvl', 'uk').map((r) => r.kind + ':' + r.from.title).join(), 'mechcard:Економіка', 'a typed title resolves to the card');
+check(REFS.usedBy(G2, 'c:eco', 'uk').map((r) => r.side + ':' + r.from.title).sort().join(), 'out:Зілля,out:Ліс', 'the mechanic lists the cards it points at');
+
+// a bug task (kind 'bug', MCP report_bug) lives only in tasks/, outside the plan — it still shows in «🔗 Що зачепить зміна» (v2.78.1)
+const G3 = Object.assign({}, G, { tasks: G.tasks.concat([{ id: 'BUG-1', kind: 'bug', severity: 's1', milestone: 'G1', status: 'todo', title: 'Меч проходить крізь стіну', cards: ['c:sword'] }, { id: 'M1.1', cards: ['c:hero'] }]) });
+const bug = REFS.usedBy(G3, 'c:sword', 'uk').filter((r) => r.from.id === 'BUG-1')[0];
+check(bug && bug.kind + ':' + bug.from.kind + ':' + bug.from.severity + ':' + bug.extra, 'task:bug:s1:bug S1', 'a bug task points at its card with kind + severity');
+check(REFS.usedBy(G3, 'c:hero', 'uk').some((r) => r.kind === 'task'), false, 'a plan task doc is read from the plan only (no double edges)');
+
 // coverage: every reference field of the data model is a kind of the registry
 const covered = [].concat(...REFS.KINDS.map((k) => k.fields));
 const KNOWN = NV.REF_FIELDS.map((k) => 'quest.' + k).concat(['quest.source', 'dialogue.participants', 'dialogue.location', 'dialogue.nodes.speaker', 'dialogue.nodes.voice',
-  'plan.milestones.tasks.cards', 'card.planTask', 'card.mech.links', 'card.mech.sections[sound field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)']);
+  'plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)', 'card.mech.links', 'card.mech.sections[sound field]', 'card.mech.sections[card field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)']);
 KNOWN.forEach((f) => check(covered.indexOf(f) >= 0, true, 'covered: ' + f));
-check(MECH.TYPES.filter((t) => ['sound'].indexOf(t) < 0 && /ref|card|sound|audio/i.test(t)).filter((t) => t !== 'ref' && t !== 'refs').join(), '',
+check(MECH.TYPES.filter((t) => ['sound', 'card'].indexOf(t) < 0 && /ref|card|sound|audio/i.test(t)).filter((t) => t !== 'ref' && t !== 'refs').join(), '',
   'mechanics field types pointing at cards are all known (ref / refs point at rows of the same mechanic)');
 check(REFS.KINDS.every((k) => k.uk && k.en && typeof k.edges === 'function' && k.fields.length), true, 'every kind has labels, fields and edges');
 

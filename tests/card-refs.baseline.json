@@ -1,9 +1,9 @@
 {
-  "note": "Card-reference ratchet (tests/connections.test.cjs): places that build or name a card reference, per file, as of 2026-11-04 (all covered by functions/card-refs.js KINDS or not stored references: views, MCP args, AI prompts). Raise a number only together with a new KIND in functions/card-refs.js, or with a note here why the new place is not a stored reference.",
+  "note": "Card-reference ratchet (tests/connections.test.cjs): places that build or name a card reference, per file, as of 2026-11-04; mechanics.js 5→6 in v2.78: exportMech resolves a mechanic's `card` field to { ref } — the KIND «mechcard» (all covered by functions/card-refs.js KINDS or not stored references: views, MCP args, AI prompts). Raise a number only together with a new KIND in functions/card-refs.js, or with a note here why the new place is not a stored reference.",
   "counts": {
     "app/gamebible.js": 26,
     "functions/forge.js": 4,
-    "functions/mechanics.js": 5,
+    "functions/mechanics.js": 6,
     "functions/narrative-validate.js": 2,
     "functions/src/experience.js": 2,
     "functions/src/mcp.js": 25,

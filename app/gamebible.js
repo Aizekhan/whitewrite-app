@@ -128,7 +128,7 @@
       sectionAbout: "Про що цей розділ (необовʼязково)", create: "Створити", cancel: "Скасувати",
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
-      group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.",
+      group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", more: "Порожні підрозділи:", start: "Почни звідси:",
         general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія", rename: "Перейменувати підрозділ",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
@@ -428,7 +428,7 @@
       sectionAbout: "What this section is about (optional)", create: "Create", cancel: "Cancel",
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
-      group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.",
+      group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", more: "Empty subsections:", start: "Start here:",
         general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story", rename: "Rename the subsection",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
@@ -1017,14 +1017,20 @@
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
         (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
-    var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
+    var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; }, empties = [];
     subs.concat(extra).forEach(function (g) {
       var list = by[g] || [];
+      if (!list.length && items.length) return empties.push(g); // the cards live elsewhere: the empty subsections fold into one line below
       html += block(g, head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>'));
     });
     if (loose.length || !(subs.length + extra.length)) {
       html += block("", head("", looseLabel(s, subs.length + extra.length), loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>'));
     }
+    if (empties.length) html += '<div class="subempty"><span class="muted">' + STR.sub.more + '</span>' + empties.map(function (g) { // still drop targets and «＋ Додати» each
+      var label = labelOf ? labelOf(g) : g;
+      return '<div class="subsec subsec-mini" data-sub="' + esc(g) + '"><button class="btn mini ghost" data-addsub="' + esc(g) + '" title="' + esc(STR.sub.item + " · " + label) + '">＋ ' + esc(label) + '</button>' +
+        (canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</div>';
+    }).join("") + '</div>';
     return html;
   }
   // ---------- 🎧 Аудіотека: every sound of the game, where it plays, and which Sound factory slots still have none (mechanics.js audioLibrary) ----------
@@ -1419,14 +1425,15 @@
         (gov && canWrite && canDev ? '<label class="btn" title="' + esc(STR.folder.gameHint) + '"><input type="file" id="ov-folder" hidden webkitdirectory multiple>' + STR.folder.btn + costMark("import") + '</label>' : '') + // «📂 Завантажити теку» → the ✦ import
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
-        (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
-        (s.id === "artstyle" && canWrite && canDev ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
+        (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
+        (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
         ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" role="status">' + esc(bulkProg) + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
         (s.id === "audio" ? '<button class="btn" id="alib-tog" aria-pressed="' + audioLib + '">' + (audioLib ? STR.alib.cards : STR.alib.btn) + '</button>' : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
     else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
+    else if (!list.length && !s.special) html += emptySecHtml(s);
     else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
@@ -1437,6 +1444,15 @@
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var sfr = $("st-refs"); if (sfr) sfr.onclick = function () { styleFromRefs(sfr); };
     var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { notify(STR.failed + ": " + e.message); tlb.disabled = false; }); };
+  }
+  // a game section with no cards yet: what it is for, one primary action, the KB article; «Візуальний стиль» starts from the references (✦)
+  var EMPTY_KB = { mechanics: "mechanics", audio: "sound-factory", artstyle: "artstyle", refs: "artstyle" };
+  function emptySecHtml(s) {
+    var act = !canWrite ? '' : s.id === "mechanics" ? '<button class="btn primary" data-estate="mech">' + MC0.add + '</button>'
+      : s.id === "artstyle" && canDev ? '<button class="btn primary" data-estate="refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button><button class="btn" data-addsub="' + esc(subsOf(s)[0] || "") + '">' + STR.sub.item + '</button>'
+      : s.id === "refs" ? bulkPicker("refs", subsOf(s)[0] || "", "btn primary", STR.refsAdd)
+      : '<button class="btn primary" data-addsub="' + esc(subsOf(s)[0] || "") + '">' + STR.sub.item + '</button>';
+    return '<div class="estate estate-sec"><p>' + esc(STR.sub.empty + " " + STR.sub.start) + '</p><div class="row">' + act + kbLink(EMPTY_KB[s.id]) + '</div></div>'; // what it is for — the header's line above
   }
   // the World Bible's search: dossiers, events and culture entries
   function renderCanonSearch() {
@@ -1803,7 +1819,7 @@
   function renderLaws(s) {
     var d = wd(s.id);
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
-      '<div class="canonbox wedit"><h4>' + STR.laws + '</h4>' + (d.rules.length ? '<ol class="wlaws">' + d.rules.map(function (r, i) {
+      '<div class="canonbox wedit"><h4>' + STR.laws + '<span class="cmark">' + STR.canonTag + '</span></h4>' + (d.rules.length ? '<ol class="wlaws">' + d.rules.map(function (r, i) {
         return '<li class="wrow"><input data-rule="' + i + '" value="' + esc(r) + '" placeholder="' + esc(STR.wt.lawPh) + '" aria-label="' + esc(STR.laws + " " + (i + 1)) + '">' +
           '<button class="btn ghost" data-rmlaw="' + i + '" aria-label="' + esc(STR.remove) + '">✕</button></li>';
       }).join("") + '</ol>' : '<p class="muted">' + STR.wt.noLaws + '</p>') + '<button class="btn mini ghost" id="w-addlaw">' + STR.wt.addLaw + '</button></div>' +
@@ -2247,7 +2263,7 @@
   // Edited on the canvas (the draft survives live re-renders until saved); functions/narrative-validate.js checks the graph
   // (window.__NARRATIVE); the MCP server gives the approved ones to Claude Code (get_quest_context / get_dialogue_context).
   var QD = {
-    uk: { newQ: "Новий квест", newD: "Новий діалог", back: "← До списку", title: "Назва", type: "Тип", approval: "Узгодження", status: "Стан у виробництві",
+    uk: { newQ: "Новий квест", newD: "Новий діалог", title: "Назва", type: "Тип", approval: "Узгодження", status: "Стан у виробництві",
       locked: "Квести й діалоги — у тарифі Worldbuilder. Наявні видно, змінювати їх не можна.",
       summary: "Лор і опис", summaryPh: "Про що квест і чому він важливий для гри", stories: "Історії-джерела", noStories: "У цьому світі ще немає історій.",
       actors: "Хто і де", giver: "Хто дає квест", none: "— немає —", cast: "Персонажі й вороги", places: "Локації й рівні", factions: "Фракції", artifacts: "Предмети й артефакти",
@@ -2280,7 +2296,7 @@
         badLink: "{from} веде на {to}, якого немає", unreachable: "{id}: сюди не веде жоден перехід", loop: "{id}: коло без виходу",
         deadEnd: "{id}: глухий кут — нікуди далі і не позначено кінцем", noParticipants: "Немає учасників", missingStage: "Етапу квесту немає: {id}",
         noNodes: "Немає жодної репліки", emptyText: "{id}: порожня репліка", speakerNotIn: "{id}: говорить не учасник розмови" } },
-    en: { newQ: "New quest", newD: "New dialogue", back: "← Back to the list", title: "Title", type: "Type", approval: "Approval", status: "Production state",
+    en: { newQ: "New quest", newD: "New dialogue", title: "Title", type: "Type", approval: "Approval", status: "Production state",
       locked: "Quests and dialogues are part of the Worldbuilder plan. You can see the existing ones but not change them.",
       summary: "Lore & description", summaryPh: "What the quest is about and why it matters to the game", stories: "Source stories", noStories: "This world has no stories yet.",
       actors: "Who & where", giver: "Quest giver", none: "— none —", cast: "Characters & enemies", places: "Locations & levels", factions: "Factions", artifacts: "Items & artifacts",
@@ -2391,7 +2407,24 @@
   }
   function qfld(label, inner) { return '<label class="field"><span class="qh">' + esc(label) + '</span>' + inner + '</label>'; }
   function qblk(label, inner) { return '<div class="field"><span class="qh">' + esc(label) + '</span>' + inner + '</div>'; }
-  function qbox(title, inner) { return '<div class="canonbox qbox"><h4>' + esc(title) + '</h4>' + inner + '</div>'; }
+  function qbox(title, inner) { return '<div class="qbox"><h4>' + esc(title) + '</h4>' + inner + '</div>'; }
+  // ---- one header for the full-page editors (mechanics & Sound factory, quests & dialogues, Forge), aligned with the card drawer:
+  // ← back top-left, the title, one plain progress line, the save state + Save on the right; sticky while the page scrolls ----
+  var ED = { uk: { saved: "Збережено", dirty: "● Є зміни", fresh: "Ще не збережено", go: "Перейти →", clean: "✓ без проблем", ready: "Готово {d} з {n} розділів",
+      q: function (n) { return n + " " + (n % 10 === 1 && n % 100 !== 11 ? "питання" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? "питання" : "питань"); },
+      backQ: "← До квестів", backD: "← До діалогів", backF: "← До Кузні", kb: "Як це працює →" },
+    en: { saved: "Saved", dirty: "● Unsaved changes", fresh: "Not saved yet", go: "Go →", clean: "✓ no problems", ready: "{d} of {n} sections done",
+      q: function (n) { return n + " " + (n === 1 ? "question" : "questions"); },
+      backQ: "← To quests", backD: "← To dialogues", backF: "← To the forge", kb: "How it works →" } }[LANG === "en" ? "en" : "uk"];
+  function edHead(o) { // { back: attributes of the back button, backLabel, title, progId, prog, state: id of the save state, actions }
+    return '<header class="sec edhead"><div><button type="button" class="btn ghost edback" ' + o.back + '>' + esc(o.backLabel) + '</button><h1>' + esc(o.title) + '</h1>' +
+      (o.progId ? '<p class="edprog" id="' + o.progId + '">' + (o.prog || '') + '</p>' : '') + '</div>' +
+      '<div class="row">' + (o.state ? '<span class="edstate" id="' + o.state + '" role="status"></span>' : '') + (o.actions || '') + '</div></header>';
+  }
+  function edSticky() { var sp = $("spine"); if (sp) document.documentElement.style.setProperty("--navh", (matchMedia("(max-width:820px)").matches ? sp.offsetHeight : 0) + "px"); } // phones: the header sticks under the section bar
+  function edState(id, dirty, isNew) { var st = $(id); if (st) { st.textContent = dirty ? ED.dirty : isNew ? ED.fresh : ED.saved; st.classList.toggle("is-dirty", !!dirty); } }
+  function kbLink(id) { return id ? '<a href="#" class="kblink" data-kbart="' + esc(id) + '">' + ED.kb + '</a>' : ''; }
+  function edFlash(el) { if (!el) return; el.scrollIntoView({ block: "center", behavior: "smooth" }); el.classList.remove("mflash"); void el.offsetWidth; el.classList.add("mflash"); }
   function qinp(path, v, ph) { return '<input data-qf="' + path + '" value="' + esc(v) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; }
   function qtxt(path, v, ph, rows) { return '<textarea data-qf="' + path + '" rows="' + (rows || 3) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>' + esc(v) + '</textarea>'; }
   function qchk(path, on, label) { return '<label class="qchk"><input type="checkbox" data-qf="' + path + '"' + (on ? " checked" : "") + '> ' + esc(label) + '</label>'; }
@@ -2424,13 +2457,13 @@
       qfld(QD.type, qsel("type", subsOf(s).map(function (g) { return [g, types[g] || g]; }), d.type, QD.type)) +
       qfld(QD.approval, qsel("approval", pairsOf(QD.appr), d.approval, QD.approval)) +
       qfld(QD.status, qsel("status", STATUSES.map(function (x) { return [x.id, L(x)]; }), d.status, QD.status)) + '</div>');
-    $("view").innerHTML = '<div class="qed" id="q-ed" data-id="' + esc(q.id) + '" tabindex="-1"><header class="sec"><div><button class="btn ghost" data-qact="back">' + QD.back + '</button>' +
-      '<h1>' + esc(d.title || (isQ ? QD.newQ : QD.newD)) + '</h1></div></header>' + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
-      '<div class="canonbox qbox" id="q-issues" aria-live="polite">' + qdIssuesHtml() + '</div>' +
-      (canQuest ? '<div class="row wsave"><span class="muted" id="q-state"></span>' + (q.isNew ? '' : '<button class="btn danger" data-qact="delete">' + QD.del + '</button>') +
-        '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button></div>' : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') + '</div>';
+    $("view").innerHTML = '<div class="qed" id="q-ed" data-id="' + esc(q.id) + '" tabindex="-1">' +
+      edHead({ back: 'data-qact="back"', backLabel: isQ ? ED.backQ : ED.backD, title: d.title || (isQ ? QD.newQ : QD.newD), progId: "q-prog", prog: qdProgHtml(), state: canQuest ? "q-state" : "",
+        actions: canQuest ? '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button>' : '' }) + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
+      '<div class="qbox" id="q-issues" aria-live="polite">' + qdIssuesHtml() + '</div>' +
+      (canQuest ? (q.isNew ? '' : '<div class="row wsave"><button class="btn danger" data-qact="delete">' + QD.del + '</button></div>') : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') + '</div>';
     if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input,textarea,select,[data-qtog],[data-qact^=add],[data-qact^=rm]"), function (el) { el.disabled = true; });
-    qdState();
+    qdState(); edSticky();
   }
   function questBody(d) {
     var chars = pickOf("characters"), others = quests.filter(function (x) { return x.id !== qed.id; }), mine = dialogues.filter(function (x) { return x.questId === qed.id; });
@@ -2686,8 +2719,13 @@
     if (t.dataset.vup != null && t.files && t.files.length) { var f = t.files[0]; t.value = ""; voUpload(+t.dataset.vup, f); }
   }
   function qdState() {
-    var st = $("q-state"); if (st) st.textContent = qdDirty() ? STR.wt.dirty : "";
+    edState("q-state", qdDirty(), qed.isNew);
     var is = $("q-issues"); if (is) is.innerHTML = qdIssuesHtml();
+    var pg = $("q-prog"); if (pg) pg.innerHTML = qdProgHtml();
+  }
+  function qdProgHtml() { // the graph check in one line; «Перейти» scrolls to the list
+    var n = nvCheck(qed.col, Object.assign({ id: qed.id }, qed.d)).length;
+    return n ? '<button type="button" class="mgo edgo" data-edgo="q-issues">' + esc(ED.q(n)) + ' · ' + ED.go + '</button>' : '<span class="qd-ok">' + ED.clean + '</span>';
   }
   function qdSet(path, val) {
     var ks = path.split("."), o = qed.d;
@@ -2763,26 +2801,32 @@
       search: "Пошук шаблону…", all: "Усі категорії", create: "Створити", preview: "Що всередині", sections: "розділів", complexity: "Складність", cancel: "Скасувати", choose: "Нова механіка",
       back: "← До механік", general: "Загальне", title: "Назва", cat: "Категорія", sub: "Підкатегорія", stage: "Стадія розробки", status: "Стан у виробництві", type: "Тип механіки",
       purpose: "Призначення", purposePh: "Яку проблему гри вона вирішує і що відчуває гравець", rules: "Правила роботи", rulesPh: "Як вона працює — по кроках або списком", tags: "Теги", tagsPh: "через кому",
-      links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна", moreTabs: "＋ ще {n} у розширеному", basic: "Базовий вигляд", adv: "Розширений вигляд",
-      advHint: "Розширений показує всі поля шаблону; базовий — головні.", files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
-      fill: "Заповнено", req: "обовʼязкові", rec: "рекомендовані", checks: "Перевірка", clean: "Без проблем", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
+      links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна",
+      files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
+      fill: "Заповнено", req: "обовʼязкові", checks: "Перевірка", clean: "Без проблем", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
       rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Поле", fieldName: "Назва поля", fieldType: "Тип", rmField: "Прибрати поле",
       addSec: "＋ Розділ-поля", addTable: "＋ Розділ-таблиця", secName: "Назва розділу", rmSec: "Прибрати розділ", rmSecQ: "Прибрати розділ «{t}» з усіма даними?",
       none: "—", save: "Зберегти", del: "Видалити", delQ: "Видалити механіку «{t}»?", newM: "Нова механіка", fw: "RPG Framework", fwS: { exists: "є", partial: "частково", missing: "немає" },
       lvl: { error: "помилка", warn: "попередження", tip: "порада" }, legacy: "Стара картка: опис і числа перенесено в «Призначення» й «Правила». Збережи — і вона стане механікою конструктора.",
-      sortBy: "Сортувати за", rmRowQ: "Видалити рядок «{t}»? Посилання на нього стануть помилками в перевірці.", copyOf: "копія" },
+      sortBy: "Сортувати за", rmRowQ: "Видалити рядок «{t}»? Посилання на нього стануть помилками в перевірці.", copyOf: "копія",
+      outline: "Розділи механіки", advGroup: "Розширене", allFields: "Усі поля (+{n})", mainFields: "Лише головні поля", addSecMenu: "＋ Розділ ▾", rowMenu: "Дії рядка",
+      st: { done: "готово", warn: "є питання", empty: "порожньо" }, empty: "порожньо", reqEmpty: "Обовʼязкове — не заповнено", editCell: "Змінити: Enter або F2",
+      tips: "Поради", wizStep: "Крок {i} з {n}", wizHint: "Кілька питань — і перший рядок готовий. Далі — у таблиці.", next: "Далі →", prev: "← Назад", done: "Готово", skip: "Пропустити" },
     en: { add: "＋ Mechanic", own: "✎ Own mechanic", ownHint: "An empty mechanic: purpose, rules and the sections you add yourself.", catalog: "Templates", catHint: "A ready structure with sample numbers — everything is editable, the template itself never changes.",
       search: "Search templates…", all: "All categories", create: "Create", preview: "What is inside", sections: "sections", complexity: "Complexity", cancel: "Cancel", choose: "New mechanic",
       back: "← To mechanics", general: "General", title: "Name", cat: "Category", sub: "Subcategory", stage: "Development stage", status: "Production status", type: "Mechanic type",
       purpose: "Purpose", purposePh: "Which design problem it solves and what the player feels", rules: "How it works", rulesPh: "Step by step or as a list", tags: "Tags", tagsPh: "comma separated",
-      links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own", moreTabs: "＋ {n} more in advanced", basic: "Basic view", adv: "Advanced view",
-      advHint: "Advanced shows every template field; basic — the main ones.", files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
-      fill: "Filled", req: "required", rec: "recommended", checks: "Checks", clean: "No problems", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
+      links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own",
+      files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
+      fill: "Filled", req: "required", checks: "Checks", clean: "No problems", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
       rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Field", fieldName: "Field name", fieldType: "Type", rmField: "Remove field",
       addSec: "＋ Fields section", addTable: "＋ Table section", secName: "Section name", rmSec: "Remove section", rmSecQ: "Remove section “{t}” with all its data?",
       none: "—", save: "Save", del: "Delete", delQ: "Delete mechanic “{t}”?", newM: "New mechanic", fw: "RPG Framework", fwS: { exists: "exists", partial: "partial", missing: "missing" },
       lvl: { error: "error", warn: "warning", tip: "tip" }, legacy: "An older card: its description and numbers moved into “Purpose” and “How it works”. Save it and it becomes a constructor mechanic.",
-      sortBy: "Sort by", rmRowQ: "Delete row “{t}”? Links to it will show up as errors.", copyOf: "copy" }
+      sortBy: "Sort by", rmRowQ: "Delete row “{t}”? Links to it will show up as errors.", copyOf: "copy",
+      outline: "Mechanic sections", advGroup: "Advanced", allFields: "All fields (+{n})", mainFields: "Main fields only", addSecMenu: "＋ Section ▾", rowMenu: "Row actions",
+      st: { done: "done", warn: "has questions", empty: "empty" }, empty: "empty", reqEmpty: "Required — not filled in", editCell: "Edit: Enter or F2",
+      tips: "Tips", wizStep: "Step {i} of {n}", wizHint: "A few questions and the first row is ready. Then — the table.", next: "Next →", prev: "← Back", done: "Done", skip: "Skip" }
   }[LANG];
   // «🎼 Фабрика звуку» — the same constructor in the «Звук і музика» section (templates with sec: 'audio' in mechanics.js)
   var MC0 = MC, MCA = Object.assign({}, MC0, {
@@ -2796,7 +2840,8 @@
       purposePh: "What the player should feel and when it plays", prompt: "♪ Prompt", promptHint: "Copy a music-generator prompt", copied: "Prompt copied" }
   }[LANG]);
   function mcFor(id) { MC = id === "audio" ? MCA : MC0; }
-  var med = null; // the open mechanic: { id, isNew, card, title, status, m (draft), first, tab, adv, find: {secId: text}, sort: {secId: [key, dir]} }
+  var med = null; // the open mechanic: { id, isNew, card, title, status, m (draft), first, tab, adv (all fields), advOpen (the outline's «Розширене»), find: {secId: text}, sort: {secId: [key, dir]},
+  //   cell (the table cell being edited: a path), cellOrig, wiz ({ s, step, row }: the first-row questions), wizOff {secId: 1}, cgby (the combo table's grouping) }
   var MX = function () { return window.__MECH; };
   function ml(x) { return MX().lbl(x, LANG); }
   function catLabel(id) { var c = MX().category(id); return c ? ml(c) : ""; }
@@ -2817,7 +2862,7 @@
       m.rules = [f.numbers, f.deps ? (LANG === "en" ? "Depends on: " : "Залежить від: ") + f.deps : ""].filter(Boolean).join("\n\n"); m.legacy = !!raw;
     }
     med = { id: raw ? raw.id : newId("card"), isNew: !raw, card: c, title: (raw && raw.title) || (preset && preset.tpl ? ml(MX().template(preset.tpl).name) : ""),
-      status: (raw && raw.status) || "idea", m: m, tab: m.sections.some(function (x) { return x.id === "ctable"; }) ? "ctable" : "general", adv: false, find: {}, sort: {},
+      status: (raw && raw.status) || "idea", m: m, tab: m.sections.some(function (x) { return x.id === "ctable"; }) ? "ctable" : "general", adv: false, find: {}, sort: {}, cell: "", wiz: null, wizOff: {}, cgby: "group",
       sec: (raw && raw.section) || secId || (preset && MX().template(preset.tpl) && MX().template(preset.tpl).sec) || "mechanics" };
     mcFor(med.sec);
     delete med.m.legacy; med.legacy = !!(raw && !raw.mech);
@@ -2873,19 +2918,25 @@
     return '<select data-mf="' + path + '" aria-label="' + esc(aria) + '"><option value="">' + MC.none + '</option>' + pairs.map(function (p) {
       return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>';
   }
-  function mchips(path, pairs, cur, aria) {
+  var mPickOpen = ""; // the table cell whose «＋» chip picker stays open across a re-render
+  function mchips(path, pairs, cur, aria, inTable) {
     cur = Array.isArray(cur) ? cur : [];
     pairs = pairs.concat(cur.filter(function (v) { return !pairs.some(function (p) { return p[0] === v; }); }).map(function (v) { return [v, v + " ⚠"]; }));
-    return '<span class="mchips" role="group" aria-label="' + esc(aria) + '">' + (pairs.length ? pairs.map(function (p) {
-      return '<button type="button" class="mchip" data-mchip="' + path + '" data-v="' + esc(p[0]) + '" aria-pressed="' + (cur.indexOf(p[0]) >= 0) + '">' + esc(p[1]) + '</button>'; }).join("") : '<span class="muted">' + MC.none + '</span>') + '</span>';
+    var chip = function (p) { return '<button type="button" class="mchip" data-mchip="' + path + '" data-v="' + esc(p[0]) + '" aria-pressed="' + (cur.indexOf(p[0]) >= 0) + '">' + esc(p[1]) + '</button>'; };
+    if (inTable && pairs.length) { // in a table cell: only the chosen chips, the rest behind a compact «＋» (same data)
+      var on = pairs.filter(function (p) { return cur.indexOf(p[0]) >= 0; }), off = pairs.filter(function (p) { return cur.indexOf(p[0]) < 0; });
+      return '<span class="mchips" role="group" aria-label="' + esc(aria) + '">' + on.map(chip).join("") +
+        (off.length ? '<details class="mcpick mpop" data-mpick="' + path + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-label="' + esc(aria) + ' ＋">＋</summary><span class="mchips">' + off.map(chip).join("") + '</span></details>' : '') + '</span>';
+    }
+    return '<span class="mchips" role="group" aria-label="' + esc(aria) + '">' + (pairs.length ? pairs.map(chip).join("") : '<span class="muted">' + MC.none + '</span>') + '</span>';
   }
   function minput(path, f, v, inTable) {
     var aria = ml(f.l), ph = f.u ? f.u : "";
     if (f.t === "bool") return '<input type="checkbox" data-mf="' + path + '"' + (v ? " checked" : "") + ' aria-label="' + esc(aria) + '">';
     if (f.t === "sel") return mselect(path, mopts(f), v || "", aria);
-    if (f.t === "multi") return mchips(path, mopts(f), v, aria);
+    if (f.t === "multi") return mchips(path, mopts(f), v, aria, inTable);
     if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria);
-    if (f.t === "refs") return mchips(path, mrowOpts(f), v, aria);
+    if (f.t === "refs") return mchips(path, mrowOpts(f), v, aria, inTable);
     if (f.t === "sound") return msound(path, f, v, inTable);
     if (f.t === "num" || f.t === "pct" || f.t === "time")
       return '<input type="number" step="any" inputmode="decimal" data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + ' aria-label="' + esc(aria) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
@@ -2945,7 +2996,93 @@
     box.querySelector("#sp-q").focus();
   }
   function mreq(f) { return f.req === "r" ? '<b class="mreq" title="' + esc(MC.req) + '">*</b>' : ""; }
-  function mshown(s) { return (s.fields || []).filter(function (f) { return med.adv || !f.adv; }); }
+  function mshown(s) { return (s.fields || []).filter(function (f) { return med.adv || s.adv || !f.adv; }); } // an advanced section shows all of its fields
+  function mhid(s) { return s.adv ? 0 : (s.fields || []).filter(function (f) { return f.adv; }).length; }
+  // «Усі поля (+N)» / «Лише головні поля»: the section's second-rank fields and columns on demand (one switch for the editor, med.adv)
+  function mAllFields(s) { var n = mhid(s); return n ? '<button type="button" class="btn ghost mini" data-mact="adv" aria-pressed="' + med.adv + '">' + esc(med.adv ? MC.mainFields : MC.allFields.replace("{n}", n)) + '</button>' : ''; }
+  // ---------- read-mode cells: a table shows plain text; click / Enter / F2 opens the cell's editor in place, Esc cancels, Enter / leaving commits ----------
+  function mEmpty(v) { return v == null || v === "" || (Array.isArray(v) && !v.length); }
+  function mtxt(f, v) { // the cell's text
+    if (mEmpty(v)) return "";
+    var lab = function (pairs, x) { var p = pairs.filter(function (o) { return o[0] === x; })[0]; return p ? p[1] : x + " ⚠"; };
+    if (f.t === "sel") return lab(mopts(f), v);
+    if (f.t === "ref") return lab(mrowOpts(f), v);
+    if (f.t === "multi") return v.map(function (x) { return lab(mopts(f), x); }).join(", ");
+    if (f.t === "refs") return v.map(function (x) { return lab(mrowOpts(f), x); }).join(", ");
+    if (f.t === "bool") return v ? "✓" : "";
+    return String(v);
+  }
+  // one cell: f — the field, v — the value; o.ed — an own editor (html), o.txt — an own text, o.prob — [level, message] from the checks
+  function mcell(path, f, v, o) {
+    o = o || {};
+    if (f.t === "sound") return msound(path, f, v, true);
+    if (f.t === "bool") return minput(path, f, v, true); // one click — no editor to open
+    if (med.cell === path && canWrite) return '<div class="mced" data-mced="' + path + '">' + (o.ed != null ? o.ed : minput(path, f, v, true)) + '</div>'; // chips: the chosen ones + the «＋» picker
+    var t = o.txt != null ? o.txt : mtxt(f, v), req = f.req === "r" && mEmpty(v), pr = req ? ["error", (o.prob && o.prob[1]) || MC.reqEmpty] : o.prob; // a required empty cell — always the red dot
+    var tip = (t && t.length > 24 ? t : "") + (pr ? (t && t.length > 24 ? " · " : "") + pr[1] : "");
+    var inner = (t ? '<span class="mtx">' + esc(t) + '</span>' : '<span class="mnone">' + esc(o.ph || MC.none) + '</span>') + (pr ? '<i class="mpdot mp-' + pr[0] + '" aria-hidden="true"></i><span class="sr">' + esc(pr[1]) + '</span>' : '');
+    return canWrite ? '<button type="button" class="mcell" data-mcell="' + path + '"' + (tip ? ' title="' + esc(tip) + '"' : '') + ' aria-label="' + esc(ml(f.l) + ": " + (t || MC.empty) + (pr ? " — " + pr[1] : "") + ". " + MC.editCell) + '">' + inner + '</button>'
+      : '<span class="mcell ro"' + (tip ? ' title="' + esc(tip) + '"' : '') + '>' + inner + '</span>';
+  }
+  function mtd(s, si, x, f, probs, extra) { // a generic table cell with its number alignment, label (phones) and check marks
+    var k = s.id + "|" + x.r._id + "|" + f.k, pr = probs[k];
+    return '<td class="mt-' + f.t + (pr ? ' mprob' : '') + (extra || '') + '" data-mk="' + esc(k) + '" data-l="' + esc(ml(f.l)) + '">' + mcell(si + "." + x.i + "." + f.k, f, x.r[f.k], { prob: pr }) + '</td>';
+  }
+  // the checks of mechanics.js mapped to rows and cells: a message names the field «label» and its row id
+  function mProbs(r) {
+    var out = {}, rank = { error: 2, warn: 1 };
+    r.issues.forEach(function (i) {
+      if (i.level === "tip") return;
+      var s = msec(i.sec); if (!s) return;
+      var f = (s.fields || []).filter(function (x) { return i.uk.indexOf("«" + MX().lbl(x.l, "uk") + "»") >= 0; })[0], k = s.id + "|" + (i.row || "-") + (f ? "|" + f.k : "");
+      [k, s.id + "|" + (i.row || "-")].forEach(function (key) { if (!out[key] || rank[i.level] > rank[out[key][0]]) out[key] = [i.level, LANG === "en" ? i.en : i.uk]; });
+    });
+    return out;
+  }
+  function mOpenCell(path) {
+    var sl = mslot(path); med.cell = path; med.cellOrig = JSON.stringify(sl.o[sl.key] === undefined ? null : sl.o[sl.key]); med.cellNone = sl.o[sl.key] === undefined;
+    if (sl.f.t === "multi" || sl.f.t === "refs") mPickOpen = path; // the picker opens at once
+    renderMEditor();
+  }
+  function mCommit(focus) {
+    var p = med && med.cell; if (!p) return;
+    med.cell = ""; renderMEditor();
+    if (focus) { var b = document.querySelector('[data-mcell="' + p + '"]'); if (b) b.focus(); }
+  }
+  function mCancel() {
+    var ae = document.activeElement; if (ae && ae.closest && ae.closest("[data-mced]")) ae.blur(); // its pending «change» lands first, then the old value comes back
+    var p = med.cell, sl = mslot(p);
+    if (med.cellNone) delete sl.o[sl.key]; else sl.o[sl.key] = JSON.parse(med.cellOrig);
+    mCommit(true); mState();
+  }
+  // leaving the open cell: Tab, a click elsewhere (the click handler commits first), the page losing focus
+  var mPtr = false;
+  function mEdLost(byKey) {
+    if (!med || !med.cell) return;
+    var ed = document.querySelector("[data-mced]"), a = document.activeElement;
+    if (!ed) { med.cell = ""; return; }
+    if (!a || !ed.contains(a)) mCommit(byKey || !a || a === document.body);
+  }
+  document.addEventListener("pointerdown", function () { mPtr = true; }, true);
+  document.addEventListener("pointerup", function () { setTimeout(function () { mPtr = false; mEdLost(); }, 0); }, true);
+  // ---------- popovers (the chip picker, a row's «⋯», «＋ Розділ ▾»): fixed to the viewport so a table never clips them, flipped up near the bottom,
+  // closed by a click outside or Esc ----------
+  function mPopPos(d) {
+    var b = d.querySelector(":scope > .mpop-b, :scope > .mchips"), sm = d.querySelector(":scope > summary"); if (!b || !sm) return;
+    if (!d.open) { b.style.cssText = ""; return; }
+    var r = sm.getBoundingClientRect(), w = b.offsetWidth, h = b.offsetHeight, top = r.bottom + 4, left = r.left;
+    if (top + h > innerHeight - 8 && r.top - h - 4 > 8) top = r.top - h - 4;
+    if (left + w > innerWidth - 8) left = Math.max(8, r.right - w);
+    b.style.position = "fixed"; b.style.top = Math.round(top) + "px"; b.style.left = Math.round(left) + "px";
+  }
+  function mPopsClose(except) {
+    [].forEach.call(document.querySelectorAll("details.mpop[open]"), function (d) { if (d !== except && !d.contains(except)) { d.open = false; if (d.dataset.mpick === mPickOpen) mPickOpen = ""; } });
+  }
+  document.addEventListener("click", function (e) { if (!e.target.closest || !e.target.closest("details.mpop")) mPopsClose(null); else mPopsClose(e.target.closest("details.mpop")); }, true);
+  document.addEventListener("scroll", function () { [].forEach.call(document.querySelectorAll("details.mpop[open]"), mPopPos); }, true);
+  document.addEventListener("toggle", function (e) {
+    if (med && e.target.matches && e.target.matches("[data-moladv]")) med.advOpen = e.target.open; // the outline's «Розширене» remembers itself
+    if (e.target.matches && e.target.matches("details.mpop")) { if (!e.target.open && e.target.dataset.mpick === mPickOpen) mPickOpen = ""; mPopPos(e.target); } }, true);
   // ---------- 🧩 RPG Framework gaps: what the mechanics rely on (mechanics.js FW_CAPS + the author's picks m.fw.caps) checked against the
   // game's capabilities.json (games/{g}.framework — MCP report_framework_capabilities), else the built-in 0.40.0 snapshot.
   // A gap → the author decides: «⚙ Код гри» or «📨 Попросити у фреймворку» (card mech.fw.decisions + fwRequests/{uid}__{game}__{cap}) ----------
@@ -3018,25 +3155,25 @@
     var n = MX().frameworkNote(med.m.tpl, s.id, fwMan()); if (!n) return "";
     return '<p class="mfw mfw-' + n.status + '"><b>' + MC.fw + ' · ' + MC.fwS[n.status] + '</b> ' + esc(n[LANG] || n.uk) + '</p>';
   }
-  function mFieldsHtml(s, si) {
+  function mFieldsHtml(s, si, probs) {
     var v = s.values || (s.values = {});
     return '<div class="qgrid mfields">' + mshown(s).map(function (f) {
-      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs" || f.t === "sound";
-      return '<div class="field' + (wide ? ' mwide' : '') + '"><span class="qh">' + esc(ml(f.l)) + mreq(f) + (f.u ? ' <i>' + esc(f.u) + '</i>' : '') +
+      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs" || f.t === "sound", k = s.id + "|-|" + f.k;
+      return '<div class="field' + (wide ? ' mwide' : '') + (probs[k] ? ' mprob mpf-' + probs[k][0] : '') + '" data-mk="' + esc(k) + '"' + (probs[k] ? ' title="' + esc(probs[k][1]) + '"' : '') + '><span class="qh">' + esc(ml(f.l)) + mreq(f) + (f.u ? ' <i>' + esc(f.u) + '</i>' : '') +
         (f.custom && canWrite ? ' <button type="button" class="btn ghost mini" data-mact="rmField:' + si + ':' + esc(f.k) + '" aria-label="' + esc(MC.rmField + " " + ml(f.l)) + '">✕</button>' : '') + '</span>' + inner +
         (f.h ? '<span class="hint">' + esc(ml(f.h)) + '</span>' : '') + '</div>';
     }).join("") + '</div>';
   }
-  // ---------- ⚔ Combo table & 👁 Through the monster's eyes (UMCF v2 sections ctable / reactions): tabs by strike type, plain dropdowns, the start distance computed ----------
+  // ---------- ⚔ Combo table & 👁 Through the monster's eyes (UMCF v2 sections ctable / reactions): grouped by strike type, read-mode cells, the start distance computed ----------
   var CB = {
     uk: { all: "Усі", whoAll: "Усі бійці", player: "Гравець", other: "✎ Інший…", otherT: "Хто бʼє", otherPh: "напр. Гоблін-розвідник", addG: "＋ Своя", addGT: "Новий тип удару", addGPh: "напр. Із засідки",
       add: "＋ Комбо", addR: "＋ Відповідь", none: "У цьому типі ще немає комбо — додай перше.", start: "Починати з", time: "Зона удару в часі", from: "{m} з ~{d} м", hold: "тримає замах",
       ok: "влучить: ціль у межах досяжності", edge: "з самої межі — ціль ступить назад, і буде промах", close: "впритул — зброя впирається", noreach: "у зброї немає дальності (вкладка «База зброї»)",
-      ph: ["замах", "удар", "відновлення"], weight: ["", "рідко", "інколи", "часто", "майже завжди"], noAns: "немає таких ударів у таблиці", fighter: "Боєць" },
+      ph: ["замах", "удар", "відновлення"], weight: ["", "рідко", "інколи", "часто", "майже завжди"], noAns: "немає таких ударів у таблиці", fighter: "Боєць", groupBy: "Групувати:", byType: "за типом удару", noGroup: "без груп", addIn: "＋ Комбо в «{g}»" },
     en: { all: "All", whoAll: "Every fighter", player: "Player", other: "✎ Other…", otherT: "Who strikes", otherPh: "e.g. Goblin scout", addG: "＋ Own", addGT: "New strike type", addGPh: "e.g. From an ambush",
       add: "＋ Combo", addR: "＋ Answer", none: "No combos of this type yet — add the first one.", start: "Start from", time: "Hit zone in time", from: "{m} from ~{d} m", hold: "holds the wind-up",
       ok: "lands: the target is within reach", edge: "from the very edge — the target steps back and it misses", close: "point-blank — the weapon jams", noreach: "the weapon has no reach (the “Weapon definitions” tab)",
-      ph: ["wind-up", "hit", "recovery"], weight: ["", "rarely", "sometimes", "often", "almost always"], noAns: "no such strikes in the table", fighter: "Fighter" }
+      ph: ["wind-up", "hit", "recovery"], weight: ["", "rarely", "sometimes", "often", "almost always"], noAns: "no such strikes in the table", fighter: "Fighter", groupBy: "Group:", byType: "by strike type", noGroup: "no groups", addIn: "＋ Combo in “{g}”" }
   }[LANG === "en" ? "en" : "uk"];
   function cbFighters() { // the player, the game's characters and enemies, and every name already in the tables
     var l = [CB.player];
@@ -3056,75 +3193,125 @@
     return '<span class="cbbar" role="img" aria-label="' + esc(CB.ph.map(function (n, i) { return n + " " + t[i] + " с"; }).join(", ")) + '">' + t.map(function (x, i) {
       return '<i class="cb' + i + (i === 0 && hold ? " cbhold" : "") + '" style="width:' + pc(x) + '%" title="' + esc(CB.ph[i] + " · " + x + " s" + (i === 0 && hold ? " · " + CB.hold : "")) + '"></i>'; }).join("") + '</span>';
   }
-  function mComboHtml(s, si) {
-    var gs = cbGroups(s), g = med.cgrp && gs.some(function (x) { return x[0] === med.cgrp; }) ? med.cgrp : (gs[0] || [""])[0], wf = med.cwho || "";
-    var cnt = function (v) { return (s.rows || []).filter(function (r) { return r.group === v && (!wf || r.who === wf); }).length; };
-    var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return x.r.group === g && (!wf || x.r.who === wf); });
-    var F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; }, adv = med.adv ? ["startup", "active", "recovery", "notes"] : [];
-    var head = [CB.fighter, ml(F("weapon").l), ml(F("move").l), ml(F("strike").l), ml(F("hold").l), ml(F("anim").l), CB.start, CB.time].concat(adv.map(function (k) { return ml(F(k).l); }));
-    return '<div class="mtabs cbtabs" role="tablist">' + gs.map(function (x) { var n = cnt(x[0]);
-        return '<button type="button" class="mtab" role="tab" data-mcgrp="' + esc(x[0]) + '" aria-selected="' + (x[0] === g) + '">' + esc(x[1]) + (n ? ' <span class="muted">' + n + '</span>' : '') + '</button>'; }).join("") +
-      (canWrite ? '<button type="button" class="btn ghost mini" data-mact="cbGroup:' + si + '">' + CB.addG + '</button>' : '') + '</div>' +
-      '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
-      '<span style="flex:1"></span>' + (canWrite ? '<button type="button" class="btn mini" data-mact="cbAdd:' + si + '">' + CB.add + '</button>' : '') + '</div>' +
-      (rows.length ? '<div class="mtable"><table class="cbtable"><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr></thead><tbody>' +
-        rows.map(function (x) {
-          var p = si + "." + x.i + ".", r = x.r, c = MX().comboStart(med.m, r), mv = mopts(F("move")).filter(function (o) { return o[0] === r.move; })[0];
-          var st = c.status === "noreach" ? '<span class="cbst cb-warn" title="' + esc(CB.noreach) + '">⚠ —</span>' :
-            '<span class="cbst cb-' + (c.status === "ok" ? "ok" : "warn") + '" title="' + esc(CB[c.status]) + '">' + (c.status === "ok" ? "✓ " : "⚠ ") + c.start + ' м</span>' +
-            (c.from != null && mv ? '<span class="hint">' + esc(CB.from.replace("{m}", mv[1]).replace("{d}", c.from)) + '</span>' : '');
-          return '<tr><td>' + cbWho(p + "who", r.who) + '</td><td>' + minput(p + "weapon", F("weapon"), r.weapon, true) + '</td><td>' + minput(p + "move", F("move"), r.move, true) + '</td>' +
-            '<td>' + minput(p + "strike", F("strike"), r.strike, true) + '</td><td>' + minput(p + "hold", F("hold"), r.hold, true) + '</td><td class="mt-text">' + minput(p + "anim", F("anim"), r.anim, true) + '</td>' +
-            '<td class="cbstart">' + st + '<label class="cbk">k <input type="number" step="0.05" min="0.3" max="1" data-mf="' + p + 'k" value="' + esc(r.k == null ? "" : r.k) + '" placeholder="' + c.k + '" aria-label="k"></label></td>' +
-            '<td>' + cbBar(c, r.hold === "hold") + '</td>' + adv.map(function (k) { return '<td class="mt-' + F(k).t + '">' + minput(p + k, F(k), r[k], true) + '</td>'; }).join("") +
-            '<td class="mrowact"><button type="button" class="btn ghost mini" data-mact="dupRow:' + si + ':' + x.i + '" title="' + esc(MC.dupRow) + '" aria-label="' + esc(MC.dupRow + " " + r._id) + '">⧉</button>' +
-            '<button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + r._id) + '">✕</button></td></tr>';
-        }).join("") + '</tbody></table></div>' : '<p class="muted">' + CB.none + '</p>');
+  // a row's actions behind «⋯» (shown on hover / focus)
+  function mRowMenu(si, i, id, opt) {
+    opt = opt || {};
+    if (!canWrite && !opt.prompt) return '<td class="mrowact"></td>';
+    var b = function (act, label, cls) { return '<button type="button" role="menuitem"' + (cls ? ' class="' + cls + '"' : '') + ' data-mact="' + act + ':' + si + ':' + i + '">' + esc(label) + '</button>'; };
+    return '<td class="mrowact"><details class="mpop mrmenu"><summary title="' + esc(MC.rowMenu) + '" aria-label="' + esc(MC.rowMenu + " " + id) + '">⋯</summary><div class="mpop-b" role="menu">' +
+      (opt.prompt ? b("prompt", "♪ " + MC.promptHint) : '') + (canWrite && opt.dup !== false ? b("dupRow", "⧉ " + MC.dupRow) : '') + (canWrite ? b("rmRow", "✕ " + MC.rmRow, "mdanger") : '') + '</div></details></td>';
   }
-  function mReactHtml(s, si) {
-    var F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; }, ct = msec("ctable"), wf = med.cwho || "";
+  function mHead(f, extra) { return esc(ml(f.l)) + (f.u ? ' <i class="munit">' + esc(f.u) + '</i>' : '') + (extra || ''); }
+  function mNumT(f) { return f.t === "num" || f.t === "pct" || f.t === "time"; }
+  function mFirstLine(x) { var t = String(x || "").trim(), m = t.match(/^[\s\S]*?[.!?](\s|$)/); return m ? m[0].trim() : t; }
+  // a table with no rows: the first-row questions (once), then one sentence and one primary action
+  function mEmptyTable(s, si, act, label) {
+    if (canWrite && !med.wizOff[s.id] && mWizFields(s).length) return mWizHtml(s, si);
+    return '<div class="estate"><p>' + esc(mFirstLine(ml(s.hint)) || MC.noRows) + '</p><div class="row">' + (canWrite ? '<button type="button" class="btn primary" data-mact="' + act + '">' + esc(label) + '</button>' : '') +
+      kbLink(med.sec === "audio" ? "sound-factory" : "mechanics") + '</div></div>';
+  }
+  // ---- first-time guidance: the first required fields of the table, one question at a time; «Готово» writes the first row ----
+  function mWizFields(s) {
+    var ok = function (f) { return ["sound", "bool", "json", "formula"].indexOf(f.t) < 0; };
+    var req = (s.fields || []).filter(function (f) { return f.req === "r" && ok(f); });
+    return (req.length ? req : (s.fields || []).filter(function (f) { return !f.adv && ok(f); })).slice(0, 3);
+  }
+  function mWizHtml(s, si) {
+    var fs = mWizFields(s); if (!med.wiz || med.wiz.s !== s.id) med.wiz = { s: s.id, step: 0, row: {} };
+    var w = med.wiz, step = Math.min(w.step, fs.length - 1), f = fs[step], last = step >= fs.length - 1, cb = s.id === "ctable" || s.id === "reactions";
+    if (cb && f.k === "who" && !w.row.who) w.row.who = med.cwho || CB.player;
+    var ed = cb && f.k === "who" ? cbWho("w.-.who", w.row.who) : minput("w.-." + f.k, f, w.row[f.k], false);
+    return '<div class="mwiz" role="group" aria-labelledby="mwiz-q"><p class="muted">' + esc(MC.wizStep.replace("{i}", step + 1).replace("{n}", fs.length)) + ' · ' + esc(MC.wizHint) + '</p>' +
+      '<h4 id="mwiz-q">' + esc(ml(f.l)) + '?</h4>' + (f.h ? '<p class="hint">' + esc(ml(f.h)) + '</p>' : '') + '<div class="mwiz-in">' + ed + '</div>' +
+      '<div class="row"><button type="button" class="btn primary" data-mact="wizNext:' + si + '">' + (last ? MC.done : MC.next) + '</button>' +
+      (step ? '<button type="button" class="btn ghost" data-mact="wizPrev:' + si + '">' + MC.prev + '</button>' : '') +
+      '<span style="flex:1"></span><button type="button" class="linkbtn" data-mact="wizSkip:' + si + '">' + MC.skip + '</button></div></div>';
+  }
+  function mComboHtml(s, si, probs) {
+    var gs = cbGroups(s), wf = med.cwho || "", by = med.cgby === "group", F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; };
+    var adv = med.adv ? ["startup", "active", "recovery", "notes"] : [], cols = ["weapon", "move", "strike", "hold", "anim"];
+    var bar = '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
+      '<label class="mgroupby">' + CB.groupBy + ' <select data-mcgby="1"><option value="group"' + (by ? ' selected' : '') + '>' + CB.byType + '</option><option value=""' + (by ? '' : ' selected') + '>' + CB.noGroup + '</option></select></label>' +
+      '<span style="flex:1"></span>' + mAllFields(s) + (canWrite ? '<button type="button" class="btn ghost mini" data-mact="cbGroup:' + si + '">' + CB.addG + '</button><button type="button" class="btn mini" data-mact="cbAdd:' + si + '">' + CB.add + '</button>' : '') + '</div>';
+    if (!(s.rows || []).length) return mEmptyTable(s, si, "cbAdd:" + si, CB.add);
     var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return !wf || x.r.who === wf; });
+    var ncol = 1 + (by ? 0 : 1) + cols.length + 2 + adv.length + 1;
+    var head = '<tr><th scope="col" class="mt-name">' + esc(CB.fighter) + '</th>' + (by ? '' : '<th scope="col">' + mHead(F("group")) + '</th>') +
+      cols.map(function (k) { return '<th scope="col">' + mHead(F(k)) + '</th>'; }).join("") + '<th scope="col">' + esc(CB.start) + '</th><th scope="col">' + esc(CB.time) + '</th>' +
+      adv.map(function (k) { return '<th scope="col" class="' + (mNumT(F(k)) ? 'mt-num' : '') + '">' + mHead(F(k)) + '</th>'; }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr>';
+    var row = function (x) {
+      var p = si + "." + x.i + ".", r = x.r, c = MX().comboStart(med.m, r), mv = mopts(F("move")).filter(function (o) { return o[0] === r.move; })[0], rk = s.id + "|" + r._id;
+      var st = c.status === "noreach" ? '<span class="cbst cb-warn" title="' + esc(CB.noreach) + '">⚠ —</span>' :
+        '<span class="cbst cb-' + (c.status === "ok" ? "ok" : "warn") + '" title="' + esc(CB[c.status] + (c.from != null && mv ? " · " + CB.from.replace("{m}", mv[1]).replace("{d}", c.from) : "")) + '">' + (c.status === "ok" ? "✓ " : "⚠ ") + c.start + ' м</span>'; // the movement's start — in the tooltip, the row stays one line
+      var kEd = '<input type="number" step="0.05" min="0.3" max="1" data-mf="' + p + 'k" value="' + esc(r.k == null ? "" : r.k) + '" placeholder="' + c.k + '" aria-label="k">';
+      return '<tr data-mrow="' + esc(rk) + '"' + (probs[rk] ? ' class="mprow"' : '') + '><th scope="row" class="mt-name" data-mk="' + esc(rk + "|who") + '" data-l="' + esc(CB.fighter) + '" title="' + esc(r._id) + '">' + mcell(p + "who", F("who"), r.who, { ed: cbWho(p + "who", r.who), prob: probs[rk + "|who"] }) + '</th>' +
+        (by ? '' : mtd(s, si, x, F("group"), probs)) + cols.map(function (k) { return mtd(s, si, x, F(k), probs); }).join("") +
+        '<td class="cbstart" data-l="' + esc(CB.start) + '">' + st + '<span class="cbk">k ' + mcell(p + "k", F("k"), r.k, { ed: kEd, ph: String(c.k) }) + '</span></td>' +
+        '<td data-l="' + esc(CB.time) + '">' + cbBar(c, r.hold === "hold") + '</td>' + adv.map(function (k) { return mtd(s, si, x, F(k), probs); }).join("") + mRowMenu(si, x.i, r._id) + '</tr>';
+    };
+    var body;
+    if (by) {
+      var known = gs.map(function (g) { return g[0]; }), rest = rows.filter(function (x) { return known.indexOf(x.r.group) < 0; });
+      body = gs.concat(rest.length ? [["", MC.none]] : []).map(function (g) {
+        var l = g[0] ? rows.filter(function (x) { return x.r.group === g[0]; }) : rest;
+        return '<tr class="mgrp"><th colspan="' + ncol + '" scope="colgroup"><span class="mgrp-t">' + esc(g[1]) + '</span> <span class="mgrp-n">' + l.length + '</span>' +
+          (canWrite && g[0] ? ' <button type="button" class="btn ghost mini" data-mact="cbAdd:' + si + ':' + esc(g[0]) + '" aria-label="' + esc(CB.addIn.replace("{g}", g[1])) + '" title="' + esc(CB.addIn.replace("{g}", g[1])) + '">＋</button>' : '') + '</th></tr>' + l.map(row).join("");
+      }).join("");
+    } else body = rows.map(row).join("");
+    return bar + '<div class="mtable mrt"><table class="cbtable"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+  }
+  function mReactHtml(s, si, probs) {
+    var F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; }, ct = msec("ctable"), wf = med.cwho || "";
     var wsel = function (p, v) { return '<select data-mf="' + p + '" aria-label="' + esc(ml(F("weight").l)) + '"><option value=""></option>' + [1, 2, 3, 4].map(function (n) {
       return '<option value="' + n + '"' + (+v === n ? " selected" : "") + '>' + "●●●●".slice(0, n) + "○○○○".slice(n) + " " + CB.weight[n] + '</option>'; }).join("") + '</select>'; };
-    return '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
-      '<span style="flex:1"></span>' + (canWrite ? '<button type="button" class="btn mini" data-mact="cbAddR:' + si + '">' + CB.addR + '</button>' : '') + '</div>' +
-      (rows.length ? '<div class="mtable"><table class="cbtable"><thead><tr>' + [CB.fighter, ml(F("action").l), "", ml(F("answer").l), ml(F("combo").l), ml(F("weight").l)].concat(med.adv ? [ml(F("notes").l)] : []).map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join("") +
-        '<th scope="col"><span class="sr">⋯</span></th></tr></thead><tbody>' + rows.map(function (x) {
-          var p = si + "." + x.i + ".", r = x.r, mine = ((ct && ct.rows) || []).filter(function (c) { return c.who === r.who && c.group === r.answer; });
-          var combo = '<select data-mf="' + p + 'combo" aria-label="' + esc(ml(F("combo").l)) + '"><option value="">' + esc(CB.all) + '</option>' + mine.map(function (c) {
-            return '<option value="' + esc(c._id) + '"' + (c._id === r.combo ? " selected" : "") + '>' + esc(c._id + " · " + (c.anim || "")) + '</option>'; }).join("") + '</select>';
-          return '<tr><td>' + cbWho(p + "who", r.who) + '</td><td>' + minput(p + "action", F("action"), r.action, true) + '</td><td aria-hidden="true">→</td><td>' + minput(p + "answer", F("answer"), r.answer, true) +
-            (r.answer && !mine.length ? '<span class="cbst cb-warn">⚠ ' + esc(CB.noAns) + '</span>' : '') + '</td><td>' + combo + '</td><td>' + wsel(p + "weight", r.weight) + '</td>' +
-            (med.adv ? '<td class="mt-text">' + minput(p + "notes", F("notes"), r.notes, true) + '</td>' : '') +
-            '<td class="mrowact"><button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + r._id) + '">✕</button></td></tr>';
-        }).join("") + '</tbody></table></div>' : '<p class="muted">' + MC.noRows + '</p>');
+    var bar = '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
+      '<span style="flex:1"></span>' + mAllFields(s) + (canWrite ? '<button type="button" class="btn mini" data-mact="cbAddR:' + si + '">' + CB.addR + '</button>' : '') + '</div>';
+    if (!(s.rows || []).length) return mEmptyTable(s, si, "cbAddR:" + si, CB.addR);
+    var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) { return !wf || x.r.who === wf; });
+    var head = '<tr><th scope="col" class="mt-name">' + esc(CB.fighter) + '</th><th scope="col">' + mHead(F("action")) + '</th><th scope="col" aria-hidden="true"></th><th scope="col">' + mHead(F("answer")) + '</th><th scope="col">' + mHead(F("combo")) + '</th><th scope="col">' + mHead(F("weight")) + '</th>' +
+      (med.adv ? '<th scope="col">' + mHead(F("notes")) + '</th>' : '') + '<th scope="col"><span class="sr">⋯</span></th></tr>';
+    return bar + '<div class="mtable mrt"><table class="cbtable"><thead>' + head + '</thead><tbody>' + rows.map(function (x) {
+      var p = si + "." + x.i + ".", r = x.r, rk = s.id + "|" + r._id, mine = ((ct && ct.rows) || []).filter(function (c) { return c.who === r.who && c.group === r.answer; });
+      var cur = ((ct && ct.rows) || []).filter(function (c) { return c._id === r.combo; })[0];
+      var combo = '<select data-mf="' + p + 'combo" aria-label="' + esc(ml(F("combo").l)) + '"><option value="">' + esc(CB.all) + '</option>' + mine.map(function (c) {
+        return '<option value="' + esc(c._id) + '"' + (c._id === r.combo ? " selected" : "") + '>' + esc(c._id + " · " + (c.anim || "")) + '</option>'; }).join("") + '</select>';
+      var cell = function (k, o) { var pk = rk + "|" + k; return '<td class="mt-' + F(k).t + (probs[pk] || (o && o.prob) ? ' mprob' : '') + '" data-mk="' + esc(pk) + '" data-l="' + esc(ml(F(k).l)) + '">' + mcell(p + k, F(k), r[k], Object.assign({ prob: probs[pk] }, o || {})) + '</td>'; };
+      return '<tr data-mrow="' + esc(rk) + '"' + (probs[rk] ? ' class="mprow"' : '') + '><th scope="row" class="mt-name" data-mk="' + esc(rk + "|who") + '" data-l="' + esc(CB.fighter) + '" title="' + esc(r._id) + '">' + mcell(p + "who", F("who"), r.who, { ed: cbWho(p + "who", r.who), prob: probs[rk + "|who"] }) + '</th>' +
+        cell("action") + '<td class="marrow" aria-hidden="true">→</td>' + cell("answer", r.answer && !mine.length ? { prob: ["warn", CB.noAns] } : null) +
+        cell("combo", { ed: combo, txt: r.combo ? (cur ? cur._id + " · " + (cur.anim || "") : r.combo + " ⚠") : "", ph: CB.all }) +
+        cell("weight", { ed: wsel(p + "weight", r.weight), txt: +r.weight ? "●●●●".slice(0, +r.weight) + "○○○○".slice(+r.weight) + " " + CB.weight[+r.weight] : "" }) +
+        (med.adv ? cell("notes") : '') + mRowMenu(si, x.i, r._id, { dup: false }) + '</tr>';
+    }).join("") + '</tbody></table></div>';
   }
-  function mTableHtml(s, si) {
-    var cols = mshown(s), q = (med.find[s.id] || "").toLowerCase(), so = med.sort[s.id];
+  function mTableHtml(s, si, probs) {
+    var cols = mshown(s), q = (med.find[s.id] || "").toLowerCase(), so = med.sort[s.id], n = (s.rows || []).length;
+    var nameF = cols.filter(function (f) { return f.k === s.rowLabel; })[0], rest = cols.filter(function (f) { return f !== nameF; });
+    var bar = '<div class="row mtbar">' + (n > 6 || q ? '<input type="search" data-mfind="' + esc(s.id) + '" value="' + esc(med.find[s.id] || "") + '" placeholder="' + esc(MC.rowSearch) + '" aria-label="' + esc(MC.rowSearch) + '">' : '') +
+      (n ? '<span class="muted">' + n + ' ' + MC.rows + '</span>' : '') + '<span style="flex:1"></span>' + mAllFields(s) + (canWrite ? '<button type="button" class="btn mini" data-mact="addRow:' + si + '">' + MC.addRow + '</button>' : '') + '</div>';
+    if (!n) return mEmptyTable(s, si, "addRow:" + si, MC.addRow);
     var rows = (s.rows || []).map(function (r, i) { return { r: r, i: i }; }).filter(function (x) {
       if (!q) return true;
       var hay = x.r._id + " " + (s.fields || []).map(function (f) { var v = x.r[f.k]; return Array.isArray(v) ? v.join(" ") : v == null ? "" : String(v); }).join(" ");
       return q.split(/\s+/).every(function (w) { return hay.toLowerCase().indexOf(w) >= 0; });
     });
     if (so) rows.sort(function (a, b) {
-      var x = a.r[so[0]], y = b.r[so[0]], n = !isNaN(+x) && !isNaN(+y) && x !== "" && y !== "" && x != null && y != null;
-      return (n ? +x - +y : String(x == null ? "" : x).localeCompare(String(y == null ? "" : y))) * so[1];
+      var x = a.r[so[0]], y = b.r[so[0]], nn = !isNaN(+x) && !isNaN(+y) && x !== "" && y !== "" && x != null && y != null;
+      return (nn ? +x - +y : String(x == null ? "" : x).localeCompare(String(y == null ? "" : y))) * so[1];
     });
-    var head = '<tr><th scope="col">ID</th>' + cols.map(function (f) {
+    var th = function (f, cls) {
       var on = so && so[0] === f.k, ar = on ? (so[1] > 0 ? " ▲" : " ▼") : "";
-      return '<th scope="col"' + (on ? ' aria-sort="' + (so[1] > 0 ? "ascending" : "descending") + '"' : '') + '><button type="button" class="mth" data-msort="' + esc(s.id) + ':' + esc(f.k) + '" title="' + esc(MC.sortBy + " " + ml(f.l)) + '">' + esc(ml(f.l)) + mreq(f) + ar + '</button>' +
+      return '<th scope="col" class="' + (cls || '') + (mNumT(f) ? ' mt-num' : '') + '"' + (on ? ' aria-sort="' + (so[1] > 0 ? "ascending" : "descending") + '"' : '') + '><button type="button" class="mth" data-msort="' + esc(s.id) + ':' + esc(f.k) + '" title="' + esc(MC.sortBy + " " + ml(f.l)) + '">' + mHead(f, mreq(f) + ar) + '</button>' +
         (f.custom && canWrite ? '<button type="button" class="btn ghost mini" data-mact="rmField:' + si + ':' + esc(f.k) + '" aria-label="' + esc(MC.rmField + " " + ml(f.l)) + '">✕</button>' : '') + '</th>';
-    }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr>';
+    };
+    // the row's name is the sticky first column (its id in the tooltip); a table without a name column keeps a narrow id column
+    var head = '<tr>' + (nameF ? th(nameF, "mt-name") : '<th scope="col" class="mt-name mt-id">ID</th>') + rest.map(function (f) { return th(f); }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr>';
     var body = rows.map(function (x) {
-      var p = si + "." + x.i + ".";
-      return '<tr><th scope="row" class="mono">' + esc(x.r._id) + '</th>' + cols.map(function (f) { return '<td class="mt-' + f.t + '">' + minput(p + f.k, f, x.r[f.k], true) + '</td>'; }).join("") +
-        '<td class="mrowact">' + (s.prompt ? '<button type="button" class="btn ghost mini" data-mact="prompt:' + si + ':' + x.i + '" title="' + esc(MC.promptHint) + '" aria-label="' + esc(MC.promptHint + " " + x.r._id) + '">♪</button>' : '') +
-        '<button type="button" class="btn ghost mini" data-mact="dupRow:' + si + ':' + x.i + '" title="' + esc(MC.dupRow) + '" aria-label="' + esc(MC.dupRow + " " + x.r._id) + '">⧉</button>' +
-        '<button type="button" class="btn ghost mini" data-mact="rmRow:' + si + ':' + x.i + '" title="' + esc(MC.rmRow) + '" aria-label="' + esc(MC.rmRow + " " + x.r._id) + '">✕</button></td></tr>';
+      var rk = s.id + "|" + x.r._id, nk = nameF ? rk + "|" + nameF.k : rk;
+      return '<tr data-mrow="' + esc(rk) + '"' + (probs[rk] ? ' class="mprow"' : '') + '><th scope="row" class="mt-name' + (nameF ? '' : ' mt-id mono') + (probs[nk] ? ' mprob' : '') + '" data-mk="' + esc(nk) + '" data-l="' + esc(nameF ? ml(nameF.l) : "ID") + '" title="ID ' + esc(x.r._id) + '">' +
+        (nameF ? mcell(si + "." + x.i + "." + nameF.k, nameF, x.r[nameF.k], { prob: probs[nk] || probs[rk] }) : esc(x.r._id)) + '</th>' +
+        rest.map(function (f) { return mtd(s, si, x, f, probs); }).join("") + mRowMenu(si, x.i, x.r._id, { prompt: s.prompt }) + '</tr>';
     }).join("");
-    return '<div class="row mtbar"><input type="search" data-mfind="' + esc(s.id) + '" value="' + esc(med.find[s.id] || "") + '" placeholder="' + esc(MC.rowSearch) + '" aria-label="' + esc(MC.rowSearch) + '">' +
-      '<span class="muted">' + (s.rows || []).length + ' ' + MC.rows + '</span><span style="flex:1"></span><button type="button" class="btn mini" data-mact="addRow:' + si + '">' + MC.addRow + '</button></div>' +
-      ((s.rows || []).length ? '<div class="mtable"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>' : '<p class="muted">' + MC.noRows + '</p>');
+    return bar + '<div class="mtable mrt"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
   }
   function mGeneralHtml() {
     var m = med.m, M = MX(), c = M.category(m.cat), others = cards.filter(function (x) { return x.section === med.sec && x.id !== med.id; });
@@ -3143,50 +3330,103 @@
       qblk(MC.links, others.length ? mchips("g.links", others.map(function (x) { return [x.id, x.title || "…"]; }), m.links, MC.links) : '<p class="muted">' + MC.noLinks + '</p>') +
       (med.sec === "mechanics" ? mFwHtml() : ''));
   }
-  function mBarHtml(r) {
-    return '<div class="mbar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + r.pct + '" aria-label="' + esc(MC.fill) + '"><i style="width:' + r.pct + '%"></i></div>' +
-      '<span class="muted">' + MC.fill + ' ' + r.pct + '% · ' + MC.req + ' ' + r.req[0] + '/' + r.req[1] + ' · ' + MC.rec + ' ' + r.rec[0] + '/' + r.rec[1] + '</span>';
+  // a section's state for the outline: questions (errors / warnings of the checks) · empty · done
+  function mSecState(s, r) {
+    var id = s ? s.id : "general", n = r.issues.filter(function (i) { return i.sec === id && i.level !== "tip"; }).length;
+    if (n) return ["warn", n];
+    if (!s) return [String(med.m.purpose || "").trim() ? "done" : "empty", 0];
+    var v = s.values || {}, empty = s.kind === "table" ? !(s.rows || []).length : !(s.fields || []).some(function (f) { return !mEmpty(v[f.k]) && v[f.k] !== false; });
+    return [empty ? "empty" : "done", 0];
+  }
+  // «Готово 4 з 6 розділів · 3 питання · Перейти →» — the essential sections (and «Загальне»); the questions count every section
+  function mProgHtml(r) {
+    var main = [null].concat(med.m.sections.filter(function (s) { return !s.adv; })), d = main.filter(function (s) { return mSecState(s, r)[0] === "done"; }).length;
+    var n = r.issues.filter(function (i) { return i.level !== "tip"; }).length;
+    return esc(ED.ready.replace("{d}", d).replace("{n}", main.length)) + ' · ' + (n ? '<button type="button" class="mgo edgo" data-mgo="__first">' + esc(ED.q(n)) + ' · ' + ED.go + '</button>' : '<span class="qd-ok">' + ED.clean + '</span>');
+  }
+  function mIssField(i) { // the field a check message names («label»)
+    var s = msec(i.sec), f = s && (s.fields || []).filter(function (x) { return i.uk.indexOf("«" + MX().lbl(x.l, "uk") + "»") >= 0; })[0];
+    return f ? f.k : "";
   }
   function mIssuesHtml(r) {
     var tabName = function (id) { var s = msec(id); return s ? ml(s.title) : MC.general; };
-    return '<h4>' + MC.checks + '</h4>' + (r.issues.length ? '<ul class="qiss">' + r.issues.map(function (i) {
-      return '<li class="qd-' + i.level + '"><button type="button" class="mgo" data-mgo="' + esc(i.sec === "general" ? "general" : i.sec) + '">' + (i.level === "error" ? "✕ " : i.level === "warn" ? "⚠ " : "💡 ") +
-        '<span class="sr">' + MC.lvl[i.level] + ': </span>' + esc(tabName(i.sec) + (i.row ? " · " + i.row : "") + " — " + (LANG === "en" ? i.en : i.uk)) + '</button></li>'; }).join("") + '</ul>' : '<p class="qd-ok">✓ ' + MC.clean + '</p>');
+    var li = function (i) {
+      return '<li class="qd-' + i.level + '"><button type="button" class="mgo" data-mgo="' + esc(i.sec === "general" ? "general" : i.sec) + '" data-mgr="' + esc(i.row || "") + '" data-mgf="' + esc(mIssField(i)) + '">' + (i.level === "error" ? "✕ " : i.level === "warn" ? "⚠ " : "💡 ") +
+        '<span class="sr">' + MC.lvl[i.level] + ': </span>' + esc(tabName(i.sec) + (i.row ? " · " + i.row : "") + " — " + (LANG === "en" ? i.en : i.uk)) + '</button></li>'; };
+    var main = r.issues.filter(function (i) { return i.level !== "tip"; }), tips = r.issues.filter(function (i) { return i.level === "tip"; });
+    return '<h4>' + MC.checks + '</h4>' + (main.length ? '<ul class="qiss">' + main.map(li).join("") + '</ul>' : '<p class="qd-ok">✓ ' + MC.clean + '</p>') +
+      (tips.length ? '<details class="mtips"><summary>💡 ' + esc(MC.tips) + ' · ' + tips.length + '</summary><ul class="qiss">' + tips.map(li).join("") + '</ul></details>' : ''); // tips fold away: the problems come first
   }
-  function mTabsHtml(r) {
-    var cnt = function (id) { return r.issues.filter(function (i) { return i.sec === id && i.level !== "tip"; }).length; };
-    var tab = function (id, label) { var n = cnt(id); return '<button type="button" class="mtab" role="tab" data-mtab="' + esc(id) + '" aria-selected="' + (med.tab === id) + '">' + esc(label) + (n ? ' <span class="qd-warn">' + n + '</span>' : '') + '</button>'; };
-    var hid = med.adv ? 0 : med.m.sections.filter(function (s) { return s.adv; }).length;
-    return '<div class="mtabs" role="tablist">' + tab("general", MC.general) + med.m.sections.filter(function (s) { return med.adv || !s.adv; }).map(function (s) { return tab(s.id, ml(s.title)); }).join("") +
-      (hid ? '<button type="button" class="btn ghost mini" data-mact="adv" title="' + esc(MC.advHint) + '">' + esc(MC.moreTabs.replace("{n}", hid)) + '</button>' : '') +
-      (canWrite ? '<button type="button" class="btn ghost mini" data-mact="addSec:fields">' + MC.addSec + '</button><button type="button" class="btn ghost mini" data-mact="addSec:table">' + MC.addTable + '</button>' : '') + '</div>';
+  // the outline: the sections with a state dot, the essential ones first, then «Розширене (N)» folded; «＋ Розділ ▾» at the bottom.
+  // Under 900 px it is a select at the top.
+  function mOutlineHtml(r) {
+    var secs = med.m.sections, main = secs.filter(function (s) { return !s.adv; }), adv = secs.filter(function (s) { return s.adv; });
+    var dot = function (st) { return '<i class="mdot md-' + st[0] + '" aria-hidden="true">' + (st[0] === "warn" ? "⚠" : "") + '</i>'; };
+    var it = function (id, label, st) {
+      return '<li><button type="button" class="mol-i" data-mtab="' + esc(id) + '"' + (med.tab === id ? ' aria-current="true"' : '') + '>' + dot(st) + '<span class="mol-t">' + esc(label) + '</span>' +
+        (st[1] ? '<span class="mol-n">' + st[1] + '</span>' : '') + '<span class="sr"> — ' + esc(MC.st[st[0]]) + '</span></button></li>'; };
+    var opt = function (id, label, st) { return '<option value="' + esc(id) + '"' + (med.tab === id ? ' selected' : '') + '>' + (st[0] === "warn" ? "⚠ " + st[1] + " · " : st[0] === "done" ? "✓ " : "○ ") + esc(label) + '</option>'; };
+    var advWarn = adv.some(function (s) { return mSecState(s, r)[0] === "warn"; });
+    var sel = '<select class="mol-sel" data-moltab="1" aria-label="' + esc(MC.outline) + '">' + opt("general", MC.general, mSecState(null, r)) + main.map(function (s) { return opt(s.id, ml(s.title), mSecState(s, r)); }).join("") +
+      (adv.length ? '<optgroup label="' + esc(MC.advGroup) + '">' + adv.map(function (s) { return opt(s.id, ml(s.title), mSecState(s, r)); }).join("") + '</optgroup>' : '') + '</select>';
+    return sel + '<nav class="mol" aria-label="' + esc(MC.outline) + '"><ul>' + it("general", MC.general, mSecState(null, r)) + main.map(function (s) { return it(s.id, ml(s.title), mSecState(s, r)); }).join("") + '</ul>' +
+      (adv.length ? '<details class="mol-adv" data-moladv="1"' + (med.advOpen ? ' open' : '') + '><summary>' + esc(MC.advGroup) + ' <span class="mol-n">' + adv.length + '</span>' + (advWarn ? ' <i class="mdot md-warn" aria-hidden="true">⚠</i>' : '') + '</summary><ul>' +
+        adv.map(function (s) { return it(s.id, ml(s.title), mSecState(s, r)); }).join("") + '</ul></details>' : '') + '</nav>' +
+      (canWrite ? '<details class="mpop mol-add"><summary class="btn ghost mini">' + MC.addSecMenu + '</summary><div class="mpop-b" role="menu"><button type="button" role="menuitem" data-mact="addSec:fields">' + MC.addSec + '</button>' +
+        '<button type="button" role="menuitem" data-mact="addSec:table">' + MC.addTable + '</button></div></details>' : ''); // outside the nav: phones reach it too
   }
   function renderMEditor() {
-    var r = MX().check(med.m), s = med.tab === "general" ? null : msec(med.tab), si = s ? med.m.sections.indexOf(s) : -1;
+    var r = MX().check(med.m), probs = mProbs(r), s = med.tab === "general" ? null : msec(med.tab), si = s ? med.m.sections.indexOf(s) : -1;
     if (med.tab !== "general" && !s) { med.tab = "general"; return renderMEditor(); }
-    if (s && s.adv && !med.adv) { med.tab = "general"; return renderMEditor(); }
+    if (s && s.adv) med.advOpen = true; // opening an advanced section unfolds its group
+    var kind = !s ? "" : s.id === "ctable" && s.kind === "table" ? "combo" : s.id === "reactions" && s.kind === "table" ? "react" : s.kind;
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
-      (s.id === "ctable" && s.kind === "table" ? mComboHtml(s, si) : s.id === "reactions" && s.kind === "table" ? mReactHtml(s, si) : s.kind === "table" ? mTableHtml(s, si) : mFieldsHtml(s, si)) +
-      (canWrite && s.id !== "ctable" && s.id !== "reactions" ? '<div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
+      (kind === "combo" ? mComboHtml(s, si, probs) : kind === "react" ? mReactHtml(s, si, probs) : kind === "table" ? mTableHtml(s, si, probs) :
+        (mhid(s) ? '<div class="row mtbar"><span style="flex:1"></span>' + mAllFields(s) + '</div>' : '') + mFieldsHtml(s, si, probs)) +
+      (canWrite && kind !== "combo" && kind !== "react" ? '<div class="row maddf-r"><details class="maddf-d"><summary class="btn ghost mini">' + MC.addField + '</summary><div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
         MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
-        '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button><span style="flex:1"></span>' +
+        '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button></div></details><span style="flex:1"></span>' +
         (s.custom ? '<button type="button" class="btn ghost mini" data-mact="rmSec:' + si + '">' + MC.rmSec + '</button>' : '') + '</div>' : ''));
-    $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1"><header class="sec"><div><button class="btn ghost" data-mact="back">' + MC.back + '</button>' +
-      '<h1>' + esc(med.title || MC.newM) + '</h1></div><div class="row"><button class="btn" data-mact="adv" aria-pressed="' + med.adv + '" title="' + esc(MC.advHint) + '">' + (med.adv ? MC.basic : MC.adv) + '</button>' +
-      (med.isNew ? '' : '<button class="btn" data-mact="files">' + MC.files + '</button>') + '</div></header>' +
-      '<div class="mhead" id="m-bar">' + mBarHtml(r) + '</div>' + mTabsHtml(r) + body +
-      '<div class="canonbox qbox" id="m-issues" aria-live="polite">' + mIssuesHtml(r) + '</div>' +
+    $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1">' +
+      edHead({ back: 'data-mact="back"', backLabel: MC.back, title: med.title || MC.newM, progId: "m-bar", prog: mProgHtml(r), state: canWrite ? "m-state" : "",
+        actions: (med.isNew ? '' : '<button class="btn" data-mact="files">' + MC.files + '</button>') + (canWrite ? '<button class="btn primary" data-mact="save" id="m-save">' + MC.save + '</button>' : '') }) +
+      '<div class="medgrid"><div class="mout" id="m-out">' + mOutlineHtml(r) + '</div><div class="medmain">' + body +
+      '<div class="qbox" id="m-issues" aria-live="polite">' + mIssuesHtml(r) + '</div>' +
       (!med.isNew && !s ? impactHtml(allCards().filter(function (x) { return x.key === "c:" + med.id; })[0] || { isNew: true }) : '') +
-      (canWrite ? '<div class="row wsave"><span class="muted" id="m-state"></span>' + (med.isNew ? '' : '<button class="btn danger" data-mact="delete">' + MC.del + '</button>') +
-        '<button class="btn primary" data-mact="save" id="m-save">' + MC.save + '</button></div>' : '') + '</div>';
-    if (!canWrite) [].forEach.call($("m-ed").querySelectorAll("input,textarea,select,[data-mchip],[data-mact^=add],[data-mact^=rm],[data-mact^=dup]"), function (el) { el.disabled = true; });
-    mState();
+      (canWrite && !med.isNew ? '<div class="row wsave"><button class="btn danger" data-mact="delete">' + MC.del + '</button></div>' : '') + '</div></div></div>';
+    if (!canWrite) [].forEach.call($("m-ed").querySelectorAll("input,textarea,select:not(.mol-sel),[data-mchip],[data-mact^=add],[data-mact^=rm],[data-mact^=dup]"), function (el) { el.disabled = true; });
+    mState(); mAfter();
+  }
+  function mAfter() { // after a render: the header's height for the sticky outline, popovers in place, the open cell focused
+    var me = $("m-ed"), h = me && me.querySelector(".edhead"); if (h) me.style.setProperty("--edh", h.offsetHeight + "px");
+    edSticky();
+    [].forEach.call(document.querySelectorAll("#m-ed details.mpop[open]"), mPopPos);
+    var ed = med.cell && document.querySelector("[data-mced]");
+    if (ed && !ed.contains(document.activeElement)) {
+      var f = ed.querySelector("input:not([type=checkbox]),select,textarea") || ed.querySelector("button,summary");
+      if (f) { f.focus(); if (f.tagName === "INPUT" && f.select) try { f.select(); } catch (er) {} }
+    }
   }
   function mState() {
-    var st = $("m-state"); if (st) st.textContent = medDirty() ? STR.wt.dirty : "";
-    var r = MX().check(med.m), b = $("m-bar"), is = $("m-issues");
-    if (b) b.innerHTML = mBarHtml(r);
-    if (is) is.innerHTML = mIssuesHtml(r);
+    if (canWrite) edState("m-state", medDirty(), med.isNew);
+    var r = MX().check(med.m), b = $("m-bar"), is = $("m-issues"), ol = $("m-out");
+    if (b) b.innerHTML = mProgHtml(r);
+    if (is) { var tipsOpen = !!is.querySelector(".mtips[open]"); is.innerHTML = mIssuesHtml(r); if (tipsOpen && is.querySelector(".mtips")) is.querySelector(".mtips").open = true; }
+    if (ol && !ol.querySelector("details.mpop[open]")) ol.innerHTML = mOutlineHtml(r);
+  }
+  // a check → its section, row and cell, highlighted
+  function mGo(secId, row, fk) {
+    if (secId === "__first") {
+      var r = MX().check(med.m), i = r.issues.filter(function (x) { return x.level === "error"; })[0] || r.issues.filter(function (x) { return x.level === "warn"; })[0]; if (!i) return;
+      return mGo(i.sec, i.row || "", mIssField(i));
+    }
+    med.tab = secId === "general" || !msec(secId) ? "general" : secId; med.cell = "";
+    if (row) { delete med.find[secId]; med.cwho = ""; }
+    renderMEditor();
+    var q = function (sel) { return document.querySelector("#m-ed " + sel); }, k = function (x) { return '"' + CSS.escape(x) + '"'; };
+    var el = (fk && q('[data-mk=' + k(secId + "|" + (row || "-") + "|" + fk) + ']')) || (row && q('[data-mrow=' + k(secId + "|" + row) + ']')) ||
+      (med.tab === "general" && q('[data-mf="g.purpose"]')) || q(".medmain .qbox");
+    edFlash(el && el.closest("td,th,tr,.field") || el);
   }
   function mval(f, t) {
     if (t.type === "checkbox") return t.checked;
@@ -3196,12 +3436,20 @@
   function medInput(e) {
     var t = e.target; if (!med || !$("m-ed") || !t.dataset) return;
     if (t.dataset.mcwho) { if (e.type === "change") { med.cwho = t.value; renderMEditor(); } return; }
+    if (t.dataset.mcgby) { if (e.type === "change") { med.cgby = t.value; renderMEditor(); } return; }
+    if (t.dataset.moltab) { if (e.type === "change") { med.tab = t.value; med.cell = ""; renderMEditor(); var ms = document.querySelector("[data-moltab]"); if (ms) ms.focus(); } return; }
     if (t.dataset.mfwadd !== undefined) { if (e.type !== "change" || !t.value) return; var fwa = med.m.fw = med.m.fw || {}; fwa.caps = (fwa.caps || []).concat([t.value]); renderMEditor(); return; }
     if (t.dataset.mfwneed !== undefined) { (med.m.fw = med.m.fw || {}).need = t.value; mState(); return; }
     if (t.dataset.mfind !== undefined) { if (e.type !== "input") return; med.find[t.dataset.mfind] = t.value; var pos = t.selectionStart; renderMEditor(); var n = document.querySelector('[data-mfind="' + t.dataset.mfind + '"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } return; }
     if (t.dataset.mg) { med[t.dataset.mg] = t.value; if (t.dataset.mg === "title") { var h = document.querySelector("#m-ed header h1, #topline h1"); if (h) h.textContent = t.value || MC.newM; } mState(); return; }
     var p = t.dataset.mf; if (!p) return;
     var k = p.split("."), m = med.m;
+    if (k[0] === "w") { // the first-row questions: a draft row, written into the table on «Готово»
+      if (!med.wiz) return;
+      var wf = (msec(med.wiz.s).fields || []).filter(function (x) { return x.k === k[2]; })[0];
+      if (t.dataset.mwho && t.value === "__other") { if (e.type !== "change") return; askName(CB.otherT, CB.otherPh, function (n) { if (n && med.wiz) med.wiz.row.who = n.trim(); renderMEditor(); }); return; }
+      med.wiz.row[k[2]] = mval(wf, t); return;
+    }
     if (k[0] === "g") {
       if (k[1] === "tags") m.tags = t.value.split(",").map(function (x) { return x.trim(); }).filter(Boolean);
       else m[k[1]] = t.value;
@@ -3209,15 +3457,16 @@
       mState(); return;
     }
     var s = m.sections[+k[0]], f = (s.fields || []).filter(function (x) { return x.k === k[2]; })[0];
-    if (t.dataset.mwho && t.value === "__other") { if (e.type !== "change") return; askName(CB.otherT, CB.otherPh, function (n) { if (n) s.rows[+k[1]].who = n.trim(); renderMEditor(); }); return; }
+    if (t.dataset.mwho && t.value === "__other") { if (e.type !== "change") return; med.cell = ""; askName(CB.otherT, CB.otherPh, function (n) { if (n) s.rows[+k[1]].who = n.trim(); renderMEditor(); }); return; }
     if (k[1] === "-") s.values[k[2]] = mval(f, t); else s.rows[+k[1]][k[2]] = mval(f, t);
+    if (t.closest("[data-mced]")) { if (e.type === "change" && t.tagName === "SELECT") mCommit(true); else mState(); return; } // an open cell: a choice commits, typing waits for Enter / leaving
     if (e.type === "change" && (s.id === "ctable" || s.id === "reactions")) { setTimeout(function () { if (med && $("m-ed")) renderMEditor(); }, 0); mState(); return; } // the start distance, the time bar and the combo choices follow
     if (e.type === "change" && s.kind === "table" && k[2] === s.rowLabel) { renderMEditor(); return; } // names of rows show in the links
     mState();
   }
   function mChip(path, v) {
     var k = path.split("."), m = med.m, o, key;
-    if (k[0] === "g") { o = m; key = k[1]; } else { var s = m.sections[+k[0]]; o = k[1] === "-" ? s.values : s.rows[+k[1]]; key = k[2]; }
+    if (k[0] === "w") { if (!med.wiz) return; o = med.wiz.row; key = k[2]; } else if (k[0] === "g") { o = m; key = k[1]; } else { var s = m.sections[+k[0]]; o = k[1] === "-" ? s.values : s.rows[+k[1]]; key = k[2]; }
     var l = Array.isArray(o[key]) ? o[key].slice() : [], i = l.indexOf(v);
     if (i >= 0) l.splice(i, 1); else l.push(v);
     o[key] = l; renderMEditor();
@@ -3241,7 +3490,7 @@
     }
     if (p[0] === "files") { unsavedOk(medDirty(), function () { var fc = allCards().filter(function (x) { return x.key === "c:" + med.id; })[0]; med = null; render(); if (fc) openCard(fc); }); return; }
     if (p[0] === "cbAdd" || p[0] === "cbAddR") {
-      var gs0 = cbGroups(s), grp = med.cgrp && gs0.some(function (x) { return x[0] === med.cgrp; }) ? med.cgrp : (gs0[0] || [""])[0];
+      var gs0 = cbGroups(s), grp = p[2] ? p[2] : med.cgrp && gs0.some(function (x) { return x[0] === med.cgrp; }) ? med.cgrp : (gs0[0] || [""])[0]; // «＋» on a group's header: that strike type
       var nr = p[0] === "cbAdd" ? { _id: MX().newRowId(s), group: grp, who: med.cwho || CB.player, hold: "now" } : { _id: MX().newRowId(s), who: med.cwho || ((msec("ctable") || {}).rows || [{}])[0].who || CB.player, weight: 2 };
       s.rows = (s.rows || []).concat([nr]); renderMEditor(); mState(); return;
     }
@@ -3254,10 +3503,26 @@
       });
       return;
     }
+    if (p[0] === "wizNext" || p[0] === "wizPrev" || p[0] === "wizSkip") {
+      var wz = med.wiz, wfs = mWizFields(s);
+      if (p[0] === "wizSkip") { med.wizOff[s.id] = 1; med.wiz = null; }
+      else if (p[0] === "wizPrev") wz.step = Math.max(0, wz.step - 1);
+      else if (wz.step < wfs.length - 1) wz.step++;
+      else { // «Готово»: the first row, with the answers; then the table
+        var wr = { _id: MX().newRowId(s) };
+        (s.fields || []).forEach(function (f) { if (f.t === "bool") wr[f.k] = false; });
+        if (s.id === "ctable") { wr.hold = "now"; wr.group = (cbGroups(s)[0] || [""])[0]; }
+        if (s.id === "reactions") wr.weight = 2;
+        s.rows = (s.rows || []).concat([Object.assign(wr, wz.row)]); med.wiz = null;
+      }
+      renderMEditor(); var wi = document.querySelector(".mwiz-in input, .mwiz-in select, .mwiz-in textarea, .mwiz-in button"); if (wi) wi.focus();
+      return;
+    }
     if (p[0] === "addRow") {
       var row = { _id: MX().newRowId(s) };
       (s.fields || []).forEach(function (f) { if (f.t === "bool") row[f.k] = false; });
       s.rows = (s.rows || []).concat([row]); med.find[s.id] = "";
+      if (s.rowLabel && (s.fields || []).some(function (f) { return f.k === s.rowLabel; })) return mOpenCell(p[1] + "." + (s.rows.length - 1) + "." + s.rowLabel); // the new row's name, ready to type
     } else if (p[0] === "dupRow") {
       var cp = JSON.parse(JSON.stringify(s.rows[i])); cp._id = MX().newRowId(s);
       if (s.rowLabel && cp[s.rowLabel]) cp[s.rowLabel] += " (" + MC.copyOf + ")";
@@ -3310,15 +3575,18 @@
   }
   function mechClick(e) {
     if (!med || !$("m-ed")) return false;
+    if (med.cell && !e.target.closest("[data-mced]")) mCommit(false); // a click elsewhere commits the open cell (the handlers below read only the target's data)
+    var mc = e.target.closest("[data-mcell]"); if (mc) { mOpenCell(mc.dataset.mcell); return true; }
     var a = e.target.closest("[data-mact]"); if (a) { mAct(a.dataset.mact); return true; }
-    var ch = e.target.closest("[data-mchip]"); if (ch) { mChip(ch.dataset.mchip, ch.dataset.v); return true; }
+    var ch = e.target.closest("[data-mchip]"); if (ch) { var pk = ch.closest("[data-mpick]"); mPickOpen = pk ? pk.dataset.mpick : ""; mChip(ch.dataset.mchip, ch.dataset.v); return true; }
     var sp = e.target.closest("[data-sndplay]"); if (sp) { playSound(soundUrl(sp.dataset.sndplay), sp); return true; }
     var sr = e.target.closest("[data-sndrm]"); if (sr) { var sl = mslot(sr.dataset.sndrm); sl.o[sl.key] = (sl.o[sl.key] || []).filter(function (x) { return x !== sr.dataset.v; }); renderMEditor(); return true; }
     var sk = e.target.closest("[data-sndpick]"); if (sk) { sndPick(sk.dataset.sndpick); return true; }
     if (e.target.closest("[data-sndup]")) return true; // the file picker opens by itself
-    var cg = e.target.closest("[data-mcgrp]"); if (cg) { med.cgrp = cg.dataset.mcgrp; renderMEditor(); var cn = document.querySelector('[data-mcgrp="' + cg.dataset.mcgrp + '"]'); if (cn) cn.focus(); return true; }
-    var tb = e.target.closest("[data-mtab]"); if (tb) { med.tab = tb.dataset.mtab; if ((msec(med.tab) || {}).adv) med.adv = true; /* a check pointing into an advanced tab opens the advanced view */ renderMEditor(); var n = document.querySelector('[data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
-    var go = e.target.closest("[data-mgo]"); if (go) { med.tab = go.dataset.mgo; if ((msec(med.tab) || {}).adv) med.adv = true; renderMEditor(); $("m-ed").scrollIntoView({ block: "start" }); return true; }
+    var tb = e.target.closest("[data-mtab]"); if (tb) { // the outline: a section (an advanced one unfolds its group)
+      med.tab = tb.dataset.mtab; renderMEditor(); if ($("main").scrollTop > 0) $("main").scrollTop = 0;
+      var n = document.querySelector('#m-out [data-mtab="' + tb.dataset.mtab + '"]'); if (n) n.focus(); return true; }
+    var go = e.target.closest("[data-mgo]"); if (go) { mGo(go.dataset.mgo, go.dataset.mgr || "", go.dataset.mgf || ""); return true; }
     var so = e.target.closest("[data-msort]"); if (so) {
       var sp = so.dataset.msort.split(":"), cur = med.sort[sp[0]];
       med.sort[sp[0]] = cur && cur[0] === sp[1] ? (cur[1] > 0 ? [sp[1], -1] : null) : [sp[1], 1]; renderMEditor(); return true;
@@ -3387,7 +3655,7 @@
   function propHtml() {
     if (!qprop) return "";
     var keys = PROP_FIELDS[qed.col].filter(function (k) { var v = qprop[k]; return v != null && v !== "" && !(Array.isArray(v) && !v.length) && !qprop.done[k]; });
-    return '<div class="canonbox qbox qprop"><h4>' + QD.prop + '</h4>' + (keys.length ? keys.map(function (k) {
+    return '<div class="qbox qprop"><h4>' + QD.prop + '</h4>' + (keys.length ? keys.map(function (k) {
       return '<div class="qprow"><span class="qh">' + esc(PROP_LABEL(k)) + '</span><pre>' + esc(propText(k, qprop[k])) + '</pre><div class="row">' +
         '<button class="btn mini primary" data-qact="pAcc:' + k + '">' + QD.accept + '</button><button class="btn mini ghost" data-qact="pRej:' + k + '">' + QD.reject + '</button></div></div>';
     }).join("") + '<div class="row"><button class="btn primary" data-qact="pAll">' + QD.acceptAll + '</button><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button></div>' : '<p class="muted">✓</p><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button>') +
@@ -3396,7 +3664,7 @@
   function aiHtml() {
     if (!canQuest || !canDev) return ""; // ✦ drafts are AI — Worldbuilder
     var op = qed.col === "quests" ? "questDraft" : "dialogueDraft";
-    return '<div class="canonbox qbox"><div class="row qai"><input id="q-wish" placeholder="' + esc(QD.wishPh) + '" aria-label="' + esc(QD.wishPh) + '"' + (qbusy ? " disabled" : "") + '>' +
+    return '<div class="qbox"><div class="row qai"><input id="q-wish" placeholder="' + esc(QD.wishPh) + '" aria-label="' + esc(QD.wishPh) + '"' + (qbusy ? " disabled" : "") + '>' +
       '<button class="btn" data-qact="ai"' + (qbusy ? " disabled" : "") + '>' + QD.ai + costMark(op) + '</button></div><p class="muted" id="q-aimsg">' + esc(qbusy || QD.aiHint) + '</p></div>';
   }
   async function aiDraft() {
@@ -3498,7 +3766,7 @@
     var head = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>';
     if (!(st.enabled && st.paid)) {
       if (cosmo) { cosmo.api.destroy(); cosmo = null; }
-      $("view").innerHTML = head + '<div class="canonbox cosmo-off"><h4>' + (st.enabled ? STR.cosmo.expired : STR.cosmo.off) + '</h4><p>' + (st.enabled ? STR.cosmo.expiredText : STR.cosmo.offText) + '</p>' +
+      $("view").innerHTML = head + '<div class="nbox cosmo-off"><h4>' + (st.enabled ? STR.cosmo.expired : STR.cosmo.off) + '</h4><p>' + (st.enabled ? STR.cosmo.expiredText : STR.cosmo.offText) + '</p>' +
         '<div class="row">' + (st.enabled ? '<button class="btn primary" id="cg-renew">' + STR.cosmo.renew + costMark("cosmograph") + '</button>' : '<button class="btn" id="cg-settings">' + STR.cosmo.toSettings + '</button>') + '</div>' +
         '<p class="hint" id="cg-msg"></p></div>';
       var go = $("cg-settings"); if (go) go.onclick = function () { section = "settings"; render(); };
@@ -4921,7 +5189,7 @@
   var FG = window.__FORGE;
   var fz = { tab: "chars", open: null, stage: null, item: null, q: "", type: "", slot: "", cmp: [], setup: null, msg: "" };
   var FZ = {
-    uk: { chars: "Персонажі", items: "Екіпірування", setup: "⚙ Слоти й профілі", addChar: "＋ Персонаж", addItem: "＋ Предмет", back: "‹ Кузня", search: "Пошук…",
+    uk: { chars: "Персонажі", items: "Екіпірування", setup: "⚙ Слоти й профілі", addChar: "＋ Персонаж", addItem: "＋ Предмет", search: "Пошук…",
       allTypes: "Усі типи", allSlots: "Усі слоти", noChars: "Ще немає персонажів. Додай їх у «Персонажі» чи «Вороги й боси» — вони зʼявляться тут.", noItems: "Ще немає предметів.",
       next: "Далі", doneAll: "Усі етапи затверджено", type: "Тип", rig: "Профіль рига", body: "Профіль тіла", none: "— не вибрано —", stages: "Етапи",
       st: { approved: "Затверджено", ready: "Можна затверджувати", progress: "У роботі", todo: "Не почато", locked: "Чекає попередній етап" },
@@ -4944,7 +5212,7 @@
       setupHint: "Слоти, профілі ригів (скелетів) і тіл цієї гри. Предмет зі скіном сідає лише на персонажа з тим самим профілем рига.",
       rigs: "Профілі ригів", bodies: "Профілі тіла", name: "Назва", notesF: "Нотатки", addRow: "＋ Додати", save: "Зберегти", saved: "Збережено.", resetSlots: "Стандартні слоти",
       maskNames: null, sec: { characters: "Персонаж", enemies: "Ворог" } },
-    en: { chars: "Characters", items: "Equipment", setup: "⚙ Slots & profiles", addChar: "＋ Character", addItem: "＋ Item", back: "‹ Forge", search: "Search…",
+    en: { chars: "Characters", items: "Equipment", setup: "⚙ Slots & profiles", addChar: "＋ Character", addItem: "＋ Item", search: "Search…",
       allTypes: "All types", allSlots: "All slots", noChars: "No characters yet. Add them in «Characters» or «Enemies & bosses» — they show up here.", noItems: "No items yet.",
       next: "Next", doneAll: "All stages approved", type: "Type", rig: "Rig profile", body: "Body profile", none: "— not set —", stages: "Stages",
       st: { approved: "Approved", ready: "Ready to approve", progress: "In progress", todo: "Not started", locked: "Waits for an earlier stage" },
@@ -4968,7 +5236,7 @@
       rigs: "Rig profiles", bodies: "Body profiles", name: "Name", notesF: "Notes", addRow: "＋ Add", save: "Save", saved: "Saved.", resetSlots: "Default slots",
       maskNames: null, sec: { characters: "Character", enemies: "Enemy" } },
   }[LANG];
-  var FZ_VCLS = { pending: "s-idea", passed: "s-game", warning: "s-work", failed: "s-redo", manual: "s-agreed" };
+  var FZ_VCLS = { pending: "s-idea", passed: "s-game", warning: "s-warn", failed: "s-redo", manual: "s-agreed" };
   var FZ_SCLS = { approved: "s-game", ready: "s-agreed", progress: "s-work", todo: "s-idea", locked: "s-idea" };
   function fzType(c) { return FG.typeOf(c); }
   function fzChar(c) { return { id: c.id, key: c.key, src: c.src, section: c.section, title: c.title, fields: c.fields, files: c.files || [], forge: Object.assign({}, c.forge || {}, { type: fzType(c) }) }; }
@@ -5002,10 +5270,11 @@
     if (oi) { head = esc(oi.title || STR.newCard); body = '<section class="fz-main">' + fzItemHtml(oi) + '</section>'; }
     else if (oc) { head = esc(oc.title || STR.newCard); body = fzWorkHtml(oc); }
     else { head = esc(L(s)); body = tabs + (fz.tab === "items" ? fzItemsHtml() : fz.tab === "setup" ? fzSetupHtml() : fzCharsHtml()); }
-    var acts = (oc || oi) ? '<button class="btn" data-fzback>' + FZ.back + '</button>'
-      : canWrite ? (fz.tab === "items" ? '<button class="btn primary" data-fznewitem>' + FZ.addItem + '</button>' : fz.tab === "chars" ? '<button class="btn primary" data-fznewchar>' + FZ.addChar + '</button>' : '') : '';
-    $("view").innerHTML = '<header class="sec"><div><h1>' + head + '</h1>' + (oc || oi ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div><div class="row">' + acts + '</div></header>' +
+    var acts = canWrite && !oc && !oi ? (fz.tab === "items" ? '<button class="btn primary" data-fznewitem>' + FZ.addItem + '</button>' : fz.tab === "chars" ? '<button class="btn primary" data-fznewchar>' + FZ.addChar + '</button>' : '') : '';
+    $("view").innerHTML = (oc || oi ? edHead({ back: 'data-fzback', backLabel: ED.backF, title: (oi || oc).title || STR.newCard }) // a character or an item: the editors' header (every change saves at once)
+      : '<header class="sec"><div><h1>' + head + '</h1><p>' + esc(L(s.about)) + '</p></div><div class="row">' + acts + '</div></header>') +
       (fz.msg ? '<p class="warn">' + esc(fz.msg) + '</p>' : '') + body;
+    edSticky();
   }
   function fzCharsHtml() {
     var ctx = fzCtx(), q = fz.q.trim().toLowerCase();
@@ -5618,7 +5887,7 @@
     var s = [
       [3, R.launch, !!(game.launch && game.launch.dir), "agent-launch", launchHtml()],
       [4, R.key, live.length > 0, "agent-new-game", '<p class="hint">' + R.keyHint + '</p>' +
-        (newKey ? '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
+        (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
         '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
         (canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>'],
       [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn' + (planDoc.plan || cards.length > 2 ? '' : ' primary') + '" id="st-draft">' + STR.stDraft + costMark("draft") + '</button><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
@@ -5632,7 +5901,7 @@
     var need = s.filter(function (x) { return !x[5]; }), ok = need.filter(function (x) { return x[2]; }).length;
     return '<section class="setbox"><h2>' + R.title + ' <span class="sroad__count">' + R.done.replace("{n}", ok).replace("{t}", need.length) + '</span></h2>' +
       '<p class="hint">' + R.hint + ' <a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p>' +
-      (canWrite ? '<div class="canonbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow">' + (window.showDirectoryPicker ? '<button class="btn primary" id="ln-folder">' + R.folderBtn + '</button>' : '') + '<button class="btn' + (window.showDirectoryPicker ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
+      (canWrite ? '<div class="nbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow">' + (window.showDirectoryPicker ? '<button class="btn primary" id="ln-folder">' + R.folderBtn + '</button>' : '') + '<button class="btn' + (window.showDirectoryPicker ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
         '<p class="hint">' + (window.showDirectoryPicker ? R.folderHint : R.folderNo) + '</p></div>' : '') +
       '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
@@ -5671,7 +5940,7 @@
     var live = keys.filter(function (k) { return !k.revoked; });
     html += box(I.repo, repoHtml());
     if (ME.owner) html += box(I.mcp, '<p class="hint">' + I.mcpHint + '</p>' +
-      (newKey ? '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
+      (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
       live.map(function (k) { return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span>' + (k.label ? ' · ' + esc(k.label) : '') + '</span><button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button></div>'; }).join("") +
       '<div class="setrow"><button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>');
     html += box(I.tele, '<p class="hint">' + I.teleHint + '</p><p>' + esc(I.teleKeys.replace("{n}", (game.ingestKeys || []).length)) + '</p>' + go("data-iggo", "experience", I.teleGo));
@@ -6700,7 +6969,7 @@
   function execHtml() {
     var live = keys.filter(function (k) { return !k.revoked; });
     var html = '<section class="psec"><h2 class="group">' + STR.exTitle + '</h2><p class="muted">' + STR.exIntro + '</p>';
-    if (newKey) html += '<div class="canonbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre>' +
+    if (newKey) html += '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre>' +
       '<button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>';
     html += live.map(function (k) {
       var used = k.lastUsedAt && k.lastUsedAt.toDate ? k.lastUsedAt.toDate().toLocaleString(LANG === "en" ? "en-GB" : "uk-UA") : STR.exNever;
@@ -6965,7 +7234,7 @@
       var done = tasks.filter(function (t) { return t.status === "done"; }).length, pct = Math.round(100 * done / tasks.length);
       html += '<div class="ready"><span>' + STR.progress + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + done + ' / ' + tasks.length + '</b></div>';
     }
-    if (plan.engineNotes) html += '<div class="canonbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
+    if (plan.engineNotes) html += '<div class="nbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
     html += '<div class="ptabs" role="tablist">' + ["plan", "matrix"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : P.tabMatrix) + '</button>'; }).join("") + '</div>';
     if (planTab === "matrix") return html + matrixHtml() + '</section>';
     var mineN = tasks.filter(function (t) { return t.assignee && t.assignee.uid === myUid(); }).length;
@@ -7109,6 +7378,20 @@
   $("e-body").addEventListener("change", voChange);
   $("view").addEventListener("input", medInput);
   $("view").addEventListener("change", medInput);
+  // the mechanics tables from the keyboard: F2 / Enter opens a cell, Esc cancels it (or closes a popover), Enter (Ctrl+Enter in a long text) commits
+  $("view").addEventListener("keydown", function (e) {
+    if (!med || !$("m-ed") || !e.target.closest) return;
+    var t = e.target, ced = t.closest("[data-mced]"), pop = t.closest("details.mpop[open]") || (ced && ced.querySelector("details.mpop[open]")); // Esc: the open picker first, then the cell
+    if (e.key === "Escape" && pop) { e.preventDefault(); e.stopPropagation(); pop.open = false; var sm = pop.querySelector(":scope > summary"); if (sm) sm.focus(); return; }
+    var c = t.closest("[data-mcell]"); if (c && e.key === "F2") { e.preventDefault(); mOpenCell(c.dataset.mcell); return; }
+    if (t.closest("[data-mced]")) {
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); mCancel(); }
+      else if (e.key === "Enter" && ((t.tagName === "INPUT" && t.type !== "checkbox") || (t.tagName === "TEXTAREA" && (e.ctrlKey || e.metaKey)))) { e.preventDefault(); mCommit(true); }
+      return;
+    }
+    var wz = t.closest(".mwiz"); if (wz && e.key === "Enter" && t.tagName === "INPUT") { e.preventDefault(); var nb = wz.querySelector('[data-mact^="wizNext"]'); if (nb) nb.click(); }
+  });
+  $("view").addEventListener("focusout", function (e) { if (med && med.cell && !mPtr && e.target.closest && e.target.closest("[data-mced]")) setTimeout(function () { mEdLost(true); }, 0); }); // Tab out of a cell
   $("view").addEventListener("input", forgeInput);
   $("view").addEventListener("change", forgeInput);
   $("view").addEventListener("change", function (e) {
@@ -7138,6 +7421,9 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
+    var es = e.target.closest("[data-estate]"); if (es) { if (es.dataset.estate === "mech") mechNew(""); else styleFromRefs(es); return; } // an empty section's first step
+    var eg = e.target.closest("[data-edgo]"); if (eg) { edFlash($(eg.dataset.edgo)); return; } // an editor's progress line → its checks
+    var kbl = e.target.closest("[data-kbart]"); if (kbl) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: kbl.dataset.kbart }); return; }
     var fd = e.target.closest("[data-fwdec]"); if (fd) { var fdp = fd.dataset.fwdec.split("|"); fd.disabled = true; fwDecide(fdp[0], fdp[1], fdp[2]).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); fd.disabled = false; }); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return; // «🔗 Що зачепить зміна» in the mechanics constructor
     if (e.target.closest("[data-wname]")) return editWorldName();

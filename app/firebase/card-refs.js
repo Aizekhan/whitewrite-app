@@ -56,16 +56,23 @@ var KINDS = [
       arr(G.dialogues).forEach(function (d) { arr(d.nodes).forEach(function (n) { arr(n.voice).forEach(function (id) { out.push({ from: from('dialogue', d), to: 'c:' + id, extra: n.id || '' }); }); }); });
       return out;
     } },
-  { id: 'task', uk: 'Задача', en: 'Task', fields: ['plan.milestones.tasks.cards', 'card.planTask'],
+  // plan tasks, and task docs outside the plan — bugs (kind 'bug': MCP report_bug / the Bible's bug form) carry kind + severity on `from`
+  { id: 'task', uk: 'Задача', en: 'Task', fields: ['plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)'],
     edges: function (G) {
-      var out = [], status = {};
+      var out = [], status = {}, inPlan = {};
       arr(G.tasks).forEach(function (t) { status[t.id] = t.status; });
       ((G.plan || {}).milestones || []).forEach(function (m) {
         arr(m.tasks).forEach(function (t) {
           var id = String(t.id || '').replace(/[\/\s]/g, '_'), f = from('task', { id: t.id, title: t.title }, { milestone: m.id, status: status[id] || '' });
+          inPlan[id] = 1;
           arr(t.cards).forEach(function (r) { var to = planKey(G, r); if (to) out.push({ from: f, to: to, extra: (t.roles || {})[r] || '' }); });
           live(G).forEach(function (c) { if (c.planTask && c.planTask === t.id) out.push({ from: f, to: cardKey(c) }); });
         });
+      });
+      arr(G.tasks).forEach(function (t) {
+        if (inPlan[t.id] || !arr(t.cards).length) return;
+        var f = from('task', { id: t.id, title: t.title }, Object.assign({ milestone: t.milestone || '', status: t.status || '' }, t.kind === 'bug' ? { kind: 'bug', severity: t.severity || 's3' } : {}));
+        arr(t.cards).forEach(function (r) { var to = planKey(G, r); if (to) out.push({ from: f, to: to, extra: t.kind === 'bug' ? 'bug ' + String(t.severity || 's3').toUpperCase() : '' }); });
       });
       return out;
     } },
@@ -81,6 +88,18 @@ var KINDS = [
       live(G).forEach(function (c) {
         if (c.mech) MECH.soundSlots(c.mech, lang).forEach(function (sl) {
           sl.refs.forEach(function (id) { out.push({ from: from('card', c, { key: cardKey(c) }), to: 'c:' + id, extra: sl.rowName ? sl.rowName + ' · ' + sl.label : sl.label }); });
+        });
+      });
+      return out;
+    } },
+  // a mechanic's `card` field (v2.78: the VFX of a game-feel action, a loot item, the levels of pacing / difficulty, the cards of a loop step) —
+  // [cardId] from a picker or card titles typed by hand; a title that names no card points nowhere
+  { id: 'mechcard', uk: 'У механіці', en: 'In a mechanic', out: { uk: 'Картка в механіці', en: 'Card in the mechanic' }, fields: ['card.mech.sections[card field]'],
+    edges: function (G, lang) {
+      var out = [], all = live(G);
+      all.forEach(function (c) {
+        if (c.mech) MECH.cardSlots(c.mech, lang).forEach(function (sl) {
+          sl.tokens.forEach(function (t) { var to = MECH.resolveCard(t, all); if (to && to.id !== c.id) out.push({ from: from('card', c, { key: cardKey(c) }), to: cardKey(to), extra: sl.rowName ? sl.rowName + ' · ' + sl.label : sl.label }); });
         });
       });
       return out;

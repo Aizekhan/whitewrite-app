@@ -86,6 +86,20 @@ service cloud.firestore {
         : sub in ['marketing', 'channels', 'posts'] ? 'marketing'
         : sub == 'env' ? 'settings' : sub;
     }
+    // optional fields the Game Bible writes on a game doc of `sub` (v2.78.1): a bug task (kind, severity, repro…) and an A/B decision;
+    // absent fields pass, so the older task / experiment writes are unchanged
+    function optStr(d, k, max) {
+      return !(k in d) || (d[k] is string && d[k].size() <= max);
+    }
+    function gameDocOk(sub, d) {
+      return (sub != 'tasks' || (
+                (!('kind' in d) || d.kind in ['task', 'bug']) &&
+                (!('severity' in d) || d.severity in ['s1', 's2', 's3', 's4']) &&
+                optStr(d, 'repro', 4000) && optStr(d, 'expected', 2000) && optStr(d, 'actual', 2000) &&
+                optStr(d, 'build', 80) && optStr(d, 'foundIn', 120))) &&
+             (sub != 'experiments' || (
+                (!('decision' in d) || d.decision in ['ship', 'kill', 'iterate']) && optStr(d, 'decisionNote', 2000)));
+    }
     function storyOpen(projectId) {
       let w = get(/databases/$(database)/documents/projects/$(projectId)).data.get('worldId', null);
       return w == null || worldOpen(w);
@@ -154,7 +168,8 @@ service cloud.firestore {
         allow read: if isAuthenticated() && sub != 'cards' && readSec(worldId, subSec(sub));
         allow write: if isAuthenticated() && sub != 'cards' && editSec(worldId, subSec(sub)) && worldOpen(worldId) &&
                         (sub in ['quests', 'dialogues'] ||
-                         (sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'] && ownerGameDev(worldId)));
+                         (sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'] && ownerGameDev(worldId))) &&
+                        (request.method == 'delete' || gameDocOk(sub, request.resource.data));
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId) &&
                          sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];

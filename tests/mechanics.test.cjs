@@ -148,5 +148,55 @@ M.upgrade(u1);
 check(u1.sections.slice(0, 4).map((s) => s.id).join(), 'overview,ctable,reactions,weapons', 'an older combat card gets the combo table and the monster’s eyes after the overview');
 check(u1.sections.filter((s) => s.adv).length, 13, 'the detailed UMCF tabs move to the advanced view');
 
+// v2.78 game-design artefacts: feel, controls, accessibility, economy & loot, loops, level metrics & pacing, difficulty, release
+check(['game_feel', 'controls', 'accessibility', 'economy', 'loops', 'level_metrics', 'difficulty', 'release'].every((id) => M.templatesFor('mechanics').some((t) => t.id === id)), true, 'the new templates are in the Mechanics catalog');
+const warnsOf = (m, sec) => codes(m, 'warn').filter((i) => !sec || i.sec === sec);
+const fe = M.instantiate('game_feel'); check(warnsOf(fe).length, 0, 'game feel sample is clean');
+st(fe, 'actions').rows[1].buffer = 50; st(fe, 'global').values.shakeOff = false;
+check(warnsOf(fe).some((i) => i.row === 'GF2' && /буфер/.test(i.uk)) && warnsOf(fe, 'global').length, 1, 'an input buffer shorter than the hitstop; shake that cannot be turned off');
+const ct = M.instantiate('controls'); check(warnsOf(ct).length, 0, 'controls sample is clean');
+st(ct, 'map').rows[6].kbm = 'Space'; st(ct, 'support').values.devices = ['kbm', 'pad', 'touch'];
+check(warnsOf(ct).filter((i) => /одній кнопці/.test(i.uk)).length + '|' + warnsOf(ct).filter((i) => /сенсора/.test(i.uk)).length, '1|8', 'a shared button and missing touch gestures');
+st(ct, 'map').rows[6].context = 'меню'; check(warnsOf(ct).some((i) => /одній кнопці/.test(i.uk)), false, 'the same button in another context is no conflict');
+const ac = M.instantiate('accessibility'); check(warnsOf(ac).length, 6, 'six basic accessibility must-haves start undone');
+st(ac, 'checklist').rows.forEach((r) => { r.status = 'done'; }); check(warnsOf(ac).length, 0, 'all done — no warnings');
+// economy: hour-by-hour flow, then inflation / dead / no sink / shortage; drop % from weights
+const ec = M.instantiate('economy'), sim = M.econSim(ec);
+check(sim.rows.map((r) => r.status).join() + '|' + sim.rows[0].end, 'ok,ok,ok|2616', 'the sample economy is balanced: gold ends at 2616 after 10 h (+5 %/h both ways, start 100)');
+check(warnsOf(ec).length, 0, 'economy sample is clean');
+const cu = st(ec, 'currencies').rows; cu[0].spend = 100; cu[1].earn = 0; cu[2].spend = 0;
+check(M.econSim(ec).rows.map((r) => r.status).join(), 'inflation,dead,nosink', 'inflation, a dead currency and one with nothing to spend on');
+cu[0].spend = 2000; check(M.econSim(ec).rows[0].status + '|' + M.econSim(ec).rows[0].out, 'starved|1', 'spending above income runs dry in the first hour');
+check(warnsOf(ec, 'currencies').length, 3, 'each broken currency is a warning');
+const lc = M.lootChances(ec)[0]; check(lc.items.map((i) => i.chance).join() + '|' + lc.items[3].tries, '60,30,9,1|100', 'drop % from the weights (60/30/9/1) and the expected tries');
+st(ec, 'loot').rows[2].drop = 20; check(warnsOf(ec, 'loot').some((i) => i.row === 'LT3'), true, 'a typed chance that contradicts the weight');
+// loops: every layer closes; cutting the way back to camp opens the meta loop
+const lp = M.instantiate('loops'); check(M.loopClosure(lp).map((l) => l.layer + ':' + l.closed).join(), 'session:true,meta:true,long:true', 'the sample loops all close');
+st(lp, 'nodes').rows[2].next = ['LP1'];
+check(M.loopClosure(lp).map((l) => l.layer + ':' + l.open.join('+')).join(), 'session:,meta:LP6,long:', 'without loot → camp, «next expedition» never comes back to camp (camp is still reached through the boss)');
+check(warnsOf(lp, 'nodes').length, 1, 'each step with no way back is a warning');
+// pacing: flat levels and long peaks without rest
+const lm = M.instantiate('level_metrics'); check(warnsOf(lm).length, 0, 'level metrics sample is clean');
+st(lm, 'beats').rows.forEach((r) => { r.intensity = 3; }); check(warnsOf(lm, 'beats').some((i) => /монотонно/.test(i.uk)), true, 'a flat level is monotone');
+st(lm, 'beats').rows.forEach((r, i) => { r.intensity = i < 2 ? 1 : 4; }); check(warnsOf(lm, 'beats').some((i) => /без відпочинку/.test(i.uk)), true, 'four peak beats in a row without rest');
+st(lm, 'metrics').values.corridor = 1; check(warnsOf(lm, 'metrics').length, 1, 'a corridor too narrow');
+// difficulty: TTK = enemy HP ÷ player DPS, TTD = player HP ÷ (enemy DPS × count)
+const df = M.instantiate('difficulty'), dz = M.difficultyCurve(df);
+check(dz.map((z) => z.ttk + '/' + z.ttd).join(), '3/16.7,4/16,5/16.7,75/22', 'TTK / TTD of the sample zones (the boss against its own band)');
+check(warnsOf(df).length, 0, 'difficulty sample is inside its bands');
+st(df, 'zones').rows[1].edps = 20;
+check(warnsOf(df).some((i) => i.row === 'Z2' && /гине надто швидко/.test(i.uk)) && codes(df, 'tip').some((i) => i.row === 'Z2' && /стіна/.test(i.uk)), true, 'TTD 4 s is below the band and a wall after the forest');
+// release: only the chosen platforms count; green = every item done or N/A
+const rl = M.instantiate('release'); check(M.releaseStatus(rl).total + '|' + M.releaseStatus(rl).green, '11|false', 'Steam + common items: 11, not green');
+st(rl, 'items').rows.forEach((r) => { if (r.platform === 'all' || r.platform === 'steam') r.status = r._id === 'RL10' ? 'na' : 'done'; });
+check(M.releaseStatus(rl).green, true, 'all Steam items done (achievements N/A) — green');
+st(rl, 'platforms').values.platforms = ['steam', 'android'];
+check(M.releaseStatus(rl).left.map((x) => x.id).join(), 'RL14,RL15,RL16', 'adding Android brings its items back');
+// the agent's view: computed numbers and card links resolved against the game's cards
+const ex = M.exportMech({ id: 'e', mech: M.instantiate('economy') }, 'en', [], null, [{ id: 'pot', section: 'items', title: 'Зілля здоровʼя' }]);
+check(ex.computed.simulation.rows[0].end + '|' + JSON.stringify(st(ex, 'loot').rows[0].item) + '|' + st(ex, 'loot').rows[1].item[0].missing, '2616|[{"ref":"c:pot","title":"Зілля здоровʼя"}]|true', 'export: simulation, a typed title resolved to its card, an unknown one marked missing');
+check(M.exportMech({ id: 'u', mech: M.instantiate('umcf') }, 'en').computed, undefined, 'no computed block for templates without calculations');
+check(M.frameworkNote('economy', 'loot', M.FW_BUILTIN).status + '|' + M.frameworkNote('controls', 'map').status, 'exists|missing', 'framework notes: loot exists, the input map is game code');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

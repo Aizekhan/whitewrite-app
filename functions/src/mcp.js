@@ -24,7 +24,7 @@ const list = (a, n, f) => (Array.isArray(a) ? a : []).map(f).filter((x) => x != 
 
 // ---------- tools ----------
 const TOOLS = [
-  { name: 'get_project_overview', description: 'The game this key belongs to: world canon and laws, GDD summary, decisions, engine profile, sections, roadmap progress and the task in progress. Call this first in a session.',
+  { name: 'get_project_overview', description: 'The game this key belongs to: world canon and laws, GDD summary, engine profile, sections, roadmap progress and the task in progress; gates (tasks done, open S1/S2 bugs, ready, the author retro) and decisions — the decision log, newest first: answered questions, decided change requests, framework-gap decisions, A/B outcomes, approved gates with retro (kept / cut / learned). Call this first in a session.',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'list_tasks', description: 'The roadmap: every task with id, milestone, status (todo | in_progress | review | rework | blocked | done), deps, whether it is ready and the person it is assigned to (null = anyone).',
     inputSchema: { type: 'object', properties: { status: { type: 'string', description: 'Only tasks with this status' } } } },
@@ -40,6 +40,13 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
   { name: 'report_blocker', description: 'The task cannot go on without the author (missing asset, contradiction, framework gap…). Marks it blocked.',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, problem: { type: 'string' }, needs: { type: 'string', description: 'What exactly would unblock it' } }, required: ['task_id', 'problem'] } },
+  { name: 'report_bug', description: 'File a bug you found in the game (a crash, a broken mechanic, a wrong number…) as a task of kind bug for the author to see. Severity: s1 = crash / data loss / progress blocked (an open S1 keeps the gate of its milestone from being ready), s2 = a major feature broken without a workaround, s3 = broken with a workaround, s4 = cosmetic. It lands in the milestone of task_id (or the task in progress, else the open gate); get_next_task takes open S1/S2 bugs before other tasks. Idempotent by client_key (default: title + repro).',
+    inputSchema: { type: 'object', required: ['title', 'severity', 'repro'], properties: {
+      title: { type: 'string' }, severity: { type: 'string', enum: ['s1', 's2', 's3', 's4'] }, repro: { type: 'string', description: 'Steps to reproduce, one per line' },
+      expected: { type: 'string' }, actual: { type: 'string' }, build: { type: 'string', description: 'Build / commit / version where it happens' },
+      cards: { type: 'array', items: { type: 'string' }, description: 'Bible cards it concerns: "c:<id>" (game card) / "e:<id>" (canon entity)' },
+      task_id: { type: 'string', description: 'The task you were on when you found it' }, milestone: { type: 'string', description: 'Optional: the milestone id (default — as above)' },
+      client_key: { type: 'string', description: 'Your own id of this bug; the same key never files it twice' } } } },
   { name: 'submit_task_result', description: 'Hand in a finished task for the author\'s review: what was done, files changed, tests run, and each acceptance criterion with evidence. The task goes to review; the author accepts it or returns it with comments.',
     inputSchema: { type: 'object', required: ['task_id', 'summary'], properties: {
       task_id: { type: 'string' }, summary: { type: 'string' },
@@ -103,10 +110,10 @@ const TOOLS = [
   { name: 'check_style', description: 'Ask the art director (Claude, on the author\'s tokens) whether a picture fits the game\'s visual style: a Unity screenshot of a scene, a render of a prefab or a texture. Send a PNG/JPEG/WebP as base64, ≤ 1568 px on the long side and ≤ 5 MB. Returns score 0-100 (70+ fits, 40-69 partly, below 40 off-style), summary, issues and fixes. Nothing is stored; use it after visual work and before submit_task_result.',
     inputSchema: { type: 'object', required: ['image_base64'], properties: { image_base64: { type: 'string' }, media_type: { type: 'string', enum: ['image/png', 'image/jpeg', 'image/webp'] },
       location: { type: 'string', description: 'The location / level shown — picks its biome' }, what: { type: 'string', description: 'What the picture is (scene, prefab, texture…)' } } } },
-  { name: 'get_mechanics', description: 'The game mechanics from the Game Bible constructor: each with category, template (e.g. UMCF — Universal Melee Combat Framework), stage, purpose, completeness % and the count of open problems. Then read one with get_mechanic. section "audio" lists the Sound factory instead: adaptive music (music states, layers, transitions on game events, leitmotifs, mix), ambience, UI sounds, music prompts — plus the plain sound cards.',
+  { name: 'get_mechanics', description: 'The game mechanics from the Game Bible constructor: each with category, template (e.g. UMCF — Universal Melee Combat Framework) and template_id, stage, purpose, completeness % and the count of open problems. Then read one with get_mechanic. Design artefacts are mechanics too: game_feel (hitstop, shake, rumble, input buffer, coyote time per action), controls (input map per device), accessibility (checklist), economy (currencies, loot tables), loops (core / meta / long-term), level_metrics (character metrics + level pacing), difficulty (TTK / TTD per zone), release (store / legal / build checklist per platform). section "audio" lists the Sound factory instead: adaptive music (music states, layers, transitions on game events, leitmotifs, mix), ambience, UI sounds, music prompts — plus the plain sound cards.',
     inputSchema: { type: 'object', properties: { section: { type: 'string', enum: ['mechanics', 'audio'], description: 'mechanics (default) or audio — the Sound factory' },
-      category: { type: 'string', description: 'A category id — mechanics: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose; audio: music, sfx, voice, ambience, uisound; empty = all' } } } },
-  { name: 'get_mechanic', description: 'One mechanic (or a Sound factory card) in full: purpose, rules, every section with typed fields (unit, required) and table rows (links between rows resolved to { id, name }), what RPG Framework already has for each part (framework: exists | partial | missing + the classes), and the constructor checks. Adaptive-music state rows carry generator_prompt; transitions say from → to, the game event, when to switch (beat / bar / loop end / stinger), crossfade and hold — build the music system from them. Numbers are the author design — implement them; a change goes through submit_change_request.',
+      category: { type: 'string', description: 'A category id — mechanics: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose, feel, loops, leveldesign, balance, release; audio: music, sfx, voice, ambience, uisound; empty = all' } } } },
+  { name: 'get_mechanic', description: 'One mechanic (or a Sound factory card) in full: purpose, rules, every section with typed fields (unit, required) and table rows (links between rows resolved to { id, name }), what RPG Framework already has for each part (framework: exists | partial | missing + the classes), and the constructor checks. Adaptive-music state rows carry generator_prompt; transitions say from → to, the game event, when to switch (beat / bar / loop end / stinger), crossfade and hold — build the music system from them. Design artefacts carry computed: economy — the hour-by-hour currency simulation (status ok | inflation | dead | nosink | starved) and drop % from the loot weights; loops — whether each layer closes; level_metrics — pacing per level; difficulty — TTK / TTD per zone against the target bands; release — what is left for the chosen platforms (green = release candidate). Links to other game cards come as { ref, title } (or { name, missing } when no card has that title). Numbers are the author design — implement them; a change goes through submit_change_request.',
     inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string', description: '"c:<cardId>" or the title' } } } },
   { name: 'get_audio_library', description: 'The game\'s Audio library (Аудіотека, «Звук і музика»): every sound / track card with its files (name, url to download, type, duration s; several files = variations, play one at random), where each plays (Sound factory card · section · row · slot), the slots that still have no sound, and the unused sounds. Sound slots in get_mechanic carry the same files.',
     inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Filter by title / subsection / file name; empty = all' } } } },
@@ -199,12 +206,103 @@ function lockedBy(ctx, t) {
 }
 const isReady = (ctx, t) => !lockedBy(ctx, t) && (t.deps || []).every((d) => { const x = ctx.tasks.find((y) => y.id === d); return !x || x.status === 'done'; });
 
+// Bugs are tasks with kind 'bug' (v2.78.1): severity s1 (crash / data loss / progress blocked) … s4 (cosmetic). Open S1/S2 bugs go
+// before the normal tasks of the open milestone; an open S1 bug keeps its milestone's gate from being ready (the author may still approve).
+const SEVERITY = ['s1', 's2', 's3', 's4'];
+const isBug = (t) => t.kind === 'bug';
+function pickNext(ctx, ours) {
+  const inProgress = ctx.tasks.find((t) => t.status === 'in_progress' && ours(t));
+  if (inProgress) return inProgress;
+  const urgent = ctx.tasks.filter((t) => isBug(t) && ['s1', 's2'].includes(t.severity) && OPEN.includes(t.status) && ours(t) && isReady(ctx, t))
+    .sort((a, b) => SEVERITY.indexOf(a.severity) - SEVERITY.indexOf(b.severity));
+  return urgent[0] || ctx.tasks.find((t) => t.status === 'rework' && ours(t) && isReady(ctx, t)) || ctx.tasks.find((t) => t.status === 'todo' && ours(t) && isReady(ctx, t)) || null;
+}
+// the gates as the agent sees them: tasks done, open bugs, and whether the gate may be handed to the author as ready
+function gatesView(ctx) {
+  const plan = ctx.plan.plan || {}, gates = ctx.plan.gates || {};
+  if (!plan.gated) return [];
+  return (plan.milestones || []).filter((m) => m.track).map((m) => {
+    const mt = ctx.tasks.filter((t) => t.milestone === m.id), g = gates[m.id] || {};
+    const s1 = mt.filter((t) => isBug(t) && t.severity === 's1' && t.status !== 'done').map((t) => t.id);
+    const s2 = mt.filter((t) => isBug(t) && t.severity === 's2' && t.status !== 'done').map((t) => t.id);
+    const allDone = mt.length > 0 && mt.every((t) => t.status === 'done');
+    return { id: m.id, name: m.name || '', track: m.track, status: g.status || 'open', locked_by: lockedBy(ctx, { milestone: m.id }),
+      tasks_done: mt.filter((t) => t.status === 'done').length, tasks_total: mt.length, open_bugs: { s1, s2 },
+      ready: allDone && !s1.length,
+      ...(s1.length ? { warning: `Open S1 bug(s) ${s1.join(', ')}: the gate is not ready — fix them first. Only the author can approve it anyway.` } : {}),
+      ...(g.retro ? { retro: g.retro } : {}) };
+  });
+}
+// the milestone a new bug belongs to: the asked one, the task it was found on, the task in progress, else the first open gate
+function bugMilestone(ctx, args) {
+  const ms = (ctx.plan.plan || {}).milestones || [];
+  if (str(args.milestone, 32)) {
+    const m = ms.find((x) => x.id === str(args.milestone, 32));
+    if (!m) throw rpcError(-32602, `Milestone ${args.milestone} not found. Call get_project_overview (gates) or omit it.`);
+    return m.id;
+  }
+  const t = (str(args.task_id, 32) && ctx.tasks.find((x) => x.id === str(args.task_id, 32))) || ctx.tasks.find((x) => x.status === 'in_progress');
+  if (t && t.milestone) return t.milestone;
+  const gates = ctx.plan.gates || {}, open = ms.find((m) => m.track && !lockedBy(ctx, { milestone: m.id }) && (gates[m.id] || {}).status !== 'approved');
+  return open ? open.id : 'BUGS';
+}
+async function reportBug(ctx, key, args) {
+  const title = str(args.title, 200), repro = str(args.repro, 4000);
+  if (!title || !repro) throw rpcError(-32602, 'A bug needs title and repro (the steps).');
+  const severity = SEVERITY.includes(args.severity) ? args.severity : 's3';
+  const milestone = bugMilestone(ctx, args);
+  const lock = lockedBy(ctx, { milestone });
+  if (lock) throw rpcError(-32602, `Milestone ${milestone} is closed until the author approves the gate ${lock}. File the bug against the open milestone (omit milestone).`);
+  const clientKey = str(args.client_key, 200) || title.toLowerCase() + '|' + repro.toLowerCase();
+  const id = 'BUG-' + sha1(clientKey).slice(0, 8).toUpperCase(); // the same key → the same task (idempotent)
+  const ref = ctx.gref.collection('tasks').doc(id);
+  const expected = str(args.expected, 2000), actual = str(args.actual, 2000);
+  const bug = {
+    id, kind: 'bug', milestone, title, severity, repro, expected, actual, build: str(args.build, 80), foundIn: 'agent', relatedTask: str(args.task_id, 32),
+    cards: list(args.cards, 20, (r) => (/^[ce]:[\w-]{1,128}$/.test(String(r || '')) ? String(r) : null)),
+    detail: actual + (expected ? '\nExpected: ' + expected : ''), deps: [], size: 'S', owner: 'dev', priority: severity === 's1' || severity === 's2' ? 'must' : 'should',
+    accept: ['The repro steps no longer reproduce the bug' + (expected ? ': ' + expected : '')], tests: ['A regression test for the repro, where it can be automated'],
+    prompt: 'Bug ' + id + ' (' + severity.toUpperCase() + '). Reproduce it with the steps, fix the cause, add a regression test where possible, then submit_task_result.',
+    status: 'todo', order: 8000 + SEVERITY.indexOf(severity), history: [{ type: 'reported', by: 'claude-code', at: Date.now() }], bugKey: clientKey,
+    createdAt: ts(), updatedAt: ts(),
+  };
+  try { await ref.create(bug); } catch (e) {
+    if (e.code !== 6 && !/already exists/i.test(e.message || '')) throw e;
+    const d = await ref.get();
+    return { ok: true, id, duplicate: true, status: (d.data() || {}).status || 'todo', message: 'This bug was already reported (same client_key) — nothing new was filed.' };
+  }
+  ctx.tasks.push({ ...bug, createdAt: null, updatedAt: null });
+  await logExecution(ctx, key, 'bug', id, { severity, title });
+  return { ok: true, id, milestone, severity, status: 'todo', message: severity === 's1' ? 'Filed. An open S1 bug keeps the gate of ' + milestone + ' from being ready.' : 'Filed. get_next_task takes S1/S2 bugs before the other tasks.' };
+}
+
+// The decision log (get_project_overview.decisions): one timeline, newest first — answered questions of the analysis, decided
+// change requests, framework-gap decisions on mechanics, A/B experiment outcomes and approved gates with their retro
+const msOf = (v) => (!v ? 0 : typeof v === 'number' ? v : v.toMillis ? v.toMillis() : v._seconds ? v._seconds * 1000 : 0);
+function decisionLog(ctx, changeRequests, experiments, cap = 50) {
+  const out = [], answers = ctx.plan.answers || {}, answeredAt = ctx.plan.answeredAt || {}, analyzed = msOf(ctx.plan.analyzedAt);
+  (ctx.plan.asked || []).filter((q) => answers[q.id]).forEach((q) => out.push({ type: 'question', at: msOf(answeredAt[q.id]) || analyzed, title: q.question || q.topic || '', decision: str(answers[q.id], 2000) }));
+  (changeRequests || []).filter((c) => ['accepted', 'rejected', 'declined'].includes(c.status)).forEach((c) =>
+    out.push({ type: 'change_request', at: msOf(c.decidedAt) || msOf(c.createdAt), title: c.what || '', decision: c.status === 'accepted' ? 'accepted' : 'declined', note: c.why || '', task: c.taskId || '' }));
+  ctx.cards.filter((c) => c.mech && !c.hidden && c.mech.fw && c.mech.fw.decisions).forEach((c) => Object.entries(c.mech.fw.decisions).filter(([, v]) => v).forEach(([cap0, v]) =>
+    out.push({ type: 'framework_gap', at: msOf(c.updatedAt), title: (c.title || '') + ' · ' + cap0, decision: v === 'game' ? 'build in the game code' : v === 'ask' ? 'ask the framework' : String(v) })));
+  (experiments || []).filter((x) => x.decision || x.status === 'done').forEach((x) =>
+    out.push({ type: 'experiment', at: msOf(x.decidedAt) || msOf(x.endedAt), title: x.hypothesis || '', decision: x.decision || 'ended', note: x.decisionNote || '' }));
+  const ms = (ctx.plan.plan || {}).milestones || [];
+  Object.entries(ctx.plan.gates || {}).filter(([, g]) => g && g.status === 'approved').forEach(([id, g]) => {
+    const m = ms.find((x) => x.id === id) || {};
+    out.push({ type: 'gate', at: msOf(g.at), title: id + (m.name ? ' ' + m.name : ''), decision: 'approved', note: g.comment || '', ...(g.retro ? { retro: { kept: g.retro.kept || '', cut: g.retro.cut || '', learned: g.retro.learned || '' } } : {}) });
+  });
+  return out.sort((a, b) => b.at - a.at).slice(0, cap).map((x) => ({ ...x, at: x.at ? new Date(x.at).toISOString() : null }));
+}
+
 function taskView(ctx, t) {
   const ms = ((ctx.plan.plan || {}).milestones || []).find((m) => m.id === t.milestone) || {};
   return {
     id: t.id, title: t.title, status: t.status, owner: t.owner, size: t.size, assignee: (t.assignee && t.assignee.name) || null,
     milestone: { id: t.milestone, track: ms.track || '', name: ms.name || '', goal: ms.goal || '', gate: ms.gate || '', gate_checks: ms.accept || [], budgets: ms.budgets || '' },
     priority: t.priority || '', asset_state: t.assetState || '', card_roles: t.roles || {},
+    ...(isBug(t) ? { kind: 'bug', bug: { severity: t.severity || 's3', repro: t.repro || '', expected: t.expected || '', actual: t.actual || '', build: t.build || '', found_in: t.foundIn || '' } } : {}),
     detail: t.detail || '', instructions: t.prompt || '',
     acceptance_criteria: t.accept || [], tests: t.tests || [],
     deps: (t.deps || []).map((d) => ({ id: d, status: (ctx.tasks.find((x) => x.id === d) || {}).status || 'unknown' })),
@@ -220,12 +318,10 @@ function overview(ctx) {
   ctx.tasks.forEach((t) => { count[t.status] = (count[t.status] || 0) + 1; });
   const sections = {};
   ctx.cards.forEach((c) => { sections[c.section] = (sections[c.section] || 0) + 1; });
-  const answers = ctx.plan.answers || {};
   return {
     game: ctx.game.title || '', engine: (ctx.game.engine && ctx.game.engine.profile) || 'generic',
     world: { title: ctx.world.title || '', tagline: ctx.world.tagline || '', summary: ctx.world.summary || '', laws: ctx.world.rules || [] },
     gdd: ctx.plan.gdd || null,
-    decisions: (ctx.plan.asked || []).filter((q) => answers[q.id]).map((q) => ({ question: q.question, answer: answers[q.id] })),
     canon: ctx.entities.map((e) => ({ ref: 'e:' + e.id, kind: e.kind, name: e.name || '' })),
     framework: ctx.game.framework ? { version: ctx.game.framework.version, source: 'project' } : { version: MECH.FW_BUILTIN.version, source: 'builtin — send capabilities.json with report_framework_capabilities' },
     sections,
@@ -498,14 +594,16 @@ function findTask(ctx, id) {
 async function callTool(name, args, key) {
   const ctx = await loadGame(key);
   switch (name) {
-    case 'get_project_overview': return { ...overview(ctx), integrations: await integrations(ctx) };
+    case 'get_project_overview': {
+      const [crs, exps] = await Promise.all(['changeRequests', 'experiments'].map((c) => ctx.gref.collection(c).get().then((s) => s.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => [])));
+      return { ...overview(ctx), gates: gatesView(ctx), decisions: decisionLog(ctx, crs, exps), integrations: await integrations(ctx) };
+    }
     case 'list_tasks': return ctx.tasks.filter((t) => !args.status || t.status === args.status)
-      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, owner: t.owner, assignee: (t.assignee && t.assignee.name) || null, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
+      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, ...(isBug(t) ? { kind: 'bug', severity: t.severity || 's3' } : {}), owner: t.owner, assignee: (t.assignee && t.assignee.name) || null, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
     case 'get_next_task': {
       if (!ctx.tasks.length) return { task: null, message: 'No roadmap yet: the author has to generate the production plan in the Game Bible first.' };
       const ours = (x) => !x.assignee || x.assignee.uid === key.uid; // the key is the owner's: a task given to a team member is theirs
-      const mine = ctx.tasks.find((t) => t.status === 'in_progress' && ours(t)) || ctx.tasks.find((t) => t.status === 'rework' && ours(t) && isReady(ctx, t));
-      const t = mine || ctx.tasks.find((x) => x.status === 'todo' && ours(x) && isReady(ctx, x));
+      const t = pickNext(ctx, ours); // in progress → open S1/S2 bugs → rework → todo
       if (!t) {
         const waiting = ctx.tasks.filter((x) => ['review', 'blocked'].includes(x.status)).map((x) => `${x.id} (${x.status})`)
           .concat(ctx.tasks.filter((x) => OPEN.includes(x.status) && !ours(x)).map((x) => `${x.id} (assigned to ${x.assignee.name || 'a team member'})`));
@@ -563,7 +661,7 @@ async function callTool(name, args, key) {
         if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', group: (c.fields || {}).group || '', constructor: false, fields: named(c) };
         const r = MECH.check(c.mech), t = MECH.template(c.mech.tpl);
         return { ref: 'c:' + c.id, title: c.title || '', category: c.mech.cat, template: t ? MECH.lbl(t.name, 'en') : null, stage: c.mech.stage, status: c.status || 'idea',
-          purpose: c.mech.purpose || '', completeness: r.pct, problems: r.issues.filter((i) => i.level !== 'tip').length };
+          template_id: c.mech.tpl || '', purpose: c.mech.purpose || '', completeness: r.pct, problems: r.issues.filter((i) => i.level !== 'tip').length };
       }) };
     }
     case 'get_mechanic': {
@@ -572,7 +670,7 @@ async function callTool(name, args, key) {
       if (!c) throw rpcError(-32602, `Mechanic ${r} not found`);
       if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', constructor: false, fields: named(c), message: 'An older card, not yet opened in the constructor: only its text fields.' };
       const man = ctx.game.framework || null; // the game's own capabilities.json (report_framework_capabilities), else the built-in snapshot
-      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en', MECH.audioLibrary(ctx.cards, 'en').assets, man || MECH.FW_BUILTIN),
+      return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en', MECH.audioLibrary(ctx.cards, 'en').assets, man || MECH.FW_BUILTIN, ctx.cards),
         framework_version: (man || MECH.FW_BUILTIN).version, framework_source: man ? 'project' : 'builtin' };
     }
     case 'get_audio_library': {
@@ -641,6 +739,7 @@ async function callTool(name, args, key) {
       await logExecution(ctx, key, 'blocked', t.id, blocker);
       return { ok: true, status: 'blocked', message: 'The author sees the blocker in the Game Bible. Take another task with get_next_task meanwhile.' };
     }
+    case 'report_bug': return reportBug(ctx, key, args);
     case 'submit_task_result': {
       const t = findTask(ctx, args.task_id);
       if (!['in_progress', 'rework', 'blocked'].includes(t.status)) throw rpcError(-32602, `Task ${t.id} is ${t.status}; only a task in progress can be submitted`);

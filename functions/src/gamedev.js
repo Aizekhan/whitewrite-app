@@ -26,6 +26,7 @@ const { payerFor } = require('./team')._team; // Команда: an admin's ✦ 
 const { intentText } = require('./experience')._experience;
 const { featureCost, byOp, quoteChars } = require('../paid-features.js');
 const { modelFor, withFallback } = require('./claude');
+const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
@@ -51,6 +52,30 @@ const list = (a, n, f) => (Array.isArray(a) ? a : []).map(f).filter(Boolean).sli
 const oneOf = (v, opts, d) => (opts.includes(v) ? v : d);
 const labelMap = (o, n, max) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {})
   .map(([k, v]) => [str(k, 80), str(v, max)]).filter(([k, v]) => k && v).slice(0, n));
+
+// A constructor mechanic / design artefact (functions/mechanics.js) in a few lines: template, stage, its sections in brief, the computed
+// numbers (economy flow, loop closure, pacing, TTK / TTD, what the release lacks) and the open problems — so analyze / plan see them.
+function mechText(m) {
+  const t = MECH.template(m.tpl), r = MECH.check(m), en = (x) => MECH.lbl(x, 'en');
+  const out = [`Constructor: ${t ? `${en(t.name)} (template ${t.id})` : 'own mechanic'} · stage ${m.stage || 'concept'} · ${r.pct}% filled`];
+  if (m.purpose) out.push(`Purpose: ${str(m.purpose, 300)}`);
+  if (m.rules) out.push(`Rules: ${str(m.rules, 400)}`);
+  for (const s of m.sections || []) {
+    if (s.kind === 'table') {
+      const rows = s.rows || [];
+      if (rows.length) out.push(`${en(s.title)}: ${rows.slice(0, 8).map((x) => str(MECH.rowName(s, x), 80)).join('; ')}${rows.length > 8 ? ` … (${rows.length} rows)` : ''}`);
+    } else {
+      const v = Object.entries(s.values || {}).filter(([, x]) => x !== '' && x != null && !(Array.isArray(x) && !x.length)).slice(0, 8)
+        .map(([k, x]) => `${k}=${str(Array.isArray(x) ? x.join('/') : x, 120)}`);
+      if (v.length) out.push(`${en(s.title)}: ${v.join(', ')}`);
+    }
+  }
+  const c = MECH.calc(m);
+  if (c) out.push(`Computed: ${str(JSON.stringify(c, (k, v) => (k === 'balance' ? undefined : v)), 900)}`);
+  const issues = r.issues.filter((i) => i.level !== 'tip').slice(0, 4).map((i) => i.en);
+  if (issues.length) out.push(`Open problems: ${issues.join(' | ')}`);
+  return out.join('\n');
+}
 
 // Canon + this game as compact text; every card carries a ref the model can point questions at.
 function bibleText(world, entities, cards, game, shelves, lore) {
@@ -93,6 +118,7 @@ function bibleText(world, entities, cards, game, shelves, lore) {
   for (const c of cards) {
     if (c.canonRef) continue;
     card(`c:${c.id}`, `${c.section} — ${(own.find((s) => s.id === c.section) || {}).name || ''}`, c.title || '', c.status, named(c), c.note, c.files, c.intent);
+    if (c.mech && !c.hidden) lines.push(mechText(c.mech));
   }
   return lines.join('\n').slice(0, MAX_BIBLE_CHARS);
 }
@@ -210,12 +236,12 @@ function cleanScaffold(p, shelves) {
 
 // Task Engine: the plan's tasks become worlds/{w}/games/{g}/tasks/{taskId} with a status the executor (Claude Code via MCP)
 // and the author's review move along: todo → in_progress → review → done (or rework / blocked).
-// A new plan replaces open tasks; tasks already taken, handed in or done are kept.
+// A new plan replaces open tasks; tasks already taken, handed in or done are kept — and bugs (kind 'bug', MCP report_bug) always are.
 async function writeTasks(gameRef, plan) {
   const old = await gameRef.collection('tasks').get();
   const kept = new Set(), who = {}; // who: the person a replaced task was given to — the same task id keeps them
   const batch = db.batch();
-  old.docs.forEach((d) => { if (['todo', 'rework'].includes(d.data().status)) { batch.delete(d.ref); if (d.data().assignee) who[d.id] = d.data().assignee; } else kept.add(d.id); });
+  old.docs.forEach((d) => { if (d.data().kind !== 'bug' && ['todo', 'rework'].includes(d.data().status)) { batch.delete(d.ref); if (d.data().assignee) who[d.id] = d.data().assignee; } else kept.add(d.id); });
   let order = 0;
   for (const m of plan.milestones) {
     for (const t of m.tasks) {
@@ -336,7 +362,8 @@ function analyzePrompt(bible, engine, answered, languageName) {
 Your job: turn it into an interactive game design document. Read everything, then:
 1. gdd.summary — 2-4 sentences: what this game is, for whom, what makes it itself.
 2. gdd.readiness — 0-100: how ready the design is to start production.
-3. gdd.sections — for each area of a GDD (vision & pillars, core loop, mechanics, progression, characters, enemies, levels, economy/items, UI/UX, audio, art direction, multiplayer, tech/engine, monetization if relevant): status solid|partial|missing + one-line notes.
+3. gdd.sections — for each area of a GDD (vision & pillars, core & meta loops, mechanics, game feel, controls & accessibility, progression, characters, enemies, levels (metrics & pacing), difficulty curve, economy/items & loot, UI/UX, audio, art direction, multiplayer, tech/engine, monetization if relevant, release readiness): status solid|partial|missing + one-line notes.
+   Cards with a "Constructor:" block are structured design artefacts (templates game_feel, controls, accessibility, economy, loops, level_metrics, difficulty, release…) with "Computed:" numbers and "Open problems" from the constructor's own checks — trust those numbers and problems, don't recompute them. An area the game needs but no artefact covers (no controls map, no game feel, no loops, no release checklist) is a gap: say which template would fill it in the section notes.
 4. questions — the UNRESOLVED decisions that block or weaken production, most important first (max 15). Concrete, answerable questions. For each: topic, question, why (what in production depends on it), 2-4 options when sensible, priority blocker|important|nice, and target — the card ref it belongs to ("c:..." / "e:..." from the bible, or "") and the field it would fill (an existing field name, or a short new field label).
 5. contradictions — places where cards contradict each other or the world laws: what, where, 2-4 options how to resolve it, target (the card ref and field the resolution belongs in). Do NOT repeat contradictions the author already resolved.
 Do NOT ask what the bible already answers. Do NOT re-ask what the author already decided.
@@ -368,10 +395,10 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 const PLAN_PIPELINE = `Pipeline (keep this structure, adapt the content to the game):
 - Track "mvp" — five milestones with GATES, ids G0…G4, in this order:
   G0 Setup — repository, engine project, folder & naming conventions (SM_/M_/T_/A_ prefixes…), MCP connection, a headless build that succeeds. Gate: the empty project builds and runs.
-  G1 Core loop in greybox — the 3Cs (character, camera, controls), the core mechanic, win/lose, ONE greybox level from primitives — no final art. Gate: the author plays 5 minutes and it is fun; tests pass.
+  G1 Core loop in greybox — the 3Cs (character, camera, controls — from the «controls» input map), game feel (hitstop, shake, input buffer, coyote time — from the «game_feel» card), the core mechanic, the session loop (from the «loops» card), win/lose, ONE greybox level from primitives built to the «level_metrics» character metrics — no final art. Where a game lacks one of these artefacts, G1's scaffold asks for it (section mechanics). Gate: the author plays 5 minutes and it is fun; the session loop closes in play; tests pass.
   G2 First playable (vertical slice) — that same level styled: prefabs/models unified to the art direction, materials, light & post, UI skin, key SFX & music, performance budgets met. Gate: screenshot-quality, frame rate on the minimum spec, every used asset has a commercial-OK or with-conditions licence.
-  G3 MVP feature-complete — every MUST system, progression, save/load, menus, all MVP levels. Gate: a stranger plays from start to finish without help.
-  G4 Release candidate — bug fixing, credits & attribution, store page assets, the release build. Gate: the release checklist is green.
+  G3 MVP feature-complete — every MUST system, progression, save/load, menus, all MVP levels; the economy, difficulty and pacing artefacts (where present) have no open problems. Gate: a stranger plays from start to finish without help.
+  G4 Release candidate — bug fixing, credits & attribution, store page assets, the release build, the accessibility must-haves. Gate: the release checklist is green — the «release» card (template release) has every item of the chosen platforms done or N/A (its Computed green = true); without that card, G4's scaffold creates it.
 - Track "expansion" — 1-3 milestones (ids X1…): MORE content of systems already proven in the MVP (levels, enemies, items, quests). No new systems here.
 - Track "extra" — 0-6 milestones (ids F1…), ONE new feature/system each, RANKED by value for the player ÷ cost. Each starts with its own small greybox prototype gate. Set cutLine = how many of them are worth doing at all; the rest are "below the line" (kept, not planned).
 - Rule: a MUST card or system → MVP; more of a proven type → expansion; a new system → extra. Never plan styled/final art for a level before its greybox gate. Prefer ready prefabs (stand-ins) over making assets from scratch in the MVP.`;

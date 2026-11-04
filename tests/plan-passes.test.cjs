@@ -22,5 +22,14 @@ check(!sk[0].text.includes('characters — Персонажі'), true, 'canon sh
 check(sk[1].text.includes('write NO tasks') && sk[1].text.includes('"scope"') && !sk[1].text.includes('"tasks"'), true, 'the skeleton asks for scope, not tasks');
 check(tk[1].text.includes('"G1.1"') && tk[1].text.includes('"scaffold"') && tk[1].text.includes('- G0 [mvp] Setup: Build'), true, 'the milestone pass asks for its tasks + scaffold and sees the whole plan');
 check(!tk[1].text.includes(bible), true, 'the bible is not repeated outside the cached prefix');
+// v2.78: the gates name the design artefacts — G1 the controls / game feel / loops / level metrics, G4 the release checklist
+check(/G1[^\n]*«controls»[^\n]*«game_feel»[^\n]*«loops»[^\n]*«level_metrics»/.test(sk[0].text), true, 'G1 greybox builds on controls, game feel, loops and level metrics');
+check(/G4[^\n]*release checklist is green[^\n]*«release» card[^\n]*green = true/.test(sk[0].text), true, 'G4 waits for the release checklist card to be green');
+// the bible text carries a constructor mechanic with its computed numbers and open problems
+const MECH = require('../functions/mechanics.js');
+const { mechText } = new Function('MECH', cut('const str =', '\n') + '\n' + cut('function mechText', '// Canon + this game') + ';return { mechText };')(MECH);
+const eco = MECH.instantiate('economy'); eco.sections.find((x) => x.id === 'currencies').rows[0].spend = 100;
+const mt = mechText(eco);
+check(/^Constructor: Economy & loot \(template economy\)/.test(mt) && /Computed: .*"status":"inflation"/.test(mt) && /Open problems: .*inflation/.test(mt) && !/"balance"/.test(mt), true, 'a mechanic in the bible: template, computed flow (without the hourly series), open problems');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;
