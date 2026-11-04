@@ -206,7 +206,7 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
       pp: { dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
         who: "Виконавець", nobody: "— не призначено —", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
@@ -214,7 +214,7 @@
           expansion: "Більше контенту систем, уже перевірених у MVP: рівні, вороги, предмети. Відкривається після MVP.",
           extra: "Нові системи, кожна з власним прототипом. Відсортовано за цінністю; нижче лінії — не плануємо зараз." },
         entry: "Старт, коли", deliver: "Результат", budgets: "Бюджети",
-        approve: "✓ Ворота пройдено", giveBack: "↩ Ще ні", approved: "Пройдено", returned: "Повернуто", locked: "🔒 Відкриється після воріт {g}",
+        approve: "✓ Ворота пройдено", giveBack: "↩ Ще ні", approved: "Пройдено", returned: "Повернуто", locked: "🔒 Відкриється після воріт {g}", now: "● Поточні ворота",
         early: "Не всі задачі етапу готові. Однаково прийняти ворота?", returnPh: "Що ще не так? (побачить і Claude Code)",
         cut: "Лінія відсікання — нижче не плануємо зараз", prio: { must: "must", should: "should", could: "could" },
         role: { implements: "робить", "uses-asset": "ассет", "in-level": "у рівні", "follows-style": "стиль", "constrained-by": "обмеження" },
@@ -506,7 +506,7 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
       pp: { dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
         who: "Assignee", nobody: "— not assigned —", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
@@ -514,7 +514,7 @@
           expansion: "More content of systems already proven in the MVP: levels, enemies, items. Opens after the MVP.",
           extra: "New systems, each with its own prototype. Ranked by value; below the line — not planned for now." },
         entry: "Starts when", deliver: "Deliverables", budgets: "Budgets",
-        approve: "✓ Gate passed", giveBack: "↩ Not yet", approved: "Passed", returned: "Returned", locked: "🔒 Opens after gate {g}",
+        approve: "✓ Gate passed", giveBack: "↩ Not yet", approved: "Passed", returned: "Returned", locked: "🔒 Opens after gate {g}", now: "● Current gate",
         early: "Not every task of this stage is done. Approve the gate anyway?", returnPh: "What is still wrong? (Claude Code sees it too)",
         cut: "Cut line — below it, not planned for now", prio: { must: "must", should: "should", could: "could" },
         role: { implements: "builds", "uses-asset": "asset", "in-level": "in level", "follows-style": "style", "constrained-by": "constraint" },
@@ -2282,6 +2282,8 @@
       choice: "Текст вибору", addChoice: "＋ Вибір гравця", addNode: "＋ Репліка", endNode: "Кінець розмови",
       fw: "⤓ JSON для RPG Framework", fwHint: "Затверджені квести й діалоги у форматі імпорту RPG Framework (rpgframework.content/1)", fwNone: "Ще немає затверджених квестів чи діалогів.",
       stagesN: "етапів", nodesN: "реплік", inDossier: "Квести й діалоги", givesIt: "дає квест", fromIt: "джерело",
+      links: "Звʼязки", picked: "{n} обрано", find: "Пошук…", canonMark: "канон", logic: "Логіка", logicHint: "умова, ефекти", loc: "Локалізація", allLines: "← Усі репліки",
+      rmNode: "Прибрати репліку", rmStage: "Прибрати етап", nowhere: "без переходу", failTo: "провал", endMark: "кінець", choicesN: "виборів", voiced: "озвучено", unvoiced: "без озвучки", once: "без передумов, один раз",
       bulb: "💡 Створити квест на основі цього", source: "Джерело", srcHint: "Картка гри, історія, досьє чи запис культури, з якого виріс квест", openSrc: "↗ Відкрити джерело",
       srcKinds: { card: "Картка гри", story: "Історія", characters: "Персонаж", locations: "Локація", factions: "Фракція", artifacts: "Артефакт", events: "Подія", lore: "Культура" },
       ai: "✦ Запропонувати з ШІ", aiHint: "ШІ пропонує, ти вирішуєш: кожне поле приймаєш чи відхиляєш окремо. Нічого не зберігається без «Зберегти».",
@@ -2315,6 +2317,8 @@
       choice: "Choice text", addChoice: "＋ Player choice", addNode: "＋ Line", endNode: "End of conversation",
       fw: "⤓ JSON for RPG Framework", fwHint: "Approved quests and dialogues in the RPG Framework import format (rpgframework.content/1)", fwNone: "No approved quests or dialogues yet.",
       stagesN: "stages", nodesN: "lines", inDossier: "Quests & dialogues", givesIt: "gives the quest", fromIt: "source",
+      links: "Links", picked: "{n} chosen", find: "Search…", canonMark: "canon", logic: "Logic", logicHint: "condition, effects", loc: "Localisation", allLines: "← All lines",
+      rmNode: "Remove the line", rmStage: "Remove the stage", nowhere: "no transition", failTo: "fail", endMark: "end", choicesN: "choices", voiced: "voiced", unvoiced: "no voice-over", once: "no prerequisites, once",
       bulb: "💡 Create a quest from this", source: "Source", srcHint: "The game card, story, dossier or culture entry the quest grew from", openSrc: "↗ Open the source",
       srcKinds: { card: "Game card", story: "Story", characters: "Character", locations: "Location", factions: "Faction", artifacts: "Artifact", events: "Event", lore: "Culture" },
       ai: "✦ Propose with AI", aiHint: "AI proposes, you decide: accept or reject each field on its own. Nothing is saved until “Save”.",
@@ -2364,7 +2368,7 @@
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
     if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order"].indexOf(k) < 0) own[k] = x[k]; });
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
-    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game";
+    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d, sel: 0, detail: false, open: {}, pq: "" }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game"; // sel: the open line / stage; open: the author's disclosures
     if (section !== col) { section = col; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
   }
@@ -2446,75 +2450,167 @@
     return (QD.iss[i.code] || i.code).replace("{id}", id).replace("{from}", stepLabel(list, i.from, word)).replace("{to}", i.to || "")
       .replace("{path}", (i.path || []).map(qTitle).join(" → "));
   }
+  // where a check points: a line / stage (selected and flashed) or the block it is about
+  function qdIssueGo(i) {
+    var list = qed.col === "quests" ? qed.d.stages : qed.d.nodes, has = function (id) { return id && list.some(function (x) { return x.id === id; }); };
+    if (i.code !== "missingStage" && has(i.id)) return "n:" + i.id;
+    if (has(i.from)) return "n:" + i.from;
+    var isQ = qed.col === "quests";
+    return { noTitle: "q-ident", noGiver: "q-links", missingRef: isQ ? "q-links" : "q-setup", missingQuest: isQ ? "q-prereqs" : "q-setup", prereqCycle: "q-prereqs", noCooldown: "q-prereqs",
+      noStages: "q-steps", noEnd: "q-steps", noNodes: "q-lines", noParticipants: "q-setup", missingStage: "q-setup", dupId: isQ ? "q-steps" : "q-lines" }[i.code] || "";
+  }
   function qdIssuesHtml() {
     var iss = nvCheck(qed.col, Object.assign({ id: qed.id }, qed.d));
     return '<h4>' + QD.checks + '</h4>' + (iss.length ? '<ul class="qiss">' + iss.map(function (i) {
-      return '<li class="qd-' + i.level + '">' + (i.level === "error" ? "✕ " : "⚠ ") + esc(issueText(i)) + '</li>'; }).join("") + '</ul>' : '<p class="qd-ok">✓ ' + QD.clean + '</p>');
+      return '<li class="qd-' + i.level + '"><button type="button" class="mgo" data-qgo="' + esc(qdIssueGo(i)) + '">' + (i.level === "error" ? "✕ " : "⚠ ") + esc(issueText(i)) + '</button></li>'; }).join("") + '</ul>' : '<p class="qd-ok">✓ ' + QD.clean + '</p>');
+  }
+  function qdGo(to) {
+    if (!to) return;
+    if (to.indexOf("n:") === 0) {
+      var k = (qed.col === "quests" ? qed.d.stages : qed.d.nodes).map(function (x) { return x.id; }).indexOf(to.slice(2)); if (k < 0) return;
+      qed.sel = k; qed.detail = true; renderQEditor(); edFlash($("q-sel")); return;
+    }
+    if (to === "q-prereqs") qed.open.prereqs = true;
+    renderQEditor(); edFlash($(to));
+  }
+  // the issues of one line / stage (the list's ⚠)
+  function qdIssOf(id) { return nvCheck(qed.col, Object.assign({ id: qed.id }, qed.d)).filter(function (i) { return i.code !== "missingStage" && (i.id === id || i.from === id); }); }
+  // a disclosure that remembers the author's choice; until then it is open when filled (or a check points inside)
+  function qdis(key, auto, summary, inner, cls) {
+    var on = key in qed.open ? qed.open[key] : !!auto;
+    return '<details class="qdis' + (cls ? ' ' + cls : '') + '" data-qopen="' + esc(key) + '"' + (on ? ' open' : '') + '><summary>' + summary + '</summary>' + inner + '</details>';
+  }
+  // ---- «Звʼязки: 6 обрано ＋»: the chosen ones as chips (a click removes), the rest in a searchable popover grouped by role ----
+  function qPickGroups(id) {
+    var d = qed.d;
+    if (id === "parts") return [["participants", QD.cast, pickOf("characters")]];
+    return [["characters", QD.cast, pickOf("characters")], ["locations", QD.places, pickOf("locations")], ["factions", QD.factions, pickOf("factions")],
+      ["artifacts", QD.artifacts, pickOf("artifacts")], ["events", QD.events, ofKind("events")], ["stories", QD.stories, stories.map(function (x) { return { id: x.id, name: x.title || x.name || "…" }; })]]
+      .filter(function (g) { return g[2].length || (d[g[0]] || []).length; });
+  }
+  function qPickHtml(id, label) {
+    var d = qed.d, groups = qPickGroups(id), n = 0, chosen = "";
+    var chip = function (f, x, on) {
+      return '<button type="button" class="mchip" data-qtog="' + f + '" data-id="' + esc(x.id) + '" aria-pressed="' + on + '">' + (x.card ? '<span class="k">' + QD.gameMark + '</span> ' : '') + esc(x.name || x.title || "…") + '</button>'; };
+    groups.forEach(function (g) {
+      (d[g[0]] || []).forEach(function (sid) { n++; var x = g[2].filter(function (y) { return y.id === sid; })[0] || { id: sid, name: entName(sid) + " ⚠" }; chosen += chip(g[0], x, true); });
+    });
+    var key = "pick:" + id, on = !!qed.open[key];
+    var pop = '<details class="mpop qpick-d" data-qopen="' + key + '"' + (on ? ' open' : '') + '><summary class="btn ghost mini" aria-haspopup="dialog">' + esc(label) + ': ' + esc(QD.picked.replace("{n}", n)) + ' ＋</summary>' +
+      '<div class="mpop-b qpick" role="dialog" aria-label="' + esc(label) + '"><input type="search" class="qpq" data-qpq="1" value="' + esc(qed.pq) + '" placeholder="' + esc(QD.find) + '" aria-label="' + esc(QD.find) + '">' +
+      (groups.length ? groups.map(function (g) { var sel = d[g[0]] || [];
+        return '<div class="qpg"><span class="qh">' + esc(g[1]) + ' <span class="mol-n">' + g[2].length + '</span></span><span class="mchips">' + g[2].map(function (x) { return chip(g[0], x, sel.indexOf(x.id) >= 0); }).join("") + '</span></div>'; }).join("")
+        : '<p class="muted">' + QD.noneYet + '</p>') + '</div></details>';
+    return '<div class="qlinks">' + pop + (chosen ? '<span class="mchips">' + chosen + '</span>' : '') + '</div>';
+  }
+  function qpFilter() { // the picker's search, in place
+    var q = (qed && qed.pq || "").toLowerCase();
+    [].forEach.call(document.querySelectorAll(".qpick .qpg"), function (g) {
+      var any = false; [].forEach.call(g.querySelectorAll(".mchip"), function (c) { var ok = !q || c.textContent.toLowerCase().indexOf(q) >= 0; c.hidden = !ok; any = any || ok; }); g.hidden = !any; });
   }
   function renderQEditor() {
     var q = qed, d = q.d, isQ = q.col === "quests", s = sec(q.col), types = isQ ? QD.qtypes : QD.dtypes;
-    var ident = qbox(isQ ? QD.quest : QD.dialogue, '<div class="qgrid">' + qfld(QD.title, qinp("title", d.title)) +
+    var list = isQ ? d.stages : d.nodes; q.sel = Math.max(0, Math.min(q.sel || 0, list.length - 1)); // an AI proposal or a removal may change the list
+    var ident = '<div class="qbox" id="q-ident"><h4>' + esc(isQ ? QD.quest : QD.dialogue) + '</h4><div class="qgrid">' + qfld(QD.title, qinp("title", d.title)) +
       qfld(QD.type, qsel("type", subsOf(s).map(function (g) { return [g, types[g] || g]; }), d.type, QD.type)) +
       qfld(QD.approval, qsel("approval", pairsOf(QD.appr), d.approval, QD.approval)) +
-      qfld(QD.status, qsel("status", STATUSES.map(function (x) { return [x.id, L(x)]; }), d.status, QD.status)) + '</div>');
+      qfld(QD.status, qsel("status", STATUSES.map(function (x) { return [x.id, L(x)]; }), d.status, QD.status)) + '</div></div>';
+    var pf = document.activeElement && document.activeElement.closest && document.activeElement.closest(".qpick") ? document.activeElement : null; // a chip / the search of the open picker keeps the focus
+    var pfSel = pf ? (pf.dataset.qpq ? "[data-qpq]" : '[data-qtog="' + pf.dataset.qtog + '"][data-id="' + (window.CSS && CSS.escape ? CSS.escape(pf.dataset.id || "") : pf.dataset.id) + '"]') : "";
     $("view").innerHTML = '<div class="qed" id="q-ed" data-id="' + esc(q.id) + '" tabindex="-1">' +
       edHead({ back: 'data-qact="back"', backLabel: isQ ? ED.backQ : ED.backD, title: d.title || (isQ ? QD.newQ : QD.newD), progId: "q-prog", prog: qdProgHtml(), state: canQuest ? "q-state" : "",
         actions: canQuest ? '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button>' : '' }) + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
       '<div class="qbox" id="q-issues" aria-live="polite">' + qdIssuesHtml() + '</div>' +
       (canQuest ? (q.isNew ? '' : '<div class="row wsave"><button class="btn danger" data-qact="delete">' + QD.del + '</button></div>') : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') + '</div>';
-    if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input,textarea,select,[data-qtog],[data-qact^=add],[data-qact^=rm]"), function (el) { el.disabled = true; });
-    qdState(); edSticky();
+    if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input:not(.qpq),textarea,select,[data-qtog],[data-qact^=add],[data-qact^=rm]"), function (el) { el.disabled = true; });
+    var h = $("q-ed").querySelector(".edhead"); if (h) $("q-ed").style.setProperty("--edh", h.offsetHeight + "px");
+    qdState(); edSticky(); qpFilter();
+    [].forEach.call(document.querySelectorAll("#q-ed details.mpop[open]"), mPopPos);
+    if (pfSel) { var nf = document.querySelector(".qpick " + pfSel); if (nf) nf.focus(); }
+  }
+  // a stage of the stepper: number, title, its state and where it leads («→ Етап 3 · провал → Етап 5»)
+  function stHead(d, st, i) {
+    var iss = qdIssOf(st.id), w = window.__NARRATIVE && iss.length ? window.__NARRATIVE.worst(iss) : "";
+    var to = (st.next || []).filter(function (b) { return b.to; }).map(function (b) {
+      var t = d.stages.filter(function (x) { return x.id === b.to; })[0], k = d.stages.indexOf(t);
+      return (t && t.fail ? QD.failTo + " " : "") + "→ " + (k < 0 ? b.to + " ⚠" : QD.stage + " " + (k + 1)); }).join(" · ");
+    var tail = st.end ? "✓ " + QD.endMark : st.fail ? "✕ " + QD.failTo : "";
+    return '<span class="qst-n' + (st.end ? ' is-end' : st.fail ? ' is-fail' : '') + '" aria-hidden="true">' + (i + 1) + '</span><span class="qst-t">' + esc(st.title || plain(st.objective || "") || QD.stage + " " + (i + 1)) +
+      (i === 0 ? ' <span class="pill">' + QD.start + '</span>' : '') + '</span>' + (w ? '<span class="qd-' + w + '" title="' + esc(QD.checks) + '">⚠ ' + iss.length + '</span>' : '') +
+      '<span class="qst-x">' + esc([to, tail].filter(Boolean).join(" · ") || QD.nowhere) + '</span>';
   }
   function questBody(d) {
     var chars = pickOf("characters"), others = quests.filter(function (x) { return x.id !== qed.id; }), mine = dialogues.filter(function (x) { return x.questId === qed.id; });
-    var html = qbox(QD.summary, srcHtml(d) + qtxt("summary", d.summary, QD.summaryPh, 4) +
-      qblk(QD.stories, stories.length ? qtogs("stories", stories, d.stories, function (x) { return x.title || x.name || "…"; }) : '<p class="muted">' + QD.noStories + '</p>'));
-    html += qbox(QD.actors, qfld(QD.giver, qsel("giver", [["", QD.none]].concat(chars.map(function (c) { return [c.id, c.name || c.title || ""]; })), d.giver, QD.giver)) +
-      qblk(QD.cast, qtogs("characters", chars, d.characters)) + qblk(QD.places, qtogs("locations", pickOf("locations"), d.locations)) +
-      qblk(QD.factions, qtogs("factions", pickOf("factions"), d.factions)) + qblk(QD.artifacts, qtogs("artifacts", pickOf("artifacts"), d.artifacts)) +
-      qblk(QD.events, qtogs("events", ofKind("events"), d.events || [])));
+    var html = qbox(QD.summary, srcHtml(d) + qtxt("summary", d.summary, QD.summaryPh, 4));
+    html += '<div class="qbox" id="q-links"><h4>' + esc(QD.actors) + '</h4>' + qfld(QD.giver, qsel("giver", [["", QD.none]].concat(chars.map(function (c) { return [c.id, c.name || c.title || ""]; })), d.giver, QD.giver)) +
+      qblk(QD.links, qPickHtml("links", QD.links)) + '</div>';
     html += qbox(QD.objectives, qtxt("objectives", d.objectives, QD.objectivesPh, 3));
-    html += qbox(QD.stages, d.stages.map(function (st, i) {
-      var p = "stages." + i + ".";
-      return '<div class="qstep"><div class="qstep-h"><b>' + QD.stage + ' ' + (i + 1) + (i === 0 ? ' · ' + QD.start : '') + '</b>' + qchk(p + "end", st.end, QD.end) + qchk(p + "fail", st.fail, QD.fail) +
-        '<button class="btn ghost mini" data-qact="rmStage:' + i + '" aria-label="' + esc(QD.rm + " " + QD.stage + " " + (i + 1)) + '">✕</button></div>' +
-        '<div class="qgrid">' + qfld(QD.stageTitle, qinp(p + "title", st.title)) + qfld(QD.objective, qinp(p + "objective", st.objective)) + '</div>' +
-        (st.next || []).map(function (b, j) {
-          return '<div class="wrow qbranch"><span class="muted">→</span>' + qsel(p + "next." + j + ".to", [["", QD.to]].concat(d.stages.filter(function (x) { return x !== st; })
-            .map(function (x) { return [x.id, stepLabel(d.stages, x.id, QD.stage)]; })), b.to, QD.to) + qinp(p + "next." + j + ".cond", b.cond, QD.condPh) +
-            '<button class="btn ghost" data-qact="rmBranch:' + i + ':' + j + '" aria-label="' + esc(QD.rm) + '">✕</button></div>';
-        }).join("") + '<button class="btn mini ghost" data-qact="addBranch:' + i + '">' + QD.addBranch + '</button></div>';
-    }).join("") + '<button class="btn mini ghost" data-qact="addStage">' + QD.addStage + '</button>');
+    html += '<div class="qbox" id="q-steps"><h4>' + esc(QD.stages) + ' <span class="mol-n">' + d.stages.length + '</span></h4><ol class="qsteps">' + d.stages.map(function (st, i) {
+      var p = "stages." + i + ".", on = i === qed.sel;
+      return '<li class="qst' + (on ? ' is-on' : '') + '"><button type="button" class="qst-h" data-qact="sel:' + i + '" data-sthead="' + i + '" aria-expanded="' + on + '">' + stHead(d, st, i) + '</button>' +
+        (!on ? '' : '<div class="qst-b" id="q-sel"><div class="qgrid">' + qfld(QD.stageTitle, qinp(p + "title", st.title)) + qfld(QD.objective, qinp(p + "objective", st.objective)) + '</div>' +
+          '<div class="row qst-c">' + qchk(p + "end", st.end, QD.end) + qchk(p + "fail", st.fail, QD.fail) + '</div>' +
+          (st.next || []).map(function (b, j) {
+            return '<div class="wrow qbranch"><span class="muted">→</span>' + qsel(p + "next." + j + ".to", [["", QD.to]].concat(d.stages.filter(function (x) { return x !== st; })
+              .map(function (x) { return [x.id, stepLabel(d.stages, x.id, QD.stage)]; })), b.to, QD.to) + qinp(p + "next." + j + ".cond", b.cond, QD.condPh) +
+              '<button class="btn ghost" data-qact="rmBranch:' + i + ':' + j + '" aria-label="' + esc(QD.rm) + '">✕</button></div>';
+          }).join("") + '<div class="row"><button class="btn mini ghost" data-qact="addBranch:' + i + '">' + QD.addBranch + '</button><span style="flex:1"></span>' +
+          (d.stages.length > 1 ? '<button class="btn mini ghost qdanger" data-qact="rmStage:' + i + '">' + QD.rmStage + '</button>' : '') + '</div></div>') + '</li>';
+    }).join("") + '</ol><button class="btn mini ghost" data-qact="addStage">' + QD.addStage + '</button></div>';
     html += qbox(QD.rewards, qtxt("rewards", d.rewards, QD.rewardsPh, 2));
-    html += qbox(QD.prereqs, qblk(QD.prereqsHint, others.length ? qtogs("prereqs", others, d.prereqs, function (x) { return x.title || "…"; }) : '<p class="muted">' + QD.noOther + '</p>') +
-      '<div class="qgrid">' + qfld(QD.repeat, qsel("repeat.mode", pairsOf(QD.rep), d.repeat.mode, QD.repeat)) + qfld(QD.cooldown, qinp("repeat.cooldown", d.repeat.cooldown, QD.cooldownPh)) + '</div>');
+    var rp = d.repeat || {}, pre = (d.prereqs || []).length || (rp.mode && rp.mode !== "once");
+    html += '<div class="qbox" id="q-prereqs">' + qdis("prereqs", pre || nvCheck("quests", Object.assign({ id: qed.id }, d)).some(function (i) { return ["prereqCycle", "noCooldown", "missingQuest"].indexOf(i.code) >= 0; }),
+      '<h4>' + esc(QD.prereqs) + '</h4> <span class="muted">' + esc(pre ? ((d.prereqs || []).length ? (d.prereqs || []).map(qTitle).join(", ") + " · " : "") + (QD.rep[rp.mode] || rp.mode || "") : QD.once) + '</span>',
+      qblk(QD.prereqsHint, others.length ? qtogs("prereqs", others, d.prereqs, function (x) { return x.title || "…"; }) : '<p class="muted">' + QD.noOther + '</p>') +
+      '<div class="qgrid">' + qfld(QD.repeat, qsel("repeat.mode", pairsOf(QD.rep), rp.mode, QD.repeat)) + qfld(QD.cooldown, qinp("repeat.cooldown", rp.cooldown, QD.cooldownPh)) + '</div>') + '</div>';
     html += qbox(QD.linkedD, (mine.length ? '<div class="dlinks">' + mine.map(function (x) { return '<button class="dlink" data-qd="dialogues:' + esc(x.id) + '">' + esc(x.title || "…") + '</button>'; }).join("") + '</div>'
       : '<p class="muted">' + QD.noDlg + '</p>') + (!canQuest ? '' : qed.isNew ? '<p class="muted">' + QD.saveFirst + '</p>' : '<button class="btn mini ghost" data-qact="newDlg">' + QD.addDlg + '</button>'));
-    return html + qbox(QD.hooks, qtxt("hooks", d.hooks, QD.hooksPh, 2)) + qbox(QD.notes, qtxt("notes", d.notes, "", 2));
+    return html + '<div class="qbox">' + qdis("hooks", d.hooks || d.notes, '<h4>' + esc(QD.hooks + " · " + QD.notes) + '</h4>', // folded until filled
+      qfld(QD.hooks, qtxt("hooks", d.hooks, QD.hooksPh, 2)) + qfld(QD.notes, qtxt("notes", d.notes, "", 2))) + '</div>';
+  }
+  function whoLabel(id) { return id === "player" ? QD.player : id === "narrator" ? QD.narrator : id ? entName(id) : "—"; }
+  // the lines list (master): speaker, first words, choices, ⚠, a voice-over dot
+  function qnlHtml(d) {
+    return d.nodes.map(function (n, i) {
+      var iss = qdIssOf(n.id), w = window.__NARRATIVE && iss.length ? window.__NARRATIVE.worst(iss) : "", vo = (n.voice || []).length, ch = (n.choices || []).length;
+      return '<li><button type="button" class="qnl-i" data-qact="sel:' + i + '"' + (i === qed.sel ? ' aria-current="true"' : '') + '><span class="qnl-n">' + (i + 1) + '</span>' +
+        '<span class="qnl-c"><span class="qnl-who">' + esc(whoLabel(n.speaker)) + '</span><span class="qnl-t">' + esc(plain(n.text || "").slice(0, 70) || "…") + '</span></span>' +
+        '<span class="qnl-m">' + (ch ? '<span title="' + esc(ch + " " + QD.choicesN) + '">▸' + ch + '</span>' : '') + (n.end ? '<span title="' + esc(QD.endNode) + '">■</span>' : '') +
+        (w ? '<span class="qd-' + w + '" title="' + esc(iss.map(issueText).join("; ")) + '">⚠</span>' : '') +
+        '<i class="qvo-dot' + (vo ? ' is-on' : '') + '" title="' + esc(vo ? QD.voiced : QD.unvoiced) + '"><span class="sr">' + esc(vo ? QD.voiced : QD.unvoiced) + '</span></i></span></button></li>';
+    }).join("");
   }
   function dlgBody(d) {
     var q = quests.filter(function (x) { return x.id === d.questId; })[0];
-    var html = qbox(QD.setup, qblk(QD.participants, qtogs("participants", pickOf("characters"), d.participants)) +
+    var html = '<div class="qbox" id="q-setup"><h4>' + esc(QD.setup) + '</h4>' + qblk(QD.participants, qPickHtml("parts", QD.participants)) +
       '<div class="qgrid">' + qfld(QD.location, qsel("location", [["", QD.none]].concat(pickOf("locations").map(function (l) { return [l.id, l.name || l.title || ""]; })), d.location, QD.location)) +
       qfld(QD.quest, qsel("questId", [["", QD.none]].concat(quests.map(function (x) { return [x.id, x.title || "…"]; })), d.questId, QD.quest)) +
       (q ? qfld(QD.qStage, qsel("stageId", [["", QD.none]].concat((q.stages || []).map(function (st) { return [st.id, stepLabel(q.stages, st.id, QD.stage)]; })), d.stageId, QD.qStage)) : '') + '</div>' +
-      qfld(QD.trigger, qinp("trigger", d.trigger, QD.triggerPh)));
+      qfld(QD.trigger, qinp("trigger", d.trigger, QD.triggerPh)) + '</div>';
     var speakers = [["", QD.none], ["player", QD.player], ["narrator", QD.narrator]].concat(d.participants.map(function (id) { return [id, entName(id)]; }));
     html += voCastHtml(d);
     var targets = function (n) { return [["", "—"]].concat(d.nodes.filter(function (x) { return x !== n; }).map(function (x) { return [x.id, stepLabel(d.nodes, x.id, QD.node)]; })); };
-    html += qbox(QD.nodes, d.nodes.map(function (n, i) {
+    var i = qed.sel, n = d.nodes[i], det = "";
+    if (n) {
       var p = "nodes." + i + ".";
-      return '<div class="qstep"><div class="qstep-h"><b>' + QD.node + ' ' + (i + 1) + (i === 0 ? ' · ' + QD.start : '') + '</b>' + qsel(p + "speaker", speakers, n.speaker, QD.speaker) +
-        qchk(p + "end", n.end, QD.endNode) + '<button class="btn ghost mini" data-qact="rmNode:' + i + '" aria-label="' + esc(QD.rm + " " + QD.node + " " + (i + 1)) + '">✕</button></div>' +
-        qtxt(p + "text", n.text, QD.text, 2) + voLineHtml(d, n, i) +
-        '<div class="qgrid">' + qfld(QD.next, qsel(p + "next", targets(n), n.next, QD.next)) + qfld(QD.cond, qinp(p + "cond", n.cond, QD.condPh)) +
-        qfld(QD.effects, qinp(p + "effects", n.effects, QD.effectsPh)) + qfld(QD.locKey, qinp(p + "locKey", n.locKey, "dlg." + (slugify(d.title) || "talk") + "." + n.id)) + '</div>' +
+      det = '<div class="qmd-d" id="q-sel"><button type="button" class="btn ghost mini qmd-back" data-qact="list">' + QD.allLines + '</button>' +
+        '<div class="qnd"><div class="qnd-main"><div class="qstep-h"><b>' + QD.node + ' ' + (i + 1) + (i === 0 ? ' · ' + QD.start : '') + '</b>' + qsel(p + "speaker", speakers, n.speaker, QD.speaker) +
+        qchk(p + "end", n.end, QD.endNode) + '</div>' + qtxt(p + "text", n.text, QD.text, 3) +
+        '<div class="qgrid">' + qfld(QD.next, qsel(p + "next", targets(n), n.next, QD.next)) + '</div>' +
         (n.choices || []).map(function (c, j) {
           var cp = p + "choices." + j + ".";
           return '<div class="wrow qbranch"><span class="muted">▸</span>' + qinp(cp + "text", c.text, QD.choice) + qsel(cp + "to", targets(n), c.to, QD.to) + qinp(cp + "cond", c.cond, QD.condPh) +
             '<button class="btn ghost" data-qact="rmChoice:' + i + ':' + j + '" aria-label="' + esc(QD.rm) + '">✕</button></div>';
-        }).join("") + '<button class="btn mini ghost" data-qact="addChoice:' + i + '">' + QD.addChoice + '</button></div>';
-    }).join("") + '<button class="btn mini ghost" data-qact="addNode">' + QD.addNode + '</button>');
+        }).join("") + '<button class="btn mini ghost" data-qact="addChoice:' + i + '">' + QD.addChoice + '</button>' +
+        qdis("logic:" + n.id, n.cond || n.effects, QD.logic + ' <span class="muted">· ' + QD.logicHint + '</span>',
+          '<div class="qgrid">' + qfld(QD.cond, qinp(p + "cond", n.cond, QD.condPh)) + qfld(QD.effects, qinp(p + "effects", n.effects, QD.effectsPh)) + '</div>') +
+        qdis("loc:" + n.id, n.locKey, QD.loc + (n.locKey ? ' <span class="muted mono">· ' + esc(n.locKey) + '</span>' : ''),
+          qfld(QD.locKey, qinp(p + "locKey", n.locKey, "dlg." + (slugify(d.title) || "talk") + "." + n.id))) + '</div>' +
+        '<aside class="qnd-vo">' + voLineHtml(d, n, i) + '</aside></div>' +
+        (d.nodes.length > 1 ? '<div class="row"><span style="flex:1"></span><button class="btn mini ghost qdanger" data-qact="rmNode:' + i + '">' + QD.rmNode + '</button></div>' : '') + '</div>';
+    }
+    html += '<div class="qbox" id="q-lines"><h4>' + esc(QD.nodes) + ' <span class="mol-n">' + d.nodes.length + '</span></h4><div class="qmd' + (qed.detail ? ' is-detail' : '') + '">' +
+      '<div class="qnl-w"><ol class="qnl" id="q-nl">' + qnlHtml(d) + '</ol><button class="btn mini ghost" data-qact="addNode">' + QD.addNode + '</button></div>' + det + '</div></div>';
     return html + qbox(QD.notes, qtxt("notes", d.notes, "", 2));
   }
   // ---------- 🎙 Озвучка: a voice per speaker (games/{g}.voices), a voice slot per line (node.voice [cardId of the Audio library], vstatus tts|rec) ----------
@@ -2570,7 +2666,7 @@
   function voCastHtml(d) {
     var who = speakersOf(d);
     if (!who.length) return qbox(VO.box, '<p class="muted">' + VO.noSpeakers + '</p>');
-    return qbox(VO.box, '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(voRowHtml).join("") + '<div class="row"><button type="button" class="btn" data-vall="1">' + VO.all + '</button><button type="button" class="btn" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>');
+    return qdis("cast", false, '<h4>' + VO.box + '</h4> <span class="mol-n">' + who.length + '</span>', '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(voRowHtml).join("") + '<div class="row"><button type="button" class="btn ghost" data-vall="1">' + VO.all + '</button><button type="button" class="btn ghost" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>', "qbox"); // the cast folds away: the lines come first
   }
   // 🎙 the voice of a character / enemy card: the same games/{g}.voices[speaker] the dialogues use (entity id, or "c:<cardId>" for the game's own cards)
   function voCardKey(c) { return c.src === "canon" ? c.id : "c:" + c.id; }
@@ -2722,6 +2818,8 @@
     edState("q-state", qdDirty(), qed.isNew);
     var is = $("q-issues"); if (is) is.innerHTML = qdIssuesHtml();
     var pg = $("q-prog"); if (pg) pg.innerHTML = qdProgHtml();
+    var nl = $("q-nl"); if (nl) nl.innerHTML = qnlHtml(qed.d); // the lines list follows the typing
+    [].forEach.call(document.querySelectorAll("#q-ed [data-sthead]"), function (b) { var k = +b.dataset.sthead; if (qed.d.stages[k]) b.innerHTML = stHead(qed.d, qed.d.stages[k], k); });
   }
   function qdProgHtml() { // the graph check in one line; «Перейти» scrolls to the list
     var n = nvCheck(qed.col, Object.assign({ id: qed.id }, qed.d)).length;
@@ -2733,7 +2831,8 @@
     o[ks[ks.length - 1]] = val;
   }
   function qdInput(e) {
-    var t = e.target; if (!qed || !t.dataset || !t.dataset.qf || !$("q-ed")) return;
+    var t = e.target; if (qed && t.dataset && t.dataset.qpq && e.type === "input") { qed.pq = t.value; qpFilter(); return; } // the links picker's search
+    if (!qed || !t.dataset || !t.dataset.qf || !$("q-ed")) return;
     if (t.dataset.qf === "srcKey") { // «Джерело»: type:id → { type, id, title }
       if (e.type !== "change") return;
       var k = t.value.split(":"), it = k[1] ? srcItem(srcCol(k[0]), k[1]) : null;
@@ -2755,19 +2854,21 @@
     if (p[0] === "pRej") { qprop.done[p[1]] = 1; renderQEditor(); return; }
     if (p[0] === "pAll") { PROP_FIELDS[qed.col].forEach(function (k) { var v = qprop[k]; if (!qprop.done[k] && v != null && v !== "" && !(Array.isArray(v) && !v.length)) propAccept(k); }); renderQEditor(); return; }
     if (p[0] === "pClose") { qprop = null; renderQEditor(); return; }
+    if (p[0] === "sel") { qed.sel = i; qed.detail = true; renderQEditor(); var se = $("q-sel"); if (se && matchMedia("(max-width:900px)").matches) se.scrollIntoView({ block: "start" }); return; }
+    if (p[0] === "list") { qed.detail = false; renderQEditor(); var ls = $("q-lines"); if (ls) ls.scrollIntoView({ block: "start" }); return; }
     if (p[0] === "newDlg") { var qid = qed.id; unsavedOk(qdDirty(), function () { qed = null; openQD("dialogues", null, { questId: qid, type: "quest", participants: d.giver ? [d.giver] : [] }); }); return; }
     if (p[0] === "addStage") { // the new stage follows the last one when that one led nowhere
       var last = d.stages[d.stages.length - 1], ns = { id: nextId(d.stages, "s"), title: "", objective: "", next: [], end: false, fail: false };
       if (last && !(last.next || []).length && !last.fail) { last.next = [{ to: ns.id, cond: "" }]; ns.end = !!last.end; last.end = false; }
-      d.stages.push(ns);
-    } else if (p[0] === "rmStage") d.stages.splice(i, 1);
+      d.stages.push(ns); qed.sel = d.stages.length - 1;
+    } else if (p[0] === "rmStage") { d.stages.splice(i, 1); qed.sel = Math.max(0, i - 1); }
     else if (p[0] === "addBranch") (d.stages[i].next = d.stages[i].next || []).push({ to: "", cond: "" });
     else if (p[0] === "rmBranch") d.stages[i].next.splice(j, 1);
     else if (p[0] === "addNode") { // likewise a new line follows the last one
       var ln = d.nodes[d.nodes.length - 1], nn = { id: nextId(d.nodes, "n"), speaker: "", text: "", locKey: "", cond: "", effects: "", choices: [], next: "", end: true };
       if (ln && !ln.next && !(ln.choices || []).length) { ln.next = nn.id; ln.end = false; }
-      d.nodes.push(nn);
-    } else if (p[0] === "rmNode") d.nodes.splice(i, 1);
+      d.nodes.push(nn); qed.sel = d.nodes.length - 1; qed.detail = true;
+    } else if (p[0] === "rmNode") { d.nodes.splice(i, 1); qed.sel = Math.max(0, i - 1); }
     else if (p[0] === "addChoice") (d.nodes[i].choices = d.nodes[i].choices || []).push({ text: "", to: "", cond: "" });
     else if (p[0] === "rmChoice") d.nodes[i].choices.splice(j, 1);
     renderQEditor();
@@ -3082,6 +3183,7 @@
   document.addEventListener("scroll", function () { [].forEach.call(document.querySelectorAll("details.mpop[open]"), mPopPos); }, true);
   document.addEventListener("toggle", function (e) {
     if (med && e.target.matches && e.target.matches("[data-moladv]")) med.advOpen = e.target.open; // the outline's «Розширене» remembers itself
+    if (qed && e.target.matches && e.target.matches("[data-qopen]") && e.target.closest("#q-ed")) qed.open[e.target.dataset.qopen] = e.target.open; // quests & dialogues: the author's disclosures
     if (e.target.matches && e.target.matches("details.mpop")) { if (!e.target.open && e.target.dataset.mpick === mPickOpen) mPickOpen = ""; mPopPos(e.target); } }, true);
   // ---------- 🧩 RPG Framework gaps: what the mechanics rely on (mechanics.js FW_CAPS + the author's picks m.fw.caps) checked against the
   // game's capabilities.json (games/{g}.framework — MCP report_framework_capabilities), else the built-in 0.40.0 snapshot.
@@ -3657,8 +3759,8 @@
     var keys = PROP_FIELDS[qed.col].filter(function (k) { var v = qprop[k]; return v != null && v !== "" && !(Array.isArray(v) && !v.length) && !qprop.done[k]; });
     return '<div class="qbox qprop"><h4>' + QD.prop + '</h4>' + (keys.length ? keys.map(function (k) {
       return '<div class="qprow"><span class="qh">' + esc(PROP_LABEL(k)) + '</span><pre>' + esc(propText(k, qprop[k])) + '</pre><div class="row">' +
-        '<button class="btn mini primary" data-qact="pAcc:' + k + '">' + QD.accept + '</button><button class="btn mini ghost" data-qact="pRej:' + k + '">' + QD.reject + '</button></div></div>';
-    }).join("") + '<div class="row"><button class="btn primary" data-qact="pAll">' + QD.acceptAll + '</button><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button></div>' : '<p class="muted">✓</p><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button>') +
+        '<button class="btn mini" data-qact="pAcc:' + k + '">' + QD.accept + '</button><button class="btn mini ghost" data-qact="pRej:' + k + '">' + QD.reject + '</button></div></div>';
+    }).join("") + '<div class="row"><button class="btn" data-qact="pAll">' + QD.acceptAll + '</button><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button></div>' : '<p class="muted">✓</p><button class="btn ghost" data-qact="pClose">' + QD.closeProp + '</button>') +
       ((qprop.ideas || []).length ? '<div class="field"><span class="qh">' + QD.ideas + '</span><ul class="qiss">' + qprop.ideas.map(function (x) { return '<li>· ' + esc(x) + '</li>'; }).join("") + '</ul></div>' : '') + '</div>';
   }
   function aiHtml() {
@@ -5030,7 +5132,7 @@
   function contraHtml(c, kind) {
     return '<div class="q" data-ck="' + kind + '" data-c="' + esc(cid(c)) + '"><div class="q__q">' + esc(c.what) + '</div>' + (c.where ? '<div class="muted">' + esc(c.where) + '</div>' : '') +
       (c.options && c.options.length ? '<div class="row q__opts">' + c.options.map(function (o) { return '<button class="chip" aria-pressed="false" data-opt="' + esc(o) + '">' + esc(o) + '</button>'; }).join("") + '</div>' : '') +
-      '<textarea rows="2" placeholder="' + esc(STR.resolvePh) + '"></textarea><div class="row"><button class="btn primary" data-resolve>' + STR.resolve + '</button></div></div>';
+      '<textarea rows="2" placeholder="' + esc(STR.resolvePh) + '"></textarea><div class="row"><button class="btn" data-resolve>' + STR.resolve + '</button></div></div>';
   }
   function resolvedHtml(items) {
     if (!items.length) return "";
@@ -5047,7 +5149,7 @@
     var html = issuesHead(STR.issues, STR.issuesAbout, "i-audit", busy, !!planDoc.gdd);
     html += '<p class="pmsg">' + esc(busy ? STR.auditBusy : planMsg || (!planDoc.gdd && !open1.length && !oq.length ? STR.auditIntro : !open1.length && !oq.length ? STR.auditClean : "")) + '</p>';
     if (open1.length) html += '<section class="psec"><h2 class="group">' + STR.contraOpen + ' <span>' + open1.length + '</span></h2>' + open1.map(function (c) { return contraHtml(c, "game"); }).join("") + '</section>';
-    if (oq.length) html += '<section class="psec"><h2 class="group">' + STR.questionsTitle + ' <span>' + oq.length + '</span></h2>' + oq.map(qHtml).join("") + '</section>';
+    if (oq.length) html += qQueueHtml(oq);
     html += resolvedHtml((planDoc.contradictions || []).filter(function (c) { return r[cid(c)]; }).map(function (c) { return [c.what, r[cid(c)]]; })
       .concat((planDoc.asked || []).filter(function (q) { return answers()[q.id]; }).map(function (q) { return [q.question, answers()[q.id]]; })));
     $("view").innerHTML = html;
@@ -6866,22 +6968,20 @@
     var busy = !!(planBusy || run), busyOp = planBusy || run;
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (plan ? '<button class="btn" id="p-md">' + STR.exportMd + '</button>' : '') +
-      '<button class="btn' + (gdd ? '' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + costMark("analyze") + '</button>' +
-      (gdd ? '<button class="btn primary" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + costMark("plan") + '</button>' : '') +
+      '<button class="btn' + (gdd ? ' ghost' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + costMark("analyze") + '</button>' +
+      (gdd ? '<button class="btn' + (!plan && !oq.length ? ' primary' : '') + '" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + costMark("plan") + '</button>' : '') +
       '</div></header>';
     html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
       (busy ? '' : ' <span class="muted">' + STR.costNote + '</span>') + '</p>';
+    if (oq.length) html += qQueueHtml(oq); // the decisions first: they are what the author does here
 
     if (gdd) {
       html += '<section class="psec"><h2 class="group">' + STR.gddTitle + '</h2>' +
         '<div class="ready"><span>' + STR.readiness + '</span><div class="ready__bar"><i style="width:' + (gdd.readiness || 0) + '%"></i></div><b>' + (gdd.readiness || 0) + '%</b></div>' +
-        '<p>' + esc(gdd.summary) + '</p><div class="gsecs">' + (gdd.sections || []).map(function (x) {
-          return '<div class="gsec"><span class="pill g-' + x.status + '">' + esc(STR.st[x.status] || x.status) + '</span> <b>' + esc(x.title) + '</b>' + (x.notes ? '<div class="muted">' + esc(x.notes) + '</div>' : '') + '</div>';
-        }).join("") + '</div></section>';
+        '<p>' + esc(gdd.summary) + '</p>' + gddTableHtml(gdd.sections || []) + '</section>';
     }
     if (gameIssues().length) html += '<section class="psec"><h2 class="group">' + STR.contradictions + '</h2><ul class="contra">' + gameIssues().map(function (c) {
       return '<li>' + esc(c.what) + (c.where ? ' <span class="muted">— ' + esc(c.where) + '</span>' : '') + '</li>'; }).join("") + '</ul></section>';
-    if (oq.length) html += '<section class="psec"><h2 class="group">' + STR.questionsTitle + ' <span>' + oq.length + '</span></h2>' + oq.map(qHtml).join("") + '</section>';
     var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
     if (done.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + STR.answeredTitle + ' <span>' + done.length + '</span></h2></summary>' +
       done.map(function (q) { return '<div class="qa"><div class="muted">' + esc(q.question) + '</div><div>' + esc(answers()[q.id]) + '</div></div>'; }).join("") + '</details></section>';
@@ -6891,7 +6991,7 @@
       return '<div class="q"><div class="q__top">' + (c.taskId ? '<span class="mono">' + esc(c.taskId) + '</span> ' : '') + '<b>' + esc(c.what) + '</b></div>' +
         '<div class="muted">' + STR.crWhy + ': ' + esc(c.why) + '</div>' + (c.proposal ? '<div>' + STR.crProposal + ': ' + esc(c.proposal) + '</div>' : '') +
         (c.impact ? '<div class="muted">' + STR.crImpact + ': ' + esc(c.impact) + '</div>' : '') +
-        (canWrite ? '<div class="row"><button class="btn primary" data-cr="' + esc(c.id) + '" data-to="accepted">' + STR.crAccept + '</button><button class="btn" data-cr="' + esc(c.id) + '" data-to="rejected">' + STR.crReject + '</button></div>' : '') + '</div>';
+        (canWrite ? '<div class="row"><button class="btn" data-cr="' + esc(c.id) + '" data-to="accepted">' + STR.crAccept + '</button><button class="btn" data-cr="' + esc(c.id) + '" data-to="rejected">' + STR.crReject + '</button></div>' : '') + '</div>';
     }).join("") + '</section>';
     if (planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length)) html += scaffoldHtml(planDoc.scaffold);
     if (plan) html += planHtml(plan);
@@ -6921,7 +7021,7 @@
       html += '<h3 class="sub">' + esc(scaffoldName(id)) + '</h3>' + by[id].map(function (x) {
         return box("c:" + x[1], x[0].title + (x[0].group ? " · " + x[0].group : ""), (x[0].task ? x[0].task + ": " : "") + x[0].need); }).join("");
     });
-    return html + '<div class="row"><button class="btn primary" id="sc-ok">' + STR.scApply + '</button></div></section>';
+    return html + '<div class="row"><button class="btn" id="sc-ok">' + STR.scApply + '</button></div></section>';
   }
   async function applyScaffold() {
     var sc = planDoc.scaffold, batch = db.batch(), n = 0;
@@ -6952,12 +7052,35 @@
     planMsg = STR.scDone + ": " + n; render();
   }
 
-  function qHtml(q) {
+  // open questions as a decision queue: one card at a time («Питання 2 з 11»), «Відповісти» its only primary; «Показати всі» lists them
+  var qqIdx = 0, qqAll = false;
+  function qQueueHtml(oq) {
+    var head = '<section class="psec" id="p-queue"><h2 class="group">' + STR.questionsTitle + ' <span>' + oq.length + '</span></h2>';
+    if (qqAll) return head + '<div class="row qq-bar"><span style="flex:1"></span><button class="btn ghost mini" data-qall>' + STR.qOne + '</button></div>' + oq.map(function (q) { return qHtml(q, false); }).join("") + '</section>';
+    qqIdx = ((qqIdx % oq.length) + oq.length) % oq.length;
+    return head + '<div class="row qq-bar"><b class="qq-n">' + STR.qOf.replace("{i}", qqIdx + 1).replace("{n}", oq.length) + '</b><span style="flex:1"></span>' +
+      (oq.length > 1 ? '<button class="btn ghost mini" data-qskip>' + STR.qSkip + '</button>' : '') + '<button class="btn ghost mini" data-qall>' + STR.qAll + '</button></div>' + qHtml(oq[qqIdx], true) + '</section>';
+  }
+  // the GDD areas as one compact table: area, state, what is missing, a link to the section it is about (matched by name)
+  function gddSecFor(title) {
+    var words = String(title || "").toLowerCase().split(/[^a-zа-яіїєґ0-9]+/i).filter(function (w) { return w.length >= 4; }).map(function (w) { return w.slice(0, 5); });
+    var hit = gameSections().filter(function (s) { var n = L(s).toLowerCase(); return s.id !== "overview" && words.some(function (w) { return n.indexOf(w) >= 0; }); })[0];
+    return hit ? hit.id : "";
+  }
+  function gddTableHtml(list) {
+    if (!list.length) return '';
+    var rank = { missing: 0, partial: 1, solid: 2 };
+    return '<div class="gtab-w"><table class="gtab"><thead><tr><th>' + STR.gdDomain + '</th><th>' + STR.gdState + '</th><th>' + STR.gdMissing + '</th><th><span class="sr">' + STR.gdOpen + '</span></th></tr></thead><tbody>' +
+      list.slice().sort(function (a, b) { return (rank[a.status] || 0) - (rank[b.status] || 0); }).map(function (x) { var to = gddSecFor(x.title);
+        return '<tr><th scope="row">' + esc(x.title) + '</th><td><span class="pill g-' + esc(x.status) + '">' + esc(STR.st[x.status] || x.status) + '</span></td><td class="muted">' + esc(x.notes || "—") + '</td>' +
+          '<td>' + (to ? '<button type="button" class="btn ghost mini" data-gosec="' + esc(to) + '">' + STR.gdOpen + '</button>' : '') + '</td></tr>'; }).join("") + '</tbody></table></div>';
+  }
+  function qHtml(q, primary) {
     return '<div class="q" data-q="' + esc(q.id) + '"><div class="q__top"><span class="pill p-' + q.priority + '">' + esc(STR.prio[q.priority]) + '</span>' +
       (q.topic ? ' <span class="muted">' + esc(q.topic) + '</span>' : '') + '</div>' +
       '<div class="q__q">' + esc(q.question) + '</div>' + (q.why ? '<div class="muted">' + esc(q.why) + '</div>' : '') +
       (q.options && q.options.length ? '<div class="row q__opts">' + q.options.map(function (o) { return '<button class="chip" data-opt="' + esc(o) + '">' + esc(o) + '</button>'; }).join("") + '</div>' : '') +
-      '<textarea rows="2" placeholder="' + esc(STR.answerPh) + '"></textarea><div class="row"><button class="btn primary" data-answer>' + STR.answer + '</button></div></div>';
+      '<textarea rows="2" placeholder="' + esc(STR.answerPh) + '"></textarea><div class="row"><button class="btn' + (primary ? ' primary' : '') + '" data-answer>' + STR.answer + '</button></div></div>';
   }
 
   function cardName(ref) {
@@ -6976,7 +7099,7 @@
       return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span> · ' + STR.exUsed + ': ' + esc(used) + '</span>' +
         (canWrite ? '<button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button>' : '') + '</div>';
     }).join("");
-    if (canWrite) html += '<div class="row"><button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>';
+    if (canWrite) html += '<div class="row"><button class="btn" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>';
     if (execs.length) html += '<h3 class="sub">' + STR.exLog + '</h3><ul class="exlog">' + execs.slice(0, 8).map(function (x) {
       var at = x.at && x.at.toDate ? x.at.toDate().toLocaleTimeString(LANG === "en" ? "en-GB" : "uk-UA") : "";
       var what = (x.data && (x.data.message || x.data.summary || x.data.problem || x.data.what)) || "";
@@ -7154,22 +7277,24 @@
   }
   function msHtml(plan, m) {
     var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [], shown = mineOnly ? ts.filter(isMine) : ts;
+    var now = !!(plan.gated && m.track && !lock && g.status !== "approved"); // the gate the author decides now — the plan's one primary (unless questions wait)
     var done = ts.filter(function (t) { var lt = liveTask(t.id); return lt && lt.status === "done"; }).length;
     var list = function (title, a) { return a && a.length ? '<div class="ms__l"><b>' + title + ':</b><ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' : ''; };
     var head = '<h3>' + esc(m.id) + ' · ' + esc(m.name) + (m.estimateDays ? ' <span class="muted">' + P.days.replace("{n}", m.estimateDays) + '</span>' : '') +
       (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
-      (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') + '</h3>';
+      (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') +
+      (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + '</h3>';
     var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') +
       list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + shown.map(taskHtml).join("");
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
       ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
       (plan.gated && m.track && canWrite && !lock ? '<div class="row">' + (g.status === "approved" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>'
-        : '<button class="btn primary" data-gate="' + esc(m.id) + '" data-to="approved"' + (done < ts.length ? ' data-early="1"' : '') + '>' + P.approve + '</button>' +
+        : '<button class="btn' + (now && !openQs().length ? ' primary' : '') + '" data-gate="' + esc(m.id) + '" data-to="approved"' + (done < ts.length ? ' data-early="1"' : '') + '>' + P.approve + '</button>' +
           (g.status !== "returned" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>' : '')) + '</div>' : '') + '</div>' : '';
     if (lock) return '<div class="ms ms-locked" id="ms-' + esc(m.id) + '">' + head + '<p class="muted">' + P.locked.replace("{g}", esc(lock)) + '</p>' +
       '<details><summary>' + esc(m.goal || m.name) + '</summary>' + body + gate + '</details></div>';
-    return '<div class="ms' + (g.status === "approved" ? ' ms-ok' : '') + '" id="ms-' + esc(m.id) + '">' + head + body + gate + '</div>';
+    return '<div class="ms' + (g.status === "approved" ? ' ms-ok' : now ? ' ms-now' : '') + '" id="ms-' + esc(m.id) + '">' + head + body + gate + '</div>';
   }
   // what blocks or weakens the MVP in the Bible itself: licences, heavy models, levels without a greybox + the planner's own notes
   function healthHtml(plan) {
@@ -7244,7 +7369,7 @@
     if (!mineOnly) html += healthHtml(plan);
     var mvp = ms.filter(function (m) { return m.track === "mvp"; });
     if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
-      return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '">' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';
+      return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '"' + (st === "lock" ? ' title="' + esc(P.locked.replace("{g}", msLock(plan, m))) + '"' : st === "now" ? ' aria-current="step"' : '') + '>' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';
     ["mvp", "expansion", "extra"].forEach(function (tr) {
       var group = ms.filter(function (m) { return m.track === tr; }); if (!group.length) return;
       var inner = '<p class="muted">' + P.trackAbout[tr] + '</p>' + group.map(function (m, i) {
@@ -7434,6 +7559,7 @@
     if (forgeClick(e)) return;
     if (voClick(e)) return;
     if (e.target.closest("[data-vcsvall]")) { voCsv(dialogues); return; }
+    var qg = e.target.closest("[data-qgo]"); if (qg && qed) { qdGo(qg.dataset.qgo); return; } // a graph check → its line / stage
     var qa = e.target.closest("[data-qact]"); if (qa && qed) { qdAct(qa.dataset.qact); return; }
     var qt = e.target.closest("[data-qtog]"); if (qt && qed) { qdTog(qt.dataset.qtog, qt.dataset.id); return; }
     var bl = e.target.closest("[data-bulb]"); if (bl) { questFrom(bl.dataset.bulb.split(":")[0], bl.dataset.bulb.split(":")[1]); return; }
@@ -7450,6 +7576,8 @@
     if (au) { confirmCost("analyze", function () { runPlan("analyze"); }); return; }
     var cau = e.target.closest("#ci-audit");
     if (cau) { confirmCost("canonAudit", runCanonAudit); return; }
+    if (e.target.closest("[data-qskip]")) { qqIdx++; render(); return; }
+    if (e.target.closest("[data-qall]")) { qqAll = !qqAll; render(); var pq = $("p-queue"); if (pq) pq.scrollIntoView({ block: "start" }); return; }
     var ans = e.target.closest("[data-answer]");
     if (ans) { var q = ans.closest(".q"); ans.disabled = true; answerQuestion(q.dataset.q, q.querySelector("textarea").value.trim()).catch(function (er) { planMsg = er.message; render(); }); return; }
     var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }

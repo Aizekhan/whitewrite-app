@@ -290,6 +290,43 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .qd-lock{ color:var(--tx-mid); font-style:italic; margin:10px 0; }
 .ap-draft{ color:var(--s-idea); } .ap-review{ color:var(--s-work); } .ap-approved{ color:var(--s-game); } .ap-archived{ color:var(--tx-mid); }
 .qed > header .btn{ margin-bottom:6px; }
+/* quests & dialogues, calm: disclosures, the links picker, the stage stepper, the lines list → the line */
+.qdis > summary{ list-style:none; cursor:pointer; display:flex; align-items:baseline; gap:8px; padding:6px 0; color:var(--tx-mid); font:500 13px/18px "Inter",sans-serif; }
+.qdis > summary::-webkit-details-marker{ display:none; } .qdis > summary::before{ content:"▸"; color:var(--tx-low); } .qdis[open] > summary::before{ content:"▾"; }
+.qdis > summary:hover{ color:var(--tx-hi); } .qdis > summary h4{ margin:0; } .qdis.qbox > summary{ padding:0; }
+.qdis > summary .muted{ font-weight:400; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.qlinks{ display:grid; gap:8px; justify-items:start; } .qlinks .k{ font-size:10.5px; color:var(--tx-low); text-transform:uppercase; letter-spacing:.06em; }
+.qpick{ width:340px; max-width:calc(100vw - 16px); max-height:min(60vh,460px); overflow:auto; padding:10px; gap:10px; }
+.qbox .qpick input.qpq{ position:sticky; top:-10px; z-index:1; }
+.qpg{ display:grid; gap:5px; } .qpg[hidden], .qpick .mchip[hidden]{ display:none; } .qpick .mchips button.mchip{ white-space:nowrap; padding:3px 9px; border-radius:999px; border:1px solid var(--line-2); background:var(--bg-1); color:var(--tx-mid); font-size:12px; }
+.qpick .mchips button.mchip[aria-pressed="true"]{ border-color:rgba(240,169,59,.45); color:var(--gold-lit); background:var(--gold-soft); }
+.qsteps{ list-style:none; margin:6px 0 8px; padding:0; display:grid; gap:4px; position:relative; }
+.qst{ border:1px solid transparent; border-radius:10px; } .qst.is-on{ border-color:var(--line-2); background:var(--bg-2); }
+.qst-h{ display:grid; grid-template-columns:26px minmax(0,1fr) auto; grid-template-areas:"n t w" "n x x"; gap:0 10px; align-items:center; width:100%; text-align:left; padding:7px 10px; border:0; border-radius:10px; background:none; color:var(--tx); cursor:pointer; font:inherit; }
+.qst-h:hover{ background:var(--bg-hover); } .qst-h:focus-visible, .qnl-i:focus-visible{ outline:2px solid var(--gold-lit); outline-offset:2px; }
+.qst-n{ grid-area:n; display:grid; place-items:center; width:24px; height:24px; border-radius:50%; border:1.5px solid var(--line-2); font-size:12px; color:var(--tx-mid); font-variant-numeric:tabular-nums; }
+.qst.is-on .qst-n{ border-color:var(--gold-lit); color:var(--gold-lit); } .qst-n.is-end{ border-color:var(--s-game); color:var(--s-game); } .qst-n.is-fail{ border-color:var(--s-redo); color:var(--s-redo); }
+.qst-t{ grid-area:t; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--tx-hi); } .qst-h > .qd-warn, .qst-h > .qd-error{ grid-area:w; font-size:12px; }
+.qst-x{ grid-area:x; font-size:12.5px; color:var(--tx-mid); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.qst-b{ padding:2px 12px 10px 46px; } .qst-c{ gap:16px; margin:4px 0; }
+.btn.qdanger{ color:var(--s-redo); }
+.qmd{ display:grid; grid-template-columns:280px minmax(0,1fr); gap:16px; align-items:start; }
+.qnl-w{ position:sticky; top:calc(var(--edh,96px) + 8px); max-height:calc(100vh - var(--edh,96px) - 40px); overflow:auto; display:grid; gap:6px; justify-items:start; }
+.qnl{ list-style:none; margin:0; padding:0; display:grid; gap:1px; width:100%; }
+.qnl-i{ display:flex; align-items:flex-start; gap:8px; width:100%; text-align:left; padding:7px 8px; border:0; border-radius:8px; background:none; color:var(--tx-mid); cursor:pointer; font:400 13px/18px "Inter",sans-serif; }
+.qnl-i:hover{ background:var(--bg-hover); color:var(--tx-hi); }
+.qnl-i[aria-current="true"]{ background:linear-gradient(90deg,rgba(217,119,6,.16),rgba(217,119,6,.03)); color:var(--tx-hi); box-shadow:inset 2px 0 0 var(--gold-lit); }
+.qnl-n{ flex:none; width:18px; color:var(--tx-low); font-variant-numeric:tabular-nums; font-size:12px; }
+.qnl-c{ flex:1; min-width:0; display:grid; } .qnl-who{ font-size:11.5px; color:var(--gold-lit); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.qnl-t{ overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.qnl-m{ flex:none; display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--tx-low); }
+.qvo-dot{ width:8px; height:8px; border-radius:50%; border:1.5px solid var(--tx-low); } .qvo-dot.is-on{ background:var(--s-game); border-color:var(--s-game); }
+.qmd-d{ min-width:0; } .qmd-back{ display:none; }
+.qnd{ display:grid; grid-template-columns:minmax(0,1fr) 210px; gap:14px; align-items:start; } .qnd-main{ min-width:0; display:grid; gap:6px; justify-items:stretch; } .qnd-main > .btn{ justify-self:start; }
+.qnd-vo{ border:1px solid var(--line); border-radius:10px; padding:8px 10px; background:var(--bg-2); } .qnd-vo .vline{ margin:0; }
+@media (max-width:1100px){ .qnd{ grid-template-columns:minmax(0,1fr); } }
+@media (max-width:900px){ .qmd{ grid-template-columns:minmax(0,1fr); } .qnl-w{ position:static; max-height:none; overflow:visible; }
+  .qmd:not(.is-detail) .qmd-d{ display:none; } .qmd.is-detail .qnl-w{ display:none; } .qmd-back{ display:inline-flex; margin-bottom:6px; } .qst-b{ padding-left:12px; } }
 /* the mechanics constructor */
 /* one header for the full-page editors (mechanics, quests & dialogues, Forge): ← back, the title, one progress line, the save state — sticky */
 header.sec.edhead{ position:sticky; top:0; z-index:6; margin:0 -30px 6px; padding:14px 30px 10px; background:linear-gradient(180deg,var(--bg-0) 88%,rgba(7,6,8,0)); border-bottom:1px solid var(--line); align-items:center; }
@@ -758,9 +795,7 @@ button.lic{ cursor:pointer; } .lic i{ font-style:normal; opacity:.8; }
 .ready{ display:flex; align-items:center; gap:12px; margin:6px 0 10px; font-size:13px; color:var(--tx-mid); }
 .ready__bar{ flex:0 1 260px; height:8px; border-radius:6px; background:var(--bg-3); overflow:hidden; }
 .ready__bar i{ display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); }
-.gsecs{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px; }
-.gsec{ padding:9px 11px; border:1px solid var(--line); border-radius:9px; background:var(--bg-2); }
-.g-solid{ color:var(--s-game); } .g-partial{ color:var(--warn); } .g-partial::before{ content:"A0  "; } .g-missing{ color:var(--s-redo); }
+.g-solid{ color:var(--s-game); } .g-partial{ color:var(--warn); } .g-missing{ color:var(--s-redo); }
 .p-blocker{ color:var(--s-redo); } .p-important{ color:var(--warn); } .p-important::before{ content:"\26A0  "; } .p-nice{ color:var(--s-idea); }
 .contra li{ margin:4px 0; }
 .q{ display:grid; gap:8px; padding:14px; margin:10px 0; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-2); }
@@ -833,7 +868,16 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .gs-lock{ opacity:.55; } .garr{ color:var(--tx-low); }
 h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline-block; }
 .trackbox > summary{ list-style:none; } .trackbox > summary::before{ content:"▸ "; color:var(--tx-mid); } .trackbox[open] > summary::before{ content:"▾ "; }
-.ms-ok{ border-color:rgba(95,191,138,.45); } .ms-locked{ opacity:.7; border-style:dashed; }
+.ms-ok{ border-color:rgba(95,191,138,.45); } .ms-locked{ opacity:.55; border-style:dashed; } .ms-locked:hover, .ms-locked:focus-within{ opacity:.85; }
+.ms-now{ border-color:var(--gold-lit); box-shadow:inset 3px 0 0 var(--gold-lit); } .ms-nowpill{ color:var(--gold-lit); border-color:var(--gold-lit); }
+/* the plan: the decision queue, the GDD areas table */
+.qq-bar{ align-items:center; gap:8px; margin:6px 0 -4px; } .qq-n{ color:var(--tx-hi); font-weight:600; font-variant-numeric:tabular-nums; }
+.gtab-w{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+.gtab{ width:100%; border-collapse:collapse; font-size:13.5px; } .gtab th, .gtab td{ padding:7px 10px; text-align:left; vertical-align:top; border-top:1px solid var(--line); }
+.gtab thead th{ border-top:0; font:500 11.5px/16px "Inter",sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--tx-low); background:var(--bg-2); }
+.gtab tbody th{ font-weight:500; color:var(--tx-hi); white-space:nowrap; } .gtab td:last-child{ text-align:right; white-space:nowrap; }
+@media (max-width:700px){ .gtab thead{ display:none; } .gtab tr{ display:grid; grid-template-columns:1fr auto; gap:2px 8px; padding:8px 10px; border-top:1px solid var(--line); }
+  .gtab th, .gtab td{ border:0; padding:0; } .gtab tbody th{ white-space:normal; } .gtab td.muted{ grid-column:1 / -1; } .gtab td:last-child{ grid-column:1 / -1; text-align:left; } }
 .ms__l ul{ margin:2px 0 6px; padding-left:18px; font-size:14px; }
 .gatebox{ margin-top:12px; padding:10px 12px; border-radius:10px; border:1px solid rgba(240,169,59,.35); background:rgba(240,169,59,.05); display:grid; gap:6px; }
 .cutline{ margin:18px 0 6px; padding-top:8px; border-top:2px dashed var(--s-redo); color:var(--s-redo); font-size:13px; }
