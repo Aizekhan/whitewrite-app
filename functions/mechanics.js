@@ -986,11 +986,11 @@ var FEEL = {
 function feelChecks(m, add, rowsOf, nameOf, val) {
   var shaking = false;
   rowsOf('actions').forEach(function (r) {
-    if (+r.shake > 0) { shaking = true; if (!(+r.shakeDur > 0)) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: тремтіння без тривалості.', '“' + nameOf(r) + '”: a shake without a duration.'); }
-    if (num(val('global', 'maxShake')) && +r.shake > +val('global', 'maxShake')) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: тремтіння сильніше за загальну межу.', '“' + nameOf(r) + '”: the shake is above the global limit.');
-    if (+r.hitstop > 0 && num(r.buffer) && +r.buffer < +r.hitstop) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: буфер вводу (' + r.buffer + ' мс) коротший за hitstop (' + r.hitstop + ' мс) — натискання під час заморозки губляться.', '“' + nameOf(r) + '”: the input buffer (' + r.buffer + ' ms) is shorter than the hitstop (' + r.hitstop + ' ms) — presses during the freeze are lost.');
+    if (+r.shake > 0) { shaking = true; if (!(+r.shakeDur > 0)) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: тремтіння без тривалості.', '“' + nameOf(r) + '”: a shake without a duration.', 'shakeDur'); }
+    if (num(val('global', 'maxShake')) && +r.shake > +val('global', 'maxShake')) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: тремтіння сильніше за загальну межу.', '“' + nameOf(r) + '”: the shake is above the global limit.', 'shake');
+    if (+r.hitstop > 0 && num(r.buffer) && +r.buffer < +r.hitstop) add('warn', 'actions', r._id, '«' + nameOf(r) + '»: буфер вводу (' + r.buffer + ' мс) коротший за hitstop (' + r.hitstop + ' мс) — натискання під час заморозки губляться.', '“' + nameOf(r) + '”: the input buffer (' + r.buffer + ' ms) is shorter than the hitstop (' + r.hitstop + ' ms) — presses during the freeze are lost.', 'buffer');
   });
-  if (shaking && !val('global', 'shakeOff')) add('warn', 'global', '', 'Тремтіння камери не вимикається — частину гравців від нього нудить (доступність).', 'Camera shake cannot be turned off — it makes some players sick (accessibility).');
+  if (shaking && !val('global', 'shakeOff')) add('warn', 'global', '', 'Тремтіння камери не вимикається — частину гравців від нього нудить (доступність).', 'Camera shake cannot be turned off — it makes some players sick (accessibility).', 'shakeOff');
 }
 var CONTROLS = {
   id: 'controls', version: 1, cat: 'camera', sub: 'input', complexity: 1, name: T('Керування й розкладка', 'Controls & input map'),
@@ -1020,13 +1020,13 @@ var CONTROLS = {
 function controlsChecks(m, add, rowsOf, nameOf, val) {
   var dev = val('support', 'devices') || [], rows = rowsOf('map'), norm = function (v) { return String(v || '').trim().toLowerCase(); };
   rows.forEach(function (r) {
-    if (dev.indexOf('pad') >= 0 && !norm(r.pad)) add('warn', 'map', r._id, '«' + nameOf(r) + '»: немає кнопки геймпада.', '“' + nameOf(r) + '”: no gamepad button.');
-    if (dev.indexOf('touch') >= 0 && !norm(r.touch)) add('warn', 'map', r._id, '«' + nameOf(r) + '»: немає жесту для сенсора.', '“' + nameOf(r) + '”: no touch gesture.');
-    if (r.mode === 'hold') add('tip', 'map', r._id, '«' + nameOf(r) + '»: дай і «перемикати» — тримати довго важко частині гравців.', '“' + nameOf(r) + '”: offer “toggle” too — holding is hard for some players.');
+    if (dev.indexOf('pad') >= 0 && !norm(r.pad)) add('warn', 'map', r._id, '«' + nameOf(r) + '»: немає кнопки геймпада.', '“' + nameOf(r) + '”: no gamepad button.', 'pad');
+    if (dev.indexOf('touch') >= 0 && !norm(r.touch)) add('warn', 'map', r._id, '«' + nameOf(r) + '»: немає жесту для сенсора.', '“' + nameOf(r) + '”: no touch gesture.', 'touch');
+    if (r.mode === 'hold') add('tip', 'map', r._id, '«' + nameOf(r) + '»: дай і «перемикати» — тримати довго важко частині гравців.', '“' + nameOf(r) + '”: offer “toggle” too — holding is hard for some players.', 'mode');
   });
   ['kbm', 'pad', 'touch'].forEach(function (d) {
     var seen = {};
-    rows.forEach(function (r) { var b = norm(r[d]); if (!b) return; var k = norm(r.context) + '|' + b; if (seen[k]) add('warn', 'map', r._id, '«' + nameOf(r) + '» і «' + nameOf(seen[k]) + '» на одній кнопці «' + r[d] + '».', '“' + nameOf(r) + '” and “' + nameOf(seen[k]) + '” share the button “' + r[d] + '”.'); else seen[k] = r; });
+    rows.forEach(function (r) { var b = norm(r[d]); if (!b) return; var k = norm(r.context) + '|' + b; if (seen[k]) add('warn', 'map', r._id, '«' + nameOf(r) + '» і «' + nameOf(seen[k]) + '» на одній кнопці «' + r[d] + '».', '“' + nameOf(r) + '” and “' + nameOf(seen[k]) + '” share the button “' + r[d] + '”.', d); else seen[k] = r; });
   });
 }
 var ACCESS = {
@@ -1054,7 +1054,7 @@ var ACCESS = {
 };
 function accessChecks(m, add, rowsOf, nameOf) {
   rowsOf('checklist').forEach(function (r) {
-    if (r._must && (!r.status || r.status === 'todo')) add('warn', 'checklist', r._id, 'Базовий мінімум не зроблено: «' + String(nameOf(r)).replace(/^★\s*/, '') + '».', 'A basic must-have is not done: “' + String(nameOf(r)).replace(/^★\s*/, '') + '”.');
+    if (r._must && (!r.status || r.status === 'todo')) add('warn', 'checklist', r._id, 'Базовий мінімум не зроблено: «' + String(nameOf(r)).replace(/^★\s*/, '') + '».', 'A basic must-have is not done: “' + String(nameOf(r)).replace(/^★\s*/, '') + '”.', 'status');
   });
 }
 var ECONOMY = {
@@ -1116,17 +1116,17 @@ function lootChances(m) {
 }
 function economyChecks(m, add, rowsOf) {
   econSim(m).rows.forEach(function (c) {
-    if (c.status === 'dead') add('warn', 'currencies', c.id, '«' + c.name + '»: її ніде не заробити — мертва валюта.', '“' + c.name + '”: it cannot be earned anywhere — a dead currency.');
-    if (c.status === 'nosink') add('warn', 'currencies', c.id, '«' + c.name + '»: на неї нічого не витратити — накопичується без цінності.', '“' + c.name + '”: nothing to spend it on — it piles up worthless.');
-    if (c.status === 'starved') add('warn', 'currencies', c.id, '«' + c.name + '»: закінчується на ' + c.out + '-й годині — гравцю бракує на обовʼязкове.', '“' + c.name + '”: runs dry at hour ' + c.out + ' — the player cannot afford the essentials.');
-    if (c.status === 'inflation') add('warn', 'currencies', c.id, '«' + c.name + '»: інфляція — за ' + econSim(m).hours + ' год запас ' + c.end + ' (більше за 3 години витрат), дохід далі росте швидше. Додай витрати.', '“' + c.name + '”: inflation — after ' + econSim(m).hours + ' h the stock is ' + c.end + ' (over 3 hours of spending) and income keeps outgrowing it. Add sinks.');
-    if (c.capped != null && c.status !== 'inflation') add('tip', 'currencies', c.id, '«' + c.name + '»: упирається в межу на ' + c.capped + '-й годині — далі нагороди марні.', '“' + c.name + '”: hits its cap at hour ' + c.capped + ' — further rewards are wasted.');
+    if (c.status === 'dead') add('warn', 'currencies', c.id, '«' + c.name + '»: її ніде не заробити — мертва валюта.', '“' + c.name + '”: it cannot be earned anywhere — a dead currency.', 'earn');
+    if (c.status === 'nosink') add('warn', 'currencies', c.id, '«' + c.name + '»: на неї нічого не витратити — накопичується без цінності.', '“' + c.name + '”: nothing to spend it on — it piles up worthless.', 'spend');
+    if (c.status === 'starved') add('warn', 'currencies', c.id, '«' + c.name + '»: закінчується на ' + c.out + '-й годині — гравцю бракує на обовʼязкове.', '“' + c.name + '”: runs dry at hour ' + c.out + ' — the player cannot afford the essentials.', 'spend');
+    if (c.status === 'inflation') add('warn', 'currencies', c.id, '«' + c.name + '»: інфляція — за ' + econSim(m).hours + ' год запас ' + c.end + ' (більше за 3 години витрат), дохід далі росте швидше. Додай витрати.', '“' + c.name + '”: inflation — after ' + econSim(m).hours + ' h the stock is ' + c.end + ' (over 3 hours of spending) and income keeps outgrowing it. Add sinks.', 'spend');
+    if (c.capped != null && c.status !== 'inflation') add('tip', 'currencies', c.id, '«' + c.name + '»: упирається в межу на ' + c.capped + '-й годині — далі нагороди марні.', '“' + c.name + '”: hits its cap at hour ' + c.capped + ' — further rewards are wasted.', 'cap');
   });
   lootChances(m).forEach(function (t) {
-    if (!t.total) add('warn', 'loot', '', 'Таблиця «' + t.table + '»: сума ваг 0 — нічого не випаде.', 'Table “' + t.table + '”: the weights sum to 0 — nothing drops.');
+    if (!t.total) add('warn', 'loot', '', 'Таблиця «' + t.table + '»: сума ваг 0 — нічого не випаде.', 'Table “' + t.table + '”: the weights sum to 0 — nothing drops.', 'weight');
     t.items.forEach(function (i) {
-      if (i.drop != null && Math.abs(i.drop - i.chance) > 1) add('warn', 'loot', i.id, 'Шанс ' + i.drop + '% не збігається з вагою (' + i.chance + '%). Порожній шанс рахується сам.', 'Chance ' + i.drop + '% does not match the weight (' + i.chance + '%). An empty chance is computed.');
-      if (i.pity != null && i.tries != null && i.pity < i.tries / 2) add('tip', 'loot', i.id, 'Гарантія (' + i.pity + ') спрацьовує вдвічі раніше, ніж предмет випадає в середньому (' + i.tries + ' спроб) — шанс майже не важить.', 'Pity (' + i.pity + ') triggers at half the average drop (' + i.tries + ' tries) or sooner — the chance barely matters.');
+      if (i.drop != null && Math.abs(i.drop - i.chance) > 1) add('warn', 'loot', i.id, 'Шанс ' + i.drop + '% не збігається з вагою (' + i.chance + '%). Порожній шанс рахується сам.', 'Chance ' + i.drop + '% does not match the weight (' + i.chance + '%). An empty chance is computed.', 'drop');
+      if (i.pity != null && i.tries != null && i.pity < i.tries / 2) add('tip', 'loot', i.id, 'Гарантія (' + i.pity + ') спрацьовує вдвічі раніше, ніж предмет випадає в середньому (' + i.tries + ' спроб) — шанс майже не важить.', 'Pity (' + i.pity + ') triggers at half the average drop (' + i.tries + ' tries) or sooner — the chance barely matters.', 'pity');
     });
   });
 }
@@ -1172,7 +1172,7 @@ function loopChecks(m, add, rowsOf, nameOf) {
   var LN = { session: ['сесії', 'session'], meta: ['мета', 'meta'], long: ['довгий', 'long-term'] };
   loopClosure(m).forEach(function (l) {
     var ln = LN[l.layer] || [l.layer, l.layer];
-    l.open.forEach(function (id) { add('warn', 'nodes', id, 'Цикл «' + ln[0] + '» не замикається: з «' + nameOf(by[id]) + '» немає шляху назад до «' + nameOf(by[l.start]) + '».', 'The ' + ln[1] + ' loop does not close: “' + nameOf(by[id]) + '” has no way back to “' + nameOf(by[l.start]) + '”.'); });
+    l.open.forEach(function (id) { add('warn', 'nodes', id, 'Цикл «' + ln[0] + '» не замикається: з «' + nameOf(by[id]) + '» немає шляху назад до «' + nameOf(by[l.start]) + '».', 'The ' + ln[1] + ' loop does not close: “' + nameOf(by[id]) + '” has no way back to “' + nameOf(by[l.start]) + '”.', 'next'); });
   });
   if (rows.length && !rows.some(function (r) { return r.layer === 'session'; })) add('tip', 'nodes', '', 'Немає кроків сесії — з чого складається кожні 5–30 хвилин гри?', 'No session steps — what fills every 5–30 minutes of play?');
 }
@@ -1212,13 +1212,13 @@ function pacing(m) {
   });
 }
 function levelMetricChecks(m, add, rowsOf, nameOf, val) {
-  if (num(val('metrics', 'corridor')) && +val('metrics', 'corridor') < 1.5) add('warn', 'metrics', '', 'Коридор вужчий за 1.5 м — камера від третьої особи впиратиметься в стіни.', 'A corridor under 1.5 m — a third-person camera will clip the walls.');
-  if (num(val('metrics', 'step')) && num(val('metrics', 'jumpH')) && +val('metrics', 'step') >= +val('metrics', 'jumpH')) add('warn', 'metrics', '', 'Сходинка не нижча за висоту стрибка.', 'The step is no lower than the jump height.');
-  if (num(val('metrics', 'cover')) && +val('metrics', 'sprint') > 0 && +val('metrics', 'cover') / +val('metrics', 'sprint') > 2) add('tip', 'metrics', '', 'Між укриттями ' + Math.round(+val('metrics', 'cover') / +val('metrics', 'sprint') * 10) / 10 + ' с бігу під вогнем — звично до 2 с.', 'Between covers ' + Math.round(+val('metrics', 'cover') / +val('metrics', 'sprint') * 10) / 10 + ' s of running under fire — usually up to 2 s.');
+  if (num(val('metrics', 'corridor')) && +val('metrics', 'corridor') < 1.5) add('warn', 'metrics', '', 'Коридор вужчий за 1.5 м — камера від третьої особи впиратиметься в стіни.', 'A corridor under 1.5 m — a third-person camera will clip the walls.', 'corridor');
+  if (num(val('metrics', 'step')) && num(val('metrics', 'jumpH')) && +val('metrics', 'step') >= +val('metrics', 'jumpH')) add('warn', 'metrics', '', 'Сходинка не нижча за висоту стрибка.', 'The step is no lower than the jump height.', 'step');
+  if (num(val('metrics', 'cover')) && +val('metrics', 'sprint') > 0 && +val('metrics', 'cover') / +val('metrics', 'sprint') > 2) add('tip', 'metrics', '', 'Між укриттями ' + Math.round(+val('metrics', 'cover') / +val('metrics', 'sprint') * 10) / 10 + ' с бігу під вогнем — звично до 2 с.', 'Between covers ' + Math.round(+val('metrics', 'cover') / +val('metrics', 'sprint') * 10) / 10 + ' s of running under fire — usually up to 2 s.', 'cover');
   pacing(m).forEach(function (p) {
-    if (p.flat) add('warn', 'beats', p.first, '«' + p.level + '»: увесь рівень на одній інтенсивності — монотонно.', '“' + p.level + '”: the whole level at one intensity — monotone.');
-    if (p.peakRun >= 3 || p.peakMinutes >= 12) add('warn', 'beats', p.peakAt, '«' + p.level + '»: ' + p.peakRun + ' такти поспіль (' + p.peakMinutes + ' хв) на інтенсивності 4–5 без відпочинку.', '“' + p.level + '”: ' + p.peakRun + ' beats in a row (' + p.peakMinutes + ' min) at intensity 4–5 without rest.');
-    if (!p.valley) add('tip', 'beats', p.first, '«' + p.level + '»: після початку немає жодного спаду (інтенсивність ≤ 2).', '“' + p.level + '”: no dip (intensity ≤ 2) after the start.');
+    if (p.flat) add('warn', 'beats', p.first, '«' + p.level + '»: увесь рівень на одній інтенсивності — монотонно.', '“' + p.level + '”: the whole level at one intensity — monotone.', 'intensity');
+    if (p.peakRun >= 3 || p.peakMinutes >= 12) add('warn', 'beats', p.peakAt, '«' + p.level + '»: ' + p.peakRun + ' такти поспіль (' + p.peakMinutes + ' хв) на інтенсивності 4–5 без відпочинку.', '“' + p.level + '”: ' + p.peakRun + ' beats in a row (' + p.peakMinutes + ' min) at intensity 4–5 without rest.', 'intensity');
+    if (!p.valley) add('tip', 'beats', p.first, '«' + p.level + '»: після початку немає жодного спаду (інтенсивність ≤ 2).', '“' + p.level + '”: no dip (intensity ≤ 2) after the start.', 'intensity');
   });
 }
 var DIFFICULTY = {
@@ -1256,10 +1256,10 @@ function difficultyChecks(m, add) {
   var prev = null;
   difficultyCurve(m).forEach(function (z) {
     var who = (z.zone ? z.zone + ' · ' : '') + (z.enemy || z.id);
-    if (z.ttk == null || z.ttd == null) add('warn', 'zones', z.id, '«' + who + '»: шкода за секунду 0 — TTK / TTD не порахувати.', '“' + who + '”: damage per second is 0 — TTK / TTD cannot be computed.');
-    if (z.ttkOk === false) add('warn', 'zones', z.id, '«' + who + '»: TTK ' + z.ttk + ' с поза ціллю ' + z.ttkBand.join('–') + ' с' + (z.ttk < z.ttkBand[0] ? ' — ворог падає надто швидко.' : ' — бій затягнутий, ворог «губка».'), '“' + who + '”: TTK ' + z.ttk + ' s is outside the ' + z.ttkBand.join('–') + ' s target' + (z.ttk < z.ttkBand[0] ? ' — the enemy drops too fast.' : ' — the fight drags, a bullet sponge.'));
-    if (z.ttdOk === false) add('warn', 'zones', z.id, '«' + who + '»: TTD ' + z.ttd + ' с поза ціллю ' + z.ttdBand.join('–') + ' с' + (z.ttd < z.ttdBand[0] ? ' — гравець гине надто швидко.' : ' — загрози немає.'), '“' + who + '”: TTD ' + z.ttd + ' s is outside the ' + z.ttdBand.join('–') + ' s target' + (z.ttd < z.ttdBand[0] ? ' — the player dies too fast.' : ' — there is no threat.'));
-    if (!z.boss && z.ttd != null) { if (prev && prev.ttd && z.ttd < prev.ttd * 0.6) add('tip', 'zones', z.id, '«' + who + '»: TTD падає на ' + Math.round((1 - z.ttd / prev.ttd) * 100) + '% проти попередньої зони — стіна складності.', '“' + who + '”: TTD drops ' + Math.round((1 - z.ttd / prev.ttd) * 100) + '% against the previous zone — a difficulty wall.'); prev = z; }
+    if (z.ttk == null || z.ttd == null) add('warn', 'zones', z.id, '«' + who + '»: шкода за секунду 0 — TTK / TTD не порахувати.', '“' + who + '”: damage per second is 0 — TTK / TTD cannot be computed.', z.ttk == null ? 'pdps' : 'edps');
+    if (z.ttkOk === false) add('warn', 'zones', z.id, '«' + who + '»: TTK ' + z.ttk + ' с поза ціллю ' + z.ttkBand.join('–') + ' с' + (z.ttk < z.ttkBand[0] ? ' — ворог падає надто швидко.' : ' — бій затягнутий, ворог «губка».'), '“' + who + '”: TTK ' + z.ttk + ' s is outside the ' + z.ttkBand.join('–') + ' s target' + (z.ttk < z.ttkBand[0] ? ' — the enemy drops too fast.' : ' — the fight drags, a bullet sponge.'), 'ehp');
+    if (z.ttdOk === false) add('warn', 'zones', z.id, '«' + who + '»: TTD ' + z.ttd + ' с поза ціллю ' + z.ttdBand.join('–') + ' с' + (z.ttd < z.ttdBand[0] ? ' — гравець гине надто швидко.' : ' — загрози немає.'), '“' + who + '”: TTD ' + z.ttd + ' s is outside the ' + z.ttdBand.join('–') + ' s target' + (z.ttd < z.ttdBand[0] ? ' — the player dies too fast.' : ' — there is no threat.'), 'edps');
+    if (!z.boss && z.ttd != null) { if (prev && prev.ttd && z.ttd < prev.ttd * 0.6) add('tip', 'zones', z.id, '«' + who + '»: TTD падає на ' + Math.round((1 - z.ttd / prev.ttd) * 100) + '% проти попередньої зони — стіна складності.', '“' + who + '”: TTD drops ' + Math.round((1 - z.ttd / prev.ttd) * 100) + '% against the previous zone — a difficulty wall.', 'edps'); prev = z; }
   });
 }
 var PLATFORMS = O([['steam', 'Steam (ПК)', 'Steam (PC)'], ['ios', 'iOS (App Store)', 'iOS (App Store)'], ['android', 'Android (Google Play)', 'Android (Google Play)'], ['console', 'Консолі', 'Consoles'], ['itch', 'itch.io', 'itch.io']]);
@@ -1373,9 +1373,10 @@ function newRowId(sec) {
 }
 function rowName(sec, r) { return r ? String(r[sec.rowLabel] != null && r[sec.rowLabel] !== '' ? r[sec.rowLabel] : r._id) : ''; }
 
-// completeness + issues: { issues: [{ level: error|warn|tip, sec, row, uk, en }], req: [done, all], rec: [done, all], pct }
+// completeness + issues: { issues: [{ level: error|warn|tip, sec, row, uk, en, field? }], req: [done, all], rec: [done, all], pct }
+// field — the key of the field / column a check is about (the Bible marks that very cell; MCP get_mechanic passes it on)
 function check(m) {
-  var issues = [], add = function (level, sec, row, uk, en) { issues.push({ level: level, sec: sec, row: row || '', uk: uk, en: en || uk }); };
+  var issues = [], add = function (level, sec, row, uk, en, field) { var i = { level: level, sec: sec, row: row || '', uk: uk, en: en || uk }; if (field) i.field = field; issues.push(i); };
   var secs = (m && m.sections) || [], req = [0, 0], rec = [0, 0];
   var secById = function (id) { return secs.filter(function (s) { return s.id === id; })[0]; };
   var rowsOf = function (id) { var s = secById(id); return s && s.rows ? s.rows : []; };
@@ -1386,14 +1387,14 @@ function check(m) {
     var fields = s.fields || [], t = s.title;
     var nameOf = function (r) { return rowName(s, r); };
     var chk = function (f, v, row) {
-      if (f.t === 'ref' && !empty(v) && !rowsOf(f.ref).some(function (r) { return r._id === v; })) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: посилання на запис, якого вже немає (' + v + ').', '“' + lbl(f.l, 'en') + '”: a link to a row that is gone (' + v + ').');
-      if (f.t === 'refs' && Array.isArray(v)) v.forEach(function (id) { if (!rowsOf(f.ref).some(function (r) { return r._id === id; })) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: посилання на запис, якого вже немає (' + id + ').', '“' + lbl(f.l, 'en') + '”: a link to a row that is gone (' + id + ').'); });
+      if (f.t === 'ref' && !empty(v) && !rowsOf(f.ref).some(function (r) { return r._id === v; })) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: посилання на запис, якого вже немає (' + v + ').', '“' + lbl(f.l, 'en') + '”: a link to a row that is gone (' + v + ').', f.k);
+      if (f.t === 'refs' && Array.isArray(v)) v.forEach(function (id) { if (!rowsOf(f.ref).some(function (r) { return r._id === id; })) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: посилання на запис, якого вже немає (' + id + ').', '“' + lbl(f.l, 'en') + '”: a link to a row that is gone (' + id + ').', f.k); });
       if ((f.t === 'num' || f.t === 'pct' || f.t === 'time') && !empty(v)) {
-        if (!num(v)) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '» — не число.', '“' + lbl(f.l, 'en') + '” is not a number.');
-        else if ((f.min != null && +v < f.min) || (f.max != null && +v > f.max)) add('warn', s.id, row, '«' + lbl(f.l, 'uk') + '» = ' + v + ' поза звичним діапазоном ' + (f.min != null ? f.min : '…') + '–' + (f.max != null ? f.max : '…') + '.', '“' + lbl(f.l, 'en') + '” = ' + v + ' is outside the usual ' + (f.min != null ? f.min : '…') + '–' + (f.max != null ? f.max : '…') + ' range.');
+        if (!num(v)) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '» — не число.', '“' + lbl(f.l, 'en') + '” is not a number.', f.k);
+        else if ((f.min != null && +v < f.min) || (f.max != null && +v > f.max)) add('warn', s.id, row, '«' + lbl(f.l, 'uk') + '» = ' + v + ' поза звичним діапазоном ' + (f.min != null ? f.min : '…') + '–' + (f.max != null ? f.max : '…') + '.', '“' + lbl(f.l, 'en') + '” = ' + v + ' is outside the usual ' + (f.min != null ? f.min : '…') + '–' + (f.max != null ? f.max : '…') + ' range.', f.k);
       }
-      if (f.t === 'range' && !empty(v) && !range(v)) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: діапазон пишеться як «від–до», напр. 0.5–1.2.', '“' + lbl(f.l, 'en') + '”: write a range as “min–max”, e.g. 0.5–1.2.');
-      if (f.t === 'json' && !empty(v)) { try { JSON.parse(v); } catch (e) { add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: некоректний JSON.', '“' + lbl(f.l, 'en') + '”: invalid JSON.'); } }
+      if (f.t === 'range' && !empty(v) && !range(v)) add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: діапазон пишеться як «від–до», напр. 0.5–1.2.', '“' + lbl(f.l, 'en') + '”: write a range as “min–max”, e.g. 0.5–1.2.', f.k);
+      if (f.t === 'json' && !empty(v)) { try { JSON.parse(v); } catch (e) { add('error', s.id, row, '«' + lbl(f.l, 'uk') + '»: некоректний JSON.', '“' + lbl(f.l, 'en') + '”: invalid JSON.', f.k); } }
     };
     if (s.kind === 'table') {
       var rows = s.rows || [];
@@ -1401,14 +1402,14 @@ function check(m) {
       rows.forEach(function (r) {
         fields.forEach(function (f) {
           count(f, r[f.k]); chk(f, r[f.k], r._id);
-          if (f.req === 'r' && empty(r[f.k]) && f.t !== 'bool') add('warn', s.id, r._id, '«' + nameOf(r) + '»: не заповнено «' + lbl(f.l, 'uk') + '».', '“' + nameOf(r) + '”: “' + lbl(f.l, 'en') + '” is empty.');
+          if (f.req === 'r' && empty(r[f.k]) && f.t !== 'bool') add('warn', s.id, r._id, '«' + nameOf(r) + '»: не заповнено «' + lbl(f.l, 'uk') + '».', '“' + nameOf(r) + '”: “' + lbl(f.l, 'en') + '” is empty.', f.k);
         });
       });
     } else {
       var v = s.values || {};
       fields.forEach(function (f) {
         count(f, v[f.k]); chk(f, v[f.k], '');
-        if (f.req === 'r' && empty(v[f.k]) && f.t !== 'bool') add('warn', s.id, '', 'Не заповнено «' + lbl(f.l, 'uk') + '».', '“' + lbl(f.l, 'en') + '” is empty.');
+        if (f.req === 'r' && empty(v[f.k]) && f.t !== 'bool') add('warn', s.id, '', 'Не заповнено «' + lbl(f.l, 'uk') + '».', '“' + lbl(f.l, 'en') + '” is empty.', f.k);
       });
     }
   });
@@ -1494,7 +1495,7 @@ function exportMech(card, lang, lib, man, cards) { // lib: audioLibrary(cards).a
     stage: m.stage || 'concept', type: m.type || '', purpose: m.purpose || '', rules: m.rules || '', tags: m.tags || [], links: m.links || [],
     sections: secs.map(function (x) { var n = frameworkNote(m.tpl, x.id, man); if (n) x.framework = { status: n.status, note: L === 'uk' ? n.uk : n.en, capabilities: n.caps }; return x; }),
     framework: { version: (man || FW_BUILTIN).version, relies_on: mechCaps(m).map(function (c) { return c.id; }), gaps: frameworkGaps(m, man).map(function (g) {
-      return { capability: g.id, status: g.status, title: g.title, notes: g.notes, ki: g.ki, decision: g.decision === 'game' ? 'build in game code' : g.decision === 'framework' ? 'requested from the framework' : 'undecided' }; }) }, completeness: c.pct, issues: c.issues.map(function (i) { return { level: i.level, section: i.sec, row: i.row, message: L === 'uk' ? i.uk : i.en }; }) };
+      return { capability: g.id, status: g.status, title: g.title, notes: g.notes, ki: g.ki, decision: g.decision === 'game' ? 'build in game code' : g.decision === 'framework' ? 'requested from the framework' : 'undecided' }; }) }, completeness: c.pct, issues: c.issues.map(function (i) { var o = { level: i.level, section: i.sec, row: i.row, message: L === 'uk' ? i.uk : i.en }; if (i.field) o.field = i.field; return o; }) };
   if (computed) out.computed = computed; // economy flow, drop %, loop closure, pacing, TTK / TTD, what the release lacks
   return out;
 }

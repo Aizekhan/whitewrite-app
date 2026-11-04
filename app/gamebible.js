@@ -301,13 +301,12 @@
         err: { json: "Це не JSON — попроси агента виправити файл: ", format: "Це файл іншого формату ({d}). Потрібен whitewrite.fill/1 — для резервних копій є «Відновити з JSON» у налаштуваннях.", shape: "Файл не схожий на шаблон WhiteWrite.", empty: "У файлі немає даних — перевір, що агент заповнив шаблон." },
         noformat: "У файлі немає «format: whitewrite.fill/1» — читаю як шаблон.",
         kinds: { characters: "персонажі", locations: "локації", factions: "фракції", artifacts: "артефакти", events: "події", peoples: "народи й раси", languages: "мови", beliefs: "віра й міфологія", customs: "звичаї" } },
-      guide: { btnOn: "Гід · етап {n}/{all}", btnOff: "Гід вимкнено", stage: "Етап {n} з {all}", or: "або", done: "Гід: усі розділи відкрито",
-        next: "Щоб відкрити «{s}», заповни {m}.", opened: "🧭 Відкрито етап «{s}» — нові розділи в меню", atStage: "етап {n} · {s}",
-        about: "розділи гри зʼявляються по етапах, у порядку розробки гри.", turnOff: "Вимкнути гід", resume: "Продовжити за гідом",
-        onT: "Увімкнути гід: розділи відкриватимуться по етапах", offT: "Вимкнути гід і показати всі розділи",
-        onQ: "Продовжити за гідом з етапу {n} «{s}»? Розділи наступних етапів знову сховаються з меню (картки в них лишаються) і зʼявлятимуться, коли заповниш поточні.",
-        offQ: "Вимкнути гід? У меню зʼявляться всі розділи одразу, і покрокова розробка гри зупиниться. Продовжити її з того самого етапу можна кнопкою «🧭 Гід» на обкладинці «Огляду гри».",
-        breakQ: "Розділ «{s}» за гідом ще попереду. Якщо увімкнути його зараз, гід вимкнеться й у меню зʼявляться всі розділи. Продовжити покроковий шлях з того самого етапу можна кнопкою «🧭 Гід» на обкладинці «Огляду гри». Увімкнути?" },
+      guide: { btnOn: "Гід · етап {n}/{all}", btnOff: "Гід вимкнено", stage: "Етап {n} з {all}", or: "або", done: "Гід: шлях до релізу пройдено",
+        next: "Далі «{s}»: заповни {m} або прийми ворота {g}.", nextGate: "Далі «{s}» — після воріт {g}.", opened: "🧭 Етап «{s}»: його розділи в меню вже не приглушені", atStage: "етап {n} · {s}",
+        after: "після {g}", laterSr: " — розділ наступного етапу", about: "етапи йдуть за воротами продакшн-плану (G0…G4); розділи наступних етапів у меню приглушені, але відкриваються.", turnOff: "Вимкнути гід", resume: "Продовжити за гідом",
+        onT: "Увімкнути гід: етапи за воротами, наступні розділи приглушені", offT: "Вимкнути гід",
+        onQ: "Продовжити за гідом з етапу {n} «{s}»? Розділи наступних етапів у меню приглушаться (усе відкривається як і раніше), етап іде за воротами продакшн-плану.",
+        offQ: "Вимкнути гід? Меню стане рівним, без підказки етапу. Продовжити з того самого етапу можна кнопкою «🧭 Гід» на обкладинці «Огляду гри»." },
       stRestore: "Відновити з копії (JSON)", stRestoreHint: "Файл гри відновлюється як нова гра в цьому світі, файл світу — як новий світ.",
       stRestored: "Відновлено", stBadJson: "Це не файл експорту WhiteWrite.",
       spent: "Списано токенів", writtenTo: "записано в картку",
@@ -601,13 +600,12 @@
         err: { json: "This is not JSON — ask the agent to fix the file: ", format: "This file has another format ({d}). whitewrite.fill/1 is needed — backups go through «Restore from JSON» in the settings.", shape: "The file does not look like the WhiteWrite template.", empty: "The file has no data — check that the agent filled the template." },
         noformat: "The file has no «format: whitewrite.fill/1» — reading it as the template.",
         kinds: { characters: "characters", locations: "locations", factions: "factions", artifacts: "artifacts", events: "events", peoples: "peoples & races", languages: "languages", beliefs: "faith & mythology", customs: "customs" } },
-      guide: { btnOn: "Guide · stage {n}/{all}", btnOff: "Guide off", stage: "Stage {n} of {all}", or: "or", done: "Guide: every section is open",
-        next: "To open «{s}», fill {m}.", opened: "🧭 Stage «{s}» is open — new sections in the menu", atStage: "stage {n} · {s}",
-        about: "the game's sections appear stage by stage, in the order a game is made.", turnOff: "Turn the guide off", resume: "Resume the guide",
-        onT: "Turn the guide on: sections open stage by stage", offT: "Turn the guide off and show every section",
-        onQ: "Resume the guide from stage {n} «{s}»? The next stages' sections leave the menu again (their cards stay) and come back as you fill the current ones.",
-        offQ: "Turn the guide off? Every section appears in the menu at once and the step-by-step road stops. Resume it from the same stage with «🧭 Guide» on the «Game overview» cover.",
-        breakQ: "«{s}» is still ahead on the guide. Switching it on now turns the guide off and shows every section. You can resume the step-by-step road from the same stage with «🧭 Guide» on the «Game overview» cover. Switch it on?" },
+      guide: { btnOn: "Guide · stage {n}/{all}", btnOff: "Guide off", stage: "Stage {n} of {all}", or: "or", done: "Guide: the road to release is walked",
+        next: "Next «{s}»: fill {m} or approve the gate {g}.", nextGate: "Next «{s}» — after the gate {g}.", opened: "🧭 Stage «{s}»: its sections are no longer dimmed", atStage: "stage {n} · {s}",
+        after: "after {g}", laterSr: " — a section of a later stage", about: "the stages follow the production plan's gates (G0…G4); later stages' sections are dimmed in the menu but open.", turnOff: "Turn the guide off", resume: "Resume the guide",
+        onT: "Turn the guide on: stages by the gates, later sections dimmed", offT: "Turn the guide off",
+        onQ: "Resume the guide from stage {n} «{s}»? The next stages' sections are dimmed in the menu (everything still opens), the stage follows the production plan's gates.",
+        offQ: "Turn the guide off? The menu goes flat, without the stage hint. Resume from the same stage with «🧭 Guide» on the «Game overview» cover." },
       stRestore: "Restore from a copy (JSON)", stRestoreHint: "A game file is restored as a new game in this world, a world file as a new world.",
       stRestored: "Restored", stBadJson: "This is not a WhiteWrite export file.",
       spent: "Tokens spent", writtenTo: "written to card",
@@ -634,6 +632,10 @@
   // Field templates: a new card starts with the structure of its section.
   var F = function (key, uk, en, type) { var d = { key: key, label: LANG === "en" ? en : uk }; if (type) d.type = type; return d; };
   // «Числа» of characters, enemies, items, gear: a table by default — «Параметр | Значення» and one empty row
+  // the vision of the game (v2.80): who it is for, what it is like and unlike, why it sells — the «Огляд гри» card, read by analyze / plan as any field
+  var VISION = function () { return [F("fantasy", "Фантазія гравця: ким він себе відчуває", "Player fantasy: who the player gets to be"), F("audience", "Аудиторія", "Audience"),
+    Object.assign(F("comparables", "Схожі ігри (ціна й чому)", "Comparable games (price and why)", "table"), { cols: LANG === "en" ? ["Game", "Price", "Why it is comparable"] : ["Гра", "Ціна", "Чому схожа"] }),
+    F("usp", "Чим вона інша (USP)", "What sets it apart (USP)"), F("anti", "Анти-стовпи: чим гра НЕ є", "Anti-pillars: what the game is NOT"), F("business", "Бізнес-модель і ціна", "Business model & price")]; };
   var NUM = function () { return Object.assign(F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
   var CANON = [
     { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
@@ -657,7 +659,7 @@
       defs: [F("logline", "Логлайн", "Logline"), F("genre", "Жанр", "Genre"), F("pillars", "Стовпи гри (3–4)", "Game pillars (3–4)"),
              F("loop", "Ігровий цикл", "Core loop"), F("platform", "Платформа", "Platform"), F("session", "Тривалість сесії", "Session length"),
              F("players", "Гравці (соло / кооп / PvP)", "Players (solo / co-op / PvP)"), F("refs", "Референси: гра → що саме беремо", "References: game → what we take"),
-             F("style", "Візуальний стиль", "Visual style")] },
+             F("style", "Візуальний стиль", "Visual style")].concat(VISION()) },
     { id: "lore", uk: "Лор гри", en: "Game lore",
       about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — в «Огляді світу» і «Законах».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
       defs: [F("text", "Опис", "Description")] },
@@ -843,20 +845,22 @@
   }
   function gameSections() { // «Огляд гри» is never hidden: the game opens on it and the 🧭 Гід switch lives on its cover
     var hidden = (game && game.hiddenSections) || [];
-    return gameSectionsAll().filter(function (s) { return s.id === "overview" || hidden.indexOf(s.id) < 0 && !guideHidden(s.id); });
+    return gameSectionsAll().filter(function (s) { return s.id === "overview" || hidden.indexOf(s.id) < 0; }); // the guide only dims (guideLater), it hides nothing
   }
-  // 🧭 Гід: a new game's menu opens stage by stage — the next stage's sections appear once each «need» of the current stage
-  // has a filled card on one of its shelves (games/{g}.guide { on, stage }; the reached stage only grows, deleting a card
-  // hides nothing). Off = every section, as before. Switching a guide-hidden section on in Settings turns the guide off;
-  // «🧭 Гід» on the «Огляд гри» cover resumes it from the reached stage. Navigation only — cards, MCP and exports see everything.
+  // 🧭 Гід (v2.80): the stages follow the Production plan's gates — G0–G1 the concept, the core and a greybox level, G2 the content,
+  // G3 balance and players, G4 the release. A stage is reached when its gate is approved (plan/current.gates: G1 → stage 2…) or when
+  // each «need» of the current stage has a filled card (games/{g}.guide { on, stage }; the reached stage only grows). Nothing is
+  // hidden: a later stage's sections are dimmed in the menu with «після G2». «🧭 Гід» on the «Огляд гри» cover turns it on / off.
+  // Navigation only — cards, MCP and exports see everything. after: the gate whose approval opens the stage.
   var GUIDE = [
-    { uk: "Задум", en: "Concept", show: ["overview", "lore", "refs", "artstyle"], need: [["overview"]] },
-    { uk: "Ядро гри", en: "Core", show: ["characters", "mechanics"], need: [["characters"], ["mechanics"]] },
-    { uk: "Світ і вороги", en: "World & enemies", show: ["locations", "levels", "enemies", "factions", "scenes"], need: [["levels", "locations"], ["enemies"]] },
-    { uk: "Наповнення", en: "Content", show: ["progression", "gear", "items", "quests", "dialogues", "worldgen"], need: [["progression", "gear", "items"]] },
-    { uk: "Арт і звук", en: "Art & sound", show: ["assets", "materials", "animation", "ui", "audio", "forge"], need: [["assets", "animation", "ui", "audio"]] },
-    { uk: "Виробництво", en: "Production", show: ["tech", "knowledge", "plan", "issues", "activity"], need: [["tech"]] },
-    { uk: "Реліз і гравці", en: "Release & players", show: ["experience", "telemetry", "marketing"], need: [] },
+    { uk: "G0–G1 · Задум, ядро і greybox", en: "G0–G1 · Concept, core & greybox", after: "", show: ["overview", "lore", "refs", "artstyle", "characters", "mechanics", "levels", "locations", "plan", "tech"],
+      todo: { uk: "огляд і бачення, ігрові цикли, відчуття гри, керування, один рівень з метриками, greybox", en: "overview & vision, game loops, game feel, controls, one level with metrics, greybox" },
+      need: [["overview"], ["mechanics"], ["levels", "locations"]] },
+    { uk: "G2 · Перший рівень і наповнення", en: "G2 · First level & content", after: "G1", show: ["enemies", "factions", "scenes", "worldgen", "quests", "dialogues", "forge", "gear", "items", "assets", "materials", "animation", "ui", "audio", "issues", "knowledge", "activity"],
+      todo: { uk: "квести й діалоги, Кузня персонажів, вороги, арт і звук", en: "quests & dialogues, the Character forge, enemies, art & sound" }, need: [["enemies"], ["assets", "animation", "ui", "audio"]] },
+    { uk: "G3 · Баланс і гравці", en: "G3 · Balance & players", after: "G2", show: ["progression", "experience", "telemetry"],
+      todo: { uk: "економіка, крива складності, плейтести й телеметрія", en: "economy, the difficulty curve, playtests & telemetry" }, need: [["progression", "gear", "items"]] },
+    { uk: "G4 · Реліз", en: "G4 · Release", after: "G3", show: ["marketing"], todo: { uk: "чекліст релізу, маркетинг", en: "the release checklist, marketing" }, need: [] },
   ];
   function guideOn() { return !!(game && game.guide && game.guide.on); }
   function shelfFilled(id) {
@@ -865,20 +869,26 @@
     return cards.some(function (c) { return c.section === id && !c.canonRef && (c.mech || Object.keys(c.fields || {}).some(function (k) { return String(c.fields[k] || "").trim(); })); });
   }
   function guideNeedMet(i) { return GUIDE[i].need.every(function (any) { return any.some(shelfFilled); }); }
+  function guideGateStage() { // the furthest stage whose opening gate is approved
+    var g = planDoc.gates || {}, st = 0;
+    GUIDE.forEach(function (x, i) { if (x.after && (g[x.after] || {}).status === "approved") st = Math.max(st, i); });
+    return st;
+  }
   function guideStage() {
     var i = 0; while (i < GUIDE.length - 1 && guideNeedMet(i)) i++;
-    return Math.max((game && game.guide && game.guide.stage) || 0, i);
+    return Math.min(GUIDE.length - 1, Math.max((game && game.guide && game.guide.stage) || 0, i, guideGateStage())); // a stage stored by the older 7-stage guide is clamped
   }
   function guideStageOf(id) { for (var i = 0; i < GUIDE.length; i++) if (GUIDE[i].show.indexOf(id) >= 0) return i; return -1; }
-  function guideHidden(id) { return guideOn() && guideStageOf(id) > guideStage(); }
+  function guideLater(id) { return guideOn() && guideStageOf(id) > guideStage(); } // a later stage's section: dimmed in the menu, never hidden
   function guideNextHtml() { // under the menu: where the guide stands and what opens the next stage
     if (!guideOn()) return "";
     var st = guideStage(), G = STR.guide;
     if (st >= GUIDE.length - 1) return '<div class="guide-next">🧭 ' + esc(G.done) + '</div>';
     var miss = GUIDE[st].need.filter(function (any) { return !any.some(shelfFilled); }).map(function (any) {
       return any.map(function (id) { var s = gameSectionsAll().filter(function (x) { return x.id === id; })[0]; return "«" + (s ? L(s) : id) + "»"; }).join(" " + G.or + " "); });
-    return '<div class="guide-next">🧭 ' + esc(G.stage.replace("{n}", st + 1).replace("{all}", GUIDE.length)) + ' · <b>' + esc(L(GUIDE[st])) + '</b><small>' +
-      esc(G.next.replace("{s}", L(GUIDE[st + 1])).replace("{m}", miss.join(", "))) + '</small></div>';
+    var nx = GUIDE[st + 1], todo = GUIDE[st].todo ? L(GUIDE[st].todo) : "";
+    return '<div class="guide-next">🧭 ' + esc(G.stage.replace("{n}", st + 1).replace("{all}", GUIDE.length)) + ' · <b>' + esc(L(GUIDE[st])) + '</b>' + (todo ? '<small>' + esc(todo) + '</small>' : '') + '<small>' +
+      esc((miss.length ? G.next.replace("{m}", miss.join(", ")) : G.nextGate).replace("{s}", L(nx)).replace("{g}", nx.after)) + '</small></div>';
   }
   function guideSave(on) { var st = guideStage(); return gref().set({ guide: { on: on, stage: st }, updatedAt: stamp() }, { merge: true }); }
   function guideToggle() {
@@ -1284,7 +1294,9 @@
   function navItem(s, all, label) {
     if (!mayRead(s.id)) return "";
     var lock = devLocked(s) ? ' 🔒' : ''; // a Worldbuilder section on a lower plan: seen before it is clicked
-    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(label || L(s)) + lock + '<span class="n">' + navCount(s, all) + '</span></button>';
+    var st = mode === "game" && guideLater(s.id) ? guideStageOf(s.id) : -1, later = st > 0 ? STR.guide.after.replace("{g}", GUIDE[st].after) : ""; // 🧭 a later stage: dimmed, «після G2»
+    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '"' + (later ? ' data-later="' + esc(GUIDE[st].after) + '" title="🧭 ' + esc(later + " · " + L(GUIDE[st])) + '"' : '') + '>' + esc(label || L(s)) + lock +
+      (later ? '<span class="sr">' + esc(STR.guide.laterSr + " (" + later + ")") + '</span>' : '') + '<span class="n">' + navCount(s, all) + '</span></button>';
   }
   // a section named like its group gets a short name inside it («Продакшн-план» → «План»)
   var NAV_SHORT = { plan: { uk: "План", en: "Plan" }, experience: { uk: "Метрики й проблеми", en: "Metrics & issues" } };
@@ -1299,7 +1311,8 @@
       if (mem.length === 1) { out.push(navTop(navItem(sec(mem[0]), all))); return; }
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
-      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '">' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
+      var gLater = mem.every(function (m) { return guideLater(m); }) ? GUIDE[Math.min.apply(null, mem.map(guideStageOf))] : null; // the whole group is later: the group dims too
+      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
       if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
@@ -2993,7 +3006,7 @@
       '<button type="button" class="mown" data-mown="1"><b>' + MC.own + '</b><span>' + esc(MC.ownHint) + '</span></button>' +
       '<h4>' + MC.catalog + '</h4><p class="hint">' + esc(MC.catHint) + '</p>' +
       '<div class="row"><input type="search" id="mt-q" placeholder="' + esc(MC.search) + '" aria-label="' + esc(MC.search) + '"><select id="mt-cat" aria-label="' + esc(MC.cat) + '"><option value="">' + MC.all + '</option>' +
-      M.categoriesFor(sid).map(function (c) { return '<option value="' + c.id + '"' + (c.id === cat0 ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }).join("") + '</select></div>' +
+      mCatOpts(sid, cat0) + '</select></div>' +
       '<div class="mtpls" id="mt-list">' + tplHtml("", cat0) + '</div><div class="row"><span style="flex:1"></span><button type="button" class="btn" id="ask-x">' + MC.cancel + '</button></div></div>';
     document.body.appendChild(box);
     var close = function () { box.remove(); }, upd = function () { box.querySelector("#mt-list").innerHTML = tplHtml(box.querySelector("#mt-q").value.trim(), box.querySelector("#mt-cat").value); };
@@ -3039,6 +3052,7 @@
     if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria);
     if (f.t === "refs") return mchips(path, mrowOpts(f), v, aria, inTable);
     if (f.t === "sound") return msound(path, f, v, inTable);
+    if (f.t === "card") return mcardPick(path, f, v);
     if (f.t === "num" || f.t === "pct" || f.t === "time")
       return '<input type="number" step="any" inputmode="decimal" data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + ' aria-label="' + esc(aria) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
     if (f.t === "long" || f.t === "json") return '<textarea data-mf="' + path + '" rows="' + (inTable ? 2 : 3) + '"' + (f.t === "json" ? ' class="mono"' : '') + ' aria-label="' + esc(aria) + '">' + esc(v == null ? "" : v) + '</textarea>';
@@ -3054,6 +3068,120 @@
     }).join("") + (canWrite ? '<button type="button" class="btn mini" data-sndpick="' + path + '" title="' + esc(A.pick) + '">' + (inTable ? '＋' : A.pick) + '</button>' +
       '<label class="btn mini" title="' + esc(A.up) + '">' + (inTable ? '⤒' : A.up) + '<input type="file" multiple hidden accept="audio/*" data-sndup="' + path + '"></label>' : '') + '</span>';
   }
+  // ---------- a «Картки гри» field (mechanics.js type card): the chosen cards as chips (a click takes one out), the rest in a searchable
+  // popover grouped by the sections in f.secs; card ids are stored (titles typed by hand earlier still resolve, as on the server: resolveCard) ----------
+  var MCX = { uk: { cardFind: "Знайти картку…", cardAdd: "Додати картку", cardNone: "У цих розділах поки немає карток.", cardMissing: "картки з такою назвою немає",
+      sysCats: "Системи гри", designCats: "Дизайн гри", must: "мінімум", mustT: "Базовий мінімум доступності: без нього частина гравців не зможе грати",
+      calc: "Порахувано", calcHint: "Ті самі формули, що бачить Claude Code (MCP get_mechanic → computed).",
+      cur: "Валюта", bal: "Запас по годинах", end: "За {h} год", net: "Чисте за останню годину", state: "Стан",
+      est: { ok: "рівновага", dead: "мертва: не заробити", nosink: "немає витрат", starved: "бракує з {h}-ї год", inflation: "інфляція" }, capAt: "межа на {h}-й год",
+      table: "Таблиця", item: "Предмет", weight: "Вага", chance: "Шанс", tries: "Спроб у середньому", pity: "Гарантія", sum: "сума ваг {n}",
+      layer: "Цикл", closed: "замикається", open: "розрив", breakAt: "з «{a}» немає шляху назад до «{b}»", layers: { session: "Сесія", meta: "Мета", long: "Довгий" },
+      level: "Рівень", pace: "Інтенсивність по тактах", mins: "Хвилин", notes: "Ознаки", flat: "рівний темп", peak: "{n} такти поспіль на 4–5", noValley: "немає спаду", paceOk: "напруга й відпочинок чергуються",
+      zone: "Зона · ворог", ttk: "TTK, с", ttd: "TTD, с", band: "ціль {b}", inBand: "у межах", outBand: "поза межами", boss: "бос",
+      ready: "{d} з {n} готово", lacks: "бракує: {l}", allReady: "усе готово", noPlat: "Обери платформи — тоді видно, чого бракує." },
+    en: { cardFind: "Find a card…", cardAdd: "Add a card", cardNone: "No cards in these sections yet.", cardMissing: "no card with this name",
+      sysCats: "Game systems", designCats: "Game design", must: "must-have", mustT: "A basic accessibility must-have: without it some players cannot play",
+      calc: "Computed", calcHint: "The same formulas Claude Code sees (MCP get_mechanic → computed).",
+      cur: "Currency", bal: "Stock hour by hour", end: "After {h} h", net: "Net in the last hour", state: "State",
+      est: { ok: "balanced", dead: "dead: cannot be earned", nosink: "nothing to spend on", starved: "runs dry at hour {h}", inflation: "inflation" }, capAt: "cap at hour {h}",
+      table: "Table", item: "Item", weight: "Weight", chance: "Chance", tries: "Tries on average", pity: "Pity", sum: "weights sum to {n}",
+      layer: "Loop", closed: "closes", open: "broken", breakAt: "“{a}” has no way back to “{b}”", layers: { session: "Session", meta: "Meta", long: "Long-term" },
+      level: "Level", pace: "Intensity by beat", mins: "Minutes", notes: "Signs", flat: "flat pace", peak: "{n} beats in a row at 4–5", noValley: "no dip", paceOk: "tension and rest alternate",
+      zone: "Zone · enemy", ttk: "TTK, s", ttd: "TTD, s", band: "target {b}", inBand: "in band", outBand: "out of band", boss: "boss",
+      ready: "{d} of {n} ready", lacks: "missing: {l}", allReady: "all ready", noPlat: "Pick the platforms — then you see what is missing." } }[LANG];
+  var DESIGN_CATS = ["feel", "loops", "leveldesign", "balance", "release"]; // mechanics.js v2.78: artefacts of the design, not systems
+  function mCatOpts(sid, cur) { // the category options; Mechanics: «Системи гри» and «Дизайн гри» as two groups
+    var o = function (c) { return '<option value="' + c.id + '"' + (c.id === cur ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }, cs = MX().categoriesFor(sid);
+    if (sid === "audio") return cs.map(o).join("");
+    return '<optgroup label="' + esc(MCX.sysCats) + '">' + cs.filter(function (c) { return DESIGN_CATS.indexOf(c.id) < 0; }).map(o).join("") + '</optgroup>' +
+      '<optgroup label="' + esc(MCX.designCats) + '">' + cs.filter(function (c) { return DESIGN_CATS.indexOf(c.id) >= 0; }).map(o).join("") + '</optgroup>';
+  }
+  var mCL = null; // the game's cards for card fields, once per render
+  function mCardList() {
+    return mCL || (mCL = allCards().filter(function (c) { return !(med && c.src === "game" && c.id === med.id); }).map(function (c) { return { id: c.id, title: c.title || "", section: c.section, canonRef: c.src === "canon" ? c.id : "" }; }));
+  }
+  function mCardRes(tok) { return MX().resolveCard(tok, mCardList()); }
+  function mCardText(v) { return MX().cardTokens(v).map(function (t) { var c = mCardRes(t); return c ? c.title || "…" : t; }).join(", "); } // a typed title without a card stays text (the picker marks it ⚠)
+  function mcardPick(path, f, v) {
+    var toks = MX().cardTokens(v), list = mCardList(), have = toks.map(function (t) { var c = mCardRes(t); return c ? c.id : ""; });
+    var ids = (f.secs || []).filter(function (id) { return list.some(function (c) { return c.section === id; }); });
+    if (!ids.length) list.forEach(function (c) { if (ids.indexOf(c.section) < 0) ids.push(c.section); }); // no cards in its sections: every section with cards
+    var chip = function (c, on) { return '<button type="button" class="mchip" data-mcard="' + path + '" data-v="' + esc(c.id) + '" aria-pressed="' + on + '">' + esc(c.title || "…") + '</button>'; };
+    var chosen = toks.map(function (t) { var c = mCardRes(t);
+      return c ? chip(c, true) : '<button type="button" class="mchip" data-mcard="' + path + '" data-v="' + esc(t) + '" aria-pressed="true" title="' + esc(MCX.cardMissing) + '">' + esc(t) + ' ⚠</button>'; }).join("");
+    var groups = ids.map(function (id) { var cs = list.filter(function (c) { return c.section === id; });
+      return '<div class="qpg"><span class="qh">' + esc(L(sec(id))) + ' <span class="mol-n">' + cs.length + '</span></span><span class="mchips">' + cs.map(function (c) { return chip(c, have.indexOf(c.id) >= 0); }).join("") + '</span></div>'; }).join("");
+    var pop = canWrite ? '<details class="mpop mcpick" data-mpick="' + path + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-haspopup="dialog" aria-label="' + esc(MCX.cardAdd + ": " + ml(f.l)) + '" title="' + esc(MCX.cardAdd) + '">＋</summary>' +
+      '<div class="mpop-b qpick" role="dialog" aria-label="' + esc(ml(f.l)) + '"><input type="search" class="qpq" data-mcq="1" value="' + esc(med.cq || "") + '" placeholder="' + esc(MCX.cardFind) + '" aria-label="' + esc(MCX.cardFind) + '">' +
+      (groups || '<p class="muted">' + esc(MCX.cardNone) + '</p>') + '</div></details>' : '';
+    return '<span class="mchips mcards" role="group" aria-label="' + esc(ml(f.l)) + '">' + chosen + pop + '</span>';
+  }
+  function mcqFilter() { // the card picker's search, in place
+    var q = String((med && med.cq) || "").toLowerCase();
+    [].forEach.call(document.querySelectorAll("#m-ed .mcpick .qpg"), function (g) {
+      var any = false; [].forEach.call(g.querySelectorAll(".mchip"), function (c) { var ok = !q || c.textContent.toLowerCase().indexOf(q) >= 0; c.hidden = !ok; any = any || ok; }); g.hidden = !any; });
+  }
+  function mCardTog(path, id) { // a chip: in or out (a typed title that names this card counts as it)
+    var sl = mslot(path), toks = MX().cardTokens(sl.o[sl.key]), out = toks.filter(function (t) { var c = mCardRes(t); return (c ? c.id : t) !== id; });
+    if (out.length === toks.length) out.push(id);
+    sl.o[sl.key] = out.map(function (t) { var c = mCardRes(t); return c ? c.id : t; }); // resolved titles become ids
+    renderMEditor();
+    var sq = mPickOpen === path && document.querySelector('#m-ed [data-mpick="' + path + '"] [data-mcq]'); if (sq) sq.focus();
+  }
+  // ---------- what the template's numbers mean (mechanics.js calc — the same functions MCP get_mechanic uses): under its section ----------
+  function mSpark(vals, w, h, hiFrom) { // a tiny line, no axes: the shape is the message, the numbers are in the table and the label
+    if (!vals.length) return "";
+    var mx = Math.max.apply(null, vals), mn = Math.min(0, Math.min.apply(null, vals)), span = mx - mn || 1, n = vals.length;
+    var xy = function (v, i) { return [(n === 1 ? w / 2 : i * (w - 4) / (n - 1) + 2).toFixed(1), (h - 2 - (v - mn) / span * (h - 4)).toFixed(1)]; };
+    return '<svg class="mspark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" role="img" aria-label="' + esc(vals.join(" · ")) + '"><polyline fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" points="' +
+      vals.map(function (v, i) { return xy(v, i).join(","); }).join(" ") + '"/>' + vals.map(function (v, i) { var p = xy(v, i); return hiFrom != null && v >= hiFrom ? '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="2.4" class="mspark-hi"/>' : ''; }).join("") + '</svg>';
+  }
+  function mCalcTable(head, rows) {
+    return '<div class="mtable mcalc-t"><table><thead><tr>' + head.map(function (h) { return '<th scope="col">' + esc(h) + '</th>'; }).join("") + '</tr></thead><tbody>' +
+      rows.map(function (r) { return '<tr>' + r.map(function (c, i) { return i ? '<td>' + c + '</td>' : '<th scope="row">' + c + '</th>'; }).join("") + '</tr>'; }).join("") + '</tbody></table></div>';
+  }
+  function mCalcHtml(s) {
+    var m = med.m, M = MX(), K = MCX, rn = function (secId, id) { var x = msec(secId), r = x && (x.rows || []).filter(function (y) { return y._id === id; })[0]; return r ? M.rowName(x, r) : id; };
+    var tag = function (ok, txt) { return '<span class="mcv ' + (ok ? 'mcv-ok' : 'mcv-warn') + '">' + (ok ? '✓ ' : '⚠ ') + esc(txt) + '</span>'; }, html = "";
+    if (m.tpl === "economy" && s.id === "currencies") {
+      var sim = M.econSim(m);
+      html = mCalcTable([K.cur, K.bal, K.end.replace("{h}", sim.hours), K.net, K.state], sim.rows.map(function (c) {
+        return [esc(c.name), mSpark(c.balance, 120, 26), '<span class="mono">' + c.end.toLocaleString() + '</span>', '<span class="mono">' + (c.netEnd > 0 ? "+" : "") + c.netEnd.toLocaleString() + '</span>',
+          tag(c.status === "ok", (K.est[c.status] || c.status).replace("{h}", c.out)) + (c.capped != null ? ' <span class="muted">· ' + esc(K.capAt.replace("{h}", c.capped)) + '</span>' : '')]; }));
+    } else if (m.tpl === "economy" && s.id === "loot") {
+      html = M.lootChances(m).map(function (t) {
+        return '<p class="mcalc-sub"><b>' + esc(K.table) + ' «' + esc(t.table) + '»</b> <span class="muted">' + esc(K.sum.replace("{n}", t.total)) + '</span></p>' +
+          mCalcTable([K.item, K.weight, K.chance, K.tries, K.pity], t.items.map(function (i) {
+            var off = i.drop != null && Math.abs(i.drop - i.chance) > 1; // the author's typed chance against the weight
+            return [esc(mCardText(rowItem(i.id)) || i.item || i.id), '<span class="mono">' + i.weight + '</span>', '<span class="mono">' + i.chance + ' %</span>' + (off ? ' ' + tag(false, i.drop + ' %') : ''),
+              '<span class="mono">' + (i.tries != null ? i.tries : "—") + '</span>', '<span class="mono">' + (i.pity != null ? i.pity : "—") + '</span>']; }));
+      }).join("");
+    } else if (m.tpl === "loops" && s.id === "nodes") {
+      html = mCalcTable([K.layer, K.state], M.loopClosure(m).map(function (l) {
+        return [esc(K.layers[l.layer] || l.layer), l.closed ? tag(true, K.closed) : tag(false, K.open) + ' <span class="muted">' + esc(l.open.map(function (id) { return K.breakAt.replace("{a}", rn("nodes", id)).replace("{b}", rn("nodes", l.start)); }).join("; ")) + '</span>']; }));
+    } else if (m.tpl === "level_metrics" && s.id === "beats") {
+      var bs = msec("beats"), beatsOf = function (lv) { return ((bs && bs.rows) || []).filter(function (r) { return (M.cardTokens(r.level).join(", ") || "—") === lv && r.intensity !== "" && r.intensity != null && !isNaN(+r.intensity); }); };
+      html = mCalcTable([K.level, K.pace, K.mins, K.notes], M.pacing(m).map(function (p) {
+        var signs = [p.flat ? K.flat : "", p.peakRun >= 3 || p.peakMinutes >= 12 ? K.peak.replace("{n}", p.peakRun) : "", p.valley ? "" : K.noValley].filter(Boolean);
+        return [esc(p.level === "—" ? p.level : mCardText(p.level)), mSpark(beatsOf(p.level).map(function (r) { return +r.intensity; }), 140, 30, 4), '<span class="mono">' + p.minutes + '</span>',
+          signs.length ? signs.map(function (x) { return tag(false, x); }).join(" ") : tag(true, K.paceOk)]; }));
+    } else if (m.tpl === "difficulty" && s.id === "zones") {
+      var cell = function (v, ok, b) { return v == null ? '<span class="muted">—</span>' : '<span class="mono mcv ' + (ok === false ? 'mcv-warn' : ok ? 'mcv-ok' : '') + '" title="' + esc(b ? K.band.replace("{b}", b.join("–")) : "") + '">' + (ok === false ? "⚠ " : ok ? "✓ " : "") + v + '</span>' +
+        (b ? ' <span class="muted">' + esc(b.join("–")) + '</span><span class="sr"> — ' + esc(ok === false ? K.outBand : K.inBand) + '</span>' : ''); };
+      html = mCalcTable([K.zone, K.ttk, K.ttd], M.difficultyCurve(m).map(function (z) {
+        return [esc((z.zone ? mCardText(z.zone) : "—") + (z.enemy ? " · " + z.enemy : "")) + (z.boss ? ' <span class="pill s-idea">' + esc(K.boss) + '</span>' : ''), cell(z.ttk, z.ttkOk, z.ttkBand), cell(z.ttd, z.ttdOk, z.ttdBand)]; }));
+    } else if (m.tpl === "release" && (s.id === "items" || s.id === "platforms")) {
+      var plats = M.releaseStatus(m).platforms, pf = ((msec("platforms") || {}).fields || []).filter(function (f) { return f.k === "platforms"; })[0];
+      html = !plats.length ? '<p class="muted">' + esc(K.noPlat) + '</p>' : '<ul class="mcalc-rel">' + plats.map(function (p) { // one platform at a time: the same releaseStatus with only it chosen
+        var one = JSON.parse(JSON.stringify(m)); one.sections.filter(function (x) { return x.id === "platforms"; })[0].values.platforms = [p];
+        var r = M.releaseStatus(one), name = pf ? (mopts(pf).filter(function (o) { return o[0] === p; })[0] || [p, p])[1] : p;
+        return '<li><b>' + esc(name) + '</b> · ' + esc(K.ready.replace("{d}", r.done).replace("{n}", r.total)) + ' · ' + (r.green ? tag(true, K.allReady) :
+          '<span class="muted">' + esc(K.lacks.replace("{l}", r.left.slice(0, 6).map(function (x) { return x.item; }).join(", ") + (r.left.length > 6 ? " … +" + (r.left.length - 6) : ""))) + '</span>') + '</li>'; }).join("") + '</ul>';
+    }
+    return html ? '<div class="mcalc" aria-live="polite"><h5>' + esc(K.calc) + ' <span class="muted" title="' + esc(K.calcHint) + '">ⓘ</span></h5>' + html + '</div>' : '';
+  }
+  function rowItem(id) { var s = msec("loot"), r = s && (s.rows || []).filter(function (x) { return x._id === id; })[0]; return r ? r.item : ""; }
   // the object and key a mechanic path points at ("g.key" / "si.-.k" / "si.ri.k") and its field
   function mslot(path) {
     var k = path.split("."), s = med.m.sections[+k[0]];
@@ -3111,6 +3239,7 @@
     if (f.t === "multi") return v.map(function (x) { return lab(mopts(f), x); }).join(", ");
     if (f.t === "refs") return v.map(function (x) { return lab(mrowOpts(f), x); }).join(", ");
     if (f.t === "bool") return v ? "✓" : "";
+    if (f.t === "card") return mCardText(v);
     return String(v);
   }
   // one cell: f — the field, v — the value; o.ed — an own editor (html), o.txt — an own text, o.prob — [level, message] from the checks
@@ -3129,20 +3258,20 @@
     var k = s.id + "|" + x.r._id + "|" + f.k, pr = probs[k];
     return '<td class="mt-' + f.t + (pr ? ' mprob' : '') + (extra || '') + '" data-mk="' + esc(k) + '" data-l="' + esc(ml(f.l)) + '">' + mcell(si + "." + x.i + "." + f.k, f, x.r[f.k], { prob: pr }) + '</td>';
   }
-  // the checks of mechanics.js mapped to rows and cells: a message names the field «label» and its row id
+  // the checks of mechanics.js mapped to rows and cells: the issue's own field (i.field), else the field its message names «label»
   function mProbs(r) {
     var out = {}, rank = { error: 2, warn: 1 };
     r.issues.forEach(function (i) {
       if (i.level === "tip") return;
       var s = msec(i.sec); if (!s) return;
-      var f = (s.fields || []).filter(function (x) { return i.uk.indexOf("«" + MX().lbl(x.l, "uk") + "»") >= 0; })[0], k = s.id + "|" + (i.row || "-") + (f ? "|" + f.k : "");
+      var fk = mIssField(i), k = s.id + "|" + (i.row || "-") + (fk ? "|" + fk : "");
       [k, s.id + "|" + (i.row || "-")].forEach(function (key) { if (!out[key] || rank[i.level] > rank[out[key][0]]) out[key] = [i.level, LANG === "en" ? i.en : i.uk]; });
     });
     return out;
   }
   function mOpenCell(path) {
     var sl = mslot(path); med.cell = path; med.cellOrig = JSON.stringify(sl.o[sl.key] === undefined ? null : sl.o[sl.key]); med.cellNone = sl.o[sl.key] === undefined;
-    if (sl.f.t === "multi" || sl.f.t === "refs") mPickOpen = path; // the picker opens at once
+    if (sl.f.t === "multi" || sl.f.t === "refs" || sl.f.t === "card") mPickOpen = path; // the picker opens at once
     renderMEditor();
   }
   function mCommit(focus) {
@@ -3260,7 +3389,7 @@
   function mFieldsHtml(s, si, probs) {
     var v = s.values || (s.values = {});
     return '<div class="qgrid mfields">' + mshown(s).map(function (f) {
-      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs" || f.t === "sound", k = s.id + "|-|" + f.k;
+      var inner = minput(si + ".-." + f.k, f, v[f.k], false), wide = f.t === "long" || f.t === "json" || f.t === "multi" || f.t === "refs" || f.t === "sound" || f.t === "card", k = s.id + "|-|" + f.k;
       return '<div class="field' + (wide ? ' mwide' : '') + (probs[k] ? ' mprob mpf-' + probs[k][0] : '') + '" data-mk="' + esc(k) + '"' + (probs[k] ? ' title="' + esc(probs[k][1]) + '"' : '') + '><span class="qh">' + esc(ml(f.l)) + mreq(f) + (f.u ? ' <i>' + esc(f.u) + '</i>' : '') +
         (f.custom && canWrite ? ' <button type="button" class="btn ghost mini" data-mact="rmField:' + si + ':' + esc(f.k) + '" aria-label="' + esc(MC.rmField + " " + ml(f.l)) + '">✕</button>' : '') + '</span>' + inner +
         (f.h ? '<span class="hint">' + esc(ml(f.h)) + '</span>' : '') + '</div>';
@@ -3409,8 +3538,9 @@
     var head = '<tr>' + (nameF ? th(nameF, "mt-name") : '<th scope="col" class="mt-name mt-id">ID</th>') + rest.map(function (f) { return th(f); }).join("") + '<th scope="col"><span class="sr">⋯</span></th></tr>';
     var body = rows.map(function (x) {
       var rk = s.id + "|" + x.r._id, nk = nameF ? rk + "|" + nameF.k : rk;
-      return '<tr data-mrow="' + esc(rk) + '"' + (probs[rk] ? ' class="mprow"' : '') + '><th scope="row" class="mt-name' + (nameF ? '' : ' mt-id mono') + (probs[nk] ? ' mprob' : '') + '" data-mk="' + esc(nk) + '" data-l="' + esc(nameF ? ml(nameF.l) : "ID") + '" title="ID ' + esc(x.r._id) + '">' +
-        (nameF ? mcell(si + "." + x.i + "." + nameF.k, nameF, x.r[nameF.k], { prob: probs[nk] || probs[rk] }) : esc(x.r._id)) + '</th>' +
+      var must = x.r._must ? ' <span class="pill mmust" title="' + esc(MCX.mustT) + '">★ ' + esc(MCX.must) + '</span>' : ''; // accessibility: the basic minimum
+      return '<tr data-mrow="' + esc(rk) + '"' + (probs[rk] || must ? ' class="' + (probs[rk] ? 'mprow' : '') + (must ? ' mmust-r' : '') + '"' : '') + '><th scope="row" class="mt-name' + (nameF ? '' : ' mt-id mono') + (probs[nk] ? ' mprob' : '') + '" data-mk="' + esc(nk) + '" data-l="' + esc(nameF ? ml(nameF.l) : "ID") + '" title="ID ' + esc(x.r._id) + '">' +
+        (nameF ? mcell(si + "." + x.i + "." + nameF.k, nameF, x.r[nameF.k], { prob: probs[nk] || probs[rk] }) : esc(x.r._id)) + must + '</th>' +
         rest.map(function (f) { return mtd(s, si, x, f, probs); }).join("") + mRowMenu(si, x.i, x.r._id, { prompt: s.prompt }) + '</tr>';
     }).join("");
     return bar + '<div class="mtable mrt"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
@@ -3420,7 +3550,7 @@
     var t = M.template(m.tpl);
     return qbox(MC.general, (med.legacy ? '<p class="hint">' + esc(MC.legacy) + '</p>' : '') + '<div class="qgrid">' +
       qfld(MC.title, '<input data-mg="title" value="' + esc(med.title) + '">') +
-      qfld(MC.cat, mselect("g.cat", M.categoriesFor(med.sec).map(function (x) { return [x.id, ml(x)]; }), m.cat, MC.cat)) +
+      qfld(MC.cat, '<select data-mf="g.cat" aria-label="' + esc(MC.cat) + '"><option value="">' + MC.none + '</option>' + mCatOpts(med.sec, m.cat) + '</select>') +
       (c && c.subs.length ? qfld(MC.sub, mselect("g.sub", c.subs.map(function (x) { return [x[0], x[LANG === "en" ? 2 : 1]]; }), m.sub, MC.sub)) : '') +
       qfld(MC.stage, '<select data-mf="g.stage" aria-label="' + esc(MC.stage) + '">' + M.STAGES.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === m.stage ? " selected" : "") + '>' + esc(x[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") + '</select>') +
       qfld(MC.status, '<select data-mg="status" aria-label="' + esc(MC.status) + '">' + STATUSES.map(function (x) { return '<option value="' + x.id + '"' + (x.id === med.status ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select>') +
@@ -3446,8 +3576,10 @@
     var n = r.issues.filter(function (i) { return i.level !== "tip"; }).length;
     return esc(ED.ready.replace("{d}", d).replace("{n}", main.length)) + ' · ' + (n ? '<button type="button" class="mgo edgo" data-mgo="__first">' + esc(ED.q(n)) + ' · ' + ED.go + '</button>' : '<span class="qd-ok">' + ED.clean + '</span>');
   }
-  function mIssField(i) { // the field a check message names («label»)
-    var s = msec(i.sec), f = s && (s.fields || []).filter(function (x) { return i.uk.indexOf("«" + MX().lbl(x.l, "uk") + "»") >= 0; })[0];
+  function mIssField(i) { // the field a check is about: its own key (mechanics.js add(…, field)), else the label its message names («label»)
+    var s = msec(i.sec); if (!s) return "";
+    if (i.field && (s.fields || []).some(function (x) { return x.k === i.field; })) return i.field;
+    var f = (s.fields || []).filter(function (x) { return i.uk.indexOf("«" + MX().lbl(x.l, "uk") + "»") >= 0; })[0];
     return f ? f.k : "";
   }
   function mIssuesHtml(r) {
@@ -3478,13 +3610,14 @@
         '<button type="button" role="menuitem" data-mact="addSec:table">' + MC.addTable + '</button></div></details>' : ''); // outside the nav: phones reach it too
   }
   function renderMEditor() {
+    mCL = null;
     var r = MX().check(med.m), probs = mProbs(r), s = med.tab === "general" ? null : msec(med.tab), si = s ? med.m.sections.indexOf(s) : -1;
     if (med.tab !== "general" && !s) { med.tab = "general"; return renderMEditor(); }
     if (s && s.adv) med.advOpen = true; // opening an advanced section unfolds its group
     var kind = !s ? "" : s.id === "ctable" && s.kind === "table" ? "combo" : s.id === "reactions" && s.kind === "table" ? "react" : s.kind;
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
       (kind === "combo" ? mComboHtml(s, si, probs) : kind === "react" ? mReactHtml(s, si, probs) : kind === "table" ? mTableHtml(s, si, probs) :
-        (mhid(s) ? '<div class="row mtbar"><span style="flex:1"></span>' + mAllFields(s) + '</div>' : '') + mFieldsHtml(s, si, probs)) +
+        (mhid(s) ? '<div class="row mtbar"><span style="flex:1"></span>' + mAllFields(s) + '</div>' : '') + mFieldsHtml(s, si, probs)) + mCalcHtml(s) +
       (canWrite && kind !== "combo" && kind !== "react" ? '<div class="row maddf-r"><details class="maddf-d"><summary class="btn ghost mini">' + MC.addField + '</summary><div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
         MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
         '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button></div></details><span style="flex:1"></span>' +
@@ -3502,6 +3635,7 @@
   function mAfter() { // after a render: the header's height for the sticky outline, popovers in place, the open cell focused
     var me = $("m-ed"), h = me && me.querySelector(".edhead"); if (h) me.style.setProperty("--edh", h.offsetHeight + "px");
     edSticky();
+    mcqFilter();
     [].forEach.call(document.querySelectorAll("#m-ed details.mpop[open]"), mPopPos);
     var ed = med.cell && document.querySelector("[data-mced]");
     if (ed && !ed.contains(document.activeElement)) {
@@ -3537,6 +3671,7 @@
   }
   function medInput(e) {
     var t = e.target; if (!med || !$("m-ed") || !t.dataset) return;
+    if (t.dataset.mcq) { med.cq = t.value; mcqFilter(); return; } // the card picker's search
     if (t.dataset.mcwho) { if (e.type === "change") { med.cwho = t.value; renderMEditor(); } return; }
     if (t.dataset.mcgby) { if (e.type === "change") { med.cgby = t.value; renderMEditor(); } return; }
     if (t.dataset.moltab) { if (e.type === "change") { med.tab = t.value; med.cell = ""; renderMEditor(); var ms = document.querySelector("[data-moltab]"); if (ms) ms.focus(); } return; }
@@ -3680,6 +3815,7 @@
     if (med.cell && !e.target.closest("[data-mced]")) mCommit(false); // a click elsewhere commits the open cell (the handlers below read only the target's data)
     var mc = e.target.closest("[data-mcell]"); if (mc) { mOpenCell(mc.dataset.mcell); return true; }
     var a = e.target.closest("[data-mact]"); if (a) { mAct(a.dataset.mact); return true; }
+    var mcd = e.target.closest("[data-mcard]"); if (mcd) { var mpk = mcd.closest("[data-mpick]"); mPickOpen = mpk ? mpk.dataset.mpick : ""; mCardTog(mcd.dataset.mcard, mcd.dataset.v); return true; }
     var ch = e.target.closest("[data-mchip]"); if (ch) { var pk = ch.closest("[data-mpick]"); mPickOpen = pk ? pk.dataset.mpick : ""; mChip(ch.dataset.mchip, ch.dataset.v); return true; }
     var sp = e.target.closest("[data-sndplay]"); if (sp) { playSound(soundUrl(sp.dataset.sndplay), sp); return true; }
     var sr = e.target.closest("[data-sndrm]"); if (sr) { var sl = mslot(sr.dataset.sndrm); sl.o[sl.key] = (sl.o[sl.key] || []).filter(function (x) { return x !== sr.dataset.v; }); renderMEditor(); return true; }
@@ -4200,6 +4336,8 @@
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
     if (c.section === "refs" && !draft.defs.some(function (d) { return d.type === "image"; })) // older reference cards get the pictures field too
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "pics", label: LANG === "en" ? "Pictures" : "Картинки", type: "image" });
+    var ov0 = c.section === "overview" && c.src === "game" && cards.filter(function (x) { return x.section === "overview" && !x.canonRef && !x.hidden; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); })[0];
+    if (ov0 && ov0.id === c.id) VISION().forEach(function (d) { if (!draft.defs.some(function (x) { return x.key === d.key; })) draft.defs.push(d); }); // the game's first overview card gets the vision fields (older cards had none)
     if (c.section === "audio" && !c.mech && !draft.defs.some(function (d) { return d.type === "audio"; })) // older sound cards get the sound field (Аудіотека)
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "sound", label: LANG === "en" ? "Sound" : "Звук", type: "audio" });
     setEditMode(false);
@@ -6109,8 +6247,8 @@
         '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
         '<p class="hint">' + STR.stExportHint + '</p>' +
         '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
-          var gh = guideHidden(s.id), st = guideStageOf(s.id);
-          return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + (((game.hiddenSections || []).indexOf(s.id) < 0 && !gh) ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
+          var gh = guideLater(s.id), st = guideStageOf(s.id);
+          return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
             (gh ? ' <small class="muted">🧭 ' + esc(STR.guide.atStage.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))) + '</small>' : '') + '</span></label>'; }).join("") + '</div>' +
         '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
@@ -6148,10 +6286,6 @@
       cb.onchange = async function () {
         var id = cb.dataset.showsec, hidden = (game.hiddenSections || []).filter(function (x) { return x !== id; }), up = { hiddenSections: hidden, updatedAt: stamp() };
         if (!cb.checked) hidden.push(id);
-        else if (guideHidden(id)) { // ahead of the guide: it would break the step-by-step road — warn, then the guide steps aside
-          if (!(await askConfirm(STR.guide.breakQ.replace("{s}", L(sec(id)))))) { cb.checked = false; return; }
-          up.guide = { on: false, stage: guideStage() };
-        }
         gref().set(up, { merge: true });
       };
     });
@@ -6766,10 +6900,10 @@
     if (!exExperiments.length) return html + '<p class="empty">' + X.abNone + '</p>';
     return html + exExperiments.map(function (x) {
       var r = res[x.id];
-      return '<article class="ex-issue"><div class="task__h"><b>' + esc(x.hypothesis) + '</b> <span class="pill s-' + (x.status === "running" ? "work" : "idea") + '">' + (x.status === "running" ? X.abRunning : X.abDone) + '</span>' +
+      return '<article class="ex-issue"><div class="task__h"><b>' + esc(x.hypothesis) + '</b> <span class="pill s-' + (x.status === "running" ? "work" : "idea") + '">' + (x.status === "running" ? X.abRunning : X.abDone) + '</span>' + (x.decision ? ' <span class="pill s-agreed">' + esc(BG.dec[x.decision] || x.decision) + '</span>' : '') +
         ' <span class="muted">' + esc((x.variants || []).join(" / ")) + ' → ' + esc(x.metricEvent) + '</span></div>' +
         (r ? exTable(["", X.players, X.abRate], Object.keys(r.variants).map(function (v) { var s = r.variants[v]; return [esc(v), s.players, pctTxt(s.rate) + ' (' + s.converted + ')']; })) +
-          (r.pValue != null ? '<p>' + X.abP + ': <b>' + r.pValue + '</b> · z = ' + r.zScore + '</p>' : '') + (r.enough ? '' : '<p class="hint">' + X.abSmall + '</p>') : '<p class="muted">' + X.noMetrics + '</p>') +
+          (r.pValue != null ? '<p>' + X.abP + ': <b>' + r.pValue + '</b> · z = ' + r.zScore + '</p>' : '') + (r.enough ? '' : '<p class="hint">' + X.abSmall + '</p>') : '<p class="muted">' + X.noMetrics + '</p>') + (x.decisionNote ? '<p class="muted">' + esc(x.decisionNote) + '</p>' : '') +
         (canWrite && x.status === "running" ? '<div class="row"><button class="btn" data-abstop="' + esc(x.id) + '">' + X.abStop + '</button></div>' : '') + '</article>';
     }).join("");
   }
@@ -6803,7 +6937,8 @@
     exp = exp ? Object.assign({}, exp, { tasks: (exp.tasks || []).concat([task]) }) : { id: "EXP", name: STR.ex.msName, goal: STR.ex.msGoal, gate: "", tasks: [task] };
     var batch = db.batch();
     batch.set(gref().collection("plan").doc("current"), { plan: { milestones: ms.concat([exp]) } }, { merge: true });
-    batch.set(gref().collection("tasks").doc(id), Object.assign({}, task, { status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp() }));
+    batch.set(gref().collection("tasks").doc(id), Object.assign({}, task, { kind: "bug", severity: ({ high: "s2", medium: "s3", low: "s4" })[x.priority] || "s3", foundIn: "telemetry:" + String(x.id).slice(0, 100), // a bug found by telemetry
+      status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp() }));
     batch.set(gref().collection("experienceIssues").doc(x.id), { status: "planned", taskId: id, chosenAction: act.change, updatedAt: stamp() }, { merge: true });
     await batch.commit();
     exMsg = STR.ex.planned.replace("{id}", id); render();
@@ -6841,7 +6976,7 @@
     [].forEach.call(v.querySelectorAll("[data-exval]"), function (b) { b.onclick = function () { exRun(X.computing, function () { return callEx({ op: "validate", issueId: b.dataset.exval, build: exBuild }).then(function (d) { return X.verdict[d.result.verdict] || d.result.verdict; }); }); }; });
     [].forEach.call(v.querySelectorAll("[data-exset]"), function (b) { b.onclick = function () { var p = b.dataset.exset.split(":"); gref().collection("experienceIssues").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }); }; });
     [].forEach.call(v.querySelectorAll("[data-ptset]"), function (b) { b.onclick = function () { var p = b.dataset.ptset.split(":"); gref().collection("playtests").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }); }; });
-    [].forEach.call(v.querySelectorAll("[data-abstop]"), function (b) { b.onclick = function () { gref().collection("experiments").doc(b.dataset.abstop).set({ status: "done", endedAt: stamp() }, { merge: true }); }; });
+    [].forEach.call(v.querySelectorAll("[data-abstop]"), function (b) { b.onclick = function () { stopExperiment(b.dataset.abstop).catch(function (e) { exMsg = STR.failed + ": " + e.message; render(); }); }; });
   }
 
   // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
@@ -6995,6 +7130,7 @@
     }).join("") + '</section>';
     if (planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length)) html += scaffoldHtml(planDoc.scaffold);
     if (plan) html += planHtml(plan);
+    else { var lb = tasks.filter(isBugT).sort(bySev); if (lb.length || (canWrite && gdd)) html += '<section class="psec">' + bugBarHtml(0) + (lb.length ? looseBugsHtml(lb) : '') + '</section>'; } // bugs before there is a plan
     $("view").innerHTML = html;
     [].forEach.call(document.querySelectorAll("[data-sc]"), function (cb) { cb.onchange = function () { scOff[cb.dataset.sc] = !cb.checked; }; });
     var scb = $("sc-ok"); if (scb) scb.onclick = function () { scb.disabled = true; applyScaffold().catch(function (e) { planMsg = STR.failed + ": " + e.message; render(); }); };
@@ -7061,8 +7197,18 @@
     return head + '<div class="row qq-bar"><b class="qq-n">' + STR.qOf.replace("{i}", qqIdx + 1).replace("{n}", oq.length) + '</b><span style="flex:1"></span>' +
       (oq.length > 1 ? '<button class="btn ghost mini" data-qskip>' + STR.qSkip + '</button>' : '') + '<button class="btn ghost mini" data-qall>' + STR.qAll + '</button></div>' + qHtml(oq[qqIdx], true) + '</section>';
   }
-  // the GDD areas as one compact table: area, state, what is missing, a link to the section it is about (matched by name)
-  function gddSecFor(title) {
+  // the GDD areas as one compact table: area, state, what is missing, a link to the section it is about — by section id: the area's own
+  // section (x.section), else the areas analyze names (gamedev.js: vision & pillars, loops, game feel…) mapped to their section, else by name
+  var GDD_AREAS = [[/vision|pillar|бачен|задум|стовп|концеп|monetiz|монетиз|business|бізнес/, "overview"], [/econom|економ|loot|лут|progress|прогрес/, "progression"],
+    [/loop|цикл|game feel|відчут|control|керуван|accessib|доступн|mechanic|механік|difficult|складн|balance|баланс|release|реліз|combat|бій|бойов|movement|рух/, "mechanics"],
+    [/lore|лор|setting|сеттинг/, "lore"], [/hub|хаб|city|town|місто/, "locations"],
+    [/item|предмет|gear|спорядж|inventor|інвентар/, "gear"], [/character|персонаж/, "characters"], [/enem|ворог|boss|бос/, "enemies"], [/level|рівн|pacing|темп/, "levels"],
+    [/\bui\b|\bux\b|інтерфейс/, "ui"], [/audio|sound|music|звук|музик/, "audio"], [/\bart\b|арт|visual|візуал/, "artstyle"], [/narrat|story|quest|сюжет|квест|наратив/, "quests"],
+    [/tech|engine|технічн|рушій|multiplayer|мультипле/, "tech"], [/world|світ/, "locations"]];
+  function gddSecFor(title, own) {
+    var ids = gameSections().map(function (s) { return s.id; }), t = String(title || "").toLowerCase();
+    if (own && ids.indexOf(own) >= 0) return own;
+    var a = GDD_AREAS.filter(function (x) { return x[0].test(t) && ids.indexOf(x[1]) >= 0; })[0]; if (a) return a[1];
     var words = String(title || "").toLowerCase().split(/[^a-zа-яіїєґ0-9]+/i).filter(function (w) { return w.length >= 4; }).map(function (w) { return w.slice(0, 5); });
     var hit = gameSections().filter(function (s) { var n = L(s).toLowerCase(); return s.id !== "overview" && words.some(function (w) { return n.indexOf(w) >= 0; }); })[0];
     return hit ? hit.id : "";
@@ -7071,7 +7217,7 @@
     if (!list.length) return '';
     var rank = { missing: 0, partial: 1, solid: 2 };
     return '<div class="gtab-w"><table class="gtab"><thead><tr><th>' + STR.gdDomain + '</th><th>' + STR.gdState + '</th><th>' + STR.gdMissing + '</th><th><span class="sr">' + STR.gdOpen + '</span></th></tr></thead><tbody>' +
-      list.slice().sort(function (a, b) { return (rank[a.status] || 0) - (rank[b.status] || 0); }).map(function (x) { var to = gddSecFor(x.title);
+      list.slice().sort(function (a, b) { return (rank[a.status] || 0) - (rank[b.status] || 0); }).map(function (x) { var to = gddSecFor(x.title, x.section);
         return '<tr><th scope="row">' + esc(x.title) + '</th><td><span class="pill g-' + esc(x.status) + '">' + esc(STR.st[x.status] || x.status) + '</span></td><td class="muted">' + esc(x.notes || "—") + '</td>' +
           '<td>' + (to ? '<button type="button" class="btn ghost mini" data-gosec="' + esc(to) + '">' + STR.gdOpen + '</button>' : '') + '</td></tr>'; }).join("") + '</tbody></table></div>';
   }
@@ -7261,22 +7407,39 @@
   }
   function taskHtml(t) {
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
-    return '<div class="task' + (lt ? ' t-' + lt.status : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span> <b>' + esc(t.title) + '</b>' +
+    var bt = isBugT(lt) ? lt : isBugT(t) ? t : null;
+    return '<div class="task' + (lt ? ' t-' + lt.status : '') + (bt ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + ' <b>' + esc(t.title) + '</b>' +
       (lt ? ' <span class="pill tst-' + lt.status + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
       (t.priority ? ' <span class="pill pr-' + t.priority + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
       (t.assetState ? ' <span class="pill st-' + t.assetState + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
       (lt ? whoHtml(lt) : '') +
       (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
-      (t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
+      (bt ? bugBody(bt) : t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
       ((t.cards || []).length ? '<div class="cchips">' + t.cards.map(function (r) { return cardChip(r, (t.roles || {})[r]); }).join("") + '</div>' : '') +
       (acc.length ? '<details><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit">' + acc.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul>' +
         (tst.length ? '<div class="muted">' + STR.tests + ': ' + esc(tst.join("; ")) + '</div>' : '') + '</details>' : '') +
       taskState(t) +
       (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
   }
+  // what a milestone lists: its plan tasks, then its bug tasks (S1 first); «Лише мої» / «🐞 Баги» narrow it
+  function msShown(m) {
+    var ts = m.tasks || [], ids = ts.map(function (t) { return t.id; });
+    var bugs = tasks.filter(function (t) { return isBugT(t) && t.milestone === m.id && ids.indexOf(t.id) < 0; }).sort(bySev);
+    var l = (bugsOnly ? ts.filter(function (t) { return isBugT(liveTask(t.id)); }) : ts).concat(bugs);
+    return mineOnly ? l.filter(isMine) : l;
+  }
+  function bugBarHtml(mineN) { // the plan's filters: «Лише мої задачі», «🐞 Баги N», «＋ Баг»
+    var open = tasks.filter(function (t) { return isBugT(t) && t.status !== "done"; }).length, P = STR.pp;
+    return '<div class="row pfilters">' + (mineN || mineOnly ? '<label class="bigcheck mineonly"><input type="checkbox" id="p-mine"' + (mineOnly ? ' checked' : '') + '><span class="bigcheck__box" aria-hidden="true"></span><span class="bigcheck__t">' + P.mine + ' <span class="muted">' + mineN + '</span></span></label>' : '') +
+      '<button type="button" class="btn mini" data-bugs aria-pressed="' + bugsOnly + '" title="' + esc(BG.onlyBugs) + '">' + BG.bugs + ' <span class="muted">' + open + '</span></button>' +
+      (canWrite ? '<button type="button" class="btn ghost mini" data-addbug>' + BG.add + '</button>' : '') + '</div>';
+  }
+  function looseBugsHtml(list) {
+    return '<div class="ms ms-bugs" id="ms-BUGS"><h3>' + esc(BG.loose) + ' <span class="muted">' + list.length + '</span></h3><p class="muted">' + esc(BG.looseHint) + '</p>' + list.map(taskHtml).join("") + '</div>';
+  }
   function msHtml(plan, m) {
-    var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [], shown = mineOnly ? ts.filter(isMine) : ts;
+    var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [], shown = msShown(m), s1 = openS1(m.id);
     var now = !!(plan.gated && m.track && !lock && g.status !== "approved"); // the gate the author decides now — the plan's one primary (unless questions wait)
     var done = ts.filter(function (t) { var lt = liveTask(t.id); return lt && lt.status === "done"; }).length;
     var list = function (title, a) { return a && a.length ? '<div class="ms__l"><b>' + title + ':</b><ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' : ''; };
@@ -7289,6 +7452,7 @@
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
       ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
+      (s1.length && g.status !== "approved" ? '<p class="warn gate-s1">⚠ ' + esc(BG.s1Gate.replace("{ids}", s1.join(", "))) + '</p>' : '') +
       (plan.gated && m.track && canWrite && !lock ? '<div class="row">' + (g.status === "approved" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>'
         : '<button class="btn' + (now && !openQs().length ? ' primary' : '') + '" data-gate="' + esc(m.id) + '" data-to="approved"' + (done < ts.length ? ' data-early="1"' : '') + '>' + P.approve + '</button>' +
           (g.status !== "returned" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>' : '')) + '</div>' : '') + '</div>' : '';
@@ -7343,12 +7507,138 @@
     if (c.src === "canon") Object.assign(body, { section: c.section, canonRef: c.id });
     gref().collection("cards").doc(c.id).set(body, { merge: true });
   }
+  // ---------- 🐞 bugs: tasks of kind bug (MCP report_bug, «＋ Баг» here, an experience issue → plan); S1–S4; in their milestone or «Баги поза етапами» ----------
+  var BG = { uk: { bugs: "🐞 Баги", add: "＋ Баг", formT: "Новий баг", title: "Що зламано", titlePh: "Напр.: гравець провалюється крізь міст у лісі", sevL: "Серйозність",
+      sev: { s1: "критичний", s2: "серйозний", s3: "помірний", s4: "косметичний" },
+      sevT: { s1: "S1 — падіння, втрата даних, прогрес заблоковано; відкритий S1 тримає ворота етапу", s2: "S2 — важлива функція не працює, обходу немає", s3: "S3 — не працює, але є обхід", s4: "S4 — косметика" },
+      repro: "Як відтворити (кроки)", reproPh: "1. Зайти в ліс\n2. Стрибнути на міст з розбігу\n3. …", expected: "Що мало бути", actual: "Що сталося", build: "Збірка / версія", buildPh: "0.4.2",
+      ms: "Етап", loose: "Баги поза етапами", looseHint: "Етап не вказано — Claude Code бере їх за серйозністю (S1, S2 першими).", links: "Повʼязані картки", find: "Знайти картку…",
+      found: { author: "автор", agent: "Claude Code", telemetry: "телеметрія" }, foundL: "Знайдено", onlyBugs: "Лише баги", none: "Багів немає ✓", saved: "Баг {id} записано",
+      s1Gate: "Відкритий баг S1: {ids} — ворота краще не приймати, доки його не виправлено.",
+      retroT: "Ворота {g} пройдено", retroHint: "Коротка ретроспектива — необовʼязково, але її побачить журнал рішень і Claude Code.", kept: "Що лишили", keptPh: "Що спрацювало і йде далі",
+      cut: "Що вирізали", cutPh: "Від чого відмовились і чому", learned: "Чого навчились", learnedPh: "Що змінимо на наступному етапі",
+      s1Warn: "Етап має відкриті баги S1 ({n}: {ids}). Прийняти ворота все одно можна.",
+      expT: "Чим завершити експеримент?", dec: { ship: "✓ Впроваджуємо", kill: "✕ Відмовляємось", iterate: "↻ Ще ітерація" }, decL: "Рішення", note: "Чому (коротко)", notePh: "Що показали дані",
+      log: "Журнал рішень", logHint: "Усі рішення гри в одному місці — те саме бачить Claude Code (get_project_overview → decisions).", logNone: "Рішень ще немає: відповіді на питання аналізу, прийняті ворота, запити на зміну, експерименти й прогалини фреймворку зʼявляться тут.",
+      type: { question: "Питання", change_request: "Запит на зміну", framework_gap: "Фреймворк", experiment: "Експеримент", gate: "Ворота" },
+      accepted: "прийнято", declined: "відхилено", ended: "завершено", open: "Відкрити", openCard: "Картка", toPlan: "До етапу", toExp: "Досвід гравців", noDate: "без дати" },
+    en: { bugs: "🐞 Bugs", add: "＋ Bug", formT: "New bug", title: "What is broken", titlePh: "E.g.: the player falls through the forest bridge", sevL: "Severity",
+      sev: { s1: "critical", s2: "major", s3: "moderate", s4: "cosmetic" },
+      sevT: { s1: "S1 — a crash, data loss, progress blocked; an open S1 holds its milestone's gate", s2: "S2 — a major feature broken, no workaround", s3: "S3 — broken, with a workaround", s4: "S4 — cosmetic" },
+      repro: "How to reproduce (steps)", reproPh: "1. Go to the forest\n2. Run-jump onto the bridge\n3. …", expected: "Expected", actual: "Actual", build: "Build / version", buildPh: "0.4.2",
+      ms: "Milestone", loose: "Bugs outside milestones", looseHint: "No milestone — Claude Code takes them by severity (S1, S2 first).", links: "Linked cards", find: "Find a card…",
+      found: { author: "author", agent: "Claude Code", telemetry: "telemetry" }, foundL: "Found by", onlyBugs: "Bugs only", none: "No bugs ✓", saved: "Bug {id} filed",
+      s1Gate: "Open S1 bug: {ids} — better not approve the gate until it is fixed.",
+      retroT: "Gate {g} passed", retroHint: "A short retrospective — optional, but the decision log and Claude Code see it.", kept: "What we kept", keptPh: "What worked and goes on",
+      cut: "What we cut", cutPh: "What we dropped and why", learned: "What we learned", learnedPh: "What changes in the next stage",
+      s1Warn: "The milestone has open S1 bugs ({n}: {ids}). You can still approve the gate.",
+      expT: "How does the experiment end?", dec: { ship: "✓ Ship it", kill: "✕ Kill it", iterate: "↻ Iterate" }, decL: "Decision", note: "Why (briefly)", notePh: "What the data showed",
+      log: "Decision log", logHint: "Every decision of the game in one place — Claude Code sees the same (get_project_overview → decisions).", logNone: "No decisions yet: answers to the analysis questions, approved gates, change requests, experiments and framework gaps will appear here.",
+      type: { question: "Question", change_request: "Change request", framework_gap: "Framework", experiment: "Experiment", gate: "Gate" },
+      accepted: "accepted", declined: "declined", ended: "ended", open: "Open", openCard: "Card", toPlan: "To the milestone", toExp: "Player experience", noDate: "no date" } }[LANG];
+  var bugsOnly = false;
+  function isBugT(t) { return !!t && t.kind === "bug"; }
+  var SEV = ["s1", "s2", "s3", "s4"];
+  function sevOf(t) { return SEV.indexOf(t.severity) >= 0 ? t.severity : "s3"; }
+  function sevChip(t) { var s = sevOf(t); return ' <span class="pill sev sev-' + s + '" title="' + esc(BG.sevT[s]) + '">' + s.toUpperCase() + ' · ' + esc(BG.sev[s]) + '</span>'; }
+  function bySev(a, b) { return SEV.indexOf(sevOf(a)) - SEV.indexOf(sevOf(b)) || (a.status === "done") - (b.status === "done"); }
+  function openS1(msId) { return tasks.filter(function (t) { return isBugT(t) && t.milestone === msId && sevOf(t) === "s1" && t.status !== "done"; }).map(function (t) { return t.id; }); }
+  function bugBody(t) {
+    var src = String(t.foundIn || ""), who = BG.found[src.split(":")[0]] || src;
+    var row = function (l, v) { return v ? '<div><b>' + esc(l) + ':</b> <span class="prewrap">' + esc(v) + '</span></div>' : ''; };
+    return '<div class="bugd">' + row(BG.repro, t.repro) + row(BG.expected, t.expected) + row(BG.actual, t.actual) +
+      ((t.build || who) ? '<div class="muted">' + (t.build ? esc(BG.build) + ': <span class="mono">' + esc(t.build) + '</span>' : '') + (t.build && who ? ' · ' : '') + (who ? esc(BG.foundL) + ': ' + esc(who) + (src.indexOf(":") > 0 ? ' <span class="mono">' + esc(src.split(":").slice(1).join(":")) + '</span>' : '') : '') + '</div>' : '') + '</div>';
+  }
+  // the links picker of the bug form: every card of the game by section, searchable; the pressed chips are the links (refs c:… / e:…)
+  function bugPickHtml() {
+    var all = allCards();
+    return '<div class="qpick askpick"><input type="search" class="qpq" data-bq="1" placeholder="' + esc(BG.find) + '" aria-label="' + esc(BG.find) + '">' + gameSections().map(function (s) {
+      var cs = all.filter(function (c) { return c.section === s.id; }); if (!cs.length) return "";
+      return '<div class="qpg"><span class="qh">' + esc(L(s)) + ' <span class="mol-n">' + cs.length + '</span></span><span class="mchips">' + cs.map(function (c) {
+        return '<button type="button" class="mchip" data-bref="' + esc(c.key) + '" aria-pressed="false">' + esc(c.title || "…") + '</button>'; }).join("") + '</span></div>'; }).join("") + '</div>';
+  }
+  function bugMsDefault() { // as the server's report_bug: the first open gate, else outside the milestones
+    var plan = planDoc.plan || {}, ms = plan.milestones || [], m = ms.filter(function (x) { return x.track && !msLock(plan, x) && gateOf(x).status !== "approved"; })[0];
+    return m ? m.id : "BUGS";
+  }
+  async function addBug() {
+    var plan = planDoc.plan || {}, ms = (plan.milestones || []).filter(function (m) { return !msLock(plan, m); });
+    var r = await askForm(BG.formT, [
+      { k: "title", label: BG.title, ph: BG.titlePh, req: true },
+      { k: "severity", label: BG.sevL, type: "select", value: "s3", opts: SEV.map(function (s) { return [s, BG.sevT[s]]; }) },
+      { k: "repro", label: BG.repro, ph: BG.reproPh, long: true, req: true },
+      { k: "expected", label: BG.expected, long: true }, { k: "actual", label: BG.actual, long: true },
+      { k: "build", label: BG.build, ph: BG.buildPh },
+      { k: "milestone", label: BG.ms, type: "select", value: bugMsDefault(), opts: ms.map(function (m) { return [m.id, m.id + " · " + (m.name || "")]; }).concat([["BUGS", BG.loose]]) },
+      { k: "links", label: BG.links, html: bugPickHtml() }],
+      { ok: BG.add, bind: function (box) {
+          box.addEventListener("click", function (ev) { var c = ev.target.closest("[data-bref]"); if (c) { ev.preventDefault(); c.setAttribute("aria-pressed", String(c.getAttribute("aria-pressed") !== "true")); } });
+          box.querySelector("[data-bq]").addEventListener("input", function () { var q = this.value.trim().toLowerCase();
+            [].forEach.call(box.querySelectorAll(".askpick .qpg"), function (g) { var any = false; [].forEach.call(g.querySelectorAll(".mchip"), function (c) { var ok = !q || c.textContent.toLowerCase().indexOf(q) >= 0 || c.getAttribute("aria-pressed") === "true"; c.hidden = !ok; any = any || ok; }); g.hidden = !any; }); });
+        }, read: function (box) { return { cards: [].map.call(box.querySelectorAll('[data-bref][aria-pressed="true"]'), function (c) { return c.dataset.bref; }).slice(0, 20) }; } });
+    if (!r) return;
+    var sev = SEV.indexOf(r.severity) >= 0 ? r.severity : "s3", id = "BUG-A" + Date.now().toString(36).toUpperCase(), cut = function (v, n) { return String(v || "").slice(0, n); };
+    var expected = cut(r.expected, 2000), actual = cut(r.actual, 2000);
+    await gref().collection("tasks").doc(id).set({ id: id, kind: "bug", milestone: r.milestone || "BUGS", title: cut(r.title, 200), severity: sev, repro: cut(r.repro, 4000), expected: expected, actual: actual,
+      build: cut(r.build, 80), foundIn: "author", relatedTask: "", cards: r.cards, detail: actual + (expected ? "\nExpected: " + expected : ""), deps: [], size: "S", owner: "dev",
+      priority: sev === "s1" || sev === "s2" ? "must" : "should", accept: ["The repro steps no longer reproduce the bug" + (expected ? ": " + expected : "")], tests: ["A regression test for the repro, where it can be automated"],
+      prompt: "Bug " + id + " (" + sev.toUpperCase() + "). Reproduce it with the steps, fix the cause, add a regression test where possible, then submit_task_result.",
+      status: "todo", order: 8000 + SEV.indexOf(sev), history: [{ type: "reported", by: "author", at: Date.now() }], createdAt: stamp(), updatedAt: stamp() }); // the same shape as mcp.js report_bug (rules: gameDocOk)
+    planMsg = BG.saved.replace("{id}", id); render();
+  }
+  // a gate: approving asks for a short retro (kept / cut / learned → gates.{id}.retro) and warns about open S1 bugs; returning asks what is wrong
   async function setGate(id, to, early) {
-    var P = STR.pp, comment = "";
-    if (to === "approved" && early && !(await askConfirm(P.early))) return;
-    if (to === "returned") { comment = await askText(P.returnPh, { ok: P.giveBack }); if (!comment) return; }
-    var upd = {}; upd[id] = { status: to, at: Date.now(), by: "author", comment: comment };
+    var P = STR.pp, upd = {};
+    if (to === "returned") {
+      var comment = await askText(P.returnPh, { ok: P.giveBack }); if (!comment) return;
+      upd[id] = { status: to, at: Date.now(), by: "author", comment: comment };
+    } else {
+      var s1 = openS1(id);
+      var r = await askForm(BG.retroT.replace("{g}", id), [{ k: "kept", label: BG.kept, ph: BG.keptPh, long: true }, { k: "cut", label: BG.cut, ph: BG.cutPh, long: true }, { k: "learned", label: BG.learned, ph: BG.learnedPh, long: true }],
+        { intro: (early ? P.early + " " : "") + BG.retroHint, warn: s1.length ? BG.s1Warn.replace("{n}", s1.length).replace("{ids}", s1.join(", ")) : "", ok: P.approve });
+      if (!r) return;
+      upd[id] = { status: to, at: Date.now(), by: "author", comment: "" };
+      if (r.kept || r.cut || r.learned) upd[id].retro = { kept: r.kept.slice(0, 2000), cut: r.cut.slice(0, 2000), learned: r.learned.slice(0, 2000) };
+    }
     await gref().collection("plan").doc("current").set({ gates: upd }, { merge: true });
+  }
+  // ---------- 📜 the decision log: the same sources as mcp.js decisionLog — answered questions, decided change requests, framework-gap
+  // decisions on mechanics, experiment outcomes, approved gates with their retro; newest first ----------
+  function msAt(v) { return !v ? 0 : typeof v === "number" ? v : v.toMillis ? v.toMillis() : v.seconds ? v.seconds * 1000 : 0; }
+  function decisionRows() {
+    var out = [], ans = planDoc.answers || {}, at = planDoc.answeredAt || {}, an = msAt(planDoc.analyzedAt), ms = (planDoc.plan || {}).milestones || [];
+    (planDoc.asked || []).filter(function (q) { return ans[q.id]; }).forEach(function (q) { out.push({ type: "question", at: msAt(at[q.id]) || an, title: q.question || q.topic || "", decision: ans[q.id], ref: q.target && q.target.card }); });
+    changeReqs.filter(function (c) { return ["accepted", "rejected", "declined"].indexOf(c.status) >= 0; }).forEach(function (c) {
+      out.push({ type: "change_request", at: msAt(c.decidedAt) || msAt(c.createdAt), title: c.what || "", decision: c.status === "accepted" ? BG.accepted : BG.declined, note: c.why || "", task: c.taskId || "" }); });
+    cards.filter(function (c) { return c.mech && !c.hidden && c.mech.fw && c.mech.fw.decisions; }).forEach(function (c) {
+      Object.keys(c.mech.fw.decisions).forEach(function (cap) { var v = c.mech.fw.decisions[cap]; if (!v) return;
+        out.push({ type: "framework_gap", at: msAt(c.updatedAt), title: (c.title || "") + " · " + cap, decision: v === "game" ? FWS.game : v === "framework" || v === "ask" ? FWS.ask : String(v), mech: c.id }); }); });
+    exExperiments.filter(function (x) { return x.decision || x.status === "done"; }).forEach(function (x) {
+      out.push({ type: "experiment", at: msAt(x.decidedAt) || msAt(x.endedAt), title: x.hypothesis || "", decision: BG.dec[x.decision] || BG.ended, note: x.decisionNote || "", sec: "experience" }); });
+    Object.keys(planDoc.gates || {}).forEach(function (id) { var g = planDoc.gates[id]; if (!g || g.status !== "approved") return;
+      var m = ms.filter(function (x) { return x.id === id; })[0] || {};
+      out.push({ type: "gate", at: msAt(g.at), title: id + (m.name ? " · " + m.name : ""), decision: STR.pp.approved, note: g.comment || "", retro: g.retro, ms: id }); });
+    return out.sort(function (a, b) { return b.at - a.at; });
+  }
+  function decisionLogHtml() {
+    var rows = decisionRows(), day = function (t) { return t ? new Date(t).toLocaleDateString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", year: "numeric" }) : BG.noDate; };
+    if (!rows.length) return '<p class="muted">' + esc(BG.logNone) + '</p>';
+    return '<p class="hint">' + esc(BG.logHint) + '</p><ol class="dlog">' + rows.map(function (x) {
+      var c = x.ref ? refCard(x.ref) : x.mech ? allCards().filter(function (y) { return y.src === "game" && y.id === x.mech; })[0] : null, r = x.retro || {};
+      var link = c ? '<button type="button" class="btn ghost mini" data-openref="' + esc(c.key) + '">' + esc(BG.openCard) + ' →</button>'
+        : x.ms ? '<button type="button" class="btn ghost mini" data-ptab="plan" data-msgo="' + esc(x.ms) + '">' + esc(BG.toPlan) + ' →</button>'
+        : x.sec ? '<button type="button" class="btn ghost mini" data-gosec="' + esc(x.sec) + '">' + esc(BG.toExp) + ' →</button>' : x.task ? '<span class="mono muted">' + esc(x.task) + '</span>' : '';
+      return '<li class="dl dl-' + x.type + '"><div class="dl-h"><span class="pill dl-t">' + esc(BG.type[x.type] || x.type) + '</span> <time class="muted">' + esc(day(x.at)) + '</time> <b>' + esc(x.title) + '</b><span style="flex:1"></span>' + link + '</div>' +
+        '<div class="dl-d">→ ' + esc(x.decision) + '</div>' + (x.note ? '<div class="muted">' + esc(x.note) + '</div>' : '') +
+        (r.kept || r.cut || r.learned ? '<ul class="dl-retro">' + [[BG.kept, r.kept], [BG.cut, r.cut], [BG.learned, r.learned]].filter(function (p) { return p[1]; }).map(function (p) { return '<li><b>' + esc(p[0]) + ':</b> ' + esc(p[1]) + '</li>'; }).join("") + '</ul>' : '') + '</li>';
+    }).join("") + '</ol>';
+  }
+  // an experiment ends with a decision: ship / kill / iterate + why → decision, decisionNote, decidedAt (the decision log reads them)
+  async function stopExperiment(id) {
+    var X = STR.ex, r = await askForm(BG.expT, [{ k: "decision", label: BG.decL, type: "select", value: "ship", opts: ["ship", "kill", "iterate"].map(function (d) { return [d, BG.dec[d]]; }) },
+      { k: "note", label: BG.note, ph: BG.notePh, long: true }], { ok: X.abStop });
+    if (!r) return;
+    await gref().collection("experiments").doc(id).set({ status: "done", endedAt: stamp(), decision: r.decision, decisionNote: r.note.slice(0, 2000), decidedAt: stamp() }, { merge: true });
   }
   function planHtml(plan) {
     var P = STR.pp, ms = plan.milestones || [];
@@ -7360,12 +7650,14 @@
       html += '<div class="ready"><span>' + STR.progress + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + done + ' / ' + tasks.length + '</b></div>';
     }
     if (plan.engineNotes) html += '<div class="nbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
-    html += '<div class="ptabs" role="tablist">' + ["plan", "matrix"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : P.tabMatrix) + '</button>'; }).join("") + '</div>';
+    html += '<div class="ptabs" role="tablist">' + ["plan", "matrix", "log"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : k === "matrix" ? P.tabMatrix : BG.log) + '</button>'; }).join("") + '</div>';
     if (planTab === "matrix") return html + matrixHtml() + '</section>';
+    if (planTab === "log") return html + decisionLogHtml() + '</section>';
     var mineN = tasks.filter(function (t) { return t.assignee && t.assignee.uid === myUid(); }).length;
-    if (mineN || mineOnly) html += '<label class="bigcheck mineonly"><input type="checkbox" id="p-mine"' + (mineOnly ? ' checked' : '') + '><span class="bigcheck__box" aria-hidden="true"></span><span class="bigcheck__t">' + P.mine + ' <span class="muted">' + mineN + '</span></span></label>';
-    if (mineOnly) ms = ms.filter(function (m) { return (m.tasks || []).some(isMine); });
-    if (mineOnly && !ms.length) return html + '<p class="muted">' + P.mineNone + '</p></section>';
+    html += bugBarHtml(mineN);
+    var msIds = ms.map(function (m) { return m.id; }), loose = tasks.filter(function (t) { return isBugT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); }).sort(bySev);
+    if (mineOnly || bugsOnly) ms = ms.filter(function (m) { return msShown(m).length; });
+    if ((mineOnly || bugsOnly) && !ms.length && !loose.length) return html + '<p class="muted">' + (bugsOnly ? BG.none : P.mineNone) + '</p></section>';
     if (!mineOnly) html += healthHtml(plan);
     var mvp = ms.filter(function (m) { return m.track === "mvp"; });
     if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
@@ -7378,6 +7670,7 @@
         : '<details class="trackbox"' + (group.some(function (m) { return !msLock(plan, m); }) ? ' open' : '') + '><summary><h3 class="sub track">' + P.track[tr] + ' <span class="muted">' + group.length + '</span></h3></summary>' + inner + '</details>';
     });
     ms.filter(function (m) { return !m.track; }).forEach(function (m) { html += msHtml(plan, m); }); // older plans and the experience fixes (EXP)
+    if (loose.length) html += looseBugsHtml(loose);
     if ((plan.parallel || []).length) html += '<h3 class="sub">' + STR.parallel + '</h3><ul>' + plan.parallel.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
     if ((plan.risks || []).length) html += '<h3 class="sub">' + STR.risks + '</h3><ul>' + plan.risks.map(function (r) { return '<li><b>' + esc(r.risk) + '</b> — ' + esc(r.mitigation) + '</li>'; }).join("") + '</ul>';
     if ((plan.gaps || []).length) html += '<h3 class="sub">' + STR.gaps + '</h3><ul>' + plan.gaps.map(function (g) {
@@ -7396,8 +7689,8 @@
   // An answer is a decision: it is kept with the plan AND written into the card it belongs to.
   async function answerQuestion(qid, text) {
     var q = (planDoc.asked || []).filter(function (x) { return x.id === qid; })[0]; if (!q || !text) return;
-    var upd = {}; upd[qid] = text;
-    await gref().collection("plan").doc("current").set({ answers: upd }, { merge: true });
+    var upd = {}, at = {}; upd[qid] = text; at[qid] = Date.now(); // answeredAt: the decision log's date (mcp.js decisionLog)
+    await gref().collection("plan").doc("current").set({ answers: upd, answeredAt: at }, { merge: true });
     await writeIntoCard(q.target, q.target && (q.target.field || q.topic), text);
   }
   async function writeIntoCard(target, label, text) {
@@ -7585,7 +7878,9 @@
     if (rv) { askConfirm(STR.exRevokeQ, { danger: true }).then(function (ok) { if (ok) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); }); return; }
     var orf = e.target.closest("[data-openref]"); if (orf) { var oc = allCards().filter(function (x) { return x.key === orf.dataset.openref; })[0]; if (oc) openCard(oc); return; }
     var gt = e.target.closest("[data-gate]"); if (gt) { setGate(gt.dataset.gate, gt.dataset.to, gt.dataset.early).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
-    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); return; }
+    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
+    if (e.target.closest("[data-bugs]")) { bugsOnly = !bugsOnly; render(); var bb = document.querySelector("[data-bugs]"); if (bb) bb.focus(); return; }
+    if (e.target.closest("[data-addbug]")) { addBug().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var acc = e.target.closest("[data-accept]"); if (acc) { var take = function () { acc.disabled = true; reviewTask(acc.dataset.accept, true); }; if (acc.dataset.unchecked) askConfirm(STR.acceptUnchecked).then(function (ok) { if (ok) take(); }); else take(); return; }
     var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
@@ -7723,6 +8018,35 @@
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(none); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(none); } });
     input.focus();
+  }
+  // a dialog with several fields (askName's look): fields [{ k, label, ph, long, req, type: "select", opts: [[v, label]], value, html }], opts { intro, warn, ok,
+  // bind(box) — wire an own control (html), read(box) — its values } → Promise<{k: text}> or null (Esc, «Скасувати», a click outside). Focus returns to the opener.
+  function askForm(title, fields, opts) {
+    opts = opts || {};
+    return new Promise(function (r) {
+      var back = document.activeElement, box = document.createElement("div"); box.className = "ask";
+      box.innerHTML = '<form class="ask-box askform" role="dialog" aria-modal="true" aria-label="' + esc(title) + '"><h3>' + esc(title) + '</h3>' +
+        (opts.warn ? '<p class="warn askform-warn" role="alert">⚠ ' + esc(opts.warn) + '</p>' : '') + (opts.intro ? '<p class="hint">' + esc(opts.intro) + '</p>' : '') +
+        fields.map(function (f) {
+          var id = "af-" + f.k, inner = f.html != null ? f.html : f.type === "select" ? '<select id="' + id + '">' + f.opts.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (o[0] === f.value ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join("") + '</select>'
+            : f.long ? '<textarea id="' + id + '" rows="3" placeholder="' + esc(f.ph || "") + '">' + esc(f.value || "") + '</textarea>' : '<input id="' + id + '" autocomplete="off" value="' + esc(f.value || "") + '" placeholder="' + esc(f.ph || "") + '">';
+          return (f.html != null ? '<div class="field">' : '<label class="field">') + '<span class="qh">' + esc(f.label) + (f.req ? ' <b class="mreq">*</b>' : '') + '</span>' + inner + (f.html != null ? '</div>' : '</label>'); }).join("") +
+        '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + esc(opts.ok || STR.save) + '</button></div></form>';
+      document.body.appendChild(box);
+      function finish(v) { box.remove(); if (back && back.focus && document.contains(back)) back.focus(); r(v); }
+      box.querySelector("form").onsubmit = function (ev) {
+        ev.preventDefault(); var out = {}, miss = null;
+        fields.forEach(function (f) { if (f.html != null) return; var el = box.querySelector("#af-" + f.k); out[f.k] = el.value.trim(); if (f.req && !out[f.k] && !miss) miss = el; });
+        if (miss) return miss.focus();
+        if (opts.read) Object.assign(out, opts.read(box));
+        finish(out);
+      };
+      box.querySelector("#ask-x").onclick = function () { finish(null); };
+      box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(null); });
+      box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(null); } });
+      if (opts.bind) opts.bind(box);
+      var first = box.querySelector("input,textarea,select"); if (first) first.focus();
+    });
   }
   // The same dialog instead of alert() / confirm(): notify(msg) — one OK; askConfirm(msg, { danger, okLabel }) → Promise<boolean>
   // (Esc, «Скасувати» or a click outside = false). Enter = OK (the focused button), focus returns to the opener.
@@ -8039,7 +8363,7 @@
     // Lazy streams: opened the first time a section that shows them is open (attachLazy in render), kept until the game changes
     kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null; mkState = null; mkChannels = []; mkPosts = []; mkTg = null; mkMsg = "";
     lazyStreams = [
-      [["experience"], function () {
+      [["experience", "plan"], function () { // the plan: experiment outcomes in the decision log
         unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
         unsub.push(gref().collection("experiments").onSnapshot(function (snap) { exExperiments = rows(snap); exRender(); }, function () {}));
         unsub.push(gref().collection("experience").doc("metrics").onSnapshot(function (d) { exMetrics = d.exists ? d.data() : null; exRender(); }, function () {}));

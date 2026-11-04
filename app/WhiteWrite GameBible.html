@@ -881,6 +881,30 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 .ms__l ul{ margin:2px 0 6px; padding-left:18px; font-size:14px; }
 .gatebox{ margin-top:12px; padding:10px 12px; border-radius:10px; border:1px solid rgba(240,169,59,.35); background:rgba(240,169,59,.05); display:grid; gap:6px; }
 .cutline{ margin:18px 0 6px; padding-top:8px; border-top:2px dashed var(--s-redo); color:var(--s-redo); font-size:13px; }
+/* v2.80 bugs (S1–S4: text + colour), the decision log, the retro / bug dialog */
+.pfilters{ align-items:center; gap:8px; margin:4px 0 12px; } .pfilters .mineonly{ margin:0; } .pfilters [data-bugs][aria-pressed="true"]{ border-color:var(--gold-lit); color:var(--tx-hi); background:var(--gold-soft); }
+.pill.sev{ font-weight:600; border-color:currentColor; } .sev-s1{ color:var(--s-redo); } .sev-s2{ color:var(--warn); } .sev-s3{ color:var(--s-work); } .sev-s4{ color:var(--tx-mid); border-color:var(--line-2) !important; }
+.task.t-bug{ border-left:3px solid var(--line-2); } .bugd{ display:grid; gap:3px; margin-top:6px; font-size:13.5px; } .prewrap{ white-space:pre-wrap; }
+.ms-bugs{ border-style:dashed; } .gate-s1{ margin:0; color:var(--s-redo); font-size:13px; }
+.dlog{ list-style:none; margin:8px 0 0; padding:0; display:grid; gap:8px; }
+.dl{ padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg-1); display:grid; gap:4px; }
+.dl-h{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; } .dl-d{ color:var(--tx-hi); } .dl-retro{ margin:2px 0 0; padding-left:18px; font-size:13.5px; color:var(--tx-mid); }
+.dl-gate .dl-t{ color:var(--s-game); border-color:currentColor; } .dl-question .dl-t{ color:var(--gold-lit); } .dl-experiment .dl-t{ color:var(--s-agreed); }
+.askform{ width:min(560px,calc(100vw - 40px)); max-height:calc(100vh - 40px); overflow:auto; overflow-x:hidden; grid-template-columns:minmax(0,1fr); } .askform .field{ display:grid; gap:4px; min-width:0; }
+.askpick .mchips{ display:flex; flex-wrap:wrap; gap:5px; } .askpick .mchip{ white-space:normal; text-align:left; }
+.askform textarea{ min-height:72px; font-size:14px; } .askform select{ width:100%; min-width:0; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:8px 10px; color:inherit; font:inherit; }
+.askform-warn{ color:var(--s-redo) !important; } .askpick{ width:auto; max-height:220px; border:1px solid var(--line); border-radius:8px; display:grid; }
+.askpick .qpg[hidden], .askpick .mchip[hidden]{ display:none; }
+/* v2.80 mechanics: card-field picker, computed results, ★ must-haves, the guide's later sections */
+.mcards{ align-items:center; } .mcpick > .mpop-b.qpick{ display:grid; }
+.mcalc{ margin-top:14px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.02); }
+.mcalc h5{ margin:0 0 8px; font:600 13px/1.3 var(--serif); color:var(--tx-hi); } .mcalc-sub{ margin:10px 0 4px; font-size:13.5px; }
+.mcalc-t table{ font-size:13px; } .mcalc-t td, .mcalc-t th{ vertical-align:middle; }
+.mspark{ display:block; color:var(--gold-lit); } .mspark-hi{ fill:var(--warn); }
+.mcv{ white-space:nowrap; } .mcv-ok{ color:var(--s-game); } .mcv-warn{ color:var(--warn); }
+.mcalc-rel{ margin:0; padding-left:18px; display:grid; gap:4px; font-size:13.5px; }
+.pill.mmust{ margin-left:6px; color:var(--gold-lit); border-color:rgba(240,169,59,.45); font-size:11px; } .mmust-r > th{ box-shadow:inset 2px 0 0 var(--gold-lit); }
+.nav-item[data-later]{ opacity:.55; } .nav-item[data-later]:hover, .nav-item[data-later]:focus-visible, .nav-item[data-later][aria-current="true"]{ opacity:1; }
 .cchips{ display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
 .cchip{ cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:3px 9px; border-radius:999px; border:1px solid var(--line-2); background:var(--bg-2, transparent);
   color:var(--tx); font:12.5px "Inter"; }

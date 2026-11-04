@@ -285,7 +285,7 @@ function decisionLog(ctx, changeRequests, experiments, cap = 50) {
   (changeRequests || []).filter((c) => ['accepted', 'rejected', 'declined'].includes(c.status)).forEach((c) =>
     out.push({ type: 'change_request', at: msOf(c.decidedAt) || msOf(c.createdAt), title: c.what || '', decision: c.status === 'accepted' ? 'accepted' : 'declined', note: c.why || '', task: c.taskId || '' }));
   ctx.cards.filter((c) => c.mech && !c.hidden && c.mech.fw && c.mech.fw.decisions).forEach((c) => Object.entries(c.mech.fw.decisions).filter(([, v]) => v).forEach(([cap0, v]) =>
-    out.push({ type: 'framework_gap', at: msOf(c.updatedAt), title: (c.title || '') + ' · ' + cap0, decision: v === 'game' ? 'build in the game code' : v === 'ask' ? 'ask the framework' : String(v) })));
+    out.push({ type: 'framework_gap', at: msOf(c.updatedAt), title: (c.title || '') + ' · ' + cap0, decision: v === 'game' ? 'build in the game code' : (v === 'framework' || v === 'ask') ? 'ask the framework' : String(v) })));
   (experiments || []).filter((x) => x.decision || x.status === 'done').forEach((x) =>
     out.push({ type: 'experiment', at: msOf(x.decidedAt) || msOf(x.endedAt), title: x.hypothesis || '', decision: x.decision || 'ended', note: x.decisionNote || '' }));
   const ms = (ctx.plan.plan || {}).milestones || [];

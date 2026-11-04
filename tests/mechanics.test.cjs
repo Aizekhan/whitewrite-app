@@ -196,6 +196,14 @@ check(M.releaseStatus(rl).left.map((x) => x.id).join(), 'RL14,RL15,RL16', 'addin
 const ex = M.exportMech({ id: 'e', mech: M.instantiate('economy') }, 'en', [], null, [{ id: 'pot', section: 'items', title: 'Зілля здоровʼя' }]);
 check(ex.computed.simulation.rows[0].end + '|' + JSON.stringify(st(ex, 'loot').rows[0].item) + '|' + st(ex, 'loot').rows[1].item[0].missing, '2616|[{"ref":"c:pot","title":"Зілля здоровʼя"}]|true', 'export: simulation, a typed title resolved to its card, an unknown one marked missing');
 check(M.exportMech({ id: 'u', mech: M.instantiate('umcf') }, 'en').computed, undefined, 'no computed block for templates without calculations');
+// issue → cell precision: a check names the field / column it is about (the Bible marks that cell; MCP passes it on)
+const fk = (m, row, re) => (codes(m).filter((i) => i.row === row && (!re || re.test(i.uk)))[0] || {}).field;
+check(fk(fe, 'GF2', /буфер/), 'buffer', 'game feel: the short input buffer points at the «buffer» column');
+check(fk(df, 'Z2', /гине надто швидко/), 'edps', 'difficulty: a TTD below the band points at the enemy DPS');
+check(fk(ec, 'LT3', /не збігається/), 'drop', 'loot: a typed chance against the weight points at «drop»');
+const rq = M.instantiate('economy'); delete st(rq, 'currencies').rows[0].earn;
+check(fk(rq, 'CU1', /не заповнено/), 'earn', 'a required empty cell names its own column');
+check(M.exportMech({ id: 'f', mech: fe }, 'en').issues.some((i) => i.field === 'buffer'), true, 'export: the agent sees the field of an issue');
 check(M.frameworkNote('economy', 'loot', M.FW_BUILTIN).status + '|' + M.frameworkNote('controls', 'map').status, 'exists|missing', 'framework notes: loot exists, the input map is game code');
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
