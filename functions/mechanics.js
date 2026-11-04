@@ -1110,7 +1110,7 @@ function lootChances(m) {
     var total = by[t].reduce(function (a, r) { return a + (+r.weight > 0 ? +r.weight : 0); }, 0);
     return { table: t, total: total, items: by[t].map(function (r) {
       var ch = total && +r.weight > 0 ? Math.round(+r.weight / total * 1000) / 10 : 0;
-      return { id: r._id, item: cardTokens(r.item).join(', '), weight: +r.weight || 0, chance: ch, drop: num(r.drop) ? +r.drop : null, tries: ch ? Math.round(100 / ch * 10) / 10 : null, pity: num(r.pity) ? +r.pity : null };
+      return { id: r._id, item: cardLabel(r.item), weight: +r.weight || 0, chance: ch, drop: num(r.drop) ? +r.drop : null, tries: ch ? Math.round(100 / ch * 10) / 10 : null, pity: num(r.pity) ? +r.pity : null };
     }) };
   });
 }
@@ -1202,7 +1202,7 @@ var LEVEL_METRICS = {
 // per level (rows grouped by their level, in order) → [{ level, beats, minutes, flat, rest (no rest: the longest run at intensity ≥ 4 in beats / minutes), valley }]
 function pacing(m) {
   var s = ((m && m.sections) || []).filter(function (x) { return x.id === 'beats'; })[0], by = {}, order = [];
-  ((s && s.rows) || []).forEach(function (r) { var k = cardTokens(r.level).join(', ') || '—'; if (!by[k]) { by[k] = []; order.push(k); } by[k].push(r); });
+  ((s && s.rows) || []).forEach(function (r) { var k = cardLabel(r.level) || '—'; if (!by[k]) { by[k] = []; order.push(k); } by[k].push(r); });
   return order.map(function (k) {
     var rs = by[k].filter(function (r) { return num(r.intensity); }), run = 0, runMin = 0, maxRun = 0, maxMin = 0, at = '';
     rs.forEach(function (r) { if (+r.intensity >= 4) { run++; runMin += +r.minutes || 0; if (run > maxRun || runMin > maxMin) { maxRun = Math.max(maxRun, run); maxMin = Math.max(maxMin, runMin); at = r._id; } } else { run = 0; runMin = 0; } });
@@ -1249,7 +1249,7 @@ function difficultyCurve(m) {
   return zs.map(function (z) {
     var ttk = +z.pdps > 0 && num(z.ehp) ? r1(+z.ehp / +z.pdps) : null, ttd = +z.edps > 0 && num(z.php) ? r1(+z.php / (+z.edps * Math.max(1, +z.count || 1))) : null;
     var kb = range(z.boss ? tv.bossTtk || tv.ttk : tv.ttk), db = range(tv.ttd);
-    return { id: z._id, zone: cardTokens(z.zone).join(', '), enemy: z.enemy || '', boss: !!z.boss, ttk: ttk, ttd: ttd, ttkBand: kb, ttdBand: db, ttkOk: inB(ttk, kb), ttdOk: inB(ttd, db) };
+    return { id: z._id, zone: cardLabel(z.zone), enemy: z.enemy || '', boss: !!z.boss, ttk: ttk, ttd: ttd, ttkBand: kb, ttdBand: db, ttkOk: inB(ttk, kb), ttdOk: inB(ttd, db) };
   });
 }
 function difficultyChecks(m, add) {
@@ -1441,6 +1441,15 @@ function soundSlots(m, lang) {
 function cardTokens(v) {
   return (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/[,;\n]/) : []).map(function (x) { return String(x == null ? '' : x).trim().replace(/^c:/, ''); }).filter(Boolean);
 }
+// card links shown by name in computed results and check messages: the Bible sets a namer over its live cards,
+// the server wraps one synchronous call in withCards(cards, fn)
+var namer = { fn: null };
+function cardLabel(v) { return cardTokens(v).map(function (t) { return (namer.fn && namer.fn(t)) || t; }).join(', '); }
+function setCardNamer(f) { namer.fn = f; }
+function withCards(cards, fn) {
+  var prev = namer.fn; namer.fn = function (t) { var c = resolveCard(t, cards); return c ? c.title : ''; };
+  try { return fn(); } finally { namer.fn = prev; }
+}
 // one token → the game card it names (by id, else by title, case-insensitive), or null
 function resolveCard(tok, cards) {
   var t = String(tok || '').trim().replace(/^c:/, ''), lo = t.toLowerCase(), live = (cards || []).filter(function (c) { return !c.hidden; });
@@ -1489,7 +1498,7 @@ function exportMech(card, lang, lib, man, cards) { // lib: audioLibrary(cards).a
     if (s.kind === 'table') o.rows = (s.rows || []).map(function (r) { var x = Object.assign({ id: r._id }, plain(r)), p = s.prompt && rowPrompt(m, s.id, r, L); if (p) x.generator_prompt = p; if (s.id === 'ctable') x.start = comboStart(m, r); return x; }); else o.values = plain(s.values || {});
     return o;
   });
-  var c = check(m), computed = calc(m);
+  var c = withCards(cards, function () { return check(m); }), computed = withCards(cards, function () { return calc(m); });
   var out = { id: card.id, title: card.title || '', template: t ? { id: t.id, name: lbl(t.name, L), version: m.tplVersion } : null,
     category: cat ? lbl(cat, L) : (card.fields && card.fields.group) || '', subcategory: cat && m.sub ? lbl((cat.subs.filter(function (s) { return s[0] === m.sub; })[0] || [])[L === 'uk' ? 1 : 2], L) : '',
     stage: m.stage || 'concept', type: m.type || '', purpose: m.purpose || '', rules: m.rules || '', tags: m.tags || [], links: m.links || [],
@@ -1505,7 +1514,7 @@ var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: C
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
   isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN,
   cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
-  difficultyCurve: difficultyCurve, releaseStatus: releaseStatus };
+  difficultyCurve: difficultyCurve, releaseStatus: releaseStatus, setCardNamer: setCardNamer, withCards: withCards };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;
 })();

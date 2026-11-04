@@ -1360,7 +1360,7 @@
     var lc = worstLic(c.files); if (lc) tags.push(lc);
     if (img) tags.push(styleMark(img.url, c, img.id));
     if (c.mech) { // a constructor mechanic: its template, how full it is, the worst problem
-      var mr = window.__MECH.check(c.mech), mw = window.__MECH.worst(mr.issues), mt = window.__MECH.template(c.mech.tpl);
+      var mr = MX().check(c.mech), mw = window.__MECH.worst(mr.issues), mt = window.__MECH.template(c.mech.tpl);
       if (mt) tags.push('<span class="pill">' + esc(window.__MECH.lbl(mt.name, LANG).replace(/\s*\(.*\)$/, "")) + '</span>');
       tags.push('<span class="flag" title="' + esc(MC.fill) + '">▤ ' + mr.pct + '%</span>');
       if (mw === "error" || mw === "warn") tags.push('<span class="flag qd-' + mw + '" title="' + esc(MC.checks) + '">' + (mw === "error" ? "✕ " : "⚠ ") + mr.issues.filter(function (i) { return i.level !== "tip"; }).length + '</span>');
@@ -2956,7 +2956,12 @@
   function mcFor(id) { MC = id === "audio" ? MCA : MC0; }
   var med = null; // the open mechanic: { id, isNew, card, title, status, m (draft), first, tab, adv (all fields), advOpen (the outline's «Розширене»), find: {secId: text}, sort: {secId: [key, dir]},
   //   cell (the table cell being edited: a path), cellOrig, wiz ({ s, step, row }: the first-row questions), wizOff {secId: 1}, cgby (the combo table's grouping) }
-  var MX = function () { return window.__MECH; };
+  var mxNamed = false; // card links in computed results / check messages read as card names (the live cards of this game)
+  var MX = function () {
+    var M = window.__MECH;
+    if (M && !mxNamed) { mxNamed = true; M.setCardNamer(function (t) { var c = M.resolveCard(t, cards); return c ? c.title : ""; }); }
+    return M;
+  };
   function ml(x) { return MX().lbl(x, LANG); }
   function catLabel(id) { var c = MX().category(id); return c ? ml(c) : ""; }
   function catOfGroup(g) { // a Mechanics subsection name (either language, old names too) → category id
@@ -4346,7 +4351,7 @@
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-delete").style.display = c.isNew ? "none" : "";
-    renderFields(); cardSubs(); msg("");
+    renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
   }
@@ -5068,7 +5073,17 @@
     ta.dataset.key = key;
     ta.rows = Math.min(24, Math.max(3, ta.value.split("\n").length + 1));
     el.replaceWith(ta); ta.focus();
-    ta.addEventListener("blur", function () { collect(ta); renderFields(); });
+    // re-render after the click that moved the focus has landed (re-rendering on blur swallowed that click and what was typed next);
+    // focus already in another field of the card → leave this one as it is, save() collects every open textarea
+    ta.addEventListener("blur", function () {
+      collect(ta);
+      var done = false, fin = function () {
+        if (done) return; done = true; clearTimeout(t); document.removeEventListener("click", late);
+        var a = document.activeElement; if (a && a !== ta && a.closest && a.closest("#e-body")) return;
+        if (ta.isConnected) renderFields();
+      }, late = function () { setTimeout(fin); }, t = setTimeout(fin, 350);
+      document.addEventListener("click", late);
+    });
   }
   // «Задум досвіду» (spec §14): what the segment is meant to feel like — the analytics compares play with it
   function intentHtml(it) {
@@ -5086,6 +5101,10 @@
     if (k === "__note") draft.note = ta.value; else if (k === "__canon") draft.canonDesc = ta.value; else draft.fields[k] = ta.value;
   }
   function msg(t) { $("e-msg").textContent = t; }
+  // the card as the author sees it now — compared with the snapshot taken on opening, so closing never drops edits silently
+  var leafFirst = "";
+  function leafSnap() { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); return JSON.stringify([$("e-title").value.trim(), $("e-status").value, draft]); }
+  function leafClose() { if (!open || !canWrite) return closeLeaf(); unsavedOk(leafSnap() !== leafFirst, closeLeaf); }
   function closeLeaf() {
     flushLabels(); setEditMode(false);
     open = null; draft = null; setTimeout(applyLang);
@@ -5125,7 +5144,7 @@
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
-      if (stay === true) { open.isNew = false; open.title = draft.title; $("e-delete").style.display = ""; msg(""); return; }
+      if (stay === true) { open.isNew = false; open.title = draft.title; $("e-delete").style.display = ""; msg(""); leafFirst = leafSnap(); return; }
       var savedTitle = draft.title;
       closeLeaf();
       if (touched.length) impactNote(savedTitle, touched);
@@ -8070,8 +8089,8 @@
     });
   }
   $("e-save").onclick = save;
-  $("e-close").onclick = closeLeaf;
-  $("scrim").onclick = function () { if (dos) closeDossier(); else closeLeaf(); };
+  $("e-close").onclick = leafClose;
+  $("scrim").onclick = function () { if (dos) closeDossier(); else leafClose(); };
   $("d-save").onclick = saveDossier;
   $("d-close").onclick = closeDossier;
   $("d-delete").onclick = deleteLore;
@@ -8079,7 +8098,7 @@
   window.addEventListener("ww-prices", function () { if (world && !open && !dos) render(); }); // the live price index arrived: the ✦ prices redraw
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && open) closeLeaf();
+    if (e.key === "Escape" && open && !document.querySelector(".ask")) leafClose();
     if (e.key === "Escape" && dos && !document.querySelector(".v3d")) closeDossier();
     if ((e.ctrlKey || e.metaKey) && e.key === "s" && dos) { e.preventDefault(); saveDossier(); }
     if ((e.ctrlKey || e.metaKey) && e.key === "s" && open) { e.preventDefault(); save(); }

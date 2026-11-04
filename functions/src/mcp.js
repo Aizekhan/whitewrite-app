@@ -659,7 +659,7 @@ async function callTool(name, args, key) {
       const list = ctx.cards.filter((c) => c.section === sec && !c.canonRef && !c.hidden && (!cat || (c.mech && c.mech.cat === cat)));
       return { section: sec, mechanics: list.map((c) => {
         if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', group: (c.fields || {}).group || '', constructor: false, fields: named(c) };
-        const r = MECH.check(c.mech), t = MECH.template(c.mech.tpl);
+        const r = MECH.withCards(ctx.cards, () => MECH.check(c.mech)), t = MECH.template(c.mech.tpl);
         return { ref: 'c:' + c.id, title: c.title || '', category: c.mech.cat, template: t ? MECH.lbl(t.name, 'en') : null, stage: c.mech.stage, status: c.status || 'idea',
           template_id: c.mech.tpl || '', purpose: c.mech.purpose || '', completeness: r.pct, problems: r.issues.filter((i) => i.level !== 'tip').length };
       }) };

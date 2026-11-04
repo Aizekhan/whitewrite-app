@@ -55,8 +55,8 @@ const labelMap = (o, n, max) => Object.fromEntries(Object.entries(o && typeof o 
 
 // A constructor mechanic / design artefact (functions/mechanics.js) in a few lines: template, stage, its sections in brief, the computed
 // numbers (economy flow, loop closure, pacing, TTK / TTD, what the release lacks) and the open problems — so analyze / plan see them.
-function mechText(m) {
-  const t = MECH.template(m.tpl), r = MECH.check(m), en = (x) => MECH.lbl(x, 'en');
+function mechText(m, cards) {
+  const t = MECH.template(m.tpl), r = MECH.withCards(cards, () => MECH.check(m)), en = (x) => MECH.lbl(x, 'en');
   const out = [`Constructor: ${t ? `${en(t.name)} (template ${t.id})` : 'own mechanic'} · stage ${m.stage || 'concept'} · ${r.pct}% filled`];
   if (m.purpose) out.push(`Purpose: ${str(m.purpose, 300)}`);
   if (m.rules) out.push(`Rules: ${str(m.rules, 400)}`);
@@ -70,7 +70,7 @@ function mechText(m) {
       if (v.length) out.push(`${en(s.title)}: ${v.join(', ')}`);
     }
   }
-  const c = MECH.calc(m);
+  const c = MECH.withCards(cards, () => MECH.calc(m));
   if (c) out.push(`Computed: ${str(JSON.stringify(c, (k, v) => (k === 'balance' ? undefined : v)), 900)}`);
   const issues = r.issues.filter((i) => i.level !== 'tip').slice(0, 4).map((i) => i.en);
   if (issues.length) out.push(`Open problems: ${issues.join(' | ')}`);
@@ -118,7 +118,7 @@ function bibleText(world, entities, cards, game, shelves, lore) {
   for (const c of cards) {
     if (c.canonRef) continue;
     card(`c:${c.id}`, `${c.section} — ${(own.find((s) => s.id === c.section) || {}).name || ''}`, c.title || '', c.status, named(c), c.note, c.files, c.intent);
-    if (c.mech && !c.hidden) lines.push(mechText(c.mech));
+    if (c.mech && !c.hidden) lines.push(mechText(c.mech, cards));
   }
   return lines.join('\n').slice(0, MAX_BIBLE_CHARS);
 }
