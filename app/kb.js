@@ -894,6 +894,7 @@
         min: 4,
         body: [
           ["p", "«Продакшн-план» ✦ (після аналізу) будує виробничий конвеєр, як у студіях, але під одного автора з ШІ-агентом і готовими префабами. Головна мета — якнайшвидше дійти до справжньої гри, яку можна зіграти."],
+          ["p", "Велику Біблію (сотні карток) план не впихає в одну відповідь ШІ: спершу пишеться каркас — етапи, ворота, бюджети, — а тоді задачі кожного етапу паралельно. Біблія читається один раз і далі береться з кешу, тож ціна майже як в одного проходу. Зазвичай це 2–5 хвилин; сторінку можна закрити — план зʼявиться сам. Якщо ШІ віддав зламану відповідь, виклик повторюється сам."],
           ["ul", [
             "<b>MVP — п'ять воріт:</b> G0 Сетап (проєкт збирається) → G1 Greybox (основний цикл на простих формах, і грати вже цікаво) → G2 Перший ігровий рівень (той самий рівень у стилі, з префабами, світлом і звуком) → G3 MVP завершено (сторонній гравець проходить від початку до кінця) → G4 Реліз-кандидат.",
             "<b>Розширення</b> — більше контенту для систем, уже перевірених у MVP. Відкривається після MVP.",
@@ -2161,6 +2162,7 @@
         min: 4,
         body: [
           ["p", "“Production plan” ✦ (after the analysis) builds a production pipeline the way studios work, cut down for one author with an AI agent and ready prefabs. Its one goal is to reach a real, playable game as fast as possible."],
+          ["p", "A big Bible (hundreds of cards) does not fit one AI answer, so the plan is written in parts: first the skeleton — milestones, gates, budgets — then every milestone's tasks in parallel. The Bible is read once and then comes from the cache, so the price stays close to a single pass. It usually takes 2–5 minutes; you can close the page — the plan appears by itself. A broken AI answer is retried automatically."],
           ["ul", [
             "<b>MVP — five gates:</b> G0 Setup (the project builds) → G1 Greybox (the core loop in simple shapes, and it is fun) → G2 First playable (that level styled with prefabs, light and sound) → G3 MVP complete (a stranger plays start to finish) → G4 Release candidate.",
             "<b>Expansion</b> — more content of systems already proven in the MVP. Opens after the MVP.",

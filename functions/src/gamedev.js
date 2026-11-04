@@ -362,10 +362,10 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 {"contradictions":[{"what":"","where":"","options":[""],"target":{"card":"","field":"description"}}]}`;
 }
 
-function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
-  return `You are the producer of this game — a solo author working with an AI coding agent (Claude Code) and bought/ready prefabs. Using the Game Bible, the GDD analysis and the author's decisions below, write a PRODUCTION PLAN the way real studios run production, cut down for one person: its one goal is to reach a real, playable MVP in the shortest time, step by step, and only then grow it.
-
-Pipeline (keep this structure, adapt the content to the game):
+// A big bible makes one plan answer longer than a model can write (tasks with prompts, accept, cards for 14 milestones) —
+// so the plan is written in two passes: planPrompt = the skeleton (milestones, gates, budgets — no tasks), then
+// planTasksPrompt for every milestone in parallel (its tasks + the scaffold cards they need). Each answer stays small.
+const PLAN_PIPELINE = `Pipeline (keep this structure, adapt the content to the game):
 - Track "mvp" — five milestones with GATES, ids G0…G4, in this order:
   G0 Setup — repository, engine project, folder & naming conventions (SM_/M_/T_/A_ prefixes…), MCP connection, a headless build that succeeds. Gate: the empty project builds and runs.
   G1 Core loop in greybox — the 3Cs (character, camera, controls), the core mechanic, win/lose, ONE greybox level from primitives — no final art. Gate: the author plays 5 minutes and it is fun; tests pass.
@@ -374,18 +374,16 @@ Pipeline (keep this structure, adapt the content to the game):
   G4 Release candidate — bug fixing, credits & attribution, store page assets, the release build. Gate: the release checklist is green.
 - Track "expansion" — 1-3 milestones (ids X1…): MORE content of systems already proven in the MVP (levels, enemies, items, quests). No new systems here.
 - Track "extra" — 0-6 milestones (ids F1…), ONE new feature/system each, RANKED by value for the player ÷ cost. Each starts with its own small greybox prototype gate. Set cutLine = how many of them are worth doing at all; the rest are "below the line" (kept, not planned).
-- Rule: a MUST card or system → MVP; more of a proven type → expansion; a new system → extra. Never plan styled/final art for a level before its greybox gate. Prefer ready prefabs (stand-ins) over making assets from scratch in the MVP.
-- Every milestone: id, track, name, goal, entry (what must be true to start), deliverables (concrete list), gate (one sentence), accept (2-6 pass/fail checks with the kind of evidence: test, screenshot, video, build, playtest), budgets (performance / polygon / texture / memory budgets that apply, from the bible or sensible for the engine and platform), estimateDays (solo + AI + bought assets).
-- Tasks inside each milestone: id like "G1.3" / "X1.2" / "F2.1", title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids), size S|M|L, estimate (days), owner design|dev|art|audio|qa, priority must|should|could, assetState — for art/asset tasks the state the assets must reach in this milestone (greybox | standin = a ready prefab placed as is | styled = unified to the art direction | final), accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task touches, each {"ref": "c:..." | "e:..." | "new:<title>", "role": implements | uses-asset | in-level | follows-style | constrained-by} (follows-style = the art-direction / style card it must match, constrained-by = a law, budget or technical card it must respect), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation or sourcing brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card. 3-8 tasks per milestone.
-- The bible must reach down to the details the art needs: art direction (palette, proportions, silhouettes, character style), texel density, materials (stone, grass, wood… surfaces), lighting mood, audio mood. health — what the bible still lacks for the MVP (issue, fix = what the author should add, cards = related refs); scaffold the missing cards below.
-- dod — the MVP definition of done in 3-6 checkable lines; estimateWeeks — the whole MVP (G0…G4).
-- parallel: which streams can run at the same time.
-- risks with mitigation.
-- gaps: things the engine/framework likely does not provide (need, missing, desiredApi, workaround). Empty for a generic engine unless obvious.
-- Ground everything in the bible; where the bible is silent, choose the simplest option and say so in the task detail.
-- scaffold — what the plan needs but the bible does NOT have yet, so the author can fill it in: cards (section = one of the game sections below by id, title, group = a subheading inside the section when it fits, need = what exactly must be made or decided, task = the task id that needs it) for missing prefabs, models, textures, animations, sounds, UI screens, references, mechanics, levels, items… Never duplicate a card that already exists (check titles; a card whose files include a model is already made). Add a new section only when no game section fits (name, about, why); then use its name as the card's section. Max 60 cards.
+- Rule: a MUST card or system → MVP; more of a proven type → expansion; a new system → extra. Never plan styled/final art for a level before its greybox gate. Prefer ready prefabs (stand-ins) over making assets from scratch in the MVP.`;
 
-GAME SECTIONS (id — name):
+// The same prefix opens every call of a plan and is cached (cache_control): the skeleton writes it, the milestone calls read
+// it at a tenth of the price — the bible is not paid fifteen times.
+const planPrefix = (bible, engine, answered, gdd, shelves) => ({ type: 'text', cache_control: { type: 'ephemeral' }, text: `You are the producer of this game — a solo author working with an AI coding agent (Claude Code) and bought/ready prefabs. Its production plan has one goal: to reach a real, playable MVP in the shortest time, step by step, and only then grow it — the way real studios run production, cut down for one person.
+
+${PLAN_PIPELINE}
+
+${planContext(bible, engine, answered, gdd, shelves)}` });
+const planContext = (bible, engine, answered, gdd, shelves) => `GAME SECTIONS (id — name):
 ${(shelves || []).filter((s) => s.kind === 'game').map((s) => `- ${s.id} — ${s.name}${s.groups.length ? ` (subheadings: ${s.groups.join(' | ')})` : ''}`).join('\n')}
 
 Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
@@ -393,10 +391,39 @@ Engine profile: ${ENGINE_PROFILES[engine] || ENGINE_PROFILES.generic}
 GDD analysis: ${JSON.stringify(gdd)}
 ${answeredText(answered)}
 BIBLE:
-${bible}
+${bible}`;
+
+function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
+  return [planPrefix(bible, engine, answered, gdd, shelves), { type: 'text', text: `Using the Game Bible, the GDD analysis and the author's decisions above, write the SKELETON of the PRODUCTION PLAN. The tasks of each milestone are written in a separate pass — here write NO tasks, only what that pass needs to write them.
+- Every milestone: id, track, name, goal, entry (what must be true to start), deliverables (concrete list), scope (3-8 lines: what its tasks must cover, with the bible card refs "c:…" / "e:…" they touch — the next pass writes the tasks from this), gate (one sentence), accept (2-6 pass/fail checks with the kind of evidence: test, screenshot, video, build, playtest), budgets (performance / polygon / texture / memory budgets that apply, from the bible or sensible for the engine and platform), estimateDays (solo + AI + bought assets).
+- The bible must reach down to the details the art needs: art direction (palette, proportions, silhouettes, character style), texel density, materials, lighting mood, audio mood. health — what the bible still lacks for the MVP (issue, fix = what the author should add, cards = related refs).
+- dod — the MVP definition of done in 3-6 checkable lines; estimateWeeks — the whole MVP (G0…G4).
+- parallel: which streams can run at the same time.
+- risks with mitigation.
+- gaps: things the engine/framework likely does not provide (need, missing, desiredApi, workaround). Empty for a generic engine unless obvious.
+- Ground everything in the bible; where the bible is silent, choose the simplest option and say so.
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"plan":{"overview":"","dod":[""],"estimateWeeks":10,"engineNotes":"","cutLine":2,"health":[{"issue":"","fix":"","cards":["c:..."]}],"milestones":[{"id":"G0","track":"mvp","name":"","goal":"","entry":"","deliverables":[""],"gate":"","accept":[""],"budgets":"","estimateDays":2,"tasks":[{"id":"G0.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":""}]}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]},"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"G2.1"}]}}`;
+{"plan":{"overview":"","dod":[""],"estimateWeeks":10,"engineNotes":"","cutLine":2,"health":[{"issue":"","fix":"","cards":["c:..."]}],"milestones":[{"id":"G0","track":"mvp","name":"","goal":"","entry":"","deliverables":[""],"scope":"","gate":"","accept":[""],"budgets":"","estimateDays":2}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]}}` }];
+}
+
+// Pass 2: one milestone of the skeleton → its tasks and the scaffold cards those tasks need
+function planTasksPrompt(bible, engine, answered, gdd, languageName, shelves, skeleton, m) {
+  const others = (skeleton.milestones || []).map((x) => `- ${x.id} [${x.track}] ${x.name}: ${x.goal}`).join('\n');
+  return [planPrefix(bible, engine, answered, gdd, shelves), { type: 'text', text: `The production plan's skeleton is ready; now write the TASKS of ONE milestone of it.
+
+THE PLAN (all milestones, for context and dependencies):
+${others}
+
+THE MILESTONE TO WRITE TASKS FOR:
+${JSON.stringify({ id: m.id, track: m.track, name: m.name, goal: m.goal, entry: m.entry, deliverables: m.deliverables, scope: m.scope, gate: m.gate, accept: m.accept, budgets: m.budgets })}
+
+- 3-8 tasks: id "${m.id}.1", "${m.id}.2"…, title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids — of this milestone, or of earlier milestones as "<id>.<n>"), size S|M|L, estimate (days), owner design|dev|art|audio|qa, priority must|should|could, assetState — for art/asset tasks the state the assets must reach in this milestone (greybox | standin = a ready prefab placed as is | styled = unified to the art direction | final), accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task touches, each {"ref": "c:..." | "e:..." | "new:<title>", "role": implements | uses-asset | in-level | follows-style | constrained-by} (follows-style = the art-direction / style card it must match, constrained-by = a law, budget or technical card it must respect), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation or sourcing brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card.
+- scaffold — what THESE tasks need but the bible does NOT have yet, so the author can fill it in: cards (section = one of the game sections below by id, title, group = a subheading inside the section when it fits, need = what exactly must be made or decided, task = the task id that needs it) for missing prefabs, models, textures, animations, sounds, UI screens, references, mechanics, levels, items… Never duplicate a card that already exists (check titles; a card whose files include a model is already made). Add a new section only when no game section fits (name, about, why); then use its name as the card's section. Max 15 cards.
+- Ground everything in the bible; where the bible is silent, choose the simplest option and say so in the task detail.
+
+Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
+{"tasks":[{"id":"${m.id}.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":""}],"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"${m.id}.1"}]}}` }];
 }
 
 // ---------- GitHub: the game's repository, read only on the author's button ----------
@@ -542,7 +569,7 @@ function mergeImports(results) {
   return out;
 }
 
-function parseJson(text) {
+function parseJson(text) { // throws «AI повернув не JSON» / SyntaxError — ask() retries the call once
   try { return JSON.parse(text); } catch (e) {
     const m = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
     if (!m) throw new Error('AI повернув не JSON');
@@ -669,23 +696,49 @@ exports.gamedevPlan = onRequest({
         : op === 'repoSync' ? [repoPrompt(repoData.text, bibleText(world, entities, cards, game, shelves, lore), shelves, languageName, cards)]
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
-      const prompt = prompts.join('');
+      const prompt = prompts.map((c) => (Array.isArray(c) ? c.map((b) => b.text).join('') : c)).join('');
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
+      const usage = { input_tokens: 0, output_tokens: 0 };
+      let usedModel = model;
+      // one call: usage is summed even when it fails (a cut-off answer is paid, token-service settle); a broken JSON — one more try
+      const ask = async (content, maxTokens, tries = 2) => {
+        // a model that vanished mid-flight → the call retries on a working one (claude.js withFallback)
+        const m = await withFallback(model, (mm) => anthropic.messages.stream({
+          model: mm, max_tokens: maxTokens, // thinking counts toward max_tokens
+          messages: [{ role: 'user', content }], output_config: { effort: 'medium' } }).finalMessage());
+        for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) usage[k] = (usage[k] || 0) + (m.usage[k] || 0);
+        usedModel = m.model || usedModel;
+        if (m.stop_reason === 'refusal') throw new Error('Claude відмовився виконати запит');
+        if (m.stop_reason === 'max_tokens') throw cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', usedModel, usage);
+        try { return parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')); }
+        catch (e) { if (tries > 1) return ask(content, maxTokens, tries - 1); throw Object.assign(e, { paid: { model: usedModel, usage } }); }
+      };
+      // parallel calls: wait for all (each one is paid), then fail with the first error
+      const all = async (list) => {
+        const out = await Promise.allSettled(list.map((f) => f()));
+        const bad = out.find((r) => r.status === 'rejected'); if (bad) throw bad.reason;
+        return out.map((r) => r.value);
+      };
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       else if (op !== 'import' && op !== 'draft' && op !== 'concepts' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
-      // a model that vanished mid-flight → the whole batch retries on a working one (claude.js withFallback)
-      const messages = await withFallback(model, (m) => Promise.all(prompts.map((content) => anthropic.messages.stream({
-        model: m,
-        max_tokens: op === 'plan' ? 48000 : 24000, // thinking counts toward max_tokens
-        messages: [{ role: 'user', content }],
-        output_config: { effort: 'medium' }
-      }).finalMessage())));
-      if (messages.some((m) => m.stop_reason === 'refusal')) throw new Error('Claude відмовився виконати запит');
-      if (messages.some((m) => m.stop_reason === 'max_tokens')) throw cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', messages[0].model || model,
-        messages.reduce((u, m) => ({ input_tokens: u.input_tokens + (m.usage.input_tokens || 0), output_tokens: u.output_tokens + (m.usage.output_tokens || 0) }), { input_tokens: 0, output_tokens: 0 }));
-      const results = messages.map((m) => parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')));
-      const usage = messages.reduce((u, m) => ({ input_tokens: u.input_tokens + (m.usage.input_tokens || 0), output_tokens: u.output_tokens + (m.usage.output_tokens || 0) }), { input_tokens: 0, output_tokens: 0 });
+      let results;
+      if (op === 'plan') { // pass 1 — the skeleton; pass 2 — every milestone's tasks in parallel (planTasksPrompt)
+        const skel = await ask(prompts[0], 64000);
+        const bible = bibleText(world, entities, cards, game, shelves, lore), sk = (skel && skel.plan) || {};
+        const ms = (Array.isArray(sk.milestones) ? sk.milestones : []).filter((m) => m && str(m.name, 1)).slice(0, 14);
+        if (!ms.length) throw Object.assign(new Error('AI не дав етапів плану'), { paid: { model: usedModel, usage } });
+        const parts = await all(ms.map((m) => () => ask(planTasksPrompt(bible, engine, answered, prev.gdd, languageName, shelves, sk, m), 32000)));
+        const scaffold = { sections: [], cards: [] }, seen = {};
+        ms.forEach((m, i) => {
+          const p = parts[i] || {}, sc = p.scaffold || {};
+          m.tasks = Array.isArray(p.tasks) ? p.tasks : [];
+          (Array.isArray(sc.sections) ? sc.sections : []).forEach((x) => { const k = 's:' + str(x && x.name, 80).toLowerCase(); if (!seen[k]) { seen[k] = 1; scaffold.sections.push(x); } });
+          (Array.isArray(sc.cards) ? sc.cards : []).forEach((x) => { const k = str(x && x.section, 80) + ':' + str(x && x.title, 160).toLowerCase(); if (!seen[k]) { seen[k] = 1; scaffold.cards.push(x); } });
+        });
+        sk.milestones = ms;
+        results = [{ plan: sk, scaffold }];
+      } else results = await all(prompts.map((content) => () => ask(content, op === 'analyze' ? 64000 : 24000)));
       const parsed = results[0];
 
       let proposal = null;
@@ -716,7 +769,7 @@ exports.gamedevPlan = onRequest({
         if (op === 'plan') await writeTasks(gameRef, update.plan);
       }
 
-      const { userCost } = await charge(db, uid, 'generateScene', messages[0].model || model, usage, null, {
+      const { userCost } = await charge(db, uid, 'generateScene', usedModel, usage, null, {
         provider: 'claude',
         targetWords: Math.round(usage.output_tokens * 0.75),
         estimatedInputTokens: Math.ceil(prompt.length / 4),
