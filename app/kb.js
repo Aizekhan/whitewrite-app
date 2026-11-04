@@ -1297,6 +1297,15 @@
           ["warn", "Видалення незворотне й захищене підтвердженням. Світ видаляється лише тоді, коли в ньому немає історій; разом зі світом видаляються його ігри й файли."],
           ["tip", "Перед великими змінами зроби експорт світу в JSON (⚙ Налаштування проєкту)."],
         ] },
+      { cat: "account", id: "signin", icon: "user", title: "Вхід і пароль",
+        lead: "Пошта й пароль або Google; забутий пароль скидається листом.",
+        min: 1,
+        body: [
+          ["p", "Вікно входу: вкладки «Вхід» / «Реєстрація», пошта й пароль (Enter — увійти) або «Продовжити з Google». Esc чи ✕ закривають вікно. Помилки (неправильна пошта чи пароль, забагато спроб, мережа) показуються одразу під полями."],
+          ["h", "Забули пароль?"],
+          ["p", "Впиши пошту у вкладці «Вхід» і натисни <b>«Забули пароль?»</b> під полем пароля — на цю пошту прийде лист із посиланням для нового пароля (перевір і «Спам»). Безкоштовно, на будь-якому тарифі."],
+          ["tip", "Якщо входиш через Google, пароля WhiteWrite в тебе немає — просто знову натисни «Продовжити з Google»."],
+        ] },
     ],
     articles_en: [
       // ── GETTING STARTED ──────────────────────────────────────────────
@@ -2564,6 +2573,15 @@
           ["p", "Stories live in worlds — in the World Bible, “Stories & chronicle”. A story's settings (title, description, length, ending, genres) are edited with ✎ on its card there, 🗑 deletes it; the length cannot go below the scenes already written."],
           ["warn", "Deletion is final and protected by a confirmation. A world can be deleted only when it has no stories; its games and files go with it."],
           ["tip", "Before big changes export the world to JSON (⚙ Project settings)."],
+        ] },
+      { cat: "account", id: "signin", icon: "user", title: "Sign-in and password",
+        lead: "Email and password or Google; a forgotten password is reset by email.",
+        min: 1,
+        body: [
+          ["p", "The sign-in window: “Sign In” / “Sign Up” tabs, email and password (Enter signs in) or “Continue with Google”. Esc or ✕ closes it. Errors (wrong email or password, too many attempts, network) appear right under the fields."],
+          ["h", "Forgot password?"],
+          ["p", "Type your email on the “Sign In” tab and press <b>“Forgot password?”</b> under the password field — an email with a link for a new password goes to that address (check Spam too). Free, on any plan."],
+          ["tip", "If you sign in with Google, you have no WhiteWrite password — just press “Continue with Google” again."],
         ] },
     ],
   };

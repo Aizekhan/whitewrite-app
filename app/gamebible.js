@@ -174,7 +174,7 @@
       saved: "Збережено", saving: "Зберігаю…", failed: "Не вдалося зберегти", confirmDel: "Прибрати цю картку назавжди?",
       live: "Зміни зберігаються в світі.", offline: "Немає звʼязку з базою.",
       lockedTitle: "Біблія гри — для геймдеву", lockedText: "Біблія гри та Продакшн-план доступні на тарифі Worldbuilder. Канон світу й історії лишаються з тобою на будь-якому тарифі.",
-      upgrade: "Переглянути тарифи", noWorld: "Світ не знайдено.", login: "Увійди, щоб відкрити біблію.",
+      upgrade: "Переглянути тарифи", noWorld: "Світ не знайдено.", login: "Увійди, щоб відкрити Біблію.", signIn: "Увійти",
       importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
@@ -474,7 +474,7 @@
       saved: "Saved", saving: "Saving…", failed: "Could not save", confirmDel: "Remove this card for good?",
       live: "Changes are saved in the world.", offline: "No connection to the database.",
       lockedTitle: "Game Bible — for game dev", lockedText: "The Game Bible and Production Plan are available on the Worldbuilder plan. Your world canon and stories stay with you on any plan.",
-      upgrade: "See plans", noWorld: "World not found.", login: "Sign in to open the bible.",
+      upgrade: "See plans", noWorld: "World not found.", login: "Sign in to open the Bible.", signIn: "Sign in",
       importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
@@ -7350,10 +7350,13 @@
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }
-  function locked(title, text, withUpgrade) {
+  function locked(title, text, withUpgrade, withSignIn) {
     document.body.style.display = "block";
     document.body.innerHTML = '<div class="locked"><h1>' + esc(title) + '</h1><p>' + esc(text) + '</p>' +
-      (withUpgrade ? '<button class="btn primary" id="up">' + STR.upgrade + '</button>' : '') + '</div>';
+      (withUpgrade ? '<button class="btn primary" id="up">' + STR.upgrade + '</button>' : '') +
+      (withSignIn ? '<button class="btn primary" id="signin">' + esc(STR.signIn) + '</button>' : '') + '</div>';
+    var si = document.getElementById("signin");
+    if (si) si.onclick = function () { try { window.top.location.href = "/"; } catch (e) { location.href = "/"; } }; // the shell opens sign-in for guests
     var up = document.getElementById("up");
     if (up) up.onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} }; // the shell's account (plans)
   }
@@ -7627,7 +7630,7 @@
   }
 
   firebase.auth().onAuthStateChanged(async function (user) {
-    if (!user) return locked(STR.brand, STR.login, false);
+    if (!user) return locked(STR.brand, STR.login, false, true);
     db = window.__firebase.db;
     db.collection("economy_operations").doc("generateScene").get().then(function (d) {
       var p = d.exists && (d.data().providers || {}).claude; if (p && p.cost) COST_BASE = p.cost;

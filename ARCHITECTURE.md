@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.77.1 (2026-11-04)
+**Version:** 2.77.2 (2026-11-04)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -705,6 +705,7 @@ firebase deploy                   # Deploy everything
 
 **Authentication:**
 - Firebase Auth (Email/Password, Google)
+- Sign-in modal (`#auth-modal` in `White.html`, v2.77.2): a `<form>` (Enter submits, `autocomplete` email / current- or new-password), focus on the email, Esc closes, Tab stays inside; errors and the reset result inline (`#auth-msg`, no `alert`). `firebase-auth.js`: `resetPassword(email)` → `sendPasswordResetEmail` («Забули пароль?»), results carry `code`, `_getErrorMessage` → i18n `auth.err.<code>` (uk + en, incl. `invalid-credential`). `firebase-lemon.js` reads `config/lemon_squeezy` only when signed in (rules: `config/*` read needs auth)
 - Server-side token validation in Cloud Functions
 
 ---
@@ -721,6 +722,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.77.2** sign-in UX: form + Enter, autocomplete, focus / Esc / Tab trap, «Забули пароль?» (`resetPassword`), inline i18n errors (`auth.err.*`, `invalid-credential`); stale names (White Tree, «всесвіт», «кадри» in the delete warning, uk «Email»); the Bible's guest screen has «Увійти» (→ `/`); KB reader close label i18n + focus; Lemon config not read for guests; KB «Вхід і пароль»
 - **v2.77.1** royal audit cleanup: the duplicated first half of this file removed, file tree and the Cloud Functions list matched to the code, stale Gemini / extraction / WorldTree / handoff notes fixed, the changelog moved out of «Last updated»; removed dead code: `economy-admin.js` (seedEconomy, checkMargin, setMargin, migrate*), `canon-extract.js`, syncCanonFromProject, backfillSceneCanonRefs, initializeUser, initLemonSqueezyConfig, Stripe `checkout.session.completed`, canon-store `mergeSuggestions`, unused rules blocks (`projects/{p}/narrative|director|snapshots`, `reconstructionQueue`)
 - **v2.77** 🏗 the production plan in two passes
 - **v2.76** 📜 the new-world form loads the whole world from one .md

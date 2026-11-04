@@ -45,7 +45,7 @@ function TitlePage({ title = "Попіл Орелії" }) {
       <div className="title-mark">✶</div>
       <div className="title-kicker">Книга перша</div>
       <h1 className="title-name">{title}</h1>
-      <div className="title-sub">всесвіт, що дихає у темряві бібліотеки</div>
+      <div className="title-sub">світ, що дихає у темряві бібліотеки</div>
       <div className="title-orn">· ✦ ·</div>
       <p className="title-epigraph">
         «Коли згасне остання зоря, хтось мусить пам’ятати, якою була ніч до неї.»

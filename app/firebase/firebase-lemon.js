@@ -9,6 +9,7 @@ async function loadLemonSqueezyConfig() {
       console.error('[LemonSqueezy] Firebase not initialized');
       return null;
     }
+    if (!window.__firebase.auth?.currentUser) return null; // config/* is readable only after sign-in (firestore.rules) — no console error for guests
 
     const doc = await db.collection('config').doc('lemon_squeezy').get();
     if (!doc.exists) {

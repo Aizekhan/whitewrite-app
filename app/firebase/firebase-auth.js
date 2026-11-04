@@ -14,7 +14,7 @@ window.__firebaseAuth = {
         window.__wwUser = {
           uid: user.uid,
           email: user.email,
-          name: user.displayName || user.email?.split('@')[0] || 'Майстер всесвітів',
+          name: user.displayName || user.email?.split('@')[0] || 'Майстер світів',
           avatar: user.photoURL || null,
           plan: 'seed', // Default plan (will be updated from Firestore)
           isAnonymous: user.isAnonymous
@@ -147,7 +147,7 @@ window.__firebaseAuth = {
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Sign in error:', error);
-      return { success: false, error: this._getErrorMessage(error) };
+      return { success: false, code: error.code || "", error: this._getErrorMessage(error) };
     }
   },
 
@@ -165,7 +165,7 @@ window.__firebaseAuth = {
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Sign up error:', error);
-      return { success: false, error: this._getErrorMessage(error) };
+      return { success: false, code: error.code || "", error: this._getErrorMessage(error) };
     }
   },
 
@@ -178,7 +178,20 @@ window.__firebaseAuth = {
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Google sign in error:', error);
-      return { success: false, error: this._getErrorMessage(error) };
+      return { success: false, code: error.code || "", error: this._getErrorMessage(error) };
+    }
+  },
+
+  // Password reset — Firebase emails a reset link to the address (the sign-in modal's «Забули пароль?»)
+  async resetPassword(email) {
+    try {
+      const auth = window.__firebase.auth;
+      try { auth.languageCode = window.__i18n ? window.__i18n.getLanguage() : "uk"; } catch (e) {}
+      await auth.sendPasswordResetEmail(email);
+      return { success: true };
+    } catch (error) {
+      console.error("Password reset error:", error);
+      return { success: false, code: error.code || "", error: this._getErrorMessage(error) };
     }
   },
 
@@ -190,24 +203,19 @@ window.__firebaseAuth = {
       return { success: true };
     } catch (error) {
       console.error('Sign out error:', error);
-      return { success: false, error: this._getErrorMessage(error) };
+      return { success: false, code: error.code || "", error: this._getErrorMessage(error) };
     }
   },
 
   // Token consumption is server-side only (Cloud Functions charge via token-service.js)
 
-  // Get user-friendly error messages
+  // User-friendly error messages — i18n keys auth.err.<code> (uk + en in app/i18n.js); the modal shows them inline
   _getErrorMessage(error) {
-    const code = error.code || '';
-
-    if (code === 'auth/user-not-found') return 'Користувача не знайдено';
-    if (code === 'auth/wrong-password') return 'Неправильний пароль';
-    if (code === 'auth/email-already-in-use') return 'Ця пошта вже використовується';
-    if (code === 'auth/weak-password') return 'Пароль занадто слабкий (мінімум 6 символів)';
-    if (code === 'auth/invalid-email') return 'Невірний формат email';
-    if (code === 'auth/popup-closed-by-user') return 'Вхід скасовано';
-    if (code === 'auth/network-request-failed') return 'Помилка мережі';
-
-    return error.message || 'Невідома помилка';
+    const code = String(error.code || '').replace(/^auth\//, '');
+    const t = window.__i18n ? window.__i18n.t : null;
+    if (!t) return error.message || code || 'error';
+    const key = 'auth.err.' + code;
+    const msg = code ? t(key) : key;
+    return msg === key ? t('auth.err.unknown') : msg;
   }
 };
