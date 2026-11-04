@@ -258,37 +258,6 @@ service cloud.firestore {
         allow read: if isAuthenticated() && isProjectOwner(projectId);
         allow write: if isAuthenticated() && isProjectOwner(projectId) && storyOpen(projectId);
       }
-
-      // Narrative subcollection (future)
-      match /narrative/{docId} {
-        allow read: if isAuthenticated() && isProjectOwner(projectId);
-        allow write: if isAuthenticated() && isProjectOwner(projectId);
-      }
-
-      // Director subcollection (future)
-      match /director/{docId} {
-        allow read: if isAuthenticated() && isProjectOwner(projectId);
-        allow write: if isAuthenticated() && isProjectOwner(projectId);
-      }
-
-      // Snapshots subcollection (future)
-      match /snapshots/{snapshotId} {
-        allow read: if isAuthenticated() && isProjectOwner(projectId);
-        allow create: if isAuthenticated() && isProjectOwner(projectId);
-        allow delete: if false; // Snapshots are immutable
-      }
-    }
-
-    // Reconstruction queue (future, global but user-scoped)
-    match /reconstructionQueue/{queueId} {
-      allow read: if isAuthenticated() &&
-                     resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() &&
-                       request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() &&
-                       resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() &&
-                       resource.data.userId == request.auth.uid;
     }
 
     // Economy operations (pricing data) - read-only for all authenticated users
@@ -362,8 +331,6 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
-    // AI cost watch (functions/src/cost-watch.js): the daily API dollars per user — admins read, only the server writes
     // «Попросити у фреймворку» (gamebible.js frameworkGaps): one doc per author × game × capability, id "<uid>__<gameId>__<capability>";
     // the author writes / withdraws their own, admins (the framework's author) read the demand
     match /fwRequests/{id} {
@@ -372,10 +339,12 @@ service cloud.firestore {
                                request.resource.data.keys().hasOnly(['uid', 'worldId', 'gameId', 'game', 'cap', 'title', 'status', 'version', 'mechanic', 'at']);
       allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
     }
+    // AI cost watch (functions/src/cost-watch.js): the daily API dollars per user — admins read, only the server writes
     match /admin_costs/{day} {
       allow read: if isAuthenticated() && request.auth.token.admin == true;
       allow write: if false;
     }
+    // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
     match /admin_notices/{id} {
       allow read: if isAuthenticated() && request.auth.token.admin == true;
       allow update: if isAuthenticated() && request.auth.token.admin == true &&

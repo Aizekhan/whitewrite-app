@@ -225,97 +225,6 @@ window.__firebaseScenes = {
   }
 };
 
-// Helper: Test scene creation (for development)
-window.__createTestScene = async function(projectId) {
-  try {
-    const scene = await window.__firebaseScenes.addScene(projectId, {
-      title: "Тиша над колонією",
-      text: "Коли впала остання зоря над Орелією, місто не закричало. Воно затихло — так затихає людина, що нарешті почула власне ім'я з вуст того, кого давно вважала мертвим.",
-      act: 1,
-      intent: "conflict",
-      entities: {
-        characters: ["marcus", "elena"],
-        locations: ["beta7"],
-        events: ["silence"],
-        artifacts: []
-      }
-    });
-    console.log('Test scene created:', scene);
-    return scene;
-  } catch (err) {
-    console.error('Failed to create test scene:', err);
-  }
-};
-
-// Validate canonRefs structure (helper for quality checks)
-window.__firebaseScenes.validateCanonRefs = function(canonRefs) {
-  if (!canonRefs || typeof canonRefs !== 'object') {
-    return {valid: false, error: 'canonRefs must be an object'};
-  }
-
-  const requiredTypes = ['characters', 'locations', 'events', 'factions', 'artifacts'];
-
-  for (const type of requiredTypes) {
-    if (!Array.isArray(canonRefs[type])) {
-      return {valid: false, error: `canonRefs.${type} must be an array`};
-    }
-
-    // Check all IDs are strings
-    for (const id of canonRefs[type]) {
-      if (typeof id !== 'string' || !id) {
-        return {valid: false, error: `Invalid ID in canonRefs.${type}: ${id}`};
-      }
-    }
-  }
-
-  return {valid: true};
-};
-
-// Create empty canonRefs (helper for initialization)
-window.__firebaseScenes.emptyCanonRefs = function() {
-  return {
-    characters: [],
-    locations: [],
-    events: [],
-    factions: [],
-    artifacts: []
-  };
-};
-
-// Backfill canonRefs for all scenes in project (deterministic matching)
-window.__firebaseScenes.backfillCanonRefs = async function(projectId) {
-  if (!projectId) {
-    throw new Error('Project ID required');
-  }
-
-  const user = firebase.auth().currentUser;
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
-  const token = await user.getIdToken();
-
-  console.log('[Backfill] Starting for project:', projectId);
-
-  const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/backfillSceneCanonRefs', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({ projectId })
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-    throw new Error(errorData.error || `HTTP ${response.status}`);
-  }
-
-  const result = await response.json();
-  console.log('[Backfill] Complete:', result);
-  return result;
-};
-
 // Reconstruction (stage 3): ask the server for a canon-consistent rewrite of one
 // scene. Returns a proposal only — nothing is saved until applyReconstruction().
 // Resolves to { success, unchanged, proposedText, tokensConsumed } or { success:false, error, code }.
@@ -347,4 +256,3 @@ window.__firebaseScenes.applyReconstruction = async function(projectId, sceneId,
   });
 };
 
-console.log('Firebase scenes module loaded');

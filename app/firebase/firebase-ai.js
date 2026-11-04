@@ -30,7 +30,6 @@ window.__firebaseAI = {
       }
 
       // Call HTTP endpoint directly with extended timeout
-      console.log('Generating scene...', { projectId, sceneIntent, sceneId, attempt: retryCount + 1 });
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes client timeout
@@ -59,7 +58,6 @@ window.__firebaseAI = {
       }
 
       const result = await response.json();
-      console.log('Scene generated:', result);
       return result;
 
     } catch (error) {
@@ -73,7 +71,6 @@ window.__firebaseAI = {
 
       if (isRetryable && retryCount < MAX_RETRIES) {
         const delay = RETRY_DELAY * (retryCount + 1);
-        console.log(`Retrying in ${delay/1000}s... (attempt ${retryCount + 2}/${MAX_RETRIES + 1})`);
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.generateScene(projectId, sceneIntent, customIntent, previousScenes, retryCount + 1);
       }
@@ -134,33 +131,3 @@ window.__firebaseAI = {
     { value: 'custom', label: 'Свій напрям', icon: '✍️', description: 'Власний опис scene intent' }
   ]
 };
-
-// Helper: Test scene generation (for development)
-window.__testGenerateScene = async function(projectId) {
-  try {
-    console.log('Testing scene generation for project:', projectId);
-
-    const result = await window.__firebaseAI.generateScene(
-      projectId,
-      'surprise', // Random intent for testing
-      null,
-      [] // No previous scenes
-    );
-
-    if (result.success) {
-      console.log('✅ Scene generated successfully!');
-      console.log('Title:', result.scene.title);
-      console.log('Text:', result.scene.text);
-      console.log('Entities:', result.scene.entities);
-      return result.scene;
-    } else {
-      console.error('❌ Scene generation failed:', result.error);
-      return null;
-    }
-  } catch (error) {
-    console.error('❌ Test error:', error);
-    return null;
-  }
-};
-
-console.log('Firebase AI module loaded');

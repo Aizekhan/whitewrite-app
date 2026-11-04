@@ -37,10 +37,9 @@ fns.forEach((f) => check(arch.indexOf(f) >= 0, `function ${f} is in ARCHITECTURE
 // 4. Every plan flag the code reads is a flag of the registry (no gating outside functions/paid-features.js)
 const P = require(path.join(ROOT, 'functions/paid-features.js'));
 const flags = Object.keys(P.planBudget('worldforge'));
-const LEGACY = { allowCanonExtraction: 'auto-canon removed 2026-11-02 — never set, so syncCanonFromProject always answers 410' };
 const code = list('functions/src', /\.js$/).concat(list('app', /\.(js|jsx|html)$/)).filter((f) => !/kb\.js$/.test(f)).map(read).join('\n');
 [...new Set([...code.matchAll(/\ballow[A-Z]\w+/g)].map((m) => m[0]))].forEach((f) =>
-  check(flags.indexOf(f) >= 0 || !!LEGACY[f], `plan flag ${f} is in functions/paid-features.js`, 'add the feature to the registry (functions/paid-features.js) — CLAUDE.md rule'));
+  check(flags.indexOf(f) >= 0, `plan flag ${f} is in functions/paid-features.js`, 'add the feature to the registry (functions/paid-features.js) — CLAUDE.md rule'));
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
 process.exit(fails ? 1 : 0);

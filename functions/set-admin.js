@@ -1,5 +1,4 @@
-// Grant admin custom claim (required for admin-only Cloud Functions:
-// seedEconomy, checkMargin, setMargin, migrate*, initLemonSqueezyConfig).
+// Grant admin custom claim (required for admin-only actions: modelWatchRun, admin panels in the Account).
 // Usage: node set-admin.js <uid>   (then sign out/in to refresh the ID token)
 const admin = require('./admin.js'); // firebase-admin v14: the namespaced facade
 admin.initializeApp();

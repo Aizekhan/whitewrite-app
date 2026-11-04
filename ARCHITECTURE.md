@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.77 (2026-11-04)
+**Version:** 2.77.1 (2026-11-04)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -12,7 +12,7 @@ This document is the **canonical architecture map** of WhiteWrite. All code, fea
 **Philosophy:**
 - **Canon-Aware Narrative Generation** — AI generates stories that respect world consistency
 - **Two spaces** — Book (write) and World Bible (canon — the home of a world, its stories and games). The Universe tree (WorldTree) and the Director (Workspace: a storyboard/LoRA mock-up with no backend) are retired; real image generation, when it comes, belongs in the Bible's dossiers and the book's scenes.
-- **Single Canon** — All pillars read from one source (`WORLD`)
+- **Single Canon** — the Book and the Bible read one canon (`worlds/{w}` + `entities/`); `WORLD` in `wt-world.jsx` is only the book's legacy demo
 - **Reconstruction Engine** — Canon changes cascade through narrative automatically
 - **World-first** — a World (canon) is the root; stories (projects) and games hang off it: **one canon → many stories, many games**
 - **Game production** — Game Bible + production plan → tasks → Claude Code executes them over **MCP**, the author reviews
@@ -25,59 +25,51 @@ This document is the **canonical architecture map** of WhiteWrite. All code, fea
 
 ```
 E:\WhiteWrite/
-├─ app/                          # Production (deployed to whitewrite.com)
-│  ├─ White.html                 # Shell (navigation, auth, account)
-│  ├─ WhiteWrite.html            # Book pillar (narrative generation)
+├─ app/                          # Sources of production (built into dist/ for whitewrite.com; run as-is locally, in-browser Babel)
+│  ├─ White.html                 # Shell (home, worlds, world hub, Knowledge base, auth, account)
+│  ├─ WhiteWrite.html            # Book (stories: StoryForm / WorldForm, Genesis, scenes)
 │  ├─ WhiteWrite GameBible.html  # World Bible (world-scoped): canon, stories, games — cards, files, plan, tasks
-│  ├─ gamebible.js               # Game Bible logic (plain JS, no JSX)
+│  ├─ gamebible.js               # World Bible / game GDD logic (plain JS, no JSX)
 │  ├─ gb-3d.js                   # three.js viewer (GLB/GLTF/FBX/OBJ/STL) for card files
-│  │
-│  ├─ app.jsx                    # App root (stages: start/form/book)
-│  ├─ flow.jsx                   # StoryForm (create project modal)
-│  ├─ pages.jsx                  # Book page (scene intent, generation)
-│  ├─ book.jsx                   # Book component (measured pagination, reading, ritual)
-│  ├─ book-edit.jsx              # SceneSheet — free writing / pasting a scene (autosave)
-│  │
-│  ├─ firebase/
-│  │  ├─ firebase-init.js        # Firebase SDK initialization
-│  │  ├─ firebase-auth.js        # Auth + user plan loading
-│  │  ├─ firebase-projects.js    # Project CRUD
-│  │  ├─ firebase-scenes.js      # Scene CRUD
-│  │  ├─ firebase-ai.js          # AI generation (Gemini)
-│  │  ├─ firebase-canon.js       # Canon CRUD (worlds/{w}/entities), createWorld/listWorlds/applyGenesis
-│  │  ├─ ai-models.js            # AI_MODELS — single source of truth for model ids (front + back)
-│  │  └─ token-budget.js         # Token system + plan budgets
-│  │
-│  ├─ wt-world.jsx, wt-impact.jsx # WORLD + impact engine (no UI; the tree UI was removed)
-│  └─ assets/                    # Images, fonts, icons (logo: LogoG.png in the top bar — it carries the name, no text beside it; LogoG-icon.png = favicon)
+│  ├─ kb.js                      # Knowledge base (uk + en) → window.WW_KB
+│  ├─ i18n.js · ww-embed.js · frame-pick.js · book-export.js   # i18n · iframe shim (pillar → shell) · «⌖ Кадр» · DOCX/PDF export
+│  ├─ app.jsx                    # Book app root (stages: start / form / genesis / book)
+│  ├─ flow.jsx                   # StoryForm, WorldForm, hero
+│  ├─ pages.jsx · book.jsx · book-edit.jsx · book-related.jsx   # pages / scene intent · the book (measured pagination) · SceneSheet · bookmarks
+│  ├─ atmosphere.jsx · ErrorBoundary.jsx
+│  ├─ wt-world.jsx               # legacy demo WORLD for the book (not the source of truth; the impact engine has no UI)
+│  ├─ cosmograph/                # Космограф (the world's sky)
+│  ├─ firebase/                  # firebase-init / -auth / -projects / -scenes / -canon / -ai (generateScene client) / -lemon / -pricing,
+│  │                             # token-budget.js + COPIES made by build-app.mjs from functions/ (ai-models, paid-features, card-refs,
+│  │                             # forge, mechanics, narrative-validate, setup-guides, style-guide, world-fill) — edit functions/, not these
+│  └─ assets/                    # Images, fonts, icons (LogoG.png carries the name; LogoG-icon.png = favicon)
 │
 ├─ functions/
 │  ├─ index.js                   # only assembles functions/src/*
-│  ├─ canon-store.js             # loadCanon / mergeSuggestions / ensureWorld (lazy migration)
-│  ├─ token-service.js           # token accounting, pricingFor(model) by alias prefix
-│  └─ src/
-│     ├─ common.js               # shared admin/db, auth helpers
-│     ├─ scenes.js               # generateScene (+ buildCanonContext)
-│     ├─ canon-extract.js        # canon extraction from scenes
-│     ├─ canon-sync.js           # bulk sync / analyze
-│     ├─ genesis.js              # genesisWorld — world seeds
-│     ├─ github-token.js         # one saved GitHub token per author (githubTokens/{uid}): savedGithub / rememberGithub / forgetGithub / loginOf
-│     ├─ gamedev.js              # gamedevPlan: import (.md) / draft (idea → GDD proposal) / analyze (GDD) / plan (+ scaffold, writes tasks)
-│     ├─ mcp.js                  # mcp — MCP server for Claude Code (Task Engine executor API)
-│     ├─ users.js               # initializeUser, ensureProjectWorld (a story without a world gets one)
-│     ├─ lemon.js               # changeSubscription, createLemonSqueezyCheckout, initLemonSqueezyConfig, lemonSqueezyWebhook; stripe.js — legacy Checkout
-│     ├─ economy-admin.js       # admin economy panel: seedEconomy, checkMargin, setMargin, migrateMargin, migrateWordPricing, migrateCostPricing
-│     ├─ (canon-sync.js also)   # backfillSceneCanonRefs — one-off backfill of scene canon refs
-│     ├─ cost-watch.js           # aiCostDaily — API $ per user per day → admin_costs + alarms (v2.46)
+│  ├─ admin.js                   # firebase-admin v14 facade (namespaced API shape)
+│  ├─ paid-features.js           # SINGLE source: plans, flags, AI-action prices (copied to app/firebase/)
+│  ├─ plans.js                   # server gates derived from paid-features
+│  ├─ ai-models.js               # AI_MODELS — single source of model ids and prices (front + back)
+│  ├─ canon-store.js             # loadCanon / ensureWorld (lazy migration), CANON_KINDS, slugify
+│  ├─ token-service.js           # reserve / charge / refund (transactions), real API cost ÷ USD_PER_TOKEN
+│  ├─ card-refs.js · forge.js · mechanics.js · narrative-validate.js · setup-guides.js · style-guide.js · world-fill.js  # shared front+back modules
+│  ├─ set-admin.js               # node set-admin.js <uid> — admin custom claim
+│  ├─ legal/                     # contract texts used by market.js
+│  └─ src/                       # Cloud Functions modules (endpoints — see «Cloud Functions» below)
 │
-├─ scripts/build-app.mjs         # app/ → dist/ (precompiled JSX, prod React, ?v=hash cache-busting)
+├─ scripts/build-app.mjs         # app/ → dist/ (precompiled JSX, prod React, ?v=hash cache-busting, copies of shared modules)
+├─ scripts/change-gate.mjs + git-hooks/commit-msg   # the commit gate (v2.75)
+├─ tests/                        # npm test (rules via the Rules Test API, registry gates, card refs, MCP, …)
+├─ firestore.rules · storage.rules · firestore.indexes.json · firebase.json
 ├─ dist/                         # BUILD OUTPUT served by Hosting — never edit or commit
 │
 ├─ ARCHITECTURE.md · CLAUDE.md · TOKENOMICS.md · MARKETPLACE_SPEC.md   # the only live docs in the root
-├─ docs/legal/                   # market legal templates (for a human lawyer)
-├─ docs/archive/                 # old reports, pricing drafts and session logs (June 2026) — history, NOT current truth
-└─ handoff/                      # early session logs (history)
+├─ docs/                         # AI_GAME_DEV_PLATFORM_v3.md (concept), EXPERIENCE_TELEMETRY_CONTRACT.md, WHAT_GOES_WHERE.md (world fill rules),
+│                                # legal/ (market templates for a human lawyer), specs/ (owner's spec .docx)
 ```
+
+**Cloud Functions** (`functions/src/*.js` → endpoints exported by `index.js`):
+`scenes` generateScene, reconstructScene · `users` ensureProjectWorld · `projects` createProject, createGame · `canon-sync` analyzeScene («✦ Порадити») · `genesis` genesisWorld · `gamedev` gamedevPlan · `mcp` mcp · `cosmograph` cosmographAccess · `narrative` narrativeDraft · `world-folder` worldFolder · `kb-help` kbAsk · `experience` telemetryIngest, experience · `marketing` marketing, marketingPublisher · `community` community, communityRotate · `style` styleCheck, styleFromRefs · `voice` voice · `model-watch` modelWatch, modelWatchRun · `market` market, marketWebhook, licenceReview · `team` team · `backup` backup, backupDaily · `integrations` integrations · `cost-watch` aiCostDaily · `lemon` changeSubscription, createLemonSqueezyCheckout, lemonSqueezyWebhook · `stripe` stripeWebhook (legacy, old Stripe subscriptions only). Helpers without endpoints: `common`, `claude` (the only Claude entry), `admin-notice`, `ledger`, `snapshot`, `github-token`.
 
 ---
 
@@ -222,7 +214,7 @@ Frontend (re-render)
 - **World dossier** (on the entity itself, no game statuses): `dossier: { story, look | outcome }` (two writing tabs per kind — characters Біографія/Зовнішність, locations Історія місця/Вигляд, factions Історія й мета/Символіка, artifacts Походження/Вигляд, events Перебіг/**Наслідки** (`outcome`, events have no look)), `group` (the subsection it was added in), `lifeNotes: [{ id, at, text }]` (characters' «Хронологія життя», ordered by the first number in `at`), `files: [...]` — world-level images/models in Storage `worlds/{w}/files/{entityId}/**`.
 - `worlds/{w}/lore/{id}` — culture entries (World Bible «Культура»); `worlds/{w}.timeUnit` — the chronicle's time unit.
 - `worlds/{w}/games/{g}/quests/{id}` (v2.30, was `worlds/{w}/quests` — no data existed, nothing migrated) — quests `{ title, type, approval draft|review|approved|archived, status (STATUSES), summary, stories[projectId], source { type: card|story|characters|locations|factions|artifacts|events|lore, id, title }, giver, characters[], locations[], factions[], artifacts[], events[canon event ids], objectives, stages[{ id, title, objective, next[{ to, cond }], end, fail }], rewards, prereqs[questId], repeat { mode once|repeatable|daily, cooldown }, hooks, notes }` — the first stage is the start.
-- `worlds/{w}/games/{g}/dialogues/{id}` — dialogues `{ title, type, approval, status, participants[], location, questId, stageId, trigger, nodes[{ id, speaker (ref | player | narrator), text, locKey, cond, effects, choices[{ text, to, cond }], next, end }], notes }` — the first node is the start. Refs in both: a game card `c:<cardId>` (role sections `CARD_ROLES` in `functions/narrative-validate.js`: characters/enemies → characters, locations/levels → locations, factions, items/gear → artifacts) or a canon entity id; `refPool(entities, cards)` is the shared list for the UI check, `narrativeDraft` and MCP. Both are client-writable game subcollections (`hasGameDev()` = Worldbuilder; `allowQuests`/`hasQuests()` removed).
+- `worlds/{w}/games/{g}/dialogues/{id}` — dialogues `{ title, type, approval, status, participants[], location, questId, stageId, trigger, nodes[{ id, speaker (ref | player | narrator), text, locKey, cond, effects, choices[{ text, to, cond }], next, end }], notes }` — the first node is the start. Refs in both: a game card `c:<cardId>` (role sections `CARD_ROLES` in `functions/narrative-validate.js`: characters/enemies → characters, locations/levels → locations, factions, items/gear → artifacts) or a canon entity id; `refPool(entities, cards)` is the shared list for the UI check, `narrativeDraft` and MCP. Both are client-writable game subcollections on every plan since v2.50 (`allowGameDesign`; earlier `hasGameDev()`; `allowQuests`/`hasQuests()` removed); the ✦ AI draft stays Worldbuilder.
 - `worlds/{w}.cosmos` — the Космограф sky `{ planet, calendar, stars[], moons[] }`; `worlds/{w}.cosmograph` — paid access (server-only).
 - Several projects can share one world (`project.worldId`).
 
@@ -277,7 +269,7 @@ The key `wwk_…` is shown once; only its sha256 is stored. Created per game in 
 Doc: `{ kind world|game, worldId, gameId, owner, author, title, worldTitle, tagline, summary, cover, discord, lookingForTeam, teamNote, facts[{k,v}], rules[], sections[{id,label,n}], likes, score, reports, hidden, promotedUntil?, publishedAt, updatedAt, activeAt }`; `items/{i0000…}` `{ sec, group, title, blocks[{l,t}], imgs[] }` (Storage download URLs only); `likes/{uid}` `{ at }`. **Rules:** anyone (even signed out) reads a doc / its items unless `hidden` (owner and admins still read it; a missing doc reads as «not published»); a user reads only their own like; `community_home` is public; reports — admins; **all writes are server-only**.
 
 #### **`economy_operations/{operationId}`** (live)
-Reserves read by the servers: `providers.{claude|gemini}.cost` (the reserve per scene; 300 / 40 by default; `analyzeScene` 200). Since v2.15 `charge()` bills the REAL API cost (see §1), so the margin multipliers, `estimatedCostPer700Words` and `economy_config/global` (`tokenToUSD`, global multiplier) only price a call whose model has no `MODEL_PRICING` entry or that returned no usage. Edited in the admin economy panel (`economy-admin.js`).
+Reserves read by the servers: `providers.claude.cost` (the reserve per scene, 300 by default — old docs may still hold a dead `gemini` entry; `analyzeScene` 200). Since v2.15 `charge()` bills the REAL API cost (see §1), so the margin multipliers, `estimatedCostPer700Words` and `economy_config/global` (`tokenToUSD`, global multiplier) only price a call whose model has no `MODEL_PRICING` entry or that returned no usage. Edited directly in Firestore (the admin economy panel `economy-admin.js` was removed in v2.77.1).
 
 #### **`usage_logs/{logId}`** (live)
 One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outputTokens/cache…, realApiCostUSD, billing ('actual'|'estimate'), usdPerToken, userTokensCharged, timestamp` (+ the legacy estimate fields).
@@ -288,14 +280,14 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 
 ### **1. Paid features registry, plans and tokens**
 
-**Single source of truth:** `functions/paid-features.js` (v2.13). `app/firebase/paid-features.js` is a copy made by `scripts/build-app.mjs` (the same step copies `functions/ai-models.js`, `functions/narrative-validate.js` and `functions/setup-guides.js` → `app/firebase/`, so the two never drift again) — edit only the `functions/` file.
+**Single source of truth:** `functions/paid-features.js` (v2.13). `app/firebase/paid-features.js` is a copy made by `scripts/build-app.mjs` (the same step copies `ai-models.js`, `narrative-validate.js`, `setup-guides.js`, `style-guide.js`, `mechanics.js`, `forge.js`, `world-fill.js`, `card-refs.js` from `functions/` → `app/firebase/`, so the two never drift) — edit only the `functions/` file.
 - `PLAN_ORDER` free → storyteller → novelist → worldbuilder; `PLANS {name, price, monthly, maxProjects, maxGames, popular?}` (`maxGames` 1 below Worldbuilder, 999 on it — v2.50); `worldforge` is a hidden dev plan `as: 'worldbuilder'`.
 - `FEATURES[]`: `{ id, kind: gate|ai|free, flag, alias?, minPlan, price?: {scene}|{factor}|{fixed, per?}, op?, uk/en {name, desc}, where, server, planned? }`. A feature is on from `minPlan` upward; `planBudget(plan)` derives the old `{monthly, maxProjects, allow…}` shape; `featureCost(feature, claudeCost)` = the tokens reserved before a run (`factor` × the economy Claude scene price, or `fixed`); `byOp(op)`.
 - `soon: true` features are announced on the plan cards and in the KB but not live: `framework` (`allowFramework`, Storyteller) — a personal RPG Framework access token tied to the account, blocked on foreign use, renewed while the subscription is active (issuing not built yet).
 - Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowFramework` (soon) — Storyteller; `allowCanonExtraction` / `allowCanonSync` are gone (auto-canon cancelled, v2.15); `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder; `allowGameDesign` — Free (v2.50: a game's GDD on every plan — `gamedesign`, `mechanics`, `quests`, `artStyle`).
 - Readers: `functions/plans.js` (`PLAN_BUDGETS` / `getPlanBudget` for every server gate), `gamedevPlan` / `experience` / `cosmographAccess` reserves (`featureCost(byOp(op))`), `token-budget.js` (overwrites `window.__PLAN_BUDGETS` flags/budgets/prices), the Account plan cards (`planCards` in `White.html`: tokens, ≈ scenes, projects, «Усе з X +» and the features new at that plan), the Bible `costOf` / `costMark` (✦ price on the button and in the confirm), and the knowledge base blocks `["plans"]` / `["prices"]` (`kbRegistry` in `White.html`).
 - Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage (the difference is debited — overdraft allowed — or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
-- **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices: Opus 4.8 $5/$25, Sonnet 4.5 $3/$15, Haiku 4.5 $1/$5, Gemini 2.5 Flash $0.30/$2.50 incl. thinking tokens — Gemini usage is now captured in generateScene). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical (v2.20, Claude 5.5): Haiku scene ≈ 10, Sonnet ≈ 160, Opus ≈ 320, .md import chunk ≈ 570, Opus game plan ≈ 3000. `SCENE_TYPICAL {gemini 30, claude 150}` feeds the plan cards and the KB; reserves `SCENE_COST {gemini 40, claude 300}`, advise 200, game plan ×12. The UI shows prices as «≈ N».
+- **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices per 1M input/output: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 — a prompt over 100k tokens $0.50/$2.50; older ids are kept so past logs still price). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical (v2.20, Claude 5.5): Haiku scene ≈ 10, Sonnet ≈ 160, Opus ≈ 320, .md import chunk ≈ 570, Opus game plan ≈ 3000. `MODEL_TIERS[].typical` (10 / 160 / 320) feeds the plan cards and the KB; reserves `SCENE_COST {claude 300}` × the tier scale, advise 200, game plan ×12. The UI shows prices as «≈ N».
 
 **Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
 
@@ -320,7 +312,7 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 
 **Philosophy:** Canon = Single Source of Truth for world consistency
 
-**Data Model:**
+**Data Model** (the logical shape — the legacy `project.canon`; today each item is an entity doc with `kind`):
 ```javascript
 canon: {
   characters: {
@@ -352,8 +344,8 @@ canon: {
 Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 
 **Canon Extraction — auto-canon CANCELLED (v2.15, owner decision 2026-11-02):**
-- `generateScene` no longer calls `extractCanonFromScene()`; `syncCanonFromProject` answers 410. A scene never writes to the canon by itself.
-- New names reach the canon only through the Keeper (`book-edit.jsx`: local detection + the author's «так») or the Bible. `canon-extract.js` stays in the code (unused by scenes) for a possible on-demand tool.
+- `generateScene` does not extract canon; the extraction module (`canon-extract.js`) and `syncCanonFromProject` were removed (v2.77.1). A scene never writes to the canon by itself.
+- New names reach the canon only through the Keeper (`book-edit.jsx`: local detection + the author's «так») or the Bible.
 - Consequence: `scene.stateChanges` / scene canonRefs are no longer filled automatically for new scenes («Стан у часі» shows what earlier scenes recorded).
 
 ---
@@ -375,9 +367,8 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
    - Loads project + canon
    - Builds context (previous 3 scenes + canon)
    - Calls Claude (the author's model, `functions/src/claude.js`)
-   - Saves scene to Firestore
-   - Triggers canon extraction (async)
-   - Deducts tokens
+   - Saves scene to Firestore (no canon extraction — auto-canon cancelled, v2.15)
+   - Charges the real API cost (reserve → charge)
 4. Frontend re-renders with new scene
 
 **The book (reading & writing, `app/book.jsx`, `app/book-edit.jsx`):**
@@ -390,7 +381,7 @@ Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
 - **Локації → «🗺 Карта»** (`localStorage ww-locview`): SVG map, drag → `entity.mapPos {x,y}` (1000×620); who is where from a character's canon `location` / `locations[0]`; dashed routes from `scene.stateChanges` (aspect `location`) of all world stories, per story.
 - **Dossier → «Поява в історіях та іграх»**: + «Стан у часі» (`scene.stateChanges` for this entity, grouped by story) + «Вплив змін»: scenes with `canonRefs[kind] ∋ id` → «✦ Узгодити сцени» dialog: change kind (property/rename/relationship/rewrite) + note → `reconstructScene` per picked scene (pinned scenes skipped; price ≈ `economy_operations/generateScene` per scene), word diff «було → стане», «Прийняти» writes `text` + `reconstruction.{previousText, lastReconstructionAt, lastCause}`.
 - **Plans:** the canon is edited on `allowWorldTree` plans (Storyteller and up; `canonWrite`), read-only on Free; a game's GDD opens on every plan (`allowGameDesign` → `canGame`); the owner's `canWrite` follows what is open (`render`: game → `canGame`, world → `canonWrite`; a dossier → `canonWrite`, a card → `canGame`). `canDev` (`allowGameDev`, Worldbuilder; team members — the server checks the owner) gates Продакшн-план, Досвід гравців, Знання проєкту, Журнал розробки, Маркетинг (`renderDevLocked` — 🔒 «Це — частина Worldbuilder» + plans), the Claude Code road in game settings, ✦ audits, ✦ quest / dialogue drafts, the AI style check (automatic and «Перевірити всі»).
-- Not ported (legacy, dead): CanonSyncBanner (read the old `project.scenes` array), CanonHistoryView, the scene lens. `wt-impact.jsx` stays as the documented engine but no page loads it now.
+- Not ported (legacy, dead): CanonSyncBanner (read the old `project.scenes` array), CanonHistoryView, the scene lens. The impact engine file `wt-impact.jsx` is gone (no page loaded it); only `wt-world.jsx` (the book's demo `WORLD`) remains.
 
 **Polygon budget (game card files):** 3D files carry `tris` (triangles, counted by `gb-3d.js polyCount`): from the local file before upload (cards and dossiers), and for older uploads in the background, one at a time (≤100 MB, result or `trisFailed` written back to `games/{g}/cards/{id}.files[]`). Over **100 000** → a small red «!» among the card tags and by the file, with the count.
 
@@ -433,7 +424,7 @@ User: Generate next scene following canon.
 - **Фабрика звуку — базовий / розширений вигляд** (v2.61): `mechanics.js` field and section flag `adv` (advanced only); audio templates mark secondary fields and the «Лейтмотиви» / «Мікс і тестування» tabs; `upgrade()` brings the split to older cards, custom fields / sections keep their own flag; the editor's view toggle `med.adv` (not stored).
 - **🎙 Озвучка діалогів / Voice-over** (v2.60): `games/{g}.voices { [speaker]: { service: browser | google | eleven (soon), lang, voice, rate, pitch } }` (speaker = entity id | `player` | `narrator`, written by the client with merge); a dialogue line gets `node.voice: [cardId]` (Audio library cards, group «Озвучка») + `node.vstatus: tts | rec`. Bible dialogue editor: «🎙 Озвучка» box (cast per speaker, ▶ browser `speechSynthesis` try free, ✦ Google try), per-line row (▶ / ✕ / 🗣 / ✦ / ⤒ a recording → `bulkCards` into «Озвучка», titled by the line key), «✦ Озвучити всі без звуку», «⤓ Сценарій CSV»; Аудіотека view: «⤓ Сценарій озвучки (CSV)» (all dialogues) and «⤒ Озвучка за ключами» (file name = `locKey` or `dlg.<slug>.<nodeId>` → card + `node.voice`, the dialogue doc is merged). Cloud Function **`voice`** (`functions/src/voice.js`, onRequest): `voices {lang}` (free), `preview` (≤ 300 chars, base64 mp3), `synthesize {dialogueId, nodeIds}` — lines whose speaker has service `google` → Google Cloud Text-to-Speech (the function's service account, `texttospeech.googleapis.com`) → mp3 in Storage `worlds/{w}/games/{g}/files/{cardId}/…` → a new audio card (`tts: true`, `files[].tts {service, voice}`) → the dialogue transaction sets `voice` / `vstatus`; one provider function `googleSpeak` (ElevenLabs plugs in beside it). Price `ttsCost(chars, voice)` in `paid-features.js` (`TTS.usdPerMChars` by voice class standard / wavenet / neural2 / chirp / studio × margin 2 ÷ `USD_PER_TOKEN`), reserved in a transaction, the unused part refunded; `usage_logs` provider `google-tts`, ledger `voice_tts`. The cast is also edited in a game character / enemy card («🎙 Голос», key = entity id or `c:<cardId>` — the dialogue speaker ids); `cast.gender` filters the Google voice list (Google gives no age); one try button per speaker (■ Stop), a paid preview is cached in the page by voice / lang / rate / pitch. Access: `payerFor` (team admin on the owner's tokens), world owner, not frozen, `allowGameDev`, active subscription. Registry `voiceCast` (gate, free) and `voiceTts` (ai, Worldbuilder, `price.perKChars`). MCP `get_dialogue_context` lines carry `voice {status, files[]}`. Tests `tests/voice.test.cjs`.
 - **⚒ Кузня персонажів / Character Forge** (v2.54, the owner's brief `WhiteWrite_Character_Forge_TZ_for_Claude_Code.pdf`, MVP): `functions/forge.js` — single source (copy `app/firebase/forge.js`, `window.__FORGE`; MCP; `tests/forge.test.cjs`): `STAGES` brief → concept → mesh → rig → equip → integrate → anim → export with deps, `TYPES` hero | npc | enemy | boss (stage set + default clips), default `SLOTS` (skinned / rigid), `MASK` body regions, `MAPS`, `VALIDATION` pending | passed | warning | failed | manual, `EXTERNAL` checks, `PROVIDERS` (manual live; Meshy not wired); `blockers` / `stageState` / `progress`, `itemIssues` / `validation` (slot, format, rig / body match, attachment, units, maps, mask, polygon target, external reports), `manifest` (schema `whitewrite.character/1`). No new collections: a character is its existing game card (`characters` — canon-linked, doc id = entity id, or `enemies`), an item is a `gear` card; the Forge adds `card.forge` (character: type, off[], rig, body, brief, revs[{ id, stage, n, files[fileId], note, by, byName, at, from }] — append-only, stages{ id: { approved: { rev, by, byName, at, comment } } }, clips, loadouts, notes; item: slot, bind, rig, body, mask, attach[{ bone, point }], format, units, maps, lod, polyTarget, owners[characterCardId], revs (concept | model), approval (manual, for warnings, bound to the model revision), external[] (MCP)) and `games/{g}.forge { slots, rigs, bodies }`. Version files are card files with `field: "forge"` (Storage `worlds/{w}/games/{g}/files/{cardId}/`, existing rules / limits) — kept out of the leaf's file list so a revision's files are not deleted from under it. Bible: special section `forge` in «Персонажі й вороги» (`FORGE_SEC`, `renderForge`, `forgeClick` / `forgeInput`): tabs Персонажі · Екіпірування · ⚙ Слоти й профілі; the workspace (preview, type, rig / body profile, stage list, the open stage: what / done when / blockers, brief with Bible context, versions with approve / restore / compare, slot table + loadouts, integration statuses, clips, ⤓ manifest, comments); the item passport. Writes replace the whole map (`set` with `mergeFields: [section, forge, updatedAt(, canonRef)]`). MCP `get_character_forge` (list / one manifest with approved files) and `report_forge_check` (Unity / Blender result per item and check — clipping, deformation, skeleton compatibility are never claimed by the UI). Registry `characterForge` (gate `allowGameDesign`, free, no tokens). Backlog: Meshy provider (image-to-3D, text-to-3D preview → refine) as a server function with the key in Secret Manager, jobs `games/{g}/forgeJobs` with idempotency and token reserve; a Blender / Unity worker contract for rig and clipping checks; LOD / material inspection from glTF.
-- **Квести · Діалоги** (`special: quests | dialogues`, v2.30 — a game-design decision: game sections in the menu item `g-narr` «Квести й діалоги», after «Сцени»; `canQuest = canGame`, Worldbuilder; listeners on `gref()` in `selectGame`); types are the subsections (`QD.qtypes` / `QD.dtypes`, own ones in `games/{g}.subsections`). Pickers (`pickOf(kind)`): the game's own cards in role sections first (marked «гра», stored as `c:<id>`), then canon entities; «Події канону» (`events[]`) — canon events. A game card in a role section (and a canon card in the game) shows its quests/dialogues and a 💡 under its fields (`renderFields` → `qdLinksHtml`, `bulbHtml("card"|"e")`); 💡 in canon dossiers / culture / stories creates the quest in the open game (hidden without a game or Worldbuilder). Edited on the canvas (`renderQD` → `renderQEditor`; the draft `qed` survives live snapshots while focused); the graph check runs on every keystroke from `functions/narrative-validate.js` (copy `app/firebase/narrative-validate.js` by `build-app.mjs`, `window.__NARRATIVE`): broken links, duplicate ids, unreachable stages/lines, dead ends, loops without exit, no success ending, prerequisite cycles, missing canon refs, speakers outside the participants, a missing quest/stage. Links are stored on the quest/dialogue only; a dossier's «Звʼязки» tab derives its quests and dialogues (`qdLinksHtml`, incl. quests whose `source.id` is the entity). **💡 «Створити квест на основі цього»** (`bulbHtml`/`questFrom`): dossiers, culture entries, Chronicle story cards → a new quest with `source { type: story|characters|locations|factions|artifacts|events|lore, id, title }` and the obvious links prefilled; «Джерело» select for manual choice; story cards list the quests born from them. **✦ AI draft**: `narrativeDraft` (`functions/src/narrative.js`, ID token, `allowQuests` + active subscription, reserve `featureCost(questDraft|dialogueDraft)` → Claude (author's model) → charge real cost) returns a proposal only — `cleanQuest`/`cleanDialogue` keep canon ids that exist, map stage/line numbers to `s1…`/`n1…`, new things go to `ideas` (never canon); the editor shows it above the form (`qprop`), each field Accept/Reject/Accept all; nothing is written until «Зберегти». Exported/restored with the game (`quests`, `dialogues` in `whitewrite.game/1`), deleted with it (`removeGame`). `narrativeDraft` takes `gameId`, checks `allowGameDev`, loads the game cards with the canon (ids list marks «game card» / «canon»), reads a `quest` source from the game and a `card` source from its cards; `cleanQuest` also keeps `events` (canon events only).
+- **Квести · Діалоги** (`special: quests | dialogues`, v2.30 — a game-design decision: game sections in the menu item `g-narr` «Квести й діалоги», after «Сцени»; `canQuest = canGame`, Worldbuilder; listeners on `gref()` in `selectGame`); types are the subsections (`QD.qtypes` / `QD.dtypes`, own ones in `games/{g}.subsections`). Pickers (`pickOf(kind)`): the game's own cards in role sections first (marked «гра», stored as `c:<id>`), then canon entities; «Події канону» (`events[]`) — canon events. A game card in a role section (and a canon card in the game) shows its quests/dialogues and a 💡 under its fields (`renderFields` → `qdLinksHtml`, `bulbHtml("card"|"e")`); 💡 in canon dossiers / culture / stories creates the quest in the open game (hidden without a game or Worldbuilder). Edited on the canvas (`renderQD` → `renderQEditor`; the draft `qed` survives live snapshots while focused); the graph check runs on every keystroke from `functions/narrative-validate.js` (copy `app/firebase/narrative-validate.js` by `build-app.mjs`, `window.__NARRATIVE`): broken links, duplicate ids, unreachable stages/lines, dead ends, loops without exit, no success ending, prerequisite cycles, missing canon refs, speakers outside the participants, a missing quest/stage. Links are stored on the quest/dialogue only; a dossier's «Звʼязки» tab derives its quests and dialogues (`qdLinksHtml`, incl. quests whose `source.id` is the entity). **💡 «Створити квест на основі цього»** (`bulbHtml`/`questFrom`): dossiers, culture entries, Chronicle story cards → a new quest with `source { type: story|characters|locations|factions|artifacts|events|lore, id, title }` and the obvious links prefilled; «Джерело» select for manual choice; story cards list the quests born from them. **✦ AI draft**: `narrativeDraft` (`functions/src/narrative.js`, ID token, `allowGameDev` (Worldbuilder; `allowQuests` was dropped in v2.30) + active subscription, reserve `featureCost(questDraft|dialogueDraft)` → Claude (author's model) → charge real cost) returns a proposal only — `cleanQuest`/`cleanDialogue` keep canon ids that exist, map stage/line numbers to `s1…`/`n1…`, new things go to `ideas` (never canon); the editor shows it above the form (`qprop`), each field Accept/Reject/Accept all; nothing is written until «Зберегти». Exported/restored with the game (`quests`, `dialogues` in `whitewrite.game/1`), deleted with it (`removeGame`). `narrativeDraft` takes `gameId`, checks `allowGameDev`, loads the game cards with the canon (ids list marks «game card» / «canon»), reads a `quest` source from the game and a `card` source from its cards; `cleanQuest` also keeps `events` (canon events only).
 - **Культура** (`special: culture`, world block): `worlds/{w}/lore/{id}` `{ group: peoples|languages|beliefs|customs, name, desc, fields, files }` — not entity kinds (the Universe tree, extraction and scene generation know exactly five). Groups have their own fields (`LORE[].defs`), entries open in the dossier panel without tabs and can be deleted there (canon entities cannot: that is the tree's job). Exported/restored with the world, deleted with it, and fed to `gamedevPlan` prompts as «Culture of the world».
 - **Космологія / Космограф** (`special: cosmology`, world block; `app/cosmograph/` ES modules, three.js via the import map, loaded on demand): a generalised port of MorraSimulator (`D:\MorraSimulator\morra-simulator`) — orbit math (Kepler, inclination, node), lat/lon conventions (lon 0 = map centre, east = right), "light on the map" — for any planet with up to 4 suns + 4 moons. Sky model: every body orbits the planet; orbits are tilted by the axial tilt (seasons); the planet turns so the first sun's solar day lasts exactly `dayHours`, t = 0 is midnight at lon 0. The planet shader sums the suns' light per pixel and darkens eclipses by the true angular sizes of moon and sun as seen from that point. Distances are log-compressed for display only. Presets: «Земля» (NASA Blue Marble map `app/cosmograph/earth-blue-marble.jpg`, public domain; calendar from 1 January 2026) and «Три сонця» (MorraSimulator's starting calibration). Editor: planet (name, radius, tilt, day, map upload → Storage `worlds/{w}/files/cosmos/…`), calendar (month names/days, first year, era), suns/moons. Saved to `worlds/{w}.cosmos` (fed to `gamedevPlan` as a «Sky:» line). Morra-only physics (magic, radiation roles, magosphere) is not ported.
   **Access:** off by default; turned on in project settings via `cosmographAccess` (`functions/src/cosmograph.js`): 2000 tokens per world per 30 days (`worlds/{w}.cosmograph { enabled, paidUntil, paidAt }`, written only by the server — firestore.rules keep the field read-only for clients; turning it off keeps the paid month, turning it back on within it is free; nothing renews by itself). The running sky survives re-renders and stops when the author leaves the section. `window.__COSMOGRAPH__` exposes `config`, `setTime(h)`, `sample(lat, lon)` (light per sun) for checks.
@@ -514,631 +505,7 @@ Every tool call is logged in `executions` (activity feed in the Game Bible).
 
 ### **6. World Generation spec & Player Experience Intelligence**
 
-Source: `World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx` (root). The Unity side (generator, validators, atmosphere runtime, telemetry SDK, editor tools) belongs to RPG Framework (`D:\RPG-Framework`, a separate agent); WhiteWrite is the platform: approved requirements, analytics, plans, reports.
-
-**Approved requirements in the Game Bible**
-- Section `worldgen` «Генерація світу» (groups Біоми · Модулі маршрутів · Модулі оточення · Ігрові модулі · Атмосферні сценарії · Правила генерації; fields: contract (anchors/ports/bounds/tags), rules, atmosphere, triggers, deps & version, validation, model file). MCP maps a card's group (uk or en) to a kind: biomes / route / environment / gameplay / atmosphere / rules.
-- Section `telemetry` «Телеметрія»: the event catalogue (event, meaningful yes/no, properties, link, schema version); «＋ Стандартні події» seeds the spec's standard events (`TL_STD` = `STANDARD_EVENTS`).
-- **Design intent** (`card.intent` on game cards of `levels`, `locations` (on the canon card's game view), `mechanics`, `worldgen`): `{ tags: [tension|exploration|rest|learning|reward|social], expected, pacingMin, pacingMax (minutes), critical, success }` — shown in every AI pass over the Bible (`bibleText`), in metrics (pacing threshold) and in reports.
-
-**Telemetry pipeline** (`functions/src/experience.js`)
-- `telemetryIngest` (public, CORS *): `Authorization: Bearer wwi_…` → sha256 → `ingestKeys/{sha256}` `{ uid, worldId, gameId, label, prefix, revoked }` (owner plan must have `allowGameDev`; 5-min cache). `POST { events: [≤500 envelopes] }`. Envelope: `event_id, event_name, schema_version, build_id, session_id, player_id (pseudonymous, no "@"), timestamp (±7d/+1d), level_id, zone_id, entity_id, mechanic_id, quest_id, position (rounded 0.5 m), context {platform, mode, cohort, variant}, properties (≤20 primitives)`. Stored compact in `games/{g}/telemetry/{event_id}` (`n v b s p t gt l z en m q pos ctx pr expireAt`) — the same event_id overwrites itself (retries dedupe). Daily totals `games/{g}/telemetryDaily/{YYYY-MM-DD}` (`total`, `events.{name}`, `builds.{b}` increments — they count accepted deliveries, retries included; metrics always read the deduplicated raw events). `games/{g}.telemetryStats { day, count, lastAt, scaleAlert? }`.
-- **Retention (automatic):** Firestore TTL policies on `expireAt` for collection groups `telemetry` (30 days) and `telemetryDaily` (400 days) — `firestore.indexes.json` fieldOverrides, enabled with `gcloud firestore fields ttls update expireAt --collection-group=…`. Game deletion calls `experience {op: purge}` (recursive delete of telemetry, daily, experience, issues, playtests, experiments + its ingest keys).
-- **Scale:** raw events in Firestore suit playtests / early launch. Past `SCALE_EVENTS_PER_DAY` (150 000) the game gets `telemetryStats.scaleAlert`, and «Досвід гравців» shows a banner. ⚠ Then: stream raw events to **BigQuery** (ingest writes to BigQuery instead of `telemetry/`, metrics computed by SQL), keep Firestore for daily totals, metrics, issues, playtests. Also revisit the single `telemetryDaily` doc per day (≈1 write/s sustained limit).
-- **Abuse limits** (the ingest key ships inside builds): a game accepts at most `DAILY_CAP` (2 × 150 000) events a day — then 429 `DAILY_CAP`; one address may send `IP_PER_MIN` (120) batches a minute per instance — then 429. Raise `DAILY_CAP` together with the BigQuery move.
-- `experience` (signed-in owner, `allowGameDev`): `keyCreate {label}` → `wwi_` key once (+ `games/{g}.ingestKeys[] {hash(16), prefix, label, at}`), `keyRevoke {hash}`; `metrics {days ≤30, build?}` (free) → reads ≤60 000 newest events, `computeMetrics` → `games/{g}/experience/metrics` `{ sample, session, zones{gapMedianSec, gapP90Sec, downtimeSessionShare, stayMedianSec, deathsPerPlayer, stuckShare, exitShare, hints…}, quests, levels, mechanics, variety, exploration, surveys, experiments (conversion, z, p), heatmaps[≤12 zones × 24×24 × move/death/interact/explore] }`; `report` (AI, ×2 economy) → `games/{g}/experienceIssues/{id}` `{ title, category, priority, scope, evidence[{metric,value,note}], hypothesis, alternatives, confidence, confidenceWhy, impact, actions[{change,risk}], validation{plan,target[{metric,direction}]}, baseline, sample, status open|planned|validating|resolved|dismissed, taskId?, validations[] }` — evidence only by metric keys of `flatten(metrics)`, «Boredom Risk», never claims about people; `playtest {focus}` (AI) → `games/{g}/playtests/{id}` `{ title, goal, build, cohort, tasks, questions[{id,text,type,options,when}], status draft|active|done }`; `validate {issueId}` (free) → re-measures `validation.target` vs `baseline` (±10%) → verdict improved|mixed|not_improved|inconclusive, `improved` resolves.
-- A/B: `games/{g}/experiments/{id}` `{ hypothesis, variants, metricEvent, status running|done }` (client-written); the game puts the variant in `context.variant`.
-- Survey answers: event `SurveyAnswered {playtest, question, answer}`.
-
-**Improvement loop** (§18): issue → «В план для Claude Code» writes task `EX.n` (milestone `EXP` appended to `plan/current.plan.milestones`, `issueId`), issue `planned`; task done → the issue shows «зроблено — перевір»; a new playtest → «Перевірити зміну»; Claude Code may add `submit_validation_result`. Success = the validation, not the task.
-
-**UI:** game tab `experience` «Досвід гравців» (after the plan): Огляд · Теплові карти · Проблеми · Плейтести · Експерименти · Підключення.
-
----
-
-## 🎨 UI/UX Patterns
-
-### **Gilded Aesthetic**
-- Color palette: `#d4af70` (gold), `#0a0705` (dark), `#1a1410` (bg)
-- Font: `Philosopher` (book), `Cinzel` (WorldTree headers)
-- Animations: Subtle fades, pulses (e.g., generation progress star)
-
-### **Three Pillars Navigation**
-```
-.pillswitch (fixed top)
-  ├─ Книга (book icon)
-  └─ Біблія світу (`nav.universe`, tree icon) → the story's World Bible
-```
-
-### **Modals & Overlays**
-- Account modal (profile, subscription, tokens)
-- Generation progress overlay (animated star + "Генерується сцена X/Y")
-- Scene Intent modal (10 intent options)
-
----
-
-## 🔌 External Dependencies
-
-### **Frontend**
-- React 18.3.1 (UMD, in-browser)
-- React DOM 18.3.1
-- Babel Standalone 7.29.0 (in-browser JSX compilation)
-- Firebase SDK 9.22.1 (compat mode)
-
-### **Backend**
-- Firebase Cloud Functions (Node.js 22)
-- Anthropic SDK (`@anthropic-ai/sdk`)
-
-### **APIs**
-- Claude API — the only AI (Haiku / Sonnet / Opus 5.5 by default; Models API for the model watch)
-- Firebase Auth, Firestore, Hosting, Storage
-- MCP (Model Context Protocol) — WhiteWrite is an MCP **server** for Claude Code
-- three.js (CDN, import map) — 3D viewer in the Game Bible
-
----
-
-## 🚀 Deployment
-
-**Production:** https://whitewrite.com (custom domain)
-**Firebase Hosting:** https://whitewrite-app.web.app
-
-**Deploy commands:**
-```bash
-firebase deploy --only hosting    # Deploy frontend
-firebase deploy --only functions  # Deploy Cloud Functions
-firebase deploy                   # Deploy everything
-```
-
-**Build process:**
-- `npm run build:app` → `scripts/build-app.mjs`: `app/` → `dist/` (JSX precompiled, prod React, local scripts get `?v=<content hash>`)
-- Runs automatically as hosting predeploy; Hosting serves `dist/`
-- HTML is served `Cache-Control: no-cache` (embedded pillars pick up new versions); scripts are cache-busted by hash
-
----
-
-## 🧩 Key Invariants
-
-1. **Canon = Source of Truth** — Memory is derived, not duplicated
-2. **Canon lives in the World** — `worlds/{w}/entities/{id}`; projects reference it via `worldId` (legacy `project.canon` not read)
-3. **Stable IDs** — `char_id123` (opaque) + `slug` + `name` (rename doesn't break links)
-4. **projectId propagation** — `window.__currentProjectId` set globally
-5. **Token consumption** — Always server-side (Cloud Functions deduct, frontend syncs)
-6. **Inferred canon is not fact** — needs confirmation before it feeds generation or reconstruction
-7. **Game fields are not canon** — they live in `games/{g}/cards` with `canonRef`
-8. **Models only from `ai-models.js`**
-
----
-
-## 📊 Performance Considerations
-
-- **Pagination:** Character-based (520/580 chars per page) to prevent overflow
-- **Canon extraction:** Async (doesn't block scene generation)
-- **Firestore caching:** Client SDK caches reads
-- **Iframe communication:** Minimal postMessage usage
-- **Scale fixes (v2.63):** MCP — at most 20 requests per JSON-RPC batch, the game is read once per HTTP request (`loadGame` memoized on the per-request key), `search_project_knowledge` scans at most 5000 `kAssets`; telemetry — the daily cap reads the atomic `telemetryDaily/{day}.total` (increment), the ingest-key cache keeps only real keys for 60 s and ≤ 1000 entries; every outbound `fetch` in marketing / backup / gamedev / lemon / voice / model-watch has an `AbortSignal.timeout` (15–30 s); marketing — a manual publish claims the post in a transaction, a post stuck in `publishing` > 10 min (`leaseAt`) may be retried or deleted, `marketingPublisher` sends 5 at a time and re-checks the paid state and freeze, Mastodon hosts on internal / local names are refused; Community — no inline home rebuild, `pubId` without `/`; 3D — `modelInfo` disposes the loaded model, the viewer disposes a model that finished loading after close and calls `forceContextLoss()`. Still open: Game Bible subscribes ~20 game listeners at once (per-section subscription would cut reads)
-- **Cleanup (v2.63):** legacy Stripe Checkout `createCheckoutSession` removed (the `stripeWebhook` stays for old subscriptions); the old Vite + TS app (`src/`, `index.html`, `vite.config.ts`, `tsconfig*.json`, `.eslintrc.cjs`, its npm scripts and dependencies) removed — `dist/` comes only from `scripts/build-app.mjs`; `@google/generative-ai` dropped; `package-lock.json` (root and functions) is committed; `firebase.json` functions `ignore` keeps one-off scripts / screenshots out of the deploy; **firebase-admin 14** (+ firebase-functions 7.4): v14 removed the namespaced API, so `functions/admin.js` is a facade with the same shape (`admin.firestore()`, `admin.firestore.FieldValue / Timestamp / FieldPath`, `admin.auth()`, `admin.storage()`, `admin.credential`, `admin.apps`) over the modular entry points — every module requires it instead of 'firebase-admin'. Left: 6 moderate advisories in google-gax → rimraf → glob / minimatch (temp-file cleanup, no user input)
-
----
-
-## 🔒 Security
-
-**Firestore Rules:**
-- Users can only read/write their own projects
-- Worlds/entities: owner only; game doc: create only by `createGame` (v2.50), update / delete — full editors of the world on any plan
-- **Audit fixes (v2.63):** game doc `.repo` / `.ingestKeys` — server only, `.launch` (the PowerShell lines the owner pastes) — only the world owner; cards / entities: an update needs edit rights on the CURRENT `section` / `kind` too (a custom member cannot pull another section's card into theirs). `gamedevPlan` `repoConnect` / `repoDisconnect` run as the real caller (`payerFor` is for billing only — a team admin never uses or replaces the owner's GitHub token). Telegram `connect` (marketing.js) needs a code `ww-…` = HMAC(bot token, game key + chat id) in the channel description — the bot being an admin does not prove who connects. Client rendering: the shell's `escapeHtml` escapes quotes, other users' links / pictures in the Community pass `safeUrl` (https only, `' ( )` %-encoded); Game Bible `href`s from team-writable data pass `escUrl` (http(s) / blob only); launch commands strip `# WhiteWrite Architecture Map
-
-**Version:** 2.77 (2026-11-04)
-**Status:** Canonical Reference (Single Source of Truth)
-
----
-
-## 🎯 Purpose
-
-This document is the **canonical architecture map** of WhiteWrite. All code, features, and decisions reference this document as the single source of truth.
-
-**Philosophy:**
-- **Canon-Aware Narrative Generation** — AI generates stories that respect world consistency
-- **Two spaces** — Book (write) and World Bible (canon — the home of a world, its stories and games). The Universe tree (WorldTree) and the Director (Workspace: a storyboard/LoRA mock-up with no backend) are retired; real image generation, when it comes, belongs in the Bible's dossiers and the book's scenes.
-- **Single Canon** — All pillars read from one source (`WORLD`)
-- **Reconstruction Engine** — Canon changes cascade through narrative automatically
-- **World-first** — a World (canon) is the root; stories (projects) and games hang off it: **one canon → many stories, many games**
-- **Game production** — Game Bible + production plan → tasks → Claude Code executes them over **MCP**, the author reviews
-
-> **Rule (CLAUDE.md):** this file is updated with every change to architecture, data model, functions, rules or integrations — big or small.
-
----
-
-## 📂 File Structure
-
-```
-E:\WhiteWrite/
-├─ app/                          # Production (deployed to whitewrite.com)
-│  ├─ White.html                 # Shell (navigation, auth, account)
-│  ├─ WhiteWrite.html            # Book pillar (narrative generation)
-│  ├─ WhiteWrite GameBible.html  # World Bible (world-scoped): canon, stories, games — cards, files, plan, tasks
-│  ├─ gamebible.js               # Game Bible logic (plain JS, no JSX)
-│  ├─ gb-3d.js                   # three.js viewer (GLB/GLTF/FBX/OBJ/STL) for card files
-│  │
-│  ├─ app.jsx                    # App root (stages: start/form/book)
-│  ├─ flow.jsx                   # StoryForm (create project modal)
-│  ├─ pages.jsx                  # Book page (scene intent, generation)
-│  ├─ book.jsx                   # Book component (measured pagination, reading, ritual)
-│  ├─ book-edit.jsx              # SceneSheet — free writing / pasting a scene (autosave)
-│  │
-│  ├─ firebase/
-│  │  ├─ firebase-init.js        # Firebase SDK initialization
-│  │  ├─ firebase-auth.js        # Auth + user plan loading
-│  │  ├─ firebase-projects.js    # Project CRUD
-│  │  ├─ firebase-scenes.js      # Scene CRUD
-│  │  ├─ firebase-ai.js          # AI generation (Gemini)
-│  │  ├─ firebase-canon.js       # Canon CRUD (worlds/{w}/entities), createWorld/listWorlds/applyGenesis
-│  │  ├─ ai-models.js            # AI_MODELS — single source of truth for model ids (front + back)
-│  │  └─ token-budget.js         # Token system + plan budgets
-│  │
-│  ├─ wt-world.jsx, wt-impact.jsx # WORLD + impact engine (no UI; the tree UI was removed)
-│  └─ assets/                    # Images, fonts, icons (logo: LogoG.png in the top bar — it carries the name, no text beside it; LogoG-icon.png = favicon)
-│
-├─ functions/
-│  ├─ index.js                   # only assembles functions/src/*
-│  ├─ canon-store.js             # loadCanon / mergeSuggestions / ensureWorld (lazy migration)
-│  ├─ token-service.js           # token accounting, pricingFor(model) by alias prefix
-│  └─ src/
-│     ├─ common.js               # shared admin/db, auth helpers
-│     ├─ scenes.js               # generateScene (+ buildCanonContext)
-│     ├─ canon-extract.js        # canon extraction from scenes
-│     ├─ canon-sync.js           # bulk sync / analyze
-│     ├─ genesis.js              # genesisWorld — world seeds
-│     ├─ github-token.js         # one saved GitHub token per author (githubTokens/{uid}): savedGithub / rememberGithub / forgetGithub / loginOf
-│     ├─ gamedev.js              # gamedevPlan: import (.md) / draft (idea → GDD proposal) / analyze (GDD) / plan (+ scaffold, writes tasks)
-│     ├─ mcp.js                  # mcp — MCP server for Claude Code (Task Engine executor API)
-│     ├─ users.js               # initializeUser, ensureProjectWorld (a story without a world gets one)
-│     ├─ lemon.js               # changeSubscription, createLemonSqueezyCheckout, initLemonSqueezyConfig, lemonSqueezyWebhook; stripe.js — legacy Checkout
-│     ├─ economy-admin.js       # admin economy panel: seedEconomy, checkMargin, setMargin, migrateMargin, migrateWordPricing, migrateCostPricing
-│     ├─ (canon-sync.js also)   # backfillSceneCanonRefs — one-off backfill of scene canon refs
-│     ├─ cost-watch.js           # aiCostDaily — API $ per user per day → admin_costs + alarms (v2.46)
-│
-├─ scripts/build-app.mjs         # app/ → dist/ (precompiled JSX, prod React, ?v=hash cache-busting)
-├─ dist/                         # BUILD OUTPUT served by Hosting — never edit or commit
-│
-├─ ARCHITECTURE.md · CLAUDE.md · TOKENOMICS.md · MARKETPLACE_SPEC.md   # the only live docs in the root
-├─ docs/legal/                   # market legal templates (for a human lawyer)
-├─ docs/archive/                 # old reports, pricing drafts and session logs (June 2026) — history, NOT current truth
-└─ handoff/                      # early session logs (history)
-```
-
----
-
-## 🏗 System Architecture
-
-### **Frontend Architecture**
-
-```
-whitewrite.com
-    ↓
-White.html (Shell)
-    ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (World Bible card + owner panel; stories live in the Bible);
-    │        hero (flow.jsx, i18n `hero.*`): «Твій світ чекає» — one world's canon → books and games; game card
-    │        «Від задуму — до гри» / «🤖 Від чистого ПК до Гри» (posts `ww-agent-guide`) → Knowledge base on the «agent» category
-    ├─ Knowledge base (`kb.js` → `window.WW_KB`, rendered by `fillKb` / `openArticle`; «?» fab): categories start · agent ·
-    │        book · world · game · framework · account, uk + en; blocks p/h/ul/tip/warn/prompt («prompt» = a ready request
-    │        for Claude Code with a «Копіювати» button), plans/prices (rendered from the paid-features registry);
-    │        in-text links `<a class="art__link" data-art="id">` open another article; the Bible opens one with
-    │        postMessage `{type:'ww-kb-article', id}`. The «agent» category is drawn as a road (`fillKb`: articles with
-    │        `step`/`stage`, stage labels `WW_KB.stages`; a dashed line with numbered nodes; the rest under «Довідка»):
-    │        overview → stage pc: 1 with/without RPG Framework (what it is) · 2 PC (Git, Unity Hub, Unity CLI, Unity 6, Claude Code) →
-    │        stage game (= ⚙ Project settings → «Claude Code»): 3 folder + launch · 4 MCP key · 5 design → plan (.md import) ·
-    │        6 first session (new game: START-NEW-GAME / no-framework prompt; existing project: `get_guide setup`) ·
-    │        7 development log (CLAUDE.md) → stage daily: 8 task loop · 9 GitHub; reference: agent-env, agent-knowledge.
-    │        «framework» adds fw-access (token) and fw-files.
-    │        Every service change updates its article in the same commit.
-    ├─ Auth (Firebase Auth)
-    ├─ Account view (Profile, Subscription, Tokens, Integrations · MCP / API)
-    └─ Pillar iframes:
-        ├─ WhiteWrite.html?projectId=X (Book; ⤓ export DOCX / PDF — `book-export.js`, in the browser: a STORE-zip
-        │   WordprocessingML package, or print of a book-styled frame; `allowExport`, Storyteller+)
-        └─ WhiteWrite GameBible.html?worldId=W (World Bible, world-scoped)
-    Canon links (book bookmarks «✦ Дослідити канон», old `WhiteWrite WorldTree.html?type=&id=` links) go through
-    `wwGo` / `ww-nav` as pillar `canon` → shell `openCanon(query)`: world of `projectId` (or the current world) → `showBible()` →
-    `ww-bible-focus {ent}` (the Bible keeps it pending until its canon has loaded). Hosting 301-redirects `/WhiteWrite WorldTree.html` and `/WhiteWrite Workspace.html` → `/`.
-```
-
-External executor:
-```
-Claude Code (author's machine)  ──MCP Streamable HTTP + Bearer wwk_…──▶  functions:mcp  ──▶  Firestore (tasks, executions, …)
-```
-
-**Communication:**
-- Shell → Iframe: `window.postMessage({ type: "ww-mode", mode: "work" })`
-- Book → Shell: `ww-mode` `work` (inside a story) | `home` (the cover) | `create` (a story / world form — the shell keeps the rail and, for a story form opened with a `worldId`, shows «Біблія світу» back; `storyFormWorld`)
-- Iframe → Shell: `window.parent.postMessage(...)`
-
----
-
-### **Data Flow**
-
-```
-User Action
-    ↓
-Frontend (React; in-browser Babel locally, precompiled in dist/ on prod)
-    ↓
-Firebase SDK (app/firebase/*.js)
-    ↓
-Cloud Functions (functions/src/*, gen2, us-central1)
-    ↓
-External APIs (Claude — the only AI, Firebase)
-    ↓
-Firestore (database)
-    ↓
-Frontend (re-render)
-```
-
----
-
-## 🗄 Firestore Schema
-
-### **Collections**
-
-#### **`users/{uid}`**
-```javascript
-{
-  email: "user@example.com",
-  plan: "worldforge",           // free | storyteller | novelist | worldbuilder | worldforge
-  tokensUsed: 12550,
-  tokensMonthly: 180000,
-  tokensRemaining: 167450,
-  resetDate: Timestamp,
-  role: "admin"                 // Optional: admin role
-}
-```
-
-#### **`projects/{projectId}`**
-```javascript
-{
-  owner: "uid",
-  title: "Попіл Орелії",
-  desc: "Місто, де згасають зорі...",
-  language: "uk",                // uk | en | pl | ru | de | es | fr | ...
-  scope: "novella",              // shot | novella | season | endless
-  ending: "open",                // open | closed | custom
-  genres: ["Містика", "Драма"],
-  creation: "guided",            // guided | auto | free (the author writes)
-  subjects: ["char_…"],          // canon entities the story is about (World Bible «Історії»)
-  reveal: "open",                // open | later | internal — what the reader may see (+ revealNote)
-  length: 700,                   // Scene length (words)
-  dialogue: 50,                  // Dialogue density (0-100%)
-  episodes: 12,                  // For season scope
-  endingNote: "...",
-
-  worldId: "w_...",              // the World this story belongs to (canon lives there)
-  canon: { ... },                // LEGACY — kept for rollback, no longer read
-
-  memorySuggestions: [ ... ],    // Inferred canon (pending approval)
-
-  createdAt: Timestamp,
-  updatedAt: Timestamp
-}
-```
-
-#### **`projects/{projectId}/scenes/{sceneId}`**
-```javascript
-{
-  n: 1,                          // Scene number (sequential)
-  title: "Тиша над колонією",
-  text: "Коли впала остання зоря...",
-  intent: "world",               // Scene intent used for generation
-  customIntent: "...",           // User-provided intent (if custom)
-
-  canonRefs: {                   // Linked canon entities
-    characters: ["char_id1", "char_id2"],
-    locations: ["loc_id1"],
-    events: [],
-    artifacts: [],
-    factions: []
-  },
-
-  createdAt: Timestamp
-}
-```
-
-#### **`worlds/{worldId}`** — the canon root
-```javascript
-{ owner: "uid", name, desc, tone, laws: [...], facts: [...], createdAt, updatedAt }
-```
-- **Cover** (v2.37): `cover: { url, path, type: image|video }` — set in the shell (✎ on a world card in «Світи» and on the hub's «Біблія світу» card, `openWorldEdit` in `White.html`, also renames and edits `tagline`); file in Storage `worlds/{w}/cover/{ts}_{name}` (storage.rules: the owner, any plan, image ≤ 10 MB or `video/mp4|webm` ≤ 50 MB); the replaced file is deleted; world deletion deletes it. World cards and the hub's Bible card are 16:9 (`aspect-ratio`); `cover.frame` `{x, y, fit cover|contain}` = the author's «⌖ Кадр». No cover → `app/assets/ph-world.jpg` (the default; stories fall back to `assets/ph-project.png`). Videos play `muted autoplay loop playsinline`; CSP `media-src` allows `firebasestorage.googleapis.com`.
-- `worlds/{w}/entities/{id}` — canon entities: `{ kind: "character|location|event|faction|artifact", type, name, slug, desc, ..., mapPos, inferred?, confidence? }`
-- **World dossier** (on the entity itself, no game statuses): `dossier: { story, look | outcome }` (two writing tabs per kind — characters Біографія/Зовнішність, locations Історія місця/Вигляд, factions Історія й мета/Символіка, artifacts Походження/Вигляд, events Перебіг/**Наслідки** (`outcome`, events have no look)), `group` (the subsection it was added in), `lifeNotes: [{ id, at, text }]` (characters' «Хронологія життя», ordered by the first number in `at`), `files: [...]` — world-level images/models in Storage `worlds/{w}/files/{entityId}/**`.
-- `worlds/{w}/lore/{id}` — culture entries (World Bible «Культура»); `worlds/{w}.timeUnit` — the chronicle's time unit.
-- `worlds/{w}/games/{g}/quests/{id}` (v2.30, was `worlds/{w}/quests` — no data existed, nothing migrated) — quests `{ title, type, approval draft|review|approved|archived, status (STATUSES), summary, stories[projectId], source { type: card|story|characters|locations|factions|artifacts|events|lore, id, title }, giver, characters[], locations[], factions[], artifacts[], events[canon event ids], objectives, stages[{ id, title, objective, next[{ to, cond }], end, fail }], rewards, prereqs[questId], repeat { mode once|repeatable|daily, cooldown }, hooks, notes }` — the first stage is the start.
-- `worlds/{w}/games/{g}/dialogues/{id}` — dialogues `{ title, type, approval, status, participants[], location, questId, stageId, trigger, nodes[{ id, speaker (ref | player | narrator), text, locKey, cond, effects, choices[{ text, to, cond }], next, end }], notes }` — the first node is the start. Refs in both: a game card `c:<cardId>` (role sections `CARD_ROLES` in `functions/narrative-validate.js`: characters/enemies → characters, locations/levels → locations, factions, items/gear → artifacts) or a canon entity id; `refPool(entities, cards)` is the shared list for the UI check, `narrativeDraft` and MCP. Both are client-writable game subcollections (`hasGameDev()` = Worldbuilder; `allowQuests`/`hasQuests()` removed).
-- `worlds/{w}.cosmos` — the Космограф sky `{ planet, calendar, stars[], moons[] }`; `worlds/{w}.cosmograph` — paid access (server-only).
-- Several projects can share one world (`project.worldId`).
-
-#### **`worlds/{w}/games/{g}`** — Game Bible (one canon → many games)
-```javascript
-{ title, engine: { profile }, sections: [...custom], createdAt,
-  launch?: { dir, model: 'opus'|'sonnet'|'', skip } } // «Запуск Claude Code» in the game's settings → PowerShell lines `cd "dir"` + `claude [--model m] [--dangerously-skip-permissions]`
-```
-- `cards/{cardId}` — game cards: `{ section, title, status: idea|work|agreed|ingame, fields: {..., group}, note, files: [{id,name,url,path,size}], canonRef?, planTask? }`.
-  - Mechanics cards (v2.48, section `mechanics`) carry `mech { tpl ('' = own | template id), tplVersion, cat, sub, stage concept|dev|testing|ready, type, purpose, rules, tags[], links[cardId], sections[{ id, title, hint, kind fields|table, fields[{ k, l, t, u, req r|rec|opt, adv, h, o[{ v, l }], ref, min, max, custom }], values {k: v} | rows[{ _id, k: v }], rowLabel, prefix, custom }] }` — the instance's own copy of the template structure (no arrays inside arrays — Firestore); `fields.group` = the category label, `fields.text` = the purpose (card excerpt, search).
-  Game fields of a canon entity live here (`canonRef`), **not** on the entity.
-- `plan/current` — `{ analysis (GDD + questions), plan: { milestones: [{ id, title, gate, tasks: [...] }] }, scaffold, running }`
-- `tasks/{taskId}` — **Task Engine**: `{ id, milestone, title, detail, deps, owner, size, cards, accept[], tests[], prompt, order,
-  status: todo|in_progress|review|done|rework|blocked, progress, blocker, report: { summary, commit, changes, tests, criteria, check }, history[] }`
-- `executions/{id}` — log of every MCP tool call `{ tool, taskId, at, ... }`
-- `marketing/state` `{ enabled, paidUntil, paidAt, claudeMdConfirmedAt, settings{ tone, language, audience, hashtags, signature } }`; `channels/{id}` `{ platform: telegram|discord|mastodon|bluesky, title, chatId?, username?, instance?, handle?, ok }`; `posts/{id}` `{ platform: telegram|discord|mastodon|bluesky|x|reddit, status: draft|approved|rejected|scheduled|publishing|published|failed, text, title?, poll?{question, options}, sources["session:entry"], channelId?, at?, url?, messageId?, error?, history[] }` — all server-only (v2.29); top-level `marketingSecrets/{w}__{g}__{channelId}` (webhook / token / appPassword) and `marketingQueue/{w}__{g}__{postId}` `{ path, at }` — no client access
-- `users/{uid}/ledger/{id}` (v2.42, `functions/src/ledger.js`) — the token ledger: `{ type grant|topup|spend|refund|adjust, op, amount (signed), balance (after), ref {worldId, gameId, projectId, orderId, plan, licenceId, model}, note, at }`. Written only by the server (rules: owner read, no client write): `token-service.js` `charge()` logs the final real cost inside its transaction and `applyDebit` logs the monthly `grant` when a new period opens; fixed prices (Космограф, Маркетинг, project slot, plan-switch fee / prorated grant) via `ledger.record`; Lemon top-ups inside the crediting transaction; `subscription_created` → `grant`. Internal costs stay in `usage_logs`. Account → «Історія токенів» (last 100) with a printable receipt per entry (🧾 → print / PDF; money receipts remain Lemon Squeezy's).
-- `admin_costs/{YYYY-MM-DD}` (v2.46, `cost-watch.js aiCostDaily`, daily) — `{ day, totalUsd, calls, users, top[{uid, email, plan, usd, paid, calls, tokens, ops}] }` from `usage_logs` of the last 24 h; admins read (Account → «Витрати ШІ»), server-only. Alarms to `admin_notices` (`kind: 'ai-cost'`): one user's API cost > $5 a day (critical > $20); a user paid fewer $ in tokens than the API cost (pricing bug).
-- `users/{uid}/friends/{otherUid}` (v2.43, `functions/src/team.js`) — `{ status pending|incoming|accepted, name, email, at }`, a mirrored pair; server-only (owner reads).
-- `worlds/{w}.team.{uid}` + `worlds/{w}.teamUids[]` (v2.43, `team.js` only) — `{ role admin|editor|viewer|custom, view[], edit[], viewKinds[], editKinds[], name, email, at }`; `view`/`edit` are Bible menu ids, `*Kinds` the entity kinds of those canon sections (`KIND_OF`).
-- `worlds/{w}.freeze` (v2.43, `market.js` only) — `{ reason 'licence', applicationId, at }`: while set, the world, its entities / lore / games / cards / stories / Storage files are read-only for everybody (rules `worldOpen` / `storyOpen` + server writers, see §5b).
-- `worlds/{w}.backup` (v2.43, `backup.js` only) — `{ repo, login, enabled, paidUntil, lastAt, lastStatus, lastError, lastCommit }`; `backupTokens/{w}` `{ token, login }` — no client access.
-- `worlds/{w}.integrations` / `games/{g}.integrations` (v2.67, `integrations.js` only) — `{ model3d | image: { provider, name, tail, check: ok|unverified, at } }`; the keys in `integrationKeys/{w}` and `integrationKeys/{w}__{g}` `{ worldId, gameId, model3d | image: { key, provider, name } }` — no client access; a game without its own key uses the world's (`getIntegrationKey`); purged with the game / world, dropped on a Market transfer.
-- `licenceApplications/{id}` (v2.43) — `{ uid, worldId, title, pitch, declaration, priceCents, chars, fee, snapshotPath, snapshotHash, status review|moderation|licensed|rejected|withdrawn, aiReview, legal, aiError, … }`; the applicant reads. `marketLots/{appId}` — the listed lot `{ seller, sellerName, worldId, title, pitch, level, priceCents, report, metrics, contract, snapshotHash, status listed|reserved|sold|unlisted, licensedAt }`; public while listed, the seller reads always. `marketDeals/{id}` — `{ lotId, seller, buyer, amount, fee, contract, status, at, stripe… }`; seller / buyer read. `sellers/{uid}` — the Stripe Connect account `{ accountId, chargesEnabled, payoutsEnabled }`; owner reads. All server-written.
-- `games/{g}.subPalettes { [sectionId]: { [group]: "#hex — name\n…" } }` — the main colours of a «Референси» / «Сцени» group (v2.28)
-- `env/current` — the Unity environment check from Claude Code (`report_unity_environment`): `{ os, editor, cli, project, checks[{id, ok, detail, exitCode}], ok, reportedAt }` (server-only)
-- `knowledge/{snapshotId}` — a Project Knowledge snapshot `{ schema: whitewrite.knowledge/1, scope: full|partial, manifest, status: uploading|imported, counts{added,updated,skipped,relations,rejected,tombstoned}, framework, overview, report, unresolved }`; `kAssets/{guid | p_<sha1(path)>}` — one asset/scene/prefab/script/visual `{ kind, guid, path (project-relative), type, name, description, labels, deps, details, hash, lastSnap, missingSince? }`; `kRelations/{sha1}` — `{ from, to, rel, evidence, confirmed }`; `games/{g}.knowledge { lastSnap, at }` (all server-only)
-- `activity/{sessionId}` — development log session `{ branch, commit, summary, verify: commit_found|commit_missing|unverified, receivedAt, entryCount }` + `entries/{entryId}` `{ change, category, text, status, playerImpact, evidence, media, limits, hints, privacy, taskId, at, reviewedAt? }` — written by the MCP server, never overwritten; the owner may change only `privacy`/`reviewedAt`
-- `changeRequests/{id}` — executor asks to change the design `{ what, why, taskId, status: open|accepted|rejected }`
-- `cards/{id}.forge` (v2.54, ⚒ Кузня персонажів) — on character / enemy cards: production stages, append-only `revs`, approvals, clips, loadouts; on `gear` cards: the technical passport + `external` reports (MCP `report_forge_check`); `games/{g}.forge { slots, rigs, bodies }`. Schema — `functions/forge.js`
-- **Card faces** (v2.39): the first image of a card / dossier is its 16:9 face; a file's `frame {x, y, fit}` (⌖ next to every image in the card's and the dossier's file lists, `pickFrame` → the whole `files` array rewritten) sets `object-position` / `object-fit`. The picker is **`app/frame-pick.js`** (`window.wwFrame.pick / style`), shared by the shell and the Bible.
-- Files: Firebase Storage `worlds/{w}/games/{g}/files/**` (game), `worlds/{w}/files/{entityId}/**` (world dossiers) , `worlds/{w}/cover/*` (the world card) and `worlds/{w}/games/{g}/cover/*` (the game cover and title image, v2.53); world deletion removes them all
-
-- `games/{g}.repo` — the game's GitHub repository `{ full, branch, private, connectedAt, syncedAt, sha }` (written by `gamedevPlan` only)
-
-#### **`repoTokens/{worldId}__{gameId}`** — GitHub tokens
-```javascript
-{ uid, token, updatedAt }   // read-only fine-grained token for a private repo; no client access at all
-```
-`gamedevPlan` op `repoConnect` checks the repo (+ branch, default = the repo's main one) with GitHub, stores the token here and `repo` on the game; `repoDisconnect` removes both. op `repoSync` (the author's button «Звірити з репо» in the game settings, priced like import, nothing is reserved if GitHub fails): reads the branch head — the files changed since `repo.sha` (compare API), an inventory of asset/code paths (.prefab .unity .asset .fbx .glb .cs .uasset .tscn …, build/cache folders skipped), up to 80 000 chars of .md/.txt (README/GAME/GDD → Docs/ → root → the rest) — and compares it with the Bible (`repoPrompt`). The answer is an import-shaped proposal (`cleanImport`): what the repo has and the Bible lacks (canon / laws / cards) + contradictions «repo: path · bible: card» + questions, shown in the import view; ticked items are written by the client like an import, ticked contradictions go to `plan/current.contradictions` (= «Неузгоджене»). `repo.syncedAt` / `sha` are updated.
-**One GitHub token (v2.56):** the last token the author pasted — in `repoConnect` or the backup's `connect` — is saved in `githubTokens/{uid}` `{ token, login, at }` (server only, `firestore.rules` deny) and `users/{uid}.github { login, at }` (the pages show «токен збережено», never the token); a connection without a pasted token uses the saved one. The connections keep their own copies (`repoTokens/{w}__{g}`, `backupTokens/{w}`), so `backup {op:'forgetGithub'}` (Account → Integrations → GitHub → «Забути токен») does not cut them off. A token that fits both: fine-grained, All repositories, Administration + Contents read/write (or classic `repo`).
-`gamedevPlan` op `draft` (v2.55, «✦ Чернетка GDD з опису» in Settings → Claude Code step 5): `idea` (20–6000 chars, else `IDEA_TOO_SHORT`) → `draftPrompt` (lead designer: overview + pillars, loop, 3–6 mechanics with numbers, progression, enemies, levels, items, art, audio, UI on the game shelves; canon entities by `match`, as few new ones as possible; 5–10 open questions) → `cleanImport` → the same proposal the author ticks (`renderImport`, `imp.draft`); priced `gddDraft` (factor 4), no `running` marker (the page waits for the answer, like `import`).
-
-#### **`mcpKeys/{sha256(key)}`** — executor keys
-```javascript
-{ uid, worldId, gameId, label, prefix, createdAt, lastUsedAt, revoked? }
-```
-The key `wwk_…` is shown once; only its sha256 is stored. Created per game in Game Bible → Production plan; listed/revoked in Account → Integrations.
-
-#### **`community/{pubId}`** + `items/` + `likes/` · `community_home/current` · `community_reports/{pubId}__{uid}` (live, v2.36)
-Спільнота — public showcases (`functions/src/community.js`). `pubId` = `worldId` (a world) or `${worldId}__${gameId}` (a game).
-Doc: `{ kind world|game, worldId, gameId, owner, author, title, worldTitle, tagline, summary, cover, discord, lookingForTeam, teamNote, facts[{k,v}], rules[], sections[{id,label,n}], likes, score, reports, hidden, promotedUntil?, publishedAt, updatedAt, activeAt }`; `items/{i0000…}` `{ sec, group, title, blocks[{l,t}], imgs[] }` (Storage download URLs only); `likes/{uid}` `{ at }`. **Rules:** anyone (even signed out) reads a doc / its items unless `hidden` (owner and admins still read it; a missing doc reads as «not published»); a user reads only their own like; `community_home` is public; reports — admins; **all writes are server-only**.
-
-#### **`economy_operations/{operationId}`** (live)
-Reserves read by the servers: `providers.{claude|gemini}.cost` (the reserve per scene; 300 / 40 by default; `analyzeScene` 200). Since v2.15 `charge()` bills the REAL API cost (see §1), so the margin multipliers, `estimatedCostPer700Words` and `economy_config/global` (`tokenToUSD`, global multiplier) only price a call whose model has no `MODEL_PRICING` entry or that returned no usage. Edited in the admin economy panel (`economy-admin.js`).
-
-#### **`usage_logs/{logId}`** (live)
-One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outputTokens/cache…, realApiCostUSD, billing ('actual'|'estimate'), usdPerToken, userTokensCharged, timestamp` (+ the legacy estimate fields).
-
----
-
-## 🔧 Core Systems
-
-### **1. Paid features registry, plans and tokens**
-
-**Single source of truth:** `functions/paid-features.js` (v2.13). `app/firebase/paid-features.js` is a copy made by `scripts/build-app.mjs` (the same step copies `functions/ai-models.js`, `functions/narrative-validate.js` and `functions/setup-guides.js` → `app/firebase/`, so the two never drift again) — edit only the `functions/` file.
-- `PLAN_ORDER` free → storyteller → novelist → worldbuilder; `PLANS {name, price, monthly, maxProjects, maxGames, popular?}` (`maxGames` 1 below Worldbuilder, 999 on it — v2.50); `worldforge` is a hidden dev plan `as: 'worldbuilder'`.
-- `FEATURES[]`: `{ id, kind: gate|ai|free, flag, alias?, minPlan, price?: {scene}|{factor}|{fixed, per?}, op?, uk/en {name, desc}, where, server, planned? }`. A feature is on from `minPlan` upward; `planBudget(plan)` derives the old `{monthly, maxProjects, allow…}` shape; `featureCost(feature, claudeCost)` = the tokens reserved before a run (`factor` × the economy Claude scene price, or `fixed`); `byOp(op)`.
-- `soon: true` features are announced on the plan cards and in the KB but not live: `framework` (`allowFramework`, Storyteller) — a personal RPG Framework access token tied to the account, blocked on foreign use, renewed while the subscription is active (issuing not built yet).
-- Flags: `allowExport`, `allowWorldTree` (Bible canon editing), `allowFramework` (soon) — Storyteller; `allowCanonExtraction` / `allowCanonSync` are gone (auto-canon cancelled, v2.15); `allowClaude`, `allowAnalyze`, `allowReconstruction`, `allowImprove` (planned) — Novelist; `allowGameDev`, `allowAPI` (MCP) — Worldbuilder; `allowGameDesign` — Free (v2.50: a game's GDD on every plan — `gamedesign`, `mechanics`, `quests`, `artStyle`).
-- Readers: `functions/plans.js` (`PLAN_BUDGETS` / `getPlanBudget` for every server gate), `gamedevPlan` / `experience` / `cosmographAccess` reserves (`featureCost(byOp(op))`), `token-budget.js` (overwrites `window.__PLAN_BUDGETS` flags/budgets/prices), the Account plan cards (`planCards` in `White.html`: tokens, ≈ scenes, projects, «Усе з X +» and the features new at that plan), the Bible `costOf` / `costMark` (✦ price on the button and in the confirm), and the knowledge base blocks `["plans"]` / `["prices"]` (`kbRegistry` in `White.html`).
-- Reserve → charge → refund: the server reserves `featureCost`, `charge()` settles the real usage (the difference is debited — overdraft allowed — or returned), a failed run refunds. `analyzeScene` reserves too (v2.13).
-- **Margin (v2.15):** `charge()` = `tokensForUsd(realApiCostUSD)` = ceil(API $ / `USD_PER_TOKEN`), `USD_PER_TOKEN = 0.00015` in the registry. API $ = usage × `MODEL_PRICING` (`ai-models.js`, real list prices: Opus 4.8 $5/$25, Sonnet 4.5 $3/$15, Haiku 4.5 $1/$5, Gemini 2.5 Flash $0.30/$2.50 incl. thinking tokens — Gemini usage is now captured in generateScene). A full budget therefore costs in API: Worldbuilder $27 of $69, Novelist $4.80 of $29, Storyteller $0.36 of $12. Typical (v2.20, Claude 5.5): Haiku scene ≈ 10, Sonnet ≈ 160, Opus ≈ 320, .md import chunk ≈ 570, Opus game plan ≈ 3000. `SCENE_TYPICAL {gemini 30, claude 150}` feeds the plan cards and the KB; reserves `SCENE_COST {gemini 40, claude 300}`, advise 200, game plan ×12. The UI shows prices as «≈ N».
-
-**Subscriptions (Lemon Squeezy, `functions/src/lemon.js`):** `subscription_created` → plan + new period; `subscription_updated` → status / plan, `cancelled` with a future `ends_at` stays `active` with `cancelAtPeriodEnd` + `subscriptionEndsAt`, `expired` → free; `subscription_cancelled` (future `ends_at`) only marks `cancelAtPeriodEnd`; `subscription_expired` → free. Server AI gates require `subscriptionStatus === 'active'` (generateScene, genesisWorld, reconstructScene, analyzeScene, gamedevPlan AI ops, experience AI ops, cosmographAccess). Legacy Stripe `createCheckoutSession` takes uid/email only from the ID token.
-
-**Webhook signatures (v2.19.1):** `lemonSqueezyWebhook` checks `X-Signature` = hex HMAC-SHA256 of `req.rawBody` with `LEMON_SQUEEZY_WEBHOOK_SECRET` (`timingSafeEqual`). Every delivery used to fail with 401 because the secrets in Secret Manager had been saved with a Windows `
-` at the end; they were re-added clean, and `common.js` trims every `defineSecret` value on read. **Secrets must be added without a trailing newline** (`--data-file` from a trimmed source).
-
-**Plan change (v2.18, `changeSubscription` in `functions/src/lemon.js`):** body `{op:'quote'|'change'|'cancelPending', plan}`, needs an active LS subscription (else 409 → the client falls back to checkout; PayPal → `{portal}` = LS `customer_portal_update_subscription`). It reads the LS subscription (`renews_at`); `left` = days to renewal / 30. **Up** → LS `PATCH /v1/subscriptions/{id} {variant_id, invoice_immediately:true}` (LS charges the prorated difference now), then `users.plan = target` and `tokensUsed` set so that available = old monthly left + `upgradeQuote().tokens` (budget difference × left) − `fee` (`UPGRADE_FEE` 3% of the new monthly), logged `usage_logs {operation:'plan_upgrade_fee'}`, `lastUpgrade`. **Down** → `PATCH {variant_id, disable_prorations:true}` (the new price at renewal, no credit) + `users.pendingPlan / pendingFrom = renews_at`; **free** → `PATCH {cancelled:true}` + pending. `cancelPending` reverts (variant back / `cancelled:false`). Webhook: `subscription_updated` keeps the plan while `pendingPlan === variant plan && pendingFrom > now`, applies it after; `subscription_payment_success` (renewal) applies a due pending plan. UI: plan cards (`planCard` in White.html) show «З дати» + «Скасувати перехід» on the pending plan; `.plan__btn` quotes then confirms (`plan.upAsk/downAsk/freeAsk`). `__wwUser.pendingPlan/pendingFrom` from `firebase-auth.js`.
-
-**Story creation (v2.17):** Bible dossier «＋ Історія» asks *how*: `mode:'ai'` → the shell opens `WhiteWrite.html?new=1&worldId&title&about&reveal&revealNote` → `StoryForm` prefilled (`initial`, keeps `subjects/reveal/revealNote`); `mode:'self'` adds `free=1` → the sheet. `enterBook` waits up to 10 s for `__wwUser`/`__firebaseProjects` before creating (the race used to skip creation and open the demo «Попіл Орелії»); a failure never falls into the demo. The last «Що далі?» spread (`SceneIntentRight actions`) also offers write on / edit the last scene / save the story (`updateProject` stamp + postMessage `ww-story-saved` → the shell reopens the world's stories). `token-budget.js` takes `__TOKEN_COSTS.sceneGemini/sceneClaude/analyzeScene` from the registry.
-
-**Game limit (v2.50):** games are created ONLY by the `createGame` Cloud Function (`functions/src/projects.js`; `firestore.rules` → `worlds/{w}/games/{g}` `allow create: if false`): the caller's own unfrozen world, `allowGameDesign`, and the count of games over ALL the author's worlds (`count()` per world) below `planBudget(plan).maxGames` — else 403 `{code:'GAME_LIMIT', limit, count, plan}`. It writes `{title, engine.profile, sections: [], canonOptIn: true, createdAt, updatedAt}` and returns `gameId`; the Bible's new-game form and the game restore (`whitewrite.game/1`, then `set(meta, {merge})`) call it. A downgrade keeps every existing game editable — only creation is limited.
-
-**Project limit (v2.16):** stories are created ONLY by the `createProject` Cloud Function (`functions/src/projects.js`; `firestore.rules` → `projects` `allow create: if false`). It counts `projects where owner == uid` against `planBudget(plan).maxProjects + users/{uid}.extraProjects`; over the limit it answers 403 `{code:'PROJECT_LIMIT', limit, count, plan, slotCost, tokensRemaining}`, and with `buySlot: true` reserves the registry price of `projectSlot` (500 tokens, fixed), increments `extraProjects` (a permanent slot, survives plan changes) and logs `usage_logs {operation:'project_slot'}`. The server whitelists and caps the story fields; `worldId` must be the caller's world. Client: `__firebaseProjects.createProject(data, buySlot?)` — confirm «купити слот» (i18n `project.limitAsk`) or open the plans; `OUT_OF_TOKENS` → alert `project.slotNoTokens`; both throw `err.silent` so `app.jsx` shows no second alert.
-
-**Known gaps (audit 2026-11-02):** the Cosmograph sky runs in the browser (`paidUntil` is an honour gate); (Margin fixed in v2.15; plan changes in place since v2.18.)
-
----
-
-### **2. Canon System**
-
-**Philosophy:** Canon = Single Source of Truth for world consistency
-
-**Data Model:**
-```javascript
-canon: {
-  characters: {
-    "char_id": {
-      name: "Елена Кор",
-      role: "Провідниця зорепаду",
-      trait: "Упевненість",
-      status: "alive",
-      location: "Орелія",
-      goal: "Врятувати місто",
-      relationships: [
-        { type: "знає", target: "char_id2" }
-      ]
-    }
-  },
-  locations: { ... },
-  events: { ... },
-  factions: { ... },
-  artifacts: { ... },
-  world: {
-    name: "Попіл Орелії",
-    tone: "Містична постапокаліпсис",
-    rules: ["Зорі падають одна за одною"]
-  }
-}
-```
-
-**Storage (since 2026-10-31):** canon lives in `worlds/{w}` + `entities/{id}` (see schema), not in `project.canon`.
-Backend: `functions/canon-store.js`; frontend: `app/firebase/firebase-canon.js`.
-
-**Canon Extraction — auto-canon CANCELLED (v2.15, owner decision 2026-11-02):**
-- `generateScene` no longer calls `extractCanonFromScene()`; `syncCanonFromProject` answers 410. A scene never writes to the canon by itself.
-- New names reach the canon only through the Keeper (`book-edit.jsx`: local detection + the author's «так») or the Bible. `canon-extract.js` stays in the code (unused by scenes) for a possible on-demand tool.
-- Consequence: `scene.stateChanges` / scene canonRefs are no longer filled automatically for new scenes («Стан у часі» shows what earlier scenes recorded).
-
----
-
-### **3. AI Generation**
-
-**Models (v2.20): ONLY Claude.** Gemini is gone (code paths, secret binding, UI texts). Default ids per tier in `functions/ai-models.js` (`claude-haiku-5-5` / `claude-sonnet-5-5` / `claude-opus-5-5`, real prices incl. Haiku's >100k-prompt tier `over`), never hardcoded elsewhere.
-- **One door — `functions/src/claude.js`:** `modelFor(db, user, plan)` → `{tier, model}` = `users.settings.aiModel` if the plan opens it (`paid-features.js MODEL_TIERS` + `modelTier`: Haiku from Free, Sonnet from Storyteller, Opus from Novelist; default Sonnet, Free → Haiku), the id from `activeModels(db)` = `AI_MODELS.claude` overridden by `config/ai_models.active` (cached 5 min). `claudeText(apiKey, {model, prompt, system, maxTokens, effort, stream})` sends the current-model request shape: no `temperature`, `output_config.effort` (prose `low`, analysis `medium`), `max_tokens` with room for thinking; reads text **by block type** (Claude 5.x replies can start with a `thinking` block); `stop_reason: refusal` → error. Used by generateScene, reconstructScene, genesisWorld, analyzeScene, canon extraction (active Haiku), experience; gamedevPlan keeps its parallel streams with the same shape.
-- **Reserves scale with the tier:** `featureCost(feature, claudeCost, tier)` × `MODEL_TIERS.scale` (Haiku 0.1, Sonnet 1, Opus 2) for scene/`factor` features; fixed prices don't scale. Measured 2026-11-02 (700-word scene, effort low): Haiku ≈ 6–10, Sonnet ≈ 160, Opus ≈ 315 tokens → `MODEL_TIERS.typical` 10/160/320 (plan cards, KB, `__TOKEN_COSTS.scene` via `__wwApplyModel`).
-- **Account → «Модель Claude»** (White.html `modelHtml/bindModel`): three options, the closed ones show «від {plan}»; writes `users.settings.aiModel` (client-writable `settings`); the server re-checks the plan. The live version label comes from `config/ai_models.snapshot`.
-- **Model watch v2.22 — cadence & early warning:** the schedule fires daily 06:00 Kyiv, but `runWatch` does a full check only in `config/ai_models.mode = 'daily'` or when `fullAt` is ≥ 14 days old (`modelWatchRun` = `force`). `mode` becomes `'daily'` while anything is in flight — `held` (waits for the admin), `upcoming` (a newer version of the tier is in the docs — price table or deprecations table — but not in our Models API yet; pre-analysis notice once: price ratio vs the threshold), `deprecated` (the active id is «Deprecated» on `platform.claude.com/docs/en/about-claude/model-deprecations.md`; notice with the retirement date and the recommended replacement; within `RETIRE_SOON` = 14 days of the date a priced newer version is forced in), `broken` — and returns to `'watch'` when all four are empty. The doc is written whole (no merge) so settled keys disappear. Users stay on the current id until a switch.
-- **Call-time fallback — `claude.js withFallback(model, fn)`** (used by `claudeText` and gamedevPlan's parallel streams): a 404 / `not_found_error` retries at once on the same tier (the `ai-models.js` default, then the newest in `snapshot`), else one tier DOWN (Opus → Sonnet → Haiku; never up — the reserve would not cover it); the swap is stored in `config/ai_models.broken[deadId] = {to, at}` (`activeModels` maps it, so later calls go straight there), `mode = 'daily'`, a critical admin notice; the charge uses the model that answered. The watch clears a `broken` entry once its tier moved on, or when the model is listed again and answers a test call. The watch's own test calls pass `noFallback`. Notices live in `functions/src/admin-notice.js` (`notify`).
-- **Model watch — `functions/src/model-watch.js`:** `modelWatch` (schedule, see cadence above) / `modelWatchRun` (admin HTTP, forces a check). Lists models (Models API) + parses the official price table (`platform.claude.com/docs/en/about-claude/pricing.md`). Per tier: a newer version switches in automatically only if its price is known, a typical call (1.5k in / 2k out) costs ≤ ×1.25 of the current, it keeps context ≥ 200k / output ≥ 48k / `effort` / adaptive thinking, and a real smoke call in our shape returns text; else it is **held** (`config/ai_models.held`, announced once). The active model's own price change updates `config/ai_models.pricing` (read by `token-service.js` `loadLivePricing`, so the real-cost charge follows) and a rise > 10% raises a critical notice. A retired active model forces the switch. Notices: `admin_notices/{id}` {severity info|critical, tier, from, to, title, body, resolved} (rules: admin read / mark `resolved` only) + a Markdown file `admin/notices/<date>-<tier>-<id>.md` in Storage; admins (custom claim `admin`) see them in the Account. Rollback: set `config/ai_models.active.<tier>`.
-
-**Scene Generation Flow:**
-1. User selects Scene Intent (conflict, world, character, etc.)
-2. Frontend calls `window.__firebaseAI.generateScene(projectId, intent, customIntent, previousScenes)`
-3. Cloud Function `generateScene()`:
-   - Loads project + canon
-   - Builds context (previous 3 scenes + canon)
-   - Calls Claude (the author's model, `functions/src/claude.js`)
-   - Saves scene to Firestore
-   - Triggers canon extraction (async)
-   - Deducts tokens
-4. Frontend re-renders with new scene
-
-**The book (reading & writing, `app/book.jsx`, `app/book-edit.jsx`):**
-- **Pages are measured, not counted:** `paginateScene` lays each scene into the real page boxes using a hidden probe (`makeProbe`: same `.photobook__pages` size, `cqw`, font and `--book-size`), paragraph by paragraph, splitting the last paragraph by words (binary search); a continued paragraph has no indent (`.prose--cont`), the split one justifies its last line (`.prose--split`). Re-run on resize, font/size (`ww-book-typo` event from the «Aa» bookmark → `localStorage ww-book-typo`) and after `document.fonts.ready`. Phones (≤820px) read one parchment sheet per scene. State keeps the raw scenes (`raw`), spreads are derived.
-- **Free writing:** the story form has a third mode **«Пишу сам»** (`project.creation: "free"`, title is enough) — no generation; the mage ritual (`StartStoryAnim.mp4`) opens the book with «Книга відкривається…», then the writing sheet. **Sheet** (`SceneSheet`): ✎ (this scene) / ＋ (new scene via `addScene`) — title + plain-text area (typing or pasting; a line = a paragraph), autosave 0.9 s → `updateScene({title,text})`, Ctrl+S, Esc/«Готово» closes and re-opens the book on that scene; an untouched new scene is deleted.
-- **«✦ Порадити» (AI advice, paid):** a button in the sheet footer shows the price (`__TOKEN_COSTS.analyzeScene`, server cost from `economy_operations/analyzeScene`); a confirm step first (or a plan note if `allowAnalyze` is off — Novelist and up), then `POST analyzeScene {projectId, sceneText, title, lang}`. The function (`functions/src/canon-sync.js`) reads the world canon via `buildCanonContext` (now in `functions/src/common.js`, shared with `generateScene`) and the story's `reveal` mark, and returns `{summary, improve[{what,why,quote}], canon[{quote,conflict,fact}], unclear[{quote,question}], fixes[{original,suggested,reason}]}`. The advice column sits beside the sheet; «Застосувати» replaces `original` with `suggested` in the text and autosaves. Balance syncs from `tokensConsumed/tokensRemaining`.
-
-**World Bible = the home of a world (the Universe tree retired, 2026-11-02):** what only the tree could do now lives in `app/gamebible.js`:
-- **Огляд світу / Закони** are edited in place → `worlds/{w}.{tagline, summary, facts[{k,v}|string], rules[]}`; the draft survives live re-renders until saved or the section is left.
-- **Локації → «🗺 Карта»** (`localStorage ww-locview`): SVG map, drag → `entity.mapPos {x,y}` (1000×620); who is where from a character's canon `location` / `locations[0]`; dashed routes from `scene.stateChanges` (aspect `location`) of all world stories, per story.
-- **Dossier → «Поява в історіях та іграх»**: + «Стан у часі» (`scene.stateChanges` for this entity, grouped by story) + «Вплив змін»: scenes with `canonRefs[kind] ∋ id` → «✦ Узгодити сцени» dialog: change kind (property/rename/relationship/rewrite) + note → `reconstructScene` per picked scene (pinned scenes skipped; price ≈ `economy_operations/generateScene` per scene), word diff «було → стане», «Прийняти» writes `text` + `reconstruction.{previousText, lastReconstructionAt, lastCause}`.
-- **Plans:** the canon is edited on `allowWorldTree` plans (Storyteller and up; `canonWrite`), read-only on Free; a game's GDD opens on every plan (`allowGameDesign` → `canGame`); the owner's `canWrite` follows what is open (`render`: game → `canGame`, world → `canonWrite`; a dossier → `canonWrite`, a card → `canGame`). `canDev` (`allowGameDev`, Worldbuilder; team members — the server checks the owner) gates Продакшн-план, Досвід гравців, Знання проєкту, Журнал розробки, Маркетинг (`renderDevLocked` — 🔒 «Це — частина Worldbuilder» + plans), the Claude Code road in game settings, ✦ audits, ✦ quest / dialogue drafts, the AI style check (automatic and «Перевірити всі»).
-- Not ported (legacy, dead): CanonSyncBanner (read the old `project.scenes` array), CanonHistoryView, the scene lens. `wt-impact.jsx` stays as the documented engine but no page loads it now.
-
-**Polygon budget (game card files):** 3D files carry `tris` (triangles, counted by `gb-3d.js polyCount`): from the local file before upload (cards and dossiers), and for older uploads in the background, one at a time (≤100 MB, result or `trisFailed` written back to `games/{g}/cards/{id}.files[]`). Over **100 000** → a small red «!» among the card tags and by the file, with the count.
-
-**Licence & rights of prefabs** (asset files: models, .prefab/.unitypackage/.uasset/.blend/…, archives): `file.license { id, source: file|author, text, by, url }`; ids `cc0 royalty unity` = 🟢 full licence, `ccby ccbysa ccbynd revcap` = 🟡 with conditions (credit, same licence, unchanged, up to a revenue threshold), `ccbync editorial personal` = 🔴 strict / not commercial, `own unknown` = 🔵 unknown or the author's own (unchecked) — a card shows the worst by red → blue → yellow → green. Detected automatically: a glTF's `asset.copyright` / `asset.extras` / `KHR_xmp_json_ld` (`gb-3d.js modelInfo`), or a licence/readme/credits .txt/.md on the same card (`licenseFound { id, text }`) — at upload from the local file, older files in the background with the polygon count. A card shows its least permissive asset as a coloured chip; by each file the chip is an ⓘ button: what the licence allows, where it was found, the quoted text, and the author's override (licence, attribution, source link) written into the doc's `files[]`. Same in world dossiers (`entities/{id}.files`). The standard «Модель / префаб» / «Модель / іконка» fields are **file** fields (`F(key, uk, en, "file")`); a card that stored its own `defs` earlier takes a missing type from its section, and text already written there stays shown above the files.
-- An empty story shows «Порожня книга» (+ the «what next?» spread for AI), never the demo; the demo (`buildScenes`) only without a projectId. `?scene=N` opens scene N. `addScene` no longer writes empty `canonRefs` (it raced with server extraction).
-
-**Context Building:**
-```javascript
-System: You are a canon-aware narrative AI.
-Canon: { characters, locations, events, world }
-Previous scenes: [scene1, scene2, scene3]
-Intent: "conflict"
-User: Generate next scene following canon.
-```
-
----
-
-### **4. World Bible (Game Bible) & Production Plan**
-
-**Files:** `app/WhiteWrite GameBible.html`, `app/gamebible.js`, `app/gb-3d.js`, `functions/src/gamedev.js`
-**Access:** game design on every plan (`allowGameDesign`, one game below Worldbuilder — `createGame`); the plan, tasks, experience, AI, MCP, marketing, repo — `allowGameDev` (worldbuilder, worldforge); reading stays with the owner.
-
-- **Game menu (v2.19, navigation only):** `NAV_GROUPS` in `gamebible.js` folds the game shelves into menu items — Огляд і лор [overview, lore] · Персонажі й вороги [characters, factions, enemies] · Світ і рівні [locations, levels, worldgen, scenes] · Механіки · Прогресія й предмети [progression, gear, items] · Арт [artstyle, refs, assets, materials, animation, ui] · Звук і музика [audio] · Технічне · (author's own sections) · Продакшн-план [plan, issues] · Досвід гравців [experience, telemetry]; ⚙ settings in the menu foot. **Menu tree (v2.21):** a group is `.nav-item.nav-grp[data-group][aria-expanded]` with an arrow — it folds/unfolds (`navOpen`, localStorage `ww-bible-navopen`; the active group unfolds by default), sums the counts, and unfolding a group you are not in opens its last section (`lastSub`); members are `.nav-item.nav-sub` (short names `NAV_SHORT`: plan → «План», experience → «Метрики й проблеми»). **Only one level folds** (v2.22.2): a section's subsections are not listed in the menu — they stay as `.subsec` blocks on its canvas. The former `#subtabs` bar is gone. **Shelf ids and card `section` values are unchanged** (MCP, `experience.js`, the import read them), so there is no data migration; hidden sections drop out of their group, a one-member group renders as a plain item.
-- **Production pipeline (v2.23):** `gamedevPlan op=plan` (`planPrompt` + `cleanPlan` in `functions/src/gamedev.js`) writes `plan/current.plan` `{gated:true, dod[], estimateWeeks, cutLine, health[{issue,fix,cards}], milestones[{id, track: mvp|expansion|extra, name, goal, entry, deliverables[], gate, accept[], budgets, estimateDays, tasks[{…, priority must|should|could, assetState greybox|standin|styled|final, estimate, cards[] (plain refs, MCP-compatible), roles {ref: implements|uses-asset|in-level|follows-style|constrained-by}}]}]}`; MVP = gates G0 setup → G1 greybox → G2 first playable → G3 feature-complete → G4 release candidate; expansion X…, extra F… ranked with `cutLine`. Tasks docs carry `track`. **Gates:** the author approves/returns in the plan → `plan/current.gates[msId] = {status: approved|returned, at, by, comment}`; `mcp.js lockedBy` (mirrored by `gamebible.js msLock`) keeps a milestone closed until the previous gate of its track is approved (expansion/extra after the whole MVP) — `get_next_task` then reports the gate it waits for, `list_tasks` shows `locked_by_gate`; plans without `gated` (older ones, EXP fixes) are not gated. **UI** (`planHtml`): DoD box, gate path, Bible readiness (`healthHtml`: 🔴/unknown licences, >100k-poly models, levels without `assetState`, + `plan.health`), tracks (expansion/extra folded, cut line), card chips by role (`cardChip` → `openCard`), tab «Матриця ассетів» (`matrixHtml`: asset-like cards × `card.assetState` select, worst licence, max polygons, plan tasks using them). `cards/{id}.assetState` is the asset state ladder (canon cards: written with `section`+`canonRef`).
-
-- **Canon ↔ game split:** the world block = Огляд світу (`special: world`), Закони (`special: laws`), dossier sections `w-characters / w-locations / w-factions / w-items` (`dossier: kind`, read entities directly, no statuses), Неузгоджене. Each game has its own Персонажі/Локації/Фракції/Артефакти (ids `characters/locations/factions/items`, `canon: kind`) — the canon seen through the game: status, game fields, its own look/prefab in the game card; the card thumbnail falls back to the world dossier image.
-  **A game takes only the canon it picked** (`games/{g}.canonOptIn: true`): an entity is in the game when it has a game card (`canonRef`, not `hidden`). The new-game form's «Взяти весь канон світу (N)» (on by default, v2.54.3) writes those cards for every entity at once right after `createGame`. Its «✦ 3 концепти з канону» (v2.58, `canDev`) calls `gamedevPlan {op:'concepts'}` — world-level like `canonAudit` (no game doc, no `running` marker, nothing stored) → `{ concepts: [{ title, logline, genre, pillars, loop, platform, players, canon, why }] }`; «Обрати» fills the name, and after creation the client writes an `overview` card (logline…players as fields, canon + why in the note). «＋ Додати з канону» opens a picker of entities not in the game yet (multi-select) + «＋ Новий у каноні» (born in the canon and picked at once); «Прибрати з цієї гри» = `hidden: true`, it returns to the picker. Import writes a card for each accepted canon entity. Older games (no flag) are migrated once on open: cards for everything they showed, hidden stays hidden. `gamedevPlan` and MCP `get_design_section` follow the same rule (legacy games without the flag still see the whole canon).
-- **Dossier panel** (`#dos`): name, world files, description (canon), life timeline (characters: a gold line with notes hanging above/below), tabs at the bottom: story · Звʼязки (derived both ways like `wConnections`) · look · Поява в історіях та іграх (game cards per game + story scenes via `projects/{p}/scenes where canonRefs.{kind} array-contains id`). `gamedevPlan` feeds dossier story/look/life notes to the AI.
-- **Історії і хроніка** (`special: chronicle`, world block; en «Stories & chronicle»): events (`kind: events`) as comets over a time line — `at` (start, a number), `dur` (duration; 0/none = a star), `when` (label), `characters` (participants, round avatars in an arc above the head); lanes stack so comets never overlap; tick step auto (1/2/5×10ⁿ); unit `worlds/{w}.timeUnit`. Undated events wait below the line; a comet's head (with a finger-sized hit area) or its name opens the event. ✎ on a subsection of canon entities (chronicle time lines, dossier groups) renames it: `subsections` + every entity's `group` in one go (`renameSubsection`). The stories of the world (`projects.worldId`) sit on the same page, each with tags written from the Bible (the owner may update projects): `projects.scope` `world` (default) | `local`, `projects.games: [gameId]` — the world's games as toggles; «Відкрити» posts `ww-open-story` → the shell opens the book. Events open in the dossier panel with start/duration/label/participants.
-- **Маркетинг** (v2.29, `special: marketing`, own menu item `g-mkt`): `renderMarketing` — off: description + «Увімкнути на 30 днів» (`confirmCost("marketing")`, `MK.costText`); on: paid-until + «Вимкнути»; 1) the `activity_log` guide block + «Я вставив блок у CLAUDE.md» (`confirmClaudeMd`); 2) channels list + connect form (Telegram via the platform bot — `status` returns its username; Discord webhook; Mastodon instance+token; Bluesky handle+app password); 3) voice settings; 4) ✦ new post from development-log entries with privacy `marketing_approved` only (`mkApproved` over the loaded sessions), platform, Telegram poll, wish; 5) posts by status with edit / approve / reject / publish now / schedule (datetime-local) / cancel / retry / copy / delete, X and Reddit share links (`twitter.com/intent/tweet`, `reddit.com/submit`). Live listeners on `marketing/state`, `channels`, `posts`; `mkRender` skips re-rendering while a field has focus. Every change goes through `mkCall` → `marketing`.
-- **Сцени · палітри · гами референсів** (v2.28): game section `scenes` (under «Світ і рівні» since v2.35.3; groups Ключові сцени / Катсцени / Ігрові моменти / Бої / Екрани й меню; fields what, location, mood, `palette`, `board`, camera, refs images). Two new card field types (`FTYPES`): `palette` — `palEditor` (colour + name rows, «Вставити коди» parses any #hex / coolors link, «🎨 З картинок» = `extractColors`, a coarse histogram of the card's images via canvas) stored as text `#hex — name` per line; `scene` — `sceneEditor`, a 16:9 stage with draggable elements (label, colour from the card palette, width, z-order, background) stored as text `bg: #hex` + `- label @ x% y% · w% · #hex` per element (`parseScene`/`sceneText`); `mountFieldEditors` mounts both after `renderFields`. Card tiles: palette strip (`swatches`) and the mock-up thumbnail (`sceneThumb`) when there is no image; the excerpt skips these fields. **Group palettes** (`PAL_SECS = refs, scenes`): 🎨 at each subheading → `groupPalDialog` → `games/{g}.subPalettes[sectionId][group]` (same text; «З картинок» takes the group's images); shown in the heading and on the group's cards; a new subsection there opens the dialog. MCP: `get_card` adds `group_palette`, `get_design_section` adds `group_palettes`.
-- **Візуальний стиль** (v2.40, `gamebible.js`, registry `paid-features.js` → `artStyle`, gate `allowGameDev`): game section `artstyle` — first member of «Арт і аудіо»; groups Загальний стиль / Біоми й локації; fields manifesto, `palette`, `avoid` (palette), light, materials, shapes, budget, rules, `places` (biome locations, one per line), refs images — ordinary cards in `games/{g}/cards`, so MCP reads them as is. `styleFor(card)`: the overall style = first card of «Загальний стиль» (or no group); a biome applies when the card's title, subsection or `location` field equals a `places` line; palette = biome's if set else overall; avoid = union. `styleScore(url, style)` — browser only, no tokens: image → 48 px canvas → Lab ΔE to the nearest style colour (< 20 full, fading to 40), near-black/white skipped, minus 1.5 × the share near an avoid colour (ΔE < 18) → 0…100 (≥ 70 у стилі, 40–69 частково, < 40 вибивається, null — unreadable). `styleMark(url, card)` renders `<span class="smark" data-ss=sig data-lv>` «🖌 NN» (square tag, ring colour; not round like licence chips) on card tiles, file rows and image fields; a `MutationObserver` fills pending marks; scores cached by style signature + url in memory and `localStorage["ww-style-scores"]` (≤ 600). Style cards themselves and world dossiers carry no mark. Since v2.41 the resolver lives in **`functions/style-guide.js`** (SINGLE SOURCE; copy `app/firebase/style-guide.js` by `build-app.mjs`, `window.__STYLE`): `resolveStyle(styleCards, names)` → `{overall, biome}`, `palettes`, `styleName`, `styleSig` (hash of the brief fields + style reference image ids — the AI staleness key), `styleBrief` (text for the prompt / MCP), `cleanVerdict`.
-- **✦ Style from references** (v2.57, `functions/src/style.js` → HTTP `styleFromRefs`, registry `styleFromRefs` kind ai factor 4): the Bible's «✦ Стиль із референсів» on the «Візуальний стиль» page sends up to 6 pictures (the `refs` section's cards first, then the style cards; `jpegOf` 768 px) → Claude returns `{ manifesto, palette, avoid, light, materials, shapes, rules }`, nothing is stored server-side; `sfrPick` shows the fields with ticks (empty fields of the overall card — `resolveStyle(...).overall` — pre-ticked) and writes only the ticked ones with `set({fields}, {merge:true})`, or creates the overall card (group «Загальний стиль»). Same gates as the check: `allowGameDev`, active subscription, `payerFor`, reserve → charge.
-- **AI style check** (v2.41, `functions/src/style.js` → HTTP `styleCheck`, registry `styleCheck` kind ai factor 0.25 ≈ 75 tokens on Sonnet, charge = real cost): POST `{worldId, gameId, cardId, fileId, image (base64 JPEG ≤ 1024 px, made in the browser), refs[≤3] (style reference images ≤ 512 px), names[subsection, location], language}` + ID token → owner/plan/subscription → style cards read server-side → Claude (user's model tier, effort low, vision) → `cards/{cardId}.styleAi[fileId] = {score, verdict fits|partly|off, summary, issues[], fixes[], sig, style, at}` (server write; files[] untouched). `runCheck` is shared with MCP. Bible: a fresh result (`sig` = current `styleSig`) shows «🖌 NN ✦» and `.snote` (issues/fixes) under the file row; a stale one falls back to the colour score with a dashed ring. Triggers: automatic after every image upload to a game card when a style palette exists (`uploadFiles` → `styleCheckAi`), «✦ Перевірити всі» in the `artstyle` section header (all pictures without a fresh score, confirm with count × price; the only button — per the owner). 3D viewer (`gb-3d.js view3d(..., onShot)`): «📷 Знімок для стилю» in an open card saves the current view as `<model>.view.png` on the card → badge + automatic check. MCP (v2.41, `mcp` now has the Claude secret): `get_style_guide {location? | card_ref?}` (overall + biome fields, palette, avoid, reference URLs, biome list, brief), `check_style {image_base64, media_type, location?, what?}` (a Unity screenshot → verdict, not stored, author's tokens); `get_card` / `get_design_section` files carry `style_check`.
-- **Знання проєкту · Журнал розробки · Unity-середовище** (v2.27): game sections `knowledge` (menu group «Технічне і знання» with `tech`) and `activity` (group «Продакшн-план»). `renderKnowledge`: latest snapshot (status, counts, coverage, framework, overview/report/unresolved), asset search over `kAssets` loaded on opening (`knList`, details with deps and relations), snapshot history. `renderActivity`: sessions (newest 20) with entries loaded per session, filters by category/privacy, per-entry privacy select (`update` of `privacy`+`reviewedAt`), the CLAUDE.md block (`activity_log` guide) with Copy. Settings → `envHtml`: `env/current` checks + the `unity_env` and `setup` guides (`guideHtml`: the one-line ask + the full agent text, both copyable). Exported with the game (`environment`, `knowledge{snapshots,assets,relations}`, `activity[]+entries`) and deleted with it.
-- **Механіки — конструктор** (v2.48): `functions/mechanics.js` is the single source (copy `app/firebase/mechanics.js` by `build-app.mjs`, `window.__MECH`, an IIFE — the browser loads it as a plain script; MCP requires it): `CATEGORIES` (the Mechanics section's groups: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose, each with subcategories; `GROUP_ALIAS` shows the pre-v2.48 groups «Здібності» / «Взаємодія» under the new names in `normGroup`), field `TYPES` (text, long, num, pct, time, bool, sel, multi, ref, refs, formula, range, json), `TEMPLATES` (UMCF — 15 sections with sample rows; Dodge & Evasion, Blocking & Parrying, Attribute & Derived Stats, Character Leveling, Status Effects, Inventory, Enemy Behavior), `instantiate(tplId)` (a deep copy — templates are never touched, a newer template version never overwrites an instance), `check(mech)` → `{ issues[{ level error|warn|tip, sec, row, uk, en }], req, rec, pct }` (required / numbers / ranges / JSON / dangling row links + per-template checks: UMCF weapon↔attack in combinations, geometry inside Active, reach vs combination distance, k range, attacks in no combination; dodge i-frames; parry window), `exportMech(card, lang)` (links → `{ id, name }`, framework notes), `FRAMEWORK` (what RPG Framework 0.36.0 has per UMCF / template section: exists | partial | missing + classes). Game Bible: a Mechanics game card opens the constructor (`openMech` → `renderMEditor`, draft `med` survives live snapshots while focused, explicit save `saveMech` with `fields.group` / `fields.text`, unsaved guard in `goSection`); «＋ Механіка» and «＋ Додати» under a category open `mechNew` (✎ own or the template catalogue with search / category / complexity / preview); tabs «Загальне» + one per section, typed inputs, tables with ＋ / ⧉ / ✕ rows, search and sort, custom fields and sections, basic / advanced view, the completeness bar and the issue list (click → tab), the framework strip per section; «📎 Файли й нотатки» opens the ordinary card leaf (files, note). An older Mechanics card opens with `text` → purpose, `numbers` + `deps` → rules and becomes a constructor mechanic on save. Cards show ▤ completeness and the worst issue. Registry `mechanics` (gate `allowGameDesign`, every plan since v2.50, no tokens). MCP `get_mechanics` (list with category, template, stage, completeness, problems) / `get_mechanic` (`exportMech` + `framework_version`). Tests `tests/mechanics.test.cjs`.
-- **🎼 Фабрика звуку** (v2.52): the same constructor in the game section «Звук і музика» (`audio`). Templates with `sec: 'audio'` in `functions/mechanics.js` — `adaptive_music` (palette fields · states table `S` (situation, mood, BPM, key, instruments, loop bars, length) · layers `L` (state ref, when, intensity, fade in — vertical layering) · transitions `T` (from / to refs, game event, timing now | beat | bar | loopEnd | stinger, crossfade, stinger, hold — horizontal re-sequencing) · leitmotifs `M` · mix & testing (LUFS, ducking, loop crossfade, A/B, 12-point composer checklist)), `ambience` (bed + one-shots), `ui_sounds`, `music_prompts` (parametric template + 23 scene presets from the owner's music report); `AUDIO_CATEGORIES` = the audio groups (music, sfx, voice, ambience, uisound), `category()` searches both lists, `templatesFor(sec)` / `categoriesFor(sec)`; checks `musicChecks` (missing explore / combat / menu / victory states, combat BPM ≤ explore, unreachable states / no way out, self-transitions, hard cuts, undescribed stingers, combat → explore without hold, slow transitions into combat, layers without a condition, loops not ×4 bars, LUFS outside −24…−14, dialogue without ducking), `ambienceChecks`, `uiChecks`; table sections with `prompt: true` (copied into the instance) get a ♪ row action → `rowPrompt(mech, secId, row, lang)` (a state + the palette + its layers → a generator prompt; presets → their own text), and `exportMech` adds `generator_prompt` to those rows. Bible: `med.sec` (mechanics | audio) drives `openMech` / `mechNew` / `saveMech` (`section`, `defs`, audio `fields.mood` = purpose) / related cards; strings `MC0` / `MCA` (`mcFor`); the audio header button «🎼 Фабрика звуку» and «＋ Додати» under an audio group open the audio catalog, whose «✎ Звичайна картка» is the plain `addCard`; audio cards with `mech` open the constructor, plain ones the card leaf. Registry `soundFactory` (gate `allowGameDesign`, free, no tokens). v2.54.1: the palette's `direction` (sel, `since: 2`, `DIRECTIONS` — hybrid, darkfantasy, nordic, synthwave, cyber, metal, dnb, jrpg, horror, chiptune, cozy, own) drives `rowPrompt`: always English comma-separated tags = the direction's base + the situation's words + its low / mid / high instrumentation by energy (`SCENE`) + the author's own instruments («featuring», the template's sample texts — current and v1 by `hashStr` — are skipped) + mood, BPM, loop / stinger, then `Stems:` and `Exclude:` lines; «own» uses the palette style / instruments. `music_prompts` v2 — 23 English presets with production words and Exclude; an untouched v1 preset (`PRESETS_V1` hash) returns its replacement. `upgrade(m)` (called by `openMech`) inserts template fields newer than the instance (`since` > `tplVersion`) without touching values, rows or the author's fields.
-- **🎧 Аудіотека / Audio library** (v2.59): no new collection — the library is the «Звук і музика» cards without `mech` that hold audio files (`card.files[]` with `field: "sound"`, `duration` s read in the browser); several files on a card = variations. Field type `audio` for cards (player per file, `accept="audio/*"`); the section's `defs` start with `sound`, older sound cards get it on open. «⤒ Звуки» (top and per subsection) = the shared bulk upload of «Референси» (`bulkCards(sid, files, group)` → one card per file titled after it, `putFile`). Mechanic field type **`sound`** (`functions/mechanics.js`): `[cardId]` of library cards, `lib` = the subsection an in-slot upload goes to, `need` = the row field that must be filled for the slot to count as missing; slots added by `since` — `adaptive_music` v3 (states `sound`, layers `sound`, transitions `stingerSound` need `stinger`), `ambience` v2 (`loopSound`, one-shots `sound`), `ui_sounds` v2 (`file`); `req: 'opt'` — empty slots don't lower completeness. Shared helpers `isAudio`, `soundSlots(m)`, `audioLibrary(cards)` → `{ assets, used, missing, unused }` (the Bible's «🎧 Аудіотека» view and MCP), `exportMech(card, lang, assets)` resolves slots to files. Bible: ▶ on sound cards (one shared player `playSound`), slot editor «＋ З Аудіотеки» (picker dialog) / «⤒ Новий» (`sndUpload` → library → slot), ✕ only unlinks. MCP **`get_audio_library`** (sounds with file URLs, where each plays, missing slots, unused). Registry `audioLibrary` (free, `allowGameDesign`). Tests: `mechanics.test.cjs` (+7).
-- **⚔ Комбо-таблиця · 👁 Очима монстра** (v2.62): UMCF template v2 (`functions/mechanics.js`) gets two table sections after the overview — `ctable` (`group` strike type: dash / sudden / retreat / heavy / ultimate + own options `g_*` written into the card's own copy of the field `o`; `who` — a fighter name; `weapon` → `weapons`; `move` `COMBO_MOVES`; `strike` `COMBO_STRIKES`; `hold` now | hold; `anim`; `k`; phases `startup` / `active` / `recovery` adv) and `reactions` (`who`, `action` `PLAYER_ACTIONS`, `answer` = a strike type, `combo` → `ctable`, `weight` 1–4). `comboStart(m, row)` → `{ k, reach, start = k × reach, from = start + MOVE_GAIN[move], phases (STRIKE_DEF defaults), status ok | edge (k > 0.85) | close (k < 0.5) | noreach }`, also in `exportMech` rows (`start`, MCP `get_mechanic`); `umcfChecks` warn on edge / close / no reach and answers with no strikes of that type. `upgrade()` inserts template sections with `since` into older cards (after their template predecessor); the other 13 UMCF sections are `adv`. Bible: a combat card opens on `ctable`; `mComboHtml` (strike-type tabs `med.cgrp`, fighter filter `med.cwho`, «✎ Інший…» via `askName`, start ✓ / ⚠, time bar) and `mReactHtml`.
-- **Фабрика звуку — базовий / розширений вигляд** (v2.61): `mechanics.js` field and section flag `adv` (advanced only); audio templates mark secondary fields and the «Лейтмотиви» / «Мікс і тестування» tabs; `upgrade()` brings the split to older cards, custom fields / sections keep their own flag; the editor's view toggle `med.adv` (not stored).
-- **🎙 Озвучка діалогів / Voice-over** (v2.60): `games/{g}.voices { [speaker]: { service: browser | google | eleven (soon), lang, voice, rate, pitch } }` (speaker = entity id | `player` | `narrator`, written by the client with merge); a dialogue line gets `node.voice: [cardId]` (Audio library cards, group «Озвучка») + `node.vstatus: tts | rec`. Bible dialogue editor: «🎙 Озвучка» box (cast per speaker, ▶ browser `speechSynthesis` try free, ✦ Google try), per-line row (▶ / ✕ / 🗣 / ✦ / ⤒ a recording → `bulkCards` into «Озвучка», titled by the line key), «✦ Озвучити всі без звуку», «⤓ Сценарій CSV»; Аудіотека view: «⤓ Сценарій озвучки (CSV)» (all dialogues) and «⤒ Озвучка за ключами» (file name = `locKey` or `dlg.<slug>.<nodeId>` → card + `node.voice`, the dialogue doc is merged). Cloud Function **`voice`** (`functions/src/voice.js`, onRequest): `voices {lang}` (free), `preview` (≤ 300 chars, base64 mp3), `synthesize {dialogueId, nodeIds}` — lines whose speaker has service `google` → Google Cloud Text-to-Speech (the function's service account, `texttospeech.googleapis.com`) → mp3 in Storage `worlds/{w}/games/{g}/files/{cardId}/…` → a new audio card (`tts: true`, `files[].tts {service, voice}`) → the dialogue transaction sets `voice` / `vstatus`; one provider function `googleSpeak` (ElevenLabs plugs in beside it). Price `ttsCost(chars, voice)` in `paid-features.js` (`TTS.usdPerMChars` by voice class standard / wavenet / neural2 / chirp / studio × margin 2 ÷ `USD_PER_TOKEN`), reserved in a transaction, the unused part refunded; `usage_logs` provider `google-tts`, ledger `voice_tts`. The cast is also edited in a game character / enemy card («🎙 Голос», key = entity id or `c:<cardId>` — the dialogue speaker ids); `cast.gender` filters the Google voice list (Google gives no age); one try button per speaker (■ Stop), a paid preview is cached in the page by voice / lang / rate / pitch. Access: `payerFor` (team admin on the owner's tokens), world owner, not frozen, `allowGameDev`, active subscription. Registry `voiceCast` (gate, free) and `voiceTts` (ai, Worldbuilder, `price.perKChars`). MCP `get_dialogue_context` lines carry `voice {status, files[]}`. Tests `tests/voice.test.cjs`.
-- **⚒ Кузня персонажів / Character Forge** (v2.54, the owner's brief `WhiteWrite_Character_Forge_TZ_for_Claude_Code.pdf`, MVP): `functions/forge.js` — single source (copy `app/firebase/forge.js`, `window.__FORGE`; MCP; `tests/forge.test.cjs`): `STAGES` brief → concept → mesh → rig → equip → integrate → anim → export with deps, `TYPES` hero | npc | enemy | boss (stage set + default clips), default `SLOTS` (skinned / rigid), `MASK` body regions, `MAPS`, `VALIDATION` pending | passed | warning | failed | manual, `EXTERNAL` checks, `PROVIDERS` (manual live; Meshy not wired); `blockers` / `stageState` / `progress`, `itemIssues` / `validation` (slot, format, rig / body match, attachment, units, maps, mask, polygon target, external reports), `manifest` (schema `whitewrite.character/1`). No new collections: a character is its existing game card (`characters` — canon-linked, doc id = entity id, or `enemies`), an item is a `gear` card; the Forge adds `card.forge` (character: type, off[], rig, body, brief, revs[{ id, stage, n, files[fileId], note, by, byName, at, from }] — append-only, stages{ id: { approved: { rev, by, byName, at, comment } } }, clips, loadouts, notes; item: slot, bind, rig, body, mask, attach[{ bone, point }], format, units, maps, lod, polyTarget, owners[characterCardId], revs (concept | model), approval (manual, for warnings, bound to the model revision), external[] (MCP)) and `games/{g}.forge { slots, rigs, bodies }`. Version files are card files with `field: "forge"` (Storage `worlds/{w}/games/{g}/files/{cardId}/`, existing rules / limits) — kept out of the leaf's file list so a revision's files are not deleted from under it. Bible: special section `forge` in «Персонажі й вороги» (`FORGE_SEC`, `renderForge`, `forgeClick` / `forgeInput`): tabs Персонажі · Екіпірування · ⚙ Слоти й профілі; the workspace (preview, type, rig / body profile, stage list, the open stage: what / done when / blockers, brief with Bible context, versions with approve / restore / compare, slot table + loadouts, integration statuses, clips, ⤓ manifest, comments); the item passport. Writes replace the whole map (`set` with `mergeFields: [section, forge, updatedAt(, canonRef)]`). MCP `get_character_forge` (list / one manifest with approved files) and `report_forge_check` (Unity / Blender result per item and check — clipping, deformation, skeleton compatibility are never claimed by the UI). Registry `characterForge` (gate `allowGameDesign`, free, no tokens). Backlog: Meshy provider (image-to-3D, text-to-3D preview → refine) as a server function with the key in Secret Manager, jobs `games/{g}/forgeJobs` with idempotency and token reserve; a Blender / Unity worker contract for rig and clipping checks; LOD / material inspection from glTF.
-- **Квести · Діалоги** (`special: quests | dialogues`, v2.30 — a game-design decision: game sections in the menu item `g-narr` «Квести й діалоги», after «Сцени»; `canQuest = canGame`, Worldbuilder; listeners on `gref()` in `selectGame`); types are the subsections (`QD.qtypes` / `QD.dtypes`, own ones in `games/{g}.subsections`). Pickers (`pickOf(kind)`): the game's own cards in role sections first (marked «гра», stored as `c:<id>`), then canon entities; «Події канону» (`events[]`) — canon events. A game card in a role section (and a canon card in the game) shows its quests/dialogues and a 💡 under its fields (`renderFields` → `qdLinksHtml`, `bulbHtml("card"|"e")`); 💡 in canon dossiers / culture / stories creates the quest in the open game (hidden without a game or Worldbuilder). Edited on the canvas (`renderQD` → `renderQEditor`; the draft `qed` survives live snapshots while focused); the graph check runs on every keystroke from `functions/narrative-validate.js` (copy `app/firebase/narrative-validate.js` by `build-app.mjs`, `window.__NARRATIVE`): broken links, duplicate ids, unreachable stages/lines, dead ends, loops without exit, no success ending, prerequisite cycles, missing canon refs, speakers outside the participants, a missing quest/stage. Links are stored on the quest/dialogue only; a dossier's «Звʼязки» tab derives its quests and dialogues (`qdLinksHtml`, incl. quests whose `source.id` is the entity). **💡 «Створити квест на основі цього»** (`bulbHtml`/`questFrom`): dossiers, culture entries, Chronicle story cards → a new quest with `source { type: story|characters|locations|factions|artifacts|events|lore, id, title }` and the obvious links prefilled; «Джерело» select for manual choice; story cards list the quests born from them. **✦ AI draft**: `narrativeDraft` (`functions/src/narrative.js`, ID token, `allowQuests` + active subscription, reserve `featureCost(questDraft|dialogueDraft)` → Claude (author's model) → charge real cost) returns a proposal only — `cleanQuest`/`cleanDialogue` keep canon ids that exist, map stage/line numbers to `s1…`/`n1…`, new things go to `ideas` (never canon); the editor shows it above the form (`qprop`), each field Accept/Reject/Accept all; nothing is written until «Зберегти». Exported/restored with the game (`quests`, `dialogues` in `whitewrite.game/1`), deleted with it (`removeGame`). `narrativeDraft` takes `gameId`, checks `allowGameDev`, loads the game cards with the canon (ids list marks «game card» / «canon»), reads a `quest` source from the game and a `card` source from its cards; `cleanQuest` also keeps `events` (canon events only).
-- **Культура** (`special: culture`, world block): `worlds/{w}/lore/{id}` `{ group: peoples|languages|beliefs|customs, name, desc, fields, files }` — not entity kinds (the Universe tree, extraction and scene generation know exactly five). Groups have their own fields (`LORE[].defs`), entries open in the dossier panel without tabs and can be deleted there (canon entities cannot: that is the tree's job). Exported/restored with the world, deleted with it, and fed to `gamedevPlan` prompts as «Culture of the world».
-- **Космологія / Космограф** (`special: cosmology`, world block; `app/cosmograph/` ES modules, three.js via the import map, loaded on demand): a generalised port of MorraSimulator (`D:\MorraSimulator\morra-simulator`) — orbit math (Kepler, inclination, node), lat/lon conventions (lon 0 = map centre, east = right), "light on the map" — for any planet with up to 4 suns + 4 moons. Sky model: every body orbits the planet; orbits are tilted by the axial tilt (seasons); the planet turns so the first sun's solar day lasts exactly `dayHours`, t = 0 is midnight at lon 0. The planet shader sums the suns' light per pixel and darkens eclipses by the true angular sizes of moon and sun as seen from that point. Distances are log-compressed for display only. Presets: «Земля» (NASA Blue Marble map `app/cosmograph/earth-blue-marble.jpg`, public domain; calendar from 1 January 2026) and «Три сонця» (MorraSimulator's starting calibration). Editor: planet (name, radius, tilt, day, map upload → Storage `worlds/{w}/files/cosmos/…`), calendar (month names/days, first year, era), suns/moons. Saved to `worlds/{w}.cosmos` (fed to `gamedevPlan` as a «Sky:» line). Morra-only physics (magic, radiation roles, magosphere) is not ported.
-  **Access:** off by default; turned on in project settings via `cosmographAccess` (`functions/src/cosmograph.js`): 2000 tokens per world per 30 days (`worlds/{w}.cosmograph { enabled, paidUntil, paidAt }`, written only by the server — firestore.rules keep the field read-only for clients; turning it off keeps the paid month, turning it back on within it is free; nothing renews by itself). The running sky survives re-renders and stops when the author leaves the section. `window.__COSMOGRAPH__` exposes `config`, `setTime(h)`, `sample(lat, lon)` (light per sun) for checks.
-- **Language:** every label is built for one language at load (`LANG` from the shell's `__i18n` / `localStorage ww-lang`); the account switch (`i18n.setLanguage`) dispatches `ww-language-change` into the frame → the Bible reloads in place on the same section (`sessionStorage ww-bible-sec-{w}`), after an open card/dossier is closed. The game-status chips are hidden on canon pages. Shell: `i18n.js` loads before the shell script; on a switch the shell re-renders rail, dock, news, world hub, worlds list, Спільнота, KB.
-- **Біблія ↔ книга (the Bible is the home of a world):** a canon dossier has a block **«Історії»** — the stories about it (`projects.subjects` contains the entity id; live listener on `projects where owner, worldId`) with their reveal mark, «Відкрити», and **«＋ Історія»**: a dialog (title from the entity, reveal mark, «коли розкриється» for *later*) → `ww-write-story` → the shell opens `WhiteWrite.html?new=1&free=1&worldId&title&about&reveal&revealNote` → the book creates the story at once (`creation: free`, no form), the mage ritual opens it («Книга відкривається…»), then the writing sheet. Opening a story from the Bible (`ww-open-story`) also plays the ritual (`ritual=1`).
-  **Reveal marks** (`projects.reveal`): `open` «Відкрита читачеві» · `later` «Розкриється згодом» (+ `revealNote`) · `internal` «Внутрішній канон» (author only). Shown as chips; changeable on the chronicle's story cards (which also show who the story is about).
-  **Shell chrome (`White.html renderRail` → `body.at-home` / `body.in-work`):** the user dock (avatar, balance, Account) shows on the home page only, desktop and phone. Phones (≤ 820 px), off home and outside a story: no top rail, views start at `top:0`, the Bible frame drops its 118 px offset (its own ≤ 820 px rules), and `#home-fab` (logo) in the dock's place leads home; a story keeps the rail (Bible ↔ Book switch, paged layout). History: `goBack()` never re-records the screen it leaves (`_back` in `histPush`) and skips entries equal to the current screen — the Account ✕ used to loop back into the Account.
-  **Back:** in a story the shell rail starts with **«Біблія світу»** (`CURRENT_WORLD` from the story's `worldId`) → `showBible()` keeps the frame, so the same dossier is still open; `ww-bible-focus {ent}` opens a given entity. Frames crossfade (`.frame` opacity .5 s).
-- **Two Bibles in one page** (v2.49, `mode` in `gamebible.js`): the **World Bible** (`mode "world"`: the canon sections, then «Повʼязані ігри» — every game of the world `data-opengame`, + «+ Нова гра» for the owner; «⚙ Налаштування світу» last: name, export / restore, Cosmograph, delete world) and a **game's GDD** (`mode "game"`: «‹ Канон світу» on top → the World Bible, the game's title, its menu tree, «+ Свій розділ», «⚙ Налаштування гри» last: Claude Code road, name, engine, shown / own sections, import / export, delete game). No game picker. `pos()` = `"<gameId>/<section>"` in a game (`__new` = the new-game form) or `"<section>"` in the world — reported in `ww-bible-at`, accepted by `ww-bible-section`, kept in `sessionStorage ww-bible-sec-<w>` across reloads; the shell sends `ww-bible-open { gameId: "" | id | "__new" }` from the hub. `goSection` switches the mode by the target (a canon id → world, a game section → game); `enterWorld` / `enterGame` keep the last section of each (`lastSec`); unsaved drafts ask first (`leaveOk`). The canon streams stay loaded in both; game data loads only when a game is opened (`selectGame`, no last-game autoload). Links to the canon stay in the game (canon cards, «＋ Додати з канону», quests on canon entities); 💡 in a dossier asks which game when there are several (`pickGame`). World-mode search covers dossiers, events and culture (`renderCanonSearch`). Menu style: group names in Cinzel, the open group gold, the others dimmed (`#nav.has-open`), sub-items in Inter on a faint gold guide line; `#t-brand` says «Біблія світу» / «GDD гри».
-- **Project settings:** top to bottom — **«Claude Code»** (`agentRoadHtml`, only with a game): the KB road's once-per-game steps with the same numbers, each ticked from live data — 3 folder + launch (`games/{g}.launch.dir`), 4 MCP key (a live `mcpKeys` doc; «Створити ключ» = `createKey`, the key + `claude mcp add` shown once), 5 design → plan (`.md` import button, → Продакшн-план; `plan/current.plan`), 6 first session (`get_guide setup`; `env/current` status + «Перевірити середовище ще раз» = `get_guide unity_env`), 7 development log (`get_guide activity_log` block for CLAUDE.md, a copy button; any `activity` session), 9 GitHub repo (optional; `games/{g}.repo`); «Докладніше» opens the KB step (`ww-kb-article`), `data-gosec` jumps to a section. On top, «Швидкий старт» (v2.55.1, writers only): «⧉ Скопіювати все для PowerShell» does steps 3 + 4 + 7 in one paste (`allInOne(l, await createKey())`: `New-Item` + `cd` the folder, `claude mcp add … Bearer <new key>`, the `get_guide activity_log` markdown as a here-string appended to CLAUDE.md under a `Select-String 'whitewrite.activity/1'` guard, `launchText`); every click mints a new key. Step 3's «без запитів дозволу» (`launch.skip`, on unless unticked) shows a warning (`#ln-warn`) while ticked. On a plan without `allowGameDev` the menu marks those sections and their groups with 🔒 (`devLocked(s)`: plan / experience / knowledge / activity / marketing), and their page is `renderDevLocked`. The world settings' «Спільнота · Команда · Маркет · Бекап» block has buttons that ask the shell to open that hub tab (`{type:'ww-hub', worldId, tab}` → `sessionStorage ww-hubtab-<w>` → `showView('narr')`). Free-text questions use the service dialog `askName(title, ph, done, value, { ok, optional })` / `askText(title, opts)` (Promise; `optional` — an empty answer is fine, cancel → null), not the browser's `prompt()`. The key/activity/env listeners re-render the settings unless the author is typing (`settingsIdle`). Then the game (rename, engine profile, sections shown, custom sections, JSON export `whitewrite.game/1`) → the world (rename — notifies the shell `ww-worlds-changed`; JSON export `whitewrite.world/1` / restore) → Космограф → danger zone (delete game, world).
-  Safe deletion = type the exact name. Game delete removes cards (+ Storage files), plan, tasks, executions, changeRequests, quests, dialogues, its `mcpKeys`, then the game doc. World delete is refused while stories (`projects.worldId`) exist; else games → entities → world doc (last, rules check ownership through it), then the shell reloads and shows the worlds list.
-- **Неузгоджене** (inconsistencies): a game tab before the Production plan (`special: issues`) lists `plan/current.contradictions` not yet in `plan/current.resolved` + open questions; the world block has its own tab (`special: canonIssues`) fed by op `canonAudit` → `worlds/{w}.audit.contradictions`, answers in `worlds/{w}.auditAnswers`.
-  Contradictions carry `id` (sha1 of the text; older ones fall back to djb2 `t_…` on both sides), `options`, `target {card, field}`. Resolving writes the decision into the target card (game) or appends it to the entity description (canon, explicit). Resolved ones are kept and fed back to the next audit as decisions.
-- **AI cost marks:** every paid AI action (analyze/audit, plan, import, canon audit) carries a small ✦ with the approximate price and asks for confirmation first (`costOf` mirrors gamedevPlan's reservation: `economy_operations/generateScene.providers.claude.cost` × 2 analyze/audit, × 4 plan/import).
-- **Settings extras:** hide standard sections per game (`games/{g}.hiddenSections`), restore from an export JSON (a game file → new game in this world; a world file → new world; never overwrites).
-- **Standard 14 sections:** overview, lore, mechanics, progression, levels, enemies, gear, assets, materials, animation, audio, ui, refs, tech (+ custom) and the Production plan.
-- **Subsections (one pattern for every card page, the Культура pattern):** each subheading carries «＋ Додати» (a card / dossier / event / culture entry born in that subsection); the top bar always has «＋ Підрозділ» (styled dialog); an empty subsection can be removed (✕). A card belongs where it was added (`fields.group` / `category` for game cards, `group` on entities and lore entries; a canon pick writes it into the game card) and can be moved: the subsection menu in the card (`#e-sub`) / dossier (`#d-sub`) header (shown with ≥2 subsections and write access, saved at once), or a pointer drag (mouse/pen; touch uses the menu) — onto a card puts it before/after it, onto a subsection block (`.subsec[data-sub]`) appends it there; the page autoscrolls near the edges. A drop rewrites `order` (0…n) for the whole target subsection and the moved card's group in one batch; lists sort by `order`, then by name (cards without `order` go last).
-  Order and the author's own subsections: `games/{g}.subsections[sectionId]` (game sections) / `worlds/{w}.subsections[sectionId]` (canon: dossiers, chronicle, culture); absent → the standard ones (`groups` in `GAME[]`, e.g. Mechanics: Рух, Бій, Здібності…, `LORE` for culture). Standard names are matched in both languages and shown in the current one. A page without subsections shows one block «Загальне» («Лінія часу» in the chronicle); cards outside the list fall into «Інше». In the chronicle every subsection is its own time line; «＋ Нова історія» posts `ww-new-story` → the shell opens the new-story form in this world. Standard subheadings are sent to AI (`shelves[].groups`) for import and scaffold.
-- Real files (Storage) and a 3D viewer (corner «🧊 3D» on the card). Saving a card closes its panel.
-- **Field editing mode** (pencil in the card's top-left; gold = off, red pulsing = on): rename fields (`defs[].label`, key stays), change type, delete (✕), add typed fields.
-  Types (`defs[].type`): `text` (default), `table` (stored as a Markdown table in `fields[key]` — AI/MCP read it as text), `image` / `file` (Storage files with `files[].field = key`; card-level files have no `field`).
-  Structure changes are written immediately (`saveStructure`), so closing or reloading keeps them; the mode itself always resets to off. A canon card whose layout was edited stores the full list with `defsFull: true` on its game card.
-- Embedded in the shell, the section title and its actions sit on the logo strip (`#topline`, filled by a MutationObserver after each render); the shell's `.rail` lets clicks through (`pointer-events:none`, buttons `auto`).
-- `gamedevPlan` ops: `import` (.md notes → proposal, chunked + streaming), `analyze` (GDD + questions), `plan` (milestones with gates + tasks with `accept`/`tests`/`cards`/`prompt` + `scaffold` of missing sections/cards).
-- Applying the scaffold creates ticked cards with status `work`.
-- `plan` also writes the **Task Engine** docs (`writeTasks`): open `todo`/`rework` tasks are replaced, taken/done ones are kept.
-
-### **5. Task Engine + MCP executor (Claude Code)**
-
-**Files:** `functions/src/mcp.js` (server), `app/gamebible.js` (execution UI), `app/White.html` (Account → Integrations)
-**Endpoint:** `https://us-central1-whitewrite-app.cloudfunctions.net/mcp` — MCP Streamable HTTP, stateless JSON-RPC (`initialize`, `tools/list`, `tools/call`, `ping`; notifications → 202; GET → 405).
-**Auth:** `Authorization: Bearer wwk_…` → sha256 → `mcpKeys` (not revoked) → owner's plan must have `allowGameDev`. The key is scoped to one game.
-
-**Connect:**
-```bash
-claude mcp add --transport http whitewrite https://us-central1-whitewrite-app.cloudfunctions.net/mcp --header "Authorization: Bearer wwk_..."
-```
-
-**Tools:** `get_project_overview`, `list_tasks`, `get_next_task` (resumes in_progress/rework, else claims first ready todo — ready = all deps done),
-`get_task_details`, `get_design_section`, `get_card` (`c:id` / `e:id`), `report_task_progress`, `report_blocker`, `submit_task_result` (→ review, server `check`), `submit_change_request`.
-Quests & dialogues of the game (v2.30: `ctx.gref` quests/dialogues; approved only, the `narrative-validate.js` check attached; refs resolved through `refPool` — `c:<id>` game cards with their fields, `e:<id>` canon, + `events`): `get_quest_context`, `get_dialogue_context` (no id → the approved list). Mechanics (v2.48): `get_mechanics` (`category` filter; v2.52 `section: "audio"` lists the Sound factory cards) and `get_mechanic` (`ref` = `c:<id>` or the title, mechanics or audio; adaptive-music state rows carry `generator_prompt`) — the constructor's mechanics through `functions/mechanics.js` `check` / `exportMech`; an older card without `mech` comes as its text fields. Character Forge (v2.54): `get_character_forge` (no ref → characters with type, approved n/all, next stage, providers; `ref` → `forge.js manifest`: approved versions' files, profiles, clips, equipment passports + validation, loadouts) and `report_forge_check { item, check, result, details, source }` (latest per check → `cards/{item}.forge.external`, returns the new validation status). `get_content_export` (v2.31) → `{ content, counts, how }`: the approved quests/dialogues in RPG Framework's import format `rpgframework.content/1` (framework ≥ 0.32.1 — in 0.32.0 a last line without next did not end the conversation; `ContentAssetImport.ImportFromCommandLine -contentFile`, exit 0/1/2) built by `NV.toFrameworkContent` in `functions/narrative-validate.js` — summary → description, objectives/rewards text → `custom`, repeat → `repeatable` + `cooldownSeconds` (`cooldownSeconds("24 год")`), end/fail → stage `outcome` success/failure, top-level `schema` (the importer's `badSchema` check), node `end` → `type:"end"` except the start node (`startIsEnd` would fail the file — a one-line talk is a plain line with no next), `locKey` → `key`, choices `c1…`, conditions → `{type:"custom", id}`, effects text → `parseEffects` (`give_item`→`giveItem`, `set_flag`→`setVariable` 1, `start_quest`→`acceptQuest`…), refs as opaque strings under `quest.refs`. The Game Bible «Квести» has the same as a download («⤓ JSON для RPG Framework», `exportFramework`).
-`get_project_overview` → `integrations { marketing { enabled, claude_md_confirmed, instruction }, repo, knowledge }` (v2.29) — the agent keeps the development log when marketing is on.
-Setup & project knowledge (v2.27, texts in `functions/setup-guides.js`): `get_guide {topic: setup|unity_env|knowledge|activity_log}`, `report_unity_environment` (→ `env/current`), `submit_project_knowledge` (parts `begin` manifest → `records` ≤500 per call → `end` reports; idempotent: unchanged records skipped by hash; absolute / `../` paths and unconfirmed `maps_to_card` rejected; a full scan marks unseen assets `missingSince`, never deletes), `get_project_knowledge_status`, `search_project_knowledge {q, guid, type, path_prefix, related_to}`, `submit_development_activity` (`session_id` idempotent; existing entries never overwritten; commit verified against the connected GitHub repo).
-World generation & experience (§6): `get_world_generation_spec`, `get_biome_profile`, `get_module_contract`, `get_environmental_profile`, `get_telemetry_schema`, `get_experience_issue`, `submit_validation_result`.
-
-**Cycle:**
-```
-plan → tasks(todo) → Claude Code: get_next_task (in_progress) → report_task_progress → submit_task_result (review)
-     → author: Прийняти (done, linked cards → ingame) | Повернути (rework + comment)
-     blocked → author answers → todo;   change request → author accepts/rejects
-```
-Every tool call is logged in `executions` (activity feed in the Game Bible).
-
-### **5a. Спільнота — public showcases (v2.36)**
-- **What is shown is ticked first** (v2.47, `communityHtml` / `bindCommunity` / `commBody` in `gamebible.js`): the tab starts with big ticks — «Сам світ» and every game of the world; only a ticked item opens its form (the world's discord / team / cover only while it has a card of its own; «Кого шукаєш» only while «🤝 Шукаю команду» is ticked). One «Опублікувати вибране / Оновити Спільноту» applies the set: world alone → the world card (`community/{w}`); each ticked game → its own card; **world + games → no world card** (an existing one is unpublished) and every game card carries the world (`withWorld`, `worldTagline`, `worldSummary`, world facts / rules, the ticked canon sections labelled 🌍); an unticked published card is unpublished (confirm when it has ♥ / followers). Other games' cards for the snapshot are read once (`commCards`), `withGame()` swaps the open game while building it; typed values survive re-renders (`commDraft`). The shell's showcase page shows the «🌍 Світ гри» block.
-- **Publish** (any plan, even Free): the world hub → side tab «🌍 Спільнота» (v2.43; was Bible → ⚙ Project settings → «Спільнота») (`communityHtml` / `bindCommunity` in `gamebible.js`), one block for the world and one for the open game. The **client builds the snapshot** from what the author sees (`commItems`: dossier entities with description + dossier tabs + images, culture entries, chronicle events; for a game `allCards()` of ordinary shelves — canon description + text fields, **never** the card note, image/file fields, plan, tasks, keys, log, telemetry); the world overview (tagline, summary, facts) always, laws as `rules` when «Закони» is ticked. Defaults: canon `COMM_CANON`, game `COMM_GAME`. Cover = one of the images of the open sections.
-- **`community`** (HTTP, Bearer ID token): `publish {worldId, gameId?, tagline, summary, cover, facts, rules, sections, items}` → checks world ownership, trims (≤600 items, ≤30 blocks × 12k chars, ≤8 images, Storage URLs only), replaces `items/`, keeps likes · `unpublish {pubId}` (owner or admin; deletes items + likes) · `like {pubId, on}` (transaction; not your own) · `report {pubId, reason}` (one per user per showcase) · `hide {pubId, hidden}` (admin claim; resolves its reports). Publish / unpublish / hide rebuild the home cards at once.
-- **`communityRotate`** (every 10 min: rebuilds when publish / unpublish / hide marked `community_home/current.stale`, else hourly — v2.63; requests no longer rebuild inline) = `rebuildHome`: score = Σ ♥ × 0.5^(age / 30 days); drops showcases whose world/game is gone; `activeAt` = latest `updatedAt` of the world doc, its entities, the game doc and its cards. **Top** = the best showcase of each author, 20 authors (showcases with `promotedUntil` > now — future paid promotion, set by an admin — go first). **Pool** = the rest whose author was active in 7 days (≤200). Written to `community_home/current { top[], pool[] }` (card fields only).
-- **Home** (`flow.jsx` `HomeCommunity`, left-centre; hidden on phones — the rail's compass instead): «Вибір спільноти» = `top[floor(time of day / (24h / N)) % N]` (re-checked every minute), «Відкрий нового автора» = a random `pool` card per visit, «✦ Спільнота — усі світи й ігри»; clicks post `{type:'ww-community', pubId?}` to the shell.
-- **Discord + team** (v2.38): the settings block has a Discord invite (`discord`, only `https://discord.gg/<code>` or `discord.com/invite/<code>`, checked on both sides) → «Приєднатися в Discord» on the page; «🤝 Шукаю команду» (`lookingForTeam`, `teamNote`) → a green badge over the cover in the list, on the page and on the home cards (`community_home` cards carry `team`).
-- **«Співтворці»** (v2.38, unpaid co-creation): `collab/{uid}_{offer|seek}` `{ owner, type, author, title, roles[], text, contact, pubId, hidden, reports, createdAt, updatedAt }` — one post of each kind per user, **written by its owner** (firestore.rules `validCollab`: exact keys, sizes, id = uid_type; `hidden`/`reports` only on the server); public read unless hidden. Reports / admin hide go through `community` with `col: 'collab'`. Shell tab «🤝 Співтворці» in the `market` view: posts + showcases with `lookingForTeam` (as «Шукає людей»), filters by kind and role (`CB_ROLES`), the form `collabForm` (seek may link one of my showcases).
-- **Shell view `market`** (rail «Спільнота», `nav.marketplace`; replaced the old mock): list (`where hidden == false`, ≤300, sorted in the browser — Popular = score, New = publishedAt; World/Game filter) → showcase page (cover hero, ♥, «Поскаржитися», admins «Приховати», summary, facts, section tabs with items by group). `openCommunity(pubId)` also serves the Bible's «Відкрити у спільноті». Scale note: past a few hundred showcases switch the list to an indexed `orderBy` query with paging.
-
-- **Followers · rating · released games** (v2.44): `community` action `follow {pubId, on}` (transaction, not your own) → `community/{pubId}/followers/{uid}` (the follower reads their own) + counter `followers`; «Стежити» on the showcase page. Badges 👤 followers · ★ rating (= ♥ `likes`) — `wwStats` in `White.html` (showcase cards, home cards, world cards in «Світи», the hub title) and `statsHtml` in `gamebible.js` («Огляд світу» bar — the world + all its games; «Огляд гри» — that game). Sums come from one owner query `community where owner == uid` (`listWorlds` → `world.stats {f, l}`; Bible `loadCommStats`, owner only). A game showcase may carry `releases[{kind steam|itch|googleplay|appstore|epic|gog|web|other, url https}]` (≤ 6) + `hasRelease` — entered in the hub «Спільнота» game block; Спільнота → «🎮 Готові ігри» lists them (a future feature, the tab is live with a «в розробці» note; KB `games-shelf`).
-
-### **5b. World hub panel · Команда · Бекап · Маркет (v2.43)**
-- **Hub tabs (v2.51)**: the owner's world hub has shell tabs `.wtabs` (`HUB_TABS`: 🏠 Головна · 🌍 Спільнота · 🤝 Команда · ⚖ Маркет · ⛁ Бекап; `hubTab(id)`, sessionStorage `ww-hubtab-<w>`, default home). «Головна» = `#wt-home` (the Bible card + «🎮 Ігри цього світу»); the other four show the panel iframe full width (`?panel=1&tab=…`; switching posts `ww-hub-tab {tab}`, the panel renders one tab without its own tab list). A team member's hub has no tabs (home only).
-- **Hub panel**: the world hub (`fillHome` in `White.html`) is `.whub` — the «Біблія світу» card (button «Відкрити Біблію світу»; since v2.45 the hub lists **no stories** — they live only in the Bible's «Історії і хроніка»: ＋ `ww-new-story`, open `ww-open-story`, ✎ `ww-edit-story` → the shell's `#proj-edit`, 🗑 `ww-delete-story` → `#del-confirm`; after «Зберегти історію» (`ww-story-saved`) the shell's `openChronicle()` shows the Bible and posts `ww-bible-section {section:'chronicle'}`) + an iframe `WhiteWrite GameBible.html?embed=1&panel=1&worldId=…` (owner only). `?panel=1` (`PANEL`, class `ww-panel`) makes the Bible render only `renderHubPanel()`: ONE of 🌍 Спільнота (the old settings block) · 🤝 Команда · ⚖ Маркет · ⛁ Бекап — `?tab=` / `ww-hub-tab` from the shell (the side mini-tabs are gone since v2.51). It posts `ww-panel-h` (height, ResizeObserver), `ww-account {tab:'friends'}`, `ww-market {lotId?}`, `ww-kb-article` to the shell.
-- **Friends / team** (`functions/src/team.js`, endpoint `team`): `invite {email}` (auto-accept when mutual), `accept`, `unfriend` (also leaves each other's teams), `set {worldId, uid, role, view, edit}` (owner; accepted friends only), `remove` (owner or the member). Account → tabs «Профіль» / «Друзі». `listWorlds()` adds `where teamUids array-contains uid` (`shared: true` → 🤝 badge, no ✎, no panel, a note). In the Bible a member gets `ME` (`mayRead` / `mayEdit`, nav and listeners filtered; custom roles query one section / kind per listener so the rules can prove access), no game creation, owner-only settings / env / executions / MCP keys. ✦ AI: only the owner and an **admin**, paid by the owner (`team.payerFor(uid, worldId)` in gamedev / narrative / style); members use the owner's plan for game writes (rules `ownerGameDev`). Stories stay owner-only.
-- **Backup** (`functions/src/backup.js`, `backup` + `backupDaily` every 6 h — each world once per 20 h, 5 at a time, no new world after 7 min of the run; v2.63): `connect {token}` (GitHub `/user`, creates the private repo `whitewrite-<slug>-<id6>`), `enable` (pays `githubBackup` for 30 days, then backs up), `disable`, `now` (≥ 10 min apart), `disconnect`. Writes `world.json` (`snapshot.js` schema `whitewrite.backup/1`) + `README.md` via the contents API. The daily run renews from the owner's balance or pauses with `lastError`.
-- **Snapshot** (`functions/src/snapshot.js`): `buildSnapshot(worldId, uid, schema)` → `{ snap, json, chars, hash }` — world doc, entities, lore, games (cards, plan, tasks, quests, dialogues), the owner's stories with scenes; drops files, images, keys, team, backup, freeze, launch, repo, cosmograph. Shared by backup and the market.
-- **Naming (v2.44.4):** users see «Сертифікація WhiteWrite» — WhiteWrite admits a world to the Market after the review; it grants no rights (the seller transfers them to the buyer by the buyout contract). Code and data keep `licence*`.
-- **Market status (v2.44.3): announced, NOT launched** — while `paid-features` `licenceReview.soon`, only admins can apply / connect / buy (testing); users see the idea and «в розробці».
-- **Market** (`functions/src/market.js`, `MARKETPLACE_SPEC.md`; legal texts `functions/legal/` + `docs/legal/`): `market` ops `quote` · `apply` (Worldbuilder + active subscription; fee by snapshot size `paid-features.js LICENCE` / `licenceReview`; uploads `licences/{id}/snapshot.json` + sha256; **freezes the world** in a transaction; ledger `licence_review`) · `status` · `withdraw` · `connect` / `connectStatus` (Stripe Connect Standard) · `checkout` (direct charge on the seller's account, `application_fee_amount` 12%, the lot reserved 31 min) · `deals`; admin `queue` · `decide {approve, level, note}` (→ `marketLots/{appId}` listed with report, metrics and the filled contract; reject → unfreeze) · `unlist`. **`licenceReview`** (`onDocumentCreated`, 540 s): metrics + two Opus passes (review JSON; lawyer with `legal/ai-lawyer-prompt.md`) → `moderation`, admin notice. **`marketWebhook`** (secret `STRIPE_CONNECT_WEBHOOK_SECRET`): `checkout.session.completed` (`kind: ww_market`) → `completeDeal` (refund when the lot is no longer for sale) → `transferWorld` (Storage under `worlds/{w}/` deleted, unsold subcollections dropped, the seller's projects move to the buyer, keys / repo tokens / marketing / community / backup removed, `owner` = buyer, team cleared, `boughtFrom`, `licence`); also `checkout.session.expired`, `account.updated`, `charge.dispute.*`. Shell: Спільнота → «⚖ Маркет» (lots, lot page with the contract and agreement, «Мої угоди», admin «Модерація»); `?market=bought|lot|<worldId>` on the return from Stripe.
-- **Freeze enforcement**: firestore.rules `worldOpen` / `storyOpen`, storage.rules `worldOpen`, server writers (style, narrative, gamedev, `canon-store loadCanon(…, {write:true})` for scenes), MCP write tools (`report_* / submit_* / get_next_task / check_style`).
-- **Tokenomics**: `TOKENOMICS.md` — cost per feature, ≥ 100% margin per plan, open owner decisions (telemetry / Storage quotas, top-up prices).
-
-### **6. World Generation spec & Player Experience Intelligence**
-
-Source: `World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx` (root). The Unity side (generator, validators, atmosphere runtime, telemetry SDK, editor tools) belongs to RPG Framework (`D:\RPG-Framework`, a separate agent); WhiteWrite is the platform: approved requirements, analytics, plans, reports.
+Source: `docs/specs/World_Generation_and_Game_Experience_Intelligence_Spec_UA.docx`. The Unity side (generator, validators, atmosphere runtime, telemetry SDK, editor tools) belongs to RPG Framework (`D:\RPG-Framework`, a separate agent); WhiteWrite is the platform: approved requirements, analytics, plans, reports.
 
 **Approved requirements in the Game Bible**
 - Section `worldgen` «Генерація світу» (groups Біоми · Модулі маршрутів · Модулі оточення · Ігрові модулі · Атмосферні сценарії · Правила генерації; fields: contract (anchors/ports/bounds/tags), rules, atmosphere, triggers, deps & version, validation, model file). MCP maps a card's group (uk or en) to a kind: biomes / route / environment / gameplay / atmosphere / rules.
@@ -1220,7 +587,7 @@ RPG Framework ships **`capabilities.json`** from 0.40.0 (package root; in a game
 ### 2.75 ✋ The commit gate — the CLAUDE.md rules as checks
 
 Owner: «зробити правилом, близьким до автоматизму». `scripts/git-hooks/commit-msg` (`core.hooksPath`, set by `package.json` `prepare` on `npm install`) runs **`scripts/change-gate.mjs`** on the staged files: a service change (app/ minus the built copies and kb.js, functions/ minus package files and legal/, the rules) needs **ARCHITECTURE.md** in the commit; a user-facing one needs **app/kb.js**; and the fast connection tests must pass — **`tests/connections.test.cjs`** (new), `card-refs`, `paid-gates`, `framework-gaps`. A part that does not apply is skipped only consciously: `[skip-arch: reason]` / `[skip-kb: reason]` (≥ 8 chars) in the message. `npm run gate` = a dry run.
-`tests/connections.test.cjs` finds by itself what a feature forgot to connect: (1) a **card-reference ratchet** — per file, the places that build `"c:" +` or name `cardId(s)` / `cardRef(s)`, against `tests/card-refs.baseline.json`; more = a new reference → a KIND in `functions/card-refs.js`, then raise the number with a note; (2) every MCP tool named in app/kb.js; (3) every exported Cloud Function named in ARCHITECTURE.md; (4) every `allow*` plan flag read by code is in `functions/paid-features.js` (`LEGACY` lists `allowCanonExtraction` — never set, auto-canon removed). First run found and fixed: 3 MCP tools without a KB line, 11 functions missing here (users / lemon / economy-admin / backfill — now in the module tree).
+`tests/connections.test.cjs` finds by itself what a feature forgot to connect: (1) a **card-reference ratchet** — per file, the places that build `"c:" +` or name `cardId(s)` / `cardRef(s)`, against `tests/card-refs.baseline.json`; more = a new reference → a KIND in `functions/card-refs.js`, then raise the number with a note; (2) every MCP tool named in app/kb.js; (3) every exported Cloud Function named in ARCHITECTURE.md; (4) every `allow*` plan flag read by code is in `functions/paid-features.js` (`LEGACY` lists `allowCanonExtraction` — never set, auto-canon removed). First run found and fixed: 3 MCP tools without a KB line, 11 functions missing here (users / lemon / economy-admin / backfill; the last two were later removed).
 
 
 ### 2.76 📜 The world from one .md file (replaces the folder in the new-world form)
@@ -1242,10 +609,10 @@ The owner: «Продакшн-план висне і не може оброби�
 
 ### **Gilded Aesthetic**
 - Color palette: `#d4af70` (gold), `#0a0705` (dark), `#1a1410` (bg)
-- Font: `Philosopher` (book), `Cinzel` (WorldTree headers)
+- Font: `Philosopher` (book), `Cinzel` (Bible menu and headers)
 - Animations: Subtle fades, pulses (e.g., generation progress star)
 
-### **Three Pillars Navigation**
+### **Two Spaces Navigation**
 ```
 .pillswitch (fixed top)
   ├─ Книга (book icon)
@@ -1255,7 +622,7 @@ The owner: «Продакшн-план висне і не може оброби�
 ### **Modals & Overlays**
 - Account modal (profile, subscription, tokens)
 - Generation progress overlay (animated star + "Генерується сцена X/Y")
-- Scene Intent modal (10 intent options)
+- Scene Intent modal (9 options: conflict, character, action, romance, world, twist, surprise, parallel, custom)
 
 ---
 
@@ -1265,7 +632,7 @@ The owner: «Продакшн-план висне і не може оброби�
 - React 18.3.1 (UMD, in-browser)
 - React DOM 18.3.1
 - Babel Standalone 7.29.0 (in-browser JSX compilation)
-- Firebase SDK 9.22.1 (compat mode)
+- Firebase SDK 9.22.0 (compat mode)
 
 ### **Backend**
 - Firebase Cloud Functions (Node.js 22)
@@ -1313,8 +680,7 @@ firebase deploy                   # Deploy everything
 
 ## 📊 Performance Considerations
 
-- **Pagination:** Character-based (520/580 chars per page) to prevent overflow
-- **Canon extraction:** Async (doesn't block scene generation)
+- **Pagination:** measured — scenes are laid into the real page boxes by a hidden probe (`paginateScene`, §3)
 - **Firestore caching:** Client SDK caches reads
 - **Iframe communication:** Minimal postMessage usage
 - **Scale fixes (v2.63):** MCP — at most 20 requests per JSON-RPC batch, the game is read once per HTTP request (`loadGame` memoized on the per-request key), `search_project_knowledge` scans at most 5000 `kAssets`; telemetry — the daily cap reads the atomic `telemetryDaily/{day}.total` (increment), the ingest-key cache keeps only real keys for 60 s and ≤ 1000 entries; every outbound `fetch` in marketing / backup / gamedev / lemon / voice / model-watch has an `AbortSignal.timeout` (15–30 s); marketing — a manual publish claims the post in a transaction, a post stuck in `publishing` > 10 min (`leaseAt`) may be retried or deleted, `marketingPublisher` sends 5 at a time and re-checks the paid state and freeze, Mastodon hosts on internal / local names are refused; Community — no inline home rebuild, `pubId` without `/`; 3D — `modelInfo` disposes the loaded model, the viewer disposes a model that finished loading after close and calls `forceContextLoss()`. Still open: Game Bible subscribes ~20 game listeners at once (per-section subscription would cut reads)
@@ -1333,7 +699,6 @@ firebase deploy                   # Deploy everything
 - `ingestKeys`: no client read or write (only `experience` / `telemetryIngest`); the ingest key is write-only and per game, so it may ship inside a build; analytics is opt-in, pseudonymous ids, positions rounded
 - Billing fields on `users/{uid}` are server-only
 - MCP: key hashed (sha256), per-game scope, revocable, plan re-checked on every call; function is public-invoker, auth is in code
-- Canon extraction logs: owner-only read
 - Admin stats: role-based access
 
 **Tests (v2.24):** `npm test` (`tests/run.mjs`) runs every `tests/*.test.*`: `rules.test.mjs` — `firestore.rules` in Google's Rules Test API (`firebaserules.googleapis.com/v1/projects/whitewrite-app:test`, gcloud token, `get()` mocked; no emulator/Java), `model-watch.test.cjs` / `claude-fallback.test.cjs` (stubbed Firestore/fetch), `plan-gates.test.cjs` (`mcp.js lockedBy`), `narrative-validate.test.cjs` (quest/dialogue graph checks), `narrative-draft.test.cjs` (AI proposal cleaning), `mcp-quests.test.cjs` (MCP quest/dialogue views, approved only, game-card and canon-event refs), `mcp-knowledge.test.cjs` (Project Knowledge parts/idempotency/tombstones/search and the activity log against an in-memory Firestore), `marketing.test.cjs` (drafts only from approved entries, platform limits, polls, the bot-token check), `content-export.test.cjs` (v2.31, the `rpgframework.content/1` mapping), `community.test.cjs` (v2.63, showcase URL checks), `billing.test.cjs` (v2.63, LS webhook + token-service on an in-memory Firestore). `npm run test:rules` — only the rules. UI flows: Playwright E2E with a mocked Firebase (kept outside the repo).
@@ -1346,13 +711,101 @@ firebase deploy                   # Deploy everything
 
 ## 📝 Notes
 
-- **DEPRECATED:** `public/` folder (old files, ignore)
-- **Active development:** `app/` folder
-- **Documentation:** `handoff/` folder
+- **Active development:** `app/` (sources) → `dist/` (build); Cloud Functions in `functions/`
 - **Game dev platform concept v3:** `docs/AI_GAME_DEV_PLATFORM_v3.md` (concept v2 mapped onto this architecture; MCP spec, Task Engine, next phases)
-- **Session logs:** Track major changes (e.g., `PAGINATION_SESSION_2026-06-21.md`)
+- **History:** the changelog below and `git log`; old prototypes, session logs and archived reports were removed from the tree in the 2026-11-04 audit (they stay in git history)
 
 ---
 
-**Last updated:** 2026-11-04 (v2.77 🏗 the production plan in two passes — skeleton, then every milestone in parallel on a cached bible prefix; analyze 64k output, broken JSON retried; v2.76 📜 the new-world form loads the whole world from one .md (Markdown template, no AI) instead of a folder; v2.75 ✋ commit gate: ARCHITECTURE + KB + connection tests checked on every commit, card-reference ratchet; v2.74 🧩 RPG Framework gaps from the game's capabilities.json — mechanics vs the framework, «Код гри» / «Попросити у фреймворку», admin demand; v2.73 card references in one registry functions/card-refs.js — the Bible's «🔗 Що зачепить зміна» and MCP get_card used_by; v2.72 🔗 «Що зачепить зміна» in game cards + a note after saving a used card; v2.71 👤 task assignee + «Лише мої задачі», MCP leaves a team member's task to them; v2.70 agent White removed; «📂 Завантажити теку» for a world (AI sorts it, Storyteller+) at creation and on the overview, for a game into the ✦ import; «✦ Запитай Базу знань» — free Haiku answers only from kb.js, 20 a day; own showcases have no moderation button; v2.69 «📂 Підготувати теку гри» writes .mcp.json / CLAUDE.md / .gitignore through the browser; v2.68 world form = name + description, the world opens in its Bible with «📜 Заповни світ своїми матеріалами» (`functions/world-fill.js` whitewrite.fill/1: the author's agent builds the file, the Bible only moves it; dedup rules `docs/WHAT_GOES_WHERE.md`); live prices (`config/ai_models.priceIndex` from modelWatch, `featureCost` × index, «не більше N» `quoteChars` + charge cap for the .md import); 🧭 game guide (`games/{g}.guide`, stages of sections); every game section can be hidden in Settings; Bible search behind 🔍; v2.67.1 scene mock-up elements stretch on X / Y and round: the field text line gains an optional height and rounding — «- Ліра @ 30% 60% · 18%×30% · #e0b050 · r40%» (old «· 18% ·» lines stay squares; `parseScene` / `sceneText` / `sbBox`), sliders «Ширина ↔ / Висота ↕ / Заокруглення» and edge handles on the selected element; «Числа» (`numbers`) of characters, enemies, items and gear are `type: table` with `cols` «Параметр | Значення» (`NUM()`), older text values split into rows by `parseTable(v, head)`; v2.67 🔌 Інтеграції: Settings of the world and of each game get tabs «⚙ Загальне» / «🔌 Інтеграції» — every outside service in one place; new keys for 3D model generation (Meshy / Tripo / other) and image generation (OpenAI, Google, Stability, Replicate, fal, FLUX, Recraft, Ideogram, Leonardo, other), server only (`integrations.js`, `integrationKeys`), world key = default for its games; the marketing channels stream also opens on Settings; v2.66.4 game concepts carry `lore` (`conceptsPrompt` / `CONCEPT_FIELDS`: how the game presents the world, only from the canon); the picked concept writes a «Лор гри» card (`section: lore`, `fields.text` = lore + the canon it builds on) next to «Огляд гри»; v2.66.3 GenesisScreen author mode (the author's file / description, one world made at once): own title «Народжую твій світ» and a file lead (`genesis.titleAuthor` / `leadFile`), «↻ Спробувати ще раз» and «Почати з порожнього світу» only after an error; v2.66.2 shell «Обери світ» no longer flashes on entry: `fillWorlds` (drawn from the cache, then again after `loadProjects`) skips identical HTML (`worldsHtml`) and a redraw under the open view does not replay the `viewIn` entrance; v2.66.1 the writing sheet `.sheet__text` uses `white-space: break-spaces` — with the textarea default pre-wrap, spaces typed before a word that starts a soft-wrapped line hung invisibly at the end of the previous line; v2.66 Bible lazy streams (`gamebible.js` `lazyStreams` / `attachLazy()` in `render()`): an open game no longer opens 11 listeners up front — playtests / experiments / metrics (section experience), marketing state / channels / posts (marketing), knowledge (knowledge), activity (activity, marketing, settings) and the owner's env (settings), executions (plan), mcpKeys (plan, settings) attach the first time such a section is open and stay until the game changes; cards, plan, tasks, change requests, quests, dialogues and experienceIssues (the menu badge) stay eager; v2.65 paused / unpaid subscriptions: `subscription_updated` with status paused | unpaid sets `users.plan = free` and remembers `users.paidPlan` (server only — users rules allowlist) → every plan gate closes; status active with `paidPlan` restores the plan without the portal-upgrade proration; past_due keeps the plan; `downgradeToFree` clears `paidPlan`; checkout refuses a second subscription over a paused / unpaid / past-due one (409 `SUBSCRIPTION_ON_HOLD`); Account shows «призупинено»; v2.64 world form rebuilt for worlds (WorldForm in `app/flow.jsx`): a name, a big .md drop zone (click or drag & drop, .md / .txt ≤ 2 MB, ≤ 60 000 chars) and an optional description — no language (taken from the UI) or genres; the plan follows from what is given: a file → `genesisWorld {mode:'author'}` on the file (the description appended as a note, the total ≤ 60 000), only a description → Genesis with 3 seeds, only a name → `createWorld` at once without AI (`app.jsx startGenesis`); `genesisWorld` calls Claude with `stream: true` (the SDK refuses non-streaming calls with 24k max tokens: «Streaming is required…»); before: v2.63 tech audit — security, billing, scale, cleanup: see 🔒 Security «Audit fixes», «Billing audit fixes», 📊 Performance «Scale fixes»; before: v2.62.1 🎙 voice: «🎙 Голос» in character / enemy cards (`voCardHtml`, same `games/{g}.voices[entityId | c:<cardId>]`), one try button with ■ Stop (`voStop` on every cast change), Google voices filtered by `cast.gender`, previews cached per voice settings (`voHeard`), `playSound(url, btn, done)`; v2.62 ⚔ Combo table: UMCF v2 sections `ctable` / `reactions` (`since: 2`, `upgrade()` now inserts template sections added later), `comboStart` (k × weapon reach + `MOVE_GAIN`), the 13 detailed UMCF tabs `adv`, Bible views `mComboHtml` / `mReactHtml`; v2.61 Sound factory basic / advanced view: `adv` on audio template fields and whole sections (`motifs`, `mix`), `instantiate` keeps a section's `adv`, `upgrade()` syncs the template's `adv` to older instances (the author's `custom` fields / sections keep theirs), templates adaptive_music v4 / ambience v3 / ui_sounds v3; editor hides `adv` tabs in the basic view («＋ ще N у розширеному»), a check (`data-mgo`) into one opens the advanced view; v2.60 🎙 Озвучка діалогів: `games/{g}.voices` cast per speaker, `node.voice` / `vstatus`, Cloud Function `voice` (Google TTS, `ttsCost`), CSV script, voice files by keys; v2.59 🎧 Аудіотека: sound cards with audio files are the library, the Sound factory slots (`sound` field type) point at them, «🎧 Аудіотека» view with missing slots, MCP `get_audio_library`; v2.58.4 the author's own material at creation: `genesisWorld {mode:'author'}` — ONE seed only from the author's text (description or a .md from the PC, ≤ 60 000 chars), nothing invented, created at once (WorldForm «⤒ Завантажити .md», Genesis «✎ Заповнити мінімально тим, що я дав»; registry `genesisAuthor` ×2; seeds may carry `artifacts`, `createWorld` writes them); new-game form — «Опис гри» (the concepts' `hint`, else the «Огляд гри» logline word for word), «⤒ Файл гри (.md)» hides the concepts and runs `gamedevPlan {op:'import'}` on the new game, «✎ Заповнити мінімально» after the concepts; v2.58.3 «Референси»: «＋ Картинки» (top of the section and per subsection, `data-refsup`) — many pictures at once, one card per file titled after the file name (`refsBulk` → `putFile`, field `pics`); refs defs = group + pictures only (older text fields shown only when filled); format caption on each picture; fixed the card field pickers (`data-fup` lost its value to a stray quote since 6620517, no field upload worked); v2.58.2 the game menu's «Арт і аудіо» split into «Арт» (`g-art`) and its own item «Звук і музика» (`g-audio`, navigation only); v2.58.1 «Референси» (`refs`) moved in the menu from «Огляд і лор» to «Арт і аудіо», after «Візуальний стиль» (navigation only); v2.58 «✦ 3 концепти з канону» in the new-game form: `gamedevPlan {op:'concepts'}` runs without a game (`noGame`, like `canonAudit`) → `conceptsPrompt` on `bibleText` of the world → 3 `cleanConcept`s; the picked one names the game and becomes its `overview` card after `createGame`; registry `gameConcepts` (Worldbuilder, ×2); v2.57 «✦ Стиль із референсів»: Cloud Function `styleFromRefs` (`functions/src/style.js`) — ≤ 6 downscaled reference pictures → a proposal for the overall style card (manifesto, palette, avoid, light, materials, shapes, rules), nothing stored; the Bible's `styleFromRefs` / `sfrPick` writes only the ticked fields (creates the card if missing); registry `styleFromRefs` (Worldbuilder, ×4); v2.56 one GitHub connection per author: `functions/src/github-token.js`, `githubTokens/{uid}` (server only) + `users/{uid}.github.login`; `repoConnect` / backup `connect` reuse it when no token is pasted and save a pasted one; backup `forgetGithub`; Account → Integrations → GitHub; v2.55.3 Досвід гравців → Підключення: «⧉ Ключ + запит для Claude Code» (`#ex-one`: `experience {op:keyCreate, label:'claude-code'}` → the agent's request with `INGEST_URL` and the key to the clipboard); v2.55.2 after an import / draft is applied, «✦ Аналіз і аудит гри →» (`#imp-next`) runs `analyze` and opens the plan — the questions stay the author's; KB «Підготуй ПК» gets one PowerShell block for Git / LFS / Unity Hub / Unity CLI / Claude Code; v2.55.1 «Швидкий старт» → «⧉ Скопіювати все для PowerShell» on top of the Claude Code road: saves `launch`, `createKey()` (now returns the key), copies `allInOne` — folder, `cd`, `claude mcp add` with the fresh key, the `activity_log` block appended to CLAUDE.md unless `whitewrite.activity/1` is in it, the launch lines; v2.55 «✦ Чернетка GDD з опису»: `gamedevPlan {op:'draft', idea}` (≤ 6000 chars, `draftPrompt` designs on the canon, `cleanImport` → the import proposal view), registry `gddDraft` (Worldbuilder, factor 4), Settings → Claude Code step 5 button + `askName({ long })`; v2.54.3 the new-game form's «Взяти весь канон світу (N)» tick (on by default): after `createGame` the client writes an opted-in card per canon entity a shelf takes (`canonForGame`, batches of 400; shared with `migrateCanonOptIn`); v2.54.2 UX quick wins: sign-in keeps the visitor's action (`openAuth(next)` → `afterAuth`), Genesis shows its ≈ token price, `launch.skip` warning `#ln-warn`, 🔒 on Worldbuilder sections and their groups in the game menu (`devLocked`), `askName(…, opts)` / `askText` replace `prompt()` in task / gate return, unblock and the Forge, world settings → hub tab buttons (`ww-hub`), ✎ always shown on touch screens, Account «скоро» chips removed; v2.54.1 Sound factory music prompts rebuilt: `DIRECTIONS` (11 modern directions + own) on the adaptive-music palette, English tag prompts with energy by situation (`SCENE`), production words, Stems and an Exclude line; 23 new presets; `upgrade(m)` adds later template fields to old instances, untouched v1 samples / presets are recognised by hash and replaced in the prompt; v2.54 «⚒ Кузня персонажів» (Character Forge MVP): `functions/forge.js`, `card.forge` on character / enemy / gear cards, `games/{g}.forge`, the Bible section `forge`, MCP `get_character_forge` / `report_forge_check`, registry `characterForge`; v2.53.1 deleting a game (`removeGame`, also through world deletion) removes its `cover` / `titleArt` files; world deletion removes the world's `titleArt` file; v2.53 «Огляд гри» like «Огляд світу»: `games/{g}.cover { url, path, type, frame }` and `games/{g}.titleArt { url, path, h }` (Storage `worlds/{w}/games/{g}/cover/` — image ≤ 10 MB / MP4·WebM ≤ 50 MB, world owner, any plan), `coverTarget()` picks the world or the game for `worldCoverHtml` / `worldNameHtml` / `editWorldName`, `editGameCover` (✎ on the cover, ⌖ frame); v2.52.1 a chosen world opens on the hub's «Головна» (`openWorld` clears `sessionStorage ww-hubtab-<w>`), `.whub__panel[hidden]{display:none}` — the Community panel no longer shows under the home cards; v2.52 «🎼 Фабрика звуку»: audio templates in `mechanics.js` (`sec: 'audio'` — adaptive music with states / layers / transitions / leitmotifs / mix, ambience, UI sounds, music prompt library; `AUDIO_CATEGORIES`, `templatesFor` / `categoriesFor`, `rowPrompt`), the constructor in the «Звук і музика» section (`med.sec`), ♪ generator prompts, MCP `get_mechanics section: "audio"`, registry `soundFactory`; v2.51 world hub tabs: 🏠 Головна (Bible card + games) · Спільнота · Команда · Маркет · Бекап in the shell, the panel shows one tab full width (`?tab=`, `ww-hub-tab`); v2.50.3 `mechanics.js` FRAMEWORK → RPG Framework 0.38.0: parry, attack StaminaCost / AttackStock and motion warping (AttackWarp) exist; v2.50.2 KB «Сповіщення про оновлення фреймворку» (`fw-updates`, text from the RPG Framework agent: SessionStart hook `framework-update-check.sh`, `releases.json` `rpgframework.releases/1`, from v0.37.0); v2.50.1 `mechanics.js` FRAMEWORK notes refined by the RPG Framework agent: block stock / chip damage, damage multiplier vs the game's ICombatDamage, charged attacks, hit tiers, CombatProjectiles, EnemyDirector leash and pace; v2.50 game design on every plan: flag `allowGameDesign` (Free) — the game doc, cards, mechanics, quests, dialogues, style, game files ≤ 20 MB; `maxGames` per plan (1 below Worldbuilder) enforced by `createGame` (`functions/src/projects.js`, rules deny client creates of games); plan / tasks / experience, AI, MCP, marketing, repo, files ≤ 200 MB stay `allowGameDev`; Bible `canGame` / `canDev` / `canonWrite`, 🔒 «Це — частина Worldbuilder» pages; v2.49 World Bible and game GDDs separated: the hub lists the world's games («Відкрити GDD», «＋ Створити нову гру», `watchHubGames`, `showBible({ gameId })` → `ww-bible-open`), the World Bible menu = canon + «Повʼязані ігри», a game's menu = «‹ Канон світу» + the game; settings split into world / game; menu restyle (Cinzel groups, dimmed closed groups); v2.48 Mechanics constructor: `functions/mechanics.js` (categories, typed fields, templates incl. UMCF, checks, RPG Framework 0.36.0 notes), Bible editor for `card.mech`, template catalogue, MCP `get_mechanics` / `get_mechanic`, registry `mechanics`; Bible menu: groups bold (gold when open), sub-items indented in `.nav-subs` on a gold guide line, single sections `.nav-top`; v2.47 Community tab: tick the world / each game first, forms only for ticked items, big ticks, world + games → game cards carrying the world (`withWorld`), community items limit 1000; v2.46.1 «Назад» steps through the Bible's sections: the Bible posts `ww-bible-at {worldId, section}` on every section change, the shell keys history entries by section (`bibleSec`), going back into the Bible posts `ww-bible-section` (or sets `sessionStorage ww-bible-sec-<w>` when it reloads); v2.46 audit fixes: `aiCostDaily` (daily API cost per user, alarms), «✦ Порадити» reserves the registry price (`byOp('advise')`, no `economy_operations/analyzeScene`), MCP keys check their own flag `allowAPI`, `tests/paid-gates.test.cjs` (every registry flag / priced op is real on the server or a listed client-only gate), `tests/cost-watch.test.cjs`; old root docs → `docs/archive/`; v2.45 the world hub has no stories section — stories live only in the World Bible → «Історії і хроніка» (✎ / 🗑 on its story cards via the shell, return there after saving a story); the hub card button «Відкрити Біблію світу»; v2.44.4 user-facing «ліцензія» of the Market → «Сертифікація WhiteWrite» / “WhiteWrite Certification” (UI, KB, registry names, contracts, server messages) — a listing admission, not a copyright licence; ids `licenceReview`, `licenceApplications`, `LICENCE`, `licensedAt`, `{{LICENCE_ID}}` unchanged; v2.44.3 Market announced, not launched: `licenceReview` / `marketSell` are `soon` in paid-features → `market` refuses `apply` / `connect` / `checkout` with 503 `SOON` for non-admins; the hub «⚖ Маркет» tab and Спільнота «⚖ Маркет» show the idea + «в розробці» (an admin keeps lots, moderation and a «Тестовий режим» form); v2.44.2 world title image: the «Висота назви» slider tops out at the largest height that fits the name line's width (`lineW / aspect`, ≤ 110), step 1, the preview is the line scaled to the dialog; v2.44.1 shell «Назад» — round ↶ `#back-fab` bottom-left off home (`hist` keeps each screen as SHOWN — `here()` = mode | inWork | world, set in `renderRail`; same-screen clicks add nothing; `goBack` skips every entry equal to the current screen and restores its world); a video world cover gets ⏸/▶ (`vstop`, stops on the first frame, `localStorage ww-vstop-<worldId>` shared by the hub and the Bible); v2.44 followers («Стежити», `community/{pubId}/followers`) and 👤 / ★ badges on showcase, world and home cards, the world hub and the Bible overview bars; game `releases[]` + Спільнота «🎮 Готові ігри» (future feature foundation); Спільнота top bar clears the logo; v2.43 world hub panel (`?panel=1`: Спільнота · Команда · Маркет · Бекап beside the Bible card), friends + world team with roles (`team.js`, rules by section / kind, admin ✦ on the owner's tokens), daily GitHub backup (`backup.js`, `githubBackup`), Market phase 1 (`market.js`: licence review with freeze, AI review + AI lawyer, moderation, Stripe Connect 12% buyout, `transferWorld`; legal templates; `TOKENOMICS.md`); shell views start at the top (no 118 px band); Bible game menu is an accordion (one group open); v2.42.1 Bible: «Огляд світу» bar shows the world NAME (Cinzel, centred) or `worlds/{w}.titleArt { url, path, h }` (Storage `worlds/{w}/cover/title_*`, height slider), ✎ for the owner on hover; an opened card / dossier focuses the panel, not the title (new ones only); files upload into a new card (it saves itself first, `save(true)`); «Референси» cards: «Картинки» image field first (added to older cards too), note / general files hidden until used; v2.42 token ledger `users/{uid}/ledger` (`functions/src/ledger.js`; server-only, owner reads) — grants, top-ups, every spend, plan switch; Account «Історія токенів» + printable receipts; v2.41.3 Bible «Огляд світу» opens with the world cover (`worldCoverHtml`: `worlds/{w}.cover` image / video with its ⌖ frame, default `ph-world.jpg`, 16:9) above the tagline and description; v2.41.2 Спільнота view: one sticky top bar `.cm-top` with every control (tabs, filters, «＋» posts, role `<select>`, an open showcase's sections / ♥ / Discord / report) and ✕ → `showHome()`; the rail no longer has «Спільнота» — it opens from the home page only; v2.41.1 KB: «🌍 Спільнота: просування, однодумці й команда — безкоштовно» (why: home-page promotion, free team search, Discord) + a «🌍 І ти не сам» block in «Що таке WhiteWrite»; v2.41 AI style check (`styleCheck`, `style-guide.js`): automatic on picture upload, «✦ Перевірити всі» in the style tab, stale scores, 3D «📷 Знімок для стилю», MCP `get_style_guide` / `check_style`; KB: framework multiplayer = co-op + PvP up to 8, no MMO; v2.40 «Візуальний стиль» game section (overall + biomes) and the free colour badge «🖌 NN» on every game picture; v2.39 «⌖ Кадр» (`frame-pick.js`): world covers 16:9 with a frame, card / dossier faces framed or shown whole; v2.38 Спільнота: Discord invite and «🤝 Шукаю команду» on showcases, «Співтворці» posts (`collab/`); v2.37 world covers (image / looping video, ✎ on world cards, default `ph-world.jpg`), the hub's «Біблія світу» is a full-size card; v2.36 Спільнота: public showcases of worlds/games (`community.js`, ♥ with decay, reports + admin hide), home cards «Вибір спільноти» (top 20 through the day) / «Відкрий нового автора»; v2.35.3 game menu: «Сцени» under «Світ і рівні», UI/UX under «Арт і аудіо»; v2.35.2 hero «Від задуму — до гри» on one line (nowrap); v2.35.1 KB road: step 1 = choose the path (RPG Framework explained), step 2 = prepare the PC; v2.35 KB: «Світи на головній» (ready frame, fill from your materials), new «Біблія гри — живий гейм-диздок»; hero button «Від чистого ПК до Гри»; v2.34 «Історії і хроніка»: story tags scope/games, subsection rename, clickable event names; story form keeps «Біблія світу» (`ww-mode: create`); v2.33 home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks; v2.32 shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops; v2.31 RPG Framework 0.32 content export + validation exit codes; v2.30 quests & dialogues moved into the game; v2.29 Mini-Marketing; v2.28 Scenes, palettes, reference group colours; v2.27 Project Knowledge, development log, Unity environment)
+## Changelog
+
+One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
+
+- **v2.77.1** royal audit cleanup: the duplicated first half of this file removed, file tree and the Cloud Functions list matched to the code, stale Gemini / extraction / WorldTree / handoff notes fixed, the changelog moved out of «Last updated»; removed dead code: `economy-admin.js` (seedEconomy, checkMargin, setMargin, migrate*), `canon-extract.js`, syncCanonFromProject, backfillSceneCanonRefs, initializeUser, initLemonSqueezyConfig, Stripe `checkout.session.completed`, canon-store `mergeSuggestions`, unused rules blocks (`projects/{p}/narrative|director|snapshots`, `reconstructionQueue`)
+- **v2.77** 🏗 the production plan in two passes
+- **v2.76** 📜 the new-world form loads the whole world from one .md
+- **v2.75** ✋ commit gate: ARCHITECTURE + KB + connection tests checked on every commit, card-reference ratchet
+- **v2.74** 🧩 RPG Framework gaps from the game's capabilities.json
+- **v2.73** card references in one registry functions/card-refs.js
+- **v2.72** 🔗 «Що зачепить зміна» in game cards + a note after saving a used card
+- **v2.71** 👤 task assignee + «Лише мої задачі», MCP leaves a team member's task to them
+- **v2.70** agent White removed; «📂 Завантажити теку» for a world
+- **v2.69** «📂 Підготувати теку гри» writes .mcp.json / CLAUDE.md / .gitignore through the browser
+- **v2.68** world form = name + description, the world opens in its Bible with «📜 Заповни світ своїми матеріалами»
+- **v2.67.1** scene mock-up elements stretch on X / Y and round
+- **v2.67** 🔌 Інтеграції: Settings of the world and of each game get tabs «⚙ Загальне» / «🔌 Інтеграції»
+- **v2.66.4** game concepts carry `lore`; the picked concept writes a «Лор гри» card
+- **v2.66.3** GenesisScreen author mode (the author's file / description, one world made at once)
+- **v2.66.2** shell «Обери світ» no longer flashes on entry
+- **v2.66.1** the writing sheet `.sheet__text` uses `white-space: break-spaces` (no invisible trailing spaces)
+- **v2.66** Bible lazy streams (`gamebible.js` `lazyStreams` / `attachLazy()` in `render()`)
+- **v2.65** paused / unpaid subscriptions: `subscription_updated` with status paused | unpaid sets `users.plan = free` and remembers `users.paidPlan`
+- **v2.64** world form rebuilt for worlds (WorldForm in `app/flow.jsx`)
+- **v2.62** ⚔ Combo table: UMCF v2 sections `ctable` / `reactions`
+- **v2.61** Sound factory basic / advanced view
+- **v2.60** 🎙 Озвучка діалогів: `games/{g}.voices` cast per speaker, `node.voice` / `vstatus`, Cloud Function `voice`
+- **v2.59** 🎧 Аудіотека: sound cards with audio files are the library, the Sound factory slots
+- **v2.58.4** the author's own material at creation
+- **v2.58.3** «Референси»: «＋ Картинки» (top of the section and per subsection, `data-refsup`)
+- **v2.58.2** the game menu's «Арт і аудіо» split into «Арт»
+- **v2.58.1** «Референси» (`refs`) moved in the menu from «Огляд і лор» to «Арт і аудіо», after «Візуальний стиль»
+- **v2.58** «✦ 3 концепти з канону» in the new-game form
+- **v2.57** «✦ Стиль із референсів»: Cloud Function `styleFromRefs`
+- **v2.56** one GitHub connection per author: `functions/src/github-token.js`, `githubTokens/{uid}`
+- **v2.55.3** Досвід гравців → Підключення: «⧉ Ключ + запит для Claude Code»
+- **v2.55.2** after an import / draft is applied, «✦ Аналіз і аудит гри →»
+- **v2.55.1** «Швидкий старт» → «⧉ Скопіювати все для PowerShell» on top of the Claude Code road
+- **v2.55** «✦ Чернетка GDD з опису»: `gamedevPlan {op:'draft', idea}`
+- **v2.54.3** the new-game form's «Взяти весь канон світу»
+- **v2.54.2** UX quick wins: sign-in keeps the visitor's action
+- **v2.54.1** Sound factory music prompts rebuilt
+- **v2.54** «⚒ Кузня персонажів» (Character Forge MVP)
+- **v2.53.1** deleting a game (`removeGame`, also through world deletion) removes its `cover` / `titleArt` files
+- **v2.53** «Огляд гри» like «Огляд світу»: `games/{g}.cover { url, path, type, frame }` and `games/{g}.titleArt { url, path, h }`
+- **v2.52.1** a chosen world opens on the hub's «Головна»
+- **v2.52** «🎼 Фабрика звуку»: audio templates in `mechanics.js`
+- **v2.51** world hub tabs: 🏠 Головна (Bible card + games) · Спільнота · Команда · Маркет · Бекап in the shell, the panel shows one tab full width
+- **v2.50.3** `mechanics.js` FRAMEWORK → RPG Framework 0.38.0
+- **v2.50.2** KB «Сповіщення про оновлення фреймворку»
+- **v2.50.1** `mechanics.js` FRAMEWORK notes refined by the RPG Framework agent
+- **v2.50** game design on every plan: flag `allowGameDesign`
+- **v2.49** World Bible and game GDDs separated
+- **v2.48** Mechanics constructor: `functions/mechanics.js`
+- **v2.47** Community tab: tick the world / each game first, forms only for ticked items, big ticks, world + games → game cards carrying the world
+- **v2.46.1** «Назад» steps through the Bible's sections
+- **v2.46** audit fixes: `aiCostDaily` (daily API cost per user, alarms), «✦ Порадити» reserves the registry price
+- **v2.45** the world hub has no stories section
+- **v2.44.4** user-facing «ліцензія» of the Market → «Сертифікація WhiteWrite» / “WhiteWrite Certification”
+- **v2.44.3** Market announced, not launched: `licenceReview` / `marketSell` are `soon` in paid-features → `market` refuses `apply` / `connect` / `checkout` with 503 `SOON` for non-admins
+- **v2.44.2** world title image: the «Висота назви» slider tops out at the largest height that fits the name line's width
+- **v2.44.1** shell «Назад» — round ↶ `#back-fab` bottom-left off home
+- **v2.44** followers («Стежити», `community/{pubId}/followers`) and 👤 / ★ badges on showcase, world and home cards, the world hub and the Bible overview bars
+- **v2.43** world hub panel (`?panel=1`: Спільнота · Команда · Маркет · Бекап beside the Bible card), friends + world team with roles
+- **v2.42.1** Bible: «Огляд світу» bar shows the world NAME
+- **v2.42** token ledger `users/{uid}/ledger` (`functions/src/ledger.js`), Account «Історія токенів» + receipts
+- **v2.41.3** Bible «Огляд світу» opens with the world cover
+- **v2.41.2** Спільнота view: one sticky top bar `.cm-top` with every control
+- **v2.41.1** KB: «🌍 Спільнота: просування, однодумці й команда»
+- **v2.41** AI style check (`styleCheck`, `style-guide.js`)
+- **v2.40** «Візуальний стиль» game section (overall + biomes) and the free colour badge «🖌 NN» on every game picture
+- **v2.39** «⌖ Кадр» (`frame-pick.js`): world covers 16:9 with a frame, card / dossier faces framed or shown whole
+- **v2.38** Спільнота: Discord invite and «🤝 Шукаю команду» on showcases, «Співтворці» posts
+- **v2.37** world covers (image / looping video, ✎ on world cards, default `ph-world.jpg`), the hub's «Біблія світу» is a full-size card
+- **v2.36** Спільнота: public showcases of worlds/games
+- **v2.35.3** game menu: «Сцени» under «Світ і рівні», UI/UX under «Арт і аудіо»
+- **v2.35.2** hero «Від задуму — до гри» on one line
+- **v2.35.1** KB road: step 1 = choose the path (RPG Framework explained), step 2 = prepare the PC
+- **v2.35** KB: «Світи на головній» (ready frame, fill from your materials), new «Біблія гри»
+- **v2.34** «Історії і хроніка»: story tags scope/games, subsection rename, clickable event names
+- **v2.33** home copy (world-first), KB agent road, Project settings «Claude Code» steps with ticks
+- **v2.32** shell chrome: avatar on home only, phones drop the top rail off home, Back no longer loops
+- **v2.31** RPG Framework 0.32 content export + validation exit codes
+- **v2.30** quests & dialogues moved into the game
+- **v2.29** Mini-Marketing
+- **v2.28** Scenes, palettes, reference group colours
+- **v2.27** Project Knowledge, development log, Unity environment
+
+---
+
+**Last updated:** 2026-11-04 (v2.77.1)
 **Maintained by:** WhiteWrite Team

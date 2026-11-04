@@ -5,7 +5,7 @@
 //   backupTokens/{worldId}  { token, login } — server only (firestore.rules)
 //   worlds/{w}.backup       { repo, login, enabled, paidUntil, lastAt, lastStatus, lastError, lastCommit } — written only here
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { onRequest, admin, db, cors, getBalance, reserve, getPlanBudget } = require('./common');
+const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget } = require('./common');
 const ledger = require('./ledger');
 const { savedGithub, rememberGithub, forgetGithub } = require('./github-token');
 const { buildSnapshot } = require('./snapshot');
@@ -63,7 +63,8 @@ async function pay(worldId, uid) {
     throw fail(403, 'Недостатньо токенів', { tokensRemaining: e.available, tokensNeeded: BACKUP_COST, code: 'OUT_OF_TOKENS' });
   }
   const until = admin.firestore.Timestamp.fromMillis(Date.now() + PERIOD_MS);
-  await db.collection('worlds').doc(worldId).update({ 'backup.enabled': true, 'backup.paidUntil': until });
+  try { await db.collection('worlds').doc(worldId).update({ 'backup.enabled': true, 'backup.paidUntil': until }); }
+  catch (e) { await refund(db, uid, r).catch(() => {}); throw e; } // the month was not granted — the tokens go back
   ledger.record(db, uid, { type: 'spend', op: 'github_backup_month', amount: -BACKUP_COST, balance: r.available, ref: { worldId } });
   await db.collection('usage_logs').add({ uid, operation: 'github_backup_month', worldId, userTokensCharged: BACKUP_COST, realApiCostUSD: 0, timestamp: ts() }).catch(() => {});
   return until.toMillis();

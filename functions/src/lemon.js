@@ -6,7 +6,6 @@ const {
   cors,
   lemonSqueezyApiKey,
   lemonSqueezyWebhookSecret,
-  requireAdmin,
   getPlanBudget,
   getBalance,
   verifyAuth,
@@ -221,57 +220,6 @@ exports.createLemonSqueezyCheckout = onRequest({
       res.status(500).json({ error: error.message });
     }
   });
-});
-
-/**
- * Initialize Lemon Squeezy Config (one-time setup)
- * Creates config/lemon_squeezy document in Firestore
- */
-exports.initLemonSqueezyConfig = onRequest({}, async (req, res) => {
-  try {
-    if (!(await requireAdmin(req, res))) return;
-
-    await db.collection('config').doc('lemon_squeezy').set({
-      storeId: '419955',
-
-      variants: {
-        storyteller: '1849926',
-        novelist: '1849976',
-        worldbuilder: '1849991',
-        tokens_500: '1850008'
-      },
-
-      topups: {
-        '500': {
-          variantId: '1850008',
-          tokens: 500,
-          price: 5
-        }
-      },
-
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    console.log('[LemonSqueezy] Config created successfully');
-
-    res.status(200).json({
-      success: true,
-      message: 'Lemon Squeezy config created',
-      config: {
-        storeId: '419955',
-        variants: {
-          storyteller: '1849926',
-          novelist: '1849976',
-          worldbuilder: '1849991',
-          tokens_500: '1850008'
-        }
-      }
-    });
-  } catch (error) {
-    console.error('[LemonSqueezy] Config creation failed:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
 });
 
 /**

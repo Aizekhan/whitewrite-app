@@ -22,9 +22,6 @@ service firebase.storage {
     function ownerGameDev(worldId) {
       return firestore.get(/databases/(default)/documents/users/$(firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
     }
-    function hasGameDev() {
-      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
-    }
 
     // World-level files of canon entities (dossier images and models), shared by every story and game.
     match /worlds/{worldId}/files/{rest=**} {

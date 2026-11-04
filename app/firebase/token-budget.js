@@ -4,33 +4,11 @@
 // ============================================================================
 // TOKEN COSTS — How much each operation consumes
 // ============================================================================
-// Base unit: 1 token ≈ $0.000015 (inspired by OpenAI pricing psychology)
-// This makes numbers human-readable: "5,000 tokens" feels better than "0.075 credits"
+// Fallbacks only: the paid-features registry sets the real prices below
 
 window.__TOKEN_COSTS = {
-  // ===== SCENES =====
   scene: 160,                // a typical 700-word scene on the author's Claude model (set from MODEL_TIERS below)
-
-
-  // ===== CANON (cheap operations) =====
-  canonSuggestion: 10,       // Extract entities from scene (legacy)
-  canonExtractPerScene: 15,  // Auto-extraction after scene generation (Haiku)
-  canonSyncProject: null,    // Dynamic: scenesCount × canonExtractPerScene
-  characterCard: 15,         // Generate character profile
-  locationCard: 15,          // Generate location profile
-  eventCard: 15,             // Generate event profile
-
-
-  // ===== RECONSTRUCTION =====
-  sceneReconstruct: 30,      // Regenerate scene with new canon (slightly > new scene)
-  impactAnalysis: 5,         // Analyze which scenes affected by canon change
-
-  // ===== NARRATIVE TOOLS =====
-  architectOutline: 25,      // Generate story outline
-  memorySuggestions: 8,      // Suggest canon additions (very cheap, legacy)
-  continuityCheck: 5,        // Check for contradictions
-  analyzeScene: 50,          // ANALYZE mode (Claude Opus for quality)
-  improveScene: 80           // IMPROVE mode (Claude Opus for rewriting)
+  analyzeScene: 50           // «✦ Порадити» (set from the registry below)
 };
 
 // ============================================================================
@@ -48,8 +26,6 @@ window.__PLAN_BUDGETS = {
     allowExport: false,
     allowAPI: false,
     allowWorldTree: false,          // ❌ NO WorldTree access
-    allowCanonExtraction: false,    // ❌ NO auto-extraction
-    allowCanonSync: false,          // ❌ NO sync button
     allowAnalyze: false,            // ❌ NO ANALYZE mode
     allowImprove: false,            // ❌ NO IMPROVE mode
     allowGameDev: false,
@@ -69,8 +45,6 @@ window.__PLAN_BUDGETS = {
     allowExport: true,         // ← Unlock DOCX/PDF export
     allowAPI: false,
     allowWorldTree: true,           // ✅ WorldTree access
-    allowCanonExtraction: false,     // ✅ Auto-extraction (15 tokens/scene)
-    allowCanonSync: false,           // ✅ "Синхронізувати" button
     allowAnalyze: false,            // ❌ ANALYZE mode (too expensive for this tier)
     allowImprove: false,            // ❌ IMPROVE mode (too expensive for this tier)
     allowGameDev: false,
@@ -89,8 +63,6 @@ window.__PLAN_BUDGETS = {
     allowExport: true,
     allowAPI: false,
     allowWorldTree: true,           // ✅ WorldTree access
-    allowCanonExtraction: false,     // ✅ Auto-extraction
-    allowCanonSync: false,           // ✅ Canon sync
     allowAnalyze: true,             // ✅ ANALYZE mode (50 tokens)
     allowImprove: true,             // ✅ IMPROVE mode (80 tokens)
     allowGameDev: false,
@@ -110,8 +82,6 @@ window.__PLAN_BUDGETS = {
     allowAPI: true,            // ← Unlock API access
     priority: true,            // Priority queue for generation
     allowWorldTree: true,
-    allowCanonExtraction: false,
-    allowCanonSync: false,
     allowAnalyze: true,
     allowImprove: true,
     allowGameDev: true,           // ✅ Game Bible + Production Plan
@@ -132,8 +102,6 @@ window.__PLAN_BUDGETS = {
     allowAPI: true,
     priority: true,
     allowWorldTree: true,
-    allowCanonExtraction: false,
-    allowCanonSync: false,
     allowAnalyze: true,
     allowImprove: true,
     allowGameDev: true,           // ✅ Game Bible + Production Plan
@@ -170,31 +138,3 @@ window.__PLAN_BUDGETS = {
 window.__getPlanConfig = function(planName) {
   return window.__PLAN_BUDGETS[planName] || window.__PLAN_BUDGETS.free;
 };
-
-// Check if user can afford operation
-window.__canAfford = function(operation, userTokensRemaining) {
-  const cost = window.__TOKEN_COSTS[operation];
-  if (!cost) {
-    console.error(`Unknown operation: ${operation}`);
-    return false;
-  }
-  return userTokensRemaining >= cost;
-};
-
-// Get human-readable cost
-window.__formatTokens = function(tokens) {
-  if (tokens >= 1000) {
-    return (tokens / 1000).toFixed(1) + 'K';
-  }
-  return tokens.toString();
-};
-
-// Estimate what user can do with remaining budget
-window.__estimateCapacity = function(tokensRemaining) {
-  return {
-    scenes: Math.floor(tokensRemaining / window.__TOKEN_COSTS.scene),
-    primary: Math.floor(tokensRemaining / window.__TOKEN_COSTS.scene) + ' сцен Claude'
-  };
-};
-
-console.log('Token Budget System loaded:', Object.keys(window.__TOKEN_COSTS).length, 'operations');

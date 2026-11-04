@@ -320,7 +320,6 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
       return;
     }
 
-    console.log('[SceneIntent] Generating with projectId:', actualProjectId);
 
     try {
       // F2: Load previous scenes for continuity (last 2-3 scenes)
@@ -335,7 +334,6 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
             text: s.text,
             n: s.n
           }));
-          console.log(`Continuity: passing ${previousScenes.length} previous scenes`);
         } catch (err) {
           console.error('Failed to load previous scenes:', err);
         }
@@ -354,7 +352,6 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
       );
 
       if (result.success) {
-        console.log('Scene generated:', result.scene);
 
         // D4: Save scene to Firestore (with pre-generated sceneId for canon linking)
         if (window.__firebaseScenes) {
@@ -372,7 +369,6 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
                 artifacts: []
               }
             });
-            console.log('Scene saved to Firestore:', savedScene.id);
 
             // Phase 1.1: Sync tokens from server response (server already deducted)
             if (result.tokensConsumed && window.__wwUser) {
@@ -383,7 +379,6 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
               window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
               window.__wwUser.tokensRemaining = remaining;
 
-              console.log(`✅ Tokens synced from server: -${cost}, remaining: ${remaining}`);
 
               // Show toast notification
               if (typeof window.__showTokenToast === 'function') {
@@ -398,7 +393,6 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
 
             // D5: Trigger book reload to show new scene
             if (window.__reloadBook) {
-              console.log('[SceneIntent] Reloading book with jumpToLast...');
               window.__reloadBook({ jumpToLast: true });
             } else {
               console.warn('[SceneIntent] window.__reloadBook not found, trying fallback...');

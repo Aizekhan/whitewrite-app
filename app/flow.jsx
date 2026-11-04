@@ -6,7 +6,6 @@ const { useState: useFState } = React;
 // The user's own hero art (StartBack.png) leads. The whole scene is the
 // doorway — click anywhere to open a universe. Particles add living light.
 function StartScreen({ onBegin, langVersion, hasWorlds }) {
-  console.log('[StartScreen] Component mounted/updated with langVersion:', langVersion);
   // Fallback Ukrainian text if i18n not loaded yet
   const FALLBACK = {
     'hero.mark': 'WhiteWrite',
@@ -23,8 +22,6 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор', 'hero.commTeam': 'шукає команду'
   };
   const t = window.__i18n ? window.__i18n.t : (k) => FALLBACK[k] || k;
-  const currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
-  console.log('[StartScreen] Rendering with language:', currentLang, 'title:', t('hero.title'));
   return (
     <div className="screen screen--start stage-screen">
       <img className="hero-img" src="assets/StartBack.jpg" alt={t('hero.imgAlt')} />
@@ -259,14 +256,9 @@ function StoryForm({ onBack, onCreate, initial }) {
 
   // Load pricing from Firestore on mount + poll for user/pricing ready
   React.useEffect(() => {
-    console.log('[StoryForm] useEffect triggered');
-    console.log('[StoryForm] window.__firebasePricing exists?', !!window.__firebasePricing);
-    console.log('[StoryForm] window.__wwUser exists?', !!window.__wwUser);
 
     if (window.__firebasePricing) {
       window.__firebasePricing.loadPricing().then(() => {
-        console.log('[StoryForm] ✅ Pricing loaded from Firestore');
-        console.log('[StoryForm] Cache loaded?', window.__firebasePricing.cache?.loaded);
       }).catch(err => {
         console.error('[StoryForm] ❌ Pricing load failed:', err);
       });
@@ -282,12 +274,10 @@ function StoryForm({ onBack, onCreate, initial }) {
       const hasPricing = !!window.__firebasePricing;
       const pricingLoaded = window.__firebasePricing?.cache?.loaded;
 
-      console.log(`[StoryForm] Poll #${pollCount}: user=${hasUser}, pricing=${hasPricing}, loaded=${pricingLoaded}`);
 
       if (hasUser && hasPricing && pricingLoaded) {
         setPricingReady(true);
         clearInterval(interval);
-        console.log('[StoryForm] ✅ User + pricing ready, setting pricingReady=true');
       }
 
       // Timeout after 10 seconds (50 polls)
@@ -510,13 +500,10 @@ function StoryForm({ onBack, onCreate, initial }) {
             <span className="field__label">
               {t('form.lengthLabel')}
               {pricingReady && (() => {
-                console.log('[StoryForm] Rendering preview, pricingReady=true');
                 const userPlan = window.__wwUser.plan || 'free';
                 const inputChars = description.length;
                 const canonTokens = 0; // First scene — no canon yet
-                console.log(`[StoryForm] Calling estimateSingleSceneCost: length=${length}, inputChars=${inputChars}, plan=${userPlan}`);
                 const costPerScene = window.__firebasePricing.estimateSingleSceneCost(length, inputChars, userPlan, canonTokens);
-                console.log(`[StoryForm] Preview result: ${costPerScene} tokens/scene`);
                 return (
                   <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
                     ~{costPerScene} {t('form.lengthHint')}

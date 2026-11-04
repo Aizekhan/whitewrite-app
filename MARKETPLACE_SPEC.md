@@ -2,7 +2,7 @@
 
 **Назва для користувачів:** «Сертифікація WhiteWrite» (не «ліцензія» — WhiteWrite не надає прав на твір, лише допускає його до Маркету; рішення власника 2026-11-02). Нижче «ліцензія» = ця сертифікація.
 
-**Статус:** погоджено з власником 2026-11-02. **Етап 1 збудовано 2026-11-02** (v2.43: `functions/src/market.js`, ARCHITECTURE §5b): продається лише **весь світ** (текст); окремий ГДД гри — пізніше. Перед live-режимом: Stripe Connect у кабінеті, вебхук `marketWebhook`, секрет `STRIPE_CONNECT_WEBHOOK_SECRET`, перевірка шаблонів `docs/legal/` юристом-людиною. Цифри — `TOKENOMICS.md`.
+**Статус:** погоджено з власником 2026-11-02. **Етап 1 збудовано 2026-11-02** (v2.43: `functions/src/market.js`, ARCHITECTURE §5b): продається лише **весь світ** (текст); окремий ГДД гри — пізніше. Перед live-режимом: Stripe Connect у кабінеті, вебхук `marketWebhook`, секрет `STRIPE_CONNECT_WEBHOOK_SECRET`, перевірка шаблонів `docs/legal/` юристом-людиною. Цифри — `TOKENOMICS.md`. **Зараз Маркет — заглушка «в розробці»** (v2.44.3: `licenceReview` / `marketSell` мають `soon: true` у `paid-features.js` → `apply` / `connect` / `checkout` дозволені лише адміну).
 **Перший етап:** продаж **текстового ГДД** і **світу** (канон + історії). Файли (картинки, префаби, моделі) у пакет продажу не входять.
 
 ## 1. Рішення власника
@@ -17,7 +17,7 @@
 | Юрист | **ШІ-агент** застосовує шаблони до кожної угоди; базові шаблони один раз перевіряє живий юрист |
 
 ## 2. Потік
-1. **Заявка** (Біблія → ⚙ Налаштування → «Маркет»): що продається, ціна викупу, опис для покупця. Сервер перевіряє тариф (Worldbuilder) і резервує токени за перевірку (`paid-features.js` → `licenceReview`).
+1. **Заявка** (хаб світу → вкладка «⚖ Маркет»): що продається, ціна викупу, опис для покупця. Сервер перевіряє тариф (Worldbuilder) і резервує токени за перевірку (`paid-features.js` → `licenceReview`).
 2. **Заморожування**: `worlds/{w}.freeze = { reason: 'licence', since, applicationId }` (і гра, якщо в пакеті). Правила Firestore забороняють клієнту писати в заморожений світ / гру; сервер — так само. Розморожування автором = відкликання заявки (токени не повертаються за вже виконані кроки).
 3. **Знімок**: сервер робить замороженний знімок тексту (канон, історії, картки, квести, діалоги, план) у Storage `licences/{id}/snapshot.json` + хеш. Саме його перевіряють, показують покупцю й передають.
 4. **Перевірка** (до 1–2 тижнів):
@@ -34,18 +34,16 @@
 Вітрина лоту: огляд, рівень і звіт перевірки, зміст розділів і кількість карток, кілька повних карток на вибір автора, текст договору викупу. Повний знімок — лише після оплати.
 
 ## 4. Дані (Firestore, усе — лише сервер)
-- `licenceApplications/{id}` — `{ uid, worldId, gameId?, kind: gdd|world|bundle, price, currency, status: review|approved|rejected|withdrawn, metrics, aiReview, legal, moderator, snapshotPath, snapshotHash, tokens, createdAt }`
+- `licenceApplications/{id}` — `{ uid, worldId, title, pitch, declaration, priceCents, chars, fee, snapshotPath, snapshotHash, status: review|moderation|licensed|rejected|withdrawn, aiReview, legal, aiError, … }` (етап 1 — лише світ; повний перелік полів — ARCHITECTURE «Firestore Schema»)
 - `marketLots/{id}` — публічна частина ліцензованого лоту (читають усі).
 - `marketDeals/{id}` — `{ lotId, seller, buyer, amount, fee, stripe: { account, session, charge }, contractPath, status, at }`
 - `sellers/{uid}` — `{ stripeAccountId, chargesEnabled, payoutsEnabled }` (Stripe Connect onboarding).
-- `token_ledger/{id}` — незмінна книга руху токенів (поповнення, місячний бюджет, списання, оплата перевірки, повернення) з балансом після запису; **чеки** — `receipts/{id}` (PDF у Storage) для перевірок ліцензії й поповнень. Корисне й без маркету: користувач бачить історію токенів.
+- Книга руху токенів — **зроблено** як `users/{uid}/ledger/{id}` (v2.42, `functions/src/ledger.js`; Акаунт → «Історія токенів» і чеки для друку); окремих колекцій `token_ledger` / `receipts` немає.
 
-## 5. Cloud Functions
-- `licence` — apply / withdraw / status; резерв і списання токенів; заморожування; знімок.
-- `licenceReview` — метрики + ШІ-рецензія + ШІ-юрист → черга модератора.
-- `market` — список лотів, сторінка лоту, `checkout` (Stripe Connect), адмін: approve / reject / takedown.
-- `stripeConnectWebhook` — `account.updated`, `checkout.session.completed`, `charge.dispute.*`.
-- `transferOwnership` — у транзакції після оплати.
+## 5. Cloud Functions (як збудовано, `functions/src/market.js`)
+- `market` — ops `quote` · `apply` (резерв токенів, заморожування, знімок `licences/{id}/snapshot.json`) · `status` · `withdraw` · `connect` / `connectStatus` (Stripe Connect onboarding) · `checkout` · `deals`; адмін: `queue` · `decide` · `unlist`.
+- `licenceReview` — ШІ-рецензія + ШІ-юрист → черга модератора.
+- `marketWebhook` — вебхук Connect: `checkout.session.completed` → `transferWorld` (у транзакції), `account.updated`. Суперечки (`charge.dispute.*`) поки не обробляються.
 
 ## 6. Пізніші етапи
 - **Картинки**: пошук копій в інтернеті (Google Vision web detection), метадані EXIF / C2PA, ШІ шукає водяні знаки й логотипи, декларація джерела; знайдено деінде без доказу прав — не допускається.

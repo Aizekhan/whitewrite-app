@@ -16,8 +16,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const { AI_MODELS, MODEL_PRICING } = require('../ai-models.js');
 const { charge, getBalance, reserve, refund, cutOff, settle } = require('../token-service.js');
 const { getPlanBudget } = require('../plans.js');
-const { loadCanon, mergeSuggestions } = require('../canon-store.js');
-// Legacy plan migration completed on 2026-06-26, no longer needed
+const { loadCanon } = require('../canon-store.js');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -154,7 +153,6 @@ module.exports = {
   settle,
   getPlanBudget,
   loadCanon,
-  mergeSuggestions,
   claudeApiKey,
   stripeSecretKey,
   stripeWebhookSecret,

@@ -39,8 +39,7 @@
         toSettings: "До налаштувань", expired: "Місяць Космографа скінчився", expiredText: "Небо збережене. Щоб знову ним керувати, продовж Космограф ще на 30 днів.",
         renew: "Продовжити на 30 днів", setTitle: "Космограф", setOff: "Вимкнено. Коли увімкнеш, з балансу спишеться {n} токенів, і Космограф працюватиме 30 днів.",
         setOn: "Увімкнено, оплачено до {d}.", setPaidOff: "Вимкнено, але оплачений місяць триває до {d}: увімкнення до цієї дати безкоштовне.",
-        enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам.",
-        mapUploading: "Завантажую карту…", skyNote: "Небо збережено в каноні світу." },
+        enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам." },
       story: { title: "Історії", add: "＋ Історія", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
         newTitle: "Нова історія", titlePh: "Назва історії", reveal: "Для читача", revealNote: "Коли розкриється", revealNotePh: "напр. «після сцени, де Ліра знаходить руну»",
         write: "Писати", revealAria: "Видимість для читача", how: "Як писати",
@@ -58,7 +57,7 @@
       dos: { desc: "Опис", pics: "Зображення й моделі світу", picsHint: "спільні для всіх історій та ігор; у грі може бути свій вигляд",
         links: "Звʼязки", appear: "Поява в історіях та іграх", life: "Хронологія життя", lifeHint: "особисті моменти; упорядковуються за першим числом («12 років», «рік 340»). Подія, що зачепила світ чи кількох героїв, — у «Хроніці»",
         lifeAdd: "＋ Замітка", lifeWhen: "Коли: вік, рік, епоха", lifeText: "Що сталося", lifeEmpty: "Ще немає заміток. Додай першу — вона повисне на лінії життя.",
-        noLinks: "Звʼязків поки немає. Їх додають у Дереві всесвіту.", inGames: "Ігри", inStories: "Історії", notInGames: "Ще немає ігор у цьому світі.",
+        noLinks: "Звʼязків поки немає.", inGames: "Ігри", inStories: "Історії", notInGames: "Ще немає ігор у цьому світі.",
         notInStories: "Ще не зʼявлявся в історіях.", scenes: "сцени", loading: "Шукаю…", openInGame: "Відкрити в грі", hiddenInGame: "прибрано з гри",
         unsaved: "Є незбережені зміни. Перейти без збереження?", world: "досьє світу", saveFirst: "Спершу збережи — тоді можна додати файли.",
         picsPlain: "Зображення й файли", picsPlainHint: "ілюстрації, карти, схеми", appearStories: "Поява в історіях",
@@ -111,7 +110,7 @@
         coverPick: "＋ Завантажити", coverDel: "Прибрати", frame: "⌖ Кадр", coverType: "Підходять картинки та відео MP4 / WebM.", coverBig: "Завеликий файл: ≤ {n} МБ" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stDraft: "✦ Чернетка GDD з опису", draftQ: "Опиши гру кількома реченнями", draftPh: "Жанр, що робить гравець, яке відчуття, на кого з канону спирається, платформа… Напр.: «Рогалик у руїнах Північного лісу: Елара шукає артефакт, бої короткі й швидкі, ПК».", draftGo: "Скласти чернетку", draftIntro: "Перевір чернетку ШІ. У канон і картки потрапить лише відмічене; питання — рішення, які варто ухвалити далі.", draftHint: "Немає нотаток — опиши задум, і ШІ складе першу версію GDD на каноні світу: огляд, цикл, механіки, ворогів, рівні, арт і звук. Ти відмітиш, що взяти.", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
-      stExport: "Експорт", stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
+      stExportWorld: "Експорт світу (JSON)", stExportGame: "Експорт гри (JSON)", stExportHint: "Повна копія даних: світ і канон, або гра з картками, планом і завданнями.",
       stSections: "Власні розділи гри", stNoSections: "Власних розділів немає. Стандартні розділи не видаляються.",
       stDanger: "Небезпечна зона", stDelGame: "Видалити гру", stDelWorld: "Видалити світ",
       stDelGameText: "Буде видалено гру <b>{n}</b>: усі картки, файли, план, завдання, журнал і ключі Claude Code. Канон світу лишиться.",
@@ -119,7 +118,7 @@
       stDelSecText: "Буде видалено розділ <b>{n}</b> разом з його картками.",
       stTypeName: "Щоб підтвердити, введи назву: {n}", stDelete: "Видалити назавжди", stDeleting: "Видаляю…",
       stHasStories: "У цьому світі є історії ({n}). Спершу видали або перенеси їх — тоді світ можна буде видалити.", search: "Пошук по канону й грі: назва, опис, примітка…",
-      canonGroup: "Канон світу", gameGroup: "Гра", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
+      canonGroup: "Канон світу", newGame: "+ Нова гра", gameName: "Назва гри", gameNamePh: "Напр. «MythRunner»",
       createGame: "Створити гру", ngDesc: "Опис гри", ngDescPh: "Що це за гра: жанр, що робить гравець, відчуття… (необовʼязково)", ngMd: "⤒ Файл гри (.md)", ngMdHint: "Усе, що вже є про гру, — одним файлом з ПК: після створення ШІ розкладе його по розділах GDD, ти відмітиш, що взяти. Варіантів на вибір не буде.", ngMdLocked: "🔒 Файл гри (.md) розбирає ШІ — це частина Worldbuilder. Опис нижче збережеться в «Огляді гри».", ngMin: "✎ Заповнити мінімально тим, що я дав", ngMinHint: "Без варіантів: гра отримає лише твою назву й опис (картка «Огляд гри»).",
       firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", conc: { btn: "✦ 3 концепти з канону", hint: "Не знаєш, яку гру робити? ШІ запропонує три різні ігри на цьому каноні; обрана стане назвою і «Оглядом гри».", busy: "ШІ придумує ігри…", pick: "Обрати", picked: "✓ Обрано", canon: "Канон", why: "Чому варто" }, allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
       gameLimit: "На твоєму тарифі — {n} гра. Видали наявну або перейди на Worldbuilder: там ігор скільки завгодно.",
@@ -173,11 +172,10 @@
         accepted: "прийнято ✓", rejected: "відхилено", stop: "Зупинено: {e}", plan: "Узгодження сцен доступне з плану Novelist з активною підпискою.",
         gameLocked: "Ігри світу", gameLockedText: "Біблія гри, продакшн-план і звʼязок із Claude Code — з тарифу Worldbuilder. Канон світу й історії — тут, на твоєму тарифі." },
       saved: "Збережено", saving: "Зберігаю…", failed: "Не вдалося зберегти", confirmDel: "Прибрати цю картку назавжди?",
-      confirmSec: "Видалити розділ? Картки в ньому теж буде видалено.",
       live: "Зміни зберігаються в світі.", offline: "Немає звʼязку з базою.",
       lockedTitle: "Біблія гри — для геймдеву", lockedText: "Біблія гри та Продакшн-план доступні на тарифі Worldbuilder. Канон світу й історії лишаються з тобою на будь-якому тарифі.",
       upgrade: "Переглянути тарифи", noWorld: "Світ не знайдено.", login: "Увійди, щоб відкрити біблію.",
-      importMd: "Імпорт нотаток (.md)", importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
+      importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
@@ -215,7 +213,7 @@
         trackAbout: { mvp: "П'ять воріт від порожнього проєкту до релізу. Наступний етап відкривається, коли ти приймеш ворота попереднього.",
           expansion: "Більше контенту систем, уже перевірених у MVP: рівні, вороги, предмети. Відкривається після MVP.",
           extra: "Нові системи, кожна з власним прототипом. Відсортовано за цінністю; нижче лінії — не плануємо зараз." },
-        entry: "Старт, коли", deliver: "Результат", budgets: "Бюджети", gateChecks: "Перевірки воріт",
+        entry: "Старт, коли", deliver: "Результат", budgets: "Бюджети",
         approve: "✓ Ворота пройдено", giveBack: "↩ Ще ні", approved: "Пройдено", returned: "Повернуто", locked: "🔒 Відкриється після воріт {g}",
         early: "Не всі задачі етапу готові. Однаково прийняти ворота?", returnPh: "Що ще не так? (побачить і Claude Code)",
         cut: "Лінія відсікання — нижче не плануємо зараз", prio: { must: "must", should: "should", could: "could" },
@@ -342,8 +340,7 @@
         toSettings: "To settings", expired: "The Cosmograph month is over", expiredText: "The sky is saved. To work with it again, extend the Cosmograph for another 30 days.",
         renew: "Extend for 30 days", setTitle: "Cosmograph", setOff: "Off. Turning it on spends {n} tokens, and the Cosmograph works for 30 days.",
         setOn: "On, paid until {d}.", setPaidOff: "Off, but the paid month lasts until {d}: turning it on before then is free.",
-        enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself.",
-        mapUploading: "Uploading the map…", skyNote: "The sky is saved in the world canon." },
+        enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself." },
       story: { title: "Stories", add: "＋ Story", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
         newTitle: "New story", titlePh: "Story title", reveal: "For the reader", revealNote: "When it is revealed", revealNotePh: "e.g. “after the scene where Lira finds the rune”",
         write: "Write", revealAria: "Visibility for the reader", how: "How to write",
@@ -361,7 +358,7 @@
       dos: { desc: "Description", pics: "World images & models", picsHint: "shared by every story and game; a game may have its own look",
         links: "Connections", appear: "Appears in stories & games", life: "Life timeline", lifeHint: "personal moments, ordered by their first number (“age 12”, “year 340”). An event that touched the world or several heroes goes to the “Chronicle”",
         lifeAdd: "＋ Note", lifeWhen: "When: age, year, era", lifeText: "What happened", lifeEmpty: "No notes yet. Add the first — it hangs on the life line.",
-        noLinks: "No connections yet. They are added in the Universe tree.", inGames: "Games", inStories: "Stories", notInGames: "No games in this world yet.",
+        noLinks: "No connections yet.", inGames: "Games", inStories: "Stories", notInGames: "No games in this world yet.",
         notInStories: "Has not appeared in stories yet.", scenes: "scenes", loading: "Looking…", openInGame: "Open in game", hiddenInGame: "removed from the game",
         unsaved: "There are unsaved changes. Leave without saving?", world: "world dossier", saveFirst: "Save first — then files can be added.",
         picsPlain: "Images & files", picsPlainHint: "illustrations, maps, diagrams", appearStories: "Appearance in stories",
@@ -413,7 +410,7 @@
         coverPick: "＋ Upload", coverDel: "Remove", frame: "⌖ Frame", coverType: "Images and MP4 / WebM videos only.", coverBig: "The file is too big: ≤ {n} MB" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stDraft: "✦ GDD draft from a description", draftQ: "Describe the game in a few sentences", draftPh: "Genre, what the player does, the feeling, who from the canon it builds on, platform… E.g. “A roguelike in the ruins of the Northern Forest: Elara hunts an artifact, fights are short and fast, PC”.", draftGo: "Write the draft", draftIntro: "Check the AI draft. Only what you tick goes into the canon and cards; the questions are decisions worth making next.", draftHint: "No notes — describe the idea and AI writes the first GDD on the world canon: overview, loop, mechanics, enemies, levels, art and sound. You tick what to take.", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
-      stExport: "Export", stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
+      stExportWorld: "Export world (JSON)", stExportGame: "Export game (JSON)", stExportHint: "A full copy of the data: the world and its canon, or the game with cards, plan and tasks.",
       stSections: "Custom game sections", stNoSections: "No custom sections. Standard sections cannot be deleted.",
       stDanger: "Danger zone", stDelGame: "Delete game", stDelWorld: "Delete world",
       stDelGameText: "This deletes the game <b>{n}</b>: all cards, files, plan, tasks, log and Claude Code keys. The world canon stays.",
@@ -421,7 +418,7 @@
       stDelSecText: "This deletes the section <b>{n}</b> with its cards.",
       stTypeName: "To confirm, type the name: {n}", stDelete: "Delete forever", stDeleting: "Deleting…",
       stHasStories: "This world has stories ({n}). Delete or move them first — then the world can be deleted.", search: "Search canon and game: title, text, note…",
-      canonGroup: "World canon", gameGroup: "Game", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
+      canonGroup: "World canon", newGame: "+ New game", gameName: "Game title", gameNamePh: "E.g. “MythRunner”",
       createGame: "Create game", ngDesc: "Game description", ngDescPh: "What the game is: genre, what the player does, the feeling… (optional)", ngMd: "⤒ Game file (.md)", ngMdHint: "Everything you already have about the game in one file from your PC: after creating, AI sorts it into the GDD sections and you tick what to take. No variants to pick.", ngMdLocked: "🔒 The game file (.md) is read by AI — part of Worldbuilder. The description below is kept in “Game overview”.", ngMin: "✎ Fill it minimally with what I gave", ngMinHint: "No variants: the game gets only your name and description (the “Game overview” card).",
       firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", conc: { btn: "✦ 3 concepts from the canon", hint: "Not sure which game to make? AI proposes three different games on this canon; the picked one becomes the name and the “Game overview”.", busy: "AI is coming up with games…", pick: "Pick", picked: "✓ Picked", canon: "Canon", why: "Why make it" }, allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
       gameLimit: "Your plan has {n} game. Delete the one you have or move to Worldbuilder: any number of games there.",
@@ -475,11 +472,10 @@
         accepted: "accepted ✓", rejected: "rejected", stop: "Stopped: {e}", plan: "Aligning scenes is available from the Novelist plan with an active subscription.",
         gameLocked: "Games of the world", gameLockedText: "The Game Bible, production plan and the Claude Code link come with the Worldbuilder plan. The world canon and stories are here on your plan." },
       saved: "Saved", saving: "Saving…", failed: "Could not save", confirmDel: "Remove this card for good?",
-      confirmSec: "Delete the section? Its cards will be deleted too.",
       live: "Changes are saved in the world.", offline: "No connection to the database.",
       lockedTitle: "Game Bible — for game dev", lockedText: "The Game Bible and Production Plan are available on the Worldbuilder plan. Your world canon and stories stay with you on any plan.",
       upgrade: "See plans", noWorld: "World not found.", login: "Sign in to open the bible.",
-      importMd: "Import notes (.md)", importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
+      importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
@@ -517,7 +513,7 @@
         trackAbout: { mvp: "Five gates from an empty project to a release. The next stage opens once you approve the gate of the one before.",
           expansion: "More content of systems already proven in the MVP: levels, enemies, items. Opens after the MVP.",
           extra: "New systems, each with its own prototype. Ranked by value; below the line — not planned for now." },
-        entry: "Starts when", deliver: "Deliverables", budgets: "Budgets", gateChecks: "Gate checks",
+        entry: "Starts when", deliver: "Deliverables", budgets: "Budgets",
         approve: "✓ Gate passed", giveBack: "↩ Not yet", approved: "Passed", returned: "Returned", locked: "🔒 Opens after gate {g}",
         early: "Not every task of this stage is done. Approve the gate anyway?", returnPh: "What is still wrong? (Claude Code sees it too)",
         cut: "Cut line — below it, not planned for now", prio: { must: "must", should: "should", could: "could" },
@@ -778,7 +774,7 @@
   var CANON_ISSUES = { id: "canonIssues", special: "canonIssues", uk: "Неузгоджене", en: "Inconsistencies" };
   var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Історії і хроніка", en: "Stories & chronicle",
     about: { uk: "Події світу на лінії часу та історії, що в ньому написані.", en: "The world's events on the time line, and the stories written in it." } };
-  // Culture lives in worlds/{w}/lore (not entity kinds: the Universe tree, extraction and scenes know exactly five)
+  // Culture lives in worlds/{w}/lore (not entity kinds: extraction and scenes know exactly five)
   var CULTURE = { id: "culture", special: "culture", uk: "Культура", en: "Culture",
     about: { uk: "Народи й раси, мови, віра й міфологія, звичаї — те, чим живуть у цьому світі. Раса — тут, а не у «Фракціях»; божество, що діє як особа, — ще й у «Персонажах».", en: "Peoples and races, languages, faith and mythology, customs — how this world lives. A race lives here, not in “Factions”; a god acting as a person is also in “Characters”." } };
   var LORE = [
@@ -1459,7 +1455,7 @@
     alert(STR.tlSeeded.replace("{n}", n));
   }
 
-  // ---------- world overview & laws — edited here (they lived in the Universe tree); worlds/{w} { tagline, summary, facts, rules } ----------
+  // ---------- world overview & laws — edited here; worlds/{w} { tagline, summary, facts, rules } ----------
   // The draft survives live re-renders (any snapshot repaints the view) until it is saved or the author leaves the section.
   var wdraft = null, wdraftSec = null;
   function wd(sid) {
@@ -1837,13 +1833,13 @@
     }).join("");
   }
   function affectedScenes(scenes, e) { return scenes.filter(function (sc) { return ((sc.canonRefs || {})[e.kind] || []).indexOf(e.id) >= 0; }); }
-  function impactHtml(list) {
+  function sceneImpactHtml(list) {
     return '<h4 class="dsub">' + STR.wt.impact + '</h4>' + (list.length ? '<p class="muted">' + esc(STR.wt.impactText.replace("{n}", list.length)) + '</p>' +
       '<button class="btn" id="d-recon">' + STR.wt.impactBtn + '</button>' : '<p class="muted">' + STR.wt.noImpact + '</p>');
   }
 
   // ---------- «✦ Узгодити сцени»: a canon change → each affected scene rewritten by the AI (reconstructScene), reviewed as a diff ----------
-  function wordDiff(a, b) { // word-level LCS on the edited middle (common prefix/suffix trimmed), as in the old Universe tree
+  function wordDiff(a, b) { // word-level LCS on the edited middle (common prefix/suffix trimmed)
     var A = a.split(/(\s+)/), B = b.split(/(\s+)/), p = 0, q = 0, out = [];
     while (p < A.length && p < B.length && A[p] === B[p]) p++;
     while (q < A.length - p && q < B.length - p && A[A.length - 1 - q] === B[B.length - 1 - q]) q++;
@@ -2098,7 +2094,7 @@
       (isImage(f) ? '<button class="btn" data-dframe="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
       '<button class="btn danger" data-drmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button></div>';
   }
-  // Connections, derived both ways like wConnections() in wt-world.jsx (reverse links are never stored)
+  // Connections, derived both ways (reverse links are never stored)
   var KINDS = ["characters", "locations", "events", "factions", "artifacts"];
   function entLinks(e) {
     var out = [], seen = {};
@@ -2171,7 +2167,7 @@
       }).join("") + '</ul>' : '<p class="muted">' + STR.dos.notInGames + '</p>') +
         '<h4 class="dsub">' + STR.dos.inStories + '</h4>' + (stories.length ? '<ul class="dappear">' + stories.map(function (x) {
           return '<li><b>' + esc(x.title) + '</b> <span class="muted">· ' + STR.dos.scenes + ' ' + x.scenes.join(", ") + '</span></li>'; }).join("") + '</ul>' : '<p class="muted">' + STR.dos.notInStories + '</p>');
-      if (!e.isNew) { var scenes = await worldScenes(); out += stateHtml(stateRows(scenes, e)) + impactHtml(affectedScenes(scenes, e)); }
+      if (!e.isNew) { var scenes = await worldScenes(); out += stateHtml(stateRows(scenes, e)) + sceneImpactHtml(affectedScenes(scenes, e)); }
     } catch (er) { out = '<p class="muted">' + STR.failed + ': ' + esc(er.code || er.message || er) + '</p>'; }
     if (dos === e && dtab === "appear" && $("d-appear")) $("d-appear").innerHTML = out;
   }
@@ -2533,7 +2529,7 @@
     speechSynthesis.speak(u);
   }
   function voCastHtml(d) {
-    var who = speakersOf(d), PF = window.__PAID_FEATURES;
+    var who = speakersOf(d);
     if (!who.length) return qbox(VO.box, '<p class="muted">' + VO.noSpeakers + '</p>');
     return qbox(VO.box, '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(voRowHtml).join("") + '<div class="row"><button type="button" class="btn" data-vall="1">' + VO.all + '</button><button type="button" class="btn" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>');
   }
@@ -2765,7 +2761,7 @@
       advHint: "Розширений показує всі поля шаблону; базовий — головні.", files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
       fill: "Заповнено", req: "обовʼязкові", rec: "рекомендовані", checks: "Перевірка", clean: "Без проблем", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
       rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Поле", fieldName: "Назва поля", fieldType: "Тип", rmField: "Прибрати поле",
-      addSec: "＋ Розділ-поля", addTable: "＋ Розділ-таблиця", secName: "Назва розділу", secKind: "Вигляд", kFields: "Поля", kTable: "Таблиця", rmSec: "Прибрати розділ", rmSecQ: "Прибрати розділ «{t}» з усіма даними?",
+      addSec: "＋ Розділ-поля", addTable: "＋ Розділ-таблиця", secName: "Назва розділу", rmSec: "Прибрати розділ", rmSecQ: "Прибрати розділ «{t}» з усіма даними?",
       none: "—", save: "Зберегти", del: "Видалити", delQ: "Видалити механіку «{t}»?", newM: "Нова механіка", fw: "RPG Framework", fwS: { exists: "є", partial: "частково", missing: "немає" },
       lvl: { error: "помилка", warn: "попередження", tip: "порада" }, legacy: "Стара картка: опис і числа перенесено в «Призначення» й «Правила». Збережи — і вона стане механікою конструктора.",
       sortBy: "Сортувати за", rmRowQ: "Видалити рядок «{t}»? Посилання на нього стануть помилками в перевірці.", copyOf: "копія" },
@@ -2777,7 +2773,7 @@
       advHint: "Advanced shows every template field; basic — the main ones.", files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
       fill: "Filled", req: "required", rec: "recommended", checks: "Checks", clean: "No problems", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
       rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Field", fieldName: "Field name", fieldType: "Type", rmField: "Remove field",
-      addSec: "＋ Fields section", addTable: "＋ Table section", secName: "Section name", secKind: "Layout", kFields: "Fields", kTable: "Table", rmSec: "Remove section", rmSecQ: "Remove section “{t}” with all its data?",
+      addSec: "＋ Fields section", addTable: "＋ Table section", secName: "Section name", rmSec: "Remove section", rmSecQ: "Remove section “{t}” with all its data?",
       none: "—", save: "Save", del: "Delete", delQ: "Delete mechanic “{t}”?", newM: "New mechanic", fw: "RPG Framework", fwS: { exists: "exists", partial: "partial", missing: "missing" },
       lvl: { error: "error", warn: "warning", tip: "tip" }, legacy: "An older card: its description and numbers moved into “Purpose” and “How it works”. Save it and it becomes a constructor mechanic.",
       sortBy: "Sort by", rmRowQ: "Delete row “{t}”? Links to it will show up as errors.", copyOf: "copy" }
@@ -3027,7 +3023,7 @@
   }
   // ---------- ⚔ Combo table & 👁 Through the monster's eyes (UMCF v2 sections ctable / reactions): tabs by strike type, plain dropdowns, the start distance computed ----------
   var CB = {
-    uk: { all: "Усі", whoAll: "Усі бійці", player: "Гравець", other: "✎ Інший…", otherT: "Хто б’є", otherPh: "напр. Гоблін-розвідник", addG: "＋ Своя", addGT: "Новий тип удару", addGPh: "напр. Із засідки",
+    uk: { all: "Усі", whoAll: "Усі бійці", player: "Гравець", other: "✎ Інший…", otherT: "Хто бʼє", otherPh: "напр. Гоблін-розвідник", addG: "＋ Своя", addGT: "Новий тип удару", addGPh: "напр. Із засідки",
       add: "＋ Комбо", addR: "＋ Відповідь", none: "У цьому типі ще немає комбо — додай перше.", start: "Починати з", time: "Зона удару в часі", from: "{m} з ~{d} м", hold: "тримає замах",
       ok: "влучить: ціль у межах досяжності", edge: "з самої межі — ціль ступить назад, і буде промах", close: "впритул — зброя впирається", noreach: "у зброї немає дальності (вкладка «База зброї»)",
       ph: ["замах", "удар", "відновлення"], weight: ["", "рідко", "інколи", "часто", "майже завжди"], noAns: "немає таких ударів у таблиці", fighter: "Боєць" },
@@ -7118,7 +7114,6 @@
     var sg = e.target.closest("[data-sgame]");
     if (sg) db.collection("projects").doc(sg.dataset.sgame).update({ updatedAt: stamp(), games: [].filter.call(document.querySelectorAll('[data-sgame="' + sg.dataset.sgame + '"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) });
   });
-  // the shell brings the author back to an entity («Біблія світу» from the book)
   // the shell after «Зберегти історію»: open «Історії і хроніка»
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-section") return;
@@ -7130,6 +7125,7 @@
     if (!games.length && ev.data.gameId && ev.data.gameId !== "__new") { startGame = ev.data.gameId; return; } // still loading: the games snapshot picks it up
     if (ev.data.gameId) enterGame(ev.data.gameId); else enterWorld();
   });
+  // the shell brings the author back to an entity («Біблія світу» from the book)
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-focus") return;
     var x = entities.filter(function (y) { return y.id === ev.data.ent; })[0]; if (!x) { pendingFocus = ev.data.ent; return; }

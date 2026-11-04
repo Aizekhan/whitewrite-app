@@ -34,31 +34,6 @@ exports.stripeWebhook = onRequest({ secrets: [stripeSecretKey, stripeWebhookSecr
     console.log('Webhook event:', event.type);
 
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        const uid = session.client_reference_id || session.metadata?.uid;
-        const plan = session.metadata?.plan;
-
-        if (!uid || !plan) {
-          console.error('Missing uid or plan in checkout session:', session.id);
-          break;
-        }
-
-        console.log(`Checkout completed: ${uid} → ${plan}`);
-
-        // Update user plan in Firestore
-        await db.collection('users').doc(uid).update({
-          plan: plan,
-          stripeCustomerId: session.customer,
-          stripeSubscriptionId: session.subscription,
-          subscriptionStatus: 'active',
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-
-        console.log(`User ${uid} upgraded to ${plan}`);
-        break;
-      }
-
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
         const customerId = subscription.customer;

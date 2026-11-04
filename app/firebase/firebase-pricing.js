@@ -26,15 +26,14 @@ let pricingCache = {
  */
 async function loadPricing() {
   if (pricingCache.loaded) {
-    console.log('[Pricing] Using cached pricing data');
     return true;
   }
 
   try {
     const db = window.__firebase.db;
 
-    // Load economy_operations (generateScene, extractCanon, analyzeScene)
-    const operations = ['generateScene', 'extractCanon', 'analyzeScene'];
+    // Load economy_operations (generateScene)
+    const operations = ['generateScene'];
     const operationPromises = operations.map(op =>
       db.collection('economy_operations').doc(op).get()
     );
@@ -62,11 +61,6 @@ async function loadPricing() {
 
     pricingCache.loaded = true;
     pricingCache.timestamp = Date.now();
-
-    console.log('[Pricing] Loaded from Firestore:', {
-      operations: Object.keys(pricingCache.data.operations),
-      globalMarginMultiplier: pricingCache.data.global?.globalMarginMultiplier
-    });
 
     return true;
   } catch (error) {
@@ -118,7 +112,7 @@ function calculateUserTokens(estApiCostUSD, tokenToUSD, marginMultiplier, global
 /**
  * Get provider for user plan (matches backend logic)
  * @param {string} plan - User plan (free, storyteller, novelist, worldbuilder)
- * @returns {string} Provider name ('gemini' or 'claude')
+ * @returns {string} Provider name (always 'claude')
  */
 function getProviderForPlan(plan) {
   return 'claude'; // WhiteWrite uses only Claude (2026-11-02)
@@ -139,19 +133,17 @@ function estimateAPICost(targetWords, estimatedCostPer700Words) {
  * @param {number} episodes - Number of episodes (from slider)
  * @param {string} userPlan - User plan (seed, storyteller, worldforge)
  * @param {number} targetWords - Target words per scene (from length slider)
- * @returns {object} { sceneCost, extractionCost, totalCost, provider, estimated: true }
+ * @returns {object} { sceneCost, totalCost, provider, estimated: true }
  */
 function estimateAutoModeCost(episodes, userPlan, targetWords = 700) {
   if (!pricingCache.loaded) {
     console.warn('[Pricing] Pricing not loaded, using fallback');
     // Fallback to conservative estimates
     const provider = getProviderForPlan(userPlan);
-    const sceneCost = provider === 'claude' ? 300 : 20;
-    const extractionCost = 15;
+    const sceneCost = 300;
     return {
       sceneCost: sceneCost * episodes,
-      extractionCost: extractionCost * episodes,
-      totalCost: (sceneCost + extractionCost) * episodes,
+      totalCost: sceneCost * episodes,
       provider,
       estimated: true,
       error: 'Pricing not loaded'
@@ -186,27 +178,17 @@ function estimateAutoModeCost(episodes, userPlan, targetWords = 700) {
     }
   }
 
-  // Get extractCanon pricing (always claude)
-  const extractOp = pricingCache.data.operations.extractCanon;
-  const extractProvider = extractOp?.providers?.claude;
-  const extractEstCost = extractProvider?.estimatedCostPer700Words || (extractProvider?.baseTokens || extractProvider?.cost || 0) * tokenToUSD;
-  const extractMargin = extractProvider?.marginMultiplier || 1.0;
-  const extractCostPerScene = calculateUserTokens(extractEstCost, tokenToUSD, extractMargin, globalMargin);
-
-  // Total cost = episodes × (scene + extraction)
+  // Total cost = episodes × scene (no canon extraction: the scene writes nothing to the canon)
   const sceneCost = sceneCostPerScene * episodes;
-  const extractionCost = extractCostPerScene * episodes;
-  const totalCost = sceneCost + extractionCost;
+  const totalCost = sceneCost;
 
   return {
     sceneCost,
-    extractionCost,
     totalCost,
     provider,
     estimated: true,
     breakdown: {
       sceneCostPerScene,
-      extractCostPerScene,
       episodes,
       globalMargin,
       tokenToUSD
@@ -223,19 +205,16 @@ function estimateAutoModeCost(episodes, userPlan, targetWords = 700) {
  * @returns {number} Total user tokens (output + input cost)
  */
 function estimateSingleSceneCost(targetWords, inputChars, userPlan, canonTokens = 0) {
-  console.log(`[Pricing] estimateSingleSceneCost called: targetWords=${targetWords}, inputChars=${inputChars}, userPlan=${userPlan}, canonTokens=${canonTokens}`);
 
   if (!pricingCache.loaded) {
     console.warn('[Pricing] Pricing not loaded, using fallback');
-    const provider = getProviderForPlan(userPlan);
-    return provider === 'claude' ? 300 : 20; // Conservative fallback
+    return 300; // Conservative fallback
   }
 
   const provider = getProviderForPlan(userPlan);
   const tokenToUSD = pricingCache.data.global?.tokenToUSD || 0.01;
   const globalMargin = pricingCache.data.global?.globalMarginMultiplier || 1.0;
 
-  console.log(`[Pricing] provider=${provider}, tokenToUSD=${tokenToUSD}, globalMargin=${globalMargin}`);
 
   // Get generateScene pricing
   const sceneOp = pricingCache.data.operations.generateScene;
@@ -264,14 +243,8 @@ function estimateSingleSceneCost(targetWords, inputChars, userPlan, canonTokens 
   const estimatedInputTokens = Math.ceil(inputChars / 4) + canonTokens;
   let estInputCostUSD = 0;
 
-  // Get model pricing for input cost (use Claude Sonnet pricing for worldforge, Gemini for others)
-  if (provider === 'claude') {
-    // Claude Sonnet: $3/M input
-    estInputCostUSD = estimatedInputTokens * 3 / 1000000;
-  } else {
-    // Gemini Flash: $0.075/M input (conservative, using Flash 1.5 pricing)
-    estInputCostUSD = estimatedInputTokens * 0.075 / 1000000;
-  }
+  // Input cost at Claude Sonnet pricing ($3/M input)
+  estInputCostUSD = estimatedInputTokens * 3 / 1000000;
 
   // Total API cost = output + input
   const estApiCostUSD = estOutputCostUSD + estInputCostUSD;
@@ -279,7 +252,6 @@ function estimateSingleSceneCost(targetWords, inputChars, userPlan, canonTokens 
   // Apply margin formula: userTokens = ceil((estApiCostUSD / tokenToUSD) × margin × global)
   const userTokens = calculateUserTokens(estApiCostUSD, tokenToUSD, sceneMargin, globalMargin);
 
-  console.log(`[Pricing] estimateSingleSceneCost result: inputTokens=${estimatedInputTokens}, outputCost=$${estOutputCostUSD.toFixed(4)}, inputCost=$${estInputCostUSD.toFixed(4)}, userTokens=${userTokens}`);
 
   return userTokens;
 }
@@ -299,4 +271,3 @@ window.__firebasePricing = {
   get cache() { return pricingCache; }
 };
 
-console.log('Firebase pricing module loaded');

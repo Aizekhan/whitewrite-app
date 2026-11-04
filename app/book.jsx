@@ -206,7 +206,6 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   useEffect(() => {
     function onLanguageChange(event) {
       const newLang = event.detail?.lang;
-      console.log('[Book] Language changed to:', newLang, 'forcing re-render');
 
       // Update iframe's i18n to match parent
       if (window.__i18n && newLang) {
@@ -303,7 +302,6 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
     const handleMessage = (event) => {
       if (event.origin !== window.location.origin) return;
       if (event.data && event.data.type === 'reloadBook') {
-        console.log('[Book] Received reloadBook message from iframe');
         loadFromFirestore(event.data);
       }
     };
@@ -489,7 +487,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         <span className="ribbon__universe">{title}</span>
       </div>
 
-      {/* Always-visible pillar navigation — identical to Tree / Director */}
+      {/* Always-visible pillar navigation */}
       {!generating && (
         <div className="book-nav">
           <div className="pillswitch" role="tablist" aria-label={window.__i18n ? window.__i18n.t('nav.pillars') : 'Стовпи WhiteWrite'}>
@@ -525,10 +523,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           <button
             className="pturn pturn--generate"
             onClick={() => {
-              console.log('[Book] Generate button clicked');
               const canGenerate = window.__sceneIntentCanGenerate ? window.__sceneIntentCanGenerate() : false;
-              console.log('[Book] window.__sceneIntentGenerate:', window.__sceneIntentGenerate);
-              console.log('[Book] window.__sceneIntentCanGenerate:', canGenerate);
 
               if (!canGenerate) {
                 alert('Обери напрям історії перед генерацією!');

@@ -16,18 +16,7 @@
       "firebase-debug.log",
       "firebase-debug.*.log",
       "*.local",
-      "*.png",
-      "console-logs-projectid.txt",
-      "manual-test-instructions.md",
-      ".env.yaml.template",
-      "test-*.js",
-      "test-*.cjs",
-      "check-*.js",
-      "migrate-*.js",
-      "set-*.js",
-      "count-legacy-users.js",
-      "calculate-opus-economics.js",
-      "simple-console-check.js"
+      ".env.yaml.template"
     ]
   },
   "hosting": {

@@ -8,14 +8,9 @@
   const TRANSLATIONS = {
     uk: {
       // Top Menu / Navigation
-      'nav.home': 'Головна',
       'nav.book': 'Книга',
       'nav.universe': 'Біблія світу',
       'nav.pillars': 'Стовпи WhiteWrite',
-      'nav.account': 'Профіль',
-      'nav.logout': 'Вийти',
-      'nav.projects': 'Проекти',
-      'nav.knowledgeBase': 'База знань',
       'nav.marketplace': 'Спільнота',
 
       // Account Modal
@@ -32,7 +27,6 @@
       'account.subscriptionPlans': 'Плани підписки',
       'account.logoutButton': '⎋ Вийти з акаунту',
       'account.close': 'Закрити',
-      'account.language': 'Мова інтерфейсу',
       'account.languageLabel': 'Language / Мова',
 
       // Stats
@@ -66,30 +60,9 @@
       'plan.claudeOnly': 'Лише Claude',
 
       // Features
-      'feature.exportDocs': '✨ Експорт DOCX/PDF',
       'book.export': 'Експорт книги',
       'book.exportPrint': 'друк / зберегти як PDF',
       'book.exportPlan': 'Експорт доступний від тарифу Storyteller (Акаунт → Тарифи).',
-      'feature.worldTree': 'Біблія світу + канон',
-      'feature.claudeAPI': '✦ Claude Sonnet API',
-      'feature.reconstruction': 'Universe Reconstruction',
-      'feature.reconstructionPro': '🔥 Universe Reconstruction',
-      'feature.analyzeModes': 'ANALYZE/IMPROVE modes',
-      'feature.apiAccess': 'API access',
-      'feature.unlimitedProjects': '∞ проєктів',
-
-      // Projects
-      'projects.title': 'Мої Всесвіти',
-      'projects.subtitle': 'WhiteWrite · твоя бібліотека',
-      'projects.create': '✦ Створити новий всесвіт',
-      'projects.empty': 'У вас ще немає проєктів. Створіть перший всесвіт!',
-      'projects.open': 'Відкрити',
-      'projects.delete': 'Видалити',
-      'projects.deleteConfirm': 'Видалити всесвіт?',
-      'projects.deleteForever': '🗑 Видалити назавжди',
-      'projects.loading': 'Завантаження проєктів...',
-      'projects.loadingShort': 'Завантаження...',
-      'projects.universe': 'Всесвіт',
 
       // Project Editor
       'editor.kicker': 'Всесвіт',
@@ -135,10 +108,6 @@
       'auth.orDivider': 'або',
       'auth.googleButton': 'Продовжити з Google',
 
-      // Buy Book Modal
-
-      // Director Feature Announcement
-
       // Knowledge Base
       'kb.tip': 'Порада.',
       'kb.warning': 'Увага.',
@@ -159,63 +128,7 @@
       'ui.previous': 'Попередня',
 
       // Hero / Start Screen
-      'hero.mark': 'WhiteWrite',
-      'hero.by': 'від White Tree',
-      'hero.quote': '«Один світ — безліч історій і ігор.»',
-      'hero.title': 'Твій світ\nчекає',
-      'hero.lede': 'Збери канон свого світу — і твори з нього книги та ігри, вірні цьому світу.',
-      'hero.ctaCreate': 'Створи свій світ',
-      'hero.ctaChoose': 'Обери свій світ',
-      'hero.agentBeta': 'для творців ігор',
-      'hero.agentTitle': 'Від задуму — до гри',
-      'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
-      'hero.agentBtn': '🤖 Від чистого ПК до Гри',
-      'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор', 'hero.commTeam': 'шукає команду',
       'hero.imgAlt': 'Хранитель історій з живою книгою',
-
-      // Story Form
-      'form.kicker': 'Створення історії',
-      'form.title': 'Опиши свою ідею',
-      'form.titleLabel': 'Назва історії (необов\'язково)',
-      'form.titlePlaceholder': 'Ім\'я історії…',
-      'form.languageLabel': 'Мова історії',
-      'form.languageNote': 'На цій мові буде написана ваша історія',
-      'form.descLabel': 'Опиши світ і історію',
-      'form.descPlaceholder': 'Опиши сеттинг, персонажів, конфлікти, атмосферу… Все, що допоможе AI зрозуміти твій світ.',
-      'form.creationLabel': 'Режим створення',
-      'form.guidedIcon': '📖',
-      'form.guidedTitle': 'Покроково',
-      'form.guidedDesc': 'Ти керуєш: AI пише по одній сцені, ти вирішуєш що далі.',
-      'form.autoIcon': '🤖',
-      'form.autoTitle': 'Автоматично',
-      'form.autoDesc': 'AI створює цілий сезон (3–24 серії) автономно за твоїм описом.',
-      'form.episodesLabel': 'Кількість серій',
-      'form.episodesUnit': 'серій',
-      'form.endingLabel': 'Фінал сезону',
-      'form.endingOpen': 'Відкритий',
-      'form.endingClosed': 'Закритий',
-      'form.endingCustom': 'Свій',
-      'form.endingPlaceholder': 'Опиши, як має закінчитися сезон…',
-      'form.genreLabel': 'Жанри',
-      'form.genreHint': 'до 4 жанрів',
-      'form.lengthLabel': 'Довжина сцен',
-      'form.lengthHint': 'токенів/сцена',
-      'form.wordsPerScene': 'слів/сцена',
-      'form.dialogueLabel': 'Баланс діалогів',
-      'form.dialogueAlmostNone': 'Майже без діалогів',
-      'form.dialogueMoreNarration': 'Більше нарації',
-      'form.dialogueBalanced': 'Збалансовано',
-      'form.dialogueMoreDialogues': 'Більше діалогів',
-      'form.dialogueDialoguesDrive': 'Діалоги ведуть',
-      'form.dialogueNarration': 'Нарація',
-      'form.dialogueDialogues': 'Діалоги',
-      'form.dialogueNote1': 'Автоматично розраховано за жанрами',
-      'form.dialogueNote2': 'Ти налаштував вручну',
-      'form.back': '← Назад',
-      'form.creating': 'Створюється…',
-      'form.createGuided': 'Почати історію',
-      'form.createAuto': 'Створити сезон',
-      'form.errorCreate': 'Помилка при створенні',
 
       // Generation Progress
       'generation.creating': 'Генерується сцена {current} з {total}',
@@ -281,58 +194,6 @@
       'book.related.factions': 'Фракції',
       'book.related.artifacts': 'Артефакти',
 
-      // Enum values for canon entities
-      // Character status
-      'enum.status.draft': 'Чернетка',
-      'enum.status.developing': 'Розвивається',
-      'enum.status.complete': 'Завершено',
-      // Character role (alias for existing keys)
-      'enum.role.lead': 'Головний',
-      'enum.role.support': 'Другорядний',
-      'enum.role.anta': 'Антагоніст',
-      // Location type
-      'enum.locationType.city': 'Місто',
-      'enum.locationType.building': 'Будівля',
-      'enum.locationType.room': 'Кімната',
-      'enum.locationType.nature': 'Природа',
-      'enum.locationType.planet': 'Планета',
-      'enum.locationType.station': 'Станція',
-      'enum.locationType.ship': 'Корабель',
-      'enum.locationType.virtual': 'Віртуальний',
-      'enum.locationType.other': 'Інше',
-      // Event type
-      'enum.eventType.battle': 'Битва',
-      'enum.eventType.meeting': 'Зустріч',
-      'enum.eventType.discovery': 'Відкриття',
-      'enum.eventType.betrayal': 'Зрада',
-      'enum.eventType.loss': 'Втрата',
-      'enum.eventType.victory': 'Перемога',
-      'enum.eventType.revelation': 'Розкриття',
-      'enum.eventType.ritual': 'Ритуал',
-      'enum.eventType.other': 'Інше',
-      // Faction alignment
-      'enum.alignment.hero': 'Герої',
-      'enum.alignment.villain': 'Лиходії',
-      'enum.alignment.neutral': 'Нейтральна',
-      'enum.alignment.ambiguous': 'Неоднозначна',
-      // Artifact rarity
-      'enum.rarity.common': 'Звичайний',
-      'enum.rarity.uncommon': 'Незвичайний',
-      'enum.rarity.rare': 'Рідкісний',
-      'enum.rarity.legendary': 'Легендарний',
-      'enum.rarity.unique': 'Унікальний',
-      // Artifact type
-      'enum.artifactType.weapon': 'Зброя',
-      'enum.artifactType.tool': 'Інструмент',
-      'enum.artifactType.document': 'Документ',
-      'enum.artifactType.jewelry': 'Прикраса',
-      'enum.artifactType.tech': 'Технологія',
-      'enum.artifactType.magic': 'Магічний',
-      'enum.artifactType.relic': 'Реліквія',
-      'enum.artifactType.other': 'Інше',
-
-      // Preview Mode
-
       // Universe Reconstruction
       'genesis.kicker': 'Genesis · народження світу',
       'genesis.title': 'Обери свій світ',
@@ -370,7 +231,6 @@
       'worlds.subtitle': 'Світ — це канон: закони, герої, місця. Історії, ігри й Біблія світу живуть усередині нього.',
       'worlds.new': 'Новий світ',
       'worlds.newHint': 'Genesis · народження світу',
-      'worlds.empty': 'Ще жодного світу. Створи перший.',
       'worlds.untitled': 'Безіменний світ',
       'worlds.stories': 'історій',
       'worlds.story1': 'історія',
@@ -399,20 +259,8 @@
       'feedback.bugTab': '🐞 Баг',
       'feedback.ideaTab': '✦ Побажання',
       'feedback.bugLabel': 'Опишіть проблему',
-      'feedback.ideaLabel': 'Ваша ідея',
       'feedback.placeholder': 'Що сталося / що хотілося б покращити…',
       'feedback.send': 'Надіслати',
-      'feedback.thanks': '✓ Дякуємо! Надіслано',
-
-      // Knowledge Base
-      'kb.title': 'База знань',
-      'kb.loading': 'Завантаження…',
-
-      // News
-      'news.title': 'Новини White',
-      'news.subtitle': 'Стрічка спільноти',
-      'news.description': 'Релізи, конкурси й гайди. Обговорення — у спільноті Маркетплейсу.',
-      'news.discuss': 'Обговорити',
 
       // Scene Intent
       'intent.title': 'Що далі?',
@@ -460,19 +308,11 @@
       'intent.error': 'Помилка',
 
       // Buttons & Actions
-      'btn.cancel': 'Скасувати',
-      'btn.confirm': 'Підтвердити',
       'btn.loading': '⏳ Завантаження...',
-      'btn.generate': '✦ Генерувати',
-      'btn.next': 'Далі',
-      'btn.previous': 'Назад',
 
       // Errors & Alerts
       'error.generic': 'Щось пішло не так',
-      'error.tryAgain': 'Спробуйте пізніше',
       'error.projectNotFound': 'Проєкт не знайдено. Спробуйте створити новий.',
-      'error.selectIntent': 'Обери напрям історії перед генерацією!',
-      'error.generateFailed': 'Помилка: функція генерації не знайдена. Перезавантаж сторінку.',
       'alert.downgradeUnavailable': 'Повернення на безкоштовний план поки недоступне. Зв\'яжіться з підтримкою.',
       'alert.checkoutError': 'Не вдалося створити сесію оплати. Спробуйте пізніше.',
 
@@ -488,7 +328,7 @@
       // News
       'news.kicker': 'Стрічка спільноти',
       'news.title': 'Новини White',
-      'news.subtitle': 'Релізи, конкурси й гайди. Обговорення — у спільноті Маркетплейсу.',
+      'news.subtitle': 'Релізи, конкурси й гайди. Обговорення — у Спільноті.',
       'news.close': 'Закрити',
       'news.discuss': 'Обговорити',
       'news.post1.badge': 'Реліз',
@@ -497,7 +337,7 @@
       'news.post1.time': '2 дні тому',
       'news.post2.badge': 'Спільнота',
       'news.post2.title': 'Конкурс коротких всесвітів',
-      'news.post2.desc': 'Створи всесвіт на одну новелу до 30 червня — найкращі потраплять на головну Маркетплейсу.',
+      'news.post2.desc': 'Створи всесвіт на одну новелу до 30 червня — найкращі потраплять на головну Спільноти.',
       'news.post2.time': '5 днів тому',
       'news.post3.badge': 'Гайд',
       'news.post3.title': 'Як вести історію через Scene Intent',
@@ -530,7 +370,7 @@
       'form.titleLabel': 'Назва',
       'form.titlePlaceholder': 'Попіл Орелії',
       'form.languageLabel': 'Language / Мова історії',
-      'form.languageNote': 'AI will generate scenes and dialogues in this language',
+      'form.languageNote': 'AI писатиме сцени й діалоги цією мовою',
       'form.descLabel': 'Опис всесвіту',
       'form.descPlaceholder': 'Місто, де згасають зорі, і жінка, що пам\'ятає його живим…',
       'form.creationLabel': 'Як створюємо',
@@ -594,14 +434,9 @@
 
     en: {
       // Top Menu / Navigation
-      'nav.home': 'Home',
       'nav.book': 'Book',
       'nav.universe': 'World Bible',
       'nav.pillars': 'WhiteWrite Pillars',
-      'nav.account': 'Profile',
-      'nav.logout': 'Logout',
-      'nav.projects': 'Projects',
-      'nav.knowledgeBase': 'Knowledge Base',
       'nav.marketplace': 'Community',
 
       // Account Modal
@@ -618,7 +453,6 @@
       'account.subscriptionPlans': 'Subscription Plans',
       'account.logoutButton': '⎋ Sign Out',
       'account.close': 'Close',
-      'account.language': 'Interface Language',
       'account.languageLabel': 'Language / Мова',
 
       // Stats
@@ -652,30 +486,9 @@
       'plan.claudeOnly': 'Claude only',
 
       // Features
-      'feature.exportDocs': '✨ Export DOCX/PDF',
       'book.export': 'Export the book',
       'book.exportPrint': 'print / save as PDF',
       'book.exportPlan': 'Export is available from the Storyteller plan (Account → Plans).',
-      'feature.worldTree': 'World Bible + canon',
-      'feature.claudeAPI': '✦ Claude Sonnet API',
-      'feature.reconstruction': 'Universe Reconstruction',
-      'feature.reconstructionPro': '🔥 Universe Reconstruction',
-      'feature.analyzeModes': 'ANALYZE/IMPROVE modes',
-      'feature.apiAccess': 'API access',
-      'feature.unlimitedProjects': '∞ projects',
-
-      // Projects
-      'projects.title': 'My Universes',
-      'projects.subtitle': 'WhiteWrite · your library',
-      'projects.create': '✦ Create New Universe',
-      'projects.empty': 'You don\'t have any projects yet. Create your first universe!',
-      'projects.open': 'Open',
-      'projects.delete': 'Delete',
-      'projects.deleteConfirm': 'Delete Universe?',
-      'projects.deleteForever': '🗑 Delete Forever',
-      'projects.loading': 'Loading projects...',
-      'projects.loadingShort': 'Loading...',
-      'projects.universe': 'Universe',
 
       // Project Editor
       'editor.kicker': 'Universe',
@@ -721,10 +534,6 @@
       'auth.orDivider': 'or',
       'auth.googleButton': 'Continue with Google',
 
-      // Buy Book Modal
-
-      // Director Feature Announcement
-
       // Knowledge Base
       'kb.tip': 'Tip.',
       'kb.warning': 'Warning.',
@@ -742,63 +551,7 @@
       'ui.previous': 'Previous',
 
       // Hero / Start Screen
-      'hero.mark': 'WhiteWrite',
-      'hero.by': 'by White Tree',
-      'hero.quote': '«One world — countless stories and games.»',
-      'hero.title': 'Your world\nawaits',
-      'hero.lede': 'Gather your world’s canon — and grow books and games from it, always true to that world.',
-      'hero.ctaCreate': 'Create Your World',
-      'hero.ctaChoose': 'Choose Your World',
-      'hero.agentBeta': 'for game makers',
-      'hero.agentTitle': 'From idea to game',
-      'hero.agentDesc': 'The Game Bible and the production plan live in WhiteWrite; Claude Code builds the game from them. You just accept the work.',
-      'hero.agentBtn': '🤖 From a clean PC to a game',
-      'hero.commTop': 'Community pick', 'hero.commNew': 'Discover a new author', 'hero.commAll': 'Community — all worlds & games', 'hero.commBy': 'by', 'hero.commTeam': 'looking for a team',
       'hero.imgAlt': 'Keeper of stories with a living book',
-
-      // Story Form
-      'form.kicker': 'Story Creation',
-      'form.title': 'Describe Your Idea',
-      'form.titleLabel': 'Story Title (optional)',
-      'form.titlePlaceholder': 'Story name…',
-      'form.languageLabel': 'Story Language',
-      'form.languageNote': 'Your story will be written in this language',
-      'form.descLabel': 'Describe the World and Story',
-      'form.descPlaceholder': 'Describe the setting, characters, conflicts, atmosphere… Everything to help AI understand your world.',
-      'form.creationLabel': 'Creation Mode',
-      'form.guidedIcon': '📖',
-      'form.guidedTitle': 'Guided Mode',
-      'form.guidedDesc': 'You\'re in control: AI writes one scene at a time, you decide what\'s next.',
-      'form.autoIcon': '🤖',
-      'form.autoTitle': 'Auto Mode',
-      'form.autoDesc': 'AI creates a whole season (3–24 episodes) autonomously from your description.',
-      'form.episodesLabel': 'Number of Episodes',
-      'form.episodesUnit': 'episodes',
-      'form.endingLabel': 'Season Finale',
-      'form.endingOpen': 'Open',
-      'form.endingClosed': 'Closed',
-      'form.endingCustom': 'Custom',
-      'form.endingPlaceholder': 'Describe how the season should end…',
-      'form.genreLabel': 'Genres',
-      'form.genreHint': 'up to 4 genres',
-      'form.lengthLabel': 'Scene Length',
-      'form.lengthHint': 'tokens/scene',
-      'form.wordsPerScene': 'words/scene',
-      'form.dialogueLabel': 'Dialogue Balance',
-      'form.dialogueAlmostNone': 'Almost no dialogue',
-      'form.dialogueMoreNarration': 'More narration',
-      'form.dialogueBalanced': 'Balanced',
-      'form.dialogueMoreDialogues': 'More dialogues',
-      'form.dialogueDialoguesDrive': 'Dialogue-driven',
-      'form.dialogueNarration': 'Narration',
-      'form.dialogueDialogues': 'Dialogues',
-      'form.dialogueNote1': 'Auto-calculated from genres',
-      'form.dialogueNote2': 'You\'ve set manually',
-      'form.back': '← Back',
-      'form.creating': 'Creating…',
-      'form.createGuided': 'Start Story',
-      'form.createAuto': 'Create Season',
-      'form.errorCreate': 'Error creating project',
 
       // Generation Progress
       'generation.creating': 'Generating scene {current} of {total}',
@@ -864,58 +617,6 @@
       'book.related.factions': 'Factions',
       'book.related.artifacts': 'Artifacts',
 
-      // Enum values for canon entities
-      // Character status
-      'enum.status.draft': 'Draft',
-      'enum.status.developing': 'Developing',
-      'enum.status.complete': 'Complete',
-      // Character role (alias for existing keys)
-      'enum.role.lead': 'Lead',
-      'enum.role.support': 'Supporting',
-      'enum.role.anta': 'Antagonist',
-      // Location type
-      'enum.locationType.city': 'City',
-      'enum.locationType.building': 'Building',
-      'enum.locationType.room': 'Room',
-      'enum.locationType.nature': 'Nature',
-      'enum.locationType.planet': 'Planet',
-      'enum.locationType.station': 'Station',
-      'enum.locationType.ship': 'Ship',
-      'enum.locationType.virtual': 'Virtual',
-      'enum.locationType.other': 'Other',
-      // Event type
-      'enum.eventType.battle': 'Battle',
-      'enum.eventType.meeting': 'Meeting',
-      'enum.eventType.discovery': 'Discovery',
-      'enum.eventType.betrayal': 'Betrayal',
-      'enum.eventType.loss': 'Loss',
-      'enum.eventType.victory': 'Victory',
-      'enum.eventType.revelation': 'Revelation',
-      'enum.eventType.ritual': 'Ritual',
-      'enum.eventType.other': 'Other',
-      // Faction alignment
-      'enum.alignment.hero': 'Heroes',
-      'enum.alignment.villain': 'Villains',
-      'enum.alignment.neutral': 'Neutral',
-      'enum.alignment.ambiguous': 'Ambiguous',
-      // Artifact rarity
-      'enum.rarity.common': 'Common',
-      'enum.rarity.uncommon': 'Uncommon',
-      'enum.rarity.rare': 'Rare',
-      'enum.rarity.legendary': 'Legendary',
-      'enum.rarity.unique': 'Unique',
-      // Artifact type
-      'enum.artifactType.weapon': 'Weapon',
-      'enum.artifactType.tool': 'Tool',
-      'enum.artifactType.document': 'Document',
-      'enum.artifactType.jewelry': 'Jewelry',
-      'enum.artifactType.tech': 'Technology',
-      'enum.artifactType.magic': 'Magical',
-      'enum.artifactType.relic': 'Relic',
-      'enum.artifactType.other': 'Other',
-
-      // Preview Mode
-
       // Universe Reconstruction
       'genesis.kicker': 'Genesis · birth of a world',
       'genesis.title': 'Choose your world',
@@ -953,7 +654,6 @@
       'worlds.subtitle': 'A world is canon: laws, heroes, places. Stories, games and the World Bible live inside it.',
       'worlds.new': 'New world',
       'worlds.newHint': 'Genesis · birth of a world',
-      'worlds.empty': 'No worlds yet. Create the first one.',
       'worlds.untitled': 'Nameless world',
       'worlds.stories': 'stories',
       'worlds.story1': 'story',
@@ -986,20 +686,8 @@
       'feedback.bugTab': '🐞 Bug',
       'feedback.ideaTab': '✦ Suggestion',
       'feedback.bugLabel': 'Describe the problem',
-      'feedback.ideaLabel': 'Your idea',
       'feedback.placeholder': 'What happened / what would you like to improve…',
       'feedback.send': 'Send',
-      'feedback.thanks': '✓ Thank you! Sent',
-
-      // Knowledge Base
-      'kb.title': 'Knowledge Base',
-      'kb.loading': 'Loading…',
-
-      // News
-      'news.title': 'White News',
-      'news.subtitle': 'Community Feed',
-      'news.description': 'Releases, contests, and guides. Discussions in the Marketplace community.',
-      'news.discuss': 'Discuss',
 
       // Scene Intent
       'intent.title': 'What\'s Next?',
@@ -1047,19 +735,11 @@
       'intent.error': 'Error',
 
       // Buttons & Actions
-      'btn.cancel': 'Cancel',
-      'btn.confirm': 'Confirm',
       'btn.loading': '⏳ Loading...',
-      'btn.generate': '✦ Generate',
-      'btn.next': 'Next',
-      'btn.previous': 'Previous',
 
       // Errors & Alerts
       'error.generic': 'Something went wrong',
-      'error.tryAgain': 'Try again later',
       'error.projectNotFound': 'Project not found. Try creating a new one.',
-      'error.selectIntent': 'Choose a story direction before generating!',
-      'error.generateFailed': 'Error: generation function not found. Reload the page.',
       'alert.downgradeUnavailable': 'Downgrade to free plan is not available yet. Contact support.',
       'alert.checkoutError': 'Failed to create payment session. Try again later.',
 
@@ -1075,7 +755,7 @@
       // News
       'news.kicker': 'Community Feed',
       'news.title': 'White News',
-      'news.subtitle': 'Releases, contests, and guides. Discussion in the Marketplace community.',
+      'news.subtitle': 'Releases, contests, and guides. Discussion in the Community.',
       'news.close': 'Close',
       'news.discuss': 'Discuss',
       'news.post1.badge': 'Release',
@@ -1084,7 +764,7 @@
       'news.post1.time': '2 days ago',
       'news.post2.badge': 'Community',
       'news.post2.title': 'Short Universe Contest',
-      'news.post2.desc': 'Create a universe for one novella by June 30 — the best will be featured on the Marketplace homepage.',
+      'news.post2.desc': 'Create a universe for one novella by June 30 — the best will be featured on the Community homepage.',
       'news.post2.time': '5 days ago',
       'news.post3.badge': 'Guide',
       'news.post3.title': 'How to Guide Your Story with Scene Intent',
@@ -1255,10 +935,8 @@
   function setLanguage(lang) {
     if (lang !== 'uk' && lang !== 'en') return;
     if (currentLang === lang) {
-      console.log('[i18n] Language already set to', lang, '- skipping');
       return; // Don't trigger events if language hasn't changed
     }
-    console.log('[i18n] Changing language from', currentLang, 'to', lang);
     currentLang = lang;
     localStorage.setItem('ww-lang', lang);
     document.documentElement.lang = lang;

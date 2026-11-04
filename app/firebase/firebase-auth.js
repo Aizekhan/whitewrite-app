@@ -61,10 +61,6 @@ window.__firebaseAuth = {
             // Usage breakdown (for analytics)
             window.__wwUser.usage = userData.usage || {};
 
-            console.log('User plan loaded:', window.__wwUser.plan,
-              `(${window.__wwUser.tokensUsed}/${window.__wwUser.tokensBudget} tokens,`,
-              `${window.__wwUser.tokensRemaining} remaining)`);
-
             // Update dock with real data
             if (typeof window.__syncDockAvatar === 'function') {
               window.__syncDockAvatar();
@@ -75,7 +71,6 @@ window.__firebaseAuth = {
               window.__fillAccount();
             }
           } else {
-            console.log('No user document found, creating default: free plan');
             // Create default user document
             // Billing fields (tokensUsed, periodStart, ...) are server-only (see firestore.rules)
             await window.__firebase.db.collection('users').doc(user.uid).set({
@@ -102,10 +97,8 @@ window.__firebaseAuth = {
           localStorage.setItem('ww_user', JSON.stringify(window.__wwUser));
         } catch (e) {}
 
-        console.log('Auth state: signed in', user.isAnonymous ? '(anonymous)' : user.email);
       } else {
         // No user — not signed in
-        console.log('No user detected');
         window.__wwAuth = false;
         window.__wwUser = null;
 
@@ -218,6 +211,3 @@ window.__firebaseAuth = {
     return error.message || 'Невідома помилка';
   }
 };
-
-// Initialize on load
-console.log('Firebase auth module loaded');

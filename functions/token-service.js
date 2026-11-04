@@ -248,7 +248,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   }
 
   const economyData = economyDoc.data();
-  const provider = options.provider || 'claude'; // Default to Claude (can be 'gemini')
+  const provider = options.provider || 'claude'; // economy_operations/{op}.providers key (Claude only)
 
   if (!economyData.providers || !economyData.providers[provider]) {
     throw new Error(`economy_operations/${operation} missing provider: ${provider}`);

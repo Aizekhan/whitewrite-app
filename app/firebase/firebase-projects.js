@@ -127,29 +127,3 @@ window.__firebaseProjects = {
     await window.__firebase.db.collection('projects').doc(projectId).delete();
   }
 };
-
-// Helper: Create test project (for development)
-window.__createTestProject = async function() {
-  try {
-    const projectId = await window.__firebaseProjects.createProject({
-      title: "Червоний сигнал",
-      desc: "Колонії Марса вмовкли. Тиша поширюється швидше за світло — і ще один сигнал кличе крізь неї.",
-      meta: "Hard SF · Сезон",
-      scope: "season",
-      ending: "open",
-      genres: ["Hard SF", "Космоопера"],
-      written: 9,
-      active: true,
-      badge: "active",
-      c1: "#c2542a",
-      c2: "#2a1c16"
-    });
-    console.log('Test project created:', projectId);
-    return projectId;
-  } catch (err) {
-    console.error('Failed to create test project:', err);
-  }
-};
-
-// Log that firebase-projects is loaded
-console.log('Firebase projects module loaded, uid:', window.__firebaseProjects.uid);

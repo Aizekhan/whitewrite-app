@@ -13,7 +13,6 @@ const firebaseConfig = {
 // Initialize Firebase (uses global firebase from CDN)
 // Prevent double initialization
 if (window.__firebase) {
-  console.log('Firebase already initialized, skipping...');
 } else {
   const app = firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
@@ -31,5 +30,4 @@ if (window.__firebase) {
 
   // Global access
   window.__firebase = { app, auth, db, functions };
-  console.log('Firebase initialized');
 }

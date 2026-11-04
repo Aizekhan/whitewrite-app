@@ -17,7 +17,6 @@ async function loadLemonSqueezyConfig() {
     }
 
     const config = doc.data();
-    console.log('[LemonSqueezy] Config loaded:', config);
     return config;
   } catch (error) {
     console.error('[LemonSqueezy] Error loading config:', error);
@@ -99,25 +98,7 @@ async function changePlan(op, plan) {
 
 // Export to window
 window.__lemonSqueezy = {
-  loadConfig: loadLemonSqueezyConfig,
   createSubscriptionCheckout,
   createTokenTopUpCheckout,
   changePlan
 };
-
-// Load config on init
-if (window.__firebase) {
-  loadLemonSqueezyConfig().then(config => {
-    window.__lemonSqueezyConfig = config;
-  });
-} else {
-  // Wait for Firebase
-  const interval = setInterval(() => {
-    if (window.__firebase) {
-      clearInterval(interval);
-      loadLemonSqueezyConfig().then(config => {
-        window.__lemonSqueezyConfig = config;
-      });
-    }
-  }, 100);
-}

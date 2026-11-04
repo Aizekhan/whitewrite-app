@@ -748,7 +748,7 @@
         min: 2,
         body: [
           ["p", "Космограф моделює планету, її нахил і добу, сонця й місяці з їхніми орбітами, сезони, затемнення й календар. Пресет «Земля» або свій світ із власною картою планети."],
-          ["p", "Вмикається в ⚙ Налаштуваннях проєкту: 2000 токенів на світ за 30 днів. Вимкнення зберігає оплачений місяць; нічого не продовжується саме."],
+          ["p", "Вмикається в ⚙ Налаштуваннях проєкту, тариф Worldbuilder: 2000 токенів на світ за 30 днів. Вимкнення зберігає оплачений місяць; нічого не продовжується саме."],
         ] },
       { cat: "world", id: "issues", icon: "brain", title: "Неузгоджене",
         lead: "Суперечності й відкриті питання — і твої рішення.",
@@ -2016,7 +2016,7 @@
         min: 2,
         body: [
           ["p", "The Cosmograph models the planet, its tilt and day, suns and moons with their orbits, seasons, eclipses and a calendar. The “Earth” preset, or your own world with your own planet map."],
-          ["p", "Turned on in ⚙ Project settings: 2000 tokens per world for 30 days. Turning it off keeps the paid month; nothing renews by itself."],
+          ["p", "Turned on in ⚙ Project settings, Worldbuilder plan: 2000 tokens per world for 30 days. Turning it off keeps the paid month; nothing renews by itself."],
         ] },
       { cat: "world", id: "issues", icon: "brain", title: "Inconsistencies",
         lead: "Contradictions and open questions — and your decisions.",

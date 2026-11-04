@@ -55,7 +55,6 @@ window.__firebaseCanon = {
 
       this.worldId = worldId;
       this.projectId = projectId;
-      console.log('Canon loaded for project:', projectId, 'world:', worldId);
       return canon;
     } catch (error) {
       console.error('Failed to load canon:', error);
@@ -274,4 +273,3 @@ window.__firebaseCanon = {
   }
 };
 
-console.log('Firebase canon module loaded');

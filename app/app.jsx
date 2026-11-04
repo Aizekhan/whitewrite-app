@@ -13,7 +13,6 @@ function ProjectProvider({ children }) {
     // Initial read from parent (if embedded in shell)
     if (window.self !== window.top && window.parent.__currentProjectId) {
       const initialId = window.parent.__currentProjectId;
-      console.log('[Book] Initial projectId from parent:', initialId);
       setProjectId(initialId);
     }
 
@@ -21,7 +20,6 @@ function ProjectProvider({ children }) {
     function handleMessage(event) {
       if (event.origin !== window.location.origin) return;
       if (event.data && event.data.type === 'ww-project' && event.data.projectId) {
-        console.log('[Book] Received projectId from shell:', event.data.projectId);
         setProjectId(event.data.projectId);
       }
     }
@@ -174,12 +172,10 @@ function App() {
 
     async function loadExistingProject() {
       try {
-        console.log('Loading project:', PROJECT_ID);
         setLoadingProject(true);
 
         // Wait for auth to be ready
         if (!window.__wwUser) {
-          console.log('Waiting for auth...');
           // Poll for auth every 100ms, max 5 seconds
           let attempts = 0;
           while (!window.__wwUser && attempts < 50) {
@@ -190,11 +186,9 @@ function App() {
           if (!window.__wwUser) {
             throw new Error('Час очікування авторизації минув');
           }
-          console.log('Auth ready:', window.__wwUser.email);
         }
 
         const project = await window.__firebaseProjects.getProject(PROJECT_ID);
-        console.log('Project loaded successfully:', project.title);
 
         setForm({
           title: project.title,
@@ -207,12 +201,10 @@ function App() {
 
         // PHASE 3: Notify shell about loaded projectId (if embedded in shell)
         if (window.self !== window.top && window.parent.__setCurrentProject) {
-          console.log('[Book] Notifying shell about loaded project:', project.id);
           window.parent.__setCurrentProject(project.id);
         }
 
         // Ensure we stay on book stage
-        console.log('Setting stage to book');
         setStage("book");
       } catch (error) {
         console.error('Failed to load project:', error);
@@ -279,14 +271,12 @@ function App() {
         };
 
         const projectId = await window.__firebaseProjects.createProject(projectData);
-        console.log('Project created:', projectId);
 
         // Store projectId for book to use
         data.projectId = projectId;
 
         // PHASE 3: Notify shell about new projectId (if embedded in shell)
         if (window.self !== window.top && window.parent.__setCurrentProject) {
-          console.log('[Book] Notifying shell about new project:', projectId);
           window.parent.__setCurrentProject(projectId);
         }
 
@@ -303,15 +293,9 @@ function App() {
         const isAutoMode = data.creation === 'auto';
         const scenesToGenerate = isAutoMode ? getScenesCount(data.scope, data.episodes) : 1;
 
-        console.log('=== GENERATION START ===');
-        console.log('Mode:', data.creation, '→ isAutoMode:', isAutoMode);
-        console.log('Scope:', data.scope);
-        console.log('Episodes:', data.episodes);
-        console.log('Scenes to generate:', scenesToGenerate);
 
         if (window.__firebaseAI && window.__firebaseScenes) {
           try {
-            console.log(`${isAutoMode ? 'Auto mode' : 'Guided mode'}: generating ${scenesToGenerate} scene(s)...`);
 
             // Phase 1.2: Check token balance for ALL scenes upfront (Auto Mode)
             const user = window.__wwUser;
@@ -347,7 +331,6 @@ function App() {
 
                 // Free tier: add delay between scenes to avoid rate limits
                 if (i > 0) {
-                  console.log(`[${i + 1}/${scenesToGenerate}] Waiting 3s (free tier rate limit)...`);
                   await new Promise(resolve => setTimeout(resolve, 3000));
                 }
 
@@ -362,7 +345,6 @@ function App() {
                 // Choose intent based on position in story
                 const intent = getSceneIntent(i, scenesToGenerate, isAutoMode);
 
-                console.log(`[${i + 1}/${scenesToGenerate}] Generating scene with intent: ${intent}...`);
 
                 // Pre-generate sceneId for canon linking
                 const sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -377,7 +359,6 @@ function App() {
                 );
 
                 if (result.success) {
-                  console.log(`[${i + 1}/${scenesToGenerate}] ✓ Generated: "${result.scene.title}"`);
 
                   // Use the same sceneId that was passed to Cloud Function
                   await window.__firebaseScenes.addScene(projectId, {
@@ -388,7 +369,6 @@ function App() {
                     // canonRefs will be filled by extraction asynchronously
                   });
 
-                  console.log(`[${i + 1}/${scenesToGenerate}] ✓ Saved to Firestore`);
 
                   // Phase 1.1: Sync tokens from server response (server already deducted)
                   if (result.tokensConsumed && window.__wwUser) {
@@ -399,7 +379,6 @@ function App() {
                     window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
                     window.__wwUser.tokensRemaining = remaining;
 
-                    console.log(`[${i + 1}/${scenesToGenerate}] ✅ Tokens synced: -${cost}, remaining: ${remaining}`);
 
                     // Show toast notification (only on last scene in Auto Mode)
                     if (i === scenesToGenerate - 1 && typeof window.__showTokenToast === 'function') {
@@ -430,7 +409,6 @@ function App() {
               }
             }
 
-            console.log(`✓ Generation complete! Total scenes: ${scenesToGenerate}`);
           } catch (genError) {
             console.error('Failed to generate scenes:', genError);
           } finally {
@@ -478,17 +456,13 @@ function App() {
   React.useEffect(() => {
     function onLanguageChange(event) {
       const newLang = event.detail?.lang || (window.__i18n ? window.__i18n.getLanguage() : 'uk');
-      console.log('[App] Language change event received, new lang:', newLang);
 
       // Update iframe's i18n to match parent
       if (window.__i18n && newLang) {
-        console.log('[App] Setting iframe language to:', newLang);
         window.__i18n.setLanguage(newLang);
       }
 
-      console.log('[App] Incrementing langVersion from', langVersion);
       setLangVersion(prev => {
-        console.log('[App] langVersion updated from', prev, 'to', prev + 1);
         return prev + 1;
       });
     }

@@ -8,7 +8,7 @@
 ```
 
 ## 🗂 Session Logs
-- **2026-06-18**: Canon Extraction System (Phase 3.0-3.4) — `docs/archive/CANON_EXTRACTION_SESSION_2026-06-18.md`
+- **2026-06-18**: Canon Extraction System (Phase 3.0-3.4) — історія в git (`docs/archive/` видалено 2026-11-04)
   - Auto-extraction працює (Claude Haiku), auto-approve режим
   - AI Models — single source of truth (`ai-models.js`)
   - ANALYZE backend готовий (UI немає), Bulk Sync backend готовий (UI немає)
@@ -116,26 +116,20 @@
 
 ## Архітектура даних (важливо)
 - **Канон світу — Firestore `worlds/{w}` + `entities/`, `lore/`, `games/`** (див. інваріант 2 і `ARCHITECTURE.md`). `WORLD` у `wt-world.jsx` — лише легасі-демо для книги, не джерело правди.
-- **`AI_MODELS` (`firebase/ai-models.js`) — ЄДИНЕ джерело правди для AI моделей** (дефолти; сторож версій може перемкнути tier через `config/ai_models.active`). Frontend (`window.__AI_MODELS`) і Backend (require) використовують один файл. **НІКОЛИ** не хардкодь версії моделей!
+- **`AI_MODELS` (`functions/ai-models.js`, копія `app/firebase/`) — ЄДИНЕ джерело правди для AI моделей** (дефолти; сторож версій може перемкнути tier через `config/ai_models.active`). Frontend (`window.__AI_MODELS`) і Backend (require) використовують один файл. **НІКОЛИ** не хардкодь версії моделей!
 - Тришарова модель: **Canon** (characters/locations/events/factions/artifacts/world) → **Narrative** (arcs/chapters/scenes/dialogues) → **Director** (storyboards/shots/images). Звʼязки названі за target-type-plural; реверс деривується.
 
-## Рушій (`wt-impact.jsx`, під капотом, на `window`)
-Конвеєр: **Canon Change → Change Analysis → Impact → Strategy → Plan → Execute**.
-- `wConnections(type,id)` — усі звʼязки сутності.
-- `wAffected(type,id)` / `wImpact(type,id)` — транзитивний імпакт по шарах.
-- `WCHANGES` — 6 типів зміни (rename / property / relationship / add / remove / rewrite), кожен зі стратегією.
-- `wReconstructionPlan(type,id,changeId)` — стратегічно-залежний впорядкований план.
-- UI рушія відкривається лише на вимогу (overlay у профілі). Книга лишається книгою.
+## Реконструкція сцен
+- Клієнтський рушій `wt-impact.jsx` прибрано 2026-11-04 (сторінку з ним ніщо не вантажило). Зміна канону → сцени: «✦ Узгодити сцени» в досьє Біблії (`gamebible.js` `sceneImpactHtml` → Cloud Function `reconstructScene`, diff з Прийняти/Відхилити, поважає `scene.reconstruction.mode`).
 
 ## Крос-навігація
-- Книга → Всесвіт: магічні закладки + «✦ Дослідити канон».
+- Книга → Біблія світу: магічні закладки + «✦ Дослідити канон».
 - Deep-links: старі `WorldTree.html?type=&id=` ведуть у Біблію (`openCanon`), `WhiteWrite.html?scene=N` (відкрити розворот).
 
 ## 💳 Платежі та токени
 - Тарифи, прапорці доступу, ціни AI-дій — **лише `functions/paid-features.js`**; економіка й маржа — `TOKENOMICS.md`.
-- Підписки й токени — **Lemon Squeezy** (`functions/src/lemon.js`, `changeSubscription`); Stripe — лише Connect для майбутнього Маркету (`market.js`). Старий Stripe Checkout (`stripe.js`) — легасі.
+- Підписки й токени — **Lemon Squeezy** (`functions/src/lemon.js`, `changeSubscription`); Stripe — лише Connect для майбутнього Маркету (`market.js`). Від старого Stripe лишився тільки `stripeWebhook` (`stripe.js`), щоб скасовані підписки переходили на Free.
 - Списання = реальна вартість API ÷ `USD_PER_TOKEN`; резерв перед викликом ШІ — транзакція (`token-service.js reserve/charge/refund`).
-- Історичні нотатки про ціни/маржі червня 2026 — у `docs/archive/` (не актуальні).
 
 ---
 
@@ -223,7 +217,7 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 - **Робоча директорія:** `app/` — вихідники продакшну (локально працюють як є, з in-browser Babel); на whitewrite.com іде їх збірка `dist/`
 - **Cloud Functions:** `functions/index.js` лише збирає модулі з `functions/src/` (перелік — `ARCHITECTURE.md`)
 - **Firebase модулі:** `app/firebase/*.js` (НЕ `app/shared/firebase/`!)
-- **Документація:** у корені лише `ARCHITECTURE.md` (актуальна архітектура), `CLAUDE.md`, `TOKENOMICS.md`, `MARKETPLACE_SPEC.md`; `docs/archive/` — історія, не джерело правди
+- **Документація:** у корені лише `ARCHITECTURE.md` (актуальна архітектура), `CLAUDE.md`, `TOKENOMICS.md`, `MARKETPLACE_SPEC.md`; `docs/` — `WHAT_GOES_WHERE.md`, `EXPERIENCE_TELEMETRY_CONTRACT.md`, `AI_GAME_DEV_PLATFORM_v3.md`, `legal/`, `specs/` (ТЗ власника); історія — лише в git (прототипи, `handoff/`, `docs/archive/` видалено 2026-11-04)
 
 ## Підписка: плани користувачів
 - Актуальні тарифи, ціни й що відкриває кожен — **лише в `functions/paid-features.js`** (Free $0 · Storyteller $12 · Novelist $29 · Worldbuilder $69; `worldforge` — прихований dev-план = Worldbuilder). Старі назви seed/storyweaver не використовуються.
