@@ -381,9 +381,10 @@ function App() {
 
 
                     // Show toast notification (only on last scene in Auto Mode)
-                    if (i === scenesToGenerate - 1 && typeof window.__showTokenToast === 'function') {
+                    const showToast = (() => { try { return window.parent.__showTokenToast || window.__showTokenToast; } catch (e) { return window.__showTokenToast; } })(); // the toast lives in the shell (White.html), this runs in the book iframe
+                    if (i === scenesToGenerate - 1 && typeof showToast === 'function') {
                       const totalCost = cost * scenesToGenerate; // Approximate total (may vary if Claude used)
-                      window.__showTokenToast(totalCost, remaining);
+                      showToast(totalCost, remaining);
                     }
 
                     // Refresh UI

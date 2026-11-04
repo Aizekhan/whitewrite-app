@@ -9,7 +9,6 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
   // Fallback Ukrainian text if i18n not loaded yet
   const FALLBACK = {
     'hero.mark': 'WhiteWrite',
-    'hero.by': 'by White Tree',
     'hero.quote': '«Один світ — безліч історій і ігор.»',
     'hero.title': 'Твій світ\nчекає',
     'hero.lede': 'Збери канон свого світу — і твори з нього книги та ігри, вірні цьому світу.',
@@ -29,7 +28,7 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
       <Particles density={0.7} />
       <div className="vignette" aria-hidden="true" />
 
-      <div className="hero-mark">{t('hero.mark')}<span className="hero-mark__by">{t('hero.by')}</span></div>
+      <div className="hero-mark">{t('hero.mark')}</div>
 
       <div className="hero-quote">
         {t('hero.quote')}

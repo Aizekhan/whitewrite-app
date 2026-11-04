@@ -15,10 +15,10 @@ if (!window.location.search.includes('embed=1')) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <!-- Philosopher loaded locally via @font-face -->
 <style>
-@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap;}
-@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-Bold.ttf') format('truetype');font-weight:700;font-style:normal;font-display:swap;}
-@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-Italic.ttf') format('truetype');font-weight:400;font-style:italic;font-display:swap;}
-@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-BoldItalic.ttf') format('truetype');font-weight:700;font-style:italic;font-display:swap;}
+@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-Italic.woff2') format('woff2');font-weight:400;font-style:italic;font-display:swap;}
+@font-face{font-family:'Philosopher';src:url('assets/fonts/Philosopher-BoldItalic.woff2') format('woff2');font-weight:700;font-style:italic;font-display:swap;}
 :root{
   --ink:        #3a2c1d;
   --ink-soft:   #6a5740;
@@ -749,8 +749,6 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .hero-mark{ position:absolute; top:max(3vh,18px); left:max(3vw,22px); z-index:12;
   font-family:"Cinzel","Philosopher",serif; font-weight:600; font-size:clamp(15px,1.5vw,20px);
   letter-spacing:.16em; color:rgba(243,228,187,0.92); text-shadow:0 2px 14px rgba(0,0,0,0.8); pointer-events:none; }
-.hero-mark__by{ display:block; font-size:9px; letter-spacing:.28em; text-transform:uppercase;
-  color:rgba(230,206,150,0.55); margin-top:4px; font-weight:400; }
 
 .hero-quote{ position:absolute; top:max(5vh,30px); right:max(3vw,26px); z-index:12; max-width:min(280px,30vw);
   text-align:right; font-style:italic; font-size:clamp(13px,1.25vw,17px); line-height:1.5;
@@ -759,12 +757,21 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 
 .hero-panel{ position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); z-index:12;
   max-width:min(560px,80vw); text-align:center; }
+/* a soft dark scrim under the title and lede: they sit on the book's handwriting */
+.hero-panel::before{ content:""; position:absolute; inset:-60px -110px; z-index:-1; pointer-events:none;
+  background:radial-gradient(ellipse 50% 45% at 50% 55%, rgba(8,5,3,0.8), rgba(8,5,3,0.55) 50%, rgba(8,5,3,0) 100%); }
 .hero-title{ font-family:"Cinzel","Philosopher",serif; font-weight:700; margin:0;
   font-size:clamp(40px,6.2vw,88px); line-height:1.0; letter-spacing:.01em; color:#f8eecb;
   text-shadow:0 2px 6px rgba(0,0,0,0.95), 0 4px 30px rgba(0,0,0,0.85), 0 0 44px rgba(201,162,75,0.25); }
 .hero-lede{ margin:22px auto 30px; font-style:italic; font-size:clamp(15px,1.45vw,20px); line-height:1.6;
-  color:rgba(244,228,184,0.92); text-shadow:0 2px 14px rgba(0,0,0,1), 0 1px 4px rgba(0,0,0,0.9); max-width:34ch; }
-.hero-panel .hero-cta{ position:static; transform:none; margin-top:4px; padding:15px 32px; }
+  color:rgba(248,234,196,0.96); text-shadow:0 1px 2px rgba(0,0,0,1), 0 2px 14px rgba(0,0,0,1), 0 0 24px rgba(0,0,0,0.85); max-width:34ch; }
+.hero-panel .hero-cta{ position:static; transform:none; margin-top:4px; padding:15px 32px; white-space:nowrap; }
+/* the primary call: solid gold (the gold of the service), the secondary «Від чистого ПК до Гри» takes the translucent pill */
+.hero-panel .hero-cta{ color:#1c1308; border:none; background:linear-gradient(180deg,var(--gold-lit),var(--gold));
+  box-shadow:inset 0 1px 0 rgba(255,245,210,0.6), 0 10px 28px rgba(0,0,0,0.55), 0 0 26px rgba(201,162,75,0.35); }
+.hero-panel .hero-cta .hero-cta__star{ color:#1c1308; filter:none; }
+.hero-panel .hero-cta:hover{ color:#1c1308; filter:brightness(1.08); background:linear-gradient(180deg,var(--gold-lit),var(--gold));
+  box-shadow:inset 0 1px 0 rgba(255,245,210,0.7), 0 14px 34px rgba(0,0,0,0.6), 0 0 34px rgba(232,170,80,0.5); }
 
 /* gilded pill CTA — matches the top-menu buttons */
 .hero-cta{ display:inline-flex; align-items:center; gap:10px; cursor:pointer;
@@ -787,10 +794,10 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   text-shadow:0 2px 16px rgba(0,0,0,1), 0 0 30px rgba(0,0,0,0.8); }
 .hero-buybook__d{ font-family:"Philosopher",serif; font-style:italic; font-size:13px; line-height:1.5; color:rgba(240,222,186,0.85);
   text-shadow:0 1px 10px rgba(0,0,0,0.95); margin-top:10px; }
-.hero-buybook__btn{ display:inline-flex; align-items:center; gap:8px; margin-top:14px; cursor:pointer; font-family:"Cinzel",serif; font-weight:600; font-size:14px; letter-spacing:.02em; color:#1c1308;
-  padding:12px 22px; border-radius:999px; border:none; background:linear-gradient(180deg,#f0d398,#c9a24b);
-  box-shadow:inset 0 1px 0 rgba(255,245,210,0.6), 0 8px 22px rgba(0,0,0,0.45), 0 0 22px rgba(201,162,75,0.25); transition:.16s; }
-.hero-buybook__btn:hover{ filter:brightness(1.08); transform:translateY(-2px); }
+.hero-buybook__btn{ display:inline-flex; align-items:center; gap:8px; margin-top:14px; cursor:pointer; font-family:"Cinzel",serif; font-weight:600; font-size:14px; letter-spacing:.02em; color:#f6e3b5;
+  padding:12px 22px; border-radius:999px; border:1px solid rgba(201,162,75,0.6); background:linear-gradient(180deg, rgba(78,54,24,0.6), rgba(40,26,12,0.68));
+  box-shadow:inset 0 1px 0 rgba(255,235,180,0.16), 0 8px 22px rgba(0,0,0,0.45), 0 0 22px rgba(201,162,75,0.16); transition:.16s; }
+.hero-buybook__btn:hover{ color:#fff; border-color:rgba(240,200,120,0.9); transform:translateY(-2px); background:linear-gradient(180deg, rgba(104,72,30,0.7), rgba(54,36,16,0.75)); }
 .hcomm{ position:fixed; left:max(3vw,24px); top:50%; transform:translateY(-50%); z-index:13; width:min(270px,26vw); display:flex; flex-direction:column; gap:12px; }
 .hcomm__card{ position:relative; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; min-height:150px; padding:14px 15px 13px; text-align:left;
   font:inherit; color:#f6e3b5; cursor:pointer; border-radius:14px; border:1px solid rgba(201,162,75,0.55); overflow:hidden;
@@ -818,9 +825,20 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
   .hero-lede{ max-width:none; margin-left:auto; margin-right:auto; }
   .hero-quote{ display:none; }
 
-  .hero-buybook{ display:none; }
-  .hcomm{ display:none; } /* phones: «Спільнота» is the compass in the top menu */
+  /* phones: a compact «Спільнота» row and «Від чистого ПК до Гри» above the shell's round bottom buttons (≈ 92 px) */
+  .hero-buybook{ left:16px; right:16px; bottom:calc(92px + env(safe-area-inset-bottom)); width:auto; text-align:center; }
+  .hero-buybook__beta, .hero-buybook__d{ display:none; }
+  .hero-buybook__t{ font-size:15px; white-space:normal; }
+  .hero-buybook__btn{ margin-top:8px; padding:9px 16px; font-size:13px; }
+  .hcomm{ top:auto; bottom:calc(178px + env(safe-area-inset-bottom)); left:16px; right:16px; width:auto; transform:none; flex-flow:row wrap; gap:8px; }
+  .hcomm__card, .hcomm__card--new{ flex:1 1 0; min-width:0; min-height:76px; padding:8px 10px 8px; border-radius:11px; }
+  .hcomm__label{ font-size:8px; padding:1px 7px; }
+  .hcomm__team, .hcomm__tag{ display:none; }
+  .hcomm__t{ font-size:13.5px; margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hcomm__by{ font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .hcomm__all{ flex:1 0 100%; align-self:auto; text-align:center; font-size:12px; padding:8px 12px; }
 }
+@media (max-width:760px) and (max-height:740px){ .hcomm__card{ display:none; } } /* short phones: the cards would reach the title — the «Спільнота» link stays */
 
 /* --- Stage 1: parchment form --- */
 .screen--form{ overflow-y:auto; align-content:safe center; padding:28px 0;
@@ -1249,7 +1267,7 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
      single parchment sheet that stacks the spread top-to-bottom. */
   .photobook{ position:relative; inset:auto; width:94vw; height:auto; aspect-ratio:auto;
     min-height:auto; margin:0 auto;
-    background:url('assets/pergament.png') center/100% 100% no-repeat;
+    background:url('assets/pergament.jpg') center/100% 100% no-repeat;
     padding:13vw 10vw; filter:drop-shadow(0 30px 60px rgba(0,0,0,0.6)); }
   .photobook__img{ display:none; }
   .photobook__pages{ position:static; transform:none;
@@ -1424,7 +1442,6 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 </script>
 
 <script src="i18n.js?v=20261102"></script>
-<script src="kb.js"></script>
 <script type="text/babel" src="ErrorBoundary.jsx"></script>
 <script type="text/babel" src="atmosphere.jsx"></script>
 <script type="text/babel" src="pages.jsx"></script>

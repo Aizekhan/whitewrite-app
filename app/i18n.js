@@ -371,7 +371,6 @@
 
       // Hero / Landing
       'hero.mark': 'WhiteWrite',
-      'hero.by': 'by White Tree',
       'hero.quote': '«Один світ — безліч історій і ігор.»',
       'hero.title': 'Твій світ\nчекає',
       'hero.lede': 'Збери канон свого світу — і твори з нього книги та ігри, вірні цьому світу.',
@@ -817,7 +816,6 @@
 
       // Hero / Landing
       'hero.mark': 'WhiteWrite',
-      'hero.by': 'by White Tree',
       'hero.quote': '«One world — countless stories and games.»',
       'hero.title': 'Your world\nawaits',
       'hero.lede': 'Gather your world’s canon — and grow books and games from it, always true to that world.',

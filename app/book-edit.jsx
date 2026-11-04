@@ -259,7 +259,8 @@
         if (window.__wwUser && d.tokensConsumed) {
           window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + d.tokensConsumed;
           window.__wwUser.tokensRemaining = d.tokensRemaining;
-          if (typeof window.__showTokenToast === "function") window.__showTokenToast(d.tokensConsumed, d.tokensRemaining);
+          const showToast = (() => { try { return window.parent.__showTokenToast || window.__showTokenToast; } catch (e) { return window.__showTokenToast; } })(); // the toast lives in the shell (White.html), this runs in the book iframe
+          if (typeof showToast === "function") showToast(d.tokensConsumed, d.tokensRemaining);
           if (typeof window.__syncDockAvatar === "function") window.__syncDockAvatar();
         }
         setAdv({ data: d.analysis, spent: d.tokensConsumed });

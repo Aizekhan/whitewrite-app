@@ -883,8 +883,8 @@
   function guideSave(on) { var st = guideStage(); return gref().set({ guide: { on: on, stage: st }, updatedAt: stamp() }, { merge: true }); }
   function guideToggle() {
     var G = STR.guide, st = guideStage();
-    if (guideOn()) { if (confirm(G.offQ)) guideSave(false); return; }
-    if (confirm(G.onQ.replace("{n}", st + 1).replace("{s}", L(GUIDE[st])))) guideSave(true);
+    if (guideOn()) { askConfirm(G.offQ).then(function (ok) { if (ok) guideSave(false); }); return; }
+    askConfirm(G.onQ.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))).then(function (ok) { if (ok) guideSave(true); });
   }
   function guideCoverBtn() {
     if (!(mode === "game" && game && canWrite)) return "";
@@ -932,22 +932,28 @@
   // where the page stands: "<gameId>/<section>" in a game ("__new" — the new-game form), "<section>" in the world (the shell's «Назад» keeps it)
   function pos() { return (mode === "game" ? (gameId || "__new") + "/" : "") + section; }
   function goPos(p) { var i = String(p || "").indexOf("/"); if (i > 0) enterGame(p.slice(0, i), p.slice(i + 1)); else enterWorld(p); }
-  // leaving what is open: unsaved world overview / quest / mechanic drafts ask first
-  function leaveOk(id) {
-    if (wdraft && id !== section && wdirty() && !confirm(STR.dos.unsaved)) return false;
-    if (qdDirty() && !confirm(STR.dos.unsaved)) return false;
-    if (!medLeave()) return false;
-    qed = null; return true;
+  // leaving what is open: unsaved world overview / quest / mechanic drafts ask first; go() runs once the author agrees
+  // (at once when nothing is unsaved); an agreed leave drops the drafts, so the next step does not ask again
+  function leaveOk(id, go) {
+    var w = !!wdraft && id !== section && wdirty();
+    var done = function () { if (w) wdraft = null; med = null; qed = null; go(); };
+    if (!w && !qdDirty() && !medDirty()) return done();
+    askConfirm(STR.dos.unsaved).then(function (ok) { if (ok) done(); });
   }
+  // a step that would drop an unsaved draft asks first (cancel = nothing happens)
+  function unsavedOk(dirty, go) { if (!dirty) return go(); askConfirm(STR.dos.unsaved).then(function (ok) { if (ok) go(); }); }
   function enterWorld(sec) {
     if (mode === "world" && (!sec || sec === section)) return render();
-    if (!leaveOk("")) return;
-    mode = "world"; closeLeaf();
-    goSection(sec && (isCanon(sec) || sec === "settings") ? sec : lastSec.world || "world");
+    leaveOk("", function () {
+      mode = "world"; closeLeaf();
+      goSection(sec && (isCanon(sec) || sec === "settings") ? sec : lastSec.world || "world");
+    });
   }
   function enterGame(gid, sec) {
     if (mode === "game" && gid === (gameId || "__new") && (!sec || sec === section)) return render();
-    if (!leaveOk("")) return;
+    leaveOk("", function () { enterGameNow(gid, sec); });
+  }
+  function enterGameNow(gid, sec) {
     var to = sec && !isCanon(sec) ? sec : lastSec["g:" + gid] || "overview"; // picked before a game switch repaints
     mode = "game"; section = to; closeLeaf();
     if (gid === "__new") { unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; game = null; gameId = null; cards = []; planDoc = {}; }
@@ -1164,7 +1170,7 @@
       }
       n++;
     });
-    if (n) batch.commit().catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); render(); });
+    if (n) batch.commit().catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); render(); });
   }
 
   function newSubsection() {
@@ -1185,7 +1191,7 @@
       if (i >= 0) list[i] = name; else if (list.indexOf(name) < 0) list.push(name);
       var batch = db.batch();
       entities.filter(function (e) { return e.kind === kind && e.group === g; }).forEach(function (e) { batch.update(wref().collection("entities").doc(e.id), { group: name, updatedAt: stamp() }); });
-      Promise.all([saveSubs(s, list.filter(function (x, j) { return list.indexOf(x) === j; })), batch.commit()]).catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); });
+      Promise.all([saveSubs(s, list.filter(function (x, j) { return list.indexOf(x) === j; })), batch.commit()]).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
     }, g);
   }
   // «＋ Додати» under a subheading: a card, a dossier, an event or a culture entry born in that subsection
@@ -1430,7 +1436,7 @@
     var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var sfr = $("st-refs"); if (sfr) sfr.onclick = function () { styleFromRefs(sfr); };
-    var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { alert(STR.failed + ": " + e.message); tlb.disabled = false; }); };
+    var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { notify(STR.failed + ": " + e.message); tlb.disabled = false; }); };
   }
   // the World Bible's search: dossiers, events and culture entries
   function renderCanonSearch() {
@@ -1452,7 +1458,7 @@
       });
     });
     if (n) await batch.commit();
-    alert(STR.tlSeeded.replace("{n}", n));
+    notify(STR.tlSeeded.replace("{n}", n));
   }
 
   // ---------- world overview & laws — edited here; worlds/{w} { tagline, summary, facts, rules } ----------
@@ -2191,7 +2197,7 @@
   }
   async function removeEntityFile(id) {
     var e = dos, f = (e.files || []).filter(function (x) { return x.id === id; })[0];
-    if (!f || !confirm(STR.confirmFile + " " + f.name + "?")) return;
+    if (!f || !(await askConfirm(STR.confirmFile + " " + f.name + "?", { danger: true }))) return;
     try {
       await firebase.storage().ref(f.path).delete().catch(function (er) { if (er.code !== "storage/object-not-found") throw er; });
       await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
@@ -2222,7 +2228,7 @@
     catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
   }
   async function deleteLore() {
-    var e = dos; if (!e || e.col !== "lore" || !confirm(STR.cult.delQ)) return;
+    var e = dos; if (!e || e.col !== "lore" || !(await askConfirm(STR.cult.delQ, { danger: true }))) return;
     await Promise.all((e.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
     await colOf(e).doc(e.id).delete();
     closeDossier();
@@ -2338,7 +2344,7 @@
   }
   function qdDirty() { return !!qed && JSON.stringify(qed.d) !== qed.first; }
   function openQD(col, id, preset) {
-    if (qdDirty() && !confirm(STR.dos.unsaved)) return;
+    if (qdDirty()) return unsavedOk(true, function () { qed = null; openQD(col, id, preset); });
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
     if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order"].indexOf(k) < 0) own[k] = x[k]; });
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
@@ -2374,7 +2380,7 @@
   // the approved ones in RPG Framework's content import format (functions/narrative-validate.js toFrameworkContent; MCP get_content_export gives the same)
   function exportFramework() {
     var c = window.__NARRATIVE.toFrameworkContent(quests, dialogues, { game: game.title || "", exportedAt: new Date().toISOString() });
-    if (!c.quests.length && !c.dialogues.length) { alert(QD.fwNone); return; }
+    if (!c.quests.length && !c.dialogues.length) { notify(QD.fwNone); return; }
     download(slugify(game.title || "game") + ".content.json", JSON.stringify(c, null, 2));
   }
   // ---- editor ----
@@ -2520,7 +2526,7 @@
   function browserVoices(lang) { return window.speechSynthesis ? speechSynthesis.getVoices().filter(function (v) { return v.lang.replace("_", "-").indexOf(lang.split("-")[0]) === 0; }) : []; }
   function voKey(c) { return [c.voice, c.lang, c.rate, c.pitch].join("|"); }
   function sayBrowser(text, cast) {
-    if (!window.speechSynthesis) return alert(VO.noBrowser);
+    if (!window.speechSynthesis) return notify(VO.noBrowser);
     speechSynthesis.cancel();
     var u = new SpeechSynthesisUtterance(text), vs = browserVoices(cast.lang);
     u.lang = cast.lang; u.voice = vs.filter(function (v) { return v.name === cast.voice; })[0] || vs[0] || null;
@@ -2583,7 +2589,7 @@
     voStop();
     game.voices = Object.assign({}, game.voices || {}); game.voices[who] = c;
     var patch = { voices: {} }; patch.voices[who] = c;
-    try { await gref().set(patch, { merge: true }); } catch (e) { alert(STR.failed + ": " + (e.code || e.message)); }
+    try { await gref().set(patch, { merge: true }); } catch (e) { notify(STR.failed + ": " + (e.code || e.message)); }
     if (c.service === "google" && !gVoices[c.lang]) voLoad(c.lang); else voRerender();
   }
   async function voLoad(lang) {
@@ -2595,12 +2601,12 @@
   // ✦ Google: the saved dialogue's lines → files in the library → the lines' slots (the server writes the dialogue; the draft takes the same)
   async function voSynth(idx) {
     var q = qed, d = q.d, PF = window.__PAID_FEATURES;
-    if (q.isNew || qdDirty()) return alert(VO.saveFirst);
+    if (q.isNew || qdDirty()) return notify(VO.saveFirst);
     var list = idx.map(function (i) { return d.nodes[i]; }).filter(function (n) { return n && String(n.text || "").trim() && n.speaker && castOf(n.speaker).service === "google"; });
-    if (!list.length) return alert(idx.length === 1 ? (String((d.nodes[idx[0]] || {}).text || "").trim() ? VO.needGoogle : VO.needText) : VO.allNone);
-    if (!ME.owner && ME.role !== "admin") return alert(STR.team.noAi);
+    if (!list.length) return notify(idx.length === 1 ? (String((d.nodes[idx[0]] || {}).text || "").trim() ? VO.needGoogle : VO.needText) : VO.allNone);
+    if (!ME.owner && ME.role !== "admin") return notify(STR.team.noAi);
     var t = list.reduce(function (s, n) { return s + PF.ttsCost(String(n.text).trim().length, castOf(n.speaker).voice || "standard"); }, 0);
-    if (!confirm(VO.confirm.replace("{n}", list.length).replace("{t}", t))) return;
+    if (!(await askConfirm(VO.confirm.replace("{n}", list.length).replace("{t}", t)))) return;
     voMark(VO.busy);
     try {
       var r = await voCall({ op: "synthesize", dialogueId: q.id, nodeIds: list.map(function (n) { return n.id; }) });
@@ -2642,7 +2648,7 @@
       var nodes = touched[hit.d.id] || (touched[hit.d.id] = JSON.parse(JSON.stringify(hit.d.nodes)));
       nodes[hit.i].voice = ids; nodes[hit.i].vstatus = "rec"; n++;
     }
-    for (var id in touched) { try { await gref().collection("dialogues").doc(id).set({ nodes: touched[id], updatedAt: stamp() }, { merge: true }); } catch (e) { alert(STR.failed + ": " + e.message); } }
+    for (var id in touched) { try { await gref().collection("dialogues").doc(id).set({ nodes: touched[id], updatedAt: stamp() }, { merge: true }); } catch (e) { await notify(STR.failed + ": " + e.message); } }
     bulkStatus(VO.byKeysDone.replace("{n}", n).replace("{m}", miss));
   }
   function voClick(e) {
@@ -2656,7 +2662,7 @@
       voStop();
       var play = function (url) { voPlay = tw; voRerender(); playSound(url, null, function () { if (voPlay === tw) { voPlay = ""; voRerender(); } }); };
       if (voHeard[key]) { play(voHeard[key]); return true; }
-      if (!ME.owner && ME.role !== "admin") { alert(STR.team.noAi); return true; }
+      if (!ME.owner && ME.role !== "admin") { notify(STR.team.noAi); return true; }
       var req = voReq; voMark(VO.busy);
       voCall({ op: "preview", text: VO.sample, voice: c.voice, lang: c.lang, rate: c.rate, pitch: c.pitch }).then(function (r) {
         voHeard[key] = "data:audio/mpeg;base64," + r.audio; voMsg = STR.spent + ": " + r.tokensConsumed;
@@ -2667,7 +2673,7 @@
     if ((t = e.target.closest("[data-vload]"))) { voLoad(t.dataset.vload); return true; }
     if ((t = e.target.closest("[data-vall]"))) { voSynth(qed.d.nodes.map(function (x, i) { return !(x.voice || []).length ? i : -1; }).filter(function (i) { return i >= 0; })); return true; }
     if ((t = e.target.closest("[data-vcsv]"))) { voCsv([qed.d]); return true; }
-    if ((t = e.target.closest("[data-vsay]"))) { var nn = qed.d.nodes[+t.dataset.vsay]; if (!String(nn.text || "").trim()) alert(VO.needText); else sayBrowser(nn.text, Object.assign(castOf(nn.speaker || "narrator"), castOf(nn.speaker || "narrator").service === "browser" ? {} : { voice: "" })); return true; }
+    if ((t = e.target.closest("[data-vsay]"))) { var nn = qed.d.nodes[+t.dataset.vsay]; if (!String(nn.text || "").trim()) notify(VO.needText); else sayBrowser(nn.text, Object.assign(castOf(nn.speaker || "narrator"), castOf(nn.speaker || "narrator").service === "browser" ? {} : { voice: "" })); return true; }
     if ((t = e.target.closest("[data-vone]"))) { voSynth([+t.dataset.vone]); return true; }
     if ((t = e.target.closest("[data-vrm]"))) { var ln = qed.d.nodes[+t.dataset.vrm]; ln.voice = (ln.voice || []).filter(function (x) { return x !== t.dataset.v; }); if (!ln.voice.length) delete ln.vstatus; renderQEditor(); return true; }
     if ((t = e.target.closest("[data-sndplay]"))) { playSound(soundUrl(t.dataset.sndplay), t); return true; }
@@ -2702,7 +2708,7 @@
   function nextId(list, pre) { var n = 1; while (list.some(function (x) { return x.id === pre + n; })) n++; return pre + n; }
   function qdAct(a) {
     var p = a.split(":"), d = qed.d, i = +p[1], j = +p[2];
-    if (p[0] === "back") { if (qdDirty() && !confirm(STR.dos.unsaved)) return; qed = null; render(); return; }
+    if (p[0] === "back") { unsavedOk(qdDirty(), function () { qed = null; render(); }); return; }
     if (p[0] === "save") return saveQD();
     if (p[0] === "delete") return deleteQD();
     if (p[0] === "openSrc") return openSrc();
@@ -2711,7 +2717,7 @@
     if (p[0] === "pRej") { qprop.done[p[1]] = 1; renderQEditor(); return; }
     if (p[0] === "pAll") { PROP_FIELDS[qed.col].forEach(function (k) { var v = qprop[k]; if (!qprop.done[k] && v != null && v !== "" && !(Array.isArray(v) && !v.length)) propAccept(k); }); renderQEditor(); return; }
     if (p[0] === "pClose") { qprop = null; renderQEditor(); return; }
-    if (p[0] === "newDlg") { if (qdDirty() && !confirm(STR.dos.unsaved)) return; var qid = qed.id; qed = null; openQD("dialogues", null, { questId: qid, type: "quest", participants: d.giver ? [d.giver] : [] }); return; }
+    if (p[0] === "newDlg") { var qid = qed.id; unsavedOk(qdDirty(), function () { qed = null; openQD("dialogues", null, { questId: qid, type: "quest", participants: d.giver ? [d.giver] : [] }); }); return; }
     if (p[0] === "addStage") { // the new stage follows the last one when that one led nowhere
       var last = d.stages[d.stages.length - 1], ns = { id: nextId(d.stages, "s"), title: "", objective: "", next: [], end: false, fail: false };
       if (last && !(last.next || []).length && !last.fail) { last.next = [{ to: ns.id, cond: "" }]; ns.end = !!last.end; last.end = false; }
@@ -2745,7 +2751,7 @@
     } catch (er) { if (qed === q) { btn.disabled = false; $("q-state").textContent = STR.failed + ": " + (er.code || er.message); } }
   }
   async function deleteQD() {
-    var q = qed; if (!confirm(QD.delQ.replace("{t}", q.d.title || "…"))) return;
+    var q = qed; if (!(await askConfirm(QD.delQ.replace("{t}", q.d.title || "…"), { danger: true }))) return;
     try { await gref().collection(q.col).doc(q.id).delete(); qed = null; render(); }
     catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
@@ -2799,9 +2805,9 @@
     return (MX().CATEGORIES.concat(MX().AUDIO_CATEGORIES).filter(function (c) { return c.uk === n || c.en === n; })[0] || {}).id || "";
   }
   function medDirty() { return !!med && JSON.stringify([med.title, med.status, med.m]) !== med.first; }
-  function medLeave() { if (medDirty() && !confirm(STR.dos.unsaved)) return false; med = null; return true; }
+  function medLeave(go) { unsavedOk(medDirty(), function () { med = null; go(); }); }
   function openMech(c, preset, secId) {
-    if (medDirty() && !confirm(STR.dos.unsaved)) return;
+    if (medDirty()) return unsavedOk(true, function () { med = null; openMech(c, preset, secId); });
     var raw = c && cards.filter(function (x) { return x.id === c.id; })[0], m;
     if (preset) m = preset;
     else if (raw && raw.mech) m = MX().upgrade(JSON.parse(JSON.stringify(raw.mech))); // a field added to the template later (e.g. the music direction) appears, values stay
@@ -3223,7 +3229,7 @@
   }
   function mAct(a) {
     var p = a.split(":"), m = med.m, s = m.sections[+p[1]], i = +p[2];
-    if (p[0] === "back") { if (!medLeave()) return; render(); return; }
+    if (p[0] === "back") { medLeave(function () { render(); }); return; }
     if (p[0] === "save") return saveMech();
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
@@ -3233,7 +3239,7 @@
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { if (st) st.textContent = MC.copied; }, function () { prompt(MC.promptHint, txt); }); else prompt(MC.promptHint, txt);
       return;
     }
-    if (p[0] === "files") { if (medDirty() && !confirm(STR.dos.unsaved)) return; var c = allCards().filter(function (x) { return x.key === "c:" + med.id; })[0]; med = null; render(); if (c) openCard(c); return; }
+    if (p[0] === "files") { unsavedOk(medDirty(), function () { var fc = allCards().filter(function (x) { return x.key === "c:" + med.id; })[0]; med = null; render(); if (fc) openCard(fc); }); return; }
     if (p[0] === "cbAdd" || p[0] === "cbAddR") {
       var gs0 = cbGroups(s), grp = med.cgrp && gs0.some(function (x) { return x[0] === med.cgrp; }) ? med.cgrp : (gs0[0] || [""])[0];
       var nr = p[0] === "cbAdd" ? { _id: MX().newRowId(s), group: grp, who: med.cwho || CB.player, hold: "now" } : { _id: MX().newRowId(s), who: med.cwho || ((msec("ctable") || {}).rows || [{}])[0].who || CB.player, weight: 2 };
@@ -3257,8 +3263,8 @@
       if (s.rowLabel && cp[s.rowLabel]) cp[s.rowLabel] += " (" + MC.copyOf + ")";
       s.rows.splice(i + 1, 0, cp);
     } else if (p[0] === "rmRow") {
-      if (!confirm(MC.rmRowQ.replace("{t}", MX().rowName(s, s.rows[i])))) return;
-      s.rows.splice(i, 1);
+      askConfirm(MC.rmRowQ.replace("{t}", MX().rowName(s, s.rows[i])), { danger: true }).then(function (ok) { if (ok) { s.rows.splice(i, 1); renderMEditor(); } });
+      return;
     } else if (p[0] === "addField") {
       var nm = $("mf-name").value.trim(), ty = $("mf-type").value; if (!nm) { $("mf-name").focus(); return; }
       s.fields.push({ k: mKey(nm, s.fields.map(function (f) { return f.k; })), l: nm, t: ty, req: "opt", custom: true });
@@ -3276,8 +3282,8 @@
       });
       return;
     } else if (p[0] === "rmSec") {
-      if (!confirm(MC.rmSecQ.replace("{t}", ml(s.title)))) return;
-      m.sections.splice(+p[1], 1); med.tab = "general";
+      askConfirm(MC.rmSecQ.replace("{t}", ml(s.title)), { danger: true }).then(function (ok) { if (ok) { m.sections.splice(+p[1], 1); med.tab = "general"; renderMEditor(); } });
+      return;
     }
     renderMEditor();
   }
@@ -3296,7 +3302,7 @@
     } catch (er) { if (med === d) { btn.disabled = false; $("m-state").textContent = STR.failed + ": " + (er.code || er.message); } }
   }
   async function deleteMech() {
-    var d = med, raw = cards.filter(function (x) { return x.id === d.id; })[0]; if (!confirm(MC.delQ.replace("{t}", d.title || "…"))) return;
+    var d = med, raw = cards.filter(function (x) { return x.id === d.id; })[0]; if (!(await askConfirm(MC.delQ.replace("{t}", d.title || "…"), { danger: true }))) return;
     try {
       await Promise.all(((raw && raw.files) || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await gref().collection("cards").doc(d.id).delete(); med = null; render();
@@ -3330,7 +3336,7 @@
     return entities.filter(function (x) { return x.id === id; })[0];
   }
   function questFrom(type, id) {
-    if (!canQuest || !games.length) { alert(QD.locked); return; }
+    if (!canQuest || !games.length) { notify(QD.locked); return; }
     if (mode !== "game" || !game) return pickGame(function (gid) { if (dos) closeDossier(); enterGame(gid); if (mode === "game" && game) questFrom(type, id); });
     var x = srcItem(type, id); if (!x) return;
     var kind = srcCol(type) === "e" ? x.kind : type, pre = { source: { type: kind, id: id, title: x.title || x.name || "" } };
@@ -3534,8 +3540,7 @@
   }
   function switchDossier(id) {
     dcollect();
-    if (JSON.stringify(ddraft) !== dfirst && !confirm(STR.dos.unsaved)) return;
-    openDossier(entities.filter(function (x) { return x.id === id; })[0]);
+    unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { openDossier(entities.filter(function (x) { return x.id === id; })[0]); });
   }
   $("d-tabs").addEventListener("click", function (e) {
     var b = e.target.closest("[data-dtab]"); if (!b || !dos) return;
@@ -3545,9 +3550,9 @@
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
     var db2 = e.target.closest("[data-bulb]");
-    if (db2) { dcollect(); if (JSON.stringify(ddraft) !== dfirst && !confirm(STR.dos.unsaved)) return; questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); return; }
+    if (db2) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); }); return; }
     var dq = e.target.closest("[data-dqd]");
-    if (dq) { dcollect(); if (JSON.stringify(ddraft) !== dfirst && !confirm(STR.dos.unsaved)) return; closeDossier(); openQD(dq.dataset.dqd.split(":")[0], dq.dataset.dqd.split(":")[1]); return; }
+    if (dq) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { closeDossier(); openQD(dq.dataset.dqd.split(":")[0], dq.dataset.dqd.split(":")[1]); }); return; }
     if (e.target.closest("#d-story")) { newStoryDialog(dos); return; }
     if (e.target.closest("#d-recon")) { var re = dos; worldScenes().then(function (sc) { reconDialog(re, affectedScenes(sc, re)); }); return; }
     var ds = e.target.closest("[data-story]"); if (ds) { tellShell({ type: "ww-open-story", projectId: ds.dataset.story }); return; }
@@ -4029,15 +4034,15 @@
       var st = styleFor(c); if (!st) return;
       (c.files || []).filter(isImage).forEach(function (f) { var ai = styleAiOf(c, f.id, st); if (!ai || !ai.fresh) todo.push({ c: c, f: f }); });
     });
-    if (!todo.length) return alert(cards.some(function (x) { return x.section === "artstyle"; }) ? STR.sm.allNone : STR.sm.noStyle);
-    if (!confirm(STR.sm.allAsk.replace("{n}", todo.length).replace("{t}", todo.length * costOf("styleCheck")))) return;
+    if (!todo.length) return notify(cards.some(function (x) { return x.section === "artstyle"; }) ? STR.sm.allNone : STR.sm.noStyle);
+    if (!(await askConfirm(STR.sm.allAsk.replace("{n}", todo.length).replace("{t}", todo.length * costOf("styleCheck"))))) return;
     btn.disabled = true;
     var done = 0;
     try {
       for (var i = 0; i < todo.length; i++) {
         btn.textContent = STR.sm.allRun + " " + (i + 1) + "/" + todo.length + "…";
         try { await styleCheckAi(todo[i].c, todo[i].f); done++; } catch (e) {
-          if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED" || /підписк|subscription/i.test(e.message)) { alert(e.message); break; }
+          if (e.code === "OUT_OF_TOKENS" || e.code === "PLAN_REQUIRED" || /підписк|subscription/i.test(e.message)) { await notify(e.message); break; }
           console.warn("[style]", todo[i].f.name, e.message);
         }
       }
@@ -4050,7 +4055,7 @@
   function styleFromRefs(btn) {
     var pics = cards.filter(function (c) { return c.section === "refs"; }).concat(cards.filter(function (c) { return c.section === "artstyle"; }))
       .reduce(function (a, c) { return a.concat((c.files || []).filter(isImage)); }, []).slice(0, 6);
-    if (!pics.length) return alert(STR.sfr.none);
+    if (!pics.length) return notify(STR.sfr.none);
     confirmCost("styleFromRefs", async function () {
       var label = btn.innerHTML; btn.disabled = true; btn.textContent = STR.sfr.busy;
       try {
@@ -4064,7 +4069,7 @@
         if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
         if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
         sfrPick(data.proposal, images.length);
-      } catch (e) { alert(STR.failed + ": " + e.message); }
+      } catch (e) { notify(STR.failed + ": " + e.message); }
       btn.disabled = false; btn.innerHTML = label;
     });
   }
@@ -4237,7 +4242,7 @@
       .reduce(function (a, c) { return a.concat((c.files || []).filter(isImage).map(function (f) { return f.url; })); }, []); };
     palEditor(box.querySelector("#gp-ed"), text, function (t) { text = t; }, groupImgs);
     var close = function () { box.remove(); };
-    var write = function (v) { var p = { subPalettes: {} }; p.subPalettes[s.id] = {}; p.subPalettes[s.id][g] = v; return gref().set(p, { merge: true }).then(close).catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); }); };
+    var write = function (v) { var p = { subPalettes: {} }; p.subPalettes[s.id] = {}; p.subPalettes[s.id][g] = v; return gref().set(p, { merge: true }).then(close).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); }); };
     box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); write(text || firebase.firestore.FieldValue.delete()); };
     if (box.querySelector("#gp-clear")) box.querySelector("#gp-clear").onclick = function () { write(firebase.firestore.FieldValue.delete()); };
     box.querySelector("#ask-x").onclick = close;
@@ -4486,7 +4491,7 @@
   // onShot: in the open card the viewer offers «📷 Знімок для стилю» — the current view becomes a picture on the card
   // (a prefab has no picture of its own; the snapshot gets the 🖌 badge and the automatic AI style check)
   function view3d(f, files, onShot) {
-    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files, onShot); }).catch(function (e) { alert(STR.failed + ": " + (e.message || e)); });
+    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files, onShot); }).catch(function (e) { notify(STR.failed + ": " + (e.message || e)); });
   }
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
@@ -4539,7 +4544,7 @@
   }
   async function removeFile(id) {
     var card = open, f = (card.files || []).filter(function (x) { return x.id === id; })[0];
-    if (!f || !confirm(STR.confirmFile + " " + f.name + "?")) return;
+    if (!f || !(await askConfirm(STR.confirmFile + " " + f.name + "?", { danger: true }))) return;
     try {
       await firebase.storage().ref(f.path).delete().catch(function (e) { if (e.code !== "storage/object-not-found") throw e; });
       await gref().collection("cards").doc(card.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
@@ -4627,7 +4632,7 @@
       // the entity stays in the canon; it only leaves this game
       await gref().collection("cards").doc(open.id).set({ section: open.section, canonRef: open.id, hidden: true }, { merge: true });
     } else {
-      if (!confirm(STR.confirmDel)) return;
+      if (!(await askConfirm(STR.confirmDel, { danger: true }))) return;
       await Promise.all((open.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await gref().collection("cards").doc(open.id).delete();
     }
@@ -4647,7 +4652,7 @@
     var s = sec(sid), b = BULK[sid], gk = groupKey(s), ids = [], files = list.filter(b.ok);
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      if (file.size > MAX_FILE) { alert(STR.fileTooBig + ": " + file.name); continue; }
+      if (file.size > MAX_FILE) { await notify(STR.fileTooBig + ": " + file.name); continue; }
       bulkStatus(STR.uploading + " " + (i + 1) + " / " + files.length + " · " + file.name);
       var card = { src: "game", id: newId("card"), section: s.id, title: baseName(file.name) || STR.newCard, status: "idea", note: "", defs: s.defs.slice(), fields: {} };
       if (group) card.fields[gk] = group;
@@ -4656,7 +4661,7 @@
           createdAt: stamp(), updatedAt: stamp(), order: Date.now() }, { merge: true });
         await putFile(card, file, b.field);
         ids.push(card.id);
-      } catch (e) { bulkStatus(""); alert(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return ids; }
+      } catch (e) { bulkStatus(""); await notify(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return ids; }
     }
     bulkStatus(STR[b.done] + ": " + ids.length);
     return ids;
@@ -4820,7 +4825,7 @@
   // «не більше N» for an AI action on a known input (paid-features quoteChars) — the server reserves the same N and never charges more
   function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, (window.__wwUser || {}).aiModel) : 0; }
   function confirmCost(op, run, cap) {
-    if (!ME.owner && ME.role !== "admin") return alert(STR.team.noAi);
+    if (!ME.owner && ME.role !== "admin") return notify(STR.team.noAi);
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.costTitle) + '"><h3><span class="aicost">✦</span> ' + esc(STR.costTitle) + '</h3>' +
@@ -5242,7 +5247,7 @@
     if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
     if (d.fzmanifest !== undefined && c) { download(slugify(c.title || "character") + ".forge.json", JSON.stringify(FG.manifest(c, fzItems(), game, LANG), null, 2)); return true; }
     if (!canWrite) return true;
-    if (d.fznewchar !== undefined) { goSection("characters"); addCard(false); return true; }
+    if (d.fznewchar !== undefined) { goSection("characters", function () { addCard(false); }); return true; }
     if (d.fznewitem !== undefined) {
       askName(FZ.item.newQ, "", function (nm) { if (!nm) return;
       var gs = sec("gear"), sl = fz.slot && fzSlots().filter(function (s) { return s.id === fz.slot; })[0], grp = (gs.groups[LANG] || gs.groups.uk)[sl && sl.bind === "rigid" ? 0 : 1];
@@ -5272,8 +5277,8 @@
     if (!c) return true;
     var f = fzClone(c.forge);
     if (d.fzapp) { fzApprove(c, d.fzapp, ""); return true; }
-    if (d.fzapprev) { var ap = d.fzapprev.split(":"); var abl = FG.blockers(c, ap[0], fzCtx()); if (abl.length) { alert(abl.map(fzL).join("\n")); return true; } fzApprove(c, ap[0], ap[1]); return true; }
-    if (d.fzunapp) { if (!confirm(FZ.unapproveQ)) return true; delete (f.stages || {})[d.fzunapp]; fzSave(c, f); return true; }
+    if (d.fzapprev) { var ap = d.fzapprev.split(":"); var abl = FG.blockers(c, ap[0], fzCtx()); if (abl.length) { notify(abl.map(fzL).join("\n")); return true; } fzApprove(c, ap[0], ap[1]); return true; }
+    if (d.fzunapp) { askConfirm(FZ.unapproveQ).then(function (ok) { if (ok) { delete (f.stages || {})[d.fzunapp]; fzSave(c, f); } }); return true; }
     if (d.fzrestore) { var rq = fzSplit(d.fzrestore, 2), ro = (f.revs || []).filter(function (r) { return r.id === rq[2]; })[0];
       if (ro) { f.revs.push(FG.newRev(f, rq[1], ro.files, "", fzWho(), ro.id)); fzSave(c, f); } return true; }
     if (d.fzoff) { f.off = f.off || []; var oi = f.off.indexOf(d.fzoff); if (oi >= 0) f.off.splice(oi, 1); else f.off.push(d.fzoff); fzSave(c, f); return true; }
@@ -5420,7 +5425,7 @@
       sel.onchange = function () {
         var p = sel.dataset.actpriv.split(":"), e = ((actEntries[p[0]] || {}).list || []).filter(function (x) { return x.id === p[1]; })[0];
         gref().collection("activity").doc(p[0]).collection("entries").doc(p[1]).update({ privacy: sel.value, reviewedAt: stamp() })
-          .then(function () { if (e) e.privacy = sel.value; }).catch(function (er) { alert(STR.failed + ": " + (er.message || er)); render(); });
+          .then(function () { if (e) e.privacy = sel.value; }).catch(function (er) { notify(STR.failed + ": " + (er.message || er)); render(); });
       };
     });
   }
@@ -5582,10 +5587,10 @@
       confirmCost("marketingDraft", function () { mkRun(MK.making, function () { return mkCall(body).then(function (d) { return STR.spent + ": " + d.tokensConsumed; }); }); });
     });
     [].forEach.call(document.querySelectorAll("[data-mkact]"), function (b) {
-      b.onclick = function () {
+      b.onclick = async function () {
         var box = b.closest("[data-post]"), id = box.dataset.post, act = b.dataset.mkact, ta = box.querySelector("[data-mktext]"), ti = box.querySelector("[data-mktitle]");
         if (act === "copy") { navigator.clipboard.writeText((ti && ti.value ? ti.value + "\n\n" : "") + ta.value).then(function () { b.textContent = MK.copied; }); return; }
-        if (act === "delete" && !confirm(MK.sure)) return;
+        if (act === "delete" && !(await askConfirm(MK.sure, { danger: true }))) return;
         var body = { op: act, postId: id };
         if (act === "edit") { body.text = ta.value; if (ti) body.title = ti.value; }
         if (act === "publish" || act === "schedule") { var ch = box.querySelector("[data-mkch]"); body.channelId = ch && ch.value; }
@@ -5769,11 +5774,11 @@
     if (canDev) { $("st-import").onclick = function () { $("imp-file").click(); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); } // the import price comes once the file is known (startImport)
     else bindDevLock();
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
-      cb.onchange = function () {
+      cb.onchange = async function () {
         var id = cb.dataset.showsec, hidden = (game.hiddenSections || []).filter(function (x) { return x !== id; }), up = { hiddenSections: hidden, updatedAt: stamp() };
         if (!cb.checked) hidden.push(id);
         else if (guideHidden(id)) { // ahead of the guide: it would break the step-by-step road — warn, then the guide steps aside
-          if (!confirm(STR.guide.breakQ.replace("{s}", L(sec(id))))) { cb.checked = false; return; }
+          if (!(await askConfirm(STR.guide.breakQ.replace("{s}", L(sec(id)))))) { cb.checked = false; return; }
           up.guide = { on: false, stage: guideStage() };
         }
         gref().set(up, { merge: true });
@@ -5981,7 +5986,7 @@
       if (!up.length && !drop.length) { say(C.planNone); return; }
       if (up.some(function (t) { return t.gameId && commCards[t.gameId] === null; })) { say(C.loading); return; } // a game's cards still loading
       var lose = drop.filter(function (t) { var p = commPubs[t.pubId]; return (p.likes || 0) + (p.followers || 0) > 0; });
-      if (lose.length && !confirm(C.confirmDrop.replace("{list}", lose.map(function (t) { return "«" + (t.title || "…") + "»"; }).join(", ")))) return;
+      if (lose.length && !(await askConfirm(C.confirmDrop.replace("{list}", lose.map(function (t) { return "«" + (t.title || "…") + "»"; }).join(", ")), { danger: true }))) return;
       var bodies; try { bodies = up.map(function (t) { return commBody(t, t.gameId && commSel.w ? wT : null); }); } catch (er) { say(er.message); return; }
       ap.disabled = true; say(C.working);
       var n = 0, m = 0;
@@ -6946,7 +6951,7 @@
   }
   async function setGate(id, to, early) {
     var P = STR.pp, comment = "";
-    if (to === "approved" && early && !confirm(P.early)) return;
+    if (to === "approved" && early && !(await askConfirm(P.early))) return;
     if (to === "returned") { comment = await askText(P.returnPh, { ok: P.giveBack }); if (!comment) return; }
     var upd = {}; upd[id] = { status: to, at: Date.now(), by: "author", comment: comment };
     await gref().collection("plan").doc("current").set({ gates: upd }, { merge: true });
@@ -7064,8 +7069,8 @@
     }
     var b = e.target.closest(".nav-item"); if (b) goSection(b.dataset.sec);
   }
-  function goSection(id) {
-    if (!leaveOk(id)) return;
+  function goSection(id, then) { leaveOk(id, function () { goSectionNow(id); if (then) then(); }); }
+  function goSectionNow(id) {
     if (isCanon(id)) mode = "world"; else if (id !== "settings" && gameSections().some(function (s) { return s.id === id; })) mode = "game"; // a link across opens the other Bible
     section = id; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
@@ -7133,7 +7138,7 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
-    var fd = e.target.closest("[data-fwdec]"); if (fd) { var fdp = fd.dataset.fwdec.split("|"); fd.disabled = true; fwDecide(fdp[0], fdp[1], fdp[2]).catch(function (er) { alert(STR.failed + ": " + (er.code || er.message)); fd.disabled = false; }); return; }
+    var fd = e.target.closest("[data-fwdec]"); if (fd) { var fdp = fd.dataset.fwdec.split("|"); fd.disabled = true; fwDecide(fdp[0], fdp[1], fdp[2]).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); fd.disabled = false; }); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return; // «🔗 Що зачепить зміна» in the mechanics constructor
     if (e.target.closest("[data-wname]")) return editWorldName();
     if (e.target.closest("[data-gcover]")) return editGameCover();
@@ -7163,11 +7168,11 @@
     if (ans) { var q = ans.closest(".q"); ans.disabled = true; answerQuestion(q.dataset.q, q.querySelector("textarea").value.trim()).catch(function (er) { planMsg = er.message; render(); }); return; }
     var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var rv = e.target.closest("[data-revoke]");
-    if (rv) { if (confirm(STR.exRevokeQ)) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); return; }
+    if (rv) { askConfirm(STR.exRevokeQ, { danger: true }).then(function (ok) { if (ok) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); }); return; }
     var orf = e.target.closest("[data-openref]"); if (orf) { var oc = allCards().filter(function (x) { return x.key === orf.dataset.openref; })[0]; if (oc) openCard(oc); return; }
     var gt = e.target.closest("[data-gate]"); if (gt) { setGate(gt.dataset.gate, gt.dataset.to, gt.dataset.early).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); return; }
-    var acc = e.target.closest("[data-accept]"); if (acc) { if (acc.dataset.unchecked && !confirm(STR.acceptUnchecked)) return; acc.disabled = true; reviewTask(acc.dataset.accept, true); return; }
+    var acc = e.target.closest("[data-accept]"); if (acc) { var take = function () { acc.disabled = true; reviewTask(acc.dataset.accept, true); }; if (acc.dataset.unchecked) askConfirm(STR.acceptUnchecked).then(function (ok) { if (ok) take(); }); else take(); return; }
     var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
     var cr = e.target.closest("[data-cr]");
@@ -7304,6 +7309,27 @@
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(none); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(none); } });
     input.focus();
+  }
+  // The same dialog instead of alert() / confirm(): notify(msg) — one OK; askConfirm(msg, { danger, okLabel }) → Promise<boolean>
+  // (Esc, «Скасувати» or a click outside = false). Enter = OK (the focused button), focus returns to the opener.
+  function notify(msg) { return askBox(msg, { alone: true }); }
+  function askConfirm(msg, opts) { return askBox(msg, opts || {}); }
+  function askBox(msg, opts) {
+    return new Promise(function (r) {
+      var back = document.activeElement, box = document.createElement("div");
+      box.className = "ask";
+      box.innerHTML = '<form class="ask-box" role="alertdialog" aria-modal="true" aria-describedby="ask-msg"><p class="warn msg" id="ask-msg"></p><div class="row">' +
+        (opts.alone ? '' : '<button type="button" class="btn" id="ask-x">' + STR.cancel + '</button>') +
+        '<button class="btn ' + (opts.danger ? 'danger' : 'primary') + '" id="ask-ok">' + esc(opts.okLabel || "OK") + '</button></div></form>';
+      box.querySelector(".msg").textContent = String(msg == null ? "" : msg);
+      document.body.appendChild(box);
+      function finish(v) { box.remove(); if (back && back.focus && document.contains(back)) back.focus(); r(v); }
+      box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); finish(true); };
+      if (!opts.alone) box.querySelector("#ask-x").onclick = function () { finish(false); };
+      box.addEventListener("mousedown", function (ev) { if (ev.target === box) finish(!!opts.alone); });
+      box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); finish(!!opts.alone); } });
+      box.querySelector("#ask-ok").focus();
+    });
   }
   $("e-save").onclick = save;
   $("e-close").onclick = closeLeaf;

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.77.2 (2026-11-04)
+**Version:** 2.77.4 (2026-11-04)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -42,7 +42,7 @@ E:\WhiteWrite/
 │  ├─ firebase/                  # firebase-init / -auth / -projects / -scenes / -canon / -ai (generateScene client) / -lemon / -pricing,
 │  │                             # token-budget.js + COPIES made by build-app.mjs from functions/ (ai-models, paid-features, card-refs,
 │  │                             # forge, mechanics, narrative-validate, setup-guides, style-guide, world-fill) — edit functions/, not these
-│  └─ assets/                    # Images, fonts, icons (LogoG.png carries the name; LogoG-icon.png = favicon)
+│  └─ assets/                    # Images, fonts, icons (LogoG.webp carries the name; LogoG-icon.png = favicon)
 │
 ├─ functions/
 │  ├─ index.js                   # only assembles functions/src/*
@@ -69,7 +69,7 @@ E:\WhiteWrite/
 ```
 
 **Cloud Functions** (`functions/src/*.js` → endpoints exported by `index.js`):
-`scenes` generateScene, reconstructScene · `users` ensureProjectWorld · `projects` createProject, createGame · `canon-sync` analyzeScene («✦ Порадити») · `genesis` genesisWorld · `gamedev` gamedevPlan · `mcp` mcp · `cosmograph` cosmographAccess · `narrative` narrativeDraft · `world-folder` worldFolder · `kb-help` kbAsk · `experience` telemetryIngest, experience · `marketing` marketing, marketingPublisher · `community` community, communityRotate · `style` styleCheck, styleFromRefs · `voice` voice · `model-watch` modelWatch, modelWatchRun · `market` market, marketWebhook, licenceReview · `team` team · `backup` backup, backupDaily · `integrations` integrations · `cost-watch` aiCostDaily · `lemon` changeSubscription, createLemonSqueezyCheckout, lemonSqueezyWebhook · `stripe` stripeWebhook (legacy, old Stripe subscriptions only). Helpers without endpoints: `common`, `claude` (the only Claude entry), `admin-notice`, `ledger`, `snapshot`, `github-token`.
+`scenes` generateScene, reconstructScene · `users` ensureProjectWorld · `projects` createProject, createGame · `canon-sync` analyzeScene («✦ Порадити») · `genesis` genesisWorld · `gamedev` gamedevPlan · `mcp` mcp · `cosmograph` cosmographAccess · `narrative` narrativeDraft · `world-folder` worldFolder · `kb-help` kbAsk · `experience` telemetryIngest, experience · `marketing` marketing, marketingPublisher · `community` community, communityRotate · `style` styleCheck, styleFromRefs · `voice` voice · `model-watch` modelWatch, modelWatchRun · `market` market, marketWebhook, licenceReview · `team` team · `backup` backup, backupDaily · `integrations` integrations · `cost-watch` aiCostDaily · `lemon` changeSubscription, createLemonSqueezyCheckout, lemonSqueezyWebhook. Helpers without endpoints: `common`, `claude` (the only Claude entry), `admin-notice`, `ledger`, `snapshot`, `github-token`.
 
 ---
 
@@ -84,7 +84,8 @@ White.html (Shell)
     ├─ Home: «Створи свій світ» / «Обери свій світ» → Worlds → World hub (World Bible card + owner panel; stories live in the Bible);
     │        hero (flow.jsx, i18n `hero.*`): «Твій світ чекає» — one world's canon → books and games; game card
     │        «Від задуму — до гри» / «🤖 Від чистого ПК до Гри» (posts `ww-agent-guide`) → Knowledge base on the «agent» category
-    ├─ Knowledge base (`kb.js` → `window.WW_KB`, rendered by `fillKb` / `openArticle`; «?» fab): categories start · agent ·
+    ├─ Knowledge base (`kb.js` → `window.WW_KB`, loaded on first need by `ensureKb` — the KB view / «?» / `#kb` / an article link (`kbPending`);
+    │        the build cache-busts its tag inside `<template id="kb-src">`; the book iframe does not load it; rendered by `fillKb` / `openArticle`; «?» fab, hidden while the KB is open): categories start · agent ·
     │        book · world · game · framework · account, uk + en; blocks p/h/ul/tip/warn/prompt («prompt» = a ready request
     │        for Claude Code with a «Копіювати» button), plans/prices (rendered from the paid-features registry);
     │        in-text links `<a class="art__link" data-art="id">` open another article; the Bible opens one with
@@ -684,7 +685,7 @@ firebase deploy                   # Deploy everything
 - **Firestore caching:** Client SDK caches reads
 - **Iframe communication:** Minimal postMessage usage
 - **Scale fixes (v2.63):** MCP — at most 20 requests per JSON-RPC batch, the game is read once per HTTP request (`loadGame` memoized on the per-request key), `search_project_knowledge` scans at most 5000 `kAssets`; telemetry — the daily cap reads the atomic `telemetryDaily/{day}.total` (increment), the ingest-key cache keeps only real keys for 60 s and ≤ 1000 entries; every outbound `fetch` in marketing / backup / gamedev / lemon / voice / model-watch has an `AbortSignal.timeout` (15–30 s); marketing — a manual publish claims the post in a transaction, a post stuck in `publishing` > 10 min (`leaseAt`) may be retried or deleted, `marketingPublisher` sends 5 at a time and re-checks the paid state and freeze, Mastodon hosts on internal / local names are refused; Community — no inline home rebuild, `pubId` without `/`; 3D — `modelInfo` disposes the loaded model, the viewer disposes a model that finished loading after close and calls `forceContextLoss()`. Still open: Game Bible subscribes ~20 game listeners at once (per-section subscription would cut reads)
-- **Cleanup (v2.63):** legacy Stripe Checkout `createCheckoutSession` removed (the `stripeWebhook` stays for old subscriptions); the old Vite + TS app (`src/`, `index.html`, `vite.config.ts`, `tsconfig*.json`, `.eslintrc.cjs`, its npm scripts and dependencies) removed — `dist/` comes only from `scripts/build-app.mjs`; `@google/generative-ai` dropped; `package-lock.json` (root and functions) is committed; `firebase.json` functions `ignore` keeps one-off scripts / screenshots out of the deploy; **firebase-admin 14** (+ firebase-functions 7.4): v14 removed the namespaced API, so `functions/admin.js` is a facade with the same shape (`admin.firestore()`, `admin.firestore.FieldValue / Timestamp / FieldPath`, `admin.auth()`, `admin.storage()`, `admin.credential`, `admin.apps`) over the modular entry points — every module requires it instead of 'firebase-admin'. Left: 6 moderate advisories in google-gax → rimraf → glob / minimatch (temp-file cleanup, no user input)
+- **Cleanup (v2.63):** legacy Stripe Checkout `createCheckoutSession` removed (`stripeWebhook` removed in v2.77.4 — no user had a Stripe subscription); the old Vite + TS app (`src/`, `index.html`, `vite.config.ts`, `tsconfig*.json`, `.eslintrc.cjs`, its npm scripts and dependencies) removed — `dist/` comes only from `scripts/build-app.mjs`; `@google/generative-ai` dropped; `package-lock.json` (root and functions) is committed; `firebase.json` functions `ignore` keeps one-off scripts / screenshots out of the deploy; **firebase-admin 14** (+ firebase-functions 7.4): v14 removed the namespaced API, so `functions/admin.js` is a facade with the same shape (`admin.firestore()`, `admin.firestore.FieldValue / Timestamp / FieldPath`, `admin.auth()`, `admin.storage()`, `admin.credential`, `admin.apps`) over the modular entry points — every module requires it instead of 'firebase-admin'. Left: 6 moderate advisories in google-gax → rimraf → glob / minimatch (temp-file cleanup, no user input)
 
 ---
 
@@ -722,6 +723,8 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.77.4** royal audit, wave 4: the Bible's 26 `alert` / 30 `confirm` → styled `notify` / `askConfirm` (`askBox`, `gamebible.js`; unsaved-changes prompts merged in `unsavedOk`, leave guards take a callback; the Forge adds a new character only after the switch is agreed); legacy `stripeWebhook` + `functions/src/stripe.js` + secret `STRIPE_WEBHOOK_SECRET` removed (0 users with Stripe ids); assets: `pergament` / `BookNextEpisode` PNG → JPEG (6.7 MB → 0.86 MB), `LogoG.webp` (150 → 38 KB), Philosopher fonts TTF → WOFF2; owner specs → `docs/specs/`
+- **v2.77.3** home & shell UX: phones get a compact «Спільнота» row and «Від чистого ПК до Гри» above the round buttons; the hero's «✦ Створи свій світ» is solid gold (`--gold-lit`→`--gold`), the agent button the translucent pill, a dark scrim under the title / lede; the «by White Tree» line (`hero.by`) removed; the token toast is called on the shell (`window.parent.__showTokenToast`) from the book iframe (app.jsx, pages.jsx, book-edit.jsx); the shell's `alert` / `confirm` → `wwNotice` / `wwConfirm` (Promise, the `.proj-edit` modal look, Enter / Esc / Tab trap, focus returned); `kb.js` lazy (`ensureKb`), dropped from the book iframe (`i18n.js` / `paid-features.js` stay in both frames: separate windows, same cache-busted URL → HTTP cache); Спільнота: «🎮 Готові ігри» and «⚖ Маркет» last with one «скоро» chip (`.soon-chip`), zero 👤/★ badges hidden on showcase cards (`wwStats(…, hideZero)`), the world name not repeated when it equals the game's; KB: the «games-shelf» article folded into «Спільнота»; the KB view gets bottom padding
 - **v2.77.2** sign-in UX: form + Enter, autocomplete, focus / Esc / Tab trap, «Забули пароль?» (`resetPassword`), inline i18n errors (`auth.err.*`, `invalid-credential`); stale names (White Tree, «всесвіт», «кадри» in the delete warning, uk «Email»); the Bible's guest screen has «Увійти» (→ `/`); KB reader close label i18n + focus; Lemon config not read for guests; KB «Вхід і пароль»
 - **v2.77.1** royal audit cleanup: the duplicated first half of this file removed, file tree and the Cloud Functions list matched to the code, stale Gemini / extraction / WorldTree / handoff notes fixed, the changelog moved out of «Last updated»; removed dead code: `economy-admin.js` (seedEconomy, checkMargin, setMargin, migrate*), `canon-extract.js`, syncCanonFromProject, backfillSceneCanonRefs, initializeUser, initLemonSqueezyConfig, Stripe `checkout.session.completed`, canon-store `mergeSuggestions`, unused rules blocks (`projects/{p}/narrative|director|snapshots`, `reconstructionQueue`)
 - **v2.77** 🏗 the production plan in two passes
@@ -809,5 +812,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-04 (v2.77.1)
+**Last updated:** 2026-11-04 (v2.77.4)
 **Maintained by:** WhiteWrite Team

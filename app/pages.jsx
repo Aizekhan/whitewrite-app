@@ -381,8 +381,9 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
 
 
               // Show toast notification
-              if (typeof window.__showTokenToast === 'function') {
-                window.__showTokenToast(cost, remaining);
+              const showToast = (() => { try { return window.parent.__showTokenToast || window.__showTokenToast; } catch (e) { return window.__showTokenToast; } })(); // the toast lives in the shell (White.html), this runs in the book iframe
+              if (typeof showToast === 'function') {
+                showToast(cost, remaining);
               }
 
               // Refresh UI

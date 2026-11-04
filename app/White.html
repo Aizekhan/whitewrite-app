@@ -208,6 +208,7 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .pe-btn:hover{ color:var(--tx-hi); border-color:var(--gold); }
 .pe-btn--save{ color:#1a1206; border:none; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
 .pe-btn--del{ color:#fff; border:none; background:linear-gradient(180deg,#c0492f,#9a2f1c); }
+.ww-dlg__m{ margin:4px 0 0; font-size:15px; line-height:1.55; color:var(--tx); white-space:pre-line; overflow-wrap:anywhere; }
 
 /* community (Спільнота) */
 .cm{ display:flex; flex-direction:column; text-align:left; padding:0; font:inherit; color:inherit; cursor:pointer; background:var(--bg-2); border:1px solid var(--line);
@@ -283,6 +284,9 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
 .cm-close:hover{ color:var(--gold-lit); border-color:var(--gold-lit); }
 .cm-chip, .cm-like{ font:inherit; font-size:13px; color:var(--tx-mid); background:var(--bg-2); border:1px solid var(--line-2); border-radius:20px; padding:6px 13px; cursor:pointer; }
 .cm-chip.is-on, .cm-like.is-on{ color:#1c1308; border-color:transparent; background:linear-gradient(180deg,var(--gold-bright),var(--gold-lit)); }
+.soon-chip{ display:inline-block; margin-left:4px; padding:1px 7px; border-radius:20px; vertical-align:1px; font:600 9.5px/1.5 "Inter",system-ui,sans-serif; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--gold-lit); border:1px dashed rgba(212,175,55,.6); background:rgba(212,175,55,.08); }
+.cm-chip.is-on .soon-chip{ color:#1c1308; border-color:rgba(28,19,8,.45); background:none; }
 
 .cm-hero{ position:relative; margin-bottom:18px; border-radius:18px; border:1px solid var(--line-2); min-height:240px; display:flex; align-items:flex-end; overflow:hidden;
   background:linear-gradient(135deg,#241a2e,#101418) center/cover no-repeat; }
@@ -526,6 +530,8 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   box-shadow:0 8px 26px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,235,180,0.12); transition:.2s; }
 .feedback-fab svg{ width:22px; height:22px; }
 .feedback-fab.kb-fab{ right:72px; font:600 21px/1 "Cinzel",serif; }
+body.in-kb .kb-fab{ display:none; }
+.view[data-view="kb"]{ padding-bottom:calc(96px + env(safe-area-inset-bottom)); } /* the round bottom buttons never cover the last KB cards */
 /* the avatar & account live on the home page only; on phones the other screens drop the top menu and get a logo → home in the avatar's place */
 body:not(.at-home) .userdock{ display:none; }
 .vstop{ position:absolute; right:10px; bottom:10px; z-index:3; width:34px; height:34px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
@@ -612,7 +618,7 @@ body.at-home .back-fab{ display:none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
     </button>
     <button class="rail__logo" id="logo" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну">
-      <img src="assets/LogoG.png" alt="WhiteWrite" draggable="false" />
+      <img src="assets/LogoG.webp" alt="WhiteWrite" draggable="false" />
     </button>
     <button class="rail__collapse" id="rail-collapse" data-i18n-title="ui.hideMenu" title="Сховати меню для читання" aria-label="Сховати меню" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
@@ -752,6 +758,36 @@ body.at-home .back-fab{ display:none; }
 <script src="/i18n.js"></script><!-- before the shell script: its first render already speaks the saved language -->
 <script>
 (function () {
+  /* ---- the shell's notice / confirm (instead of alert / confirm): the .proj-edit modal look; Enter = OK, Esc / the scrim = cancel, Tab stays inside, focus comes back ---- */
+  function wwDialog(msg, ask) {
+    return new Promise(function (resolve) {
+      var en = !!(window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === "en");
+      var prev = document.activeElement, ov = document.createElement("div");
+      ov.className = "proj-edit is-on";
+      ov.innerHTML = '<div class="pe-scrim"></div><div class="pe-card" role="' + (ask ? 'alertdialog' : 'dialog') + '" aria-modal="true" aria-describedby="ww-dlg-m" style="width:min(440px,92vw);text-align:center">' +
+        '<p class="ww-dlg__m" id="ww-dlg-m"></p><div class="pe-foot" style="justify-content:center">' +
+        (ask ? '<button class="pe-btn" data-no>' + (en ? 'Cancel' : 'Скасувати') + '</button>' : '') +
+        '<button class="pe-btn pe-btn--save" data-ok>' + (ask ? (en ? 'Yes' : 'Так') : 'OK') + '</button></div></div>';
+      ov.querySelector("#ww-dlg-m").textContent = String(msg == null ? "" : msg);
+      var done = function (v) { window.removeEventListener("keydown", onKey, true); ov.remove(); try { if (prev && prev.focus) prev.focus(); } catch (e) {} resolve(v); };
+      var onKey = function (e) {
+        if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); }
+        else if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); done(!(document.activeElement && document.activeElement.hasAttribute("data-no"))); }
+        else if (e.key === "Tab") {
+          var bs = ov.querySelectorAll("button"), first = bs[0], last = bs[bs.length - 1];
+          if (e.shiftKey ? document.activeElement === first : document.activeElement === last) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+        }
+      };
+      ov.querySelector(".pe-scrim").onclick = function () { done(false); };
+      ov.querySelector("[data-ok]").onclick = function () { done(true); };
+      var no = ov.querySelector("[data-no]"); if (no) no.onclick = function () { done(false); };
+      window.addEventListener("keydown", onKey, true);
+      document.body.appendChild(ov);
+      ov.querySelector("[data-ok]").focus();
+    });
+  }
+  function wwNotice(msg) { return wwDialog(msg, false); }
+  function wwConfirm(msg) { return wwDialog(msg, true); }
   /* ---- icons ---- */
   var I = {
     library: '<path d="M4 5v14M9 5v14M14 6l4 13M4 5h5M9 5h5"/>',
@@ -927,7 +963,7 @@ body.at-home .back-fab{ display:none; }
         });
       } catch (error) {
         console.error('Failed to update project:', error);
-        alert('Не вдалося зберегти зміни: ' + error.message);
+        wwNotice('Не вдалося зберегти зміни: ' + error.message);
         return;
       }
     }
@@ -989,6 +1025,7 @@ body.at-home .back-fab{ display:none; }
     document.body.classList.toggle("at-home", mode === "home" || mode == null);
     shown = mode == null ? null : here(); updateBack(); // the screen on view — what «Назад» remembers when we leave it // White.html CSS: avatar on home only, phones drop the top menu elsewhere
     document.body.classList.toggle("in-work", inWork || mode === "create"); // phones keep the rail in a story and its form
+    document.body.classList.toggle("in-kb", !inWork && mode === "kb"); // the «?» button hides while the KB is open
     railItems.innerHTML = ""; railFoot.innerHTML = "";
     if (inWork) {
       if (CURRENT_WORLD) railItems.appendChild(railBtn("bible", t('worlds.bible'), PILLARS.bible.icon, false, showBible)); // back to the World Bible, as it was left
@@ -1015,6 +1052,7 @@ body.at-home .back-fab{ display:none; }
     histPush();
     inWork = false; mode = v;
     if (v === "account") fillAccount();
+    if (v === "kb") ensureKb();
     if (v === "market" && !CM.open) loadCommunity();
     if (v === "worlds") { fillWorlds(); var vw = views.worlds.firstChild; if (vw && vw.style) vw.style.animation = ""; loadProjects(); } // entering plays the entrance again
     if (v === "narr") {
@@ -1394,7 +1432,7 @@ body.at-home .back-fab{ display:none; }
     if (d.type === "ww-market") { CM.tab = "mkt"; CM.open = null; CM.lot = d.lotId ? String(d.lotId) : null; showView("market"); fillMarket(); loadLots(); return; }
     if (d.type === "ww-kb-article") { fillKb(); showView("kb"); openArticle(String(d.id || "")); return; } // the Bible links a KB article
     if (d.type === "ww-community") { openCommunity(d.pubId ? String(d.pubId) : null); return; } // home cards and the Bible's «Відкрити у спільноті»
-    if (d.type === "ww-agent-guide") { if (window.WW_KB) { window.WW_KB.__cat = "agent"; window.WW_KB.__q = ""; } fillKb(); showView("kb"); return; }
+    if (d.type === "ww-agent-guide") { if (window.WW_KB) { window.WW_KB.__cat = "agent"; window.WW_KB.__q = ""; } else kbPending = { cat: "agent" }; fillKb(); showView("kb"); return; }
     if (d.type === "ww-world-cta") {
       var cta = function () { if (WORLDS.length) showView("worlds"); else createWorld(); };
       if (!window.__wwAuth) { openAuth(cta); return; }
@@ -1691,7 +1729,7 @@ body.at-home .back-fab{ display:none; }
           var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
           var lang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
           console.error('Failed to delete project:', error);
-          alert((lang === 'uk' ? 'Не вдалося видалити проєкт: ' : 'Failed to delete project: ') + error.message);
+          wwNotice((lang === 'uk' ? 'Не вдалося видалити проєкт: ' : 'Failed to delete project: ') + error.message);
           ov.__idx = null;
           ov.classList.remove("is-on");
           return;
@@ -1775,9 +1813,10 @@ body.at-home .back-fab{ display:none; }
   // 👤 followers · ★ rating (the community's ♥) — on showcase cards, world cards and the world hub
   var WW_PERSON = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.2"/><path d="M3.8 21.5c0-4.7 3.7-8 8.2-8s8.2 3.3 8.2 8z"/></svg>';
   var WW_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>';
-  function wwStats(f, l) {
-    return '<span class="wwstats"><span title="' + escapeHtml(cmT("Фоловери — стежать у Спільноті", "Followers — following in the Community")) + '">' + WW_PERSON + (f || 0) + '</span>' +
-      '<span title="' + escapeHtml(cmT("Рейтинг — ♥ від спільноти", "Rating — ♥ from the community")) + '">' + WW_STAR + (l || 0) + '</span></span>';
+  function wwStats(f, l, hideZero) { // hideZero: a showcase card shows only the badges that have something (no «0 · 0»)
+    if (hideZero && !f && !l) return '';
+    return '<span class="wwstats">' + (hideZero && !f ? '' : '<span title="' + escapeHtml(cmT("Фоловери — стежать у Спільноті", "Followers — following in the Community")) + '">' + WW_PERSON + (f || 0) + '</span>') +
+      (hideZero && !l ? '' : '<span title="' + escapeHtml(cmT("Рейтинг — ♥ від спільноти", "Rating — ♥ from the community")) + '">' + WW_STAR + (l || 0) + '</span>') + '</span>';
   }
   var REL_NAMES = { steam: "Steam", itch: "itch.io", googleplay: "Google Play", appstore: "App Store", epic: "Epic Games", gog: "GOG", web: "Web", other: "↗" };
   function cmCard(p) {
@@ -1785,9 +1824,9 @@ body.at-home .back-fab{ display:none; }
       '<span class="cm__cover"' + cmCover(p.cover) + '><span class="cm__kind">' + (p.kind === "game" ? cmT("Гра", "Game") : cmT("Світ", "World")) + '</span>' +
         (p.lookingForTeam ? '<span class="cm-team">🤝 ' + cmT("Шукає команду", "Looking for a team") + '</span>' : '') + '</span>' +
       '<span class="cm__b"><span class="cm__title">' + escapeHtml(p.title || "…") + '</span>' +
-      '<span class="cm__author">' + escapeHtml(p.author || "") + (p.kind === "game" && p.worldTitle ? ' · ' + escapeHtml(p.worldTitle) : '') + '</span>' +
+      '<span class="cm__author">' + escapeHtml(p.author || "") + (p.kind === "game" && p.worldTitle && p.worldTitle !== p.title ? ' · ' + escapeHtml(p.worldTitle) : '') + '</span>' +
       (p.tagline ? '<span class="cm__tag">' + escapeHtml(p.tagline) + '</span>' : '') +
-      '<span class="cm__likes">' + wwStats(p.followers, p.likes) + '</span></span></button>';
+      (p.followers || p.likes ? '<span class="cm__likes">' + wwStats(p.followers, p.likes, true) + '</span>' : '') + '</span></button>';
   }
   function fillMarket() {
     if (!views.market) return;
@@ -1798,8 +1837,9 @@ body.at-home .back-fab{ display:none; }
         '<button class="cm-close" data-cmclose title="' + cmT("Закрити", "Close") + '" aria-label="' + cmT("Закрити спільноту", "Close the community") + '">✕</button></div>';
     };
     if (CM.open) { views.market.innerHTML = top('<button class="cm-chip" data-cmback>← ' + cmT("Усі вітрини", "All showcases") + '</button>' + cmPageBar()) + '<div class="vwrap">' + cmPage() + '</div>'; bindMarket(); return; }
-    var tabs = '<span class="cm-tabs" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")], ["games", cmT("🎮 Готові ігри", "🎮 Released games")], ["mkt", cmT("⚖ Маркет", "⚖ Market")]].map(function (x) {
-      return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + '</button>'; }).join("") + '</span><span class="cm-top__div"></span>';
+    var mktSoon = !window.__PAID_FEATURES || !!(window.__PAID_FEATURES.byOp("licenceReview") || {}).soon; // the placeholders go last, each with the one «скоро» chip (the registry not loaded yet = still soon)
+    var tabs = '<span class="cm-tabs" role="tablist">' + [["show", cmT("Вітрини", "Showcases")], ["collab", cmT("🤝 Співтворці", "🤝 Co-creators")], ["games", cmT("🎮 Готові ігри", "🎮 Released games"), true], ["mkt", cmT("⚖ Маркет", "⚖ Market"), mktSoon]].map(function (x) {
+      return '<button role="tab" class="cm-chip' + (CM.tab === x[0] ? ' is-on' : '') + '" aria-selected="' + (CM.tab === x[0]) + '" data-cmtab="' + x[0] + '">' + x[1] + (x[2] ? ' <span class="soon-chip">' + cmT("скоро", "soon") + '</span>' : '') + '</button>'; }).join("") + '</span><span class="cm-top__div"></span>';
     if (CM.tab === "mkt") {
       views.market.innerHTML = top(tabs + (CM.lot || CM.mview !== "lots" ? '<button class="cm-chip" data-mkback>← ' + cmT("Усі лоти", "All lots") + '</button>' : '') +
         (CM.admin || !(window.__PAID_FEATURES && (window.__PAID_FEATURES.byOp("licenceReview") || {}).soon) ? '<button class="cm-chip' + (CM.mview === "deals" ? ' is-on' : '') + '" data-mkview="deals">' + cmT("Мої угоди", "My deals") + '</button>' : '') +
@@ -1819,7 +1859,7 @@ body.at-home .back-fab{ display:none; }
                 '<span class="cm-rel">' + p.releases.filter(function (r) { return safeUrl(r.url); }).map(function (r) { return '<a href="' + escapeHtml(safeUrl(r.url)) + '" target="_blank" rel="noopener nofollow">' + escapeHtml(REL_NAMES[r.kind] || "↗") + '</a>'; }).join("") + '</span></div>'; }).join("") + '</div>'
           : '<p class="vhead__s">' + cmT("Поки жодна гра не позначила реліз. Твоя може бути першою!", "No game has marked a release yet. Yours can be the first!") + '</p>') + '</div>';
       bindMarket();
-      var kg = views.market.querySelector("[data-kbgames]"); if (kg) kg.onclick = function (e) { e.preventDefault(); fillKb(); showView("kb"); openArticle("games-shelf"); };
+      var kg = views.market.querySelector("[data-kbgames]"); if (kg) kg.onclick = function (e) { e.preventDefault(); fillKb(); showView("kb"); openArticle("community"); };
       return;
     }
     if (CM.tab === "collab") {
@@ -2273,8 +2313,21 @@ body.at-home .back-fab{ display:none; }
       return '<li><b>' + L(f).name + '</b> — ' + n + per + (en ? ' tokens · from ' : ' токенів · від ') + PF.PLANS[f.minPlan].name + '</li>';
     }).join("") + '</ul>';
   }
+  // kb.js is fetched on first need (the KB view, «?», an article link, #kb); a category / article asked before it arrives waits in kbPending
+  var kbPending = null;
+  function ensureKb() {
+    if (window.WW_KB || document.getElementById("kb-js")) return;
+    var tpl = document.getElementById("kb-src"), s = document.createElement("script");
+    s.id = "kb-js"; s.src = (tpl && tpl.content.querySelector("script").getAttribute("src")) || "kb.js";
+    s.onload = function () { // kb.js itself calls __fillKb once loaded
+      var p = kbPending; kbPending = null; if (!p) return;
+      if (p.cat) { window.WW_KB.__cat = p.cat; window.WW_KB.__q = ""; fillKb(); }
+      if (p.art) openArticle(p.art);
+    };
+    document.head.appendChild(s);
+  }
   function openArticle(id) {
-    var KB = window.WW_KB; if (!KB) return;
+    var KB = window.WW_KB; if (!KB) { kbPending = { art: id }; ensureKb(); return; }
     var i18nT = window.__i18n ? window.__i18n.t : function (k) { return k; };
     var a = KB.articles.filter(function (x) { return x.id === id; })[0]; if (!a) return;
     var catName = {}; KB.categories.forEach(function (c) { catName[c.id] = c.label; });
@@ -2413,8 +2466,8 @@ body.at-home .back-fab{ display:none; }
         teamCall({ op: "invite", email: box.querySelector("#fr-email").value }).then(function (r) { done(r.status === "accepted" ? cmT("Ви тепер друзі.", "You are friends now.") : cmT("Запрошення надіслано — друг побачить його у своєму Акаунті → Друзі.", "Invitation sent — your friend sees it in their Account → Friends.")); }, fail); };
       [].forEach.call(box.querySelectorAll("[data-fracc]"), function (b) { b.onclick = function () { teamCall({ op: "accept", uid: b.dataset.fracc }).then(function () { done(cmT("Ви тепер друзі.", "You are friends now.")); }, fail); }; });
       [].forEach.call(box.querySelectorAll("[data-frdel]"), function (b) { b.onclick = function () {
-        if (!confirm(cmT("Прибрати з друзів? Людина також вийде з команд твоїх світів.", "Remove from friends? They also leave the teams of your worlds."))) return;
-        teamCall({ op: "unfriend", uid: b.dataset.frdel }).then(function () { done(""); }, fail); }; });
+        wwConfirm(cmT("Прибрати з друзів? Людина також вийде з команд твоїх світів.", "Remove from friends? They also leave the teams of your worlds.")).then(function (ok) { if (!ok) return;
+        teamCall({ op: "unfriend", uid: b.dataset.frdel }).then(function () { done(""); }, fail); }); }; });
     }).catch(function (e) { console.warn("friends", e); });
   }
   // «Історія токенів»: users/{uid}/ledger (written only by the server, functions/src/ledger.js) + a printable receipt for any entry
@@ -2505,7 +2558,7 @@ body.at-home .back-fab{ display:none; }
           window.__wwUser.aiModel = id;
           if (window.__wwApplyModel) window.__wwApplyModel();
           [].forEach.call(document.querySelectorAll('[data-aim]'), function (x) { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b); });
-        }).catch(function (e) { alert((en ? 'Could not save: ' : 'Не вдалося зберегти: ') + e.message); });
+        }).catch(function (e) { wwNotice((en ? 'Could not save: ' : 'Не вдалося зберегти: ') + e.message); });
       };
     });
   }
@@ -2620,8 +2673,8 @@ body.at-home .back-fab{ display:none; }
       }).join("");
       [].forEach.call(box.querySelectorAll("[data-integ-revoke]"), function (b) {
         b.onclick = function () {
-          if (!confirm(en ? 'Revoke this key? Claude Code using it will lose access.' : 'Відкликати ключ? Claude Code із ним втратить доступ.')) return;
-          fb.db.collection("mcpKeys").doc(b.dataset.integRevoke).delete().then(function () { loadIntegKeys(lang); });
+          wwConfirm(en ? 'Revoke this key? Claude Code using it will lose access.' : 'Відкликати ключ? Claude Code із ним втратить доступ.').then(function (ok) { if (!ok) return;
+          fb.db.collection("mcpKeys").doc(b.dataset.integRevoke).delete().then(function () { loadIntegKeys(lang); }); });
         };
       });
     }).catch(function () { box.innerHTML = ''; });
@@ -2707,7 +2760,7 @@ body.at-home .back-fab{ display:none; }
 
         // a scheduled downgrade can be undone
         if (b.dataset.undo) {
-          try { b.disabled = true; await LS.changePlan('cancelPending'); reload(); } catch (e) { alert(t('alert.checkoutError') + ' ' + e.message); b.disabled = false; }
+          try { b.disabled = true; await LS.changePlan('cancelPending'); reload(); } catch (e) { wwNotice(t('alert.checkoutError') + ' ' + e.message); b.disabled = false; }
           return;
         }
         // an active subscription changes in place: up now (difference + a small fee), down from the next month
@@ -2721,22 +2774,22 @@ body.at-home .back-fab{ display:none; }
               var msg = q.kind === 'up'
                 ? fill('plan.upAsk', { from: names(q.from), to: names(q.to), usd: q.quote.usd.toFixed(2), tokens: q.quote.tokens.toLocaleString(), fee: q.quote.fee.toLocaleString(), date: day(q.renewsAt) })
                 : fill(targetPlan === 'free' ? 'plan.freeAsk' : 'plan.downAsk', { from: names(q.from), to: names(q.to), date: day(q.renewsAt) });
-              if (!confirm(msg)) return;
+              if (!(await wwConfirm(msg))) return;
               await LS.changePlan('change', targetPlan);
-              alert(q.kind === 'up' ? fill('plan.upDone', { to: names(q.to) }) : fill('plan.downDone', { to: names(q.to), date: day(q.renewsAt) }));
+              await wwNotice(q.kind === 'up' ? fill('plan.upDone', { to: names(q.to) }) : fill('plan.downDone', { to: names(q.to), date: day(q.renewsAt) }));
               reload();
               return;
             }
           } catch (error) {
             console.error('Plan change error:', error);
-            alert(t('alert.checkoutError') + ' ' + error.message);
+            wwNotice(t('alert.checkoutError') + ' ' + error.message);
             return;
           } finally { b.disabled = false; b.textContent = t('plan.choose'); }
         }
 
         // Free plan without a paid subscription — nothing to buy
         if (targetPlan === 'free') {
-          alert(t('alert.downgradeUnavailable'));
+          wwNotice(t('alert.downgradeUnavailable'));
           return;
         }
 
@@ -2749,7 +2802,7 @@ body.at-home .back-fab{ display:none; }
           const checkoutUrl = await window.__lemonSqueezy.createSubscriptionCheckout(targetPlan, u.email);
 
           if (!checkoutUrl) {
-            alert(t('error.generic') + ': Could not create checkout');
+            wwNotice(t('error.generic') + ': Could not create checkout');
             b.disabled = false;
             b.textContent = t('plan.choose');
             return;
@@ -2759,7 +2812,7 @@ body.at-home .back-fab{ display:none; }
           window.location.href = checkoutUrl;
         } catch (error) {
           console.error('Checkout error:', error);
-          alert(t('alert.checkoutError'));
+          wwNotice(t('alert.checkoutError'));
           b.disabled = false;
           b.textContent = t('plan.choose');
         }
@@ -2775,7 +2828,7 @@ body.at-home .back-fab{ display:none; }
         const checkoutUrl = await window.__lemonSqueezy.createTokenTopUpCheckout(u.email);
 
         if (!checkoutUrl) {
-          alert(t('error.generic') + ': Could not create checkout');
+          wwNotice(t('error.generic') + ': Could not create checkout');
           tu.disabled = false;
           tu.textContent = t('account.topUp');
           return;
@@ -2785,7 +2838,7 @@ body.at-home .back-fab{ display:none; }
         window.location.href = checkoutUrl;
       } catch (error) {
         console.error('Token top-up error:', error);
-        alert(t('alert.checkoutError'));
+        wwNotice(t('alert.checkoutError'));
         tu.disabled = false;
         tu.textContent = t('account.topUp');
       }
@@ -2984,7 +3037,8 @@ if (window.__firebaseAuth && window.__firebaseAuth.init) {
 </script>
 
 <script src="frame-pick.js"></script>
-<script src="kb.js"></script>
+<!-- the Knowledge base (~400 KB) loads on first need (ensureKb); the template keeps its tag for the build's cache-bust and never runs -->
+<template id="kb-src"><script src="kb.js"></script></template>
 
 <script>
 // Global toast notification for token consumption
