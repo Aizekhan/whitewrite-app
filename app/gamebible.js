@@ -295,7 +295,11 @@
       wfold: { ask: "📂 Тека «{d}»: файлів, які можна прочитати — {n}. ✦ ШІ перегляне список і вибере, де є світ (нотатки, лор, сценарії, дані персонажів і предметів); документацію фреймворків, код без змісту й налаштування пропустить.",
         scouting: "✦ ШІ переглядає список… частина {d} з {n}", readingFiles: "Читаю вибрані файли з ПК… {d} з {n}", nothing: "ШІ не знайшов у теці файлів зі світом.",
         picked: "ШІ вибрав {n} з {a} файлів ({c} символів). Далі ШІ прочитає їх повністю й розкладе по розділах канону — зі скриптів і даних лише зміст, не код.",
-        part: "пачка {d} з {n}", readN: "прочитано файлів: {n} з {a}" },
+        part: "пачка {d} з {n}", readN: "прочитано файлів: {n} з {a}",
+        prog: { title: "Розбір теки «{d}»", steps: ["Файли на ПК", "✦ ШІ вибирає", "Читання", "✦ ШІ розкладає", "Готово"], hide: "Сховати (розбір триває)", close: "Закрити", show: "Переглянути, що додасться",
+          list: "Знайшов файлів, які можна прочитати: {n}", wait: "Чекаю, поки ти підтвердиш ціну…", scout: "ШІ дивиться назви файлів — частина {d} з {n}", read: "Читаю файл {d} з {n}: {f}",
+          sort: "ШІ читає й розкладає по розділах — пачка {d} з {n} ({m} файлів). Це може тривати кілька хвилин.", done: "Готово! Нижче — що додасться в канон. Нічого не запишеться, доки не натиснеш «Перенести в світ».",
+          cancelled: "Розбір скасовано — нічого не списано й не записано.", stay: "Не закривай вкладку, доки розбір не завершиться." } },
       intake: { btn: "📂 Тека гри", title: "Тека гри", hint: "Будь-яка тека проєкту будь-якого розміру: картинки, моделі, префаби, звуки, матеріали розкладуться по розділах гри за шляхом (без токенів), тексти — ✦ ШІ пачками. Спершу побачиш план, нічого не завантажиться без «Почати».",
         formHint: "📂 Тека гри: обери теку проєкту — після «Створити гру» побачиш план, що куди ляже, і запустиш розбір.", reading: "Читаю теку… (усе лишається на твоєму ПК, доки не натиснеш «Почати»)",
         introPlan: "Так ляже тека. Зніми галочки з того, що не потрібно, або перенеси групу в інший розділ. Що куди — вирішує ✦ ШІ за списком файлів (без нього — за назвами тек, без токенів); тексти, дані гри й її власні скрипти, які ШІ вибрав, він читає повністю й бере лише зміст (не код), ти потім відмітиш, що взяти.",
@@ -616,7 +620,11 @@
       wfold: { ask: "📂 Folder «{d}»: readable files — {n}. ✦ AI looks through the list and picks those holding the world (notes, lore, scripts, character and item data); docs of frameworks, code without content and settings are skipped.",
         scouting: "✦ AI looks through the list… part {d} of {n}", readingFiles: "Reading the picked files from the PC… {d} of {n}", nothing: "AI found no files about the world in the folder.",
         picked: "AI picked {n} of {a} files ({c} characters). Next AI reads them in full and sorts them into the canon sections — from scripts and data only the content, never code.",
-        part: "batch {d} of {n}", readN: "files read: {n} of {a}" },
+        part: "batch {d} of {n}", readN: "files read: {n} of {a}",
+        prog: { title: "Sorting the folder «{d}»", steps: ["Files on the PC", "✦ AI picks", "Reading", "✦ AI sorts", "Done"], hide: "Hide (the sorting goes on)", close: "Close", show: "See what will be added",
+          list: "Readable files found: {n}", wait: "Waiting for you to confirm the price…", scout: "AI looks at the file names — part {d} of {n}", read: "Reading file {d} of {n}: {f}",
+          sort: "AI reads and sorts into the sections — batch {d} of {n} ({m} files). This can take a few minutes.", done: "Done! Below is what will be added to the canon. Nothing is written until you press «Move into the world».",
+          cancelled: "Sorting cancelled — nothing charged or written.", stay: "Keep this tab open until the sorting ends." } },
       intake: { btn: "📂 Game folder", title: "Game folder", hint: "Any project folder of any size: pictures, models, prefabs, sounds, materials go into the game's sections by their path (no tokens), texts — ✦ AI in packs. You see the plan first; nothing uploads before «Start».",
         formHint: "📂 Game folder: pick the project folder — after «Create game» you see the plan of what goes where and start the sorting.", reading: "Reading the folder… (everything stays on your PC until you press «Start»)",
         introPlan: "This is how the folder lands. Untick what you do not need or move a group to another section. What goes where — ✦ AI decides from the file list (without it — by folder names, no tokens); the texts, game data and own scripts the AI picked it reads in full and takes only the content (never code), then you tick what to take.",
@@ -1814,24 +1822,46 @@
   var GAME_FOLDER_MAX = 100000; // gamedevPlan import takes at most this much (functions/src/gamedev.js MAX_IMPORT_CHARS)
   // the folder picked in the new-world form (flow.jsx keeps it on the shell): the world's first open asks the price and sorts it
   var pendingTaken = false;
-  // the new-world form's «⤒ Завантажити світ із файлу .md» (flow.jsx): the file waits on the shell and fills this new world at once
   async function takePendingFill() {
     if (pendingTaken || PANEL || !ME.owner) return; pendingTaken = true;
     var pf = null; try { pf = window.parent.__wwPendingFill; window.parent.__wwPendingFill = null; } catch (e) {}
-    if (!pf || (!pf.text && !pf.folder)) return;
+    if (!pf || !pf.folder) return;
     if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; render(); }
-    if (pf.folder) return startWorldFolder(pf);
-    var r = window.__FILL.parse(pf.text);
-    if (r.error) { fillState = { msg: (STR.fill.err[r.error] || r.error).replace("{d}", r.detail || "") }; return fillRedraw(); }
-    fillState = { name: pf.name, parsed: r, replace: false, text: pf.text };
-    if (r.skipped) return render(); // not by the template: show what was recognised and «✦ Розкласти весь файл з ШІ», do not move half of it silently
-    await applyFill();
+    return startWorldFolder(pf);
+  }
+  // the visible progress of «📂 Тека світу»: a fixed card on top of the page (outlives render()) — steps, a bar, the current file, the time
+  var FP = null, FP_W = [0, 5, 35, 50, 100]; // the bar: where each step starts, %
+  function progOpen(name) {
+    if (FP) { clearInterval(FP.timer); FP.el.remove(); }
+    var el = document.createElement("div"); el.className = "fprog"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite");
+    document.body.appendChild(el);
+    FP = { el: el, name: name, step: 0, d: 0, n: 1, line: "", state: "run", t0: Date.now() };
+    FP.timer = setInterval(progDraw, 1000);
+  }
+  function prog(step, d, n, line, state) { if (!FP) return; FP.step = step; FP.d = d; FP.n = n || 1; FP.line = line; FP.state = state || "run"; if (FP.state !== "run" && FP.state !== "wait") clearInterval(FP.timer); progDraw(); }
+  function progClose() { if (!FP) return; clearInterval(FP.timer); FP.el.remove(); FP = null; }
+  function progDraw() {
+    if (!FP) return;
+    var P = STR.wfold.prog, f = FP, sec = Math.floor((Date.now() - f.t0) / 1000), end = f.state === "done" || f.state === "fail";
+    var pct = f.state === "done" ? 100 : FP_W[f.step] + (FP_W[f.step + 1] - FP_W[f.step]) * Math.min(1, f.d / f.n);
+    f.el.innerHTML = '<div class="fprog-box' + (f.state === "fail" ? ' is-fail' : f.state === "done" ? ' is-done' : '') + '">' +
+      '<div class="fprog-h"><span class="fprog-ico" aria-hidden="true">📂</span><b>' + esc(P.title.replace("{d}", f.name)) + '</b><span class="fprog-time">⏱ ' + Math.floor(sec / 60) + ':' + ('0' + sec % 60).slice(-2) + '</span></div>' +
+      '<ol class="fprog-steps">' + P.steps.map(function (t, i) { var ok = f.state === "done" || i < f.step; return '<li class="' + (ok ? 'is-done' : i === f.step ? 'is-on' : '') + '">' + (ok ? '✓ ' : '') + esc(t) + '</li>'; }).join("") + '</ol>' +
+      '<div class="fprog-bar' + (f.state === "run" ? ' is-busy' : '') + '"><i style="width:' + Math.round(pct) + '%"></i></div>' +
+      '<p class="fprog-line">' + (f.state === "run" ? '<span class="fprog-spin" aria-hidden="true"></span>' : '') + esc(f.line) + '</p>' +
+      (end ? '' : '<p class="fprog-note">' + esc(P.stay) + '</p>') +
+      '<div class="row">' + (f.state === "done" ? '<button class="btn primary" data-fp="show">' + esc(P.show) + '</button>' : '') + '<button class="btn ghost mini" data-fp="x">' + esc(end ? P.close : P.hide) + '</button></div></div>';
+    f.el.querySelectorAll("[data-fp]").forEach(function (b) { b.onclick = function () {
+      if (b.dataset.fp === "show") { var r = $("fill-res"); if (r) r.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      if (end) progClose(); else f.el.hidden = true; // hidden, not stopped: the sorting goes on, the card comes back when it ends
+    }; });
   }
   // «📂 Тека світу» of the new-world form (flow.jsx): ✦ the AI looks through the list (worldFolder {scout}) and picks what holds the world →
   // those files are read on the PC (scripts / Unity data — only what a designer reads, inReadText) → worldFolder in batches → the fill preview
   async function startWorldFolder(pf) {
-    var Y = STR.folder, X = STR.wfold;
-    if (!canFolder) { fillState = { msg: Y.lock }; return render(); }
+    var Y = STR.folder, X = STR.wfold, P = X.prog;
+    progOpen(pf.name || "");
+    if (!canFolder) { fillState = { msg: Y.lock }; prog(0, 0, 1, Y.lock, "fail"); return render(); }
     var ents = [];
     pf.folder.forEach(function (f) {
       var rel = (f.webkitRelativePath || f.name).split("/").slice(1).join("/") || f.name, code = IN_READ_CODE.test(rel) || IN_READ_DATA.test(rel);
@@ -1839,34 +1869,41 @@
       if (code ? f.size > IN_READ_MAX : (!FOLDER_TEXT.test(f.name) || f.size > 2 * 1048576)) return;
       ents.push({ f: f, rel: rel, r: code, i: ents.length });
     });
-    if (!ents.length) { fillState = { msg: Y.empty }; return render(); }
+    if (!ents.length) { fillState = { msg: Y.empty }; prog(0, 0, 1, Y.empty, "fail"); return render(); }
     var chunks = [], line = function (x) { return x.i + "|" + x.p + "|" + Math.max(1, Math.round(x.s / 1024)); };
     for (var i = 0; i < ents.length; i += IN_SORT_MAX) chunks.push(ents.slice(i, i + IN_SORT_MAX).map(function (e) { return { i: e.i, p: e.rel, s: e.f.size }; }));
     var spent = 0, say = function (t) { fillState = { msg: t }; fillRedraw(); };
+    var fail = function (t) { say(t); prog(FP ? FP.step : 0, 0, 1, t, "fail"); if (FP) FP.el.hidden = false; };
+    var cancelled = function () { say(P.cancelled); prog(FP ? FP.step : 0, 0, 1, P.cancelled, "fail"); };
     fillState = { msg: X.ask.replace("{d}", pf.name || "").replace("{n}", ents.length) }; render();
+    prog(1, 0, 1, P.list.replace("{n}", ents.length) + " · " + P.wait, "wait");
     confirmCost("worldFolderScout", async function () {
       var read = [];
       for (var k = 0; k < chunks.length; k++) {
         say(X.scouting.replace("{d}", k + 1).replace("{n}", chunks.length));
+        prog(1, k, chunks.length, P.scout.replace("{d}", k + 1).replace("{n}", chunks.length));
         try { var d = await fnCall("worldFolder", { worldId: worldId, scout: true, list: chunks[k], language: LANG }); read = read.concat(d.read || []); spent += d.tokensConsumed || 0; }
-        catch (e) { return say(STR.failed + ": " + e.message); }
+        catch (e) { return fail(STR.failed + ": " + e.message); }
       }
       var files = [], chars = 0;
       for (var q = 0; q < read.length; q++) {
         var e = ents[read[q]]; if (!e) continue;
         say(X.readingFiles.replace("{d}", q + 1).replace("{n}", read.length));
+        prog(2, q, read.length, P.read.replace("{d}", q + 1).replace("{n}", read.length).replace("{f}", e.rel));
         var t = e.r ? await inReadText(e) : (await e.f.text().catch(function () { return ""; })).replace(/^﻿/, "").trim();
         if (t) { t = t.slice(0, WORLD_FOLDER_MAX); files.push({ path: e.rel, text: t }); chars += t.length; }
       }
-      if (!files.length) return say(X.nothing);
+      if (!files.length) return fail(X.nothing);
       var batches = [], cur = [], n = 0;
       files.forEach(function (f) { if (cur.length && (n + f.text.length > WORLD_FOLDER_MAX || cur.length >= 500)) { batches.push(cur); cur = []; n = 0; } cur.push(f); n += f.text.length; });
       if (cur.length) batches.push(cur);
       say(X.picked.replace("{n}", files.length).replace("{c}", chars.toLocaleString()).replace("{a}", ents.length));
+      prog(3, 0, 1, X.picked.replace("{n}", files.length).replace("{c}", chars.toLocaleString()).replace("{a}", ents.length) + " " + P.wait, "wait"); if (FP) FP.el.hidden = false;
       confirmCost("worldFolder", async function () {
         var fills = [], bad = [];
         for (var b = 0; b < batches.length; b++) {
           say(STR.folder.busy.replace("{d}", pf.name || "").replace("{n}", files.length) + " · " + X.part.replace("{d}", b + 1).replace("{n}", batches.length));
+          prog(3, b, batches.length, P.sort.replace("{d}", b + 1).replace("{n}", batches.length).replace("{m}", batches[b].length));
           try { var r = await fnCall("worldFolder", { worldId: worldId, files: batches[b], language: LANG }); if (r.fill) fills.push(r.fill); spent += r.tokensConsumed || 0; (r.badParts || []).length && bad.push(b + 1); }
           catch (er) { bad.push(b + 1); if (er.code === "OUT_OF_TOKENS" || er.code === "PLAN_REQUIRED") break; }
         }
@@ -1874,8 +1911,11 @@
         fillState = parsed.error ? { msg: STR.failed + ": " + parsed.error } : { name: Y.name.replace("{d}", pf.name || ""), folder: true, parsed: parsed, replace: false,
           note: [X.readN.replace("{n}", files.length).replace("{a}", ents.length), bad.length ? Y.bad.replace("{p}", bad.join(", ")) : "", spent ? STR.spent + ": " + spent : ""].filter(Boolean).join(" · ") };
         fillRedraw();
-      }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.reduce(function (z, f) { return z + f.text.length; }, 0)); }, 0));
-    }, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n").length); }, 0));
+        if (parsed.error) return fail(fillState.msg);
+        prog(4, 1, 1, P.done, "done"); if (FP) FP.el.hidden = false;
+        var fb = document.querySelector(".fillbox"); if (fb) { fb.open = true; fb.scrollIntoView({ behavior: "smooth", block: "start" }); }
+      }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.reduce(function (z, f) { return z + f.text.length; }, 0)); }, 0), cancelled);
+    }, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n").length); }, 0), cancelled);
   }
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
   function bindFillRes() {
@@ -5429,7 +5469,7 @@
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   // «не більше N» for an AI action on a known input (paid-features quoteChars) — the server reserves the same N and never charges more
   function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, (window.__wwUser || {}).aiModel) : 0; }
-  function confirmCost(op, run, cap) {
+  function confirmCost(op, run, cap, onCancel) {
     if (!ME.owner && ME.role !== "admin") return notify(STR.team.noAi);
     var box = document.createElement("div");
     box.className = "ask";
@@ -5437,11 +5477,11 @@
       '<p class="warn">' + esc((cap ? STR.costCap : op === "cosmograph" ? STR.cosmo.costText : op === "marketing" ? MK.costText : STR.costText).replace("{op}", STR.ops[op] || op).replace("{n}", cap ? cap.toLocaleString() : costOf(op))) + '</p>' +
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.costGo + '</button></div></form>';
     document.body.appendChild(box);
-    var close = function () { box.remove(); };
+    var close = function () { box.remove(); }, cancel = function () { close(); if (onCancel) onCancel(); };
     box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); close(); run(); };
-    box.querySelector("#ask-x").onclick = close;
-    box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
-    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    box.querySelector("#ask-x").onclick = cancel;
+    box.addEventListener("mousedown", function (ev) { if (ev.target === box) cancel(); });
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); cancel(); } });
     box.querySelector("#ask-ok").focus();
   }
 

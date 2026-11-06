@@ -258,6 +258,25 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
   box-shadow:0 24px 60px #000c, 0 0 0 1px #0006; padding:20px 22px 18px; display:grid; gap:12px; }
 .ask-box h3{ margin:0; font-size:17px; }
 .ask-box.is-long{ width:min(640px,calc(100vw - 40px)); }
+/* «📂 Тека світу» progress: a fixed card at the bottom right, under the price dialog */
+.fprog{ position:fixed; right:20px; bottom:20px; z-index:35; width:min(440px,calc(100vw - 40px)); }
+.fprog-box{ background:var(--bg-1); border:1px solid rgba(240,169,59,.45); border-radius:14px; box-shadow:0 18px 48px #000c; padding:16px 18px 14px; display:grid; gap:10px; }
+.fprog-box.is-done{ border-color:var(--s-game); } .fprog-box.is-fail{ border-color:var(--s-redo); }
+.fprog-h{ display:flex; align-items:center; gap:10px; } .fprog-h b{ flex:1; min-width:0; font-family:var(--serif); font-size:16px; color:var(--tx-hi); overflow-wrap:anywhere; }
+.fprog-ico{ font-size:26px; line-height:1; } .fprog-time{ font-size:12.5px; color:var(--tx-mid); font-variant-numeric:tabular-nums; }
+.fprog-steps{ list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; }
+.fprog-steps li{ font-size:12px; padding:3px 9px; border-radius:999px; border:1px solid var(--line-2); color:var(--tx-low); }
+.fprog-steps li.is-on{ color:var(--gold-bright); border-color:var(--gold-lit); background:var(--gold-soft); } .fprog-steps li.is-done{ color:var(--s-game); border-color:rgba(95,191,138,.5); } .is-fail .fprog-steps li.is-on{ color:var(--s-redo); border-color:var(--s-redo); background:none; }
+.fprog-bar{ height:8px; border-radius:999px; background:var(--bg-3); overflow:hidden; }
+.fprog-bar i{ display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--gold),var(--gold-lit)); transition:width .4s ease; }
+.fprog-bar.is-busy i{ background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.22) 0 8px,transparent 8px 16px),linear-gradient(90deg,var(--gold),var(--gold-lit)); background-size:22px 22px,100% 100%; animation:fprogstripe .8s linear infinite; }
+.is-done .fprog-bar i{ background:var(--s-game); } .is-fail .fprog-bar i{ background:var(--s-redo); }
+@keyframes fprogstripe{ to{ background-position:22px 0,0 0; } }
+.fprog-line{ margin:0; font-size:13.5px; line-height:1.5; color:var(--tx-hi); overflow-wrap:anywhere; } .is-fail .fprog-line{ color:var(--s-redo); }
+.fprog-note{ margin:0; font-size:12px; color:var(--tx-low); }
+.fprog-spin{ display:inline-block; width:12px; height:12px; margin-right:8px; vertical-align:-1px; border:2px solid var(--gold-lit); border-right-color:transparent; border-radius:50%; animation:fprogspin .8s linear infinite; }
+@keyframes fprogspin{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce){ .fprog-bar.is-busy i, .fprog-spin{ animation:none; } }
 .ng-concepts{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:10px 0; } .ng-concept{ border:1px solid var(--line-2); border-radius:12px; padding:12px 14px; background:var(--bg-2); display:flex; flex-direction:column; gap:4px; } .ng-concept h3{ margin:0; } .ng-concept p{ margin:0; } .ng-concept .btn{ margin-top:auto; align-self:flex-start; } .ng-concept.is-on{ border-color:var(--gold-lit); }
 .sfr-list{ display:grid; gap:10px; max-height:60vh; overflow:auto; } .sfr-list pre{ margin:6px 0 0; white-space:pre-wrap; }
 .ask-box textarea{ min-height:180px; resize:vertical; font:inherit; font-size:15px; line-height:1.5; color:inherit; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:10px 12px; }
