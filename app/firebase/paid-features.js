@@ -158,6 +158,10 @@ const FEATURES = [
     uk: { name: 'Аудіотека', desc: 'Усі звуки й треки гри в одному місці: «⤒ Звуки» — багато файлів одразу, ▶ на картках, слоти Фабрики звуку беруть звук з Аудіотеки або новий файл, видно, чого бракує. Без токенів; файли — у межах ліміту тарифу (20 / 200 МБ).' },
     en: { name: 'Audio library', desc: 'Every sound and track of the game in one place: “⤒ Sounds” — many files at once, ▶ on the cards, Sound factory slots take a sound from the library or a new file, and you see what is missing. No tokens; files within the plan limit (20 / 200 MB).' },
     where: 'GDD гри → Звук і музика → 🎧 Аудіотека', server: 'firestore.rules · storage.rules · MCP get_audio_library (allowAPI)' },
+  { id: 'gameFolderIntake', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
+    uk: { name: '📂 Тека гри', desc: 'Будь-яка тека проєкту будь-якого розміру: картинки, моделі, префаби, звуки, матеріали, анімації розкладаються по розділах гри за шляхом (персонажі канону — на їхні картки), видно план із галочками й прогрес; повторний вибір теки продовжує з місця. Файли — без токенів, у межах ліміту тарифу (20 / 200 МБ на файл); тексти — ✦ імпорт пачками (Worldbuilder).' },
+    en: { name: '📂 Game folder', desc: 'Any project folder of any size: pictures, models, prefabs, sounds, materials, animations go into the game sections by their path (canon characters onto their cards), with a ticked plan and progress; picking the folder again resumes. Files — no tokens, within the plan limit (20 / 200 MB a file); texts — the ✦ import in packs (Worldbuilder).' },
+    where: 'Форма нової гри · Огляд гри', server: 'storage.rules (ownerGameDev 20 / 200 МБ) · firestore.rules cards · тексти — gamedevPlan import (mdImport)' },
   { id: 'voiceCast', kind: 'gate', flag: 'allowGameDesign', minPlan: 'free',
     uk: { name: 'Голоси й озвучка діалогів', desc: 'Голос кожного персонажа (сервіс, голос, мова, темп, висота), слот озвучки біля кожної репліки, безкоштовна проба голосом браузера, сценарій озвучки CSV і завантаження файлів за ключами локалізації.' },
     en: { name: 'Voices & dialogue voice-over', desc: 'A voice per character (service, voice, language, speed, pitch), a voice slot by every line, a free try with the browser voice, the voice-over script as CSV and uploading files by localisation keys.' },
@@ -246,7 +250,7 @@ const FEATURES = [
   { id: 'worldFolder', kind: 'ai', flag: 'allowFolderFill', minPlan: 'storyteller', price: { quote: { partChars: 20000, outPerPart: 12000 } }, op: 'worldFolder', // the folder known → «не більше N»
     uk: { name: '📂 Завантажити теку світу ✦', desc: 'Обираєш теку з нотатками — ШІ розкладає текстові файли по розділах канону за правилами «що куди», ти бачиш, що додасться, і натискаєш «Перенести в світ». Ціна — за обсягом теки, не більше показаної.' },
     en: { name: '📂 Upload a world folder ✦', desc: 'Pick a folder of notes — AI sorts the text files into the canon sections by the «what goes where» rules, you see what will be added and press «Move into the world». Priced by the folder size, never above the shown price.' },
-    where: 'Біблія світу → Огляд світу · форма нового світу', server: 'worldFolder' },
+    where: 'Біблія світу → Огляд світу', server: 'worldFolder' },
   { id: 'kbHelper', kind: 'free', minPlan: 'free', limit: { perDay: 20 }, // Haiku, the base in a cached prompt: < $0.001 a question — we pay it
     uk: { name: 'Запитай Базу знань', desc: 'Поле вгорі Бази знань: коротка відповідь лише з її статей і посилання на них. Нічого не робить у сервісі. Безкоштовно, до 20 питань на добу.' },
     en: { name: 'Ask the Knowledge base', desc: 'A field at the top of the Knowledge base: a short answer only from its articles, with links to them. Does nothing in the service. Free, up to 20 questions a day.' },

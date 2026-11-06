@@ -292,6 +292,20 @@
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
       stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
       folder: { btn: "📂 Завантажити теку", hint: "Обери теку з нотатками — ШІ розкладе текстові файли (.md, .txt, .json…) по розділах канону, ти побачиш, що додасться, і натиснеш «Перенести в світ». Ціна — за обсягом теки, не більше показаної.", gameHint: "Обери теку з нотатками гри — текстові файли (.md, .txt…) підуть в імпорт ✦, ти відмітиш картки, які взяти.", lock: "📂 Теку світу з ШІ можна завантажити з тарифу Storyteller; без токенів — через свій ШІ-агент нижче.", busy: "ШІ розкладає теку «{d}» ({n} файлів)…", big: "Тека завелика: {n} символів, максимум {max}. Обери меншу теку або прибери з неї зайве.", empty: "У теці немає текстових файлів (.md, .txt, .json, .csv…). .docx і .pdf збережи як .md чи .txt.", bad: "Частини {p} не вдалося розкласти — спробуй теку меншою.", skipped: "пропущено не текстових файлів: {n}", name: "Тека «{d}»" },
+      intake: { btn: "📂 Тека гри", title: "Тека гри", hint: "Будь-яка тека проєкту будь-якого розміру: картинки, моделі, префаби, звуки, матеріали розкладуться по розділах гри за шляхом (без токенів), тексти — ✦ ШІ пачками. Спершу побачиш план, нічого не завантажиться без «Почати».",
+        formHint: "📂 Тека гри: обери теку проєкту — після «Створити гру» побачиш план, що куди ляже, і запустиш розбір.", reading: "Читаю теку… (усе лишається на твоєму ПК, доки не натиснеш «Почати»)",
+        introPlan: "Так ляже тека. Зніми галочки з того, що не потрібно, або перенеси групу в інший розділ. Файли — за шляхом, без токенів; тексти — ✦ ШІ, ти потім відмітиш, що взяти.",
+        introRun: "Файли й тексти розбираються паралельно. Можна працювати в інших розділах — кнопка внизу поверне сюди.",
+        summary: "{c} карток · {f} файлів · {s} · текстових файлів: {t}", textTitle: "Тексти (нотатки, документи, GDD)", textInfo: "{f} файлів · {c} символів → {p} пачок по ≤ 100 000 символів",
+        textOn: "Розібрати тексти ШІ — не більше {n} токенів за всі пачки", textLocked: "Тексти розбирає ✦ ШІ — з тарифу Worldbuilder. Файли розкладуться й так.",
+        tagCanon: "✓ до сутності канону", tagHave: "до наявної картки", tagNew: "нова картка", tagNoCanon: "⚠ немає в каноні — піде в «Ассети»", moveTo: "Перенести в розділ", more: "і ще {n} — теж увійдуть",
+        skipTitle: "Пропущено", skTool: "службові теки: {n}", skCode: "код і службові файли (.meta, .cs…): {n} — їх читає Claude Code / GitHub", skOther: "невідомі формати: {n}", skBigText: "текстові > 2 МБ: {n}", skEmpty: "порожні: {n}",
+        tooBig: "Більші за ліміт тарифу ({max}): {n} — не завантажаться", go: "Почати розбір", pause: "⏸ Пауза", resume: "▶ Далі", stop: "✕ Зупинити", stopQ: "Зупинити розбір? Уже завантажене лишиться; обереш ту саму теку ще раз — продовжиться з місця.",
+        retry: "↻ Повторити невдалі", review: "Переглянути пропозицію з текстів →", reviewHint: "Тексти розібрано — відкрий пропозицію й відміть, що взяти в гру.",
+        overall: "Усього", laneFiles: "⤒ Файли", laneText: "✦ Тексти", filesN: "{d} / {n} файлів", nFiles: "{n} файлів", packsN: "пачка {d} / {n}", pack: "Пачка {n}", dup: "вже були: {n}", now: "Зараз",
+        paused: "Пауза — поточні файли довантажуються, нові чекають.", failed: "Не вдалося: {n}", stopped: "Зупинено. Уже завантажене лишилось у грі.", done: "Готово: завантажено файлів — {f}, нових карток — {c}.",
+        resumeHint: "Закрив сторінку посеред розбору? Обери ту саму теку ще раз — файли, які вже є на картках (та сама назва й розмір), пропустяться.",
+        chip: "Тека гри", cont: "(продовження)", already: "Тека вже розбирається — дочекайся кінця або зупини її.", busy: "Тека ще розбирається в іншу гру — дочекайся кінця або зупини її, тоді відкривай іншу гру." },
       fill: { title: "📜 Заповни світ своїми матеріалами", lead: "Нотатки, документи, теки — усе, що вже написано про світ. Твій ШІ-агент (Claude Code, ChatGPT…) складе їх в один файл за шаблоном WhiteWrite, а сервіс лише перенесе дані в розділи — без токенів, на будь-якому тарифі.",
         dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code", tpl: "⤓ Шаблон і правила (.md)",
         s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
@@ -592,6 +606,20 @@
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
       stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
       folder: { btn: "📂 Upload a folder", hint: "Pick a folder of notes — AI sorts the text files (.md, .txt, .json…) into the canon sections, you see what will be added and press «Move into the world». Priced by the folder size, never above the shown price.", gameHint: "Pick a folder of game notes — the text files (.md, .txt…) go to the ✦ import, you tick the cards to take.", lock: "📂 A world folder with AI is from the Storyteller plan; without tokens — through your own AI agent below.", busy: "AI is sorting the folder «{d}» ({n} files)…", big: "The folder is too big: {n} characters, at most {max}. Pick a smaller folder or remove what is not needed.", empty: "The folder has no text files (.md, .txt, .json, .csv…). Save .docx and .pdf as .md or .txt.", bad: "Parts {p} could not be sorted — try a smaller folder.", skipped: "non-text files skipped: {n}", name: "Folder «{d}»" },
+      intake: { btn: "📂 Game folder", title: "Game folder", hint: "Any project folder of any size: pictures, models, prefabs, sounds, materials go into the game's sections by their path (no tokens), texts — ✦ AI in packs. You see the plan first; nothing uploads before «Start».",
+        formHint: "📂 Game folder: pick the project folder — after «Create game» you see the plan of what goes where and start the sorting.", reading: "Reading the folder… (everything stays on your PC until you press «Start»)",
+        introPlan: "This is how the folder lands. Untick what you do not need or move a group to another section. Files — by path, no tokens; texts — ✦ AI, then you tick what to take.",
+        introRun: "Files and texts are sorted side by side. You can work in other sections — the button at the bottom brings you back.",
+        summary: "{c} cards · {f} files · {s} · text files: {t}", textTitle: "Texts (notes, documents, GDD)", textInfo: "{f} files · {c} characters → {p} packs of ≤ 100,000 characters",
+        textOn: "Sort the texts with AI — at most {n} tokens for all packs", textLocked: "Texts are sorted by ✦ AI — from the Worldbuilder plan. The files are placed anyway.",
+        tagCanon: "✓ onto the canon entity", tagHave: "onto the existing card", tagNew: "new card", tagNoCanon: "⚠ not in the canon — goes to «Assets»", moveTo: "Move to section", more: "and {n} more — included too",
+        skipTitle: "Skipped", skTool: "tool folders: {n}", skCode: "code and tool files (.meta, .cs…): {n} — Claude Code / GitHub reads them", skOther: "unknown formats: {n}", skBigText: "texts > 2 MB: {n}", skEmpty: "empty: {n}",
+        tooBig: "Over the plan limit ({max}): {n} — will not upload", go: "Start sorting", pause: "⏸ Pause", resume: "▶ Continue", stop: "✕ Stop", stopQ: "Stop the sorting? What is uploaded stays; pick the same folder again to continue where it stopped.",
+        retry: "↻ Retry the failed", review: "Review the proposal from the texts →", reviewHint: "The texts are sorted — open the proposal and tick what goes into the game.",
+        overall: "Overall", laneFiles: "⤒ Files", laneText: "✦ Texts", filesN: "{d} / {n} files", nFiles: "{n} files", packsN: "pack {d} / {n}", pack: "Pack {n}", dup: "already there: {n}", now: "Now",
+        paused: "Paused — the current files finish, the new ones wait.", failed: "Failed: {n}", stopped: "Stopped. What is uploaded stays in the game.", done: "Done: files uploaded — {f}, new cards — {c}.",
+        resumeHint: "Closed the page mid-way? Pick the same folder again — files already on the cards (same name and size) are skipped.",
+        chip: "Game folder", cont: "(continued)", already: "A folder is already being sorted — wait for it or stop it.", busy: "A folder is still going into another game — wait for it or stop it, then open another game." },
       fill: { title: "📜 Fill the world with your material", lead: "Notes, documents, folders — whatever is already written about the world. Your AI agent (Claude Code, ChatGPT…) puts it into one file by the WhiteWrite template, and the service only moves the data into the sections — no tokens, on any plan.",
         dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code", tpl: "⤓ Template and rules (.md)",
         s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
@@ -966,6 +994,7 @@
     leaveOk("", function () { enterGameNow(gid, sec); });
   }
   function enterGameNow(gid, sec) {
+    if (intake && intake.running && gid !== intake.G) return notify(STR.intake.busy); // the folder is still going into its game
     var to = sec && !isCanon(sec) ? sec : lastSec["g:" + gid] || "overview"; // picked before a game switch repaints
     mode = "game"; section = to; closeLeaf();
     if (gid === "__new") { unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; game = null; gameId = null; cards = []; planDoc = {}; }
@@ -1412,6 +1441,7 @@
     }
     if (!canGame) return renderGameLocked();
     if (!game) return renderNewGame();
+    if (intake && intake.view) return renderIntake();
     if (imp) return renderImport();
     var s = sec(section);
     if (!query && devLocked(s)) return renderDevLocked(s);
@@ -1437,7 +1467,7 @@
     var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? worldNameHtml() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
-        (gov && canWrite && canDev ? '<label class="btn" title="' + esc(STR.folder.gameHint) + '"><input type="file" id="ov-folder" hidden webkitdirectory multiple>' + STR.folder.btn + costMark("import") + '</label>' : '') + // «📂 Завантажити теку» → the ✦ import
+        (gov && canWrite ? '<label class="btn" title="' + esc(STR.intake.hint) + '"><input type="file" id="ov-folder" hidden webkitdirectory multiple>' + STR.intake.btn + '</label>' : '') + // «📂 Тека гри» → files by path + texts ✦ (startIntake)
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
@@ -1453,6 +1483,7 @@
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
+    if ($("ov-folder")) $("ov-folder").onchange = function () { var list = [].slice.call(this.files || []); this.value = ""; if (list.length) startIntake(list); }; // «📂 Тека гри» on «Огляд гри»
     var alt = $("alib-tog"); if (alt) alt.onclick = function () { audioLib = !audioLib; render(); };
     var alq = $("alib-q"); if (alq) alq.oninput = function () { alibQ = alq.value; $("alib-list").innerHTML = audioLibList(); };
     var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
@@ -1810,7 +1841,6 @@
     if (r.skipped) return render(); // not by the template: show what was recognised and «✦ Розкласти весь файл з ШІ», do not move half of it silently
     await applyFill();
   }
-  function folderMarkdown(F) { return F.files.map(function (f) { return "# " + f.path + "\n\n" + f.text.trim(); }).join("\n\n"); } // a game folder → one .md for the import
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
   function bindFillRes() {
     if ($("fill-rep")) $("fill-rep").onchange = function () { fillState.replace = this.checked; fillRedraw(); };
@@ -4254,9 +4284,9 @@
       '<label class="field"><span>' + STR.gameName + '</span><input id="ng-title" placeholder="' + esc(STR.gameNamePh) + '"></label>' +
       '<label class="field"><span>' + STR.engine + '</span><select id="ng-engine">' + ENGINES.map(function (x) { return '<option value="' + x.id + '">' + esc(L(x)) + '</option>'; }).join("") + '</select></label>' +
       // the author's own material first: a .md from the PC (sorted by AI, no variants) or a description
-      (canDev ? '<div class="setrow"><label class="btn"><input type="file" id="ng-md" hidden accept=".md,.markdown,.txt,text/markdown,text/plain">' + STR.ngMd + costMark("import") + '</label>' +
-        '<label class="btn"><input type="file" id="ng-folder" hidden webkitdirectory multiple>' + STR.folder.btn + costMark("import") + '</label><span class="hint" id="ng-mdname"></span></div><p class="hint">' + esc(STR.ngMdHint) + '</p>'
-        : '<p class="hint">' + esc(STR.ngMdLocked) + '</p>') +
+      '<div class="setrow">' + (canDev ? '<label class="btn"><input type="file" id="ng-md" hidden accept=".md,.markdown,.txt,text/markdown,text/plain">' + STR.ngMd + costMark("import") + '</label>' : '') +
+        '<label class="btn" title="' + esc(STR.intake.hint) + '"><input type="file" id="ng-folder" hidden webkitdirectory multiple>' + STR.intake.btn + '</label><span class="hint" id="ng-mdname"></span></div>' +
+        '<p class="hint">' + esc(canDev ? STR.ngMdHint : STR.ngMdLocked) + ' ' + esc(STR.intake.formHint) + '</p>' +
       '<label class="field"><span>' + STR.ngDesc + '</span><textarea id="ng-desc" rows="3" maxlength="3000" placeholder="' + esc(STR.ngDescPh) + '"></textarea></label>' +
       (canDev && canonN ? '<div id="ng-cbox"><div class="setrow"><button class="btn" id="ng-conc">' + STR.conc.btn + costMark("concepts") + '</button></div><p class="hint" id="ng-chint">' + esc(STR.conc.hint) + '</p><div id="ng-concepts" class="ng-concepts"></div>' +
         '<div class="setrow" id="ng-minrow" hidden><button class="btn" id="ng-min">' + STR.ngMin + '</button><span class="hint">' + esc(STR.ngMinHint) + '</span></div></div>' : '') +
@@ -4268,19 +4298,19 @@
     if ($("ng-md")) $("ng-md").onchange = async function () {
       var f = this.files && this.files[0]; this.value = ""; if (!f) return;
       if (f.size > 2 * 1024 * 1024) { $("ng-mdname").textContent = STR.fileTooBig; return; }
-      mdText = (await f.text()).trim();
+      mdText = (await f.text()).trim(); folder = null;
       $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText.length).toLocaleString()) : "";
       if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
       if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
       picked = mdText ? null : picked;
     };
-    if ($("ng-folder")) $("ng-folder").onchange = async function () { // «📂 Завантажити теку»: the folder's text files → one .md → the same import
+    var folder = null; // «📂 Тека гри»: the picked files wait for «Створити гру», then the new game's intake plan opens (startIntake)
+    if ($("ng-folder")) $("ng-folder").onchange = function () {
       var list = [].slice.call(this.files || []); this.value = ""; if (!list.length) return;
-      var F = await readFolder(list, GAME_FOLDER_MAX);
-      if (F.error) { $("ng-mdname").textContent = F.error; return; }
-      mdText = folderMarkdown(F);
-      $("ng-mdname").textContent = STR.folder.name.replace("{d}", F.name) + " · " + F.files.length + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText.length).toLocaleString());
-      if (!$("ng-title").value.trim()) $("ng-title").value = F.name;
+      folder = list; mdText = "";
+      var name = (list[0].webkitRelativePath || list[0].name).split("/")[0];
+      $("ng-mdname").textContent = STR.folder.name.replace("{d}", name) + " · " + STR.intake.nFiles.replace("{n}", list.length.toLocaleString()) + " · " + fileSize(list.reduce(function (n, f) { return n + f.size; }, 0));
+      if (!$("ng-title").value.trim()) $("ng-title").value = name;
       if ($("ng-cbox")) $("ng-cbox").hidden = true;
       picked = null;
     };
@@ -4332,7 +4362,8 @@
           defs: sec("overview").defs.slice(), fields: { logline: $("ng-desc").value.trim() }, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; }
       }
       selectGame(id);
-      if (mdText) runImport({ op: "import", markdown: mdText }); // the game file → the import proposal (the author ticks what to take)
+      if (folder) startIntake(folder); // the folder → its plan: what goes where, the author ticks and presses «Почати»
+      else if (mdText) runImport({ op: "import", markdown: mdText }); // the game file → the import proposal (the author ticks what to take)
     };
     $("ng-x").onclick = function () { enterWorld(); };
   }
@@ -6075,7 +6106,6 @@
       html += '<section class="psec"><p>' + esc(MK.off) + '</p>' + (mkState && mkState.paidUntil ? '<p class="muted">' + MK.expired + '</p>' : '') +
         '<div class="row"><button class="btn primary" id="mk-on"' + (mkBusy ? ' disabled' : '') + '>' + MK.enable + costMark("marketing") + '</button></div></section>';
       $("view").innerHTML = html;
-    if ($("ov-folder")) $("ov-folder").onchange = function () { var list = [].slice.call(this.files || []); this.value = ""; if (list.length) startFolderImport(list); };
       $("mk-on").onclick = function () { confirmCost("marketing", function () { mkRun("…", function () { return mkCall({ op: "activate" }).then(function (d) { return d.tokensConsumed ? STR.spent + ": " + d.tokensConsumed : ""; }); }); }); };
       return;
     }
@@ -7009,13 +7039,279 @@
     [].forEach.call(v.querySelectorAll("[data-abstop]"), function (b) { b.onclick = function () { stopExperiment(b.dataset.abstop).catch(function (e) { exMsg = STR.failed + ": " + e.message; render(); }); }; });
   }
 
-  // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
-  async function startFolderImport(list) {
-    var F = await readFolder(list, GAME_FOLDER_MAX);
-    if (F.error) { imp = { error: F.error }; return render(); }
-    var text = folderMarkdown(F);
-    confirmCost("import", function () { runImport({ op: "import", markdown: text }); }, quoteOf("import", text.length));
+  // ---------- 📂 Тека гри: any folder of any size → the game's sections. Files are placed by their path (no AI, no tokens); the texts go to
+  // the ✦ import in packs. Read in the browser (webkitdirectory) — nothing leaves the PC before «Почати». Then two lanes run side by side:
+  // ⤒ files (3 at a time onto cards; name + size already on the card is skipped, so picking the same folder again resumes) and ✦ texts
+  // (packs ≤ GAME_FOLDER_MAX = gamedevPlan MAX_IMPORT_CHARS, one import each, merged into the usual proposal with ticks).
+  // intake.W / intake.G pin the game: another game cannot be opened while it runs.
+  var intake = null, inLast = 0, inTimer = 0;
+  var IN_EXT = { image: /\.(png|jpe?g|gif|webp|svg|bmp|tga|psd|tiff?|exr|hdr)$/i, model: /\.(glb|gltf|fbx|obj|stl|blend|max|ma|mb|c4d|3ds|dae|usdz?)$/i,
+    audio: /\.(wav|mp3|ogg|flac|aiff?|m4a)$/i, video: /\.(mp4|webm|mov)$/i, prefab: /\.(prefab|unitypackage|uasset|umap|unity|asset)$/i,
+    material: /\.(mat|sbsar|sbs|shadergraph)$/i, anim: /\.(anim|controller|overridecontroller|playable)$/i, font: /\.(ttf|otf|woff2?)$/i, archive: /\.(zip|rar|7z)$/i };
+  var IN_CODE = /\.(meta|cs|js|mjs|ts|cpp|c|h|hpp|hlsl|shader|cginc|compute|glsl|py|dll|so|exe|pdb|asmdef|asmref|csproj|sln|lock|log|tmp)$|(^|\/)\.[^\/]+$/i; // code is Claude Code's (GitHub repo), not the Bible's
+  var IN_PATH = [ // a folder name → the section; the shallowest one wins, models / prefabs / assets only when nothing else matched
+    ["refs", /^(refs?|references?|референс\S*|moodboards?|inspiration|натхнення|concepts?|concept.?art|концепт\S*)$/],
+    ["characters", /^(characters?|chars?|heroes|hero|npcs?|персонаж\S*|герої|герой)$/],
+    ["enemies", /^(enemies|enemy|monsters?|mobs?|bosses|boss|creatures?|вороги|ворог|монстр\S*|боси?)$/],
+    ["locations", /^(locations?|places?|локації|місця)$/],
+    ["levels", /^(levels?|maps?|scenes?|environments?|env|рівн\S*|мапи|карти|сцени)$/],
+    ["gear", /^(items?|weapons?|gear|equipment|armou?r|loot|props?|pickups?|предмети|зброя|спорядження)$/],
+    ["ui", /^(ui|gui|hud|icons?|interface|menus?|fonts?|інтерфейс|іконки)$/],
+    ["materials", /^(materials?|textures?|shaders?|матеріали|текстури)$/],
+    ["animation", /^(animations?|anims?|animators?|vfx|fx|effects?|particles?|анімаці\S*|ефекти)$/],
+    ["audio", /^(audio|sounds?|sfx|music|voice|vo|ambien\S*|звук\S*|музика|озвучка)$/]
+  ];
+  var IN_ASSETS = /^(models?|meshes|prefabs?|assets?|ассети|моделі|префаби)$/;
+  var IN_ENTITY = ["characters", "enemies", "locations", "levels", "gear"]; // a subfolder there is one thing (Characters/Viktoria/… → «Viktoria»)
+  var IN_FALLBACK = { image: "refs", video: "refs", model: "assets", prefab: "assets", archive: "assets", material: "materials", anim: "animation", font: "ui", audio: "audio" };
+  var IN_TARGETS = ["characters", "locations", "enemies", "levels", "gear", "assets", "materials", "animation", "audio", "ui", "scenes", "refs", "tech"];
+  function inKind(name) { for (var k in IN_EXT) if (IN_EXT[k].test(name)) return k; return ""; }
+  function inStem(n) { // «footstep_02.wav», «sword_albedo.png» → «footstep», «sword»: variations and texture maps share one card
+    var s = baseName(n), t;
+    do { t = s; s = s.replace(/[\s.\-]*(\d{1,3}|v\d+|var\d+|lod\d|final|diffuse|albedo|base ?colou?r|normal|rough\w*|metal\w*|ao|emissi\w*|height|mask)$/i, "").trim(); } while (s && s !== t);
+    return s || baseName(n);
   }
+  function inNorm(s) { return String(s || "").trim().toLowerCase().replace(/[\s_\-]+/g, " "); }
+  function inPlace(rel, kind) { // the path inside the folder → { sec, name, group, cat }
+    var segs = rel.split("/"), file = segs.pop(), low = segs.map(function (x) { return x.toLowerCase(); }), at = -1, sid = "", i;
+    for (i = 0; i < low.length && at < 0; i++) IN_PATH.forEach(function (p) { if (at < 0 && p[1].test(low[i])) { at = i; sid = p[0]; } });
+    for (i = 0; i < low.length && at < 0; i++) if (IN_ASSETS.test(low[i])) { at = i; sid = "assets"; }
+    if (at < 0) sid = IN_FALLBACK[kind] || "assets";
+    var rest = segs.slice(at + 1), entity = IN_ENTITY.indexOf(sid) >= 0, p;
+    p = entity ? { name: rest[0] || inStem(file), group: "" } : { name: sid === "refs" ? baseName(file) : inStem(file), group: rest.length ? rest[rest.length - 1] : "" };
+    p.sec = kind === "audio" ? "audio" : sid; p.cat = at >= 0 ? segs[at] : "";
+    return p;
+  }
+  function inMatch(g) { // the card a group lands on: the canon entity (characters / locations), an existing card of the game, else a new one
+    g.canonId = ""; g.onCard = ""; g.note = "";
+    if (sec(g.sec).canon) {
+      var e = entities.filter(function (x) { return x.kind === sec(g.sec).canon && inNorm(x.name || x.title) === inNorm(g.name); })[0];
+      if (e) g.canonId = e.id;
+      else { g.note = "noCanon"; g.sec = "assets"; g.group = g.group || g.cat; } // not in the canon: the files still come in, as assets
+    }
+    if (!g.canonId) {
+      var c = cards.filter(function (x) { return !x.canonRef && x.section === g.sec && inNorm(x.title) === inNorm(g.name); })[0];
+      if (c) g.onCard = c.id;
+    }
+    var have = cards.filter(function (x) { return x.id === (g.canonId || g.onCard); })[0];
+    g.have = {}; ((have && have.files) || []).forEach(function (f) { g.have[f.name + "|" + f.size] = 1; });
+  }
+  function inPacks(files) { // texts → packs for the import; a big file is cut and its pieces keep the path
+    var max = GAME_FOLDER_MAX - 400, packs = [], cur = "";
+    files.forEach(function (f) {
+      var body = f.text.trim();
+      for (var i = 0; i < body.length; i += max) {
+        var piece = "# " + f.path + (i ? " " + STR.intake.cont : "") + "\n\n" + body.slice(i, i + max);
+        if (cur && cur.length + piece.length + 2 > GAME_FOLDER_MAX) { packs.push(cur); cur = ""; }
+        cur += (cur ? "\n\n" : "") + piece;
+      }
+    });
+    if (cur) packs.push(cur);
+    return packs;
+  }
+  async function startIntake(list) {
+    if (intake && intake.running) return notify(STR.intake.already);
+    imp = null; intake = { reading: true, view: true, name: "" }; render();
+    var I = { W: worldId, G: gameId, name: "", view: true, stage: "plan", groups: [], byKey: {}, lic: [], tooBig: [], limit: (canDev ? 200 : 20) * 1048576,
+      skip: { tool: 0, code: 0, other: 0, empty: 0, bigText: 0 }, text: { files: [], chars: 0, packs: [], on: canDev, at: 0, done: [], failed: [], spent: 0, proposal: null },
+      up: { n: 0, done: 0, dup: 0, bytes: 0, sent: 0, cur: "", failed: [] } };
+    for (var i = 0; i < list.length; i++) {
+      var f = list[i], path = f.webkitRelativePath || f.name;
+      if (!I.name) I.name = path.split("/")[0];
+      var rel = path.split("/").slice(1).join("/") || f.name, dir = rel.split("/").slice(0, -1).join("/");
+      if (FOLDER_SKIP.test(rel)) { I.skip.tool++; continue; }
+      if (IN_CODE.test(rel)) { I.skip.code++; continue; }
+      if (!f.size) { I.skip.empty++; continue; }
+      if (isLicText(f)) { I.lic.push({ f: f, rel: rel, dir: dir }); continue; } // goes onto the cards of its folder: the licence chip reads it
+      if (FOLDER_TEXT.test(f.name)) {
+        if (f.size > 2 * 1048576) { I.skip.bigText++; continue; }
+        var t = (await f.text()).replace(/^﻿/, "");
+        if (t.trim()) { I.text.files.push({ path: rel, text: t }); I.text.chars += t.length; } else I.skip.empty++;
+        continue;
+      }
+      var kind = inKind(f.name);
+      if (!kind) { I.skip.other++; continue; }
+      if (f.size > I.limit) { I.tooBig.push(rel); continue; }
+      var p = inPlace(rel, kind), key = p.sec + "|" + inNorm(p.name) + "|" + inNorm(p.group), g = I.byKey[key];
+      if (!g) { g = I.byKey[key] = Object.assign(p, { key: key, files: [], bytes: 0, on: true, dirs: {} }); I.groups.push(g); }
+      g.files.push({ f: f, rel: rel }); g.bytes += f.size; g.dirs[dir] = 1;
+    }
+    I.lic.forEach(function (l) {
+      var gs = I.groups.filter(function (g) { return g.dirs[l.dir]; });
+      gs.forEach(function (g) { g.files.push({ f: l.f, rel: l.rel }); g.bytes += l.f.size; });
+      if (!gs.length) l.f.text().then(function (t) { I.text.files.push({ path: l.rel, text: t }); I.text.chars += t.length; I.text.packs = inPacks(I.text.files); });
+    });
+    I.groups.forEach(inMatch);
+    I.text.files.sort(function (a, b) { return a.path.localeCompare(b.path); });
+    I.text.packs = inPacks(I.text.files);
+    if (!I.groups.length && !I.text.files.length) { intake = null; imp = { error: STR.folder.empty }; return render(); }
+    intake = I; render();
+  }
+  function inTextCost(I) { return I.text.packs.reduce(function (n, p) { return n + quoteOf("import", p.length); }, 0); }
+  function inOn(I) { return I.groups.filter(function (g) { return g.on; }); }
+  function inBar(label, pct, tail) { return '<div class="ready"><span>' + esc(label) + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + pct + '%</b>' + (tail ? '<span class="muted">' + esc(tail) + '</span>' : '') + '</div>'; }
+  function inProgHtml() {
+    var I = intake, X = STR.intake, u = I.up, T = I.text, lanes = [], parts = [];
+    if (u.n) { var fp = u.bytes ? Math.min(100, Math.round(100 * u.sent / u.bytes)) : 100; parts.push(fp);
+      lanes.push(inBar(X.laneFiles, fp, X.filesN.replace("{d}", u.done).replace("{n}", u.n) + " · " + fileSize(u.sent) + " / " + fileSize(u.bytes) + (u.dup ? " · " + X.dup.replace("{n}", u.dup) : "")) +
+        (I.running && u.cur ? '<p class="muted">' + esc(X.now) + ': ' + esc(u.cur) + '</p>' : '')); }
+    if (T.on && T.packs.length) { var tp = Math.round(100 * T.at / T.packs.length); parts.push(tp);
+      lanes.push(inBar(X.laneText, tp, X.packsN.replace("{d}", T.at).replace("{n}", T.packs.length) + (T.spent ? " · " + STR.spent + ": " + T.spent : ""))); }
+    var all = parts.length ? Math.round(parts.reduce(function (a, b) { return a + b; }, 0) / parts.length) : 100;
+    var fails = u.failed.length + T.failed.length;
+    return inBar(X.overall, all) + lanes.join("") + (I.paused ? '<p class="hint">' + esc(X.paused) + '</p>' : '') +
+      (fails ? '<p class="warn">⚠ ' + esc(X.failed.replace("{n}", fails)) + '</p><ul class="contra">' + u.failed.slice(0, 20).map(function (x) { return '<li>' + esc(x.job.x.rel) + ' <span class="muted">— ' + esc(x.err) + '</span></li>'; }).join("") +
+        T.failed.map(function (x) { return '<li>' + esc(X.pack.replace("{n}", x.i + 1)) + ' <span class="muted">— ' + esc(x.err) + '</span></li>'; }).join("") + '</ul>' : '');
+  }
+  function inTick() { // the progress repaints at most 4 times a second, the rest of the page stays
+    var now = Date.now();
+    if (now - inLast < 250) { if (!inTimer) inTimer = setTimeout(function () { inTimer = 0; inTick(); }, 260); return; }
+    inLast = now;
+    if (intake && intake.view && $("in-prog")) $("in-prog").innerHTML = inProgHtml();
+    inChip();
+  }
+  function inChip() { // away from the intake view while it runs: a small button back to it
+    var c = $("in-chip"), show = intake && intake.text && !intake.view && (intake.running || intake.text.proposal && !intake.reviewed); // done: until the text proposal is looked at
+    if (!show) { if (c) c.remove(); return; }
+    if (!c) { c = document.createElement("button"); c.id = "in-chip"; c.className = "btn primary in-chip"; document.body.appendChild(c);
+      c.onclick = function () { intake.view = true; if (mode !== "game") { mode = "game"; section = "overview"; } render(); inChip(); }; }
+    var I = intake, p = []; if (I.up.n) p.push(I.up.bytes ? Math.round(100 * I.up.sent / I.up.bytes) : 100); if (I.text.on && I.text.packs.length) p.push(Math.round(100 * I.text.at / I.text.packs.length));
+    c.textContent = "📂 " + STR.intake.chip + " · " + (p.length ? Math.round(p.reduce(function (a, b) { return a + b; }, 0) / p.length) : 0) + "%";
+  }
+  function inUnload(e) { e.preventDefault(); e.returnValue = ""; }
+  function renderIntake() {
+    var I = intake, X = STR.intake;
+    if (I.reading) { $("view").innerHTML = '<header class="sec"><div><h1>📂 ' + esc(X.title) + '</h1></div></header><p class="pmsg">' + esc(X.reading) + '</p>'; return; }
+    var html = '<header class="sec"><div><h1>📂 ' + esc(X.title) + ' «' + esc(I.name) + '»</h1><p>' + esc(I.stage === "plan" ? X.introPlan : X.introRun) + '</p></div><div class="row">';
+    if (I.stage === "plan") html += '<button class="btn" id="in-x">' + STR.cancel + '</button><button class="btn primary" id="in-go"' + (inOn(I).length || (I.text.on && I.text.packs.length) ? '' : ' disabled') + '>' + X.go + '</button>';
+    else if (I.running) html += '<button class="btn" id="in-pause">' + (I.paused ? X.resume : X.pause) + '</button><button class="btn danger" id="in-stop">' + X.stop + '</button>';
+    else html += '<button class="btn" id="in-x">' + STR.close + '</button>' + (I.up.failed.length || I.text.failed.length ? '<button class="btn" id="in-retry">' + X.retry + '</button>' : '') +
+      (I.text.proposal && gameId === I.G ? '<button class="btn primary" id="in-review">' + X.review + '</button>' : '');
+    html += '</div></header>';
+    if (I.stage === "plan") {
+      var on = inOn(I), files = on.reduce(function (n, g) { return n + g.files.length; }, 0), bytes = on.reduce(function (n, g) { return n + g.bytes; }, 0);
+      html += '<p class="pmsg">' + esc(X.summary.replace("{c}", on.length).replace("{f}", files).replace("{s}", fileSize(bytes)).replace("{t}", I.text.files.length)) + '</p>';
+      if (I.text.files.length) html += '<section class="psec"><h2 class="group">📄 ' + esc(X.textTitle) + '</h2><p class="hint">' + esc(X.textInfo.replace("{f}", I.text.files.length).replace("{c}", I.text.chars.toLocaleString()).replace("{p}", I.text.packs.length)) + '</p>' +
+        (canDev ? '<label class="imp"><input type="checkbox" id="in-text"' + (I.text.on ? ' checked' : '') + '><span>' + esc(X.textOn.replace("{n}", inTextCost(I).toLocaleString())) + ' <span class="aicost">✦</span></span></label>' : '<p class="hint">' + esc(X.textLocked) + '</p>') + '</section>';
+      IN_TARGETS.forEach(function (sid) {
+        var gs = I.groups.filter(function (g) { return g.sec === sid; }); if (!gs.length) return;
+        var opts = IN_TARGETS.filter(function (t) { return !sec(t).canon && gameSectionsAll().some(function (s) { return s.id === t; }); });
+        html += '<section class="psec"><details' + (gs.length <= 40 ? ' open' : '') + '><summary><h2 class="group" style="display:inline-flex">' + esc(L(sec(sid))) + ' <span>' + gs.length + '</span></h2></summary>' +
+          gs.slice(0, 200).map(function (g) {
+            var i = I.groups.indexOf(g), tag = g.canonId ? X.tagCanon : g.onCard ? X.tagHave : g.note === "noCanon" ? X.tagNoCanon : X.tagNew;
+            return '<div class="inrow"><label class="imp"><input type="checkbox" data-ing="' + i + '"' + (g.on ? ' checked' : '') + '><span><b>' + esc(g.name) + '</b>' + (g.group ? ' <span class="muted">· ' + esc(g.group) + '</span>' : '') +
+              '<span class="muted"> — ' + esc(X.nFiles.replace("{n}", g.files.length)) + ' · ' + fileSize(g.bytes) + ' · ' + esc(tag) + '</span></span></label>' +
+              '<select data-insec="' + i + '" aria-label="' + esc(X.moveTo) + '">' + opts.concat(opts.indexOf(g.sec) < 0 ? [g.sec] : []).map(function (t) { return '<option value="' + t + '"' + (t === g.sec ? ' selected' : '') + '>' + esc(L(sec(t))) + '</option>'; }).join("") + '</select></div>';
+          }).join("") + (gs.length > 200 ? '<p class="muted">' + esc(X.more.replace("{n}", gs.length - 200)) + '</p>' : '') + '</details></section>';
+      });
+      var sk = I.skip, skipped = [sk.tool && X.skTool.replace("{n}", sk.tool), sk.code && X.skCode.replace("{n}", sk.code), sk.other && X.skOther.replace("{n}", sk.other), sk.bigText && X.skBigText.replace("{n}", sk.bigText), sk.empty && X.skEmpty.replace("{n}", sk.empty)].filter(Boolean);
+      if (skipped.length || I.tooBig.length) html += '<section class="psec"><h2 class="group">' + esc(X.skipTitle) + '</h2><p class="hint">' + esc(skipped.join(" · ")) + '</p>' +
+        (I.tooBig.length ? '<p class="warn">⚠ ' + esc(X.tooBig.replace("{n}", I.tooBig.length).replace("{max}", fileSize(I.limit))) + '</p><ul class="contra">' + I.tooBig.slice(0, 30).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') + '</section>';
+    } else {
+      html += '<section class="psec" id="in-prog">' + inProgHtml() + '</section>';
+      if (!I.running) html += '<p class="pmsg">' + esc(I.stopped ? X.stopped : X.done.replace("{f}", I.up.done - I.up.dup).replace("{c}", I.cardsMade || 0)) + '</p>' + (I.text.proposal ? '<p class="hint">' + esc(X.reviewHint) + '</p>' : '');
+      html += '<p class="hint">' + esc(X.resumeHint) + '</p>';
+    }
+    $("view").innerHTML = html;
+    var bind = function (id, fn) { if ($(id)) $(id).onclick = fn; };
+    bind("in-x", function () { intake = null; render(); });
+    bind("in-go", function () { if (I.text.on && I.text.packs.length) confirmCost("import", inRun, inTextCost(I)); else inRun(); });
+    bind("in-pause", function () { I.paused = !I.paused; render(); });
+    bind("in-stop", async function () { if (await askConfirm(X.stopQ, { danger: true })) { I.stop = true; I.stopped = true; I.paused = false; render(); } });
+    bind("in-retry", function () { inRun(true); });
+    bind("in-review", function () { imp = { proposal: I.text.proposal, spent: I.text.spent, off: {} }; I.view = false; I.reviewed = true; render(); inChip(); });
+    if ($("in-text")) $("in-text").onchange = function () { I.text.on = this.checked; render(); };
+    [].forEach.call(document.querySelectorAll("[data-ing]"), function (cb) { cb.onchange = function () { I.groups[+cb.dataset.ing].on = cb.checked; render(); }; });
+    [].forEach.call(document.querySelectorAll("[data-insec]"), function (s) { s.onchange = function () { var g = I.groups[+s.dataset.insec]; g.sec = s.value; inMatch(g); render(); }; });
+  }
+  async function inRun(retry) {
+    var I = intake; if (!I || I.running) return;
+    I.stage = "run"; I.running = true; I.stop = false; I.stopped = false; I.paused = false;
+    if (retry) { I.queue = I.up.failed.map(function (x) { return x.job; }); I.up.failed = []; I.text.redo = I.text.failed.map(function (x) { return x.i; }); I.text.failed = []; }
+    else {
+      I.queue = []; inOn(I).forEach(function (g) { g.files.forEach(function (x) { I.queue.push({ g: g, x: x }); }); });
+      I.up.n = I.queue.length; I.up.bytes = I.queue.reduce(function (n, j) { return n + j.x.f.size; }, 0); I.cardsMade = 0;
+      I.text.redo = I.text.on ? I.text.packs.map(function (p, i) { return i; }) : [];
+    }
+    window.addEventListener("beforeunload", inUnload);
+    render();
+    await Promise.all([inFiles(I), inText(I)]);
+    I.running = false; window.removeEventListener("beforeunload", inUnload);
+    if (intake === I) { render(); inChip(); }
+  }
+  var inWait = function (ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); };
+  async function inFiles(I) {
+    var worker = async function () {
+      while (I.queue.length && !I.stop) {
+        if (I.paused) { await inWait(400); continue; }
+        var job = I.queue.shift();
+        try { await inPut(I, job); } catch (e) { I.up.failed.push({ job: job, err: e.code || e.message || String(e) }); }
+        inTick();
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+  }
+  function inCard(I, g) { // the card of a group, made once even with three uploads racing for it
+    if (g.canonId) return Promise.resolve({ id: g.canonId, section: g.sec, src: "canon" });
+    if (g.onCard) return Promise.resolve({ id: g.onCard, section: g.sec });
+    if (!g.made) {
+      var s = sec(g.sec), id = newId("card"), fields = {};
+      if (g.group && groupKey(s)) fields[groupKey(s)] = g.group;
+      g.made = db.collection("worlds").doc(I.W).collection("games").doc(I.G).collection("cards").doc(id).set({ section: g.sec, title: g.name, status: "idea", note: "",
+        defs: (s.defs || CUSTOM_DEFS).slice(), fields: fields, order: Date.now() + I.groups.indexOf(g), createdAt: stamp(), updatedAt: stamp() })
+        .then(function () { g.onCard = id; I.cardsMade++; return { id: id, section: g.sec }; }, function (e) { g.made = null; throw e; });
+    }
+    return g.made;
+  }
+  async function inPut(I, job) { // one file → Storage + the card's files[] (as putFile, but pinned to the intake's game and without the automatic ✦ style check)
+    var g = job.g, f = job.x.f, card = await inCard(I, g);
+    if (g.have[f.name + "|" + f.size]) { I.up.dup++; I.up.done++; I.up.sent += f.size; return; } // already on the card: a resumed folder
+    I.up.cur = job.x.rel;
+    var id = newId("file"), path = "worlds/" + I.W + "/games/" + I.G + "/files/" + card.id + "/" + id + "-" + f.name.replace(/[\/\\#?\[\]*]/g, "_"), last = 0;
+    var task = firebase.storage().ref(path).put(f, { contentType: f.type || "application/octet-stream" });
+    task.on("state_changed", function (s) { I.up.sent += s.bytesTransferred - last; last = s.bytesTransferred; inTick(); });
+    try { await task; } catch (e) { I.up.sent -= last; throw e; }
+    var meta = { id: id, name: f.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: f.size, type: f.type || "", uploadedAt: Date.now() };
+    await localInfo(f, meta);
+    var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() };
+    if (card.src === "canon") { body.canonRef = card.id; body.hidden = false; } // the canon entity joins the game with its files
+    await db.collection("worlds").doc(I.W).collection("games").doc(I.G).collection("cards").doc(card.id).set(body, { merge: true });
+    g.have[f.name + "|" + f.size] = 1; I.up.done++;
+  }
+  async function inText(I) {
+    while (I.text.redo.length && !I.stop) {
+      if (I.paused) { await inWait(400); continue; }
+      var i = I.text.redo.shift();
+      try {
+        var d = await callFn({ op: "import", shelves: shelves(), markdown: I.text.packs[i], worldId: I.W, gameId: I.G });
+        I.text.done[i] = d.proposal; I.text.spent += d.tokensConsumed || 0;
+      } catch (e) {
+        I.text.failed.push({ i: i, err: e.message });
+        if (/OUT_OF_TOKENS|Недостатньо токенів|PLAN_REQUIRED/.test(e.message)) { I.text.redo.forEach(function (j) { I.text.failed.push({ i: j, err: e.message }); }); I.text.redo = []; }
+      }
+      I.text.at = I.text.done.filter(Boolean).length + I.text.failed.length; inTick();
+    }
+    var got = I.text.done.filter(Boolean);
+    if (got.length) I.text.proposal = inMerge(got);
+  }
+  function inMerge(list) { // the packs' proposals → one (as gamedev.js mergeImports): the same entity / card from two packs is one
+    var key = function () { return [].map.call(arguments, function (v) { return String(v || "").trim().toLowerCase(); }).join("|"); };
+    var out = { laws: [], canon: [], cards: [], contradictions: [], questions: [] }, canon = {}, cs = {}, laws = {};
+    list.forEach(function (r) {
+      (r.laws || []).forEach(function (l) { var k = key(l); if (!laws[k]) { laws[k] = 1; out.laws.push(l); } });
+      (r.canon || []).forEach(function (e) { var k = key(e.kind, e.name), p = canon[k];
+        if (!p) { canon[k] = e; out.canon.push(e); return; }
+        if (e.description && String(p.description || "").indexOf(e.description) < 0) p.description = [p.description, e.description].filter(Boolean).join("\n\n");
+        p.match = p.match || e.match; p.gameFields = Object.assign({}, e.gameFields, p.gameFields); });
+      (r.cards || []).forEach(function (c) { var k = key(c.section, c.title), p = cs[k];
+        if (!p) { cs[k] = c; out.cards.push(c); return; }
+        Object.keys(c.fields || {}).forEach(function (f) { p.fields = p.fields || {}; p.fields[f] = p.fields[f] ? p.fields[f] + "\n\n" + c.fields[f] : c.fields[f]; }); });
+      out.contradictions = out.contradictions.concat(r.contradictions || []); out.questions = out.questions.concat(r.questions || []);
+    });
+    return out;
+  }
+
+  // ---------- import .md: AI sorts the notes onto the shelves, the author ticks what goes in ----------
   function startImport(file) {
     var rd = new FileReader();
     rd.onload = async function () {
@@ -7789,7 +8085,7 @@
   function goSection(id, then) { leaveOk(id, function () { goSectionNow(id); if (then) then(); }); }
   function goSectionNow(id) {
     if (isCanon(id)) mode = "world"; else if (id !== "settings" && gameSections().some(function (s) { return s.id === id; })) mode = "game"; // a link across opens the other Bible
-    section = id; query = ""; imp = null; $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
+    section = id; query = ""; imp = null; if (intake) { intake.view = false; if (!intake.running && intake.stage === "plan") intake = null; } setTimeout(inChip, 0); $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
   // phones: the sections fold into a drawer under one «☰ section» button
   $("nav-toggle").addEventListener("click", function () { var o = $("spine").classList.toggle("is-open"); this.setAttribute("aria-expanded", String(o)); });

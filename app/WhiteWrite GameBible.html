@@ -795,6 +795,11 @@ button.lic{ cursor:pointer; } .lic i{ font-style:normal; opacity:.8; }
 .ready{ display:flex; align-items:center; gap:12px; margin:6px 0 10px; font-size:13px; color:var(--tx-mid); }
 .ready__bar{ flex:0 1 260px; height:8px; border-radius:6px; background:var(--bg-3); overflow:hidden; }
 .ready__bar i{ display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); }
+/* 📂 Тека гри: a plan row (tick + section picker) and the button back to a running intake */
+.inrow{ display:flex; align-items:center; gap:10px; justify-content:space-between; }
+.inrow .imp{ flex:1; min-width:0; }
+.inrow select{ flex:0 0 auto; max-width:190px; }
+.in-chip{ position:fixed; right:96px; bottom:22px; z-index:50; box-shadow:0 6px 22px rgba(0,0,0,.45); }
 .g-solid{ color:var(--s-game); } .g-partial{ color:var(--warn); } .g-missing{ color:var(--s-redo); }
 .p-blocker{ color:var(--s-redo); } .p-important{ color:var(--warn); } .p-important::before{ content:"\26A0  "; } .p-nice{ color:var(--s-idea); }
 .contra li{ margin:4px 0; }
