@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.81.0 (2026-11-06)
+**Version:** 2.81.1 (2026-11-06)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -581,7 +581,7 @@ quests (`QREFS` refs, `source.id`) and dialogues (`participants`, `location`, no
 ### 2.74 🧩 RPG Framework gaps (third step of 2.71)
 
 RPG Framework ships **`capabilities.json`** from 0.40.0 (package root; in a game: `Library/PackageCache/com.aizekhan.rpg-framework@<hash>/capabilities.json`), format `rpgframework.capabilities/1`: modules → capabilities `{ id «module.name» (stable, never reused; removed ones move to «missing»), title, status full|partial|planned, since, notes, api[], data[], ki? }` + `missing[]`; the framework's CI keeps it in step with the code and the version.
-- `functions/mechanics.js` (shared, window.__MECH): `parseCaps` (→ compact `{ version, released, caps: {id: {s, t, n, ki, m, since, a}}, missing }`), `FW_BUILTIN` (the 0.40.0 snapshot — used until the game reports its own), `capStatus`, `FW_CAPS` (template part → capability ids; unmapped parts keep the hand-written `FRAMEWORK` note), `CAT_MODULES` (category → modules offered for picks), `mechCaps(m)` (template parts + `m.fw.caps`), `frameworkGaps(m, man)` (every relied-on capability not `full` + `m.fw.need` as `custom`, with `m.fw.decisions[cap]` game|framework), `frameworkNote(tpl, sec, man)` (status from the manifest, the hand note kept as detail), `exportMech(..., man)` → `framework { version, relies_on, gaps }`.
+- `functions/mechanics.js` (shared, window.__MECH): `parseCaps` (→ compact `{ version, released, caps: {id: {s, t, n, ki, m, since, a}}, missing }`), `FW_BUILTIN` (the 0.41.0 snapshot — 86 capabilities, 8 gaps, equal to the framework's manifest of 2026-11-06 — used until the game reports its own), `capStatus`, `FW_CAPS` (template part → capability ids; unmapped parts keep the hand-written `FRAMEWORK` note), `CAT_MODULES` (category → modules offered for picks), `mechCaps(m)` (template parts + `m.fw.caps`), `frameworkGaps(m, man)` (every relied-on capability not `full` + `m.fw.need` as `custom`, with `m.fw.decisions[cap]` game|framework), `frameworkNote(tpl, sec, man)` (status from the manifest, the hand note kept as detail), `exportMech(..., man)` → `framework { version, relies_on, gaps }`.
 - Data: `games/{g}.framework` = the compact manifest + `source: 'project'`, `reportedAt` — **server only** (rules: affectedKeys guard), written by MCP `report_framework_capabilities {manifest}` (whole map replaced by `update`); mechanic card `mech.fw { caps[], need, decisions{cap: game|framework} }`; **`fwRequests/{uid}__{gameId}__{cap}`** `{ uid, worldId, gameId, game, cap, title, status, version, mechanic, at }` — the author writes / withdraws their own («📨 Попросити у фреймворку»), admins read (Account → «Запити до фреймворку», `White.html loadFwRequests`, grouped by capability, authors / games); deleted with the game (`removeGame`).
 - UI (`gamebible.js`): «🧩 Прогалини фреймворку» above the mechanics list (`fwGapsHtml`, decisions `fwDecide` — second click clears), the «🧩 RPG Framework» block on a mechanic's General tab (`mFwHtml`: relied-on capability chips, «＋ Можливість…» picker ordered by `CAT_MODULES`, «Чого бракує у фреймворку»), section notes `mfw` read `fwMan()` (game manifest, else the snapshot).
 - MCP: `report_framework_capabilities`, `get_mechanic` (manifest-aware, `framework_source` project|builtin), `get_project_overview.framework`; `get_guide unity_env` tells the agent where the file is and to resend it after updates. Registry `frameworkGaps` (any plan, no tokens). Tests: `tests/framework-gaps.test.cjs`, rules +7.
@@ -733,6 +733,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.81.1** RPG Framework 0.41.0: `FW_BUILTIN` = the framework's capabilities.json 0.41.0 (+ `combat.analytics`, `ai.adaptation`, module `telemetry` events / consent / http with KI-25; gaps 10 → 8); `FRAMEWORK` hand notes audited at 0.41.0 — UMCF adaptation (EnemyAdaptation, PlayerHabit, EnemyMove.SetAnswer) and analytics (CombatAnalytics, CombatTelemetry → our telemetry contract) exist, the angle (EnemyMove.MaxAngle) in moves / combos / feasibility; KB: UMCF framework strip, gaps list, telemetry connection via TelemetryModule.
 - **v2.81.0** 📂 Тека гри (§ 2.81): any folder of any size in the new-game form and on «Огляд гри» — files placed by path onto cards (canon entities, existing cards, new ones), texts in ✦ import packs, plan with ticks, two progress lanes, pause / stop / retry, resume by picking the folder again; the old text-only game folder (`folderMarkdown`, `startFolderImport`) removed; the stale «folder in the new-world form» note removed.
 - **v2.80.2** world from a .md not by the template: headings with numbering / emoji recognised, unknown sections listed (`skipped`) instead of silently dropped; the new world's Bible shows the preview with «✦ Розкласти весь файл з ШІ» (`worldFolder`, one file) instead of auto-applying half the file (§ «Заповни світ»).
 - **v2.80.1** E2E fixes (owner account, throwaway world): card links in computed results and check messages read as card names (`mechanics.js` `cardLabel` / `withCards` on the server — `exportMech`, MCP `get_mechanics`, `mechText`; the Bible sets `setCardNamer` over its live cards); closing a game card (✕, backdrop, Esc) asks before dropping unsaved edits (`leafSnap` / `leafClose`); the first click after editing a card field is no longer swallowed (re-render after the click lands).
@@ -830,5 +831,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-06 (v2.81.0)
+**Last updated:** 2026-11-06 (v2.81.1)
 **Maintained by:** WhiteWrite Team

@@ -3361,7 +3361,7 @@
     if (qed && e.target.matches && e.target.matches("[data-qopen]") && e.target.closest("#q-ed")) qed.open[e.target.dataset.qopen] = e.target.open; // quests & dialogues: the author's disclosures
     if (e.target.matches && e.target.matches("details.mpop")) { if (!e.target.open && e.target.dataset.mpick === mPickOpen) mPickOpen = ""; mPopPos(e.target); } }, true);
   // ---------- 🧩 RPG Framework gaps: what the mechanics rely on (mechanics.js FW_CAPS + the author's picks m.fw.caps) checked against the
-  // game's capabilities.json (games/{g}.framework — MCP report_framework_capabilities), else the built-in 0.40.0 snapshot.
+  // game's capabilities.json (games/{g}.framework — MCP report_framework_capabilities), else the built-in 0.41.0 snapshot.
   // A gap → the author decides: «⚙ Код гри» or «📨 Попросити у фреймворку» (card mech.fw.decisions + fwRequests/{uid}__{game}__{cap}) ----------
   var FWS = { uk: { title: "🧩 RPG Framework", gaps: "Прогалини фреймворку", ver: "версія {v}", fromProject: "з проєкту гри", builtin: "вбудований список — попроси Claude Code надіслати capabilities.json (get_guide unity_env)",
       none: "✓ Усе, на що спираються механіки, у фреймворку є.", mech: "Механіка", cap: "Можливість", state: "Стан", what: "Що відомо", decide: "Рішення",
