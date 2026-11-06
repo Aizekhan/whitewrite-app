@@ -562,15 +562,39 @@ function WorldForm({ onBack, onCreate, initial }) {
   const [creating, setCreating] = useFState(false);
   // «📂 Тека світу»: any folder (a whole game project too) → the new world's Bible lets ✦ the AI pick and read what holds the world (gamebible.js startWorldFolder)
   const [folder, setFolder] = useFState(null); // { name, list }
+  const [scan, setScan] = useFState(null); // { n } while the folder is being looked through
   const desc = description.trim();
   const plan = folder ? "folder" : !title.trim() && !desc ? "" : desc && ideas ? "ideas" : "empty";
-  function pickFolder(e) {
-    const list = [].slice.call(e.target.files || []); e.target.value = "";
+  function gotFolder(list) {
+    setScan(null);
     if (!list.length) return;
     const name = (list[0].webkitRelativePath || list[0].name).split('/')[0];
     setFolder({ name, list }); setIdeas(false);
     if (!title.trim()) setTitle(name);
   }
+  function pickFolder(e) { const list = [].slice.call(e.target.files || []); e.target.value = ""; gotFolder(list); }
+  // a whole Unity project holds hundreds of thousands of tool files (Library, Temp…): <input webkitdirectory> lists them all before it answers,
+  // minutes with nothing on the page. Chrome / Edge: walk the folder here, never entering the folders gamebible.js skips anyway (FOLDER_SKIP, IN_TECH_DIR), with a counter
+  const SKIP_DIR = /^(\.git|\.vs|\.idea|node_modules|Library|Temp|Logs|obj|Build|Builds|UserSettings|ProjectSettings|Packages|Plugins|Third[ _-]?Party|Vendor|Samples~?|Documentation~|Editor|TextMesh Pro|.*Framework.*|.*SDK.*)$/i;
+  async function walkFolder(e) {
+    if (creating) return;
+    if (!window.showDirectoryPicker) { setTimeout(() => setScan({ n: 0 }), 0); return; } // the browser's own picker (after the label has opened it): «looking through» until it answers or is cancelled
+    e.preventDefault();
+    let dir; try { dir = await window.showDirectoryPicker({ mode: "read" }); } catch (er) { return; } // cancelled
+    const list = []; setScan({ n: 0 });
+    const walk = async (h, rel) => {
+      for await (const [name, c] of h.entries()) {
+        if (c.kind === "directory") { if (!SKIP_DIR.test(name)) await walk(c, rel + name + "/"); continue; }
+        if (/\.meta$/i.test(name)) continue; // Unity's per-file meta, never read
+        const f = await c.getFile().catch(() => null); if (!f) continue;
+        try { Object.defineProperty(f, "webkitRelativePath", { value: dir.name + "/" + rel + name }); } catch (x) {}
+        list.push(f); if (list.length % 100 === 0) setScan({ n: list.length });
+      }
+    };
+    try { await walk(dir, ""); } catch (er) { console.warn("folder walk", er); }
+    gotFolder(list);
+  }
+  const folderInput = (el) => { if (el && !el.__ww) { el.__ww = 1; el.addEventListener("cancel", () => setScan(null)); } };
   async function submit() {
     if (!plan || creating) return;
     setCreating(true);
@@ -603,11 +627,15 @@ function WorldForm({ onBack, onCreate, initial }) {
               onChange={(e) => setDescription(e.target.value)} placeholder={t('worlds.descPlaceholder')} disabled={creating} />
           </label>
 
+          <input id="wf-folder-in" type="file" webkitdirectory="" multiple hidden onChange={pickFolder} disabled={creating} ref={folderInput} />
           {folder
             ? <div className="wf-folder is-picked"><span className="wf-folder__ico" aria-hidden="true">📂</span>
                 <span className="wf-folder__body"><b>{t('worlds.folderPicked').replace('{d}', folder.name).replace('{n}', folder.list.length)}</b><small>{t('worlds.folderHint')}</small></span>
                 <button type="button" className="link-back" onClick={() => setFolder(null)} disabled={creating}>{t('worlds.folderClear')}</button></div>
-            : <label className="wf-folder"><input type="file" webkitdirectory="" multiple hidden onChange={pickFolder} disabled={creating} />
+            : scan
+            ? <div className="wf-folder is-picked" role="status"><span className="wf-folder__ico" aria-hidden="true">⏳</span>
+                <span className="wf-folder__body"><b>{t('worlds.folderScan')}{scan.n ? ' ' + t('worlds.folderScanN').replace('{n}', scan.n.toLocaleString()) : ''}</b><small>{t('worlds.folderScanHint')}</small></span></div>
+            : <label className="wf-folder" htmlFor="wf-folder-in" onClick={walkFolder}>
                 <span className="wf-folder__ico" aria-hidden="true">📂</span>
                 <span className="wf-folder__body"><b>{t('worlds.folderBtn')}</b><small>{t('worlds.folderHint')}</small></span></label>}
 

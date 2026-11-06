@@ -239,6 +239,9 @@
       'worlds.folderHint': 'Маєш нотатки, лор, сценарії чи навіть увесь проєкт гри? Обери теку — ✦ ШІ сам знайде файли, де описано світ (персонажів, локації, фракції, історію, закони), прочитає їх і розкладе по розділах Біблії. Перед додаванням покаже, що знайшов, — нічого не потрапить у канон без твого «Перенести в світ». Ціна — перед кожним кроком, з тарифу Storyteller.',
       'worlds.plan_folder': 'Світ створиться, і в його Біблії ✦ ШІ перегляне теку: вибере, що читати, прочитає й покаже, що додасться — ціну побачиш перед кожним кроком.',
       'worlds.folderClear': 'Прибрати теку',
+      'worlds.folderScan': 'Переглядаю теку…',
+      'worlds.folderScanN': 'знайдено файлів: {n}',
+      'worlds.folderScanHint': 'Велика тека гри — до кількох хвилин. Службові теки Unity (Library, Temp, Packages…) не читаються.',
       'genesis.skip': 'Пропустити — почати з порожнього світу',
 
       // Worlds (world-first home)
@@ -677,6 +680,9 @@
       'worlds.folderHint': 'Got notes, lore, scripts or even a whole game project? Pick the folder — ✦ AI finds the files describing the world (characters, locations, factions, history, laws) itself, reads them and sorts them into the Bible sections. Before adding it shows what it found — nothing enters the canon until you press «Move into the world». The price is shown before each step, from the Storyteller plan.',
       'worlds.plan_folder': 'The world is created, and in its Bible ✦ AI looks through the folder: picks what to read, reads it and shows what will be added — you see the price before each step.',
       'worlds.folderClear': 'Remove the folder',
+      'worlds.folderScan': 'Looking through the folder…',
+      'worlds.folderScanN': 'files found: {n}',
+      'worlds.folderScanHint': 'A big game folder takes up to a few minutes. Unity tool folders (Library, Temp, Packages…) are not read.',
       'genesis.skip': 'Skip — start with an empty world',
 
       // Worlds (world-first home)
