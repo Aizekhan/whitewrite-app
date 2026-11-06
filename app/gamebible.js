@@ -299,7 +299,7 @@
         summary: "{c} карток · {f} файлів · {s} · текстових файлів: {t}", textTitle: "Тексти (нотатки, документи, GDD)", textInfo: "{f} файлів · {c} символів → {p} пачок по ≤ 100 000 символів",
         textOn: "Розібрати тексти ШІ — не більше {n} токенів за всі пачки", textLocked: "Тексти розбирає ✦ ШІ — з тарифу Worldbuilder. Файли розкладуться й так.",
         tagCanon: "✓ до сутності канону", tagHave: "до наявної картки", tagNew: "нова картка", tagNoCanon: "⚠ немає в каноні — піде в «Ассети»", moveTo: "Перенести в розділ", more: "і ще {n} — теж увійдуть",
-        skipTitle: "Пропущено", skTool: "службові теки: {n}", skCode: "код і службові файли (.meta, .cs…): {n} — їх читає Claude Code / GitHub", skOther: "невідомі формати: {n}", skBigText: "текстові > 2 МБ: {n}", skEmpty: "порожні: {n}",
+        skipTitle: "Пропущено", skTool: "службові теки: {n}", skCode: "код і службові файли (.meta, .cs…): {n} — їх читає Claude Code / GitHub", skDocs: "документація й налаштування фреймворків, плагінів, інструментів (README пакетів, CHANGELOG, CLAUDE.md, package.json…): {n} — це не дизайн гри", skOther: "невідомі формати: {n}", skBigText: "текстові > 2 МБ: {n}", skEmpty: "порожні: {n}",
         tooBig: "Більші за ліміт тарифу ({max}): {n} — не завантажаться", go: "Почати розбір", pause: "⏸ Пауза", resume: "▶ Далі", stop: "✕ Зупинити", stopQ: "Зупинити розбір? Уже завантажене лишиться; обереш ту саму теку ще раз — продовжиться з місця.",
         retry: "↻ Повторити невдалі", review: "Переглянути пропозицію з текстів →", reviewHint: "Тексти розібрано — відкрий пропозицію й відміть, що взяти в гру.",
         overall: "Усього", laneFiles: "⤒ Файли", laneText: "✦ Тексти", filesN: "{d} / {n} файлів", nFiles: "{n} файлів", packsN: "пачка {d} / {n}", pack: "Пачка {n}", dup: "вже були: {n}", now: "Зараз",
@@ -616,7 +616,7 @@
         summary: "{c} cards · {f} files · {s} · text files: {t}", textTitle: "Texts (notes, documents, GDD)", textInfo: "{f} files · {c} characters → {p} packs of ≤ 100,000 characters",
         textOn: "Sort the texts with AI — at most {n} tokens for all packs", textLocked: "Texts are sorted by ✦ AI — from the Worldbuilder plan. The files are placed anyway.",
         tagCanon: "✓ onto the canon entity", tagHave: "onto the existing card", tagNew: "new card", tagNoCanon: "⚠ not in the canon — goes to «Assets»", moveTo: "Move to section", more: "and {n} more — included too",
-        skipTitle: "Skipped", skTool: "tool folders: {n}", skCode: "code and tool files (.meta, .cs…): {n} — Claude Code / GitHub reads them", skOther: "unknown formats: {n}", skBigText: "texts > 2 MB: {n}", skEmpty: "empty: {n}",
+        skipTitle: "Skipped", skTool: "tool folders: {n}", skCode: "code and tool files (.meta, .cs…): {n} — Claude Code / GitHub reads them", skDocs: "docs and settings of frameworks, plugins, tools (package READMEs, CHANGELOG, CLAUDE.md, package.json…): {n} — not the game's design", skOther: "unknown formats: {n}", skBigText: "texts > 2 MB: {n}", skEmpty: "empty: {n}",
         tooBig: "Over the plan limit ({max}): {n} — will not upload", go: "Start sorting", pause: "⏸ Pause", resume: "▶ Continue", stop: "✕ Stop", stopQ: "Stop the sorting? What is uploaded stays; pick the same folder again to continue where it stopped.",
         retry: "↻ Retry the failed", review: "Review the proposal from the texts →", reviewHint: "The texts are sorted — open the proposal and tick what goes into the game.",
         overall: "Overall", laneFiles: "⤒ Files", laneText: "✦ Texts", filesN: "{d} / {n} files", nFiles: "{n} files", packsN: "pack {d} / {n}", pack: "Pack {n}", dup: "already there: {n}", now: "Now",
@@ -1814,7 +1814,7 @@
   }
   // a folder picked with <input webkitdirectory> (every browser, read only) → its text files; tool folders (.git, Unity's Library…) skipped
   var FOLDER_TEXT = /\.(md|markdown|txt|json|csv|tsv|ya?ml|xml|html?|fountain|org|rst|ini|toml)$/i;
-  var FOLDER_SKIP = /(^|\/)(\.git|\.vs|\.idea|node_modules|Library|Temp|Logs|obj|Build|Builds|UserSettings|Packages)\//;
+  var FOLDER_SKIP = /(^|\/)(\.git|\.vs|\.idea|node_modules|Library|Temp|Logs|obj|Build|Builds|UserSettings|ProjectSettings|Packages)\//;
   async function readFolder(list, max) {
     var Y = STR.folder, files = [], chars = 0, skipped = 0, name = "";
     for (var i = 0; i < list.length; i++) {
@@ -7055,6 +7055,8 @@
     audio: /\.(wav|mp3|ogg|flac|aiff?|m4a)$/i, video: /\.(mp4|webm|mov)$/i, prefab: /\.(prefab|unitypackage|uasset|umap|unity|asset)$/i,
     material: /\.(mat|sbsar|sbs|shadergraph)$/i, anim: /\.(anim|controller|overridecontroller|playable)$/i, font: /\.(ttf|otf|woff2?)$/i, archive: /\.(zip|rar|7z)$/i };
   var IN_CODE = /\.(meta|cs|js|mjs|ts|cpp|c|h|hpp|hlsl|shader|cginc|compute|glsl|py|dll|so|exe|pdb|asmdef|asmref|csproj|sln|lock|log|tmp)$|(^|\/)\.[^\/]+$/i; // code is Claude Code's (GitHub repo), not the Bible's
+  // texts that are not the game's design: docs of frameworks, engines, store packages and tools, agent instructions, configs — never read as notes
+  var IN_TECH_TEXT = /(^|\/)(Plugins|Third[ _-]?Party|Vendor|Samples~?|Documentation~|Editor|TextMesh Pro|[^\/]*Framework[^\/]*|[^\/]*SDK[^\/]*)\/|(^|\/)(CHANGELOG|CHANGES|CONTRIBUTING|CODE_OF_CONDUCT|SECURITY|CLAUDE|AGENTS|package(-lock)?|tsconfig|jsconfig|manifest|packages-lock|\.?editorconfig)(\.[^\/]+)?$/i;
   var IN_PATH = [ // a folder name → the section; the shallowest one wins, models / prefabs / assets only when nothing else matched
     ["refs", /^(refs?|references?|референс\S*|moodboards?|inspiration|натхнення|concepts?|concept.?art|концепт\S*)$/],
     ["characters", /^(characters?|chars?|heroes|hero|npcs?|персонаж\S*|герої|герой)$/],
@@ -7119,7 +7121,7 @@
     if (intake && intake.running) return notify(STR.intake.already);
     imp = null; intake = { reading: true, view: true, name: "" }; render();
     var I = { W: worldId, G: gameId, name: "", view: true, stage: "plan", ents: [], groups: [], byKey: {}, tooBig: [], limit: (canDev ? 200 : 20) * 1048576, ignored: [], sort: null,
-      skip: { tool: 0, code: 0, other: 0, empty: 0, bigText: 0 }, text: { files: [], chars: 0, packs: [], on: canDev, at: 0, done: [], failed: [], spent: 0, proposal: null },
+      skip: { tool: 0, code: 0, docs: 0, other: 0, empty: 0, bigText: 0 }, text: { files: [], chars: 0, packs: [], on: canDev, at: 0, done: [], failed: [], spent: 0, proposal: null },
       up: { n: 0, done: 0, dup: 0, bytes: 0, sent: 0, cur: "", failed: [] } };
     for (var i = 0; i < list.length; i++) { // every file the plan can place → I.ents (the AI sees this list; tool folders, code and empty files never reach it)
       var f = list[i], path = f.webkitRelativePath || f.name;
@@ -7130,6 +7132,7 @@
       if (!f.size) { I.skip.empty++; continue; }
       var e = { f: f, rel: rel, dir: dir, kind: isLicText(f) ? "lic" : FOLDER_TEXT.test(f.name) ? "text" : inKind(f.name) };
       if (e.kind === "text") {
+        if (IN_TECH_TEXT.test(rel)) { I.skip.docs++; continue; }
         if (f.size > 2 * 1048576) { I.skip.bigText++; continue; }
         e.text = (await f.text()).replace(/^\uFEFF/, "");
         if (!e.text.trim()) { I.skip.empty++; continue; }
@@ -7271,7 +7274,7 @@
       if (I.ignored.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + esc(X.ignTitle) + ' <span>' + I.ignored.reduce(function (n, x) { return n + x.ents.length; }, 0) + '</span></h2></summary><p class="hint">' + esc(X.ignHint) + '</p>' +
         I.ignored.map(function (x, k) { return '<label class="imp"><input type="checkbox" data-inback="' + k + '"' + (x.back ? ' checked' : '') + '><span><b>' + esc(x.reason || "—") + '</b><span class="muted"> — ' + esc(X.nFiles.replace("{n}", x.ents.length)) + ': ' +
           esc(x.ents.slice(0, 3).map(function (e) { return e.rel; }).join(", ")) + (x.ents.length > 3 ? " …" : "") + '</span></span></label>'; }).join("") + '</details></section>';
-      var sk = I.skip, skipped = [sk.tool && X.skTool.replace("{n}", sk.tool), sk.code && X.skCode.replace("{n}", sk.code), sk.other && X.skOther.replace("{n}", sk.other), sk.bigText && X.skBigText.replace("{n}", sk.bigText), sk.empty && X.skEmpty.replace("{n}", sk.empty)].filter(Boolean);
+      var sk = I.skip, skipped = [sk.tool && X.skTool.replace("{n}", sk.tool), sk.code && X.skCode.replace("{n}", sk.code), sk.docs && X.skDocs.replace("{n}", sk.docs), sk.other && X.skOther.replace("{n}", sk.other), sk.bigText && X.skBigText.replace("{n}", sk.bigText), sk.empty && X.skEmpty.replace("{n}", sk.empty)].filter(Boolean);
       if (skipped.length || I.tooBig.length) html += '<section class="psec"><h2 class="group">' + esc(X.skipTitle) + '</h2><p class="hint">' + esc(skipped.join(" · ")) + '</p>' +
         (I.tooBig.length ? '<p class="warn">⚠ ' + esc(X.tooBig.replace("{n}", I.tooBig.length).replace("{max}", fileSize(I.limit))) + '</p><ul class="contra">' + I.tooBig.slice(0, 30).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') + '</section>';
     } else {

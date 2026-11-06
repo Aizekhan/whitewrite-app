@@ -14,5 +14,7 @@ check(cleanFolderSort([{ cards: [{ section: 'assets', title: 'X', canon: 'char_f
 const many = Array.from({ length: 3000 }, (_, i) => `${i}|Assets/Models/some_long_folder_name/model_${i}.fbx|120`);
 check(sortParts(many).every((p) => p.join('\n').length <= 20000) && sortParts(many).reduce((n, p) => n + p.length, 0), 3000, 'a big list is cut into parts ≤ partChars, nothing lost');
 check(/Префаби/.test(folderSortPrompt(['0|a.prefab|1'], shelves, [], [], 'Ukrainian')), true, 'the prompt carries the prefab rule');
+const sp = folderSortPrompt(['0|Docs/GDD.md|4'], shelves, [], [], 'Ukrainian');
+check(/frameworks, libraries, plugins/.test(sp) && /NOT read/.test(sp), true, 'the prompt keeps only the author notes about the game, not docs of frameworks / plugins');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;

@@ -292,7 +292,8 @@ Rules:
 - section = a shelf id. Characters and locations already in the canon list below: put the id into "canon" and use their canon shelf. Not in the canon: the canon shelves only when it clearly is one, otherwise "assets".
 - Prefabs (.prefab, .unitypackage, .uasset) ALWAYS go to section "assets" with group "Префаби" (one card per prefab or per prefab set).
 - group = the subheading inside the section (a folder name like "Buildings", "SFX", "Forest") or "".
-- Text files (.md, .txt, .json…) are read separately: give one a card only when it belongs to an asset (a licence or readme of a pack); ignore the rest with reason "text".
+- Text files (.md, .txt, .json…): only the author's notes about THIS game are read — its design, story, lore, characters, levels (GDD, notes, scripts, data tables of the design): ignore those with reason "text". Every other text gets a real reason and is NOT read: docs, readmes and changelogs of engines, frameworks, libraries, plugins or store packages, setup / install guides, API references, agent or tool instructions, configs and manifests, generated data and exports. A licence or readme of an asset pack — onto the pack's card.
+- Engine data files of a framework, plugin or store package (.asset, .unity, .controller, .mat of its samples or demo) — ignore, they are not the author's design.
 - Ignore what has no place in a design document: engine caches and settings, build output, backups and copies (Copy of…, ~, .bak, (1)), temporary and autosave files, duplicates of the same file, third-party package internals nobody designs (shaders, samples, editor scripts of a store package), empty placeholders. Give a short reason in ${languageName}.
 - Existing cards (reuse the exact title and section to add files to one):
 ${have || '(none)'}
@@ -342,6 +343,7 @@ Rules:
 - CANON is the world shared by all stories and games: characters, locations, factions, artifacts. Put each canon entity in "canon" with kind (characters|locations|factions|artifacts), name, description (who/what it is in the world). If it is already in the canon list below, set "match" to its id. Game-only information about it (role in the game, numbers, abilities, model/prefab, level design) goes to gameFields as {"<field label>": "value"} — prefer the shelf's field labels.
 - New laws of the world (hard rules of magic/physics/society) go to "laws" — only ones not already listed.
 - Everything about the GAME (overview, pillars, loop, mechanics, enemies, bosses, assets, prefabs, materials, sound, UI…) goes to "cards" with section = a game shelf id, title, and fields {"<field label>": "value"}. Use the shelf's field labels when they fit; otherwise a short new label. Keep markdown (tables, lists) inside values.
+- The notes may come from a project folder: take only design, story and lore. Skip source code, code blocks, class / API listings, file paths, install and setup steps, changelogs, docs of engines, frameworks, libraries or plugins, agent instructions — they are not the game's design. Keep a table or list of design data (stats, prices, waves) even when it is formatted as code.
 - contradictions: places where the notes contradict themselves or the canon (what, where).
 - questions: decisions the notes leave open that block making the game (topic, question, why, options, priority blocker|important|nice).
 
