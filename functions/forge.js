@@ -6,6 +6,7 @@
 // an equipment item is a card of «Предмети й спорядження» ("gear"); files are the card's files (Storage
 // worlds/{w}/games/{g}/files/{cardId}/…). The Forge adds one map `forge` to such a card:
 //   character: { type: hero|npc|boss|enemy, off: [stageId] (stages switched off for this one), rig, body (profile ids),
+//     shape: { Thin, Heavy, Muscular } (0–100, the body's blend shapes), rigCheck: { result, issues, report, rev, source, at } (rig.json / MCP),
 //     brief: { race, cls, role, silhouette, proportions, palette, refs },
 //     revs: [{ id, stage, n, files: [fileId], note, by, byName, at, from (revId it was restored from) }]   — never edited, only added
 //     stages: { stageId: { approved: { rev, by, byName, at, comment } | null } },
@@ -75,6 +76,49 @@ var EXTERNAL = ['skeleton', 'clipping', 'deformation', 'materials', 'lod', 'poly
 // live in Secret Manager, never in the browser.
 var PROVIDERS = [{ id: 'manual', uk: 'Ручне завантаження', en: 'Manual import', live: true, ops: ['import'] },
   { id: 'meshy', uk: 'Meshy', en: 'Meshy', live: false, ops: ['imageTo3D', 'textTo3DPreview', 'refine', 'remesh', 'rig', 'animate'] }];
+
+// ---------- WhiteWrite reference rigs (the ArtPipeline library; files in app/assets/rigs/ and the download pack) ----------
+// One skeleton per family — Mixamo bone names (mixamorig:*), the X Bot hierarchy, T-pose, Unity Humanoid; a body type is
+// proportions on it (bone lengths / widths) + the shape keys Thin / Heavy / Muscular. conform_to_rig.py fits any rigged
+// model onto a body and writes <id>.rig.json (schema artpipeline.rig/1) — rigCheck() reads it. «＋ Еталонні профілі» adds
+// them to a game with these very ids, so an item made on a reference fits every character of that body.
+var REF_RIGS = [
+  { id: 'mixamo65', name: 'Mixamo 65 · Humanoid', bones: 65, notes: 'WhiteWrite reference · mixamorig:* · T-pose · Unity Humanoid' },
+  { id: 'mixamo65+tail', name: 'Mixamo 65 + хвіст · Humanoid', bones: 71, notes: 'WhiteWrite reference · mixamorig:* + Tail1–6 (outside Humanoid) · T-pose' }];
+var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human male', 1.80], ['human_female', 'Людина, жінка', 'Human female', 1.70],
+  ['elf', 'Ельф', 'Elf', 1.85], ['orc', 'Орк', 'Orc', 1.95], ['dwarf', 'Гном (дварф)', 'Dwarf', 1.35], ['goblin', 'Гоблін', 'Goblin', 1.40],
+  ['ogre', 'Огр', 'Ogre', 2.50], ['ratfolk', 'Щуролюд', 'Ratfolk', 1.45]]
+  .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], rig: b[0] === 'ratfolk' ? 'mixamo65+tail' : 'mixamo65' }; });
+var SHAPES = ['Thin', 'Heavy', 'Muscular']; // the same key names on the body and on every item: SetBlendShapeWeight moves them together
+var REF_FILES = '/assets/rigs/'; // <id>.glb (the dummy body, textures inside) and <id>_front.webp per body type
+var REF_PACK = '/assets/rigs/whitewrite-reference-rigs.zip'; // conform_to_rig.py + every type's .fbx / .glb / .blend / rig.json
+function refRig(id) { return REF_RIGS.filter(function (r) { return r.id === id; })[0] || null; }
+function refBody(id) { return REF_BODIES.filter(function (b) { return b.id === id; })[0] || null; }
+// the game's profiles with every reference one added (a profile with the same id is left as the author has it)
+function withRefs(profiles, lang) {
+  var p = profiles || {}, rigs = (p.rigs || []).slice(), bodies = (p.bodies || []).slice();
+  REF_RIGS.forEach(function (r) { if (!rigs.some(function (x) { return x.id === r.id; })) rigs.push({ id: r.id, name: r.name, notes: r.notes, ref: true }); });
+  REF_BODIES.forEach(function (b) { if (!bodies.some(function (x) { return x.id === b.id; })) bodies.push({ id: b.id, name: lbl(b, lang) + ' · ' + (lang === 'en' ? b.height + ' m' : String(b.height).replace('.', ',') + ' м'), rig: b.rig, notes: 'WhiteWrite reference', ref: true }); });
+  return { rigs: rigs, bodies: bodies };
+}
+// a bone conform may miss without harm: finger tips (…Hand<Finger>4), *_End, the tail when the model has none
+function minorBone(b) { return /_End$/i.test(b) || /Hand(Thumb|Index|Middle|Ring|Pinky)4$/.test(b) || /Tail\d+$/.test(b); }
+// conform_to_rig.py's <id>.rig.json → { result: passed | warning | failed, details, report } against the character's profiles
+function rigCheck(report, f) {
+  f = f || {};
+  var r = report && typeof report === 'object' ? report : null, issues = [], lv = 'passed';
+  var bump = function (to, uk, en) { issues.push({ uk: uk, en: en }); if (to === 'failed' || lv === 'passed') lv = to; };
+  if (!r || r.schema !== 'artpipeline.rig/1') return { result: 'failed', issues: [{ uk: 'Це не rig.json з conform_to_rig.py (schema artpipeline.rig/1).', en: 'Not a conform_to_rig.py rig.json (schema artpipeline.rig/1).' }], report: null };
+  var miss = Array.isArray(r.bones_missing) ? r.bones_missing.map(String) : [], hard = miss.filter(function (b) { return !minorBone(b); });
+  if (hard.length) bump('failed', 'Не знайдено кісток: ' + hard.join(', ') + '.', 'Bones not found: ' + hard.join(', ') + '.');
+  else if (miss.length) bump('warning', 'Бракує лише кінцевих кісток (' + miss.join(', ') + ') — вони без ваг, анімації це не заважає.', 'Only end bones are missing (' + miss.join(', ') + ') — they carry no weights, animation is not affected.');
+  if (f.rig && r.skeleton && r.skeleton !== f.rig) bump('failed', 'Скелет «' + r.skeleton + '» не той, що в профілі рига персонажа («' + f.rig + '»).', 'Skeleton "' + r.skeleton + '" differs from the character\'s rig profile ("' + f.rig + '").');
+  if (f.body && r.body_type && r.body_type !== f.body) bump('warning', 'Тип тіла «' + r.body_type + '», а в персонажа — «' + f.body + '».', 'Body type "' + r.body_type + '", the character has "' + f.body + '".');
+  return { result: lv, issues: issues, report: { skeleton: r.skeleton || '', body_type: r.body_type || '', height_m: +r.height_m || null, bones_found: +r.bones_found || null,
+    bones_missing: miss.slice(0, 80), tris: +r.tris || null, shape_keys: (r.shape_keys || []).slice(0, 10).map(String), weights: r.weights || '', source: String(r.source || '').slice(0, 200) } };
+}
+// ready for animation: the rig stage approved on a reference (Humanoid) skeleton and its skeleton check not failed
+function animReady(f) { f = f || {}; return isApproved(f, 'rig') && !!refRig(f.rig) && !!f.rigCheck && f.rigCheck.result !== 'failed'; }
 
 function lbl(o, lang) { return !o ? '' : Array.isArray(o) ? o[lang === 'en' ? 1 : 0] : typeof o === 'string' ? o : (lang === 'en' ? o.en : o.uk) || o.uk || o.en || ''; }
 function stage(id) { return STAGES.filter(function (s) { return s.id === id; })[0] || null; }
@@ -170,6 +214,10 @@ function blockers(char, stageId, ctx) {
   }
   if (st.kind === 'files' && !revsOf(f, stageId).length) uk('Ще немає жодної версії — завантаж файли.', 'No version yet — upload files.');
   if (stageId === 'rig' && !f.rig) uk('Не вибрано профіль рига (скелета).', 'No rig (skeleton) profile chosen.');
+  if (stageId === 'rig' && refRig(f.rig)) { // a reference skeleton: the fit is proven by conform_to_rig.py's rig.json (or Claude Code's report)
+    if (!f.rigCheck) uk('Немає перевірки скелета: завантаж rig.json з conform_to_rig.py разом з FBX / GLB (або Claude Code надішле report_forge_check).', 'No skeleton check: upload the rig.json of conform_to_rig.py with the FBX / GLB (or Claude Code sends report_forge_check).');
+    else if (f.rigCheck.result === 'failed') uk('Перевірка скелета не пройдена — підгони модель ще раз.', 'The skeleton check failed — fit the model again.');
+  }
   var mine = itemsOf(char, ctx && ctx.items);
   if (st.kind === 'equip') {
     if (!mine.length) uk('До персонажа не привʼязано жодного предмета.', 'No item is bound to the character.');
@@ -209,11 +257,16 @@ function progress(char) {
 function manifest(char, items, game, lang) {
   var L = lang || 'en', f = (char && char.forge) || {}, files = (char && char.files) || [];
   var fileOut = function (list, id) { var x = list.filter(function (y) { return y.id === id; })[0]; return x ? { name: x.name, url: x.url, size: x.size, type: x.type || '', tris: x.tris || undefined } : null; };
-  var profiles = (game && game.forge) || {}, rig = (profiles.rigs || []).filter(function (r) { return r.id === f.rig; })[0], body = (profiles.bodies || []).filter(function (b) { return b.id === f.body; })[0];
+  var profiles = withRefs((game && game.forge) || {}, L), rig = (profiles.rigs || []).filter(function (r) { return r.id === f.rig; })[0], body = (profiles.bodies || []).filter(function (b) { return b.id === f.body; })[0];
   var slots = slotsOf(game);
   return {
     schema: 'whitewrite.character/1', id: char.id, name: char.title || '', type: f.type || 'hero',
-    rig_profile: rig ? { id: rig.id, name: rig.name, notes: rig.notes || '' } : null, body_profile: body ? { id: body.id, name: body.name, notes: body.notes || '' } : null,
+    rig_profile: rig ? { id: rig.id, name: rig.name, notes: rig.notes || '', reference: !!refRig(rig.id), humanoid: !!refRig(rig.id) } : null,
+    body_profile: body ? { id: body.id, name: body.name, notes: body.notes || '', reference: !!refBody(body.id), height_m: refBody(body.id) ? refBody(body.id).height : undefined } : null,
+    body_shape: SHAPES.reduce(function (o, k) { o[k] = Math.max(0, Math.min(100, +((f.shape || {})[k]) || 0)); return o; }, {}),
+    skeleton_check: f.rigCheck ? { result: f.rigCheck.result, source: f.rigCheck.source || '', at: f.rigCheck.at || null, report: f.rigCheck.report || null,
+      issues: (f.rigCheck.issues || []).map(function (i) { return L === 'uk' ? i.uk : i.en; }) } : null,
+    animation_ready: animReady(f),
     brief: f.brief || {},
     stages: pipeline(f).map(function (s) {
       var a = f.stages && f.stages[s.id] && f.stages[s.id].approved, r = approvedRev(f, s.id);
@@ -235,6 +288,7 @@ function manifest(char, items, game, lang) {
 }
 
 var FORGE = { STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
+  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
   lbl: lbl, stage: stage, type: type, typeOf: typeOf, slotsOf: slotsOf, pipeline: pipeline, revsOf: revsOf, approvedRev: approvedRev, isApproved: isApproved, newRev: newRev,
   clipsOf: clipsOf, itemIssues: itemIssues, modelFile: modelFile, validation: validation, itemsOf: itemsOf, blockers: blockers, stageState: stageState,
   progress: progress, manifest: manifest };

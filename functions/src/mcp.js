@@ -121,8 +121,10 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { ref: { type: 'string', description: '"c:<cardId>", "e:<entityId>" or the name; empty = the list' } } } },
   { name: 'report_framework_capabilities', description: 'Send RPG Framework\'s capabilities.json from the game\'s Unity project (framework ≥ 0.40.0: Library/PackageCache/com.aizekhan.rpg-framework@*/capabilities.json, or Packages/com.aizekhan.rpg-framework/capabilities.json when embedded) — WhiteWrite then checks the game\'s mechanics against the framework version the game really uses. Send it again after updating the framework. See get_guide unity_env.',
     inputSchema: { type: 'object', required: ['manifest'], properties: { manifest: { type: 'object', description: 'The whole capabilities.json as it is (format rpgframework.capabilities/1)' } } } },
-  { name: 'report_forge_check', description: 'Report what you checked in Unity or Blender for a Character Forge equipment item — the platform cannot see clipping, deformation or skeleton compatibility itself. check: skeleton | clipping | deformation | materials | lod | polycount | scale; result: passed | warning | failed. The latest report per check replaces the previous one; a failed one blocks the integration stage until fixed, a warning needs the author\'s manual approval.',
-    inputSchema: { type: 'object', required: ['item', 'check', 'result'], properties: { item: { type: 'string', description: '"c:<cardId>" of the item or its name' },
+  { name: 'report_forge_check', description: 'Report what you checked in Unity or Blender for a Character Forge equipment item — or, with character (and check skeleton), the skeleton fit of a character: pass rig_json = the whole <id>.rig.json conform_to_rig.py wrote (schema artpipeline.rig/1) and the platform decides passed / warning / failed itself (all bones but finger tips *4, *_End and Tail* must be found; the skeleton must match the rig profile of the character). The platform cannot see clipping, deformation or skeleton compatibility itself. check: skeleton | clipping | deformation | materials | lod | polycount | scale; result: passed | warning | failed. The latest report per check replaces the previous one; a failed one blocks the integration stage until fixed, a warning needs the author\'s manual approval.',
+    inputSchema: { type: 'object', required: ['check'], properties: { item: { type: 'string', description: '"c:<cardId>" of the item or its name' },
+      character: { type: 'string', description: 'Instead of item: "c:<id>" / "e:<entityId>" of the character or enemy, or its name — for check skeleton' },
+      rig_json: { type: 'object', description: 'With character: the rig.json conform_to_rig.py wrote (result is then computed, not taken)' },
       check: { type: 'string', enum: ['skeleton', 'clipping', 'deformation', 'materials', 'lod', 'polycount', 'scale'] }, result: { type: 'string', enum: ['passed', 'warning', 'failed'] },
       details: { type: 'string', description: 'What exactly you saw (bone, region, numbers)' }, source: { type: 'string', description: 'Unity | Blender | another DCC' } } } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture). Never change those yourself — the author decides.',
@@ -707,6 +709,20 @@ async function callTool(name, args, key) {
       return { ok: true, version: man.version, capabilities: Object.keys(man.caps).length, missing: Object.keys(man.missing).length, mechanic_gaps: gaps };
     }
     case 'report_forge_check': {
+      if (args.character) { // a character's skeleton fit (reference rigs): the rig.json decides, else the agent's result
+        const r = str(args.character, 200), id = r.replace(/^[ce]:/, '');
+        const c = ctx.cards.find((x) => ['characters', 'enemies'].includes(x.section) && (x.id === id || x.canonRef === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));
+        if (!c) throw rpcError(-32602, `Character ${r} not found`);
+        if (args.check && args.check !== 'skeleton') throw rpcError(-32602, 'For a character only check skeleton');
+        const f = c.forge || {}, last = FORGE.revsOf(f, 'rig')[0];
+        let rc;
+        if (args.rig_json && typeof args.rig_json === 'object') rc = FORGE.rigCheck(args.rig_json, f);
+        else if (['passed', 'warning', 'failed'].includes(args.result)) rc = { result: args.result, issues: args.details ? [{ uk: str(args.details, 1500), en: str(args.details, 1500) }] : [], report: null };
+        else throw rpcError(-32602, 'rig_json or result is required');
+        const rigCheck = { ...rc, rev: last ? last.id : '', source: str(args.source, 40) || 'Blender', at: Date.now() };
+        await ctx.gref.collection('cards').doc(c.id).set({ section: c.section, forge: { rigCheck }, updatedAt: admin.firestore.FieldValue.serverTimestamp(), ...(c.canonRef ? { canonRef: c.canonRef } : {}) }, { merge: true });
+        return { ok: true, character: r, result: rc.result, issues: rc.issues.map((i) => i.en), animation_ready: FORGE.animReady({ ...f, rigCheck }) };
+      }
       const r = str(args.item, 200), id = r.replace(/^c:/, '');
       const c = ctx.cards.find((x) => x.section === 'gear' && !x.canonRef && (x.id === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));
       if (!c) throw rpcError(-32602, `Item ${r} not found`);

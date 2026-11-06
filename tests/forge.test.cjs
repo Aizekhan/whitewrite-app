@@ -90,5 +90,37 @@ check(m.equipment.length, 3, 'manifest lists the bound items');
 check(m.equipment.find((e) => e.ref === 'c:i2').attachment_points[0].bone, 'hand_r', 'manifest carries attachment points');
 check(F.PROVIDERS.filter((p) => p.live).map((p) => p.id).join(), 'manual', 'only manual import is live (Meshy is next)');
 
+// 🦴 WhiteWrite reference rigs: always offered, a body type names its skeleton, conform_to_rig.py's rig.json decides the skeleton check
+const refs = F.withRefs({ rigs: [{ id: 'rig_own', name: 'Свій' }], bodies: [] }, 'uk');
+check(refs.rigs.length, 3, 'the game keeps its own rig and gets both reference skeletons');
+check(refs.bodies.length, 8, 'eight reference body types');
+check(F.refBody('ratfolk').rig, 'mixamo65+tail', 'ratfolk is on the tail skeleton');
+check(F.withRefs({ bodies: [{ id: 'elf', name: 'Мій ельф' }] }, 'uk').bodies.find((b) => b.id === 'elf').name, 'Мій ельф', 'a game profile with a reference id is left as the author has it');
+const fr = { rig: 'mixamo65', body: 'human_male' }, rj = (o) => Object.assign({ schema: 'artpipeline.rig/1', skeleton: 'mixamo65', body_type: 'human_male', bones_found: 65, bones_missing: [] }, o);
+check(F.rigCheck(rj({}), fr).result, 'passed', 'every bone found — passed');
+check(F.rigCheck(rj({ bones_found: 63, bones_missing: ['mixamorig:LeftHandMiddle4', 'mixamorig:RightHandRing4'] }), fr).result, 'warning', 'only finger tips missing — warning (archmage)');
+check(F.rigCheck(rj({ bones_missing: ['mixamorig:LeftForeArm'] }), fr).result, 'failed', 'a missing arm bone — failed');
+check(F.rigCheck(rj({ skeleton: 'mixamo65+tail' }), fr).result, 'failed', 'another skeleton than the rig profile — failed');
+check(F.rigCheck(rj({ body_type: 'elf' }), fr).result, 'warning', 'another body type — warning');
+check(F.rigCheck(rj({ bones_found: null, weights: 'body' }), fr).result, 'passed', 'gear without its own skeleton (weights from the body) — passed');
+check(F.rigCheck({ id: 'x' }, fr).result, 'failed', 'not a rig.json — failed');
+const rc = { id: 'r1', title: 'Маг', forge: { type: 'npc', rig: 'mixamo65', body: 'human_male', brief: { role: 'r', silhouette: 's', race: 'h' } } };
+['brief', 'concept', 'mesh'].forEach((id) => approve(rc.forge, id));
+rc.forge.revs = [F.newRev(rc.forge, 'rig', ['f9'], '', who)];
+check(F.blockers(rc, 'rig', {}).some((b) => /rig\.json/.test(b.uk)), true, 'a reference rig waits for the skeleton check');
+rc.forge.rigCheck = { result: 'failed' };
+check(F.stageState(rc, 'rig', {}) === 'ready', false, 'a failed skeleton check blocks the rig stage');
+rc.forge.rigCheck = F.rigCheck(rj({}), rc.forge);
+check(F.stageState(rc, 'rig', {}), 'ready', 'a passed check lets the rig stage be approved');
+check(F.animReady(rc.forge), false, 'not ready for animation before the rig is approved');
+approve(rc.forge, 'rig');
+check(F.animReady(rc.forge), true, 'approved on a checked reference skeleton — ready for animation');
+rc.forge.shape = { Thin: 20, Heavy: 140 };
+const rm = F.manifest(rc, [], { forge: {} }, 'en');
+check(rm.rig_profile && rm.rig_profile.humanoid, true, 'manifest: the reference rig is Humanoid even if the game never saved it');
+check(rm.body_profile.height_m, 1.8, 'manifest: the body type height');
+check(rm.body_shape.Heavy + '/' + rm.body_shape.Muscular, '100/0', 'manifest: the build is clamped 0–100');
+check(rm.animation_ready && rm.skeleton_check.result, 'passed', 'manifest: the skeleton check and animation_ready');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);
