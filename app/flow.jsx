@@ -563,8 +563,17 @@ function WorldForm({ onBack, onCreate, initial }) {
   // «⤒ Завантажити світ із файлу .md»: one file by the template (functions/world-fill.js — Markdown or whitewrite.fill/1 JSON) →
   // the new world's Bible fills it at once (gamebible.js takePendingFill), any plan, no AI
   const [md, setMd] = useFState(null); // { name, text, summary } | { error }
+  // «📂 Тека світу»: any folder (a whole game project too) → the new world's Bible lets ✦ the AI pick and read what holds the world (gamebible.js startWorldFolder)
+  const [folder, setFolder] = useFState(null); // { name, list }
   const desc = description.trim();
-  const plan = md && !md.error ? "md" : !title.trim() && !desc ? "" : desc && ideas ? "ideas" : "empty";
+  const plan = folder ? "folder" : md && !md.error ? "md" : !title.trim() && !desc ? "" : desc && ideas ? "ideas" : "empty";
+  function pickFolder(e) {
+    const list = [].slice.call(e.target.files || []); e.target.value = "";
+    if (!list.length) return;
+    const name = (list[0].webkitRelativePath || list[0].name).split('/')[0];
+    setFolder({ name, list }); setMd(null); setIdeas(false);
+    if (!title.trim()) setTitle(name);
+  }
   async function pickMd(e) {
     const file = e.target.files && e.target.files[0]; e.target.value = "";
     if (!file) return;
@@ -587,7 +596,7 @@ function WorldForm({ onBack, onCreate, initial }) {
     if (!plan || creating) return;
     setCreating(true);
     try {
-      try { window.top.__wwPendingFill = plan === "md" ? { name: md.name, text: md.text } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
+      try { window.top.__wwPendingFill = plan === "md" ? { name: md.name, text: md.text } : plan === "folder" ? { name: folder.name, folder: folder.list } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
       await onCreate({ title: title.trim() || (md && md.name.replace(/\.\w+$/, "")) || "", description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
     } catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
   }
@@ -615,14 +624,17 @@ function WorldForm({ onBack, onCreate, initial }) {
               onChange={(e) => setDescription(e.target.value)} placeholder={t('worlds.descPlaceholder')} disabled={creating} />
           </label>
 
-          {md && !md.error
+          {folder
+            ? <p className="wf-tick">{t('worlds.folderPicked').replace('{d}', folder.name).replace('{n}', folder.list.length)} <button type="button" className="link-back" onClick={() => setFolder(null)} disabled={creating}>{t('worlds.mdClear')}</button></p>
+            : !md && <div className="wf-tick"><label className="wf-md" title={t('worlds.folderHint')}><input type="file" webkitdirectory="" multiple hidden onChange={pickFolder} disabled={creating} /><span>{t('worlds.folderBtn')}</span></label></div>}
+          {folder ? null : md && !md.error
             ? <p className="wf-tick">{t('worlds.mdPicked').replace('{d}', md.name).replace('{n}', md.summary)} <button type="button" className="link-back" onClick={() => setMd(null)} disabled={creating}>{t('worlds.mdClear')}</button></p>
             : <div className="wf-tick"><label className="wf-md"><input type="file" accept=".md,.markdown,.txt,.json" hidden onChange={pickMd} disabled={creating} /><span>{t('worlds.mdBtn')}</span></label>
                 <button type="button" className="link-back" onClick={mdTemplate} title={t('worlds.mdHint')}>{t('worlds.mdTpl')}</button></div>}
           {md && md.error && <p className="wf-plan" role="alert">{t('worlds.mdBad').replace('{d}', md.error)}</p>}
           {md && !md.error && md.skipped.length > 0 && <p className="wf-plan" role="alert">{t('worlds.mdSkipped').replace('{s}', md.skipped.slice(0, 6).map((x) => '«' + x + '»').join(', ') + (md.skipped.length > 6 ? ' +' + (md.skipped.length - 6) : ''))}</p>}
 
-          {desc && plan !== "md" && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
+          {desc && plan !== "md" && plan !== "folder" && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
 
           <p className="wf-plan" role="status" hidden={plan === "md" && md.skipped.length > 0}>{plan ?t('worlds.plan_' + plan) + (cost ? ' · ' + t('genesis.cost').replace('{n}', cost) : '') : t('worlds.fillLater')}</p>
 

@@ -282,7 +282,7 @@ function folderSortPrompt(lines, shelves, entities, cards, languageName) {
   const shelfText = shelves.map((s) => `- ${s.id}${s.kind === 'canon' ? ` (CANON ${s.canonKind})` : ''}: ${s.name}${s.groups.length ? ` — subheadings: ${s.groups.join(' | ')}` : ''}`).join('\n');
   const known = entities.filter((e) => CANON_KINDS.includes(e.kind)).slice(0, 400).map((e) => `- ${e.id} [${e.kind}] ${e.name || ''}`).join('\n');
   const have = cards.filter((c) => c.title && !c.canonRef).slice(0, 400).map((c) => `- [${c.section}] ${c.title}`).join('\n');
-  return `You are the librarian of WhiteWrite, sorting a game project folder the author uploaded. Below is the list of its files: "index|path|size KB". You see only names and paths, not the contents. Decide for EVERY file: either the card it belongs to, or that it is ignored.
+  return `You are the librarian of WhiteWrite, sorting a game project folder the author uploaded. Below is the list of its files: "index|path|size KB" (a trailing "|r" = a script or engine data file whose contents can be read). You see only names and paths, not the contents. Decide for EVERY file: either the card it belongs to, or that it is ignored — and, separately, which files the service should READ to find the game's design (see "read").
 
 SHELVES (sections of the game's design document):
 ${shelfText}
@@ -292,7 +292,8 @@ Rules:
 - section = a shelf id. Characters and locations already in the canon list below: put the id into "canon" and use their canon shelf. Not in the canon: the canon shelves only when it clearly is one, otherwise "assets".
 - Prefabs (.prefab, .unitypackage, .uasset) ALWAYS go to section "assets" with group "Префаби" (one card per prefab or per prefab set).
 - group = the subheading inside the section (a folder name like "Buildings", "SFX", "Forest") or "".
-- Text files (.md, .txt, .json…): only the author's notes about THIS game are read — its design, story, lore, characters, levels (GDD, notes, scripts, data tables of the design): ignore those with reason "text". Every other text gets a real reason and is NOT read: docs, readmes and changelogs of engines, frameworks, libraries, plugins or store packages, setup / install guides, API references, agent or tool instructions, configs and manifests, generated data and exports. A licence or readme of an asset pack — onto the pack's card.
+- "read" = the files whose CONTENTS hold this game's design, story and lore, like a game designer going through the project: the author's notes and GDD, scripts of dialogues and quests, the game's OWN data (ScriptableObject .asset files of its characters, enemies, items, abilities, waves, levels; JSON / CSV tables of its balance), the game's OWN scripts (.cs…) when their names say they hold tuning values, stats or content (EnemyStats, WeaponData, QuestDatabase…), and scenes (.unity) only of its main levels. Never: docs, readmes and changelogs of engines, frameworks, libraries, plugins or store packages, setup / install guides, API references, agent or tool instructions, configs and manifests, editor tools, generic code (managers, UI plumbing, networking, utilities), samples and demos. The service reads the picked files and takes only design facts from them — never code.
+- Text files (.md, .txt, .json…) never get a card (except a licence or readme of an asset pack — onto the pack's card): put the ones to read into "read"; ignore the others with a real reason. Scripts and data files ("|r") never get a card unless they are an asset (a prefab keeps its card and may be read too): only "read" or ignored.
 - Engine data files of a framework, plugin or store package (.asset, .unity, .controller, .mat of its samples or demo) — ignore, they are not the author's design.
 - Ignore what has no place in a design document: engine caches and settings, build output, backups and copies (Copy of…, ~, .bak, (1)), temporary and autosave files, duplicates of the same file, third-party package internals nobody designs (shaders, samples, editor scripts of a store package), empty placeholders. Give a short reason in ${languageName}.
 - Existing cards (reuse the exact title and section to add files to one):
@@ -304,7 +305,7 @@ FILES:
 ${lines.join('\n')}
 
 Answer with JSON only:
-{"cards":[{"section":"assets","title":"House","group":"Buildings","canon":"","files":[12,13]}],"ignore":[{"files":[4,5],"reason":"кеш рушія"}]}`;
+{"cards":[{"section":"assets","title":"House","group":"Buildings","canon":"","files":[12,13]}],"ignore":[{"files":[4,5],"reason":"кеш рушія"}],"read":[2,9]}`;
 }
 // the parts' answers → one plan: only the indexes the page sent, each at most once (a card wins over ignore), prefabs forced to «Префаби»
 function cleanFolderSort(results, shelves, entities, files) {
@@ -325,8 +326,10 @@ function cleanFolderSort(results, shelves, entities, files) {
       const card = { section: sec, title, group: grp, canon, files: f }; byKey.set(key, card); cards.push(card);
     });
   }));
-  results.forEach((r) => (Array.isArray(r && r.ignore) ? r.ignore : []).forEach((x) => { const f = take(x && x.files); if (f.length) ignore.push({ files: f, reason: str(x.reason, 120) }); }));
-  return { cards: cards.slice(0, 5000), ignore };
+  const read = [], seen = new Set(); // to read: any sent file (a prefab may be both on a card and read), once; a file to read is never also ignored
+  results.forEach((r) => (Array.isArray(r && r.read) ? r.read : []).forEach((x) => { const i = Math.floor(Number(x)); if (byI.has(i) && !seen.has(i)) { seen.add(i); read.push(i); } }));
+  results.forEach((r) => (Array.isArray(r && r.ignore) ? r.ignore : []).forEach((x) => { const f = take(((x && x.files) || []).filter((i) => !seen.has(Math.floor(Number(i))))); if (f.length) ignore.push({ files: f, reason: str(x.reason, 120) }); }));
+  return { cards: cards.slice(0, 5000), ignore, read };
 }
 
 const answeredText = (answered) => (answered.length ? `\nAlready decided by the author:\n${answered.map((a) => `- Q: ${a.q}\n  A: ${a.a}`).join('\n')}\n` : '');
@@ -344,6 +347,7 @@ Rules:
 - New laws of the world (hard rules of magic/physics/society) go to "laws" — only ones not already listed.
 - Everything about the GAME (overview, pillars, loop, mechanics, enemies, bosses, assets, prefabs, materials, sound, UI…) goes to "cards" with section = a game shelf id, title, and fields {"<field label>": "value"}. Use the shelf's field labels when they fit; otherwise a short new label. Keep markdown (tables, lists) inside values.
 - The notes may come from a project folder: take only design, story and lore. Skip source code, code blocks, class / API listings, file paths, install and setup steps, changelogs, docs of engines, frameworks, libraries or plugins, agent instructions — they are not the game's design. Keep a table or list of design data (stats, prices, waves) even when it is formatted as code.
+- Some pieces are the game's scripts (.cs…) or Unity data (.asset, .prefab, .unity YAML). Read them like a game designer: take the design facts — names, stats and numbers (health, damage, speed, cooldowns, prices, drop chances), abilities, waves, level names, dialogue lines, quest steps, item descriptions — into the cards and canon in plain words or tables. Never copy code, YAML, field names or ids; a script without design content gives nothing.
 - contradictions: places where the notes contradict themselves or the canon (what, where).
 - questions: decisions the notes leave open that block making the game (topic, question, why, options, priority blocker|important|nice).
 
@@ -717,9 +721,9 @@ exports.gamedevPlan = onRequest({
       if (op === 'import' && !markdown.trim()) return res.status(400).json({ error: 'Порожній файл' });
       if (markdown.length > MAX_IMPORT_CHARS) return res.status(400).json({ error: `Файл завеликий. Максимум: ${MAX_IMPORT_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
       const sortFiles = op !== 'folderSort' ? [] : (Array.isArray(body.files) ? body.files : []).slice(0, MAX_SORT_FILES)
-        .map((f) => ({ i: Math.floor(Number(f && f.i)), p: str(f && f.p, 300), s: Math.max(0, Number(f && f.s) || 0) })).filter((f) => Number.isFinite(f.i) && f.p);
+        .map((f) => ({ i: Math.floor(Number(f && f.i)), p: str(f && f.p, 300).replace(/[\r\n|]/g, ' '), s: Math.max(0, Number(f && f.s) || 0), r: !!(f && f.r) })).filter((f) => Number.isFinite(f.i) && f.p);
       if (op === 'folderSort' && !sortFiles.length) return res.status(400).json({ error: 'Порожній список файлів' });
-      const sortLines = sortFiles.map((f) => `${f.i}|${f.p}|${Math.max(1, Math.round(f.s / 1024))}`);
+      const sortLines = sortFiles.map((f) => `${f.i}|${f.p}|${Math.max(1, Math.round(f.s / 1024))}${f.r ? '|r' : ''}`);
       const idea = str(body.idea, MAX_IDEA_CHARS);
       if (op === 'draft' && idea.length < 20) return res.status(400).json({ error: 'Опиши гру хоча б одним-двома реченнями', code: 'IDEA_TOO_SHORT' });
 

@@ -232,7 +232,7 @@
       costCap: "AI-операція «{op}» коштуватиме не більше {n} токенів: спишеться фактична робота AI, зазвичай менше, але ніколи не більше. Продовжити?", capShort: "✦ не більше {n} токенів",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { worldFolder: "Тека світу", folderSort: "Розбір теки гри", concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
+      ops: { worldFolderScout: "Тека світу: що читати", worldFolder: "Тека світу", folderSort: "Розбір теки гри", concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
@@ -291,20 +291,24 @@
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
       stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
-      folder: { btn: "📂 Завантажити теку", hint: "Обери теку з нотатками — ШІ розкладе текстові файли (.md, .txt, .json…) по розділах канону, ти побачиш, що додасться, і натиснеш «Перенести в світ». Ціна — за обсягом теки, не більше показаної.", gameHint: "Обери теку з нотатками гри — текстові файли (.md, .txt…) підуть в імпорт ✦, ти відмітиш картки, які взяти.", lock: "📂 Теку світу з ШІ можна завантажити з тарифу Storyteller; без токенів — через свій ШІ-агент нижче.", busy: "ШІ розкладає теку «{d}» ({n} файлів)…", big: "Тека завелика: {n} символів, максимум {max}. Обери меншу теку або прибери з неї зайве.", empty: "У теці немає текстових файлів (.md, .txt, .json, .csv…). .docx і .pdf збережи як .md чи .txt.", bad: "Частини {p} не вдалося розкласти — спробуй теку меншою.", skipped: "пропущено не текстових файлів: {n}", name: "Тека «{d}»" },
+      folder: { gameHint: "Обери теку з нотатками гри — текстові файли (.md, .txt…) підуть в імпорт ✦, ти відмітиш картки, які взяти.", lock: "📂 Теку світу з ШІ можна завантажити з тарифу Storyteller; без токенів — через свій ШІ-агент нижче.", busy: "ШІ розкладає теку «{d}» ({n} файлів)…", big: "Тека завелика: {n} символів, максимум {max}. Обери меншу теку або прибери з неї зайве.", empty: "У теці немає текстових файлів (.md, .txt, .json, .csv…). .docx і .pdf збережи як .md чи .txt.", bad: "Частини {p} не вдалося розкласти — спробуй теку меншою.", skipped: "пропущено не текстових файлів: {n}", name: "Тека «{d}»" },
+      wfold: { ask: "📂 Тека «{d}»: файлів, які можна прочитати — {n}. ✦ ШІ перегляне список і вибере, де є світ (нотатки, лор, сценарії, дані персонажів і предметів); документацію фреймворків, код без змісту й налаштування пропустить.",
+        scouting: "✦ ШІ переглядає список… частина {d} з {n}", readingFiles: "Читаю вибрані файли з ПК… {d} з {n}", nothing: "ШІ не знайшов у теці файлів зі світом.",
+        picked: "ШІ вибрав {n} з {a} файлів ({c} символів). Далі ШІ прочитає їх повністю й розкладе по розділах канону — зі скриптів і даних лише зміст, не код.",
+        part: "пачка {d} з {n}", readN: "прочитано файлів: {n} з {a}" },
       intake: { btn: "📂 Тека гри", title: "Тека гри", hint: "Будь-яка тека проєкту будь-якого розміру: картинки, моделі, префаби, звуки, матеріали розкладуться по розділах гри за шляхом (без токенів), тексти — ✦ ШІ пачками. Спершу побачиш план, нічого не завантажиться без «Почати».",
         formHint: "📂 Тека гри: обери теку проєкту — після «Створити гру» побачиш план, що куди ляже, і запустиш розбір.", reading: "Читаю теку… (усе лишається на твоєму ПК, доки не натиснеш «Почати»)",
-        introPlan: "Так ляже тека. Зніми галочки з того, що не потрібно, або перенеси групу в інший розділ. Що куди — вирішує ✦ ШІ за списком файлів (без нього — за назвами тек, без токенів); тексти ШІ читає повністю, ти потім відмітиш, що взяти.",
+        introPlan: "Так ляже тека. Зніми галочки з того, що не потрібно, або перенеси групу в інший розділ. Що куди — вирішує ✦ ШІ за списком файлів (без нього — за назвами тек, без токенів); тексти, дані гри й її власні скрипти, які ШІ вибрав, він читає повністю й бере лише зміст (не код), ти потім відмітиш, що взяти.",
         introRun: "Файли й тексти розбираються паралельно. Можна працювати в інших розділах — кнопка внизу поверне сюди.",
-        summary: "{c} карток · {f} файлів · {s} · текстових файлів: {t}", textTitle: "Тексти (нотатки, документи, GDD)", textInfo: "{f} файлів · {c} символів → {p} пачок по ≤ 100 000 символів",
+        summary: "{c} карток · {f} файлів · {s} · текстових файлів: {t}", textTitle: "Що прочитає ШІ (нотатки, GDD, дані й скрипти гри)", textInfo: "{f} файлів · {c} символів → {p} пачок по ≤ 100 000 символів",
         textOn: "Розібрати тексти ШІ — не більше {n} токенів за всі пачки", textLocked: "Тексти розбирає ✦ ШІ — з тарифу Worldbuilder. Файли розкладуться й так.",
         tagCanon: "✓ до сутності канону", tagHave: "до наявної картки", tagNew: "нова картка", tagNoCanon: "⚠ немає в каноні — піде в «Ассети»", moveTo: "Перенести в розділ", more: "і ще {n} — теж увійдуть",
-        skipTitle: "Пропущено", skTool: "службові теки: {n}", skCode: "код і службові файли (.meta, .cs…): {n} — їх читає Claude Code / GitHub", skDocs: "документація й налаштування фреймворків, плагінів, інструментів (README пакетів, CHANGELOG, CLAUDE.md, package.json…): {n} — це не дизайн гри", skOther: "невідомі формати: {n}", skBigText: "текстові > 2 МБ: {n}", skEmpty: "порожні: {n}",
+        skipTitle: "Пропущено", skTool: "службові теки: {n}", skCode: "код і службові файли (.meta, .cs…): {n} — їх читає Claude Code / GitHub", skUnread: "скрипти, які ШІ не вибрав для читання (або ШІ не запускали): {n}", skDocs: "документація й налаштування фреймворків, плагінів, інструментів (README пакетів, CHANGELOG, CLAUDE.md, package.json…): {n} — це не дизайн гри", skOther: "невідомі формати: {n}", skBigText: "текстові > 2 МБ: {n}", skEmpty: "порожні: {n}",
         tooBig: "Більші за ліміт тарифу ({max}): {n} — не завантажаться", go: "Почати розбір", pause: "⏸ Пауза", resume: "▶ Далі", stop: "✕ Зупинити", stopQ: "Зупинити розбір? Уже завантажене лишиться; обереш ту саму теку ще раз — продовжиться з місця.",
         retry: "↻ Повторити невдалі", review: "Переглянути пропозицію з текстів →", reviewHint: "Тексти розібрано — відкрий пропозицію й відміть, що взяти в гру.",
         overall: "Усього", laneFiles: "⤒ Файли", laneText: "✦ Тексти", filesN: "{d} / {n} файлів", nFiles: "{n} файлів", packsN: "пачка {d} / {n}", pack: "Пачка {n}", dup: "вже були: {n}", now: "Зараз",
         paused: "Пауза — поточні файли довантажуються, нові чекають.", failed: "Не вдалося: {n}", stopped: "Зупинено. Уже завантажене лишилось у грі.", done: "Готово: завантажено файлів — {f}, нових карток — {c}.",
-        resumeHint: "Закрив сторінку посеред розбору? Обери ту саму теку ще раз — файли, які вже є на картках (та сама назва й розмір), пропустяться.",
+        resumeHint: "Тека читається з твого ПК — не закривай сторінку до кінця розбору. Що вже лягло на картки, там і лишиться.",
         sorting: "✦ ШІ переглядає теку", sortPart: "частина {d} / {n}", sortingHint: "ШІ бачить лише назви, шляхи й розміри файлів — не їхній вміст. Велика тека йде кількома частинами по 3 000 файлів.",
         sortDone: "План склав ШІ: карток — {c}, проігноровано файлів — {x}. Перевір і зміни, що треба.", sortOffer: "Зараз план за назвами тек. ✦ ШІ може сам переглянути всю теку: що на яку картку, що в який розділ, що ігнорувати і чому.",
         sortBtn: "Розібрати теку ШІ", tagRules: "за правилами", ignTitle: "ШІ пропонує ігнорувати", ignHint: "Причина — від ШІ. Постав галочку, щоб повернути групу: вона ляже за назвами тек.",
@@ -549,7 +553,7 @@
       costCap: "The AI operation “{op}” will cost no more than {n} tokens: the AI's actual work is charged, usually less, never more. Continue?", capShort: "✦ no more than {n} tokens",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { worldFolder: "World folder", folderSort: "Game folder sorting", concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
+      ops: { worldFolderScout: "World folder: what to read", worldFolder: "World folder", folderSort: "Game folder sorting", concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
@@ -608,20 +612,24 @@
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
       stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
-      folder: { btn: "📂 Upload a folder", hint: "Pick a folder of notes — AI sorts the text files (.md, .txt, .json…) into the canon sections, you see what will be added and press «Move into the world». Priced by the folder size, never above the shown price.", gameHint: "Pick a folder of game notes — the text files (.md, .txt…) go to the ✦ import, you tick the cards to take.", lock: "📂 A world folder with AI is from the Storyteller plan; without tokens — through your own AI agent below.", busy: "AI is sorting the folder «{d}» ({n} files)…", big: "The folder is too big: {n} characters, at most {max}. Pick a smaller folder or remove what is not needed.", empty: "The folder has no text files (.md, .txt, .json, .csv…). Save .docx and .pdf as .md or .txt.", bad: "Parts {p} could not be sorted — try a smaller folder.", skipped: "non-text files skipped: {n}", name: "Folder «{d}»" },
+      folder: { gameHint: "Pick a folder of game notes — the text files (.md, .txt…) go to the ✦ import, you tick the cards to take.", lock: "📂 A world folder with AI is from the Storyteller plan; without tokens — through your own AI agent below.", busy: "AI is sorting the folder «{d}» ({n} files)…", big: "The folder is too big: {n} characters, at most {max}. Pick a smaller folder or remove what is not needed.", empty: "The folder has no text files (.md, .txt, .json, .csv…). Save .docx and .pdf as .md or .txt.", bad: "Parts {p} could not be sorted — try a smaller folder.", skipped: "non-text files skipped: {n}", name: "Folder «{d}»" },
+      wfold: { ask: "📂 Folder «{d}»: readable files — {n}. ✦ AI looks through the list and picks those holding the world (notes, lore, scripts, character and item data); docs of frameworks, code without content and settings are skipped.",
+        scouting: "✦ AI looks through the list… part {d} of {n}", readingFiles: "Reading the picked files from the PC… {d} of {n}", nothing: "AI found no files about the world in the folder.",
+        picked: "AI picked {n} of {a} files ({c} characters). Next AI reads them in full and sorts them into the canon sections — from scripts and data only the content, never code.",
+        part: "batch {d} of {n}", readN: "files read: {n} of {a}" },
       intake: { btn: "📂 Game folder", title: "Game folder", hint: "Any project folder of any size: pictures, models, prefabs, sounds, materials go into the game's sections by their path (no tokens), texts — ✦ AI in packs. You see the plan first; nothing uploads before «Start».",
         formHint: "📂 Game folder: pick the project folder — after «Create game» you see the plan of what goes where and start the sorting.", reading: "Reading the folder… (everything stays on your PC until you press «Start»)",
-        introPlan: "This is how the folder lands. Untick what you do not need or move a group to another section. What goes where — ✦ AI decides from the file list (without it — by folder names, no tokens); AI reads the texts in full, then you tick what to take.",
+        introPlan: "This is how the folder lands. Untick what you do not need or move a group to another section. What goes where — ✦ AI decides from the file list (without it — by folder names, no tokens); the texts, game data and own scripts the AI picked it reads in full and takes only the content (never code), then you tick what to take.",
         introRun: "Files and texts are sorted side by side. You can work in other sections — the button at the bottom brings you back.",
-        summary: "{c} cards · {f} files · {s} · text files: {t}", textTitle: "Texts (notes, documents, GDD)", textInfo: "{f} files · {c} characters → {p} packs of ≤ 100,000 characters",
+        summary: "{c} cards · {f} files · {s} · text files: {t}", textTitle: "What the AI reads (notes, GDD, game data and scripts)", textInfo: "{f} files · {c} characters → {p} packs of ≤ 100,000 characters",
         textOn: "Sort the texts with AI — at most {n} tokens for all packs", textLocked: "Texts are sorted by ✦ AI — from the Worldbuilder plan. The files are placed anyway.",
         tagCanon: "✓ onto the canon entity", tagHave: "onto the existing card", tagNew: "new card", tagNoCanon: "⚠ not in the canon — goes to «Assets»", moveTo: "Move to section", more: "and {n} more — included too",
-        skipTitle: "Skipped", skTool: "tool folders: {n}", skCode: "code and tool files (.meta, .cs…): {n} — Claude Code / GitHub reads them", skDocs: "docs and settings of frameworks, plugins, tools (package READMEs, CHANGELOG, CLAUDE.md, package.json…): {n} — not the game's design", skOther: "unknown formats: {n}", skBigText: "texts > 2 MB: {n}", skEmpty: "empty: {n}",
+        skipTitle: "Skipped", skTool: "tool folders: {n}", skCode: "code and tool files (.meta, .cs…): {n} — Claude Code / GitHub reads them", skUnread: "scripts the AI did not pick to read (or the AI was not run): {n}", skDocs: "docs and settings of frameworks, plugins, tools (package READMEs, CHANGELOG, CLAUDE.md, package.json…): {n} — not the game's design", skOther: "unknown formats: {n}", skBigText: "texts > 2 MB: {n}", skEmpty: "empty: {n}",
         tooBig: "Over the plan limit ({max}): {n} — will not upload", go: "Start sorting", pause: "⏸ Pause", resume: "▶ Continue", stop: "✕ Stop", stopQ: "Stop the sorting? What is uploaded stays; pick the same folder again to continue where it stopped.",
         retry: "↻ Retry the failed", review: "Review the proposal from the texts →", reviewHint: "The texts are sorted — open the proposal and tick what goes into the game.",
         overall: "Overall", laneFiles: "⤒ Files", laneText: "✦ Texts", filesN: "{d} / {n} files", nFiles: "{n} files", packsN: "pack {d} / {n}", pack: "Pack {n}", dup: "already there: {n}", now: "Now",
         paused: "Paused — the current files finish, the new ones wait.", failed: "Failed: {n}", stopped: "Stopped. What is uploaded stays in the game.", done: "Done: files uploaded — {f}, new cards — {c}.",
-        resumeHint: "Closed the page mid-way? Pick the same folder again — files already on the cards (same name and size) are skipped.",
+        resumeHint: "The folder is read from your PC — keep the page open until the end. What already landed on the cards stays there.",
         sorting: "✦ AI is looking through the folder", sortPart: "part {d} / {n}", sortingHint: "AI sees only file names, paths and sizes — not their contents. A big folder goes in parts of 3,000 files.",
         sortDone: "AI made the plan: cards — {c}, files ignored — {x}. Check it and change what you need.", sortOffer: "The plan is by folder names now. ✦ AI can look through the whole folder itself: which card, which section, what to ignore and why.",
         sortBtn: "Sort the folder with AI", tagRules: "by the rules", ignTitle: "AI suggests ignoring", ignHint: "The reason is the AI's. Tick to bring a group back: it is placed by the folder names.",
@@ -1473,7 +1481,6 @@
     var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? worldNameHtml() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
-        (gov && canWrite ? '<label class="btn" title="' + esc(STR.intake.hint) + '"><input type="file" id="ov-folder" hidden webkitdirectory multiple>' + STR.intake.btn + '</label>' : '') + // «📂 Тека гри» → files by path + texts ✦ (startIntake)
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
         ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
@@ -1489,7 +1496,6 @@
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
-    if ($("ov-folder")) $("ov-folder").onchange = function () { var list = [].slice.call(this.files || []); this.value = ""; if (list.length) startIntake(list); }; // «📂 Тека гри» on «Огляд гри»
     var alt = $("alib-tog"); if (alt) alt.onclick = function () { audioLib = !audioLib; render(); };
     var alq = $("alib-q"); if (alq) alq.oninput = function () { alibQ = alq.value; $("alib-list").innerHTML = audioLibList(); };
     var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
@@ -1742,8 +1748,6 @@
     if (!ME.owner || PANEL || !window.__FILL) return "";
     var X = STR.fill, sparse = entities.length < 5 && !lore.length, dir = ""; try { dir = localStorage.getItem("ww-fill-dir-" + worldId) || ""; } catch (e) {}
     return '<details class="fillbox canonbox wedit"' + (always || sparse || fillState ? ' open' : '') + '><summary>' + X.title + '</summary>' +
-      (canFolder ? '<div class="fillfolder"><label class="btn primary"><input type="file" id="fill-folder" webkitdirectory multiple hidden>' + STR.folder.btn + ' <span class="aicost">✦</span></label><p class="hint">' + esc(STR.folder.hint) + '</p></div>'
-        : '<p class="hint">' + esc(STR.folder.lock) + '</p>') +
       '<p class="hint">' + X.lead + '</p>' +
       '<ol class="fillsteps"><li><span>' + X.s1 + '</span><label class="field"><span>' + X.dir + '</span><input id="fill-dir" value="' + esc(dir) + '" placeholder="' + esc(X.dirPh) + '"></label>' +
       '<div class="row"><button class="btn primary" id="fill-copy">' + X.copy + '</button><button class="btn ghost" id="fill-tpl">' + X.tpl + '</button><span class="muted" id="fill-cst" role="status"></span></div></li>' +
@@ -1789,14 +1793,6 @@
       fillState = r.error ? { msg: (X.err[r.error] || r.error).replace("{d}", r.detail || "") + (r.error === "json" ? r.detail : "") } : { name: file.name, parsed: r, replace: false, text: text };
       fillRedraw();
     };
-    if ($("fill-folder")) $("fill-folder").onchange = async function (e) {
-      var list = [].slice.call(e.target.files || []); e.target.value = ""; if (!list.length) return;
-      fillState = { msg: X.reading }; fillRedraw();
-      var F = await readFolder(list, WORLD_FOLDER_MAX);
-      if (F.error) { fillState = { msg: F.error }; return fillRedraw(); }
-      fillState = null; fillRedraw();
-      confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", F.chars));
-    };
     bindFillRes();
   }
   // «📂 Завантажити теку» of a world (functions/src/world-folder.js): AI sorts the notes → the same preview as the fill file
@@ -1812,26 +1808,9 @@
     } catch (e) { fillState = { msg: STR.failed + ": " + e.message }; }
     fillRedraw();
   }
-  // a folder picked with <input webkitdirectory> (every browser, read only) → its text files; tool folders (.git, Unity's Library…) skipped
+  // a folder picked with <input webkitdirectory> (every browser, read only): text files, tool folders (.git, Unity's Library…) skipped
   var FOLDER_TEXT = /\.(md|markdown|txt|json|csv|tsv|ya?ml|xml|html?|fountain|org|rst|ini|toml)$/i;
   var FOLDER_SKIP = /(^|\/)(\.git|\.vs|\.idea|node_modules|Library|Temp|Logs|obj|Build|Builds|UserSettings|ProjectSettings|Packages)\//;
-  async function readFolder(list, max) {
-    var Y = STR.folder, files = [], chars = 0, skipped = 0, name = "";
-    for (var i = 0; i < list.length; i++) {
-      var f = list[i], path = f.webkitRelativePath || f.name;
-      if (!name) name = path.split("/")[0];
-      var rel = path.split("/").slice(1).join("/") || f.name;
-      if (FOLDER_SKIP.test(rel)) continue;
-      if (!FOLDER_TEXT.test(f.name) || f.size > 2 * 1024 * 1024) { skipped++; continue; }
-      var text = (await f.text()).replace(/^\uFEFF/, "");
-      if (!text.trim()) continue;
-      files.push({ path: rel, text: text }); chars += text.length;
-    }
-    if (!files.length) return { error: Y.empty };
-    if (chars > max) return { error: Y.big.replace("{n}", chars.toLocaleString()).replace("{max}", max.toLocaleString()) };
-    files.sort(function (a, b) { return a.path.localeCompare(b.path); });
-    return { name: name, files: files, chars: chars, skipped: skipped };
-  }
   var GAME_FOLDER_MAX = 100000; // gamedevPlan import takes at most this much (functions/src/gamedev.js MAX_IMPORT_CHARS)
   // the folder picked in the new-world form (flow.jsx keeps it on the shell): the world's first open asks the price and sorts it
   var pendingTaken = false;
@@ -1839,13 +1818,64 @@
   async function takePendingFill() {
     if (pendingTaken || PANEL || !ME.owner) return; pendingTaken = true;
     var pf = null; try { pf = window.parent.__wwPendingFill; window.parent.__wwPendingFill = null; } catch (e) {}
-    if (!pf || !pf.text) return;
+    if (!pf || (!pf.text && !pf.folder)) return;
     if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; render(); }
+    if (pf.folder) return startWorldFolder(pf);
     var r = window.__FILL.parse(pf.text);
     if (r.error) { fillState = { msg: (STR.fill.err[r.error] || r.error).replace("{d}", r.detail || "") }; return fillRedraw(); }
     fillState = { name: pf.name, parsed: r, replace: false, text: pf.text };
     if (r.skipped) return render(); // not by the template: show what was recognised and «✦ Розкласти весь файл з ШІ», do not move half of it silently
     await applyFill();
+  }
+  // «📂 Тека світу» of the new-world form (flow.jsx): ✦ the AI looks through the list (worldFolder {scout}) and picks what holds the world →
+  // those files are read on the PC (scripts / Unity data — only what a designer reads, inReadText) → worldFolder in batches → the fill preview
+  async function startWorldFolder(pf) {
+    var Y = STR.folder, X = STR.wfold;
+    if (!canFolder) { fillState = { msg: Y.lock }; return render(); }
+    var ents = [];
+    pf.folder.forEach(function (f) {
+      var rel = (f.webkitRelativePath || f.name).split("/").slice(1).join("/") || f.name, code = IN_READ_CODE.test(rel) || IN_READ_DATA.test(rel);
+      if (!f.size || FOLDER_SKIP.test(rel) || IN_TECH_TEXT.test(rel) || IN_TECH_DIR.test(rel)) return;
+      if (code ? f.size > IN_READ_MAX : (!FOLDER_TEXT.test(f.name) || f.size > 2 * 1048576)) return;
+      ents.push({ f: f, rel: rel, r: code, i: ents.length });
+    });
+    if (!ents.length) { fillState = { msg: Y.empty }; return render(); }
+    var chunks = [], line = function (x) { return x.i + "|" + x.p + "|" + Math.max(1, Math.round(x.s / 1024)); };
+    for (var i = 0; i < ents.length; i += IN_SORT_MAX) chunks.push(ents.slice(i, i + IN_SORT_MAX).map(function (e) { return { i: e.i, p: e.rel, s: e.f.size }; }));
+    var spent = 0, say = function (t) { fillState = { msg: t }; fillRedraw(); };
+    fillState = { msg: X.ask.replace("{d}", pf.name || "").replace("{n}", ents.length) }; render();
+    confirmCost("worldFolderScout", async function () {
+      var read = [];
+      for (var k = 0; k < chunks.length; k++) {
+        say(X.scouting.replace("{d}", k + 1).replace("{n}", chunks.length));
+        try { var d = await fnCall("worldFolder", { worldId: worldId, scout: true, list: chunks[k], language: LANG }); read = read.concat(d.read || []); spent += d.tokensConsumed || 0; }
+        catch (e) { return say(STR.failed + ": " + e.message); }
+      }
+      var files = [], chars = 0;
+      for (var q = 0; q < read.length; q++) {
+        var e = ents[read[q]]; if (!e) continue;
+        say(X.readingFiles.replace("{d}", q + 1).replace("{n}", read.length));
+        var t = e.r ? await inReadText(e) : (await e.f.text().catch(function () { return ""; })).replace(/^﻿/, "").trim();
+        if (t) { t = t.slice(0, WORLD_FOLDER_MAX); files.push({ path: e.rel, text: t }); chars += t.length; }
+      }
+      if (!files.length) return say(X.nothing);
+      var batches = [], cur = [], n = 0;
+      files.forEach(function (f) { if (cur.length && (n + f.text.length > WORLD_FOLDER_MAX || cur.length >= 500)) { batches.push(cur); cur = []; n = 0; } cur.push(f); n += f.text.length; });
+      if (cur.length) batches.push(cur);
+      say(X.picked.replace("{n}", files.length).replace("{c}", chars.toLocaleString()).replace("{a}", ents.length));
+      confirmCost("worldFolder", async function () {
+        var fills = [], bad = [];
+        for (var b = 0; b < batches.length; b++) {
+          say(STR.folder.busy.replace("{d}", pf.name || "").replace("{n}", files.length) + " · " + X.part.replace("{d}", b + 1).replace("{n}", batches.length));
+          try { var r = await fnCall("worldFolder", { worldId: worldId, files: batches[b], language: LANG }); if (r.fill) fills.push(r.fill); spent += r.tokensConsumed || 0; (r.badParts || []).length && bad.push(b + 1); }
+          catch (er) { bad.push(b + 1); if (er.code === "OUT_OF_TOKENS" || er.code === "PLAN_REQUIRED") break; }
+        }
+        var parsed = fills.length ? window.__FILL.parse(window.__FILL.merge(fills)) : { error: "empty" };
+        fillState = parsed.error ? { msg: STR.failed + ": " + parsed.error } : { name: Y.name.replace("{d}", pf.name || ""), folder: true, parsed: parsed, replace: false,
+          note: [X.readN.replace("{n}", files.length).replace("{a}", ents.length), bad.length ? Y.bad.replace("{p}", bad.join(", ")) : "", spent ? STR.spent + ": " + spent : ""].filter(Boolean).join(" · ") };
+        fillRedraw();
+      }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.reduce(function (z, f) { return z + f.text.length; }, 0)); }, 0));
+    }, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n").length); }, 0));
   }
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
   function bindFillRes() {
@@ -7056,6 +7086,9 @@
     material: /\.(mat|sbsar|sbs|shadergraph)$/i, anim: /\.(anim|controller|overridecontroller|playable)$/i, font: /\.(ttf|otf|woff2?)$/i, archive: /\.(zip|rar|7z)$/i };
   var IN_CODE = /\.(meta|cs|js|mjs|ts|cpp|c|h|hpp|hlsl|shader|cginc|compute|glsl|py|dll|so|exe|pdb|asmdef|asmref|csproj|sln|lock|log|tmp)$|(^|\/)\.[^\/]+$/i; // code is Claude Code's (GitHub repo), not the Bible's
   // texts that are not the game's design: docs of frameworks, engines, store packages and tools, agent instructions, configs — never read as notes
+  var IN_TECH_DIR = /(^|\/)(Plugins|Third[ _-]?Party|Vendor|Samples~?|Documentation~|Editor|TextMesh Pro|[^\/]*Framework[^\/]*|[^\/]*SDK[^\/]*)\//i;
+  // ✦ the AI may pick these to READ (never uploaded): the game's own scripts and Unity's text data (ScriptableObjects, scenes, prefabs)
+  var IN_READ_CODE = /\.(cs|js|mjs|ts|py|lua|gd|cpp|h|hpp)$/i, IN_READ_DATA = /\.(asset|unity|prefab|controller)$/i, IN_READ_MAX = 1048576, IN_READ_CHARS = 60000;
   var IN_TECH_TEXT = /(^|\/)(Plugins|Third[ _-]?Party|Vendor|Samples~?|Documentation~|Editor|TextMesh Pro|[^\/]*Framework[^\/]*|[^\/]*SDK[^\/]*)\/|(^|\/)(CHANGELOG|CHANGES|CONTRIBUTING|CODE_OF_CONDUCT|SECURITY|CLAUDE|AGENTS|package(-lock)?|tsconfig|jsconfig|manifest|packages-lock|\.?editorconfig)(\.[^\/]+)?$/i;
   var IN_PATH = [ // a folder name → the section; the shallowest one wins, models / prefabs / assets only when nothing else matched
     ["refs", /^(refs?|references?|референс\S*|moodboards?|inspiration|натхнення|concepts?|concept.?art|концепт\S*)$/],
@@ -7128,7 +7161,10 @@
       if (!I.name) I.name = path.split("/")[0];
       var rel = path.split("/").slice(1).join("/") || f.name, dir = rel.split("/").slice(0, -1).join("/");
       if (FOLDER_SKIP.test(rel)) { I.skip.tool++; continue; }
-      if (IN_CODE.test(rel)) { I.skip.code++; continue; }
+      if (IN_CODE.test(rel)) {
+        if (canDev && f.size && f.size <= IN_READ_MAX && IN_READ_CODE.test(rel) && !IN_TECH_DIR.test(rel)) { I.ents.push({ f: f, rel: rel, dir: dir, kind: "code", r: 1, i: I.ents.length }); continue; } // the AI decides whether to read it
+        I.skip.code++; continue;
+      }
       if (!f.size) { I.skip.empty++; continue; }
       var e = { f: f, rel: rel, dir: dir, kind: isLicText(f) ? "lic" : FOLDER_TEXT.test(f.name) ? "text" : inKind(f.name) };
       if (e.kind === "text") {
@@ -7138,6 +7174,7 @@
         if (!e.text.trim()) { I.skip.empty++; continue; }
       } else if (e.kind === "lic") e.text = await f.text().catch(function () { return ""; });
       else if (f.size > I.limit) { I.tooBig.push(rel); continue; }
+      if (canDev && IN_READ_DATA.test(rel) && f.size <= IN_READ_MAX && !IN_TECH_DIR.test(rel)) e.r = 1; // Unity text data: a card and, if the AI says so, read too
       e.i = I.ents.length; I.ents.push(e);
     }
     if (!I.ents.length) { intake = null; imp = { error: STR.folder.empty }; return render(); }
@@ -7147,7 +7184,8 @@
   }
   // the plan: the AI's cards (I.sort) where there are some, the path rules for every file the AI did not place (or the ignored groups ticked back)
   function inLayout(I) {
-    I.groups = []; I.byKey = {}; I.skip.other = 0;
+    I.groups = []; I.byKey = {}; I.skip.other = 0; I.skip.unread = 0;
+    var toRead = {}; ((I.sort && I.sort.read) || []).forEach(function (i) { toRead[i] = 1; });
     var placed = {}, rules = [], texts = [], add = function (g, e) { g.files.push({ f: e.f, rel: e.rel }); g.bytes += e.f.size; g.dirs[e.dir] = 1; };
     var group = function (p, by) {
       var key = p.sec + "|" + inNorm(p.name) + "|" + inNorm(p.group) + "|" + (p.canon || ""), g = I.byKey[key];
@@ -7161,6 +7199,8 @@
     });
     (I.ignored || []).forEach(function (x) { if (!x.back) x.ents.forEach(function (e) { if (e.kind !== "text" || x.reason !== "text") placed[e.i] = "x"; }); });
     I.ents.forEach(function (e) {
+      if (e.kind === "code") { if (toRead[e.i] && e.text) texts.push(e); else I.skip.unread++; return; } // a script: only read, never a card
+      if (e.r && toRead[e.i] && e.text) texts.push(e); // Unity data the AI picked: read, and placed below as usual
       if (e.kind === "text") { if (placed[e.i] !== "x" && !placed[e.i]) texts.push(e); return; } // texts go to the ✦ import unless the AI put them away
       if (placed[e.i]) return;
       if (e.kind === "lic") { rules.push(e); return; }
@@ -7170,7 +7210,7 @@
     rules.forEach(function (l) { // a licence / readme the AI left: onto the cards of its folder, else it is read as a text
       var gs = I.groups.filter(function (g) { return g.dirs[l.dir]; });
       gs.forEach(function (g) { add(g, l); });
-      if (!gs.length) texts.push(l);
+      if (!gs.length && !IN_TECH_TEXT.test(l.rel) && !IN_TECH_DIR.test(l.rel)) texts.push(l); // a framework's readme is not the game's notes
     });
     I.groups.forEach(function (g) {
       var sid = g.sec, canon = g.canon; inMatch(g);
@@ -7184,7 +7224,7 @@
   var IN_SORT_MAX = 3000;
   function inSortChunks(I) {
     var out = [];
-    for (var i = 0; i < I.ents.length; i += IN_SORT_MAX) out.push(I.ents.slice(i, i + IN_SORT_MAX).map(function (e) { return { i: e.i, p: e.rel, s: e.f.size }; }));
+    for (var i = 0; i < I.ents.length; i += IN_SORT_MAX) out.push(I.ents.slice(i, i + IN_SORT_MAX).map(function (e) { return e.r ? { i: e.i, p: e.rel, s: e.f.size, r: 1 } : { i: e.i, p: e.rel, s: e.f.size }; }));
     return out;
   }
   function inSortCost(I) {
@@ -7192,24 +7232,34 @@
   }
   function inSortAsk(I) { confirmCost("folderSort", function () { inSortRun(I); }, inSortCost(I)); }
   async function inSortRun(I) {
-    var chunks = inSortChunks(I), got = { cards: [], ignore: [] };
+    var chunks = inSortChunks(I), got = { cards: [], ignore: [], read: [] };
     I.sorting = { at: 0, n: chunks.length }; I.sortErr = ""; render();
     for (var k = 0; k < chunks.length; k++) {
       try {
         var d = await callFn({ op: "folderSort", shelves: shelves(), files: chunks[k], worldId: I.W, gameId: I.G });
-        got.cards = got.cards.concat((d.proposal && d.proposal.cards) || []); got.ignore = got.ignore.concat((d.proposal && d.proposal.ignore) || []);
+        got.cards = got.cards.concat((d.proposal && d.proposal.cards) || []); got.ignore = got.ignore.concat((d.proposal && d.proposal.ignore) || []); got.read = got.read.concat((d.proposal && d.proposal.read) || []);
         I.sortSpent = (I.sortSpent || 0) + (d.tokensConsumed || 0);
       } catch (e) { I.sortErr = e.message; break; }
       I.sorting.at = k + 1; if (intake === I && I.view) render();
     }
     I.sorting = null;
-    if (got.cards.length || got.ignore.length) {
+    if (got.cards.length || got.ignore.length || got.read.length) {
       I.sort = got;
-      I.ignored = got.ignore.map(function (x) { return { reason: x.reason, ents: x.files.map(function (i) { return I.ents[i]; }).filter(Boolean), back: false }; })
+      for (var q = 0; q < got.read.length; q++) { var re = I.ents[got.read[q]]; if (re && re.r && !re.text) re.text = await inReadText(re); } // scripts and Unity data the AI picked
+      I.ignored = got.ignore.map(function (x) { return { reason: x.reason, ents: x.files.map(function (i) { return I.ents[i]; }).filter(function (e) { return e && e.kind !== "code"; }), back: false }; }) // scripts are counted under «not picked to read»
         .filter(function (x) { return x.ents.length && !(x.reason === "text" && x.ents.every(function (e) { return e.kind === "text"; })); }); // «text» = read by the import, not ignored
       inLayout(I);
     }
     if (intake === I) render();
+  }
+  // a script or Unity YAML → only what a designer reads: references, ids and engine bookkeeping dropped, ≤ IN_READ_CHARS
+  async function inReadText(e) {
+    var t = ""; try { t = (await e.f.text()).replace(/^\uFEFF/, ""); } catch (er) { return ""; }
+    if (IN_READ_DATA.test(e.rel)) {
+      if (!/^%YAML/.test(t)) return ""; // binary serialization: nothing to read
+      t = t.split("\n").filter(function (l) { return !/fileID:|guid:|^\s*(m_ObjectHideFlags|m_CorrespondingSourceObject|m_PrefabInstance|m_PrefabAsset|m_GameObject|m_Enabled|m_EditorHideFlags|m_EditorClassIdentifier|m_Script|serializedVersion|m_LocalRotation|m_LocalPosition|m_LocalScale|m_LocalEulerAnglesHint|m_ConstrainProportionsScale|m_RootOrder|m_Father|m_Children):|^--- !u!|^%(YAML|TAG)/.test(l); }).join("\n");
+    } else t = t.replace(/^\s*(using|import|#include|#pragma)\b.*$/gm, "").replace(/\n{3,}/g, "\n\n");
+    return t.trim().slice(0, IN_READ_CHARS);
   }
   function inTextCost(I) { return I.text.packs.reduce(function (n, p) { return n + quoteOf("import", p.length); }, 0); }
   function inOn(I) { return I.groups.filter(function (g) { return g.on; }); }
@@ -7274,7 +7324,7 @@
       if (I.ignored.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + esc(X.ignTitle) + ' <span>' + I.ignored.reduce(function (n, x) { return n + x.ents.length; }, 0) + '</span></h2></summary><p class="hint">' + esc(X.ignHint) + '</p>' +
         I.ignored.map(function (x, k) { return '<label class="imp"><input type="checkbox" data-inback="' + k + '"' + (x.back ? ' checked' : '') + '><span><b>' + esc(x.reason || "—") + '</b><span class="muted"> — ' + esc(X.nFiles.replace("{n}", x.ents.length)) + ': ' +
           esc(x.ents.slice(0, 3).map(function (e) { return e.rel; }).join(", ")) + (x.ents.length > 3 ? " …" : "") + '</span></span></label>'; }).join("") + '</details></section>';
-      var sk = I.skip, skipped = [sk.tool && X.skTool.replace("{n}", sk.tool), sk.code && X.skCode.replace("{n}", sk.code), sk.docs && X.skDocs.replace("{n}", sk.docs), sk.other && X.skOther.replace("{n}", sk.other), sk.bigText && X.skBigText.replace("{n}", sk.bigText), sk.empty && X.skEmpty.replace("{n}", sk.empty)].filter(Boolean);
+      var sk = I.skip, skipped = [sk.tool && X.skTool.replace("{n}", sk.tool), sk.code && X.skCode.replace("{n}", sk.code), sk.docs && X.skDocs.replace("{n}", sk.docs), sk.unread && X.skUnread.replace("{n}", sk.unread), sk.other && X.skOther.replace("{n}", sk.other), sk.bigText && X.skBigText.replace("{n}", sk.bigText), sk.empty && X.skEmpty.replace("{n}", sk.empty)].filter(Boolean);
       if (skipped.length || I.tooBig.length) html += '<section class="psec"><h2 class="group">' + esc(X.skipTitle) + '</h2><p class="hint">' + esc(skipped.join(" · ")) + '</p>' +
         (I.tooBig.length ? '<p class="warn">⚠ ' + esc(X.tooBig.replace("{n}", I.tooBig.length).replace("{max}", fileSize(I.limit))) + '</p><ul class="contra">' + I.tooBig.slice(0, 30).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') + '</section>';
     } else {

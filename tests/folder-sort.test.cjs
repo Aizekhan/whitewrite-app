@@ -15,6 +15,11 @@ const many = Array.from({ length: 3000 }, (_, i) => `${i}|Assets/Models/some_lon
 check(sortParts(many).every((p) => p.join('\n').length <= 20000) && sortParts(many).reduce((n, p) => n + p.length, 0), 3000, 'a big list is cut into parts ≤ partChars, nothing lost');
 check(/Префаби/.test(folderSortPrompt(['0|a.prefab|1'], shelves, [], [], 'Ukrainian')), true, 'the prompt carries the prefab rule');
 const sp = folderSortPrompt(['0|Docs/GDD.md|4'], shelves, [], [], 'Ukrainian');
-check(/frameworks, libraries, plugins/.test(sp) && /NOT read/.test(sp), true, 'the prompt keeps only the author notes about the game, not docs of frameworks / plugins');
+check(/frameworks, libraries, plugins/.test(sp) && /"read" = the files whose CONTENTS/.test(sp) && /never code/.test(sp), true, 'the prompt keeps only the author notes about the game, not docs of frameworks / plugins');
+const rd = cleanFolderSort([{ cards: [{ section: 'assets', title: 'Арвен', files: [1] }], read: [1, 4, 4, 99], ignore: [{ files: [4, 2], reason: 'код' }] }], shelves, [], files);
+check([rd.read, rd.ignore], [[1, 4], [{ files: [2], reason: 'код' }]], 'read: sent indexes once (a prefab on a card may be read too), a file to read is never also ignored');
+const W = require(path.join(__dirname, '../functions/src/world-folder.js'))._worldFolder;
+check(W.cleanScout([{ read: [0, 0, 7], ignore: [{ files: [0, 1], reason: 'док' }] }], [{ i: 0 }, { i: 1 }]), { read: [0], ignore: [{ files: [1], reason: 'док' }] }, 'world scout: only listed files, each once, read wins over ignore');
+check(/frameworks/.test(W.scoutSystem('Морра', 'uk')) && /Ukrainian/.test(W.scoutSystem('Морра', 'uk')), true, 'world scout prompt skips docs of frameworks, reasons in the language');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;
