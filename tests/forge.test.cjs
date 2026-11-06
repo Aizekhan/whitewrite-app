@@ -122,5 +122,21 @@ check(rm.body_profile.height_m, 1.8, 'manifest: the body type height');
 check(rm.body_shape.Heavy + '/' + rm.body_shape.Muscular, '100/0', 'manifest: the build is clamped 0–100');
 check(rm.animation_ready && rm.skeleton_check.result, 'passed', 'manifest: the skeleton check and animation_ready');
 
+// 🎞 the animation library: the shipped manifest's files exist on the hosting copy, a clip becomes a character clip with its snapshot, the manifest carries it
+const fs = require('fs'), path = require('path'), AD = path.join(__dirname, '../app/assets/anims/'), LIB = JSON.parse(fs.readFileSync(AD + 'manifest.json', 'utf8'));
+check(LIB.schema, 'artpipeline.anims/1', 'library: the schema');
+check(LIB.clips.every((c) => F.ANIM_CATS[c.category]), true, 'library: every category has a label');
+check(new Set(LIB.clips.map((c) => c.id)).size, LIB.clips.length, 'library: clip ids are unique');
+check(LIB.clips.every((c) => ['poster', 'preview', 'glb'].every((k) => fs.existsSync(AD + c.files[k]))), true, 'library: posters, previews and the base GLBs are on the hosting copy');
+check(LIB.clips.every((c) => Object.keys(c.files.glb_by_type || {}).every((b) => { const w = F.animGlb(c, b), rel = c.files.glb_by_type[b]; return /^Base\/Types\//.test(rel) ? w.store === 'library/anims/' + rel : w.url === '/assets/anims/' + rel; })), true, 'library: per-type GLBs come from Storage, the base ones (human_male, the tail) from the hosting');
+check(fs.existsSync(AD + 'whitewrite-animations.zip') && fs.existsSync(AD + 'LICENSE.md'), true, 'library: the FBX pack and the licence are shipped');
+const atk = LIB.clips.find((c) => c.active), lc = F.libClip(atk);
+check(lc.lib + ' ' + lc.status + ' ' + lc.a.state + ' ' + lc.a.active.length + ' ' + lc.a.fbx, atk.id + ' done ' + atk.state + ' 2 ' + atk.files.fbx, 'library: a clip → a character clip with state, hit window, FBX');
+check(F.animGlb({ files: { glb: 'Base/x.glb', glb_by_type: {} } }, 'orc').url, '/assets/anims/Base/x.glb', 'library: no per-type GLB → the base one');
+const lm = F.manifest({ id: 'h', title: 'H', forge: { type: 'hero', clips: [lc, { id: 'own', name: 'Свій', status: 'todo' }] } }, [], { forge: {} }, 'en');
+check(lm.clips[0].library.id + ' ' + !!lm.clips[0].library.transitions + ' ' + (lm.clips[1].library === undefined) + ' ' + lm.animation_library.pack, atk.id + ' true true ' + F.ANIM_PACK, 'manifest: library clips carry their data and the pack');
+check(F.manifest({ id: 'h', forge: { type: 'npc' } }, [], { forge: {} }, 'en').animation_library, null, 'manifest: no library clip → no pack note');
+check(F.footIk({ retarget: { ogre: { feet_min_m: -0.036, ok: true } } }, 'ogre') + ' ' + F.footIk({ retarget: { ogre: { feet_min_m: -0.002, ok: true } } }, 'ogre'), 'true false', 'library: Foot IK when the foot sinks > 1.5 cm');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

@@ -865,11 +865,18 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .fz-ok{ color:var(--s-game); }
 /* 🦴 WhiteWrite references: body types with their dummies, the build sliders, the «fit to the reference» block */
 .fz-ref{ margin-bottom:18px; } .fz-ref > .row{ gap:12px; align-items:center; flex-wrap:wrap; }
+.fz-lib{ margin-top:18px; padding-top:14px; border-top:1px solid var(--line-2); }
+.fz-libcats{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+.fz-anims{ display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:10px; margin:10px 0; }
+.fz-anim{ display:grid; gap:4px; align-content:start; padding:10px; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-2); }
+.fz-anim.is-on{ border-color:var(--gold-lit); box-shadow:0 0 0 1px var(--gold-lit) inset; }
+.fz-anim img{ width:100%; aspect-ratio:1; object-fit:contain; background:#1a1917; border-radius:8px; }
+.fz-anim .muted, .fz-anim small{ font-size:12px; } .fz-anim .btn{ padding:3px 10px; font-size:12.5px; }
 .fz-refs{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:12px 0; }
 .fz-refb{ display:grid; gap:4px; justify-items:start; padding:10px; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-2); }
 .fz-refb .btn, .fz-shape .btn{ padding:3px 10px; font-size:12.5px; } a.btn{ text-decoration:none; } .fz-refb img{ width:100%; height:150px; object-fit:contain; background:#fff; border-radius:8px; } .fz-refb .muted{ font-size:12px; }
 .fz-shape{ display:grid; gap:6px; padding:10px; border:1px solid var(--line); border-radius:10px; } .fz-shape input[type=range]{ width:100%; accent-color:var(--gold-lit); } .fz-shape small{ font-size:11.5px; line-height:1.4; }
-.fz-fit{ margin:12px 0; padding:12px 14px; border:1px solid rgba(240,169,59,.35); border-radius:12px; background:var(--gold-soft); } .fz-fit .ln-cmd{ white-space:pre-wrap; } .fz-fit a.btn{ color:var(--tx-hi); }
+.fz-fit{ margin:12px 0; padding:12px 14px; border:1px solid rgba(240,169,59,.35); border-radius:12px; background:var(--gold-soft); } .fz-fit .ln-cmd{ white-space:pre-wrap; } .fz-fit a.btn, .fz-lib a.btn{ color:var(--tx-hi); }
 .fz-brief, .fz-pass{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-top:10px; }
 .fz-rev{ margin:8px 0; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg-2); } .fz-rev.ap{ border-color:var(--s-game); }
 .fz-rev .row{ gap:8px; align-items:center; flex-wrap:wrap; } .fz-rev p{ margin:6px 0 0; }

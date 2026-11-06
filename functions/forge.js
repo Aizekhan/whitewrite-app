@@ -10,7 +10,7 @@
 //     brief: { race, cls, role, silhouette, proportions, palette, refs },
 //     revs: [{ id, stage, n, files: [fileId], note, by, byName, at, from (revId it was restored from) }]   — never edited, only added
 //     stages: { stageId: { approved: { rev, by, byName, at, comment } | null } },
-//     clips: [{ id, name, status: todo|done|checked }], loadouts: [{ id, name, items: { slotId: cardId } }],
+//     clips: [{ id, name, status: todo|done|checked, lib?: library clip id, a?: its snapshot (animSnap) }], loadouts: [{ id, name, items: { slotId: cardId } }],
 //     notes: [{ stage, text, byName, at }] }
 //   item: { slot, bind: skinned|rigid, rig, body, mask: [region], attach: [{ bone, point }], format, units, maps: [map], lod,
 //     polyTarget, owners: [characterCardId], revs (stage "concept" | "model"), approval: { rev, byName, at, comment } (manual, warnings only),
@@ -92,6 +92,27 @@ var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human male', 1
 var SHAPES = ['Thin', 'Heavy', 'Muscular']; // the same key names on the body and on every item: SetBlendShapeWeight moves them together
 var REF_FILES = '/assets/rigs/'; // <id>.glb (the dummy body, textures inside) and <id>_front.webp per body type
 var REF_PACK = '/assets/rigs/whitewrite-reference-rigs.zip'; // conform_to_rig.py + every type's .fbx / .glb / .blend / rig.json
+// 🎞 the WhiteWrite animation library (ArtPipeline, schema artpipeline.anims/1, ours — may be given to users): every clip on the same mixamo65 Humanoid
+// skeleton, in place (no root motion). The browser reads ANIM_FILES + manifest.json; previews, posters and the human_male GLBs are on the hosting,
+// the per-body-type GLBs (Base/Types/<type>/<id>.glb, ~650 MB) in Storage ANIM_STORE (storage.rules: signed-in read), the FBX for Unity in ANIM_PACK.
+// Clip ids are stable keys (the library only adds); a chosen clip is a character clip { id, lib, name, en, status, a: animSnap() } — the snapshot
+// keeps what Unity needs (state, Animator parameters, transitions, hit window…) so the manifest and MCP never need the library itself.
+var ANIM_FILES = '/assets/anims/', ANIM_STORE = 'library/anims/', ANIM_PACK = '/assets/anims/whitewrite-animations.zip';
+var ANIM_CATS = { locomotion: ['Пересування', 'Locomotion'], air: ['Стрибок і падіння', 'Jump & fall'], combat_unarmed: ['Бій без зброї', 'Unarmed combat'],
+  combat_sword_shield: ['Меч і щит', 'Sword & shield'], combat_one_hand: ['Одноручна зброя', 'One-handed'], combat_two_hand: ['Дворучна зброя', 'Two-handed'],
+  combat_dagger: ['Кинджал', 'Dagger'], combat_spear: ['Спис', 'Spear'], combat_bow: ['Лук', 'Bow'], combat_magic: ['Магія', 'Magic'], dodge: ['Ухилення', 'Dodge'],
+  reaction: ['Реакції на удар', 'Hit reactions'], death: ['Смерть', 'Death'], interaction: ['Взаємодія', 'Interaction'], social: ['Жести й розмова', 'Gestures & talk'],
+  tail: ['Хвіст (щуролюд)', 'Tail (ratfolk)'] };
+function animName(id) { var t = String(id || '').replace(/_/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); }
+// a library path → where it lives: the hosting URL, or the Storage path of a per-type GLB
+function animFile(rel) { rel = String(rel || ''); return /^Base\/Types\//.test(rel) ? { store: ANIM_STORE + rel } : { url: ANIM_FILES + rel }; }
+// the GLB the browser plays on this body type (a reference body; else the human_male base)
+function animGlb(clip, bodyId) { var g = (clip && clip.files && clip.files.glb_by_type) || {}; return animFile(g[bodyId] || (clip && clip.files && clip.files.glb)); }
+var ANIM_KEEP = ['category', 'state', 'framework', 'transitions', 'loop', 'active', 'duration', 'fps', 'frames', 'speed', 'travel', 'turn_deg', 'weapon', 'mirror_of', 'variant_of', 'note'];
+function animSnap(clip) { var o = { fbx: clip.files && clip.files.fbx || '' }; ANIM_KEEP.forEach(function (k) { if (clip[k] !== undefined) o[k] = clip[k]; }); return o; }
+function libClip(clip) { return { id: 'lib_' + clip.id, lib: clip.id, name: animName(clip.id), en: animName(clip.id), status: 'done', a: animSnap(clip) }; }
+// the clips a body type needs Foot IK for: the retargeted foot sinks more than 1.5 cm into the floor
+function footIk(clip, bodyId) { var r = clip && clip.retarget && clip.retarget[bodyId]; return !!r && (r.ok === false || r.feet_min_m < -0.015); }
 function refRig(id) { return REF_RIGS.filter(function (r) { return r.id === id; })[0] || null; }
 function refBody(id) { return REF_BODIES.filter(function (b) { return b.id === id; })[0] || null; }
 // the game's profiles with every reference one added (a profile with the same id is left as the author has it)
@@ -274,7 +295,9 @@ function manifest(char, items, game, lang) {
         approved: a ? { version: r && r.n || null, by: a.byName || '', at: a.at || null, comment: a.comment || '' } : null,
         files: r && r.files ? r.files.map(function (id) { return fileOut(files, id); }).filter(Boolean) : [] };
     }),
-    clips: clipsOf(f).map(function (c) { return { name: L === 'en' ? c.en || c.name : c.name, status: c.status }; }),
+    clips: clipsOf(f).map(function (c) { var o = { name: L === 'en' ? c.en || c.name : c.name, status: c.status }; if (c.lib) o.library = Object.assign({ id: c.lib }, c.a || {}); return o; }),
+    animation_library: clipsOf(f).some(function (c) { return c.lib; }) ? { pack: ANIM_PACK, skeleton: 'mixamo65 · Unity Humanoid', root_motion: false,
+      note: 'One shared FBX per clip in the pack (Base/<library id>.fbx) fits every reference body type through Humanoid; clips are in place, no weapons in them (the grip is the RightHand bone, LeftHand for the bow and the shield). Turn on Foot IK for dwarf, ogre and ratfolk.' } : null,
     equipment: itemsOf(char, items).map(function (i) {
       var x = i.forge || {}, v = validation(i, char, game), slot = slots.filter(function (s) { return s.id === x.slot; })[0], m = modelFile(i);
       return { ref: 'c:' + i.id, name: i.title || '', slot: x.slot || '', slot_name: slot ? lbl(slot, L) : '', binding: x.bind || (slot && slot.bind) || 'skinned',
@@ -288,7 +311,8 @@ function manifest(char, items, game, lang) {
 }
 
 var FORGE = { STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
-  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
+  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
+  refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
   lbl: lbl, stage: stage, type: type, typeOf: typeOf, slotsOf: slotsOf, pipeline: pipeline, revsOf: revsOf, approvedRev: approvedRev, isApproved: isApproved, newRev: newRev,
   clipsOf: clipsOf, itemIssues: itemIssues, modelFile: modelFile, validation: validation, itemsOf: itemsOf, blockers: blockers, stageState: stageState,
   progress: progress, manifest: manifest };

@@ -5588,6 +5588,11 @@
       val: { pending: "Очікує", passed: "Пройдено", warning: "Є застереження", failed: "Не пройдено", manual: "Затверджено вручну" },
       setupHint: "Слоти, профілі ригів (скелетів) і тіл цієї гри. Предмет зі скіном сідає лише на персонажа з тим самим профілем рига.",
       rigs: "Профілі ригів", bodies: "Профілі тіла", name: "Назва", notesF: "Нотатки", addRow: "＋ Додати", save: "Зберегти", saved: "Збережено.", resetSlots: "Стандартні слоти",
+      lib: { title: "🎞 Бібліотека анімацій WhiteWrite", lead: "Наші власні кліпи на еталонному скелеті (Mixamo 65 · Humanoid): їх можна брати у свої ігри й роздавати. Наведи на картку — кліп рухається; ▶ 3D грає його на типі тіла цього персонажа. Додані кліпи стають кліпами персонажа — з параметрами Animator RPG Framework, переходами й вікном удару в маніфесті та MCP.",
+        pack: "⤓ Пакет FBX для Unity (.zip)", packHint: "Усі кліпи одним архівом: FBX, manifest.json, ліцензія, README з шаблоном Animator.", min: "＋ Мінімальний набір (26)", loading: "Завантажую бібліотеку…",
+        sec: "с", loop: "петля", hit: "удар", base: "мінімум", v3d: "▶ 3D", add: "＋ Додати", added: "✓ Додано", mark: "Кліп із бібліотеки WhiteWrite",
+        footIk: "на цьому типі тіла увімкни Foot IK", tailOnly: "Хвіст — окремий шар лише для щуролюда (Avatar Mask на Tail1…6).",
+        notes: "Кліпи без зброї й без root motion: зброю тримає кістка RightHand (LeftHand — лук і щит), рух тіла робить гра. Смерті закінчуються позою; повороти на 90° — тіло повертає гра." },
       ref: { title: "🦴 Еталони WhiteWrite", lead: "Готові скелети й тіла-манекени: імена кісток Mixamo, T-поза, Unity Humanoid. Модель, підігнана під еталон, одразу готова до анімації, а броня й одяг, зроблені на еталонному тілі, сідають на кожного персонажа цього типу.",
         body: "Тип тіла", shape: "Статура (ключі форми)", shapeHint: "Ваги ключів Thin / Heavy / Muscular — ті самі імена на тілі й на кожному предметі; у Unity — SetBlendShapeWeight. Ідуть у маніфест (body_shape).",
         shapes: { Thin: "Худорлявий", Heavy: "Масивний", Muscular: "Мʼязистий" }, v3d: "🧊 Манекен у 3D", pack: "⤓ Пакет еталонів (.zip)", packHint: "Скрипт conform_to_rig.py і всі типи тіла: .fbx, .glb, .blend і rig.json. Потрібен Blender 4.5 LTS.",
@@ -5618,6 +5623,11 @@
       val: { pending: "Pending", passed: "Passed", warning: "Warning", failed: "Failed", manual: "Manually approved" },
       setupHint: "This game's slots, rig (skeleton) and body profiles. A skinned item fits only a character with the same rig profile.",
       rigs: "Rig profiles", bodies: "Body profiles", name: "Name", notesF: "Notes", addRow: "＋ Add", save: "Save", saved: "Saved.", resetSlots: "Default slots",
+      lib: { title: "🎞 WhiteWrite animation library", lead: "Our own clips on the reference skeleton (Mixamo 65 · Humanoid): you may use them in your games and give them out. Hover a card — the clip moves; ▶ 3D plays it on this character's body type. Added clips become the character's clips — with the RPG Framework Animator parameters, transitions and the hit window in the manifest and MCP.",
+        pack: "⤓ FBX pack for Unity (.zip)", packHint: "Every clip in one archive: FBX, manifest.json, the licence, a README with the Animator template.", min: "＋ Minimum set (26)", loading: "Loading the library…",
+        sec: "s", loop: "loop", hit: "hit", base: "minimum", v3d: "▶ 3D", add: "＋ Add", added: "✓ Added", mark: "A WhiteWrite library clip",
+        footIk: "turn on Foot IK for this body type", tailOnly: "The tail is a separate layer for the ratfolk only (Avatar Mask on Tail1…6).",
+        notes: "Clips have no weapons and no root motion: the RightHand bone holds the weapon (LeftHand — the bow and the shield), the game moves the body. Deaths end in a pose; 90° turns — the game turns the body." },
       ref: { title: "🦴 WhiteWrite references", lead: "Ready skeletons and dummy bodies: Mixamo bone names, T-pose, Unity Humanoid. A model fitted to a reference is ready for animation at once, and armour and clothes made on a reference body fit every character of that type.",
         body: "Body type", shape: "Build (shape keys)", shapeHint: "Weights of the Thin / Heavy / Muscular keys — the same names on the body and on every item; in Unity — SetBlendShapeWeight. They go into the manifest (body_shape).",
         shapes: { Thin: "Thin", Heavy: "Heavy", Muscular: "Muscular" }, v3d: "🧊 Dummy in 3D", pack: "⤓ Reference pack (.zip)", packHint: "The conform_to_rig.py script and every body type: .fbx, .glb, .blend and rig.json. Needs Blender 4.5 LTS.",
@@ -5731,7 +5741,7 @@
     if (s.kind === "equip") html += fzEquipHtml(c, ctx);
     if (s.kind === "integrate") html += fzIntegHtml(c, ctx);
     if (s.id === "rig" && FG.refRig(f.rig)) html += fzFitHtml(c);
-    if (s.kind === "anim") html += (FG.animReady(f) ? '<p class="fz-ok">' + FZ.ref.ready + ' — ' + FZ.ref.readyHint + '</p><p class="muted">' + FZ.ref.mixamo + '</p>' : '') + fzClipsHtml(c);
+    if (s.kind === "anim") html += (FG.animReady(f) ? '<p class="fz-ok">' + FZ.ref.ready + ' — ' + FZ.ref.readyHint + '</p><p class="muted">' + FZ.ref.mixamo + '</p>' : '') + fzClipsHtml(c) + fzLibHtml(c);
     if (s.kind === "export") html += '<p class="hint">' + FZ.manifestHint + '</p><button class="btn" data-fzmanifest>' + FZ.manifest + '</button>';
     if (s.kind === "files" || s.kind === "anim" || s.kind === "export") html += fzRevsHtml(c, s.id, true);
     if (canWrite && !a && s.kind !== "files") html += '<div class="row"><button class="btn primary" data-fzapp="' + s.id + '"' + (bl.length ? ' disabled' : '') + '>' + FZ.approve + '</button></div>';
@@ -5808,10 +5818,58 @@
   function fzClipsHtml(c) {
     var clips = FG.clipsOf(c.forge);
     return '<h4 class="fz-h">' + FZ.clips + '</h4><table class="fz-slots">' + clips.map(function (k, i) {
-      return '<tr><th>' + esc(LANG === "en" ? k.en || k.name : k.name) + '</th><td><select data-fzclip="' + i + '"' + (canWrite ? '' : ' disabled') + '>' + Object.keys(FZ.clipSt).map(function (s) {
+      return '<tr><th>' + (k.lib ? '<span title="' + esc(FZ.lib.mark) + '">🎞</span> ' : '') + esc(LANG === "en" ? k.en || k.name : k.name) + '</th><td><select data-fzclip="' + i + '"' + (canWrite ? '' : ' disabled') + '>' + Object.keys(FZ.clipSt).map(function (s) {
         return '<option value="' + s + '"' + (k.status === s ? ' selected' : '') + '>' + esc(FZ.clipSt[s]) + '</option>'; }).join("") + '</select>' +
         (canWrite ? ' <button class="btn mini ghost" data-fzclipdel="' + i + '" aria-label="' + esc(STR.remove + " " + k.name) + '">✕</button>' : '') + '</td></tr>';
     }).join("") + '</table>' + (canWrite ? '<div class="row"><input data-fzclipname placeholder="' + esc(FZ.clipPh) + '" aria-label="' + esc(FZ.clipPh) + '"><button class="btn" data-fzaddclip>' + FZ.addClip + '</button></div>' : '');
+  }
+  // 🎞 the WhiteWrite animation library (functions/forge.js ANIM_*): manifest.json read once from the hosting; a clip added here becomes the
+  // character's clip with its snapshot (FG.libClip) — the manifest and MCP get_character_forge carry it to Unity
+  var ANIMS = null, animsBusy = false;
+  function fzAnims() {
+    if (ANIMS || animsBusy) return ANIMS;
+    animsBusy = true;
+    fetch(FG.ANIM_FILES + "manifest.json").then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (j) { ANIMS = j; }, function (e) { ANIMS = { clips: [], error: e.message || String(e) }; })
+      .then(function () { animsBusy = false; if (section === "forge") render(); });
+    return null;
+  }
+  function fzLibHtml(c) {
+    var A = FZ.lib, lib = fzAnims(), f = c.forge, body = FG.refBody(f.body) ? f.body : "human_male", have = {};
+    FG.clipsOf(f).forEach(function (k) { if (k.lib) have[k.lib] = 1; });
+    var html = '<section class="fz-lib"><h4 class="fz-h">' + A.title + '</h4><p class="hint">' + A.lead + '</p>' +
+      '<div class="row"><a class="btn" href="' + FG.ANIM_PACK + '" download>' + A.pack + '</a>' + (canWrite ? '<button class="btn" data-fzlibmin>' + A.min + '</button>' : '') + '<span class="muted">' + A.packHint + '</span></div>';
+    if (!lib) return html + '<p class="muted">' + A.loading + '</p></section>';
+    if (lib.error) return html + '<p class="warn">⚠ ' + esc(STR.failed + ": " + lib.error) + '</p></section>';
+    var cats = Object.keys(FG.ANIM_CATS).filter(function (k) { return lib.clips.some(function (x) { return x.category === k; }); });
+    var cat = cats.indexOf(fz.libCat) >= 0 ? fz.libCat : cats[0];
+    var n = function (k) { return lib.clips.filter(function (x) { return x.category === k && have[x.id]; }).length; };
+    html += '<div class="fz-libcats" role="tablist">' + cats.map(function (k) {
+      var m = n(k); return '<button class="btn mini' + (k === cat ? ' primary' : ' ghost') + '" role="tab" aria-selected="' + (k === cat) + '" data-fzlibcat="' + k + '">' + esc(fzL({ uk: FG.ANIM_CATS[k][0], en: FG.ANIM_CATS[k][1] })) + (m ? ' · ' + m : '') + '</button>';
+    }).join("") + '</div>';
+    if (cat === "tail" && body !== "ratfolk") html += '<p class="muted">' + A.tailOnly + '</p>';
+    html += '<div class="fz-anims">' + lib.clips.filter(function (x) { return x.category === cat; }).map(function (x) {
+      var on = !!have[x.id], meta = [Math.round(x.duration * 10) / 10 + " " + A.sec, x.loop ? "⟳ " + A.loop : "", x.active ? "⚔ " + A.hit : "", x.prio === 1 ? "★ " + A.base : ""].filter(Boolean).join(" · ");
+      return '<div class="fz-anim' + (on ? ' is-on' : '') + '"><img alt="" loading="lazy" src="' + FG.ANIM_FILES + x.files.poster + '" data-s="' + FG.ANIM_FILES + x.files.poster + '" data-p="' + FG.ANIM_FILES + x.files.preview + '"' +
+        ' onmouseenter="this.src=this.dataset.p" onmouseleave="this.src=this.dataset.s">' +
+        '<b>' + esc(FG.animName(x.id)) + '</b><span class="muted">' + esc(x.state) + ' · ' + meta + '</span>' + (x.note ? '<small class="muted">' + esc(x.note) + '</small>' : '') +
+        (FG.footIk(x, body) ? '<small class="warn">⚠ ' + A.footIk + '</small>' : '') +
+        '<div class="row"><button class="btn mini" data-fzlib3d="' + esc(x.id) + '">' + A.v3d + '</button>' +
+        (canWrite ? '<button class="btn mini' + (on ? '' : ' primary') + '" data-fzlibadd="' + esc(x.id) + '" aria-pressed="' + on + '">' + (on ? A.added : A.add) + '</button>' : '') + '</div></div>';
+    }).join("") + '</div><p class="muted">' + A.notes + '</p></section>';
+    return html;
+  }
+  // the type's untouched stub clips (idle, walk… with nothing done) give way to library clips
+  function fzLibAdd(f, list) {
+    var cur = FG.clipsOf(f).filter(function (k) { return k.lib || k.status !== "todo" || !FG.CLIPS[k.id]; }), have = {};
+    cur.forEach(function (k) { if (k.lib) have[k.lib] = 1; });
+    f.clips = cur.concat(list.filter(function (x) { return !have[x.id]; }).map(FG.libClip));
+  }
+  function fzLib3d(id, c) {
+    var x = ANIMS && ANIMS.clips.filter(function (y) { return y.id === id; })[0]; if (!x) return;
+    var where = FG.animGlb(x, c && FG.refBody(c.forge.body) ? c.forge.body : "human_male"), name = x.id + ".glb";
+    (where.url ? Promise.resolve(where.url) : firebase.storage().ref(where.store).getDownloadURL())
+      .then(function (url) { var vf = { name: name, url: url }; view3d(vf, [vf]); }, function (e) { notify(STR.failed + ": " + (e.message || e)); });
   }
   // the item's technical passport
   function fzItemHtml(i) {
@@ -5954,7 +6012,7 @@
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
@@ -5965,6 +6023,8 @@
     if (d.fzcmpx !== undefined) { fz.cmp = []; render(); return true; }
     if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
     if (d.fzref3d) { var rf = fzRefFile(d.fzref3d); view3d(rf, [rf]); return true; }
+    if (d.fzlibcat) { fz.libCat = d.fzlibcat; render(); return true; }
+    if (d.fzlib3d) { fzLib3d(d.fzlib3d, c); return true; }
     if (d.fzmanifest !== undefined && c) { download(slugify(c.title || "character") + ".forge.json", JSON.stringify(FG.manifest(c, fzItems(), game, LANG), null, 2)); return true; }
     if (!canWrite) return true;
     if (d.fznewchar !== undefined) { goSection("characters", function () { addCard(false); }); return true; }
@@ -6009,6 +6069,10 @@
     if (d.fzlodel) { f.loadouts.splice(+d.fzlodel, 1); fzSave(c, f); return true; }
     if (d.fzaddclip !== undefined) { var cn = $("view").querySelector("[data-fzclipname]"), cv = cn && cn.value.trim(); if (!cv) return true;
       f.clips = FG.clipsOf(f).concat([{ id: newId("clip"), name: cv, en: cv, status: "todo" }]); fzSave(c, f); return true; }
+    if (d.fzlibadd && c && ANIMS) { var lf = c.forge, lx = ANIMS.clips.filter(function (y) { return y.id === d.fzlibadd; })[0];
+      if (FG.clipsOf(lf).some(function (k) { return k.lib === d.fzlibadd; })) lf.clips = FG.clipsOf(lf).filter(function (k) { return k.lib !== d.fzlibadd; }); else if (lx) fzLibAdd(lf, [lx]);
+      fzSave(c, lf); return true; }
+    if (d.fzlibmin !== undefined && c && ANIMS) { var mf = c.forge; fzLibAdd(mf, ANIMS.clips.filter(function (y) { return y.prio === 1 && (y.category !== "tail" || mf.body === "ratfolk"); })); fzSave(c, mf); return true; }
     if (d.fzclipdel) { f.clips = FG.clipsOf(f); f.clips.splice(+d.fzclipdel, 1); fzSave(c, f); return true; }
     return true;
   }

@@ -48,6 +48,12 @@ service firebase.storage {
                                ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
                                 (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
     }
+    // 🎞 the WhiteWrite animation library (functions/forge.js ANIM_STORE): per-body-type GLBs for the Forge's 3D preview, ours to give out.
+    // Any signed-in user reads; nobody writes from a client (uploaded with the admin SDK).
+    match /library/anims/{rest=**} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
     match /worlds/{worldId}/games/{gameId}/files/{rest=**} {
       allow read: if request.auth != null && canRead(worldId);
       allow delete: if request.auth != null && canWrite(worldId) && worldOpen(worldId);

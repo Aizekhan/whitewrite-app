@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.84.1 (2026-11-06)
+**Version:** 2.85.0 (2026-11-06)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -737,6 +737,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.85.0** 🎞 WhiteWrite animation library in the Character Forge (ArtPipeline `artpipeline.anims/1`, 119 own clips, ours to give out): `app/assets/anims/` (manifest.json, LICENSE.md, animated / static WebP previews, the human_male GLBs, `whitewrite-animations.zip` — every FBX for Unity), the per-body-type GLBs (812, ~650 MB) in Storage `library/anims/Base/Types/<type>/<id>.glb` (storage.rules: signed-in read, no client write; uploaded with the admin SDK). `functions/forge.js` `ANIM_*`, `animGlb`, `libClip` (a character clip `{ lib, a: snapshot }` — state, Animator parameters, transitions, loop, hit window, FBX), `footIk`; the manifest's clips carry `library`, plus `animation_library.pack`. Bible: the «Анімації» stage gallery by category (hover plays, ▶ 3D on the character's body type, ＋ Додати, ＋ Мінімальний набір 26, ⤓ FBX pack). MCP `get_character_forge` unchanged in shape.
 - **v2.84.1** 📂 a whole game folder in the new-world form: `<input webkitdirectory>` listed every file of a Unity project (Library…) before answering — minutes with nothing on the page. `flow.jsx` WorldForm: Chrome / Edge walk the folder with `showDirectoryPicker` (read only), never entering the folders `gamebible.js` skips anyway (FOLDER_SKIP, IN_TECH_DIR) nor reading `.meta`, with a live counter; other browsers — «⏳ Переглядаю теку…» from the click until the picker answers or is cancelled. Files keep `webkitRelativePath`, so `startWorldFolder` is unchanged.
 - **v2.84.0** 🦴 WhiteWrite reference rigs in the Character Forge: 8 body types on the Mixamo-named Humanoid skeleton (always offered as profiles), the dummies in 3D and the download pack (`app/assets/rigs/`), body → skeleton, build sliders (`forge.shape`), the rig stage «Підігнати під еталон» (Claude Code + `conform_to_rig.py`), the skeleton check from rig.json (`rigCheck`, upload or MCP `report_forge_check {character}`), «готовий до анімації» (`animReady`, manifest `animation_ready` / `body_shape` / `skeleton_check`).
 - **v2.83.2** 📂 Тека світу shows its progress: a fixed card at the bottom right of the Bible (steps, bar, current file / batch, timer, done → «Переглянути, що додасться», fail / cancelled in red); `confirmCost` takes an optional `onCancel`.
@@ -842,5 +843,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-06 (v2.84.1)
+**Last updated:** 2026-11-06 (v2.85.0)
 **Maintained by:** WhiteWrite Team
