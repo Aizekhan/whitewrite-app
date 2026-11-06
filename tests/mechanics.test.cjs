@@ -62,7 +62,7 @@ const x = M.exportMech({ id: 'm1', title: 'Melee', mech: M.instantiate('umcf') }
 const cx = x.sections.find((s) => s.id === 'combos').rows[0];
 check(cx.weapon.name + '|' + cx.attack.name, 'Короткий кинджал|Quick Thrust', 'links come as { id, name }');
 check(x.sections.find((s) => s.id === 'warping').framework.status, 'exists', 'the framework note for motion warping (0.38.0)');
-check(x.sections.find((s) => s.id === 'adaptation').framework.status, 'missing', 'AI adaptation is still missing');
+check(x.sections.find((s) => s.id === 'adaptation').framework.status, 'exists', 'AI adaptation exists since RPG Framework 0.41.0');
 check(x.category, 'Combat', 'the category in the asked language');
 
 // Фабрика звуку: audio templates live apart from the mechanics, their categories are the audio section's groups
