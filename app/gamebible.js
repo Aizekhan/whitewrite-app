@@ -5852,7 +5852,7 @@
       var on = !!have[x.id], meta = [Math.round(x.duration * 10) / 10 + " " + A.sec, x.loop ? "⟳ " + A.loop : "", x.active ? "⚔ " + A.hit : "", x.prio === 1 ? "★ " + A.base : ""].filter(Boolean).join(" · ");
       return '<div class="fz-anim' + (on ? ' is-on' : '') + '"><img alt="" loading="lazy" src="' + FG.ANIM_FILES + x.files.poster + '" data-s="' + FG.ANIM_FILES + x.files.poster + '" data-p="' + FG.ANIM_FILES + x.files.preview + '"' +
         ' onmouseenter="this.src=this.dataset.p" onmouseleave="this.src=this.dataset.s">' +
-        '<b>' + esc(FG.animName(x.id)) + '</b><span class="muted">' + esc(x.state) + ' · ' + meta + '</span>' + (x.note ? '<small class="muted">' + esc(x.note) + '</small>' : '') +
+        '<b>' + esc((LANG === "en" ? x.name_en : x.name_uk) || FG.animName(x.id)) + '</b><span class="muted">' + esc(x.state) + ' · ' + meta + '</span>' + (x.note ? '<small class="muted">' + esc(LANG === "en" ? x.note : x.note_uk || x.note) + '</small>' : '') +
         (FG.footIk(x, body) ? '<small class="warn">⚠ ' + A.footIk + '</small>' : '') +
         '<div class="row"><button class="btn mini" data-fzlib3d="' + esc(x.id) + '">' + A.v3d + '</button>' +
         (canWrite ? '<button class="btn mini' + (on ? '' : ' primary') + '" data-fzlibadd="' + esc(x.id) + '" aria-pressed="' + on + '">' + (on ? A.added : A.add) + '</button>' : '') + '</div></div>';

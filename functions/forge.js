@@ -110,7 +110,7 @@ function animFile(rel) { rel = String(rel || ''); return /^Base\/Types\//.test(r
 function animGlb(clip, bodyId) { var g = (clip && clip.files && clip.files.glb_by_type) || {}; return animFile(g[bodyId] || (clip && clip.files && clip.files.glb)); }
 var ANIM_KEEP = ['category', 'state', 'framework', 'transitions', 'loop', 'active', 'duration', 'fps', 'frames', 'speed', 'travel', 'turn_deg', 'weapon', 'mirror_of', 'variant_of', 'note'];
 function animSnap(clip) { var o = { fbx: clip.files && clip.files.fbx || '' }; ANIM_KEEP.forEach(function (k) { if (clip[k] !== undefined) o[k] = clip[k]; }); return o; }
-function libClip(clip) { return { id: 'lib_' + clip.id, lib: clip.id, name: animName(clip.id), en: animName(clip.id), status: 'done', a: animSnap(clip) }; }
+function libClip(clip) { return { id: 'lib_' + clip.id, lib: clip.id, name: clip.name_uk || animName(clip.id), en: clip.name_en || animName(clip.id), status: 'done', a: animSnap(clip) }; }
 // the clips a body type needs Foot IK for: the retargeted foot sinks more than 1.5 cm into the floor
 function footIk(clip, bodyId) { var r = clip && clip.retarget && clip.retarget[bodyId]; return !!r && (r.ok === false || r.feet_min_m < -0.015); }
 function refRig(id) { return REF_RIGS.filter(function (r) { return r.id === id; })[0] || null; }

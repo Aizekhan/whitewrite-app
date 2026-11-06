@@ -127,6 +127,8 @@ const fs = require('fs'), path = require('path'), AD = path.join(__dirname, '../
 check(LIB.schema, 'artpipeline.anims/1', 'library: the schema');
 check(LIB.clips.every((c) => F.ANIM_CATS[c.category]), true, 'library: every category has a label');
 check(new Set(LIB.clips.map((c) => c.id)).size, LIB.clips.length, 'library: clip ids are unique');
+check(LIB.clips.every((c) => c.name_uk && c.name_en && (!c.note || c.note_uk)), true, 'library: every clip has uk / en names and a uk note');
+check(F.libClip(LIB.clips[0]).name + ' / ' + F.libClip(LIB.clips[0]).en, LIB.clips[0].name_uk + ' / ' + LIB.clips[0].name_en, 'library: a character clip takes the uk / en names');
 check(LIB.clips.every((c) => ['poster', 'preview', 'glb'].every((k) => fs.existsSync(AD + c.files[k]))), true, 'library: posters, previews and the base GLBs are on the hosting copy');
 check(LIB.clips.every((c) => Object.keys(c.files.glb_by_type || {}).every((b) => { const w = F.animGlb(c, b), rel = c.files.glb_by_type[b]; return /^Base\/Types\//.test(rel) ? w.store === 'library/anims/' + rel : w.url === '/assets/anims/' + rel; })), true, 'library: per-type GLBs come from Storage, the base ones (human_male, the tail) from the hosting');
 check(fs.existsSync(AD + 'whitewrite-animations.zip') && fs.existsSync(AD + 'LICENSE.md'), true, 'library: the FBX pack and the licence are shipped');

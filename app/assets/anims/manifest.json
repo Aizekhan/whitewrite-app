@@ -62,6 +62,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Стояння",
+   "name_en": "Idle",
+   "note_uk": "стоїть, дихає, переносить вагу",
    "status": "made",
    "frames": 240,
    "fps": 30,
@@ -148,6 +151,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Стояння: озирається",
+   "name_en": "Idle: look around",
+   "note_uk": "озирається; підмішується час від часу",
    "status": "made",
    "frames": 166,
    "fps": 30,
@@ -229,6 +235,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Стояння: втома",
+   "name_en": "Idle: tired",
+   "note_uk": "мало здоров'я / після спринту",
    "status": "made",
    "frames": 30,
    "fps": 30,
@@ -319,6 +328,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Ходьба",
+   "name_en": "Walk",
    "status": "made",
    "frames": 32,
    "fps": 30,
@@ -399,6 +410,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Ходьба назад",
+   "name_en": "Walk back",
    "status": "made",
    "frames": 32,
    "fps": 30,
@@ -479,6 +492,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Крок убік вліво",
+   "name_en": "Strafe walk left",
    "status": "made",
    "frames": 32,
    "fps": 30,
@@ -560,6 +575,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Крок убік вправо",
+   "name_en": "Strafe walk right",
    "status": "made",
    "frames": 32,
    "fps": 30,
@@ -650,6 +667,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Біг",
+   "name_en": "Run",
    "status": "made",
    "frames": 22,
    "fps": 30,
@@ -730,6 +749,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Біг назад",
+   "name_en": "Run back",
    "status": "made",
    "frames": 22,
    "fps": 30,
@@ -810,6 +831,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Біг убік вліво",
+   "name_en": "Strafe run left",
    "status": "made",
    "frames": 22,
    "fps": 30,
@@ -891,6 +914,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Біг убік вправо",
+   "name_en": "Strafe run right",
    "status": "made",
    "frames": 22,
    "fps": 30,
@@ -976,6 +1001,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спринт",
+   "name_en": "Sprint",
    "status": "made",
    "frames": 20,
    "fps": 30,
@@ -1059,6 +1086,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Поворот уліво 90°",
+   "name_en": "Turn left 90°",
+   "note_uk": "на місці; тіло повертає гра",
    "turn_deg": 90,
    "status": "made",
    "frames": 24,
@@ -1144,6 +1174,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Поворот управо 90°",
+   "name_en": "Turn right 90°",
+   "note_uk": "на місці; тіло повертає гра",
    "turn_deg": 90,
    "status": "made",
    "frames": 24,
@@ -1225,6 +1258,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Присід",
+   "name_en": "Crouch idle",
+   "note_uk": "скрадання (bool самої гри)",
    "status": "made",
    "frames": 80,
    "fps": 30,
@@ -1305,6 +1341,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Хода в присіді",
+   "name_en": "Crouch walk",
    "status": "made",
    "frames": 40,
    "fps": 30,
@@ -1389,6 +1427,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Стрибок",
+   "name_en": "Jump start",
    "status": "made",
    "frames": 15,
    "fps": 30,
@@ -1473,6 +1513,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Падіння в повітрі",
+   "name_en": "Fall",
    "status": "made",
    "frames": 20,
    "fps": 30,
@@ -1557,6 +1599,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Приземлення",
+   "name_en": "Land",
    "status": "made",
    "frames": 24,
    "fps": 30,
@@ -1646,6 +1690,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: стійка",
+   "name_en": "Unarmed: stance",
+   "note_uk": "бойова стійка",
    "weapon": "unarmed",
    "status": "made",
    "frames": 60,
@@ -1740,6 +1787,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: удар 1",
+   "name_en": "Unarmed: attack 1",
+   "note_uk": "комбо 1 з 3",
    "weapon": "unarmed",
    "status": "made",
    "frames": 18,
@@ -1834,6 +1884,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: удар 2",
+   "name_en": "Unarmed: attack 2",
+   "note_uk": "комбо 2 з 3",
    "weapon": "unarmed",
    "status": "made",
    "frames": 21,
@@ -1924,6 +1977,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: удар 3",
+   "name_en": "Unarmed: attack 3",
+   "note_uk": "комбо 3 з 3",
    "weapon": "unarmed",
    "status": "made",
    "frames": 32,
@@ -2013,6 +2069,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: важкий удар",
+   "name_en": "Unarmed: heavy attack",
    "weapon": "unarmed",
    "status": "made",
    "frames": 28,
@@ -2098,6 +2156,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: заряд",
+   "name_en": "Unarmed: charge",
    "weapon": "unarmed",
    "status": "made",
    "frames": 30,
@@ -2187,6 +2247,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: випуск заряду",
+   "name_en": "Unarmed: charge release",
    "weapon": "unarmed",
    "status": "made",
    "frames": 26,
@@ -2272,6 +2334,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: блок",
+   "name_en": "Unarmed: block",
    "weapon": "unarmed",
    "status": "made",
    "frames": 50,
@@ -2357,6 +2421,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: удар у блок",
+   "name_en": "Unarmed: block hit",
    "weapon": "unarmed",
    "status": "made",
    "frames": 14,
@@ -2446,6 +2512,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: парирування",
+   "name_en": "Unarmed: parry",
    "weapon": "unarmed",
    "status": "made",
    "frames": 17,
@@ -2532,6 +2600,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Без зброї: контрудар після парирування",
+   "name_en": "Unarmed: parry riposte",
+   "note_uk": "початок контрудару",
    "active": [
     0.286,
     0.429
@@ -2626,6 +2697,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: стійка",
+   "name_en": "Sword & shield: stance",
+   "note_uk": "бойова стійка",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 60,
@@ -2720,6 +2794,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: удар 1",
+   "name_en": "Sword & shield: attack 1",
+   "note_uk": "комбо 1 з 3",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 27,
@@ -2814,6 +2891,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: удар 2",
+   "name_en": "Sword & shield: attack 2",
+   "note_uk": "комбо 2 з 3",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 27,
@@ -2904,6 +2984,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: удар 3",
+   "name_en": "Sword & shield: attack 3",
+   "note_uk": "комбо 3 з 3",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 30,
@@ -2993,6 +3076,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: важкий удар",
+   "name_en": "Sword & shield: heavy attack",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 36,
@@ -3078,6 +3163,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: блок",
+   "name_en": "Sword & shield: block",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 50,
@@ -3163,6 +3250,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: удар у блок",
+   "name_en": "Sword & shield: block hit",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 14,
@@ -3252,6 +3341,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: парирування",
+   "name_en": "Sword & shield: parry",
    "weapon": "sword_shield",
    "status": "made",
    "frames": 18,
@@ -3338,6 +3429,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Меч і щит: контрудар після парирування",
+   "name_en": "Sword & shield: parry riposte",
+   "note_uk": "початок контрудару",
    "active": [
     0.318,
     0.455
@@ -3432,6 +3526,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: стійка",
+   "name_en": "One-handed: stance",
+   "note_uk": "бойова стійка",
    "weapon": "one_hand",
    "status": "made",
    "frames": 60,
@@ -3526,6 +3623,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: удар 1",
+   "name_en": "One-handed: attack 1",
+   "note_uk": "комбо 1 з 3",
    "weapon": "one_hand",
    "status": "made",
    "frames": 27,
@@ -3620,6 +3720,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: удар 2",
+   "name_en": "One-handed: attack 2",
+   "note_uk": "комбо 2 з 3",
    "weapon": "one_hand",
    "status": "made",
    "frames": 27,
@@ -3710,6 +3813,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: удар 3",
+   "name_en": "One-handed: attack 3",
+   "note_uk": "комбо 3 з 3",
    "weapon": "one_hand",
    "status": "made",
    "frames": 30,
@@ -3799,6 +3905,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: важкий удар",
+   "name_en": "One-handed: heavy attack",
    "weapon": "one_hand",
    "status": "made",
    "frames": 36,
@@ -3884,6 +3992,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: блок",
+   "name_en": "One-handed: block",
    "weapon": "one_hand",
    "status": "made",
    "frames": 50,
@@ -3969,6 +4079,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: удар у блок",
+   "name_en": "One-handed: block hit",
    "weapon": "one_hand",
    "status": "made",
    "frames": 14,
@@ -4058,6 +4170,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: парирування",
+   "name_en": "One-handed: parry",
    "weapon": "one_hand",
    "status": "made",
    "frames": 18,
@@ -4144,6 +4258,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Одноручна: контрудар після парирування",
+   "name_en": "One-handed: parry riposte",
+   "note_uk": "початок контрудару",
    "active": [
     0.318,
     0.455
@@ -4238,6 +4355,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: стійка",
+   "name_en": "Two-handed: stance",
+   "note_uk": "бойова стійка",
    "weapon": "two_hand",
    "status": "made",
    "frames": 60,
@@ -4332,6 +4452,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: удар 1",
+   "name_en": "Two-handed: attack 1",
+   "note_uk": "комбо 1 з 3",
    "weapon": "two_hand",
    "status": "made",
    "frames": 34,
@@ -4426,6 +4549,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: удар 2",
+   "name_en": "Two-handed: attack 2",
+   "note_uk": "комбо 2 з 3",
    "weapon": "two_hand",
    "status": "made",
    "frames": 34,
@@ -4516,6 +4642,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: удар 3",
+   "name_en": "Two-handed: attack 3",
+   "note_uk": "комбо 3 з 3",
    "weapon": "two_hand",
    "status": "made",
    "frames": 39,
@@ -4605,6 +4734,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: важкий удар",
+   "name_en": "Two-handed: heavy attack",
    "weapon": "two_hand",
    "status": "made",
    "frames": 48,
@@ -4690,6 +4821,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: заряд",
+   "name_en": "Two-handed: charge",
    "weapon": "two_hand",
    "status": "made",
    "frames": 28,
@@ -4779,6 +4912,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: випуск заряду",
+   "name_en": "Two-handed: charge release",
    "weapon": "two_hand",
    "status": "made",
    "frames": 30,
@@ -4864,6 +4999,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: блок",
+   "name_en": "Two-handed: block",
    "weapon": "two_hand",
    "status": "made",
    "frames": 50,
@@ -4949,6 +5086,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: удар у блок",
+   "name_en": "Two-handed: block hit",
    "weapon": "two_hand",
    "status": "made",
    "frames": 14,
@@ -5038,6 +5177,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: парирування",
+   "name_en": "Two-handed: parry",
    "weapon": "two_hand",
    "status": "made",
    "frames": 19,
@@ -5124,6 +5265,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Дворучна: контрудар після парирування",
+   "name_en": "Two-handed: parry riposte",
+   "note_uk": "початок контрудару",
    "active": [
     0.348,
     0.478
@@ -5218,6 +5362,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: стійка",
+   "name_en": "Dagger: stance",
+   "note_uk": "бойова стійка",
    "weapon": "dagger",
    "status": "made",
    "frames": 60,
@@ -5312,6 +5459,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: удар 1",
+   "name_en": "Dagger: attack 1",
+   "note_uk": "комбо 1 з 3",
    "weapon": "dagger",
    "status": "made",
    "frames": 21,
@@ -5406,6 +5556,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: удар 2",
+   "name_en": "Dagger: attack 2",
+   "note_uk": "комбо 2 з 3",
    "weapon": "dagger",
    "status": "made",
    "frames": 23,
@@ -5496,6 +5649,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: удар 3",
+   "name_en": "Dagger: attack 3",
+   "note_uk": "комбо 3 з 3",
    "weapon": "dagger",
    "status": "made",
    "frames": 23,
@@ -5585,6 +5741,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: важкий удар",
+   "name_en": "Dagger: heavy attack",
    "weapon": "dagger",
    "status": "made",
    "frames": 36,
@@ -5674,6 +5832,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: парирування",
+   "name_en": "Dagger: parry",
    "weapon": "dagger",
    "status": "made",
    "frames": 17,
@@ -5760,6 +5920,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Кинджал: контрудар після парирування",
+   "name_en": "Dagger: parry riposte",
+   "note_uk": "початок контрудару",
    "active": [
     0.286,
     0.429
@@ -5854,6 +6017,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: стійка",
+   "name_en": "Spear: stance",
+   "note_uk": "бойова стійка",
    "weapon": "spear",
    "status": "made",
    "frames": 60,
@@ -5948,6 +6114,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: удар 1",
+   "name_en": "Spear: attack 1",
+   "note_uk": "комбо 1 з 3",
    "weapon": "spear",
    "status": "made",
    "frames": 25,
@@ -6042,6 +6211,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: удар 2",
+   "name_en": "Spear: attack 2",
+   "note_uk": "комбо 2 з 3",
    "weapon": "spear",
    "status": "made",
    "frames": 25,
@@ -6132,6 +6304,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: удар 3",
+   "name_en": "Spear: attack 3",
+   "note_uk": "комбо 3 з 3",
    "weapon": "spear",
    "status": "made",
    "frames": 32,
@@ -6221,6 +6396,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: важкий удар",
+   "name_en": "Spear: heavy attack",
    "weapon": "spear",
    "status": "made",
    "frames": 36,
@@ -6306,6 +6483,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: заряд",
+   "name_en": "Spear: charge",
    "weapon": "spear",
    "status": "made",
    "frames": 28,
@@ -6395,6 +6574,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: випуск заряду",
+   "name_en": "Spear: charge release",
    "weapon": "spear",
    "status": "made",
    "frames": 32,
@@ -6480,6 +6661,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: блок",
+   "name_en": "Spear: block",
    "weapon": "spear",
    "status": "made",
    "frames": 50,
@@ -6565,6 +6748,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: удар у блок",
+   "name_en": "Spear: block hit",
    "weapon": "spear",
    "status": "made",
    "frames": 14,
@@ -6654,6 +6839,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: парирування",
+   "name_en": "Spear: parry",
    "weapon": "spear",
    "status": "made",
    "frames": 18,
@@ -6740,6 +6927,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Спис: контрудар після парирування",
+   "name_en": "Spear: parry riposte",
+   "note_uk": "початок контрудару",
    "active": [
     0.318,
     0.455
@@ -6834,6 +7024,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Лук: стійка",
+   "name_en": "Bow: stance",
+   "note_uk": "бойова стійка",
    "weapon": "bow",
    "status": "made",
    "frames": 60,
@@ -6919,6 +7112,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Лук: натяг",
+   "name_en": "Bow: draw",
    "weapon": "bow",
    "status": "made",
    "frames": 18,
@@ -7004,6 +7199,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Лук: прицілювання",
+   "name_en": "Bow: aim",
    "weapon": "bow",
    "status": "made",
    "frames": 40,
@@ -7093,6 +7290,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Лук: постріл",
+   "name_en": "Bow: release",
    "weapon": "bow",
    "status": "made",
    "frames": 28,
@@ -7182,6 +7381,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Лук: швидкий постріл",
+   "name_en": "Bow: quick shot",
    "weapon": "bow",
    "status": "made",
    "frames": 28,
@@ -7272,6 +7473,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Магія: стійка",
+   "name_en": "Magic: stance",
+   "note_uk": "бойова стійка",
    "weapon": "magic",
    "status": "made",
    "frames": 60,
@@ -7361,6 +7565,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Магія: швидке закляття",
+   "name_en": "Magic: quick cast",
    "weapon": "magic",
    "status": "made",
    "frames": 25,
@@ -7446,6 +7652,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Магія: заряд закляття",
+   "name_en": "Magic: cast charge",
    "weapon": "magic",
    "status": "made",
    "frames": 25,
@@ -7535,6 +7743,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Магія: випуск закляття",
+   "name_en": "Magic: cast release",
    "weapon": "magic",
    "status": "made",
    "frames": 26,
@@ -7616,6 +7826,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Магія: утримання закляття",
+   "name_en": "Magic: channel",
+   "note_uk": "промінь / зцілення, утримується",
    "weapon": "magic",
    "status": "made",
    "frames": 26,
@@ -7701,6 +7914,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Магія: удар по площі",
+   "name_en": "Magic: area blast",
+   "note_uk": "б'є об землю",
    "weapon": "magic",
    "status": "made",
    "frames": 39,
@@ -7787,6 +8003,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Ухилення назад",
+   "name_en": "Dodge back",
    "status": "made",
    "frames": 23,
    "fps": 30,
@@ -7873,6 +8091,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Перекид уперед",
+   "name_en": "Dodge roll forward",
+   "note_uk": "перекид",
    "status": "made",
    "frames": 34,
    "fps": 30,
@@ -7958,6 +8179,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Ухилення вліво",
+   "name_en": "Dodge left",
    "status": "made",
    "frames": 23,
    "fps": 30,
@@ -8044,6 +8267,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Ухилення вправо",
+   "name_en": "Dodge right",
    "status": "made",
    "frames": 23,
    "fps": 30,
@@ -8128,6 +8353,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Удар спереду",
+   "name_en": "Hit from the front",
    "status": "made",
    "frames": 14,
    "fps": 30,
@@ -8212,6 +8439,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Удар ззаду",
+   "name_en": "Hit from behind",
    "status": "made",
    "frames": 14,
    "fps": 30,
@@ -8296,6 +8525,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Удар зліва",
+   "name_en": "Hit from the left",
    "status": "made",
    "frames": 14,
    "fps": 30,
@@ -8381,6 +8612,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Удар справа",
+   "name_en": "Hit from the right",
    "status": "made",
    "frames": 14,
    "fps": 30,
@@ -8465,6 +8698,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Важкий удар (отримано)",
+   "name_en": "Heavy hit",
    "status": "made",
    "frames": 21,
    "fps": 30,
@@ -8550,6 +8785,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Відкритий після парирування",
+   "name_en": "Opened (parried)",
+   "note_uk": "втратив рівновагу, відкритий для контрудару",
    "weapon": "one_hand",
    "status": "made",
    "frames": 39,
@@ -8635,6 +8873,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Збито з ніг",
+   "name_en": "Knockdown",
    "status": "made",
    "frames": 26,
    "fps": 30,
@@ -8717,6 +8957,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Лежить",
+   "name_en": "Lying",
    "status": "made",
    "frames": 40,
    "fps": 30,
@@ -8799,6 +9041,8 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Підйом",
+   "name_en": "Get up",
    "status": "made",
    "frames": 40,
    "fps": 30,
@@ -8880,6 +9124,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Смерть: на спину",
+   "name_en": "Death: falls back",
+   "note_uk": "падає на спину; тримає останню позу",
    "status": "made",
    "frames": 50,
    "fps": 30,
@@ -8961,6 +9208,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Смерть: на коліна й ниць",
+   "name_en": "Death: knees, face down",
+   "note_uk": "падає на коліна й ниць; тримає останню позу",
    "status": "made",
    "frames": 50,
    "fps": 30,
@@ -9042,6 +9292,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Смерть: з розворотом",
+   "name_en": "Death: spins and falls",
+   "note_uk": "розвертається й падає; тримає останню позу",
    "status": "made",
    "frames": 50,
    "fps": 30,
@@ -9127,6 +9380,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Помітив ворога",
+   "name_en": "Notice",
+   "note_uk": "здригнувся / бойовий клич",
    "status": "made",
    "frames": 44,
    "fps": 30,
@@ -9212,6 +9468,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Взаємодія",
+   "name_en": "Interact",
+   "note_uk": "натискає / тягне щось на висоті пояса",
    "status": "made",
    "frames": 43,
    "fps": 30,
@@ -9297,6 +9556,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Підняти з землі",
+   "name_en": "Pick up",
+   "note_uk": "із землі",
    "status": "made",
    "frames": 72,
    "fps": 30,
@@ -9382,6 +9644,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Відчинити двері",
+   "name_en": "Open door",
+   "note_uk": "штовхає однією рукою",
    "status": "made",
    "frames": 46,
    "fps": 30,
@@ -9467,6 +9732,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Випити зілля",
+   "name_en": "Use item (drink)",
+   "note_uk": "п'є зілля",
    "status": "made",
    "frames": 64,
    "fps": 30,
@@ -9552,6 +9820,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Розмова",
+   "name_en": "Talk",
+   "note_uk": "говорить, жестикулює",
    "status": "made",
    "frames": 72,
    "fps": 30,
@@ -9637,6 +9908,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Помах рукою",
+   "name_en": "Wave",
+   "note_uk": "махає рукою",
    "status": "made",
    "frames": 61,
    "fps": 30,
@@ -9722,6 +9996,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Радість",
+   "name_en": "Cheer",
+   "note_uk": "перемога",
    "status": "made",
    "frames": 50,
    "fps": 30,
@@ -9807,6 +10084,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Вказати",
+   "name_en": "Point",
+   "note_uk": "вказує вперед",
    "status": "made",
    "frames": 54,
    "fps": 30,
@@ -9887,6 +10167,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Сісти",
+   "name_en": "Sit down",
+   "note_uk": "на стільці / лаві, сидіння 0,45 м",
    "status": "made",
    "frames": 30,
    "fps": 30,
@@ -9967,6 +10250,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Сидить",
+   "name_en": "Sitting",
+   "note_uk": "на стільці / лаві, сидіння 0,45 м",
    "status": "made",
    "frames": 80,
    "fps": 30,
@@ -10047,6 +10333,9 @@
     "orc",
     "ratfolk"
    ],
+   "name_uk": "Підвестися",
+   "name_en": "Stand up",
+   "note_uk": "на стільці / лаві, сидіння 0,45 м",
    "status": "made",
    "frames": 32,
    "fps": 30,
@@ -10120,6 +10409,9 @@
     "ratfolk"
    ],
    "note": "a slow sway",
+   "name_uk": "Хвіст: спокій",
+   "name_en": "Tail: idle",
+   "note_uk": "повільно гойдається",
    "status": "made",
    "frames": 120,
    "fps": 30,
@@ -10153,6 +10445,9 @@
     "ratfolk"
    ],
    "note": "streams behind, follows the hips",
+   "name_uk": "Хвіст: у русі",
+   "name_en": "Tail: moving",
+   "note_uk": "тягнеться позаду, іде за тазом",
    "status": "made",
    "frames": 44,
    "fps": 30,
@@ -10186,6 +10481,9 @@
     "ratfolk"
    ],
    "note": "raised, twitching",
+   "name_uk": "Хвіст: насторожі",
+   "name_en": "Tail: alert",
+   "note_uk": "піднятий, смикається",
    "status": "made",
    "frames": 60,
    "fps": 30,
