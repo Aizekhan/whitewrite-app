@@ -34,6 +34,8 @@ const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
 const MAX_BIBLE_CHARS = 120000;
 const MAX_IMPORT_CHARS = 100000;
 const MAX_IDEA_CHARS = 6000; // «✦ Чернетка GDD з опису»
+const MAX_SORT_FILES = 3000; // «📂 Тека гри»: files per folderSort call (the page sends a big folder in several calls)
+const PREFAB_RE = /\.(prefab|unitypackage|uasset)$/i; // prefabs always go to «Ассети й префаби» → «Префаби» (the owner's rule)
 const CANON_KINDS = ['characters', 'locations', 'factions', 'artifacts'];
 
 const ENGINE_PROFILES = {
@@ -272,6 +274,58 @@ function cleanImport(p, shelves, entities, world) {
     contradictions: list(p && p.contradictions, 15, cleanContradiction),
     questions: list(p && p.questions, 20, cleanQuestion).map((q) => ({ ...q, target: null })), // their cards don't exist yet
   };
+}
+
+// «📂 Тека гри» (op folderSort): the list of the folder's files — paths, sizes, never the contents — → which card of which shelf
+// each file goes to, and what to ignore with a reason. The page uploads the files by this plan; the texts go to the import as before.
+function folderSortPrompt(lines, shelves, entities, cards, languageName) {
+  const shelfText = shelves.map((s) => `- ${s.id}${s.kind === 'canon' ? ` (CANON ${s.canonKind})` : ''}: ${s.name}${s.groups.length ? ` — subheadings: ${s.groups.join(' | ')}` : ''}`).join('\n');
+  const known = entities.filter((e) => CANON_KINDS.includes(e.kind)).slice(0, 400).map((e) => `- ${e.id} [${e.kind}] ${e.name || ''}`).join('\n');
+  const have = cards.filter((c) => c.title && !c.canonRef).slice(0, 400).map((c) => `- [${c.section}] ${c.title}`).join('\n');
+  return `You are the librarian of WhiteWrite, sorting a game project folder the author uploaded. Below is the list of its files: "index|path|size KB". You see only names and paths, not the contents. Decide for EVERY file: either the card it belongs to, or that it is ignored.
+
+SHELVES (sections of the game's design document):
+${shelfText}
+
+Rules:
+- Group the files that describe ONE thing into one card: a character with its model, textures and portraits; a sound with its numbered variations (footstep_01, footstep_02); a material with its maps (albedo, normal, roughness). Name the card by the thing; keep proper names as they are.
+- section = a shelf id. Characters and locations already in the canon list below: put the id into "canon" and use their canon shelf. Not in the canon: the canon shelves only when it clearly is one, otherwise "assets".
+- Prefabs (.prefab, .unitypackage, .uasset) ALWAYS go to section "assets" with group "Префаби" (one card per prefab or per prefab set).
+- group = the subheading inside the section (a folder name like "Buildings", "SFX", "Forest") or "".
+- Text files (.md, .txt, .json…) are read separately: give one a card only when it belongs to an asset (a licence or readme of a pack); ignore the rest with reason "text".
+- Ignore what has no place in a design document: engine caches and settings, build output, backups and copies (Copy of…, ~, .bak, (1)), temporary and autosave files, duplicates of the same file, third-party package internals nobody designs (shaders, samples, editor scripts of a store package), empty placeholders. Give a short reason in ${languageName}.
+- Existing cards (reuse the exact title and section to add files to one):
+${have || '(none)'}
+- Known canon entities:
+${known || '(none)'}
+
+FILES:
+${lines.join('\n')}
+
+Answer with JSON only:
+{"cards":[{"section":"assets","title":"House","group":"Buildings","canon":"","files":[12,13]}],"ignore":[{"files":[4,5],"reason":"кеш рушія"}]}`;
+}
+// the parts' answers → one plan: only the indexes the page sent, each at most once (a card wins over ignore), prefabs forced to «Префаби»
+function cleanFolderSort(results, shelves, entities, files) {
+  const shelfIds = new Set(shelves.map((s) => s.id)), ids = new Set(entities.map((e) => e.id)), byI = new Map(files.map((f) => [f.i, f])), used = new Set();
+  const cards = [], byKey = new Map(), ignore = [];
+  const take = (a) => (Array.isArray(a) ? a : []).map((x) => Math.floor(Number(x))).filter((i) => { if (!byI.has(i) || used.has(i)) return false; used.add(i); return true; });
+  results.forEach((r) => (Array.isArray(r && r.cards) ? r.cards : []).forEach((c) => {
+    if (!c) return;
+    const section = shelfIds.has(str(c.section, 60)) ? str(c.section, 60) : 'assets', group = str(c.group, 80), title = str(c.title, 160);
+    if (!title) return;
+    const fs = take(c.files);
+    const pre = fs.filter((i) => PREFAB_RE.test(byI.get(i).p)), rest = fs.filter((i) => !PREFAB_RE.test(byI.get(i).p));
+    [[rest, section, group], [pre, 'assets', 'Префаби']].forEach(([f, sec, grp]) => {
+      if (!f.length) return;
+      const canon = sec === section && ids.has(str(c.canon, 80)) ? str(c.canon, 80) : '';
+      const key = [sec, title.toLowerCase(), grp.toLowerCase(), canon].join('|'), prev = byKey.get(key);
+      if (prev) { prev.files.push(...f); return; }
+      const card = { section: sec, title, group: grp, canon, files: f }; byKey.set(key, card); cards.push(card);
+    });
+  }));
+  results.forEach((r) => (Array.isArray(r && r.ignore) ? r.ignore : []).forEach((x) => { const f = take(x && x.files); if (f.length) ignore.push({ files: f, reason: str(x.reason, 120) }); }));
+  return { cards: cards.slice(0, 5000), ignore };
 }
 
 const answeredText = (answered) => (answered.length ? `\nAlready decided by the author:\n${answered.map((a) => `- Q: ${a.q}\n  A: ${a.a}`).join('\n')}\n` : '');
@@ -570,6 +624,14 @@ function splitMarkdown(md) {
   return parts;
 }
 
+// the folder's file list → parts of at most the registry's partChars (the quote counts the same parts)
+function sortParts(lines) {
+  const max = byOp('folderSort').price.quote.partChars, parts = []; let cur = [], n = 0;
+  lines.forEach((l) => { if (cur.length && n + l.length + 1 > max) { parts.push(cur); cur = []; n = 0; } cur.push(l); n += l.length + 1; });
+  if (cur.length) parts.push(cur);
+  return parts;
+}
+
 // Proposals of the parts → one: the same entity / card from two parts is merged
 function mergeImports(results) {
   const key = (...a) => a.map((v) => String(v || '').trim().toLowerCase()).join('|');
@@ -616,7 +678,7 @@ function cleanShelves(a) {
 
 /**
  * Cloud Function: gamedevPlan
- * Input (POST JSON): { worldId, gameId, op: 'import' | 'draft' | 'analyze' | 'plan' | 'canonAudit' | 'repoConnect' | 'repoDisconnect' | 'repoSync', language?, markdown?, idea?, shelves?, repo?, branch?, token? }
+ * Input (POST JSON): { worldId, gameId, op: 'import' | 'folderSort' | 'draft' | 'analyze' | 'plan' | 'canonAudit' | 'repoConnect' | 'repoDisconnect' | 'repoSync', language?, markdown?, idea?, shelves?, repo?, branch?, token? }
  * Output: { success, tokensConsumed, tokensRemaining, proposal? } — analyze/plan write worlds/{w}/games/{g}/plan/current
  */
 exports.gamedevPlan = onRequest({
@@ -642,7 +704,7 @@ exports.gamedevPlan = onRequest({
       const body = req.body || {};
       const caller = uid; // GitHub connect / disconnect: always the real caller — never the owner's saved token through payerFor
       uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
-      const op = oneOf(body.op, ['import', 'draft', 'concepts', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
+      const op = oneOf(body.op, ['import', 'folderSort', 'draft', 'concepts', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
       const noGame = isCanon || op === 'concepts'; // «✦ 3 концепти» — before the game exists
       const worldId = str(body.worldId, 120);
@@ -652,6 +714,10 @@ exports.gamedevPlan = onRequest({
       const markdown = String(body.markdown || '');
       if (op === 'import' && !markdown.trim()) return res.status(400).json({ error: 'Порожній файл' });
       if (markdown.length > MAX_IMPORT_CHARS) return res.status(400).json({ error: `Файл завеликий. Максимум: ${MAX_IMPORT_CHARS} символів.`, code: 'INPUT_TOO_LONG' });
+      const sortFiles = op !== 'folderSort' ? [] : (Array.isArray(body.files) ? body.files : []).slice(0, MAX_SORT_FILES)
+        .map((f) => ({ i: Math.floor(Number(f && f.i)), p: str(f && f.p, 300), s: Math.max(0, Number(f && f.s) || 0) })).filter((f) => Number.isFinite(f.i) && f.p);
+      if (op === 'folderSort' && !sortFiles.length) return res.status(400).json({ error: 'Порожній список файлів' });
+      const sortLines = sortFiles.map((f) => `${f.i}|${f.p}|${Math.max(1, Math.round(f.s / 1024))}`);
       const idea = str(body.idea, MAX_IDEA_CHARS);
       if (op === 'draft' && idea.length < 20) return res.status(400).json({ error: 'Опиши гру хоча б одним-двома реченнями', code: 'IDEA_TOO_SHORT' });
 
@@ -703,7 +769,8 @@ exports.gamedevPlan = onRequest({
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free'); // the author's Claude model (Account)
       // an import is quoted by its size — «не більше N»: reserved now, never charged above (the page showed the same N)
-      const cap = op === 'import' ? quoteChars(byOp('import'), markdown.length, tier) : 0;
+      const cap = op === 'import' ? quoteChars(byOp('import'), markdown.length, tier)
+        : op === 'folderSort' ? quoteChars(byOp('folderSort'), sortLines.join('\n').length, tier) : 0;
       const reserveCost = cap || featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost, tier); // paid-features.js — gamebible.js costOf reads the same
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
@@ -719,6 +786,7 @@ exports.gamedevPlan = onRequest({
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
+        : op === 'folderSort' ? sortParts(sortLines).map((part) => folderSortPrompt(part, shelves, entities, cards, languageName))
         : op === 'concepts' ? [conceptsPrompt(bibleText(world, entities, [], {}, [], lore), str(body.hint, 600), languageName)]
         : op === 'draft' ? [draftPrompt(idea, shelves, entities, world, languageName, cards)]
         : op === 'repoSync' ? [repoPrompt(repoData.text, bibleText(world, entities, cards, game, shelves, lore), shelves, languageName, cards)]
@@ -749,7 +817,7 @@ exports.gamedevPlan = onRequest({
       };
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      else if (op !== 'import' && op !== 'draft' && op !== 'concepts' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      else if (op !== 'import' && op !== 'folderSort' && op !== 'draft' && op !== 'concepts' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       let results;
       if (op === 'plan') { // pass 1 — the skeleton; pass 2 — every milestone's tasks in parallel (planTasksPrompt)
         const skel = await ask(prompts[0], 64000);
@@ -777,6 +845,8 @@ exports.gamedevPlan = onRequest({
       } else if (op === 'concepts') {
         proposal = { concepts: list(parsed && parsed.concepts, 3, cleanConcept) };
         if (!proposal.concepts.length) throw new Error('AI не дав концептів');
+      } else if (op === 'folderSort') {
+        proposal = cleanFolderSort(results, shelves, entities, sortFiles);
       } else if (op === 'import' || op === 'draft') {
         proposal = cleanImport(mergeImports(results), shelves, entities, world);
       } else if (op === 'repoSync') {
@@ -818,3 +888,4 @@ exports.gamedevPlan = onRequest({
     }
   });
 });
+exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)

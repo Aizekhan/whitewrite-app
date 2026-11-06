@@ -190,6 +190,10 @@ const FEATURES = [
     uk: { name: '✦ Імпорт .md', desc: 'Нотатки й GDD → пропозиція карток, ти відмічаєш, що взяти.' },
     en: { name: '✦ .md import', desc: 'Notes and GDD → proposed cards, you tick what to take.' },
     where: 'Біблія гри', server: 'gamedevPlan {op:import}' },
+  { id: 'folderSort', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 2, quote: { partChars: 20000, outPerPart: 6000 } }, op: 'folderSort', // the file list known → «не більше N»
+    uk: { name: '✦ ШІ розбирає теку гри', desc: 'ШІ переглядає список усіх файлів теки (шляхи, розміри, типи — не вміст) і сам вирішує, що на яку картку й у який розділ лягає, а що ігнорувати і чому; префаби — окремо в «Префаби». Ти бачиш план і можеш змінити будь-що. Ціна — за довжиною списку, не більше показаної.' },
+    en: { name: '✦ AI sorts the game folder', desc: 'AI looks through the list of every file in the folder (paths, sizes, types — not the contents) and decides itself which card and section each goes to and what to ignore and why; prefabs separately into «Prefabs». You see the plan and can change anything. Priced by the list length, never above the shown price.' },
+    where: 'Форма нової гри · Огляд гри → 📂 Тека гри', server: 'gamedevPlan {op:folderSort}' },
   { id: 'gameConcepts', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 2 }, op: 'concepts',
     uk: { name: '✦ 3 концепти гри', desc: 'Канон світу → три різні ігри (жанр, логлайн, стовпи, цикл); обрана стає назвою й «Оглядом гри».' },
     en: { name: '✦ 3 game concepts', desc: 'The world canon → three different games (genre, logline, pillars, loop); the picked one becomes the name and the “Game overview”.' },
