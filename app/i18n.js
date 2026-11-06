@@ -240,6 +240,7 @@
       'worlds.mdTpl': '⤓ Шаблон .md',
       'worlds.mdHint': 'Склади один .md за шаблоном (сам або попроси будь-який ШІ з твоїх нотаток) — світ створиться й заповниться одним кліком.',
       'worlds.mdBad': 'Не вийшло прочитати файл: {d}. Візьми «⤓ Шаблон .md».',
+      'worlds.mdSkipped': 'Файл не за шаблоном: розділи {s} не перенесуться самі. Біблія світу покаже, що впізнано, і запропонує «✦ Розкласти весь файл з ШІ».',
       'worlds.mdCount': { characters: 'персонажів', locations: 'локацій', factions: 'фракцій', artifacts: 'артефактів', events: 'подій', culture: 'записів культури', rules: 'законів' },
       'genesis.skip': 'Пропустити — почати з порожнього світу',
 
@@ -681,6 +682,7 @@
       'worlds.mdTpl': '⤓ .md template',
       'worlds.mdHint': 'Write one .md by the template (yourself, or ask any AI to fill it from your notes) — the world is created and filled in one click.',
       'worlds.mdBad': 'Could not read the file: {d}. Take the “⤓ .md template”.',
+      'worlds.mdSkipped': 'The file is not by the template: the sections {s} will not move in by themselves. The World Bible shows what was recognised and offers «✦ Sort the whole file with AI».',
       'worlds.mdCount': { characters: 'characters', locations: 'locations', factions: 'factions', artifacts: 'artifacts', events: 'events', culture: 'culture entries', rules: 'laws' },
       'genesis.skip': 'Skip — start with an empty world',
 

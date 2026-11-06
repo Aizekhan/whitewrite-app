@@ -575,7 +575,7 @@ function WorldForm({ onBack, onCreate, initial }) {
     const cult = Object.keys(d.culture || {}).reduce((x, g) => x + d.culture[g].length, 0);
     if (cult) parts.push(cult + ' ' + C.culture);
     if (d.world.rules.length) parts.push(d.world.rules.length + ' ' + C.rules);
-    setMd({ name: file.name, text, summary: parts.join(' · ') }); setIdeas(false);
+    setMd({ name: file.name, text, summary: parts.join(' · '), skipped: r.skipped || [] }); setIdeas(false);
     if (!title.trim()) setTitle(r.title || file.name.replace(/\.(md|markdown|txt|json)$/i, ''));
   }
   function mdTemplate() {
@@ -620,10 +620,11 @@ function WorldForm({ onBack, onCreate, initial }) {
             : <div className="wf-tick"><label className="wf-md"><input type="file" accept=".md,.markdown,.txt,.json" hidden onChange={pickMd} disabled={creating} /><span>{t('worlds.mdBtn')}</span></label>
                 <button type="button" className="link-back" onClick={mdTemplate} title={t('worlds.mdHint')}>{t('worlds.mdTpl')}</button></div>}
           {md && md.error && <p className="wf-plan" role="alert">{t('worlds.mdBad').replace('{d}', md.error)}</p>}
+          {md && !md.error && md.skipped.length > 0 && <p className="wf-plan" role="alert">{t('worlds.mdSkipped').replace('{s}', md.skipped.slice(0, 6).map((x) => '«' + x + '»').join(', ') + (md.skipped.length > 6 ? ' +' + (md.skipped.length - 6) : ''))}</p>}
 
           {desc && plan !== "md" && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
 
-          <p className="wf-plan" role="status">{plan ? t('worlds.plan_' + plan) + (cost ? ' · ' + t('genesis.cost').replace('{n}', cost) : '') : t('worlds.fillLater')}</p>
+          <p className="wf-plan" role="status" hidden={plan === "md" && md.skipped.length > 0}>{plan ?t('worlds.plan_' + plan) + (cost ? ' · ' + t('genesis.cost').replace('{n}', cost) : '') : t('worlds.fillLater')}</p>
 
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack}>{t('form.back')}</button>

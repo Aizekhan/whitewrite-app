@@ -70,6 +70,11 @@ check(md.data.culture.peoples[0].fields.origin === 'туман' && !md.data.cult
 check(!F.parse(F.mdTemplate('uk')).error && !F.parse(F.mdTemplate('en')).error, 'both Markdown templates parse');
 check(!F.parse('Notes\n\n```json\n' + JSON.stringify({ format: 'whitewrite.fill/1', world: { summary: 'x' } }) + '\n```\n').error, 'a .md carrying the agent\'s JSON block');
 check(F.parse('just some text without any structure').data.world.summary === 'just some text without any structure', 'a .md without headings becomes the summary of the world');
+var num = F.parse('# G\n\n## 2. Персонажі:\n### Вікторія\nОпис: мисливиця\n\n## 🧙 Герої\n### Ілля\n\n## Концепція\nГра про полювання.\n\n## Порожній\n');
+check(num.data.characters.length === 2 && num.skipped.join('|') === 'Концепція', 'numbered / emoji headings are recognised; sections with text not by the template are listed, empty ones not');
+var gdd = F.parse('# GDD\n\n## Механіки\n- біг\n- стрибок');
+check(!gdd.error && gdd.skipped[0] === 'Механіки' && gdd.title === 'GDD', 'a file with nothing by the template is «not by the template» (AI can sort it), not «empty»');
+check(F.parse(F.mdTemplate('uk')).skipped === undefined, 'the template itself skips nothing');
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;

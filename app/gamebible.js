@@ -297,6 +297,7 @@
         s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
         up: "⤒ Завантажити файл (.md або .json)", mdTpl: "⤓ Шаблон .md — заповнити самому", mdHint: "Або без агента: заповни шаблон .md сам (Назва, «## Персонажі», «### Імʼя», «Опис: …») і завантаж — той самий перегляд і перенесення.", reading: "Читаю файл…", add: "Додасться", upd: "Доповниться", none: "У файлі немає нічого нового для цього світу.",
         rules: "закони", facts: "факти", world: "огляд світу", replace: "Замінити вже заповнені поля даними з файлу", kept: "Лишаться як є (вже заповнені): {n}. Галочка вище замінить їх.",
+        skipped: "Файл не за шаблоном — розділи {s} не впізнано, вони не перенесуться.", aiAll: "Розкласти весь файл з ШІ",
         apply: "Перенести в світ", cancel: "Скасувати", applying: "Переношу… {n}/{all}", done: "Готово: перенесено {n} записів.", frozen: "Світ заморожено на час сертифікації чи продажу — переносити не можна.",
         err: { json: "Це не JSON — попроси агента виправити файл: ", format: "Це файл іншого формату ({d}). Потрібен whitewrite.fill/1 — для резервних копій є «Відновити з JSON» у налаштуваннях.", shape: "Файл не схожий на шаблон WhiteWrite.", empty: "У файлі немає даних — перевір, що агент заповнив шаблон." },
         noformat: "У файлі немає «format: whitewrite.fill/1» — читаю як шаблон.",
@@ -596,6 +597,7 @@
         s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
         up: "⤒ Upload the file (.md or .json)", mdTpl: "⤓ .md template — fill it yourself", mdHint: "Or without an agent: fill the .md template yourself (the name, «## Characters», «### Name», «Description: …») and upload it — the same preview and move.", reading: "Reading the file…", add: "Will be added", upd: "Will be filled in", none: "The file has nothing new for this world.",
         rules: "laws", facts: "facts", world: "world overview", replace: "Replace fields that are already filled with the file's data", kept: "Stay as they are (already filled): {n}. The tick above replaces them.",
+        skipped: "The file is not by the template — the sections {s} were not recognised and will not move in.", aiAll: "Sort the whole file with AI",
         apply: "Move into the world", cancel: "Cancel", applying: "Moving… {n}/{all}", done: "Done: {n} records moved.", frozen: "The world is frozen for certification or a sale — nothing can be moved in.",
         err: { json: "This is not JSON — ask the agent to fix the file: ", format: "This file has another format ({d}). whitewrite.fill/1 is needed — backups go through «Restore from JSON» in the settings.", shape: "The file does not look like the WhiteWrite template.", empty: "The file has no data — check that the agent filled the template." },
         noformat: "The file has no «format: whitewrite.fill/1» — reading it as the template.",
@@ -1724,7 +1726,10 @@
     if (c.facts) add.push(esc(X.facts) + ': ' + c.facts);
     if (c.world) upd.push(esc(X.world));
     var any = add.length || upd.length;
+    var sk = f.parsed.skipped || [];
     return '<div class="fillres"><b>' + (f.folder ? '' : '📄 ') + esc(f.name) + '</b>' + (f.note ? '<p class="muted">' + esc(f.note) + '</p>' : '') + ((f.parsed.warnings || []).indexOf("noformat") >= 0 ? '<p class="muted">' + esc(X.noformat) + '</p>' : '') +
+      (sk.length ? '<p class="warn">⚠ ' + esc(X.skipped.replace("{s}", sk.slice(0, 8).map(function (x) { return "«" + x + "»"; }).join(", ") + (sk.length > 8 ? " +" + (sk.length - 8) : ""))) + '</p>' +
+        (f.text && canFolder ? '<div class="row"><button class="btn primary" id="fill-ai">' + X.aiAll + ' <span class="aicost">✦</span></button></div>' : '<p class="hint">' + esc(STR.folder.lock) + '</p>') : '') +
       (any ? (add.length ? '<p>＋ ' + X.add + ': ' + add.join(" · ") + '</p>' : '') + (upd.length ? '<p>✎ ' + X.upd + ': ' + upd.join(" · ") + '</p>' : '') : '<p class="muted">' + X.none + '</p>') +
       '<label class="imp"><input type="checkbox" id="fill-rep"' + (f.replace ? ' checked' : '') + '><span>' + X.replace + '</span></label>' +
       (p.kept.length ? '<p class="muted">' + esc(X.kept.replace("{n}", p.kept.length)) + '</p>' : '') +
@@ -1743,8 +1748,8 @@
     $("fill-file").onchange = async function (e) {
       var file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;
       fillState = { msg: X.reading }; fillRedraw();
-      var r = window.__FILL.parse(await file.text());
-      fillState = r.error ? { msg: (X.err[r.error] || r.error).replace("{d}", r.detail || "") + (r.error === "json" ? r.detail : "") } : { name: file.name, parsed: r, replace: false };
+      var text = await file.text(), r = window.__FILL.parse(text);
+      fillState = r.error ? { msg: (X.err[r.error] || r.error).replace("{d}", r.detail || "") + (r.error === "json" ? r.detail : "") } : { name: file.name, parsed: r, replace: false, text: text };
       fillRedraw();
     };
     if ($("fill-folder")) $("fill-folder").onchange = async function (e) {
@@ -1801,7 +1806,8 @@
     if (mode !== "world" || section !== "world") { mode = "world"; section = "world"; render(); }
     var r = window.__FILL.parse(pf.text);
     if (r.error) { fillState = { msg: (STR.fill.err[r.error] || r.error).replace("{d}", r.detail || "") }; return fillRedraw(); }
-    fillState = { name: pf.name, parsed: r, replace: false };
+    fillState = { name: pf.name, parsed: r, replace: false, text: pf.text };
+    if (r.skipped) return render(); // not by the template: show what was recognised and «✦ Розкласти весь файл з ШІ», do not move half of it silently
     await applyFill();
   }
   function folderMarkdown(F) { return F.files.map(function (f) { return "# " + f.path + "\n\n" + f.text.trim(); }).join("\n\n"); } // a game folder → one .md for the import
@@ -1810,6 +1816,11 @@
     if ($("fill-rep")) $("fill-rep").onchange = function () { fillState.replace = this.checked; fillRedraw(); };
     if ($("fill-x")) $("fill-x").onclick = function () { fillState = null; fillRedraw(); };
     if ($("fill-go")) $("fill-go").onclick = applyFill;
+    if ($("fill-ai")) $("fill-ai").onclick = function () { // the file not by the template → the same AI sorting as «📂 Завантажити теку», one file
+      var F = { name: fillState.name, files: [{ path: fillState.name, text: fillState.text }], chars: fillState.text.length, skipped: 0 };
+      if (F.chars > WORLD_FOLDER_MAX) { fillState = { msg: STR.folder.big.replace("{n}", F.chars.toLocaleString()).replace("{max}", WORLD_FOLDER_MAX.toLocaleString()) }; return fillRedraw(); }
+      confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", F.chars));
+    };
   }
   async function applyFill() {
     var X = STR.fill, p = fillPlan(), all = p.writes.length;

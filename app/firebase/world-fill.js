@@ -95,7 +95,11 @@ var MD_SECTIONS = { 'закони': 'rules', 'laws': 'rules', 'rules': 'rules', 
   'персонажі': 'characters', 'characters': 'characters', 'локації': 'locations', 'місця': 'locations', 'locations': 'locations', 'places': 'locations',
   'фракції': 'factions', 'factions': 'factions', 'артефакти': 'artifacts', 'artifacts': 'artifacts', 'події': 'events', 'events': 'events', 'хроніка': 'events', 'chronicle': 'events',
   'народи': 'peoples', 'peoples': 'peoples', 'мови': 'languages', 'languages': 'languages', 'вірування': 'beliefs', 'віра': 'beliefs', 'beliefs': 'beliefs', 'звичаї': 'customs', 'customs': 'customs',
-  'суть світу': 'summary', 'опис світу': 'summary', 'summary': 'summary', 'слоган': 'tagline', 'tagline': 'tagline' };
+  'суть світу': 'summary', 'опис світу': 'summary', 'summary': 'summary', 'слоган': 'tagline', 'tagline': 'tagline',
+  'герої': 'characters', 'heroes': 'characters', 'організації': 'factions', 'organisations': 'factions', 'organizations': 'factions',
+  'світ': 'summary', 'про світ': 'summary', 'огляд світу': 'summary', 'world': 'summary', 'overview': 'summary', 'лор': 'summary', 'lore': 'summary' };
+// «## 2. Персонажі:», «## 🧙 Герої» → «персонажі» / «герої»: numbering, emoji and a trailing colon do not hide a section
+var secKey = function (v) { return mdKey(v).replace(/^(?:\d+[.)]?\s*)+/, '').replace(/^[^\p{L}]+/u, '').replace(/[\s:.]+$/, ''); };
 var MD_FIELDS = { 'група': 'group', 'підрозділ': 'group', 'group': 'group', 'опис': 'desc', 'коротко': 'desc', 'description': 'desc', 'desc': 'desc',
   'історія': 'story', 'біографія': 'story', 'story': 'story', 'biography': 'story', 'вигляд': 'look', 'зовнішність': 'look', 'look': 'look', 'appearance': 'look',
   'роль': 'role', 'role': 'role', 'звʼязки': 'links', "зв'язки": 'links', 'звязки': 'links', 'links': 'links', 'життя': 'life', 'life': 'life',
@@ -110,7 +114,7 @@ function fromMarkdown(text) {
   var lines = String(text || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n');
   var d = { format: FORMAT, world: { tagline: '', summary: '', rules: [], facts: [] }, culture: { peoples: [], languages: [], beliefs: [], customs: [] } };
   KINDS.forEach(function (k) { d[k] = []; });
-  var title = '', sec = 'summary', item = null, summary = [], lastField = null;
+  var title = '', sec = 'summary', item = null, summary = [], lastField = null, skipped = []; // skipped: «## …» sections not by the template, with text
   var close = function () {
     if (!item) return;
     item.story = (item.story ? item.story + '\n\n' : '') + item._text.join('\n').trim(); item.story = item.story.trim(); delete item._text;
@@ -120,7 +124,8 @@ function fromMarkdown(text) {
   lines.forEach(function (raw) {
     var line = raw.replace(/\s+$/, ''), h;
     if ((h = line.match(/^#\s+(.+)/))) { close(); if (!title) title = h[1].trim(); sec = 'summary'; return; }
-    if ((h = line.match(/^##\s+(.+)/))) { close(); sec = MD_SECTIONS[mdKey(h[1])] || 'skip'; return; }
+    if ((h = line.match(/^##\s+(.+)/))) { close(); sec = MD_SECTIONS[secKey(h[1])] || 'skip'; if (sec === 'skip') skipped.push({ title: h[1].trim(), text: false }); return; }
+    if (sec === 'skip') { if (line.trim()) skipped[skipped.length - 1].text = true; return; }
     if ((h = line.match(/^###\s+(.+)/))) { close(); if (KINDS.indexOf(sec) >= 0 || LORE[sec]) item = { name: h[1].trim(), _text: [] }; return; }
     if (sec === 'summary' || sec === 'tagline') {
       var q = line.match(/^>\s?(.*)/);
@@ -150,7 +155,7 @@ function fromMarkdown(text) {
   });
   close();
   d.world.summary = summary.join('\n').trim();
-  return { data: d, title: title };
+  return { data: d, title: title, skipped: skipped.filter(function (x) { return x.text; }).map(function (x) { return x.title; }) };
 }
 // a Markdown template the author fills by hand (or asks any AI to fill from notes)
 function mdTemplate(lang) {
@@ -186,16 +191,23 @@ function mdTemplate(lang) {
 // The file → a clean shape; anything unknown is dropped, nothing is invented. The file is JSON (whitewrite.fill/1),
 // a .md with a ```json block of it, or the Markdown template above; `title` — the world name from «# …» of a Markdown file
 function parse(text) {
-  var title = '';
+  var title = '', skipped = [];
   if (typeof text === 'string') {
     var t = text.replace(/^\uFEFF/, '').trim(), block = t.match(/```(?:json)?\s*\n(\{[\s\S]*?\})\s*\n```/);
     if (t[0] !== '{') {
       if (block && block[1].indexOf(FORMAT) >= 0) text = block[1];
-      else { var md = fromMarkdown(t); title = md.title; text = md.data; }
+      else { var md = fromMarkdown(t); title = md.title; text = md.data; skipped = md.skipped; }
     }
   }
   var r = parse1(text);
   if (title && !r.error) r.title = title;
+  if (!skipped.length) return r;
+  if (r.error === 'empty') { // a file not by the template: nothing recognised is \u00ABAI can sort it\u00BB, not \u00ABempty\u00BB
+    r = { data: { world: { tagline: '', summary: '', rules: [], facts: [] }, culture: {} }, warnings: [] };
+    KINDS.forEach(function (k) { r.data[k] = []; }); Object.keys(LORE).forEach(function (g) { r.data.culture[g] = []; });
+    if (title) r.title = title;
+  }
+  r.skipped = skipped;
   return r;
 }
 function parse1(text) {
