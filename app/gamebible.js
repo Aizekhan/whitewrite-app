@@ -2296,7 +2296,7 @@
     if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
-    $("d-body").innerHTML = html + '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>';
+    $("d-body").innerHTML = '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>' + html; // the tabs sit on top of the window (owner, v2.86.1): the open tab's content first, the shared blocks below
     $("d-tabs").innerHTML = [t[0]].concat(ddraft.personality ? [["persona", VF.pz.tab]] : [], [["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]]).map(function (x) {
       return '<button role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dtab) + '">' + esc(x[1]) + '</button>';
     }).join("");
@@ -4375,7 +4375,7 @@
   $("d-tabs").addEventListener("click", function (e) {
     var b = e.target.closest("[data-dtab]"); if (!b || !dos) return;
     dcollect(); dtab = b.dataset.dtab; renderDossier();
-    var p = $("d-panel"); if (p) p.scrollIntoView({ block: "nearest" });
+    $("d-body").scrollTop = 0;
   });
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }

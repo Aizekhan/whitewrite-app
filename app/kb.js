@@ -435,7 +435,7 @@
         lead: "Усе про сутність на одній сторінці.",
         min: 3,
         body: [
-          ["p", "Досьє: імʼя, опис, файли світу (зображення, моделі), у персонажів — «Хронологія життя» (нотатки на золотій лінії). Вкладки знизу: історія (біографія), Звʼязки, вигляд, «Поява в історіях та іграх». Перше зображення стає фасадом картки (16:9); ⌖ біля картинки — «Кадр на картці»: перетягни, яку частину видно, або «Показати повністю»."],
+          ["p", "Досьє: імʼя, опис, файли світу (зображення, моделі), у персонажів — «Хронологія життя» (нотатки на золотій лінії). Вкладки вгорі, під назвою (вміст відкритої вкладки — першим, спільні блоки нижче): історія (біографія), Звʼязки, вигляд, «Поява в історіях та іграх». Перше зображення стає фасадом картки (16:9); ⌖ біля картинки — «Кадр на картці»: перетягни, яку частину видно, або «Показати повністю»."],
           ["ul", [
             "Звʼязки — усі повʼязані сутності, клікабельно, в обидва боки.",
             "Поява — ігрові картки цієї сутності в кожній грі та сцени історій, де вона є.",
@@ -1785,7 +1785,7 @@
         lead: "Everything about an entity on one page.",
         min: 3,
         body: [
-          ["p", "A dossier: name, description, world files (images, models), and for characters a “Life timeline” (notes on a gold line). Tabs at the bottom: story (biography), Connections, look, “Appears in stories and games”. The first image becomes the card face (16:9); ⌖ next to a picture is “Frame on the card”: drag which part shows, or “Show it whole”."],
+          ["p", "A dossier: name, description, world files (images, models), and for characters a “Life timeline” (notes on a gold line). Tabs at the top, under the name (the open tab's content first, the shared blocks below): story (biography), Connections, look, “Appears in stories and games”. The first image becomes the card face (16:9); ⌖ next to a picture is “Frame on the card”: drag which part shows, or “Show it whole”."],
           ["ul", [
             "Connections — every linked entity, clickable, both ways.",
             "Appears — this entity's game cards in every game and the story scenes it is in.",

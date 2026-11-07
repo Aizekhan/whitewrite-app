@@ -703,7 +703,9 @@ h2.group .btn.mini.ghost:hover{ color:var(--tx); }
 /* world dossier: tabs at the bottom, life timeline with hanging notes */
 .card .sub{ margin:-4px 0 0; font-size:12.5px; color:var(--gold-lit); }
 .dtabs[hidden]{ display:none; } #statuses[hidden]{ display:none; } #ng-minrow[hidden],#ng-cbox[hidden]{ display:none; }
-.dtabs{ display:flex; gap:4px; padding:8px 14px 0; border-top:1px solid var(--line); overflow-x:auto; flex:none; }
+.dtabs{ display:flex; gap:4px; padding:10px 18px 0; border-bottom:1px solid var(--line); overflow-x:auto; flex:none; } /* on top of the dossier, under its head (v2.86.1) */
+.dtabs button[aria-selected="true"]{ margin-bottom:-1px; }
+.leaf.dos .leaf-head:has(+ .dtabs:not([hidden])){ border-bottom:0; padding-bottom:4px; } /* the tabs' line closes the head */
 .dtabs button{ flex:none; padding:8px 13px; border-radius:9px 9px 0 0; border:1px solid transparent; border-bottom:none; background:none; color:var(--tx-mid); font:500 13.5px "Inter"; cursor:pointer; }
 .dtabs button:hover{ color:var(--tx-hi); }
 .dtabs button[aria-selected="true"]{ color:var(--gold-bright); background:var(--bg-2); border-color:var(--line-2); }
@@ -1110,8 +1112,8 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
     <input id="d-title" />
     <div class="row"><select id="d-sub"></select><button class="btn micbtn" id="d-mic" type="button"></button></div>
   </div>
-  <div class="leaf-body" id="d-body"></div>
   <div class="dtabs" id="d-tabs" role="tablist"></div>
+  <div class="leaf-body" id="d-body"></div>
   <div class="leaf-foot">
     <button class="btn primary" id="d-save"></button>
     <button class="btn" id="d-close"></button>
