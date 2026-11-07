@@ -274,6 +274,11 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 .lk-menu button[aria-pressed="true"]{ background:var(--gold-soft); color:var(--gold-bright); border-color:var(--gold-lit); }
 .lk-menu button.is-world{ border-style:dashed; }
 .lk-sep{ flex-basis:100%; height:0; }
+/* «Ще поля»: empty fields of a card wait as chips (v2.89) */
+.more-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.more-chip{ border:1px dashed var(--line-2); background:none; color:var(--tx-mid); border-radius:99px; padding:4px 11px; font:500 13px "Inter"; cursor:pointer; }
+.more-chip:hover{ border-color:var(--gold-lit); color:var(--tx); }
+.more-chip.is-all{ border-style:solid; }
 /* 🧊 hero prefab link + 🧩 the model kit of an asset card (v2.88) */
 .field.quickadd{ display:flex; flex-wrap:wrap; gap:8px; }
 .field.quickadd > .btn{ flex:1 1 180px; width:auto; max-width:none; display:inline-flex; justify-content:center; align-items:center; margin:0; padding:10px 14px; font:600 14px "Inter"; color:var(--tx); }
@@ -585,7 +590,8 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
 .mdots{ color:var(--gold-lit); letter-spacing:2px; margin-left:auto; } .mdots i{ color:var(--line-2); font-style:normal; }
 .qprop{ border-color:rgba(240,169,59,.45); background:rgba(240,169,59,.06); }
 .qprow{ border-bottom:1px solid var(--line); padding:8px 0; } .qprow pre{ white-space:pre-wrap; font:13.5px/1.5 "Inter"; color:var(--tx-hi); margin:4px 0 6px; }
-.qai{ gap:10px; } .qai input{ flex:1; } .btn.bulb{ justify-self:start; }
+#q-issues:has(.qd-ok){ display:none; } /* no problems: the header already says «✓ без проблем» (v2.89) */
+.qai{ gap:10px; } .qai input{ flex:1; } .qai-slim{ margin:0 0 14px; } #q-aimsg:empty{ display:none; } .btn.bulb{ justify-self:start; }
 /* world map — locations by drag (entity.mapPos) */
 .wmap{ margin-top:6px; border:1px solid var(--line-2); border-radius:14px; background:radial-gradient(circle at 50% 40%,rgba(240,169,59,.07),transparent 70%),var(--bg-1); overflow:hidden; }
 .wmap svg{ display:block; width:100%; height:auto; touch-action:none; user-select:none; }
@@ -1072,6 +1078,14 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 .sroad{ list-style:none; margin:4px 0 0; padding:0; position:relative; }
 .sroad::before{ content:""; position:absolute; left:17px; top:18px; bottom:24px; width:2px;
   background:repeating-linear-gradient(180deg, rgba(240,169,59,.55) 0 6px, transparent 6px 12px); }
+.setfold > summary{ list-style:none; cursor:pointer; }
+.setfold > summary::-webkit-details-marker{ display:none; }
+.setfold > summary h2 .muted{ font:500 13px "Inter"; margin-left:8px; }
+.sroad__fold > summary{ list-style:none; cursor:pointer; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.sroad__fold > summary::-webkit-details-marker{ display:none; }
+.sroad__fold > summary h3{ margin:6px 0; }
+.sroad__edit{ font:500 13px "Inter"; color:var(--gold-lit); }
+.sroad__fold[open] .sroad__edit{ display:none; }
 .sroad__s{ position:relative; display:grid; grid-template-columns:36px minmax(0,1fr); gap:14px; padding-bottom:18px; }
 .sroad__n{ position:relative; z-index:1; width:36px; height:36px; border-radius:50%; display:grid; place-items:center;
   font:700 15px/1 "Cinzel",serif; color:var(--gold-lit); background:var(--bg-1); border:2px solid var(--gold-lit); }

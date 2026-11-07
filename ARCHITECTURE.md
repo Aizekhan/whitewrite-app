@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.88.1 (2026-11-07)
+**Version:** 2.89.0 (2026-11-07)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -746,6 +746,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.89.0** ✂ less on the screen, nothing lost (owner): game cards show only filled fields — the empty ones (and the note for Claude, files, 🎙 voice, «Додати поле») wait as «＋ назва» chips in «Ще поля» (`gamebible.js` `moreKeys` / `moreAll` / `fieldFilled`; defs unchanged, MCP and AI see the whole structure; field mode ✎ and «Показати всі поля» show all); a hero card's portrait / references / prefab have only their quick buttons; «🔗 Що зачепить зміна» only when something points at the card; the dossier's «Зовнішність» shows filled fields, the rest as chips per group (`lkOpen`); game settings: done Claude Code steps fold to their title line («Змінити»), «Розділи гри в меню» folds with its count, «Власні розділи» only when there are any; the quest / dialogue ✦ draft is one row, «Перевірка графа» hides with no problems; ⚒ Forge brief: the Bible context folded, `forge.js briefFromCanon(fields, appearance)` — hints in empty fields and «⤓ Заповнити з Біблії (N)» fills only the empty ones.
 - **v2.88.1** 🧩 the kit simplified (owner): one «⤒ Файл» (self-contained `BUNDLE`: GLB, .blend, .unitypackage, archives) or «📂 Тека» (`FOLDER`: FBX / OBJ / glTF with textures — a lone one is refused) instead of a button per slot; `asset-kit.js classify(name)` files every folder file into its slot by name (`kit:<slot>` / `kit:other`), a bundle marks surface + motion slots `in` (inside the file); the checklist is chips (click an empty one = «не потрібно»), the block sits first on asset cards; uv / lod / collider / prefab / preview optional; MCP `kit.bundle`, `other_textures`.
 - **v2.88.0** 🧊 hero cards link a prefab of «Ассети й префаби» (`card.prefab`, field type `prefab`, quick «Додати префаб / портрет / референс», model uploads refused, «→ Перенести» for old files, the folder import splits models off); 🧩 the model kit of asset cards (`functions/asset-kit.js`, `card.kit.na`, MCP `kit` / `prefab`). v2.87.1: the dossier's «Загальне» tab — the description and shared blocks no longer repeat under every tab.
 - **v2.87.0** 👤 the «Зовнішність» tab of world characters: 22 fields in 4 groups with ▾ variants (toggle chips, several allowed, own text kept; the world's peoples first), the free description below; `entities/{id}.appearance` (`persona.js LOOK`, `cleanLook`, `lookText`) in the AI context and MCP `get_card`. See 2.86.

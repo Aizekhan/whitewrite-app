@@ -310,7 +310,15 @@ function manifest(char, items, game, lang) {
   };
 }
 
-var FORGE = { STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
+// the brief from what the Bible already knows (v2.89): the game card's role / class and the world character's «Зовнішність» (persona.js LOOK ids) —
+// only fields the author left empty are offered, nothing is overwritten
+function briefFromCanon(fields, look) {
+  fields = fields || {}; look = look || {};
+  var j = function () { return [].slice.call(arguments).filter(function (x) { return x && String(x).trim(); }).join(', '); };
+  return { race: j(look.people), cls: j(fields.cls, fields['class']), role: j(fields.role), silhouette: j(look.build, look.posture, look.armour || look.style),
+    proportions: j(look.height, look.build, look.age), palette: j(look.colors, look.skin, look.hairColor), refs: j(look.marks, look.accessories, look.weapon) };
+}
+var FORGE = { briefFromCanon: briefFromCanon, STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
   REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
   refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
   lbl: lbl, stage: stage, type: type, typeOf: typeOf, slotsOf: slotsOf, pipeline: pipeline, revsOf: revsOf, approvedRev: approvedRev, isApproved: isApproved, newRev: newRev,

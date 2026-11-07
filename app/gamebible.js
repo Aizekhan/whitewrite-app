@@ -141,6 +141,7 @@
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
+      more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
@@ -290,7 +291,7 @@
         expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
-      stShown: "Розділи гри в меню", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
+      stShown: "Розділи гри в меню", stShownN: "{n} з {t} у меню · натисни, щоб змінити", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
       folder: { gameHint: "Обери теку з нотатками гри — текстові файли (.md, .txt…) підуть в імпорт ✦, ти відмітиш картки, які взяти.", lock: "📂 Теку світу з ШІ можна завантажити з тарифу Storyteller; без токенів — через свій ШІ-агент нижче.", busy: "ШІ розкладає теку «{d}» ({n} файлів)…", big: "Тека завелика: {n} символів, максимум {max}. Обери меншу теку або прибери з неї зайве.", empty: "У теці немає текстових файлів (.md, .txt, .json, .csv…). .docx і .pdf збережи як .md чи .txt.", bad: "Частини {p} не вдалося розкласти — спробуй теку меншою.", skipped: "пропущено не текстових файлів: {n}", name: "Тека «{d}»" },
       wfold: { ask: "📂 Тека «{d}»: файлів, які можна прочитати — {n}. ✦ ШІ перегляне список і вибере, де є світ (нотатки, лор, сценарії, дані персонажів і предметів); документацію фреймворків, код без змісту й налаштування пропустить.",
         scouting: "✦ ШІ переглядає список… частина {d} з {n}", readingFiles: "Читаю вибрані файли з ПК… {d} з {n}", nothing: "ШІ не знайшов у теці файлів зі світом.",
@@ -466,6 +467,7 @@
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
+      more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
@@ -615,7 +617,7 @@
         expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
-      stShown: "Game sections in the menu", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
+      stShown: "Game sections in the menu", stShownN: "{n} of {t} in the menu · click to change", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
       folder: { gameHint: "Pick a folder of game notes — the text files (.md, .txt…) go to the ✦ import, you tick the cards to take.", lock: "📂 A world folder with AI is from the Storyteller plan; without tokens — through your own AI agent below.", busy: "AI is sorting the folder «{d}» ({n} files)…", big: "The folder is too big: {n} characters, at most {max}. Pick a smaller folder or remove what is not needed.", empty: "The folder has no text files (.md, .txt, .json, .csv…). Save .docx and .pdf as .md or .txt.", bad: "Parts {p} could not be sorted — try a smaller folder.", skipped: "non-text files skipped: {n}", name: "Folder «{d}»" },
       wfold: { ask: "📂 Folder «{d}»: readable files — {n}. ✦ AI looks through the list and picks those holding the world (notes, lore, scripts, character and item data); docs of frameworks, code without content and settings are skipped.",
         scouting: "✦ AI looks through the list… part {d} of {n}", readingFiles: "Reading the picked files from the PC… {d} of {n}", nothing: "AI found no files about the world in the folder.",
@@ -2191,7 +2193,7 @@
     if (!e) return;
     if (!ME.owner) canWrite = baseWrite && mayEdit(e.col === "lore" ? "culture" : secOfKind(e.kind)); else canWrite = canonWrite;
     if (open) closeLeaf();
-    dos = e; dtab = "main"; // «Загальне»: pictures, description, stories, life timeline — once, not under every tab (v2.87.1)
+    dos = e; dtab = "main"; lkOpen = {}; // «Загальне»: pictures, description, stories, life timeline — once, not under every tab (v2.87.1)
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
@@ -2539,15 +2541,21 @@
     if (f.opts === "peoples") list = lookPeoples().concat(list);
     return list.filter(function (x, i, a) { return a.indexOf(x) === i; });
   }
+  var lkOpen = {}; // «Зовнішність»: the empty fields the author opened from their chips
   function lookHtml(ph) {
     var P = window.__PERSONA, a = ddraft.appearance, d = P.LOOK_FIELDS.filter(function (f) { return a[f.id]; }).length, n = P.LOOK_FIELDS.length;
     return '<p class="hint">' + esc(VF.lk.intro) + '</p><div class="pz-head"><div class="pz-prog"><i style="width:' + Math.round(100 * d / n) + '%"></i></div><span class="muted" id="lk-done">' + esc(VF.lk.done.replace("{d}", d).replace("{n}", n)) + '</span></div>' +
       P.LOOK.map(function (g) {
-        return '<h4 class="dsub">' + esc(L(g)) + '</h4><div class="lk-grid">' + g.fields.map(function (f) {
+        // filled fields (and the ones asked for) are shown; the rest of the group waits as chips (v2.89)
+        var shown = g.fields.filter(function (f) { return a[f.id] || lkOpen[f.id] || lkOpen.__all; }), rest = canWrite ? g.fields.filter(function (f) { return shown.indexOf(f) < 0; }) : [];
+        if (!shown.length && !rest.length) return '';
+        return '<h4 class="dsub">' + esc(L(g)) + '</h4>' + (rest.length ? '<div class="more-row lk-more">' + rest.map(function (f) { return '<button type="button" class="more-chip" data-lkadd="' + f.id + '">＋ ' + esc(L(f)) + '</button>'; }).join("") + '</div>' : '') +
+          '<div class="lk-grid">' + shown.map(function (f) {
           return '<div class="lk-f"><label for="lk-' + f.id + '">' + esc(L(f)) + '</label><div class="lk-in"><input id="lk-' + f.id + '" data-lk="' + f.id + '" autocomplete="off" value="' + esc(a[f.id] || "") + '" placeholder="' + esc(VF.lk.ph) + '"' + (canWrite ? '' : ' readonly') + '>' +
             (canWrite ? '<button type="button" class="lk-dd" data-lkdd="' + f.id + '" title="' + esc(VF.lk.pick) + '" aria-label="' + esc(VF.lk.pick + ": " + L(f)) + '" aria-expanded="false">▾</button>' : '') + '</div></div>';
         }).join("") + '</div>';
       }).join("") +
+      (canWrite && !lkOpen.__all && P.LOOK_FIELDS.some(function (f) { return !a[f.id] && !lkOpen[f.id]; }) ? '<div class="more-row"><button type="button" class="more-chip is-all" data-lkadd="__all">' + esc(STR.more.all) + '</button></div>' : '') +
       '<h4 class="dsub">' + esc(VF.lk.free) + '</h4><textarea id="d-text" data-k="look" rows="6" placeholder="' + esc(ph) + '">' + esc(ddraft.dossier.look || "") + '</textarea>';
   }
   function lookMenuClose() { var m = document.querySelector(".lk-menu"); if (m) { var b = m.parentNode.querySelector("[data-lkdd]"); if (b) b.setAttribute("aria-expanded", "false"); m.remove(); } }
@@ -2576,6 +2584,7 @@
     el.textContent = VF.lk.done.replace("{d}", d).replace("{n}", n); el.previousElementSibling.firstChild.style.width = Math.round(100 * d / n) + "%";
   }
   $("d-body").addEventListener("click", function (e) {
+    var la = e.target.closest("[data-lkadd]"); if (la && dos) { dcollect(); lkOpen[la.dataset.lkadd] = 1; renderDossier(); var li = $("lk-" + la.dataset.lkadd); if (li) li.focus(); return; }
     var b = e.target.closest("[data-lkdd],[data-lkopt]"); if (!b || !dos) return;
     if (b.dataset.lkdd) lookMenu(b); else lookPick(b);
   });
@@ -4292,8 +4301,9 @@
   function aiHtml() {
     if (!canQuest || !canDev) return ""; // ✦ drafts are AI — Worldbuilder
     var op = qed.col === "quests" ? "questDraft" : "dialogueDraft";
-    return '<div class="qbox"><div class="row qai"><input id="q-wish" placeholder="' + esc(QD.wishPh) + '" aria-label="' + esc(QD.wishPh) + '"' + (qbusy ? " disabled" : "") + '>' +
-      '<button class="btn" data-qact="ai"' + (qbusy ? " disabled" : "") + '>' + QD.ai + costMark(op) + '</button></div><p class="muted" id="q-aimsg">' + esc(qbusy || QD.aiHint) + '</p></div>';
+    // one slim row, not a panel (v2.89): the hint is the button's tooltip, a line shows only while the AI works
+    return '<div class="row qai qai-slim"><input id="q-wish" placeholder="' + esc(QD.wishPh) + '" aria-label="' + esc(QD.wishPh) + '"' + (qbusy ? " disabled" : "") + '>' +
+      '<button class="btn" data-qact="ai" title="' + esc(QD.aiHint) + '"' + (qbusy ? " disabled" : "") + '>' + QD.ai + costMark(op) + '</button></div>' + '<p class="muted" id="q-aimsg">' + esc(qbusy) + '</p>'; // empty → hidden (CSS); errors and the spent tokens are written into it after a render
   }
   async function aiDraft() {
     var q = qed, isQ = q.col === "quests", wish = ($("q-wish") || {}).value || "";
@@ -4738,6 +4748,7 @@
     if (ov0 && ov0.id === c.id) VISION().forEach(function (d) { if (!draft.defs.some(function (x) { return x.key === d.key; })) draft.defs.push(d); }); // the game's first overview card gets the vision fields (older cards had none)
     if (c.section === "audio" && !c.mech && !draft.defs.some(function (d) { return d.type === "audio"; })) // older sound cards get the sound field (Аудіотека)
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "sound", label: LANG === "en" ? "Sound" : "Звук", type: "audio" });
+    moreKeys = {}; moreAll = false;
     setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
@@ -4754,22 +4765,50 @@
     return '<div class="field"><label>' + esc(label) + (extra || "") + '</label><div class="shown' + (value ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(key) + '">' +
       (value ? md(value) : STR.blank) + '</div></div>';
   }
+  // a card shows what is filled; every empty field waits as a chip «＋ назва» under them (owner, v2.89: less on the screen, nothing lost —
+  // the fields stay in defs, MCP and the AI see the whole structure); the field-structure mode (✎) and «Показати всі поля» show everything
+  var moreKeys = {}, moreAll = false;
+  function fieldFilled(d) {
+    var v = String(draft.fields[d.key] || "").trim(), std = d.type ? null : (sec(open.section).defs || []).filter(function (x) { return x.key === d.key; })[0], type = d.type || (std && std.type) || "text";
+    var files = (open.files || []).some(function (f) { return f.field === d.key; });
+    return type === "prefab" ? !!(open.prefab || files) : (type === "image" || type === "file" || type === "audio") ? !!(v || files) : !!v;
+  }
+  function moreChip(key, label) { return '<button type="button" class="more-chip" data-more="' + esc(key) + '">＋ ' + esc(label) + '</button>'; }
   function renderFields() {
     // «Референси» stay lean: the pictures first; the note and the general files block only once they hold something
     var lean = open.section === "refs" && draft.defs.some(function (d) { return d.type === "image"; });
-    var html = lean && !draft.note ? '' : '<div class="field note"><label for="f-note">' + STR.note + ' <span class="hint">' + STR.noteHint + '</span></label>' +
+    var all = editMode || moreAll, chips = [], hero = STATS_SECS.indexOf(open.section) >= 0 && canWrite; // a hero's portrait / references / prefab have their buttons on top
+    var html = "";
+    if (draft.note || all || moreKeys.__note) html += '<div class="field note"><label for="f-note">' + STR.note + ' <span class="hint">' + STR.noteHint + '</span></label>' +
       '<textarea id="f-note" data-key="__note" rows="2" placeholder="' + esc(STR.notePh) + '">' + esc(draft.note) + '</textarea></div>';
-    if (!lean || (open.files || []).some(function (f) { return !f.field; })) html += filesHtml();
-    if (draft.canonDesc !== null) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
+    else if (!lean && canWrite) chips.push(moreChip("__note", STR.note));
+    if ((open.files || []).some(function (f) { return !f.field && !(open.section === "assets" && window.__ASSET_KIT.fileSlot(f)); }) || (all && !lean)) html += filesHtml();
+    else if (!lean && canWrite) chips.push('<label class="more-chip"><input type="file" multiple id="f-up" hidden>＋ ' + esc(STR.files) + '</label>');
+    if (draft.canonDesc !== null) {
+      if (draft.canonDesc || all || moreKeys.__canon) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
+      else if (canWrite) chips.push(moreChip("__canon", LANG === "en" ? "Description" : "Опис"));
+    }
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
-    draft.defs.forEach(function (d) { if (d.key !== gk && (!lean || editMode || d.type === "image" || draft.fields[d.key])) html += defHtml(d); });
+    draft.defs.forEach(function (d) {
+      if (d.key === gk) return;
+      if (lean) { if (editMode || d.type === "image" || draft.fields[d.key]) html += defHtml(d); return; }
+      if (all || moreKeys[d.key] || fieldFilled(d) || !canWrite) { if (all || moreKeys[d.key] || fieldFilled(d)) html += defHtml(d); return; }
+      if (hero && ["portrait", "refpics", "model"].indexOf(d.key) >= 0) return;
+      chips.push(moreChip(d.key, d.label));
+    });
+    var voK = !open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest ? voCardKey(open) : "";
+    var voOn = voK && (all || moreKeys.__voice || ((game && game.voices) || {})[voK]);
+    if (voK && !voOn) chips.push(moreChip("__voice", VO.cardTitle));
+    if (!lean && !editMode && canWrite) chips.push(moreChip("__nf", STR.addField));
+    if (chips.length && !all) html += '<div class="field more"><label>' + esc(STR.more.title) + ' <span class="hint">' + esc(STR.more.hint) + '</span></label><div class="more-row">' + chips.join("") +
+      '<button type="button" class="more-chip is-all" data-more="__all">' + esc(STR.more.all) + '</button></div></div>';
     if (draft.intent) html += intentHtml(draft.intent);
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
-    if (!open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest) html += voCardHtml(voCardKey(open));
+    if (voOn) html += voCardHtml(voK);
     if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + '</div>';
-    if (!open.isNew) html += impactHtml(open);
-    if (!lean || editMode) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
+    if (!open.isNew && impactOf(open).length) html += impactHtml(open);
+    if (editMode || (!lean && (moreAll || moreKeys.__nf))) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
     mountFieldEditors();
@@ -5931,7 +5970,7 @@
       envNone: "Перевірки ще не було.", envAt: "Перевірено {d}",
       // ⚙ Налаштування → «Claude Code»: the once-per-game steps 3–7 and 9 of the KB road (kb.js), each ticked from real data
       road: { title: "Claude Code — підключення гри", hint: "Зроби кроки по черзі — галочки ставляться самі. Номери ті самі, що в Базі знань → «Шлях з агентом» (кроки 1–2 — один раз на ПК).",
-        done: "Готово {n} з {t}", ok: "готово", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
+        done: "Готово {n} з {t}", ok: "готово", change: "Змінити", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
         launch: "Тека гри й запуск", key: "Ключ MCP", design: "Дизайн гри → продакшн-план", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
         keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри.",
         keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
@@ -5963,7 +6002,7 @@
       tests: "tests {p}/{r}", files: "files: {n}",
       envNone: "No check yet.", envAt: "Checked {d}",
       road: { title: "Claude Code — connecting the game", hint: "Do the steps in order — the ticks set themselves. The numbers match Knowledge base → “The path with the agent” (steps 1–2 are once per PC).",
-        done: "Done {n} of {t}", ok: "done", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
+        done: "Done {n} of {t}", ok: "done", change: "Change", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
         launch: "Game folder and launch", key: "MCP key", design: "Game design → production plan", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
         keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder.",
         keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
@@ -5994,6 +6033,7 @@
       unapproveQ: "Зняти затвердження етапу? Версії лишаються.", approvedBy: "Затверджено", versions: "Версії", noVersions: "Ще немає версій.", upload: "⤒ Нова версія",
       noteQ: "Що в цій версії (необовʼязково):", restore: "↺ Повернути версію", restored: "Повернуто з v{n}", compare: "Порівняти", compareHint: "Познач дві версії, щоб порівняти.",
       cmpClose: "Закрити порівняння", gen: "✦ Згенерувати · Meshy — скоро", genTip: "Генерація 3D через Meshy — наступний етап; поки — ручне завантаження.",
+      fillCanon: "⤓ Заповнити з Біблії ({n})",
       brief: { race: "Раса", cls: "Клас", role: "Роль у грі", silhouette: "Силует", proportions: "Пропорції", palette: "Палітра", refs: "Референси й обмеження" },
       context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
       slots: "Слоти", bindItem: "＋ привʼязати предмет…", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
@@ -6029,6 +6069,7 @@
       unapproveQ: "Withdraw the stage's approval? The versions stay.", approvedBy: "Approved", versions: "Versions", noVersions: "No versions yet.", upload: "⤒ New version",
       noteQ: "What is in this version (optional):", restore: "↺ Restore version", restored: "Restored from v{n}", compare: "Compare", compareHint: "Tick two versions to compare.",
       cmpClose: "Close the comparison", gen: "✦ Generate · Meshy — soon", genTip: "3D generation through Meshy is the next step; for now — manual import.",
+      fillCanon: "⤓ Fill in from the Bible ({n})",
       brief: { race: "Race", cls: "Class", role: "Game role", silhouette: "Silhouette", proportions: "Proportions", palette: "Palette", refs: "References & constraints" },
       context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
       slots: "Slots", bindItem: "＋ bind an item…", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
@@ -6175,9 +6216,12 @@
     var ent = c.src === "canon" && entities.filter(function (e) { return e.id === c.id; })[0], fl = c.fields || {};
     var ctxText = [ent ? FZ.fromCanon + ": " + plain(ent[descKeyOf(ent)] || (ent.dossier || {}).story || "").slice(0, 600) : "",
       sec(c.section).defs.filter(function (d) { return d.type !== "file" && fl[d.key]; }).map(function (d) { return d.label + ": " + fl[d.key]; }).join("\n")].filter(Boolean).join("\n\n");
-    return (ctxText ? '<details class="fz-ctx" open><summary>' + FZ.context + '</summary><pre class="ln-cmd">' + esc(ctxText) + '</pre></details>' : '') +
+    // what the Bible already knows fills the empty fields in one click (v2.89): the game card's role, the world character's «Зовнішність»
+    var sug = FG.briefFromCanon(fl, ent && ent.appearance), fill = Object.keys(FZ.brief).filter(function (k) { return !String(b[k] || "").trim() && sug[k]; });
+    return (ctxText ? '<details class="fz-ctx"><summary>' + FZ.context + '</summary><pre class="ln-cmd">' + esc(ctxText) + '</pre></details>' : '') +
+      (fill.length && canWrite && !ro ? '<div class="row"><button type="button" class="btn" data-fzfill>' + esc(FZ.fillCanon.replace("{n}", fill.length)) + '</button></div>' : '') +
       '<div class="fz-brief">' + Object.keys(FZ.brief).map(function (k) {
-        return '<label class="fz-lb">' + esc(FZ.brief[k]) + '<textarea rows="2" data-fzb="' + k + '"' + (canWrite && !ro ? '' : ' readonly') + '>' + esc(b[k] || "") + '</textarea></label>';
+        return '<label class="fz-lb">' + esc(FZ.brief[k]) + '<textarea rows="2" data-fzb="' + k + '"' + (sug[k] ? ' placeholder="' + esc(FZ.fromCanon + ": " + sug[k]) + '"' : '') + (canWrite && !ro ? '' : ' readonly') + '>' + esc(b[k] || "") + '</textarea></label>';
       }).join("") + '</div>';
   }
   // the versions of a stage (or of an item: concept / model): newest first, the approved one marked, compare two side by side
@@ -6431,7 +6475,7 @@
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
@@ -6481,6 +6525,11 @@
     if (d.fzrestore) { var rq = fzSplit(d.fzrestore, 2), ro = (f.revs || []).filter(function (r) { return r.id === rq[2]; })[0];
       if (ro) { f.revs.push(FG.newRev(f, rq[1], ro.files, "", fzWho(), ro.id)); fzSave(c, f); } return true; }
     if (d.fzoff) { f.off = f.off || []; var oi = f.off.indexOf(d.fzoff); if (oi >= 0) f.off.splice(oi, 1); else f.off.push(d.fzoff); fzSave(c, f); return true; }
+    if (d.fzfill !== undefined && c) { // only the empty brief fields, from the Bible
+      var fent = c.src === "canon" && entities.filter(function (e) { return e.id === c.id; })[0], fsg = FG.briefFromCanon(c.fields || {}, fent && fent.appearance), ff = fzClone(c.forge);
+      ff.brief = ff.brief || {}; Object.keys(FZ.brief).forEach(function (k) { if (!String(ff.brief[k] || "").trim() && fsg[k]) ff.brief[k] = fsg[k]; });
+      fzSave(c, ff); return true;
+    }
     if (d.fzaddnote) { var ni = $("view").querySelector("[data-fznote]"), tx = ni && ni.value.trim(); if (!tx) return true;
       f.notes = (f.notes || []).concat([{ stage: d.fzaddnote, text: tx.slice(0, 2000), byName: fzWho().name, at: Date.now() }]); fzSave(c, f); return true; }
     if (d.fzunbind) { var ui = fzFind(fzItems(), d.fzunbind); if (ui) fzSetItem(ui, function (x) { x.owners = (x.owners || []).filter(function (id) { return id !== c.id; }); }); return true; }
@@ -6816,8 +6865,11 @@
   function agentRoadHtml() {
     var R = KN.road, live = keys.filter(function (k) { return !k.revoked; }), G = window.__SETUP_GUIDES, logMd = G && G.guide("activity_log");
     var step = function (n, title, done, kb, body, optional) {
-      return '<li class="sroad__s' + (done ? ' is-done' : '') + '"><span class="sroad__n">' + n + '</span><div class="sroad__b">' +
-        '<h3>' + title + (optional ? ' <span class="muted">· ' + R.opt + '</span>' : '') + (done ? ' <span class="sroad__ok">' + R.ok + '</span>' : '') + '</h3>' + body +
+      var h = '<h3>' + title + (optional ? ' <span class="muted">· ' + R.opt + '</span>' : '') + (done ? ' <span class="sroad__ok">' + R.ok + '</span>' : '') + '</h3>';
+      // a done step folds into its title line (v2.89): «Змінити» opens it; a key just made stays open — it is shown once
+      if (done && !(n === 4 && newKey)) return '<li class="sroad__s is-done"><span class="sroad__n">' + n + '</span><details class="sroad__b sroad__fold"><summary>' + h + '<span class="sroad__edit">' + R.change + '</span></summary>' + body +
+        '<a href="#" class="kblink" data-kb="' + kb + '">' + R.more + '</a></details></li>';
+      return '<li class="sroad__s' + (done ? ' is-done' : '') + '"><span class="sroad__n">' + n + '</span><div class="sroad__b">' + h + body +
         '<a href="#" class="kblink" data-kb="' + kb + '">' + R.more + '</a></div></li>';
     };
     var s = [
@@ -6942,13 +6994,14 @@
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
         '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
         '<p class="hint">' + STR.stExportHint + '</p>' +
-        '<h2>' + STR.stShown + '</h2><p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
+        // the sections list folds into one line with its count (v2.89) — it is set once, rarely changed
+        '<details class="setfold"><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2></summary>' +
+        '<p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
           var gh = guideLater(s.id), st = guideStageOf(s.id);
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
-            (gh ? ' <small class="muted">🧭 ' + esc(STR.guide.atStage.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))) + '</small>' : '') + '</span></label>'; }).join("") + '</div>' +
-        '<h2>' + STR.stSections + '</h2>' + (own.length ? own.map(function (s) {
-          return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("")
-          : '<p class="hint">' + STR.stNoSections + '</p>') + '</section>';
+            (gh ? ' <small class="muted">🧭 ' + esc(STR.guide.atStage.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))) + '</small>' : '') + '</span></label>'; }).join("") + '</div></details>' +
+        (own.length ? '<h2>' + STR.stSections + '</h2>' + own.map(function (s) { // own sections: only when there are any («＋ Свій розділ» is in the menu)
+          return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("") : '') + '</section>';
     if (!inGame && mode === "world") html += '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
         '<div class="setrow"><input id="st-wname" aria-label="' + esc(STR.stWorldName) + '" value="' + esc(world.title || "") + '"><button class="btn" id="st-wsave">' + STR.stRename + '</button></div>' +
         '<div class="setrow"><button class="btn" id="st-wexp">' + STR.stExportWorld + '</button><label class="btn"><input type="file" id="st-json" accept=".json,application/json" hidden>' + STR.stRestore + '</label></div>' +
@@ -8988,6 +9041,14 @@
     statusFilter[b.dataset.status] = !statusFilter[b.dataset.status]; renderStatuses(); render();
   });
   $("e-body").addEventListener("click", function (e) {
+    var mo = e.target.closest("[data-more]"); if (mo) {
+      var mk = mo.dataset.more; [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
+      if (mk === "__all") moreAll = true; else moreKeys[mk] = 1;
+      renderFields();
+      var sh = document.querySelector('#e-body .shown[data-edit="' + (window.CSS && CSS.escape ? CSS.escape(mk) : mk) + '"]');
+      if (sh) editField(mk); else if (mk === "__note" && $("f-note")) $("f-note").focus(); else if (mk === "__nf" && $("nf")) $("nf").focus();
+      return;
+    }
     var s = e.target.closest(".shown"); if (s) { editField(s.dataset.edit); return; }
     var qb = e.target.closest("[data-bulb]"); if (qb) { var bp = qb.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return;

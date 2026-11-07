@@ -140,5 +140,9 @@ check(lm.clips[0].library.id + ' ' + !!lm.clips[0].library.transitions + ' ' + (
 check(F.manifest({ id: 'h', forge: { type: 'npc' } }, [], { forge: {} }, 'en').animation_library, null, 'manifest: no library clip → no pack note');
 check(F.footIk({ retarget: { ogre: { feet_min_m: -0.036, ok: true } } }, 'ogre') + ' ' + F.footIk({ retarget: { ogre: { feet_min_m: -0.002, ok: true } } }, 'ogre'), 'true false', 'library: Foot IK when the foot sinks > 1.5 cm');
 
+// the brief from the Bible (v2.89): the card's role and the dossier's appearance, only what exists
+const bc = F.briefFromCanon({ role: 'healer' }, { people: 'elf', build: 'slender', height: 'tall', colors: 'white' });
+check(bc.race + '|' + bc.role + '|' + bc.proportions + '|' + bc.palette + '|' + bc.cls, 'elf|healer|tall, slender|white|', 'brief: filled from the card and the appearance, nothing invented');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);
