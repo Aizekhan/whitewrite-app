@@ -6046,7 +6046,21 @@
         noSkin: "«{t}»: у файлі немає скіну — предмет «зі скіном» має бути прив'язаний до скелета; показано без руху.",
         itemMiss: "«{t}»: не знайшлося кісток персонажа для {n} кісток предмета — ця частина не рухається.",
         noShape: "«{t}»: немає ключів форми {k} — на цій статурі може просвічувати тіло.",
-        noModel: "Предметів без 3D-моделі: {n} — їх не показано.", noItems: "Предметів на персонажі ще немає — додай їх на етапі «Екіпірування»." },
+        noModel: "Предметів без 3D-моделі: {n} — їх не показано.", noItems: "Предметів на персонажі ще немає — додай їх на етапі «Екіпірування».",
+        check: "⚠ Перевірити проходи", checkTip: "Кліп по кадрах: чи не виходить тіло крізь броню й одяг «зі скіном». Наближено, у браузері; точно — Unity / Blender.",
+        checking: "Перевіряю кадр {n} з {t}…", checkNothing: "Нема що перевіряти: одягни предмет «зі скіном» на модель зі скелетом.",
+        clipOk: "проходів крізь броню немає (перевірено кадрів: {n})", clipBad: "тіло проходить крізь броню на {f} кадрах з {n}: до {v} з {all} точок під бронею, до ≈{cm} см — {b}",
+        clipFar: "броня не прилягає до тіла (далеко чи інший розмір) — перевіряти нема чого",
+        left: "лів.", right: "прав.", bones: { hips: "таз", spine: "поперек", spine1: "живіт", spine2: "груди", neck: "шия", head: "голова", shoulder: "ключиця", arm: "плече",
+          forearm: "передпліччя", hand: "кисть", upleg: "стегно", leg: "гомілка", foot: "стопа", toebase: "пальці ніг" } },
+      arig: { btn: "🦴 Авторіг за мітками", hint: "Модель без скелета? Постав 8 міток — WhiteWrite поставить скелет Humanoid 65 (сумісний з Mixamo), порахує ваги й збереже версію рига (GLB + rig.json). У браузері, без токенів.",
+        none: "Спершу додай модель на етапі «Базова модель» або префаб героя.",
+        mk: { chin: "Підборіддя", lwrist: "Ліве зап'ястя (праворуч на екрані)", lelbow: "Лівий лікоть", rwrist: "Праве зап'ястя (ліворуч на екрані)", relbow: "Правий лікоть", lknee: "Ліве коліно", rknee: "Праве коліно", groin: "Пах" },
+        click: "Клікни на моделі: {m}", ready: "Усі мітки стоять — «Побудувати риг».", back: "↶ Назад", turn: "↻ 90°", build: "Побудувати риг", redo: "↺ Переставити мітки",
+        save: "Зберегти як версію рига", building: "Ставлю скелет…", weights: "Рахую ваги… {p}%", built: "Риг готовий — дивись анімації нижче; якщо криво, переставити мітки.",
+        saving: "Зберігаю…", saved: "✓ Збережено як нова версія етапу «Риг і скелет».", badMarks: "Мітки не схожі на людину: підборіддя має бути вище паху.",
+        hasRig: "У цієї моделі вже є скелет — відкрий «🎞 Примірочну» на етапі «Анімації».",
+        hint2: "Модель має дивитися на тебе (інакше ↻ 90°), краще в T- чи A-позі. Мітка ставиться всередину кінцівки — клікай по центру.", note: "Авторіг за мітками (WhiteWrite)" },
       from: { imgs: "На картці вже є картинки ({n}) — портрет, референси.", imgBtn: "＋ Версія з картинок картки", imgNote: "з картинок картки",
         pfBtn: "＋ Версія з префаба", pfNone: "Модель героя береться з його префаба в «Ассети й префаби».", pfEmpty: "У префаба ще немає файлу моделі — додай його в «🧩 Модель і комплект».", pfNote: "з префаба «{t}»",
         rigBody: "Обери тип тіла — він дає еталонний скелет WhiteWrite, і тут зʼявиться готовий запит для Claude Code на підгонку моделі.",
@@ -6098,7 +6112,21 @@
         noSkin: "“{t}”: the file has no skin — a skinned item must be bound to the skeleton; shown without motion.",
         itemMiss: "“{t}”: no character bones for {n} of the item's bones — that part doesn't move.",
         noShape: "“{t}”: no {k} shape keys — the body may show through on this build.",
-        noModel: "Items without a 3D model: {n} — not shown.", noItems: "No items on the character yet — add them at the “Equipment” stage." },
+        noModel: "Items without a 3D model: {n} — not shown.", noItems: "No items on the character yet — add them at the “Equipment” stage.",
+        check: "⚠ Check poke-through", checkTip: "The clip frame by frame: does the body come through skinned armour and clothes. Approximate, in the browser; exact — Unity / Blender.",
+        checking: "Checking frame {n} of {t}…", checkNothing: "Nothing to check: put a skinned item on a model with a skeleton.",
+        clipOk: "no poke-through ({n} frames checked)", clipBad: "the body comes through the armour in {f} of {n} frames: up to {v} of {all} points under it, up to ≈{cm} cm — {b}",
+        clipFar: "the armour doesn't sit on the body (too far or another size) — nothing to check",
+        left: "L", right: "R", bones: { hips: "hips", spine: "lower back", spine1: "belly", spine2: "chest", neck: "neck", head: "head", shoulder: "collarbone", arm: "upper arm",
+          forearm: "forearm", hand: "hand", upleg: "thigh", leg: "shin", foot: "foot", toebase: "toes" } },
+      arig: { btn: "🦴 Auto-rig by markers", hint: "A model without a skeleton? Place 8 markers — WhiteWrite puts in the Humanoid 65 skeleton (compatible with Mixamo), computes the weights and saves a rig version (GLB + rig.json). In the browser, no tokens.",
+        none: "First add a model at the “Base mesh” stage or the hero's prefab.",
+        mk: { chin: "Chin", lwrist: "Left wrist (on the screen's right)", lelbow: "Left elbow", rwrist: "Right wrist (on the screen's left)", relbow: "Right elbow", lknee: "Left knee", rknee: "Right knee", groin: "Groin" },
+        click: "Click on the model: {m}", ready: "All markers are placed — “Build the rig”.", back: "↶ Back", turn: "↻ 90°", build: "Build the rig", redo: "↺ Re-place the markers",
+        save: "Save as a rig version", building: "Placing the skeleton…", weights: "Computing weights… {p}%", built: "The rig is ready — watch the animations below; if it's crooked, re-place the markers.",
+        saving: "Saving…", saved: "✓ Saved as a new version of the “Rigging” stage.", badMarks: "The markers don't look like a person: the chin must be above the groin.",
+        hasRig: "This model already has a skeleton — open the “🎞 Fitting room” at the “Animation” stage.",
+        hint2: "The model must face you (otherwise ↻ 90°), best in a T or A pose. A marker goes inside the limb — click its middle.", note: "Auto-rig by markers (WhiteWrite)" },
       from: { imgs: "The card already has pictures ({n}) — a portrait, references.", imgBtn: "＋ A version from the card's pictures", imgNote: "from the card's pictures",
         pfBtn: "＋ A version from the prefab", pfNone: "The hero's model comes from its prefab in “Assets & prefabs”.", pfEmpty: "The prefab has no model file yet — add it in “🧩 Model & kit”.", pfNote: "from the prefab “{t}”",
         rigBody: "Pick a body type — it gives the WhiteWrite reference skeleton, and a ready request for Claude Code to fit the model appears here.",
@@ -6237,6 +6265,7 @@
     if (s.kind === "integrate" || s.kind === "anim") html += '<div class="fz-from"><span>' + esc(FZ.fit.hint) + '</span><button class="btn primary" data-fzfit>' + esc(FZ.fit.btn) + '</button></div>';
     if (s.kind === "integrate") html += fzIntegHtml(c, ctx);
     if (s.id === "rig" && FG.refRig(f.rig)) html += fzFitHtml(c);
+    if (s.id === "rig" && canWrite) html += '<div class="fz-from"><span>' + esc(FZ.arig.hint) + '</span><button class="btn" data-fzarig>' + esc(FZ.arig.btn) + '</button></div>';
     if (s.kind === "anim") html += (FG.animReady(f) ? '<p class="fz-ok">' + FZ.ref.ready + ' — ' + FZ.ref.readyHint + '</p><p class="muted">' + FZ.ref.mixamo + '</p>' : '') + fzClipsHtml(c) + fzLibHtml(c);
     if (s.kind === "export") html += '<p class="hint">' + FZ.manifestHint + '</p><button class="btn" data-fzmanifest>' + FZ.manifest + '</button>';
     if (s.kind === "files" || s.kind === "anim" || s.kind === "export") html += fzRevsHtml(c, s.id, true);
@@ -6442,15 +6471,26 @@
     if (am) return { file: am, sib: a.files };
     var rb = FG.refBody(f.body) ? f.body : "human_male"; return { file: fzRefFile(rb), sib: [], dummy: fzL(FG.refBody(rb)) };
   }
-  function fzFitOpen(c) {
-    var lib = fzAnims(), X = FZ.fit;
-    if (!lib) { var n = 0; (function wait() { if (ANIMS) fzFitOpen(c); else if (++n < 60) setTimeout(wait, 250); else notify(X.wait); })(); return; } // the library is read once: open as soon as it is here
-    var f = c.forge, m = fzCharModel(c), mine = {}, notes = [], shp = {};
-    FG.clipsOf(f).forEach(function (k) { if (k.lib) mine[k.lib] = 1; });
+  // the library is read once: run fn as soon as it is here
+  function fzWithAnims(fn) { if (fzAnims()) return fn(ANIMS); var n = 0; (function wait() { if (ANIMS) fn(ANIMS); else if (++n < 60) setTimeout(wait, 250); else notify(FZ.fit.wait); })(); }
+  function fzFitClips(c, lib) {
+    var mine = {}; FG.clipsOf(c.forge).forEach(function (k) { if (k.lib) mine[k.lib] = 1; });
     var clips = (lib.clips || []).filter(function (x) { return x.files && x.files.glb; }).map(function (x) {
       return { id: x.id, name: (LANG === "en" ? x.name_en : x.name_uk) || x.id, url: FG.ANIM_FILES + x.files.glb, mine: !!mine[x.id] }; })
       .sort(function (a, b) { return b.mine - a.mine; });
-    var first = clips.filter(function (x) { return x.mine; })[0] || clips.filter(function (x) { return x.id === "idle"; })[0] || clips[0];
+    return { clips: clips, first: (clips.filter(function (x) { return x.mine; })[0] || clips.filter(function (x) { return x.id === "idle"; })[0] || clips[0] || {}).id };
+  }
+  // an item's check from the fitting room (fitting / clipping) — the same list as Unity / Blender reports (MCP report_forge_check)
+  function fzItemCheck(id, check, result, details) {
+    var it = fzItems().filter(function (x) { return x.id === id; })[0]; if (!it) return;
+    var nf = fzClone(it.forge); nf.external = (nf.external || []).filter(function (x) { return x.check !== check; })
+      .concat([{ check: check, result: result, details: details, source: "WhiteWrite", at: Date.now() }]).slice(-20);
+    return fzSave(it, nf);
+  }
+  function fzFitOpen(c) {
+    var lib = fzAnims(), X = FZ.fit;
+    if (!lib) return fzWithAnims(function () { fzFitOpen(c); });
+    var f = c.forge, m = fzCharModel(c), notes = [], shp = {}, fc = fzFitClips(c, lib), clips = fc.clips, first = { id: fc.first };
     var all = FG.itemsOf(c, fzItems()), items = all.map(function (i) {
       var mf = FG.modelFile(i), sl = fzSlots().filter(function (s) { return s.id === i.forge.slot; })[0];
       if (!mf || !/\.(glb|gltf|fbx|obj)$/i.test(mf.name || "")) return null;
@@ -6462,12 +6502,29 @@
     view3d(m.file, m.sib, null, { shape: shp, labels: FZ.ref.shapes, readonly: !canWrite,
       onShape: canWrite ? function (k, v) { var sf = fzClone(c.forge); sf.shape = sf.shape || {}; sf.shape[k] = v; c.forge = sf; fzSave(c, sf); } : null,
       fit: { clips: clips, clip: first && first.id, items: items, notes: notes, labels: X,
-        onOk: canWrite ? function (id, clip) {
-          var it = fzItems().filter(function (x) { return x.id === id; })[0]; if (!it) return;
-          var nf = fzClone(it.forge); nf.external = (nf.external || []).filter(function (x) { return x.check !== "fitting"; })
-            .concat([{ check: "fitting", result: "passed", details: X.okDetails.replace("{c}", c.title || "").replace("{a}", clip || ""), source: "WhiteWrite", at: Date.now() }]);
-          return fzSave(it, nf);
-        } : null } });
+        onOk: canWrite ? function (id, clip) { return fzItemCheck(id, "fitting", "passed", X.okDetails.replace("{c}", c.title || "").replace("{a}", clip || "")); } : null,
+        onCheck: canWrite ? function (id, result, details) { return fzItemCheck(id, "clipping", result, details); } : null } });
+  }
+  // 🦴 the auto-rig: the base mesh (the «Базова модель» version, else the hero's prefab) → 8 markers → a GLB + rig.json version of «Риг і скелет»
+  function fzMeshModel(c) {
+    var f = c.forge, files = c.files || [], ok = function (x) { return x && /\.(glb|gltf|fbx|obj)$/i.test(x.name || ""); };
+    var r = FG.approvedRev(f, "mesh") || FG.revsOf(f, "mesh")[0], m = r && (r.files || []).map(function (id) { return files.filter(function (x) { return x.id === id; })[0]; }).filter(ok)[0];
+    if (m) return { file: m, sib: files };
+    var a = assetCard(c.prefab), am = a && (a.files || []).filter(function (x) { var s = window.__ASSET_KIT.fileSlot(x); return (s === "model" || s === "prefab") && ok(x); })[0];
+    return am ? { file: am, sib: a.files } : null;
+  }
+  function fzARigOpen(c) {
+    var m = fzMeshModel(c), A = FZ.arig; if (!m) { notify(A.none); return; }
+    fzWithAnims(function (lib) {
+      var fc = fzFitClips(c, lib), base = String(m.file.name || c.title || "model").replace(/\.[^.]+$/, "");
+      view3d(m.file, m.sib, null, { rig: { ref: FG.REF_FILES + "human_male.glb", body: c.forge.body || "", labels: Object.assign({}, A, { hint: A.hint2 }),
+          onSave: function (blob, report) {
+            var o = fzChars().filter(function (x) { return x.id === c.id; })[0] || c; // the latest forge (the snapshot may have moved on)
+            if (o.forge.rig !== "mixamo65") { o.forge = fzClone(o.forge); o.forge.rig = "mixamo65"; } // the skeleton it was built on
+            return fzUpload(o, "rig", [new File([blob], base + "_rig.glb", { type: "model/gltf-binary" }), new File([JSON.stringify(report, null, 1)], base + ".rig.json", { type: "application/json" })], A.note);
+          } },
+        fit: { clips: fc.clips, clip: fc.first, items: [], notes: [], labels: FZ.fit, onOk: null, onCheck: null } });
+    });
   }
   // 🦴 the WhiteWrite references: every body type with its dummy (3D), the download pack
   function fzRefFile(id) { return { id: "ref-" + id, name: id + ".glb", url: FG.REF_FILES + id + ".glb", type: "model/gltf-binary" }; }
@@ -6541,9 +6598,9 @@
   function fzSplit(s, n) { var p = String(s).split(":"); return [p.slice(0, p.length - n).join(":")].concat(p.slice(p.length - n)); }
   function fzOpenChar() { return fz.open && fzFind(fzChars(), fz.open); }
   function fzOpenItem() { return fz.item && fzFind(fzItems(), fz.item); }
-  async function fzUpload(o, stageId, list) {
+  async function fzUpload(o, stageId, list, preNote) {
     if (!list.length) return;
-    var note = await askText(FZ.noteQ, { ok: STR.save, optional: true }); if (note === null) return;
+    var note = preNote != null ? preNote : await askText(FZ.noteQ, { ok: STR.save, optional: true }); if (note === null) return;
     var metas = [], rigJson = null;
     if (stageId === "rig" && o.forge && o.forge.type !== undefined) { // conform_to_rig.py's <id>.rig.json among the files → the skeleton check (functions/forge.js rigCheck)
       var rj = list.filter(function (x) { return /\.rig\.json$/i.test(x.name); })[0];
@@ -6584,7 +6641,7 @@
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzarig]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
@@ -6595,6 +6652,7 @@
     if (d.fzcmpx !== undefined) { fz.cmp = []; render(); return true; }
     if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
     if (d.fzfit !== undefined && c) { fzFitOpen(c); return true; }
+    if (d.fzarig !== undefined && c && canWrite) { fzARigOpen(c); return true; }
     if (d.fzref3d) {
       var rf = fzRefFile(d.fzref3d), mineB = c && c.forge.body === d.fzref3d, shp = {}; FG.SHAPES.forEach(function (k) { shp[k] = mineB ? +((c.forge.shape || {})[k]) || 0 : 0; });
       view3d(rf, [rf], null, { shape: shp, labels: FZ.ref.shapes, readonly: mineB && !canWrite,
