@@ -93,8 +93,12 @@ check(F.PROVIDERS.filter((p) => p.live).map((p) => p.id).join(), 'manual', 'only
 // 🦴 WhiteWrite reference rigs: always offered, a body type names its skeleton, conform_to_rig.py's rig.json decides the skeleton check
 const refs = F.withRefs({ rigs: [{ id: 'rig_own', name: 'Свій' }], bodies: [] }, 'uk');
 check(refs.rigs.length, 3, 'the game keeps its own rig and gets both reference skeletons');
-check(refs.bodies.length, 8, 'eight reference body types');
+check(refs.bodies.length, 14, 'fourteen reference body types (7 races × 2 sexes)');
 check(F.refBody('ratfolk').rig, 'mixamo65+tail', 'ratfolk is on the tail skeleton');
+check(F.refBody('ratfolk_female').rig, 'mixamo65+tail', 'the ratfolk female too');
+check(F.refBody('elf_female').rig, 'mixamo65', 'the elf female is on the plain skeleton');
+check(F.footIk({ retarget: { dwarf: { ok: true, feet_min_m: -0.03 } } }, 'dwarf_female'), true, 'an unmeasured female type takes its race male Foot IK');
+check(F.footIk({ retarget: { dwarf: { ok: true, feet_min_m: -0.03 }, dwarf_female: { ok: true, feet_min_m: 0 } } }, 'dwarf_female'), false, 'a measured female type has its own');
 check(F.withRefs({ bodies: [{ id: 'elf', name: 'Мій ельф' }] }, 'uk').bodies.find((b) => b.id === 'elf').name, 'Мій ельф', 'a game profile with a reference id is left as the author has it');
 const fr = { rig: 'mixamo65', body: 'human_male' }, rj = (o) => Object.assign({ schema: 'artpipeline.rig/1', skeleton: 'mixamo65', body_type: 'human_male', bones_found: 65, bones_missing: [] }, o);
 check(F.rigCheck(rj({}), fr).result, 'passed', 'every bone found — passed');

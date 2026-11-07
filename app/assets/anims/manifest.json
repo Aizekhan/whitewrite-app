@@ -60,7 +60,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Стояння",
    "name_en": "Idle",
@@ -84,6 +90,12 @@
      "elf": "Base/Types/elf/idle.glb",
      "orc": "Base/Types/orc/idle.glb",
      "ratfolk": "Base/Types/ratfolk/idle.glb",
+     "elf_female": "Base/Types/elf_female/idle.glb",
+     "orc_female": "Base/Types/orc_female/idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/idle.glb",
+     "goblin_female": "Base/Types/goblin_female/idle.glb",
+     "ogre_female": "Base/Types/ogre_female/idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/idle.glb",
      "human_male": "Base/idle.glb"
     }
    },
@@ -149,7 +161,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Стояння: озирається",
    "name_en": "Idle: look around",
@@ -173,6 +191,12 @@
      "elf": "Base/Types/elf/idle_look.glb",
      "orc": "Base/Types/orc/idle_look.glb",
      "ratfolk": "Base/Types/ratfolk/idle_look.glb",
+     "elf_female": "Base/Types/elf_female/idle_look.glb",
+     "orc_female": "Base/Types/orc_female/idle_look.glb",
+     "dwarf_female": "Base/Types/dwarf_female/idle_look.glb",
+     "goblin_female": "Base/Types/goblin_female/idle_look.glb",
+     "ogre_female": "Base/Types/ogre_female/idle_look.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/idle_look.glb",
      "human_male": "Base/idle_look.glb"
     }
    },
@@ -233,7 +257,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Стояння: втома",
    "name_en": "Idle: tired",
@@ -257,6 +287,12 @@
      "elf": "Base/Types/elf/idle_tired.glb",
      "orc": "Base/Types/orc/idle_tired.glb",
      "ratfolk": "Base/Types/ratfolk/idle_tired.glb",
+     "elf_female": "Base/Types/elf_female/idle_tired.glb",
+     "orc_female": "Base/Types/orc_female/idle_tired.glb",
+     "dwarf_female": "Base/Types/dwarf_female/idle_tired.glb",
+     "goblin_female": "Base/Types/goblin_female/idle_tired.glb",
+     "ogre_female": "Base/Types/ogre_female/idle_tired.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/idle_tired.glb",
      "human_male": "Base/idle_tired.glb"
     }
    },
@@ -326,7 +362,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Ходьба",
    "name_en": "Walk",
@@ -349,6 +391,12 @@
      "elf": "Base/Types/elf/walk.glb",
      "orc": "Base/Types/orc/walk.glb",
      "ratfolk": "Base/Types/ratfolk/walk.glb",
+     "elf_female": "Base/Types/elf_female/walk.glb",
+     "orc_female": "Base/Types/orc_female/walk.glb",
+     "dwarf_female": "Base/Types/dwarf_female/walk.glb",
+     "goblin_female": "Base/Types/goblin_female/walk.glb",
+     "ogre_female": "Base/Types/ogre_female/walk.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/walk.glb",
      "human_male": "Base/walk.glb"
     }
    },
@@ -408,7 +456,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Ходьба назад",
    "name_en": "Walk back",
@@ -431,6 +485,12 @@
      "elf": "Base/Types/elf/walk_back.glb",
      "orc": "Base/Types/orc/walk_back.glb",
      "ratfolk": "Base/Types/ratfolk/walk_back.glb",
+     "elf_female": "Base/Types/elf_female/walk_back.glb",
+     "orc_female": "Base/Types/orc_female/walk_back.glb",
+     "dwarf_female": "Base/Types/dwarf_female/walk_back.glb",
+     "goblin_female": "Base/Types/goblin_female/walk_back.glb",
+     "ogre_female": "Base/Types/ogre_female/walk_back.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/walk_back.glb",
      "human_male": "Base/walk_back.glb"
     }
    },
@@ -490,7 +550,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Крок убік вліво",
    "name_en": "Strafe walk left",
@@ -513,6 +579,12 @@
      "elf": "Base/Types/elf/strafe_walk_left.glb",
      "orc": "Base/Types/orc/strafe_walk_left.glb",
      "ratfolk": "Base/Types/ratfolk/strafe_walk_left.glb",
+     "elf_female": "Base/Types/elf_female/strafe_walk_left.glb",
+     "orc_female": "Base/Types/orc_female/strafe_walk_left.glb",
+     "dwarf_female": "Base/Types/dwarf_female/strafe_walk_left.glb",
+     "goblin_female": "Base/Types/goblin_female/strafe_walk_left.glb",
+     "ogre_female": "Base/Types/ogre_female/strafe_walk_left.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/strafe_walk_left.glb",
      "human_male": "Base/strafe_walk_left.glb"
     }
    },
@@ -573,7 +645,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Крок убік вправо",
    "name_en": "Strafe walk right",
@@ -596,6 +674,12 @@
      "elf": "Base/Types/elf/strafe_walk_right.glb",
      "orc": "Base/Types/orc/strafe_walk_right.glb",
      "ratfolk": "Base/Types/ratfolk/strafe_walk_right.glb",
+     "elf_female": "Base/Types/elf_female/strafe_walk_right.glb",
+     "orc_female": "Base/Types/orc_female/strafe_walk_right.glb",
+     "dwarf_female": "Base/Types/dwarf_female/strafe_walk_right.glb",
+     "goblin_female": "Base/Types/goblin_female/strafe_walk_right.glb",
+     "ogre_female": "Base/Types/ogre_female/strafe_walk_right.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/strafe_walk_right.glb",
      "human_male": "Base/strafe_walk_right.glb"
     }
    },
@@ -665,7 +749,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Біг",
    "name_en": "Run",
@@ -688,6 +778,12 @@
      "elf": "Base/Types/elf/run.glb",
      "orc": "Base/Types/orc/run.glb",
      "ratfolk": "Base/Types/ratfolk/run.glb",
+     "elf_female": "Base/Types/elf_female/run.glb",
+     "orc_female": "Base/Types/orc_female/run.glb",
+     "dwarf_female": "Base/Types/dwarf_female/run.glb",
+     "goblin_female": "Base/Types/goblin_female/run.glb",
+     "ogre_female": "Base/Types/ogre_female/run.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/run.glb",
      "human_male": "Base/run.glb"
     }
    },
@@ -747,7 +843,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Біг назад",
    "name_en": "Run back",
@@ -770,6 +872,12 @@
      "elf": "Base/Types/elf/run_back.glb",
      "orc": "Base/Types/orc/run_back.glb",
      "ratfolk": "Base/Types/ratfolk/run_back.glb",
+     "elf_female": "Base/Types/elf_female/run_back.glb",
+     "orc_female": "Base/Types/orc_female/run_back.glb",
+     "dwarf_female": "Base/Types/dwarf_female/run_back.glb",
+     "goblin_female": "Base/Types/goblin_female/run_back.glb",
+     "ogre_female": "Base/Types/ogre_female/run_back.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/run_back.glb",
      "human_male": "Base/run_back.glb"
     }
    },
@@ -829,7 +937,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Біг убік вліво",
    "name_en": "Strafe run left",
@@ -852,6 +966,12 @@
      "elf": "Base/Types/elf/strafe_run_left.glb",
      "orc": "Base/Types/orc/strafe_run_left.glb",
      "ratfolk": "Base/Types/ratfolk/strafe_run_left.glb",
+     "elf_female": "Base/Types/elf_female/strafe_run_left.glb",
+     "orc_female": "Base/Types/orc_female/strafe_run_left.glb",
+     "dwarf_female": "Base/Types/dwarf_female/strafe_run_left.glb",
+     "goblin_female": "Base/Types/goblin_female/strafe_run_left.glb",
+     "ogre_female": "Base/Types/ogre_female/strafe_run_left.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/strafe_run_left.glb",
      "human_male": "Base/strafe_run_left.glb"
     }
    },
@@ -912,7 +1032,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Біг убік вправо",
    "name_en": "Strafe run right",
@@ -935,6 +1061,12 @@
      "elf": "Base/Types/elf/strafe_run_right.glb",
      "orc": "Base/Types/orc/strafe_run_right.glb",
      "ratfolk": "Base/Types/ratfolk/strafe_run_right.glb",
+     "elf_female": "Base/Types/elf_female/strafe_run_right.glb",
+     "orc_female": "Base/Types/orc_female/strafe_run_right.glb",
+     "dwarf_female": "Base/Types/dwarf_female/strafe_run_right.glb",
+     "goblin_female": "Base/Types/goblin_female/strafe_run_right.glb",
+     "ogre_female": "Base/Types/ogre_female/strafe_run_right.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/strafe_run_right.glb",
      "human_male": "Base/strafe_run_right.glb"
     }
    },
@@ -999,7 +1131,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спринт",
    "name_en": "Sprint",
@@ -1022,6 +1160,12 @@
      "elf": "Base/Types/elf/sprint.glb",
      "orc": "Base/Types/orc/sprint.glb",
      "ratfolk": "Base/Types/ratfolk/sprint.glb",
+     "elf_female": "Base/Types/elf_female/sprint.glb",
+     "orc_female": "Base/Types/orc_female/sprint.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sprint.glb",
+     "goblin_female": "Base/Types/goblin_female/sprint.glb",
+     "ogre_female": "Base/Types/ogre_female/sprint.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sprint.glb",
      "human_male": "Base/sprint.glb"
     }
    },
@@ -1084,7 +1228,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Поворот уліво 90°",
    "name_en": "Turn left 90°",
@@ -1109,6 +1259,12 @@
      "elf": "Base/Types/elf/turn_left_90.glb",
      "orc": "Base/Types/orc/turn_left_90.glb",
      "ratfolk": "Base/Types/ratfolk/turn_left_90.glb",
+     "elf_female": "Base/Types/elf_female/turn_left_90.glb",
+     "orc_female": "Base/Types/orc_female/turn_left_90.glb",
+     "dwarf_female": "Base/Types/dwarf_female/turn_left_90.glb",
+     "goblin_female": "Base/Types/goblin_female/turn_left_90.glb",
+     "ogre_female": "Base/Types/ogre_female/turn_left_90.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/turn_left_90.glb",
      "human_male": "Base/turn_left_90.glb"
     }
    },
@@ -1172,7 +1328,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Поворот управо 90°",
    "name_en": "Turn right 90°",
@@ -1197,6 +1359,12 @@
      "elf": "Base/Types/elf/turn_right_90.glb",
      "orc": "Base/Types/orc/turn_right_90.glb",
      "ratfolk": "Base/Types/ratfolk/turn_right_90.glb",
+     "elf_female": "Base/Types/elf_female/turn_right_90.glb",
+     "orc_female": "Base/Types/orc_female/turn_right_90.glb",
+     "dwarf_female": "Base/Types/dwarf_female/turn_right_90.glb",
+     "goblin_female": "Base/Types/goblin_female/turn_right_90.glb",
+     "ogre_female": "Base/Types/ogre_female/turn_right_90.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/turn_right_90.glb",
      "human_male": "Base/turn_right_90.glb"
     }
    },
@@ -1256,7 +1424,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Присід",
    "name_en": "Crouch idle",
@@ -1280,6 +1454,12 @@
      "elf": "Base/Types/elf/crouch_idle.glb",
      "orc": "Base/Types/orc/crouch_idle.glb",
      "ratfolk": "Base/Types/ratfolk/crouch_idle.glb",
+     "elf_female": "Base/Types/elf_female/crouch_idle.glb",
+     "orc_female": "Base/Types/orc_female/crouch_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/crouch_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/crouch_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/crouch_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/crouch_idle.glb",
      "human_male": "Base/crouch_idle.glb"
     }
    },
@@ -1339,7 +1519,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Хода в присіді",
    "name_en": "Crouch walk",
@@ -1362,6 +1548,12 @@
      "elf": "Base/Types/elf/crouch_walk.glb",
      "orc": "Base/Types/orc/crouch_walk.glb",
      "ratfolk": "Base/Types/ratfolk/crouch_walk.glb",
+     "elf_female": "Base/Types/elf_female/crouch_walk.glb",
+     "orc_female": "Base/Types/orc_female/crouch_walk.glb",
+     "dwarf_female": "Base/Types/dwarf_female/crouch_walk.glb",
+     "goblin_female": "Base/Types/goblin_female/crouch_walk.glb",
+     "ogre_female": "Base/Types/ogre_female/crouch_walk.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/crouch_walk.glb",
      "human_male": "Base/crouch_walk.glb"
     }
    },
@@ -1425,7 +1617,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Стрибок",
    "name_en": "Jump start",
@@ -1448,6 +1646,12 @@
      "elf": "Base/Types/elf/jump_start.glb",
      "orc": "Base/Types/orc/jump_start.glb",
      "ratfolk": "Base/Types/ratfolk/jump_start.glb",
+     "elf_female": "Base/Types/elf_female/jump_start.glb",
+     "orc_female": "Base/Types/orc_female/jump_start.glb",
+     "dwarf_female": "Base/Types/dwarf_female/jump_start.glb",
+     "goblin_female": "Base/Types/goblin_female/jump_start.glb",
+     "ogre_female": "Base/Types/ogre_female/jump_start.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/jump_start.glb",
      "human_male": "Base/jump_start.glb"
     }
    },
@@ -1511,7 +1715,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Падіння в повітрі",
    "name_en": "Fall",
@@ -1534,6 +1744,12 @@
      "elf": "Base/Types/elf/fall.glb",
      "orc": "Base/Types/orc/fall.glb",
      "ratfolk": "Base/Types/ratfolk/fall.glb",
+     "elf_female": "Base/Types/elf_female/fall.glb",
+     "orc_female": "Base/Types/orc_female/fall.glb",
+     "dwarf_female": "Base/Types/dwarf_female/fall.glb",
+     "goblin_female": "Base/Types/goblin_female/fall.glb",
+     "ogre_female": "Base/Types/ogre_female/fall.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/fall.glb",
      "human_male": "Base/fall.glb"
     }
    },
@@ -1597,7 +1813,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Приземлення",
    "name_en": "Land",
@@ -1620,6 +1842,12 @@
      "elf": "Base/Types/elf/land.glb",
      "orc": "Base/Types/orc/land.glb",
      "ratfolk": "Base/Types/ratfolk/land.glb",
+     "elf_female": "Base/Types/elf_female/land.glb",
+     "orc_female": "Base/Types/orc_female/land.glb",
+     "dwarf_female": "Base/Types/dwarf_female/land.glb",
+     "goblin_female": "Base/Types/goblin_female/land.glb",
+     "ogre_female": "Base/Types/ogre_female/land.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/land.glb",
      "human_male": "Base/land.glb"
     }
    },
@@ -1688,7 +1916,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: стійка",
    "name_en": "Unarmed: stance",
@@ -1713,6 +1947,12 @@
      "elf": "Base/Types/elf/unarmed_idle.glb",
      "orc": "Base/Types/orc/unarmed_idle.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_idle.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_idle.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_idle.glb",
      "human_male": "Base/unarmed_idle.glb"
     }
    },
@@ -1785,7 +2025,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: удар 1",
    "name_en": "Unarmed: attack 1",
@@ -1810,6 +2056,12 @@
      "elf": "Base/Types/elf/unarmed_attack_1.glb",
      "orc": "Base/Types/orc/unarmed_attack_1.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_attack_1.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_attack_1.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_attack_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_attack_1.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_attack_1.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_attack_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_attack_1.glb",
      "human_male": "Base/unarmed_attack_1.glb"
     }
    },
@@ -1882,7 +2134,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: удар 2",
    "name_en": "Unarmed: attack 2",
@@ -1907,6 +2165,12 @@
      "elf": "Base/Types/elf/unarmed_attack_2.glb",
      "orc": "Base/Types/orc/unarmed_attack_2.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_attack_2.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_attack_2.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_attack_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_attack_2.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_attack_2.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_attack_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_attack_2.glb",
      "human_male": "Base/unarmed_attack_2.glb"
     }
    },
@@ -1975,7 +2239,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: удар 3",
    "name_en": "Unarmed: attack 3",
@@ -2000,6 +2270,12 @@
      "elf": "Base/Types/elf/unarmed_attack_3.glb",
      "orc": "Base/Types/orc/unarmed_attack_3.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_attack_3.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_attack_3.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_attack_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_attack_3.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_attack_3.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_attack_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_attack_3.glb",
      "human_male": "Base/unarmed_attack_3.glb"
     }
    },
@@ -2067,7 +2343,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: важкий удар",
    "name_en": "Unarmed: heavy attack",
@@ -2091,6 +2373,12 @@
      "elf": "Base/Types/elf/unarmed_attack_heavy.glb",
      "orc": "Base/Types/orc/unarmed_attack_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_attack_heavy.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_attack_heavy.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_attack_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_attack_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_attack_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_attack_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_attack_heavy.glb",
      "human_male": "Base/unarmed_attack_heavy.glb"
     }
    },
@@ -2154,7 +2442,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: заряд",
    "name_en": "Unarmed: charge",
@@ -2178,6 +2472,12 @@
      "elf": "Base/Types/elf/unarmed_charge.glb",
      "orc": "Base/Types/orc/unarmed_charge.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_charge.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_charge.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_charge.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_charge.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_charge.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_charge.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_charge.glb",
      "human_male": "Base/unarmed_charge.glb"
     }
    },
@@ -2245,7 +2545,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: випуск заряду",
    "name_en": "Unarmed: charge release",
@@ -2269,6 +2575,12 @@
      "elf": "Base/Types/elf/unarmed_charge_release.glb",
      "orc": "Base/Types/orc/unarmed_charge_release.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_charge_release.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_charge_release.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_charge_release.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_charge_release.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_charge_release.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_charge_release.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_charge_release.glb",
      "human_male": "Base/unarmed_charge_release.glb"
     }
    },
@@ -2332,7 +2644,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: блок",
    "name_en": "Unarmed: block",
@@ -2356,6 +2674,12 @@
      "elf": "Base/Types/elf/unarmed_block.glb",
      "orc": "Base/Types/orc/unarmed_block.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_block.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_block.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_block.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_block.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_block.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_block.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_block.glb",
      "human_male": "Base/unarmed_block.glb"
     }
    },
@@ -2419,7 +2743,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: удар у блок",
    "name_en": "Unarmed: block hit",
@@ -2443,6 +2773,12 @@
      "elf": "Base/Types/elf/unarmed_block_hit.glb",
      "orc": "Base/Types/orc/unarmed_block_hit.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_block_hit.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_block_hit.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_block_hit.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_block_hit.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_block_hit.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_block_hit.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_block_hit.glb",
      "human_male": "Base/unarmed_block_hit.glb"
     }
    },
@@ -2510,7 +2846,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: парирування",
    "name_en": "Unarmed: parry",
@@ -2534,6 +2876,12 @@
      "elf": "Base/Types/elf/unarmed_parry.glb",
      "orc": "Base/Types/orc/unarmed_parry.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_parry.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_parry.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_parry.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_parry.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_parry.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_parry.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_parry.glb",
      "human_male": "Base/unarmed_parry.glb"
     }
    },
@@ -2598,7 +2946,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Без зброї: контрудар після парирування",
    "name_en": "Unarmed: parry riposte",
@@ -2627,6 +2981,12 @@
      "elf": "Base/Types/elf/unarmed_parry_success.glb",
      "orc": "Base/Types/orc/unarmed_parry_success.glb",
      "ratfolk": "Base/Types/ratfolk/unarmed_parry_success.glb",
+     "elf_female": "Base/Types/elf_female/unarmed_parry_success.glb",
+     "orc_female": "Base/Types/orc_female/unarmed_parry_success.glb",
+     "dwarf_female": "Base/Types/dwarf_female/unarmed_parry_success.glb",
+     "goblin_female": "Base/Types/goblin_female/unarmed_parry_success.glb",
+     "ogre_female": "Base/Types/ogre_female/unarmed_parry_success.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/unarmed_parry_success.glb",
      "human_male": "Base/unarmed_parry_success.glb"
     }
    },
@@ -2695,7 +3055,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: стійка",
    "name_en": "Sword & shield: stance",
@@ -2720,6 +3086,12 @@
      "elf": "Base/Types/elf/sword_shield_idle.glb",
      "orc": "Base/Types/orc/sword_shield_idle.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_idle.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_idle.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_idle.glb",
      "human_male": "Base/sword_shield_idle.glb"
     }
    },
@@ -2792,7 +3164,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: удар 1",
    "name_en": "Sword & shield: attack 1",
@@ -2817,6 +3195,12 @@
      "elf": "Base/Types/elf/sword_shield_attack_1.glb",
      "orc": "Base/Types/orc/sword_shield_attack_1.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_attack_1.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_attack_1.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_attack_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_attack_1.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_attack_1.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_attack_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_attack_1.glb",
      "human_male": "Base/sword_shield_attack_1.glb"
     }
    },
@@ -2889,7 +3273,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: удар 2",
    "name_en": "Sword & shield: attack 2",
@@ -2914,6 +3304,12 @@
      "elf": "Base/Types/elf/sword_shield_attack_2.glb",
      "orc": "Base/Types/orc/sword_shield_attack_2.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_attack_2.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_attack_2.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_attack_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_attack_2.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_attack_2.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_attack_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_attack_2.glb",
      "human_male": "Base/sword_shield_attack_2.glb"
     }
    },
@@ -2982,7 +3378,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: удар 3",
    "name_en": "Sword & shield: attack 3",
@@ -3007,6 +3409,12 @@
      "elf": "Base/Types/elf/sword_shield_attack_3.glb",
      "orc": "Base/Types/orc/sword_shield_attack_3.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_attack_3.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_attack_3.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_attack_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_attack_3.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_attack_3.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_attack_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_attack_3.glb",
      "human_male": "Base/sword_shield_attack_3.glb"
     }
    },
@@ -3074,7 +3482,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: важкий удар",
    "name_en": "Sword & shield: heavy attack",
@@ -3098,6 +3512,12 @@
      "elf": "Base/Types/elf/sword_shield_attack_heavy.glb",
      "orc": "Base/Types/orc/sword_shield_attack_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_attack_heavy.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_attack_heavy.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_attack_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_attack_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_attack_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_attack_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_attack_heavy.glb",
      "human_male": "Base/sword_shield_attack_heavy.glb"
     }
    },
@@ -3161,7 +3581,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: блок",
    "name_en": "Sword & shield: block",
@@ -3185,6 +3611,12 @@
      "elf": "Base/Types/elf/sword_shield_block.glb",
      "orc": "Base/Types/orc/sword_shield_block.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_block.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_block.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_block.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_block.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_block.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_block.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_block.glb",
      "human_male": "Base/sword_shield_block.glb"
     }
    },
@@ -3248,7 +3680,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: удар у блок",
    "name_en": "Sword & shield: block hit",
@@ -3272,6 +3710,12 @@
      "elf": "Base/Types/elf/sword_shield_block_hit.glb",
      "orc": "Base/Types/orc/sword_shield_block_hit.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_block_hit.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_block_hit.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_block_hit.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_block_hit.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_block_hit.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_block_hit.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_block_hit.glb",
      "human_male": "Base/sword_shield_block_hit.glb"
     }
    },
@@ -3339,7 +3783,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: парирування",
    "name_en": "Sword & shield: parry",
@@ -3363,6 +3813,12 @@
      "elf": "Base/Types/elf/sword_shield_parry.glb",
      "orc": "Base/Types/orc/sword_shield_parry.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_parry.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_parry.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_parry.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_parry.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_parry.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_parry.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_parry.glb",
      "human_male": "Base/sword_shield_parry.glb"
     }
    },
@@ -3427,7 +3883,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Меч і щит: контрудар після парирування",
    "name_en": "Sword & shield: parry riposte",
@@ -3456,6 +3918,12 @@
      "elf": "Base/Types/elf/sword_shield_parry_success.glb",
      "orc": "Base/Types/orc/sword_shield_parry_success.glb",
      "ratfolk": "Base/Types/ratfolk/sword_shield_parry_success.glb",
+     "elf_female": "Base/Types/elf_female/sword_shield_parry_success.glb",
+     "orc_female": "Base/Types/orc_female/sword_shield_parry_success.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sword_shield_parry_success.glb",
+     "goblin_female": "Base/Types/goblin_female/sword_shield_parry_success.glb",
+     "ogre_female": "Base/Types/ogre_female/sword_shield_parry_success.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sword_shield_parry_success.glb",
      "human_male": "Base/sword_shield_parry_success.glb"
     }
    },
@@ -3524,7 +3992,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: стійка",
    "name_en": "One-handed: stance",
@@ -3549,6 +4023,12 @@
      "elf": "Base/Types/elf/one_hand_idle.glb",
      "orc": "Base/Types/orc/one_hand_idle.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_idle.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_idle.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_idle.glb",
      "human_male": "Base/one_hand_idle.glb"
     }
    },
@@ -3621,7 +4101,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: удар 1",
    "name_en": "One-handed: attack 1",
@@ -3646,6 +4132,12 @@
      "elf": "Base/Types/elf/one_hand_attack_1.glb",
      "orc": "Base/Types/orc/one_hand_attack_1.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_attack_1.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_attack_1.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_attack_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_attack_1.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_attack_1.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_attack_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_attack_1.glb",
      "human_male": "Base/one_hand_attack_1.glb"
     }
    },
@@ -3718,7 +4210,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: удар 2",
    "name_en": "One-handed: attack 2",
@@ -3743,6 +4241,12 @@
      "elf": "Base/Types/elf/one_hand_attack_2.glb",
      "orc": "Base/Types/orc/one_hand_attack_2.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_attack_2.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_attack_2.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_attack_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_attack_2.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_attack_2.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_attack_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_attack_2.glb",
      "human_male": "Base/one_hand_attack_2.glb"
     }
    },
@@ -3811,7 +4315,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: удар 3",
    "name_en": "One-handed: attack 3",
@@ -3836,6 +4346,12 @@
      "elf": "Base/Types/elf/one_hand_attack_3.glb",
      "orc": "Base/Types/orc/one_hand_attack_3.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_attack_3.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_attack_3.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_attack_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_attack_3.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_attack_3.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_attack_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_attack_3.glb",
      "human_male": "Base/one_hand_attack_3.glb"
     }
    },
@@ -3903,7 +4419,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: важкий удар",
    "name_en": "One-handed: heavy attack",
@@ -3927,6 +4449,12 @@
      "elf": "Base/Types/elf/one_hand_attack_heavy.glb",
      "orc": "Base/Types/orc/one_hand_attack_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_attack_heavy.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_attack_heavy.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_attack_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_attack_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_attack_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_attack_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_attack_heavy.glb",
      "human_male": "Base/one_hand_attack_heavy.glb"
     }
    },
@@ -3990,7 +4518,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: блок",
    "name_en": "One-handed: block",
@@ -4014,6 +4548,12 @@
      "elf": "Base/Types/elf/one_hand_block.glb",
      "orc": "Base/Types/orc/one_hand_block.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_block.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_block.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_block.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_block.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_block.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_block.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_block.glb",
      "human_male": "Base/one_hand_block.glb"
     }
    },
@@ -4077,7 +4617,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: удар у блок",
    "name_en": "One-handed: block hit",
@@ -4101,6 +4647,12 @@
      "elf": "Base/Types/elf/one_hand_block_hit.glb",
      "orc": "Base/Types/orc/one_hand_block_hit.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_block_hit.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_block_hit.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_block_hit.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_block_hit.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_block_hit.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_block_hit.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_block_hit.glb",
      "human_male": "Base/one_hand_block_hit.glb"
     }
    },
@@ -4168,7 +4720,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: парирування",
    "name_en": "One-handed: parry",
@@ -4192,6 +4750,12 @@
      "elf": "Base/Types/elf/one_hand_parry.glb",
      "orc": "Base/Types/orc/one_hand_parry.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_parry.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_parry.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_parry.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_parry.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_parry.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_parry.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_parry.glb",
      "human_male": "Base/one_hand_parry.glb"
     }
    },
@@ -4256,7 +4820,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Одноручна: контрудар після парирування",
    "name_en": "One-handed: parry riposte",
@@ -4285,6 +4855,12 @@
      "elf": "Base/Types/elf/one_hand_parry_success.glb",
      "orc": "Base/Types/orc/one_hand_parry_success.glb",
      "ratfolk": "Base/Types/ratfolk/one_hand_parry_success.glb",
+     "elf_female": "Base/Types/elf_female/one_hand_parry_success.glb",
+     "orc_female": "Base/Types/orc_female/one_hand_parry_success.glb",
+     "dwarf_female": "Base/Types/dwarf_female/one_hand_parry_success.glb",
+     "goblin_female": "Base/Types/goblin_female/one_hand_parry_success.glb",
+     "ogre_female": "Base/Types/ogre_female/one_hand_parry_success.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/one_hand_parry_success.glb",
      "human_male": "Base/one_hand_parry_success.glb"
     }
    },
@@ -4353,7 +4929,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: стійка",
    "name_en": "Two-handed: stance",
@@ -4378,6 +4960,12 @@
      "elf": "Base/Types/elf/two_hand_idle.glb",
      "orc": "Base/Types/orc/two_hand_idle.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_idle.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_idle.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_idle.glb",
      "human_male": "Base/two_hand_idle.glb"
     }
    },
@@ -4450,7 +5038,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: удар 1",
    "name_en": "Two-handed: attack 1",
@@ -4475,6 +5069,12 @@
      "elf": "Base/Types/elf/two_hand_attack_1.glb",
      "orc": "Base/Types/orc/two_hand_attack_1.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_attack_1.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_attack_1.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_attack_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_attack_1.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_attack_1.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_attack_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_attack_1.glb",
      "human_male": "Base/two_hand_attack_1.glb"
     }
    },
@@ -4547,7 +5147,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: удар 2",
    "name_en": "Two-handed: attack 2",
@@ -4572,6 +5178,12 @@
      "elf": "Base/Types/elf/two_hand_attack_2.glb",
      "orc": "Base/Types/orc/two_hand_attack_2.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_attack_2.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_attack_2.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_attack_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_attack_2.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_attack_2.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_attack_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_attack_2.glb",
      "human_male": "Base/two_hand_attack_2.glb"
     }
    },
@@ -4640,7 +5252,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: удар 3",
    "name_en": "Two-handed: attack 3",
@@ -4665,6 +5283,12 @@
      "elf": "Base/Types/elf/two_hand_attack_3.glb",
      "orc": "Base/Types/orc/two_hand_attack_3.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_attack_3.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_attack_3.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_attack_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_attack_3.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_attack_3.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_attack_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_attack_3.glb",
      "human_male": "Base/two_hand_attack_3.glb"
     }
    },
@@ -4732,7 +5356,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: важкий удар",
    "name_en": "Two-handed: heavy attack",
@@ -4756,6 +5386,12 @@
      "elf": "Base/Types/elf/two_hand_attack_heavy.glb",
      "orc": "Base/Types/orc/two_hand_attack_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_attack_heavy.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_attack_heavy.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_attack_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_attack_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_attack_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_attack_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_attack_heavy.glb",
      "human_male": "Base/two_hand_attack_heavy.glb"
     }
    },
@@ -4819,7 +5455,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: заряд",
    "name_en": "Two-handed: charge",
@@ -4843,6 +5485,12 @@
      "elf": "Base/Types/elf/two_hand_charge.glb",
      "orc": "Base/Types/orc/two_hand_charge.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_charge.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_charge.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_charge.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_charge.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_charge.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_charge.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_charge.glb",
      "human_male": "Base/two_hand_charge.glb"
     }
    },
@@ -4910,7 +5558,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: випуск заряду",
    "name_en": "Two-handed: charge release",
@@ -4934,6 +5588,12 @@
      "elf": "Base/Types/elf/two_hand_charge_release.glb",
      "orc": "Base/Types/orc/two_hand_charge_release.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_charge_release.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_charge_release.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_charge_release.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_charge_release.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_charge_release.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_charge_release.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_charge_release.glb",
      "human_male": "Base/two_hand_charge_release.glb"
     }
    },
@@ -4997,7 +5657,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: блок",
    "name_en": "Two-handed: block",
@@ -5021,6 +5687,12 @@
      "elf": "Base/Types/elf/two_hand_block.glb",
      "orc": "Base/Types/orc/two_hand_block.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_block.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_block.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_block.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_block.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_block.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_block.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_block.glb",
      "human_male": "Base/two_hand_block.glb"
     }
    },
@@ -5084,7 +5756,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: удар у блок",
    "name_en": "Two-handed: block hit",
@@ -5108,6 +5786,12 @@
      "elf": "Base/Types/elf/two_hand_block_hit.glb",
      "orc": "Base/Types/orc/two_hand_block_hit.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_block_hit.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_block_hit.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_block_hit.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_block_hit.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_block_hit.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_block_hit.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_block_hit.glb",
      "human_male": "Base/two_hand_block_hit.glb"
     }
    },
@@ -5175,7 +5859,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: парирування",
    "name_en": "Two-handed: parry",
@@ -5199,6 +5889,12 @@
      "elf": "Base/Types/elf/two_hand_parry.glb",
      "orc": "Base/Types/orc/two_hand_parry.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_parry.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_parry.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_parry.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_parry.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_parry.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_parry.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_parry.glb",
      "human_male": "Base/two_hand_parry.glb"
     }
    },
@@ -5263,7 +5959,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Дворучна: контрудар після парирування",
    "name_en": "Two-handed: parry riposte",
@@ -5292,6 +5994,12 @@
      "elf": "Base/Types/elf/two_hand_parry_success.glb",
      "orc": "Base/Types/orc/two_hand_parry_success.glb",
      "ratfolk": "Base/Types/ratfolk/two_hand_parry_success.glb",
+     "elf_female": "Base/Types/elf_female/two_hand_parry_success.glb",
+     "orc_female": "Base/Types/orc_female/two_hand_parry_success.glb",
+     "dwarf_female": "Base/Types/dwarf_female/two_hand_parry_success.glb",
+     "goblin_female": "Base/Types/goblin_female/two_hand_parry_success.glb",
+     "ogre_female": "Base/Types/ogre_female/two_hand_parry_success.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/two_hand_parry_success.glb",
      "human_male": "Base/two_hand_parry_success.glb"
     }
    },
@@ -5360,7 +6068,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: стійка",
    "name_en": "Dagger: stance",
@@ -5385,6 +6099,12 @@
      "elf": "Base/Types/elf/dagger_idle.glb",
      "orc": "Base/Types/orc/dagger_idle.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_idle.glb",
+     "elf_female": "Base/Types/elf_female/dagger_idle.glb",
+     "orc_female": "Base/Types/orc_female/dagger_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_idle.glb",
      "human_male": "Base/dagger_idle.glb"
     }
    },
@@ -5457,7 +6177,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: удар 1",
    "name_en": "Dagger: attack 1",
@@ -5482,6 +6208,12 @@
      "elf": "Base/Types/elf/dagger_attack_1.glb",
      "orc": "Base/Types/orc/dagger_attack_1.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_attack_1.glb",
+     "elf_female": "Base/Types/elf_female/dagger_attack_1.glb",
+     "orc_female": "Base/Types/orc_female/dagger_attack_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_attack_1.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_attack_1.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_attack_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_attack_1.glb",
      "human_male": "Base/dagger_attack_1.glb"
     }
    },
@@ -5554,7 +6286,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: удар 2",
    "name_en": "Dagger: attack 2",
@@ -5579,6 +6317,12 @@
      "elf": "Base/Types/elf/dagger_attack_2.glb",
      "orc": "Base/Types/orc/dagger_attack_2.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_attack_2.glb",
+     "elf_female": "Base/Types/elf_female/dagger_attack_2.glb",
+     "orc_female": "Base/Types/orc_female/dagger_attack_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_attack_2.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_attack_2.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_attack_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_attack_2.glb",
      "human_male": "Base/dagger_attack_2.glb"
     }
    },
@@ -5647,7 +6391,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: удар 3",
    "name_en": "Dagger: attack 3",
@@ -5672,6 +6422,12 @@
      "elf": "Base/Types/elf/dagger_attack_3.glb",
      "orc": "Base/Types/orc/dagger_attack_3.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_attack_3.glb",
+     "elf_female": "Base/Types/elf_female/dagger_attack_3.glb",
+     "orc_female": "Base/Types/orc_female/dagger_attack_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_attack_3.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_attack_3.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_attack_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_attack_3.glb",
      "human_male": "Base/dagger_attack_3.glb"
     }
    },
@@ -5739,7 +6495,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: важкий удар",
    "name_en": "Dagger: heavy attack",
@@ -5763,6 +6525,12 @@
      "elf": "Base/Types/elf/dagger_attack_heavy.glb",
      "orc": "Base/Types/orc/dagger_attack_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_attack_heavy.glb",
+     "elf_female": "Base/Types/elf_female/dagger_attack_heavy.glb",
+     "orc_female": "Base/Types/orc_female/dagger_attack_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_attack_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_attack_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_attack_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_attack_heavy.glb",
      "human_male": "Base/dagger_attack_heavy.glb"
     }
    },
@@ -5830,7 +6598,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: парирування",
    "name_en": "Dagger: parry",
@@ -5854,6 +6628,12 @@
      "elf": "Base/Types/elf/dagger_parry.glb",
      "orc": "Base/Types/orc/dagger_parry.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_parry.glb",
+     "elf_female": "Base/Types/elf_female/dagger_parry.glb",
+     "orc_female": "Base/Types/orc_female/dagger_parry.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_parry.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_parry.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_parry.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_parry.glb",
      "human_male": "Base/dagger_parry.glb"
     }
    },
@@ -5918,7 +6698,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Кинджал: контрудар після парирування",
    "name_en": "Dagger: parry riposte",
@@ -5947,6 +6733,12 @@
      "elf": "Base/Types/elf/dagger_parry_success.glb",
      "orc": "Base/Types/orc/dagger_parry_success.glb",
      "ratfolk": "Base/Types/ratfolk/dagger_parry_success.glb",
+     "elf_female": "Base/Types/elf_female/dagger_parry_success.glb",
+     "orc_female": "Base/Types/orc_female/dagger_parry_success.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dagger_parry_success.glb",
+     "goblin_female": "Base/Types/goblin_female/dagger_parry_success.glb",
+     "ogre_female": "Base/Types/ogre_female/dagger_parry_success.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dagger_parry_success.glb",
      "human_male": "Base/dagger_parry_success.glb"
     }
    },
@@ -6015,7 +6807,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: стійка",
    "name_en": "Spear: stance",
@@ -6040,6 +6838,12 @@
      "elf": "Base/Types/elf/spear_idle.glb",
      "orc": "Base/Types/orc/spear_idle.glb",
      "ratfolk": "Base/Types/ratfolk/spear_idle.glb",
+     "elf_female": "Base/Types/elf_female/spear_idle.glb",
+     "orc_female": "Base/Types/orc_female/spear_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_idle.glb",
      "human_male": "Base/spear_idle.glb"
     }
    },
@@ -6112,7 +6916,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: удар 1",
    "name_en": "Spear: attack 1",
@@ -6137,6 +6947,12 @@
      "elf": "Base/Types/elf/spear_attack_1.glb",
      "orc": "Base/Types/orc/spear_attack_1.glb",
      "ratfolk": "Base/Types/ratfolk/spear_attack_1.glb",
+     "elf_female": "Base/Types/elf_female/spear_attack_1.glb",
+     "orc_female": "Base/Types/orc_female/spear_attack_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_attack_1.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_attack_1.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_attack_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_attack_1.glb",
      "human_male": "Base/spear_attack_1.glb"
     }
    },
@@ -6209,7 +7025,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: удар 2",
    "name_en": "Spear: attack 2",
@@ -6234,6 +7056,12 @@
      "elf": "Base/Types/elf/spear_attack_2.glb",
      "orc": "Base/Types/orc/spear_attack_2.glb",
      "ratfolk": "Base/Types/ratfolk/spear_attack_2.glb",
+     "elf_female": "Base/Types/elf_female/spear_attack_2.glb",
+     "orc_female": "Base/Types/orc_female/spear_attack_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_attack_2.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_attack_2.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_attack_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_attack_2.glb",
      "human_male": "Base/spear_attack_2.glb"
     }
    },
@@ -6302,7 +7130,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: удар 3",
    "name_en": "Spear: attack 3",
@@ -6327,6 +7161,12 @@
      "elf": "Base/Types/elf/spear_attack_3.glb",
      "orc": "Base/Types/orc/spear_attack_3.glb",
      "ratfolk": "Base/Types/ratfolk/spear_attack_3.glb",
+     "elf_female": "Base/Types/elf_female/spear_attack_3.glb",
+     "orc_female": "Base/Types/orc_female/spear_attack_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_attack_3.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_attack_3.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_attack_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_attack_3.glb",
      "human_male": "Base/spear_attack_3.glb"
     }
    },
@@ -6394,7 +7234,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: важкий удар",
    "name_en": "Spear: heavy attack",
@@ -6418,6 +7264,12 @@
      "elf": "Base/Types/elf/spear_attack_heavy.glb",
      "orc": "Base/Types/orc/spear_attack_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/spear_attack_heavy.glb",
+     "elf_female": "Base/Types/elf_female/spear_attack_heavy.glb",
+     "orc_female": "Base/Types/orc_female/spear_attack_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_attack_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_attack_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_attack_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_attack_heavy.glb",
      "human_male": "Base/spear_attack_heavy.glb"
     }
    },
@@ -6481,7 +7333,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: заряд",
    "name_en": "Spear: charge",
@@ -6505,6 +7363,12 @@
      "elf": "Base/Types/elf/spear_charge.glb",
      "orc": "Base/Types/orc/spear_charge.glb",
      "ratfolk": "Base/Types/ratfolk/spear_charge.glb",
+     "elf_female": "Base/Types/elf_female/spear_charge.glb",
+     "orc_female": "Base/Types/orc_female/spear_charge.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_charge.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_charge.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_charge.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_charge.glb",
      "human_male": "Base/spear_charge.glb"
     }
    },
@@ -6572,7 +7436,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: випуск заряду",
    "name_en": "Spear: charge release",
@@ -6596,6 +7466,12 @@
      "elf": "Base/Types/elf/spear_charge_release.glb",
      "orc": "Base/Types/orc/spear_charge_release.glb",
      "ratfolk": "Base/Types/ratfolk/spear_charge_release.glb",
+     "elf_female": "Base/Types/elf_female/spear_charge_release.glb",
+     "orc_female": "Base/Types/orc_female/spear_charge_release.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_charge_release.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_charge_release.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_charge_release.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_charge_release.glb",
      "human_male": "Base/spear_charge_release.glb"
     }
    },
@@ -6659,7 +7535,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: блок",
    "name_en": "Spear: block",
@@ -6683,6 +7565,12 @@
      "elf": "Base/Types/elf/spear_block.glb",
      "orc": "Base/Types/orc/spear_block.glb",
      "ratfolk": "Base/Types/ratfolk/spear_block.glb",
+     "elf_female": "Base/Types/elf_female/spear_block.glb",
+     "orc_female": "Base/Types/orc_female/spear_block.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_block.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_block.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_block.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_block.glb",
      "human_male": "Base/spear_block.glb"
     }
    },
@@ -6746,7 +7634,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: удар у блок",
    "name_en": "Spear: block hit",
@@ -6770,6 +7664,12 @@
      "elf": "Base/Types/elf/spear_block_hit.glb",
      "orc": "Base/Types/orc/spear_block_hit.glb",
      "ratfolk": "Base/Types/ratfolk/spear_block_hit.glb",
+     "elf_female": "Base/Types/elf_female/spear_block_hit.glb",
+     "orc_female": "Base/Types/orc_female/spear_block_hit.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_block_hit.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_block_hit.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_block_hit.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_block_hit.glb",
      "human_male": "Base/spear_block_hit.glb"
     }
    },
@@ -6837,7 +7737,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: парирування",
    "name_en": "Spear: parry",
@@ -6861,6 +7767,12 @@
      "elf": "Base/Types/elf/spear_parry.glb",
      "orc": "Base/Types/orc/spear_parry.glb",
      "ratfolk": "Base/Types/ratfolk/spear_parry.glb",
+     "elf_female": "Base/Types/elf_female/spear_parry.glb",
+     "orc_female": "Base/Types/orc_female/spear_parry.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_parry.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_parry.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_parry.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_parry.glb",
      "human_male": "Base/spear_parry.glb"
     }
    },
@@ -6925,7 +7837,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Спис: контрудар після парирування",
    "name_en": "Spear: parry riposte",
@@ -6954,6 +7872,12 @@
      "elf": "Base/Types/elf/spear_parry_success.glb",
      "orc": "Base/Types/orc/spear_parry_success.glb",
      "ratfolk": "Base/Types/ratfolk/spear_parry_success.glb",
+     "elf_female": "Base/Types/elf_female/spear_parry_success.glb",
+     "orc_female": "Base/Types/orc_female/spear_parry_success.glb",
+     "dwarf_female": "Base/Types/dwarf_female/spear_parry_success.glb",
+     "goblin_female": "Base/Types/goblin_female/spear_parry_success.glb",
+     "ogre_female": "Base/Types/ogre_female/spear_parry_success.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/spear_parry_success.glb",
      "human_male": "Base/spear_parry_success.glb"
     }
    },
@@ -7022,7 +7946,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Лук: стійка",
    "name_en": "Bow: stance",
@@ -7047,6 +7977,12 @@
      "elf": "Base/Types/elf/bow_idle.glb",
      "orc": "Base/Types/orc/bow_idle.glb",
      "ratfolk": "Base/Types/ratfolk/bow_idle.glb",
+     "elf_female": "Base/Types/elf_female/bow_idle.glb",
+     "orc_female": "Base/Types/orc_female/bow_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/bow_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/bow_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/bow_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/bow_idle.glb",
      "human_male": "Base/bow_idle.glb"
     }
    },
@@ -7110,7 +8046,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Лук: натяг",
    "name_en": "Bow: draw",
@@ -7134,6 +8076,12 @@
      "elf": "Base/Types/elf/bow_draw.glb",
      "orc": "Base/Types/orc/bow_draw.glb",
      "ratfolk": "Base/Types/ratfolk/bow_draw.glb",
+     "elf_female": "Base/Types/elf_female/bow_draw.glb",
+     "orc_female": "Base/Types/orc_female/bow_draw.glb",
+     "dwarf_female": "Base/Types/dwarf_female/bow_draw.glb",
+     "goblin_female": "Base/Types/goblin_female/bow_draw.glb",
+     "ogre_female": "Base/Types/ogre_female/bow_draw.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/bow_draw.glb",
      "human_male": "Base/bow_draw.glb"
     }
    },
@@ -7197,7 +8145,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Лук: прицілювання",
    "name_en": "Bow: aim",
@@ -7221,6 +8175,12 @@
      "elf": "Base/Types/elf/bow_aim.glb",
      "orc": "Base/Types/orc/bow_aim.glb",
      "ratfolk": "Base/Types/ratfolk/bow_aim.glb",
+     "elf_female": "Base/Types/elf_female/bow_aim.glb",
+     "orc_female": "Base/Types/orc_female/bow_aim.glb",
+     "dwarf_female": "Base/Types/dwarf_female/bow_aim.glb",
+     "goblin_female": "Base/Types/goblin_female/bow_aim.glb",
+     "ogre_female": "Base/Types/ogre_female/bow_aim.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/bow_aim.glb",
      "human_male": "Base/bow_aim.glb"
     }
    },
@@ -7288,7 +8248,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Лук: постріл",
    "name_en": "Bow: release",
@@ -7312,6 +8278,12 @@
      "elf": "Base/Types/elf/bow_release.glb",
      "orc": "Base/Types/orc/bow_release.glb",
      "ratfolk": "Base/Types/ratfolk/bow_release.glb",
+     "elf_female": "Base/Types/elf_female/bow_release.glb",
+     "orc_female": "Base/Types/orc_female/bow_release.glb",
+     "dwarf_female": "Base/Types/dwarf_female/bow_release.glb",
+     "goblin_female": "Base/Types/goblin_female/bow_release.glb",
+     "ogre_female": "Base/Types/ogre_female/bow_release.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/bow_release.glb",
      "human_male": "Base/bow_release.glb"
     }
    },
@@ -7379,7 +8351,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Лук: швидкий постріл",
    "name_en": "Bow: quick shot",
@@ -7403,6 +8381,12 @@
      "elf": "Base/Types/elf/bow_quick_shot.glb",
      "orc": "Base/Types/orc/bow_quick_shot.glb",
      "ratfolk": "Base/Types/ratfolk/bow_quick_shot.glb",
+     "elf_female": "Base/Types/elf_female/bow_quick_shot.glb",
+     "orc_female": "Base/Types/orc_female/bow_quick_shot.glb",
+     "dwarf_female": "Base/Types/dwarf_female/bow_quick_shot.glb",
+     "goblin_female": "Base/Types/goblin_female/bow_quick_shot.glb",
+     "ogre_female": "Base/Types/ogre_female/bow_quick_shot.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/bow_quick_shot.glb",
      "human_male": "Base/bow_quick_shot.glb"
     }
    },
@@ -7471,7 +8455,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Магія: стійка",
    "name_en": "Magic: stance",
@@ -7496,6 +8486,12 @@
      "elf": "Base/Types/elf/magic_idle.glb",
      "orc": "Base/Types/orc/magic_idle.glb",
      "ratfolk": "Base/Types/ratfolk/magic_idle.glb",
+     "elf_female": "Base/Types/elf_female/magic_idle.glb",
+     "orc_female": "Base/Types/orc_female/magic_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/magic_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/magic_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/magic_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/magic_idle.glb",
      "human_male": "Base/magic_idle.glb"
     }
    },
@@ -7563,7 +8559,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Магія: швидке закляття",
    "name_en": "Magic: quick cast",
@@ -7587,6 +8589,12 @@
      "elf": "Base/Types/elf/magic_cast_quick.glb",
      "orc": "Base/Types/orc/magic_cast_quick.glb",
      "ratfolk": "Base/Types/ratfolk/magic_cast_quick.glb",
+     "elf_female": "Base/Types/elf_female/magic_cast_quick.glb",
+     "orc_female": "Base/Types/orc_female/magic_cast_quick.glb",
+     "dwarf_female": "Base/Types/dwarf_female/magic_cast_quick.glb",
+     "goblin_female": "Base/Types/goblin_female/magic_cast_quick.glb",
+     "ogre_female": "Base/Types/ogre_female/magic_cast_quick.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/magic_cast_quick.glb",
      "human_male": "Base/magic_cast_quick.glb"
     }
    },
@@ -7650,7 +8658,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Магія: заряд закляття",
    "name_en": "Magic: cast charge",
@@ -7674,6 +8688,12 @@
      "elf": "Base/Types/elf/magic_cast_charge.glb",
      "orc": "Base/Types/orc/magic_cast_charge.glb",
      "ratfolk": "Base/Types/ratfolk/magic_cast_charge.glb",
+     "elf_female": "Base/Types/elf_female/magic_cast_charge.glb",
+     "orc_female": "Base/Types/orc_female/magic_cast_charge.glb",
+     "dwarf_female": "Base/Types/dwarf_female/magic_cast_charge.glb",
+     "goblin_female": "Base/Types/goblin_female/magic_cast_charge.glb",
+     "ogre_female": "Base/Types/ogre_female/magic_cast_charge.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/magic_cast_charge.glb",
      "human_male": "Base/magic_cast_charge.glb"
     }
    },
@@ -7741,7 +8761,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Магія: випуск закляття",
    "name_en": "Magic: cast release",
@@ -7765,6 +8791,12 @@
      "elf": "Base/Types/elf/magic_cast_release.glb",
      "orc": "Base/Types/orc/magic_cast_release.glb",
      "ratfolk": "Base/Types/ratfolk/magic_cast_release.glb",
+     "elf_female": "Base/Types/elf_female/magic_cast_release.glb",
+     "orc_female": "Base/Types/orc_female/magic_cast_release.glb",
+     "dwarf_female": "Base/Types/dwarf_female/magic_cast_release.glb",
+     "goblin_female": "Base/Types/goblin_female/magic_cast_release.glb",
+     "ogre_female": "Base/Types/ogre_female/magic_cast_release.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/magic_cast_release.glb",
      "human_male": "Base/magic_cast_release.glb"
     }
    },
@@ -7824,7 +8856,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Магія: утримання закляття",
    "name_en": "Magic: channel",
@@ -7849,6 +8887,12 @@
      "elf": "Base/Types/elf/magic_channel.glb",
      "orc": "Base/Types/orc/magic_channel.glb",
      "ratfolk": "Base/Types/ratfolk/magic_channel.glb",
+     "elf_female": "Base/Types/elf_female/magic_channel.glb",
+     "orc_female": "Base/Types/orc_female/magic_channel.glb",
+     "dwarf_female": "Base/Types/dwarf_female/magic_channel.glb",
+     "goblin_female": "Base/Types/goblin_female/magic_channel.glb",
+     "ogre_female": "Base/Types/ogre_female/magic_channel.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/magic_channel.glb",
      "human_male": "Base/magic_channel.glb"
     }
    },
@@ -7912,7 +8956,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Магія: удар по площі",
    "name_en": "Magic: area blast",
@@ -7937,6 +8987,12 @@
      "elf": "Base/Types/elf/magic_area.glb",
      "orc": "Base/Types/orc/magic_area.glb",
      "ratfolk": "Base/Types/ratfolk/magic_area.glb",
+     "elf_female": "Base/Types/elf_female/magic_area.glb",
+     "orc_female": "Base/Types/orc_female/magic_area.glb",
+     "dwarf_female": "Base/Types/dwarf_female/magic_area.glb",
+     "goblin_female": "Base/Types/goblin_female/magic_area.glb",
+     "ogre_female": "Base/Types/ogre_female/magic_area.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/magic_area.glb",
      "human_male": "Base/magic_area.glb"
     }
    },
@@ -8001,7 +9057,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Ухилення назад",
    "name_en": "Dodge back",
@@ -8024,6 +9086,12 @@
      "elf": "Base/Types/elf/dodge_back.glb",
      "orc": "Base/Types/orc/dodge_back.glb",
      "ratfolk": "Base/Types/ratfolk/dodge_back.glb",
+     "elf_female": "Base/Types/elf_female/dodge_back.glb",
+     "orc_female": "Base/Types/orc_female/dodge_back.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dodge_back.glb",
+     "goblin_female": "Base/Types/goblin_female/dodge_back.glb",
+     "ogre_female": "Base/Types/ogre_female/dodge_back.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dodge_back.glb",
      "human_male": "Base/dodge_back.glb"
     }
    },
@@ -8089,7 +9157,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Перекид уперед",
    "name_en": "Dodge roll forward",
@@ -8113,6 +9187,12 @@
      "elf": "Base/Types/elf/dodge_forward.glb",
      "orc": "Base/Types/orc/dodge_forward.glb",
      "ratfolk": "Base/Types/ratfolk/dodge_forward.glb",
+     "elf_female": "Base/Types/elf_female/dodge_forward.glb",
+     "orc_female": "Base/Types/orc_female/dodge_forward.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dodge_forward.glb",
+     "goblin_female": "Base/Types/goblin_female/dodge_forward.glb",
+     "ogre_female": "Base/Types/ogre_female/dodge_forward.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dodge_forward.glb",
      "human_male": "Base/dodge_forward.glb"
     }
    },
@@ -8177,7 +9257,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Ухилення вліво",
    "name_en": "Dodge left",
@@ -8200,6 +9286,12 @@
      "elf": "Base/Types/elf/dodge_left.glb",
      "orc": "Base/Types/orc/dodge_left.glb",
      "ratfolk": "Base/Types/ratfolk/dodge_left.glb",
+     "elf_female": "Base/Types/elf_female/dodge_left.glb",
+     "orc_female": "Base/Types/orc_female/dodge_left.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dodge_left.glb",
+     "goblin_female": "Base/Types/goblin_female/dodge_left.glb",
+     "ogre_female": "Base/Types/ogre_female/dodge_left.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dodge_left.glb",
      "human_male": "Base/dodge_left.glb"
     }
    },
@@ -8265,7 +9357,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Ухилення вправо",
    "name_en": "Dodge right",
@@ -8288,6 +9386,12 @@
      "elf": "Base/Types/elf/dodge_right.glb",
      "orc": "Base/Types/orc/dodge_right.glb",
      "ratfolk": "Base/Types/ratfolk/dodge_right.glb",
+     "elf_female": "Base/Types/elf_female/dodge_right.glb",
+     "orc_female": "Base/Types/orc_female/dodge_right.glb",
+     "dwarf_female": "Base/Types/dwarf_female/dodge_right.glb",
+     "goblin_female": "Base/Types/goblin_female/dodge_right.glb",
+     "ogre_female": "Base/Types/ogre_female/dodge_right.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/dodge_right.glb",
      "human_male": "Base/dodge_right.glb"
     }
    },
@@ -8351,7 +9455,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Удар спереду",
    "name_en": "Hit from the front",
@@ -8374,6 +9484,12 @@
      "elf": "Base/Types/elf/hit_light_front.glb",
      "orc": "Base/Types/orc/hit_light_front.glb",
      "ratfolk": "Base/Types/ratfolk/hit_light_front.glb",
+     "elf_female": "Base/Types/elf_female/hit_light_front.glb",
+     "orc_female": "Base/Types/orc_female/hit_light_front.glb",
+     "dwarf_female": "Base/Types/dwarf_female/hit_light_front.glb",
+     "goblin_female": "Base/Types/goblin_female/hit_light_front.glb",
+     "ogre_female": "Base/Types/ogre_female/hit_light_front.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/hit_light_front.glb",
      "human_male": "Base/hit_light_front.glb"
     }
    },
@@ -8437,7 +9553,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Удар ззаду",
    "name_en": "Hit from behind",
@@ -8460,6 +9582,12 @@
      "elf": "Base/Types/elf/hit_light_back.glb",
      "orc": "Base/Types/orc/hit_light_back.glb",
      "ratfolk": "Base/Types/ratfolk/hit_light_back.glb",
+     "elf_female": "Base/Types/elf_female/hit_light_back.glb",
+     "orc_female": "Base/Types/orc_female/hit_light_back.glb",
+     "dwarf_female": "Base/Types/dwarf_female/hit_light_back.glb",
+     "goblin_female": "Base/Types/goblin_female/hit_light_back.glb",
+     "ogre_female": "Base/Types/ogre_female/hit_light_back.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/hit_light_back.glb",
      "human_male": "Base/hit_light_back.glb"
     }
    },
@@ -8523,7 +9651,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Удар зліва",
    "name_en": "Hit from the left",
@@ -8546,6 +9680,12 @@
      "elf": "Base/Types/elf/hit_light_left.glb",
      "orc": "Base/Types/orc/hit_light_left.glb",
      "ratfolk": "Base/Types/ratfolk/hit_light_left.glb",
+     "elf_female": "Base/Types/elf_female/hit_light_left.glb",
+     "orc_female": "Base/Types/orc_female/hit_light_left.glb",
+     "dwarf_female": "Base/Types/dwarf_female/hit_light_left.glb",
+     "goblin_female": "Base/Types/goblin_female/hit_light_left.glb",
+     "ogre_female": "Base/Types/ogre_female/hit_light_left.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/hit_light_left.glb",
      "human_male": "Base/hit_light_left.glb"
     }
    },
@@ -8610,7 +9750,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Удар справа",
    "name_en": "Hit from the right",
@@ -8633,6 +9779,12 @@
      "elf": "Base/Types/elf/hit_light_right.glb",
      "orc": "Base/Types/orc/hit_light_right.glb",
      "ratfolk": "Base/Types/ratfolk/hit_light_right.glb",
+     "elf_female": "Base/Types/elf_female/hit_light_right.glb",
+     "orc_female": "Base/Types/orc_female/hit_light_right.glb",
+     "dwarf_female": "Base/Types/dwarf_female/hit_light_right.glb",
+     "goblin_female": "Base/Types/goblin_female/hit_light_right.glb",
+     "ogre_female": "Base/Types/ogre_female/hit_light_right.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/hit_light_right.glb",
      "human_male": "Base/hit_light_right.glb"
     }
    },
@@ -8696,7 +9848,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Важкий удар (отримано)",
    "name_en": "Heavy hit",
@@ -8719,6 +9877,12 @@
      "elf": "Base/Types/elf/hit_heavy.glb",
      "orc": "Base/Types/orc/hit_heavy.glb",
      "ratfolk": "Base/Types/ratfolk/hit_heavy.glb",
+     "elf_female": "Base/Types/elf_female/hit_heavy.glb",
+     "orc_female": "Base/Types/orc_female/hit_heavy.glb",
+     "dwarf_female": "Base/Types/dwarf_female/hit_heavy.glb",
+     "goblin_female": "Base/Types/goblin_female/hit_heavy.glb",
+     "ogre_female": "Base/Types/ogre_female/hit_heavy.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/hit_heavy.glb",
      "human_male": "Base/hit_heavy.glb"
     }
    },
@@ -8783,7 +9947,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Відкритий після парирування",
    "name_en": "Opened (parried)",
@@ -8808,6 +9978,12 @@
      "elf": "Base/Types/elf/opened.glb",
      "orc": "Base/Types/orc/opened.glb",
      "ratfolk": "Base/Types/ratfolk/opened.glb",
+     "elf_female": "Base/Types/elf_female/opened.glb",
+     "orc_female": "Base/Types/orc_female/opened.glb",
+     "dwarf_female": "Base/Types/dwarf_female/opened.glb",
+     "goblin_female": "Base/Types/goblin_female/opened.glb",
+     "ogre_female": "Base/Types/ogre_female/opened.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/opened.glb",
      "human_male": "Base/opened.glb"
     }
    },
@@ -8871,7 +10047,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Збито з ніг",
    "name_en": "Knockdown",
@@ -8894,6 +10076,12 @@
      "elf": "Base/Types/elf/knockdown.glb",
      "orc": "Base/Types/orc/knockdown.glb",
      "ratfolk": "Base/Types/ratfolk/knockdown.glb",
+     "elf_female": "Base/Types/elf_female/knockdown.glb",
+     "orc_female": "Base/Types/orc_female/knockdown.glb",
+     "dwarf_female": "Base/Types/dwarf_female/knockdown.glb",
+     "goblin_female": "Base/Types/goblin_female/knockdown.glb",
+     "ogre_female": "Base/Types/ogre_female/knockdown.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/knockdown.glb",
      "human_male": "Base/knockdown.glb"
     }
    },
@@ -8955,7 +10143,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Лежить",
    "name_en": "Lying",
@@ -8978,6 +10172,12 @@
      "elf": "Base/Types/elf/knockdown_lie.glb",
      "orc": "Base/Types/orc/knockdown_lie.glb",
      "ratfolk": "Base/Types/ratfolk/knockdown_lie.glb",
+     "elf_female": "Base/Types/elf_female/knockdown_lie.glb",
+     "orc_female": "Base/Types/orc_female/knockdown_lie.glb",
+     "dwarf_female": "Base/Types/dwarf_female/knockdown_lie.glb",
+     "goblin_female": "Base/Types/goblin_female/knockdown_lie.glb",
+     "ogre_female": "Base/Types/ogre_female/knockdown_lie.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/knockdown_lie.glb",
      "human_male": "Base/knockdown_lie.glb"
     }
    },
@@ -9039,7 +10239,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Підйом",
    "name_en": "Get up",
@@ -9062,6 +10268,12 @@
      "elf": "Base/Types/elf/get_up.glb",
      "orc": "Base/Types/orc/get_up.glb",
      "ratfolk": "Base/Types/ratfolk/get_up.glb",
+     "elf_female": "Base/Types/elf_female/get_up.glb",
+     "orc_female": "Base/Types/orc_female/get_up.glb",
+     "dwarf_female": "Base/Types/dwarf_female/get_up.glb",
+     "goblin_female": "Base/Types/goblin_female/get_up.glb",
+     "ogre_female": "Base/Types/ogre_female/get_up.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/get_up.glb",
      "human_male": "Base/get_up.glb"
     }
    },
@@ -9122,7 +10334,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Смерть: на спину",
    "name_en": "Death: falls back",
@@ -9146,6 +10364,12 @@
      "elf": "Base/Types/elf/death_1.glb",
      "orc": "Base/Types/orc/death_1.glb",
      "ratfolk": "Base/Types/ratfolk/death_1.glb",
+     "elf_female": "Base/Types/elf_female/death_1.glb",
+     "orc_female": "Base/Types/orc_female/death_1.glb",
+     "dwarf_female": "Base/Types/dwarf_female/death_1.glb",
+     "goblin_female": "Base/Types/goblin_female/death_1.glb",
+     "ogre_female": "Base/Types/ogre_female/death_1.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/death_1.glb",
      "human_male": "Base/death_1.glb"
     }
    },
@@ -9206,7 +10430,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Смерть: на коліна й ниць",
    "name_en": "Death: knees, face down",
@@ -9230,6 +10460,12 @@
      "elf": "Base/Types/elf/death_2.glb",
      "orc": "Base/Types/orc/death_2.glb",
      "ratfolk": "Base/Types/ratfolk/death_2.glb",
+     "elf_female": "Base/Types/elf_female/death_2.glb",
+     "orc_female": "Base/Types/orc_female/death_2.glb",
+     "dwarf_female": "Base/Types/dwarf_female/death_2.glb",
+     "goblin_female": "Base/Types/goblin_female/death_2.glb",
+     "ogre_female": "Base/Types/ogre_female/death_2.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/death_2.glb",
      "human_male": "Base/death_2.glb"
     }
    },
@@ -9290,7 +10526,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Смерть: з розворотом",
    "name_en": "Death: spins and falls",
@@ -9314,6 +10556,12 @@
      "elf": "Base/Types/elf/death_3.glb",
      "orc": "Base/Types/orc/death_3.glb",
      "ratfolk": "Base/Types/ratfolk/death_3.glb",
+     "elf_female": "Base/Types/elf_female/death_3.glb",
+     "orc_female": "Base/Types/orc_female/death_3.glb",
+     "dwarf_female": "Base/Types/dwarf_female/death_3.glb",
+     "goblin_female": "Base/Types/goblin_female/death_3.glb",
+     "ogre_female": "Base/Types/ogre_female/death_3.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/death_3.glb",
      "human_male": "Base/death_3.glb"
     }
    },
@@ -9378,7 +10626,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Помітив ворога",
    "name_en": "Notice",
@@ -9402,6 +10656,12 @@
      "elf": "Base/Types/elf/notice.glb",
      "orc": "Base/Types/orc/notice.glb",
      "ratfolk": "Base/Types/ratfolk/notice.glb",
+     "elf_female": "Base/Types/elf_female/notice.glb",
+     "orc_female": "Base/Types/orc_female/notice.glb",
+     "dwarf_female": "Base/Types/dwarf_female/notice.glb",
+     "goblin_female": "Base/Types/goblin_female/notice.glb",
+     "ogre_female": "Base/Types/ogre_female/notice.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/notice.glb",
      "human_male": "Base/notice.glb"
     }
    },
@@ -9466,7 +10726,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Взаємодія",
    "name_en": "Interact",
@@ -9490,6 +10756,12 @@
      "elf": "Base/Types/elf/interact.glb",
      "orc": "Base/Types/orc/interact.glb",
      "ratfolk": "Base/Types/ratfolk/interact.glb",
+     "elf_female": "Base/Types/elf_female/interact.glb",
+     "orc_female": "Base/Types/orc_female/interact.glb",
+     "dwarf_female": "Base/Types/dwarf_female/interact.glb",
+     "goblin_female": "Base/Types/goblin_female/interact.glb",
+     "ogre_female": "Base/Types/ogre_female/interact.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/interact.glb",
      "human_male": "Base/interact.glb"
     }
    },
@@ -9554,7 +10826,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Підняти з землі",
    "name_en": "Pick up",
@@ -9578,6 +10856,12 @@
      "elf": "Base/Types/elf/pick_up.glb",
      "orc": "Base/Types/orc/pick_up.glb",
      "ratfolk": "Base/Types/ratfolk/pick_up.glb",
+     "elf_female": "Base/Types/elf_female/pick_up.glb",
+     "orc_female": "Base/Types/orc_female/pick_up.glb",
+     "dwarf_female": "Base/Types/dwarf_female/pick_up.glb",
+     "goblin_female": "Base/Types/goblin_female/pick_up.glb",
+     "ogre_female": "Base/Types/ogre_female/pick_up.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/pick_up.glb",
      "human_male": "Base/pick_up.glb"
     }
    },
@@ -9642,7 +10926,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Відчинити двері",
    "name_en": "Open door",
@@ -9666,6 +10956,12 @@
      "elf": "Base/Types/elf/open_door.glb",
      "orc": "Base/Types/orc/open_door.glb",
      "ratfolk": "Base/Types/ratfolk/open_door.glb",
+     "elf_female": "Base/Types/elf_female/open_door.glb",
+     "orc_female": "Base/Types/orc_female/open_door.glb",
+     "dwarf_female": "Base/Types/dwarf_female/open_door.glb",
+     "goblin_female": "Base/Types/goblin_female/open_door.glb",
+     "ogre_female": "Base/Types/ogre_female/open_door.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/open_door.glb",
      "human_male": "Base/open_door.glb"
     }
    },
@@ -9730,7 +11026,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Випити зілля",
    "name_en": "Use item (drink)",
@@ -9754,6 +11056,12 @@
      "elf": "Base/Types/elf/use_item.glb",
      "orc": "Base/Types/orc/use_item.glb",
      "ratfolk": "Base/Types/ratfolk/use_item.glb",
+     "elf_female": "Base/Types/elf_female/use_item.glb",
+     "orc_female": "Base/Types/orc_female/use_item.glb",
+     "dwarf_female": "Base/Types/dwarf_female/use_item.glb",
+     "goblin_female": "Base/Types/goblin_female/use_item.glb",
+     "ogre_female": "Base/Types/ogre_female/use_item.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/use_item.glb",
      "human_male": "Base/use_item.glb"
     }
    },
@@ -9818,7 +11126,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Розмова",
    "name_en": "Talk",
@@ -9842,6 +11156,12 @@
      "elf": "Base/Types/elf/talk.glb",
      "orc": "Base/Types/orc/talk.glb",
      "ratfolk": "Base/Types/ratfolk/talk.glb",
+     "elf_female": "Base/Types/elf_female/talk.glb",
+     "orc_female": "Base/Types/orc_female/talk.glb",
+     "dwarf_female": "Base/Types/dwarf_female/talk.glb",
+     "goblin_female": "Base/Types/goblin_female/talk.glb",
+     "ogre_female": "Base/Types/ogre_female/talk.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/talk.glb",
      "human_male": "Base/talk.glb"
     }
    },
@@ -9906,7 +11226,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Помах рукою",
    "name_en": "Wave",
@@ -9930,6 +11256,12 @@
      "elf": "Base/Types/elf/wave.glb",
      "orc": "Base/Types/orc/wave.glb",
      "ratfolk": "Base/Types/ratfolk/wave.glb",
+     "elf_female": "Base/Types/elf_female/wave.glb",
+     "orc_female": "Base/Types/orc_female/wave.glb",
+     "dwarf_female": "Base/Types/dwarf_female/wave.glb",
+     "goblin_female": "Base/Types/goblin_female/wave.glb",
+     "ogre_female": "Base/Types/ogre_female/wave.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/wave.glb",
      "human_male": "Base/wave.glb"
     }
    },
@@ -9994,7 +11326,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Радість",
    "name_en": "Cheer",
@@ -10018,6 +11356,12 @@
      "elf": "Base/Types/elf/cheer.glb",
      "orc": "Base/Types/orc/cheer.glb",
      "ratfolk": "Base/Types/ratfolk/cheer.glb",
+     "elf_female": "Base/Types/elf_female/cheer.glb",
+     "orc_female": "Base/Types/orc_female/cheer.glb",
+     "dwarf_female": "Base/Types/dwarf_female/cheer.glb",
+     "goblin_female": "Base/Types/goblin_female/cheer.glb",
+     "ogre_female": "Base/Types/ogre_female/cheer.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/cheer.glb",
      "human_male": "Base/cheer.glb"
     }
    },
@@ -10082,7 +11426,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Вказати",
    "name_en": "Point",
@@ -10106,6 +11456,12 @@
      "elf": "Base/Types/elf/point.glb",
      "orc": "Base/Types/orc/point.glb",
      "ratfolk": "Base/Types/ratfolk/point.glb",
+     "elf_female": "Base/Types/elf_female/point.glb",
+     "orc_female": "Base/Types/orc_female/point.glb",
+     "dwarf_female": "Base/Types/dwarf_female/point.glb",
+     "goblin_female": "Base/Types/goblin_female/point.glb",
+     "ogre_female": "Base/Types/ogre_female/point.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/point.glb",
      "human_male": "Base/point.glb"
     }
    },
@@ -10165,7 +11521,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Сісти",
    "name_en": "Sit down",
@@ -10189,6 +11551,12 @@
      "elf": "Base/Types/elf/sit_down.glb",
      "orc": "Base/Types/orc/sit_down.glb",
      "ratfolk": "Base/Types/ratfolk/sit_down.glb",
+     "elf_female": "Base/Types/elf_female/sit_down.glb",
+     "orc_female": "Base/Types/orc_female/sit_down.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sit_down.glb",
+     "goblin_female": "Base/Types/goblin_female/sit_down.glb",
+     "ogre_female": "Base/Types/ogre_female/sit_down.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sit_down.glb",
      "human_male": "Base/sit_down.glb"
     }
    },
@@ -10248,7 +11616,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Сидить",
    "name_en": "Sitting",
@@ -10272,6 +11646,12 @@
      "elf": "Base/Types/elf/sit_idle.glb",
      "orc": "Base/Types/orc/sit_idle.glb",
      "ratfolk": "Base/Types/ratfolk/sit_idle.glb",
+     "elf_female": "Base/Types/elf_female/sit_idle.glb",
+     "orc_female": "Base/Types/orc_female/sit_idle.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sit_idle.glb",
+     "goblin_female": "Base/Types/goblin_female/sit_idle.glb",
+     "ogre_female": "Base/Types/ogre_female/sit_idle.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sit_idle.glb",
      "human_male": "Base/sit_idle.glb"
     }
    },
@@ -10331,7 +11711,13 @@
     "ogre",
     "elf",
     "orc",
-    "ratfolk"
+    "ratfolk",
+    "elf_female",
+    "orc_female",
+    "dwarf_female",
+    "goblin_female",
+    "ogre_female",
+    "ratfolk_female"
    ],
    "name_uk": "Підвестися",
    "name_en": "Stand up",
@@ -10355,6 +11741,12 @@
      "elf": "Base/Types/elf/sit_stand_up.glb",
      "orc": "Base/Types/orc/sit_stand_up.glb",
      "ratfolk": "Base/Types/ratfolk/sit_stand_up.glb",
+     "elf_female": "Base/Types/elf_female/sit_stand_up.glb",
+     "orc_female": "Base/Types/orc_female/sit_stand_up.glb",
+     "dwarf_female": "Base/Types/dwarf_female/sit_stand_up.glb",
+     "goblin_female": "Base/Types/goblin_female/sit_stand_up.glb",
+     "ogre_female": "Base/Types/ogre_female/sit_stand_up.glb",
+     "ratfolk_female": "Base/Types/ratfolk_female/sit_stand_up.glb",
      "human_male": "Base/sit_stand_up.glb"
     }
    },
@@ -10406,7 +11798,8 @@
    },
    "transitions": [],
    "body_types": [
-    "ratfolk"
+    "ratfolk",
+    "ratfolk_female"
    ],
    "note": "a slow sway",
    "name_uk": "Хвіст: спокій",
@@ -10424,6 +11817,7 @@
     "provenance": "Base/Provenance/tail_idle.json",
     "retarget_sheet": "Base/Previews/retarget_tail_idle.png",
     "glb_by_type": {
+     "ratfolk_female": "Base/Types/ratfolk_female/tail_idle.glb",
      "ratfolk": "Base/tail_idle.glb"
     }
    },
@@ -10442,7 +11836,8 @@
    },
    "transitions": [],
    "body_types": [
-    "ratfolk"
+    "ratfolk",
+    "ratfolk_female"
    ],
    "note": "streams behind, follows the hips",
    "name_uk": "Хвіст: у русі",
@@ -10460,6 +11855,7 @@
     "provenance": "Base/Provenance/tail_move.json",
     "retarget_sheet": "Base/Previews/retarget_tail_move.png",
     "glb_by_type": {
+     "ratfolk_female": "Base/Types/ratfolk_female/tail_move.glb",
      "ratfolk": "Base/tail_move.glb"
     }
    },
@@ -10478,7 +11874,8 @@
    },
    "transitions": [],
    "body_types": [
-    "ratfolk"
+    "ratfolk",
+    "ratfolk_female"
    ],
    "note": "raised, twitching",
    "name_uk": "Хвіст: насторожі",
@@ -10496,6 +11893,7 @@
     "provenance": "Base/Provenance/tail_alert.json",
     "retarget_sheet": "Base/Previews/retarget_tail_alert.png",
     "glb_by_type": {
+     "ratfolk_female": "Base/Types/ratfolk_female/tail_alert.glb",
      "ratfolk": "Base/tail_alert.glb"
     }
    },

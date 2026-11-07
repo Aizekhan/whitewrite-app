@@ -6410,7 +6410,7 @@
     html += '<div class="fz-libcats" role="tablist">' + cats.map(function (k) {
       var m = n(k); return '<button class="btn mini' + (k === cat ? ' primary' : ' ghost') + '" role="tab" aria-selected="' + (k === cat) + '" data-fzlibcat="' + k + '">' + esc(fzL({ uk: FG.ANIM_CATS[k][0], en: FG.ANIM_CATS[k][1] })) + (m ? ' · ' + m : '') + '</button>';
     }).join("") + '</div>';
-    if (cat === "tail" && body !== "ratfolk") html += '<p class="muted">' + A.tailOnly + '</p>';
+    if (cat === "tail" && !FG.hasTail(body)) html += '<p class="muted">' + A.tailOnly + '</p>';
     html += '<div class="fz-anims">' + lib.clips.filter(function (x) { return x.category === cat; }).map(function (x) {
       var on = !!have[x.id], meta = [Math.round(x.duration * 10) / 10 + " " + A.sec, x.loop ? "⟳ " + A.loop : "", x.active ? "⚔ " + A.hit : "", x.prio === 1 ? "★ " + A.base : ""].filter(Boolean).join(" · ");
       return '<div class="fz-anim' + (on ? ' is-on' : '') + '"><img alt="" loading="lazy" src="' + FG.ANIM_FILES + x.files.poster + '" data-s="' + FG.ANIM_FILES + x.files.poster + '" data-p="' + FG.ANIM_FILES + x.files.preview + '"' +
@@ -6717,7 +6717,7 @@
     if (d.fzlibadd && c && ANIMS) { var lf = c.forge, lx = ANIMS.clips.filter(function (y) { return y.id === d.fzlibadd; })[0];
       if (FG.clipsOf(lf).some(function (k) { return k.lib === d.fzlibadd; })) lf.clips = FG.clipsOf(lf).filter(function (k) { return k.lib !== d.fzlibadd; }); else if (lx) fzLibAdd(lf, [lx]);
       fzSave(c, lf); return true; }
-    if (d.fzlibmin !== undefined && c && ANIMS) { var mf = c.forge; fzLibAdd(mf, ANIMS.clips.filter(function (y) { return y.prio === 1 && (y.category !== "tail" || mf.body === "ratfolk"); })); fzSave(c, mf); return true; }
+    if (d.fzlibmin !== undefined && c && ANIMS) { var mf = c.forge; fzLibAdd(mf, ANIMS.clips.filter(function (y) { return y.prio === 1 && (y.category !== "tail" || FG.hasTail(mf.body)); })); fzSave(c, mf); return true; }
     if (d.fzclipdel) { f.clips = FG.clipsOf(f); f.clips.splice(+d.fzclipdel, 1); fzSave(c, f); return true; }
     return true;
   }
