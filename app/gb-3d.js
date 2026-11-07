@@ -53,7 +53,9 @@ function disposeTree(root) {
 }
 export async function modelInfo(file, siblings) { const r = await load(file, siblings); const out = { tris: countTris(r.root), rights: r.meta || "" }; disposeTree(r.root); return out; }
 
-export function view3d(file, T, siblings, onShot) {
+// opts.shape = { Thin: 0–100, … } → the morph targets of that name; opts.labels names them, opts.onShape(key, value) saves a moved slider
+export function view3d(file, T, siblings, onShot, opts) {
+  opts = opts || {};
   const box = document.createElement("div");
   box.className = "v3d";
   box.setAttribute("role", "dialog");
@@ -65,7 +67,7 @@ export function view3d(file, T, siblings, onShot) {
     '<button class="btn" data-a="reset">' + T.reset + '</button>' +
     (onShot ? '<button class="btn" data-a="shot" title="' + T.shotTip + '">' + T.shot + '</button>' : '') +
     '<button class="btn" data-a="close">' + T.close + '</button></div>' +
-    '<div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
+    '<div class="v3d-shape" hidden></div><div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
   box.querySelector("b").textContent = file.name;
   document.body.appendChild(box);
   const stage = box.querySelector(".v3d-stage"), info = box.querySelector(".v3d-info");
@@ -122,9 +124,21 @@ export function view3d(file, T, siblings, onShot) {
     model = root;
     scene.add(model);
     if (clips && clips.length) { mixer = new THREE.AnimationMixer(model); mixer.clipAction(clips[0]).play(); }
+    if (opts.shape) shapeKeys();
     frame();
   }).catch((e) => { info.textContent = T.failed + ": " + (e && e.message ? e.message : e); });
 
+  // the body's shape keys: every mesh that has a morph target of that name follows its slider
+  function applyShape(k, v) { model.traverse((o) => { if (o.morphTargetDictionary && o.morphTargetDictionary[k] != null) o.morphTargetInfluences[o.morphTargetDictionary[k]] = v / 100; }); }
+  function shapeKeys() {
+    const names = new Set(); model.traverse((o) => { if (o.morphTargetDictionary) Object.keys(o.morphTargetDictionary).forEach((k) => names.add(k)); });
+    const keys = Object.keys(opts.labels || opts.shape).filter((k) => names.has(k)); if (!keys.length) return;
+    const panel = box.querySelector(".v3d-shape"); panel.hidden = false;
+    panel.innerHTML = keys.map((k) => '<label>' + (opts.labels && opts.labels[k] || k) + ' <span>' + (+opts.shape[k] || 0) + '</span><input type="range" min="0" max="100" step="5" value="' + (+opts.shape[k] || 0) + '" data-k="' + k + '"' + (opts.readonly ? ' disabled' : '') + '></label>').join("");
+    keys.forEach((k) => applyShape(k, +opts.shape[k] || 0));
+    panel.addEventListener("input", (e) => { const k = e.target.dataset.k; if (!k) return; applyShape(k, +e.target.value); e.target.previousElementSibling.textContent = e.target.value; });
+    panel.addEventListener("change", (e) => { const k = e.target.dataset.k; if (k && opts.onShape) opts.onShape(k, +e.target.value); });
+  }
   function close() {
     alive = false;
     renderer.setAnimationLoop(null);

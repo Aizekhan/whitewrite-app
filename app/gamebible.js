@@ -2589,6 +2589,7 @@
     if (b.dataset.lkdd) lookMenu(b); else lookPick(b);
   });
   $("d-body").addEventListener("input", function (e) { if (e.target.dataset && e.target.dataset.lk) { dcollect(); lookCount(); } });
+  document.addEventListener("input", function (e) { var t = e.target; if (t.dataset && t.dataset.fzshape && t.previousElementSibling) t.previousElementSibling.textContent = t.value; });
   document.addEventListener("mousedown", function (e) { if (!e.target.closest || !e.target.closest(".lk-f")) lookMenuClose(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.querySelector(".lk-menu")) { e.stopPropagation(); lookMenuClose(); } }, true); // Esc closes the menu, not the dossier
 
@@ -4880,34 +4881,35 @@
       ((open.files || []).some(function (f) { return K.fileSlot(f); }) ? '<div class="kit-files field files">' + (open.files || []).filter(function (f) { return K.fileSlot(f); }).map(fileRow).join("") + '</div>' : '') + '</div>';
   }
   // the link is written at once, like files (a new card is saved first)
-  async function setPrefab(id) {
-    if (open.isNew) { await save(true); if (open.isNew) return; }
-    var card = open, body = { section: card.section, prefab: id || firebase.firestore.FieldValue.delete(), updatedAt: stamp() };
+  async function setPrefab(id, tc) { // tc — another card (the Forge's character); default — the open card
+    if (!tc && open.isNew) { await save(true); if (open.isNew) return; }
+    var card = tc || open, body = { section: card.section, prefab: id || firebase.firestore.FieldValue.delete(), updatedAt: stamp() };
     if (card.src === "canon") body.canonRef = card.id;
     try { await gref().collection("cards").doc(card.id).set(body, { merge: true }); } catch (er) { return msg(STR.failed + ": " + (er.code || er.message)); }
     card.prefab = id || "";
-    if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
+    if (!tc) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); } else render();
   }
-  function prefabPicker() {
+  function prefabPicker(tc) {
+    var T = tc || open, tname = tc ? tc.title : ($("e-title").value || open.title);
     var all = allCards().filter(function (c) { return c.src === "game" && c.section === "assets"; }), groups = sec("assets").groups[LANG] || sec("assets").groups.uk;
-    var mine = groups[open.section === "enemies" ? 1 : 0];
+    var mine = groups[T.section === "enemies" ? 1 : 0];
     all.sort(function (a, b) { return ((b.fields.category === mine) - (a.fields.category === mine)) || String(a.title).localeCompare(String(b.title)); });
     var box = document.createElement("div"); box.className = "ask";
-    box.innerHTML = '<div class="ask-box is-long pf-pick" role="dialog" aria-modal="true" aria-label="' + esc(PF.title.replace("{t}", $("e-title").value || open.title)) + '"><h3>🧊 ' + esc(PF.title.replace("{t}", $("e-title").value || open.title)) + '</h3>' +
+    box.innerHTML = '<div class="ask-box is-long pf-pick" role="dialog" aria-modal="true" aria-label="' + esc(PF.title.replace("{t}", tname)) + '"><h3>🧊 ' + esc(PF.title.replace("{t}", tname)) + '</h3>' +
       (all.length ? '<input id="pf-q" placeholder="' + esc(PF.search) + '" autocomplete="off"><div class="pf-list" id="pf-list"></div>' : '<p class="warn">' + esc(PF.empty) + '</p>') +
       '<div class="row"><button type="button" class="btn" data-pfgo>' + esc(PF.go) + '</button><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button></div></div>';
     document.body.appendChild(box);
     var draw = function (q) {
       q = (q || "").toLowerCase();
       var l = all.filter(function (a) { return !q || (a.title + " " + (a.fields.category || "")).toLowerCase().indexOf(q) >= 0; });
-      var el = box.querySelector("#pf-list"); if (el) el.innerHTML = l.length ? l.map(function (a) { return '<button type="button" class="pf-row" data-pfset="' + esc(a.id) + '"' + (a.id === open.prefab ? ' aria-current="true"' : '') + '>' + assetLine(a) + '</button>'; }).join("") : '<p class="muted">' + esc(PF.noMatch) + '</p>';
+      var el = box.querySelector("#pf-list"); if (el) el.innerHTML = l.length ? l.map(function (a) { return '<button type="button" class="pf-row" data-pfset="' + esc(a.id) + '"' + (a.id === T.prefab ? ' aria-current="true"' : '') + '>' + assetLine(a) + '</button>'; }).join("") : '<p class="muted">' + esc(PF.noMatch) + '</p>';
     };
     draw("");
     var close = function () { box.remove(); };
     if (box.querySelector("#pf-q")) { box.querySelector("#pf-q").oninput = function (e) { draw(e.target.value); }; box.querySelector("#pf-q").focus(); }
     box.addEventListener("click", function (e) {
-      var r = e.target.closest("[data-pfset]"); if (r) { close(); setPrefab(r.dataset.pfset); return; }
-      if (e.target.closest("[data-pfgo]")) { close(); prefabClick({ dataset: { pfgo: "1" } }); return; }
+      var r = e.target.closest("[data-pfset]"); if (r) { close(); setPrefab(r.dataset.pfset, tc); return; }
+      if (e.target.closest("[data-pfgo]")) { close(); if (tc) goSection("assets"); else prefabClick({ dataset: { pfgo: "1" } }); return; }
       if (e.target.id === "ask-x" || e.target === box) close();
     });
     box.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); close(); } });
@@ -5570,8 +5572,8 @@
   }
   // onShot: in the open card the viewer offers «📷 Знімок для стилю» — the current view becomes a picture on the card
   // (a prefab has no picture of its own; the snapshot gets the 🖌 badge and the automatic AI style check)
-  function view3d(f, files, onShot) {
-    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files, onShot); }).catch(function (e) { notify(STR.failed + ": " + (e.message || e)); });
+  function view3d(f, files, onShot, opts) {
+    import("./gb-3d.js").then(function (m) { m.view3d(f, STR.v3d, files, onShot, opts); }).catch(function (e) { notify(STR.failed + ": " + (e.message || e)); });
   }
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
@@ -5635,7 +5637,7 @@
     var card = open, f = (card.files || []).filter(function (x) { return x.id === id; })[0];
     if (!f || !(await askConfirm(STR.confirmFile + " " + f.name + "?", { danger: true }))) return;
     try {
-      await firebase.storage().ref(f.path).delete().catch(function (e) { if (e.code !== "storage/object-not-found") throw e; });
+      if (!f.linked) await firebase.storage().ref(f.path).delete().catch(function (e) { if (e.code !== "storage/object-not-found") throw e; });
       await gref().collection("cards").doc(card.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
       card.files = card.files.filter(function (x) { return x.id !== id; });
       if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
@@ -5736,7 +5738,7 @@
       await gref().collection("cards").doc(open.id).set({ section: open.section, canonRef: open.id, hidden: true }, { merge: true });
     } else {
       if (!(await askConfirm(STR.confirmDel, { danger: true }))) return;
-      await Promise.all((open.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+      await Promise.all((open.files || []).filter(function (f) { return !f.linked; }).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await gref().collection("cards").doc(open.id).delete();
     }
     closeLeaf();
@@ -6032,8 +6034,13 @@
       blockers: "Що заважає затвердити", approve: "✓ Затвердити", approveRev: "✓ Затвердити цю", approveQ: "Коментар до затвердження (необовʼязково):", unapprove: "Зняти затвердження",
       unapproveQ: "Зняти затвердження етапу? Версії лишаються.", approvedBy: "Затверджено", versions: "Версії", noVersions: "Ще немає версій.", upload: "⤒ Нова версія",
       noteQ: "Що в цій версії (необовʼязково):", restore: "↺ Повернути версію", restored: "Повернуто з v{n}", compare: "Порівняти", compareHint: "Познач дві версії, щоб порівняти.",
-      cmpClose: "Закрити порівняння", gen: "✦ Згенерувати · Meshy — скоро", genTip: "Генерація 3D через Meshy — наступний етап; поки — ручне завантаження.",
+      cmpClose: "Закрити порівняння",
       fillCanon: "⤓ Заповнити з Біблії ({n})",
+      from: { imgs: "На картці вже є картинки ({n}) — портрет, референси.", imgBtn: "＋ Версія з картинок картки", imgNote: "з картинок картки",
+        pfBtn: "＋ Версія з префаба", pfNone: "Модель героя береться з його префаба в «Ассети й префаби».", pfEmpty: "У префаба ще немає файлу моделі — додай його в «🧩 Модель і комплект».", pfNote: "з префаба «{t}»",
+        rigBody: "Обери тип тіла — він дає еталонний скелет WhiteWrite, і тут зʼявиться готовий запит для Claude Code на підгонку моделі.",
+        newItem: "＋ Новий", noItems: "У персонажа ще немає предметів — перевіряти нічого.", toEquip: "→ Екіпірування", integReq: "Запит для Claude Code: перевірити предмети",
+        integAsk: "Перевір предмети персонажа «{c}» (WhiteWrite Кузня, {ref}): {items}.\n1. MCP whitewrite: get_character_forge {ref:\"{ref}\"} — затверджені моделі персонажа й предметів.\n2. У Unity чи Blender одягни кожен предмет на модель і перевір: clipping (наскрізні проходи в позах idle / walk / attack), deformation (згини), materials, scale.\n3. На кожну перевірку — report_forge_check {item:\"<ref предмета>\", check, result: passed | warning | failed, details}." },
       brief: { race: "Раса", cls: "Клас", role: "Роль у грі", silhouette: "Силует", proportions: "Пропорції", palette: "Палітра", refs: "Референси й обмеження" },
       context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
       slots: "Слоти", bindItem: "＋ привʼязати предмет…", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
@@ -6068,8 +6075,13 @@
       blockers: "What blocks approval", approve: "✓ Approve", approveRev: "✓ Approve this", approveQ: "Approval comment (optional):", unapprove: "Withdraw approval",
       unapproveQ: "Withdraw the stage's approval? The versions stay.", approvedBy: "Approved", versions: "Versions", noVersions: "No versions yet.", upload: "⤒ New version",
       noteQ: "What is in this version (optional):", restore: "↺ Restore version", restored: "Restored from v{n}", compare: "Compare", compareHint: "Tick two versions to compare.",
-      cmpClose: "Close the comparison", gen: "✦ Generate · Meshy — soon", genTip: "3D generation through Meshy is the next step; for now — manual import.",
+      cmpClose: "Close the comparison",
       fillCanon: "⤓ Fill in from the Bible ({n})",
+      from: { imgs: "The card already has pictures ({n}) — a portrait, references.", imgBtn: "＋ A version from the card's pictures", imgNote: "from the card's pictures",
+        pfBtn: "＋ A version from the prefab", pfNone: "The hero's model comes from its prefab in “Assets & prefabs”.", pfEmpty: "The prefab has no model file yet — add it in “🧩 Model & kit”.", pfNote: "from the prefab “{t}”",
+        rigBody: "Pick a body type — it gives the WhiteWrite reference skeleton, and a ready request for Claude Code to fit the model appears here.",
+        newItem: "＋ New", noItems: "The character has no items yet — nothing to check.", toEquip: "→ Equipment", integReq: "Request for Claude Code: check the items",
+        integAsk: "Check the items of the character «{c}» (WhiteWrite Forge, {ref}): {items}.\n1. MCP whitewrite: get_character_forge {ref:\"{ref}\"} — the approved models of the character and the items.\n2. In Unity or Blender put every item on the model and check: clipping (poke-through in idle / walk / attack poses), deformation (bends), materials, scale.\n3. For every check — report_forge_check {item:\"<item ref>\", check, result: passed | warning | failed, details}." },
       brief: { race: "Race", cls: "Class", role: "Game role", silhouette: "Silhouette", proportions: "Proportions", palette: "Palette", refs: "References & constraints" },
       context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
       slots: "Slots", bindItem: "＋ bind an item…", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
@@ -6198,6 +6210,7 @@
       (canWrite ? ' <button class="btn mini ghost" data-fzunapp="' + s.id + '">' + FZ.unapprove + '</button>' : '') + '</p>';
     else if (bl.length) html += '<div class="fz-block"><b>' + FZ.blockers + ':</b><ul>' + bl.map(function (b) { return '<li>' + esc(fzL(b)) + '</li>'; }).join("") + '</ul></div>';
     if (s.kind === "brief") html += fzBriefHtml(c);
+    if (s.id === "concept" || s.id === "mesh" || (s.id === "rig" && !FG.refRig(f.rig))) html += fzFromHtml(c, s.id);
     if (s.kind === "equip") html += fzEquipHtml(c, ctx);
     if (s.kind === "integrate") html += fzIntegHtml(c, ctx);
     if (s.id === "rig" && FG.refRig(f.rig)) html += fzFitHtml(c);
@@ -6233,7 +6246,7 @@
         (is3D(x) ? ' <button class="btn mini" data-fzv3d="' + esc(o.key) + ':' + esc(x.id) + '">' + STR.v3d.open + '</button>' : '') + '</span>' : '';
     };
     var html = '<h4 class="fz-h">' + FZ.versions + '</h4>' + (canWrite ? '<div class="row"><label class="btn"><input type="file" multiple hidden data-fzup="' + esc(o.key) + ':' + stageId + '">' + FZ.upload + '</label>' +
-      (FG.stage(stageId) && FG.stage(stageId).kind === "files" || !isChar ? '<button class="btn" disabled title="' + esc(FZ.genTip) + '">' + FZ.gen + '</button>' : '') + '</div>' : '');
+      (FG.stage(stageId) && FG.stage(stageId).kind === "files" || !isChar ? '' : '') + '</div>' : '');
     if (!revs.length) return html + '<p class="muted">' + FZ.noVersions + '</p>';
     if (revs.length > 1) html += '<p class="hint">' + FZ.compareHint + '</p>';
     html += revs.map(function (r) {
@@ -6258,7 +6271,7 @@
         var v = FG.validation(i, c, game);
         return '<span class="fz-chip"><button class="linkish" data-fzitem="' + esc(i.key) + '">' + esc(i.title) + '</button> <span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span>' +
           (canWrite ? ' <button class="btn mini ghost" data-fzunbind="' + esc(i.key) + '" aria-label="' + esc(FZ.unbind + " " + i.title) + '">✕</button>' : '') + '</span>';
-      }).join("") + (canWrite && cand.length ? '<select data-fzbind aria-label="' + esc(FZ.bindItem) + '"><option value="">' + esc(FZ.bindItem) + '</option>' + cand.map(function (i) { return '<option value="' + esc(i.key) + '">' + esc(i.title) + '</option>'; }).join("") + '</select>' : '') + '</td></tr>';
+      }).join("") + (canWrite ? ' <button class="btn mini" data-fznewitem="' + esc(s.id) + '">' + esc(FZ.from.newItem) + '</button>' : '') + (canWrite && cand.length ? '<select data-fzbind aria-label="' + esc(FZ.bindItem) + '"><option value="">' + esc(FZ.bindItem) + '</option>' + cand.map(function (i) { return '<option value="' + esc(i.key) + '">' + esc(i.title) + '</option>'; }).join("") + '</select>' : '') + '</td></tr>';
     }).join("") + '</table>';
     html += '<h4 class="fz-h">' + FZ.loadouts + '</h4>' + (f.loadouts || []).map(function (l, li) {
       return '<div class="fz-rev"><b>' + esc(l.name) + '</b>' + (canWrite ? ' <button class="btn mini ghost" data-fzlodel="' + li + '" aria-label="' + esc(STR.remove + " " + l.name) + '">✕</button>' : '') +
@@ -6272,8 +6285,43 @@
   function fzIssuesHtml(iss) {
     return iss.length ? '<ul class="fz-iss">' + iss.map(function (i) { return '<li class="qd-' + (i.level === "tip" ? "ok" : i.level) + '">' + (i.level === "error" ? "✕ " : i.level === "warn" ? "⚠ " : "· ") + esc(fzL(i)) + '</li>'; }).join("") + '</ul>' : '<p class="qd-ok">' + FZ.item.noIssues + '</p>';
   }
+  // what fills a stage besides «⤒ Нова версія» (v2.89): concept — the card's own pictures, base mesh — the hero's prefab of «Ассети й префаби»,
+  // rig without a reference skeleton — the body type that gives one (then the fit request for Claude Code appears)
+  function fzCardPics(c) { return (c.files || []).filter(function (x) { return isImage(x) && x.field !== "forge"; }); }
+  function fzFromHtml(c, sid) {
+    if (!canWrite) return "";
+    if (sid === "concept") { var pics = fzCardPics(c); return pics.length ? '<div class="fz-from"><span>' + esc(FZ.from.imgs.replace("{n}", pics.length)) + '</span><button class="btn" data-fzfromimg>' + esc(FZ.from.imgBtn) + '</button></div>' : ''; }
+    if (sid === "mesh") {
+      var a = assetCard(c.prefab);
+      return '<div class="fz-from">' + (a ? assetLine(a) + '<button class="btn" data-fzfrompf>' + esc(FZ.from.pfBtn) + '</button><button class="btn ghost" data-fzpfpick>' + esc(PF.change) + '</button>'
+        : '<span>' + esc(FZ.from.pfNone) + '</span><button class="btn" data-fzpfpick>' + esc(PF.qPrefab) + '</button>') + '</div>';
+    }
+    return '<div class="fz-from"><span>' + esc(FZ.from.rigBody) + '</span><label class="fz-lb">' + FZ.body + fzSel('data-fzf="body"', fzProf().bodies || [], c.forge.body || "", true) + '</label></div>';
+  }
+  // a version from files already on the card (no upload)
+  async function fzRevFrom(c, stageId, files, note) {
+    if (!files.length) return;
+    var f = fzClone(c.forge), rev = FG.newRev(f, stageId, files.map(function (m) { return m.id; }), note, fzWho()); f.revs = (f.revs || []).concat([rev]);
+    await fzSave(c, f);
+  }
+  // the base mesh from the hero's prefab: its model files are referenced (linked — the Storage file stays the prefab's, nothing is copied or deleted twice)
+  async function fzRevFromPrefab(c) {
+    var a = assetCard(c.prefab), K = window.__ASSET_KIT; if (!a) return;
+    var src = (a.files || []).filter(function (x) { var s = K.fileSlot(x); return s === "model" || s === "prefab" || s === "preview"; });
+    if (!src.some(function (x) { var s = K.fileSlot(x); return s === "model" || s === "prefab"; })) { notify(FZ.from.pfEmpty); return; }
+    var metas = src.map(function (x) { return Object.assign({}, x, { id: newId("file"), field: "forge", linked: a.id }); });
+    var body = { section: c.section, files: firebase.firestore.FieldValue.arrayUnion.apply(null, metas), updatedAt: stamp() };
+    if (c.src === "canon") body.canonRef = c.id;
+    try { await gref().collection("cards").doc(c.id).set(body, { merge: true }); } catch (er) { notify(STR.failed + ": " + (er.code || er.message)); return; }
+    c.files = (c.files || []).concat(metas);
+    await fzRevFrom(c, "mesh", metas, FZ.from.pfNote.replace("{t}", a.title || ""));
+  }
   function fzIntegHtml(c, ctx) {
-    return '<p class="hint">' + FZ.integHint + '</p>' + FG.itemsOf(c, ctx.items).map(function (i) {
+    var its = FG.itemsOf(c, ctx.items), ref = (c.src === "canon" ? "e:" : "c:") + c.id;
+    if (!its.length) return '<p class="hint">' + FZ.integHint + '</p><div class="fz-from"><span>' + esc(FZ.from.noItems) + '</span><button class="btn" data-fzstage="equip">' + esc(FZ.from.toEquip) + '</button></div>';
+    // the request for Claude Code: check every item on this character in Unity / Blender and report it back
+    var ask = FZ.from.integAsk.replace("{c}", c.title || "").replace("{ref}", ref).replace("{items}", its.map(function (i) { return "«" + i.title + "» (" + i.key + ")"; }).join(", "));
+    return '<p class="hint">' + FZ.integHint + '</p><details class="fz-ctx"><summary>' + esc(FZ.from.integReq) + '</summary><pre class="ln-cmd">' + esc(ask) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' + its.map(function (i) {
       var v = FG.validation(i, c, game);
       return '<div class="fz-rev"><div class="row"><button class="linkish" data-fzitem="' + esc(i.key) + '"><b>' + esc(i.title) + '</b></button><span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span></div>' + fzIssuesHtml(v.issues) + '</div>';
     }).join("");
@@ -6475,7 +6523,7 @@
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
@@ -6485,18 +6533,24 @@
     if (d.fzstage) { fz.stage = d.fzstage; fz.cmp = []; render(); return true; }
     if (d.fzcmpx !== undefined) { fz.cmp = []; render(); return true; }
     if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
-    if (d.fzref3d) { var rf = fzRefFile(d.fzref3d); view3d(rf, [rf]); return true; }
+    if (d.fzref3d) {
+      var rf = fzRefFile(d.fzref3d), mineB = c && c.forge.body === d.fzref3d, shp = {}; FG.SHAPES.forEach(function (k) { shp[k] = mineB ? +((c.forge.shape || {})[k]) || 0 : 0; });
+      view3d(rf, [rf], null, { shape: shp, labels: FZ.ref.shapes, readonly: mineB && !canWrite,
+        onShape: mineB && canWrite ? function (k, v) { var sf = fzClone(c.forge); sf.shape = sf.shape || {}; sf.shape[k] = v; fzSave(c, sf); } : null });
+      return true;
+    }
     if (d.fzlibcat) { fz.libCat = d.fzlibcat; render(); return true; }
     if (d.fzlib3d) { fzLib3d(d.fzlib3d, c); return true; }
     if (d.fzmanifest !== undefined && c) { download(slugify(c.title || "character") + ".forge.json", JSON.stringify(FG.manifest(c, fzItems(), game, LANG), null, 2)); return true; }
     if (!canWrite) return true;
     if (d.fznewchar !== undefined) { goSection("characters", function () { addCard(false); }); return true; }
     if (d.fznewitem !== undefined) {
+      var ownC = d.fznewitem && c; if (d.fznewitem) fz.slot = d.fznewitem; // from a slot of the equipment stage: the item belongs to this character
       askName(FZ.item.newQ, "", function (nm) { if (!nm) return;
       var gs = sec("gear"), sl = fz.slot && fzSlots().filter(function (s) { return s.id === fz.slot; })[0], grp = (gs.groups[LANG] || gs.groups.uk)[sl && sl.bind === "rigid" ? 0 : 1];
       var nid = newId("card");
       gref().collection("cards").doc(nid).set({ section: "gear", title: nm.trim(), status: "idea", note: "", defs: gs.defs.slice(), fields: { group: grp },
-        forge: sl ? { slot: sl.id, bind: sl.bind } : {}, order: Date.now(), createdAt: stamp(), updatedAt: stamp() }).then(function () { fz.item = "c:" + nid; render(); }); });
+        forge: Object.assign(sl ? { slot: sl.id, bind: sl.bind } : {}, ownC ? { owners: [ownC.id] } : {}), order: Date.now(), createdAt: stamp(), updatedAt: stamp() }).then(function () { fz.item = "c:" + nid; render(); }); });
       return true;
     }
     if (d.fzsadd) { fz.setup[d.fzsadd].push(d.fzsadd === "slots" ? { id: newId("slot"), uk: "", en: "", bind: "skinned" } : { id: newId(d.fzsadd === "rigs" ? "rig" : "body"), name: "", notes: "" }); render(); return true; }
@@ -6525,6 +6579,9 @@
     if (d.fzrestore) { var rq = fzSplit(d.fzrestore, 2), ro = (f.revs || []).filter(function (r) { return r.id === rq[2]; })[0];
       if (ro) { f.revs.push(FG.newRev(f, rq[1], ro.files, "", fzWho(), ro.id)); fzSave(c, f); } return true; }
     if (d.fzoff) { f.off = f.off || []; var oi = f.off.indexOf(d.fzoff); if (oi >= 0) f.off.splice(oi, 1); else f.off.push(d.fzoff); fzSave(c, f); return true; }
+    if (d.fzfromimg !== undefined && c) { fzRevFrom(c, "concept", fzCardPics(c), FZ.from.imgNote); return true; }
+    if (d.fzfrompf !== undefined && c) { fzRevFromPrefab(c); return true; }
+    if (d.fzpfpick !== undefined && c) { prefabPicker(c); return true; }
     if (d.fzfill !== undefined && c) { // only the empty brief fields, from the Bible
       var fent = c.src === "canon" && entities.filter(function (e) { return e.id === c.id; })[0], fsg = FG.briefFromCanon(c.fields || {}, fent && fent.appearance), ff = fzClone(c.forge);
       ff.brief = ff.brief || {}; Object.keys(FZ.brief).forEach(function (k) { if (!String(ff.brief[k] || "").trim() && fsg[k]) ff.brief[k] = fsg[k]; });
