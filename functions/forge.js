@@ -83,8 +83,8 @@ var PROVIDERS = [{ id: 'manual', uk: 'Ручне завантаження', en: 
 // model onto a body and writes <id>.rig.json (schema artpipeline.rig/1) — rigCheck() reads it. «＋ Еталонні профілі» adds
 // them to a game with these very ids, so an item made on a reference fits every character of that body.
 var REF_RIGS = [
-  { id: 'mixamo65', name: 'Mixamo 65 · Humanoid', bones: 65, notes: 'WhiteWrite reference · mixamorig:* · T-pose · Unity Humanoid' },
-  { id: 'mixamo65+tail', name: 'Mixamo 65 + хвіст · Humanoid', bones: 71, notes: 'WhiteWrite reference · mixamorig:* + Tail1–6 (outside Humanoid) · T-pose' }];
+  { id: 'mixamo65', name: 'Humanoid 65 (сумісний з Mixamo)', bones: 65, notes: 'WhiteWrite reference · mixamorig:* · T-pose · Unity Humanoid' },
+  { id: 'mixamo65+tail', name: 'Humanoid 65 + хвіст (сумісний з Mixamo)', bones: 71, notes: 'WhiteWrite reference · mixamorig:* + Tail1–6 (outside Humanoid) · T-pose' }];
 var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human male', 1.80], ['human_female', 'Людина, жінка', 'Human female', 1.70],
   ['elf', 'Ельф', 'Elf', 1.85], ['orc', 'Орк', 'Orc', 1.95], ['dwarf', 'Гном (дварф)', 'Dwarf', 1.35], ['goblin', 'Гоблін', 'Goblin', 1.40],
   ['ogre', 'Огр', 'Ogre', 2.50], ['ratfolk', 'Щуролюд', 'Ratfolk', 1.45]]

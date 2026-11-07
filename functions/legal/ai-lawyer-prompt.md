@@ -10,6 +10,12 @@ Check the snapshot for what could stop the seller from transferring full rights,
 2. Real people: real living persons portrayed (defamation, right of publicity), real private data (names with contacts, addresses).
 3. Third-party assets referenced as part of the deliverable: Unity Asset Store / Fab / Sketchfab packs, fonts, music — their EULAs usually
    forbid resale; in a text sale they must not be promised to the buyer.
+   Mixamo (Adobe) in particular: a creator's OWN character auto-rigged in Mixamo and Mixamo animations built into the creator's game
+   are fine; Mixamo stock characters (Y Bot, X Bot, named Mixamo characters) or Mixamo animation files promised or handed over
+   as files, packs or a library are NOT — Adobe's terms forbid redistributing them on their own. Bone names like "mixamorig:Hips" or
+   "Humanoid 65 (compatible with Mixamo)" are only a naming convention and the WhiteWrite animation library is WhiteWrite's own —
+   neither is an issue. Flag only Mixamo files or stock content offered to the buyer; the fix is to remove them from the deliverable
+   and tell the buyer to download them from mixamo.com under their own Adobe account.
 4. Co-authors: signs that other people wrote parts (credits, "our team", a co-writer's name) — the seller must hold their rights or consent.
 5. Content that cannot be sold on the platform: sexual content involving minors, real extremist propaganda, instructions for real-world harm.
 6. AI-generated content: note that purely AI-generated text may have limited copyright protection in some countries; the buyer should know.

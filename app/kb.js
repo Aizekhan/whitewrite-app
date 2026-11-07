@@ -627,7 +627,7 @@
           ["p", "У сервісі є готові <b>еталонні скелети й тіла-манекени</b> (будь-який тариф, без токенів): 8 типів тіла — людина-чоловік 1,80 м, людина-жінка 1,70, ельф 1,85, орк 1,95, гном 1,35, гоблін 1,40, огр 2,50, щуролюд 1,45 (з хвостом). Скелет у всіх — 65 кісток з іменами Mixamo (<code>mixamorig:Hips</code>…), T-поза, Unity Humanoid; між типами різняться лише довжини й ширини кісток. Вони завжди є у виборі «Профіль тіла» й «Профіль рига» поруч зі своїми профілями гри."],
           ["ul", [
             "<b>«⚙ Слоти й профілі» → «🦴 Еталони WhiteWrite»</b> — усі типи тіла з картинкою, <b>«🧊 Манекен у 3D»</b> і <b>«⤓ Пакет еталонів (.zip)»</b>: скрипт <code>conform_to_rig.py</code>, для кожного типу .fbx, .glb, .blend і rig.json, README. Потрібен Blender 4.5 LTS.",
-            "<b>Тип тіла персонажа</b> — обери еталон у «Профіль тіла», і скелет («Mixamo 65 · Humanoid» або «+ хвіст») проставиться сам.",
+            "<b>Тип тіла персонажа</b> — обери еталон у «Профіль тіла», і скелет («Humanoid 65 (сумісний з Mixamo)» або «+ хвіст») проставиться сам.",
             "<b>Статура</b> — повзунки Худорлявий / Масивний / Мʼязистий (0–100). Це ваги ключів форми <code>Thin</code> / <code>Heavy</code> / <code>Muscular</code>: ті самі імена на тілі й на кожному предметі, у Unity — <code>SetBlendShapeWeight</code>. Ідуть у маніфест (<code>body_shape</code>). <b>«▶ 3D»</b> поруч відкриває манекен із тими самими повзунками: форма змінюється наживо, а відпущений повзунок зберігається в персонажа (у еталонах — лише проба, без збереження).",
             "<b>Етап «Риг і скелет» → «Підігнати під еталон»</b> — готовий запит для Claude Code. Він бере затверджену «Базову модель» (Meshy, Mixamo чи свою в T- або A-позі), запускає <code>conform_to_rig.py</code> у Blender на твоєму ПК (~20–40 с на персонажа) і надсилає перевірку скелета. Ти завантажуєш новою версією FBX, GLB, прев’ю і <code>&lt;id&gt;.rig.json</code>.",
             "<b>Перевірка скелета</b> — з rig.json сама: усі кістки знайдено — <b>Пройдено</b>; бракує лише кінчиків пальців (*4) чи хвоста — <b>Є застереження</b> (вони без ваг, анімації не заважають); бракує будь-якої іншої кістки або скелет не той, що в профілі рига, — <b>Не пройдено</b>, етап «Риг» не затвердиш. Інший тип тіла, ніж у персонажа, — застереження.",
@@ -1312,7 +1312,7 @@
           ["ul", [
             "<b>Метрики</b> — скільки сутностей, записів культури, карток, квестів, сцен; заповненість.",
             "<b>ШІ-рецензія</b> — рівень готовності (концепт · ГДД · прототип · vertical slice · гра з гравцями), сильне й слабке, на що схоже.",
-            "<b>ШІ-юрист</b> — ризики: чужі торгові марки й персонажі, реальні люди, ліцензії, прохання до продавця.",
+            "<b>ШІ-юрист</b> — ризики: чужі торгові марки й персонажі, реальні люди, ліцензії, прохання до продавця. Зокрема Mixamo: свій персонаж, заригований у Mixamo, — нормально, а стокові персонажі чи файли анімацій Mixamo в продажу — ні (умови Adobe забороняють роздавати їх окремо); назви кісток «mixamorig:» і бібліотека анімацій WhiteWrite — не проблема.",
             "<b>Модератор</b> — людина остаточно вирішує: сертифікувати (з рівнем і нотаткою) чи відхилити. Відхилення розморожує світ; плата за перевірку не повертається.",
           ]],
           ["h", "Продаж і купівля"],
@@ -1990,7 +1990,7 @@
           ["p", "The service has ready <b>reference skeletons and dummy bodies</b> (any plan, no tokens): 8 body types — human male 1.80 m, human female 1.70, elf 1.85, orc 1.95, dwarf 1.35, goblin 1.40, ogre 2.50, ratfolk 1.45 (with a tail). The skeleton of all of them has 65 bones with Mixamo names (<code>mixamorig:Hips</code>…), T-pose, Unity Humanoid; between types only bone lengths and widths differ. They are always in the “Body profile” and “Rig profile” choice next to the game's own profiles."],
           ["ul", [
             "<b>“⚙ Slots & profiles” → “🦴 WhiteWrite references”</b> — every body type with a picture, <b>“🧊 Dummy in 3D”</b> and <b>“⤓ Reference pack (.zip)”</b>: the <code>conform_to_rig.py</code> script, each type's .fbx, .glb, .blend and rig.json, a README. Needs Blender 4.5 LTS.",
-            "<b>The character's body type</b> — pick a reference in “Body profile”, and the skeleton (“Mixamo 65 · Humanoid” or “+ tail”) is set by itself.",
+            "<b>The character's body type</b> — pick a reference in “Body profile”, and the skeleton (“Humanoid 65 (compatible with Mixamo)” or “+ tail”) is set by itself.",
             "<b>Build</b> — the Thin / Heavy / Muscular sliders (0–100). They are the weights of the <code>Thin</code> / <code>Heavy</code> / <code>Muscular</code> shape keys: the same names on the body and on every item, in Unity — <code>SetBlendShapeWeight</code>. They go into the manifest (<code>body_shape</code>). <b>“▶ 3D”</b> next to them opens the dummy with the same sliders: the shape changes live, and a released slider is saved on the character (on the references — a preview only, nothing saved).",
             "<b>The «Rigging» stage → “Fit to the reference”</b> — a ready request for Claude Code. It takes the approved «Base mesh» (Meshy, Mixamo or your own in T or A pose), runs <code>conform_to_rig.py</code> in Blender on your PC (~20–40 s per character) and sends the skeleton check. You upload the FBX, GLB, preview and <code>&lt;id&gt;.rig.json</code> as a new version.",
             "<b>The skeleton check</b> — from rig.json by itself: every bone found — <b>Passed</b>; only finger tips (*4) or the tail missing — <b>Warning</b> (they carry no weights, animation is not affected); any other bone missing or another skeleton than the rig profile — <b>Failed</b>, the Rigging stage cannot be approved. Another body type than the character's — a warning.",
@@ -2675,7 +2675,7 @@
           ["ul", [
             "<b>Metrics</b> — how many entities, culture entries, cards, quests, scenes; how complete.",
             "<b>AI review</b> — the readiness level (concept · GDD · prototype · vertical slice · game with players), strengths and weaknesses, what it resembles.",
-            "<b>AI lawyer</b> — risks: others' trademarks and characters, real people, licences, requests to the seller.",
+            "<b>AI lawyer</b> — risks: others' trademarks and characters, real people, licences, requests to the seller. Mixamo in particular: your own character rigged in Mixamo is fine, Mixamo stock characters or animation files in the sale are not (Adobe's terms forbid handing them out on their own); “mixamorig:” bone names and the WhiteWrite animation library are no issue.",
             "<b>Moderator</b> — a person decides: certify (with a level and a note) or reject. A rejection unfreezes the world; the review fee is not refunded.",
           ]],
           ["h", "Selling and buying"],
