@@ -6112,7 +6112,7 @@
   var FZ_VCLS = { pending: "s-idea", passed: "s-game", warning: "s-warn", failed: "s-redo", manual: "s-agreed" };
   var FZ_SCLS = { approved: "s-game", ready: "s-agreed", progress: "s-work", todo: "s-idea", locked: "s-idea" };
   function fzType(c) { return FG.typeOf(c); }
-  function fzChar(c) { return { id: c.id, key: c.key, src: c.src, section: c.section, title: c.title, fields: c.fields, files: c.files || [], forge: Object.assign({}, c.forge || {}, { type: fzType(c) }) }; }
+  function fzChar(c) { return { id: c.id, key: c.key, src: c.src, section: c.section, title: c.title, fields: c.fields, files: c.files || [], prefab: c.prefab || "", forge: Object.assign({}, c.forge || {}, { type: fzType(c) }) }; }
   function fzChars() { return allCards().filter(function (c) { return c.section === "characters" || c.section === "enemies"; }).map(fzChar); }
   function fzItems() { return allCards().filter(function (c) { return c.section === "gear"; }).map(function (c) { return { id: c.id, key: c.key, src: c.src, section: c.section, title: c.title, fields: c.fields, files: c.files || [], forge: c.forge || {} }; }); }
   function fzCtx() { return { items: fzItems(), game: game }; }
@@ -6320,7 +6320,7 @@
     var its = FG.itemsOf(c, ctx.items), ref = (c.src === "canon" ? "e:" : "c:") + c.id;
     if (!its.length) return '<p class="hint">' + FZ.integHint + '</p><div class="fz-from"><span>' + esc(FZ.from.noItems) + '</span><button class="btn" data-fzstage="equip">' + esc(FZ.from.toEquip) + '</button></div>';
     // the request for Claude Code: check every item on this character in Unity / Blender and report it back
-    var ask = FZ.from.integAsk.replace("{c}", c.title || "").replace("{ref}", ref).replace("{items}", its.map(function (i) { return "«" + i.title + "» (" + i.key + ")"; }).join(", "));
+    var ask = FZ.from.integAsk.split("{c}").join(c.title || "").split("{ref}").join(ref).split("{items}").join(its.map(function (i) { return "«" + i.title + "» (" + i.key + ")"; }).join(", "));
     return '<p class="hint">' + FZ.integHint + '</p><details class="fz-ctx"><summary>' + esc(FZ.from.integReq) + '</summary><pre class="ln-cmd">' + esc(ask) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' + its.map(function (i) {
       var v = FG.validation(i, c, game);
       return '<div class="fz-rev"><div class="row"><button class="linkish" data-fzitem="' + esc(i.key) + '"><b>' + esc(i.title) + '</b></button><span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span></div>' + fzIssuesHtml(v.issues) + '</div>';
