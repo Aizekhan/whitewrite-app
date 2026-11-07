@@ -86,9 +86,12 @@ var REF_RIGS = [
   { id: 'mixamo65', name: 'Humanoid 65 (сумісний з Mixamo)', bones: 65, notes: 'WhiteWrite reference · mixamorig:* · T-pose · Unity Humanoid' },
   { id: 'mixamo65+tail', name: 'Humanoid 65 + хвіст (сумісний з Mixamo)', bones: 71, notes: 'WhiteWrite reference · mixamorig:* + Tail1–6 (outside Humanoid) · T-pose' }];
 var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human male', 1.80], ['human_female', 'Людина, жінка', 'Human female', 1.70],
-  ['elf', 'Ельф', 'Elf', 1.85], ['orc', 'Орк', 'Orc', 1.95], ['dwarf', 'Гном (дварф)', 'Dwarf', 1.35], ['goblin', 'Гоблін', 'Goblin', 1.40],
-  ['ogre', 'Огр', 'Ogre', 2.50], ['ratfolk', 'Щуролюд', 'Ratfolk', 1.45]]
-  .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], rig: b[0] === 'ratfolk' ? 'mixamo65+tail' : 'mixamo65' }; });
+  ['elf', 'Ельф, чоловік', 'Elf male', 1.85], ['elf_female', 'Ельф, жінка', 'Elf female', 1.78], ['orc', 'Орк, чоловік', 'Orc male', 1.95], ['orc_female', 'Орк, жінка', 'Orc female', 1.85],
+  ['dwarf', 'Гном (дварф), чоловік', 'Dwarf male', 1.35], ['dwarf_female', 'Гном (дварф), жінка', 'Dwarf female', 1.30], ['goblin', 'Гоблін, чоловік', 'Goblin male', 1.40], ['goblin_female', 'Гоблін, жінка', 'Goblin female', 1.35],
+  ['ogre', 'Огр, чоловік', 'Ogre male', 2.50], ['ogre_female', 'Огр, жінка', 'Ogre female', 2.35], ['ratfolk', 'Щуролюд, чоловік', 'Ratfolk male', 1.45], ['ratfolk_female', 'Щуролюд, жінка', 'Ratfolk female', 1.40]]
+  .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], rig: hasTail(b[0]) ? 'mixamo65+tail' : 'mixamo65' }; });
+// the ratfolk (male and female) has Tail1…6 and the tail clips; ids of the male types never change (the female ones are <race>_female)
+function hasTail(bodyId) { return /^ratfolk(_female)?$/.test(String(bodyId || '')); }
 var SHAPES = ['Thin', 'Heavy', 'Muscular']; // the same key names on the body and on every item: SetBlendShapeWeight moves them together
 var REF_FILES = '/assets/rigs/'; // <id>.glb (the dummy body, textures inside) and <id>_front.webp per body type
 var REF_PACK = '/assets/rigs/whitewrite-reference-rigs.zip'; // conform_to_rig.py + every type's .fbx / .glb / .blend / rig.json
@@ -112,7 +115,8 @@ var ANIM_KEEP = ['category', 'state', 'framework', 'transitions', 'loop', 'activ
 function animSnap(clip) { var o = { fbx: clip.files && clip.files.fbx || '' }; ANIM_KEEP.forEach(function (k) { if (clip[k] !== undefined) o[k] = clip[k]; }); return o; }
 function libClip(clip) { return { id: 'lib_' + clip.id, lib: clip.id, name: clip.name_uk || animName(clip.id), en: clip.name_en || animName(clip.id), status: 'done', a: animSnap(clip) }; }
 // the clips a body type needs Foot IK for: the retargeted foot sinks more than 1.5 cm into the floor
-function footIk(clip, bodyId) { var r = clip && clip.retarget && clip.retarget[bodyId]; return !!r && (r.ok === false || r.feet_min_m < -0.015); }
+// a type the retarget check has not measured yet (a new female type) takes its race's male type
+function footIk(clip, bodyId) { var t = (clip && clip.retarget) || {}, r = t[bodyId] || t[String(bodyId || '').replace(/_female$/, '')]; return !!r && (r.ok === false || r.feet_min_m < -0.015); }
 function refRig(id) { return REF_RIGS.filter(function (r) { return r.id === id; })[0] || null; }
 function refBody(id) { return REF_BODIES.filter(function (b) { return b.id === id; })[0] || null; }
 // the game's profiles with every reference one added (a profile with the same id is left as the author has it)
@@ -319,7 +323,7 @@ function briefFromCanon(fields, look) {
     proportions: j(look.height, look.build, look.age), palette: j(look.colors, look.skin, look.hairColor), refs: j(look.marks, look.accessories, look.weapon) };
 }
 var FORGE = { briefFromCanon: briefFromCanon, STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
-  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
+  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, hasTail: hasTail, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
   refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
   lbl: lbl, stage: stage, type: type, typeOf: typeOf, slotsOf: slotsOf, pipeline: pipeline, revsOf: revsOf, approvedRev: approvedRev, isApproved: isApproved, newRev: newRev,
   clipsOf: clipsOf, itemIssues: itemIssues, modelFile: modelFile, validation: validation, itemsOf: itemsOf, blockers: blockers, stageState: stageState,
