@@ -58,7 +58,7 @@ check(REFS.usedBy(G3, 'c:hero', 'uk').some((r) => r.kind === 'task'), false, 'a 
 // coverage: every reference field of the data model is a kind of the registry
 const covered = [].concat(...REFS.KINDS.map((k) => k.fields));
 const KNOWN = NV.REF_FIELDS.map((k) => 'quest.' + k).concat(['quest.source', 'dialogue.participants', 'dialogue.location', 'dialogue.nodes.speaker', 'dialogue.nodes.voice',
-  'plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)', 'card.mech.links', 'card.mech.sections[sound field]', 'card.mech.sections[card field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)']);
+  'plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)', 'card.mech.links', 'card.mech.sections[sound field]', 'card.mech.sections[card field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)', 'card.prefab']);
 KNOWN.forEach((f) => check(covered.indexOf(f) >= 0, true, 'covered: ' + f));
 check(MECH.TYPES.filter((t) => ['sound', 'card'].indexOf(t) < 0 && /ref|card|sound|audio/i.test(t)).filter((t) => t !== 'ref' && t !== 'refs').join(), '',
   'mechanics field types pointing at cards are all known (ref / refs point at rows of the same mechanic)');

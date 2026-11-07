@@ -13,7 +13,8 @@ const NV = require('../narrative-validate.js');
 const MECH = require('../mechanics.js');
 const FORGE = require('../forge.js');
 const REFS = require('../card-refs.js');
-const { personaText, lookText } = require('../persona.js'); // 🧠 a canon character's personality and 👤 appearance (World Bible) → get_card
+const { personaText, lookText } = require('../persona.js');
+const KIT = require('../asset-kit.js'); // 🧩 a prefab's kit (asset cards) and the prefab a hero card links (card.prefab) // 🧠 a canon character's personality and 👤 appearance (World Bible) → get_card
 const GUIDES = require('../setup-guides.js');
 const STYLE = require('./style')._style;
 
@@ -168,13 +169,18 @@ function cardView(ctx, ref) {
     const e = ctx.entities.find((x) => x.id === ref.slice(2)); if (!e) return null;
     const c = ctx.cards.find((x) => x.canonRef === e.id) || {};
     return { ref, canon: e.kind, title: e.name || '', description: e.desc || e.description || '', status: c.status || 'idea',
-      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}) };
+      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...prefabOf(ctx, c) };
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
   const gp = groupPalette(ctx, c);
   return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
-    ...(gp ? { group_palette: gp } : {}) };
+    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...prefabOf(ctx, c) };
+}
+// a hero card (character / enemy) links one card of «Ассети й префаби» instead of carrying model files: its title and kit
+function prefabOf(ctx, c) {
+  const a = c && c.prefab && ctx.cards.find((x) => x.id === c.prefab && x.section === 'assets');
+  return a ? { prefab: { ref: 'c:' + a.id, title: a.title || '', kit: KIT.kitSummary(a) } } : {};
 }
 // «Референси» / «Сцени»: a subsection may carry the group's colour palette (games/{g}.subPalettes[section][group], "#hex — name" per line)
 function groupPalette(ctx, c) {

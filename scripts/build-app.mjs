@@ -45,7 +45,7 @@ const REACT_PROD = {
 const hash = (s) => crypto.createHash('sha1').update(s).digest('hex').slice(0, 10);
 
 // Shared with Cloud Functions: functions/ is the source, app/firebase/ gets a copy (so app/ still runs as-is)
-for (const f of ['ai-models.js', 'paid-features.js', 'narrative-validate.js', 'setup-guides.js', 'style-guide.js', 'mechanics.js', 'forge.js', 'world-fill.js', 'card-refs.js', 'persona.js']) {
+for (const f of ['ai-models.js', 'paid-features.js', 'narrative-validate.js', 'setup-guides.js', 'style-guide.js', 'mechanics.js', 'forge.js', 'world-fill.js', 'card-refs.js', 'persona.js', 'asset-kit.js']) {
   const src = fs.readFileSync(path.join(ROOT, 'functions', f));
   const dst = path.join(SRC, 'firebase', f);
   if (!fs.existsSync(dst) || !src.equals(fs.readFileSync(dst))) { fs.writeFileSync(dst, src); console.log(`↻ app/firebase/${f} ← functions/${f}`); }

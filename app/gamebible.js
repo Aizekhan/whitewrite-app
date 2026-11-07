@@ -133,7 +133,7 @@
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
       editFields: "Режим редагування полів: назви, типи, видалення", editOn: "Режим редагування — натисни ще раз, щоб завершити",
-      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", audio: "Звуки", file: "Файли (префаби, моделі…)", palette: "Палітра кольорів", scene: "Мініпостановка сцени" },
+      ftypes: { text: "Текст", table: "Таблиця", image: "Картинки", audio: "Звуки", file: "Файли (префаби, моделі…)", prefab: "Префаб з «Ассети й префаби»", palette: "Палітра кольорів", scene: "Мініпостановка сцени" },
       pal: { add: "＋ Колір", paste: "Вставити коди", pastePh: "#1e2a44, #e0b050… або посилання coolors.co", fromImg: "🎨 З картинок", namePh: "назва: тло, акцент, світло…",
         color: "Колір", rm: "Прибрати колір", none: "Гами ще немає.", noImg: "Спершу додай картинки.", imgFail: "Не вдалося прочитати картинки.", groupTitle: "Гама групи «{g}»",
         groupHint: "Основні кольори групи — помітка для тих, хто малюватиме по цих референсах.", edit: "Гама групи", save: "Зберегти", clear: "Прибрати гаму" },
@@ -458,7 +458,7 @@
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
       editFields: "Field editing mode: names, types, deletion", editOn: "Editing mode — click again to finish",
-      ftypes: { text: "Text", table: "Table", image: "Images", audio: "Sounds", file: "Files (prefabs, models…)", palette: "Colour palette", scene: "Scene mock-up" },
+      ftypes: { text: "Text", table: "Table", image: "Images", audio: "Sounds", file: "Files (prefabs, models…)", prefab: "Prefab from “Assets & prefabs”", palette: "Colour palette", scene: "Scene mock-up" },
       pal: { add: "＋ Colour", paste: "Paste codes", pastePh: "#1e2a44, #e0b050… or a coolors.co link", fromImg: "🎨 From images", namePh: "name: background, accent, light…",
         color: "Colour", rm: "Remove colour", none: "No palette yet.", noImg: "Add images first.", imgFail: "Could not read the images.", groupTitle: "Palette of “{g}”",
         groupHint: "The group's main colours — a note for whoever draws from these references.", edit: "Group palette", save: "Save", clear: "Remove palette" },
@@ -689,6 +689,8 @@
     Object.assign(F("comparables", "Схожі ігри (ціна й чому)", "Comparable games (price and why)", "table"), { cols: LANG === "en" ? ["Game", "Price", "Why it is comparable"] : ["Гра", "Ціна", "Чому схожа"] }),
     F("usp", "Чим вона інша (USP)", "What sets it apart (USP)"), F("anti", "Анти-стовпи: чим гра НЕ є", "Anti-pillars: what the game is NOT"), F("business", "Бізнес-модель і ціна", "Business model & price")]; };
   var NUM = function (stats) { return Object.assign(stats ? F("numbers", "Х-ки", "Stats", "table") : F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
+  // hero cards link a prefab card of «Ассети й префаби» (card.prefab; card-refs KIND «prefab») — model files are not uploaded onto them (v2.88)
+  var PREFAB = function () { return F("model", "Префаб", "Prefab", "prefab"); };
   var STATS_SECS = ["characters", "enemies"]; // their «numbers» field is called «Х-ки» (owner, v2.86); older cards are renamed on opening
   var CANON = [
     { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
@@ -718,8 +720,8 @@
       defs: [F("text", "Опис", "Description")] },
     { id: "characters", canon: "characters", uk: "Персонажі", en: "Characters",
       about: { uk: "Персонажі світу в цій грі: роль, здібності, х-ки і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, stats and their own look or model. Biography and connections live in the world dossier." },
-      defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), NUM(true),
-             F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("model", "Модель / префаб", "Model / prefab", "file")] },
+      defs: [F("portrait", "Портрет", "Portrait", "image"), F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), NUM(true),
+             F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("refpics", "Референси", "References", "image"), PREFAB()] },
     { id: "locations", canon: "locations", uk: "Локації", en: "Locations",
       about: { uk: "Місця канону як рівні цієї гри: розмір, палітра, світло, хто там живе.", en: "Canon places as this game's levels: size, palette, light, who lives there." },
       defs: [F("level", "Тип рівня", "Level type"), F("size", "Розмір і траса", "Size & route"), F("look", "Палітра й світло", "Palette & light"),
@@ -754,7 +756,7 @@
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити. Бос із канону — тут лише його бій; біографія — у досьє світу.", en: "Who stands in the way, how it hits and where to hit it. A canon boss keeps only its fight here; the biography is in the world dossier." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
-             F("weakness", "Як перемогти", "How to beat"), NUM(true), F("model", "Модель / префаб", "Model / prefab", "file")] },
+             F("weakness", "Як перемогти", "How to beat"), NUM(true), F("portrait", "Портрет", "Portrait", "image"), F("refpics", "Референси", "References", "image"), PREFAB()] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
       groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
@@ -1287,7 +1289,7 @@
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
   }
   function inGame(e) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
@@ -1296,7 +1298,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
   }
   function allCards() {
     var out = [];
@@ -1409,7 +1411,8 @@
     if (c.src === "canon") tags.push('<span class="pill canon-pill">' + STR.canonTag + '</span>');
     if (c.note) tags.push('<span class="flag">' + STR.note + '</span>');
     if (query && c.section !== section) tags.push('<span class="pill s-agreed">' + esc(L(sec(c.section))) + '</span>');
-    var img = (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
+    var pics = (c.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; })[0] || pics[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
+    if (c.section === "assets") { var ks = window.__ASSET_KIT.kitState(c); tags.push('<span class="flag" title="' + esc(PF.kitTitle) + '">🧩 ' + ks.done + '/' + ks.total + '</span>'); }
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var lc = worstLic(c.files); if (lc) tags.push(lc);
     if (img) tags.push(styleMark(img.url, c, img.id));
@@ -2088,7 +2091,7 @@
 
   // ---------- world dossiers: the canon entity itself (worlds/{w}/entities/{id}) — no game statuses ----------
   // entity.dossier { story, look }, entity.lifeNotes [{ id, at, text }], entity.files [] (Storage worlds/{w}/files/{entityId}/…)
-  var dos = null, ddraft = null, dfirst = "", dtab = "story";
+  var dos = null, ddraft = null, dfirst = "", dtab = "main";
   function descKeyOf(e) { return e.desc !== undefined || e.description === undefined ? "desc" : "description"; }
   function dosSection(kind) { return CANON.filter(function (s) { return s.dossier === kind; })[0]; }
   function entImage(e) { return ((e && e.files) || []).filter(isImage)[0]; }
@@ -2188,7 +2191,7 @@
     if (!e) return;
     if (!ME.owner) canWrite = baseWrite && mayEdit(e.col === "lore" ? "culture" : secOfKind(e.kind)); else canWrite = canonWrite;
     if (open) closeLeaf();
-    dos = e; dtab = "story";
+    dos = e; dtab = "main"; // «Загальне»: pictures, description, stories, life timeline — once, not under every tab (v2.87.1)
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
@@ -2295,10 +2298,10 @@
     if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div><div class="field">' + bulbHtml("e", e.id) + '</div>';
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
-    var body = dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
+    var body = dtab === "main" ? html : dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
-    $("d-body").innerHTML = '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>' + html; // the tabs sit on top of the window (owner, v2.86.1): the open tab's content first, the shared blocks below
-    $("d-tabs").innerHTML = [t[0]].concat(ddraft.personality ? [["persona", VF.pz.tab]] : [], [["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]]).map(function (x) {
+    $("d-body").innerHTML = '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>'; // the tabs sit on top of the window (v2.86.1); each tab shows only its own content (v2.87.1)
+    $("d-tabs").innerHTML = [["main", VF.dosMain], t[0]].concat(ddraft.personality ? [["persona", VF.pz.tab]] : [], [["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]]).map(function (x) {
       return '<button role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dtab) + '">' + esc(x[1]) + '</button>';
     }).join("");
     if (dtab === "appear") loadAppearance(e);
@@ -2410,6 +2413,7 @@
         end: "Готово — усе видно в режимі «Усі питання». Не забудь «Зберегти».", ph: "Твоя відповідь — коротко чи розлого", ideas: "✦ Варіанти",
         ideasBusy: "ШІ думає над варіантами…", ideasPick: "Натисни варіант — він ляже у відповідь (потім правиш).", intro: "Наводящі питання допоможуть проробити персонажа: з нуля — по одному кроку, або поступово — відповідай на будь-які, коли зʼявляться ідеї. Усі необовʼязкові; ШІ бере відповіді в сцени, квести й діалоги.",
         saveFirst: "✦ Варіанти — після першого збереження персонажа." },
+      dosMain: "Загальне",
       lk: { intro: "Заповни поля — впиши своє або натисни ▾ і обери з варіантів (можна кілька). Вільний опис унизу — для всього, що не влазить у поля. Усе необовʼязкове; ШІ бере зовнішність у сцени, квести й діалоги.",
         done: "Заповнено {d} з {n}", ph: "своє або ▾", pick: "Обрати з варіантів", free: "✎ Вільний опис", label: "Зовнішність", peoples: "народи світу" } },
     en: { btn: "🎙 Dictate", tip: "Tell it by voice — the AI files what you said into this card's fields", title: "Dictate — the AI files it into the fields",
@@ -2424,6 +2428,7 @@
         end: "Done — everything shows in “All questions”. Don't forget to “Save”.", ph: "Your answer — short or long", ideas: "✦ Variants",
         ideasBusy: "The AI is thinking of variants…", ideasPick: "Click a variant — it goes into the answer (edit it then).", intro: "Leading questions help you work the character out: from scratch — one step at a time, or gradually — answer any when ideas come. All optional; the AI uses the answers in scenes, quests and dialogues.",
         saveFirst: "✦ Variants — after the character is saved once." },
+      dosMain: "General",
       lk: { intro: "Fill in the fields — type your own or press ▾ and pick from the variants (several are fine). The free description below is for everything the fields do not hold. All optional; the AI uses the appearance in scenes, quests and dialogues.",
         done: "{d} of {n} filled", ph: "your own or ▾", pick: "Pick from the variants", free: "✎ Free description", label: "Appearance", peoples: "the world's peoples" } }
   }[LANG];
@@ -4721,6 +4726,12 @@
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
+    if (STATS_SECS.indexOf(c.section) >= 0) { // v2.88: the model file field becomes the prefab link; a portrait and references join
+      draft.defs.forEach(function (d) { if (d.key === "model" && (!d.type || d.type === "file")) { d.type = "prefab"; d.label = PREFAB().label; } });
+      var gk0 = groupKey(sec(c.section));
+      if (!draft.defs.some(function (d) { return d.key === "portrait"; })) draft.defs.splice(draft.defs[0] && draft.defs[0].key === gk0 ? 1 : 0, 0, F("portrait", "Портрет", "Portrait", "image"));
+      if (!draft.defs.some(function (d) { return d.key === "refpics"; })) { var mi = draft.defs.map(function (d) { return d.key; }).indexOf("model"); draft.defs.splice(mi < 0 ? draft.defs.length : mi, 0, F("refpics", "Референси", "References", "image")); }
+    }
     if (c.section === "refs" && !draft.defs.some(function (d) { return d.type === "image"; })) // older reference cards get the pictures field too
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "pics", label: LANG === "en" ? "Pictures" : "Картинки", type: "image" });
     var ov0 = c.section === "overview" && c.src === "game" && cards.filter(function (x) { return x.section === "overview" && !x.canonRef && !x.hidden; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); })[0];
@@ -4753,6 +4764,8 @@
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk && (!lean || editMode || d.type === "image" || draft.fields[d.key])) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
+    if (open.section === "assets") html += kitHtml();
+    if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (!open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest) html += voCardHtml(voCardKey(open));
     if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + '</div>';
     if (!open.isNew) html += impactHtml(open);
@@ -4760,6 +4773,126 @@
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
     mountFieldEditors();
+  }
+  // ---------- 🧊 Prefabs: a hero card links a card of «Ассети й префаби»; an asset card carries its model kit (functions/asset-kit.js) ----------
+  var PF = {
+    uk: { pick: "＋ Обрати префаб з «Ассети й префаби»", change: "Змінити префаб", open: "Відкрити префаб", unlink: "Відʼєднати", gone: "Привʼязаний префаб видалено з «Ассети й префаби».",
+      none: "Префаб ще не обрано. Модель завантажують у «Ассети й префаби» (з комплектом: текстури, матеріал, риг…), а тут лише обирають.",
+      legacy: "Ці файли завантажено сюди напряму, до появи префабів. Перенеси їх у «Ассети й префаби» — там буде комплект моделі.", move: "→ Перенести в «Ассети й префаби»",
+      moveQ: "Створити префаб «{t}» у «Ассети й префаби» з цих файлів ({n}) і привʼязати його до картки?", moved: "Префаб створено й привʼязано.",
+      title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»",
+      filesHint: "картинки, документи, звук — до 200 МБ; моделі й префаби — через «🧊 Додати префаб»", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
+      noModels: "Моделі й префаби не завантажують у картку героя: додай їх у «Ассети й префаби», а тут обери «🧊 Додати префаб». Пропущено: {f}",
+      kitTitle: "🧩 Комплект моделі", kitHint: "що треба для повного вигляду в грі: додай файл навпроти пункту, познач «Не потрібно» або лиши порожнім",
+      kitDone: "Готово {d} з {n}", add: "⤒ Додати", na: "Не потрібно", need: "Потрібно", opt: "за потреби" },
+    en: { pick: "＋ Pick a prefab from “Assets & prefabs”", change: "Change the prefab", open: "Open the prefab", unlink: "Unlink", gone: "The linked prefab was deleted from “Assets & prefabs”.",
+      none: "No prefab picked yet. Models are uploaded to “Assets & prefabs” (with their kit: textures, material, rig…) and only picked here.",
+      legacy: "These files were uploaded here directly, before prefabs. Move them to “Assets & prefabs” — the model kit lives there.", move: "→ Move to “Assets & prefabs”",
+      moveQ: "Create the prefab “{t}” in “Assets & prefabs” from these files ({n}) and link it to the card?", moved: "The prefab is created and linked.",
+      title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”",
+      filesHint: "images, documents, audio — up to 200 MB; models and prefabs — via “🧊 Add a prefab”", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
+      noModels: "Models and prefabs are not uploaded onto a hero card: add them to “Assets & prefabs” and pick “🧊 Add a prefab” here. Skipped: {f}",
+      kitTitle: "🧩 Model kit", kitHint: "what the full look in the game needs: add a file next to an item, mark it “Not needed” or leave it empty",
+      kitDone: "{d} of {n} ready", add: "⤒ Add", na: "Not needed", need: "Needed", opt: "if needed" }
+  }[LANG];
+  function assetCard(id) { return id ? allCards().filter(function (c) { return c.src === "game" && c.id === id && c.section === "assets"; })[0] : null; }
+  function assetLine(a) {
+    var st = window.__ASSET_KIT.kitState(a), img = (a.files || []).filter(function (f) { return f.field === "kit:preview" && isImage(f); })[0] || (a.files || []).filter(isImage)[0];
+    return (img ? '<img class="pf-img" alt="" loading="lazy" src="' + esc(img.url) + '">' : '<span class="pf-img pf-ico">🧊</span>') +
+      '<span class="pf-txt"><b>' + esc(a.title || STR.newCard) + '</b><span class="muted">' + esc(a.fields.category || "") + (a.fields.category ? ' · ' : '') + '🧩 ' + esc(PF.kitShort) + ' ' + st.done + '/' + st.total + '</span></span>';
+  }
+  function prefabHtml(key) {
+    var a = assetCard(open.prefab), legacy = (open.files || []).filter(function (f) { return f.field === key; }), h = "";
+    if (a) h += '<div class="pf-card">' + assetLine(a) + '<button type="button" class="btn" data-pfopen="' + esc(a.id) + '">' + PF.open + '</button>' + (canWrite ? '<button type="button" class="btn danger" data-pfunlink>' + PF.unlink + '</button>' : '') + '</div>';
+    else h += '<p class="muted">' + esc(open.prefab ? PF.gone : PF.none) + '</p>';
+    if (canWrite) h += '<div class="row"><button type="button" class="btn" data-pfpick>' + (a ? PF.change : PF.pick) + '</button></div>';
+    if (legacy.length) h += '<div class="pf-legacy"><p class="warn">' + esc(PF.legacy) + '</p>' + legacy.map(fileRow).join("") + (canWrite ? '<button type="button" class="btn" data-pfmove="' + esc(key) + '">' + PF.move + '</button>' : '') + '</div>';
+    return '<div class="field files">' + h + '</div>';
+  }
+  function quickAddHtml() {
+    return '<div class="field quickadd"><button type="button" class="btn" data-pfpick>' + PF.qPrefab + '</button>' +
+      '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="portrait">' + PF.qPortrait + '</label>' +
+      '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="refpics">' + PF.qRef + '</label></div>';
+  }
+  function kitHtml() {
+    var K = window.__ASSET_KIT, st = K.kitState(open);
+    return '<div class="field kit"><label>' + esc(PF.kitTitle) + ' <span class="hint">' + esc(PF.kitHint) + '</span></label>' +
+      '<div class="pz-head"><div class="pz-prog"><i style="width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%"></i></div><span class="muted">' + esc(PF.kitDone.replace("{d}", st.done).replace("{n}", st.total)) + '</span></div>' +
+      K.GROUPS.map(function (g) {
+        return '<h4 class="dsub">' + esc(L(g)) + '</h4><div class="kit-rows">' + st.rows.filter(function (r) { return r.slot.group === g.id; }).map(function (r) {
+          var s = r.slot;
+          return '<div class="kit-row is-' + r.state + '"><span class="kit-mark" aria-hidden="true">' + (r.state === "ok" ? "✓" : r.state === "na" ? "—" : "○") + '</span>' +
+            '<div class="kit-main"><b>' + esc(L(s)) + (s.optional ? ' <span class="muted">· ' + esc(PF.opt) + '</span>' : '') + '</b>' + (s.hint ? '<span class="muted">' + esc(L(s.hint)) + '</span>' : '') +
+            (r.files.length ? '<div class="kit-files field files">' + r.files.map(fileRow).join("") + '</div>' : '') + '</div>' +
+            (canWrite ? '<div class="kit-act">' + (r.state !== "na" ? '<label class="btn"><input type="file" multiple hidden data-fup="kit:' + s.id + '" accept="' + s.ext.map(function (x) { return "." + x; }).join(",") + '">' + PF.add + '</label>' : '') +
+              (r.files.length ? '' : '<button type="button" class="btn" data-kitna="' + s.id + '" aria-pressed="' + (r.state === "na") + '">' + (r.state === "na" ? PF.need : PF.na) + '</button>') + '</div>' : '') + '</div>';
+        }).join("") + '</div>';
+      }).join("") + '</div>';
+  }
+  // the link is written at once, like files (a new card is saved first)
+  async function setPrefab(id) {
+    if (open.isNew) { await save(true); if (open.isNew) return; }
+    var card = open, body = { section: card.section, prefab: id || firebase.firestore.FieldValue.delete(), updatedAt: stamp() };
+    if (card.src === "canon") body.canonRef = card.id;
+    try { await gref().collection("cards").doc(card.id).set(body, { merge: true }); } catch (er) { return msg(STR.failed + ": " + (er.code || er.message)); }
+    card.prefab = id || "";
+    if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
+  }
+  function prefabPicker() {
+    var all = allCards().filter(function (c) { return c.src === "game" && c.section === "assets"; }), groups = sec("assets").groups[LANG] || sec("assets").groups.uk;
+    var mine = groups[open.section === "enemies" ? 1 : 0];
+    all.sort(function (a, b) { return ((b.fields.category === mine) - (a.fields.category === mine)) || String(a.title).localeCompare(String(b.title)); });
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<div class="ask-box is-long pf-pick" role="dialog" aria-modal="true" aria-label="' + esc(PF.title.replace("{t}", $("e-title").value || open.title)) + '"><h3>🧊 ' + esc(PF.title.replace("{t}", $("e-title").value || open.title)) + '</h3>' +
+      (all.length ? '<input id="pf-q" placeholder="' + esc(PF.search) + '" autocomplete="off"><div class="pf-list" id="pf-list"></div>' : '<p class="warn">' + esc(PF.empty) + '</p>') +
+      '<div class="row"><button type="button" class="btn" data-pfgo>' + esc(PF.go) + '</button><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button></div></div>';
+    document.body.appendChild(box);
+    var draw = function (q) {
+      q = (q || "").toLowerCase();
+      var l = all.filter(function (a) { return !q || (a.title + " " + (a.fields.category || "")).toLowerCase().indexOf(q) >= 0; });
+      var el = box.querySelector("#pf-list"); if (el) el.innerHTML = l.length ? l.map(function (a) { return '<button type="button" class="pf-row" data-pfset="' + esc(a.id) + '"' + (a.id === open.prefab ? ' aria-current="true"' : '') + '>' + assetLine(a) + '</button>'; }).join("") : '<p class="muted">' + esc(PF.noMatch) + '</p>';
+    };
+    draw("");
+    var close = function () { box.remove(); };
+    if (box.querySelector("#pf-q")) { box.querySelector("#pf-q").oninput = function (e) { draw(e.target.value); }; box.querySelector("#pf-q").focus(); }
+    box.addEventListener("click", function (e) {
+      var r = e.target.closest("[data-pfset]"); if (r) { close(); setPrefab(r.dataset.pfset); return; }
+      if (e.target.closest("[data-pfgo]")) { close(); prefabClick({ dataset: { pfgo: "1" } }); return; }
+      if (e.target.id === "ask-x" || e.target === box) close();
+    });
+    box.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); close(); } });
+  }
+  // files uploaded onto a hero card before v2.88 → a new prefab card of «Ассети й персонажі» (the files keep their Storage path)
+  async function movePrefab(key) {
+    var card = open, files = (card.files || []).filter(function (f) { return f.field === key; }), title = $("e-title").value.trim() || card.title || STR.newCard;
+    if (!files.length || !(await askConfirm(PF.moveQ.replace("{t}", title).replace("{n}", files.length)))) return;
+    var s = sec("assets"), groups = s.groups[LANG] || s.groups.uk, aid = newId("card");
+    var moved = files.map(function (f) { return Object.assign({}, f, { field: "kit:" + (window.__ASSET_KIT.isModelFile(f.name) ? (/\.(prefab|unitypackage|uasset)$/i.test(f.name) ? "prefab" : "model") : isImage(f) ? "preview" : "license") }); });
+    try {
+      await gref().collection("cards").doc(aid).set({ section: "assets", title: title, status: "idea", note: "", defs: s.defs, fields: { category: groups[card.section === "enemies" ? 1 : 0] }, files: moved, createdAt: stamp(), order: Date.now(), updatedAt: stamp() });
+      var body = { section: card.section, prefab: aid, files: firebase.firestore.FieldValue.arrayRemove.apply(null, files), updatedAt: stamp() };
+      if (card.src === "canon") body.canonRef = card.id;
+      await gref().collection("cards").doc(card.id).set(body, { merge: true });
+      card.prefab = aid; card.files = card.files.filter(function (f) { return files.indexOf(f) < 0; });
+      if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(PF.moved); }
+    } catch (er) { msg(STR.failed + ": " + (er.code || er.message)); }
+  }
+  async function kitNa(id) {
+    if (open.isNew) { await save(true); if (open.isNew) return; }
+    var card = open, na = window.__ASSET_KIT.naOf(card), i = na.indexOf(id);
+    if (i >= 0) na.splice(i, 1); else na.push(id);
+    try { await gref().collection("cards").doc(card.id).set({ section: card.section, kit: { na: na }, updatedAt: stamp() }, { merge: true }); } catch (er) { return msg(STR.failed + ": " + (er.code || er.message)); }
+    card.kit = { na: na };
+    if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
+  }
+  function prefabClick(b) {
+    var d = b.dataset;
+    if (d.pfpick !== undefined) return prefabPicker();
+    if (d.pfunlink !== undefined) return setPrefab("");
+    if (d.pfmove) return movePrefab(d.pfmove);
+    if (d.kitna) return kitNa(d.kitna);
+    if (d.pfopen) { var a = assetCard(d.pfopen); if (a) unsavedOk(leafSnap() !== leafFirst, function () { closeLeaf(); openCard(a); }); return; }
+    if (d.pfgo) unsavedOk(leafSnap() !== leafFirst, function () { closeLeaf(); goSection("assets"); });
   }
   // ---------- Palettes and scene mock-ups (field types "palette" / "scene") ----------
   // Both are kept as plain text in the card field, so AI, MCP and exports read them: a palette is one colour per line
@@ -5145,7 +5278,7 @@
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
   }
-  var FTYPES = ["text", "table", "image", "audio", "file", "palette", "scene"];
+  var FTYPES = ["text", "table", "image", "audio", "file", "prefab", "palette", "scene"];
   function typeSelect(id, cur, key) {
     return '<select ' + (id ? 'id="' + id + '"' : 'data-ftype="' + esc(key) + '"') + ' aria-label="' + esc(STR.fieldType) + '">' +
       FTYPES.map(function (t) { return '<option value="' + t + '"' + (t === cur ? " selected" : "") + '>' + esc(STR.ftypes[t]) + '</option>'; }).join("") + '</select>';
@@ -5159,7 +5292,7 @@
       ? '<div class="fhead"><input class="flabel" data-flabel="' + esc(d.key) + '" value="' + esc(d.label) + '" aria-label="' + esc(STR.fieldLabel) + '">' +
         typeSelect(null, type, d.key) + '<button class="fdel" data-delfield="' + esc(d.key) + '" title="' + esc(STR.fieldDel) + '" aria-label="' + esc(STR.fieldDel + " " + d.label) + '">✕</button></div>'
       : '<label>' + esc(d.label) + '</label>';
-    var body = type === "table" ? tableHtml(d.key, v, (d.cols || (std && std.cols)))
+    var body = type === "prefab" ? prefabHtml(d.key) : type === "table" ? tableHtml(d.key, v, (d.cols || (std && std.cols)))
       : type === "palette" ? '<div class="pal" data-pal="' + esc(d.key) + '"></div>'
       : type === "scene" ? '<div class="sb" data-board="' + esc(d.key) + '"></div>'
       : type === "image" || type === "file" || type === "audio" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
@@ -5401,9 +5534,9 @@
         (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>' + (isImage(f) ? styleNote(open, f) : '');
   }
   function filesHtml() {
-    var list = (open.files || []).filter(function (f) { return !f.field; }).map(fileRow).join("");
+    var list = (open.files || []).filter(function (f) { return !f.field && !(open.section === "assets" && window.__ASSET_KIT.fileSlot(f)); }).map(fileRow).join(""); // an asset's models sit in its kit
     var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
-    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + STR.filesHint + '</span></label>' + list + add + '</div>';
+    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + (STATS_SECS.indexOf(open.section) >= 0 ? PF.filesHint : STR.filesHint) + '</span></label>' + list + add + '</div>';
   }
   // one file onto a card: Storage + the card's files[] (the card's pickers and the bulk «＋ Картинки» of «Референси»)
   async function putFile(card, file, field, progress) {
@@ -5424,6 +5557,10 @@
   function baseName(n) { return String(n || "").replace(/\.[^.]+$/, "").replace(/_+/g, " ").trim(); }
   function extOf(n) { var m = /\.([^.]+)$/.exec(n || ""); return m ? m[1].toUpperCase() : ""; }
   async function uploadFiles(list, field) {
+    if (open && STATS_SECS.indexOf(open.section) >= 0) { // a hero links a prefab of «Ассети й префаби» instead (v2.88)
+      var models = list.filter(function (f) { return window.__ASSET_KIT.isModelFile(f.name); });
+      if (models.length) { notify(PF.noModels.replace("{f}", models.map(function (f) { return f.name; }).join(", "))); list = list.filter(function (f) { return models.indexOf(f) < 0; }); if (!list.length) return; }
+    }
     // a reference is named after its picture (the name stays editable)
     var t = $("e-title").value.trim(), named = open && open.section === "refs" && list.length && (!t || t === STR.newCard);
     if (named) $("e-title").value = baseName(list[0].name);
@@ -7663,6 +7800,15 @@
       var sid = g.sec, canon = g.canon; inMatch(g);
       if (canon && entities.some(function (x) { return x.id === canon; })) { g.sec = sid; g.canonId = canon; g.onCard = ""; g.note = ""; var hv = cards.filter(function (x) { return x.id === canon; })[0]; g.have = {}; ((hv && hv.files) || []).forEach(function (f) { g.have[f.name + "|" + f.size] = 1; }); }
     });
+    // a hero takes no model files (v2.88): its models go to a prefab card of «Ассети й префаби» (Персонажі / Вороги), linked to the hero after the upload
+    I.groups.slice().forEach(function (g) {
+      if (STATS_SECS.indexOf(g.sec) < 0) return;
+      var models = g.files.filter(function (x) { return window.__ASSET_KIT.isModelFile(x.f.name); }); if (!models.length) return;
+      var grs = sec("assets").groups[LANG] || sec("assets").groups.uk, a = group({ sec: "assets", name: g.name, group: grs[g.sec === "enemies" ? 1 : 0], cat: "" }, g.by);
+      g.files = g.files.filter(function (x) { return models.indexOf(x) < 0; }); g.bytes = g.files.reduce(function (n, x) { return n + x.f.size; }, 0);
+      models.forEach(function (x) { a.files.push(x); a.bytes += x.f.size; }); Object.assign(a.dirs, g.dirs);
+      inMatch(a); a.heroOf = g;
+    });
     I.text.files = texts.map(function (e) { return { path: e.rel, text: e.text || "" }; }).sort(function (a, b) { return a.path.localeCompare(b.path); });
     I.text.chars = I.text.files.reduce(function (n, f) { return n + f.text.length; }, 0);
     I.text.packs = inPacks(I.text.files);
@@ -7846,6 +7992,12 @@
     if (card.src === "canon") { body.canonRef = card.id; body.hidden = false; } // the canon entity joins the game with its files
     await db.collection("worlds").doc(I.W).collection("games").doc(I.G).collection("cards").doc(card.id).set(body, { merge: true });
     g.have[f.name + "|" + f.size] = 1; I.up.done++;
+    if (g.heroOf && g.heroOf.on && !g.linked) { // the hero card links this prefab card (made if the hero had no other files)
+      g.linked = true;
+      var hero = await inCard(I, g.heroOf), hb = { section: hero.section, prefab: card.id, updatedAt: stamp() };
+      if (hero.src === "canon") { hb.canonRef = hero.id; hb.hidden = false; }
+      await db.collection("worlds").doc(I.W).collection("games").doc(I.G).collection("cards").doc(hero.id).set(hb, { merge: true }).catch(function () { g.linked = false; });
+    }
   }
   async function inText(I) {
     while (I.text.redo.length && !I.stop) {
@@ -8825,6 +8977,7 @@
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return;
     var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
+    var pf = e.target.closest("[data-pfpick],[data-pfunlink],[data-pfopen],[data-pfmove],[data-kitna],[data-pfgo]"); if (pf) { prefabClick(pf); return; }
     var fr = e.target.closest("[data-frame]"); if (fr) { pickFrame(open, fr.dataset.frame); return; }
     var v3 = e.target.closest("[data-view3d]"); if (v3) {
       var card3 = open, f3 = open.files.filter(function (f) { return f.id === v3.dataset.view3d; })[0];
