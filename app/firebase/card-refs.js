@@ -118,6 +118,11 @@ var KINDS = [
       });
       return out;
     } },
+  // a hero card (game character / enemy) links one prefab card of «Ассети й префаби» instead of carrying model files (v2.88)
+  { id: 'prefab', uk: 'Префаб героя', en: 'Hero prefab', out: { uk: 'Префаб', en: 'Prefab' }, fields: ['card.prefab'],
+    edges: function (G) {
+      return live(G).filter(function (c) { return c.prefab; }).map(function (c) { return { from: from('card', c, { key: cardKey(c) }), to: 'c:' + c.prefab }; });
+    } },
   { id: 'style', uk: 'Задає стиль', en: 'Sets the style of', out: { uk: 'Стиль біому', en: 'Biome style' }, fields: ['card.fields.places (artstyle)'],
     edges: function (G) {
       var out = [], all = live(G), style = all.filter(function (c) { return c.section === 'artstyle'; });
