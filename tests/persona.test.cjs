@@ -31,6 +31,15 @@ check(P.personaText({}, 'en'), '', 'an empty personality gives no text');
 const ctx = buildCanonContext({ world: {}, characters: { a: { name: 'Ліра', desc: 'мисливиця', personality: c } }, locations: {}, events: {}, factions: {}, artifacts: {} });
 check(/Ліра: мисливиця\n  Особистість: Чого прагне свідомо: помста; Темперамент/.test(ctx), true, 'buildCanonContext adds the personality to a character');
 
+// 👤 appearance: unique field ids, variants in both languages, clean + text, in the canon context
+const lids = P.LOOK_FIELDS.map((f) => f.id);
+check(new Set(lids).size, lids.length, 'appearance field ids are unique');
+check(P.LOOK_FIELDS.every((f) => f.uk && f.en && (f.opts === 'peoples' ? f.base.uk.length === f.base.en.length : f.opts.uk.length === f.opts.en.length)), true, 'every appearance field has uk / en names and as many variants in both languages');
+check(JSON.stringify(P.cleanLook({ eyes: ' зелені, світяться ', nope: 'x', height: '  ' })), JSON.stringify({ eyes: 'зелені, світяться' }), 'cleanLook keeps known filled fields');
+check(P.lookText({ height: 'високий', eyes: 'зелені' }, 'uk'), 'Зріст: високий; Очі: зелені', 'lookText follows the field order');
+const ctx2 = buildCanonContext({ world: {}, characters: { a: { name: 'Ліра', desc: 'мисливиця', appearance: { eyes: 'зелені' } } }, locations: {}, events: {}, factions: {}, artifacts: {} });
+check(/Ліра: мисливиця\n  Зовнішність: Очі: зелені/.test(ctx2), true, 'buildCanonContext adds the appearance to a character');
+
 // dictation: only text / table fields with a label; the AI's answer keeps known, changed fields only
 const fields = cleanFields([{ key: 'role', label: 'Роль', value: 'танк' }, { key: 'numbers', label: 'Х-ки', type: 'table', value: '| Параметр | Значення |\n|---|---|' }, { key: '', label: 'x' }, { key: 'y' }]);
 check(fields.length, 2, 'cleanFields drops fields without a key or label');

@@ -17,7 +17,7 @@ const { AI_MODELS, MODEL_PRICING } = require('../ai-models.js');
 const { charge, getBalance, reserve, refund, cutOff, settle } = require('../token-service.js');
 const { getPlanBudget } = require('../plans.js');
 const { loadCanon } = require('../canon-store.js');
-const { personaText } = require('../persona.js');
+const { personaText, lookText } = require('../persona.js');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -97,7 +97,7 @@ function buildCanonContext(canon) {
   const chars = Object.values(canon.characters || {});
   if (chars.length > 0) {
     // 🧠 the Bible's personality constructor (persona.js): how the character thinks, speaks and acts
-    const personaOf = (c) => { const t = personaText(c.personality, 'uk'); return t ? '\n  Особистість: ' + t.replace(/\n/g, '; ') : ''; };
+    const personaOf = (c) => { const t = personaText(c.personality, 'uk'), l = lookText(c.appearance, 'uk'); return (l ? '\n  Зовнішність: ' + l : '') + (t ? '\n  Особистість: ' + t.replace(/\n/g, '; ') : ''); };
     sections.push('**Персонажі:**\n' + chars.map(c =>
       `- ${nameOf(c)}: ${descOf(c)}${stateOf(c)}${personaOf(c)}`
     ).join('\n'));

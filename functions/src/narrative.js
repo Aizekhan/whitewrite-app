@@ -8,7 +8,7 @@ const { payerFor } = require('./team')._team; // Команда: an admin's ✦ 
 const { emptyCanon, CANON_KINDS } = require('../canon-store.js');
 const { featureCost, byOp } = require('../paid-features.js');
 const { refPool } = require('../narrative-validate.js');
-const { personaText } = require('../persona.js');
+const { personaText, lookText } = require('../persona.js');
 const { modelFor, claudeText } = require('./claude');
 
 const LANGUAGES = { uk: 'Ukrainian', en: 'English' };
@@ -93,7 +93,7 @@ Stages: ` +
     return `A GAME CARD (${c.section}) [${c.id}] "${c.name}": ${str(c.desc, 3000)}`;
   }
   const e = ents.find((x) => x.id === id && !x.card); if (!e) return '';
-  return `A CANON ${e.kind} [${e.id}] "${e.name || e.title || ''}": ${str(e.desc || e.description, 3000)} ${Object.values(e.dossier || {}).map((v) => str(v, 1500)).join(' · ')}${e.personality ? ' · Personality: ' + str(personaText(e.personality, 'en'), 3000).replace(/\n/g, '; ') : ''}`;
+  return `A CANON ${e.kind} [${e.id}] "${e.name || e.title || ''}": ${str(e.desc || e.description, 3000)} ${Object.values(e.dossier || {}).map((v) => str(v, 1500)).join(' · ')}${lookText(e.appearance, 'en') ? ' · Appearance: ' + lookText(e.appearance, 'en') : ''}${e.personality ? ' · Personality: ' + str(personaText(e.personality, 'en'), 3000).replace(/\n/g, '; ') : ''}`;
 }
 
 function questPrompt(lang) {

@@ -2192,7 +2192,7 @@
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
-    if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); pst = { mode: "step", i: 0 }; } // 🧠 the constructor's draft
+    if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; } // 🧠 the constructor's draft
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
@@ -2212,6 +2212,7 @@
     ["at", "dur", "when"].forEach(function (k) { var i = $("d-" + k); if (i) ddraft[k] = i.value; });
     [].forEach.call(document.querySelectorAll("#d-body [data-lf]"), function (t) { ddraft.fields[t.dataset.lf] = t.value; });
     pzCollect();
+    if (ddraft.appearance) [].forEach.call(document.querySelectorAll("#d-body [data-lk]"), function (i) { if (i.value.trim()) ddraft.appearance[i.dataset.lk] = i.value.trim(); else delete ddraft.appearance[i.dataset.lk]; });
   }
   function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
   function eventHtml() {
@@ -2294,7 +2295,7 @@
     if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div><div class="field">' + bulbHtml("e", e.id) + '</div>';
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
-    var body = dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
+    var body = dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
     $("d-body").innerHTML = '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>' + html; // the tabs sit on top of the window (owner, v2.86.1): the open tab's content first, the shared blocks below
     $("d-tabs").innerHTML = [t[0]].concat(ddraft.personality ? [["persona", VF.pz.tab]] : [], [["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]]).map(function (x) {
@@ -2372,6 +2373,10 @@
       ["answers", "traits"].forEach(function (g) { Object.keys(pz0[g]).forEach(function (k) { if (!(k in pz[g])) pz[g][k] = firebase.firestore.FieldValue.delete(); }); }); // set(merge) merges maps: a cleared answer is deleted explicitly
       body.personality = Object.assign(pz, { updatedAt: Date.now() });
     } }
+    if (ddraft.appearance) { var lk = window.__PERSONA.cleanLook(ddraft.appearance), lk0 = window.__PERSONA.cleanLook(e.appearance); if (JSON.stringify(lk) !== JSON.stringify(lk0)) {
+      Object.keys(lk0).forEach(function (k) { if (!(k in lk)) lk[k] = firebase.firestore.FieldValue.delete(); }); // set(merge) merges maps
+      body.appearance = lk;
+    } }
     if (e.isNew) Object.assign(body, { id: e.id, kind: e.kind, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
     if (e.isNew && e.group) body.group = e.group; // the subsection it was added in
     if (e.isNew || name !== (e.name || e.title || "")) { body[(e.title !== undefined && e.name === undefined) || (e.isNew && e.kind === "events") ? "title" : "name"] = name; body.slug = slugify(name); }
@@ -2404,7 +2409,9 @@
         traits: "Темперамент", traitsQ: "Де він на кожній шкалі? Середина — не вирішено.", mid: "посередині / не вирішено",
         end: "Готово — усе видно в режимі «Усі питання». Не забудь «Зберегти».", ph: "Твоя відповідь — коротко чи розлого", ideas: "✦ Варіанти",
         ideasBusy: "ШІ думає над варіантами…", ideasPick: "Натисни варіант — він ляже у відповідь (потім правиш).", intro: "Наводящі питання допоможуть проробити персонажа: з нуля — по одному кроку, або поступово — відповідай на будь-які, коли зʼявляться ідеї. Усі необовʼязкові; ШІ бере відповіді в сцени, квести й діалоги.",
-        saveFirst: "✦ Варіанти — після першого збереження персонажа." } },
+        saveFirst: "✦ Варіанти — після першого збереження персонажа." },
+      lk: { intro: "Заповни поля — впиши своє або натисни ▾ і обери з варіантів (можна кілька). Вільний опис унизу — для всього, що не влазить у поля. Усе необовʼязкове; ШІ бере зовнішність у сцени, квести й діалоги.",
+        done: "Заповнено {d} з {n}", ph: "своє або ▾", pick: "Обрати з варіантів", free: "✎ Вільний опис", label: "Зовнішність", peoples: "народи світу" } },
     en: { btn: "🎙 Dictate", tip: "Tell it by voice — the AI files what you said into this card's fields", title: "Dictate — the AI files it into the fields",
       intro: "Speak freely about “{c}”. Anything not about this card is skipped and reported. Nothing is written until you tick it and save.",
       noSr: "This browser does not recognise speech (works in Chrome, Edge, Safari). You can type or paste the text here.",
@@ -2416,7 +2423,9 @@
         traits: "Temperament", traitsQ: "Where are they on each scale? The middle — not decided.", mid: "in between / not decided",
         end: "Done — everything shows in “All questions”. Don't forget to “Save”.", ph: "Your answer — short or long", ideas: "✦ Variants",
         ideasBusy: "The AI is thinking of variants…", ideasPick: "Click a variant — it goes into the answer (edit it then).", intro: "Leading questions help you work the character out: from scratch — one step at a time, or gradually — answer any when ideas come. All optional; the AI uses the answers in scenes, quests and dialogues.",
-        saveFirst: "✦ Variants — after the character is saved once." } }
+        saveFirst: "✦ Variants — after the character is saved once." },
+      lk: { intro: "Fill in the fields — type your own or press ▾ and pick from the variants (several are fine). The free description below is for everything the fields do not hold. All optional; the AI uses the appearance in scenes, quests and dialogues.",
+        done: "{d} of {n} filled", ph: "your own or ▾", pick: "Pick from the variants", free: "✎ Free description", label: "Appearance", peoples: "the world's peoples" } }
   }[LANG];
   var FILL_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cardFill";
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2466,12 +2475,13 @@
     if (e.col === "lore") loreGroup(e.group).defs.forEach(function (d) { fields.push({ key: "lf:" + d.key, label: d.label, type: "text", value: ddraft.fields[d.key] || "" }); });
     else {
       (STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts).forEach(function (x) { fields.push({ key: "d:" + x[0], label: x[1], type: "text", value: ddraft.dossier[x[0]] || "" }); });
+      if (ddraft.appearance) window.__PERSONA.LOOK_FIELDS.forEach(function (f) { fields.push({ key: "a:" + f.id, label: VF.lk.label + " — " + L(f), type: "text", value: ddraft.appearance[f.id] || "" }); });
       if (ddraft.personality) window.__PERSONA.QUESTIONS.forEach(function (q) { fields.push({ key: "p:" + q.id, label: VF.pz.tab.replace(/^\S+\s/, "") + " — " + L(q), type: "text", value: ddraft.personality.answers[q.id] || "" }); });
     }
     return { kind: dtab === "persona" ? "persona" : "dossier", name: $("d-title").value.trim() || e.name || e.title || "", section: $("d-kicker").textContent, fields: fields,
       apply: function (k, v) {
         if (k === "desc") ddraft.desc = v; else if (k.indexOf("lf:") === 0) ddraft.fields[k.slice(3)] = v;
-        else if (k.indexOf("d:") === 0) ddraft.dossier[k.slice(2)] = v; else if (k.indexOf("p:") === 0) ddraft.personality.answers[k.slice(2)] = v;
+        else if (k.indexOf("d:") === 0) ddraft.dossier[k.slice(2)] = v; else if (k.indexOf("p:") === 0) ddraft.personality.answers[k.slice(2)] = v; else if (k.indexOf("a:") === 0) ddraft.appearance[k.slice(2)] = v;
       }, done: function () { renderDossier(); dmsg(VF.applied); } };
   }
   function dictate(tg) {
@@ -2517,6 +2527,57 @@
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
     (mic || ta).focus();
   }
+  // 👤 the «Зовнішність» tab of a world character: a field per feature (persona.js LOOK) with a ▾ menu of variants + the free description
+  function lookPeoples() { return lore.filter(function (l) { return l.group === "peoples" && l.name; }).map(function (l) { return l.name; }); }
+  function lookOpts(f) {
+    var base = f.opts === "peoples" ? f.base : f.opts, list = (base[LANG] || base.uk).slice();
+    if (f.opts === "peoples") list = lookPeoples().concat(list);
+    return list.filter(function (x, i, a) { return a.indexOf(x) === i; });
+  }
+  function lookHtml(ph) {
+    var P = window.__PERSONA, a = ddraft.appearance, d = P.LOOK_FIELDS.filter(function (f) { return a[f.id]; }).length, n = P.LOOK_FIELDS.length;
+    return '<p class="hint">' + esc(VF.lk.intro) + '</p><div class="pz-head"><div class="pz-prog"><i style="width:' + Math.round(100 * d / n) + '%"></i></div><span class="muted" id="lk-done">' + esc(VF.lk.done.replace("{d}", d).replace("{n}", n)) + '</span></div>' +
+      P.LOOK.map(function (g) {
+        return '<h4 class="dsub">' + esc(L(g)) + '</h4><div class="lk-grid">' + g.fields.map(function (f) {
+          return '<div class="lk-f"><label for="lk-' + f.id + '">' + esc(L(f)) + '</label><div class="lk-in"><input id="lk-' + f.id + '" data-lk="' + f.id + '" autocomplete="off" value="' + esc(a[f.id] || "") + '" placeholder="' + esc(VF.lk.ph) + '"' + (canWrite ? '' : ' readonly') + '>' +
+            (canWrite ? '<button type="button" class="lk-dd" data-lkdd="' + f.id + '" title="' + esc(VF.lk.pick) + '" aria-label="' + esc(VF.lk.pick + ": " + L(f)) + '" aria-expanded="false">▾</button>' : '') + '</div></div>';
+        }).join("") + '</div>';
+      }).join("") +
+      '<h4 class="dsub">' + esc(VF.lk.free) + '</h4><textarea id="d-text" data-k="look" rows="6" placeholder="' + esc(ph) + '">' + esc(ddraft.dossier.look || "") + '</textarea>';
+  }
+  function lookMenuClose() { var m = document.querySelector(".lk-menu"); if (m) { var b = m.parentNode.querySelector("[data-lkdd]"); if (b) b.setAttribute("aria-expanded", "false"); m.remove(); } }
+  function lookMenu(btn) {
+    var id = btn.dataset.lkdd, was = btn.getAttribute("aria-expanded") === "true"; lookMenuClose(); if (was) return;
+    var f = window.__PERSONA.LOOK_FIELDS.filter(function (x) { return x.id === id; })[0], inp = $("lk-" + id); if (!f || !inp) return;
+    var has = inp.value.split(",").map(function (x) { return x.trim().toLowerCase(); }), own = f.opts === "peoples" ? lookPeoples().length : 0;
+    var m = document.createElement("div"); m.className = "lk-menu"; m.setAttribute("role", "group"); m.setAttribute("aria-label", L(f));
+    m.innerHTML = lookOpts(f).map(function (x, i) {
+      return (own && i === own ? '<i class="lk-sep"></i>' : '') + '<button type="button" data-lkopt="' + esc(x) + '" aria-pressed="' + (has.indexOf(x.toLowerCase()) >= 0) + '"' +
+        (i < own ? ' class="is-world" title="' + esc(VF.lk.peoples) + '"' : '') + '>' + esc(x) + '</button>';
+    }).join("");
+    btn.closest(".lk-f").appendChild(m); btn.setAttribute("aria-expanded", "true");
+  }
+  // a variant toggles in the field: several are kept comma-separated, the author's own words stay
+  function lookPick(b) {
+    var inp = b.closest(".lk-f").querySelector("[data-lk]"), v = b.dataset.lkopt;
+    var list = inp.value.split(",").map(function (x) { return x.trim(); }).filter(Boolean), i = list.map(function (x) { return x.toLowerCase(); }).indexOf(v.toLowerCase());
+    if (i >= 0) list.splice(i, 1); else list.push(v);
+    inp.value = list.join(", "); b.setAttribute("aria-pressed", i < 0);
+    dcollect(); lookCount();
+  }
+  function lookCount() {
+    var el = $("lk-done"); if (!el || !ddraft || !ddraft.appearance) return;
+    var P = window.__PERSONA, d = P.LOOK_FIELDS.filter(function (f) { return ddraft.appearance[f.id]; }).length, n = P.LOOK_FIELDS.length;
+    el.textContent = VF.lk.done.replace("{d}", d).replace("{n}", n); el.previousElementSibling.firstChild.style.width = Math.round(100 * d / n) + "%";
+  }
+  $("d-body").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-lkdd],[data-lkopt]"); if (!b || !dos) return;
+    if (b.dataset.lkdd) lookMenu(b); else lookPick(b);
+  });
+  $("d-body").addEventListener("input", function (e) { if (e.target.dataset && e.target.dataset.lk) { dcollect(); lookCount(); } });
+  document.addEventListener("mousedown", function (e) { if (!e.target.closest || !e.target.closest(".lk-f")) lookMenuClose(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.querySelector(".lk-menu")) { e.stopPropagation(); lookMenuClose(); } }, true); // Esc closes the menu, not the dossier
+
   // 🧠 the constructor tab of a world character's dossier
   var pst = { mode: "step", i: 0 };
   function pzQHtml(q, big) {

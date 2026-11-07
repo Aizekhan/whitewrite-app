@@ -13,7 +13,7 @@ const NV = require('../narrative-validate.js');
 const MECH = require('../mechanics.js');
 const FORGE = require('../forge.js');
 const REFS = require('../card-refs.js');
-const { personaText } = require('../persona.js'); // 🧠 a canon character's personality (World Bible) → get_card
+const { personaText, lookText } = require('../persona.js'); // 🧠 a canon character's personality and 👤 appearance (World Bible) → get_card
 const GUIDES = require('../setup-guides.js');
 const STYLE = require('./style')._style;
 
@@ -168,7 +168,7 @@ function cardView(ctx, ref) {
     const e = ctx.entities.find((x) => x.id === ref.slice(2)); if (!e) return null;
     const c = ctx.cards.find((x) => x.canonRef === e.id) || {};
     return { ref, canon: e.kind, title: e.name || '', description: e.desc || e.description || '', status: c.status || 'idea',
-      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}) };
+      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}) };
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
