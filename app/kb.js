@@ -583,6 +583,16 @@
             "<b>Анімації</b> — список кліпів (idle, ходьба, атака…) зі станом «Не почато / Є / Перевірено на моделі».",
             "<b>Експорт</b> — пакет для Unity і маніфест ⤓ JSON.",
           ]],
+          ["h", "🎞 Примірочна"],
+          ["p", "Етапи «Анімації» й «Інтеграція» → <b>«🎞 Примірочна»</b>: модель персонажа під анімаціями бібліотеки WhiteWrite (усі 119 кліпів, спершу кліпи цього персонажа) з одягнутими предметами. Усе в браузері, токенів не витрачає."],
+          ["ul", [
+            "<b>Яка модель</b>: версія з етапу «Риг і скелет», інакше «Базова модель», інакше префаб героя з «Ассетів і префабів». Своєї моделі немає — показано еталонний манекен його типу тіла.",
+            "<b>Анімація</b>: вибір кліпа, ⏸ / ▶, швидкість. Кліп переноситься на модель за назвами кісток, тож риг має бути на скелеті <b>mixamo65 / Unity Humanoid</b> (еталонний риг WhiteWrite або Mixamo). Яких кісток бракує — написано над моделлю.",
+            "<b>Предмети</b>: усі предмети персонажа з 3D-моделлю, галочками «Одягнено». <b>Зі скіном</b> (одяг, броня) прив'язуються до скелета героя й рухаються з тілом. <b>Жорсткі</b> (зброя, щит, шолом) висять на кістці з паспорта (поле «Точки кріплення», наприклад <code>RightHand</code>).",
+            "<b>Статура</b>: повзунки Худорлявий / Масивний / Мʼязистий діють на тіло й на броню. Якщо в броні немає таких ключів форми, буде попередження: тіло може просвічувати.",
+            "<b>«✓ Виглядає добре»</b> біля предмета записує в його перевірки «fitting · passed» з назвою кліпа (видно в паспорті предмета, Claude Code бачить через MCP). Точну перевірку кліпінгу й далі робить Claude Code в Unity / Blender.",
+          ]],
+          ["p", "<b>Як підготувати файли.</b> Фігурка: T- або A-поза, риг mixamo65 / Humanoid, експорт у GLB (або FBX-тека з текстурами) → «Ассети й префаби» → «🧊 Додати префаб» у героя. Броня: змоделюй поверх тіла свого героя, прив'яжи до <b>того самого скелета</b> (у Blender — Armature → With Automatic Weights або перенесення ваг з тіла), додай ключі форми Thin / Heavy / Muscular, експортуй GLB лише броні зі скелетом → у картку предмета, слот і «зі скіном». Зброя: звичайна модель без рига в натуральному розмірі, опорна точка там, де її тримають → «жорстке» й кістка в паспорті. Броня, зроблена на іншому тілі, сідатиме криво — це видно одразу."],
           ["p", "Тип персонажа задає набір етапів: у героя й боса — усі вісім, у NPC і звичайного ворога — без екіпірування й інтеграції. Будь-який етап можна вимкнути або ввімкнути для одного персонажа. Етап відкривається, коли затверджено ті, від яких він залежить; що саме заважає — написано над ним."],
           ["h", "Версії й затвердження"],
           ["ul", [
@@ -1936,6 +1946,16 @@
             "<b>Animation</b> — the clip list (idle, walk, attack…) marked “Not started / Exists / Checked on the model”.",
             "<b>Export</b> — the package for Unity and the ⤓ JSON manifest.",
           ]],
+          ["h", "🎞 Fitting room"],
+          ["p", "The “Animation” and “Integration” stages → <b>“🎞 Fitting room”</b>: the character's model under the WhiteWrite library animations (all 119 clips, this character's own first) wearing its items. All in the browser, no tokens."],
+          ["ul", [
+            "<b>Which model</b>: the “Rigging” stage version, else “Base mesh”, else the hero's prefab from “Assets & prefabs”. No model of its own — the reference dummy of its body type is shown.",
+            "<b>Animation</b>: pick a clip, ⏸ / ▶, speed. The clip is carried onto the model by bone names, so the rig must be on the <b>mixamo65 / Unity Humanoid</b> skeleton (the WhiteWrite reference rig or Mixamo). Missing bones are listed above the model.",
+            "<b>Items</b>: every item of the character with a 3D model, with “Wearing” checkboxes. <b>Skinned</b> ones (clothes, armour) are bound to the hero's skeleton and move with the body. <b>Rigid</b> ones (weapon, shield, helmet) hang on the bone from the passport (the “Attachment points” field, e.g. <code>RightHand</code>).",
+            "<b>Build</b>: the Thin / Heavy / Muscular sliders act on the body and on the armour. If the armour lacks those shape keys, a warning says the body may show through.",
+            "<b>“✓ Looks good”</b> next to an item writes “fitting · passed” with the clip name into its checks (seen in the item's passport, Claude Code sees it via MCP). Exact clipping checks are still done by Claude Code in Unity / Blender.",
+          ]],
+          ["p", "<b>How to prepare the files.</b> The figure: T or A pose, a mixamo65 / Humanoid rig, export to GLB (or an FBX folder with textures) → “Assets & prefabs” → “🧊 Add a prefab” on the hero. Armour: model it over your hero's body, bind it to <b>the same skeleton</b> (in Blender — Armature → With Automatic Weights or a weight transfer from the body), add the Thin / Heavy / Muscular shape keys, export a GLB of just the armour with the skeleton → into the item card, its slot and “skinned”. A weapon: a plain unrigged model at real size, its pivot where it is held → “rigid” and the bone in the passport. Armour made on another body will sit crooked — you see it at once."],
           ["p", "The character type sets the stages: a hero and a boss have all eight, an NPC and an ordinary enemy skip equipment and integration. Any stage can be switched off or on for one character. A stage opens once the stages it depends on are approved; what blocks it is written above it."],
           ["h", "Versions & approval"],
           ["ul", [

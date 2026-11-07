@@ -53,7 +53,14 @@ function disposeTree(root) {
 }
 export async function modelInfo(file, siblings) { const r = await load(file, siblings); const out = { tris: countTris(r.root), rights: r.meta || "" }; disposeTree(r.root); return out; }
 
+// Bones are matched by name, whatever the exporter did to it: "mixamorig:Hips", "mixamorigHips", "Hips" → "hips"
+function boneKey(n) { return String(n || "").replace(/^.*mixamorig[:_]?/i, "").replace(/[^a-z0-9]/gi, "").toLowerCase(); }
+
 // opts.shape = { Thin: 0–100, … } → the morph targets of that name; opts.labels names them, opts.onShape(key, value) saves a moved slider
+// opts.fit — 🎞 the Forge fitting room: { clips: [{ id, name, url }] (WhiteWrite library GLBs, one skeleton), clip (first id),
+//   items: [{ id, title, file, siblings, bind: skinned|rigid, bone }], labels, notes: [text], onOk(itemId, clipName) }
+// A library clip is played on the model by bone names (rotations; the hips' height scaled to the model), a skinned item is
+// re-bound to the model's skeleton, a rigid one hangs on its bone. Only what it looks like — clipping is checked in Unity / Blender.
 export function view3d(file, T, siblings, onShot, opts) {
   opts = opts || {};
   const box = document.createElement("div");
@@ -67,7 +74,7 @@ export function view3d(file, T, siblings, onShot, opts) {
     '<button class="btn" data-a="reset">' + T.reset + '</button>' +
     (onShot ? '<button class="btn" data-a="shot" title="' + T.shotTip + '">' + T.shot + '</button>' : '') +
     '<button class="btn" data-a="close">' + T.close + '</button></div>' +
-    '<div class="v3d-shape" hidden></div><div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
+    (opts.fit ? '<div class="v3d-fit"></div>' : '') + '<div class="v3d-shape" hidden></div><div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
   box.querySelector("b").textContent = file.name;
   document.body.appendChild(box);
   const stage = box.querySelector(".v3d-stage"), info = box.querySelector(".v3d-info");
@@ -123,13 +130,14 @@ export function view3d(file, T, siblings, onShot, opts) {
     if (!alive) { disposeTree(root); return; } // closed while loading: never added to the scene
     model = root;
     scene.add(model);
-    if (clips && clips.length) { mixer = new THREE.AnimationMixer(model); mixer.clipAction(clips[0]).play(); }
     if (opts.shape) shapeKeys();
+    if (opts.fit) fitting(); else if (clips && clips.length) { mixer = new THREE.AnimationMixer(model); mixer.clipAction(clips[0]).play(); }
     frame();
   }).catch((e) => { info.textContent = T.failed + ": " + (e && e.message ? e.message : e); });
 
   // the body's shape keys: every mesh that has a morph target of that name follows its slider
-  function applyShape(k, v) { model.traverse((o) => { if (o.morphTargetDictionary && o.morphTargetDictionary[k] != null) o.morphTargetInfluences[o.morphTargetDictionary[k]] = v / 100; }); }
+  const shapeNow = {};
+  function applyShape(k, v) { shapeNow[k] = v; model.traverse((o) => { if (o.morphTargetDictionary && o.morphTargetDictionary[k] != null) o.morphTargetInfluences[o.morphTargetDictionary[k]] = v / 100; }); }
   function shapeKeys() {
     const names = new Set(); model.traverse((o) => { if (o.morphTargetDictionary) Object.keys(o.morphTargetDictionary).forEach((k) => names.add(k)); });
     const keys = Object.keys(opts.labels || opts.shape).filter((k) => names.has(k)); if (!keys.length) return;
@@ -138,6 +146,90 @@ export function view3d(file, T, siblings, onShot, opts) {
     keys.forEach((k) => applyShape(k, +opts.shape[k] || 0));
     panel.addEventListener("input", (e) => { const k = e.target.dataset.k; if (!k) return; applyShape(k, +e.target.value); e.target.previousElementSibling.textContent = e.target.value; });
     panel.addEventListener("change", (e) => { const k = e.target.dataset.k; if (k && opts.onShape) opts.onShape(k, +e.target.value); });
+  }
+  // 🎞 the fitting room
+  function fitting() {
+    const F = opts.fit, L = F.labels, panel = box.querySelector(".v3d-fit"), bones = {}, worn = {}, cache = {};
+    model.traverse((o) => { if (o.isBone) { const k = boneKey(o.name); if (!bones[k]) bones[k] = o; } });
+    const rigged = !!bones.hips;
+    let action = null, speed = 1, clipName = "", missNoted = false;
+    const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    panel.innerHTML = (rigged && F.clips.length ? '<label>' + L.clip + ' <select data-f="clip">' + F.clips.map((c) => '<option value="' + esc(c.id) + '"' + (c.id === F.clip ? " selected" : "") + '>' + esc(c.name) + '</option>').join("") + '</select></label>' +
+        '<button class="btn" data-f="play" aria-pressed="true">' + L.pause + '</button>' +
+        '<label>' + L.speed + ' <select data-f="speed">' + [0.25, 0.5, 1, 1.5].map((v) => '<option value="' + v + '"' + (v === 1 ? " selected" : "") + '>' + v + '×</option>').join("") + '</select></label>' : '') +
+      (F.items.length ? '<span class="v3d-wear"><b>' + L.wear + '</b>' + F.items.map((it) => '<label><input type="checkbox" data-f="wear" value="' + esc(it.id) + '" checked> ' + esc(it.title) + '</label>' +
+        (F.onOk ? '<button class="btn mini" data-f="ok" data-id="' + esc(it.id) + '">' + L.ok + '</button>' : '')).join("") + '</span>' : '') +
+      '<ul class="v3d-notes"></ul>';
+    const notes = panel.querySelector(".v3d-notes");
+    const note = (t) => { const li = document.createElement("li"); li.textContent = t; notes.appendChild(li); };
+    (F.notes || []).forEach(note);
+    if (!rigged) note(L.noRig);
+    mixer = new THREE.AnimationMixer(model);
+    // a library clip on this model: rotation tracks by bone name, the hips' position scaled from the library rest to the model's
+    function retarget(g) {
+      const src = g.animations[0]; if (!src) return null;
+      let sh = null; g.scene.traverse((o) => { if (o.isBone && !sh && boneKey(o.name) === "hips") sh = o; });
+      const th = bones.hips, ratio = sh && Math.abs(sh.position.y) > 1e-6 ? th.position.y / sh.position.y : 1, missing = new Set(), tracks = [];
+      src.tracks.forEach((t) => {
+        const i = t.name.lastIndexOf("."), node = t.name.slice(0, i), prop = t.name.slice(i + 1), b = bones[boneKey(node)];
+        if (!b) { missing.add(node); return; }
+        if (prop === "quaternion") { const c = t.clone(); c.name = b.uuid + ".quaternion"; tracks.push(c); }
+        else if (prop === "position" && b === th) { const c = t.clone(); c.name = b.uuid + ".position"; c.values = c.values.map((v) => v * ratio); tracks.push(c); }
+      });
+      disposeTree(g.scene);
+      return { clip: new THREE.AnimationClip(src.name, src.duration, tracks), missing: missing.size };
+    }
+    function play(id) {
+      const c = F.clips.find((x) => x.id === id); if (!c || !rigged) return;
+      clipName = c.name; info.textContent = L.loading;
+      const go = (r) => {
+        if (!alive || !r) return;
+        if (r.missing && !missNoted) { missNoted = true; note(L.missing.replace("{n}", r.missing)); }
+        mixer.stopAllAction(); action = mixer.clipAction(r.clip); action.timeScale = speed; action.play();
+        info.textContent = c.name;
+        const pb = panel.querySelector('[data-f="play"]'); if (pb) { pb.textContent = L.pause; pb.setAttribute("aria-pressed", "true"); }
+      };
+      if (cache[id]) return go(cache[id]);
+      new GLTFLoader().load(c.url, (g) => { cache[id] = retarget(g); go(cache[id]); }, undefined, (e) => { info.textContent = T.failed + ": " + (e && e.message ? e.message : e); });
+    }
+    // an item on the model: skinned — its meshes re-bound to the model's bones; rigid — on its bone, the bone's scale undone
+    async function wear(it) {
+      const r = await load(it.file, it.siblings), obj = r.root;
+      if (!alive) { disposeTree(obj); return null; }
+      if (it.bind === "rigid") {
+        const b = bones[boneKey(it.bone)];
+        if (!b) { note(L.noBone.replace("{t}", it.title).replace("{b}", it.bone || "—")); disposeTree(obj); return null; }
+        model.updateMatrixWorld(true); const sc = new THREE.Vector3(); b.getWorldScale(sc); obj.scale.divide(sc); b.add(obj);
+      } else {
+        let skinned = 0; const miss = new Set(), keys = new Set();
+        obj.traverse((o) => {
+          if (o.morphTargetDictionary) Object.keys(o.morphTargetDictionary).forEach((k) => keys.add(k));
+          if (!o.isSkinnedMesh) return; skinned++; o.frustumCulled = false;
+          const nb = o.skeleton.bones.map((x) => { const t = bones[boneKey(x.name)]; if (!t) miss.add(x.name); return t || x; });
+          o.bind(new THREE.Skeleton(nb, o.skeleton.boneInverses), o.bindMatrix);
+        });
+        if (!skinned) note(L.noSkin.replace("{t}", it.title));
+        else if (miss.size) note(L.itemMiss.replace("{t}", it.title).replace("{n}", miss.size));
+        const off = Object.keys(shapeNow).filter((k) => shapeNow[k] > 0 && !keys.has(k));
+        if (skinned && off.length) note(L.noShape.replace("{t}", it.title).replace("{k}", off.join(", ")));
+        model.add(obj);
+      }
+      Object.keys(shapeNow).forEach((k) => applyShape(k, shapeNow[k]));
+      return obj;
+    }
+    F.items.forEach((it) => { worn[it.id] = wear(it).catch((e) => { note(it.title + ": " + T.failed + " — " + (e && e.message ? e.message : e)); return null; }); });
+    panel.addEventListener("change", (e) => {
+      const f = e.target.dataset.f;
+      if (f === "clip") play(e.target.value);
+      else if (f === "speed") { speed = +e.target.value; if (action) action.timeScale = speed; }
+      else if (f === "wear") { const on = e.target.checked; Promise.resolve(worn[e.target.value]).then((o) => { if (o) o.visible = on; }); }
+    });
+    panel.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-f]"); if (!b) return;
+      if (b.dataset.f === "play" && action) { const on = b.getAttribute("aria-pressed") !== "true"; action.paused = !on; b.setAttribute("aria-pressed", on); b.textContent = on ? L.pause : L.play; }
+      else if (b.dataset.f === "ok") { b.disabled = true; Promise.resolve(F.onOk(b.dataset.id, clipName)).then(() => { b.textContent = L.okDone; }, () => { b.disabled = false; }); }
+    });
+    if (F.clip) play(F.clip);
   }
   function close() {
     alive = false;
