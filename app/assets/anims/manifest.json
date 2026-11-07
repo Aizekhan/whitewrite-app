@@ -9764,11 +9764,11 @@
      "ok": true
     },
     "dwarf": {
-     "feet_min_m": 0.001,
+     "feet_min_m": 0.002,
      "ok": true
     },
     "ratfolk": {
-     "feet_min_m": 0.013,
+     "feet_min_m": 0.014,
      "ok": true
     },
     "human_female": {
@@ -9788,7 +9788,7 @@
      "ok": true
     },
     "ogre": {
-     "feet_min_m": 0.002,
+     "feet_min_m": 0.003,
      "ok": true
     }
    }
@@ -10028,11 +10028,11 @@
      "ok": true
     },
     "dwarf": {
-     "feet_min_m": 0.001,
+     "feet_min_m": 0.002,
      "ok": true
     },
     "ratfolk": {
-     "feet_min_m": 0.013,
+     "feet_min_m": 0.014,
      "ok": true
     },
     "human_female": {
@@ -10052,7 +10052,7 @@
      "ok": true
     },
     "ogre": {
-     "feet_min_m": 0.002,
+     "feet_min_m": 0.003,
      "ok": true
     }
    }
