@@ -241,9 +241,58 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 
 /* leaf (editor) */
 .leaf:focus{ outline:none; } /* an opened card takes focus on the panel, not the title */
-.leaf{ position:fixed; inset:0 0 0 auto; width:min(720px,100vw); background:var(--bg-1); border-left:1px solid var(--line-2);
-  box-shadow:-20px 0 50px #0009; z-index:10; display:flex; flex-direction:column; transform:translateX(105%); transition:transform .22s ease; }
-.leaf.open{ transform:none; }
+/* a card / dossier opens as a window in the middle of the screen (owner, v2.86): wide enough for two columns of short fields */
+.leaf{ position:fixed; top:4vh; bottom:4vh; left:50%; width:min(1080px,94vw); background:var(--bg-1); border:1px solid var(--line-2); border-radius:16px; overflow:clip; /* clip: scrollIntoView inside never shifts the window */
+  box-shadow:0 30px 90px #000c; z-index:10; display:flex; flex-direction:column; transform:translate(-50%,14px) scale(.985); opacity:0; visibility:hidden; pointer-events:none;
+  transition:transform .2s ease, opacity .2s ease, visibility 0s linear .2s; }
+.leaf.open{ transform:translate(-50%,0); opacity:1; visibility:visible; pointer-events:auto; transition:transform .2s ease, opacity .2s ease, visibility 0s; }
+.ww-embed .leaf{ top:118px; bottom:18px; } /* under the shell's logo strip */
+.leaf.dos{ width:min(920px,94vw); }
+.leaf-body > .field{ grid-column:1 / -1; }
+@media (min-width:900px){ #e-body{ grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:26px; } #e-body > .field.half{ grid-column:auto; } }
+.shown.blank{ border:1px dashed var(--line-2); background:#ffffff05; font-style:normal; margin:0; } /* an empty field looks like a box to fill */
+/* 🎙 dictation: the head button, the dialog's big microphone, a small one beside an answer */
+.micbtn{ margin-left:auto; }
+.vf-mic{ display:flex; align-items:center; gap:14px; }
+.micbig{ width:64px; height:64px; border-radius:50%; border:1px solid rgba(240,169,59,.5); background:var(--gold-soft); color:var(--gold-lit); font-size:26px; cursor:pointer; flex:none; }
+.micbig[aria-pressed="true"], .mic-in.is-on{ background:#b8382e; border-color:var(--s-redo); color:#fff; animation:editpulse 1.4s ease-in-out infinite; }
+.vf textarea{ min-height:120px; }
+.vf .sfr-list{ max-height:42vh; overflow-y:auto; }
+/* 🧠 the personality constructor (dossier tab) */
+.pz-head{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:4px 0 10px; }
+.pz-prog{ flex:1; min-width:140px; height:6px; border-radius:99px; background:var(--bg-2); overflow:hidden; }
+.pz-prog i{ display:block; height:100%; background:var(--gold-lit); border-radius:99px; transition:width .3s; }
+.pz-seg{ display:flex; border:1px solid var(--line-2); border-radius:9px; overflow:hidden; }
+.pz-seg button{ background:none; border:0; padding:6px 12px; color:var(--tx-mid); cursor:pointer; font:500 13px "Inter"; }
+.pz-seg button[aria-pressed="true"]{ background:var(--gold-soft); color:var(--gold-bright); }
+.pz-steps{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.pz-steps button{ border:1px solid var(--line-2); background:none; color:var(--tx-mid); border-radius:99px; padding:5px 12px; cursor:pointer; font:500 13px "Inter"; }
+.pz-steps button.is-done{ color:var(--s-game); border-color:rgba(95,191,138,.45); }
+.pz-steps button[aria-current="true"]{ color:var(--gold-bright); border-color:var(--gold-lit); background:var(--gold-soft); }
+.pz-card{ border:1px solid var(--line-2); border-radius:14px; padding:18px 20px; background:var(--bg-2); }
+.pz-q.big label{ font:600 19px/1.35 var(--serif); color:var(--tx-hi); display:grid; gap:4px; }
+.pz-n{ font:500 12px "Inter"; color:var(--tx-low); letter-spacing:.06em; }
+.pz-q .hint{ margin:0 0 6px; color:var(--tx-mid); font-size:13px; }
+.pz-in{ display:flex; gap:8px; align-items:flex-start; }
+.pz-in textarea{ flex:1; min-height:52px; }
+.pz-q.big .pz-in textarea{ min-height:120px; font-size:15px; }
+.mic-in{ flex:none; padding:6px 10px; }
+.pz-ideas{ display:grid; gap:6px; margin-top:6px; }
+.pz-idea{ text-align:left; border:1px dashed rgba(240,169,59,.45); background:none; color:var(--tx); border-radius:10px; padding:9px 12px; cursor:pointer; line-height:1.45; }
+.pz-idea:hover{ background:var(--gold-soft); }
+.pz-nav{ justify-content:space-between; margin-top:12px; }
+.pz-tq{ margin:0 0 10px; color:var(--tx-hi); }
+.pz-traits{ display:grid; gap:10px; }
+.pz-tr{ display:grid; grid-template-columns:minmax(90px,1fr) auto minmax(90px,1fr); align-items:center; gap:12px; }
+.pz-tr > span:first-child{ text-align:right; } .pz-tr > span{ font-size:13.5px; color:var(--tx-mid); }
+.pz-dots{ display:flex; gap:10px; }
+.pz-dots label{ cursor:pointer; display:grid; place-items:center; }
+.pz-dots input{ position:absolute; opacity:0; width:1px; height:1px; }
+.pz-dots i{ width:18px; height:18px; border-radius:50%; border:1px solid var(--line-2); background:var(--bg-1); display:block; transition:background .15s, border-color .15s; }
+.pz-dots label:nth-child(3) i{ width:12px; height:12px; }
+.pz-dots input:checked + i{ background:var(--gold-lit); border-color:var(--gold-lit); }
+.pz-dots label:nth-child(3) input:checked + i{ background:var(--tx-low); border-color:var(--tx-low); } /* the middle = not decided */
+.pz-dots input:focus-visible + i{ outline:2px solid var(--gold-lit); outline-offset:2px; }
 .scrim{ position:fixed; inset:0; background:#0007; z-index:9; display:none; }
 /* embedded: the section title and its actions sit on the shell's logo strip, right of the logo */
 .topline{ display:none; }
@@ -517,7 +566,6 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
 .pickrow i{ font-style:normal; font-size:12.5px; color:var(--tx-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .scrim.open{ display:block; }
 .leaf-head{ padding:18px 22px 12px; border-bottom:1px solid var(--line); display:grid; gap:10px; }
-.ww-embed .leaf-head{ padding-top:110px; }
 .leaf-head .kicker{ padding-left:36px; }
 /* field structure editing: the small gold pencil in the card's top-left corner; red and pulsing while on */
 .leaf-head{ position:relative; }
@@ -525,7 +573,6 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
   color:var(--gold-lit); background:var(--gold-soft); border:1px solid rgba(240,169,59,.5); transition:background .15s, color .15s, border-color .15s; }
 .editbtn svg{ width:15px; height:15px; }
 .editbtn:hover{ border-color:var(--gold-lit); }
-.ww-embed .editbtn{ top:72px; }
 .editbtn[aria-pressed="true"]{ color:#fff; background:#b8382e; border-color:var(--s-redo); animation:editpulse 1.4s ease-in-out infinite; }
 @keyframes editpulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(239,93,88,.55); } 50%{ box-shadow:0 0 0 7px rgba(239,93,88,0); } }
 @media (prefers-reduced-motion:reduce){ .editbtn[aria-pressed="true"]{ animation:none; } }
@@ -573,7 +620,6 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .note textarea{ border-style:dashed; }
 .leaf-foot{ border-top:1px solid var(--line); padding:12px 22px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .leaf-foot .msg{ margin-left:auto; font-size:13px; color:var(--tx-mid); }
-.ww-embed .leaf-foot{ padding-right:140px; } /* clear the shell's "?" and bug fabs */
 .newfield{ display:flex; gap:8px; }
 .newfield input{ flex:1; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 9px; }
 /* files on a card */
@@ -987,7 +1033,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
   body{ grid-template-columns:1fr; }
   nav{ position:sticky; top:0; z-index:20; height:auto; flex-direction:column; padding:10px 16px; }
   .ww-embed nav{ margin-top:0; top:0; height:auto; padding-bottom:10px; } /* phones: the shell hides its top menu in the Bible (White.html) */
-  .ww-embed .leaf-head{ padding-top:18px; } .ww-embed .editbtn{ top:12px; } .ww-embed .v3d{ padding-top:14px; }
+  .leaf, .ww-embed .leaf{ top:0; bottom:0; width:100vw; border-radius:0; border:0; } .ww-embed .v3d{ padding-top:14px; } /* phones: the window takes the whole screen */
   .nav-toggle{ display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line-2); background:var(--bg-2); color:var(--tx-hi); font:inherit; font-weight:600; cursor:pointer; }
   nav:not(.is-open) > :not(.nav-toggle):not(.srch-btn){ display:none !important; }
   .srch-btn, .ww-embed .srch-btn{ top:16px; right:22px; } .nav-toggle{ padding-right:52px !important; }
@@ -1046,6 +1092,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
     <div class="row">
       <select id="e-status"></select>
       <select id="e-sub"></select>
+      <button class="btn micbtn" id="e-mic" type="button"></button>
     </div>
   </div>
   <div class="leaf-body" id="e-body"></div>
@@ -1061,7 +1108,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
   <div class="leaf-head">
     <div class="kicker" id="d-kicker" style="padding-left:0"></div>
     <input id="d-title" />
-    <div class="row"><select id="d-sub"></select></div>
+    <div class="row"><select id="d-sub"></select><button class="btn micbtn" id="d-mic" type="button"></button></div>
   </div>
   <div class="leaf-body" id="d-body"></div>
   <div class="dtabs" id="d-tabs" role="tablist"></div>
@@ -1087,6 +1134,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/style-guide.js"></script>
 <script src="firebase/mechanics.js"></script>
 <script src="firebase/forge.js"></script>
+<script src="firebase/persona.js"></script>
 <script src="firebase/world-fill.js"></script>
 <script src="firebase/card-refs.js"></script>
 <script src="firebase/token-budget.js"></script>

@@ -683,12 +683,13 @@
 
   // Field templates: a new card starts with the structure of its section.
   var F = function (key, uk, en, type) { var d = { key: key, label: LANG === "en" ? en : uk }; if (type) d.type = type; return d; };
-  // «Числа» of characters, enemies, items, gear: a table by default — «Параметр | Значення» and one empty row
+  // «Числа» of items and gear, «Х-ки» (stats) of characters and enemies: a table by default — «Параметр | Значення» and one empty row
   // the vision of the game (v2.80): who it is for, what it is like and unlike, why it sells — the «Огляд гри» card, read by analyze / plan as any field
   var VISION = function () { return [F("fantasy", "Фантазія гравця: ким він себе відчуває", "Player fantasy: who the player gets to be"), F("audience", "Аудиторія", "Audience"),
     Object.assign(F("comparables", "Схожі ігри (ціна й чому)", "Comparable games (price and why)", "table"), { cols: LANG === "en" ? ["Game", "Price", "Why it is comparable"] : ["Гра", "Ціна", "Чому схожа"] }),
     F("usp", "Чим вона інша (USP)", "What sets it apart (USP)"), F("anti", "Анти-стовпи: чим гра НЕ є", "Anti-pillars: what the game is NOT"), F("business", "Бізнес-модель і ціна", "Business model & price")]; };
-  var NUM = function () { return Object.assign(F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
+  var NUM = function (stats) { return Object.assign(stats ? F("numbers", "Х-ки", "Stats", "table") : F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
+  var STATS_SECS = ["characters", "enemies"]; // their «numbers» field is called «Х-ки» (owner, v2.86); older cards are renamed on opening
   var CANON = [
     { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
       about: { uk: "Про що цей світ: суть, тон, ключові факти. Спільне для всіх історій та ігор.", en: "What this world is: its essence, tone and key facts. Shared by every story and game." } },
@@ -716,8 +717,8 @@
       about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — в «Огляді світу» і «Законах».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
       defs: [F("text", "Опис", "Description")] },
     { id: "characters", canon: "characters", uk: "Персонажі", en: "Characters",
-      about: { uk: "Персонажі світу в цій грі: роль, здібності, числа і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, numbers and their own look or model. Biography and connections live in the world dossier." },
-      defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), NUM(),
+      about: { uk: "Персонажі світу в цій грі: роль, здібності, х-ки і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, stats and their own look or model. Biography and connections live in the world dossier." },
+      defs: [F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), NUM(true),
              F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "locations", canon: "locations", uk: "Локації", en: "Locations",
       about: { uk: "Місця канону як рівні цієї гри: розмір, палітра, світло, хто там живе.", en: "Canon places as this game's levels: size, palette, light, who lives there." },
@@ -753,7 +754,7 @@
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити. Бос із канону — тут лише його бій; біографія — у досьє світу.", en: "Who stands in the way, how it hits and where to hit it. A canon boss keeps only its fight here; the biography is in the world dossier." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
-             F("weakness", "Як перемогти", "How to beat"), NUM(), F("model", "Модель / префаб", "Model / prefab", "file")] },
+             F("weakness", "Як перемогти", "How to beat"), NUM(true), F("model", "Модель / префаб", "Model / prefab", "file")] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
       groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
@@ -2191,12 +2192,14 @@
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
+    if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); pst = { mode: "step", i: 0 }; } // 🧠 the constructor's draft
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
     dfirst = JSON.stringify(ddraft);
     $("d-kicker").textContent = e.col === "lore" ? L(loreGroup(e.group)) + " · " + L(CULTURE) : (dosSection(e.kind) ? L(dosSection(e.kind)) : STR.dos.kinds[e.kind] || "") + " · " + STR.dos.world;
     $("d-title").value = ddraft.name;
+    $("d-mic").style.display = canWrite ? "" : "none";
     renderDossier(); dosSubs(); dmsg("");
     $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     (e.isNew && !ddraft.name ? $("d-title") : $("dos")).focus({ preventScroll: true });
@@ -2208,6 +2211,7 @@
     var t = $("d-text"); if (t) ddraft.dossier[t.dataset.k] = t.value;
     ["at", "dur", "when"].forEach(function (k) { var i = $("d-" + k); if (i) ddraft[k] = i.value; });
     [].forEach.call(document.querySelectorAll("#d-body [data-lf]"), function (t) { ddraft.fields[t.dataset.lf] = t.value; });
+    pzCollect();
   }
   function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
   function eventHtml() {
@@ -2224,7 +2228,7 @@
     return img ? '<img class="av" alt="" src="' + esc(img.url) + '">' : '<span class="av">' + esc(String(c.name || c.title || "?").trim().charAt(0).toUpperCase()) + '</span>';
   }
   function closeDossier() {
-    dos = null; ddraft = null; setTimeout(applyLang);
+    stopListen(); dos = null; ddraft = null; setTimeout(applyLang);
     $("dos").classList.remove("open"); $("dos").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
   }
   function lifeOrder(n) { var m = String(n.at || "").match(/-?\d+(?:[.,]\d+)?/); return m ? parseFloat(m[0].replace(",", ".")) : Infinity; }
@@ -2290,10 +2294,10 @@
     if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div><div class="field">' + bulbHtml("e", e.id) + '</div>';
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
-    var body = dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
+    var body = dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
     $("d-body").innerHTML = html + '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>';
-    $("d-tabs").innerHTML = [t[0], ["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]].map(function (x) {
+    $("d-tabs").innerHTML = [t[0]].concat(ddraft.personality ? [["persona", VF.pz.tab]] : [], [["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]]).map(function (x) {
       return '<button role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dtab) + '">' + esc(x[1]) + '</button>';
     }).join("");
     if (dtab === "appear") loadAppearance(e);
@@ -2364,6 +2368,10 @@
     }
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
+    if (ddraft.personality) { var pz = window.__PERSONA.cleanPersona(ddraft.personality), pz0 = window.__PERSONA.cleanPersona(e.personality); if (e.isNew || JSON.stringify(pz) !== JSON.stringify(pz0)) {
+      ["answers", "traits"].forEach(function (g) { Object.keys(pz0[g]).forEach(function (k) { if (!(k in pz[g])) pz[g][k] = firebase.firestore.FieldValue.delete(); }); }); // set(merge) merges maps: a cleared answer is deleted explicitly
+      body.personality = Object.assign(pz, { updatedAt: Date.now() });
+    } }
     if (e.isNew) Object.assign(body, { id: e.id, kind: e.kind, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
     if (e.isNew && e.group) body.group = e.group; // the subsection it was added in
     if (e.isNew || name !== (e.name || e.title || "")) { body[(e.title !== undefined && e.name === undefined) || (e.isNew && e.kind === "events") ? "title" : "name"] = name; body.slug = slugify(name); }
@@ -2379,6 +2387,200 @@
     await colOf(e).doc(e.id).delete();
     closeDossier();
   }
+  // ---------- 🎙 Dictation → the open card's fields (cardFill {op:voiceFill}) · 🧠 the personality constructor (functions/persona.js) ----------
+  // The browser recognises the speech (Web Speech API, free; Chrome / Edge / Safari); the AI files the text into the fields of the
+  // open game card or dossier and leaves out what is not about it — a proposal: the author ticks what to take, then saves as usual.
+  // A world character's dossier has the tab «🧠 Особистість»: questions step by step or all at once + temperament scales,
+  // kept in entities/{id}.personality { answers, traits } (persona.js cleanPersona); ✦ «Варіанти» = cardFill {op:personaIdeas}.
+  var VF = {
+    uk: { btn: "🎙 Надиктуй", tip: "Розкажи голосом — ШІ розкладе сказане по полях цієї картки", title: "Надиктуй — ШІ розкладе по полях",
+      intro: "Говори вільно про «{c}». Що не стосується цієї картки, ШІ пропустить і скаже про це. Нічого не запишеться, доки ти не відмітиш і не збережеш.",
+      noSr: "Цей браузер не розпізнає мову (працює в Chrome, Edge, Safari). Можна вписати чи вставити текст сюди.",
+      ph: "Тут зʼявиться сказане. Можна правити руками, дописувати й вставляти текст.", start: "Почати говорити", stop: "Зупинити", on: "Слухаю…", off: "Мікрофон вимкнено",
+      denied: "Немає доступу до мікрофона: дозволь його в адресному рядку браузера.", go: "✦ Розкласти по полях", busy: "ШІ розкладає сказане…", empty: "Спершу скажи чи впиши щось.",
+      none: "Нічого з цього не стосується цієї картки.", left: "Пропущено", pick: "Відміть, що взяти:", was: "було", fresh: "нове поле", apply: "Взяти відмічене", applied: "Додано з голосу — перевір і збережи.",
+      fail: "Не вдалося", noFields: "У цій картці немає текстових полів, куди можна розкласти сказане.", dictTip: "Надиктувати відповідь (без ШІ, безкоштовно)", descLabel: "Опис",
+      pz: { tab: "🧠 Особистість", modes: { step: "Крок за кроком", all: "Усі питання" }, done: "Опрацьовано {d} з {n}", back: "← Назад", next: "Далі →",
+        traits: "Темперамент", traitsQ: "Де він на кожній шкалі? Середина — не вирішено.", mid: "посередині / не вирішено",
+        end: "Готово — усе видно в режимі «Усі питання». Не забудь «Зберегти».", ph: "Твоя відповідь — коротко чи розлого", ideas: "✦ Варіанти",
+        ideasBusy: "ШІ думає над варіантами…", ideasPick: "Натисни варіант — він ляже у відповідь (потім правиш).", intro: "Наводящі питання допоможуть проробити персонажа: з нуля — по одному кроку, або поступово — відповідай на будь-які, коли зʼявляться ідеї. Усі необовʼязкові; ШІ бере відповіді в сцени, квести й діалоги.",
+        saveFirst: "✦ Варіанти — після першого збереження персонажа." } },
+    en: { btn: "🎙 Dictate", tip: "Tell it by voice — the AI files what you said into this card's fields", title: "Dictate — the AI files it into the fields",
+      intro: "Speak freely about “{c}”. Anything not about this card is skipped and reported. Nothing is written until you tick it and save.",
+      noSr: "This browser does not recognise speech (works in Chrome, Edge, Safari). You can type or paste the text here.",
+      ph: "What you say appears here. Edit, add to it or paste text.", start: "Start speaking", stop: "Stop", on: "Listening…", off: "Microphone off",
+      denied: "No access to the microphone: allow it in the browser's address bar.", go: "✦ File into fields", busy: "The AI is filing what you said…", empty: "Say or type something first.",
+      none: "None of it is about this card.", left: "Skipped", pick: "Tick what to take:", was: "was", fresh: "new field", apply: "Take the ticked", applied: "Added from your voice — check and save.",
+      fail: "Failed", noFields: "This card has no text fields to file what you said into.", dictTip: "Dictate the answer (no AI, free)", descLabel: "Description",
+      pz: { tab: "🧠 Personality", modes: { step: "Step by step", all: "All questions" }, done: "{d} of {n} worked out", back: "← Back", next: "Next →",
+        traits: "Temperament", traitsQ: "Where are they on each scale? The middle — not decided.", mid: "in between / not decided",
+        end: "Done — everything shows in “All questions”. Don't forget to “Save”.", ph: "Your answer — short or long", ideas: "✦ Variants",
+        ideasBusy: "The AI is thinking of variants…", ideasPick: "Click a variant — it goes into the answer (edit it then).", intro: "Leading questions help you work the character out: from scratch — one step at a time, or gradually — answer any when ideas come. All optional; the AI uses the answers in scenes, quests and dialogues.",
+        saveFirst: "✦ Variants — after the character is saved once." } }
+  }[LANG];
+  var FILL_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cardFill";
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = null; // one recogniser at a time
+  function listen(onText, onState) {
+    stopListen();
+    var r = new SR(); r.lang = LANG === "en" ? "en-US" : "uk-UA"; r.continuous = true; r.interimResults = true;
+    r.onresult = function (ev) { var fin = "", tmp = ""; for (var i = ev.resultIndex; i < ev.results.length; i++) { var t = ev.results[i][0].transcript; if (ev.results[i].isFinal) fin += t; else tmp += t; } onText(fin, tmp); };
+    r.onerror = function (ev) { onState("error", ev.error); };
+    r.onend = function () { if (rec === r) rec = null; onState("off"); };
+    try { r.start(); } catch (e) { onState("error", e.message); return; }
+    rec = r; onState("on");
+  }
+  function stopListen() { if (rec) { var r = rec; rec = null; try { r.stop(); } catch (e) {} } }
+  // dictation straight into a textarea (the constructor's answers): no AI, no tokens
+  function dictateInto(ta, btn) {
+    if (rec && btn.classList.contains("is-on")) { stopListen(); return; }
+    var base = ta.value;
+    listen(function (fin, tmp) { if (fin) base = (base.trim() ? base.replace(/\s*$/, " ") : "") + fin.trim(); ta.value = base + (tmp ? " " + tmp : ""); },
+      function (st, er) { btn.classList.toggle("is-on", st === "on"); if (st !== "on") { ta.value = base; ta.dispatchEvent(new Event("input", { bubbles: true })); } if (er === "not-allowed") notify(VF.denied); });
+  }
+  async function fillCall(body) {
+    var token = await firebase.auth().currentUser.getIdToken();
+    var r = await fetch(FILL_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify(Object.assign({ worldId: worldId, language: LANG }, body)) });
+    var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
+    if (!r.ok) { var er = new Error(data.error || "HTTP " + r.status); er.code = data.code; throw er; }
+    if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
+    return data;
+  }
+  // what the open card offers to the dictation: its text and table fields (files, pictures, palettes are not dictated)
+  function cardTarget() {
+    [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
+    var s = sec(open.section), gk = groupKey(s), fields = [];
+    if (draft.canonDesc !== null) fields.push({ key: "__canon", label: VF.descLabel, type: "text", value: draft.canonDesc || "" });
+    draft.defs.forEach(function (d) {
+      if (d.key === gk) return;
+      var std = d.type ? null : (s.defs || []).filter(function (x) { return x.key === d.key; })[0], type = d.type || (std && std.type) || "text", cols = d.cols || (std && std.cols);
+      if (type === "text" || type === "table") fields.push({ key: d.key, label: d.label, type: type, value: draft.fields[d.key] || (type === "table" && cols ? tableMd([cols]) : "") });
+    });
+    return { kind: "card", name: $("e-title").value.trim() || open.title || "", section: L(s), fields: fields,
+      apply: function (k, v) { if (k === "__canon") draft.canonDesc = v; else draft.fields[k] = v; }, done: function () { renderFields(); msg(VF.applied); } };
+  }
+  function dosTarget() {
+    dcollect();
+    var e = dos, fields = [{ key: "desc", label: STR.dos.desc, type: "text", value: ddraft.desc || "" }];
+    if (e.col === "lore") loreGroup(e.group).defs.forEach(function (d) { fields.push({ key: "lf:" + d.key, label: d.label, type: "text", value: ddraft.fields[d.key] || "" }); });
+    else {
+      (STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts).forEach(function (x) { fields.push({ key: "d:" + x[0], label: x[1], type: "text", value: ddraft.dossier[x[0]] || "" }); });
+      if (ddraft.personality) window.__PERSONA.QUESTIONS.forEach(function (q) { fields.push({ key: "p:" + q.id, label: VF.pz.tab.replace(/^\S+\s/, "") + " — " + L(q), type: "text", value: ddraft.personality.answers[q.id] || "" }); });
+    }
+    return { kind: dtab === "persona" ? "persona" : "dossier", name: $("d-title").value.trim() || e.name || e.title || "", section: $("d-kicker").textContent, fields: fields,
+      apply: function (k, v) {
+        if (k === "desc") ddraft.desc = v; else if (k.indexOf("lf:") === 0) ddraft.fields[k.slice(3)] = v;
+        else if (k.indexOf("d:") === 0) ddraft.dossier[k.slice(2)] = v; else if (k.indexOf("p:") === 0) ddraft.personality.answers[k.slice(2)] = v;
+      }, done: function () { renderDossier(); dmsg(VF.applied); } };
+  }
+  function dictate(tg) {
+    if (!tg.fields.length) return notify(VF.noFields);
+    var box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box is-long vf" role="dialog" aria-modal="true" aria-label="' + esc(VF.title) + '"><h3>🎙 ' + esc(VF.title) + '</h3>' +
+      '<p class="warn">' + esc(VF.intro.replace("{c}", tg.name)) + '</p>' +
+      (SR ? '<div class="vf-mic"><button type="button" class="micbig" id="vf-mic" aria-pressed="false"><span>🎙</span></button><span class="muted" id="vf-st">' + esc(VF.start) + '</span></div>' : '<p class="warn">' + esc(VF.noSr) + '</p>') +
+      '<textarea id="vf-text" placeholder="' + esc(VF.ph) + '"></textarea><div id="vf-res"></div>' +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="vf-go">' + VF.go + costMark("voiceFill") + '</button></div></form>';
+    document.body.appendChild(box);
+    var ta = box.querySelector("#vf-text"), mic = box.querySelector("#vf-mic"), st = box.querySelector("#vf-st"), res = box.querySelector("#vf-res"), go = box.querySelector("#vf-go"), got = null;
+    var close = function () { stopListen(); box.remove(); };
+    if (mic) mic.onclick = function () {
+      if (rec) { stopListen(); return; }
+      var base = ta.value;
+      listen(function (fin, tmp) { if (fin) base = (base.trim() ? base.replace(/\s*$/, " ") : "") + fin.trim(); ta.value = base + (tmp ? " " + tmp : ""); ta.scrollTop = ta.scrollHeight; },
+        function (s, er) { var on = s === "on"; mic.setAttribute("aria-pressed", on); st.textContent = on ? VF.on : er === "not-allowed" ? VF.denied : VF.start; if (!on) ta.value = base; });
+    };
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault();
+      if (got) { // the second press: take the ticked fields
+        [].forEach.call(box.querySelectorAll("[data-vf]:checked"), function (c) { tg.apply(c.dataset.vf, got.fields[c.dataset.vf]); });
+        close(); tg.done(); return;
+      }
+      stopListen();
+      var text = ta.value.trim(); if (!text) { st && (st.textContent = VF.empty); ta.focus(); return; }
+      if (!ME.owner && ME.role !== "admin") return notify(STR.team.noAi);
+      go.disabled = true; var label = go.innerHTML; go.textContent = VF.busy;
+      try {
+        var data = await fillCall({ op: "voiceFill", text: text, target: { kind: tg.kind, name: tg.name, section: tg.section, fields: tg.fields.map(function (f) { return { key: f.key, label: f.label, type: f.type, value: f.value }; }) } });
+        var keys = Object.keys(data.fields || {});
+        if (!data.relevant || !keys.length) { res.innerHTML = '<p class="warn"><b>' + esc(VF.none) + '</b>' + (data.reason ? ' ' + esc(data.reason) : '') + '</p>'; go.disabled = false; go.innerHTML = label; return; }
+        got = data;
+        res.innerHTML = (data.ignored ? '<p class="warn"><b>' + esc(VF.left) + ':</b> ' + esc(data.ignored) + '</p>' : '') + '<p class="warn">' + esc(VF.pick) + '</p><div class="sfr-list">' +
+          tg.fields.filter(function (f) { return keys.indexOf(f.key) >= 0; }).map(function (f) {
+            return '<label class="imp"><input type="checkbox" data-vf="' + esc(f.key) + '" checked><span><b>' + esc(f.label) + '</b> <span class="muted">· ' + (f.value && !/^\|[^\n]*\n\|[-| ]+\|$/.test(f.value) ? esc(VF.was) + ': ' + esc(f.value.slice(0, 90)) + (f.value.length > 90 ? "…" : "") : esc(VF.fresh)) + '</span>' +
+              '<pre class="ln-cmd">' + esc(data.fields[f.key]) + '</pre></span></label>'; }).join("") + '</div>';
+        go.disabled = false; go.textContent = VF.apply;
+      } catch (e) { notify(VF.fail + ": " + e.message); go.disabled = false; go.innerHTML = label; }
+    };
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
+    (mic || ta).focus();
+  }
+  // 🧠 the constructor tab of a world character's dossier
+  var pst = { mode: "step", i: 0 };
+  function pzQHtml(q, big) {
+    var P = window.__PERSONA, v = ddraft.personality.answers[q.id] || "";
+    return '<div class="field pz-q' + (big ? ' big' : '') + '"><label for="pa-' + q.id + '">' + (big ? '<span class="pz-n">' + (P.QUESTIONS.indexOf(q) + 1) + ' / ' + P.QUESTIONS.length + '</span>' : '') + esc(L(q)) + '</label>' +
+      (q.hint && big ? '<p class="hint">' + esc(L(q.hint)) + '</p>' : '') +
+      '<div class="pz-in"><textarea id="pa-' + q.id + '" data-pa="' + q.id + '" rows="' + (big ? 5 : 2) + '"' + (canWrite ? '' : ' readonly') + ' placeholder="' + esc(q.hint && !big ? L(q.hint) : VF.pz.ph) + '">' + esc(v) + '</textarea>' +
+      (canWrite && SR ? '<button type="button" class="btn mic-in" data-dict="pa-' + q.id + '" title="' + esc(VF.dictTip) + '" aria-label="' + esc(VF.dictTip) + '">🎙</button>' : '') + '</div>' +
+      (big && canWrite ? (dos.isNew ? '<p class="muted">' + esc(VF.pz.saveFirst) + '</p>' : '<div class="row"><button type="button" class="btn" data-pzideas="' + q.id + '">' + VF.pz.ideas + costMark("personaIdeas") + '</button></div><div class="pz-ideas" id="pz-ideas"></div>') : '') + '</div>';
+  }
+  function pzTraitsHtml() {
+    var P = window.__PERSONA, t = ddraft.personality.traits;
+    return '<div class="pz-traits">' + P.TRAITS.map(function (x) {
+      var poles = x[LANG] || x.uk, v = +t[x.id] || 0;
+      return '<div class="pz-tr" role="radiogroup" aria-label="' + esc(poles.join(" — ")) + '"><span>' + esc(poles[0]) + '</span><div class="pz-dots">' + [-2, -1, 0, 1, 2].map(function (k) {
+        return '<label title="' + esc(P.traitWords(x, k, LANG) || VF.pz.mid) + '"><input type="radio" name="pt-' + x.id + '" data-pt="' + x.id + '" value="' + k + '"' + (k === v ? ' checked' : '') + (canWrite ? '' : ' disabled') + '><i></i></label>';
+      }).join("") + '</div><span>' + esc(poles[1]) + '</span></div>';
+    }).join("") + '</div>';
+  }
+  function personaHtml() {
+    var P = window.__PERSONA, p = ddraft.personality, pr = P.progress(p), n = P.QUESTIONS.length;
+    var head = '<p class="hint">' + esc(VF.pz.intro) + '</p><div class="pz-head"><div class="pz-prog"><i style="width:' + Math.round(100 * pr.done / pr.total) + '%"></i></div><span class="muted">' + esc(VF.pz.done.replace("{d}", pr.done).replace("{n}", pr.total)) + '</span>' +
+      '<div class="pz-seg">' + ["step", "all"].map(function (m) { return '<button type="button" data-pzmode="' + m + '" aria-pressed="' + (pst.mode === m) + '">' + esc(VF.pz.modes[m]) + '</button>'; }).join("") + '</div></div>';
+    if (pst.mode === "all") return head + P.STEPS.map(function (s) { return '<h4 class="dsub">' + esc(L(s)) + '</h4>' + s.qs.map(function (q) { return pzQHtml(q, false); }).join(""); }).join("") +
+      '<h4 class="dsub">' + esc(VF.pz.traits) + '</h4>' + pzTraitsHtml();
+    var cur = P.QUESTIONS[pst.i];
+    var steps = '<div class="pz-steps">' + P.STEPS.map(function (s) {
+      var filled = s.qs.every(function (q) { return String(p.answers[q.id] || "").trim(); });
+      return '<button type="button" data-pzgo="' + P.QUESTIONS.indexOf(P.QUESTIONS.filter(function (q) { return q.step === s.id; })[0]) + '" aria-current="' + !!(cur && cur.step === s.id) + '"' + (filled ? ' class="is-done"' : '') + '>' + (filled ? '✓ ' : '') + esc(L(s)) + '</button>';
+    }).join("") + '<button type="button" data-pzgo="' + n + '" aria-current="' + !cur + '">' + esc(VF.pz.traits) + '</button></div>';
+    var body = cur ? pzQHtml(cur, true) : '<p class="pz-tq">' + esc(VF.pz.traitsQ) + '</p>' + pzTraitsHtml();
+    var nav = '<div class="row pz-nav"><button type="button" class="btn" data-pzgo="' + Math.max(0, pst.i - 1) + '"' + (pst.i ? '' : ' disabled') + '>' + esc(VF.pz.back) + '</button>' +
+      (cur ? '<button type="button" class="btn primary" data-pzgo="' + (pst.i + 1) + '">' + esc(VF.pz.next) + '</button>' : '<span class="muted">' + esc(VF.pz.end) + '</span>') + '</div>';
+    return head + steps + '<div class="pz-card">' + body + '</div>' + nav;
+  }
+  function pzCollect() {
+    if (!ddraft || !ddraft.personality) return;
+    var p = ddraft.personality; // empty answers and the middle of a scale are «not said»: no key, so an untouched constructor is not «unsaved»
+    [].forEach.call(document.querySelectorAll("#d-body [data-pa]"), function (t) { if (t.value.trim()) p.answers[t.dataset.pa] = t.value; else delete p.answers[t.dataset.pa]; });
+    [].forEach.call(document.querySelectorAll("#d-body [data-pt]:checked"), function (r) { if (+r.value) p.traits[r.dataset.pt] = +r.value; else delete p.traits[r.dataset.pt]; });
+  }
+  async function pzIdeas(btn, qid) {
+    if (!ME.owner && ME.role !== "admin") return notify(STR.team.noAi);
+    pzCollect();
+    var box = $("pz-ideas"), label = btn.innerHTML; btn.disabled = true; btn.textContent = VF.pz.ideasBusy;
+    try {
+      var data = await fillCall({ op: "personaIdeas", entityId: dos.id, question: qid, answers: ddraft.personality.answers, traits: ddraft.personality.traits });
+      if (box && box.isConnected) box.innerHTML = '<p class="muted">' + esc(VF.pz.ideasPick) + '</p>' + (data.ideas || []).map(function (t) { return '<button type="button" class="pz-idea" data-pzidea="' + esc(qid) + '">' + esc(t) + '</button>'; }).join("");
+    } catch (e) { notify(VF.fail + ": " + e.message); }
+    if (btn.isConnected) { btn.disabled = false; btn.innerHTML = label; }
+  }
+  $("d-body").addEventListener("click", function (e) {
+    var t = e.target.closest("[data-pzmode],[data-pzgo],[data-pzideas],[data-pzidea],[data-dict]"); if (!t || !dos) return;
+    if (t.dataset.dict) { var ta = $(t.dataset.dict); if (ta) dictateInto(ta, t); return; }
+    if (t.dataset.pzideas) { pzIdeas(t, t.dataset.pzideas); return; }
+    if (t.dataset.pzidea) { var a = $("pa-" + t.dataset.pzidea); if (a) { a.value = t.textContent; a.focus(); } return; }
+    stopListen(); dcollect();
+    if (t.dataset.pzmode) pst.mode = t.dataset.pzmode; else pst.i = Math.max(0, Math.min(window.__PERSONA.QUESTIONS.length, +t.dataset.pzgo));
+    renderDossier();
+    var f = document.querySelector("#d-body .pz-q.big textarea"); if (f) f.focus({ preventScroll: true });
+  });
+  $("e-mic").onclick = function () { if (open) dictate(cardTarget()); };
+  $("d-mic").onclick = function () { if (dos) dictate(dosTarget()); };
+
   function renderCulture(s) {
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>';
@@ -4457,6 +4659,7 @@
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
+    if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
     if (c.section === "refs" && !draft.defs.some(function (d) { return d.type === "image"; })) // older reference cards get the pictures field too
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "pics", label: LANG === "en" ? "Pictures" : "Картинки", type: "image" });
     var ov0 = c.section === "overview" && c.src === "game" && cards.filter(function (x) { return x.section === "overview" && !x.canonRef && !x.hidden; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); })[0];
@@ -4469,6 +4672,7 @@
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-delete").style.display = c.isNew ? "none" : "";
+    $("e-mic").style.display = canWrite ? "" : "none";
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
@@ -4899,7 +5103,8 @@
       : type === "scene" ? '<div class="sb" data-board="' + esc(d.key) + '"></div>'
       : type === "image" || type === "file" || type === "audio" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
       : '<div class="shown' + (v ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + (v ? md(v) : STR.blank) + '</div>';
-    return '<div class="field' + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
+    var half = type === "text" && String(v).length < 600; // short text fields sit two in a row in the card window; tables, files, pictures and long texts take the whole width
+    return '<div class="field' + (half ? " half" : "") + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
   }
   // Tables are kept as Markdown tables in the field, so AI, MCP and exports read them as text.
   // head: the default column names (a def's cols); text written before a field became a table → one row per line, «назва: значення» split in two
@@ -8700,16 +8905,17 @@
   }
   $("e-save").onclick = save;
   $("e-close").onclick = leafClose;
-  $("scrim").onclick = function () { if (dos) closeDossier(); else leafClose(); };
+  $("scrim").onclick = function () { if (dos) dosClose(); else leafClose(); };
   $("d-save").onclick = saveDossier;
-  $("d-close").onclick = closeDossier;
+  function dosClose() { if (!dos || !canWrite) return closeDossier(); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, closeDossier); } // like the card: closing never drops edits silently
+  $("d-close").onclick = dosClose;
   $("d-delete").onclick = deleteLore;
   $("e-delete").onclick = removeCard;
   window.addEventListener("ww-prices", function () { if (world && !open && !dos) render(); }); // the live price index arrived: the ✦ prices redraw
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && open && !document.querySelector(".ask")) leafClose();
-    if (e.key === "Escape" && dos && !document.querySelector(".v3d")) closeDossier();
+    if (e.key === "Escape" && dos && !document.querySelector(".v3d") && !document.querySelector(".ask")) dosClose();
     if ((e.ctrlKey || e.metaKey) && e.key === "s" && dos) { e.preventDefault(); saveDossier(); }
     if ((e.ctrlKey || e.metaKey) && e.key === "s" && open) { e.preventDefault(); save(); }
     if (e.key === "Tab" && open && !document.querySelector(".v3d")) { // keep focus inside the leaf
@@ -8740,6 +8946,7 @@
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search; $("srch-btn").title = STR.search; $("srch-btn").setAttribute("aria-label", STR.search); $("srch-x").title = STR.close; $("srch-x").setAttribute("aria-label", STR.close);
   setEditMode(false); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
   $("d-save").textContent = STR.save; $("d-close").textContent = STR.close; $("d-delete").textContent = STR.cult.del;
+  ["e-mic", "d-mic"].forEach(function (id) { $(id).textContent = VF.btn; $(id).title = VF.tip; });
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }

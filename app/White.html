@@ -1074,7 +1074,7 @@ body.at-home .back-fab{ display:none; }
     var ld = document.createElement("div"); ld.className = "loader is-on";
     ld.innerHTML = '<div class="loader__mark"></div>';
     var f = document.createElement("iframe"); f.className = "frame"; f.title = PILLARS[p].label;
-    f.dataset.pillar = p;
+    f.dataset.pillar = p; f.allow = "microphone"; // 🎙 «Надиктуй» in the Bible (same origin; explicit for every browser)
     f.addEventListener("load", function () { ld.classList.remove("is-on"); });
     setTimeout(function () { ld.classList.remove("is-on"); }, 2500);
     stage.appendChild(ld); stage.appendChild(f);

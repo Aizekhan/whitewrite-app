@@ -24,6 +24,7 @@ exports.communityRotate = community.communityRotate;
 exports.styleCheck = require('./src/style').styleCheck; // the AI check of a picture against the game's visual style
 exports.styleFromRefs = require('./src/style').styleFromRefs; // ✦ the overall style proposed from the reference pictures
 exports.voice = require('./src/voice').voice; // 🎙 dialogue voice-over: Google Text-to-Speech (voices, preview, synthesize → Audio library)
+exports.cardFill = require('./src/card-fill').cardFill; // 🎙 dictation → the open card's fields (a proposal) · ✦ variants for the 🧠 personality constructor
 const modelWatch = require('./src/model-watch'); // Claude versions: daily check + safe auto-switch (helpers stay internal)
 exports.modelWatch = modelWatch.modelWatch;
 exports.modelWatchRun = modelWatch.modelWatchRun;
