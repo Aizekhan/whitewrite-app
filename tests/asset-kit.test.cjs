@@ -33,6 +33,16 @@ check(K.fileSlot({ name: 'pack.unitypackage' }), 'prefab', 'an old package fills
 check(K.fileSlot({ name: 'x.png', field: 'portrait' }), '', 'a field file is not a kit file');
 check(K.kitSummary(hero).slots.rig, 'missing', 'MCP summary says what is missing');
 
+// a model comes as one self-contained file or as a folder; the folder's files are recognised by name (v2.88.1)
+check(K.needsFolder('Knight.FBX'), true, 'an FBX needs its folder');
+check(K.needsFolder('knight.glb'), false, 'a GLB is one file');
+[['Knight_BaseColor.png', 'albedo'], ['T_Knight_N.png', 'normal'], ['Knight_ORM.png', 'mask'], ['Knight_AO.tga', 'ao'], ['Knight_LOD1.fbx', 'lod'],
+ ['Knight@Idle.fbx', 'anims'], ['Knight.mat', 'material'], ['license.txt', 'license'], ['readme.md', ''], ['x.meta', ''], ['cape.png', 'other']]
+  .forEach(([n, w]) => check(K.classify(n), w, n + ' → ' + (w || 'skipped')));
+const glb = K.kitState({ fields: { category: 'Персонажі' }, files: [{ name: 'k.glb', field: 'kit:model' }] });
+check(glb.rows.find((r) => r.slot.id === 'albedo').state, 'in', 'a GLB carries its textures inside');
+check(glb.done, glb.total - 1, 'a GLB covers all but the licence');
+
 // the hero → prefab link is a card reference
 const G = { cards: [{ id: 'h1', section: 'characters', title: 'Hero', prefab: 'a1' }, { id: 'a1', section: 'assets', title: 'Hero model' }], quests: [], dialogues: [], tasks: [], entities: [] };
 const edges = R.KINDS.find((k) => k.id === 'prefab').edges(G);

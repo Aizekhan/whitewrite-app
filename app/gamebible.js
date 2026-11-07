@@ -4764,7 +4764,7 @@
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) { if (d.key !== gk && (!lean || editMode || d.type === "image" || draft.fields[d.key])) html += defHtml(d); });
     if (draft.intent) html += intentHtml(draft.intent);
-    if (open.section === "assets") html += kitHtml();
+    if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (!open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest) html += voCardHtml(voCardKey(open));
     if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + '</div>';
@@ -4781,18 +4781,28 @@
       legacy: "Ці файли завантажено сюди напряму, до появи префабів. Перенеси їх у «Ассети й префаби» — там буде комплект моделі.", move: "→ Перенести в «Ассети й префаби»",
       moveQ: "Створити префаб «{t}» у «Ассети й префаби» з цих файлів ({n}) і привʼязати його до картки?", moved: "Префаб створено й привʼязано.",
       title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»",
-      filesHint: "картинки, документи, звук — до 200 МБ; моделі й префаби — через «🧊 Додати префаб»", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
+      filesHint: "картинки, документи, звук — до 200 МБ; моделі й префаби — через «🧊 Додати префаб»",
+      filesHintA: "інше до картки — концепти, документи, звук; модель і текстури — у «🧩 Модель і комплект» вище", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
       noModels: "Моделі й префаби не завантажують у картку героя: додай їх у «Ассети й префаби», а тут обери «🧊 Додати префаб». Пропущено: {f}",
-      kitTitle: "🧩 Комплект моделі", kitHint: "що треба для повного вигляду в грі: додай файл навпроти пункту, познач «Не потрібно» або лиши порожнім",
+      kitTitle: "🧩 Модель і комплект", kitHint: "GLB, .blend, .unitypackage чи ZIP — одним файлом; FBX, OBJ, glTF — текою разом із текстурами. Що де — сервіс розпізнає сам",
+      upFile: "⤒ Файл (GLB · Blend · unitypackage · ZIP)", upDir: "📂 Тека (FBX · OBJ · glTF + текстури)",
+      bundle: "Модель — самодостатній файл: матеріали, текстури, риг і анімації всередині. Перевір у «🧊 3D».", inside: "всередині файлу моделі",
+      tapNa: "натисни — «не потрібно»", tapNeed: "натисни — знову потрібно",
+      needDir: "{f} тримає текстури окремими файлами — завантаж усю теку моделі кнопкою «📂 Тека».", noMesh: "У теці немає файлу моделі (FBX, OBJ, glTF…).",
       kitDone: "Готово {d} з {n}", add: "⤒ Додати", na: "Не потрібно", need: "Потрібно", opt: "за потреби" },
     en: { pick: "＋ Pick a prefab from “Assets & prefabs”", change: "Change the prefab", open: "Open the prefab", unlink: "Unlink", gone: "The linked prefab was deleted from “Assets & prefabs”.",
       none: "No prefab picked yet. Models are uploaded to “Assets & prefabs” (with their kit: textures, material, rig…) and only picked here.",
       legacy: "These files were uploaded here directly, before prefabs. Move them to “Assets & prefabs” — the model kit lives there.", move: "→ Move to “Assets & prefabs”",
       moveQ: "Create the prefab “{t}” in “Assets & prefabs” from these files ({n}) and link it to the card?", moved: "The prefab is created and linked.",
       title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”",
-      filesHint: "images, documents, audio — up to 200 MB; models and prefabs — via “🧊 Add a prefab”", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
+      filesHint: "images, documents, audio — up to 200 MB; models and prefabs — via “🧊 Add a prefab”",
+      filesHintA: "anything else for the card — concepts, documents, audio; the model and textures go to “🧩 Model & kit” above", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
       noModels: "Models and prefabs are not uploaded onto a hero card: add them to “Assets & prefabs” and pick “🧊 Add a prefab” here. Skipped: {f}",
-      kitTitle: "🧩 Model kit", kitHint: "what the full look in the game needs: add a file next to an item, mark it “Not needed” or leave it empty",
+      kitTitle: "🧩 Model & kit", kitHint: "GLB, .blend, .unitypackage or ZIP — as one file; FBX, OBJ, glTF — as a folder with their textures. The service recognises what is what",
+      upFile: "⤒ File (GLB · Blend · unitypackage · ZIP)", upDir: "📂 Folder (FBX · OBJ · glTF + textures)",
+      bundle: "The model is a self-contained file: materials, textures, rig and animations are inside. Check it in “🧊 3D”.", inside: "inside the model file",
+      tapNa: "click — “not needed”", tapNeed: "click — needed again",
+      needDir: "{f} keeps its textures in separate files — upload the whole model folder with “📂 Folder”.", noMesh: "The folder has no model file (FBX, OBJ, glTF…).",
       kitDone: "{d} of {n} ready", add: "⤒ Add", na: "Not needed", need: "Needed", opt: "if needed" }
   }[LANG];
   function assetCard(id) { return id ? allCards().filter(function (c) { return c.src === "game" && c.id === id && c.section === "assets"; })[0] : null; }
@@ -4814,20 +4824,21 @@
       '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="portrait">' + PF.qPortrait + '</label>' +
       '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="refpics">' + PF.qRef + '</label></div>';
   }
+  // the kit: a model comes as ONE self-contained file (GLB, .blend, .unitypackage, ZIP) or as a FOLDER (FBX / OBJ / glTF with textures); the slots are recognised by name (v2.88.1)
   function kitHtml() {
-    var K = window.__ASSET_KIT, st = K.kitState(open);
+    var K = window.__ASSET_KIT, st = K.kitState(open), mark = { ok: "✓", in: "✓", na: "—", empty: "○" };
     return '<div class="field kit"><label>' + esc(PF.kitTitle) + ' <span class="hint">' + esc(PF.kitHint) + '</span></label>' +
+      (canWrite ? '<div class="quickadd kit-up"><label class="btn"><input type="file" hidden data-fup="kit:file" accept="' + K.BUNDLE.map(function (x) { return "." + x; }).join(",") + ',.stl,.usd">' + PF.upFile + '</label>' +
+        '<label class="btn"><input type="file" hidden multiple webkitdirectory data-fup="kit:dir">' + PF.upDir + '</label></div>' : '') +
       '<div class="pz-head"><div class="pz-prog"><i style="width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%"></i></div><span class="muted">' + esc(PF.kitDone.replace("{d}", st.done).replace("{n}", st.total)) + '</span></div>' +
-      K.GROUPS.map(function (g) {
-        return '<h4 class="dsub">' + esc(L(g)) + '</h4><div class="kit-rows">' + st.rows.filter(function (r) { return r.slot.group === g.id; }).map(function (r) {
-          var s = r.slot;
-          return '<div class="kit-row is-' + r.state + '"><span class="kit-mark" aria-hidden="true">' + (r.state === "ok" ? "✓" : r.state === "na" ? "—" : "○") + '</span>' +
-            '<div class="kit-main"><b>' + esc(L(s)) + (s.optional ? ' <span class="muted">· ' + esc(PF.opt) + '</span>' : '') + '</b>' + (s.hint ? '<span class="muted">' + esc(L(s.hint)) + '</span>' : '') +
-            (r.files.length ? '<div class="kit-files field files">' + r.files.map(fileRow).join("") + '</div>' : '') + '</div>' +
-            (canWrite ? '<div class="kit-act">' + (r.state !== "na" ? '<label class="btn"><input type="file" multiple hidden data-fup="kit:' + s.id + '" accept="' + s.ext.map(function (x) { return "." + x; }).join(",") + '">' + PF.add + '</label>' : '') +
-              (r.files.length ? '' : '<button type="button" class="btn" data-kitna="' + s.id + '" aria-pressed="' + (r.state === "na") + '">' + (r.state === "na" ? PF.need : PF.na) + '</button>') + '</div>' : '') + '</div>';
+      (st.bundle ? '<p class="muted">' + esc(PF.bundle) + '</p>' : '') +
+      '<div class="kit-chips">' + K.GROUPS.map(function (g) {
+        return '<div class="kit-grp"><span class="dsub">' + esc(L(g)) + '</span>' + st.rows.filter(function (r) { return r.slot.group === g.id; }).map(function (r) {
+          var s = r.slot, tip = L(s) + (s.hint ? " — " + L(s.hint) : "") + (r.state === "in" ? " · " + PF.inside : "") + (canWrite && !r.files.length ? " · " + (r.state === "na" ? PF.tapNeed : PF.tapNa) : "");
+          return '<button type="button" class="kit-chip is-' + r.state + (s.optional ? ' is-opt' : '') + '" title="' + esc(tip) + '"' + (canWrite && !r.files.length ? ' data-kitna="' + s.id + '"' : ' disabled') + '>' + mark[r.state] + ' ' + esc(L(s)) + '</button>';
         }).join("") + '</div>';
-      }).join("") + '</div>';
+      }).join("") + '</div>' +
+      ((open.files || []).some(function (f) { return K.fileSlot(f); }) ? '<div class="kit-files field files">' + (open.files || []).filter(function (f) { return K.fileSlot(f); }).map(fileRow).join("") + '</div>' : '') + '</div>';
   }
   // the link is written at once, like files (a new card is saved first)
   async function setPrefab(id) {
@@ -4867,7 +4878,7 @@
     var card = open, files = (card.files || []).filter(function (f) { return f.field === key; }), title = $("e-title").value.trim() || card.title || STR.newCard;
     if (!files.length || !(await askConfirm(PF.moveQ.replace("{t}", title).replace("{n}", files.length)))) return;
     var s = sec("assets"), groups = s.groups[LANG] || s.groups.uk, aid = newId("card");
-    var moved = files.map(function (f) { return Object.assign({}, f, { field: "kit:" + (window.__ASSET_KIT.isModelFile(f.name) ? (/\.(prefab|unitypackage|uasset)$/i.test(f.name) ? "prefab" : "model") : isImage(f) ? "preview" : "license") }); });
+    var moved = files.map(function (f) { return Object.assign({}, f, { field: "kit:" + (window.__ASSET_KIT.classify(f.name) || "other") }); });
     try {
       await gref().collection("cards").doc(aid).set({ section: "assets", title: title, status: "idea", note: "", defs: s.defs, fields: { category: groups[card.section === "enemies" ? 1 : 0] }, files: moved, createdAt: stamp(), order: Date.now(), updatedAt: stamp() });
       var body = { section: card.section, prefab: aid, files: firebase.firestore.FieldValue.arrayRemove.apply(null, files), updatedAt: stamp() };
@@ -5536,7 +5547,7 @@
   function filesHtml() {
     var list = (open.files || []).filter(function (f) { return !f.field && !(open.section === "assets" && window.__ASSET_KIT.fileSlot(f)); }).map(fileRow).join(""); // an asset's models sit in its kit
     var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
-    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + (STATS_SECS.indexOf(open.section) >= 0 ? PF.filesHint : STR.filesHint) + '</span></label>' + list + add + '</div>';
+    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + (STATS_SECS.indexOf(open.section) >= 0 ? PF.filesHint : open.section === "assets" ? PF.filesHintA : STR.filesHint) + '</span></label>' + list + add + '</div>';
   }
   // one file onto a card: Storage + the card's files[] (the card's pickers and the bulk «＋ Картинки» of «Референси»)
   async function putFile(card, file, field, progress) {
@@ -5561,6 +5572,11 @@
       var models = list.filter(function (f) { return window.__ASSET_KIT.isModelFile(f.name); });
       if (models.length) { notify(PF.noModels.replace("{f}", models.map(function (f) { return f.name; }).join(", "))); list = list.filter(function (f) { return models.indexOf(f) < 0; }); if (!list.length) return; }
     }
+    if (field === "kit:file" || field === "kit:dir") {
+      var KT = window.__ASSET_KIT;
+      if (field === "kit:file") { var loose = list.filter(function (f) { return KT.needsFolder(f.name); }); if (loose.length) { notify(PF.needDir.replace("{f}", loose[0].name)); return; } }
+      else { list = list.filter(function (f) { return KT.classify(f.name); }); if (!list.some(function (f) { var c = KT.classify(f.name); return c === "model" || c === "prefab"; })) { notify(PF.noMesh); return; } }
+    }
     // a reference is named after its picture (the name stays editable)
     var t = $("e-title").value.trim(), named = open && open.section === "refs" && list.length && (!t || t === STR.newCard);
     if (named) $("e-title").value = baseName(list[0].name);
@@ -5570,7 +5586,7 @@
       var file = list[i];
       if (file.size > MAX_FILE) { msg(STR.fileTooBig + ": " + file.name); continue; }
       try {
-        await putFile(card, file, field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
+        await putFile(card, file, /^kit:(file|dir)$/.test(field) ? "kit:" + (window.__ASSET_KIT.classify(file.name) || "other") : field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
         done++;
       } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
     }

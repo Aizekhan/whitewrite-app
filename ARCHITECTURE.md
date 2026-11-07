@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.88.0 (2026-11-07)
+**Version:** 2.88.1 (2026-11-07)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -746,6 +746,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.88.1** 🧩 the kit simplified (owner): one «⤒ Файл» (self-contained `BUNDLE`: GLB, .blend, .unitypackage, archives) or «📂 Тека» (`FOLDER`: FBX / OBJ / glTF with textures — a lone one is refused) instead of a button per slot; `asset-kit.js classify(name)` files every folder file into its slot by name (`kit:<slot>` / `kit:other`), a bundle marks surface + motion slots `in` (inside the file); the checklist is chips (click an empty one = «не потрібно»), the block sits first on asset cards; uv / lod / collider / prefab / preview optional; MCP `kit.bundle`, `other_textures`.
 - **v2.88.0** 🧊 hero cards link a prefab of «Ассети й префаби» (`card.prefab`, field type `prefab`, quick «Додати префаб / портрет / референс», model uploads refused, «→ Перенести» for old files, the folder import splits models off); 🧩 the model kit of asset cards (`functions/asset-kit.js`, `card.kit.na`, MCP `kit` / `prefab`). v2.87.1: the dossier's «Загальне» tab — the description and shared blocks no longer repeat under every tab.
 - **v2.87.0** 👤 the «Зовнішність» tab of world characters: 22 fields in 4 groups with ▾ variants (toggle chips, several allowed, own text kept; the world's peoples first), the free description below; `entities/{id}.appearance` (`persona.js LOOK`, `cleanLook`, `lookText`) in the AI context and MCP `get_card`. See 2.86.
 - **v2.86.1** the dossier tabs moved to the top of the window (under the name); the open tab's content comes first, the shared blocks (files, description, stories, life timeline) below.
