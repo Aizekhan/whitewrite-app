@@ -1048,7 +1048,7 @@
      "ok": true
     },
     "elf": {
-     "feet_min_m": 0.005,
+     "feet_min_m": 0.006,
      "ok": true
     },
     "orc": {
@@ -2540,15 +2540,15 @@
    "preview_speed": 1.0,
    "retarget": {
     "goblin": {
-     "feet_min_m": -0.0,
+     "feet_min_m": -0.001,
      "ok": true
     },
     "dwarf": {
-     "feet_min_m": 0.002,
+     "feet_min_m": -0.001,
      "ok": true
     },
     "ratfolk": {
-     "feet_min_m": 0.014,
+     "feet_min_m": 0.01,
      "ok": true
     },
     "human_female": {
@@ -2564,11 +2564,11 @@
      "ok": true
     },
     "orc": {
-     "feet_min_m": 0.004,
+     "feet_min_m": 0.003,
      "ok": true
     },
     "ogre": {
-     "feet_min_m": 0.003,
+     "feet_min_m": 0.001,
      "ok": true
     }
    }
@@ -2633,35 +2633,35 @@
    "preview_speed": 1.0,
    "retarget": {
     "goblin": {
-     "feet_min_m": -0.026,
-     "ok": false
+     "feet_min_m": -0.008,
+     "ok": true
     },
     "dwarf": {
-     "feet_min_m": -0.03,
+     "feet_min_m": -0.015,
      "ok": false
     },
     "ratfolk": {
-     "feet_min_m": -0.032,
+     "feet_min_m": -0.016,
      "ok": false
     },
     "human_female": {
-     "feet_min_m": -0.019,
-     "ok": false
+     "feet_min_m": 0.004,
+     "ok": true
     },
     "human_male": {
-     "feet_min_m": -0.023,
-     "ok": false
+     "feet_min_m": 0.004,
+     "ok": true
     },
     "elf": {
-     "feet_min_m": -0.02,
-     "ok": false
+     "feet_min_m": 0.005,
+     "ok": true
     },
     "orc": {
-     "feet_min_m": -0.031,
-     "ok": false
+     "feet_min_m": -0.002,
+     "ok": true
     },
     "ogre": {
-     "feet_min_m": -0.046,
+     "feet_min_m": -0.012,
      "ok": false
     }
    }
