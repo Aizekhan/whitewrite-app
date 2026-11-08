@@ -187,7 +187,7 @@
       alib: { btn: "🎧 Аудіотека", cards: "▦ Картки", title: "Аудіотека гри", intro: "Усі звуки й треки гри в одному місці. Фабрика звуку бере їх звідси: у кожному стані, шарі, стінгері, амбієнті й звуку UI — «＋ З Аудіотеки» або «⤒ Новий» (новий файл теж лягає сюди).",
         sum: "{n} звуків · {f} файлів · {m} хв", missing: "Бракує звуку", missingHint: "Слоти Фабрики звуку без жодного файлу.", missingNone: "Усі слоти Фабрики мають звук.", lib: "Звуки", none: "В Аудіотеці ще немає звуків — «⤒ Звуки» вгорі.", unused: "не використано", used: "Де звучить",
         variants: "варіацій", open: "Відкрити", play: "Слухати", stop: "Зупинити", search: "Пошук звуку…", pick: "＋ З Аудіотеки", up: "⤒ Новий", rm: "Прибрати зі слота", pickTitle: "Звук з Аудіотеки", pickHint: "Позначені звуки ляжуть у слот; кілька — варіації (гра бере випадковий).", add: "Додати", nothing: "Нічого не знайдено" },
-      uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", confirmFile: "Видалити файл",
+      uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", storageFull: "Сховище тарифу заповнене ({n} ГБ на всі твої світи): видали непотрібні файли або перейди на вищий тариф", confirmFile: "Видалити файл",
       v3d: { shot: "📷 Знімок для стилю", shotTip: "Зберегти цей ракурс картинкою на картці — її перевірить стиль гри", shotDone: "Знімок збережено на картці", open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
@@ -209,7 +209,7 @@
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
       answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
       pp: { dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
-        who: "Виконавець", nobody: "— не призначено —", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
+        who: "Виконавець", nobody: "— не призначено —", memberEdit: "✎ змінив {n} — Claude Code не бере, доки ти не схвалиш", memberWait: "⏳ чекає схвалення власника: доти Claude Code її не бере", approve: "✓ Схвалити для агента", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
         trackAbout: { mvp: "П'ять воріт від порожнього проєкту до релізу. Наступний етап відкривається, коли ти приймеш ворота попереднього.",
           expansion: "Більше контенту систем, уже перевірених у MVP: рівні, вороги, предмети. Відкривається після MVP.",
@@ -513,7 +513,7 @@
       alib: { btn: "🎧 Audio library", cards: "▦ Cards", title: "The game's Audio library", intro: "Every sound and track of the game in one place. The Sound factory takes them from here: in every state, layer, stinger, ambience and UI sound — “＋ From the library” or “⤒ New” (a new file lands here too).",
         sum: "{n} sounds · {f} files · {m} min", missing: "Missing sound", missingHint: "Sound factory slots without any file.", missingNone: "Every Sound factory slot has a sound.", lib: "Sounds", none: "No sounds in the library yet — “⤒ Sounds” at the top.", unused: "unused", used: "Where it plays",
         variants: "variations", open: "Open", play: "Listen", stop: "Stop", search: "Find a sound…", pick: "＋ From the library", up: "⤒ New", rm: "Remove from the slot", pickTitle: "A sound from the library", pickHint: "The ticked sounds go into the slot; several are variations (the game picks one at random).", add: "Add", nothing: "Nothing found" },
-      uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", confirmFile: "Delete file",
+      uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", storageFull: "Your plan’s storage is full ({n} GB for all your worlds): delete files you don’t need or move to a higher plan", confirmFile: "Delete file",
       v3d: { shot: "📷 Snapshot for the style", shotTip: "Save this view as a picture on the card — the game style will check it", shotDone: "Snapshot saved on the card", open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
@@ -535,7 +535,7 @@
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
       answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
       pp: { dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
-        who: "Assignee", nobody: "— not assigned —", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
+        who: "Assignee", nobody: "— not assigned —", memberEdit: "✎ edited by {n} — Claude Code won’t take it until you approve", memberWait: "⏳ waits for the owner’s approval: Claude Code won’t take it until then", approve: "✓ Approve for the agent", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
         trackAbout: { mvp: "Five gates from an empty project to a release. The next stage opens once you approve the gate of the one before.",
           expansion: "More content of systems already proven in the MVP: levels, enemies, items. Opens after the MVP.",
@@ -890,6 +890,25 @@
   var escUrl = function (u) { u = String(u == null ? "" : u).trim(); return esc(/^(https?:|blob:)/i.test(u) ? u : "#"); };
   var newId = function (p) { return p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
   var stamp = function () { return firebase.firestore.FieldValue.serverTimestamp(); };
+  // a task a team member writes is stamped memberEdit (firestore.rules): the owner's Claude Code holds it until the owner
+  // approves (mcp.js unapproved); the owner's own action on a task (review, return, assign, ✓) approves it
+  // Storage quota of the owner's plan (paid-features PLANS.storageGB; functions/src/storage-quota.js deletes a file past it):
+  // the owner's page checks before each upload. A team member's upload counts too, the server alone guards it.
+  var quotaSeen = null;
+  async function storageRoom(size) {
+    var me = firebase.auth().currentUser, PF = window.__PAID_FEATURES;
+    if (!me || !world || world.owner !== me.uid || !PF) return true;
+    if (!quotaSeen || Date.now() - quotaSeen.at > 60000) {
+      var rows = await db.collection("storageUsage").where("owner", "==", me.uid).get().catch(function () { return { docs: [] }; });
+      quotaSeen = { at: Date.now(), bytes: rows.docs.reduce(function (n, d) { return n + Math.max(0, d.get("bytes") || 0); }, 0),
+        quota: PF.planBudget(((window.__wwUser || {}).plan) || "free").storageGB * 1073741824 };
+    }
+    if (quotaSeen.bytes + size > quotaSeen.quota) return false;
+    quotaSeen.bytes += size; // this upload, until the next read
+    return true;
+  }
+  function quotaMsg() { var PF = window.__PAID_FEATURES; return STR.storageFull.replace("{n}", PF ? PF.planBudget(((window.__wwUser || {}).plan) || "free").storageGB : "?"); }
+  var memberMark = function (create) { var me = firebase.auth().currentUser; return me && world && world.owner !== me.uid ? me.uid : (create ? null : firebase.firestore.FieldValue.delete()); };
   var wref = function () { return db.collection("worlds").doc(worldId); };
   var gref = function () { return wref().collection("games").doc(gameId); };
   var entityId = function (kind) { return PREFIX[kind] + "_" + Array.from(crypto.getRandomValues(new Uint8Array(3)), function (b) { return b.toString(16).padStart(2, "0"); }).join(""); };
@@ -2338,6 +2357,7 @@
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
       if (file.size > MAX_FILE) { dmsg(STR.fileTooBig + ": " + file.name); continue; }
+      if (!(await storageRoom(file.size))) { dmsg(quotaMsg()); break; }
       var id = newId("file"), path = "worlds/" + worldId + "/files/" + e.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
       try {
         var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
@@ -5592,6 +5612,7 @@
   }
   // one file onto a card: Storage + the card's files[] (the card's pickers and the bulk «＋ Картинки» of «Референси»)
   async function putFile(card, file, field, progress) {
+    if (!(await storageRoom(file.size))) throw new Error(quotaMsg());
     var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + card.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
     var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
     if (progress) task.on("state_changed", progress);
@@ -6646,6 +6667,7 @@
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
       if (file.size > MAX_FILE) { fz.msg = STR.fileTooBig + ": " + file.name; render(); return; }
+      if (!(await storageRoom(file.size))) { fz.msg = quotaMsg(); render(); return; }
       var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + o.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
       try {
         fz.msg = STR.uploading + " " + file.name; render();
@@ -7244,7 +7266,7 @@
         '<p class="hint">' + STR.stRestoreHint + '</p></section>' + fillBoxHtml(true);
     if (!inGame && mode === "world") html += cosmoSettingsHtml() + '<section class="setbox"><h2>' + STR.hub.movedTitle + '</h2><p class="hint">' + STR.hub.moved + '</p><div class="setrow">' +
       [["community", "🌍"], ["team", "🤝"], ["market", "⚖"], ["backup", "⛁"]].map(function (x) { return '<button class="btn" data-hubtab="' + x[0] + '">' + x[1] + ' ' + esc(STR.hub.tabs[x[0]]) + '</button>'; }).join("") + '</div></section>';
-    if (inGame || mode === "world") html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
+    if ((inGame || mode === "world") && ME.owner) html += '<section class="setbox danger"><h2>' + STR.stDanger + '</h2><div class="setrow">' +
       (inGame ? '<button class="btn danger" id="st-gdel">' + STR.stDelGame + '</button>' : '<button class="btn danger" id="st-wdel">' + STR.stDelWorld + '</button>') + '</div><p class="hint" id="st-msg"></p></section>';
     $("view").innerHTML = html;
     tabs();
@@ -7259,7 +7281,7 @@
     };
     $("st-wexp").onclick = exportWorld;
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
-    $("st-wdel").onclick = deleteWorld;
+    if ($("st-wdel")) $("st-wdel").onclick = deleteWorld;
     bindFill(); bindCosmoSettings();
     return;
     }
@@ -7276,7 +7298,7 @@
     });
     if ($("st-guide")) $("st-guide").onclick = guideToggle;
     $("st-gexp").onclick = exportGame;
-    $("st-gdel").onclick = function () { askDelete(STR.stDelGame, STR.stDelGameText, game.title || "", deleteGame); };
+    if ($("st-gdel")) $("st-gdel").onclick = function () { askDelete(STR.stDelGame, STR.stDelGameText, game.title || "", deleteGame); };
     [].forEach.call(document.querySelectorAll("[data-delsec]"), function (b) {
       b.onclick = function () { confirmDeleteSection(sec(b.dataset.delsec)); };
     });
@@ -7923,7 +7945,7 @@
     var batch = db.batch();
     batch.set(gref().collection("plan").doc("current"), { plan: { milestones: ms.concat([exp]) } }, { merge: true });
     batch.set(gref().collection("tasks").doc(id), Object.assign({}, task, { kind: "bug", severity: ({ high: "s2", medium: "s3", low: "s4" })[x.priority] || "s3", foundIn: "telemetry:" + String(x.id).slice(0, 100), // a bug found by telemetry
-      status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp() }));
+      status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }));
     batch.set(gref().collection("experienceIssues").doc(x.id), { status: "planned", taskId: id, chosenAction: act.change, updatedAt: stamp() }, { merge: true });
     await batch.commit();
     exMsg = STR.ex.planned.replace("{id}", id); render();
@@ -8287,6 +8309,7 @@
     var g = job.g, f = job.x.f, card = await inCard(I, g);
     if (g.have[f.name + "|" + f.size]) { I.up.dup++; I.up.done++; I.up.sent += f.size; return; } // already on the card: a resumed folder
     I.up.cur = job.x.rel;
+    if (!(await storageRoom(f.size))) throw new Error(quotaMsg());
     var id = newId("file"), path = "worlds/" + I.W + "/games/" + I.G + "/files/" + card.id + "/" + id + "-" + f.name.replace(/[\/\\#?\[\]*]/g, "_"), last = 0;
     var task = firebase.storage().ref(path).put(f, { contentType: f.type || "application/octet-stream" });
     task.on("state_changed", function (s) { I.up.sent += s.bytesTransferred - last; last = s.bytesTransferred; inTick(); });
@@ -8492,6 +8515,7 @@
     var mdb = $("p-md"); if (mdb) mdb.onclick = exportMarkdown;
     [].forEach.call(document.querySelectorAll("[data-astate]"), function (sel) { sel.onchange = function () { setAssetState(sel.dataset.astate, sel.value); }; });
     [].forEach.call(document.querySelectorAll("[data-assign]"), function (sel) { sel.onchange = function () { setAssignee(sel.dataset.assign, sel.value); }; });
+    [].forEach.call(document.querySelectorAll("[data-approve]"), function (b) { b.onclick = function () { b.disabled = true; approveTask(b.dataset.approve); }; });
     var mo = $("p-mine"); if (mo) mo.onchange = function () { mineOnly = mo.checked; render(); };
   }
 
@@ -8681,7 +8705,7 @@
     if (!ok && !comment) return;
     var batch = db.batch(), ev = { type: ok ? "accepted" : "returned", by: "author", at: Date.now() };
     if (comment) ev.comment = comment;
-    batch.set(gref().collection("tasks").doc(lt.id), { status: ok ? "done" : "rework", reviewComment: comment, updatedAt: stamp(),
+    batch.set(gref().collection("tasks").doc(lt.id), { status: ok ? "done" : "rework", reviewComment: comment, updatedAt: stamp(), memberEdit: memberMark(),
       history: firebase.firestore.FieldValue.arrayUnion(ev) }, { merge: true });
     if (ok) taskLinked(lt).forEach(function (c) { // what the task built is now in the game
       var body = { status: "ingame", updatedAt: stamp() };
@@ -8705,7 +8729,7 @@
   async function unblockTask(id) {
     var lt = liveTask(id); if (!lt) return;
     var note = await askText(STR.unblockPh, { ok: STR.unblock, optional: true }); if (note === null) return;
-    await gref().collection("tasks").doc(lt.id).set({ status: lt.report ? "rework" : "todo", reviewComment: note, blocker: firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
+    await gref().collection("tasks").doc(lt.id).set({ status: lt.report ? "rework" : "todo", reviewComment: note, blocker: firebase.firestore.FieldValue.delete(), updatedAt: stamp(), memberEdit: memberMark(),
       history: firebase.firestore.FieldValue.arrayUnion({ type: "unblocked", by: "author", comment: note, at: Date.now() }) }, { merge: true });
   }
 
@@ -8750,17 +8774,28 @@
     return ' <select class="twho" data-assign="' + esc(lt.id) + '" aria-label="' + esc(P.who) + '"><option value="">' + esc(P.nobody) + '</option>' + ps.map(function (x) {
       return '<option value="' + esc(x.uid) + '"' + (a && a.uid === x.uid ? ' selected' : '') + '>👤 ' + esc(x.name + (x.uid === myUid() ? ' (' + P.meLbl + ')' : '')) + '</option>'; }).join("") + '</select>';
   }
+  // a task a team member wrote or edited (memberEdit, firestore.rules) — the owner approves it for Claude Code (mcp.js unapproved)
+  function memberHtml(lt) {
+    var P = STR.pp; if (!lt || !lt.memberEdit) return '';
+    if (!ME.owner) return ' <span class="pill s-idea">' + esc(P.memberWait) + '</span>';
+    var m = (world.team || {})[lt.memberEdit] || {};
+    return ' <span class="pill s-idea">' + esc(P.memberEdit.replace("{n}", m.name || m.email || lt.memberEdit)) + '</span> <button class="btn tiny" data-approve="' + esc(lt.id) + '">' + esc(P.approve) + '</button>';
+  }
+  async function approveTask(id) {
+    await gref().collection("tasks").doc(id).set({ memberEdit: firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
+      history: firebase.firestore.FieldValue.arrayUnion({ type: "approved", by: "author", at: Date.now() }) }, { merge: true });
+  }
   function isMine(t) { var lt = liveTask(t.id); return !!(lt && lt.assignee && lt.assignee.uid === myUid()); }
   async function setAssignee(id, uid) {
     var lt = liveTask(id); if (!lt) return;
     var x = people().filter(function (p) { return p.uid === uid; })[0];
-    await gref().collection("tasks").doc(lt.id).set({ assignee: x ? { uid: x.uid, name: x.name } : firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
+    await gref().collection("tasks").doc(lt.id).set({ assignee: x ? { uid: x.uid, name: x.name } : firebase.firestore.FieldValue.delete(), updatedAt: stamp(), memberEdit: memberMark(),
       history: firebase.firestore.FieldValue.arrayUnion({ type: "assigned", to: x ? x.name : "", by: "author", at: Date.now() }) }, { merge: true });
   }
   function taskHtml(t) {
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
     var bt = isBugT(lt) ? lt : isBugT(t) ? t : null;
-    return '<div class="task' + (lt ? ' t-' + lt.status : '') + (bt ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + ' <b>' + esc(t.title) + '</b>' +
+    return '<div class="task' + (lt ? ' t-' + lt.status : '') + (bt ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
       (lt ? ' <span class="pill tst-' + lt.status + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
       (t.priority ? ' <span class="pill pr-' + t.priority + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
@@ -8935,7 +8970,7 @@
       build: cut(r.build, 80), foundIn: "author", relatedTask: "", cards: r.cards, detail: actual + (expected ? "\nExpected: " + expected : ""), deps: [], size: "S", owner: "dev",
       priority: sev === "s1" || sev === "s2" ? "must" : "should", accept: ["The repro steps no longer reproduce the bug" + (expected ? ": " + expected : "")], tests: ["A regression test for the repro, where it can be automated"],
       prompt: "Bug " + id + " (" + sev.toUpperCase() + "). Reproduce it with the steps, fix the cause, add a regression test where possible, then submit_task_result.",
-      status: "todo", order: 8000 + SEV.indexOf(sev), history: [{ type: "reported", by: "author", at: Date.now() }], createdAt: stamp(), updatedAt: stamp() }); // the same shape as mcp.js report_bug (rules: gameDocOk)
+      status: "todo", order: 8000 + SEV.indexOf(sev), history: [{ type: "reported", by: "author", at: Date.now() }], createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }); // the same shape as mcp.js report_bug (rules: gameDocOk)
     planMsg = BG.saved.replace("{id}", id); render();
   }
   // a gate: approving asks for a short retro (kept / cut / learned → gates.{id}.retro) and warns about open S1 bugs; returning asks what is wrong

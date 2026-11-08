@@ -45,3 +45,6 @@ exports.reservationSweep = require('./src/cost-watch').reservationSweep; // retu
 const cleanup = require('./src/cleanup'); // after a game / world is deleted: tokens, keys, showcases, Storage, leftovers
 exports.gameDeleted = cleanup.gameDeleted;
 exports.worldDeleted = cleanup.worldDeleted;
+const quota = require('./src/storage-quota'); // Storage quota of the plan: storageUsage/{w}, a file past it is deleted
+exports.storageUploaded = quota.storageUploaded;
+exports.storageRemoved = quota.storageRemoved;

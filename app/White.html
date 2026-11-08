@@ -2303,7 +2303,7 @@ body.at-home .back-fab{ display:none; }
     if (kind === "plans") return PF.PLAN_ORDER.map(function (id) {
       var p = PF.PLANS[id], fs = PF.FEATURES.filter(function (f) { return f.minPlan === id && !f.planned; });
       return '<h3 class="art__h">' + p.name + ' — $' + p.price + (en ? '/mo' : '/міс') + '</h3><ul class="art__ul"><li>' +
-        p.monthly.toLocaleString() + (en ? ' tokens a month, ' : ' токенів на місяць, ') + (p.maxProjects >= 999 ? '∞' : p.maxProjects) + (en ? ' projects' : ' проєкт(и)') + '</li>' +
+        p.monthly.toLocaleString() + (en ? ' tokens a month, ' : ' токенів на місяць, ') + (p.maxProjects >= 999 ? '∞' : p.maxProjects) + (en ? ' projects' : ' проєкт(и)') + ', ' + (p.storageGB || 1) + (en ? ' GB of files' : ' ГБ файлів') + '</li>' +
         fs.map(function (f) { return '<li><b>' + L(f).name + '</b>' + (f.soon ? (en ? ' (soon)' : ' (скоро)') : '') + ' — ' + L(f).desc + '</li>'; }).join("") + '</ul>';
     }).join("");
     return '<ul class="art__ul">' + PF.FEATURES.filter(function (f) { return f.kind === 'ai'; }).map(function (f) {
@@ -2696,7 +2696,8 @@ body.at-home .back-fab{ display:none; }
         t('plan.claudeOnly') + ": " + PF.modelTiers(id).map(function (m) { return m.id.charAt(0).toUpperCase() + m.id.slice(1); }).join(" · "),
         (function () { var d = PF.tierInfo(PF.modelTier(id)), h = PF.tierInfo('haiku'), dn = d.id.charAt(0).toUpperCase() + d.id.slice(1);
           return "≈ " + Math.floor(p.monthly / d.typical) + " " + t('plan.scenes') + " (" + dn + ")" + (d.id !== 'haiku' ? " " + t('plan.or') + " ≈ " + Math.floor(p.monthly / h.typical) + " (Haiku)" : ""); })(),
-        (p.maxProjects >= 999 ? "∞ " : p.maxProjects + " ") + (p.maxProjects === 1 ? (en ? 'project' : 'проєкт') : t('plan.projects'))];
+        (p.maxProjects >= 999 ? "∞ " : p.maxProjects + " ") + (p.maxProjects === 1 ? (en ? 'project' : 'проєкт') : t('plan.projects')),
+        (p.storageGB || 1) + (en ? ' GB of files (all your worlds)' : ' ГБ файлів (на всі світи)')];
       if (prev) feats.push('<b>' + (en ? 'Everything in ' : 'Усе з ') + PF.PLANS[prev].name + ' +</b>');
       PF.FEATURES.forEach(function (f) {
         if (f.minPlan !== id || f.planned || f.id === 'scenes' || f.id === 'genesis') return;

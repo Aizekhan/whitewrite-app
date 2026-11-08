@@ -158,7 +158,8 @@ service cloud.firestore {
         allow update: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId) &&
                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys', 'integrations', 'framework']) &&
                          (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId));
-        allow delete: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId);
+        // the owner only: deleting a game is final (functions/src/cleanup.js gameDeleted removes everything under it)
+        allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId);
       }
       // cards: by their own section (a member with chosen sections queries one section at a time)
       match /games/{gameId}/cards/{cardId} {
@@ -173,7 +174,10 @@ service cloud.firestore {
         allow write: if isAuthenticated() && sub != 'cards' && editSec(worldId, subSec(sub)) && worldOpen(worldId) &&
                         (sub in ['quests', 'dialogues'] ||
                          (sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'] && ownerGameDev(worldId))) &&
-                        (request.method == 'delete' || (gameDocOk(sub, request.resource.data) && gameExists(worldId, gameId)));
+                        (request.method == 'delete' || (gameDocOk(sub, request.resource.data) && gameExists(worldId, gameId))) &&
+                        // a task a member writes carries memberEdit = their uid: the owner's Claude Code (MCP) holds it until the owner
+                        // approves (clears it) — a member's text never runs as the owner's instruction on the owner's PC
+                        (sub != 'tasks' || request.method == 'delete' || isWorldOwner(worldId) || request.resource.data.get('memberEdit', null) == request.auth.uid);
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId) &&
                          sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];
@@ -198,6 +202,11 @@ service cloud.firestore {
     // The author's one saved GitHub token (github-token.js) — reused by the repo and backup connections, server only
     match /githubTokens/{uid} {
       allow read, write: if false;
+    }
+    // Storage quota (functions/src/storage-quota.js): bytes per world, the owner reads their own (the page checks before an upload)
+    match /storageUsage/{worldId} {
+      allow read: if isAuthenticated() && resource.data.owner == request.auth.uid;
+      allow write: if false;
     }
     // 🔌 the author's own keys for 3D / image generation (integrations.js) — server only; the page sees worlds|games.integrations
     match /integrationKeys/{id} {

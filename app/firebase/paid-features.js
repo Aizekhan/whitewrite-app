@@ -19,11 +19,12 @@
 const PLAN_ORDER = ['free', 'storyteller', 'novelist', 'worldbuilder'];
 
 const PLANS = {
-  free:         { name: 'Free',         price: 0,  monthly: 200,    maxProjects: 1,   maxGames: 1 },
-  storyteller:  { name: 'Storyteller',  price: 12, monthly: 2400,   maxProjects: 5,   maxGames: 1 },
-  novelist:     { name: 'Novelist',     price: 29, monthly: 32000,  maxProjects: 999, maxGames: 1, popular: true },
-  worldbuilder: { name: 'Worldbuilder', price: 69, monthly: 180000, maxProjects: 999, maxGames: 999 },
-  worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, maxGames: 999, hidden: true, as: 'worldbuilder' } // dev/testing
+  // storageGB: files of all the owner's worlds in Firebase Storage (functions/src/storage-quota.js; ≈ $0.026 / GB a month)
+  free:         { name: 'Free',         price: 0,  monthly: 200,    maxProjects: 1,   maxGames: 1,   storageGB: 1 },
+  storyteller:  { name: 'Storyteller',  price: 12, monthly: 2400,   maxProjects: 5,   maxGames: 1,   storageGB: 2 },
+  novelist:     { name: 'Novelist',     price: 29, monthly: 32000,  maxProjects: 999, maxGames: 1,   storageGB: 5, popular: true },
+  worldbuilder: { name: 'Worldbuilder', price: 69, monthly: 180000, maxProjects: 999, maxGames: 999, storageGB: 50 },
+  worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, maxGames: 999, storageGB: 50, hidden: true, as: 'worldbuilder' } // dev/testing
 };
 
 const USD_PER_TOKEN = 0.00015; // API dollars one token pays for (see MARGIN above)
@@ -318,7 +319,7 @@ function unlocked(feature, plan) { return planRank(plan) >= PLAN_ORDER.indexOf(f
 // Plan → { monthly, maxProjects, allow…: bool } — the shape plans.js / token-budget.js always had
 function planBudget(plan) {
   const p = PLANS[plan] || PLANS.free;
-  const out = { monthly: p.monthly, maxProjects: p.maxProjects, maxGames: p.maxGames || 1 };
+  const out = { monthly: p.monthly, maxProjects: p.maxProjects, maxGames: p.maxGames || 1, storageGB: p.storageGB || 1 };
   FEATURES.forEach((f) => {
     if (!f.flag) return;
     const on = unlocked(f, PLANS[plan] ? plan : 'free');

@@ -41,6 +41,7 @@ async function cleanWorld(w) {
   await db.collection('backupTokens').doc(w).delete();
   await removeShowcases([w].concat((await byPrefix('community', w + '__')).docs.map((d) => d.id)));
   await removeFiles(`worlds/${w}/`);
+  await db.collection('storageUsage').doc(w).delete(); // its quota bytes (storage-quota.js; later delete events find no doc)
   await db.recursiveDelete(db.collection('worlds').doc(w));
 }
 
