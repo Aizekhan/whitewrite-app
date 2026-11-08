@@ -52,14 +52,15 @@ function disposeTree(root) {
   });
 }
 // A still of the model for a card (the Forge shows a character's own model instead of an empty frame): rendered once off-screen, the
-// GPU freed at once; opts.shape = { Thin: 0–100, … } bends the body like the sliders do. Resolves a data URL.
+// GPU freed at once; opts.shape = { Thin: 0–100, … } bends the body like the sliders do. Resolves { url, keys } — keys: the model's shape key names.
 export async function modelShot(file, siblings, opts) {
-  const r = await load(file, siblings), root = r.root, w = 360, h = 480, shape = (opts && opts.shape) || {};
+  const r = await load(file, siblings), root = r.root, w = 360, h = 480, shape = (opts && opts.shape) || {}, keys = new Set();
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   try {
     renderer.setSize(w, h, false); renderer.outputColorSpace = THREE.SRGBColorSpace;
     const scene = new THREE.Scene(), sun = new THREE.DirectionalLight(0xffffff, 2.4);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x2a2622, 2.2)); sun.position.set(2, 4, 3); scene.add(sun); scene.add(root);
+    root.traverse((o) => { if (o.morphTargetDictionary) Object.keys(o.morphTargetDictionary).forEach((k) => keys.add(k)); });
     root.traverse((o) => { if (o.morphTargetDictionary) Object.keys(shape).forEach((k) => { const i = o.morphTargetDictionary[k]; if (i != null) o.morphTargetInfluences[i] = (+shape[k] || 0) / 100; }); });
     root.updateMatrixWorld(true);
     const b = new THREE.Box3().setFromObject(root), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
@@ -67,7 +68,7 @@ export async function modelShot(file, siblings, opts) {
     const camera = new THREE.PerspectiveCamera(fov, w / h, dist / 100, dist * 10);
     camera.position.set(c.x, c.y, c.z + dist); camera.lookAt(c);
     renderer.render(scene, camera);
-    return renderer.domElement.toDataURL("image/webp", 0.85);
+    return { url: renderer.domElement.toDataURL("image/webp", 0.85), keys: [...keys] };
   } finally { disposeTree(root); renderer.dispose(); renderer.forceContextLoss(); }
 }
 export async function modelInfo(file, siblings) { const r = await load(file, siblings); const out = { tris: countTris(r.root), rights: r.meta || "" }; disposeTree(r.root); return out; }
