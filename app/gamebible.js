@@ -6107,9 +6107,11 @@
         clipFar: "броня не прилягає до тіла (далеко чи інший розмір) — перевіряти нема чого",
         left: "лів.", right: "прав.", bones: { hips: "таз", spine: "поперек", spine1: "живіт", spine2: "груди", neck: "шия", head: "голова", shoulder: "ключиця", arm: "плече",
           forearm: "передпліччя", hand: "кисть", upleg: "стегно", leg: "гомілка", foot: "стопа", toebase: "пальці ніг" } },
-      arig: { btn: "🦴 Авторіг за мітками", hint: "Модель без скелета? Постав 8 міток — WhiteWrite поставить скелет Humanoid 65 (сумісний з Mixamo), порахує ваги й збереже версію рига (GLB + rig.json). У браузері, без токенів.",
+      arig: { btn: "🦴 Авторіг за мітками", hint: "Модель без скелета? 12 міток — WhiteWrite поставить скелет Humanoid 65 (сумісний з Mixamo), порахує ваги й збереже версію рига (GLB + rig.json). У браузері, без токенів.",
         none: "Спершу додай модель на етапі «Базова модель» або префаб героя.",
-        mk: { chin: "Підборіддя", lwrist: "Ліве зап'ястя (праворуч на екрані)", lelbow: "Лівий лікоть", rwrist: "Праве зап'ястя (ліворуч на екрані)", relbow: "Правий лікоть", lknee: "Ліве коліно", rknee: "Праве коліно", groin: "Пах" },
+        mk: { chin: "Підборіддя", lshoulder: "Ліве плече (праворуч на екрані)", lelbow: "Лівий лікоть", lwrist: "Ліве зап'ястя", rshoulder: "Праве плече (ліворуч на екрані)", relbow: "Правий лікоть", rwrist: "Праве зап'ястя",
+          groin: "Пах", lknee: "Ліве коліно", lankle: "Ліва щиколотка (згин перед стопою)", rknee: "Праве коліно", rankle: "Права щиколотка (згин перед стопою)" },
+        auto: "Модель у T-позі — мітки поставлено самі. Перетягни ті, що не на місці, і «Побудувати риг».", drag: "Мітку можна перетягнути мишею.",
         click: "Клікни на моделі: {m}", ready: "Усі мітки стоять — «Побудувати риг».", back: "↶ Назад", turn: "↻ 90°", build: "Побудувати риг", redo: "↺ Переставити мітки",
         save: "Зберегти як версію рига", building: "Ставлю скелет…", weights: "Рахую ваги… {p}%", built: "Риг готовий — дивись анімації нижче; якщо криво, переставити мітки.",
         saving: "Зберігаю…", saved: "✓ Збережено як нова версія етапу «Риг і скелет».", badMarks: "Мітки не схожі на людину: підборіддя має бути вище паху.",
@@ -6126,7 +6128,7 @@
         noModel: "У картці персонажа ще немає моделі. Додай префаб у самій картці (кнопка «🧊 Додати префаб») — Кузня візьме його сама. Поки що в Примірочній — манекен типу тіла.",
         checking: "Перевіряю модель…", skelOk: "✓ Скелет Humanoid — анімації WhiteWrite лягають самі, можна експортувати.", skelNone: "⚠ У моделі немає скелета — анімації на неї не ляжуть.",
         skelOther: "⚠ Скелет моделі не Humanoid (кісток: {n}) — анімації WhiteWrite на нього не ляжуть.", arig: "🦴 Підігнати скелет",
-        arigHint: "8 міток на моделі → скелет Humanoid 65 і ваги, у браузері, без токенів. Результат стає моделлю персонажа в Кузні; префаб у картці не змінюється.",
+        arigHint: "12 міток на моделі (у T-позі ставляться самі) → скелет Humanoid 65 і ваги, у браузері, без токенів. Результат стає моделлю персонажа в Кузні; префаб у картці не змінюється.",
         blender: "Точніше — у Blender через Claude Code", rigNote: "Це модель після авторигу; префаб у картці лишився як був.", keysOk: "✓ Ключі форми Thin / Heavy / Muscular є — статура діє на модель.",
         ready: "готовий до анімацій", needRig: "треба скелет", noModelShort: "немає моделі", counts: "предметів: {n} · анімацій: {k}" },
       context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
@@ -6181,9 +6183,11 @@
         clipFar: "the armour doesn't sit on the body (too far or another size) — nothing to check",
         left: "L", right: "R", bones: { hips: "hips", spine: "lower back", spine1: "belly", spine2: "chest", neck: "neck", head: "head", shoulder: "collarbone", arm: "upper arm",
           forearm: "forearm", hand: "hand", upleg: "thigh", leg: "shin", foot: "foot", toebase: "toes" } },
-      arig: { btn: "🦴 Auto-rig by markers", hint: "A model without a skeleton? Place 8 markers — WhiteWrite puts in the Humanoid 65 skeleton (compatible with Mixamo), computes the weights and saves a rig version (GLB + rig.json). In the browser, no tokens.",
+      arig: { btn: "🦴 Auto-rig by markers", hint: "A model without a skeleton? 12 markers — WhiteWrite puts in the Humanoid 65 skeleton (compatible with Mixamo), computes the weights and saves a rig version (GLB + rig.json). In the browser, no tokens.",
         none: "First add a model at the “Base mesh” stage or the hero's prefab.",
-        mk: { chin: "Chin", lwrist: "Left wrist (on the screen's right)", lelbow: "Left elbow", rwrist: "Right wrist (on the screen's left)", relbow: "Right elbow", lknee: "Left knee", rknee: "Right knee", groin: "Groin" },
+        mk: { chin: "Chin", lshoulder: "Left shoulder (on the screen's right)", lelbow: "Left elbow", lwrist: "Left wrist", rshoulder: "Right shoulder (on the screen's left)", relbow: "Right elbow", rwrist: "Right wrist",
+          groin: "Groin", lknee: "Left knee", lankle: "Left ankle (the bend above the foot)", rknee: "Right knee", rankle: "Right ankle (the bend above the foot)" },
+        auto: "The model is in a T-pose — the markers placed themselves. Drag the ones that are off, then “Build the rig”.", drag: "A marker can be dragged with the mouse.",
         click: "Click on the model: {m}", ready: "All markers are placed — “Build the rig”.", back: "↶ Back", turn: "↻ 90°", build: "Build the rig", redo: "↺ Re-place the markers",
         save: "Save as a rig version", building: "Placing the skeleton…", weights: "Computing weights… {p}%", built: "The rig is ready — watch the animations below; if it's crooked, re-place the markers.",
         saving: "Saving…", saved: "✓ Saved as a new version of the “Rigging” stage.", badMarks: "The markers don't look like a person: the chin must be above the groin.",
@@ -6200,7 +6204,7 @@
         noModel: "The character's card has no model yet. Add a prefab in the card itself (the “🧊 Add a prefab” button) — the Forge takes it by itself. Until then the fitting room shows the body type's dummy.",
         checking: "Checking the model…", skelOk: "✓ Humanoid skeleton — WhiteWrite animations fit by themselves, ready to export.", skelNone: "⚠ The model has no skeleton — animations will not fit it.",
         skelOther: "⚠ The model's skeleton is not Humanoid ({n} bones) — WhiteWrite animations will not fit it.", arig: "🦴 Fit a skeleton",
-        arigHint: "8 markers on the model → the Humanoid 65 skeleton and weights, in the browser, no tokens. The result becomes the character's model in the Forge; the prefab in the card stays as it is.",
+        arigHint: "12 markers on the model (placed by themselves in a T-pose) → the Humanoid 65 skeleton and weights, in the browser, no tokens. The result becomes the character's model in the Forge; the prefab in the card stays as it is.",
         blender: "More precise — in Blender through Claude Code", rigNote: "This is the model after the auto-rig; the prefab in the card stays as it was.", keysOk: "✓ Thin / Heavy / Muscular shape keys present — the build acts on the model.",
         ready: "ready for animation", needRig: "needs a skeleton", noModelShort: "no model", counts: "items: {n} · animations: {k}" },
       context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
@@ -6578,7 +6582,7 @@
         onOk: canWrite ? function (id, clip) { return fzItemCheck(id, "fitting", "passed", X.okDetails.replace("{c}", c.title || "").replace("{a}", clip || "")); } : null,
         onCheck: canWrite ? function (id, result, details) { return fzItemCheck(id, "clipping", result, details); } : null } });
   }
-  // 🦴 the auto-rig: the base mesh (the «Базова модель» version, else the hero's prefab) → 8 markers → a GLB + rig.json version of «Риг і скелет»
+  // 🦴 the auto-rig: the base mesh (the «Базова модель» version, else the hero's prefab) → 12 markers → a GLB + rig.json version of «Риг і скелет»
   function fzMeshModel(c) {
     var f = c.forge, files = c.files || [], ok = function (x) { return x && /\.(glb|gltf|fbx|obj)$/i.test(x.name || ""); };
     var r = FG.approvedRev(f, "mesh") || FG.revsOf(f, "mesh")[0], m = r && (r.files || []).map(function (id) { return files.filter(function (x) { return x.id === id; })[0]; }).filter(ok)[0];
