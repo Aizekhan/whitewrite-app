@@ -13,7 +13,7 @@
 // X and Reddit have no API publishing here: the client offers copy + the platforms' own share links.
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
@@ -240,7 +240,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
         const cost = featureCost(byOp('marketingDraft'), econ.exists ? ((econ.data().providers || {}).claude || {}).cost : null, tier);
         const balance = getBalance(userData);
         if (balance.available < cost) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: cost, code: 'OUT_OF_TOKENS' });
-        try { reservation = await reserve(db, uid, cost); } catch (e) { if (e.code !== 'OUT_OF_TOKENS') throw e; return res.status(403).json({ error: 'Недостатньо токенів', code: 'OUT_OF_TOKENS' }); }
+        try { reservation = await reserve(db, uid, cost, { hold: true }); } catch (e) { if (e.code !== 'OUT_OF_TOKENS') throw e; return res.status(403).json({ error: 'Недостатньо токенів', code: 'OUT_OF_TOKENS' }); }
         const settings = state.settings || {};
         const { system, prompt } = draftPrompt(g.data(), entries, { ...b, platform }, settings, (settings.language || b.language) === 'en' ? 'English' : 'Ukrainian');
         const msg = await claudeText(claudeApiKey.value(), { model, system, prompt, maxTokens: 3000, effort: 'low' });
@@ -304,7 +304,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       }
       return res.status(400).json({ error: 'Невідома дія' });
     } catch (error) {
-      if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[marketing] refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'marketing').catch((e) => console.error('[marketing] refund failed:', e)); // a refusal is paid (claude.js)
       if (error.status) return res.status(error.status).json({ error: error.message, ...(error.extra || {}) });
       console.error('marketing error:', error);
       return res.status(500).json({ error: `Помилка маркетингу: ${error.message}` });

@@ -698,6 +698,7 @@ exports.gamedevPlan = onRequest({
     let uid;
     let reservation = null;
     let gameRefForError = null;
+    let paidSoFar = null; // usage of every call that reached the API: any later error is charged for it, not refunded (settle)
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const authHeader = req.headers.authorization;
@@ -776,15 +777,15 @@ exports.gamedevPlan = onRequest({
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free'); // the author's Claude model (Account)
       // an import is quoted by its size — «не більше N»: reserved now, never charged above (the page showed the same N)
-      const cap = op === 'import' ? quoteChars(byOp('import'), markdown.length, tier)
-        : op === 'folderSort' ? quoteChars(byOp('folderSort'), sortLines.join('\n').length, tier) : 0;
+      const cap = op === 'import' ? quoteChars(byOp('import'), markdown, tier)
+        : op === 'folderSort' ? quoteChars(byOp('folderSort'), sortLines.join('\n'), tier) : 0;
       const reserveCost = cap || featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost, tier); // paid-features.js — gamebible.js costOf reads the same
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }
       try {
-        reservation = await reserve(db, uid, reserveCost);
+        reservation = await reserve(db, uid, reserveCost, { hold: true });
       } catch (error) {
         if (error.code !== 'OUT_OF_TOKENS') throw error;
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -811,6 +812,7 @@ exports.gamedevPlan = onRequest({
           messages: [{ role: 'user', content }], output_config: { effort: 'medium' } }).finalMessage());
         for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) usage[k] = (usage[k] || 0) + (m.usage[k] || 0);
         usedModel = m.model || usedModel;
+        paidSoFar = { model: usedModel, usage };
         if (m.stop_reason === 'refusal') throw new Error('Claude відмовився виконати запит');
         if (m.stop_reason === 'max_tokens') throw cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', usedModel, usage);
         try { return parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')); }
@@ -890,6 +892,7 @@ exports.gamedevPlan = onRequest({
       else if (req.body && req.body.op === 'canonAudit' && req.body.worldId) {
         await db.collection('worlds').doc(String(req.body.worldId)).set({ auditRunning: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
       }
+      if (paidSoFar && !error.paid) error.paid = paidSoFar; // a refusal, an empty answer, a failed write after paid calls
       if (reservation) await settle(db, uid, reservation, error, 'gamedev').catch((e) => console.error('[gamedevPlan] Refund failed:', e));
       res.status(500).json({ error: `Помилка біблії гри: ${error.message}` });
     }

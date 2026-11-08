@@ -92,13 +92,15 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
         try { await patch({ variant_id: Number(variants[target]), invoice_immediately: true }); }
         catch (e) { await userRef.update({ upgrading: null }); throw e; }
         // tokens for the rest of the period: the old plan's unused part stays, the new plan adds its difference × left; the fee is taken
-        const b = getBalance(user);
+        // in a transaction on a fresh read: a reservation made during the LS round trips must not be erased
         const newMonthly = getPlanBudget(target).monthly;
-        const used = Math.max(0, newMonthly - (b.monthlyLeft + quote.tokens - quote.fee));
-        const upd = { plan: target, tokensUsed: used, pendingPlan: null, pendingFrom: null, upgrading: null, lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now() },
-          updatedAt: admin.firestore.FieldValue.serverTimestamp() };
-        if (b.expired) upd.periodStart = admin.firestore.Timestamp.now();
-        await userRef.update(upd);
+        await db.runTransaction(async (tx) => {
+          const b = getBalance((await tx.get(userRef)).data() || {});
+          const upd = { plan: target, tokensUsed: Math.max(0, newMonthly - (b.monthlyLeft + quote.tokens - quote.fee)), pendingPlan: null, pendingFrom: null, upgrading: null,
+            lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now() }, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+          if (b.expired) upd.periodStart = admin.firestore.Timestamp.now();
+          tx.update(userRef, upd);
+        });
         ledger.record(db, uid, { type: 'grant', op: 'plan_upgrade', amount: Math.max(0, quote.tokens), ref: { plan: target }, note: cur + ' → ' + target });
         ledger.record(db, uid, { type: 'spend', op: 'plan_upgrade_fee', amount: -quote.fee, ref: { plan: target } });
         await db.collection('usage_logs').add({ uid, operation: 'plan_upgrade_fee', userTokensCharged: quote.fee, realApiCostUSD: 0, billing: 'fixed',
@@ -371,6 +373,7 @@ exports.lemonSqueezyWebhook = onRequest({
           updatedAt: admin.firestore.FieldValue.serverTimestamp()
         };
         const variantPlan = planByVariant[String(subscription.attributes.variant_id)];
+        let portalUpgrade = null;
         const u = userDoc.data(), pendingFrom = u.pendingFrom && u.pendingFrom.toMillis ? u.pendingFrom.toMillis() : 0;
         // paused, or unpaid after LS gave up retrying: nothing is paid → every plan gate closes (plan free); the paid plan is
         // remembered and comes back when the subscription is active again. past_due (LS still retrying) keeps the plan.
@@ -389,15 +392,22 @@ exports.lemonSqueezyWebhook = onRequest({
           if (!waiting && !inApp && planRank(variantPlan) > planRank(cur)) {
             const renewsAt = Date.parse(subscription.attributes.renews_at || '') || (Date.now() + MONTH_MS);
             const left = Math.min(1, Math.max(0, (renewsAt - Date.now()) / MONTH_MS));
-            const quote = upgradeQuote(cur, variantPlan, left), b = getBalance(u);
-            updates.tokensUsed = Math.max(0, getPlanBudget(variantPlan).monthly - (b.monthlyLeft + quote.tokens - quote.fee));
-            if (b.expired) updates.periodStart = admin.firestore.Timestamp.now();
+            const quote = upgradeQuote(cur, variantPlan, left);
+            portalUpgrade = { monthly: getPlanBudget(variantPlan).monthly, quote }; // tokensUsed — from a fresh read, below
             updates.lastUpgrade = { from: cur, to: variantPlan, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now(), via: 'portal' };
             ledger.record(db, uid, { type: 'grant', op: 'plan_upgrade', amount: Math.max(0, quote.tokens), ref: { plan: variantPlan }, note: cur + ' → ' + variantPlan + ' (portal)' });
             ledger.record(db, uid, { type: 'spend', op: 'plan_upgrade_fee', amount: -quote.fee, ref: { plan: variantPlan } });
           }
         }
-        await db.collection('users').doc(uid).update(updates);
+        await db.runTransaction(async (tx) => {
+          const ref = db.collection('users').doc(uid);
+          if (portalUpgrade) { // the allowance from a fresh read: reservations made meanwhile are not erased
+            const b = getBalance((await tx.get(ref)).data() || {}), q = portalUpgrade.quote;
+            updates.tokensUsed = Math.max(0, portalUpgrade.monthly - (b.monthlyLeft + q.tokens - q.fee));
+            if (b.expired) updates.periodStart = admin.firestore.Timestamp.now();
+          }
+          tx.update(ref, updates);
+        });
 
         console.log(`[LemonSqueezy] Subscription ${status} for ${uid}`);
         break;

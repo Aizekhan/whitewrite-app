@@ -28,5 +28,18 @@ const call = async (m) => { if (gone.has(m)) { const e = new Error('404 {"type":
   check(threw, 'Haiku has no lower tier and never goes up → the error stays');
   let other = false; try { await C.withFallback('claude-sonnet-5-5', async () => { const e = new Error('529 overloaded'); e.status = 529; throw e; }); } catch (e) { other = e.status === 529; }
   check(other && notices.length === 2, 'other errors (overload) are not treated as a vanished model');
+
+  // allPaid: one failed part of a parallel call must not make the paid parts free (token-service settle charges err.paid)
+  const ok = (n) => Promise.resolve({ model: 'claude-sonnet-5-5', usage: { input_tokens: n, output_tokens: n } });
+  const refused = Promise.reject(Object.assign(new Error('Claude відмовився виконати запит'), { paid: { model: 'claude-sonnet-5-5', usage: { input_tokens: 7, output_tokens: 0 } } }));
+  let pe = null; try { await C.allPaid([ok(100), refused, ok(50)]); } catch (e) { pe = e; }
+  check(pe && pe.paid && pe.paid.usage.input_tokens === 157 && pe.paid.usage.output_tokens === 150, 'a refused part → the error carries the usage of every part that reached the API');
+  let ne = null; try { await C.allPaid([ok(10), Promise.reject(new Error('network'))]); } catch (e) { ne = e; }
+  check(ne && ne.message === 'network' && ne.paid.usage.input_tokens === 10, 'a network failure of one part still pays the finished ones');
+  let none = null; try { await C.allPaid([Promise.reject(new Error('down'))]); } catch (e) { none = e; }
+  check(none && !none.paid, 'nothing reached the API → nothing to charge (a full refund)');
+  check((await C.allPaid([ok(1), ok(2)])).length === 2, 'all parts fine → their answers in order');
+  const src = require('fs').readFileSync(F + 'src/claude.js', 'utf8');
+  check(/stop_reason === 'refusal'\) throw Object\.assign\(new Error\([^)]*\), \{ paid:/.test(src), 'claudeText: a refusal is thrown with its usage (paid), not as a free error');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });

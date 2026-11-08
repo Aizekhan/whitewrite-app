@@ -885,7 +885,7 @@
   var EXFN = "https://us-central1-whitewrite-app.cloudfunctions.net/experience";
 
   var $ = function (id) { return document.getElementById(id); };
-  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   // href from data a team member can write: only http(s) / blob — never javascript:
   var escUrl = function (u) { u = String(u == null ? "" : u).trim(); return esc(/^(https?:|blob:)/i.test(u) ? u : "#"); };
   var newId = function (p) { return p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
@@ -1920,8 +1920,8 @@
         if (parsed.error) return fail(fillState.msg);
         prog(4, 1, 1, P.done, "done"); if (FP) FP.el.hidden = false;
         var fb = document.querySelector(".fillbox"); if (fb) { fb.open = true; fb.scrollIntoView({ behavior: "smooth", block: "start" }); }
-      }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.reduce(function (z, f) { return z + f.text.length; }, 0)); }, 0), cancelled);
-    }, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n").length); }, 0), cancelled);
+      }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.map(function (f) { return f.text; }).join("")); }, 0), cancelled);
+    }, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n")); }, 0), cancelled);
   }
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
   function bindFillRes() {
@@ -1931,7 +1931,7 @@
     if ($("fill-ai")) $("fill-ai").onclick = function () { // the file not by the template → the same AI sorting as «📂 Завантажити теку», one file
       var F = { name: fillState.name, files: [{ path: fillState.name, text: fillState.text }], chars: fillState.text.length, skipped: 0 };
       if (F.chars > WORLD_FOLDER_MAX) { fillState = { msg: STR.folder.big.replace("{n}", F.chars.toLocaleString()).replace("{max}", WORLD_FOLDER_MAX.toLocaleString()) }; return fillRedraw(); }
-      confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", F.chars));
+      confirmCost("worldFolder", function () { runWorldFolder(F); }, quoteOf("worldFolder", fillState.text));
     };
   }
   async function applyFill() {
@@ -4654,7 +4654,7 @@
       var f = this.files && this.files[0]; this.value = ""; if (!f) return;
       if (f.size > 2 * 1024 * 1024) { $("ng-mdname").textContent = STR.fileTooBig; return; }
       mdText = (await f.text()).trim(); folder = null;
-      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText.length).toLocaleString()) : "";
+      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText).toLocaleString()) : "";
       if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
       if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
       picked = mdText ? null : picked;
@@ -8126,7 +8126,7 @@
     return out;
   }
   function inSortCost(I) {
-    return inSortChunks(I).reduce(function (n, ch) { return n + quoteOf("folderSort", ch.map(function (x) { return x.i + "|" + x.p + "|" + Math.max(1, Math.round(x.s / 1024)); }).join("\n").length); }, 0);
+    return inSortChunks(I).reduce(function (n, ch) { return n + quoteOf("folderSort", ch.map(function (x) { return x.i + "|" + x.p + "|" + Math.max(1, Math.round(x.s / 1024)); }).join("\n")); }, 0);
   }
   function inSortAsk(I) { confirmCost("folderSort", function () { inSortRun(I); }, inSortCost(I)); }
   async function inSortRun(I) {
@@ -8159,7 +8159,7 @@
     } else t = t.replace(/^\s*(using|import|#include|#pragma)\b.*$/gm, "").replace(/\n{3,}/g, "\n\n");
     return t.trim().slice(0, IN_READ_CHARS);
   }
-  function inTextCost(I) { return I.text.packs.reduce(function (n, p) { return n + quoteOf("import", p.length); }, 0); }
+  function inTextCost(I) { return I.text.packs.reduce(function (n, p) { return n + quoteOf("import", p); }, 0); }
   function inOn(I) { return I.groups.filter(function (g) { return g.on; }); }
   function inBar(label, pct, tail) { return '<div class="ready"><span>' + esc(label) + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + pct + '%</b>' + (tail ? '<span class="muted">' + esc(tail) + '</span>' : '') + '</div>'; }
   function inProgHtml() {
@@ -8344,7 +8344,7 @@
       var text = String(rd.result || "");
       closeLeaf();
       if (text.length > 100000) { imp = { error: STR.importTooBig }; return render(); }
-      confirmCost("import", function () { runImport({ op: "import", markdown: text }); }, quoteOf("import", text.length)); // the file known: «не більше N»
+      confirmCost("import", function () { runImport({ op: "import", markdown: text }); }, quoteOf("import", text)); // the file known: «не більше N»
     };
     rd.readAsText(file);
   }

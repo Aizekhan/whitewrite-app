@@ -48,7 +48,7 @@ async function runCheck({ uid, userData, game, style, image, refs, lang, what, l
   const balance = getBalance(userData);
   if (balance.available < reserveCost) throw new CheckError(403, { error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
   let reservation;
-  try { reservation = await reserve(db, uid, reserveCost); } catch (e) {
+  try { reservation = await reserve(db, uid, reserveCost, { hold: true }); } catch (e) {
     if (e.code !== 'OUT_OF_TOKENS') throw e;
     throw new CheckError(403, { error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
   }
@@ -153,7 +153,7 @@ exports.styleFromRefs = onRequest({ region: 'us-central1', secrets: [claudeApiKe
       const reserveCost = featureCost(byOp('styleFromRefs'), providerEconomy && providerEconomy.cost, tier); // gamebible.js shows the same price
       const balance = getBalance(userData);
       if (balance.available < reserveCost) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
-      try { reservation = await reserve(db, uid, reserveCost); } catch (e) {
+      try { reservation = await reserve(db, uid, reserveCost, { hold: true }); } catch (e) {
         if (e.code !== 'OUT_OF_TOKENS') throw e;
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }

@@ -96,27 +96,56 @@ function applyCredit(tx, ref, userData, split) {
   tx.update(ref, updates);
 }
 
+// opts.hold (an AI call, settled later by charge()/refund()): the reservation is also written to users/{uid}/reservations/{id}
+// and settling deletes it. A function killed by its timeout never reaches its catch — reservationSweep (cost-watch.js)
+// returns what is still held after HOLD_MS. Fixed fees (Космограф, бекап, слот…) are final at reserve and never held.
+const HOLD_MS = 60 * 60 * 1000; // > the longest AI function timeout (gamedevPlan, 1800 s)
+
 /**
  * Atomically reserve tokens BEFORE an AI call (prevents parallel overspend).
  * Throws err.code === 'OUT_OF_TOKENS' if balance is insufficient.
- * @returns {Promise<{fromMonthly:number, fromBonus:number, available:number}>}
+ * @returns {Promise<{fromMonthly:number, fromBonus:number, available:number, hold?:string}>}
  */
-async function reserve(db, uid, amount) {
+async function reserve(db, uid, amount, opts = {}) {
   loadLivePricing(db).catch(() => {}); // warms the price index for the next reserve on this instance
   const ref = db.collection('users').doc(uid);
   return db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
-    return applyDebit(tx, ref, snap.exists ? snap.data() : {}, amount, false);
+    const split = applyDebit(tx, ref, snap.exists ? snap.data() : {}, amount, false);
+    if (opts.hold) {
+      const h = ref.collection('reservations').doc();
+      tx.set(h, { fromMonthly: split.fromMonthly, fromBonus: split.fromBonus, at: admin.firestore.Timestamp.now() });
+      split.hold = h.id;
+    }
+    return split;
   });
 }
 
-// Return a reservation (AI call failed).
+// Return a reservation (AI call failed). A held one already returned by the sweep is not returned twice.
 async function refund(db, uid, split) {
   const ref = db.collection('users').doc(uid);
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
+    const h = split && split.hold ? ref.collection('reservations').doc(split.hold) : null;
+    if (h && !(await tx.get(h)).exists) return;
     if (snap.exists) applyCredit(tx, ref, snap.data(), split);
+    if (h) tx.delete(h);
   });
+}
+
+// usage_logs TTL — every frequent writer (charge, KB helper, voice) sets it
+const logExpireAt = () => admin.firestore.Timestamp.fromMillis(Date.now() + 400 * 86400000);
+
+// Held reservations older than HOLD_MS: their function died without settling — the tokens go back (reservationSweep)
+async function sweepHeld(db, now = Date.now()) {
+  const old = await db.collectionGroup('reservations').where('at', '<', admin.firestore.Timestamp.fromMillis(now - HOLD_MS)).limit(500).get();
+  let n = 0;
+  for (const d of old.docs) {
+    const uid = d.ref.parent.parent.id, r = d.data();
+    try { await refund(db, uid, { fromMonthly: r.fromMonthly || 0, fromBonus: r.fromBonus || 0, hold: d.id }); n++; }
+    catch (e) { console.error('[sweepHeld]', uid, d.id, e.message); }
+  }
+  return n;
 }
 
 // ============================================================================
@@ -352,13 +381,18 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(userRef);
     const userData = snap.exists ? snap.data() : {};
+    // a held reservation the sweep already returned counts as none: the call is charged in full
+    const hold = options.reserved && options.reserved.hold ? userRef.collection('reservations').doc(options.reserved.hold) : null;
+    const held = hold ? (await tx.get(hold)).exists : true;
+    const reserved = held ? options.reserved : null;
+    if (hold && held) tx.delete(hold);
     let delta = userCost;
-    if (options.reserved) {
-      const reservedTotal = (options.reserved.fromMonthly || 0) + (options.reserved.fromBonus || 0);
+    if (reserved) {
+      const reservedTotal = (reserved.fromMonthly || 0) + (reserved.fromBonus || 0);
       delta = userCost - reservedTotal;
       if (delta > 0) applyDebit(tx, userRef, userData, delta, true);
       else if (delta < 0) { // back where it came from: bonus (bought, kept across periods) first, the rest to the allowance
-        const back = -delta, fromBonus = Math.min(back, options.reserved.fromBonus || 0);
+        const back = -delta, fromBonus = Math.min(back, reserved.fromBonus || 0);
         applyCredit(tx, userRef, userData, { fromMonthly: back - fromBonus, fromBonus });
       }
     } else {
@@ -380,6 +414,7 @@ async function charge(db, uid, operation, model, usage, projectId, options = {})
 
   const logEntry = {
     uid,
+    expireAt: logExpireAt(), // TTL (firestore.indexes.json): the cost analytics keep 400 days, the user's own history is the ledger
     operation: options.logAs || operation, // logAs: priced as `operation`, logged under its own name
     model,
     projectId,
@@ -438,4 +473,4 @@ async function settle(db, uid, reservation, error, logAs) {
   return refund(db, uid, reservation);
 }
 
-module.exports = { charge, getBalance, reserve, refund, cutOff, settle };
+module.exports = { charge, getBalance, reserve, refund, cutOff, settle, sweepHeld, HOLD_MS, logExpireAt };

@@ -139,8 +139,8 @@
 
 ## 💳 Платежі та токени
 - Тарифи, прапорці доступу, ціни AI-дій — **лише `functions/paid-features.js`**; економіка й маржа — `TOKENOMICS.md`.
-- Підписки й токени — **Lemon Squeezy** (`functions/src/lemon.js`, `changeSubscription`); Stripe — лише Connect для майбутнього Маркету (`market.js`). Від старого Stripe лишився тільки `stripeWebhook` (`stripe.js`), щоб скасовані підписки переходили на Free.
-- Списання = реальна вартість API ÷ `USD_PER_TOKEN`; резерв перед викликом ШІ — транзакція (`token-service.js reserve/charge/refund`).
+- Підписки й токени — **Lemon Squeezy** (`functions/src/lemon.js`, `changeSubscription`); Stripe — лише Connect для майбутнього Маркету (`market.js`); старий `stripeWebhook` прибрано (v2.77.4, Stripe-підписок 0).
+- Списання = реальна вартість API ÷ `USD_PER_TOKEN`; резерв перед викликом ШІ — транзакція (`token-service.js reserve/charge/refund`), для ШІ — `{ hold: true }` (`reservationSweep` повертає зависле). Помилка після оплаченого виклику (відмова, частина паралельного імпорту) — `settle`, не `refund`; паралельні виклики — `claude.js allPaid`.
 
 ---
 

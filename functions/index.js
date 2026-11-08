@@ -1,4 +1,7 @@
 // Cloud Functions entry point. Each module attaches its endpoints to `exports`.
+// A ceiling on instances for every function (before any module defines one): a flood on the public endpoints
+// (mcp, telemetryIngest, webhooks) or a runaway client can't scale the bill without bound. ~80 requests per instance.
+require('firebase-functions/v2').setGlobalOptions({ maxInstances: 20 });
 Object.assign(exports, require('./src/scenes'));
 Object.assign(exports, require('./src/users'));
 Object.assign(exports, require('./src/projects'));
@@ -38,3 +41,7 @@ exports.backup = backup.backup;
 exports.backupDaily = backup.backupDaily;
 exports.integrations = require('./src/integrations').integrations; // 🔌 the author's own keys for 3D / image generation services (server only)
 exports.aiCostDaily = require('./src/cost-watch').aiCostDaily; // daily API cost per user → admin_costs + alarms
+exports.reservationSweep = require('./src/cost-watch').reservationSweep; // returns tokens held by AI calls killed by a timeout
+const cleanup = require('./src/cleanup'); // after a game / world is deleted: tokens, keys, showcases, Storage, leftovers
+exports.gameDeleted = cleanup.gameDeleted;
+exports.worldDeleted = cleanup.worldDeleted;

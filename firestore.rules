@@ -47,6 +47,10 @@ service cloud.firestore {
     function worldOpen(worldId) {
       return get(/databases/$(database)/documents/worlds/$(worldId)).data.get('freeze', null) == null;
     }
+    // writes under a game need the game: no cards / quests / plan under a made-up id (past maxGames, functions/src/projects.js)
+    function gameExists(worldId, gameId) {
+      return exists(/databases/$(database)/documents/worlds/$(worldId)/games/$(gameId));
+    }
     // Команда (functions/src/team.js): worlds/{w}.team.{uid} = { role: admin|editor|viewer|custom, view[], edit[], viewKinds[], editKinds[] },
     // written only by the server. admin / editor read and write everything (admin's ✦ is paid by the owner on the server),
     // viewer reads everything, custom reads `view` and writes `edit` (Bible menu ids; entity kinds for the canon dossiers).
@@ -159,7 +163,7 @@ service cloud.firestore {
       // cards: by their own section (a member with chosen sections queries one section at a time)
       match /games/{gameId}/cards/{cardId} {
         allow read: if isAuthenticated() && readSec(worldId, resource.data.section);
-        allow create: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
+        allow create: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId) && gameExists(worldId, gameId);
         // the section it is in now too: a member may not pull another section's card into theirs
         allow update: if isAuthenticated() && editSec(worldId, resource.data.section) && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
         allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && worldOpen(worldId);
@@ -169,7 +173,7 @@ service cloud.firestore {
         allow write: if isAuthenticated() && sub != 'cards' && editSec(worldId, subSec(sub)) && worldOpen(worldId) &&
                         (sub in ['quests', 'dialogues'] ||
                          (sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'] && ownerGameDev(worldId))) &&
-                        (request.method == 'delete' || gameDocOk(sub, request.resource.data));
+                        (request.method == 'delete' || (gameDocOk(sub, request.resource.data) && gameExists(worldId, gameId)));
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId) &&
                          sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];

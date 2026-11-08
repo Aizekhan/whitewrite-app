@@ -7,7 +7,7 @@ const {
   charge,
   getBalance,
   reserve,
-  refund,
+  settle,
   getPlanBudget,
   loadCanon,
   claudeApiKey,
@@ -200,7 +200,7 @@ exports.generateScene = onRequest({
 
       // Atomically reserve tokens before the AI call (settled in charge(), refunded on failure)
       try {
-        reservation = await reserve(db, uid, sceneCost);
+        reservation = await reserve(db, uid, sceneCost, { hold: true });
       } catch (error) {
         if (error.code !== 'OUT_OF_TOKENS') throw error;
         res.status(403).json({
@@ -331,7 +331,7 @@ exports.generateScene = onRequest({
     } catch (error) {
       console.error('generateScene error:', error);
       if (reservation) {
-        await refund(db, uid, reservation).catch(e => console.error('[generateScene] Refund failed:', e));
+        await settle(db, uid, reservation, error, 'generateScene').catch(e => console.error('[generateScene] Refund failed:', e)); // a refusal is paid (claude.js)
       }
       res.status(500).json({ error: `Помилка генерації: ${error.message}` });
     }
@@ -627,7 +627,7 @@ exports.reconstructScene = onRequest({
         return;
       }
       try {
-        reservation = await reserve(db, uid, reserveCost);
+        reservation = await reserve(db, uid, reserveCost, { hold: true });
       } catch (error) {
         if (error.code !== 'OUT_OF_TOKENS') throw error;
         res.status(403).json({ error: 'Недостатньо токенів для реконструкції', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
@@ -701,7 +701,7 @@ ${sceneText}
     } catch (error) {
       console.error('reconstructScene error:', error);
       if (reservation) {
-        await refund(db, uid, reservation).catch(e => console.error('[reconstructScene] Refund failed:', e));
+        await settle(db, uid, reservation, error, 'reconstructScene').catch(e => console.error('[reconstructScene] Refund failed:', e)); // a refusal is paid (claude.js)
       }
       res.status(500).json({ error: `Помилка реконструкції: ${error.message}` });
     }

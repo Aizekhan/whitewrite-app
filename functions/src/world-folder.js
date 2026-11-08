@@ -6,7 +6,7 @@
 const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey } = require('./common');
 const { payerFor } = require('./team')._team;
 const { byOp, quoteChars } = require('../paid-features.js');
-const { modelFor, claudeText } = require('./claude');
+const { modelFor, claudeText, allPaid } = require('./claude');
 const FILL = require('../world-fill.js');
 
 const MAX_CHARS = 400000, MAX_FILES = 500, MAX_LIST = 3000;
@@ -106,17 +106,18 @@ exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey]
       if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
 
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free');
-      const cap = quoteChars(scout ? byOp('worldFolderScout') : byOp('worldFolder'), chars, tier); // «не більше N» — the page showed the same number
+      const cap = quoteChars(scout ? byOp('worldFolderScout') : byOp('worldFolder'), scout ? lines.join('\n') : files.map((f) => f.text).join(''), tier); // «не більше N» — the page showed the same number
       const balance = getBalance(userData);
       if (balance.available < cap) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: cap, code: 'OUT_OF_TOKENS' });
-      try { reservation = await reserve(db, uid, cap); } catch (e) {
+      try { reservation = await reserve(db, uid, cap, { hold: true }); } catch (e) {
         if (e.code !== 'OUT_OF_TOKENS') throw e;
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: cap, code: 'OUT_OF_TOKENS' });
       }
 
       if (scout) {
-        const outS = await Promise.all(scoutParts(lines).map((part) => claudeText(claudeApiKey.value(), { model, system: scoutSystem(w.data().title, lang), prompt: 'FILES:\n' + part.join('\n'),
-          maxTokens: byOp('worldFolderScout').price.quote.outPerPart, effort: 'low', stream: true }).then((m) => { let data = null; try { data = parseJson(m.text); } catch (e) { /* an empty part */ } return { m, data }; })));
+        const outS = (await allPaid(scoutParts(lines).map((part) => claudeText(claudeApiKey.value(), { model, system: scoutSystem(w.data().title, lang), prompt: 'FILES:\n' + part.join('\n'),
+          maxTokens: byOp('worldFolderScout').price.quote.outPerPart, effort: 'low', stream: true }))))
+          .map((m) => { let data = null; try { data = parseJson(m.text); } catch (e) { /* an empty part */ } return { m, data }; });
         const u = { input_tokens: 0, output_tokens: 0 };
         outS.forEach((o) => { u.input_tokens += o.m.usage.input_tokens || 0; u.output_tokens += o.m.usage.output_tokens || 0; });
         const { userCost } = await charge(db, uid, 'generateScene', outS[0].m.model, u, null, { provider: 'claude', targetWords: Math.round(u.output_tokens * 0.75),
@@ -127,8 +128,8 @@ exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey]
       const [ents, lore] = await Promise.all([wref.collection('entities').get(), wref.collection('lore').get()]);
       const names = ents.docs.map((d) => `${d.get('kind')}: ${d.get('name')}`).concat(lore.docs.map((d) => `culture: ${d.get('name')}`)).join('\n').slice(0, 20000);
       const system = systemText(lang, w.data(), names);
-      const out = await Promise.all(parts(files).map((p, i) => claudeText(claudeApiKey.value(), { model, system, prompt: p, maxTokens: byOp('worldFolder').price.quote.outPerPart, effort: 'low', stream: true })
-        .then((m) => { let data = null; try { data = parseJson(m.text); } catch (e) { /* reported below */ } return { i, m, data }; })));
+      const out = (await allPaid(parts(files).map((p) => claudeText(claudeApiKey.value(), { model, system, prompt: p, maxTokens: byOp('worldFolder').price.quote.outPerPart, effort: 'low', stream: true }))))
+        .map((m, i) => { let data = null; try { data = parseJson(m.text); } catch (e) { /* reported below */ } return { i, m, data }; });
       const usage = { input_tokens: 0, output_tokens: 0 }, bad = [];
       out.forEach((o) => { usage.input_tokens += o.m.usage.input_tokens || 0; usage.output_tokens += o.m.usage.output_tokens || 0;
         usage.cache_creation_input_tokens = (usage.cache_creation_input_tokens || 0) + (o.m.usage.cache_creation_input_tokens || 0);

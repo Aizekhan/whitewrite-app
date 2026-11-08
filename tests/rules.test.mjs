@@ -13,6 +13,8 @@ const mocks = (plan = 'worldbuilder') => [
   { function: 'get', args: [{ exactValue: D + '/worlds/w1' }], result: { value: { data: { owner: 'u1' } } } },
   { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan } } } },
   { function: 'get', args: [{ exactValue: D + '/users/u2' }], result: { value: { data: { plan: 'worldbuilder' } } } },
+  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: true } },
+  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/ghost' }], result: { value: false } },
 ];
 const G = D + '/worlds/w1/games/g1';
 const T = (name, expectation, method, path, uid = 'u1', plan, data) => ({ name, tc: {
@@ -37,7 +39,8 @@ const F = (name, expectation, method, path, data, res) => ({ name, tc: {
 const TEAM = { u2: { role: 'custom', view: ['mechanics', 'w-characters'], edit: ['mechanics'], viewKinds: ['characters'], editKinds: [] },
   u3: { role: 'viewer', view: [], edit: [] }, u4: { role: 'editor', view: [], edit: [] } };
 const teamMocks = [{ function: 'get', args: [{ exactValue: D + '/worlds/w1' }], result: { value: { data: { owner: 'u1', team: TEAM, teamUids: ['u2', 'u3', 'u4'] } } } },
-  { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan: 'worldbuilder' } } } }];
+  { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan: 'worldbuilder' } } } },
+  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: true } }];
 const M = (name, expectation, method, path, uid, data, res) => ({ name, tc: {
   expectation, functionMocks: teamMocks,
   request: Object.assign({ auth: { uid }, path, method }, data ? { resource: { data } } : {}),
@@ -83,6 +86,8 @@ const cases = [
   T('nobody writes the publishing queue', 'DENY', 'create', D + '/marketingQueue/w1__g1__p1', 'u1', 'worldbuilder', { at: 1 }),
   T('owner CANNOT write marketing posts', 'DENY', 'create', G + '/posts/p1', 'u1', 'worldbuilder', { a: 1 }),
   // game design is open on every plan (allowGameDesign); a game is created only by createGame; plan / tasks / experience — Worldbuilder
+  T('no cards under a game that does not exist (past maxGames)', 'DENY', 'create', D + '/worlds/w1/games/ghost/cards/c1', 'u1', 'free', { title: 'x', section: 'mechanics' }),
+  T('no quests under a game that does not exist', 'DENY', 'create', D + '/worlds/w1/games/ghost/quests/q1', 'u1', 'worldbuilder', { title: 'x' }),
   T('Free plan writes cards', 'ALLOW', 'create', G + '/cards/c2', 'u1', 'free', { title: 'x', section: 'mechanics' }),
   T('Free plan edits its game doc', 'ALLOW', 'update', G, 'u1', 'free', { title: 'x' }),
   T('nobody creates a game directly (createGame)', 'DENY', 'create', D + '/worlds/w1/games/g9', 'u1', 'worldbuilder', { title: 'x' }),

@@ -31,7 +31,11 @@ const ts = require('fs').readFileSync(require('path').join(__dirname, '../functi
 check(/options\.cap > 0 && userCost > options\.cap\) userCost = options\.cap/.test(ts), 'the charge is capped at the quoted N');
 check(/setPriceIndex\(conf\.priceIndex\)/.test(ts), 'the server reads the published index');
 const gd = require('fs').readFileSync(require('path').join(__dirname, '../functions/src/gamedev.js'), 'utf8');
-check(/quoteChars\(byOp\('import'\), markdown\.length, tier\)/.test(gd) && /reserved: reservation, cap,/.test(gd), 'the import reserves the quote and charges with its cap');
+check(/quoteChars\(byOp\('import'\), markdown, tier\)/.test(gd) && /reserved: reservation, cap,/.test(gd), 'the import reserves the quote and charges with its cap');
 
+// the quote weighs the text: CJK / emoji (1–2 tokens a char) cost more than Cyrillic or Latin of the same length
+const lat = 'a'.repeat(20000), cyr = 'ж'.repeat(20000), cjk = '漢'.repeat(20000);
+check(P.quoteChars(imp, lat, 'sonnet') === P.quoteChars(imp, 20000, 'sonnet') && P.quoteChars(imp, cyr, 'sonnet') === P.quoteChars(imp, 20000, 'sonnet'), 'Latin and Cyrillic text quote as their length');
+check(P.quoteChars(imp, cjk, 'sonnet') >= P.quoteChars(imp, 20000, 'sonnet') * 3, 'CJK text quotes ≥ 3× its length');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;

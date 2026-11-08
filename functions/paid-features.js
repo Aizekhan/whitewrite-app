@@ -371,7 +371,16 @@ function byOp(op) { return FEATURES.find((f) => f.op === op || f.id === op) || n
 // «Не більше N токенів» for an AI action on a big input (price.quote): an upper bound — the input's tokens (chars ÷ 2.5:
 // Cyrillic takes more tokens than Latin), a prompt overhead per part, the output a part may give — at the tier's live price,
 // + 15%. The page shows N before the run, the server reserves N and never charges more (token-service charge cap).
+// The input may be given as its text: chars from U+0800 up (CJK, emoji, rare scripts) take 1–2 tokens each, not 0.4,
+// so each counts as 4 — otherwise such a file would cost the platform 3–5× the quoted cap. Cyrillic and Latin stay 1.
+function quoteSize(x) {
+  if (typeof x !== 'string') return x;
+  let n = x.length;
+  for (let i = 0; i < x.length; i++) if (x.charCodeAt(i) >= 0x800) n += 3;
+  return n;
+}
 function quoteChars(feature, chars, tier) {
+  chars = quoteSize(chars);
   const q = feature && feature.price && feature.price.quote; if (!q || !(chars > 0)) return 0;
   const parts = Math.max(1, Math.ceil(chars / q.partChars)), b = tierInfo(tier).base;
   const usd = ((Math.ceil(chars / 2.5) + parts * (q.overhead || 4000)) * b.input + parts * q.outPerPart * b.output) / 1e6 * priceIndex(tier);

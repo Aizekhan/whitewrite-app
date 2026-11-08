@@ -178,7 +178,9 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
     const gref = db.collection('worlds').doc(key.worldId).collection('games').doc(key.gameId);
     const today = new Date(now).toISOString().slice(0, 10);
     // the cap reads the atomic daily counter (telemetryDaily.total, FieldValue.increment) — parallel instances can't overwrite it
-    const d0 = await gref.collection('telemetryDaily').doc(today).get();
+    const [d0, g] = await Promise.all([gref.collection('telemetryDaily').doc(today).get(), gref.get()]);
+    // a deleted game stays deleted: a shipped build still sending events must not bring its doc (and telemetry) back
+    if (!g.exists) return res.status(410).json({ error: 'The game no longer exists', code: 'GAME_GONE' });
     if (((d0.exists && d0.data().total) || 0) >= DAILY_CAP) { res.set('Retry-After', '3600'); return res.status(429).json({ error: `Daily event cap reached (${DAILY_CAP})`, code: 'DAILY_CAP' }); }
     const exp = expire(RAW_DAYS);
     for (let i = 0; i < ok.length; i += 450) {
@@ -193,12 +195,12 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
       Object.keys(daily.events).forEach((k) => { daily.events[k] = inc(daily.events[k]); });
       Object.keys(daily.builds).forEach((k) => { daily.builds[k] = inc(daily.builds[k]); });
       await gref.collection('telemetryDaily').doc(day).set(daily, { merge: true });
-      const [g, dd] = await Promise.all([gref.get(), gref.collection('telemetryDaily').doc(day).get()]), st = (g.data() || {}).telemetryStats || {};
+      const dd = await gref.collection('telemetryDaily').doc(day).get(), st = (g.data() || {}).telemetryStats || {};
       const count = (dd.data() || {}).total || ok.length;
       const stats = { day, count, lastAt: ts() };
       if (count > SCALE_EVENTS_PER_DAY) stats.scaleAlert = { day, count };
       else if (st.scaleAlert) stats.scaleAlert = st.scaleAlert; // keeps the reminder until someone acts on it
-      await gref.set({ telemetryStats: stats }, { merge: true });
+      await gref.update({ telemetryStats: stats }); // update, not set: fails instead of recreating a game deleted meanwhile
     }
     res.status(200).json({ accepted: ok.length, rejected });
   } catch (error) {
@@ -466,9 +468,10 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
 
       if (op === 'purge') { // the game is being deleted: its telemetry and experience go with it
-        for (const c of ['telemetry', 'telemetryDaily', 'experience', 'experienceIssues', 'playtests', 'experiments']) await db.recursiveDelete(gref.collection(c));
+        // the keys go first: a timeout in the long delete below must not leave the game's builds able to write
         const keys = await db.collection('ingestKeys').where('gameId', '==', gameId).where('worldId', '==', worldId).get();
         await Promise.all(keys.docs.map((d) => d.ref.delete()));
+        for (const c of ['telemetry', 'telemetryDaily', 'experience', 'experienceIssues', 'playtests', 'experiments']) await db.recursiveDelete(gref.collection(c));
         return res.status(200).json({ success: true });
       }
       if (!g.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
@@ -536,7 +539,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       const reserveCost = featureCost(byOp(op === 'report' ? 'expReport' : 'playtest'), providerEconomy && providerEconomy.cost, tier); // paid-features.js
       const balance = getBalance(userData);
       if (balance.available < reserveCost) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
-      try { reservation = await reserve(db, uid, reserveCost); } catch (error) {
+      try { reservation = await reserve(db, uid, reserveCost, { hold: true }); } catch (error) {
         if (error.code !== 'OUT_OF_TOKENS') throw error;
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }

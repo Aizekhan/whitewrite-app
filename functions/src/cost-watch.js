@@ -47,4 +47,10 @@ async function summarize(now = Date.now()) {
 exports.aiCostDaily = onSchedule({ schedule: 'every 24 hours', timeoutSeconds: 300 }, async () => {
   console.log('[cost-watch]', JSON.stringify(await summarize()));
 });
+// Tokens reserved for an AI call whose function was killed by its timeout (the catch with the refund never ran):
+// token-service holds them in users/{uid}/reservations and this returns what is older than HOLD_MS
+exports.reservationSweep = onSchedule({ schedule: 'every 30 minutes', timeoutSeconds: 300 }, async () => {
+  const n = await require('../token-service.js').sweepHeld(db);
+  if (n) console.log('[reservationSweep] returned', n);
+});
 exports._costWatch = { summarize, COST_ALERT_USD };

@@ -83,9 +83,28 @@ async function claudeText(apiKey, { model, prompt, system, maxTokens, effort = '
     return stream ? anthropic.messages.stream(body).finalMessage() : anthropic.messages.create(body);
   };
   const msg = noFallback ? await call(model) : await withFallback(model, call);
-  if (msg.stop_reason === 'refusal') throw new Error('Claude відмовився виконати запит');
+  // a refusal is paid to the API too: the error carries the usage, the caller's settle() charges it (token-service)
+  if (msg.stop_reason === 'refusal') throw Object.assign(new Error('Claude відмовився виконати запит'), { paid: { model: msg.model || model, usage: msg.usage } });
   const text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
   return { text, usage: msg.usage, model: msg.model || model, stopReason: msg.stop_reason };
 }
 
-module.exports = { activeModels, modelFor, claudeText, withFallback, fallbacksFor, isGone, tierOf };
+// Parallel claudeText calls: wait for all; one failed part must not make the paid ones free — the first error carries
+// the summed usage of every part that reached the API (settle() charges it)
+async function allPaid(calls) {
+  const out = await Promise.allSettled(calls);
+  const bad = out.find((r) => r.status === 'rejected');
+  if (!bad) return out.map((r) => r.value);
+  const usage = { input_tokens: 0, output_tokens: 0 }; let model = null;
+  out.forEach((r) => {
+    const p = r.status === 'fulfilled' ? { model: r.value.model, usage: r.value.usage } : r.reason && r.reason.paid;
+    if (!p || !p.usage) return;
+    model = model || p.model;
+    for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) usage[k] = (usage[k] || 0) + (p.usage[k] || 0);
+  });
+  const err = bad.reason instanceof Error ? bad.reason : new Error(String(bad.reason));
+  if (model) err.paid = { model, usage };
+  throw err;
+}
+
+module.exports = { activeModels, modelFor, claudeText, allPaid, withFallback, fallbacksFor, isGone, tierOf };

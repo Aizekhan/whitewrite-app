@@ -94,7 +94,7 @@ exports.analyzeScene = onRequest({
       }
       // Atomically reserve before the AI call (settled in charge(), refunded on failure) — parallel runs can't overspend
       try {
-        reservation = await reserve(db, uid, analyzeCost);
+        reservation = await reserve(db, uid, analyzeCost, { hold: true });
       } catch (error) {
         if (error.code === 'OUT_OF_TOKENS') return res.status(402).json({ error: `Недостатньо токенів. Потрібно: ${analyzeCost}`, code: 'OUT_OF_TOKENS' });
         throw error;

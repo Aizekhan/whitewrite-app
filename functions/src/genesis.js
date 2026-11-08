@@ -136,7 +136,7 @@ exports.genesisWorld = onRequest({
         return;
       }
       try {
-        reservation = await reserve(db, uid, reserveCost);
+        reservation = await reserve(db, uid, reserveCost, { hold: true });
       } catch (error) {
         if (error.code !== 'OUT_OF_TOKENS') throw error;
         res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });

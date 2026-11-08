@@ -76,7 +76,7 @@ function unusedPart(res, keep) {
   return { fromMonthly: Math.min(back, res.fromMonthly), fromBonus };
 }
 async function logCost(uid, op, usd, tokens, extra) {
-  await db.collection('usage_logs').add({ uid, operation: op, provider: 'google-tts', timestamp: admin.firestore.FieldValue.serverTimestamp(),
+  await db.collection('usage_logs').add({ uid, operation: op, provider: 'google-tts', expireAt: require('../token-service.js').logExpireAt(), timestamp: admin.firestore.FieldValue.serverTimestamp(),
     realApiCostUSD: Math.round(usd * 1e6) / 1e6, userTokensCharged: tokens, userPaidUSD: Math.round(tokens * USD_PER_TOKEN * 1e6) / 1e6, ...extra }).catch((e) => console.error('[voice] log:', e.message));
 }
 

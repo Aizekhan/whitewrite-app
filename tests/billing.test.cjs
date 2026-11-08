@@ -26,18 +26,22 @@ let auto = 0;
 const snap = (p) => ({ id: p.split('/').pop(), exists: store.has(p), data: () => store.get(p), ref: doc(p) });
 function doc(p) {
   return { id: p.split('/').pop(), path: p, get firestore() { return db; }, collection: (c) => col(p + '/' + c), get: async () => snap(p),
-    set: async (d, o) => { store.set(p, apply(o && o.merge ? store.get(p) : {}, d)); }, update: async (d) => { if (!store.has(p)) throw new Error('no doc ' + p); store.set(p, apply(store.get(p), d)); } };
+    set: async (d, o) => { store.set(p, apply(o && o.merge ? store.get(p) : {}, d)); }, delete: async () => { store.delete(p); }, get parent() { return { parent: { id: p.split('/').slice(-3, -2)[0] } }; }, update: async (d) => { if (!store.has(p)) throw new Error('no doc ' + p); store.set(p, apply(store.get(p), d)); } };
 }
 function query(p, filters, n) {
   return { where: (f, op, v) => query(p, filters.concat([[f, op, v]]), n), limit: (k) => query(p, filters, k),
     get: async () => { const depth = p.split('/').length + 1;
       const docs = [...store.keys()].filter((k) => k.startsWith(p + '/') && k.split('/').length === depth).filter((k) => filters.every(([f, op, v]) => {
-        const x = store.get(k)[f]; return op === '==' ? x === v : op === 'array-contains' ? (x || []).includes(v) : false; })).slice(0, n || 1e9).map(snap);
+        const x = store.get(k)[f]; return op === '==' ? x === v : op === 'array-contains' ? (x || []).includes(v) : op === '<' ? x && x.toMillis() < v.toMillis() : false; })).slice(0, n || 1e9).map(snap);
       return { empty: !docs.length, docs }; } };
 }
 function col(p) { return { doc: (id) => doc(p + '/' + (id || 'auto' + (++auto))), add: async (d) => { const r = doc(p + '/auto' + (++auto)); await r.set(d); return r; }, where: (f, op, v) => query(p, [[f, op, v]]) }; }
-const db = { collection: (c) => col(c), runTransaction: async (fn) => { const ops = []; const tx = { get: (r) => r.get(),
-  update: (r, d) => ops.push(() => r.update(d)), set: (r, d, o) => ops.push(() => r.set(d, o)) }; const out = await fn(tx); for (const o of ops) await o(); return out; } };
+// collectionGroup: every doc whose parent collection is named c (any depth), with the same where/limit as query()
+const group = (c, filters = [], n) => ({ where: (f, op, v) => group(c, filters.concat([[f, op, v]]), n), limit: (k) => group(c, filters, k),
+  get: async () => { const docs = [...store.keys()].filter((k) => k.split('/').slice(-2, -1)[0] === c).filter((k) => filters.every(([f, op, v]) => {
+    const x = store.get(k)[f]; return op === '<' ? x && x.toMillis() < v.toMillis() : x === v; })).slice(0, n || 1e9).map(snap); return { empty: !docs.length, docs }; } });
+const db = { collection: (c) => col(c), collectionGroup: (c) => group(c), runTransaction: async (fn) => { const ops = []; const tx = { get: (r) => r.get(),
+  update: (r, d) => ops.push(() => r.update(d)), set: (r, d, o) => ops.push(() => r.set(d, o)), delete: (r) => ops.push(() => r.delete()) }; const out = await fn(tx); for (const o of ops) await o(); return out; } };
 const authUsers = { victim: { email: 'victim@x.com' }, buyer: { email: 'buyer@x.com' } };
 const fakeAdmin = { firestore: Object.assign(() => db, { FieldValue: FV, Timestamp: { now: () => TS(Date.now()), fromMillis: TS } }),
   auth: () => ({ getUser: async (uid) => { if (!authUsers[uid]) throw new Error('no user'); return authUsers[uid]; } }) };
@@ -139,7 +143,30 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
   const r3 = await TSvc.reserve(db, 't1', 300), b3 = U('t1').bonusTokens + 300;
   await TSvc.settle(db, 't1', r3, new Error('network'), 'test');
   check(U('t1').bonusTokens === b3, 'any other failure refunds the whole reservation');
+
+  // --- held reservations (an AI call): a function killed by its timeout never refunds — the sweep does, once ---
+  const held = () => [...store.keys()].filter((k) => k.startsWith('users/t1/reservations/'));
+  const b4 = U('t1').bonusTokens;
+  const h1 = await TSvc.reserve(db, 't1', 200, { hold: true });
+  check(h1.hold && held().length === 1, 'an AI reservation is held in users/{uid}/reservations');
+  check(await TSvc.sweepHeld(db) === 0 && U('t1').bonusTokens === b4 - 200, 'a fresh hold is not swept');
+  check(await TSvc.sweepHeld(db, Date.now() + TSvc.HOLD_MS + 1000) === 1 && U('t1').bonusTokens === b4 && !held().length, 'a hold older than HOLD_MS is returned by the sweep');
+  await TSvc.refund(db, 't1', h1);
+  check(U('t1').bonusTokens === b4, 'a late refund of a swept hold returns nothing twice');
+  const h2 = await TSvc.reserve(db, 't1', 300, { hold: true });
+  const c2 = await TSvc.charge(db, 't1', 'generateScene', model, { input_tokens: 100, output_tokens: 100 }, null, { reserved: h2 });
+  check(!held().length && U('t1').bonusTokens === b4 - c2.userCost, 'charge settles a hold and deletes it');
+  check(await TSvc.sweepHeld(db, Date.now() + TSvc.HOLD_MS + 1000) === 0 && U('t1').bonusTokens === b4 - c2.userCost, 'a settled hold is never swept');
+  const b5 = U('t1').bonusTokens, h3 = await TSvc.reserve(db, 't1', 300, { hold: true });
+  await TSvc.sweepHeld(db, Date.now() + TSvc.HOLD_MS + 1000);
+  const c3 = await TSvc.charge(db, 't1', 'generateScene', model, { input_tokens: 100, output_tokens: 100 }, null, { reserved: h3 });
+  check(U('t1').bonusTokens === b5 - c3.userCost, 'a call finishing after its hold was swept is charged in full, once');
+  const b6 = U('t1').bonusTokens, h4 = await TSvc.reserve(db, 't1', 300, { hold: true });
+  await TSvc.settle(db, 't1', h4, Object.assign(new Error('Claude відмовився виконати запит'), { paid: { model, usage: { input_tokens: 5000, output_tokens: 10 } } }), 'test');
+  check(U('t1').bonusTokens < b6 && !held().length, 'a refusal (paid to the API) is charged, not refunded');
+
   const logs = [...store.entries()].filter(([k]) => k.startsWith('usage_logs/')).map(([, v]) => v);
+  check(logs.every((l) => l.expireAt && l.expireAt.toMillis() > Date.now() + 300 * 86400000), 'usage_logs carry a TTL expireAt (≈400 days)');
   check(logs.length && logs.every((l) => Math.abs(l.userPaidUSD - l.userTokensCharged * require(F('paid-features.js')).USD_PER_TOKEN) < 1e-3), 'usage_logs userPaidUSD = tokens × USD_PER_TOKEN (the loss alarm works)');
 
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');

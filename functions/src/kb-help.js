@@ -99,7 +99,7 @@ exports.kbAsk = onRequest({ region: 'us-central1', secrets: [claudeApiKey], time
       const u = msg.usage || {}, p = MODEL_PRICING[msg.model] || MODEL_PRICING[model] || {};
       const usd = ((u.input_tokens || 0) * (p.input || 0) + (u.output_tokens || 0) * (p.output || 0) + (u.cache_creation_input_tokens || 0) * (p.cacheWrite || p.input || 0) +
         (u.cache_read_input_tokens || 0) * (p.cacheRead || p.input || 0)) / 1e6;
-      db.collection('usage_logs').add({ uid, operation: 'kb_help', model: msg.model || model, timestamp: admin.firestore.FieldValue.serverTimestamp(), billing: 'free',
+      db.collection('usage_logs').add({ uid, operation: 'kb_help', model: msg.model || model, expireAt: require('../token-service.js').logExpireAt(), timestamp: admin.firestore.FieldValue.serverTimestamp(), billing: 'free',
         userTokensCharged: 0, userPaidUSD: 0, inputTokens: u.input_tokens || 0, outputTokens: u.output_tokens || 0, cacheCreationTokens: u.cache_creation_input_tokens || 0,
         cacheReadTokens: u.cache_read_input_tokens || 0, realApiCostUSD: Math.round(usd * 1e4) / 1e4, rawUsage: u }).catch((e) => console.error('[kb-help] log:', e.message));
       return res.status(200).json({ success: true, answer: text, articles: used, left });
