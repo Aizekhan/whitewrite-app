@@ -740,7 +740,7 @@
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Правила й числа", "Rules & numbers"), F("deps", "Залежить від", "Depends on")] },
     { id: "progression", uk: "Прогресія й економіка", en: "Progression & economy", group: "group",
       groups: { uk: ["Досвід і рівні", "Валюти", "Лут і нагороди", "Магазин", "Апгрейди", "Баланс"], en: ["XP & levels", "Currencies", "Loot & rewards", "Shop", "Upgrades", "Balance"] },
-      about: { uk: "Досвід, рівні, валюти, лут, магазин, апгрейди — і баланс чисел між ними.", en: "XP, levels, currencies, loot, shop, upgrades — and the balance of numbers between them." },
+      about: { uk: "Досвід, рівні, валюти, лут, магазин, апгрейди — і баланс чисел між ними. «📈 Конструктор прогресії» рахує, де гравець застрягне чи розбагатіє.", en: "XP, levels, currencies, loot, shop, upgrades — and the balance of numbers between them. The “📈 Progression builder” computes where the player gets stuck or rich." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Числа й формули", "Numbers & formulas"), F("sinks", "Звідки береться / куди йде", "Sources / sinks")] },
     { id: "levels", uk: "Рівні й контент", en: "Levels & content", group: "group",
       groups: { uk: ["Туторіал", "Основні рівні", "Рівні босів", "Хаби", "Побічний контент"], en: ["Tutorial", "Main levels", "Boss levels", "Hubs", "Side content"] },
@@ -1297,7 +1297,7 @@
     if (s.special === "chronicle") return openDossier({ id: entityId("events"), kind: "events", isNew: true, group: g });
     if (s.special === "culture") return openDossier({ id: newId("lore"), col: "lore", group: g || "customs", isNew: true });
     if (s.special === "quests" || s.special === "dialogues") { if (canQuest) openQD(s.special, null, g ? { type: g } : null); return; }
-    if (s.id === "mechanics" || s.id === "audio") return mechNew(g);
+    if (s.id === "mechanics" || mFactory(s.id)) return mechNew(g);
     addCard(false, g);
   }
   function groupsOf(s) {
@@ -1522,7 +1522,7 @@
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
-        ((s.id === "mechanics" || s.id === "audio") && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : MC0).add + '</button>' : '') +
+        ((s.id === "mechanics" || mFactory(s.id)) && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : s.id === "progression" ? MCP : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
         ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" role="status">' + esc(bulkProg) + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
@@ -3385,7 +3385,19 @@
       back: "← To sound", type: "Type", links: "Related sound cards", noLinks: "No other sound cards yet.", newM: "Sound template", delQ: "Delete “{t}”?",
       purposePh: "What the player should feel and when it plays", prompt: "♪ Prompt", promptHint: "Copy a music-generator prompt", copied: "Prompt copied" }
   }[LANG]);
-  function mcFor(id) { MC = id === "audio" ? MCA : MC0; }
+  // «📈 Конструктор прогресії» — the same constructor in «Прогресія й економіка» (templates with sec: 'progression')
+  var MCP = Object.assign({}, MC0, {
+    uk: { add: "📈 Конструктор прогресії", own: "✎ Звичайна картка", ownHint: "Опис і числа текстом — без шаблону й розрахунків.", choose: "📈 Конструктор прогресії",
+      catHint: "Картка під кожну задачу: крива досвіду, валюти, лут, магазин, апгрейди, баланс по етапах. Кожна сама рахує години, шанси й ціни — і показує, де гравець застрягне чи розбагатіє.",
+      back: "← До прогресії", links: "Повʼязані картки прогресії", noLinks: "Інших карток прогресії поки немає.", newM: "Картка прогресії", delQ: "Видалити «{t}»?",
+      purposePh: "Що має відчувати гравець: темп, рідкість, цілі" },
+    en: { add: "📈 Progression builder", own: "✎ Plain card", ownHint: "A description and numbers as text — no template, no computation.", choose: "📈 Progression builder",
+      catHint: "A card for each job: the XP curve, currencies, loot, the shop, upgrades, balance by stage. Each computes hours, chances and prices — and shows where the player gets stuck or rich.",
+      back: "← To progression", links: "Related progression cards", noLinks: "No other progression cards yet.", newM: "Progression card", delQ: "Delete “{t}”?",
+      purposePh: "What the player should feel: pace, rarity, goals" }
+  }[LANG]);
+  function mFactory(id) { return id === "audio" || id === "progression"; } // sections whose «＋» opens a template catalog of their own (Фабрика звуку, Конструктор прогресії)
+  function mcFor(id) { MC = id === "audio" ? MCA : id === "progression" ? MCP : MC0; }
   var med = null; // the open mechanic: { id, isNew, card, title, status, m (draft), first, tab, adv (all fields), advOpen (the outline's «Розширене»), find: {secId: text}, sort: {secId: [key, dir]},
   //   cell (the table cell being edited: a path), cellOrig, wiz ({ s, step, row }: the first-row questions), wizOff {secId: 1}, cgby (the combo table's grouping) }
   var mxNamed = false; // card links in computed results / check messages read as card names (the live cards of this game)
@@ -3398,7 +3410,7 @@
   function catLabel(id) { var c = MX().category(id); return c ? ml(c) : ""; }
   function catOfGroup(g) { // a Mechanics subsection name (either language, old names too) → category id
     var A = MX().GROUP_ALIAS, n = A[g] || g;
-    return (MX().CATEGORIES.concat(MX().AUDIO_CATEGORIES).filter(function (c) { return c.uk === n || c.en === n; })[0] || {}).id || "";
+    return (MX().CATEGORIES.concat(MX().AUDIO_CATEGORIES, MX().PROG_CATEGORIES).filter(function (c) { return c.uk === n || c.en === n; })[0] || {}).id || "";
   }
   function medDirty() { return !!med && JSON.stringify([med.title, med.status, med.m]) !== med.first; }
   function medLeave(go) { unsavedOk(medDirty(), function () { med = null; go(); }); }
@@ -3423,7 +3435,7 @@
   }
   // «＋ Механіка» / «＋ Додати» under a category: own or from the template catalog
   function mechNew(group, secId) {
-    var M = MX(), cat0 = group ? catOfGroup(group) : "", sid = secId || section, aud = sid === "audio"; mcFor(sid);
+    var M = MX(), cat0 = group ? catOfGroup(group) : "", sid = secId || section, aud = mFactory(sid); mcFor(sid);
     var box = document.createElement("div"); box.className = "ask";
     var tplHtml = function (q, cat) {
       var list = M.templatesFor(sid).filter(function (t) {
@@ -3530,7 +3542,7 @@
   var DESIGN_CATS = ["feel", "loops", "leveldesign", "balance", "release"]; // mechanics.js v2.78: artefacts of the design, not systems
   function mCatOpts(sid, cur) { // the category options; Mechanics: «Системи гри» and «Дизайн гри» as two groups
     var o = function (c) { return '<option value="' + c.id + '"' + (c.id === cur ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }, cs = MX().categoriesFor(sid);
-    if (sid === "audio") return cs.map(o).join("");
+    if (mFactory(sid)) return cs.map(o).join("");
     return '<optgroup label="' + esc(MCX.sysCats) + '">' + cs.filter(function (c) { return DESIGN_CATS.indexOf(c.id) < 0; }).map(o).join("") + '</optgroup>' +
       '<optgroup label="' + esc(MCX.designCats) + '">' + cs.filter(function (c) { return DESIGN_CATS.indexOf(c.id) >= 0; }).map(o).join("") + '</optgroup>';
   }
@@ -3581,7 +3593,7 @@
   function mCalcHtml(s) {
     var m = med.m, M = MX(), K = MCX, rn = function (secId, id) { var x = msec(secId), r = x && (x.rows || []).filter(function (y) { return y._id === id; })[0]; return r ? M.rowName(x, r) : id; };
     var tag = function (ok, txt) { return '<span class="mcv ' + (ok ? 'mcv-ok' : 'mcv-warn') + '">' + (ok ? '✓ ' : '⚠ ') + esc(txt) + '</span>'; }, html = "";
-    if (m.tpl === "economy" && s.id === "currencies") {
+    if ((m.tpl === "economy" || m.tpl === "prog_currencies") && s.id === "currencies") {
       var sim = M.econSim(m);
       html = mCalcTable([K.cur, K.bal, K.end.replace("{h}", sim.hours), K.net, K.state], sim.rows.map(function (c) {
         return [esc(c.name), mSpark(c.balance, 120, 26), '<span class="mono">' + c.end.toLocaleString() + '</span>', '<span class="mono">' + (c.netEnd > 0 ? "+" : "") + c.netEnd.toLocaleString() + '</span>',
@@ -3615,8 +3627,67 @@
         var r = M.releaseStatus(one), name = pf ? (mopts(pf).filter(function (o) { return o[0] === p; })[0] || [p, p])[1] : p;
         return '<li><b>' + esc(name) + '</b> · ' + esc(K.ready.replace("{d}", r.done).replace("{n}", r.total)) + ' · ' + (r.green ? tag(true, K.allReady) :
           '<span class="muted">' + esc(K.lacks.replace("{l}", r.left.slice(0, 6).map(function (x) { return x.item; }).join(", ") + (r.left.length > 6 ? " … +" + (r.left.length - 6) : ""))) + '</span>') + '</li>'; }).join("") + '</ul>';
-    }
+    } else html = mProgCalc(m, s, tag);
     return html ? '<div class="mcalc" aria-live="polite"><h5>' + esc(K.calc) + ' <span class="muted" title="' + esc(K.calcHint) + '">ⓘ</span></h5>' + html + '</div>' : '';
+  }
+  // ---------- 📈 Конструктор прогресії: what each progression card computes (mechanics.js xpCurve / lootFlow / shopAfford / upgradeTracks / balanceStages) ----------
+  var MCPX = { uk: { toMax: "До рівня {l} — {h}", target: "задумано {t} год", perLv: "Час на кожен рівень", lv: "Рівень", xp: "Досвіду", sum: "Усього", tLv: "На рівень", fromStart: "Від старту",
+      src: "з: {s}", perH: "{n} предметів за годину", noSrc: "жодне джерело не дає цю таблицю", rar: "Рідкість", perHour: "За годину", every: "Один раз на",
+      goods: "Товар", price: "Ціна", from: "З години", work: "Заробляти", verdict: { impulse: "імпульсна покупка", small: "дрібна покупка", goal: "ціль", grind: "довга ціль", wall: "стіна гринду", none: "немає доходу" },
+      gap: "{a}–{b} год: нічого нового", track: "Лінійка", costs: "Ціна по рівнях", total: "Усього до максимуму", toMaxH: "Заробити", last: "Останній рівень", eff: "Вигода останнього", effV: "у {n}× менша",
+      stage: "Етап", earned: "Заробить", need: "Мусить витратити", left: "Лишиться", money: "Гроші", power: "Сила", bal: { short: "бракує · ≈ {h} гринду", ok: "якраз", rich: "розбагатів" },
+      feel: { easy: "сильніший на {n} — нудно", hard: "слабший на {n} — застрягне", ok: "рівня ворогів" },
+      rarity: { common: "звичайний", uncommon: "незвичайний", rare: "рідкісний", epic: "епічний", legendary: "легендарний" } },
+    en: { toMax: "Level {l} takes {h}", target: "the plan is {t} h", perLv: "Time per level", lv: "Level", xp: "XP", sum: "Total", tLv: "Per level", fromStart: "From the start",
+      src: "from: {s}", perH: "{n} items an hour", noSrc: "no source uses this table", rar: "Rarity", perHour: "An hour", every: "Once per",
+      goods: "Item", price: "Price", from: "From hour", work: "To earn", verdict: { impulse: "impulse buy", small: "small buy", goal: "a goal", grind: "a long goal", wall: "a grind wall", none: "no income" },
+      gap: "{a}–{b} h: nothing new", track: "Track", costs: "Price by level", total: "Total to the max", toMaxH: "To earn", last: "Last level", eff: "Last level's value", effV: "{n}× lower",
+      stage: "Stage", earned: "Earns", need: "Must spend", left: "Left over", money: "Money", power: "Power", bal: { short: "short · ≈ {h} of grinding", ok: "just right", rich: "got rich" },
+      feel: { easy: "{n} levels above — boring", hard: "{n} levels below — stuck", ok: "on par with enemies" },
+      rarity: { common: "common", uncommon: "uncommon", rare: "rare", epic: "epic", legendary: "legendary" } } }[LANG];
+  function mProgCalc(m, s, tag) {
+    var M = MX(), K = MCPX, H = function (h) { return h == null ? "—" : M.fmtH(h, LANG); }, mono = function (v) { return '<span class="mono">' + v + '</span>'; };
+    var n = function (v) { return Math.round(v).toLocaleString(); };
+    if (m.tpl === "xp_curve" && s.id === "pace") {
+      var x = M.xpCurve(m), ok = !x.target || (x.totalHours <= x.target * 1.3 && x.totalHours >= x.target * 0.7);
+      var pick = x.rows.filter(function (r, i) { return i === 0 || r.level % 5 === 0 || i === x.rows.length - 1; });
+      return '<p class="mcalc-sub"><b>' + esc(K.toMax.replace("{l}", x.max).replace("{h}", H(x.totalHours))) + '</b> ' + (x.target ? tag(ok, K.target.replace("{t}", x.target)) : '') + '</p>' +
+        '<p class="mcalc-sub"><span class="muted">' + esc(K.perLv) + '</span> ' + mSpark(x.rows.map(function (r) { return r.hours; }), 260, 34) + '</p>' +
+        mCalcTable([K.lv, K.xp, K.sum, K.tLv, K.fromStart], pick.map(function (r) { return [String(r.level), mono(n(r.xp)), mono(n(r.total)), mono(H(r.hours)), mono(H(r.totalHours))]; }));
+    }
+    if (m.tpl === "prog_loot" && s.id === "loot") return M.lootFlow(m).map(function (t) {
+      return '<p class="mcalc-sub"><b>' + esc(MCX.table) + ' «' + esc(t.table) + '»</b> <span class="muted">' + esc(t.sources.length ? K.src.replace("{s}", t.sources.join(", ")) + " · " + K.perH.replace("{n}", t.perHour) : "") + '</span>' +
+        (t.sources.length ? '' : ' ' + tag(false, K.noSrc)) + '</p>' +
+        mCalcTable([MCX.item, K.rar, MCX.chance, K.perHour, K.every], t.items.map(function (i) {
+          return [esc(mCardText(rowItem(i.id)) || i.item || i.id), esc(K.rarity[i.rarity] || "—"), mono(i.chance + " %"), mono(i.perHour), i.every == null ? '<span class="muted">—</span>' : mono(H(i.every)) + (i.pity ? ' <span class="muted">· ' + esc(MCX.pity) + ' ' + i.pity + '</span>' : '')]; }));
+    }).join("");
+    if (m.tpl === "prog_shop" && s.id === "goods") {
+      var sh = M.shopAfford(m), good = { impulse: 1, small: 1, goal: 1 };
+      return mCalcTable([K.goods, K.price, K.from, K.work, ""], sh.goods.map(function (g) {
+        return [esc(g.item || g.id), mono(n(g.price) + (sh.currency ? " " + esc(sh.currency) : "")), mono(g.from), mono(H(g.hours)), tag(!!good[g.verdict], K.verdict[g.verdict] || g.verdict)]; })) +
+        (sh.gaps.length ? '<p class="mcalc-sub">' + sh.gaps.map(function (g) { return tag(false, K.gap.replace("{a}", g[0]).replace("{b}", g[1])); }).join(" ") + '</p>' : '');
+    }
+    if (m.tpl === "prog_upgrades" && s.id === "tracks") return mCalcTable([K.track, K.costs, K.total, K.toMaxH, K.last, K.eff], M.upgradeTracks(m).map(function (t) {
+      var drop = t.eff[0] && t.eff[1] ? Math.round(t.eff[0] / t.eff[1]) : null;
+      return [esc(t.name + (t.stat ? " · " + t.stat : "")), mSpark(t.tiers.map(function (x) { return x.cost; }), 120, 26), mono(n(t.total)), mono(H(t.hours)),
+        t.lastHours == null ? '—' : tag(t.lastHours <= 5, H(t.lastHours)), drop == null ? '—' : tag(drop < 20, K.effV.replace("{n}", drop))]; }));
+    if (m.tpl === "prog_balance" && s.id === "stages") return mCalcTable([K.stage, K.earned, K.need, K.left, K.money, K.power], M.balanceStages(m).map(function (b) {
+      return [esc(b.stage), mono(n(b.earned)), mono(n(b.need)), mono(n(b.bank)), tag(b.verdict === "ok", K.bal[b.verdict].replace("{h}", H(b.grind))),
+        b.feel ? tag(b.feel === "ok", K.feel[b.feel].replace("{n}", Math.abs(b.gap))) : '<span class="muted">—</span>']; }));
+    return "";
+  }
+  // the progression card's one-line summary in its plain «Числа й формули» field (search, the card grid, MCP get_card)
+  function mProgSummary(m) {
+    var M = MX(), H = function (h) { return M.fmtH(h, LANG); }, en = LANG === "en";
+    try {
+      if (m.tpl === "xp_curve") { var x = M.xpCurve(m); return (en ? "Level " : "Рівень ") + x.max + ": " + H(x.totalHours); }
+      if (m.tpl === "prog_shop") return M.shopAfford(m).goods.map(function (g) { return (g.item || g.id) + " — " + (g.hours == null ? "—" : H(g.hours)); }).join("; ");
+      if (m.tpl === "prog_upgrades") return M.upgradeTracks(m).map(function (t) { return t.name + " — " + t.total + (t.hours != null ? " (" + H(t.hours) + ")" : ""); }).join("; ");
+      if (m.tpl === "prog_balance") return M.balanceStages(m).map(function (b) { return b.stage + ": " + MCPX.bal[b.verdict].replace("{h}", b.grind ? H(b.grind) : "—"); }).join("; ");
+      if (m.tpl === "prog_loot") return M.lootFlow(m).map(function (t) { return t.table + " — " + t.perHour + (en ? "/h" : "/год"); }).join("; ");
+      if (m.tpl === "prog_currencies") return M.econSim(m).rows.map(function (c) { return c.name + ": " + c.status; }).join("; ");
+    } catch (e) {}
+    return "";
   }
   function rowItem(id) { var s = msec("loot"), r = s && (s.rows || []).filter(function (x) { return x._id === id; })[0]; return r ? r.item : ""; }
   // the object and key a mechanic path points at ("g.key" / "si.-.k" / "si.ri.k") and its field
@@ -3876,7 +3947,7 @@
   function mEmptyTable(s, si, act, label) {
     if (canWrite && !med.wizOff[s.id] && mWizFields(s).length) return mWizHtml(s, si);
     return '<div class="estate"><p>' + esc(mFirstLine(ml(s.hint)) || MC.noRows) + '</p><div class="row">' + (canWrite ? '<button type="button" class="btn primary" data-mact="' + act + '">' + esc(label) + '</button>' : '') +
-      kbLink(med.sec === "audio" ? "sound-factory" : "mechanics") + '</div></div>';
+      kbLink(med.sec === "audio" ? "sound-factory" : med.sec === "progression" ? "progression-builder" : "mechanics") + '</div></div>';
   }
   // ---- first-time guidance: the first required fields of the table, one question at a time; «Готово» writes the first row ----
   function mWizFields(s) {
@@ -4232,6 +4303,7 @@
     var fields = Object.assign({}, (raw && raw.fields) || {}, { group: catLabel(d.m.cat) || ((raw && raw.fields) || {}).group || "", text: d.m.purpose || "" });
     var body = { section: d.sec, title: d.title, status: d.status, fields: JSON.parse(JSON.stringify(fields)), mech: JSON.parse(JSON.stringify(d.m)), updatedAt: stamp() };
     if (d.sec === "audio") body.fields.mood = d.m.purpose || ""; // the audio cards' description field
+    if (d.sec === "progression") body.fields.numbers = mProgSummary(d.m); // the plain card field: what the builder computed, in one line (search, MCP get_card)
     if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec(d.sec).defs.slice(); }
     btn.disabled = true; $("m-state").textContent = STR.saving;
     try {
@@ -4421,7 +4493,7 @@
     if (b.dataset.dqd) { var qp = b.dataset.dqd.split(":"); if (open) closeLeaf(); openQD(qp[0], qp.slice(1).join(":")); return true; }
     if (b.dataset.imptask) { var mid = b.dataset.imptask; if (open) closeLeaf(); goSection("plan"); setTimeout(function () { var m = $("ms-" + mid); if (m) m.scrollIntoView({ block: "start" }); }); return true; }
     if (b.dataset.openref) { var x = allCards().filter(function (y) { return y.key === b.dataset.openref; })[0]; if (!x) return true;
-      if (x.src === "game" && (x.section === "mechanics" || x.section === "audio" && x.mech)) { if (open) closeLeaf(); openMech(x); } else openCard(x); return true; }
+      if (x.src === "game" && (x.section === "mechanics" || mFactory(x.section) && x.mech)) { if (open) closeLeaf(); openMech(x); } else openCard(x); return true; }
     return false;
   }
   // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
@@ -9291,7 +9363,7 @@
     var de = e.target.closest("[data-ent]"); if (de) { openDossier(entities.filter(function (x) { return x.id === de.dataset.ent; })[0]); return; }
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0];
-    if (card && card.src === "game" && (card.section === "mechanics" || card.section === "audio" && card.mech)) return openMech(card); // mechanics and Фабрика звуку open in the constructor
+    if (card && card.src === "game" && (card.section === "mechanics" || mFactory(card.section) && card.mech)) return openMech(card); // mechanics, Фабрика звуку and Конструктор прогресії open in the constructor
     if (card) openCard(card);
   }
   $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); render(); });

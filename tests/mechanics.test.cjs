@@ -206,5 +206,31 @@ check(fk(rq, 'CU1', /не заповнено/), 'earn', 'a required empty cell n
 check(M.exportMech({ id: 'f', mech: fe }, 'en').issues.some((i) => i.field === 'buffer'), true, 'export: the agent sees the field of an issue');
 check(M.frameworkNote('economy', 'loot', M.FW_BUILTIN).status + '|' + M.frameworkNote('controls', 'map').status, 'exists|missing', 'framework notes: loot exists, the input map is game code');
 
+// 📈 Конструктор прогресії: its own catalog, categories = the section's groups, every sample computes cleanly
+check(M.templatesFor('progression').map((t) => t.id).join(','), 'xp_curve,prog_currencies,prog_loot,prog_shop,prog_upgrades,prog_balance', 'the Progression builder catalog');
+check(M.templatesFor('mechanics').some((t) => t.sec === 'progression'), false, 'no progression template among the mechanics');
+check(M.categoriesFor('progression').map((c) => c.uk).join('|'), 'Досвід і рівні|Валюти|Лут і нагороди|Магазин|Апгрейди|Баланс', 'progression categories = the section groups');
+const xp = M.instantiate('xp_curve');
+check(Math.abs(M.xpCurve(xp).totalHours - 25) < 7, true, 'the XP sample reaches the cap near its 25 h plan');
+check(codes(xp).filter((i) => i.level !== 'tip').length, 0, 'the XP sample has no warnings');
+st(xp, 'curve').values.growth = 2.6;
+check(codes(xp, 'warn').some((i) => /застрягне/.test(i.uk)), true, 'a steep curve: the player gets stuck');
+const lf = M.instantiate('prog_loot'), fl = M.lootFlow(lf), boss = fl.find((t) => t.table === 'Бос');
+check(boss.perHour, 1.5, 'boss: 0.5 an hour × 3 items');
+check(Math.round(boss.items.find((i) => i.id === 'LT7').every * 10) / 10, 6.7, 'the crown drops once per ≈ 6.7 h');
+st(lf, 'sources').rows.push({ _id: 'SR9', source: 'Риба', table: 'Нема такої', perHour: 1 });
+check(codes(lf, 'warn').some((i) => i.row === 'SR9'), true, 'a source pointing at a missing table');
+const sh = M.instantiate('prog_shop'), af = M.shopAfford(sh);
+check(af.goods[0].verdict + '|' + af.goods[af.goods.length - 1].verdict, 'impulse|wall', 'a potion is an impulse buy, the legendary shield a wall');
+check(af.gaps.length, 1, 'hours 3–10: nothing new in the shop');
+const up = M.upgradeTracks(M.instantiate('prog_upgrades'))[0];
+check(up.tiers[1].cost + '|' + up.total, '270|10918', 'upgrade prices grow 35% a tier');
+const bl = M.instantiate('prog_balance'); st(bl, 'stages').rows[1].need = 9000;
+const bs = M.balanceStages(bl);
+check(bs[1].verdict + '|' + bs[0].bank, 'short|300', 'act 2 too dear; act 1 leftovers carry over');
+check(codes(bl, 'warn').some((i) => /гринду/.test(i.uk)), true, 'a short stage warns about grinding');
+check(M.fmtH(0.2) + '|' + M.fmtH(2.5, 'en'), '12 хв|2 h 30 min', 'hours read as hours and minutes');
+check(M.calc(M.instantiate('prog_currencies')).simulation.rows.length, 3, 'currencies reuse the economy simulation');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

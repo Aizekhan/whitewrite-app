@@ -1110,7 +1110,7 @@ function lootChances(m) {
     var total = by[t].reduce(function (a, r) { return a + (+r.weight > 0 ? +r.weight : 0); }, 0);
     return { table: t, total: total, items: by[t].map(function (r) {
       var ch = total && +r.weight > 0 ? Math.round(+r.weight / total * 1000) / 10 : 0;
-      return { id: r._id, item: cardLabel(r.item), weight: +r.weight || 0, chance: ch, drop: num(r.drop) ? +r.drop : null, tries: ch ? Math.round(100 / ch * 10) / 10 : null, pity: num(r.pity) ? +r.pity : null };
+      return { id: r._id, item: cardLabel(r.item), weight: +r.weight || 0, chance: ch, drop: num(r.drop) ? +r.drop : null, tries: ch ? Math.round(100 / ch * 10) / 10 : null, pity: num(r.pity) ? +r.pity : null, rarity: r.rarity || '' };
     }) };
   });
 }
@@ -1323,24 +1323,274 @@ FRAMEWORK.difficulty = { zones: ['partial', 'Стати (StatContainer) і рі�
 FRAMEWORK.release = { items: ['partial', 'Досягнення — game_kit.achievements; решта — магазини, юридичне й збірка, не фреймворк.', 'Achievements — game_kit.achievements; the rest is stores, legal and the build, not the framework.'] };
 FW_CAPS.economy = { loot: ['items.loot'] };
 FW_CAPS.difficulty = { zones: ['stats.container', 'progression.enemy_levels'] };
+// ============================== 📈 Конструктор прогресії (the «Прогресія й економіка» section) ==============================
+// The same constructor, other templates (sec: 'progression'): one card per job — the XP curve, currencies, loot, the shop,
+// upgrades, the balance by stage. Every card computes what the player lives through (hours to a level, minutes to a drop,
+// hours of income for a purchase, where they get stuck or rich) and warns before a playtester does.
+var PROG_CATEGORIES = [
+  { id: 'xp', uk: 'Досвід і рівні', en: 'XP & levels', subs: [] },
+  { id: 'currency', uk: 'Валюти', en: 'Currencies', subs: [] },
+  { id: 'loot', uk: 'Лут і нагороди', en: 'Loot & rewards', subs: [] },
+  { id: 'shop', uk: 'Магазин', en: 'Shop', subs: [] },
+  { id: 'upgrade', uk: 'Апгрейди', en: 'Upgrades', subs: [] },
+  { id: 'pbalance', uk: 'Баланс', en: 'Balance', subs: [] },
+];
+var CURVES = O([['poly', 'Степенева (класика RPG)', 'Power (classic RPG)'], ['exp', 'Експонента (кожен рівень на % дорожчий)', 'Exponential (each level % dearer)'], ['linear', 'Лінійна (+ стільки ж щоразу)', 'Linear (+ the same each time)']]);
+var WALLET = { id: 'wallet', title: T('Гаманець гравця', 'The player\'s wallet'), kind: 'fields',
+  hint: T('Скільки гравець заробляє цієї валюти — від цього рахується, скільки часу треба на кожну покупку.', 'How much of this currency the player earns — every purchase is measured in the time it takes.'),
+  fields: [F('currency', 'Валюта', 'Currency', 'text', R), F('income', 'Дохід за годину на старті', 'Income per hour at the start', 'num', X(R, { min: 0 })),
+    F('growth', 'Ріст доходу за кожну годину гри', 'Income growth per hour of play', 'pct', X(REC, { min: 0, max: 100 }))],
+  values: { currency: 'Золото', income: 1200, growth: 5 } };
+var XP_CURVE = {
+  id: 'xp_curve', sec: 'progression', version: 1, cat: 'xp', sub: '', complexity: 1, name: T('Крива досвіду й рівні', 'XP curve & levels'),
+  desc: T('Скільки досвіду до кожного рівня (формула, а не таблиця вручну), скільки годин на рівень і до максимуму, що дає кожен рівень — і де прокачка впирається в стіну.', 'XP to every level (a formula, not a hand-typed table), hours per level and to the cap, what each level gives — and where levelling hits a wall.'),
+  purpose: T('Кожен рівень приходить вчасно: не за хвилину й не через три години.', 'Every level arrives on time: not in a minute, not after three hours.'),
+  sections: [
+    { id: 'curve', title: T('Крива', 'Curve'), kind: 'fields', hint: T('Обери форму кривої й крутизну — досвід до кожного рівня порахується сам.', 'Pick the curve shape and steepness — XP to every level is computed.'),
+      fields: [F('maxLevel', 'Максимальний рівень', 'Max level', 'num', X(R, { min: 2, max: 200 })), F('first', 'Досвіду до 2-го рівня', 'XP to level 2', 'num', X(R, { min: 1 })),
+        F('shape', 'Форма кривої', 'Curve shape', 'sel', X(R, { o: CURVES })),
+        F('growth', 'Крутизна', 'Steepness', 'num', X(R, { min: 0, h: T('степенева — показник 1.2–2.5 · експонента — % за рівень, 5–25 · лінійна — + досвіду за рівень', 'power — exponent 1.2–2.5 · exponential — % per level, 5–25 · linear — + XP per level') }))],
+      values: { maxLevel: 30, first: 100, shape: 'poly', growth: 1.5 } },
+    { id: 'pace', title: T('Темп гри', 'Pace of play'), kind: 'fields', hint: T('Скільки досвіду гравець набирає за годину. З рівнем він бʼє сильніших ворогів — досвід за годину теж росте.', 'How much XP the player gains an hour. With levels they fight stronger enemies — XP per hour grows too.'),
+      fields: [F('xpHour', 'Досвіду за годину на старті', 'XP per hour at the start', 'num', X(R, { min: 1 })),
+        F('xpGrowth', 'Ріст досвіду за годину з кожним рівнем', 'XP-per-hour growth with each level', 'pct', X(REC, { min: 0, max: 100 })),
+        F('target', 'До макс. рівня має піти, год', 'Hours the cap should take', 'num', X(REC, { min: 0.5 }))],
+      values: { xpHour: 800, xpGrowth: 14, target: 25 } },
+    { id: 'rewards', title: T('Що дає рівень', 'What a level gives'), kind: 'table', rowLabel: 'level', prefix: 'RW',
+      hint: T('Нагороди на рівнях: очки, здібності, слоти, доступ. Довгі проміжки без нагород перевірка підсвітить.', 'Rewards at levels: points, abilities, slots, access. Long stretches without rewards are flagged.'),
+      fields: [F('level', 'Рівень', 'Level', 'num', X(R, { min: 2 })), F('reward', 'Нагорода', 'Reward', 'text', R), F('points', 'Очок навичок', 'Skill points', 'num', { req: 'opt', min: 0 }),
+        F('unlock', 'Відкриває', 'Unlocks', 'card', { req: 'opt', adv: true, secs: ['mechanics', 'gear', 'items', 'levels'] })],
+      rows: [{ _id: 'RW1', level: 2, reward: '+1 очко навичок', points: 1 }, { _id: 'RW2', level: 5, reward: 'Другий слот зброї', points: 1 },
+        { _id: 'RW3', level: 10, reward: 'Нова здібність', points: 2 }, { _id: 'RW4', level: 15, reward: 'Доступ до гільдії', points: 1 },
+        { _id: 'RW5', level: 20, reward: 'Легендарний слот', points: 2 }, { _id: 'RW7', level: 25, reward: 'Друга спеціалізація', points: 2 }, { _id: 'RW6', level: 30, reward: 'Максимальний рівень · титул', points: 3 }] },
+  ],
+};
+var PROG_CURRENCIES = {
+  id: 'prog_currencies', sec: 'progression', version: 1, cat: 'currency', sub: '', complexity: 1, name: T('Валюти й потоки', 'Currencies & flows'),
+  desc: T('Кожна валюта: скільки гравець заробляє й витрачає за годину, звідки вона й на що йде, межа — і симуляція годину за годиною: де валюта закінчиться, де почнеться інфляція.', 'Each currency: what the player earns and spends an hour, where it comes from and goes, a cap — and an hour-by-hour simulation: where it runs dry, where inflation starts.'),
+  purpose: T('На кожну валюту завжди є на що заробити й на що витратити.', 'Every currency always has something to earn it from and spend it on.'),
+  sections: [ECONOMY.sections[0], ECONOMY.sections[1]],
+};
+var PROG_LOOT = {
+  id: 'prog_loot', sec: 'progression', version: 1, cat: 'loot', sub: '', complexity: 2, name: T('Лут і нагороди', 'Loot & rewards'),
+  desc: T('Хто що дає (вороги, скрині, боси — скільки їх за годину) і таблиці луту з вагами: як часто гравець бачить кожен предмет — «одна штука за 12 хв», а не абстрактні відсотки.', 'Who gives what (enemies, chests, bosses — how many an hour) and loot tables with weights: how often the player sees each item — “one every 12 min”, not abstract percentages.'),
+  purpose: T('Рідкісне справді рідкісне, але гравець його побачить.', 'Rare things are truly rare, yet the player gets to see them.'),
+  sections: [
+    { id: 'sources', title: T('Джерела', 'Sources'), kind: 'table', rowLabel: 'source', prefix: 'SR',
+      hint: T('Хто дає лут і скільки разів за годину гравець їх зустрічає. «Таблиця» — назва таблиці луту нижче.', 'Who drops loot and how many times an hour the player meets them. “Table” — a loot table name below.'),
+      fields: [F('source', 'Джерело', 'Source', 'text', R), F('table', 'Таблиця луту', 'Loot table', 'text', R), F('perHour', 'Скільки за годину', 'How many an hour', 'num', X(R, { min: 0 })),
+        F('rolls', 'Предметів за раз', 'Items each time', 'num', X(REC, { min: 0 })), F('chance', 'Шанс, що щось випаде', 'Chance anything drops', 'pct', X(REC, { min: 0, max: 100 }))],
+      rows: [{ _id: 'SR1', source: 'Звичайний ворог', table: 'Звичайні вороги', perHour: 40, rolls: 1, chance: 30 }, { _id: 'SR2', source: 'Скриня', table: 'Скриня лісу', perHour: 3, rolls: 2, chance: 100 },
+        { _id: 'SR3', source: 'Бос', table: 'Бос', perHour: 0.5, rolls: 3, chance: 100 }] },
+    { id: 'loot', title: T('Таблиці луту', 'Loot tables'), kind: 'table', rowLabel: 'item', prefix: 'LT', hint: ECONOMY.sections[2].hint, fields: ECONOMY.sections[2].fields,
+      rows: [{ _id: 'LT1', table: 'Звичайні вороги', item: 'Зілля здоровʼя', weight: 70, rarity: 'common' }, { _id: 'LT2', table: 'Звичайні вороги', item: 'Стріли', weight: 25, rarity: 'common' },
+        { _id: 'LT3', table: 'Звичайні вороги', item: 'Рідкісний меч', weight: 5, rarity: 'rare' }, { _id: 'LT4', table: 'Скриня лісу', item: 'Зілля здоровʼя', weight: 60, rarity: 'common' },
+        { _id: 'LT5', table: 'Скриня лісу', item: 'Амулет предків', weight: 2, pity: 40, rarity: 'epic' }, { _id: 'LT6', table: 'Скриня лісу', item: 'Уламки', weight: 38, rarity: 'uncommon' },
+        { _id: 'LT7', table: 'Бос', item: 'Корона короля-ліча', weight: 10, pity: 5, rarity: 'legendary' }, { _id: 'LT8', table: 'Бос', item: 'Уламки', weight: 90, rarity: 'uncommon' }] },
+  ],
+};
+var SHOP_KINDS = O([['consumable', 'Витратне', 'Consumable'], ['gear', 'Спорядження', 'Gear'], ['upgrade', 'Покращення', 'Upgrade'], ['key', 'Ключ / доступ', 'Key / access'], ['cosmetic', 'Косметика', 'Cosmetic']]);
+var PROG_SHOP = {
+  id: 'prog_shop', sec: 'progression', version: 1, cat: 'shop', sub: '', complexity: 1, name: T('Магазин', 'Shop'),
+  desc: T('Товари з ціною й годиною, коли вони зʼявляються, — і для кожного: скільки часу гравцю заробляти на нього. Видно імпульсні покупки, цілі й стіни гринду, а також «порожні» години, коли купити нічого.', 'Goods with a price and the hour they appear — and for each: how long the player has to earn for it. Impulse buys, goals and grind walls show, and the “empty” hours with nothing to buy.'),
+  purpose: T('У магазині завжди є і дрібна покупка, і ціль, на яку варто збирати.', 'The shop always has a small buy and a goal worth saving for.'),
+  sections: [WALLET,
+    { id: 'goods', title: T('Товари', 'Goods'), kind: 'table', rowLabel: 'item', prefix: 'SH',
+      hint: T('«З години» — коли товар зʼявляється (після першого міста, акту…). Ціна — у валюті гаманця.', '“From hour” — when the item appears (after the first town, act…). Price — in the wallet currency.'),
+      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items'] })), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
+        F('from', 'З години', 'From hour', 'num', X(REC, { min: 0 })), F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: SHOP_KINDS })), F('stock', 'Ліміт', 'Stock', 'num', { req: 'opt', adv: true, min: 0 })],
+      rows: [{ _id: 'SH1', item: 'Зілля здоровʼя', price: 50, from: 0, kind: 'consumable' }, { _id: 'SH2', item: 'Сталевий меч', price: 2500, from: 1, kind: 'gear' },
+        { _id: 'SH3', item: 'Карта підземель', price: 800, from: 2, kind: 'key' }, { _id: 'SH4', item: 'Кольчуга', price: 6000, from: 3, kind: 'gear' },
+        { _id: 'SH5', item: 'Легендарний щит', price: 60000, from: 10, kind: 'gear' }] },
+  ],
+};
+var PROG_UPGRADES = {
+  id: 'prog_upgrades', sec: 'progression', version: 1, cat: 'upgrade', sub: '', complexity: 2, name: T('Апгрейди', 'Upgrades'),
+  desc: T('Лінійки покращень (зброя, броня, навички): ціна першого рівня, на скільки дорожчає кожен наступний, що дає. Рахується ціна кожного рівня, скільки годин до максимуму й наскільки останні рівні менш вигідні за перші.', 'Upgrade tracks (weapon, armour, skills): the first level\'s price, how much dearer each next one gets, what it gives. Each level\'s price, hours to the max and how much worse the last levels pay than the first are computed.'),
+  purpose: T('Кожне покращення відчутне, а максимальний рівень — заслужена ціль, не стіна.', 'Every upgrade is felt, and the max level is an earned goal, not a wall.'),
+  sections: [WALLET,
+    { id: 'tracks', title: T('Лінійки покращень', 'Upgrade tracks'), kind: 'table', rowLabel: 'name', prefix: 'UP',
+      hint: T('Ціна рівня = ціна 1-го × (1 + «дорожчає»)^(рівень − 1). Значення = на старті + приріст × рівень.', 'Level price = first price × (1 + “dearer”)^(level − 1). Value = start + step × level.'),
+      fields: [F('name', 'Що покращується', 'What improves', 'text', R), F('stat', 'Параметр', 'Stat', 'text', REC), F('tiers', 'Рівнів', 'Levels', 'num', X(R, { min: 1, max: 100 })),
+        F('cost', 'Ціна 1-го рівня', 'First level price', 'num', X(R, { min: 0 })), F('costGrowth', 'Дорожчає за рівень', 'Dearer per level', 'pct', X(R, { min: 0, max: 300 })),
+        F('base', 'Значення на старті', 'Value at the start', 'num', REC), F('step', 'Приріст за рівень', 'Step per level', 'num', R),
+        F('item', 'Предмет', 'Item', 'card', { req: 'opt', adv: true, secs: ['gear', 'items', 'mechanics'] })],
+      rows: [{ _id: 'UP1', name: 'Меч', stat: 'Шкода', tiers: 10, cost: 200, costGrowth: 35, base: 12, step: 3 },
+        { _id: 'UP2', name: 'Броня', stat: 'Захист', tiers: 8, cost: 300, costGrowth: 40, base: 20, step: 4 },
+        { _id: 'UP3', name: 'Сумка', stat: 'Місткість', tiers: 5, cost: 500, costGrowth: 60, base: 20, step: 5 }] },
+  ],
+};
+var PROG_BALANCE = {
+  id: 'prog_balance', sec: 'progression', version: 1, cat: 'pbalance', sub: '', complexity: 2, name: T('Баланс по етапах', 'Balance by stage'),
+  desc: T('Гра по етапах (акти, біоми): скільки гравець заробляє і скільки мусить витратити, рівень гравця проти рівня ворогів. Видно, де він розбагатіє за 10 хвилин, а де застрягне на годину гринду.', 'The game by stage (acts, biomes): what the player earns and must spend, the player\'s level against the enemies\'. It shows where they get rich in 10 minutes and where they get stuck grinding for an hour.'),
+  purpose: T('На кожному етапі грошей і сили якраз — ні застою, ні нудьги.', 'At every stage money and power are just enough — no grind, no boredom.'),
+  sections: [
+    { id: 'stages', title: T('Етапи', 'Stages'), kind: 'table', rowLabel: 'stage', prefix: 'ST',
+      hint: T('Залишок переходить на наступний етап. «Обовʼязкові витрати» — без чого далі не пройти (спорядження, ключі, ремонт).', 'What is left carries over to the next stage. “Required spending” — what the player cannot go on without (gear, keys, repairs).'),
+      fields: [F('stage', 'Етап', 'Stage', 'text', R), F('hours', 'Тривалість, год', 'Length, h', 'num', X(R, { min: 0.1 })), F('income', 'Дохід за годину', 'Income per hour', 'num', X(R, { min: 0 })),
+        F('need', 'Обовʼязкові витрати', 'Required spending', 'num', X(R, { min: 0 })), F('plevel', 'Рівень гравця', 'Player level', 'num', X(REC, { min: 1 })),
+        F('elevel', 'Рівень ворогів', 'Enemy level', 'num', X(REC, { min: 1 })), F('level', 'Рівні гри', 'Game levels', 'card', { req: 'opt', adv: true, secs: LVL_SECS })],
+      rows: [{ _id: 'ST1', stage: 'Акт 1', hours: 3, income: 400, need: 900, plevel: 5, elevel: 4 }, { _id: 'ST2', stage: 'Акт 2', hours: 5, income: 900, need: 5000, plevel: 12, elevel: 13 },
+        { _id: 'ST3', stage: 'Акт 3', hours: 6, income: 1500, need: 7000, plevel: 20, elevel: 20 }, { _id: 'ST4', stage: 'Фінал', hours: 2, income: 2000, need: 6000, plevel: 26, elevel: 28 }] },
+  ],
+};
+// ---- the progression computations (the Bible's «Розрахунок», MCP get_mechanic → computed) ----
+function secOfM(m, id) { return ((m && m.sections) || []).filter(function (s) { return s.id === id; })[0]; }
+function valsOf(m, id) { return (secOfM(m, id) || {}).values || {}; }
+function rowsOfM(m, id) { return (secOfM(m, id) || {}).rows || []; }
+// → { rows: [{ level (reached), xp, total, hours, totalHours }], totalHours, target, max }
+function xpCurve(m) {
+  var c = valsOf(m, 'curve'), p = valsOf(m, 'pace'), max = Math.max(2, Math.min(200, Math.round(+c.maxLevel || 30))), first = Math.max(1, +c.first || 100), g = +c.growth || 0;
+  var xh = Math.max(1, +p.xpHour || 600), xg = (+p.xpGrowth || 0) / 100, rows = [], total = 0, th = 0;
+  for (var L = 1; L < max; L++) {
+    var need = c.shape === 'linear' ? first + g * (L - 1) : c.shape === 'exp' ? first * Math.pow(1 + g / 100, L - 1) : first * Math.pow(L, g || 1);
+    need = Math.max(1, Math.round(need)); total += need;
+    var h = need / (xh * Math.pow(1 + xg, L - 1)); th += h;
+    rows.push({ level: L + 1, xp: need, total: total, hours: Math.round(h * 100) / 100, totalHours: Math.round(th * 100) / 100 });
+  }
+  return { rows: rows, totalHours: Math.round(th * 10) / 10, target: num(p.target) && +p.target > 0 ? +p.target : null, max: max };
+}
+function xpChecks(m, add) {
+  var x = xpCurve(m);
+  if (x.target) {
+    if (x.totalHours > x.target * 1.3) add('warn', 'pace', '', 'До рівня ' + x.max + ' — ' + x.totalHours + ' год, а задумано ' + x.target + ': гравець застрягне. Знизь крутизну або дай більше досвіду за годину.', 'Level ' + x.max + ' takes ' + x.totalHours + ' h, the plan is ' + x.target + ': the player gets stuck. Lower the steepness or give more XP an hour.', 'target');
+    else if (x.totalHours < x.target * 0.7) add('warn', 'pace', '', 'До рівня ' + x.max + ' — лише ' + x.totalHours + ' год, а задумано ' + x.target + ': прокачка пролетить. Підніми крутизну.', 'Level ' + x.max + ' takes only ' + x.totalHours + ' h, the plan is ' + x.target + ': levelling flies by. Raise the steepness.', 'target');
+  }
+  for (var i = 1; i < x.rows.length; i++) {
+    var a = x.rows[i - 1], b = x.rows[i];
+    if (a.hours >= 0.25 && b.hours > a.hours * 2) { add('warn', 'curve', '', 'Стіна на рівні ' + b.level + ': ' + fmtH(b.hours) + ' замість ' + fmtH(a.hours) + ' на попередній.', 'A wall at level ' + b.level + ': ' + fmtH(b.hours, 'en') + ' instead of ' + fmtH(a.hours, 'en') + ' for the one before.', 'growth'); break; }
+  }
+  var long = x.rows.filter(function (r) { return r.hours > 3; })[0];
+  if (long) add('tip', 'curve', '', 'Рівень ' + long.level + ' і далі — понад 3 год кожен. Подбай, щоб між ними були інші нагороди (лут, сюжет).', 'Level ' + long.level + ' and on take over 3 h each. Make sure other rewards (loot, story) fill the gaps.', 'growth');
+  var lv = rowsOfM(m, 'rewards').filter(function (r) { return num(r.level); }).map(function (r) { return +r.level; }).sort(function (a, b) { return a - b; });
+  rowsOfM(m, 'rewards').forEach(function (r) { if (num(r.level) && +r.level > x.max) add('warn', 'rewards', r._id, 'Нагорода на рівні ' + r.level + ', а максимум — ' + x.max + '.', 'A reward at level ' + r.level + ', the cap is ' + x.max + '.', 'level'); });
+  var prev = 1; lv.concat([x.max]).forEach(function (l) { if (l - prev > 6) add('tip', 'rewards', '', 'Рівні ' + (prev + 1) + '–' + (l - 1) + ' без нагород — гравцю нема чого чекати.', 'Levels ' + (prev + 1) + '–' + (l - 1) + ' give nothing — nothing to look forward to.', 'level'); prev = l; });
+}
+// hours → «2 год 5 хв» / «12 хв» / «40 с»
+function fmtH(h, lang) {
+  var en = lang === 'en', m = h * 60;
+  if (m < 1) return Math.max(1, Math.round(m * 60)) + (en ? ' s' : ' с');
+  if (m < 60) return Math.round(m) + (en ? ' min' : ' хв');
+  var H = Math.floor(h), M = Math.round((h - H) * 60); if (M === 60) { H++; M = 0; }
+  return H + (en ? ' h' : ' год') + (M ? ' ' + M + (en ? ' min' : ' хв') : '');
+}
+// → [{ table, perHour (items an hour from all its sources), sources: [names], items: [{ id, item, rarity, chance, perHour, every (hours per one) }] }]
+function lootFlow(m) {
+  var drops = {};
+  rowsOfM(m, 'sources').forEach(function (s) {
+    var t = String(s.table || '').trim(); if (!t) return;
+    var d = (+s.perHour || 0) * (num(s.rolls) ? +s.rolls : 1) * (num(s.chance) ? +s.chance / 100 : 1);
+    drops[t] = drops[t] || { n: 0, src: [] }; drops[t].n += d; drops[t].src.push(s.source || s._id);
+  });
+  return lootChances(m).map(function (t) {
+    var d = drops[t.table] || { n: 0, src: [] };
+    return { table: t.table, perHour: Math.round(d.n * 100) / 100, sources: d.src, items: t.items.map(function (i) {
+      var ph = d.n * i.chance / 100;
+      return { id: i.id, item: i.item, rarity: i.rarity, chance: i.chance, pity: i.pity, perHour: Math.round(ph * 100) / 100, every: ph > 0 ? 1 / ph : null };
+    }) };
+  });
+}
+function progLootChecks(m, add) {
+  economyChecks({ sections: [secOfM(m, 'loot') || { id: 'loot', rows: [] }] }, add);
+  var tables = lootChances(m).map(function (t) { return t.table; });
+  rowsOfM(m, 'sources').forEach(function (s) { var t = String(s.table || '').trim(); if (t && tables.indexOf(t) < 0) add('warn', 'sources', s._id, '«' + (s.source || s._id) + '»: таблиці «' + t + '» немає серед таблиць луту.', '“' + (s.source || s._id) + '”: there is no loot table “' + t + '”.', 'table'); });
+  lootFlow(m).forEach(function (t) {
+    if (!t.sources.length) add('tip', 'loot', '', 'Таблицю «' + t.table + '» не дає жодне джерело — з неї нічого не випаде.', 'No source uses table “' + t.table + '” — nothing drops from it.', 'table');
+    t.items.forEach(function (i) {
+      if ((i.rarity === 'epic' || i.rarity === 'legendary') && i.perHour > 1) add('warn', 'loot', i.id, '«' + i.item + '» (' + i.rarity + ') випадає ' + i.perHour + ' раз за годину — рідкісне перестане бути рідкісним.', '“' + i.item + '” (' + i.rarity + ') drops ' + i.perHour + ' times an hour — rare stops being rare.', 'weight');
+      if (i.every != null && i.every > 20 && !i.pity) add('tip', 'loot', i.id, '«' + i.item + '» — раз на ' + Math.round(i.every) + ' год: гравець може ніколи його не побачити. Додай гарантію (pity).', '“' + i.item + '” — once per ' + Math.round(i.every) + ' h: the player may never see it. Add a pity counter.', 'pity');
+    });
+  });
+}
+function incomeAt(w, h) { return Math.max(0, +w.income || 0) * Math.pow(1 + (+w.growth || 0) / 100, h); }
+// → [{ id, item, price, from, kind, hours (of income at that hour), verdict impulse|small|goal|grind|wall }] sorted by hour, gaps: [[from, to]]
+function shopAfford(m) {
+  var w = valsOf(m, 'wallet');
+  var goods = rowsOfM(m, 'goods').map(function (r) {
+    var from = num(r.from) ? +r.from : 0, inc = incomeAt(w, from), h = inc > 0 && num(r.price) ? +r.price / inc : null;
+    return { id: r._id, item: cardLabel(r.item), price: +r.price || 0, from: from, kind: r.kind || '', hours: h,
+      verdict: h == null ? 'none' : h < 0.1 ? 'impulse' : h < 0.5 ? 'small' : h <= 3 ? 'goal' : h <= 8 ? 'grind' : 'wall' };
+  }).sort(function (a, b) { return a.from - b.from; });
+  var gaps = [], hrs = goods.map(function (g) { return g.from; });
+  for (var i = 1; i < hrs.length; i++) if (hrs[i] - hrs[i - 1] > 3) gaps.push([hrs[i - 1], hrs[i]]);
+  return { goods: goods, gaps: gaps, currency: w.currency || '' };
+}
+function shopChecks(m, add) {
+  var s = shopAfford(m), w = valsOf(m, 'wallet');
+  if (!(+w.income > 0)) add('error', 'wallet', '', 'Дохід 0 — у магазині нічого не купити.', 'Income is 0 — nothing in the shop can be bought.', 'income');
+  s.goods.forEach(function (g) {
+    var nm = g.item || g.id;
+    if (g.verdict === 'wall') add('warn', 'goods', g.id, '«' + nm + '»: ' + fmtH(g.hours) + ' заробітку — це стіна гринду. Знизь ціну або дай товар пізніше.', '“' + nm + '”: ' + fmtH(g.hours, 'en') + ' of income — a grind wall. Lower the price or offer it later.', 'price');
+    else if (g.verdict === 'grind') add('tip', 'goods', g.id, '«' + nm + '»: ' + fmtH(g.hours) + ' заробітку — довга ціль. Добре, якщо це навмисно.', '“' + nm + '”: ' + fmtH(g.hours, 'en') + ' of income — a long goal. Fine if intended.', 'price');
+    if (g.kind === 'consumable' && g.hours != null && g.hours > 0.5) add('warn', 'goods', g.id, '«' + nm + '» витратне, а коштує ' + fmtH(g.hours) + ' заробітку — гравець його берегтиме й не вживатиме.', '“' + nm + '” is a consumable yet costs ' + fmtH(g.hours, 'en') + ' of income — the player will hoard it.', 'price');
+  });
+  s.gaps.forEach(function (g) { add('tip', 'goods', '', 'З ' + g[0] + '-ї по ' + g[1] + '-у годину в магазині нічого нового — гроші накопичуються без мети.', 'From hour ' + g[0] + ' to ' + g[1] + ' the shop has nothing new — money piles up with no goal.', 'from'); });
+}
+// → [{ id, name, stat, tiers: [{ n, cost, total, value }], total, hours (to the max at the wallet income), eff (value per 1000 currency: first, last) }]
+function upgradeTracks(m) {
+  var w = valsOf(m, 'wallet');
+  return rowsOfM(m, 'tracks').map(function (r) {
+    var n = Math.max(1, Math.min(100, Math.round(+r.tiers || 1))), c0 = +r.cost || 0, g = (+r.costGrowth || 0) / 100, step = +r.step || 0, base = +r.base || 0, total = 0, tiers = [];
+    for (var i = 1; i <= n; i++) { var c = Math.round(c0 * Math.pow(1 + g, i - 1)); total += c; tiers.push({ n: i, cost: c, total: total, value: Math.round((base + step * i) * 100) / 100 }); }
+    var hours = null, acc = 0, inc = +w.income || 0;
+    if (inc > 0) { for (var h = 0; h < 1000 && acc < total; h++) acc += incomeAt(w, h); hours = acc >= total ? h - (acc - total) / incomeAt(w, h - 1) : null; }
+    var eff = function (t) { return t.cost > 0 ? Math.round(step / t.cost * 1000 * 100) / 100 : null; };
+    return { id: r._id, name: r.name || r._id, stat: r.stat || '', tiers: tiers, total: total, hours: hours != null ? Math.round(hours * 10) / 10 : null,
+      lastHours: inc > 0 ? Math.round(tiers[n - 1].cost / incomeAt(w, hours || 0) * 100) / 100 : null, eff: [eff(tiers[0]), eff(tiers[n - 1])] };
+  });
+}
+function upgradeChecks(m, add) {
+  var rows = rowsOfM(m, 'tracks');
+  upgradeTracks(m).forEach(function (t, i) {
+    var r = rows[i];
+    if (+r.costGrowth > 80) add('warn', 'tracks', t.id, '«' + t.name + '»: кожен рівень дорожчає на ' + r.costGrowth + '% — останні рівні стануть стіною.', '“' + t.name + '”: each level ' + r.costGrowth + '% dearer — the last ones become a wall.', 'costGrowth');
+    if (t.lastHours != null && t.lastHours > 5) add('warn', 'tracks', t.id, '«' + t.name + '»: останній рівень коштує ' + fmtH(t.lastHours) + ' заробітку.', '“' + t.name + '”: the last level costs ' + fmtH(t.lastHours, 'en') + ' of income.', 'cost');
+    if (t.eff[0] && t.eff[1] != null && t.eff[1] / t.eff[0] < 0.05) add('tip', 'tracks', t.id, '«' + t.name + '»: останній рівень у ' + Math.round(t.eff[0] / t.eff[1]) + ' разів менш вигідний за перший — гравець може не захотіти його брати.', '“' + t.name + '”: the last level pays ' + Math.round(t.eff[0] / t.eff[1]) + '× worse than the first — the player may skip it.', 'step');
+    if (!(+r.step)) add('warn', 'tracks', t.id, '«' + t.name + '»: приріст 0 — покращення нічого не дає.', '“' + t.name + '”: step 0 — the upgrade gives nothing.', 'step');
+  });
+}
+// → [{ id, stage, earned, need, bank (after), ratio, grind (hours to make up), verdict short|ok|rich, gap (player − enemy), feel easy|ok|hard|'' }]
+function balanceStages(m) {
+  var bank = 0;
+  return rowsOfM(m, 'stages').map(function (r) {
+    var inc = +r.income || 0, earned = Math.round(inc * (+r.hours || 0)), need = +r.need || 0, have = bank + earned, ratio = need > 0 ? have / need : null;
+    var grind = have < need && inc > 0 ? (need - have) / inc : null;
+    bank = Math.max(0, have - need);
+    var gap = num(r.plevel) && num(r.elevel) ? +r.plevel - +r.elevel : null;
+    return { id: r._id, stage: r.stage || r._id, earned: earned, need: need, bank: Math.round(bank), ratio: ratio != null ? Math.round(ratio * 100) / 100 : null, grind: grind,
+      verdict: ratio == null ? 'ok' : ratio < 0.9 ? 'short' : ratio > 1.8 && bank > need ? 'rich' : 'ok', gap: gap, feel: gap == null ? '' : gap >= 3 ? 'easy' : gap <= -3 ? 'hard' : 'ok' };
+  });
+}
+function balanceChecks(m, add) {
+  balanceStages(m).forEach(function (s) {
+    if (s.verdict === 'short') add('warn', 'stages', s.id, '«' + s.stage + '»: бракує ' + (s.need - (s.earned + 0) > 0 ? '' : '') + 'грошей — ≈ ' + fmtH(s.grind || 0) + ' гринду, щоб пройти далі.', '“' + s.stage + '”: short of money — ≈ ' + fmtH(s.grind || 0, 'en') + ' of grinding to move on.', 'need');
+    if (s.verdict === 'rich') add('warn', 'stages', s.id, '«' + s.stage + '»: гравець розбагатіє — після етапу лишиться ' + s.bank + ', більше за всі витрати етапу. Дай нову ціль або зменш дохід.', '“' + s.stage + '”: the player gets rich — ' + s.bank + ' left after the stage, more than all its spending. Add a goal or lower the income.', 'income');
+    if (s.feel === 'easy') add('tip', 'stages', s.id, '«' + s.stage + '»: гравець на ' + s.gap + ' рівні сильніший за ворогів — буде нудно.', '“' + s.stage + '”: the player is ' + s.gap + ' levels above the enemies — boring.', 'elevel');
+    if (s.feel === 'hard') add('warn', 'stages', s.id, '«' + s.stage + '»: вороги на ' + (-s.gap) + ' рівні сильніші — гравець застрягне.', '“' + s.stage + '”: enemies are ' + (-s.gap) + ' levels above — the player gets stuck.', 'elevel');
+  });
+}
 var CALCS = { economy: function (m) { return { simulation: econSim(m), loot: lootChances(m) }; }, loops: function (m) { return { loops: loopClosure(m) }; },
-  level_metrics: function (m) { return { pacing: pacing(m) }; }, difficulty: function (m) { return { zones: difficultyCurve(m) }; }, release: function (m) { return releaseStatus(m); } };
+  level_metrics: function (m) { return { pacing: pacing(m) }; }, difficulty: function (m) { return { zones: difficultyCurve(m) }; }, release: function (m) { return releaseStatus(m); },
+  xp_curve: function (m) { return { curve: xpCurve(m) }; }, prog_currencies: function (m) { return { simulation: econSim(m) }; }, prog_loot: function (m) { return { loot: lootFlow(m) }; },
+  prog_shop: function (m) { return { shop: shopAfford(m) }; }, prog_upgrades: function (m) { return { tracks: upgradeTracks(m) }; }, prog_balance: function (m) { return { stages: balanceStages(m) }; } };
 function calc(m) { var f = m && CALCS[m.tpl]; return f ? f(m) : null; }
 
 var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, FEEL, CONTROLS, ACCESS, ECONOMY, LOOPS, LEVEL_METRICS, DIFFICULTY, RELEASE,
-  MUSIC, AMBIENCE, UISOUND, PROMPTS]; // sec: 'audio' — Фабрика звуку, the rest — Mechanics
+  MUSIC, AMBIENCE, UISOUND, PROMPTS, // sec: 'audio' — Фабрика звуку
+  XP_CURVE, PROG_CURRENCIES, PROG_LOOT, PROG_SHOP, PROG_UPGRADES, PROG_BALANCE]; // sec: 'progression' — Конструктор прогресії; the rest — Mechanics
 var TEMPLATE_CHECKS = { umcf: umcfChecks, dodge: dodgeChecks, blockparry: blockChecks, attributes: attrChecks, leveling: levelChecks, status: statusChecks,
   game_feel: feelChecks, controls: controlsChecks, accessibility: accessChecks, economy: economyChecks, loops: loopChecks, level_metrics: levelMetricChecks,
-  difficulty: difficultyChecks, release: releaseChecks, adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks };
+  difficulty: difficultyChecks, release: releaseChecks, adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks,
+  xp_curve: xpChecks, prog_currencies: economyChecks, prog_loot: progLootChecks, prog_shop: shopChecks, prog_upgrades: upgradeChecks, prog_balance: balanceChecks };
 
 // ---- helpers ----
 function num(v) { return v !== '' && v != null && !isNaN(+v); }
 function range(v) { var m = String(v == null ? '' : v).match(/^\s*(-?[\d.]+)\s*[–—-]\s*(-?[\d.]+)\s*$/); return m ? [+m[1], +m[2]] : null; }
 function lbl(x, lang) { return x == null ? '' : typeof x === 'string' ? x : x[lang] || x.uk || ''; }
 function clone(x) { return JSON.parse(JSON.stringify(x)); }
-function category(id) { return CATEGORIES.concat(AUDIO_CATEGORIES).filter(function (c) { return c.id === id; })[0] || null; }
+function category(id) { return CATEGORIES.concat(AUDIO_CATEGORIES, PROG_CATEGORIES).filter(function (c) { return c.id === id; })[0] || null; }
 function templatesFor(sec) { return TEMPLATES.filter(function (t) { return (t.sec || 'mechanics') === (sec || 'mechanics'); }); }
-function categoriesFor(sec) { return sec === 'audio' ? AUDIO_CATEGORIES : CATEGORIES; }
+function categoriesFor(sec) { return sec === 'audio' ? AUDIO_CATEGORIES : sec === 'progression' ? PROG_CATEGORIES : CATEGORIES; }
 function template(id) { return TEMPLATES.filter(function (t) { return t.id === id; })[0] || null; }
 function empty(v) { return v == null || v === '' || (Array.isArray(v) && !v.length); }
 
@@ -1510,7 +1760,7 @@ function exportMech(card, lang, lib, man, cards) { // lib: audioLibrary(cards).a
 }
 
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
-  AUDIO_CATEGORIES: AUDIO_CATEGORIES, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
+  AUDIO_CATEGORIES: AUDIO_CATEGORIES, PROG_CATEGORIES: PROG_CATEGORIES, xpCurve: xpCurve, lootFlow: lootFlow, shopAfford: shopAfford, upgradeTracks: upgradeTracks, balanceStages: balanceStages, fmtH: fmtH, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
   isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN,
   cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
