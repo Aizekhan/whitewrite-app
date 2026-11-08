@@ -49,7 +49,7 @@
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
       chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
         scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
-        noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
+        noStories: "У цьому світі ще немає історій.", noGameStories: "У цієї гри ще немає історій.", gameStoriesHint: "Тут — історії світу з тегом цієї гри. Тег ставиться в «Налаштуваннях історії» під книгою (тут або в Біблії світу → «Історії і хроніка»); нова історія звідси отримує його сама.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
         at: "Початок (число на лінії часу)", dur: "Тривалість (0 — мить)", when: "Підпис часу", whenPh: "напр. «Весна 340 р.»", who: "Учасники", noChars: "У каноні ще немає персонажів." },
       pick: { title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
@@ -376,7 +376,7 @@
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
       chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
         scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
-        noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
+        noStories: "No stories in this world yet.", noGameStories: "This game has no stories yet.", gameStoriesHint: "These are the world's stories tagged with this game. The tag is set in “Story settings” under a book (here or in the World Bible → “Stories & chronicle”); a new story made here gets it by itself.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
         at: "Start (a number on the time line)", dur: "Duration (0 — a moment)", when: "Time label", whenPh: "e.g. “Spring of 340”", who: "Participants", noChars: "No characters in the canon yet." },
       pick: { title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
@@ -917,7 +917,7 @@
 
   function gameSectionsAll() { // every section of the open game — the menu (gameSections) leaves out the hidden ones
     var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
-    return GAME.concat(own, [FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
+    return GAME.concat(own, [GSTORIES, FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
   }
   function gameSections() { // «Огляд гри» is never hidden: the game opens on it and the 🧭 Гід switch lives on its cover
     var hidden = (game && game.hiddenSections) || [];
@@ -981,7 +981,7 @@
   // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
   var NAV_GROUPS = [
-    { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore"] },
+    { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "gstories"] },
     { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies", "forge"] },
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen", "scenes"] },
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
@@ -1363,6 +1363,7 @@
     return s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
       : s.special === "experience" ? (exIssues.filter(function (x) { return x.status === "open"; }).length || "")
       : s.special === "culture" ? lore.length
+      : s.special === "gstories" ? (stories.filter(function (p) { return (p.games || []).indexOf(gameId) >= 0; }).length || "")
       : s.special === "quests" ? quests.length : s.special === "dialogues" ? dialogues.length
       : s.special === "chronicle" ? entities.filter(function (e) { return e.kind === "events"; }).length
       : s.dossier ? entities.filter(function (e) { return e.kind === s.dossier; }).length
@@ -1495,6 +1496,7 @@
     if (s.special === "plan" && !query) return renderPlan(s);
     if (s.special === "issues" && !query) return renderIssues();
     if (s.special === "experience" && !query) return renderExperience();
+    if (s.special === "gstories" && !query) return renderGameStories(s);
     if (s.special === "knowledge" && !query) return renderKnowledge(s);
     if (s.special === "activity" && !query) return renderActivity(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
@@ -4617,9 +4619,14 @@
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     $("ch-newstory").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
-    // the stories stand as books on a shelf (owner, v2.102): a cover opens the Book to read and write on (no mage — he greets only a new story),
-    // the tags, the reveal, ✎ and 🗑 sit small under it
-    $("ch-stories").innerHTML = '<div class="shelf">' + stories.map(function (p) {
+    $("ch-stories").innerHTML = storyShelfHtml(stories, "ch-newbook", STR.chron.noStories);
+    $("ch-newbook").onclick = $("ch-newstory").onclick;
+  }
+
+  // the stories stand as books on a shelf (owner, v2.102): a cover opens the Book to read and write on (no mage — he greets only a new story),
+  // the tags, the reveal, ✎ and 🗑 sit small under it
+  function storyShelfHtml(list, newId, empty) {
+    return '<div class="shelf">' + list.map(function (p) {
       var about = (p.subjects || []).map(function (id) { return entities.filter(function (x) { return x.id === id; })[0]; }).filter(Boolean), t = p.title || p.name || "…";
       return '<div class="bk">' +
         '<button type="button" class="bk-cover" data-story="' + esc(p.id) + '" title="' + esc(STR.chron.openBook.replace("{t}", t)) + '"><span class="bk-title">' + esc(t) + '</span>' +
@@ -4639,11 +4646,17 @@
           return '<label class="gtag"><input type="checkbox" data-sgame="' + esc(p.id) + '" value="' + esc(g.id) + '"' + ((p.games || []).indexOf(g.id) >= 0 ? " checked" : "") + '><span>' + esc(g.title || "…") + '</span></label>'; }).join("") : '') + '</div>' +
         '<div class="row">' + bulbHtml("story", p.id) + quests.filter(function (q) { return q.source && q.source.id === p.id; }).map(function (q) {
           return '<button class="dlink" data-qd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + '</button>'; }).join("") + '</div></details></div>';
-    }).join("") + '<div class="bk"><button type="button" class="bk-cover bk-new" id="ch-newbook"><span class="bk-mark">＋</span><span class="bk-title">' + esc(STR.chron.newBook) + '</span></button></div></div>' +
-      (stories.length ? '' : '<p class="muted">' + STR.chron.noStories + '</p>');
-    $("ch-newbook").onclick = $("ch-newstory").onclick;
+    }).join("") + '<div class="bk"><button type="button" class="bk-cover bk-new" id="' + newId + '"><span class="bk-mark">＋</span><span class="bk-title">' + esc(STR.chron.newBook) + '</span></button></div></div>' +
+      (list.length ? '' : '<p class="muted">' + empty + '</p>');
   }
-
+  // 📚 «Історії гри» (owner, v2.102.3): the world's stories tagged with this game (projects/{p}.games) on the same shelf; «＋ Нова історія» here tags the new one
+  function renderGameStories(s) {
+    var mine = stories.filter(function (p) { return (p.games || []).indexOf(gameId) >= 0; });
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
+      '<div class="row"><button class="btn primary" id="gs-new">' + STR.sub.story + '</button></div></header>' +
+      storyShelfHtml(mine, "gs-newbook", STR.chron.noGameStories) + '<p class="hint">' + STR.chron.gameStoriesHint + '</p>';
+    $("gs-new").onclick = $("gs-newbook").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId, gameId: gameId }); };
+  }
   function renderGameLocked() {
     $("view").innerHTML = '<div class="newgame"><h1>' + esc(STR.wt.gameLocked) + '</h1><p class="muted">' + esc(STR.wt.gameLockedText) + '</p>' +
       '<div class="row"><button class="btn primary" id="up">' + STR.upgrade + '</button></div></div>';
@@ -6812,6 +6825,8 @@
     if (d.fzclip) { f.clips = FG.clipsOf(f); f.clips[+d.fzclip].status = t.value; fzSave(c, f); return; }
   }
 
+  var GSTORIES = { id: "gstories", special: "gstories", uk: "Історії гри", en: "Game stories",
+    about: { uk: "Історії світу, які належать цій грі: книги для читання й письма, джерела квестів і діалогів.", en: "The world's stories that belong to this game: books to read and write, sources for quests and dialogues." } };
   var KNOWLEDGE = { id: "knowledge", special: "knowledge", uk: "Знання проєкту", en: "Project knowledge",
     about: { uk: "Що є в Unity-проєкті: сцени, префаби, скрипти, ассети й звʼязки між ними. Claude Code індексує проєкт лише на читання.", en: "What the Unity project holds: scenes, prefabs, scripts, assets and how they connect. Claude Code indexes the project read-only." } };
   var ACTIVITY = { id: "activity", special: "activity", uk: "Журнал розробки", en: "Development log",
@@ -9811,7 +9826,7 @@
     db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
       stories = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
         .sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
-      if (section === "chronicle") render();
+      if (section === "chronicle" || section === "gstories") render();
       var ds = $("d-stories"); if (ds && dos && !dos.isNew && dos.col !== "lore") ds.innerHTML = storiesHtml(dos);
     }, function () {});
     if (mayRead("culture")) wref().collection("lore").onSnapshot(function (snap) {

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.102.2 (2026-11-08)
+**Version:** 2.102.3 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -758,6 +758,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.102.3** 📚 «Історії гри» (owner): game section `gstories` (special, in «Огляд і лор» of `NAV_GROUPS`) — the world's stories with `projects/{p}.games` ∋ the game on the shared shelf (`storyShelfHtml`, also used by the chronicle); «＋ Нова історія» there → `ww-new-story {gameId}` → the shell's `createNarrative(gameId)` → the book `&gameId=` → after `createProject` the client writes `games: [gameId]` (the same field the Bible's game tags write; no new data, no server change)
 - **v2.102.2** ⚒ owner test: «＋ привʼязати предмет…» of a slot also lists gear items with no `forge.slot` (binding sets `slot` + `bind` from that slot; already bound ones left out) — before, items made in «Предмети й спорядження» could not be bound at all; «▦ Обрати тип тіла» button under the body type on the character screen (the race button alone did not look clickable)
 - **v2.102.1** ⚒ realistic body cards show the owner's concepts too (`app/assets/rigs/realistic/<id>_front.webp` from `D:\ArtPipeline\Characters\Heroes\Core`, 360 px WebP; `BODY_STYLES.realistic.files`), every picker card dark `art`; the dummy renders stay for «🦴 Еталони WhiteWrite»
 - **v2.102.0** 📚 stories as a shelf of books (owner): «Історії і хроніка» shows each story as a book cover (`.shelf` / `.bk-cover` in «WhiteWrite GameBible.html»), a cover → `ww-open-story` → the Book on the story (reading / writing); the reveal, scope, games, 💡 and quests fold into «Налаштування історії», ✎ / 🗑 under the cover, a dashed «＋» book = `ww-new-story`. The mage ritual only for a new story: the shell's `ww-open-story` no longer passes `ritual=1` (new stories keep it through `createNarrative` / `ww-write-story`)
@@ -894,5 +895,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-08 (v2.102.2)
+**Last updated:** 2026-11-08 (v2.102.3)
 **Maintained by:** WhiteWrite Team

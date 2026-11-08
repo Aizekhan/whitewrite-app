@@ -1214,7 +1214,7 @@ body.at-home .back-fab{ display:none; }
   }
 
   // Create a new narrative (open form, not book)
-  function createNarrative() { if (!window.__wwAuth) { openAuth(createNarrative); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD)); }
+  function createNarrative(gameId) { if (!window.__wwAuth) { openAuth(function () { createNarrative(gameId); }); return; } showPillar("book", "new=1&worldId=" + encodeURIComponent(CURRENT_WORLD) + (typeof gameId === "string" && gameId ? "&gameId=" + encodeURIComponent(gameId) : "")); } // gameId: «Історії гри» — the new story is tagged with that game
   function createWorld() { if (!window.__wwAuth) { openAuth(createWorld); return; } showPillar("book", "newWorld=1"); }
   function openWorld(worldId) { CURRENT_WORLD = worldId; try { sessionStorage.removeItem("ww-hubtab-" + worldId); } catch (e) {} showView("narr"); } // a chosen world opens on its home tab
   // The canon of a story lives in its world's Bible: the book's bookmarks and old tree links land here,
@@ -1462,7 +1462,7 @@ body.at-home .back-fab{ display:none; }
       return;
     }
     if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId); return; } // World Bible → a story of this world: straight into the book (the mage ritual is only for a new story)
-    if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(); return; } // World Bible → chronicle → «＋ Нова історія»
+    if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(d.gameId); return; } // World Bible → chronicle → «＋ Нова історія»
     // World Bible → a dossier → «＋ Історія»: the book opens (the mage ritual) straight into writing, the story is about that entity
     if (d.type === "ww-write-story" && d.worldId && window.__wwAuth) {
       CURRENT_WORLD = d.worldId;

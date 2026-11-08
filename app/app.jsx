@@ -125,7 +125,7 @@ function GenerationProgress({ current, total }) {
 function App() {
   // Returning from the workspace? Open straight to the story (skip the ritual).
   // Or opening existing project from list?
-  let RET = false, RET_TITLE = "", SCENE = null, NEW = false, PROJECT_ID = null, WORLD_ID = null, NEW_WORLD = false;
+  let RET = false, RET_TITLE = "", SCENE = null, NEW = false, PROJECT_ID = null, WORLD_ID = null, NEW_WORLD = false, GAME_ID = null;
   let FREE = null, RITUAL = false, STORY_INIT = null; // STORY_INIT: dossier «＋ Історія» with AI — the story form opens prefilled // RITUAL: opened from the World Bible — the mage opens the book // from the World Bible («＋ Історія»): { title, subjects, reveal, revealNote } — created at once, no form
   try {
     RET = localStorage.getItem("ww_return") === "1";
@@ -137,6 +137,7 @@ function App() {
     NEW = params.get("new") === "1";
     PROJECT_ID = params.get("projectId");
     WORLD_ID = params.get("worldId");       // a new story is born inside this world
+    GAME_ID = params.get("gameId");         // from the game's «Історії гри»: the new story is tagged with that game (projects/{p}.games)
     NEW_WORLD = params.get("newWorld") === "1";
     RITUAL = params.get("ritual") === "1";
     if (NEW && params.get("free") === "1" && params.get("title")) FREE = {
@@ -271,6 +272,7 @@ function App() {
         };
 
         const projectId = await window.__firebaseProjects.createProject(projectData);
+        if (GAME_ID) await window.__firebaseProjects.updateProject(projectId, { games: [GAME_ID] }).catch(() => {}); // the same field the Bible's game tags write
 
         // Store projectId for book to use
         data.projectId = projectId;
