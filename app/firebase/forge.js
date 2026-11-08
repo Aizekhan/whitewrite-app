@@ -85,11 +85,12 @@ var PROVIDERS = [{ id: 'manual', uk: 'Ручне завантаження', en: 
 var REF_RIGS = [
   { id: 'mixamo65', name: 'Humanoid 65 (сумісний з Mixamo)', bones: 65, notes: 'WhiteWrite reference · mixamorig:* · T-pose · Unity Humanoid' },
   { id: 'mixamo65+tail', name: 'Humanoid 65 + хвіст (сумісний з Mixamo)', bones: 71, notes: 'WhiteWrite reference · mixamorig:* + Tail1–6 (outside Humanoid) · T-pose' }];
-var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human, male', 1.80], ['human_female', 'Людина, жінка', 'Human, female', 1.70],
-  ['elf', 'Ельф, чоловік', 'Elf, male', 1.85], ['elf_female', 'Ельф, жінка', 'Elf, female', 1.78], ['orc', 'Орк, чоловік', 'Orc, male', 1.95], ['orc_female', 'Орк, жінка', 'Orc, female', 1.85],
-  ['dwarf', 'Гном (дварф), чоловік', 'Dwarf, male', 1.35], ['dwarf_female', 'Гном (дварф), жінка', 'Dwarf, female', 1.30], ['goblin', 'Гоблін, чоловік', 'Goblin, male', 1.40], ['goblin_female', 'Гоблін, жінка', 'Goblin, female', 1.35],
-  ['ogre', 'Огр, чоловік', 'Ogre, male', 2.50], ['ogre_female', 'Огр, жінка', 'Ogre, female', 2.35], ['ratfolk', 'Щуролюд, чоловік', 'Ratfolk, male', 1.45], ['ratfolk_female', 'Щуролюд, жінка', 'Ratfolk, female', 1.40]]
-  .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], rig: hasTail(b[0]) ? 'mixamo65+tail' : 'mixamo65' }; });
+// [id, uk, en, reference height, allowed height min, max] — the height slider of a character stays inside its race's range
+var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human, male', 1.80, 1.60, 1.98], ['human_female', 'Людина, жінка', 'Human, female', 1.70, 1.50, 1.88],
+  ['elf', 'Ельф, чоловік', 'Elf, male', 1.85, 1.72, 2.02], ['elf_female', 'Ельф, жінка', 'Elf, female', 1.78, 1.64, 1.94], ['orc', 'Орк, чоловік', 'Orc, male', 1.95, 1.80, 2.15], ['orc_female', 'Орк, жінка', 'Orc, female', 1.85, 1.70, 2.02],
+  ['dwarf', 'Гном (дварф), чоловік', 'Dwarf, male', 1.35, 1.20, 1.50], ['dwarf_female', 'Гном (дварф), жінка', 'Dwarf, female', 1.30, 1.15, 1.44], ['goblin', 'Гоблін, чоловік', 'Goblin, male', 1.40, 1.15, 1.55], ['goblin_female', 'Гоблін, жінка', 'Goblin, female', 1.35, 1.12, 1.50],
+  ['ogre', 'Огр, чоловік', 'Ogre, male', 2.50, 2.20, 2.90], ['ogre_female', 'Огр, жінка', 'Ogre, female', 2.35, 2.10, 2.70], ['ratfolk', 'Щуролюд, чоловік', 'Ratfolk, male', 1.45, 1.28, 1.62], ['ratfolk_female', 'Щуролюд, жінка', 'Ratfolk, female', 1.40, 1.24, 1.56]]
+  .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], hmin: b[4], hmax: b[5], rig: hasTail(b[0]) ? 'mixamo65+tail' : 'mixamo65' }; });
 // the ratfolk (male and female) has Tail1…6 and the tail clips; ids of the male types never change (the female ones are <race>_female)
 function hasTail(bodyId) { return /^ratfolk(_female)?$/.test(String(bodyId || '')); }
 var SHAPES = ['Thin', 'Heavy', 'Muscular']; // the same key names on the body and on every item: SetBlendShapeWeight moves them together
@@ -119,6 +120,18 @@ function libClip(clip) { return { id: 'lib_' + clip.id, lib: clip.id, name: clip
 function footIk(clip, bodyId) { var t = (clip && clip.retarget) || {}, r = t[bodyId] || t[String(bodyId || '').replace(/_female$/, '')]; return !!r && (r.ok === false || r.feet_min_m < -0.015); }
 function refRig(id) { return REF_RIGS.filter(function (r) { return r.id === id; })[0] || null; }
 function refBody(id) { return REF_BODIES.filter(function (b) { return b.id === id; })[0] || null; }
+// the build (v2.94): one axis thin ↔ heavy (the two keys exclude each other) and muscle, which tones both extremes toward athletic
+// (at 100 they are halved) — forge.build { fat: -100…100, muscle: 0…100 }; forge.shape keeps the resulting key weights for Unity
+function shapeFromBuild(b) {
+  var fat = Math.max(-100, Math.min(100, Math.round(+(b && b.fat) || 0))), m = Math.max(0, Math.min(100, Math.round(+(b && b.muscle) || 0))), k = 1 - m / 200;
+  return { Thin: Math.round(Math.max(0, -fat) * k), Heavy: Math.round(Math.max(0, fat) * k), Muscular: m };
+}
+function buildOf(f) {
+  f = f || {}; if (f.build) return { fat: Math.max(-100, Math.min(100, +f.build.fat || 0)), muscle: Math.max(0, Math.min(100, +f.build.muscle || 0)) };
+  var s = f.shape || {}; return { fat: Math.max(-100, Math.min(100, (+s.Heavy || 0) - (+s.Thin || 0))), muscle: Math.max(0, Math.min(100, +s.Muscular || 0)) };
+}
+// the character's height: its own inside the race range, else the reference one; null without a reference body
+function heightOf(f) { var b = refBody(f && f.body); if (!b) return null; var h = +(f.height) || b.height; return Math.round(Math.min(b.hmax, Math.max(b.hmin, h)) * 100) / 100; }
 // the game's profiles with every reference one added (a profile with the same id is left as the author has it)
 function withRefs(profiles, lang) {
   var p = profiles || {}, rigs = (p.rigs || []).slice(), bodies = (p.bodies || []).slice();
@@ -289,7 +302,8 @@ function manifest(char, items, game, lang) {
     schema: 'whitewrite.character/1', id: char.id, name: char.title || '', type: f.type || 'hero',
     rig_profile: rig ? { id: rig.id, name: rig.name, notes: rig.notes || '', reference: !!refRig(rig.id), humanoid: !!refRig(rig.id) } : null,
     body_profile: body ? { id: body.id, name: body.name, notes: body.notes || '', reference: !!refBody(body.id), height_m: refBody(body.id) ? refBody(body.id).height : undefined } : null,
-    body_shape: SHAPES.reduce(function (o, k) { o[k] = Math.max(0, Math.min(100, +((f.shape || {})[k]) || 0)); return o; }, {}),
+    body_shape: shapeFromBuild(buildOf(f)), body_build: buildOf(f),
+    body_height: heightOf(f) ? { height_m: heightOf(f), reference_m: refBody(f.body).height, scale: Math.round(heightOf(f) / refBody(f.body).height * 1000) / 1000 } : null,
     skeleton_check: f.rigCheck ? { result: f.rigCheck.result, source: f.rigCheck.source || '', at: f.rigCheck.at || null, report: f.rigCheck.report || null,
       issues: (f.rigCheck.issues || []).map(function (i) { return L === 'uk' ? i.uk : i.en; }) } : null,
     animation_ready: animReady(f),
@@ -325,7 +339,7 @@ function briefFromCanon(fields, look) {
     proportions: j(look.height, look.build, look.age), palette: j(look.colors, look.skin, look.hairColor), refs: j(look.marks, look.accessories, look.weapon) };
 }
 var FORGE = { briefFromCanon: briefFromCanon, STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
-  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, hasTail: hasTail, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
+  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, hasTail: hasTail, shapeFromBuild: shapeFromBuild, buildOf: buildOf, heightOf: heightOf, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
   refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
   lbl: lbl, stage: stage, type: type, typeOf: typeOf, slotsOf: slotsOf, pipeline: pipeline, revsOf: revsOf, approvedRev: approvedRev, isApproved: isApproved, newRev: newRev,
   clipsOf: clipsOf, itemIssues: itemIssues, modelFile: modelFile, validation: validation, itemsOf: itemsOf, blockers: blockers, stageState: stageState,
