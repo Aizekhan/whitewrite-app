@@ -93,6 +93,15 @@ var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human, male', 
   .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], hmin: b[4], hmax: b[5], rig: hasTail(b[0]) ? 'mixamo65+tail' : 'mixamo65' }; });
 // the ratfolk (male and female) has Tail1…6 and the tail clips; ids of the male types never change (the female ones are <race>_female)
 function hasTail(bodyId) { return /^ratfolk(_female)?$/.test(String(bodyId || '')); }
+// the body styles (v2.95): the same 14 body types and skeletons in two looks; a style without 3D bodies yet shows its concepts on the
+// cards and the realistic dummy in 3D. heroic: the owner's concepts (ChatGPT, paid plan, the owner's permission) — files <style files><id>_front.webp
+var BODY_STYLES = [
+  { id: 'realistic', uk: 'Реалістичні', en: 'Realistic', has3d: true, files: '/assets/rigs/' },
+  { id: 'heroic', uk: 'Напівстилізовані, героїчні', en: 'Semi-stylized, heroic', has3d: false, files: '/assets/rigs/heroic/', missing: ['dwarf', 'dwarf_female'],
+    note: { uk: 'Hand-painted, героїчні пропорції: більші кисті, стопи й голова, ширші плечі, кремезні форми.', en: 'Hand-painted, heroic proportions: bigger hands, feet and head, wider shoulders, chunky shapes.' } }];
+function bodyStyle(id) { return BODY_STYLES.filter(function (s) { return s.id === id; })[0] || BODY_STYLES[0]; }
+// the card picture of a body type in a style (a style missing that type shows the realistic one)
+function styleFront(styleId, bodyId) { var s = bodyStyle(styleId); return ((s.missing || []).indexOf(bodyId) >= 0 ? BODY_STYLES[0] : s).files + bodyId + '_front.webp'; }
 var SHAPES = ['Thin', 'Heavy', 'Muscular']; // the same key names on the body and on every item: SetBlendShapeWeight moves them together
 var REF_FILES = '/assets/rigs/'; // <id>.glb (the dummy body, textures inside) and <id>_front.webp per body type
 var REF_PACK = '/assets/rigs/whitewrite-reference-rigs.zip'; // conform_to_rig.py + every type's .fbx / .glb / .blend / rig.json
@@ -302,7 +311,7 @@ function manifest(char, items, game, lang) {
     schema: 'whitewrite.character/1', id: char.id, name: char.title || '', type: f.type || 'hero',
     rig_profile: rig ? { id: rig.id, name: rig.name, notes: rig.notes || '', reference: !!refRig(rig.id), humanoid: !!refRig(rig.id) } : null,
     body_profile: body ? { id: body.id, name: body.name, notes: body.notes || '', reference: !!refBody(body.id), height_m: refBody(body.id) ? refBody(body.id).height : undefined } : null,
-    body_shape: shapeFromBuild(buildOf(f)), body_build: buildOf(f),
+    body_shape: shapeFromBuild(buildOf(f)), body_build: buildOf(f), body_style: refBody(f.body) ? { id: bodyStyle(f.style).id, name: lbl(bodyStyle(f.style), L), has_3d: bodyStyle(f.style).has3d } : null,
     body_height: heightOf(f) ? { height_m: heightOf(f), reference_m: refBody(f.body).height, scale: Math.round(heightOf(f) / refBody(f.body).height * 1000) / 1000 } : null,
     skeleton_check: f.rigCheck ? { result: f.rigCheck.result, source: f.rigCheck.source || '', at: f.rigCheck.at || null, report: f.rigCheck.report || null,
       issues: (f.rigCheck.issues || []).map(function (i) { return L === 'uk' ? i.uk : i.en; }) } : null,
@@ -339,7 +348,7 @@ function briefFromCanon(fields, look) {
     proportions: j(look.height, look.build, look.age), palette: j(look.colors, look.skin, look.hairColor), refs: j(look.marks, look.accessories, look.weapon) };
 }
 var FORGE = { briefFromCanon: briefFromCanon, STAGES: STAGES, TYPES: TYPES, CLIPS: CLIPS, SLOTS: SLOTS, MASK: MASK, MAPS: MAPS, VALIDATION: VALIDATION, EXTERNAL: EXTERNAL, PROVIDERS: PROVIDERS,
-  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, hasTail: hasTail, shapeFromBuild: shapeFromBuild, buildOf: buildOf, heightOf: heightOf, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
+  REF_RIGS: REF_RIGS, REF_BODIES: REF_BODIES, hasTail: hasTail, shapeFromBuild: shapeFromBuild, buildOf: buildOf, heightOf: heightOf, BODY_STYLES: BODY_STYLES, bodyStyle: bodyStyle, styleFront: styleFront, SHAPES: SHAPES, REF_FILES: REF_FILES, REF_PACK: REF_PACK, ANIM_FILES: ANIM_FILES, ANIM_STORE: ANIM_STORE, ANIM_PACK: ANIM_PACK, ANIM_CATS: ANIM_CATS, animName: animName, animFile: animFile, animGlb: animGlb, animSnap: animSnap, libClip: libClip, footIk: footIk,
   refRig: refRig, refBody: refBody, withRefs: withRefs, rigCheck: rigCheck, animReady: animReady,
   lbl: lbl, stage: stage, type: type, typeOf: typeOf, slotsOf: slotsOf, pipeline: pipeline, revsOf: revsOf, approvedRev: approvedRev, isApproved: isApproved, newRev: newRev,
   clipsOf: clipsOf, itemIssues: itemIssues, modelFile: modelFile, validation: validation, itemsOf: itemsOf, blockers: blockers, stageState: stageState,

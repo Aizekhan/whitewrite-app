@@ -6095,7 +6095,7 @@
       ref: { title: "🦴 Еталони WhiteWrite", lead: "Готові скелети й тіла-манекени: імена кісток Mixamo, T-поза, Unity Humanoid. Модель, підігнана під еталон, одразу готова до анімації, а броня й одяг, зроблені на еталонному тілі, сідають на кожного персонажа цього типу.",
         body: "Тип тіла", shape: "Статура (ключі форми)", shapeHint: "Ваги ключів Thin / Heavy / Muscular — ті самі імена на тілі й на кожному предметі; у Unity — SetBlendShapeWeight. Ідуть у маніфест (body_shape).",
         shapes: { Thin: "Худорлявий", Heavy: "Масивний", Muscular: "Мʼязистий" }, build: { fat: "Худорлявий ◀ ▶ Повний", muscle: "Мʼязистий", height: "Зріст" }, buildT: "Статура", v3d: "🧊 Манекен у 3D", pack: "⤓ Пакет еталонів (.zip)", packHint: "Скрипт conform_to_rig.py і всі типи тіла: .fbx, .glb, .blend і rig.json. Потрібен Blender 4.5 LTS.",
-        auto: "Скелет «{r}» проставлено за типом тіла.", pick: "Хто це? Обери расу й стать", pickHint: "Тип тіла задає скелет, анімації, Foot IK і посадку броні. Свій профіль тіла гри — у списку «Профіль тіла» ліворуч.", pickBtn: "▦ Обрати тип тіла", pickX: "Сховати", noKeys: "У моделі героя немає ключів форми Thin / Heavy / Muscular — повзунки змінюють лише манекен і маніфест, а не саму модель. Щоб статура діяла на модель, додай ці ключі в Blender (або візьми тіло-манекен за основу моделі).", fit: "Підігнати під еталон", fitHint: "Модель з етапу «Базова модель» (Meshy, Mixamo чи своя з T- або A-позою) підганяє під тип тіла скрипт conform_to_rig.py у Blender на твоєму ПК (~20–40 с). Скопіюй запит у Claude Code — він зробить усе й надішле перевірку скелета. Потім завантаж сюди новою версією FBX, GLB, прев’ю і rig.json — перевірка запише себе сама.",
+        auto: "Скелет «{r}» проставлено за типом тіла.", pick: "Хто це? Обери расу й стать", pickHint: "Тип тіла задає скелет, анімації, Foot IK і посадку броні.", pickBtn: "▦ Обрати тип тіла", pickX: "Сховати", styleT: "Стиль тіл", no3d: "3D-тіла в цьому стилі — скоро; поки що в 3D і Примірочній — реалістичний манекен того ж типу (скелет і анімації ті самі).", noConcept: "концепту ще немає", noKeys: "У моделі героя немає ключів форми Thin / Heavy / Muscular — повзунки змінюють лише манекен і маніфест, а не саму модель. Щоб статура діяла на модель, додай ці ключі в Blender (або візьми тіло-манекен за основу моделі).", fit: "Підігнати під еталон", fitHint: "Модель з етапу «Базова модель» (Meshy, Mixamo чи своя з T- або A-позою) підганяє під тип тіла скрипт conform_to_rig.py у Blender на твоєму ПК (~20–40 с). Скопіюй запит у Claude Code — він зробить усе й надішле перевірку скелета. Потім завантаж сюди новою версією FBX, GLB, прев’ю і rig.json — перевірка запише себе сама.",
         noBody: "Спершу вибери тип тіла зліва — тоді запит знатиме, під який еталон підганяти.", check: "Перевірка скелета", none: "Ще немає — завантаж rig.json або попроси Claude Code.",
         res: { passed: "Пройдено", warning: "Є застереження", failed: "Не пройдено" }, found: "кісток знайдено", ready: "🦴 Готовий до анімації · Humanoid", readyHint: "Скелет еталонний і перевірений: підходять будь-які Humanoid-анімації — кліпи RPG Framework, свої з Blender, Mixamo.",
         mixamo: "Анімації Mixamo качай сам на mixamo.com (безкоштовно, з Adobe ID) — у гру їх можна вбудовувати, а роздавати файли окремо не можна.", list: "Типи тіла", rigs: "Скелети", height: "зріст", bones: "кісток" },
@@ -6169,7 +6169,7 @@
       ref: { title: "🦴 WhiteWrite references", lead: "Ready skeletons and dummy bodies: Mixamo bone names, T-pose, Unity Humanoid. A model fitted to a reference is ready for animation at once, and armour and clothes made on a reference body fit every character of that type.",
         body: "Body type", shape: "Build (shape keys)", shapeHint: "Weights of the Thin / Heavy / Muscular keys — the same names on the body and on every item; in Unity — SetBlendShapeWeight. They go into the manifest (body_shape).",
         shapes: { Thin: "Thin", Heavy: "Heavy", Muscular: "Muscular" }, build: { fat: "Thin ◀ ▶ Heavy", muscle: "Muscular", height: "Height" }, buildT: "Build", v3d: "🧊 Dummy in 3D", pack: "⤓ Reference pack (.zip)", packHint: "The conform_to_rig.py script and every body type: .fbx, .glb, .blend and rig.json. Needs Blender 4.5 LTS.",
-        auto: "Skeleton «{r}» set by the body type.", pick: "Who is it? Pick the race and sex", pickHint: "The body type sets the skeleton, the animations, Foot IK and how armour sits. The game's own body profile is in the “Body type” list on the left.", pickBtn: "▦ Pick a body type", pickX: "Hide", noKeys: "The hero's model has no Thin / Heavy / Muscular shape keys — the sliders change only the dummy and the manifest, not the model itself. For the build to act on the model, add these keys in Blender (or build the model on the dummy body).", fit: "Fit to the reference", fitHint: "The model of the «Base mesh» stage (Meshy, Mixamo or your own in T or A pose) is fitted to the body type by conform_to_rig.py in Blender on your PC (~20–40 s). Copy the request into Claude Code — it does it all and sends the skeleton check. Then upload the FBX, GLB, preview and rig.json here as a new version — the check records itself.",
+        auto: "Skeleton «{r}» set by the body type.", pick: "Who is it? Pick the race and sex", pickHint: "The body type sets the skeleton, the animations, Foot IK and how armour sits.", pickBtn: "▦ Pick a body type", pickX: "Hide", styleT: "Body style", no3d: "3D bodies in this style are coming; for now 3D and the fitting room show the realistic dummy of the same type (the same skeleton and animations).", noConcept: "no concept yet", noKeys: "The hero's model has no Thin / Heavy / Muscular shape keys — the sliders change only the dummy and the manifest, not the model itself. For the build to act on the model, add these keys in Blender (or build the model on the dummy body).", fit: "Fit to the reference", fitHint: "The model of the «Base mesh» stage (Meshy, Mixamo or your own in T or A pose) is fitted to the body type by conform_to_rig.py in Blender on your PC (~20–40 s). Copy the request into Claude Code — it does it all and sends the skeleton check. Then upload the FBX, GLB, preview and rig.json here as a new version — the check records itself.",
         noBody: "Pick a body type on the left first — then the request knows which reference to fit to.", check: "Skeleton check", none: "None yet — upload rig.json or ask Claude Code.",
         res: { passed: "Passed", warning: "Warning", failed: "Failed" }, found: "bones found", ready: "🦴 Ready for animation · Humanoid", readyHint: "The skeleton is a checked reference: any Humanoid animation fits — RPG Framework clips, your own from Blender, Mixamo.",
         mixamo: "Download Mixamo animations yourself at mixamo.com (free, with an Adobe ID) — they may be built into your game, but the files may not be handed out on their own.", list: "Body types", rigs: "Skeletons", height: "height", bones: "bones" },
@@ -6232,7 +6232,8 @@
   }
   function fzPicHtml(c, cls) {
     var key = fzShot(c), shot = key && fzShots[key], img = fzImg(c), own = shot && shot !== "x";
-    if (!own && !img && !(key && shot === "")) return cls === "fz-hero" ? '<div class="fz-hero fz-ph">⚒</div>' : "";
+    var rbf = FG.refBody((c.forge || {}).body);
+    if (!own && !img && !(key && shot === "")) return rbf ? '<img class="' + cls + ' fz-shot" alt=""' + (cls === "thumb" ? ' loading="lazy"' : "") + ' src="' + FG.styleFront(c.forge.style, rbf.id) + '">' : cls === "fz-hero" ? '<div class="fz-hero fz-ph">⚒</div>' : "";
     var src = own ? shot : img ? img.url : FZ_BLANK;
     return '<img class="' + cls + (own ? " fz-shot" : img ? "" : " fz-wait") + '" alt=""' + (cls === "thumb" ? ' loading="lazy"' : "") + (key ? ' data-fzshot="' + esc(key) + '"' : "") +
       ' src="' + esc(src) + '"' + (!own && img ? frameAttr(img) : "") + '>';
@@ -6299,7 +6300,7 @@
     var ctx = fzCtx(), f = c.forge, W = FZ.ws, rb = FG.refBody(f.body), mine = FG.itemsOf(c, ctx.items), nClips = FG.clipsOf(f).length;
     if (["model", "equip", "anim"].indexOf(fz.ws) < 0) fz.ws = "model";
     var side = '<aside class="fz-side">' + fzPicHtml(c, "fz-hero") +
-      (rb ? '<button class="btn fz-bodyb" data-fzpick' + (canWrite ? '' : ' disabled') + '>' + esc(fzL(rb)) + ' · ' + (LANG === "en" ? rb.height + " m" : String(rb.height).replace(".", ",") + " м") + ' ▾</button>' : '') +
+      (rb ? '<button class="btn fz-bodyb" data-fzpick' + (canWrite ? '' : ' disabled') + '>' + esc(fzL(rb)) + ' · ' + fzBldTxt("height", FG.heightOf(f)) + '<small>' + esc(fzL(FG.bodyStyle(f.style))) + '</small></button>' : '') +
       fzBodyHtml(c) + '<button class="btn mini ghost" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button></aside>';
     var st = fzState(c);
     var bar = '<div class="row fz-acts"><button class="btn primary" data-fzfit>' + esc(FZ.fit.btn) + '</button><button class="btn" data-fzexport' + (st.hum ? '' : ' disabled') + '>' + W.export + '</button>' +
@@ -6326,12 +6327,16 @@
   // second; a pick sets the body and its skeleton like the «Профіль тіла» list. «▦ Обрати тип тіла» opens them again.
   function fzPickOn(c) { return canWrite && (fz.pick || !c.forge.body); }
   function fzPickHtml(c) {
-    var R = FZ.ref, cur = c.forge.body, fem = function (b) { return /_female$/.test(b.id); };
+    var R = FZ.ref, cur = c.forge.body, fem = function (b) { return /_female$/.test(b.id); }, sty = FG.bodyStyle(fz.pickStyle || c.forge.style);
     var list = FG.REF_BODIES.filter(function (b) { return !fem(b); }).concat(FG.REF_BODIES.filter(fem));
-    return '<section class="fz-pick"><h2 class="group">' + R.pick + '</h2><p class="hint">' + R.pickHint + '</p><div class="fz-picks">' + list.map(function (b) {
-        var nm = fzL(b).split(","), h = LANG === "en" ? b.height + " m" : String(b.height).replace(".", ",") + " м";
-        return '<button class="fz-pickb' + (b.id === cur ? ' on' : '') + '" data-fzbody="' + b.id + '"><img alt="" loading="lazy" src="' + FG.REF_FILES + b.id + '_front.webp">' +
-          '<b>' + esc(nm[0]) + '</b><small>' + esc((nm[1] || "").trim()) + ' · ' + h + '</small></button>';
+    return '<section class="fz-pick"><h2 class="group">' + R.pick + '</h2><p class="hint">' + R.pickHint + '</p>' +
+      '<div class="ptabs fz-styles" role="tablist"><span class="muted">' + R.styleT + ':</span>' + FG.BODY_STYLES.map(function (s) {
+        return '<button class="chip" role="tab" data-fzstyle="' + s.id + '" aria-selected="' + (s.id === sty.id) + '">' + esc(fzL(s)) + '</button>'; }).join("") + '</div>' +
+      (sty.note ? '<p class="muted">' + esc(fzL(sty.note)) + '</p>' : '') + (sty.has3d ? '' : '<p class="hint">' + R.no3d + '</p>') +
+      '<div class="fz-picks">' + list.map(function (b) {
+        var nm = fzL(b).split(","), h = LANG === "en" ? b.height + " m" : String(b.height).replace(".", ",") + " м", miss = (sty.missing || []).indexOf(b.id) >= 0;
+        return '<button class="fz-pickb' + (b.id === cur && sty.id === FG.bodyStyle(c.forge.style).id ? ' on' : '') + (sty.has3d ? '' : ' art') + '" data-fzbody="' + b.id + '"><img alt="" loading="lazy" src="' + FG.styleFront(sty.id, b.id) + '">' +
+          '<b>' + esc(nm[0]) + '</b><small>' + esc((nm[1] || "").trim()) + ' · ' + h + (miss ? ' · ' + R.noConcept : '') + '</small></button>';
       }).join("") + '</div>' + (cur ? '<button class="btn mini ghost" data-fzpickx>' + R.pickX + '</button>' : '') + '</section>';
   }
   // the versions of a stage (or of an item: concept / model): newest first, the approved one marked, compare two side by side
@@ -6685,11 +6690,11 @@
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzarig],[data-fzbody],[data-fzpick],[data-fzpickx],[data-fzws],[data-fzexport]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzarig],[data-fzbody],[data-fzpick],[data-fzpickx],[data-fzws],[data-fzexport],[data-fzstyle]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
-    if (d.fzopen) { fz.open = d.fzopen; fz.pick = false; fz.ws = "model"; fz.item = null; fz.stage = null; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
+    if (d.fzopen) { fz.open = d.fzopen; fz.pick = false; fz.pickStyle = ""; fz.ws = "model"; fz.item = null; fz.stage = null; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
     if (d.fzitem) { fz.item = d.fzitem; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
     if (d.fzback !== undefined) { if (fz.item && fz.open) fz.item = null; else { fz.item = null; fz.open = null; } fz.cmp = []; fz.msg = ""; render(); return true; }
     if (d.fzstage) { fz.stage = d.fzstage; fz.cmp = []; render(); return true; }
@@ -6699,11 +6704,12 @@
     if (d.fzarig !== undefined && c && canWrite) { fzARigOpen(c); return true; }
     if (d.fzws) { fz.ws = d.fzws; render(); return true; }
     if (d.fzexport !== undefined && c) { fzExport(c); return true; }
-    if (d.fzpick !== undefined && c) { fz.pick = true; render(); $("main").scrollTop = 0; return true; }
+    if (d.fzstyle) { fz.pickStyle = d.fzstyle; render(); return true; }
+    if (d.fzpick !== undefined && c) { fz.pickStyle = c.forge.style || ""; fz.pick = true; render(); $("main").scrollTop = 0; return true; }
     if (d.fzpickx !== undefined) { fz.pick = false; render(); return true; }
     if (d.fzbody && c && canWrite) {
       var pf = fzClone(c.forge), prb = FG.refBody(d.fzbody); if (!prb) return true;
-      pf.body = prb.id; delete pf.height; fzBodyBrief(pf, prb); if (pf.rig !== prb.rig) { pf.rig = prb.rig; fz.msg = FZ.ref.auto.replace("{r}", FG.refRig(prb.rig).name); }
+      pf.body = prb.id; pf.style = FG.bodyStyle(fz.pickStyle || pf.style).id; delete pf.height; fzBodyBrief(pf, prb); if (pf.rig !== prb.rig) { pf.rig = prb.rig; fz.msg = FZ.ref.auto.replace("{r}", FG.refRig(prb.rig).name); }
       fz.pick = false; c.forge = pf; fzSave(c, pf); render(); return true;
     }
     if (d.fzref3d) {

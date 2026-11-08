@@ -107,6 +107,9 @@ check(JSON.stringify(F.shapeFromBuild({ fat: -60, muscle: 0 })), '{"Thin":60,"He
 check(JSON.stringify(F.shapeFromBuild({ fat: 80, muscle: 100 })), '{"Thin":0,"Heavy":40,"Muscular":100}', 'muscle tones the heavy body (halved at 100)');
 check(JSON.stringify(F.buildOf({ shape: { Thin: 20, Heavy: 50, Muscular: 30 } })), '{"fat":30,"muscle":30}', 'old shape weights become a build');
 check(F.heightOf({ body: 'dwarf', height: 3 }), 1.5, 'height is held inside the race range');
+check(F.styleFront('heroic', 'ogre_female'), '/assets/rigs/heroic/ogre_female_front.webp', 'a heroic card shows the heroic concept');
+check(F.styleFront('heroic', 'dwarf'), '/assets/rigs/dwarf_front.webp', 'a type the style lacks shows the realistic one');
+check(F.manifest({ id: 'h', forge: { body: 'elf', style: 'heroic' } }, [], {}, 'en').body_style.has_3d, false, 'the manifest names the body style');
 check(F.heightOf({ body: 'ogre_female' }), 2.35, 'no height — the reference one');
 check(F.manifest({ id: 'h', forge: { body: 'elf', height: 1.9, build: { fat: 20, muscle: 0 } } }, [], {}, 'en').body_height.scale, 1.027, 'the manifest gives the height and its scale');
 check(F.footIk({ retarget: { dwarf: { ok: true, feet_min_m: -0.03 } } }, 'dwarf_female'), true, 'an unmeasured female type takes its race male Foot IK');
