@@ -97,7 +97,7 @@ function hasTail(bodyId) { return /^ratfolk(_female)?$/.test(String(bodyId || ''
 // cards and the realistic dummy in 3D. heroic: the owner's concepts (ChatGPT, paid plan, the owner's permission) — files <style files><id>_front.webp
 var BODY_STYLES = [
   { id: 'realistic', uk: 'Реалістичні', en: 'Realistic', has3d: true, files: '/assets/rigs/' },
-  { id: 'heroic', uk: 'Напівстилізовані, героїчні', en: 'Semi-stylized, heroic', has3d: false, files: '/assets/rigs/heroic/', missing: ['dwarf', 'dwarf_female'],
+  { id: 'heroic', uk: 'Напівстилізовані, героїчні', en: 'Semi-stylized, heroic', has3d: false, files: '/assets/rigs/heroic/',
     note: { uk: 'Hand-painted, героїчні пропорції: більші кисті, стопи й голова, ширші плечі, кремезні форми.', en: 'Hand-painted, heroic proportions: bigger hands, feet and head, wider shoulders, chunky shapes.' } }];
 function bodyStyle(id) { return BODY_STYLES.filter(function (s) { return s.id === id; })[0] || BODY_STYLES[0]; }
 // the card picture of a body type in a style (a style missing that type shows the realistic one)

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.95.0 (2026-11-08)
+**Version:** 2.95.1 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -746,6 +746,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.95.1** heroic dwarf fronts added (owner) — the heroic style has all 14 body types
 - **v2.95.0** ⚒ body styles (owner): `forge.js BODY_STYLES` realistic (3D) · heroic (concepts only, `app/assets/rigs/heroic/<id>_front.webp` from the owner's ChatGPT concepts, `PROVENANCE.md`, no dwarf → realistic card via `styleFront`); `forge.style`; the picker has a style switch (`data-fzstyle`, `fz.pickStyle`), the side button names the style, a character with no model and no picture shows its body type card in its style; manifest `body_style {id, name, has_3d}`
 - **v2.94.0** ⚒ build and height (owner): `forge.build { fat -100…100, muscle 0…100 }` — one thin ↔ heavy axis, muscle tones both extremes (`forge.js shapeFromBuild`: Thin/Heavy × (1 − muscle/200)), `buildOf` reads old `shape` weights; `forge.height` inside the race range (`REF_BODIES` hmin/hmax, `heightOf`, reset on a new body type); `forge.shape` keeps the resulting key weights; manifest `body_shape` / `body_build` / `body_height {height_m, reference_m, scale}`; side sliders `data-fzbld` → `fzSaveBuild` (merge), `gb-3d.js opts.build` panel (dummy 3D, fitting room) scales the model by height / reference
 - **v2.93.1** ⚒ item page simplified (owner): the model on top — «⤒ Завантажити / Замінити модель» (still a `model` rev underneath, `FG.modelFile`), 🧊 3D; slot, binding, the attach bone (rigid only), owners; rig / body / format / units / LOD / polygons / mask / maps in a fold; no concept section and no version list (`fzRevsHtml` removed); `itemIssues`: a skinned item without its own rig profile takes the owner's skeleton, a GLB is not asked for units or a Base Color mark
