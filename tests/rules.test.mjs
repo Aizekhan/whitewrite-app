@@ -206,6 +206,10 @@ const cases = [
   P('a user CANNOT write a saved GitHub token', 'DENY', 'create', '/githubTokens/u1', 'u1', { token: 'x' }),
   // 🧩 framework gaps: the game's capabilities.json is server only; «📨 Попросити у фреймворку» — the author's own requests, admins read
   T('the owner CANNOT write the game framework manifest', 'DENY', 'update', G, 'u1', 'worldbuilder', { framework: { version: '9.9.9', caps: {} } }),
+  T('the owner CANNOT write the telemetry stats', 'DENY', 'update', G, 'u1', 'worldbuilder', { telemetryStats: { day: '2026-11-08', count: 0 } }),
+  T('the owner CANNOT write the project knowledge pointer', 'DENY', 'update', G, 'u1', 'worldbuilder', { knowledge: { lastSnap: 'x' } }),
+  T('the owner CANNOT write the game audit', 'DENY', 'update', G, 'u1', 'worldbuilder', { audit: { score: 100 }, auditRunning: false }),
+  T('the owner still renames the game', 'ALLOW', 'update', G, 'u1', 'worldbuilder', { title: 'New name' }),
   P('the author asks the framework for a capability', 'ALLOW', 'create', '/fwRequests/u1__g1__ai.adaptation', 'u1', { uid: 'u1', worldId: 'w1', gameId: 'g1', game: 'G', cap: 'ai.adaptation', title: 'adaptation', status: 'missing', version: '0.40.0', mechanic: 'Combat', at: 1 }),
   P('a request CANNOT be written for someone else', 'DENY', 'create', '/fwRequests/u2__g1__ai.adaptation', 'u1', { uid: 'u2', cap: 'ai.adaptation', at: 1 }),
   P('a request CANNOT carry extra fields', 'DENY', 'create', '/fwRequests/u1__g1__x.y', 'u1', { uid: 'u1', cap: 'x.y', at: 1, plan: 'worldforge' }),

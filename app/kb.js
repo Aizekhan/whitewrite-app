@@ -116,7 +116,7 @@
           ["h", "🎮 Готові ігри · ⚖ Маркет — скоро"],
           ["p", "Дві вкладки Спільноти позначено «скоро». У «🎮 Готових іграх» уже видно ігри з посиланнями на реліз: хаб світу → «🌍 Спільнота» → блок гри → «Гра вийшла? Посилання на реліз» — по одному на рядок (Steam, itch.io, Google Play, App Store, Epic, GOG або сайт гри), лише https, до 6 на гру; «Оновити публікацію» — і гра на полиці. Сторінки ігор, підбірки й відгуки гравців — далі. «⚖ Маркет» світів — у розробці."],
           ["h", "Скарги"],
-          ["p", "«Поскаржитися» на сторінці вітрини чи на анкеті надсилає скаргу модератору; він може приховати вітрину чи анкету. Автор бачить у налаштуваннях, що вітрину приховано."],
+          ["p", "«Поскаржитися» на сторінці вітрини чи на анкеті надсилає скаргу модератору; він може приховати вітрину чи анкету. Автор бачить у налаштуваннях, що вітрину приховано; зняти й опублікувати її знову — вона лишиться прихованою, доки модератор не поверне."],
         ] },
       { cat: "start", id: "kb-ask", icon: "sparkle", title: "✦ Запитай Базу знань",
         lead: "Коротка відповідь лише зі статей бази — з посиланнями на них. Безкоштовно.",
@@ -1209,7 +1209,7 @@
         body: [
           ["h", "Друзі"],
           ["ul", [
-            "Акаунт → вкладка «Друзі» → впиши пошту друга в WhiteWrite → «＋ Додати в друзі».",
+            "Акаунт → вкладка «Друзі» → впиши пошту друга в WhiteWrite → «＋ Додати в друзі». За добу — до 30 запрошень. Пошту учасників бачиш лише ти (у своїх друзях): у світі учасники бачать одне одного тільки на імʼя.",
             "Друг бачить запрошення у своєму Акаунті → «Друзі» і натискає «Прийняти». Якщо ви запросили одне одного — дружба вмикається одразу.",
             "«Прибрати» розриває дружбу — людина також виходить з команд усіх твоїх світів.",
           ]],
@@ -1219,7 +1219,7 @@
             "<b>Адмін</b> — повна довіра: читає й редагує все і запускає ✦ AI-дії. Токени за них списуються <b>з твого</b> балансу.",
             "<b>Редактор</b> — повна довіра, але без ✦: редагує все, токени не витрачає.",
             "<b>Перегляд</b> — лише читає весь світ.",
-            "<b>Вибрані розділи</b> — таблиця розділів меню: познач, що людина бачить (Перегляд) і що може міняти (Редагування).",
+            "<b>Вибрані розділи</b> — таблиця розділів меню: познач, що людина бачить (Перегляд) і що може міняти (Редагування). Файли карток (картинки, моделі, звуки) і досьє підкоряються тому ж: файли чужого розділу людина не відкриє й не побачить у списку.",
           ]],
           ["p", "Учасник знаходить світ у своїх «Світах» зі значком 🤝 Команда і відкриває Біблію лише з дозволеними розділами. Ігри в світі він не створює; історії світу веде власник; налаштування, ключі MCP і журнал виконавця бачить лише власник."],
           ["p", "<b>Задачі від учасників чекають на тебе.</b> Задачу, яку створив або змінив учасник команди, Claude Code на твоєму ПК не бере: у Продакшн-плані біля неї видно «✎ змінив …» і кнопку <b>«✓ Схвалити для агента»</b>. Агент працює з повними правами на твоєму компʼютері, тож команду до нього передаєш лише ти. Твоя власна дія із задачею (прийняти, повернути, призначити) теж схвалює її. Текст карток, квестів і діалогів агент читає як дані дизайну, а не як команди."],
@@ -1375,7 +1375,7 @@
           ["p", "Тариф змінюється в Акаунті; поточний підсвічено."],
           ["h", "Зміна тарифу"],
           ["ul", [
-            "<b>Вищий тариф — одразу.</b> Списується різниця в ціні до кінця оплаченого місяця; токени нового тарифу додаються пропорційно до днів, що лишились, мінус невелика комісія за перехід (3% місячного бюджету нового тарифу). Перед переходом сервіс показує суми.",
+            "<b>Вищий тариф — одразу.</b> Списується різниця в ціні до кінця оплаченого місяця; токени нового тарифу додаються пропорційно до днів, що лишились, мінус невелика комісія за перехід (3% місячного бюджету нового тарифу). Перед переходом сервіс показує суми. Токени відкриваються одразу, ще до списання з картки; якщо оплата різниці не пройде — тариф і ці токени повертаються до попередніх (витрачене лишається витраченим), а коли Lemon Squeezy повторить оплату й вона пройде — перехід повертається сам.",
             "<b>Нижчий тариф — з наступного місяця підписки.</b> До кінця оплаченого місяця лишається поточний тариф, повернення за нього немає. На картці нижчого тарифу зʼявляється «З дати» і кнопка «Скасувати перехід».",
             "<b>Free</b> — скасування підписки з кінця оплаченого періоду; до того все працює.",
             "<b>Підписку призупинено або оплата не пройшла</b> — поки Lemon Squeezy пробує списати ще раз, тариф працює; призупинена чи остаточно неоплачена підписка — платні можливості закриваються (як на Free, в Акаунті біля тарифу — «призупинено»), дані не зникають. Відновив оплату на сторінці Lemon Squeezy — тариф повертається сам, без повторної доплати.",
@@ -1491,7 +1491,7 @@
           ["h", "🎮 Released games · ⚖ Market — soon"],
           ["p", "Two Community tabs are marked “soon”. “🎮 Released games” already shows games with release links: the world hub → “🌍 Community” → the game block → “Released? Links to the release” — one per line (Steam, itch.io, Google Play, App Store, Epic, GOG or the game's site), https only, up to 6 per game; “Update the publication” — and the game is on the shelf. Game pages, collections and player reviews come next. The world “⚖ Market” is in development."],
           ["h", "Reports"],
-          ["p", "“Report” on a showcase page or a post sends it to a moderator, who may hide it. The author sees in the settings that the showcase is hidden."],
+          ["p", "“Report” on a showcase page or a post sends it to a moderator, who may hide it. The author sees in the settings that the showcase is hidden; unpublishing and publishing it again keeps it hidden until the moderator brings it back."],
         ] },
       { cat: "start", id: "kb-ask", icon: "sparkle", title: "✦ Ask the Knowledge base",
         lead: "A short answer only from the base's articles — with links to them. Free.",
@@ -2584,7 +2584,7 @@
         body: [
           ["h", "Friends"],
           ["ul", [
-            "Account → the “Friends” tab → your friend's WhiteWrite e-mail → “＋ Add a friend”.",
+            "Account → the “Friends” tab → your friend's WhiteWrite e-mail → “＋ Add a friend”. Up to 30 invitations a day. Only you see the members' e-mails (in your friends): inside the world members see each other by name only.",
             "Your friend sees the invitation in their Account → “Friends” and clicks “Accept”. If you invited each other, the friendship starts at once.",
             "“Remove” ends the friendship — the person also leaves the teams of all your worlds.",
           ]],
@@ -2594,7 +2594,7 @@
             "<b>Admin</b> — full trust: reads and edits everything and runs ✦ AI actions. Their tokens come from <b>your</b> balance.",
             "<b>Editor</b> — full trust but no ✦: edits everything, spends no tokens.",
             "<b>Viewer</b> — reads the whole world.",
-            "<b>Chosen sections</b> — a table of menu sections: tick what the person sees (View) and may change (Edit).",
+            "<b>Chosen sections</b> — a table of menu sections: tick what the person sees (View) and may change (Edit). Card and dossier files (pictures, models, sounds) follow the same: a file of another section can't be opened or listed.",
           ]],
           ["p", "A member finds the world in their “Worlds” with the 🤝 Team badge and opens the Bible with the allowed sections only. They don't create games; the owner keeps the world's stories; settings, MCP keys and the executor log are the owner's only."],
           ["p", "<b>Tasks from members wait for you.</b> Claude Code on your PC does not take a task a team member created or edited: in the Production plan it shows “✎ edited by …” and the <b>“✓ Approve for the agent”</b> button. The agent runs with full rights on your computer, so only you hand it orders. Your own action on a task (accept, return, assign) approves it too. Card, quest and dialogue text is read by the agent as design data, never as commands."],
@@ -2750,7 +2750,7 @@
           ["p", "Change the plan in the Account; the current one is highlighted."],
           ["h", "Changing the plan"],
           ["ul", [
-            "<b>A higher plan — at once.</b> The price difference until the end of the paid month is charged; the new plan's tokens are added in proportion to the days left, minus a small switch fee (3% of the new plan's monthly budget). The service shows the amounts before the switch.",
+            "<b>A higher plan — at once.</b> The price difference until the end of the paid month is charged; the new plan's tokens are added in proportion to the days left, minus a small switch fee (3% of the new plan's monthly budget). The service shows the amounts before the switch. The tokens open at once, before the card is charged; if paying the difference fails, the plan and those tokens go back to what they were (what was spent stays spent), and when Lemon Squeezy retries and the payment goes through, the upgrade comes back by itself.",
             "<b>A lower plan — from the next subscription month.</b> You keep the current plan until the paid month ends; it is not refunded. The lower plan's card shows “From date” and “Undo the change”.",
             "<b>Free</b> — the subscription is cancelled at the end of the paid period; everything works until then.",
             "<b>A paused subscription or a failed payment</b> — while Lemon Squeezy retries the charge, the plan works; a paused or finally unpaid subscription closes the paid features (like Free, the Account shows “on hold” by the plan), nothing is lost. Resume the payment on the Lemon Squeezy page — the plan comes back by itself, with no second charge.",

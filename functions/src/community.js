@@ -13,6 +13,7 @@
 //     opens inside every ticked game (its sections ride along, labelled 🌍; facts / rules are the world's)
 //   + on a game showcase: releases[{kind, url}] + hasRelease — links to the released game (Спільнота → «🎮 Готові ігри», a future feature)
 //   community_reports/{pubId}__{uid} { pubId, uid, title, reason, at, resolved } — admins read
+//   community_blocked/{pubId}   { at } — an admin hid it: unpublish + publish again does not bring it back (server only)
 //   community_home/current      { top[], pool[], at } — the home page cards (public read)
 //   + on the showcase: discord (an invite link), lookingForTeam, teamNote — «🤝 Шукає команду»
 //   collab/{uid}_{offer|seek}   «Співтворці» (unpaid co-creation): written by the owner through firestore.rules;
@@ -21,7 +22,7 @@
 // showcases: the best one of each author → top 20 (paid promotion, `promotedUntil` set by an admin, goes first);
 // the rest whose author was active in the last 7 days → the pool for the «random author» card.
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { onRequest, admin, db, cors } = require('./common');
+const { onRequest, admin, db, cors, publicMessage } = require('./common');
 
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
@@ -166,7 +167,8 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           sections, updatedAt: ts(), activeAt: ts(),
         };
         doc.hasRelease = doc.releases.length > 0;
-        if (!prev.exists) Object.assign(doc, { likes: 0, followers: 0, score: 0, heat: 0, reports: 0, hidden: false, publishedAt: ts() });
+        if (!prev.exists) Object.assign(doc, { likes: 0, followers: 0, score: 0, heat: 0, reports: 0, publishedAt: ts(),
+          hidden: (await db.collection('community_blocked').doc(pubId).get()).exists }); // hidden by an admin before: stays hidden
         await deleteSub(ref, 'items');
         await ref.set(doc, { merge: true });
         for (let i = 0; i < items.length; i += 400) {
@@ -235,6 +237,8 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
         if (!isAdmin) return res.status(403).json({ error: 'Admin only' });
         const hidden = body.hidden !== false;
         await ref.update({ hidden });
+        const blk = db.collection('community_blocked').doc(pubId);
+        if (col === 'community') await (hidden ? blk.set({ at: ts() }) : blk.delete());
         const reps = await db.collection('community_reports').where('pubId', '==', pubId).get();
         const b = db.batch(); reps.docs.forEach((r) => b.update(r.ref, { resolved: true })); await b.commit();
         if (col === 'community') await markStale();
@@ -243,7 +247,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
       return res.status(400).json({ error: 'Unknown action' });
     } catch (e) {
       console.error('[community]', e);
-      return res.status(500).json({ error: e.message || 'Internal error' });
+      return res.status(500).json({ error: publicMessage(e) });
     }
   });
 });

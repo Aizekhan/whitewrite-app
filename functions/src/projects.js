@@ -1,6 +1,6 @@
 // Projects (stories) are created ONLY here, so the plan's maxProjects holds (firestore.rules deny client creates).
 // Over the limit the author may buy a permanent extra slot for tokens (paid-features.js «projectSlot»).
-const { onRequest, admin, db, cors, getPlanBudget, getBalance, reserve, refund, verifyAuth } = require('./common');
+const { onRequest, admin, db, cors, getPlanBudget, getBalance, reserve, refund, verifyAuth, publicMessage } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { byOp, featureCost } = require('../paid-features.js');
 
@@ -102,7 +102,7 @@ exports.createProject = onRequest({ cors: true, timeoutSeconds: 30 }, async (req
       console.error('[createProject]', error);
       // the slot is already granted once extraProjects moved; refund only if the increment never happened
       if (reservation && !reservation.granted) await refund(db, uid, reservation).catch(() => {});
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: publicMessage(error) });
     } finally {
       if (locked) await unlockCreate(uid, 'project');
     }
@@ -144,7 +144,7 @@ exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, r
       res.json({ gameId, limit, count: count + 1 });
     } catch (error) {
       console.error('[createGame]', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: publicMessage(error) });
     } finally {
       if (locked) await unlockCreate(uid, 'game');
     }

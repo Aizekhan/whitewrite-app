@@ -138,7 +138,17 @@ function buildCanonContext(canon) {
   return sections.length > 0 ? sections.join('\n\n') : 'Канон порожній — ти створюєш світ з нуля.';
 }
 
+// What a 500 may tell the client: our own messages (Claude refused, Lemon Squeezy / GitHub said…) pass; the internals of
+// Firestore / gRPC / the network («9 FAILED_PRECONDITION: … https://console.firebase…», project paths, addresses) do not —
+// they go to the log only.
+function publicMessage(e) {
+  const m = String((e && e.message) || '');
+  if (!m || /^\d+ [A-Z_]+:|googleapis\.com|console\.firebase|projects\/[\w-]+\/|databases\/\(default\)|\bE[A-Z]{4,}\b|\bat \S+:\d+:\d+/.test(m)) return 'внутрішня помилка сервера';
+  return m.slice(0, 300);
+}
+
 module.exports = {
+  publicMessage,
   buildCanonContext,
   onRequest,
   admin,

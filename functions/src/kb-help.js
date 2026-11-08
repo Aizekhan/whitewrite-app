@@ -6,7 +6,7 @@
 // POST { question, history?: [{ q, a }], language } with the ID token → { answer, articles: [{ id, title }], left }
 const vm = require('vm');
 const Anthropic = require('@anthropic-ai/sdk');
-const { onRequest, admin, db, cors, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, claudeApiKey, publicMessage } = require('./common');
 const { activeModels, withFallback } = require('./claude');
 const { MODEL_PRICING } = require('../ai-models.js');
 const { byOp } = require('../paid-features.js');
@@ -82,9 +82,11 @@ exports.kbAsk = onRequest({ region: 'us-central1', secrets: [claudeApiKey], time
       counted = ref;
       const articles = await kbArticles(lang);
       const model = (await activeModels(db)).haiku;
-      const messages = [];
-      history.forEach((h) => { messages.push({ role: 'user', content: h.q }); messages.push({ role: 'assistant', content: h.a }); });
-      messages.push({ role: 'user', content: question });
+      // the history comes from the page: quoted inside the user's turn, never as our own (assistant) answers — a forged
+      // «answer» can't put words in the helper's mouth
+      const prev = history.map((h) => '<q>' + h.q + '</q>\n<a>' + h.a + '</a>').join('\n');
+      const messages = [{ role: 'user', content: (prev ? (lang === 'en' ? 'Earlier in this chat (as the page remembers it):\n' : 'Раніше в цій розмові (як памʼятає сторінка):\n') +
+        '<earlier>\n' + prev + '\n</earlier>\n\n' : '') + question }];
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       const msg = await withFallback(model, (m) => anthropic.messages.create({ model: m, max_tokens: 1500, output_config: { effort: 'low' },
         system: [{ type: 'text', text: systemText(lang, articles), cache_control: { type: 'ephemeral' } }], messages }));
@@ -106,7 +108,7 @@ exports.kbAsk = onRequest({ region: 'us-central1', secrets: [claudeApiKey], time
     } catch (error) {
       console.error('kbAsk error:', error);
       if (counted) await counted.update({ n: admin.firestore.FieldValue.increment(-1) }).catch(() => {}); // a failed answer is not counted
-      return res.status(500).json({ error: `Помилка: ${error.message}` });
+      return res.status(500).json({ error: `Помилка: ${publicMessage(error)}` });
     }
   });
 });

@@ -16,6 +16,17 @@ service firebase.storage {
       return firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.get('team', {}).get(request.auth.uid, null);
     }
     function canRead(worldId) { return isWorldOwner(worldId) || member(worldId) != null; }
+    // «Вибрані розділи» (role custom): a card's files by the card's section, a dossier's by the entity's kind — as firestore.rules
+    // readSec / readKind. The card / entity doc is read only for such a member (≤ 2 documents per evaluation).
+    function fullRead(worldId) { return isWorldOwner(worldId) || (member(worldId) != null && member(worldId).role in ['admin', 'editor', 'viewer']); }
+    function readCardFiles(worldId, gameId, cardId) {
+      return fullRead(worldId) || (member(worldId) != null &&
+        firestore.get(/databases/(default)/documents/worlds/$(worldId)/games/$(gameId)/cards/$(cardId)).data.section in member(worldId).get('view', []));
+    }
+    function readEntityFiles(worldId, entityId) {
+      return fullRead(worldId) || (member(worldId) != null && (entityId == 'cosmos' ? 'cosmology' in member(worldId).get('view', []) :
+        firestore.get(/databases/(default)/documents/worlds/$(worldId)/entities/$(entityId)).data.kind in member(worldId).get('viewKinds', [])));
+    }
     function canWrite(worldId) {
       return isWorldOwner(worldId) || (member(worldId) != null && member(worldId).role in ['admin', 'editor']);
     }
@@ -24,8 +35,8 @@ service firebase.storage {
     }
 
     // World-level files of canon entities (dossier images and models), shared by every story and game.
-    match /worlds/{worldId}/files/{rest=**} {
-      allow read: if request.auth != null && canRead(worldId);
+    match /worlds/{worldId}/files/{entityId}/{rest=**} {
+      allow read: if request.auth != null && readEntityFiles(worldId, entityId);
       allow delete: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId);
       allow create, update: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId) &&
                                request.resource.size < 200 * 1024 * 1024;
@@ -54,8 +65,8 @@ service firebase.storage {
       allow read: if request.auth != null;
       allow write: if false;
     }
-    match /worlds/{worldId}/games/{gameId}/files/{rest=**} {
-      allow read: if request.auth != null && canRead(worldId);
+    match /worlds/{worldId}/games/{gameId}/files/{cardId}/{rest=**} {
+      allow read: if request.auth != null && readCardFiles(worldId, gameId, cardId);
       allow delete: if request.auth != null && canWrite(worldId) && worldOpen(worldId);
       allow create, update: if request.auth != null && canWrite(worldId) && worldOpen(worldId) &&
                                request.resource.size < (ownerGameDev(worldId) ? 200 : 20) * 1024 * 1024;

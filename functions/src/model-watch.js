@@ -17,7 +17,7 @@
 // State: config/ai_models { active: {tier: id}, pricing, snapshot, held, upcoming, deprecated, broken, mode, fullAt, checkedAt, lastChange }.
 // Notices: admin_notices/{id} (admins see a banner in the Account) + a Markdown file admin/notices/… in Storage.
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { onRequest, admin, db, cors, claudeApiKey, requireAdmin } = require('./common');
+const { onRequest, admin, db, cors, claudeApiKey, requireAdmin, publicMessage } = require('./common');
 const { AI_MODELS, MODEL_PRICING } = require('../ai-models.js');
 const { priceIndexFor } = require('../paid-features.js');
 const { claudeText } = require('./claude');
@@ -263,7 +263,7 @@ exports.modelWatch = onSchedule({ schedule: 'every day 06:00', timeZone: 'Europe
 exports.modelWatchRun = onRequest({ secrets: [claudeApiKey], timeoutSeconds: 300 }, async (req, res) => {
   return cors(req, res, async () => {
     if (!(await requireAdmin(req, res))) return;
-    try { res.json({ report: await runWatch({ force: true }) }); } catch (e) { console.error('[modelWatchRun]', e); res.status(500).json({ error: e.message }); }
+    try { res.json({ report: await runWatch({ force: true }) }); } catch (e) { console.error('[modelWatchRun]', e); res.status(500).json({ error: publicMessage(e) }); }
   });
 });
 

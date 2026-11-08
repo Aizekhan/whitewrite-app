@@ -9,6 +9,7 @@ const {
   reserve,
   refund, cutOff, settle,
   claudeApiKey,
+  publicMessage
 } = require('./common');
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
@@ -202,7 +203,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       if (reservation) {
         await settle(db, uid, reservation, error, 'genesisWorld').catch(e => console.error('[genesisWorld] Refund failed:', e));
       }
-      res.status(500).json({ error: `Помилка Genesis: ${error.message}` });
+      res.status(500).json({ error: `Помилка Genesis: ${publicMessage(error)}` });
     }
   });
 });

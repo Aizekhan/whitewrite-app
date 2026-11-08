@@ -8,7 +8,7 @@
 // Price: paid-features.js ttsCost (chars × the voice class price × margin), reserved before the calls; unused characters come back.
 // The provider is one function (googleSpeak) — ElevenLabs etc. plug in beside it (service in the cast).
 const crypto = require('crypto');
-const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget } = require('./common');
+const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, publicMessage } = require('./common');
 const { payerFor } = require('./team')._team;
 const { byOp, ttsCost, ttsUsd, TTS, USD_PER_TOKEN } = require('../paid-features.js');
 const ledger = require('./ledger');
@@ -164,7 +164,7 @@ exports.voice = onRequest({ region: 'us-central1', timeoutSeconds: 300, memory: 
     } catch (e) {
       if (e instanceof VoiceError) return res.status(e.status).json(e.body);
       console.error('voice error:', e);
-      return res.status(500).json({ error: 'Помилка озвучки: ' + e.message });
+      return res.status(500).json({ error: 'Помилка озвучки: ' + publicMessage(e) });
     } finally {
       if (reservation && ctx) await refund(db, ctx.uid, reservation).catch((er) => console.error('[voice] refund failed:', er.message));
     }

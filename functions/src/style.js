@@ -5,7 +5,7 @@
 // Called by the ✦ button, «✦ Перевірити всі» and automatically after a picture is uploaded (when the game has a style).
 // MCP check_style (mcp.js) runs the same check on a screenshot from Unity and returns it without storing.
 // Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js styleCheck).
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
@@ -116,7 +116,7 @@ exports.styleCheck = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
     } catch (error) {
       if (error instanceof CheckError) return res.status(error.status).json(error.body);
       console.error('styleCheck error:', error);
-      return res.status(500).json({ error: `Помилка перевірки стилю: ${error.message}` });
+      return res.status(500).json({ error: `Помилка перевірки стилю: ${publicMessage(error)}` });
     }
   });
 });
@@ -179,7 +179,7 @@ Short, concrete, no invented lore. Write in ${lang}.` }]);
       return res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('styleFromRefs error:', error);
-      return res.status(500).json({ error: `Помилка стилю з референсів: ${error.message}` });
+      return res.status(500).json({ error: `Помилка стилю з референсів: ${publicMessage(error)}` });
     } finally {
       if (reservation) await settle(db, uid, reservation, error, 'styleFromRefs').catch((e) => console.error('[styleFromRefs] Refund failed:', e));
     }

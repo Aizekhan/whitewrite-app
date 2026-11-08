@@ -3,7 +3,7 @@
 // without its own key uses the world's (getIntegrationKey). The key itself is never sent back to a browser:
 //   integrationKeys/{worldId} | integrationKeys/{worldId}__{gameId}   { worldId, gameId, <kind>: { key, provider, name } } — server only
 //   worlds/{w}.integrations.<kind> | games/{g}.integrations.<kind>   { provider, name, tail, check: ok|unverified, at } — written only here
-const { onRequest, admin, db, cors } = require('./common');
+const { onRequest, admin, db, cors, publicMessage } = require('./common');
 // outbound calls time out: a hanging provider must not hold the function
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(15000), ...o });
 
@@ -98,7 +98,7 @@ exports.integrations = onRequest({ region: 'us-central1', timeoutSeconds: 60 }, 
     } catch (e) {
       if (e.status) return res.status(e.status).json(e.body || { error: e.message });
       console.error('integrations error:', e);
-      return res.status(500).json({ error: `Помилка інтеграцій: ${e.message}` });
+      return res.status(500).json({ error: `Помилка інтеграцій: ${publicMessage(e)}` });
     }
   });
 });

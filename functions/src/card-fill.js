@@ -6,7 +6,7 @@
 //   personaIdeas { entityId, question, answers?, traits? } → { ideas: [3 short answers] } for one constructor question (persona.js).
 // Any plan (paid plans need an active subscription, as genesisWorld); reserve featureCost(voiceFill | personaIdeas) →
 // Claude (the author's model) → charge the real cost. A team admin acts on the owner's tokens (payerFor).
-const { onRequest, admin, db, cors, charge, getBalance, reserve, cutOff, settle, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, cutOff, settle, claudeApiKey, publicMessage } = require('./common');
 const { payerFor } = require('./team')._team;
 const { featureCost, byOp } = require('../paid-features.js');
 const P = require('../persona.js');
@@ -135,7 +135,7 @@ Write in ${lang}. Return ONLY JSON: {"ideas": ["…", "…", "…"]}`;
     } catch (error) {
       console.error('cardFill error:', error);
       if (reservation) await settle(db, uid, reservation, error, 'cardFill').catch((e) => console.error('[cardFill] Refund failed:', e));
-      return res.status(500).json({ error: `Помилка: ${error.message}` });
+      return res.status(500).json({ error: `Помилка: ${publicMessage(error)}` });
     }
   });
 });

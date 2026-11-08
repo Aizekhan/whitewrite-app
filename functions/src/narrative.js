@@ -3,7 +3,7 @@
 // Returns a PROPOSAL only — nothing is written: the author accepts, edits or rejects every field in the editor (spec 2.2).
 // Links are kept only when the id exists — a canon entity (its id) or a game card (c:<id>, narrative-validate.js refPool);
 // anything new the AI invents is returned as `ideas`, never as canon. Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js questDraft / dialogueDraft).
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, buildCanonContext } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, buildCanonContext, publicMessage } = require('./common');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { emptyCanon, CANON_KINDS } = require('../canon-store.js');
 const { featureCost, byOp } = require('../paid-features.js');
@@ -188,7 +188,7 @@ ${isQ ? questPrompt(lang) : dialoguePrompt(lang)}`;
     } catch (error) {
       console.error('narrativeDraft error:', error);
       if (reservation) await settle(db, uid, reservation, error, 'narrative').catch((e) => console.error('[narrative] Refund failed:', e));
-      return res.status(500).json({ error: `Помилка чернетки: ${error.message}` });
+      return res.status(500).json({ error: `Помилка чернетки: ${publicMessage(error)}` });
     }
   });
 });

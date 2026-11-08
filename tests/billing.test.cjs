@@ -116,6 +116,28 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
   check(U('u3').plan === 'novelist' && U('u3').subscriptionStatus === 'past_due', 'past_due (LS still retrying) keeps the plan');
   await updated('sub3', V.novelist);
 
+  // --- an upgrade opens tokens before LS charges the card: a failed upgrade invoice takes the plan and them back ---
+  const pay = (ev, id, reason) => hook({ meta: { event_name: ev }, data: { id: 'inv_' + id, attributes: { subscription_id: 'subF', billing_reason: reason } } });
+  const stM = getPlanBudget('storyteller').monthly, wbM = getPlanBudget('worldbuilder').monthly;
+  store.set('users/f1', { plan: 'worldbuilder', tokensUsed: wbM - (stM - 100) - 5000, periodStart: TS(Date.now()), lemonSqueezySubscriptionId: 'subF', subscriptionStatus: 'active',
+    lastUpgrade: { from: 'storyteller', to: 'worldbuilder', net: 5000, at: TS(Date.now()) } }); // before: storyteller with stM−100 left, +5000 opened
+  await pay('subscription_payment_failed', 1, 'renewal');
+  check(U('f1').plan === 'worldbuilder', 'a failed renewal is left to subscription_updated (past_due / unpaid)');
+  await pay('subscription_payment_failed', 2, 'updated');
+  check(U('f1').plan === 'storyteller' && TSvc.getBalance(U('f1')).monthlyLeft === stM - 100 && U('f1').lastUpgrade.revoked === true, 'a failed upgrade invoice: the old plan and the allowance from before the upgrade');
+  await pay('subscription_payment_failed', 3, 'updated');
+  check(U('f1').plan === 'storyteller' && TSvc.getBalance(U('f1')).monthlyLeft === stM - 100, 'a second failure (LS retry) takes nothing more');
+  await pay('subscription_payment_success', 4, 'updated');
+  check(U('f1').plan === 'worldbuilder' && TSvc.getBalance(U('f1')).monthlyLeft === stM - 100 + 5000 && U('f1').lastUpgrade.revoked === false, 'paid on a retry: the upgrade comes back as it was');
+  await pay('subscription_payment_success', 5, 'updated');
+  check(TSvc.getBalance(U('f1')).monthlyLeft === stM - 100 + 5000, 'a redelivered payment opens nothing more');
+  store.set('users/f1', Object.assign(U('f1'), { tokensUsed: wbM - 3000 })); // spent most of the upgrade's tokens
+  await pay('subscription_payment_failed', 6, 'updated');
+  check(U('f1').plan === 'storyteller' && TSvc.getBalance(U('f1')).monthlyLeft === 0, 'what was already spent stays spent: the allowance just stops at 0');
+  store.set('users/f2', { plan: 'novelist', tokensUsed: 0, periodStart: TS(Date.now()), lemonSqueezySubscriptionId: 'subF2', subscriptionStatus: 'active' });
+  await hook({ meta: { event_name: 'subscription_payment_failed' }, data: { id: 'inv_9', attributes: { subscription_id: 'subF2', billing_reason: 'updated' } } });
+  check(U('f2').plan === 'novelist' && U('f2').tokensUsed === 0, 'no recorded upgrade — nothing changes');
+
   // --- refunds take back what the money bought, once ---
   store.set('users/buyer', Object.assign(U('buyer'), { bonusTokens: 0 }));
   await hook({ meta: { event_name: 'order_created', custom_data: { user_id: 'buyer', sig: sig('buyer') } }, data: { id: 'o1', attributes: { first_order_item: { variant_id: '99' }, user_email: 'x' } } });

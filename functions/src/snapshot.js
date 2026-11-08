@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const { db } = require('./common');
 
 const DROP = new Set(['files', 'styleAi', 'cover', 'titleArt', 'image', 'images', 'imageUrl', 'thumb', 'launch', 'repo', 'cosmograph', 'freeze', 'owner',
-  'licence', 'team', 'teamUids', 'backup']);
+  'licence', 'team', 'teamUids', 'backup', 'integrations', 'ingestKeys', 'framework', 'audit', 'auditRunning', 'telemetryStats']);
 const GAME_SUBS = ['cards', 'plan', 'tasks', 'quests', 'dialogues']; // everything else under a game (telemetry, logs, keys…) stays out
 const WORLD_SUBS = ['entities', 'lore', 'games'];
 function clean(o) {

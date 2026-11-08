@@ -8800,7 +8800,7 @@
   function people() {
     var P = STR.pp, me = firebase.auth().currentUser, team = world.team || {};
     var out = [{ uid: world.owner, name: ME.owner ? (me.displayName || me.email || P.ownerLbl) : P.ownerLbl }];
-    Object.keys(team).forEach(function (id) { out.push({ uid: id, name: team[id].name || team[id].email || id }); });
+    Object.keys(team).forEach(function (id) { out.push({ uid: id, name: team[id].name || id }); });
     return out;
   }
   function whoHtml(lt) {
@@ -8816,7 +8816,7 @@
     var P = STR.pp; if (!lt || !lt.memberEdit) return '';
     if (!ME.owner) return ' <span class="pill s-idea">' + esc(P.memberWait) + '</span>';
     var m = (world.team || {})[lt.memberEdit] || {};
-    return ' <span class="pill s-idea">' + esc(P.memberEdit.replace("{n}", m.name || m.email || lt.memberEdit)) + '</span> <button class="btn tiny" data-approve="' + esc(lt.id) + '">' + esc(P.approve) + '</button>';
+    return ' <span class="pill s-idea">' + esc(P.memberEdit.replace("{n}", m.name || lt.memberEdit)) + '</span> <button class="btn tiny" data-approve="' + esc(lt.id) + '">' + esc(P.approve) + '</button>';
   }
   async function approveTask(id) {
     await gref().collection("tasks").doc(id).set({ memberEdit: firebase.firestore.FieldValue.delete(), updatedAt: stamp(),
@@ -9617,8 +9617,8 @@
     var roleSel = function (cur, attr) { return '<select ' + attr + '>' + ["admin", "editor", "viewer", "custom"].map(function (r) { return '<option value="' + r + '"' + (r === cur ? " selected" : "") + '>' + esc(T.roles[r]) + '</option>'; }).join("") + '</select>'; };
     return '<h2>' + T.title + '</h2><p class="hint">' + T.hint + '</p><ul class="hint tm-roles">' + ["admin", "editor", "viewer", "custom"].map(function (r) { return '<li><b>' + esc(T.roles[r]) + '</b> — ' + esc(T.about[r]) + '</li>'; }).join("") + '</ul>' +
       (ids.length ? ids.map(function (id) {
-        var m = team[id];
-        return '<div class="tm" data-tm="' + esc(id) + '"><div class="tm__h"><b>' + esc(m.name || m.email || id) + '</b><span class="muted">' + esc(m.email || "") + '</span>' + roleSel(m.role, 'data-trole') +
+        var m = team[id], fe = (friends.filter(function (f) { return f.uid === id; })[0] || {}).email || ""; // the email only from the owner's friends — not on the world doc
+        return '<div class="tm" data-tm="' + esc(id) + '"><div class="tm__h"><b>' + esc(m.name || fe || id) + '</b><span class="muted">' + esc(fe) + '</span>' + roleSel(m.role, 'data-trole') +
           '<button class="btn danger mini" data-tdel>' + T.remove + '</button></div>' +
           (m.role === "custom" ? '<div class="tm__secs"><div class="tm__sh"><span>' + T.section + '</span><span>' + T.view + '</span><span>' + T.edit + '</span></div>' + secs.map(function (x) {
             var v = (m.view || []).indexOf(x.id) >= 0, e = (m.edit || []).indexOf(x.id) >= 0;
@@ -9859,7 +9859,7 @@
       loadCommStats();
     } catch (e) { return locked(STR.brand, STR.noWorld, false); }
 
-    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); takePendingFill(); });
+    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); takePendingFill(); }, function () { sync("bad", STR.offline); }); // no access any more (left the team) or offline
     var byKind = {}, entsIn = function (key) { return function (snap) {
       byKind[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       entities = [].concat.apply([], Object.keys(byKind).map(function (k) { return byKind[k]; }))
@@ -9867,7 +9867,7 @@
       render();
       if (pendingFocus) { var pf = pendingFocus; pendingFocus = null; window.postMessage({ type: "ww-bible-focus", ent: pf }, location.origin); }
     }; };
-    if (fullRead()) wref().collection("entities").onSnapshot(entsIn("*"));
+    if (fullRead()) wref().collection("entities").onSnapshot(entsIn("*"), function () { sync("bad", STR.offline); });
     else ME.viewKinds.forEach(function (k) { wref().collection("entities").where("kind", "==", k).onSnapshot(entsIn(k), function () {}); }); // rules: one kind per query
     db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
       stories = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
@@ -9892,6 +9892,6 @@
       }
       if (gameId) game = games.filter(function (g) { return g.id === gameId; })[0] || null;
       render();
-    });
+    }, function () { sync("bad", STR.offline); });
   });
 })();

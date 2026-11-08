@@ -12,6 +12,7 @@ const {
   claudeApiKey,
   verifyAuth,
   buildCanonContext,
+  publicMessage
 } = require('./common');
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
@@ -172,7 +173,7 @@ At most 5 items per list.`;
     } catch (error) {
       if (reservation) await settle(db, uid, reservation, error, 'advise').catch((e) => console.error('[Analyze] Refund failed:', e));
       console.error('[Analyze] Error:', error);
-      res.status(500).json({ error: `Помилка analysis: ${error.message}` });
+      res.status(500).json({ error: `Помилка analysis: ${publicMessage(error)}` });
     }
   });
 });

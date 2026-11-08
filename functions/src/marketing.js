@@ -13,7 +13,7 @@
 // X and Reddit have no API publishing here: the client offers copy + the platforms' own share links.
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
-const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
@@ -31,7 +31,8 @@ const ts = () => admin.firestore.FieldValue.serverTimestamp();
 const now = () => Date.now();
 const millis = (t) => (t && t.toMillis ? t.toMillis() : typeof t === 'number' ? t : 0);
 // every outbound call has a timeout: a channel's server that hangs must not stall the publisher for everyone
-const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(15000), ...o });
+// redirect 'error': a Mastodon host is the author's — it may not bounce the server (with the token) to an internal address
+const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(15000), redirect: 'error', ...o });
 const LEASE_MS = 10 * 60 * 1000; // a post stuck in «publishing» longer than this (a crash mid-send) may be retried or deleted
 const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
 
@@ -307,7 +308,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       if (reservation) await settle(db, uid, reservation, error, 'marketing').catch((e) => console.error('[marketing] refund failed:', e)); // a refusal is paid (claude.js)
       if (error.status) return res.status(error.status).json({ error: error.message, ...(error.extra || {}) });
       console.error('marketing error:', error);
-      return res.status(500).json({ error: `Помилка маркетингу: ${error.message}` });
+      return res.status(500).json({ error: `Помилка маркетингу: ${publicMessage(error)}` });
     }
   });
 });

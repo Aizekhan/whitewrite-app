@@ -2,7 +2,7 @@
 // Off by default; the author turns it on per world in the project settings. It costs COSMOGRAPH_COST tokens
 // once per 30 days for that world. worlds/{w}.cosmograph { enabled, paidUntil, paidAt } is written only here
 // (firestore.rules keep it read-only for clients); the sky itself lives in worlds/{w}.cosmos (client-written).
-const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget } = require('./common');
+const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, publicMessage } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 
 const { featureCost, byOp } = require('../paid-features.js');
@@ -65,7 +65,7 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
     } catch (error) {
       console.error('cosmographAccess error:', error);
       if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[cosmograph] refund failed:', e));
-      return res.status(500).json({ error: `Помилка Космографа: ${error.message}` });
+      return res.status(500).json({ error: `Помилка Космографа: ${publicMessage(error)}` });
     }
   });
 });

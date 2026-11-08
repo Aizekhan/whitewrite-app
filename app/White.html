@@ -2379,7 +2379,7 @@ body.at-home .back-fab{ display:none; }
     }
     var u = window.__wwUser || (window.__wwUser = { name: "Майстер світів", plan: "free", avatar: null });
     var initial = u.name.trim().charAt(0) || "М";
-    var avInner = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : initial;
+    var avInner = u.avatar ? ('<img src="' + escapeHtml(u.avatar) + '" alt="" />') : initial;
     var currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
 
     views.account.innerHTML =
@@ -2911,7 +2911,7 @@ body.at-home .back-fab{ display:none; }
 
     // If logged in, show user data
     if (window.__wwAuth && u.name) {
-      if (av) av.innerHTML = u.avatar ? ('<img src="' + u.avatar + '" alt="" />') : (u.name || "М").charAt(0);
+      if (av) av.innerHTML = u.avatar ? ('<img src="' + escapeHtml(u.avatar) + '" alt="" />') : (u.name || "М").charAt(0);
       if (nm) nm.textContent = u.name || (lang === 'uk' ? "Майстер світів" : "World Master");
     } else {
       // If guest, show translated "Guest"
@@ -3011,11 +3011,11 @@ body.at-home .back-fab{ display:none; }
 </script>
 
 <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" integrity="sha384-ViccRjS0k/lvYsrtaKXk+ES61/4PAZlFI/mPHmLC1YWzK0AIbXbI5ZXDzcm3F8gH" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" integrity="sha384-+/4lqMnmLqwbdHXshvGDmBTeWlNoPRdjXi4ZsiBj10EhQXaTBe3RF5JZktdSjug6" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" integrity="sha384-7TetnPNdXXu6qURzIEXWCwpXedGGBJSXIR5Cv0gOWTB34UD5TxPHx33PhjA6wFQ3" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js" integrity="sha384-lONBStWloxmdvtJe8gp4aEOmE9dluTdSdGA5pUHFYPBMJRUDDPSdbq32bb0Spi3v" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js" integrity="sha384-oFrOL1TiREYNET0lsYF3LjQuyi2gL7vhjH1X8vFr+umcmzAdPELopeSgbcrv4uRm" crossorigin="anonymous"></script>
 
 <!-- Firebase Modules -->
 <script src="/firebase/ai-models.js"></script>

@@ -20,6 +20,7 @@ const {
   refund, cutOff, settle,
   getPlanBudget,
   claudeApiKey,
+  publicMessage
 } = require('./common');
 const { savedGithub, rememberGithub, loginOf } = require('./github-token');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
@@ -894,7 +895,7 @@ exports.gamedevPlan = onRequest({
       }
       if (paidSoFar && !error.paid) error.paid = paidSoFar; // a refusal, an empty answer, a failed write after paid calls
       if (reservation) await settle(db, uid, reservation, error, 'gamedev').catch((e) => console.error('[gamedevPlan] Refund failed:', e));
-      res.status(500).json({ error: `Помилка біблії гри: ${error.message}` });
+      res.status(500).json({ error: `Помилка біблії гри: ${publicMessage(error)}` });
     }
   });
 });

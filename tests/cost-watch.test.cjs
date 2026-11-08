@@ -13,8 +13,12 @@ const doc = (col, id) => ({
   get: async () => ({ exists: col === 'users', get: (k) => ({ plan: id === 'a' ? 'worldbuilder' : 'free', email: id + '@x' })[k] }),
   set: async (d) => { written[col + '/' + id] = d; },
 });
-const db = { collection: (col) => ({ doc: (id) => doc(col, id),
-  where: () => ({ get: async () => ({ size: logs.length, docs: logs.map((l) => ({ data: () => l })) }) }) }) };
+// usage_logs in pages: where → orderBy → select → limit (→ startAfter the last doc of the page)
+let pages = 0;
+const query = (from = 0, lim = Infinity) => ({ orderBy: () => query(from, lim), select: () => query(from, lim), limit: (n) => query(from, n),
+  startAfter: (d) => query(d.i + 1, lim),
+  get: async () => { pages++; const docs = logs.slice(from, from + lim).map((l, k) => ({ i: from + k, data: () => l })); return { size: docs.length, docs }; } });
+const db = { collection: (col) => ({ doc: (id) => doc(col, id), where: () => query() }) };
 const admin = { firestore: { Timestamp: { fromMillis: (x) => x }, FieldValue: { serverTimestamp: () => 'now' } } };
 require.cache[require.resolve(path.join(src, 'common.js'))] = { exports: { admin, db } };
 require.cache[require.resolve(path.join(src, 'admin-notice.js'))] = { exports: { notify: async (n) => notices.push(n) } };
@@ -31,6 +35,12 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
   check(d && d.top[0].uid === 'a' && d.top[0].usd === 7 && d.top[0].ops.plan === 1 && d.top[0].plan === 'worldbuilder', 'the costliest user first, with plan and ops');
   check(r.hot === 1 && notices.some((n) => /понад \$5/.test(n.title) && /a@x/.test(n.body) && n.severity === 'warning'), `one user above $${COST_ALERT_USD} → a warning`);
   check(r.loss === 1 && notices.some((n) => n.severity === 'critical' && /нижче вартості/.test(n.title) && /b@x/.test(n.body) && !/c@x/.test(n.body)), 'paid below the API cost → critical (cents ignored)');
+  // a day of more entries than one page: read in pages, every entry counted once
+  logs.splice(0, logs.length, ...Array.from({ length: 4500 }, (_, i) => ({ uid: 'p' + (i % 3), operation: 'x', realApiCostUSD: 0.001, userPaidUSD: 0.002, userTokensCharged: 1 })));
+  pages = 0;
+  await summarize(Date.UTC(2026, 10, 3, 12));
+  const w2 = written['admin_costs/2026-11-03'];
+  check(pages === 3 && w2.calls === 4500 && w2.top.reduce((n, u) => n + u.calls, 0) === 4500, `4500 entries read in ${pages} pages, each once`);
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exitCode = fails ? 1 : 0;
 })();

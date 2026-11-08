@@ -5,7 +5,7 @@
 //   backupTokens/{worldId}  { token, login } — server only (firestore.rules)
 //   worlds/{w}.backup       { repo, login, enabled, paidUntil, lastAt, lastStatus, lastError, lastCommit } — written only here
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget } = require('./common');
+const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, publicMessage } = require('./common');
 const ledger = require('./ledger');
 const { savedGithub, rememberGithub, forgetGithub } = require('./github-token');
 const { buildSnapshot } = require('./snapshot');
@@ -52,7 +52,25 @@ async function runBackup(worldId) {
 }
 
 // Pay the next 30 days from the owner's balance (enable, or the daily run's renewal)
+// One month at a time: «Увімкнути» and the daily run (or two clicks) may pay together — a claim on the world in a
+// transaction (backup.payingAt, 2 min) lets one of them charge; a month already paid is returned without a charge.
+// → { until, charged }
+const CLAIM_MS = 2 * 60 * 1000;
 async function pay(worldId, uid) {
+  const wref = db.collection('worlds').doc(worldId), at = (x) => (x && x.toMillis ? x.toMillis() : 0);
+  const claim = await db.runTransaction(async (t) => {
+    const bk = ((await t.get(wref)).data() || {}).backup || {};
+    if (at(bk.paidUntil) > Date.now()) return { until: at(bk.paidUntil) };
+    if (Date.now() - at(bk.payingAt) < CLAIM_MS) return { busy: true };
+    t.update(wref, { 'backup.payingAt': admin.firestore.Timestamp.now() });
+    return {};
+  });
+  if (claim.until) return { until: claim.until, charged: false };
+  if (claim.busy) throw fail(409, 'Місяць бекапу вже оплачується — спробуй за хвилину');
+  try { return { until: await charge(worldId, uid), charged: true }; }
+  finally { await wref.update({ 'backup.payingAt': admin.firestore.FieldValue.delete() }).catch(() => {}); }
+}
+async function charge(worldId, uid) {
   const u = await db.collection('users').doc(uid).get(), ud = u.exists ? u.data() : {};
   if (!getPlanBudget(ud.plan || 'free').allowBackup) throw fail(403, 'Бекап у GitHub — від тарифу Storyteller', { code: 'PLAN_REQUIRED' });
   const balance = getBalance(ud);
@@ -92,11 +110,10 @@ async function handle(op, b, uid) {
   }
   if (!cur.repo) throw fail(400, 'Спершу підключи GitHub');
   if (op === 'enable') {
-    const paid = cur.paidUntil && cur.paidUntil.toMillis() > Date.now();
-    const until = paid ? cur.paidUntil.toMillis() : await pay(worldId, uid);
-    if (paid) await wref.update({ 'backup.enabled': true });
+    const p = await pay(worldId, uid);
+    if (!p.charged) await wref.update({ 'backup.enabled': true });
     await runBackup(worldId).catch((e) => wref.update({ 'backup.lastStatus': 'error', 'backup.lastError': str(e.message, 300) }));
-    return { enabled: true, paidUntil: until, tokensConsumed: paid ? 0 : BACKUP_COST };
+    return { enabled: true, paidUntil: p.until, tokensConsumed: p.charged ? BACKUP_COST : 0 };
   }
   if (op === 'disable') { await wref.update({ 'backup.enabled': false }); return { enabled: false }; } // the paid month stays paid
   if (op === 'now') {
@@ -126,7 +143,7 @@ exports.backup = onRequest({ region: 'us-central1', timeoutSeconds: 300, memory:
     } catch (e) {
       if (e.status) return res.status(e.status).json(e.body || { error: e.message });
       console.error('backup error:', e);
-      return res.status(500).json({ error: `Помилка бекапу: ${e.message}` });
+      return res.status(500).json({ error: `Помилка бекапу: ${publicMessage(e)}` });
     }
   });
 });

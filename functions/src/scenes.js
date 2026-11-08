@@ -12,6 +12,7 @@ const {
   loadCanon,
   claudeApiKey,
   buildCanonContext,
+  publicMessage
 } = require('./common');
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
@@ -333,7 +334,7 @@ exports.generateScene = onRequest({
       if (reservation) {
         await settle(db, uid, reservation, error, 'generateScene').catch(e => console.error('[generateScene] Refund failed:', e)); // a refusal is paid (claude.js)
       }
-      res.status(500).json({ error: `Помилка генерації: ${error.message}` });
+      res.status(500).json({ error: `Помилка генерації: ${publicMessage(error)}` });
     }
   });
 });
@@ -703,7 +704,7 @@ ${sceneText}
       if (reservation) {
         await settle(db, uid, reservation, error, 'reconstructScene').catch(e => console.error('[reconstructScene] Refund failed:', e)); // a refusal is paid (claude.js)
       }
-      res.status(500).json({ error: `Помилка реконструкції: ${error.message}` });
+      res.status(500).json({ error: `Помилка реконструкції: ${publicMessage(error)}` });
     }
   });
 });

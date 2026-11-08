@@ -8,17 +8,26 @@ const { notify } = require('./admin-notice');
 
 const COST_ALERT_USD = 5;  // a day, one user
 const TOP = 50;            // rows kept in the daily summary
+const PAGE = 2000;         // usage_logs read per page
 const r4 = (x) => Math.round(x * 10000) / 10000;
 
 async function summarize(now = Date.now()) {
   const since = admin.firestore.Timestamp.fromMillis(now - 24 * 3600 * 1000);
-  const snap = await db.collection('usage_logs').where('timestamp', '>=', since).get();
-  const by = {};
-  snap.docs.forEach((d) => {
-    const x = d.data(), u = by[x.uid] || (by[x.uid] = { uid: x.uid, usd: 0, paid: 0, calls: 0, tokens: 0, ops: {} });
-    u.usd += x.realApiCostUSD || 0; u.paid += x.userPaidUSD || 0; u.calls += 1; u.tokens += x.userTokensCharged || 0;
-    u.ops[x.operation || '?'] = (u.ops[x.operation || '?'] || 0) + 1;
-  });
+  const by = {}; let calls = 0, last = null;
+  for (;;) { // in pages, only the fields it sums: a busy day is many thousands of entries
+    let q = db.collection('usage_logs').where('timestamp', '>=', since).orderBy('timestamp')
+      .select('uid', 'realApiCostUSD', 'userPaidUSD', 'userTokensCharged', 'operation').limit(PAGE);
+    if (last) q = q.startAfter(last);
+    const page = await q.get();
+    page.docs.forEach((d) => {
+      const x = d.data(), u = by[x.uid] || (by[x.uid] = { uid: x.uid, usd: 0, paid: 0, calls: 0, tokens: 0, ops: {} });
+      u.usd += x.realApiCostUSD || 0; u.paid += x.userPaidUSD || 0; u.calls += 1; u.tokens += x.userTokensCharged || 0;
+      u.ops[x.operation || '?'] = (u.ops[x.operation || '?'] || 0) + 1;
+    });
+    calls += page.size;
+    if (page.size < PAGE) break;
+    last = page.docs[page.size - 1];
+  }
   const rows = Object.values(by).sort((a, b) => b.usd - a.usd);
   for (const u of rows.slice(0, TOP)) { // who it is: plan and e-mail, for the admin only
     const us = await db.collection('users').doc(u.uid).get().catch(() => null);
@@ -28,7 +37,7 @@ async function summarize(now = Date.now()) {
   const day = new Date(now).toISOString().slice(0, 10);
   const total = r4(rows.reduce((s, u) => s + u.usd, 0));
   await db.collection('admin_costs').doc(day).set({ at: admin.firestore.FieldValue.serverTimestamp(), day, totalUsd: total,
-    calls: snap.size, users: rows.length, top: rows.slice(0, TOP) });
+    calls, users: rows.length, top: rows.slice(0, TOP) });
 
   const who = (u) => `${u.email || u.uid} (${u.plan || '?'})`;
   const ops = (u) => Object.entries(u.ops).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} × ${n}`).join(', ');

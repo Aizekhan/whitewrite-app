@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
-const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, claudeApiKey, stripeSecretKey, MODEL_PRICING } = require('./common');
+const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, claudeApiKey, stripeSecretKey, MODEL_PRICING, publicMessage } = require('./common');
 const { activeModels, claudeText } = require('./claude');
 const ledger = require('./ledger');
 const { LICENCE, licenceFee, USD_PER_TOKEN, byOp } = require('../paid-features.js');
@@ -357,7 +357,7 @@ exports.market = onRequest({ region: 'us-central1', secrets: [stripeSecretKey], 
     } catch (e) {
       if (e.status) return res.status(e.status).json(e.body || { error: e.message });
       console.error('market error:', e);
-      return res.status(500).json({ error: `Помилка Маркету: ${e.message}` });
+      return res.status(500).json({ error: `Помилка Маркету: ${publicMessage(e)}` });
     }
   });
 });

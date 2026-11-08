@@ -56,7 +56,8 @@ fs.mkdirSync(OUT, { recursive: true });
 for (const ent of fs.readdirSync(OUT)) fs.rmSync(path.join(OUT, ent), { recursive: true, force: true });
 fs.cpSync(SRC, OUT, {
   recursive: true,
-  filter: (p) => !path.basename(p).startsWith('.') && !p.includes('node_modules'),
+  // PROVENANCE.md — the owner's notes (local paths, how the art was made), not for the site
+  filter: (p) => !path.basename(p).startsWith('.') && !p.includes('node_modules') && path.basename(p) !== 'PROVENANCE.md',
 });
 
 // 1) Compile .jsx → .js

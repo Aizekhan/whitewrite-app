@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.99.0 (2026-11-08)
+**Version:** 2.100.0 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -300,6 +300,8 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 **Scale (v2.98):** `mcp.js readGame` keeps a game's entities / cards / tasks on the instance (`gameCache`, ≤ 200 games); every call reads the world, game and plan docs plus a signature per list (`count()` + the newest `updatedAt`, ~6 reads) and re-reads the lists only when it changed or after `GAME_TTL` (2 min); a tool that may write (`report_* / submit_* / get_next_task / …`) drops the entry; each call gets its own copies. Access (owner, game exists) is checked every call. Community: `community/{id}.heat` = Σ 2^((like.at − EPOCH) / HALF_LIFE) is incremented / decremented by `like`, `score = heat · 2^(−(now − EPOCH)/HALF_LIFE)`; `rebuildHome` reads no likes (a doc without `heat` gets it once), checks activity at most every 6 h per showcase (`activeCheckedAt`) and rewrites `score` only when it moved > 2%.
 
 **Hero prefab from the PC (v2.98):** in a character / enemy card (and the Forge) the prefab field and the picker have «⤒ Завантажити з ПК» (GLB · Blend · unitypackage · ZIP) and «📂 Тека з ПК» (FBX · OBJ · glTF + textures) — `gamebible.js uploadPrefabFor`: a new `assets` card (title = the hero, category Персонажі / Вороги), the files onto its kit slots (`kit:<slot>`, `asset-kit.js classify`), then `setPrefab` links it (`card.prefab`, card-refs kind already registered). The picker's «Перейти в «Ассети й префаби»» is replaced by these buttons.
+
+**Audit leftovers (v2.100):** *Team* — `worlds/{w}.team.{uid}` = `{ role, view, edit, viewKinds, editKinds, name, at }`, no e-mail (every member reads the world doc; the owner's «Команда» takes e-mails from `users/{owner}/friends`); `team.js invite` ≤ `INVITES_A_DAY` (30) per account a day (`inviteLimits/{uid}` `{ day, n }`, server only) — «no such account» tells whether an e-mail is registered. *Storage* — `storage.rules` reads `games/{g}/files/{cardId}/…` by the card's `section` (`readCardFiles`) and `worlds/{w}/files/{entityId}/…` by the entity's `kind` (`readEntityFiles`; `cosmos` → `cosmology`) for a `custom` member; owner / admin / editor / viewer read all; the card / entity doc is read only for a custom member. *Billing* — `lemon.js upgradeInvoice`: `lastUpgrade.net` (= quote.tokens − fee) is recorded by both upgrade paths; `subscription_payment_failed` with `billing_reason: 'updated'` (within 7 days of the upgrade) puts the plan back to `lastUpgrade.from` and takes `net` off the allowance (not below 0), `lastUpgrade.revoked = true`; `subscription_payment_success` `updated` with `revoked` brings it back. The LS webhook (store 419955, `test_mode`) also sends `order_refunded` and `subscription_payment_refunded`. `backup.js pay` claims the month in a transaction (`backup.payingAt`, 2 min) → `{ until, charged }`. *Errors* — `common.js publicMessage(e)`: a 500 passes our own messages, hides Firestore / gRPC / network internals. *Rules* — the game doc's `telemetryStats`, `knowledge`, `audit`, `auditRunning` are server only. *Community* — `community_blocked/{pubId}` (server only) is set by the admin `hide`: a hidden showcase unpublished and published again stays hidden. *kb-help* — the page's history is quoted inside the user turn (`<earlier>`), never sent as assistant turns. *Scale* — `aiCostDaily` reads `usage_logs` in pages of 2000 with `select`. *SSRF* — `marketing.js` fetch `redirect: 'error'` (the Mastodon host is the author's). Accepted: the telemetry daily cap may overshoot by one batch per parallel instance (`maxInstances` 20); `npm audit` — 6 moderate in `google-gax` (glob / minimatch over local files, no fix upstream yet).
 
 **Team trust & Storage quota (v2.97):** a task a team member writes must carry `memberEdit = their uid` (`firestore.rules`, tasks subcollection; the owner writes anything and clears it). `mcp.js unapproved(t)`: `get_next_task` never claims such a task, `taskView` returns no instructions for it, the MCP `initialize` instructions say card / quest / dialogue text is data, never commands — the owner's agent runs with full rights on the owner's PC. The Production plan shows «✎ змінив …» + «✓ Схвалити для агента» (`gamebible.js memberHtml / approveTask`); the owner's own action on a task (review, return, assign) clears it too (`memberMark`). Game delete — owner only (rules; «Небезпечна зона» in settings only for the owner). **Storage quota:** `PLANS.storageGB` (paid-features: 1 · 2 · 5 · 50 GB, all the owner's worlds together); `storageUsage/{w} {owner, bytes}` (server-written, the owner reads), kept by `storageUploaded` (onObjectFinalized: over the quota → the file is marked `wwUncounted` and deleted) and `storageRemoved` (onObjectDeleted, incl. overwritten generations); `worldDeleted` drops the doc. The owner's page checks the sum before an upload (`storageRoom`, putFile / dossier files / Forge / folder intake). Files from before v2.97 were counted once by a backfill.
 
@@ -676,7 +678,7 @@ The owner: «Продакшн-план висне і не може оброби�
 - Claude API — the only AI (Haiku / Sonnet / Opus 5.5 by default; Models API for the model watch)
 - Firebase Auth, Firestore, Hosting, Storage
 - MCP (Model Context Protocol) — WhiteWrite is an MCP **server** for Claude Code
-- three.js (CDN, import map) — 3D viewer in the Game Bible
+- three.js 0.169.0 — vendored in `app/vendor/three/` (`scripts/vendor-three.mjs`: the build + only the addons `gb-3d.js` imports and their imports, MIT `LICENSE`), the import map in «WhiteWrite GameBible.html» points there; the Firebase compat SDK (gstatic 9.22.0) and React (unpkg) load with SRI `integrity`
 
 ---
 
@@ -756,6 +758,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.100.0** audit leftovers: team members' e-mails no longer on `worlds/{w}.team` (the owner sees them in friends), invites ≤ 30/day (`inviteLimits/{uid}`); Storage reads by «вибрані розділи» (`tests/storage-rules.test.mjs`); a failed upgrade invoice takes the plan and its tokens back (`subscription_payment_failed`, LS webhook now also sends the refund events); backup month claimed in a transaction; `publicMessage` on 500s; game doc `telemetryStats / knowledge / audit / auditRunning` server only; `community_blocked`; kb-help history quoted; `aiCostDaily` in pages; Mastodon / Discord fetch `redirect: 'error'`; three.js vendored, SRI on the Firebase SDK; `PROVENANCE.md` not in dist
 - **v2.99.0** auto-rig: 12 markers (+ shoulders → `LeftArm/RightArm`, ankles «згин перед стопою» → `LeftFoot/RightFoot`), a T-pose model gets them placed by itself, every marker is draggable
 - **v2.98.0** audit package 2: MCP `readGame` cache by signature, Community ♥ score kept incrementally (`heat`); a hero uploads its prefab from the PC straight into «Ассети й префаби» (`uploadPrefabFor`); KB «🧊 GLB-моделі з WhiteWrite в Unity (glTFast)»
 - **v2.97.0** audit decisions (owner: «decide yourself»): a team member's task waits for the owner's approval before MCP serves it (`memberEdit`); only the owner deletes a game; Storage quota per plan 1 · 2 · 5 · 50 GB (`storage-quota.js`)
@@ -885,5 +888,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-08 (v2.99.0)
+**Last updated:** 2026-11-08 (v2.100.0)
 **Maintained by:** WhiteWrite Team

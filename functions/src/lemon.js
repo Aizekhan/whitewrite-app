@@ -9,6 +9,7 @@ const {
   getPlanBudget,
   getBalance,
   verifyAuth,
+  publicMessage
 } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 const { PLAN_ORDER, PLANS, planRank, upgradeQuote } = require('../paid-features.js');
@@ -39,7 +40,8 @@ async function trustedUid(custom, email) {
 /**
  * Change an ACTIVE subscription's plan (owner decision 2026-11-02):
  *  - up:   now — LS PATCH variant + invoice_immediately (prorated difference charged at once);
- *          tokens: the budget difference opens prorated to the days left, minus the switch fee (paid-features upgradeQuote)
+ *          tokens: the budget difference opens prorated to the days left, minus the switch fee (paid-features upgradeQuote);
+ *          opened before LS charges the card — a failed upgrade invoice takes the plan and those tokens back (upgradeFailed)
  *  - down: from the next billing month — LS PATCH variant + disable_prorations (new price at renewal, no credit);
  *          the plan stays until renews_at (users.pendingPlan / pendingFrom; the webhook applies it after that date)
  *  - free: cancel at the period end (LS cancelled: true; the webhook keeps the plan until ends_at)
@@ -97,7 +99,7 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
         await db.runTransaction(async (tx) => {
           const b = getBalance((await tx.get(userRef)).data() || {});
           const upd = { plan: target, tokensUsed: Math.max(0, newMonthly - (b.monthlyLeft + quote.tokens - quote.fee)), pendingPlan: null, pendingFrom: null, upgrading: null,
-            lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now() }, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+            lastUpgrade: { from: cur, to: target, fee: quote.fee, usd: quote.usd, net: quote.tokens - quote.fee, at: admin.firestore.Timestamp.now() }, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
           if (b.expired) upd.periodStart = admin.firestore.Timestamp.now();
           tx.update(userRef, upd);
         });
@@ -119,7 +121,7 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
       return res.json({ ok: true, kind, plan: cur, pendingPlan: target, pendingFrom: new Date(renewsAt).toISOString() });
     } catch (error) {
       console.error('[changeSubscription]', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: publicMessage(error) });
     }
   });
 });
@@ -219,7 +221,7 @@ exports.createLemonSqueezyCheckout = onRequest({
 
     } catch (error) {
       console.error('[LS Checkout] Error:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: publicMessage(error) });
     }
   });
 });
@@ -234,6 +236,30 @@ exports.createLemonSqueezyCheckout = onRequest({
  * - subscription_cancelled → plan stays until ends_at (cancelAtPeriodEnd); subscription_expired / status expired → free
  * - order_created → add tokens for one-time purchases (token top-ups)
  */
+// The upgrade's prorated invoice (billing_reason 'updated') failed: the plan goes back to lastUpgrade.from and the tokens the
+// upgrade opened (lastUpgrade.net) are taken back — what was already spent stays spent (the allowance just can't go below 0).
+// LS retries the invoice; when a retry is paid (paid = true) the upgrade comes back as it was. Once per state (lastUpgrade.revoked).
+const UPGRADE_WINDOW_MS = 7 * 24 * 3600 * 1000;
+async function upgradeInvoice(ref, paid) {
+  return db.runTransaction(async (tx) => {
+    const d = (await tx.get(ref)).data() || {}, lu = d.lastUpgrade;
+    if (!lu || Date.now() - millis(lu.at) > UPGRADE_WINDOW_MS || !!lu.revoked === !paid) return false;
+    const net = Math.max(0, lu.net || 0), b = getBalance(d);
+    if (paid) { // the retry went through: the new plan's allowance as it was right after the upgrade
+      if ((d.plan || 'free') !== lu.from) return false; // something else changed the plan meanwhile (cancel, another switch)
+      const monthly = getPlanBudget(lu.to).monthly;
+      tx.update(ref, { plan: lu.to, tokensUsed: Math.max(0, monthly - (b.monthlyLeft + net)), lastUpgrade: Object.assign({}, lu, { revoked: false }), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      ledger.txRecord(tx, db, ref.id, { type: 'grant', op: 'plan_upgrade', amount: net, ref: { plan: lu.to }, note: 'upgrade invoice paid on retry' });
+    } else {
+      if ((d.plan || 'free') !== lu.to) return false;
+      const monthly = getPlanBudget(lu.from).monthly;
+      tx.update(ref, { plan: lu.from, tokensUsed: Math.max(0, monthly - Math.max(0, b.monthlyLeft - net)), lastUpgrade: Object.assign({}, lu, { revoked: true }), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      ledger.txRecord(tx, db, ref.id, { type: 'adjust', op: 'plan_upgrade_failed', amount: -net, ref: { plan: lu.from }, note: lu.from + ' ← ' + lu.to + ' (upgrade invoice failed)' });
+    }
+    return true;
+  });
+}
+
 async function downgradeToFree(uid) {
   await db.collection('users').doc(uid).update({
     plan: 'free',
@@ -394,7 +420,7 @@ exports.lemonSqueezyWebhook = onRequest({
             const left = Math.min(1, Math.max(0, (renewsAt - Date.now()) / MONTH_MS));
             const quote = upgradeQuote(cur, variantPlan, left);
             portalUpgrade = { monthly: getPlanBudget(variantPlan).monthly, quote }; // tokensUsed — from a fresh read, below
-            updates.lastUpgrade = { from: cur, to: variantPlan, fee: quote.fee, usd: quote.usd, at: admin.firestore.Timestamp.now(), via: 'portal' };
+            updates.lastUpgrade = { from: cur, to: variantPlan, fee: quote.fee, usd: quote.usd, net: quote.tokens - quote.fee, at: admin.firestore.Timestamp.now(), via: 'portal' };
             ledger.record(db, uid, { type: 'grant', op: 'plan_upgrade', amount: Math.max(0, quote.tokens), ref: { plan: variantPlan }, note: cur + ' → ' + variantPlan + ' (portal)' });
             ledger.record(db, uid, { type: 'spend', op: 'plan_upgrade_fee', amount: -quote.fee, ref: { plan: variantPlan } });
           }
@@ -448,10 +474,19 @@ exports.lemonSqueezyWebhook = onRequest({
         break;
       }
 
+      case 'subscription_payment_failed': { // the upgrade's invoice failed: the plan and the tokens it opened go back
+        const A = event.data.attributes || {};
+        if (A.billing_reason !== 'updated') break; // a renewal failing → past_due / unpaid via subscription_updated
+        const snap = await db.collection('users').where('lemonSqueezySubscriptionId', '==', String(A.subscription_id || '')).limit(1).get();
+        if (!snap.empty && await upgradeInvoice(snap.docs[0].ref, false)) console.log(`[LemonSqueezy] Upgrade invoice failed for ${snap.docs[0].id}: plan and tokens taken back`);
+        break;
+      }
+
       case 'subscription_payment_success': { // renewal paid: a scheduled downgrade becomes the plan
         const subscriptionId = String(event.data.attributes.subscription_id || '');
         const snap = await db.collection('users').where('lemonSqueezySubscriptionId', '==', subscriptionId).limit(1).get();
         if (snap.empty) break;
+        if (event.data.attributes.billing_reason === 'updated') { await upgradeInvoice(snap.docs[0].ref, true); break; } // an upgrade's invoice paid (on a retry: it comes back)
         const u = snap.docs[0].data(), from = u.pendingFrom && u.pendingFrom.toMillis ? u.pendingFrom.toMillis() : 0;
         if (u.pendingPlan && u.pendingPlan !== 'free' && from <= Date.now() + 3600 * 1000) {
           await snap.docs[0].ref.update({ plan: u.pendingPlan, pendingPlan: null, pendingFrom: null, updatedAt: admin.firestore.FieldValue.serverTimestamp() });

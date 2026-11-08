@@ -9,7 +9,7 @@
 // gets `telemetryStats.scaleAlert` (shown in «Досвід гравців») — that is the moment to move raw events to BigQuery
 // (ARCHITECTURE.md §Experience → «Scale»), keeping Firestore for aggregates, issues and playtests.
 const crypto = require('crypto');
-const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
 
@@ -587,7 +587,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
     } catch (error) {
       console.error('experience error:', error);
       if (reservation) await settle(db, uid, reservation, error, 'experience').catch((e) => console.error('[experience] Refund failed:', e));
-      res.status(500).json({ error: `Помилка аналітики досвіду: ${error.message}` });
+      res.status(500).json({ error: `Помилка аналітики досвіду: ${publicMessage(error)}` });
     }
   });
 });

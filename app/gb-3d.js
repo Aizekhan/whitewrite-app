@@ -1,6 +1,6 @@
 // 3D viewer for model files on Game Bible cards (glb / gltf / fbx / obj / stl).
 // ES module, loaded on demand by gamebible.js: import("./gb-3d.js").then(m => m.view3d(file, labels, cardFiles)).
-// three.js comes from unpkg through the import map in "WhiteWrite GameBible.html".
+// three.js is vendored in app/vendor/three/ (scripts/vendor-three.mjs) and mapped by the import map in "WhiteWrite GameBible.html".
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";

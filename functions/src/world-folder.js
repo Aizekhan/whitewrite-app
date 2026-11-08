@@ -3,7 +3,7 @@
 // every part is sorted by Claude in parallel into the whitewrite.fill/1 shape by the «what goes where» rules (functions/world-fill.js),
 // the parts are merged (FILL.merge) and returned. NOTHING is written here: the page shows the same preview as the fill file and
 // the author presses «Перенести в світ». Reserve = «не більше N» (quoteChars on the text size), charge = the real cost, capped.
-const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey } = require('./common');
+const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
 const { payerFor } = require('./team')._team;
 const { byOp, quoteChars } = require('../paid-features.js');
 const { modelFor, claudeText, allPaid } = require('./claude');
@@ -143,7 +143,7 @@ exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey]
     } catch (error) {
       console.error('worldFolder error:', error);
       if (reservation) await settle(db, uid, reservation, error, 'world_folder').catch((e) => console.error('[world-folder] Refund failed:', e));
-      return res.status(500).json({ error: `Помилка: ${error.message}` });
+      return res.status(500).json({ error: `Помилка: ${publicMessage(error)}` });
     }
   });
 });

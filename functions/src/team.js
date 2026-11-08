@@ -1,14 +1,15 @@
 // Друзі й Команда. Friends are made by e-mail (Account → «Друзі»); a world's owner adds accepted friends to the world's team
 // (world hub → «Команда») with a role. Everything here is written ONLY by the server (firestore.rules):
 //   users/{uid}/friends/{fuid}  { uid, name, email, status: pending (I asked) | incoming (they asked) | accepted, at } — the owner reads
-//   worlds/{w}.team.{uid}       { role, view[], edit[], viewKinds[], editKinds[], name, email, at }
+//   worlds/{w}.team.{uid}       { role, view[], edit[], viewKinds[], editKinds[], name, at } — no email: every member reads
+//                               the world doc, the owner sees emails in their own friends list
 //   worlds/{w}.teamUids         [uid…] — the shell lists «shared with me» worlds by array-contains
 // Roles: admin  — everything, and ✦ AI actions on the OWNER's tokens (payerFor);
 //        editor — everything except ✦ (no token spending);
 //        viewer — reads everything, changes nothing;
 //        custom — reads the `view` sections and edits the `edit` sections (menu ids of the World / Game Bible).
 // firestore.rules / storage.rules enforce it; the Bible shows only what the member may see.
-const { onRequest, admin, db, cors } = require('./common');
+const { onRequest, admin, db, cors, publicMessage } = require('./common');
 
 const ROLES = ['admin', 'editor', 'viewer', 'custom'];
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
@@ -40,13 +41,28 @@ function member(body, prev) {
   const edit = role === 'custom' ? list(body.edit) : [];
   const view = role === 'custom' ? [...new Set(list(body.view).concat(edit))] : [];
   const kinds = (l) => l.map((s) => KIND_OF[s]).filter(Boolean);
-  return { role, view, edit, viewKinds: kinds(view), editKinds: kinds(edit), name: prev.name, email: prev.email, at: Date.now() };
+  return { role, view, edit, viewKinds: kinds(view), editKinds: kinds(edit), name: prev.name || '', at: Date.now() };
+}
+
+// «Користувача з такою поштою немає» tells whether an email has an account — so one account asks about at most
+// INVITES_A_DAY emails a day (inviteLimits/{uid}, server only), not a mailing list
+const INVITES_A_DAY = 30;
+async function inviteQuota(uid) {
+  const ref = db.collection('inviteLimits').doc(uid), day = new Date().toISOString().slice(0, 10);
+  const ok = await db.runTransaction(async (t) => {
+    const d = (await t.get(ref)).data() || {}, n = d.day === day ? d.n || 0 : 0;
+    if (n >= INVITES_A_DAY) return false;
+    t.set(ref, { day, n: n + 1 });
+    return true;
+  });
+  if (!ok) throw fail(429, 'На сьогодні запрошень досить — спробуй завтра');
 }
 
 async function handle(op, b, uid) {
   if (op === 'invite') {
     const email = str(b.email, 200).toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw fail(400, 'Потрібна пошта друга');
+    await inviteQuota(uid);
     const other = await admin.auth().getUserByEmail(email).catch(() => null);
     if (!other) throw fail(404, 'Користувача з такою поштою в WhiteWrite немає — запроси його зареєструватись');
     if (other.uid === uid) throw fail(400, 'Це твоя пошта');
@@ -108,7 +124,7 @@ exports.team = onRequest({ region: 'us-central1' }, async (req, res) => {
     } catch (e) {
       if (e.status) return res.status(e.status).json({ error: e.message });
       console.error('team error:', e);
-      return res.status(500).json({ error: `Помилка: ${e.message}` });
+      return res.status(500).json({ error: `Помилка: ${publicMessage(e)}` });
     }
   });
 });
