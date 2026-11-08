@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.102.4 (2026-11-08)
+**Version:** 2.102.5 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -758,6 +758,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.102.5** game menu (owner): «Прогресія й економіка» its own menu item (`NAV_GROUPS` `g-prog`), the group «Предмети» = gear + items; ⚙ «Розділи гри в меню» fold shows a «▾ Показати й налаштувати» button; `createGame` writes `hiddenSections: [experience, telemetry, tech, knowledge, marketing]` — new games start with them off
 - **v2.102.4** 📚 «Історії світу» (owner): the world's stories leave «Історії і хроніка» for a canon section of their own `wstories` (special, before the chronicle, now «Хроніка» — events only), the same shelf as «Історії гри»; «Зберегти історію» in the book returns there (the shell's `openChronicle` → section `wstories`)
 - **v2.102.3** 📚 «Історії гри» (owner): game section `gstories` (special, in «Огляд і лор» of `NAV_GROUPS`) — the world's stories with `projects/{p}.games` ∋ the game on the shared shelf (`storyShelfHtml`, also used by the chronicle); «＋ Нова історія» there → `ww-new-story {gameId}` → the shell's `createNarrative(gameId)` → the book `&gameId=` → after `createProject` the client writes `games: [gameId]` (the same field the Bible's game tags write; no new data, no server change)
 - **v2.102.2** ⚒ owner test: «＋ привʼязати предмет…» of a slot also lists gear items with no `forge.slot` (binding sets `slot` + `bind` from that slot; already bound ones left out) — before, items made in «Предмети й спорядження» could not be bound at all; «▦ Обрати тип тіла» button under the body type on the character screen (the race button alone did not look clickable)
@@ -896,5 +897,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-08 (v2.102.4)
+**Last updated:** 2026-11-08 (v2.102.5)
 **Maintained by:** WhiteWrite Team

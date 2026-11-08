@@ -291,7 +291,7 @@
         expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
       tlSeed: "＋ Стандартні події", tlSeeded: "Додано стандартних подій: {n}",
-      stShown: "Розділи гри в меню", stShownN: "{n} з {t} у меню · натисни, щоб змінити", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
+      stShown: "Розділи гри в меню", stShownN: "{n} з {t} у меню", stShownOpen: "▾ Показати й налаштувати", stShownClose: "▴ Згорнути", stShownHint: "Зніми галочку, щоб сховати розділ у цій грі. Картки не видаляються — повернеш галочку, і вони знову на місці. «Огляд гри» лишається завжди.",
       folder: { gameHint: "Обери теку з нотатками гри — текстові файли (.md, .txt…) підуть в імпорт ✦, ти відмітиш картки, які взяти.", lock: "📂 Теку світу з ШІ можна завантажити з тарифу Storyteller; без токенів — через свій ШІ-агент нижче.", busy: "ШІ розкладає теку «{d}» ({n} файлів)…", big: "Тека завелика: {n} символів, максимум {max}. Обери меншу теку або прибери з неї зайве.", empty: "У теці немає текстових файлів (.md, .txt, .json, .csv…). .docx і .pdf збережи як .md чи .txt.", bad: "Частини {p} не вдалося розкласти — спробуй теку меншою.", skipped: "пропущено не текстових файлів: {n}", name: "Тека «{d}»" },
       wfold: { ask: "📂 Тека «{d}»: файлів, які можна прочитати — {n}. ✦ ШІ перегляне список і вибере, де є світ (нотатки, лор, сценарії, дані персонажів і предметів); документацію фреймворків, код без змісту й налаштування пропустить.",
         scouting: "✦ ШІ переглядає список… частина {d} з {n}", readingFiles: "Читаю вибрані файли з ПК… {d} з {n}", nothing: "ШІ не знайшов у теці файлів зі світом.",
@@ -617,7 +617,7 @@
         expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
       tlSeed: "＋ Standard events", tlSeeded: "Standard events added: {n}",
-      stShown: "Game sections in the menu", stShownN: "{n} of {t} in the menu · click to change", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
+      stShown: "Game sections in the menu", stShownN: "{n} of {t} in the menu", stShownOpen: "▾ Show and set up", stShownClose: "▴ Fold", stShownHint: "Untick to hide a section in this game. Cards are not deleted — tick it again and they are back. «Game overview» always stays.",
       folder: { gameHint: "Pick a folder of game notes — the text files (.md, .txt…) go to the ✦ import, you tick the cards to take.", lock: "📂 A world folder with AI is from the Storyteller plan; without tokens — through your own AI agent below.", busy: "AI is sorting the folder «{d}» ({n} files)…", big: "The folder is too big: {n} characters, at most {max}. Pick a smaller folder or remove what is not needed.", empty: "The folder has no text files (.md, .txt, .json, .csv…). Save .docx and .pdf as .md or .txt.", bad: "Parts {p} could not be sorted — try a smaller folder.", skipped: "non-text files skipped: {n}", name: "Folder «{d}»" },
       wfold: { ask: "📂 Folder «{d}»: readable files — {n}. ✦ AI looks through the list and picks those holding the world (notes, lore, scripts, character and item data); docs of frameworks, code without content and settings are skipped.",
         scouting: "✦ AI looks through the list… part {d} of {n}", readingFiles: "Reading the picked files from the PC… {d} of {n}", nothing: "AI found no files about the world in the folder.",
@@ -988,7 +988,8 @@
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["locations", "levels", "worldgen", "scenes"] },
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
-    { id: "g-items", uk: "Прогресія й предмети", en: "Progression & items", members: ["progression", "gear", "items"] },
+    { id: "g-prog", members: ["progression"] }, // «Прогресія й економіка» — its own menu item (owner): the progression constructor lives there
+    { id: "g-items", uk: "Предмети", en: "Items", members: ["gear", "items"] },
     { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "assets", "materials", "animation", "ui"] },
     { id: "g-audio", members: ["audio"] }, // «Звук і музика» — its own menu item (the Sound factory lives there)
     { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
@@ -7250,7 +7251,7 @@
         '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
         '<p class="hint">' + STR.stExportHint + '</p>' +
         // the sections list folds into one line with its count (v2.89) — it is set once, rarely changed
-        '<details class="setfold"><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2></summary>' +
+        '<details class="setfold"><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2><span class="btn mini setfold-btn"><span class="sf-open">' + STR.stShownOpen + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary>' +
         '<p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
           var gh = guideLater(s.id), st = guideStageOf(s.id);
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +

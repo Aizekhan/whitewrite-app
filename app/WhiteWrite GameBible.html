@@ -1113,7 +1113,8 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 .sroad{ list-style:none; margin:4px 0 0; padding:0; position:relative; }
 .sroad::before{ content:""; position:absolute; left:17px; top:18px; bottom:24px; width:2px;
   background:repeating-linear-gradient(180deg, rgba(240,169,59,.55) 0 6px, transparent 6px 12px); }
-.setfold > summary{ list-style:none; cursor:pointer; }
+.setfold > summary{ list-style:none; cursor:pointer; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; }
+.setfold-btn{ pointer-events:none; } .setfold .sf-close, .setfold[open] .sf-open{ display:none; } .setfold[open] .sf-close{ display:inline; }
 .setfold > summary::-webkit-details-marker{ display:none; }
 .setfold > summary h2 .muted{ font:500 13px "Inter"; margin-left:8px; }
 .sroad__fold > summary{ list-style:none; cursor:pointer; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
