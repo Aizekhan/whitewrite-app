@@ -85,10 +85,10 @@ var PROVIDERS = [{ id: 'manual', uk: 'Ручне завантаження', en: 
 var REF_RIGS = [
   { id: 'mixamo65', name: 'Humanoid 65 (сумісний з Mixamo)', bones: 65, notes: 'WhiteWrite reference · mixamorig:* · T-pose · Unity Humanoid' },
   { id: 'mixamo65+tail', name: 'Humanoid 65 + хвіст (сумісний з Mixamo)', bones: 71, notes: 'WhiteWrite reference · mixamorig:* + Tail1–6 (outside Humanoid) · T-pose' }];
-var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human male', 1.80], ['human_female', 'Людина, жінка', 'Human female', 1.70],
-  ['elf', 'Ельф, чоловік', 'Elf male', 1.85], ['elf_female', 'Ельф, жінка', 'Elf female', 1.78], ['orc', 'Орк, чоловік', 'Orc male', 1.95], ['orc_female', 'Орк, жінка', 'Orc female', 1.85],
-  ['dwarf', 'Гном (дварф), чоловік', 'Dwarf male', 1.35], ['dwarf_female', 'Гном (дварф), жінка', 'Dwarf female', 1.30], ['goblin', 'Гоблін, чоловік', 'Goblin male', 1.40], ['goblin_female', 'Гоблін, жінка', 'Goblin female', 1.35],
-  ['ogre', 'Огр, чоловік', 'Ogre male', 2.50], ['ogre_female', 'Огр, жінка', 'Ogre female', 2.35], ['ratfolk', 'Щуролюд, чоловік', 'Ratfolk male', 1.45], ['ratfolk_female', 'Щуролюд, жінка', 'Ratfolk female', 1.40]]
+var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human, male', 1.80], ['human_female', 'Людина, жінка', 'Human, female', 1.70],
+  ['elf', 'Ельф, чоловік', 'Elf, male', 1.85], ['elf_female', 'Ельф, жінка', 'Elf, female', 1.78], ['orc', 'Орк, чоловік', 'Orc, male', 1.95], ['orc_female', 'Орк, жінка', 'Orc, female', 1.85],
+  ['dwarf', 'Гном (дварф), чоловік', 'Dwarf, male', 1.35], ['dwarf_female', 'Гном (дварф), жінка', 'Dwarf, female', 1.30], ['goblin', 'Гоблін, чоловік', 'Goblin, male', 1.40], ['goblin_female', 'Гоблін, жінка', 'Goblin, female', 1.35],
+  ['ogre', 'Огр, чоловік', 'Ogre, male', 2.50], ['ogre_female', 'Огр, жінка', 'Ogre, female', 2.35], ['ratfolk', 'Щуролюд, чоловік', 'Ratfolk, male', 1.45], ['ratfolk_female', 'Щуролюд, жінка', 'Ratfolk, female', 1.40]]
   .map(function (b) { return { id: b[0], uk: b[1], en: b[2], height: b[3], rig: hasTail(b[0]) ? 'mixamo65+tail' : 'mixamo65' }; });
 // the ratfolk (male and female) has Tail1…6 and the tail clips; ids of the male types never change (the female ones are <race>_female)
 function hasTail(bodyId) { return /^ratfolk(_female)?$/.test(String(bodyId || '')); }
