@@ -292,6 +292,7 @@ function manifest(char, items, game, lang) {
     skeleton_check: f.rigCheck ? { result: f.rigCheck.result, source: f.rigCheck.source || '', at: f.rigCheck.at || null, report: f.rigCheck.report || null,
       issues: (f.rigCheck.issues || []).map(function (i) { return L === 'uk' ? i.uk : i.en; }) } : null,
     animation_ready: animReady(f),
+    model: char.model ? { name: char.model.name || '', url: char.model.url || '', tris: char.model.tris || undefined, source: char.model.source || '' } : null, // the model the Forge uses (export)
     brief: f.brief || {},
     stages: pipeline(f).map(function (s) {
       var a = f.stages && f.stages[s.id] && f.stages[s.id].approved, r = approvedRev(f, s.id);
