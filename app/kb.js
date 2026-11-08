@@ -424,7 +424,7 @@
         lead: "Що читач уже знає, а що — ні.",
         min: 2,
         body: [
-          ["p", "У досьє героя чи події є блок «Історії» — усі історії про нього, кнопки «Відкрити» і «＋ Історія». Відкриття супроводжує ритуал: маг відкриває книгу."],
+          ["p", "У досьє героя чи події є блок «Історії» — усі історії про нього, кнопки «Відкрити» і «＋ Історія». «Відкрити» одразу розгортає книгу; ритуал, де маг відкриває книгу, буває лише раз — коли історія створюється."],
           ["ul", [
             "Відкрита читачеві — канон історії розкрито.",
             "Розкриється згодом — з приміткою, коли саме.",
@@ -506,7 +506,8 @@
           ["p", "Подія має початок, тривалість (хвіст комети; без тривалості — зірка), підпис часу й учасників (аватари над головою комети). Комети не перекриваються, крок шкали підбирається сам; одиницю часу задаєш ти."],
           ["p", "Кожен підрозділ хроніки — своя лінія часу; ✎ біля назви перейменовує її (події переїжджають разом). Події без дати чекають під лінією. Подію відкриває клік по комети або її назві — у досьє змінюєш назву, дату, тривалість і учасників."],
           ["h", "Історії світу"],
-          ["p", "На тій самій сторінці — картки історій світу; це єдине місце, де вони живуть (у хабі світу їх більше немає). На картці: позначка розкриття, ✎ (назва, опис, обсяг, фінал, жанри), 🗑 (видалити, з підтвердженням), «Відкрити» і два теги:"],
+          ["p", "На тій самій сторінці — <b>полиця книг</b>: кожна історія світу стоїть як книга з назвою на обкладинці. Це єдине місце, де вони живуть (у хабі світу їх більше немає). Клік по обкладинці відкриває нашу Книгу з цією історією — читати її й писати далі, без ритуалу. Остання книга з «＋» (як і «＋ Нова історія» поруч із заголовком) створює нову історію: форма, а потім маг відкриває книгу — лише цього, першого разу."],
+          ["p", "Під обкладинкою — ✎ (назва, опис, обсяг, фінал, жанри) і 🗑 (видалити, з підтвердженням). «Налаштування історії» розгортає решту: про кого вона, опис, позначку розкриття, 💡 квест із історії і два теги:"],
           ["ul", [
             "Масштаб — «Загальна історія світу» чи «Локальна історія» (про одне місце, героя чи подію).",
             "Ігри — до яких ігор цього світу належить історія (можна кілька або жодної).",
@@ -1795,7 +1796,7 @@
         lead: "What the reader already knows — and what not yet.",
         min: 2,
         body: [
-          ["p", "A hero's or event's dossier has a “Stories” block — every story about it, “Open” and “＋ Story”. Opening plays the ritual: a mage opens the book."],
+          ["p", "A hero's or event's dossier has a “Stories” block — every story about it, “Open” and “＋ Story”. “Open” goes straight into the book; the ritual where a mage opens the book plays only once — when a story is created."],
           ["ul", [
             "Open to the reader — this canon is revealed.",
             "Revealed later — with a note on when.",
@@ -1877,7 +1878,8 @@
           ["p", "An event has a start, a duration (the comet's tail; no duration — a star), a time label and participants (avatars above the comet's head). Comets never overlap, the scale step picks itself; you set the time unit."],
           ["p", "Every chronicle subsection is its own time line; ✎ next to its name renames it (its events move along). Undated events wait below the line. A click on a comet or its name opens the event — in the dossier you change its name, date, duration and participants."],
           ["h", "Stories of the world"],
-          ["p", "The same page shows the world's story cards; this is the only place they live (the world hub no longer lists them). A card has the reveal mark, ✎ (title, description, length, ending, genres), 🗑 (delete, with a confirmation), “Open” and two tags:"],
+          ["p", "The same page holds <b>a shelf of books</b>: each story of the world stands as a book with its title on the cover. This is the only place they live (the world hub no longer lists them). A click on a cover opens our Book with that story — to read it and write on, no ritual. The last book with “＋” (like “＋ New story” next to the heading) creates a new story: the form, then the mage opens the book — only this first time."],
+          ["p", "Under a cover — ✎ (title, description, length, ending, genres) and 🗑 (delete, with a confirmation). “Story settings” unfolds the rest: who it is about, the description, the reveal mark, 💡 a quest from the story and two tags:"],
           ["ul", [
             "Scope — “World-wide story” or “Local story” (about one place, hero or event).",
             "Games — which games of this world the story belongs to (several or none).",

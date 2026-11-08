@@ -47,7 +47,7 @@
         reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
-      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити", editStory: "Редагувати історію", delStory: "Видалити історію",
+      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
         scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
         noStories: "У цьому світі ще немає історій.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
@@ -374,7 +374,7 @@
         reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
-      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open", editStory: "Edit the story", delStory: "Delete the story",
+      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
         scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
         noStories: "No stories in this world yet.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
@@ -4617,23 +4617,31 @@
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     $("ch-newstory").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
-    $("ch-stories").innerHTML = stories.length ? '<div class="grid">' + stories.map(function (p) {
-      var about = (p.subjects || []).map(function (id) { return entities.filter(function (x) { return x.id === id; })[0]; }).filter(Boolean);
-      return '<div class="card story"><h3>' + esc(p.title || p.name || "…") + '</h3>' + (p.meta ? '<p class="sub">' + esc(p.meta) + '</p>' : '') +
+    // the stories stand as books on a shelf (owner, v2.102): a cover opens the Book to read and write on (no mage — he greets only a new story),
+    // the tags, the reveal, ✎ and 🗑 sit small under it
+    $("ch-stories").innerHTML = '<div class="shelf">' + stories.map(function (p) {
+      var about = (p.subjects || []).map(function (id) { return entities.filter(function (x) { return x.id === id; })[0]; }).filter(Boolean), t = p.title || p.name || "…";
+      return '<div class="bk">' +
+        '<button type="button" class="bk-cover" data-story="' + esc(p.id) + '" title="' + esc(STR.chron.openBook.replace("{t}", t)) + '"><span class="bk-title">' + esc(t) + '</span>' +
+          (p.meta ? '<span class="bk-sub">' + esc(p.meta) + '</span>' : '') + '<span class="bk-mark">✶</span>' +
+          (about.length ? '<span class="bk-who">' + esc(about.map(function (x) { return x.name || x.title || ""; }).join(" · ")) + '</span>' : '') + '</button>' +
+        '<div class="bk-acts"><button class="btn mini ghost" data-sedit="' + esc(p.id) + '" title="' + esc(STR.chron.editStory) + '" aria-label="' + esc(STR.chron.editStory) + '">✎</button>' +
+        '<button class="btn mini ghost" data-sdel="' + esc(p.id) + '" title="' + esc(STR.chron.delStory) + '" aria-label="' + esc(STR.chron.delStory) + '">🗑</button></div>' +
+        '<details class="bk-more"><summary>' + esc(STR.chron.storyMore) + '</summary>' +
         (about.length ? '<div class="who-row">' + about.map(function (x) { return '<button class="dlink" data-ent="' + esc(x.id) + '">' + avatar(x) + esc(x.name || x.title || "") + '</button>'; }).join("") + '</div>' : '') +
-        '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p><div class="row"><select data-reveal="' + esc(p.id) + '" aria-label="' + esc(STR.story.revealAria) + '">' +
-        REVEALS.map(function (r) { return '<option value="' + r + '"' + ((p.reveal || "open") === r ? " selected" : "") + '>' + esc(STR.story.reveals[r]) + '</option>'; }).join("") + '</select>' +
-        '<span style="flex:1"></span><button class="btn mini ghost" data-sedit="' + esc(p.id) + '" title="' + esc(STR.chron.editStory) + '" aria-label="' + esc(STR.chron.editStory) + '">✎</button>' +
-        '<button class="btn mini ghost" data-sdel="' + esc(p.id) + '" title="' + esc(STR.chron.delStory) + '" aria-label="' + esc(STR.chron.delStory) + '">🗑</button>' +
-        '<button class="btn" data-story="' + esc(p.id) + '">' + STR.chron.openStory + '</button></div>' +
+        (plain(p.desc || p.description) ? '<p class="ex">' + esc(plain(p.desc || p.description)) + '</p>' : '') +
+        '<div class="row"><select data-reveal="' + esc(p.id) + '" aria-label="' + esc(STR.story.revealAria) + '">' +
+        REVEALS.map(function (r) { return '<option value="' + r + '"' + ((p.reveal || "open") === r ? " selected" : "") + '>' + esc(STR.story.reveals[r]) + '</option>'; }).join("") + '</select></div>' +
         // tags: world-wide or local; which games of the world it belongs to (projects/{p}.scope, .games)
         '<div class="row stags"><select data-scope="' + esc(p.id) + '" aria-label="' + esc(STR.chron.scopeAria) + '">' + ["world", "local"].map(function (k) {
           return '<option value="' + k + '"' + ((p.scope || "world") === k ? " selected" : "") + '>' + esc(STR.chron.scopes[k]) + '</option>'; }).join("") + '</select>' +
         (games.length ? '<span class="muted" title="' + esc(STR.chron.gamesHint) + '">' + STR.chron.gamesLabel + '</span>' + games.map(function (g) {
           return '<label class="gtag"><input type="checkbox" data-sgame="' + esc(p.id) + '" value="' + esc(g.id) + '"' + ((p.games || []).indexOf(g.id) >= 0 ? " checked" : "") + '><span>' + esc(g.title || "…") + '</span></label>'; }).join("") : '') + '</div>' +
         '<div class="row">' + bulbHtml("story", p.id) + quests.filter(function (q) { return q.source && q.source.id === p.id; }).map(function (q) {
-          return '<button class="dlink" data-qd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + '</button>'; }).join("") + '</div></div>';
-    }).join("") + '</div>' : '<p class="muted">' + STR.chron.noStories + '</p>';
+          return '<button class="dlink" data-qd="quests:' + esc(q.id) + '"><span class="k">' + QD.quest + '</span>' + esc(q.title || "…") + '</button>'; }).join("") + '</div></details></div>';
+    }).join("") + '<div class="bk"><button type="button" class="bk-cover bk-new" id="ch-newbook"><span class="bk-mark">＋</span><span class="bk-title">' + esc(STR.chron.newBook) + '</span></button></div></div>' +
+      (stories.length ? '' : '<p class="muted">' + STR.chron.noStories + '</p>');
+    $("ch-newbook").onclick = $("ch-newstory").onclick;
   }
 
   function renderGameLocked() {

@@ -998,6 +998,24 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .fz-refb .btn, .fz-shape .btn{ padding:3px 10px; font-size:12.5px; } a.btn{ text-decoration:none; } .fz-refb img{ width:100%; height:150px; object-fit:contain; background:#fff; border-radius:8px; } .fz-refb .muted{ font-size:12px; }
 .fz-shape{ display:grid; gap:6px; padding:10px; border:1px solid var(--line); border-radius:10px; } .fz-shape input[type=range]{ width:100%; accent-color:var(--gold-lit); } .fz-shape small{ font-size:11.5px; line-height:1.4; }
 .fz-lib a.btn{ color:var(--tx-hi); }
+/* 📚 stories as books on a shelf (v2.102): a cover opens the Book */
+.shelf{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:22px 18px; padding:18px 14px 10px; border-bottom:6px solid rgba(240,169,59,.28); border-radius:0 0 4px 4px; margin-bottom:12px; }
+.bk{ width:150px; display:flex; flex-direction:column; gap:6px; }
+.bk-cover{ position:relative; width:150px; height:210px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:18px 14px 18px 22px; cursor:pointer; text-align:center;
+  border:1px solid rgba(240,169,59,.45); border-radius:3px 9px 9px 3px; color:var(--gold-bright);
+  background:linear-gradient(90deg, rgba(0,0,0,.45) 0 9px, rgba(240,169,59,.35) 9px 10px, transparent 10px), linear-gradient(160deg, #4a2a17, #2a170d 60%, #1c0f08);
+  box-shadow:0 8px 18px rgba(0,0,0,.45), inset 0 0 0 5px rgba(0,0,0,.18), inset 0 0 0 6px rgba(240,169,59,.25); transition:transform .18s, box-shadow .18s; }
+.bk-cover:hover, .bk-cover:focus-visible{ transform:translateY(-4px) rotate(-1deg); box-shadow:0 14px 24px rgba(0,0,0,.55), inset 0 0 0 5px rgba(0,0,0,.18), inset 0 0 0 6px rgba(240,169,59,.45); }
+.bk-title{ font:700 15px/1.25 var(--serif); color:var(--gold-bright); overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+.bk-sub{ font:italic 12px var(--serif); color:var(--tx-mid); }
+.bk-mark{ font-size:16px; color:var(--gold-lit); opacity:.8; }
+.bk-who{ position:absolute; left:22px; right:12px; bottom:12px; font:500 10.5px "Inter"; color:var(--tx-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bk-new{ background:transparent; border:1px dashed rgba(240,169,59,.45); box-shadow:none; color:var(--gold-lit); }
+.bk-new .bk-mark{ font-size:28px; }
+.bk-acts{ display:flex; justify-content:center; gap:4px; }
+.bk-more summary{ cursor:pointer; font:500 12px "Inter"; color:var(--tx-mid); text-align:center; }
+.bk-more[open]{ width:300px; max-width:80vw; position:relative; z-index:2; padding:8px; border:1px solid var(--line); border-radius:10px; background:var(--panel, #15110d); }
+.bk-more .row{ flex-wrap:wrap; margin-top:6px; }
 .fz-brief, .fz-pass{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-top:10px; }
 .fz-rev{ margin:8px 0; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg-2); } .fz-rev.ap{ border-color:var(--s-game); }
 .fz-rev .row{ gap:8px; align-items:center; flex-wrap:wrap; } .fz-rev p{ margin:6px 0 0; }

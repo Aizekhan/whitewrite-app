@@ -1461,7 +1461,7 @@ body.at-home .back-fab{ display:none; }
       });
       return;
     }
-    if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId, true); return; } // World Bible → a story of this world: the mage opens the book
+    if (d.type === "ww-open-story" && d.projectId) { openNarrative(d.projectId); return; } // World Bible → a story of this world: straight into the book (the mage ritual is only for a new story)
     if (d.type === "ww-new-story" && d.worldId) { CURRENT_WORLD = d.worldId; createNarrative(); return; } // World Bible → chronicle → «＋ Нова історія»
     // World Bible → a dossier → «＋ Історія»: the book opens (the mage ritual) straight into writing, the story is about that entity
     if (d.type === "ww-write-story" && d.worldId && window.__wwAuth) {
