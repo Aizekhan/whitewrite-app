@@ -968,9 +968,9 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .fz-file a, .fz-cmp a{ color:var(--tx); }
 .fz-bar{ height:6px; border-radius:999px; background:var(--bg-3, rgba(255,255,255,.06)); overflow:hidden; } .fz-bar i{ display:block; height:100%; background:var(--gold-lit); }
 .fz-work{ display:grid; grid-template-columns:260px 1fr; gap:22px; margin-top:14px; align-items:start; }
-.fz-side{ display:grid; gap:8px; position:sticky; top:12px; }
+.fz-side{ display:grid; grid-template-columns:minmax(0,1fr); gap:8px; position:sticky; top:12px; min-width:0; } .fz-side > *{ min-width:0; max-width:100%; } .fz-side select{ width:100%; }
 .fz-hero{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:12px; border:1px solid var(--line); background:var(--bg-2); }
-.fz-ph{ display:grid; place-items:center; font-size:48px; color:var(--tx-mid); }
+.fz-shot{ object-fit:contain; } .fz-ph{ display:grid; place-items:center; font-size:48px; color:var(--tx-mid); }
 .fz-lb{ display:grid; gap:4px; font-size:12.5px; color:var(--tx-mid); }
 .fz-h{ margin:18px 0 6px; font:600 12px "Inter"; letter-spacing:.12em; text-transform:uppercase; color:var(--tx-mid); }
 .fz-stages{ list-style:none; margin:0; padding:0; display:grid; gap:4px; }

@@ -6177,10 +6177,48 @@
     if (c.src === "canon") { body.canonRef = c.id; fields.push("canonRef"); }
     return gref().collection("cards").doc(c.id).set(body, { mergeFields: fields }).catch(function (e) { fz.msg = STR.failed + ": " + (e.code || e.message); render(); });
   }
+  // one build key: a deep merge of forge.shape.<key> only (the 3D viewer keeps the character it opened with — a whole-forge write from it
+  // put back the old values of the keys moved before); the local copy follows at once so a re-render shows the new value
+  function fzSaveShape(c, k, v) {
+    v = Math.max(0, Math.min(100, Math.round(+v || 0))); var sh = {}; sh[k] = v;
+    c.forge.shape = Object.assign({}, c.forge.shape, sh);
+    cards.forEach(function (x) { if (x.id === c.id) x.forge = Object.assign({}, x.forge, { shape: Object.assign({}, (x.forge || {}).shape, sh) }); });
+    var body = { section: c.section, forge: { shape: sh }, updatedAt: stamp() };
+    if (c.src === "canon") body.canonRef = c.id;
+    return gref().collection("cards").doc(c.id).set(body, { merge: true }).catch(function (e) { fz.msg = STR.failed + ": " + (e.code || e.message); render(); });
+  }
   function fzImg(c) {
     var f = c.forge || {}, by = function (id) { return (c.files || []).filter(function (x) { return x.id === id; })[0]; };
     var r = FG.approvedRev(f, "concept") || FG.revsOf(f, "concept")[0], pic = r && (r.files || []).map(by).filter(function (x) { return x && isImage(x); })[0];
     return pic || (c.files || []).filter(isImage)[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0])) || null;
+  }
+  // the character's picture: its own model (rig / mesh version, else the hero's prefab) as a still rendered once in the browser
+  // (gb-3d.js modelShot, one at a time, kept for the session), else a picture (fzImg), else the ⚒ placeholder
+  var fzShots = {}, fzShotQ = Promise.resolve(), FZ_BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+  function fzShot(c) {
+    var m = fzCharModel(c); if (!m || m.dummy) return "";
+    var key = m.file.url + "|" + JSON.stringify((c.forge || {}).shape || {});
+    if (fzShots[key] === undefined) {
+      fzShots[key] = "";
+      fzShotQ = fzShotQ.then(function () { return import("./gb-3d.js"); }).then(function (g) { return g.modelShot(m.file, m.sib, { shape: (c.forge || {}).shape }); })
+        .then(function (u) { fzShots[key] = u; }, function () { fzShots[key] = "x"; }).then(function () { fzShotFill(key); });
+    }
+    return key;
+  }
+  function fzShotFill(key) {
+    var u = fzShots[key];
+    [].slice.call(document.querySelectorAll("img[data-fzshot]")).forEach(function (el) {
+      if (el.dataset.fzshot !== key) return;
+      if (u && u !== "x") { el.src = u; el.removeAttribute("style"); el.classList.remove("fz-wait"); el.classList.add("fz-shot"); }
+      else if (el.classList.contains("fz-wait")) { if (el.classList.contains("fz-hero")) el.outerHTML = '<div class="fz-hero fz-ph">⚒</div>'; else el.remove(); }
+    });
+  }
+  function fzPicHtml(c, cls) {
+    var key = fzShot(c), shot = key && fzShots[key], img = fzImg(c), own = shot && shot !== "x";
+    if (!own && !img && !(key && shot === "")) return cls === "fz-hero" ? '<div class="fz-hero fz-ph">⚒</div>' : "";
+    var src = own ? shot : img ? img.url : FZ_BLANK;
+    return '<img class="' + cls + (own ? " fz-shot" : img ? "" : " fz-wait") + '" alt=""' + (cls === "thumb" ? ' loading="lazy"' : "") + (key ? ' data-fzshot="' + esc(key) + '"' : "") +
+      ' src="' + esc(src) + '"' + (!own && img ? frameAttr(img) : "") + '>';
   }
   function fzFind(list, key) { return list.filter(function (x) { return x.key === key; })[0] || null; }
 
@@ -6206,8 +6244,8 @@
       '<select data-fztype aria-label="' + esc(FZ.type) + '"><option value="">' + esc(FZ.allTypes) + '</option>' + FG.TYPES.map(function (t) { return '<option value="' + t.id + '"' + (fz.type === t.id ? ' selected' : '') + '>' + esc(fzL(t)) + '</option>'; }).join("") + '</select></div>';
     if (!list.length) return html + '<p class="empty">' + FZ.noChars + '</p>';
     return html + '<div class="grid">' + list.map(function (c) {
-      var p = FG.progress(c), img = fzImg(c), nx = p.next && FG.stage(p.next);
-      return '<button class="card fz-card" data-fzopen="' + esc(c.key) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
+      var p = FG.progress(c), nx = p.next && FG.stage(p.next);
+      return '<button class="card fz-card" data-fzopen="' + esc(c.key) + '">' + fzPicHtml(c, "thumb") +
         '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags"><span class="pill s-agreed">' + esc(fzL(FG.type(c.forge.type))) + '</span><span class="pill">' + esc(FZ.sec[c.section]) + '</span>' +
         (FG.animReady(c.forge) ? '<span class="pill s-game">🦴 Humanoid</span>' : '') + '</div>' +
         '<div class="fz-bar" role="progressbar" aria-valuenow="' + p.pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + p.pct + '%"></i></div>' +
@@ -6236,8 +6274,8 @@
   function fzWorkHtml(c) {
     var ctx = fzCtx(), f = c.forge, all = FG.type(f.type).stages.map(FG.stage), on = FG.pipeline(f).map(function (s) { return s.id; });
     if (!fz.stage || all.every(function (s) { return s.id !== fz.stage; })) fz.stage = FG.progress(c).next || all[0].id;
-    var img = fzImg(c), p = FG.progress(c), P = fzProf();
-    var side = '<aside class="fz-side">' + (img ? '<img class="fz-hero" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '<div class="fz-hero fz-ph">⚒</div>') +
+    var p = FG.progress(c), P = fzProf();
+    var side = '<aside class="fz-side">' + fzPicHtml(c, "fz-hero") +
       '<div class="fz-bar"><i style="width:' + p.pct + '%"></i></div><p class="muted">' + p.done + ' / ' + p.all + '</p>' +
       '<label class="fz-lb">' + FZ.type + fzSel('data-fzf="type"', FG.TYPES, f.type) + '</label>' +
       '<label class="fz-lb">' + FZ.rig + fzSel('data-fzf="rig"', P.rigs || [], f.rig || "", true) + '</label>' +
@@ -6500,7 +6538,7 @@
     if (!all.length) notes.push(X.noItems); else if (all.length > items.length) notes.push(X.noModel.replace("{n}", all.length - items.length));
     FG.SHAPES.forEach(function (k) { shp[k] = +((f.shape || {})[k]) || 0; });
     view3d(m.file, m.sib, null, { shape: shp, labels: FZ.ref.shapes, readonly: !canWrite,
-      onShape: canWrite ? function (k, v) { var sf = fzClone(c.forge); sf.shape = sf.shape || {}; sf.shape[k] = v; c.forge = sf; fzSave(c, sf); } : null,
+      onShape: canWrite ? function (k, v) { fzSaveShape(c, k, v); } : null,
       fit: { clips: clips, clip: first && first.id, items: items, notes: notes, labels: X,
         onOk: canWrite ? function (id, clip) { return fzItemCheck(id, "fitting", "passed", X.okDetails.replace("{c}", c.title || "").replace("{a}", clip || "")); } : null,
         onCheck: canWrite ? function (id, result, details) { return fzItemCheck(id, "clipping", result, details); } : null } });
@@ -6656,7 +6694,7 @@
     if (d.fzref3d) {
       var rf = fzRefFile(d.fzref3d), mineB = c && c.forge.body === d.fzref3d, shp = {}; FG.SHAPES.forEach(function (k) { shp[k] = mineB ? +((c.forge.shape || {})[k]) || 0 : 0; });
       view3d(rf, [rf], null, { shape: shp, labels: FZ.ref.shapes, readonly: mineB && !canWrite,
-        onShape: mineB && canWrite ? function (k, v) { var sf = fzClone(c.forge); sf.shape = sf.shape || {}; sf.shape[k] = v; fzSave(c, sf); } : null });
+        onShape: mineB && canWrite ? function (k, v) { fzSaveShape(c, k, v); } : null });
       return true;
     }
     if (d.fzlibcat) { fz.libCat = d.fzlibcat; render(); return true; }
@@ -6748,7 +6786,7 @@
     if (d.fzf) { if (t.value) f[d.fzf] = t.value; else delete f[d.fzf];
       var rb = d.fzf === "body" && FG.refBody(t.value); if (rb && f.rig !== rb.rig) { f.rig = rb.rig; fz.msg = FZ.ref.auto.replace("{r}", FG.refRig(rb.rig).name); }
       fzSave(c, f); return; }
-    if (d.fzshape) { f.shape = f.shape || {}; f.shape[d.fzshape] = Math.max(0, Math.min(100, parseInt(t.value, 10) || 0)); fzSave(c, f); return; }
+    if (d.fzshape) { fzSaveShape(c, d.fzshape, parseInt(t.value, 10) || 0); return; }
     if (d.fzb) { f.brief = f.brief || {}; f.brief[d.fzb] = t.value.slice(0, 4000); fzSave(c, f); return; }
     if (d.fzbind) { var bi = fzFind(fzItems(), t.value); if (bi) fzSetItem(bi, function (x) { x.owners = (x.owners || []).concat([c.id]); }); return; }
     if (d.fzlo) { var lp = d.fzlo.split(":"); f.loadouts[+lp[0]].items = f.loadouts[+lp[0]].items || {}; if (t.value) f.loadouts[+lp[0]].items[lp[1]] = t.value; else delete f.loadouts[+lp[0]].items[lp[1]]; fzSave(c, f); return; }

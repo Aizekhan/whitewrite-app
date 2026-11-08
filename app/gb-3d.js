@@ -51,6 +51,25 @@ function disposeTree(root) {
     [].concat(o.material || []).forEach((m) => { Object.values(m).forEach((v) => { if (v && v.isTexture) v.dispose(); }); m.dispose(); });
   });
 }
+// A still of the model for a card (the Forge shows a character's own model instead of an empty frame): rendered once off-screen, the
+// GPU freed at once; opts.shape = { Thin: 0–100, … } bends the body like the sliders do. Resolves a data URL.
+export async function modelShot(file, siblings, opts) {
+  const r = await load(file, siblings), root = r.root, w = 360, h = 480, shape = (opts && opts.shape) || {};
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+  try {
+    renderer.setSize(w, h, false); renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const scene = new THREE.Scene(), sun = new THREE.DirectionalLight(0xffffff, 2.4);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x2a2622, 2.2)); sun.position.set(2, 4, 3); scene.add(sun); scene.add(root);
+    root.traverse((o) => { if (o.morphTargetDictionary) Object.keys(shape).forEach((k) => { const i = o.morphTargetDictionary[k]; if (i != null) o.morphTargetInfluences[i] = (+shape[k] || 0) / 100; }); });
+    root.updateMatrixWorld(true);
+    const b = new THREE.Box3().setFromObject(root), s = b.getSize(new THREE.Vector3()), c = b.getCenter(new THREE.Vector3());
+    const fov = 30, half = Math.max(s.y, s.x * h / w) * 0.56, dist = half / Math.tan(fov / 2 * Math.PI / 180) + s.z / 2;
+    const camera = new THREE.PerspectiveCamera(fov, w / h, dist / 100, dist * 10);
+    camera.position.set(c.x, c.y, c.z + dist); camera.lookAt(c);
+    renderer.render(scene, camera);
+    return renderer.domElement.toDataURL("image/webp", 0.85);
+  } finally { disposeTree(root); renderer.dispose(); renderer.forceContextLoss(); }
+}
 export async function modelInfo(file, siblings) { const r = await load(file, siblings); const out = { tris: countTris(r.root), rights: r.meta || "" }; disposeTree(r.root); return out; }
 
 // Bones are matched by name, whatever the exporter did to it: "mixamorig:Hips", "mixamorigHips", "Hips" → "hips"
