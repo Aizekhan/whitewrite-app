@@ -6139,7 +6139,7 @@
         keysOk: "✓ Ключі форми Thin / Heavy / Muscular є — статура діє на модель.",
         ready: "готовий до анімацій", needRig: "треба скелет", noModelShort: "немає моделі", counts: "предметів: {n} · анімацій: {k}" },
       context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
-      slots: "Слоти", bindItem: "＋ привʼязати предмет…", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
+      slots: "Слоти", bindItem: "＋ привʼязати предмет…", noSlot: "ще без слота", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
       clips: "Кліпи", clipSt: { todo: "Не почато", done: "Є", checked: "Перевірено на моделі" }, addClip: "＋ Кліп", clipPh: "Назва кліпу",
       manifest: "⤓ Маніфест (JSON)", manifestHint: "Маніфест — затверджені версії, профілі, екіпірування з паспортами, кліпи й набори. Claude Code бере те саме через MCP get_character_forge.",
       integHint: "Кліпінг, деформації й сумісність скелета перевіряються в Unity чи Blender: Claude Code надсилає результат через MCP report_forge_check — він зʼявиться біля предмета.",
@@ -6202,7 +6202,7 @@
         keysOk: "✓ Thin / Heavy / Muscular shape keys present — the build acts on the model.",
         ready: "ready for animation", needRig: "needs a skeleton", noModelShort: "no model", counts: "items: {n} · animations: {k}" },
       context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
-      slots: "Slots", bindItem: "＋ bind an item…", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
+      slots: "Slots", bindItem: "＋ bind an item…", noSlot: "no slot yet", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
       clips: "Clips", clipSt: { todo: "Not started", done: "Exists", checked: "Checked on the model" }, addClip: "＋ Clip", clipPh: "Clip name",
       manifest: "⤓ Manifest (JSON)", manifestHint: "The manifest — approved versions, profiles, equipment with passports, clips and loadouts. Claude Code gets the same through MCP get_character_forge.",
       integHint: "Clipping, deformation and skeleton compatibility are checked in Unity or Blender: Claude Code sends the result through MCP report_forge_check — it shows next to the item.",
@@ -6350,7 +6350,7 @@
     var ctx = fzCtx(), f = c.forge, W = FZ.ws, rb = FG.refBody(f.body), mine = FG.itemsOf(c, ctx.items), nClips = FG.clipsOf(f).length;
     if (["model", "equip", "anim"].indexOf(fz.ws) < 0) fz.ws = "model";
     var side = '<aside class="fz-side">' + fzPicHtml(c, "fz-hero") +
-      (rb ? '<button class="btn fz-bodyb" data-fzpick' + (canWrite ? '' : ' disabled') + '>' + esc(fzL(rb)) + ' · ' + fzBldTxt("height", FG.heightOf(f)) + '<small>' + esc(fzL(FG.bodyStyle(f.style))) + '</small></button>' : '') +
+      (rb ? '<button class="btn fz-bodyb" data-fzpick' + (canWrite ? '' : ' disabled') + '>' + esc(fzL(rb)) + ' · ' + fzBldTxt("height", FG.heightOf(f)) + '<small>' + esc(fzL(FG.bodyStyle(f.style))) + '</small></button>' + (canWrite ? '<button class="btn mini" data-fzpick>' + FZ.ref.pickBtn + '</button>' : '') : '') +
       fzBodyHtml(c) + '<button class="btn mini ghost" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button></aside>';
     var st = fzState(c);
     var bar = '<div class="row fz-acts"><button class="btn primary" data-fzfit>' + esc(FZ.fit.btn) + '</button><button class="btn" data-fzexport' + (st.hum ? '' : ' disabled') + '>' + W.export + '</button>' +
@@ -6391,12 +6391,12 @@
   function fzEquipHtml(c, ctx) {
     var mine = FG.itemsOf(c, ctx.items), slots = fzSlots(), f = c.forge;
     var html = '<h4 class="fz-h">' + FZ.slots + '</h4><table class="fz-slots">' + slots.map(function (s) {
-      var here = mine.filter(function (i) { return i.forge.slot === s.id; }), cand = ctx.items.filter(function (i) { return i.forge.slot === s.id && here.indexOf(i) < 0; });
+      var here = mine.filter(function (i) { return i.forge.slot === s.id; }), cand = ctx.items.filter(function (i) { return (i.forge.slot === s.id || !i.forge.slot) && (i.forge.owners || []).indexOf(c.id) < 0; }); // that slot's items + the ones with no slot yet (binding gives them this slot)
       return '<tr><th>' + esc(fzL(s)) + '</th><td>' + here.map(function (i) {
         var v = FG.validation(i, c, game);
         return '<span class="fz-chip"><button class="linkish" data-fzitem="' + esc(i.key) + '">' + esc(i.title) + '</button> <span class="pill ' + FZ_VCLS[v.status] + '">' + esc(FZ.val[v.status]) + '</span>' +
           (canWrite ? ' <button class="btn mini ghost" data-fzunbind="' + esc(i.key) + '" aria-label="' + esc(FZ.unbind + " " + i.title) + '">✕</button>' : '') + '</span>';
-      }).join("") + (canWrite ? ' <button class="btn mini" data-fznewitem="' + esc(s.id) + '">' + esc(FZ.from.newItem) + '</button>' : '') + (canWrite && cand.length ? '<select data-fzbind aria-label="' + esc(FZ.bindItem) + '"><option value="">' + esc(FZ.bindItem) + '</option>' + cand.map(function (i) { return '<option value="' + esc(i.key) + '">' + esc(i.title) + '</option>'; }).join("") + '</select>' : '') + '</td></tr>';
+      }).join("") + (canWrite ? ' <button class="btn mini" data-fznewitem="' + esc(s.id) + '">' + esc(FZ.from.newItem) + '</button>' : '') + (canWrite && cand.length ? '<select data-fzbind="' + esc(s.id) + '" aria-label="' + esc(FZ.bindItem) + '"><option value="">' + esc(FZ.bindItem) + '</option>' + cand.map(function (i) { return '<option value="' + esc(i.key) + '">' + esc(i.title + (i.forge.slot ? "" : " · " + FZ.noSlot)) + '</option>'; }).join("") + '</select>' : '') + '</td></tr>';
     }).join("") + '</table>';
     html += '<h4 class="fz-h">' + FZ.loadouts + '</h4>' + (f.loadouts || []).map(function (l, li) {
       return '<div class="fz-rev"><b>' + esc(l.name) + '</b>' + (canWrite ? ' <button class="btn mini ghost" data-fzlodel="' + li + '" aria-label="' + esc(STR.remove + " " + l.name) + '">✕</button>' : '') +
@@ -6806,7 +6806,8 @@
       fzSave(c, f); return; }
     if (d.fzbld) { fzSaveBuild(c, d.fzbld, t.value); return; }
     if (d.fzb) { f.brief = f.brief || {}; f.brief[d.fzb] = t.value.slice(0, 4000); fzSave(c, f); return; }
-    if (d.fzbind) { var bi = fzFind(fzItems(), t.value); if (bi) fzSetItem(bi, function (x) { x.owners = (x.owners || []).concat([c.id]); }); return; }
+    if (d.fzbind) { var bi = fzFind(fzItems(), t.value), bs = fzSlots().filter(function (s) { return s.id === d.fzbind; })[0];
+      if (bi) fzSetItem(bi, function (x) { x.owners = (x.owners || []).concat([c.id]); if (!x.slot && bs) { x.slot = bs.id; if (!x.bind) x.bind = bs.bind; } }); return; }
     if (d.fzlo) { var lp = d.fzlo.split(":"); f.loadouts[+lp[0]].items = f.loadouts[+lp[0]].items || {}; if (t.value) f.loadouts[+lp[0]].items[lp[1]] = t.value; else delete f.loadouts[+lp[0]].items[lp[1]]; fzSave(c, f); return; }
     if (d.fzclip) { f.clips = FG.clipsOf(f); f.clips[+d.fzclip].status = t.value; fzSave(c, f); return; }
   }
