@@ -53,7 +53,7 @@
         body: [
           ["p", "«Створи свій світ» — у формі лише <b>назва</b> і <b>опис за бажанням</b> (або велика кнопка <b>«📂 Створити світ із теки на компʼютері»</b> — ✦ ШІ сам знайде й розкладе твої нотатки, див. нижче). Натисни «Створити» — світ зʼявиться одразу, без токенів, і відкриється в Біблії на «Огляді світу», де вже чекає блок <b>«📜 Заповни світ своїми матеріалами»</b> (див. <a class=\"art__link\" data-art=\"world-fill\">окрему статтю</a>). Хочеш, щоб ШІ запропонував варіанти? Під описом постав галочку <b>«✦ Запропонувати 3 варіанти світу за описом»</b> — ціна видно біля кнопки, обираєш один; там же «✎ Заповнити мінімально тим, що я дав» розкладе лише твій опис по канону, нічого не вигадуючи. Якщо ти ще не увійшов, після входу створення продовжиться саме, без повернення на головну."],
           ["h", "Каркас — одразу"],
-          ["p", "Тобі не треба вигадувати, як усе впорядкувати. Світ народжується з готовою Біблією: Огляд світу, Закони, Персонажі, Локації, Фракції, Артефакти, Історії і хроніка, Культура, Космологія. Обраний варіант AI одразу кладе в них опис світу, закони й перших героїв, місця та фракції. Додаєш гру — і вона отримує розділи гейм-диздоку: механіки, рівні, предмети, арт, UI, технічне."],
+          ["p", "Тобі не треба вигадувати, як усе впорядкувати. Світ народжується з готовою Біблією: Огляд світу, Закони, Персонажі, Локації, Фракції, Артефакти, Історії світу, Хроніка, Культура, Космологія. Обраний варіант AI одразу кладе в них опис світу, закони й перших героїв, місця та фракції. Додаєш гру — і вона отримує розділи гейм-диздоку: механіки, рівні, предмети, арт, UI, технічне."],
           ["h", "Як наповнити"],
           ["ul", [
             "<b>Сам</b> — картка за карткою, у будь-якому порядку й коли зручно.",
@@ -62,7 +62,7 @@
             "<b>З GitHub</b> — підключи репозиторій гри, і «Звірити з репо» ✦ покаже, що є в коді й документах, але бракує в Біблії (<a class=\"art__link\" data-art=\"agent-github\">крок 9</a>).",
           ]],
           ["p", "Імпорт і звірка з репозиторієм — частина Біблії гри (тариф Worldbuilder). Чому Біблія гри замінює гейм-диздок — <a class=\"art__link\" data-art=\"gdd\">окрема стаття</a>."],
-          ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб із вкладками 🏠 Головна · 🌍 Спільнота · 🤝 Команда · ⚖ Маркет · ⛁ Бекап (вкладки бачить власник; учасник команди — лише Головну). На «Головній» — картка «Біблія світу» (кнопка «Відкрити Біблію світу») і ігри світу; інші вкладки відкриваються окремо, на всю ширину, щоб їхні налаштування не мішались із картками. Обраний світ завжди відкривається на «Головній». Історії світу живуть лише в Біблії — розділ «Історії і хроніка»."],
+          ["p", "«Обери свій світ» — список твоїх світів. Відкритий світ — це його хаб із вкладками 🏠 Головна · 🌍 Спільнота · 🤝 Команда · ⚖ Маркет · ⛁ Бекап (вкладки бачить власник; учасник команди — лише Головну). На «Головній» — картка «Біблія світу» (кнопка «Відкрити Біблію світу») і ігри світу; інші вкладки відкриваються окремо, на всю ширину, щоб їхні налаштування не мішались із картками. Обраний світ завжди відкривається на «Головній». Історії світу живуть лише в Біблії — розділ «Історії світу»."],
           ["p", "Під Біблією — «🎮 Ігри цього світу»: менші широкі картки, що відгалужуються від світу золотою лінією. Кожна гра — свій GDD на спільному каноні: «Відкрити GDD «Назва»» веде прямо в гру, пунктирна «＋ Створити нову гру» — у форму нової гри. Біблія світу й GDD гри — окремі: у Біблії лише канон, у грі — лише її розділи."],
           ["p", "✎ на картці світу — назва, слоган і обкладинка: картинка до 10 МБ або коротке відео MP4 / WebM до 50 МБ, що грає по колу без звуку. Кнопка ⏸ на відео (у хабі світу й на «Огляді світу») зупиняє його на першому кадрі, ▶ — запускає знову; вибір запамʼятовується для світу. Картка — 16:9, як екран; «⌖ Кадр» вибирає, яку частину видно, або показує обкладинку повністю. Без своєї обкладинки світ показує стандартну — золоте дерево. Та сама обкладинка відкриває «Огляд світу» в Біблії — над гаслом і описом."],
           ["p", "Угорі «Огляду світу» — назва світу великим фентезійним шрифтом по центру. Власник світу бачить ✎ при наведенні: змінити назву або поставити замість неї картинку назви (логотип, PNG з прозорим тлом найкраще) і повзунком «Висота назви» підібрати її розмір. Прев'ю у вікні — зменшений рядок назви; широку картинку обмежує ширина рядка, тож повзунок доходить лише до висоти, яка ще влазить."],
@@ -373,7 +373,7 @@
         lead: "Поступово з AI, усе одразу або пишу сам.",
         min: 3,
         body: [
-          ["p", "Історію створюють у Біблії світу: у розділі «Історії і хроніка» («＋ Нова історія») або з досьє («＋ Історія» — історія про цього героя чи подію)."],
+          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» («＋ Нова історія»), у грі — в «Історіях гри», або з досьє («＋ Історія» — історія про цього героя чи подію)."],
           ["ul", [
             "🪶 Поступово (Guided, за замовчуванням) — AI пише по одній сцені, перед кожною наступною питає напрям.",
             "⚡ Автоматично (Auto) — AI пише весь обсяг одразу: оповідання, новела, сезон.",
@@ -438,7 +438,7 @@
         lead: "Дім світу — спільний для всіх його історій та ігор.",
         min: 2,
         body: [
-          ["p", "Блок світу в меню: Огляд світу · Закони · Персонажі · Локації · Фракції · Артефакти · Неузгоджене · Історії і хроніка · Культура · Космологія. Блок можна згорнути стрілкою."],
+          ["p", "Блок світу в меню: Огляд світу · Закони · Персонажі · Локації · Фракції · Артефакти · Неузгоджене · Історії світу · Хроніка · Культура · Космологія. Блок можна згорнути стрілкою."],
           ["p", "Огляд (гасло, опис, факти) і Закони редагуються на місці. Закони — тверді правила магії, фізики, суспільства: AI спирається на них у кожній сцені й в аналізі гри."],
           ["tip", "Канон Біблії світу редагується з тарифу Storyteller (на Free — лише читання). GDD гри відкритий на будь-якому тарифі: одна гра до Worldbuilder, на Worldbuilder — скільки завгодно."],
         ] },
@@ -499,20 +499,20 @@
           ["p", "AI переписує кожну сцену під новий канон і показує різницю слово в слово. «Прийняти» записує нову версію (стара зберігається), «Відхилити» — лишає як було. Закріплені сцени не чіпаються."],
           ["warn", "Платно: приблизно ціна однієї сцени за кожну обрану. Ціну видно до запуску."],
         ] },
-      { cat: "world", id: "chronicle", icon: "star", title: "Історії і хроніка",
-        lead: "Історії світу й події — комети на лінії часу.",
+      { cat: "world", id: "chronicle", icon: "star", title: "Хроніка й історії світу",
+        lead: "Події — комети на лінії часу; історії — полиця книг в окремому пункті меню.",
         min: 2,
         body: [
           ["p", "Подія має початок, тривалість (хвіст комети; без тривалості — зірка), підпис часу й учасників (аватари над головою комети). Комети не перекриваються, крок шкали підбирається сам; одиницю часу задаєш ти."],
           ["p", "Кожен підрозділ хроніки — своя лінія часу; ✎ біля назви перейменовує її (події переїжджають разом). Події без дати чекають під лінією. Подію відкриває клік по комети або її назві — у досьє змінюєш назву, дату, тривалість і учасників."],
           ["h", "Історії світу"],
-          ["p", "На тій самій сторінці — <b>полиця книг</b>: кожна історія світу стоїть як книга з назвою на обкладинці. Це єдине місце, де вони живуть (у хабі світу їх більше немає). Клік по обкладинці відкриває нашу Книгу з цією історією — читати її й писати далі, без ритуалу. Остання книга з «＋» (як і «＋ Нова історія» поруч із заголовком) створює нову історію: форма, а потім маг відкриває книгу — лише цього, першого разу."],
+          ["p", "Окремий пункт меню <b>«Історії світу»</b> (перед «Хронікою») — <b>полиця книг</b>: кожна історія світу стоїть як книга з назвою на обкладинці. Це єдине місце, де вони живуть (у хабі світу їх більше немає). Клік по обкладинці відкриває нашу Книгу з цією історією — читати її й писати далі, без ритуалу. Остання книга з «＋» (як і «＋ Нова історія» вгорі) створює нову історію: форма, а потім маг відкриває книгу — лише цього, першого разу."],
           ["p", "Під обкладинкою — ✎ (назва, опис, обсяг, фінал, жанри) і 🗑 (видалити, з підтвердженням). «Налаштування історії» розгортає решту: про кого вона, опис, позначку розкриття, 💡 квест із історії і два теги:"],
           ["ul", [
             "Масштаб — «Загальна історія світу» чи «Локальна історія» (про одне місце, героя чи подію).",
             "Ігри — до яких ігор цього світу належить історія (можна кілька або жодної).",
           ]],
-          ["p", "<b>Історії гри.</b> У кожній грі в меню «Огляд і лор» є розділ <b>«Історії гри»</b> — та сама полиця книг, але лише історії з тегом цієї гри. Клік по книзі відкриває її для читання й письма; «＋ Нова історія» там створює історію світу, яка одразу належить цій грі (і видна також тут, у «Історії і хроніка»). Прибрати історію з гри — зняти галочку гри в «Налаштуваннях історії»."],
+          ["p", "<b>Історії гри.</b> У кожній грі в меню «Огляд і лор» є розділ <b>«Історії гри»</b> — та сама полиця книг, але лише історії з тегом цієї гри. Клік по книзі відкриває її для читання й письма; «＋ Нова історія» там створює історію світу, яка одразу належить цій грі (і видна також у «Історіях світу»). Прибрати історію з гри — зняти галочку гри в «Налаштуваннях історії»."],
           ["tip", "Почав «＋ Нова історія» і передумав — «Біблія світу» в меню вгорі повертає назад. Після «Зберегти історію» в кінці книги ти повертаєшся сюди ж."],
         ] },
       { cat: "world", id: "culture", icon: "feather", title: "Культура",
@@ -1389,7 +1389,7 @@
         lead: "Створення, редагування, видалення.",
         min: 2,
         body: [
-          ["p", "Історії живуть у світах — у Біблії світу, розділ «Історії і хроніка». Параметри історії (назва, опис, обсяг, фінал, жанри) змінюються ✎ на її картці там, 🗑 — видаляє; обсяг не можна зменшити нижче вже написаних сцен."],
+          ["p", "Історії живуть у світах — у Біблії світу, розділ «Історії світу». Параметри історії (назва, опис, обсяг, фінал, жанри) змінюються ✎ на її картці там, 🗑 — видаляє; обсяг не можна зменшити нижче вже написаних сцен."],
           ["warn", "Видалення незворотне й захищене підтвердженням. Світ видаляється лише тоді, коли в ньому немає історій; разом зі світом видаляються його ігри й файли."],
           ["tip", "Перед великими змінами зроби експорт світу в JSON (⚙ Налаштування проєкту)."],
         ] },
@@ -1426,7 +1426,7 @@
         body: [
           ["p", "“Create your world” — the form asks only for a <b>name</b> and an <b>optional description</b> (or the large <b>“📂 Create the world from a folder on your computer”</b> button — ✦ AI finds and sorts your notes itself, see below). Press “Create” — the world appears at once, no tokens, and opens in its Bible on the “World overview”, where the <b>“📜 Fill the world with your material”</b> block is waiting (see <a class=\"art__link\" data-art=\"world-fill\">its own article</a>). Want AI to propose variants? Under the description tick <b>“✦ Propose 3 worlds from the description”</b> — the price shows by the button, you pick one; there “✎ Fill it minimally with what I gave” only sorts your description into the canon, inventing nothing. If you are not signed in yet, creation goes on by itself after you sign in, without returning to the home page."],
           ["h", "The frame — at once"],
-          ["p", "You don't have to work out how to organise it all. A world is born with a ready Bible: World overview, Laws, Characters, Locations, Factions, Artifacts, Stories & chronicle, Culture, Cosmology. The AI option you pick puts the world's description, its laws and the first heroes, places and factions there at once. Add a game — and it gets the sections of a game design document: mechanics, levels, items, art, UI, technical."],
+          ["p", "You don't have to work out how to organise it all. A world is born with a ready Bible: World overview, Laws, Characters, Locations, Factions, Artifacts, World stories, Chronicle, Culture, Cosmology. The AI option you pick puts the world's description, its laws and the first heroes, places and factions there at once. Add a game — and it gets the sections of a game design document: mechanics, levels, items, art, UI, technical."],
           ["h", "How to fill it"],
           ["ul", [
             "<b>Yourself</b> — card by card, in any order, whenever you like.",
@@ -1435,7 +1435,7 @@
             "<b>From GitHub</b> — connect the game's repository, and “Check against the repo” ✦ shows what the code and docs have that the Bible lacks (<a class=\"art__link\" data-art=\"agent-github\">step 9</a>).",
           ]],
           ["p", "The import and the repository check are part of the Game Bible (the Worldbuilder plan). Why the Game Bible replaces a game design document — <a class=\"art__link\" data-art=\"gdd\">a separate article</a>."],
-          ["p", "“Choose your world” — your worlds. An open world is its hub with tabs 🏠 Home · 🌍 Community · 🤝 Team · ⚖ Market · ⛁ Backup (the owner sees the tabs; a team member only Home). “Home” holds the “World Bible” card (the “Open the World Bible” button) and the world's games; the other tabs open on their own, full width, so their settings don't mix with the cards. A chosen world always opens on “Home”. The world's stories live only in the Bible — the “Stories & chronicle” section."],
+          ["p", "“Choose your world” — your worlds. An open world is its hub with tabs 🏠 Home · 🌍 Community · 🤝 Team · ⚖ Market · ⛁ Backup (the owner sees the tabs; a team member only Home). “Home” holds the “World Bible” card (the “Open the World Bible” button) and the world's games; the other tabs open on their own, full width, so their settings don't mix with the cards. A chosen world always opens on “Home”. The world's stories live only in the Bible — the “World stories” section."],
           ["p", "Under the Bible is “🎮 Games of this world”: smaller wide cards branching off the world on a gold line. Each game is its own GDD on the shared canon: “Open the GDD “Name”” goes straight into the game, the dashed “＋ Create a new game” — to the new-game form. The World Bible and a game's GDD are separate: the Bible holds only the canon, a game only its own sections."],
           ["p", "✎ on a world card — the name, the tagline and the cover: an image up to 10 MB or a short MP4 / WebM video up to 50 MB that loops silently. The ⏸ button on the video (in the world hub and on “World overview”) stops it on its first frame, ▶ plays it again; the choice is remembered per world. The card is 16:9, like a screen; “⌖ Frame” picks which part shows, or shows the whole cover. Without a cover of its own a world shows the default one — the golden tree. The same cover opens the “World overview” in the Bible — above the tagline and description."],
           ["p", "The top of the “World overview” carries the world name in a large fantasy font, centred. The world owner sees ✎ on hover: change the name or put a title image (a logo; a PNG with a transparent background works best) in its place and set its size with the “Title height” slider. The preview in the dialog is the name line scaled down; a wide image is limited by the line's width, so the slider only goes up to the height that still fits."],
@@ -1746,7 +1746,7 @@
         lead: "Step by step with AI, everything at once, or I write it myself.",
         min: 3,
         body: [
-          ["p", "Stories are created in the World Bible: in “Stories & chronicle” (“＋ New story”) or from a dossier (“＋ Story” — a story about this hero or event)."],
+          ["p", "Stories are created in the World Bible: in “World stories” (“＋ New story”), in a game — in “Game stories”, or from a dossier (“＋ Story” — a story about this hero or event)."],
           ["ul", [
             "🪶 Guided (default) — AI writes one scene at a time and asks for the direction before the next.",
             "⚡ Auto — AI writes the whole volume at once: a short story, a novella, a season.",
@@ -1811,7 +1811,7 @@
         lead: "The home of a world — shared by all its stories and games.",
         min: 2,
         body: [
-          ["p", "The world block of the menu: World overview · Laws · Characters · Locations · Factions · Artifacts · Inconsistencies · Stories & chronicle · Culture · Cosmology. The block folds with an arrow."],
+          ["p", "The world block of the menu: World overview · Laws · Characters · Locations · Factions · Artifacts · Inconsistencies · World stories · Chronicle · Culture · Cosmology. The block folds with an arrow."],
           ["p", "The overview (tagline, description, facts) and the Laws are edited in place. Laws are hard rules of magic, physics, society: AI relies on them in every scene and in the game analysis."],
           ["tip", "The World Bible canon is edited from the Storyteller plan (read-only on Free). A game's GDD is open on every plan: one game below Worldbuilder, any number on Worldbuilder."],
         ] },
@@ -1872,20 +1872,20 @@
           ["p", "AI rewrites each scene for the new canon and shows a word-by-word diff. “Accept” stores the new version (the old one is kept), “Reject” leaves it. Pinned scenes are never touched."],
           ["warn", "Paid: about the price of one scene for each picked one. The price is shown before the run."],
         ] },
-      { cat: "world", id: "chronicle", icon: "star", title: "Stories & chronicle",
-        lead: "The world's stories and events — comets on a time line.",
+      { cat: "world", id: "chronicle", icon: "star", title: "Chronicle & world stories",
+        lead: "Events — comets on a time line; stories — a shelf of books in a menu item of their own.",
         min: 2,
         body: [
           ["p", "An event has a start, a duration (the comet's tail; no duration — a star), a time label and participants (avatars above the comet's head). Comets never overlap, the scale step picks itself; you set the time unit."],
           ["p", "Every chronicle subsection is its own time line; ✎ next to its name renames it (its events move along). Undated events wait below the line. A click on a comet or its name opens the event — in the dossier you change its name, date, duration and participants."],
           ["h", "Stories of the world"],
-          ["p", "The same page holds <b>a shelf of books</b>: each story of the world stands as a book with its title on the cover. This is the only place they live (the world hub no longer lists them). A click on a cover opens our Book with that story — to read it and write on, no ritual. The last book with “＋” (like “＋ New story” next to the heading) creates a new story: the form, then the mage opens the book — only this first time."],
+          ["p", "A menu item of its own, <b>“World stories”</b> (before “Chronicle”), holds <b>a shelf of books</b>: each story of the world stands as a book with its title on the cover. This is the only place they live (the world hub no longer lists them). A click on a cover opens our Book with that story — to read it and write on, no ritual. The last book with “＋” (like “＋ New story” at the top) creates a new story: the form, then the mage opens the book — only this first time."],
           ["p", "Under a cover — ✎ (title, description, length, ending, genres) and 🗑 (delete, with a confirmation). “Story settings” unfolds the rest: who it is about, the description, the reveal mark, 💡 a quest from the story and two tags:"],
           ["ul", [
             "Scope — “World-wide story” or “Local story” (about one place, hero or event).",
             "Games — which games of this world the story belongs to (several or none).",
           ]],
-          ["p", "<b>Game stories.</b> Every game has a <b>“Game stories”</b> section in the “Overview & lore” menu — the same shelf of books, only the stories tagged with that game. A click on a book opens it to read and write; “＋ New story” there creates a world story that belongs to that game at once (and is also seen here, in “Stories & chronicle”). To take a story out of the game, untick the game in “Story settings”."],
+          ["p", "<b>Game stories.</b> Every game has a <b>“Game stories”</b> section in the “Overview & lore” menu — the same shelf of books, only the stories tagged with that game. A click on a book opens it to read and write; “＋ New story” there creates a world story that belongs to that game at once (and is also seen in “World stories”). To take a story out of the game, untick the game in “Story settings”."],
           ["tip", "Started “＋ New story” and changed your mind — “World Bible” in the top menu leads back. After “Save the story” at the end of the book you land here too."],
         ] },
       { cat: "world", id: "culture", icon: "feather", title: "Culture",
@@ -2187,7 +2187,7 @@
           ["p", "A dialogue is a list of lines on the left (speaker, first words, ▸ number of choices, ■ end, ⚠ a problem, a voice-over dot: green — there is a file) and the selected line on the right: speaker, text, “Next”, player choices. “Logic” (condition, effects) and “Localisation” (key) are folded and open by themselves when filled. The line's voice-over is a small side block; the speakers' voices are in the folded “🎙 Voice-over”. A click on a “Graph check” row opens that line or stage. On a phone — the list first, then the line with “← All lines”."],
           ["p", "A dialogue: type, participants, location, quest and its stage, trigger, lines. A line: speaker (a participant, Player, Narrator), text, localisation key, condition, effects, “Next” or player choices with conditions. “＋ Dialogue for this quest” in a quest creates the dialogue already linked."],
           ["p", "The graph check under the editor works as you type: ✕ — an error (a transition to nowhere, a loop with no way out, no ending, prerequisites in a circle, a link to a removed entity), ⚠ — a warning (no transition leads here, a dead end, an empty line, no quest giver). The quest card shows a badge with the count too."],
-          ["p", "💡 “Create a quest from this” is on game cards (characters, enemies, locations, levels, factions, items), in every canon dossier, every culture entry and on each story card in “Stories & chronicle”. The quest appears in the game open right now with its source and the obvious links filled in (a character or enemy becomes the quest giver; a location, level, faction or item joins in; a canon event goes to “Canon events”). You can also pick the source by hand — or leave it empty."],
+          ["p", "💡 “Create a quest from this” is on game cards (characters, enemies, locations, levels, factions, items), in every canon dossier, every culture entry and under each book in “World stories”. The quest appears in the game open right now with its source and the obvious links filled in (a character or enemy becomes the quest giver; a location, level, faction or item joins in; a canon event goes to “Canon events”). You can also pick the source by hand — or leave it empty."],
           ["p", "✦ “Propose with AI” (price on the button) drafts from the canon, the laws, the game cards and the source: concept, cast, objectives, branching stages, rewards. The proposal appears above the form: “Accept” or “Reject” each field, or “Accept all”. AI links only what already exists — game cards and canon entities; anything new comes separately as “AI ideas” — notes, not canon. In a dialogue ✦ writes lines and choices in the characters' voices, based on the dialogue's quest."],
           ["p", "A game card (at the bottom) and a canon dossier (on its “Connections” tab) list the open game's quests and dialogues they take part in, and the quests that grew from them. Claude Code sees only the approved quests of its game — through get_quest_context and get_dialogue_context (“c:…” links are game cards, “e:…” the canon)."],
           ["p", "“⤓ JSON for RPG Framework” in “Quests” downloads the approved quests and dialogues in the framework's import format (rpgframework.content/1, needs framework 0.32.1 or newer — in 0.32.0 a conversation could fail to end). Claude Code gets the same through get_content_export and runs the import itself: Quest and Dialogue assets are created or updated by id. Free-text conditions become custom conditions, effects “give_item:key; set_flag:met; give_currency:gold:50” become framework effects, a “24 h” cooldown becomes seconds."],
@@ -2762,7 +2762,7 @@
         lead: "Create, edit, delete.",
         min: 2,
         body: [
-          ["p", "Stories live in worlds — in the World Bible, “Stories & chronicle”. A story's settings (title, description, length, ending, genres) are edited with ✎ on its card there, 🗑 deletes it; the length cannot go below the scenes already written."],
+          ["p", "Stories live in worlds — in the World Bible, “World stories”. A story's settings (title, description, length, ending, genres) are edited with ✎ on its card there, 🗑 deletes it; the length cannot go below the scenes already written."],
           ["warn", "Deletion is final and protected by a confirmation. A world can be deleted only when it has no stories; its games and files go with it."],
           ["tip", "Before big changes export the world to JSON (⚙ Project settings)."],
         ] },

@@ -1239,12 +1239,12 @@ body.at-home .back-fab{ display:none; }
     bibleExpect = sec; bibleSec = sec; shown = here(); updateBack();
     if (!reload) try { frames.bible.contentWindow.postMessage({ type: "ww-bible-section", section: sec }, location.origin); } catch (e) {}
   }
-  // the World Bible on «Історії і хроніка» — the only home of the world's stories (the hub has none)
+  // the World Bible on «Історії світу» — the home of the world's stories (the hub has none; a game shows its own in «Історії гри»)
   function openChronicle() {
     var before = frames.bible && frames.bible.getAttribute("src");
     showBible();
     var f = frames.bible; if (!f) return;
-    var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-section", section: "chronicle" }, location.origin); } catch (e) {} };
+    var send = function () { try { f.contentWindow.postMessage({ type: "ww-bible-section", section: "wstories" }, location.origin); } catch (e) {} };
     if (f.getAttribute("src") !== before) f.addEventListener("load", send, { once: true }); else send();
   }
   // The Bible of the current world (an iframe, world-scoped: the rail stays on Світи). open { gameId }: "" — the World Bible,
@@ -1452,8 +1452,8 @@ body.at-home .back-fab{ display:none; }
       bibleSec = d.section; shown = here(); updateBack();
       return;
     }
-    if (d.type === "ww-story-saved") { Promise.resolve(loadProjects()).then(function () { if (CURRENT_WORLD) openChronicle(); else showView("worlds"); }); return; } // book → «Зберегти історію» → the World Bible's «Історії і хроніка»
-    // World Bible → «Історії і хроніка» → a story's ✎ / 🗑: the shell's story form and delete confirmation
+    if (d.type === "ww-story-saved") { Promise.resolve(loadProjects()).then(function () { if (CURRENT_WORLD) openChronicle(); else showView("worlds"); }); return; } // book → «Зберегти історію» → the World Bible's «Історії світу»
+    // World Bible → «Історії світу» / «Історії гри» → a story's ✎ / 🗑: the shell's story form and delete confirmation
     if ((d.type === "ww-edit-story" || d.type === "ww-delete-story") && d.projectId) {
       Promise.resolve(PROJECTS.length ? null : loadProjects()).then(function () {
         var i = PROJECTS.map(function (p) { return p.id; }).indexOf(d.projectId); if (i < 0) return;
@@ -1500,7 +1500,7 @@ body.at-home .back-fab{ display:none; }
   });
 
   /* ============================ VIEW CONTENT ============================ */
-  // The world's hub: the World Bible card (its stories live in the Bible → «Історії і хроніка») and, for the owner, the panel (Спільнота · Команда · Маркет · Бекап).
+  // The world's hub: the World Bible card (its stories live in the Bible → «Історії світу») and, for the owner, the panel (Спільнота · Команда · Маркет · Бекап).
   function fillHome() {
     var t = window.__i18n ? window.__i18n.t : function(k) { return k; };
     var world = WORLDS.filter(function (w) { return w.id === CURRENT_WORLD; })[0] || null;

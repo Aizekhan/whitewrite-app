@@ -47,9 +47,9 @@
         reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
-      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", stories: "Історії цього світу", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
+      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
         scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
-        noStories: "У цьому світі ще немає історій.", noGameStories: "У цієї гри ще немає історій.", gameStoriesHint: "Тут — історії світу з тегом цієї гри. Тег ставиться в «Налаштуваннях історії» під книгою (тут або в Біблії світу → «Історії і хроніка»); нова історія звідси отримує його сама.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
+        noStories: "У цьому світі ще немає історій.", noGameStories: "У цієї гри ще немає історій.", gameStoriesHint: "Тут — історії світу з тегом цієї гри. Тег ставиться в «Налаштуваннях історії» під книгою (тут або в Біблії світу → «Історії світу»); нова історія звідси отримує його сама.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
         legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
         at: "Початок (число на лінії часу)", dur: "Тривалість (0 — мить)", when: "Підпис часу", whenPh: "напр. «Весна 340 р.»", who: "Учасники", noChars: "У каноні ще немає персонажів." },
       pick: { title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
@@ -374,9 +374,9 @@
         reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
-      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", stories: "Stories of this world", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
+      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
         scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
-        noStories: "No stories in this world yet.", noGameStories: "This game has no stories yet.", gameStoriesHint: "These are the world's stories tagged with this game. The tag is set in “Story settings” under a book (here or in the World Bible → “Stories & chronicle”); a new story made here gets it by itself.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
+        noStories: "No stories in this world yet.", noGameStories: "This game has no stories yet.", gameStoriesHint: "These are the world's stories tagged with this game. The tag is set in “Story settings” under a book (here or in the World Bible → “World stories”); a new story made here gets it by itself.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
         legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
         at: "Start (a number on the time line)", dur: "Duration (0 — a moment)", when: "Time label", whenPh: "e.g. “Spring of 340”", who: "Participants", noChars: "No characters in the canon yet." },
       pick: { title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
@@ -831,8 +831,10 @@
     about: { uk: "Інтерактивний гейм-диздок і точний план розробки, складені з канону та всієї біблії гри.", en: "An interactive game design doc and a precise development plan built from the canon and the whole game bible." } };
   var ISSUES = { id: "issues", special: "issues", uk: "Неузгоджене", en: "Inconsistencies" };
   var CANON_ISSUES = { id: "canonIssues", special: "canonIssues", uk: "Неузгоджене", en: "Inconsistencies" };
-  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Історії і хроніка", en: "Stories & chronicle",
-    about: { uk: "Події світу на лінії часу та історії, що в ньому написані.", en: "The world's events on the time line, and the stories written in it." } };
+  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Хроніка", en: "Chronicle",
+    about: { uk: "Події світу на лінії часу.", en: "The world's events on the time line." } };
+  var WSTORIES = { id: "wstories", special: "wstories", uk: "Історії світу", en: "World stories",
+    about: { uk: "Історії, написані в цьому світі: книги для читання й письма. Тег гри відносить історію ще й до «Історій гри».", en: "The stories written in this world: books to read and write. A game tag also puts a story into that game's “Game stories”." } };
   // Culture lives in worlds/{w}/lore (not entity kinds: extraction and scenes know exactly five)
   var CULTURE = { id: "culture", special: "culture", uk: "Культура", en: "Culture",
     about: { uk: "Народи й раси, мови, віра й міфологія, звичаї — те, чим живуть у цьому світі. Раса — тут, а не у «Фракціях»; божество, що діє як особа, — ще й у «Персонажах».", en: "Peoples and races, languages, faith and mythology, customs — how this world lives. A race lives here, not in “Factions”; a god acting as a person is also in “Characters”." } };
@@ -856,7 +858,7 @@
     about: { uk: "Квести гри: етапи з розгалуженнями, хто дає, де, нагороди, передумови — на картках гри й на персонажах та подіях канону. Перевірка графа — під кожним квестом.", en: "The game's quests: branching stages, giver, places, rewards, prerequisites — on the game cards and on canon characters and events. A graph check under each quest." } };
   var DIALOGUES = { id: "dialogues", special: "dialogues", uk: "Діалоги", en: "Dialogues",
     about: { uk: "Розмови в грі: хто говорить, коли і за яких умов, репліки, вибори гравця, ефекти, звʼязок із квестом.", en: "Conversations in the game: who speaks, when and under which conditions, lines, player choices, effects, the quest link." } };
-  CANON.push(CANON_ISSUES, CHRONICLE, CULTURE, COSMOLOGY);
+  CANON.push(CANON_ISSUES, WSTORIES, CHRONICLE, CULTURE, COSMOLOGY);
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
@@ -1363,6 +1365,7 @@
     return s.special === "issues" ? (gameIssues().length + openQs().length || "") : s.special === "canonIssues" ? (canonIssues().length || "")
       : s.special === "experience" ? (exIssues.filter(function (x) { return x.status === "open"; }).length || "")
       : s.special === "culture" ? lore.length
+      : s.special === "wstories" ? (stories.length || "")
       : s.special === "gstories" ? (stories.filter(function (p) { return (p.games || []).indexOf(gameId) >= 0; }).length || "")
       : s.special === "quests" ? quests.length : s.special === "dialogues" ? dialogues.length
       : s.special === "chronicle" ? entities.filter(function (e) { return e.kind === "events"; }).length
@@ -1484,6 +1487,7 @@
       if (cs.special === "laws") return renderLaws(cs);
       if (cs.dossier) return renderDossiers(cs);
       if (cs.special === "chronicle") return renderChronicle(cs);
+      if (cs.special === "wstories") return renderWorldStories(cs);
       if (cs.special === "culture") return renderCulture(cs);
       if (cs.special === "cosmology") return renderCosmology(cs);
     }
@@ -4529,7 +4533,7 @@
     if (e.target.id === "d-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); }
   });
 
-  // ---------- Історії і хроніка: events as comets over the time line (tail = duration, a star = a moment), stories of the world ----------
+  // ---------- Хроніка: events as comets over the time line (tail = duration, a star = a moment); the stories — «Історії світу» ----------
   // ---------- stories of the world (projects with worldId), live; each may be about canon entities and has a reveal mark ----------
   var stories = []; // projects/{p} { title, subjects: [entityId], reveal: open|later|internal, revealNote }
   var REVEALS = ["open", "later", "internal"];
@@ -4614,13 +4618,15 @@
       var d = l.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }), u = l.filter(function (e) { return e.at === null; });
       return (d.length ? cometsHtml(d) : '') + (u.length ? '<p class="muted">' + STR.chron.undated + ':</p><div class="grid">' + u.map(dosCardHtml).join("") + '</div>' : '');
     });
-    html += '<h2 class="group">' + STR.chron.stories + '<button class="btn mini" id="ch-newstory">' + STR.sub.story + '</button></h2><div id="ch-stories"></div>';
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
-    $("ch-newstory").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
-    $("ch-stories").innerHTML = storyShelfHtml(stories, "ch-newbook", STR.chron.noStories);
-    $("ch-newbook").onclick = $("ch-newstory").onclick;
+  }
+  // 📚 «Історії світу» (owner, v2.102.4): every story of the world on the shelf — its own menu item, like «Історії гри» in a game
+  function renderWorldStories(s) {
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
+      '<div class="row"><button class="btn primary" id="ws-new">' + STR.sub.story + '</button></div></header>' + storyShelfHtml(stories, "ws-newbook", STR.chron.noStories);
+    $("ws-new").onclick = $("ws-newbook").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
   }
 
   // the stories stand as books on a shelf (owner, v2.102): a cover opens the Book to read and write on (no mage — he greets only a new story),
@@ -9198,7 +9204,7 @@
     var sg = e.target.closest("[data-sgame]");
     if (sg) db.collection("projects").doc(sg.dataset.sgame).update({ updatedAt: stamp(), games: [].filter.call(document.querySelectorAll('[data-sgame="' + sg.dataset.sgame + '"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) });
   });
-  // the shell after «Зберегти історію»: open «Історії і хроніка»
+  // the shell after «Зберегти історію»: open «Історії світу»
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-section") return;
     if (pos() !== ev.data.section) goPos(ev.data.section);
@@ -9826,7 +9832,7 @@
     db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
       stories = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
         .sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
-      if (section === "chronicle" || section === "gstories") render();
+      if (section === "wstories" || section === "gstories") render();
       var ds = $("d-stories"); if (ds && dos && !dos.isNew && dos.col !== "lore") ds.innerHTML = storiesHtml(dos);
     }, function () {});
     if (mayRead("culture")) wref().collection("lore").onSnapshot(function (snap) {
