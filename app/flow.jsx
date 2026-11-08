@@ -573,6 +573,14 @@ function WorldForm({ onBack, onCreate, initial }) {
     if (!title.trim()) setTitle(name);
   }
   function pickFolder(e) { const list = [].slice.call(e.target.files || []); e.target.value = ""; gotFolder(list); }
+  // «📄 Файл світу»: one or several .md / .txt — the same Bible flow as the folder, every file read (no scouting)
+  function pickFiles(e) {
+    const list = [].slice.call(e.target.files || []); e.target.value = "";
+    if (!list.length) return;
+    const name = list.length === 1 ? list[0].name.replace(/\.[^.]+$/, "") : t('worlds.filesName').replace('{n}', list.length);
+    setFolder({ name, list, direct: true }); setIdeas(false);
+    if (!title.trim()) setTitle(name);
+  }
   // a whole Unity project holds hundreds of thousands of tool files (Library, Temp…): <input webkitdirectory> lists them all before it answers,
   // minutes with nothing on the page. Chrome / Edge: walk the folder here, never entering the folders gamebible.js skips anyway (FOLDER_SKIP, IN_TECH_DIR), with a counter
   const SKIP_DIR = /^(\.git|\.vs|\.idea|node_modules|Library|Temp|Logs|obj|Build|Builds|UserSettings|ProjectSettings|Packages|Plugins|Third[ _-]?Party|Vendor|Samples~?|Documentation~|Editor|TextMesh Pro|.*Framework.*|.*SDK.*)$/i;
@@ -599,7 +607,7 @@ function WorldForm({ onBack, onCreate, initial }) {
     if (!plan || creating) return;
     setCreating(true);
     try {
-      try { window.top.__wwPendingFill = plan === "folder" ? { name: folder.name, folder: folder.list } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
+      try { window.top.__wwPendingFill = plan === "folder" ? { name: folder.name, folder: folder.list, direct: !!folder.direct } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
       await onCreate({ title: title.trim() || "", description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
     } catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
   }
@@ -628,9 +636,10 @@ function WorldForm({ onBack, onCreate, initial }) {
           </label>
 
           <input id="wf-folder-in" type="file" webkitdirectory="" multiple hidden onChange={pickFolder} disabled={creating} ref={folderInput} />
+          <input id="wf-file-in" type="file" multiple hidden accept=".md,.markdown,.txt,.json,.csv,text/markdown,text/plain" onChange={pickFiles} disabled={creating} />
           {folder
-            ? <div className="wf-folder is-picked"><span className="wf-folder__ico" aria-hidden="true">📂</span>
-                <span className="wf-folder__body"><b>{t('worlds.folderPicked').replace('{d}', folder.name).replace('{n}', folder.list.length)}</b><small>{t('worlds.folderHint')}</small></span>
+            ? <div className="wf-folder is-picked"><span className="wf-folder__ico" aria-hidden="true">{folder.direct ? '📄' : '📂'}</span>
+                <span className="wf-folder__body"><b>{folder.direct ? t('worlds.filePicked').replace('{d}', folder.list.map((f) => f.name).join(', ')) : t('worlds.folderPicked').replace('{d}', folder.name).replace('{n}', folder.list.length)}</b><small>{folder.direct ? t('worlds.fileHint') : t('worlds.folderHint')}</small></span>
                 <button type="button" className="link-back" onClick={() => setFolder(null)} disabled={creating}>{t('worlds.folderClear')}</button></div>
             : scan
             ? <div className="wf-folder is-picked" role="status"><span className="wf-folder__ico" aria-hidden="true">⏳</span>
@@ -638,6 +647,9 @@ function WorldForm({ onBack, onCreate, initial }) {
             : <label className="wf-folder" htmlFor="wf-folder-in" onClick={walkFolder}>
                 <span className="wf-folder__ico" aria-hidden="true">📂</span>
                 <span className="wf-folder__body"><b>{t('worlds.folderBtn')}</b><small>{t('worlds.folderHint')}</small></span></label>}
+          {!folder && !scan && <label className="wf-folder" htmlFor="wf-file-in">
+                <span className="wf-folder__ico" aria-hidden="true">📄</span>
+                <span className="wf-folder__body"><b>{t('worlds.fileBtn')}</b><small>{t('worlds.fileHint')}</small></span></label>}
 
           {desc && plan !== "folder" && <label className="wf-tick"><input type="checkbox" checked={ideas} onChange={(e) => setIdeas(e.target.checked)} disabled={creating} /><span>{t('worlds.ideasTick')}</span></label>}
 

@@ -181,7 +181,7 @@
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
-      importContra: "Суперечності → у Продакшн-план", importTooBig: "Файл завеликий (максимум 100 000 символів).",
+      importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
@@ -508,7 +508,7 @@
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
-      importContra: "Contradictions → Production plan", importTooBig: "The file is too big (100,000 characters max).",
+      importContra: "Contradictions → Production plan", importPart: "part {d} of {n}",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
@@ -1396,7 +1396,7 @@
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
       var gLater = mem.every(function (m) { return guideLater(m); }) ? GUIDE[Math.min.apply(null, mem.map(guideStageOf))] : null; // the whole group is later: the group dims too
-      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)) || m === "forge" && forgeSoon(); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
+      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
       if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
@@ -1911,9 +1911,9 @@
     var cancelled = function () { say(P.cancelled); prog(FP ? FP.step : 0, 0, 1, P.cancelled, "fail"); };
     fillState = { msg: X.ask.replace("{d}", pf.name || "").replace("{n}", ents.length) }; render();
     prog(1, 0, 1, P.list.replace("{n}", ents.length) + " · " + P.wait, "wait");
-    confirmCost("worldFolderScout", async function () {
-      var read = [];
-      for (var k = 0; k < chunks.length; k++) {
+    (pf.direct ? function (go) { go(); } : function (go) { confirmCost("worldFolderScout", go, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n")); }, 0), cancelled); })(async function () {
+      var read = pf.direct ? ents.map(function (e) { return e.i; }) : []; // the author's own files: read them all, no scouting
+      for (var k = 0; !pf.direct && k < chunks.length; k++) {
         say(X.scouting.replace("{d}", k + 1).replace("{n}", chunks.length));
         prog(1, k, chunks.length, P.scout.replace("{d}", k + 1).replace("{n}", chunks.length));
         try { var d = await fnCall("worldFolder", { worldId: worldId, scout: true, list: chunks[k], language: LANG }); read = read.concat(d.read || []); spent += d.tokensConsumed || 0; }
@@ -1925,7 +1925,8 @@
         say(X.readingFiles.replace("{d}", q + 1).replace("{n}", read.length));
         prog(2, q, read.length, P.read.replace("{d}", q + 1).replace("{n}", read.length).replace("{f}", e.rel));
         var t = e.r ? await inReadText(e) : (await e.f.text().catch(function () { return ""; })).replace(/^﻿/, "").trim();
-        if (t) { t = t.slice(0, WORLD_FOLDER_MAX); files.push({ path: e.rel, text: t }); chars += t.length; }
+        for (var o = 0; t && o < t.length; o += WORLD_FOLDER_MAX) { files.push({ path: e.rel + (o ? " " + STR.intake.cont : ""), text: t.slice(o, o + WORLD_FOLDER_MAX) }); } // a big file in pieces, nothing cut off
+        chars += t ? t.length : 0;
       }
       if (!files.length) return fail(X.nothing);
       var batches = [], cur = [], n = 0;
@@ -1949,7 +1950,7 @@
         prog(4, 1, 1, P.done, "done"); if (FP) FP.el.hidden = false;
         var fb = document.querySelector(".fillbox"); if (fb) { fb.open = true; fb.scrollIntoView({ behavior: "smooth", block: "start" }); }
       }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.map(function (f) { return f.text; }).join("")); }, 0), cancelled);
-    }, chunks.reduce(function (m, c) { return m + quoteOf("worldFolderScout", c.map(line).join("\n")); }, 0), cancelled);
+    });
   }
   function fillRedraw() { var r = $("fill-res"); if (!r) return; r.innerHTML = fillResHtml(); bindFillRes(); }
   function bindFillRes() {
@@ -4782,11 +4783,11 @@
       '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button>' +
       '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p></div>';
     $("ng-title").focus();
-    var concepts = [], picked = null, mdText = ""; // «✦ 3 концепти»: gamedevPlan {op:'concepts'} → three cards; the picked one names the game and fills «Огляд гри»
+    var concepts = [], picked = null, mdText = "", mdName = ""; // «✦ 3 концепти»: gamedevPlan {op:'concepts'} → three cards; the picked one names the game and fills «Огляд гри»
     if ($("ng-md")) $("ng-md").onchange = async function () {
       var f = this.files && this.files[0]; this.value = ""; if (!f) return;
       if (f.size > 2 * 1024 * 1024) { $("ng-mdname").textContent = STR.fileTooBig; return; }
-      mdText = (await f.text()).trim(); folder = null;
+      mdText = (await f.text()).replace(/^\uFEFF/, "").trim(); mdName = f.name; folder = null;
       $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText).toLocaleString()) : "";
       if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
       if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
@@ -4851,7 +4852,7 @@
       }
       selectGame(id);
       if (folder) startIntake(folder); // the folder → its plan: what goes where, the author ticks and presses «Почати»
-      else if (mdText) runImport({ op: "import", markdown: mdText }); // the game file → the import proposal (the author ticks what to take)
+      else if (mdText) runImportText(mdText, mdName); // the game file → the import proposal (the author ticks what to take); a big one — in packs
     };
     $("ng-x").onclick = function () { enterWorld(); };
   }
@@ -8439,8 +8440,7 @@
     rd.onload = async function () {
       var text = String(rd.result || "");
       closeLeaf();
-      if (text.length > 100000) { imp = { error: STR.importTooBig }; return render(); }
-      confirmCost("import", function () { runImport({ op: "import", markdown: text }); }, quoteOf("import", text)); // the file known: «не більше N»
+      confirmCost("import", function () { runImportText(text, file.name); }, quoteOf("import", text)); // the file known: «не більше N»
     };
     rd.readAsText(file);
   }
@@ -8451,6 +8451,19 @@
     try { var data = await callFn(Object.assign({ shelves: shelves() }, body)); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {}, draft: draft }; }
     catch (e) { imp = { error: e.message, draft: draft }; }
     render();
+  }
+  // a file over the import limit (gamedev.js MAX_IMPORT_CHARS) → packs like the game folder (inPacks), imported one by one, merged (inMerge)
+  async function runImportText(text, name) {
+    if (text.length <= GAME_FOLDER_MAX) return runImport({ op: "import", markdown: text });
+    var packs = inPacks([{ path: name || "file.md", text: text }]), got = [], bad = [], spent = 0;
+    for (var i = 0; i < packs.length; i++) {
+      imp = { busy: true, part: STR.importPart.replace("{d}", i + 1).replace("{n}", packs.length) }; render();
+      try { var d = await callFn({ op: "import", shelves: shelves(), markdown: packs[i] }); got.push(d.proposal); spent += d.tokensConsumed || 0; }
+      catch (e) { bad.push(i + 1); if (/OUT_OF_TOKENS|Недостатньо токенів|PLAN_REQUIRED/.test(e.message)) { imp = { error: e.message }; return render(); } }
+    }
+    imp = got.length ? { proposal: inMerge(got), spent: spent, off: {} } : { error: STR.failed };
+    render();
+    if (got.length && bad.length) notify(STR.folder.bad.replace("{p}", bad.join(", ")));
   }
   // «✦ Чернетка GDD з опису»: the author's idea → the same proposal (gamedevPlan op:draft)
   function startDraft() {
@@ -8463,7 +8476,7 @@
   function renderImport() {
     var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
       '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
-    if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + '</p>';
+    if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + (imp.part ? ' · ' + esc(imp.part) : '') + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
     if (imp.done) html += '<p class="pmsg">' + STR.importDone + ': ' + imp.done + '</p>' + (canDev && !imp.repo ? // the next step in one click: the analysis asks, the author answers, then the plan
       '<p class="hint">' + esc(STR.importNext) + '</p><div class="row"><button class="btn primary" id="imp-next">✦ ' + esc(STR.ops.analyze) + ' →' + costMark("analyze") + '</button></div>' : '');
