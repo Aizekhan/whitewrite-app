@@ -162,12 +162,26 @@ export function view3d(file, T, siblings, onShot, opts) {
   function applyShape(k, v) { shapeNow[k] = v; model.traverse((o) => { if (o.morphTargetDictionary && o.morphTargetDictionary[k] != null) o.morphTargetInfluences[o.morphTargetDictionary[k]] = v / 100; }); }
   function shapeKeys() {
     const names = new Set(); model.traverse((o) => { if (o.morphTargetDictionary) Object.keys(o.morphTargetDictionary).forEach((k) => names.add(k)); });
+    if (opts.build) return buildPanel(names);
     const keys = Object.keys(opts.labels || opts.shape).filter((k) => names.has(k)); if (!keys.length) return;
     const panel = box.querySelector(".v3d-shape"); panel.hidden = false;
     panel.innerHTML = keys.map((k) => '<label>' + (opts.labels && opts.labels[k] || k) + ' <span>' + (+opts.shape[k] || 0) + '</span><input type="range" min="0" max="100" step="5" value="' + (+opts.shape[k] || 0) + '" data-k="' + k + '"' + (opts.readonly ? ' disabled' : '') + '></label>').join("");
     keys.forEach((k) => applyShape(k, +opts.shape[k] || 0));
     panel.addEventListener("input", (e) => { const k = e.target.dataset.k; if (!k) return; applyShape(k, +e.target.value); e.target.previousElementSibling.textContent = e.target.value; });
     panel.addEventListener("change", (e) => { const k = e.target.dataset.k; if (k && opts.onShape) opts.onShape(k, +e.target.value); });
+  }
+  // opts.build = { fat, muscle, height, min, max, base, toShape(build) → key weights, labels, unit, comma, onBuild(key, value) }: the Forge's
+  // build — one thin ↔ heavy slider, muscle and the height (the model scaled by height / base); the shape key sliders only on a model that has the keys
+  function buildPanel(names) {
+    const B = opts.build, L = B.labels || {}, has = ["Thin", "Heavy", "Muscular"].some((k) => names.has(k)), s0 = model.scale.clone(), now = { fat: +B.fat || 0, muscle: +B.muscle || 0, height: +B.height || 0 };
+    const fmt = (k, v) => k === "height" ? (+v).toFixed(2).replace(".", B.comma ? "," : ".") + (B.unit || "") : k === "fat" && +v > 0 ? "+" + v : String(v);
+    const row = (k, min, max, step) => '<label>' + (L[k] || k) + ' <span>' + fmt(k, now[k]) + '</span><input type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + now[k] + '" data-b="' + k + '"' + (opts.readonly ? ' disabled' : '') + '></label>';
+    const html = (has ? row("fat", -100, 100, 5) + row("muscle", 0, 100, 5) : "") + (B.max > B.min && now.height ? row("height", B.min, B.max, 0.01) : "");
+    if (!html) return;
+    const apply = () => { const sh = B.toShape(now); Object.keys(sh).forEach((k) => applyShape(k, sh[k])); if (B.base && now.height) model.scale.copy(s0).multiplyScalar(now.height / B.base); };
+    const panel = box.querySelector(".v3d-shape"); panel.hidden = false; panel.innerHTML = html; apply();
+    panel.addEventListener("input", (e) => { const k = e.target.dataset.b; if (!k) return; now[k] = +e.target.value; e.target.previousElementSibling.textContent = fmt(k, now[k]); apply(); });
+    panel.addEventListener("change", (e) => { const k = e.target.dataset.b; if (k && B.onBuild) B.onBuild(k, +e.target.value); });
   }
   // 🎞 the fitting room
   function fitting() {

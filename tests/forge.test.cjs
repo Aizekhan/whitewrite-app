@@ -103,6 +103,12 @@ check(refs.bodies.length, 14, 'fourteen reference body types (7 races × 2 sexes
 check(F.refBody('ratfolk').rig, 'mixamo65+tail', 'ratfolk is on the tail skeleton');
 check(F.refBody('ratfolk_female').rig, 'mixamo65+tail', 'the ratfolk female too');
 check(F.refBody('elf_female').rig, 'mixamo65', 'the elf female is on the plain skeleton');
+check(JSON.stringify(F.shapeFromBuild({ fat: -60, muscle: 0 })), '{"Thin":60,"Heavy":0,"Muscular":0}', 'thin and heavy exclude each other');
+check(JSON.stringify(F.shapeFromBuild({ fat: 80, muscle: 100 })), '{"Thin":0,"Heavy":40,"Muscular":100}', 'muscle tones the heavy body (halved at 100)');
+check(JSON.stringify(F.buildOf({ shape: { Thin: 20, Heavy: 50, Muscular: 30 } })), '{"fat":30,"muscle":30}', 'old shape weights become a build');
+check(F.heightOf({ body: 'dwarf', height: 3 }), 1.5, 'height is held inside the race range');
+check(F.heightOf({ body: 'ogre_female' }), 2.35, 'no height — the reference one');
+check(F.manifest({ id: 'h', forge: { body: 'elf', height: 1.9, build: { fat: 20, muscle: 0 } } }, [], {}, 'en').body_height.scale, 1.027, 'the manifest gives the height and its scale');
 check(F.footIk({ retarget: { dwarf: { ok: true, feet_min_m: -0.03 } } }, 'dwarf_female'), true, 'an unmeasured female type takes its race male Foot IK');
 check(F.footIk({ retarget: { dwarf: { ok: true, feet_min_m: -0.03 }, dwarf_female: { ok: true, feet_min_m: 0 } } }, 'dwarf_female'), false, 'a measured female type has its own');
 check(F.withRefs({ bodies: [{ id: 'elf', name: 'Мій ельф' }] }, 'uk').bodies.find((b) => b.id === 'elf').name, 'Мій ельф', 'a game profile with a reference id is left as the author has it');
