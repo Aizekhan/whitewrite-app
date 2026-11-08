@@ -6383,7 +6383,7 @@
       (sty.note ? '<p class="muted">' + esc(fzL(sty.note)) + '</p>' : '') + (sty.has3d ? '' : '<p class="hint">' + R.no3d + '</p>') +
       '<div class="fz-picks">' + list.map(function (b) {
         var nm = fzL(b).split(","), h = LANG === "en" ? b.height + " m" : String(b.height).replace(".", ",") + " м", miss = (sty.missing || []).indexOf(b.id) >= 0;
-        return '<button class="fz-pickb' + (b.id === cur && sty.id === FG.bodyStyle(c.forge.style).id ? ' on' : '') + (sty.has3d ? '' : ' art') + '" data-fzbody="' + b.id + '"><img alt="" loading="lazy" src="' + FG.styleFront(sty.id, b.id) + '">' +
+        return '<button class="fz-pickb' + (b.id === cur && sty.id === FG.bodyStyle(c.forge.style).id ? ' on' : '') + ' art" data-fzbody="' + b.id + '"><img alt="" loading="lazy" src="' + FG.styleFront(sty.id, b.id) + '">' +
           '<b>' + esc(nm[0]) + '</b><small>' + esc((nm[1] || "").trim()) + ' · ' + h + (miss ? ' · ' + R.noConcept : '') + '</small></button>';
       }).join("") + '</div>' + (cur ? '<button class="btn mini ghost" data-fzpickx>' + R.pickX + '</button>' : '') + '</section>';
   }

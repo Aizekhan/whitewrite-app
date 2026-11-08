@@ -94,9 +94,10 @@ var REF_BODIES = [['human_male', 'Людина, чоловік', 'Human, male', 
 // the ratfolk (male and female) has Tail1…6 and the tail clips; ids of the male types never change (the female ones are <race>_female)
 function hasTail(bodyId) { return /^ratfolk(_female)?$/.test(String(bodyId || '')); }
 // the body styles (v2.95): the same 14 body types and skeletons in two looks; a style without 3D bodies yet shows its concepts on the
-// cards and the realistic dummy in 3D. heroic: the owner's concepts (ChatGPT, paid plan, the owner's permission) — files <style files><id>_front.webp
+// cards and the realistic dummy in 3D. The cards of both styles are the owner's concepts (ChatGPT, paid plan, the owner's permission) — files <style files><id>_front.webp;
+// the dummy renders (<REF_FILES><id>_front.webp) stay for «🦴 Еталони WhiteWrite»
 var BODY_STYLES = [
-  { id: 'realistic', uk: 'Реалістичні', en: 'Realistic', has3d: true, files: '/assets/rigs/' },
+  { id: 'realistic', uk: 'Реалістичні', en: 'Realistic', has3d: true, files: '/assets/rigs/realistic/' },
   { id: 'heroic', uk: 'Напівстилізовані, героїчні', en: 'Semi-stylized, heroic', has3d: false, files: '/assets/rigs/heroic/',
     note: { uk: 'Hand-painted, героїчні пропорції: більші кисті, стопи й голова, ширші плечі, кремезні форми.', en: 'Hand-painted, heroic proportions: bigger hands, feet and head, wider shoulders, chunky shapes.' } }];
 function bodyStyle(id) { return BODY_STYLES.filter(function (s) { return s.id === id; })[0] || BODY_STYLES[0]; }

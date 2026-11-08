@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.102.0 (2026-11-08)
+**Version:** 2.102.1 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -758,6 +758,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.102.1** ⚒ realistic body cards show the owner's concepts too (`app/assets/rigs/realistic/<id>_front.webp` from `D:\ArtPipeline\Characters\Heroes\Core`, 360 px WebP; `BODY_STYLES.realistic.files`), every picker card dark `art`; the dummy renders stay for «🦴 Еталони WhiteWrite»
 - **v2.102.0** 📚 stories as a shelf of books (owner): «Історії і хроніка» shows each story as a book cover (`.shelf` / `.bk-cover` in «WhiteWrite GameBible.html»), a cover → `ww-open-story` → the Book on the story (reading / writing); the reveal, scope, games, 💡 and quests fold into «Налаштування історії», ✎ / 🗑 under the cover, a dashed «＋» book = `ww-new-story`. The mage ritual only for a new story: the shell's `ww-open-story` no longer passes `ritual=1` (new stories keep it through `createNarrative` / `ww-write-story`)
 - **v2.101.1** «📜 Заповни світ»: the «⤓ Шаблон і правила (.md)» button next to «⧉ Скопіювати запит для ШІ-агента» removed (the same request as a file); «⤓ Шаблон .md — заповнити самому» stays
 - **v2.101.0** ⚒ rigging removed (owner): no auto-rig by markers (`gb-3d.js autorig`, its CSS, the vendored `GLTFExporter` + `TextureUtils`), no «Підігнати під еталон» request; the Forge rule — a model comes already rigged (Humanoid, Mixamo bone names), else the rule message, export off, the dummy in the fitting room; KB «🦴 Модель — лише з ригом», `paid-features` characterForge text
@@ -892,5 +893,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-08 (v2.102.0)
+**Last updated:** 2026-11-08 (v2.102.1)
 **Maintained by:** WhiteWrite Team
