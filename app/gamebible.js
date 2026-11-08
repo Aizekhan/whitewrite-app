@@ -6067,6 +6067,14 @@
         newItem: "＋ Новий", noItems: "У персонажа ще немає предметів — перевіряти нічого.", toEquip: "→ Екіпірування", integReq: "Запит для Claude Code: перевірити предмети",
         integAsk: "Перевір предмети персонажа «{c}» (WhiteWrite Кузня, {ref}): {items}.\n1. MCP whitewrite: get_character_forge {ref:\"{ref}\"} — затверджені моделі персонажа й предметів.\n2. У Unity чи Blender одягни кожен предмет на модель і перевір: clipping (наскрізні проходи в позах idle / walk / attack), deformation (згини), materials, scale.\n3. На кожну перевірку — report_forge_check {item:\"<ref предмета>\", check, result: passed | warning | failed, details}." },
       brief: { race: "Раса", cls: "Клас", role: "Роль у грі", silhouette: "Силует", proportions: "Пропорції", palette: "Палітра", refs: "Референси й обмеження" },
+      ws: { model: "🧍 Модель", equip: "🛡 Екіпірування", anim: "🎞 Анімації", export: "⤓ Експорт", exportOff: "Експорт — коли є модель зі скелетом Humanoid",
+        src: { prefab: "префаб із картки персонажа", rig: "після авторигу", mesh: "завантажена версія" }, tris: "трикутників",
+        noModel: "У картці персонажа ще немає моделі. Додай префаб у самій картці (кнопка «🧊 Додати префаб») — Кузня візьме його сама. Поки що в Примірочній — манекен типу тіла.",
+        checking: "Перевіряю модель…", skelOk: "✓ Скелет Humanoid — анімації WhiteWrite лягають самі, можна експортувати.", skelNone: "⚠ У моделі немає скелета — анімації на неї не ляжуть.",
+        skelOther: "⚠ Скелет моделі не Humanoid (кісток: {n}) — анімації WhiteWrite на нього не ляжуть.", arig: "🦴 Підігнати скелет",
+        arigHint: "8 міток на моделі → скелет Humanoid 65 і ваги, у браузері, без токенів. Результат стає моделлю персонажа в Кузні; префаб у картці не змінюється.",
+        blender: "Точніше — у Blender через Claude Code", rigNote: "Це модель після авторигу; префаб у картці лишився як був.", keysOk: "✓ Ключі форми Thin / Heavy / Muscular є — статура діє на модель.",
+        ready: "готовий до анімацій", needRig: "треба скелет", noModelShort: "немає моделі", counts: "предметів: {n} · анімацій: {k}" },
       context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
       slots: "Слоти", bindItem: "＋ привʼязати предмет…", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
       clips: "Кліпи", clipSt: { todo: "Не почато", done: "Є", checked: "Перевірено на моделі" }, addClip: "＋ Кліп", clipPh: "Назва кліпу",
@@ -6133,6 +6141,14 @@
         newItem: "＋ New", noItems: "The character has no items yet — nothing to check.", toEquip: "→ Equipment", integReq: "Request for Claude Code: check the items",
         integAsk: "Check the items of the character «{c}» (WhiteWrite Forge, {ref}): {items}.\n1. MCP whitewrite: get_character_forge {ref:\"{ref}\"} — the approved models of the character and the items.\n2. In Unity or Blender put every item on the model and check: clipping (poke-through in idle / walk / attack poses), deformation (bends), materials, scale.\n3. For every check — report_forge_check {item:\"<item ref>\", check, result: passed | warning | failed, details}." },
       brief: { race: "Race", cls: "Class", role: "Game role", silhouette: "Silhouette", proportions: "Proportions", palette: "Palette", refs: "References & constraints" },
+      ws: { model: "🧍 Model", equip: "🛡 Equipment", anim: "🎞 Animations", export: "⤓ Export", exportOff: "Export — once there is a model with a Humanoid skeleton",
+        src: { prefab: "the prefab from the character's card", rig: "after the auto-rig", mesh: "an uploaded version" }, tris: "triangles",
+        noModel: "The character's card has no model yet. Add a prefab in the card itself (the “🧊 Add a prefab” button) — the Forge takes it by itself. Until then the fitting room shows the body type's dummy.",
+        checking: "Checking the model…", skelOk: "✓ Humanoid skeleton — WhiteWrite animations fit by themselves, ready to export.", skelNone: "⚠ The model has no skeleton — animations will not fit it.",
+        skelOther: "⚠ The model's skeleton is not Humanoid ({n} bones) — WhiteWrite animations will not fit it.", arig: "🦴 Fit a skeleton",
+        arigHint: "8 markers on the model → the Humanoid 65 skeleton and weights, in the browser, no tokens. The result becomes the character's model in the Forge; the prefab in the card stays as it is.",
+        blender: "More precise — in Blender through Claude Code", rigNote: "This is the model after the auto-rig; the prefab in the card stays as it was.", keysOk: "✓ Thin / Heavy / Muscular shape keys present — the build acts on the model.",
+        ready: "ready for animation", needRig: "needs a skeleton", noModelShort: "no model", counts: "items: {n} · animations: {k}" },
       context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
       slots: "Slots", bindItem: "＋ bind an item…", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
       clips: "Clips", clipSt: { todo: "Not started", done: "Exists", checked: "Checked on the model" }, addClip: "＋ Clip", clipPh: "Clip name",
@@ -6195,7 +6211,7 @@
   // the character's picture: its own model (rig / mesh version, else the hero's prefab) as a still rendered once in the browser
   // (gb-3d.js modelShot, one at a time, kept for the session), else a picture (fzImg), else the ⚒ placeholder
   // a model without the Thin / Heavy / Muscular keys is shot once (the sliders cannot change it); fzShotKeys[file url] = its shape key names
-  var fzShots = {}, fzShotKeys = {}, fzShotQ = Promise.resolve(), FZ_BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+  var fzShots = {}, fzShotKeys = {}, fzShotInfo = {}, fzShotQ = Promise.resolve(), FZ_BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
   function fzHasShapes(keys) { return !!keys && FG.SHAPES.some(function (k) { return keys.indexOf(k) >= 0; }); }
   function fzShot(c) {
     var m = fzCharModel(c); if (!m || m.dummy) return "";
@@ -6203,7 +6219,7 @@
     if (fzShots[key] === undefined) {
       fzShots[key] = "";
       fzShotQ = fzShotQ.then(function () { return import("./gb-3d.js"); }).then(function (g) { return g.modelShot(m.file, m.sib, { shape: (c.forge || {}).shape }); })
-        .then(function (r) { var known = fzShotKeys[base]; fzShots[key] = r.url; fzShotKeys[base] = r.keys; if (!known && !fzHasShapes(r.keys) && fz.open) render(); }, function () { fzShots[key] = "x"; })
+        .then(function (r) { var known = fzShotInfo[base]; fzShots[key] = r.url; fzShotKeys[base] = r.keys; fzShotInfo[base] = { bones: r.bones || [], skinned: !!r.skinned, keys: r.keys }; if (!known && section === "forge") render(); }, function () { fzShots[key] = "x"; })
         .then(function () { fzShotFill(key); });
     }
     return key;
@@ -6255,12 +6271,11 @@
       '<select data-fztype aria-label="' + esc(FZ.type) + '"><option value="">' + esc(FZ.allTypes) + '</option>' + FG.TYPES.map(function (t) { return '<option value="' + t.id + '"' + (fz.type === t.id ? ' selected' : '') + '>' + esc(fzL(t)) + '</option>'; }).join("") + '</select></div>';
     if (!list.length) return html + '<p class="empty">' + FZ.noChars + '</p>';
     return html + '<div class="grid">' + list.map(function (c) {
-      var p = FG.progress(c), nx = p.next && FG.stage(p.next);
-      return '<button class="card fz-card" data-fzopen="' + esc(c.key) + '">' + fzPicHtml(c, "thumb") +
-        '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags"><span class="pill s-agreed">' + esc(fzL(FG.type(c.forge.type))) + '</span><span class="pill">' + esc(FZ.sec[c.section]) + '</span>' +
-        (FG.animReady(c.forge) ? '<span class="pill s-game">🦴 Humanoid</span>' : '') + '</div>' +
-        '<div class="fz-bar" role="progressbar" aria-valuenow="' + p.pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + p.pct + '%"></i></div>' +
-        '<p class="ex">' + p.done + ' / ' + p.all + ' · ' + esc(nx ? FZ.next + ": " + fzL(nx) + " — " + FZ.st[FG.stageState(c, nx.id, ctx)] : FZ.doneAll) + '</p></button>';
+      var W = FZ.ws, pic = fzPicHtml(c, "thumb"), st = fzState(c), rb = FG.refBody(c.forge.body);
+      return '<button class="card fz-card" data-fzopen="' + esc(c.key) + '">' + pic +
+        '<h3>' + esc(c.title || STR.newCard) + '</h3><div class="tags"><span class="pill">' + esc(FZ.sec[c.section]) + '</span>' + (rb ? '<span class="pill s-agreed">' + esc(fzL(rb)) + '</span>' : '') +
+        (st.hum ? '<span class="pill s-game">🦴 ' + W.ready + '</span>' : st.own ? (st.info ? '<span class="pill s-warn">⚠ ' + W.needRig + '</span>' : '') : '<span class="pill s-idea">' + W.noModelShort + '</span>') + '</div>' +
+        '<p class="ex">' + esc(W.counts.replace("{n}", FG.itemsOf(c, ctx.items).length).replace("{k}", FG.clipsOf(c.forge).length)) + '</p></button>';
     }).join("") + '</div>';
   }
   function fzItemsHtml() {
@@ -6282,23 +6297,40 @@
       list.map(function (o) { return '<option value="' + esc(o.id) + '"' + (o.id === cur ? ' selected' : '') + '>' + esc(o.name || fzL(o)) + '</option>'; }).join("") + '</select>';
   }
   // the character workspace: preview + profiles on the left, the stage list, the open stage on the right
+  // v2.93 (owner): one screen — the character's own model (from its card), three tabs and two buttons; the brief and the concept come from the
+  // character card, the stages / versions / approvals stay in the data (MCP, manifest) but are not shown
+  function fzHumanoid(inf) { return !!inf && inf.skinned && ["hips", "spine", "neck", "head", "leftarm", "leftforearm", "lefthand", "rightarm", "rightforearm", "righthand", "leftupleg", "leftleg", "leftfoot", "rightupleg", "rightleg", "rightfoot"].every(function (k) { return inf.bones.indexOf(k) >= 0; }); }
+  function fzState(c) {
+    var m = fzCharModel(c), own = !!(m && !m.dummy), info = own ? fzShotInfo[m.file.url] : null, rc = c.forge.rigCheck;
+    var hum = own && (fzHumanoid(info) || (m.src === "rig" && rc && rc.result === "passed"));
+    return { m: m, own: own, info: info, hum: !!hum };
+  }
   function fzWorkHtml(c) {
-    var ctx = fzCtx(), f = c.forge, all = FG.type(f.type).stages.map(FG.stage), on = FG.pipeline(f).map(function (s) { return s.id; });
-    if (!fz.stage || all.every(function (s) { return s.id !== fz.stage; })) fz.stage = FG.progress(c).next || all[0].id;
-    var p = FG.progress(c), P = fzProf();
+    var ctx = fzCtx(), f = c.forge, W = FZ.ws, rb = FG.refBody(f.body), mine = FG.itemsOf(c, ctx.items), nClips = FG.clipsOf(f).length;
+    if (["model", "equip", "anim"].indexOf(fz.ws) < 0) fz.ws = "model";
     var side = '<aside class="fz-side">' + fzPicHtml(c, "fz-hero") +
-      '<div class="fz-bar"><i style="width:' + p.pct + '%"></i></div><p class="muted">' + p.done + ' / ' + p.all + '</p>' +
-      '<label class="fz-lb">' + FZ.type + fzSel('data-fzf="type"', FG.TYPES, f.type) + '</label>' +
-      '<label class="fz-lb">' + FZ.rig + fzSel('data-fzf="rig"', P.rigs || [], f.rig || "", true) + '</label>' +
-      '<label class="fz-lb">' + FZ.body + fzSel('data-fzf="body"', P.bodies || [], f.body || "", true) + '</label>' + (canWrite && !fzPickOn(c) ? '<button class="btn mini ghost" data-fzpick>' + FZ.ref.pickBtn + '</button>' : '') + fzBodyHtml(c) +
-      (FG.animReady(f) ? '<p class="fz-ok">' + FZ.ref.ready + '</p>' : '') +
-      '<button class="btn mini ghost" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button>' +
-      '<h4 class="fz-h">' + FZ.stages + '</h4><ol class="fz-stages">' + all.map(function (s) {
-        var off = on.indexOf(s.id) < 0, st = off ? "" : FG.stageState(c, s.id, ctx);
-        return '<li><button class="fz-st' + (fz.stage === s.id ? ' on' : '') + (off ? ' off' : '') + '" data-fzstage="' + s.id + '"><span class="fz-dot ' + (FZ_SCLS[st] || '') + '">' + (st === "approved" ? "✓" : st === "locked" ? "🔒" : "●") + '</span>' +
-          esc(fzL(s)) + '<small>' + esc(off ? FZ.offOn : FZ.st[st]) + '</small></button></li>';
-      }).join("") + '</ol></aside>';
-    return '<div class="fz-work">' + side + '<section class="fz-main">' + (fzPickOn(c) ? fzPickHtml(c) : '') + fzStageHtml(c, FG.stage(fz.stage), on.indexOf(fz.stage) < 0, ctx) + '</section></div>';
+      (rb ? '<button class="btn fz-bodyb" data-fzpick' + (canWrite ? '' : ' disabled') + '>' + esc(fzL(rb)) + ' · ' + (LANG === "en" ? rb.height + " m" : String(rb.height).replace(".", ",") + " м") + ' ▾</button>' : '') +
+      fzBodyHtml(c) + '<button class="btn mini ghost" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button></aside>';
+    var st = fzState(c);
+    var bar = '<div class="row fz-acts"><button class="btn primary" data-fzfit>' + esc(FZ.fit.btn) + '</button><button class="btn" data-fzexport' + (st.hum ? '' : ' disabled') + '>' + W.export + '</button>' +
+      (st.hum ? '' : '<span class="muted">' + W.exportOff + '</span>') + '</div>';
+    var tabs = '<div class="ptabs" role="tablist">' + [["model", W.model], ["equip", W.equip + (mine.length ? " · " + mine.length : "")], ["anim", W.anim + (nClips ? " · " + nClips : "")]].map(function (t) {
+      return '<button class="chip" role="tab" data-fzws="' + t[0] + '" aria-selected="' + (fz.ws === t[0]) + '">' + esc(t[1]) + '</button>'; }).join("") + '</div>';
+    var main = fz.ws === "equip" ? fzEquipHtml(c, ctx) + (mine.length ? fzIntegHtml(c, ctx) : '') : fz.ws === "anim" ? fzClipsHtml(c) + fzLibHtml(c) : fzModelHtml(c, st);
+    return '<div class="fz-work">' + side + '<section class="fz-main">' + (fzPickOn(c) ? fzPickHtml(c) : '') + bar + tabs + main + '</section></div>';
+  }
+  function fzModelHtml(c, st) {
+    var W = FZ.ws, m = st.m, inf = st.info, html = '<div class="fz-model">';
+    if (!st.own) return html + '<p>' + W.noModel + '</p><button class="btn" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button></div>';
+    html += '<p><b>' + esc(m.file.name) + '</b> <span class="muted">' + esc(W.src[m.src] || "") + (m.file.tris ? ' · ' + Number(m.file.tris).toLocaleString(LANG) + ' ' + W.tris : '') + '</span></p>' +
+      (m.src === "rig" ? '<p class="muted">' + W.rigNote + '</p>' : '');
+    if (!inf) return html + '<p class="muted">' + W.checking + '</p></div>';
+    if (st.hum) html += '<p class="fz-ok">' + W.skelOk + '</p>';
+    else html += '<p class="warn">' + (inf.skinned ? W.skelOther.replace("{n}", inf.bones.length) : W.skelNone) + '</p>' +
+      (canWrite ? '<div class="fz-from"><span>' + esc(W.arigHint) + '</span><button class="btn primary" data-fzarig>' + esc(W.arig) + '</button></div>' : '') +
+      '<details class="fz-ctx"><summary>' + W.blender + '</summary>' + fzFitHtml(c) + '</details>';
+    if (fzHasShapes(inf.keys)) html += '<p class="fz-ok">' + W.keysOk + '</p>';
+    return html + '</div>';
   }
   // ▦ race and sex first: a new character (no body type yet) sees the 14 reference bodies as cards — males in the first row, females in the
   // second; a pick sets the body and its skeleton like the «Профіль тіла» list. «▦ Обрати тип тіла» opens them again.
@@ -6311,44 +6343,6 @@
         return '<button class="fz-pickb' + (b.id === cur ? ' on' : '') + '" data-fzbody="' + b.id + '"><img alt="" loading="lazy" src="' + FG.REF_FILES + b.id + '_front.webp">' +
           '<b>' + esc(nm[0]) + '</b><small>' + esc((nm[1] || "").trim()) + ' · ' + h + '</small></button>';
       }).join("") + '</div>' + (cur ? '<button class="btn mini ghost" data-fzpickx>' + R.pickX + '</button>' : '') + '</section>';
-  }
-  function fzStageHtml(c, s, off, ctx) {
-    var f = c.forge, a = f.stages && f.stages[s.id] && f.stages[s.id].approved, st = off ? "" : FG.stageState(c, s.id, ctx), bl = off ? [] : FG.blockers(c, s.id, ctx);
-    var html = '<h2 class="group">' + esc(fzL(s)) + (st ? ' <span class="pill ' + FZ_SCLS[st] + '">' + esc(FZ.st[st]) + '</span>' : '') + '</h2>' +
-      '<p><b>' + FZ.what + ':</b> ' + esc(fzL(s.what)) + '<br><b>' + FZ.done + ':</b> ' + esc(fzL(s.done)) + '</p>';
-    if (off) return html + '<p class="muted">' + FZ.offOn + '</p>' + (canWrite ? '<button class="btn" data-fzoff="' + s.id + '">' + FZ.turnOn + '</button>' : '');
-    if (a) html += '<p class="fz-ok">✓ ' + FZ.approvedBy + (a.byName ? ' · ' + esc(a.byName) : '') + ' · ' + esc(when(a.at)) + (a.comment ? ' — «' + esc(a.comment) + '»' : '') +
-      (canWrite ? ' <button class="btn mini ghost" data-fzunapp="' + s.id + '">' + FZ.unapprove + '</button>' : '') + '</p>';
-    else if (bl.length) html += '<div class="fz-block"><b>' + FZ.blockers + ':</b><ul>' + bl.map(function (b) { return '<li>' + esc(fzL(b)) + '</li>'; }).join("") + '</ul></div>';
-    if (s.kind === "brief") html += fzBriefHtml(c);
-    if (s.id === "concept" || s.id === "mesh" || (s.id === "rig" && !FG.refRig(f.rig))) html += fzFromHtml(c, s.id);
-    if (s.kind === "equip") html += fzEquipHtml(c, ctx);
-    if (s.kind === "integrate" || s.kind === "anim") html += '<div class="fz-from"><span>' + esc(FZ.fit.hint) + '</span><button class="btn primary" data-fzfit>' + esc(FZ.fit.btn) + '</button></div>';
-    if (s.kind === "integrate") html += fzIntegHtml(c, ctx);
-    if (s.id === "rig" && FG.refRig(f.rig)) html += fzFitHtml(c);
-    if (s.id === "rig" && canWrite) html += '<div class="fz-from"><span>' + esc(FZ.arig.hint) + '</span><button class="btn" data-fzarig>' + esc(FZ.arig.btn) + '</button></div>';
-    if (s.kind === "anim") html += (FG.animReady(f) ? '<p class="fz-ok">' + FZ.ref.ready + ' — ' + FZ.ref.readyHint + '</p><p class="muted">' + FZ.ref.mixamo + '</p>' : '') + fzClipsHtml(c) + fzLibHtml(c);
-    if (s.kind === "export") html += '<p class="hint">' + FZ.manifestHint + '</p><button class="btn" data-fzmanifest>' + FZ.manifest + '</button>';
-    if (s.kind === "files" || s.kind === "anim" || s.kind === "export") html += fzRevsHtml(c, s.id, true);
-    if (canWrite && !a && s.kind !== "files") html += '<div class="row"><button class="btn primary" data-fzapp="' + s.id + '"' + (bl.length ? ' disabled' : '') + '>' + FZ.approve + '</button></div>';
-    if (canWrite && s.id !== "brief" && s.id !== "export") html += '<p><button class="btn mini ghost" data-fzoff="' + s.id + '">' + FZ.off + '</button></p>';
-    var notes = (f.notes || []).filter(function (n) { return n.stage === s.id; });
-    html += '<h4 class="fz-h">' + FZ.notes + '</h4>' + notes.map(function (n) { return '<p class="fz-note"><b>' + esc(n.byName || "") + '</b> <span class="muted">' + esc(when(n.at)) + '</span><br>' + esc(n.text) + '</p>'; }).join("") +
-      (canWrite ? '<div class="row"><input data-fznote placeholder="' + esc(FZ.notePh) + '" aria-label="' + esc(FZ.notePh) + '"><button class="btn" data-fzaddnote="' + s.id + '">' + FZ.addNote + '</button></div>' : '');
-    return html;
-  }
-  function fzBriefHtml(c) {
-    var b = c.forge.brief || {}, ro = c.forge.stages && c.forge.stages.brief && c.forge.stages.brief.approved;
-    var ent = c.src === "canon" && entities.filter(function (e) { return e.id === c.id; })[0], fl = c.fields || {};
-    var ctxText = [ent ? FZ.fromCanon + ": " + plain(ent[descKeyOf(ent)] || (ent.dossier || {}).story || "").slice(0, 600) : "",
-      sec(c.section).defs.filter(function (d) { return d.type !== "file" && fl[d.key]; }).map(function (d) { return d.label + ": " + fl[d.key]; }).join("\n")].filter(Boolean).join("\n\n");
-    // what the Bible already knows fills the empty fields in one click (v2.89): the game card's role, the world character's «Зовнішність»
-    var sug = FG.briefFromCanon(fl, ent && ent.appearance), fill = Object.keys(FZ.brief).filter(function (k) { return !String(b[k] || "").trim() && sug[k]; });
-    return (ctxText ? '<details class="fz-ctx"><summary>' + FZ.context + '</summary><pre class="ln-cmd">' + esc(ctxText) + '</pre></details>' : '') +
-      (fill.length && canWrite && !ro ? '<div class="row"><button type="button" class="btn" data-fzfill>' + esc(FZ.fillCanon.replace("{n}", fill.length)) + '</button></div>' : '') +
-      '<div class="fz-brief">' + Object.keys(FZ.brief).map(function (k) {
-        return '<label class="fz-lb">' + esc(FZ.brief[k]) + '<textarea rows="2" data-fzb="' + k + '"' + (sug[k] ? ' placeholder="' + esc(FZ.fromCanon + ": " + sug[k]) + '"' : '') + (canWrite && !ro ? '' : ' readonly') + '>' + esc(b[k] || "") + '</textarea></label>';
-      }).join("") + '</div>';
   }
   // the versions of a stage (or of an item: concept / model): newest first, the approved one marked, compare two side by side
   function fzRevsHtml(o, stageId, isChar) {
@@ -6401,16 +6395,6 @@
   // what fills a stage besides «⤒ Нова версія» (v2.89): concept — the card's own pictures, base mesh — the hero's prefab of «Ассети й префаби»,
   // rig without a reference skeleton — the body type that gives one (then the fit request for Claude Code appears)
   function fzCardPics(c) { return (c.files || []).filter(function (x) { return isImage(x) && x.field !== "forge"; }); }
-  function fzFromHtml(c, sid) {
-    if (!canWrite) return "";
-    if (sid === "concept") { var pics = fzCardPics(c); return pics.length ? '<div class="fz-from"><span>' + esc(FZ.from.imgs.replace("{n}", pics.length)) + '</span><button class="btn" data-fzfromimg>' + esc(FZ.from.imgBtn) + '</button></div>' : ''; }
-    if (sid === "mesh") {
-      var a = assetCard(c.prefab);
-      return '<div class="fz-from">' + (a ? assetLine(a) + '<button class="btn" data-fzfrompf>' + esc(FZ.from.pfBtn) + '</button><button class="btn ghost" data-fzpfpick>' + esc(PF.change) + '</button>'
-        : '<span>' + esc(FZ.from.pfNone) + '</span><button class="btn" data-fzpfpick>' + esc(PF.qPrefab) + '</button>') + '</div>';
-    }
-    return '<div class="fz-from"><span>' + esc(FZ.from.rigBody) + '</span><label class="fz-lb">' + FZ.body + fzSel('data-fzf="body"', fzProf().bodies || [], c.forge.body || "", true) + '</label></div>';
-  }
   // a version from files already on the card (no upload)
   async function fzRevFrom(c, stageId, files, note) {
     if (!files.length) return;
@@ -6525,11 +6509,12 @@
   // the WhiteWrite library clips (the character's own first) and its items with a 3D model; «✓ Виглядає добре» → item forge.external
   function fzCharModel(c) {
     var f = c.forge, files = c.files || [], ok = function (x) { return x && /\.(glb|gltf|fbx|obj)$/i.test(x.name || ""); }, m = null;
+    var src = "";
     ["rig", "mesh"].some(function (sid) { var r = FG.approvedRev(f, sid) || FG.revsOf(f, sid)[0];
-      m = r && (r.files || []).map(function (id) { return files.filter(function (x) { return x.id === id; })[0]; }).filter(ok)[0]; return !!m; });
-    if (m) return { file: m, sib: files };
+      m = r && (r.files || []).map(function (id) { return files.filter(function (x) { return x.id === id; })[0]; }).filter(ok)[0]; src = sid; return !!m; });
+    if (m) return { file: m, sib: files, src: src };
     var a = assetCard(c.prefab), am = a && (a.files || []).filter(function (x) { var s = window.__ASSET_KIT.fileSlot(x); return (s === "model" || s === "prefab") && ok(x); })[0];
-    if (am) return { file: am, sib: a.files };
+    if (am) return { file: am, sib: a.files, src: "prefab" };
     var rb = FG.refBody(f.body) ? f.body : "human_male"; return { file: fzRefFile(rb), sib: [], dummy: fzL(FG.refBody(rb)) };
   }
   // the library is read once: run fn as soon as it is here
@@ -6578,7 +6563,8 @@
     var m = fzMeshModel(c), A = FZ.arig; if (!m) { notify(A.none); return; }
     fzWithAnims(function (lib) {
       var fc = fzFitClips(c, lib), base = String(m.file.name || c.title || "model").replace(/\.[^.]+$/, "");
-      view3d(m.file, m.sib, null, { rig: { ref: FG.REF_FILES + "human_male.glb", body: c.forge.body || "", labels: Object.assign({}, A, { hint: A.hint2 }),
+      var inf = fzShotInfo[m.file.url];
+      view3d(m.file, m.sib, null, { rig: { ref: FG.REF_FILES + "human_male.glb", body: c.forge.body || "", force: !!(inf && inf.skinned && !fzHumanoid(inf)), labels: Object.assign({}, A, { hint: A.hint2 }),
           onSave: function (blob, report) {
             var o = fzChars().filter(function (x) { return x.id === c.id; })[0] || c; // the latest forge (the snapshot may have moved on)
             if (o.forge.rig !== "mixamo65") { o.forge = fzClone(o.forge); o.forge.rig = "mixamo65"; } // the skeleton it was built on
@@ -6607,7 +6593,7 @@
     return '<div class="fz-shape"><b>' + R.shape + '</b>' + (noKeys ? '<small class="warn">⚠ ' + R.noKeys + '</small>' : '') + FG.SHAPES.map(function (k) {
         var v = Math.max(0, Math.min(100, +sh[k] || 0));
         return '<label class="fz-lb">' + esc(R.shapes[k]) + ' <span class="muted">' + v + '</span><input type="range" min="0" max="100" step="5" value="' + v + '" data-fzshape="' + k + '"' + (canWrite ? '' : ' disabled') + '></label>';
-      }).join("") + '<small class="muted">' + R.shapeHint + '</small><button class="btn mini" data-fzref3d="' + rb.id + '">' + R.v3d + '</button></div>';
+      }).join("") + '<button class="btn mini" data-fzref3d="' + rb.id + '">' + R.v3d + '</button></div>';
   }
   // the rig stage on a reference: the Claude Code request, the skeleton check, «ready for animation»
   function fzFitHtml(c) {
@@ -6700,14 +6686,26 @@
     f.stages = f.stages || {}; f.stages[stageId] = { approved: { rev: revId, by: w.uid, byName: w.name, at: Date.now(), comment: comment.trim() } };
     fzSave(c, f);
   }
+  // ⤓ Export: the model file as it is + the manifest (whitewrite.character/1) naming it; the brief comes from the character card
+  async function fzExport(c) {
+    var st = fzState(c); if (!st.hum) return;
+    var m = st.m, ent = c.src === "canon" && entities.filter(function (e) { return e.id === c.id; })[0];
+    var o = Object.assign({}, c, { model: { name: m.file.name, url: m.file.url, tris: m.file.tris, source: m.src } });
+    o.forge = Object.assign({}, c.forge, { brief: Object.assign({}, FG.briefFromCanon(c.fields || {}, ent && ent.appearance), c.forge.brief) });
+    download(slugify(c.title || "character") + ".forge.json", JSON.stringify(FG.manifest(o, fzItems(), game, LANG), null, 2));
+    try {
+      var blob = await (await fetch(m.file.url)).blob(), a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = m.file.name;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+    } catch (e) { notify(STR.failed + ": " + (e.message || e)); }
+  }
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzarig],[data-fzbody],[data-fzpick],[data-fzpickx]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzarig],[data-fzbody],[data-fzpick],[data-fzpickx],[data-fzws],[data-fzexport]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
-    if (d.fzopen) { fz.open = d.fzopen; fz.pick = false; fz.item = null; fz.stage = null; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
+    if (d.fzopen) { fz.open = d.fzopen; fz.pick = false; fz.ws = "model"; fz.item = null; fz.stage = null; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
     if (d.fzitem) { fz.item = d.fzitem; fz.cmp = []; fz.msg = ""; render(); $("main").scrollTop = 0; return true; }
     if (d.fzback !== undefined) { if (fz.item && fz.open) fz.item = null; else { fz.item = null; fz.open = null; } fz.cmp = []; fz.msg = ""; render(); return true; }
     if (d.fzstage) { fz.stage = d.fzstage; fz.cmp = []; render(); return true; }
@@ -6715,6 +6713,8 @@
     if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
     if (d.fzfit !== undefined && c) { fzFitOpen(c); return true; }
     if (d.fzarig !== undefined && c && canWrite) { fzARigOpen(c); return true; }
+    if (d.fzws) { fz.ws = d.fzws; render(); return true; }
+    if (d.fzexport !== undefined && c) { fzExport(c); return true; }
     if (d.fzpick !== undefined && c) { fz.pick = true; render(); $("main").scrollTop = 0; return true; }
     if (d.fzpickx !== undefined) { fz.pick = false; render(); return true; }
     if (d.fzbody && c && canWrite) {

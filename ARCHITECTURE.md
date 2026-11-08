@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.92.1 (2026-11-08)
+**Version:** 2.93.0 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -746,6 +746,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.93.0** ⚒ Forge simplified (owner): the character screen is one view — left: the still of its model, the body type button (picker), the build; top: «🎞 Примірочна» and «⤓ Експорт» (active once `gb-3d.js modelShot` finds a skinned model with the Humanoid bones — `fzHumanoid`, or a passed rig check on an auto-rig model; downloads the model file + the manifest, which now names it: `manifest(...).model {name, url, tris, source}`); tabs 🧍 Модель (source prefab / auto-rig, triangles, skeleton and shape-key status, «🦴 Підігнати скелет» = auto-rig, now also over a non-Humanoid skeleton — `opts.rig.force`, the Blender request in a fold) · 🛡 Екіпірування · 🎞 Анімації. The brief, concept, stage list, versions and approvals are no longer shown (the character card is the description; the export brief comes from `briefFromCanon` of the card); `forge.stages / revs` stay in the data for MCP and the manifest; list cards show body type, readiness and counts
 - **v2.92.1** ⚒ owner test: the body type (picker or list) fills `forge.brief.race` / `.proportions` while empty or still a reference value (`fzBodyBrief`, not after the brief is approved); `modelShot` returns `{ url, keys }` — a model without Thin / Heavy / Muscular is shot once and «Статура» warns that the sliders act only on the dummy and the manifest; English reference body names «Elf, male»; `firebase.json`: `**/*.@(js|mjs|css|json)` `Cache-Control: no-cache` (an hour-old cached `gamebible.js` hid the v2.91.2 fixes from the owner)
 - **v2.92.0** ⚒ ▦ race and sex first (owner): a character without `forge.body` (and «▦ Обрати тип тіла» under the body list, `fz.pick`) shows the 14 reference bodies as cards at the top of the work area (`fzPickHtml`, males row then females, `<id>_front.webp`); a click (`data-fzbody`) sets `forge.body` and the reference skeleton as the list does; no new data
 - **v2.91.2** ⚒ Forge fixes (owner test): build sliders write only the moved key (`fzSaveShape` — `set({forge:{shape:{k:v}}}, {merge:true})`; the 3D viewer kept the character it opened with, and its whole-forge write put back the old values of keys moved before); the character's picture (side and list cards) is its own model — `gb-3d.js modelShot(file, siblings, {shape})` renders a still off-screen once (queued, cached per file + build for the session, `fzPicHtml` / `fzShot`), else the portrait / concept (`fzImg`), else ⚒; `.fz-side` is a `minmax(0,1fr)` grid (a wide select made the column 295 px and it covered the stage title)

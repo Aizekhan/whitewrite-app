@@ -87,6 +87,7 @@ check(m.schema, 'whitewrite.character/1', 'manifest schema');
 check(m.rig_profile.name, 'Humanoid A', 'manifest names the rig profile');
 check(m.stages.find((s) => s.id === 'concept').files[0].url, 'u1', 'manifest gives the approved concept, not the newest');
 check(m.equipment.length, 3, 'manifest lists the bound items');
+check(F.manifest(Object.assign({}, c, { model: { name: 'hero.glb', url: 'u9', source: 'prefab' } }), items, {}, 'en').model.url, 'u9', 'manifest carries the model the Forge uses');
 check(m.equipment.find((e) => e.ref === 'c:i2').attachment_points[0].bone, 'hand_r', 'manifest carries attachment points');
 check(F.PROVIDERS.filter((p) => p.live).map((p) => p.id).join(), 'manual', 'only manual import is live (Meshy is next)');
 
