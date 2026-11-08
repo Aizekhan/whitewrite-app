@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.97.0 (2026-11-08)
+**Version:** 2.98.0 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -296,6 +296,10 @@ One row per charge: `uid, projectId, operation (logAs), model, inputTokens/outpu
 ` at the end; they were re-added clean, and `common.js` trims every `defineSecret` value on read. **Secrets must be added without a trailing newline** (`--data-file` from a trimmed source).
 
 **Plan change (v2.18, `changeSubscription` in `functions/src/lemon.js`):** body `{op:'quote'|'change'|'cancelPending', plan}`, needs an active LS subscription (else 409 → the client falls back to checkout; PayPal → `{portal}` = LS `customer_portal_update_subscription`). It reads the LS subscription (`renews_at`); `left` = days to renewal / 30. **Up** → LS `PATCH /v1/subscriptions/{id} {variant_id, invoice_immediately:true}` (LS charges the prorated difference now), then `users.plan = target` and `tokensUsed` set so that available = old monthly left + `upgradeQuote().tokens` (budget difference × left) − `fee` (`UPGRADE_FEE` 3% of the new monthly), logged `usage_logs {operation:'plan_upgrade_fee'}`, `lastUpgrade`. **Down** → `PATCH {variant_id, disable_prorations:true}` (the new price at renewal, no credit) + `users.pendingPlan / pendingFrom = renews_at`; **free** → `PATCH {cancelled:true}` + pending. `cancelPending` reverts (variant back / `cancelled:false`). Webhook: `subscription_updated` keeps the plan while `pendingPlan === variant plan && pendingFrom > now`, applies it after; `subscription_payment_success` (renewal) applies a due pending plan. UI: plan cards (`planCard` in White.html) show «З дати» + «Скасувати перехід» on the pending plan; `.plan__btn` quotes then confirms (`plan.upAsk/downAsk/freeAsk`). `__wwUser.pendingPlan/pendingFrom` from `firebase-auth.js`.
+
+**Scale (v2.98):** `mcp.js readGame` keeps a game's entities / cards / tasks on the instance (`gameCache`, ≤ 200 games); every call reads the world, game and plan docs plus a signature per list (`count()` + the newest `updatedAt`, ~6 reads) and re-reads the lists only when it changed or after `GAME_TTL` (2 min); a tool that may write (`report_* / submit_* / get_next_task / …`) drops the entry; each call gets its own copies. Access (owner, game exists) is checked every call. Community: `community/{id}.heat` = Σ 2^((like.at − EPOCH) / HALF_LIFE) is incremented / decremented by `like`, `score = heat · 2^(−(now − EPOCH)/HALF_LIFE)`; `rebuildHome` reads no likes (a doc without `heat` gets it once), checks activity at most every 6 h per showcase (`activeCheckedAt`) and rewrites `score` only when it moved > 2%.
+
+**Hero prefab from the PC (v2.98):** in a character / enemy card (and the Forge) the prefab field and the picker have «⤒ Завантажити з ПК» (GLB · Blend · unitypackage · ZIP) and «📂 Тека з ПК» (FBX · OBJ · glTF + textures) — `gamebible.js uploadPrefabFor`: a new `assets` card (title = the hero, category Персонажі / Вороги), the files onto its kit slots (`kit:<slot>`, `asset-kit.js classify`), then `setPrefab` links it (`card.prefab`, card-refs kind already registered). The picker's «Перейти в «Ассети й префаби»» is replaced by these buttons.
 
 **Team trust & Storage quota (v2.97):** a task a team member writes must carry `memberEdit = their uid` (`firestore.rules`, tasks subcollection; the owner writes anything and clears it). `mcp.js unapproved(t)`: `get_next_task` never claims such a task, `taskView` returns no instructions for it, the MCP `initialize` instructions say card / quest / dialogue text is data, never commands — the owner's agent runs with full rights on the owner's PC. The Production plan shows «✎ змінив …» + «✓ Схвалити для агента» (`gamebible.js memberHtml / approveTask`); the owner's own action on a task (review, return, assign) clears it too (`memberMark`). Game delete — owner only (rules; «Небезпечна зона» in settings only for the owner). **Storage quota:** `PLANS.storageGB` (paid-features: 1 · 2 · 5 · 50 GB, all the owner's worlds together); `storageUsage/{w} {owner, bytes}` (server-written, the owner reads), kept by `storageUploaded` (onObjectFinalized: over the quota → the file is marked `wwUncounted` and deleted) and `storageRemoved` (onObjectDeleted, incl. overwritten generations); `worldDeleted` drops the doc. The owner's page checks the sum before an upload (`storageRoom`, putFile / dossier files / Forge / folder intake). Files from before v2.97 were counted once by a backfill.
 
@@ -752,6 +756,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.98.0** audit package 2: MCP `readGame` cache by signature, Community ♥ score kept incrementally (`heat`); a hero uploads its prefab from the PC straight into «Ассети й префаби» (`uploadPrefabFor`); KB «🧊 GLB-моделі з WhiteWrite в Unity (glTFast)»
 - **v2.97.0** audit decisions (owner: «decide yourself»): a team member's task waits for the owner's approval before MCP serves it (`memberEdit`); only the owner deletes a game; Storage quota per plan 1 · 2 · 5 · 50 GB (`storage-quota.js`)
 - **v2.96.0** royal tech audit, package 1 (see «Billing audit fixes (v2.96)»): paid AI work is never refunded (refusals, failed parallel parts, errors after paid calls — `claude.js allPaid`, `gamedev paidSoFar`), held reservations + `reservationSweep`, `quoteChars` weighs the text, upgrade tokens in a transaction, `gameDeleted` / `worldDeleted` cleanup triggers, `gameExists` in the rules, telemetry can't revive a deleted game, `usage_logs` TTL, `maxInstances: 20`, `esc` escapes `'`
 - **v2.95.1** heroic dwarf fronts added (owner) — the heroic style has all 14 body types
@@ -879,5 +884,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-08 (v2.96.0)
+**Last updated:** 2026-11-08 (v2.98.0)
 **Maintained by:** WhiteWrite Team

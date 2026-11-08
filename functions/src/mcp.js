@@ -140,16 +140,36 @@ function loadGame(key) {
   if (!key._ctx) key._ctx = readGame(key).catch((e) => { key._ctx = null; throw e; });
   return key._ctx;
 }
+// The entities, cards and tasks of a game are read once and kept on the instance; every call checks a cheap signature
+// (count + the newest updatedAt of each collection — ~6 reads) and re-reads the lists only when it changed. Every
+// writer sets updatedAt (the page, MCP setTask, gamedev writeTasks); GAME_TTL caps what a write without it could leave stale.
+const gameCache = new Map(), GAME_TTL = 2 * 60 * 1000;
+async function sigOf(col) {
+  const [n, top] = await Promise.all([col.count().get(), col.orderBy('updatedAt', 'desc').limit(1).get()]);
+  const d = top.docs[0], t = d && d.get('updatedAt');
+  return n.data().count + ':' + (d ? d.id : '') + ':' + (t && t.toMillis ? t.toMillis() : '');
+}
+const dropGame = (key) => gameCache.delete(key.worldId + '/' + key.gameId); // after this instance writes
 async function readGame(key) {
   const wref = db.collection('worlds').doc(key.worldId), gref = wref.collection('games').doc(key.gameId);
-  const [w, g, ents, cards, plan, tasks] = await Promise.all([wref.get(), gref.get(), wref.collection('entities').get(),
-    gref.collection('cards').get(), gref.collection('plan').doc('current').get(), gref.collection('tasks').get()]);
+  const cols = [wref.collection('entities'), gref.collection('cards'), gref.collection('tasks')];
+  const [w, g, plan, sig] = await Promise.all([wref.get(), gref.get(), gref.collection('plan').doc('current').get(), Promise.all(cols.map(sigOf)).then((x) => x.join('|'))]);
   if (!w.exists || w.data().owner !== key.uid || !g.exists) throw rpcError(-32001, 'Game not found or no access');
+  const ck = key.worldId + '/' + key.gameId;
+  let hit = gameCache.get(ck);
+  if (!hit || hit.sig !== sig || Date.now() - hit.at > GAME_TTL) {
+    const [ents, cards, tasks] = await Promise.all(cols.map((c) => c.get()));
+    const rows = (q) => q.docs.map((d) => ({ id: d.id, data: d.data() }));
+    hit = { sig, at: Date.now(), ents: rows(ents), cards: rows(cards), tasks: rows(tasks) };
+    if (gameCache.size > 200) gameCache.clear();
+    gameCache.set(ck, hit);
+  }
+  const fresh = (list) => list.map((r) => ({ id: r.id, ...r.data })); // a new object per call: a tool may change its own copy
   return {
     wref, gref, world: w.data(), game: g.data(), plan: plan.exists ? plan.data() : {},
-    entities: ents.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false)),
-    cards: cards.docs.map((d) => ({ id: d.id, ...d.data() })),
-    tasks: tasks.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order || 0) - (b.order || 0)),
+    entities: fresh(hit.ents).filter((e) => !(e.origin && e.origin.confirmed === false)),
+    cards: fresh(hit.cards),
+    tasks: fresh(hit.tasks).sort((a, b) => (a.order || 0) - (b.order || 0)),
   };
 }
 
@@ -910,7 +930,9 @@ async function handle(msg, key) {
         // Маркет: a world under licence review / on sale is frozen — reads go on, nothing is written (market.js)
         if (/^(report_|submit_|get_next_task|check_style)/.test(params.name || '') &&
             ((await db.collection('worlds').doc(key.worldId).get()).data() || {}).freeze) throw new Error('The world is frozen: it is under licence review or on sale in the WhiteWrite Market — nothing can be changed or claimed until the author withdraws it.');
-        const out = await callTool(params.name, params.arguments || {}, key);
+        let out;
+        try { out = await callTool(params.name, params.arguments || {}, key); }
+        finally { if (!/^(get_|search_|list_)/.test(params.name || '') || params.name === 'get_next_task') dropGame(key); } // it may have written: re-read next time
         result = { content: [{ type: 'text', text: JSON.stringify(out, null, 2) }] };
       } catch (e) {
         if (e.rpcCode === -32001) throw e;
@@ -957,4 +979,4 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   return out ? res.status(200).json(out) : res.status(202).send('');
 });
 
-exports._mcp = { knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset }; // tests only (tests/mcp-knowledge.test.cjs)
+exports._mcp = { knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame }; // tests only (tests/mcp-knowledge.test.cjs)

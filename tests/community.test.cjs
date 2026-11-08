@@ -22,5 +22,15 @@ check(!okDiscord('https://discord.gg/abc"x'), 'a Discord invite with a quote is 
 const it = cleanItem({ sec: 's1', title: 't', imgs: [S + 'ok.png', S + 'bad"x.png'] }, ['s1']);
 check(it.imgs.length === 1, 'showcase item pictures keep only safe URLs');
 
+// ♥ with ageing kept incrementally (heat): the same score as summing every like's ½-per-30-days weight
+const H = require('../functions/src/community.js')._heat, DAY = 86400000, now = Date.UTC(2027, 5, 1);
+const likesAt = [now - 30 * DAY, now - 60 * DAY, now - 2 * DAY, now];
+const sum = likesAt.reduce((s, at) => s + Math.pow(0.5, (now - at) / (30 * DAY)), 0);
+const heat = likesAt.reduce((s, at) => s + H.heatOf(at), 0);
+check(Math.abs(H.scoreAt(heat, now) - sum) < 1e-9, 'heat → score equals the sum of aged likes');
+check(Math.abs(H.scoreAt(H.heatOf(now - 30 * DAY), now) - 0.5) < 1e-12, 'a like 30 days old counts ½');
+check(Math.abs(H.scoreAt(heat - H.heatOf(likesAt[2]), now) - (sum - Math.pow(0.5, 2 / 30))) < 1e-9, 'an unlike takes off exactly its own weight');
+check(isFinite(H.heatOf(Date.UTC(2036, 0, 1))), 'heat stays finite for years (2^(t/30 d))');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;

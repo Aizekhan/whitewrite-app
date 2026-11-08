@@ -71,6 +71,12 @@ async function lastActivity(d) {
   return Math.max(...at);
 }
 
+// ♥ with ageing, kept incrementally: heat = Σ 2^((like.at − EPOCH) / HALF_LIFE), changed by each like / unlike, so
+// score(now) = heat · 2^(−(now − EPOCH) / HALF_LIFE) — no showcase's likes are re-read each hour (a doc without heat
+// gets it once from its likes). The activity check (2–4 reads) runs at most every ACT_EVERY per showcase.
+const EPOCH = Date.UTC(2026, 0, 1), ACT_EVERY = 6 * 3600 * 1000;
+const heatOf = (ms) => Math.pow(2, (ms - EPOCH) / HALF_LIFE);
+const scoreAt = (heat, now) => (heat || 0) / heatOf(now);
 const homeCard = (id, d) => ({ id, kind: d.kind, title: d.title || '', tagline: d.tagline || '', cover: d.cover || '', author: d.author || '', likes: d.likes || 0, followers: d.followers || 0, worldTitle: d.worldTitle || '', team: !!d.lookingForTeam });
 
 // rank the showcases and rebuild the home page cards
@@ -79,15 +85,24 @@ async function rebuildHome() {
   const snap = await db.collection('community').where('hidden', '==', false).limit(2000).get();
   const rows = [];
   for (const doc of snap.docs) {
-    const d = doc.data();
-    const act = await lastActivity(d);
-    if (act === null) { await deleteSub(doc.ref, 'items'); await deleteSub(doc.ref, 'likes'); await deleteSub(doc.ref, 'followers'); await doc.ref.delete(); continue; } // world or game deleted
-    const likes = await doc.ref.collection('likes').where('at', '>', admin.firestore.Timestamp.fromMillis(now - 12 * HALF_LIFE)).get();
-    const score = likes.docs.reduce((s, l) => s + Math.pow(0.5, (now - l.get('at').toMillis()) / HALF_LIFE), 0);
-    const activeAt = Math.max(act, d.activeAt && d.activeAt.toMillis ? d.activeAt.toMillis() : 0);
-    if (Math.abs((d.score || 0) - score) > 1e-6 || !d.activeAt || d.activeAt.toMillis() !== activeAt) {
-      await doc.ref.update({ score, activeAt: admin.firestore.Timestamp.fromMillis(activeAt) });
+    const d = doc.data(), upd = {}, ms = (x) => (x && x.toMillis ? x.toMillis() : 0);
+    let activeAt = ms(d.activeAt);
+    if (now - ms(d.activeCheckedAt) > ACT_EVERY) {
+      const act = await lastActivity(d);
+      if (act === null) { await deleteSub(doc.ref, 'items'); await deleteSub(doc.ref, 'likes'); await deleteSub(doc.ref, 'followers'); await doc.ref.delete(); continue; } // world or game deleted
+      if (act > activeAt) { activeAt = act; upd.activeAt = admin.firestore.Timestamp.fromMillis(act); }
+      upd.activeCheckedAt = admin.firestore.Timestamp.fromMillis(now);
     }
+    let heat = d.heat;
+    if (typeof heat !== 'number') { // once: from the likes it already has
+      const likes = await doc.ref.collection('likes').get();
+      heat = likes.docs.reduce((n, l) => n + heatOf(ms(l.get('at'))), 0);
+      upd.heat = heat;
+    }
+    const score = scoreAt(heat, now);
+    // the stored score (the page sorts the Community list by it) is rewritten when it moved > 2% — not every hour
+    if (Math.abs((d.score || 0) - score) > 0.02 * Math.max(score, 1e-9) || ((d.score || 0) > 0) !== (score > 1e-9)) upd.score = score;
+    if (Object.keys(upd).length) await doc.ref.update(upd);
     rows.push({ id: doc.id, d, score, activeAt });
   }
   rows.sort((a, b) => b.score - a.score || (b.d.likes || 0) - (a.d.likes || 0) || b.activeAt - a.activeAt);
@@ -104,6 +119,7 @@ async function rebuildHome() {
   return { top: top.length, pool: pool.length };
 }
 
+exports._heat = { heatOf, scoreAt, EPOCH }; // tests only
 exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '512MiB' }, async (req, res) => {
   return cors(req, res, async () => {
     try {
@@ -150,7 +166,7 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
           sections, updatedAt: ts(), activeAt: ts(),
         };
         doc.hasRelease = doc.releases.length > 0;
-        if (!prev.exists) Object.assign(doc, { likes: 0, followers: 0, score: 0, reports: 0, hidden: false, publishedAt: ts() });
+        if (!prev.exists) Object.assign(doc, { likes: 0, followers: 0, score: 0, heat: 0, reports: 0, hidden: false, publishedAt: ts() });
         await deleteSub(ref, 'items');
         await ref.set(doc, { merge: true });
         for (let i = 0; i < items.length; i += 400) {
@@ -184,9 +200,10 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
         const likes = await db.runTransaction(async (t) => {
           const [l, cur] = await Promise.all([t.get(likeRef), t.get(ref)]);
           let n = cur.get('likes') || 0;
-          if (on && !l.exists) { t.set(likeRef, { at: admin.firestore.Timestamp.now() }); n++; }
-          if (!on && l.exists) { t.delete(likeRef); n = Math.max(0, n - 1); }
-          t.update(ref, { likes: n });
+          const upd = {}, inc = admin.firestore.FieldValue.increment;
+          if (on && !l.exists) { t.set(likeRef, { at: admin.firestore.Timestamp.now() }); n++; if (typeof cur.get('heat') === 'number') upd.heat = inc(heatOf(Date.now())); }
+          if (!on && l.exists) { t.delete(likeRef); n = Math.max(0, n - 1); const at = l.get('at'); if (typeof cur.get('heat') === 'number' && at) upd.heat = inc(-heatOf(at.toMillis())); }
+          t.update(ref, Object.assign(upd, { likes: n })); // no heat yet → rebuildHome computes it from the likes
           return n;
         });
         return res.status(200).json({ success: true, likes, liked: on });

@@ -4840,7 +4840,8 @@
       none: "Префаб ще не обрано. Модель завантажують у «Ассети й префаби» (з комплектом: текстури, матеріал, риг…), а тут лише обирають.",
       legacy: "Ці файли завантажено сюди напряму, до появи префабів. Перенеси їх у «Ассети й префаби» — там буде комплект моделі.", move: "→ Перенести в «Ассети й префаби»",
       moveQ: "Створити префаб «{t}» у «Ассети й префаби» з цих файлів ({n}) і привʼязати його до картки?", moved: "Префаб створено й привʼязано.",
-      title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»",
+      title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»", upNew: "⤒ Завантажити з ПК", upNewDir: "📂 Тека з ПК (FBX · OBJ · glTF + текстури)",
+      upNewHint: "Модель ляже новим префабом у «Ассети й префаби» → «{g}» і одразу привʼяжеться до «{t}».", upNewDone: "Префаб «{t}» створено в «Ассети й префаби» й привʼязано.",
       filesHint: "картинки, документи, звук — до 200 МБ; моделі й префаби — через «🧊 Додати префаб»",
       filesHintA: "інше до картки — концепти, документи, звук; модель і текстури — у «🧩 Модель і комплект» вище", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
       noModels: "Моделі й префаби не завантажують у картку героя: додай їх у «Ассети й префаби», а тут обери «🧊 Додати префаб». Пропущено: {f}",
@@ -4854,7 +4855,8 @@
       none: "No prefab picked yet. Models are uploaded to “Assets & prefabs” (with their kit: textures, material, rig…) and only picked here.",
       legacy: "These files were uploaded here directly, before prefabs. Move them to “Assets & prefabs” — the model kit lives there.", move: "→ Move to “Assets & prefabs”",
       moveQ: "Create the prefab “{t}” in “Assets & prefabs” from these files ({n}) and link it to the card?", moved: "The prefab is created and linked.",
-      title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”",
+      title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”", upNew: "⤒ Upload from PC", upNewDir: "📂 Folder from PC (FBX · OBJ · glTF + textures)",
+      upNewHint: "The model becomes a new prefab in “Assets & prefabs” → “{g}” and is linked to “{t}” at once.", upNewDone: "The prefab “{t}” is created in “Assets & prefabs” and linked.",
       filesHint: "images, documents, audio — up to 200 MB; models and prefabs — via “🧊 Add a prefab”",
       filesHintA: "anything else for the card — concepts, documents, audio; the model and textures go to “🧩 Model & kit” above", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
       noModels: "Models and prefabs are not uploaded onto a hero card: add them to “Assets & prefabs” and pick “🧊 Add a prefab” here. Skipped: {f}",
@@ -4871,11 +4873,37 @@
     return (img ? '<img class="pf-img" alt="" loading="lazy" src="' + esc(img.url) + '">' : '<span class="pf-img pf-ico">🧊</span>') +
       '<span class="pf-txt"><b>' + esc(a.title || STR.newCard) + '</b><span class="muted">' + esc(a.fields.category || "") + (a.fields.category ? ' · ' : '') + '🧩 ' + esc(PF.kitShort) + ' ' + st.done + '/' + st.total + '</span></span>';
   }
+  function prefabUpHtml() {
+    var K = window.__ASSET_KIT;
+    return '<label class="btn"><input type="file" hidden data-pfup="file" accept="' + K.BUNDLE.map(function (x) { return "." + x; }).join(",") + ',.stl,.usd">' + PF.upNew + '</label>' +
+      '<label class="btn"><input type="file" hidden multiple webkitdirectory data-pfup="dir">' + PF.upNewDir + '</label>';
+  }
+  function prefabGroup(T) { var groups = sec("assets").groups[LANG] || sec("assets").groups.uk; return groups[T.section === "enemies" ? 1 : 0]; }
+  // «⤒ Завантажити з ПК» on a hero: a new prefab card in «Ассети й префаби» (its group by the hero / enemy), the model kit
+  // uploaded onto it (the same slots as «🧩 Модель і комплект»), then linked to the hero — no trip to the other section
+  async function uploadPrefabFor(list, mode, tc) {
+    var K = window.__ASSET_KIT, T = tc || open;
+    if (mode === "file") { var loose = list.filter(function (f) { return K.needsFolder(f.name); }); if (loose.length) { notify(PF.needDir.replace("{f}", loose[0].name)); return; } }
+    else { list = list.filter(function (f) { return K.classify(f.name); }); if (!list.some(function (f) { var c = K.classify(f.name); return c === "model" || c === "prefab"; })) { notify(PF.noMesh); return; } }
+    var big = list.filter(function (f) { return f.size > MAX_FILE; }); if (big.length) { notify(STR.fileTooBig + ": " + big[0].name); return; }
+    if (!tc && open.isNew) { await save(true); if (open.isNew) return; }
+    var title = (!tc && $("e-title") ? $("e-title").value.trim() : "") || T.title || STR.newCard, s = sec("assets"), aid = newId("card");
+    var asset = { id: aid, src: "game", section: "assets", title: title, files: [] }, say = function (t) { if (tc) { fz.msg = t; render(); } else if (open === T) msg(t); };
+    try {
+      await gref().collection("cards").doc(aid).set({ section: "assets", title: title, status: "idea", note: "", defs: s.defs, fields: { category: prefabGroup(T) }, files: [], createdAt: stamp(), order: Date.now(), updatedAt: stamp() });
+      for (var i = 0; i < list.length; i++) {
+        var file = list[i];
+        await putFile(asset, file, "kit:" + (K.classify(file.name) || "other"), function (sn) { say(STR.uploading + " " + file.name + " · " + Math.round(100 * sn.bytesTransferred / (sn.totalBytes || 1)) + "%"); });
+      }
+      await setPrefab(aid, tc);
+      say(PF.upNewDone.replace("{t}", title));
+    } catch (er) { say(STR.failed + ": " + (er.code || er.message || er)); }
+  }
   function prefabHtml(key) {
     var a = assetCard(open.prefab), legacy = (open.files || []).filter(function (f) { return f.field === key; }), h = "";
     if (a) h += '<div class="pf-card">' + assetLine(a) + '<button type="button" class="btn" data-pfopen="' + esc(a.id) + '">' + PF.open + '</button>' + (canWrite ? '<button type="button" class="btn danger" data-pfunlink>' + PF.unlink + '</button>' : '') + '</div>';
     else h += '<p class="muted">' + esc(open.prefab ? PF.gone : PF.none) + '</p>';
-    if (canWrite) h += '<div class="row"><button type="button" class="btn" data-pfpick>' + (a ? PF.change : PF.pick) + '</button></div>';
+    if (canWrite) h += '<div class="row"><button type="button" class="btn" data-pfpick>' + (a ? PF.change : PF.pick) + '</button>' + prefabUpHtml() + '</div>';
     if (legacy.length) h += '<div class="pf-legacy"><p class="warn">' + esc(PF.legacy) + '</p>' + legacy.map(fileRow).join("") + (canWrite ? '<button type="button" class="btn" data-pfmove="' + esc(key) + '">' + PF.move + '</button>' : '') + '</div>';
     return '<div class="field files">' + h + '</div>';
   }
@@ -4917,7 +4945,8 @@
     var box = document.createElement("div"); box.className = "ask";
     box.innerHTML = '<div class="ask-box is-long pf-pick" role="dialog" aria-modal="true" aria-label="' + esc(PF.title.replace("{t}", tname)) + '"><h3>🧊 ' + esc(PF.title.replace("{t}", tname)) + '</h3>' +
       (all.length ? '<input id="pf-q" placeholder="' + esc(PF.search) + '" autocomplete="off"><div class="pf-list" id="pf-list"></div>' : '<p class="warn">' + esc(PF.empty) + '</p>') +
-      '<div class="row"><button type="button" class="btn" data-pfgo>' + esc(PF.go) + '</button><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button></div></div>';
+      '<p class="hint">' + esc(PF.upNewHint.replace("{g}", prefabGroup(T)).replace("{t}", tname)) + '</p>' +
+      '<div class="row">' + prefabUpHtml() + '<button type="button" class="btn" id="ask-x">' + STR.cancel + '</button></div></div>';
     document.body.appendChild(box);
     var draw = function (q) {
       q = (q || "").toLowerCase();
@@ -4931,6 +4960,10 @@
       var r = e.target.closest("[data-pfset]"); if (r) { close(); setPrefab(r.dataset.pfset, tc); return; }
       if (e.target.closest("[data-pfgo]")) { close(); if (tc) goSection("assets"); else prefabClick({ dataset: { pfgo: "1" } }); return; }
       if (e.target.id === "ask-x" || e.target === box) close();
+    });
+    box.addEventListener("change", function (e) {
+      var m = e.target.dataset && e.target.dataset.pfup; if (!m || !e.target.files.length) return;
+      var fl = [].slice.call(e.target.files); close(); uploadPrefabFor(fl, m, tc);
     });
     box.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); close(); } });
   }
@@ -9374,6 +9407,7 @@
   $("e-body").addEventListener("change", function (e) {
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(list); }
     if (e.target.dataset.fup && e.target.files.length) { var fl = [].slice.call(e.target.files), fk = e.target.dataset.fup; e.target.value = ""; uploadFiles(fl, fk); }
+    if (e.target.dataset.pfup && e.target.files.length) { var pl = [].slice.call(e.target.files), pm = e.target.dataset.pfup; e.target.value = ""; uploadPrefabFor(pl, pm); }
     if (e.target.dataset.flabel) flushLabels();
     if (e.target.dataset.ftype) {
       var d = draft.defs.filter(function (x) { return x.key === e.target.dataset.ftype; })[0]; if (!d) return;
