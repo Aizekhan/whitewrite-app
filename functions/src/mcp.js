@@ -12,6 +12,7 @@ const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
 const MECH = require('../mechanics.js');
 const FORGE = require('../forge.js');
+const PAID = require('../paid-features.js'); // characterForge.soon: the forge tools answer «in development»
 const REFS = require('../card-refs.js');
 const { personaText, lookText } = require('../persona.js');
 const KIT = require('../asset-kit.js'); // 🧩 a prefab's kit (asset cards) and the prefab a hero card links (card.prefab) // 🧠 a canon character's personality and 👤 appearance (World Bible) → get_card
@@ -716,6 +717,7 @@ async function callTool(name, args, key) {
       return { sounds, missing: lib.missing.map(where), unused: lib.unused.map((id) => 'c:' + id) };
     }
     case 'get_character_forge': {
+      if ((PAID.byOp('characterForge') || {}).soon) return { in_development: true, message: 'The Character Forge is in development and closed for now. Read characters and enemies with get_card / get_project_overview instead.' };
       const nameOf = (c) => c.title || (ctx.entities.find((e) => e.id === c.canonRef) || {}).name || '';
       const chars = ctx.cards.filter((c) => (c.section === 'characters' || c.section === 'enemies') && !c.hidden)
         .map((c) => ({ id: c.id, canon: !!c.canonRef, section: c.section, title: nameOf(c), fields: c.fields || {}, files: c.files || [], forge: { ...(c.forge || {}), type: FORGE.typeOf(c) } }));
@@ -741,6 +743,7 @@ async function callTool(name, args, key) {
       return { ok: true, version: man.version, capabilities: Object.keys(man.caps).length, missing: Object.keys(man.missing).length, mechanic_gaps: gaps };
     }
     case 'report_forge_check': {
+      if ((PAID.byOp('characterForge') || {}).soon) throw new Error('The Character Forge is in development and closed for now');
       if (args.character) { // a character's skeleton fit (reference rigs): the rig.json decides, else the agent's result
         const r = str(args.character, 200), id = r.replace(/^[ce]:/, '');
         const c = ctx.cards.find((x) => ['characters', 'enemies'].includes(x.section) && (x.id === id || x.canonRef === id || str(x.title, 200).toLowerCase() === r.toLowerCase()));

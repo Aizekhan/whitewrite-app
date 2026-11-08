@@ -586,6 +586,7 @@
         lead: "Обираєш персонажа — Кузня бере його модель із картки, перевіряє скелет, одягає предмети, показує анімації й віддає готову модель з маніфестом для Unity.",
         min: 5,
         body: [
+          ["warn", "🔒 Кузня персонажів зараз у розробці й закрита: у меню вона з замочком, при відкритті — заглушка «в розробці», агент через MCP отримує відповідь «in development». Поки що описуй персонажів у їхніх картках і додавай концепти й моделі у файли картки — Кузня візьме їх звідти, коли відкриється. Нижче — як вона працюватиме."],
           ["p", "Біблія гри → «Персонажі й вороги» → <b>«Кузня персонажів»</b>. Тут усі персонажі гри (з «Персонажів» і «Ворогів і босів»): на картці — тип тіла, чи готова модель до анімацій, скільки предметів і анімацій. Нового персонажа додаєш як завжди — «＋ Персонаж» веде в «Персонажі». Доступно на будь-якому тарифі, токенів не витрачає; файли — у межах ліміту тарифу (20 МБ на файл, на Worldbuilder — 200 МБ)."],
           ["h", "Екран персонажа"],
           ["p", "Опис персонажа (раса, роль, зовнішність, портрет) живе в його картці в «Персонажах» — Кузня бере все звідти й нічого не просить заповнювати вдруге. Модель — це префаб, доданий у картці (кнопка «🧊 Додати префаб»)."],
@@ -1980,6 +1981,7 @@
         lead: "Pick a character — the Forge takes its model from the card, checks the skeleton, dresses it in items, shows the animations and hands over the ready model with a manifest for Unity.",
         min: 5,
         body: [
+          ["warn", "🔒 The Character forge is in development and closed for now: the menu shows a padlock, opening it shows an “in development” placeholder, and the agent gets “in development” over MCP. Meanwhile describe characters in their cards and add concepts and models to the card files — the forge will pick them up when it opens. Below — how it will work."],
           ["p", "Game Bible → “Characters & enemies” → <b>“Character forge”</b>. Every character of the game (from “Characters” and “Enemies & bosses”): the card shows the body type, whether the model is ready for animation, how many items and animations. Add a new one as usual — “＋ Character” leads to “Characters”. Available on every plan, spends no tokens; files within the plan's limit (20 MB a file, 200 MB on Worldbuilder)."],
           ["h", "The character screen"],
           ["p", "The character's description (race, role, looks, portrait) lives in its card in “Characters” — the Forge takes everything from there and asks for nothing twice. The model is the prefab added in the card (the “🧊 Add a prefab” button)."],

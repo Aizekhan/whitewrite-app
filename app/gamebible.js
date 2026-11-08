@@ -80,6 +80,7 @@
           section: "Розділ", view: "Перегляд", edit: "Редагування", remove: "Прибрати", removeText: "Людина втратить доступ до цього світу. Дружба лишиться.", removed: "Прибрано з команди.",
           saved: "Збережено.", added: "Додано в команду.", empty: "У команді поки нікого.", add: "Додати в команду", addBtn: "Додати",
           noFriends: "Немає друзів, яких можна додати.", toFriends: "Акаунт → Друзі" },
+        forgeSoon: { badge: "Кузня персонажів зараз у розробці", idea: "Кузня — виробництво персонажа по етапах: бриф, концепт, модель з ригом, екіпірування, анімації й експорт у Unity, з версіями й затвердженням. Ми доводимо її до ладу й відкриємо, щойно вона буде готова.", now: "Що можна зараз: описувати персонажів і ворогів у їхніх картках, додавати концепти й моделі у файли картки — Кузня потім візьме їх звідти." },
         market: { soonTitle: "Маркет світів", soonBadge: "Планується — зараз у розробці", soonIdea: "Маркет світів — місце, де автори зможуть продати свій світ іншим творцям чи студіям: канон, культуру, ігровий дизайн (картки, план, квести, діалоги) та історії. Продаж — повний викуп прав: світ переходить покупцю. Перед продажем світ отримує Сертифікацію WhiteWrite — перевірку, щоб покупець знав, що купує, а продавець продавав законно: метрики, ШІ-рецензія, ШІ-юрист і модератор-людина. Покупець платить продавцю напряму, WhiteWrite утримує комісію. Зараз Маркет у розробці: запустимо після перевірки договорів юристом і налаштування виплат продавцям.", soonNow: "Що вже можна зробити зараз: наповнювати світ і гру, публікувати вітрину в «Спільноті» й збирати фоловерів — це стане основою лоту.", soonTest: "Тестовий режим (лише адмін)",
           title: "Маркет: продаж світу", hint: "Продається весь світ (канон, культура, ігри, історії) — лише текст, з повним викупом прав: після оплати світ переходить покупцю, а ти втрачаєш до нього доступ. Спершу — сертифікація: перевірка до 1–2 тижнів (метрики, ШІ-рецензія, ШІ-юрист, модератор), світ на цей час заморожено. Ціна перевірки — за обсягом тексту: {tiers} токенів, лише Worldbuilder. Продавати сертифікований світ можна на будь-якому тарифі; 12% утримує Stripe на користь WhiteWrite.",
           rules: "Як це працює", payouts: "Виплати Stripe:", payoutsOn: "підключено", payoutsPending: "не завершено", payoutsOff: "не підключено", connect: "Підключити Stripe",
@@ -406,6 +407,7 @@
           section: "Section", view: "View", edit: "Edit", remove: "Remove", removeText: "They lose access to this world. The friendship stays.", removed: "Removed from the team.",
           saved: "Saved.", added: "Added to the team.", empty: "Nobody in the team yet.", add: "Add to the team", addBtn: "Add",
           noFriends: "No friends to add.", toFriends: "Account → Friends" },
+        forgeSoon: { badge: "The Character forge is in development", idea: "The forge is a character's production in stages: brief, concept, a rigged model, equipment, animations and export to Unity, with versions and approvals. We are finishing it and will open it as soon as it is ready.", now: "What you can do now: describe characters and enemies in their cards, add concepts and models to the card files — the forge will pick them up from there later." },
         market: { soonTitle: "World Market", soonBadge: "Planned — in development now", soonIdea: "The World Market is where authors will be able to sell their world to other creators or studios: the canon, culture, game design (cards, plan, quests, dialogues) and stories. A sale is a full buyout of the rights: the world passes to the buyer. Before a sale the world gets the WhiteWrite Certification — a review so the buyer knows what they buy and the seller sells lawfully: metrics, an AI review, an AI lawyer and a human moderator. The buyer pays the seller directly; WhiteWrite keeps a fee. The Market is in development now: it launches after a lawyer reviews the contracts and seller payouts are set up.", soonNow: "What you can do now: fill your world and game, publish a showcase in the “Community” and gather followers — this becomes the base of a lot.", soonTest: "Test mode (admin only)",
           title: "Market: selling the world", hint: "The whole world sells (canon, culture, games, stories) — text only, as a full buyout: after payment the world passes to the buyer and you lose access to it. First the WhiteWrite Certification: a review of up to 1–2 weeks (metrics, AI review, AI lawyer, moderator), the world frozen meanwhile. The review costs by the text size: {tiers} tokens, Worldbuilder only. A certified world sells on any plan; Stripe keeps 12% for WhiteWrite.",
           rules: "How it works", payouts: "Stripe payouts:", payoutsOn: "connected", payoutsPending: "not finished", payoutsOff: "not connected", connect: "Connect Stripe",
@@ -1375,7 +1377,7 @@
   }
   function navItem(s, all, label) {
     if (!mayRead(s.id)) return "";
-    var lock = devLocked(s) ? ' 🔒' : ''; // a Worldbuilder section on a lower plan: seen before it is clicked
+    var lock = devLocked(s) || s.special === "forge" && forgeSoon() ? ' 🔒' : ''; // a Worldbuilder section on a lower plan (or «в розробці»): seen before it is clicked
     var st = mode === "game" && guideLater(s.id) ? guideStageOf(s.id) : -1, later = st > 0 ? STR.guide.after.replace("{g}", GUIDE[st].after) : ""; // 🧭 a later stage: dimmed, «після G2»
     return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '"' + (later ? ' data-later="' + esc(GUIDE[st].after) + '" title="🧭 ' + esc(later + " · " + L(GUIDE[st])) + '"' : '') + '>' + esc(label || L(s)) + lock +
       (later ? '<span class="sr">' + esc(STR.guide.laterSr + " (" + later + ")") + '</span>' : '') + '<span class="n">' + navCount(s, all) + '</span></button>';
@@ -1394,7 +1396,7 @@
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
       var gLater = mem.every(function (m) { return guideLater(m); }) ? GUIDE[Math.min.apply(null, mem.map(guideStageOf))] : null; // the whole group is later: the group dims too
-      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
+      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)) || m === "forge" && forgeSoon(); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
       if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
@@ -1506,6 +1508,7 @@
     if (s.special === "activity" && !query) return renderActivity(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
     if ((s.special === "quests" || s.special === "dialogues") && !query) return renderQD(s);
+    if (s.special === "forge" && !query && forgeSoon() && !mktAdmin) return renderForgeSoon(s);
     if (s.special === "forge" && !query) { // a live snapshot must not wipe what the author is typing
       var fe = document.activeElement; if (fe && $("view").contains(fe) && /^(INPUT|TEXTAREA)$/.test(fe.tagName) && !/^(checkbox|file|search)$/.test(fe.type)) return;
       return renderForge(s);
@@ -9699,6 +9702,12 @@
     }, function (e) { mkt = { error: e.message }; if (hubIdle()) render(); });
   }
   var mktTest = false; // an admin opens the working Market form while it is «скоро»
+  // ⚒ Кузня персонажів «в розробці» (paid-features characterForge.soon): the menu shows 🔒, the page a placeholder; the admin keeps working in it
+  function forgeSoon() { var PF = window.__PAID_FEATURES, f = PF && PF.byOp && PF.byOp("characterForge"); return !PF || !!(f && f.soon); }
+  function renderForgeSoon(s) {
+    var K = STR.forgeSoon;
+    $("view").innerHTML = '<header class="sec"><div><h1>🔒 ' + esc(L(s)) + '</h1></div></header><div class="mk-soon"><b>🚧 ' + esc(K.badge) + '</b><p>' + esc(K.idea) + '</p><p class="hint">' + esc(K.now) + '</p></div>';
+  }
   function marketSoon() { var PF = window.__PAID_FEATURES, f = PF && PF.byOp && PF.byOp("licenceReview"); return !!(f && f.soon); }
   function marketHtml() {
     var K = STR.hub.market, PF = window.__PAID_FEATURES;
@@ -9737,7 +9746,7 @@
     return out + stripe;
   }
   var mktAdmin = false;
-  try { firebase.auth().onAuthStateChanged(function (u) { if (u) u.getIdTokenResult().then(function (r) { mktAdmin = !!(r.claims && r.claims.admin); if (hubIdle()) render(); }, function () {}); }); } catch (e) {}
+  try { firebase.auth().onAuthStateChanged(function (u) { if (u) u.getIdTokenResult().then(function (r) { mktAdmin = !!(r.claims && r.claims.admin); if (hubIdle() || section === "forge") render(); }, function () {}); }); } catch (e) {}
   function bindMarket() {
     var K = STR.hub.market;
     var t = $("mk-test"); if (t) t.onclick = function () { mktTest = true; render(); };
