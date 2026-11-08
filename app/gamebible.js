@@ -181,7 +181,7 @@
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
-      importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}",
+      importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}", importLost: "Частину тексту ({n} шм.) ШІ не зміг розібрати навіть дрібнішими шматками — її немає в пропозиції. Решту — відміть і перенеси; той шматок можна імпортувати окремим файлом.",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
@@ -508,7 +508,7 @@
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
-      importContra: "Contradictions → Production plan", importPart: "part {d} of {n}",
+      importContra: "Contradictions → Production plan", importPart: "part {d} of {n}", importLost: "The AI could not sort part of the text ({n} piece(s)) even in smaller bits — it is not in the proposal. Tick and take the rest; that piece can be imported as a separate file.",
       files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
@@ -8451,17 +8451,18 @@
     try { var data = await callFn(Object.assign({ shelves: shelves() }, body)); imp = { proposal: data.proposal, spent: data.tokensConsumed, off: {}, draft: draft }; }
     catch (e) { imp = { error: e.message, draft: draft }; }
     render();
+    if (data && data.lostParts) notify(STR.importLost.replace("{n}", data.lostParts));
   }
   // a file over the import limit (gamedev.js MAX_IMPORT_CHARS) → packs like the game folder (inPacks), imported one by one, merged (inMerge)
   async function runImportText(text, name) {
     if (text.length <= GAME_FOLDER_MAX) return runImport({ op: "import", markdown: text });
-    var packs = inPacks([{ path: name || "file.md", text: text }]), got = [], bad = [], spent = 0;
+    var packs = inPacks([{ path: name || "file.md", text: text }]), got = [], bad = [], spent = 0, err = "";
     for (var i = 0; i < packs.length; i++) {
       imp = { busy: true, part: STR.importPart.replace("{d}", i + 1).replace("{n}", packs.length) }; render();
-      try { var d = await callFn({ op: "import", shelves: shelves(), markdown: packs[i] }); got.push(d.proposal); spent += d.tokensConsumed || 0; }
-      catch (e) { bad.push(i + 1); if (/OUT_OF_TOKENS|Недостатньо токенів|PLAN_REQUIRED/.test(e.message)) { imp = { error: e.message }; return render(); } }
+      try { var d = await callFn({ op: "import", shelves: shelves(), markdown: packs[i] }); got.push(d.proposal); spent += d.tokensConsumed || 0; if (d.lostParts) bad.push(i + 1); }
+      catch (e) { bad.push(i + 1); err = e.message; if (/OUT_OF_TOKENS|Недостатньо токенів|PLAN_REQUIRED/.test(e.message)) { imp = { error: e.message }; return render(); } }
     }
-    imp = got.length ? { proposal: inMerge(got), spent: spent, off: {} } : { error: STR.failed };
+    imp = got.length ? { proposal: inMerge(got), spent: spent, off: {} } : { error: err }; // nothing came back: the server's own reason, not a bare «не вдалося»
     render();
     if (got.length && bad.length) notify(STR.folder.bad.replace("{p}", bad.join(", ")));
   }
@@ -8513,7 +8514,8 @@
     var p = imp.proposal, ticked = {};
     [].forEach.call(document.querySelectorAll("[data-imp]"), function (cb) { if (cb.checked) ticked[cb.dataset.imp] = true; });
     var on = function (k, i) { return ticked[k + ":" + i]; };
-    var batch = db.batch(), n = 0;
+    var bs = [db.batch()], w = 0, n = 0; // a big file's proposal can hold more than Firestore's 500 writes a batch → several batches
+    var batch = { set: function (ref, data, opt) { if (++w % 450 === 0) bs.push(db.batch()); var b = bs[bs.length - 1]; if (opt) b.set(ref, data, opt); else b.set(ref, data); } };
     var laws = p.laws.filter(function (l, i) { return on("law", i); });
     if (laws.length) { batch.set(wref(), { rules: (world.rules || []).concat(laws), updatedAt: stamp() }, { merge: true }); n += laws.length; }
     p.canon.forEach(function (e, i) {
@@ -8548,7 +8550,7 @@
       batch.set(gref().collection("plan").doc("current"), { asked: (planDoc.asked || []).concat(qs), contradictions: (planDoc.contradictions || []).concat(contra) }, { merge: true });
       n += qs.length + contra.length;
     }
-    await batch.commit();
+    for (var bi = 0; bi < bs.length; bi++) await bs[bi].commit();
     imp.done = n; render();
   }
 

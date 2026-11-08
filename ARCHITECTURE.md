@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.103.2 (2026-11-09)
+**Version:** 2.103.3 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.103.3** import cut-offs: `gamedevPlan op:import` retries a part whose answer hit `max_tokens` (`ask` marks the error `cut`) on two `halves` (at a heading / blank line near the middle, twice at most); a part that still fails is skipped, the rest is returned with `lostParts` (the page notifies `importLost`); `runImportText` shows the server's reason instead of a bare «Не вдалося зберегти»; `applyImport` commits in batches of 450 (Firestore's 500-write limit)
 - **v2.103.2** files on creation (owner): the game file (.md / .txt, new-game form and «⤒ Імпорт») over `MAX_IMPORT_CHARS` no longer fails — `runImportText` cuts it with `inPacks` and imports pack by pack («частина N з M»), `inMerge` joins the proposals; the world form (`flow.jsx WorldForm`) gets «📄 Створити світ із файлу (.md, .txt)» → `__wwPendingFill { direct: true }` → `startWorldFolder` skips the ✦ scouting step (every file read) and splits a text over `WORLD_FOLDER_MAX` into pieces instead of truncating it; the forge padlock stays on the Forge item only, not on its group
 - **v2.103.1** ⚒ Кузня персонажів «в розробці» (owner): registry `characterForge.soon` → the Bible menu item (and its group) shows 🔒, the section renders a placeholder (`forgeSoon` / `renderForgeSoon`) for everyone but the admin (`mktAdmin` claim); MCP `get_character_forge` answers `{ in_development: true }`, `report_forge_check` refuses. Opening = drop `soon`
 - **v2.103.0** 📈 Конструктор прогресії (owner): six interactive templates in «Прогресія й економіка» (`sec: 'progression'`) — XP curve, currencies, loot, shop, upgrades, balance by stage, each with its own computation and checks; MCP `get_mechanics section: "progression"`; registry `progressionBuilder`
@@ -901,5 +902,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.103.2)
+**Last updated:** 2026-11-09 (v2.103.3)
 **Maintained by:** WhiteWrite Team

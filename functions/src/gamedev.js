@@ -640,6 +640,13 @@ function sortParts(lines) {
   return parts;
 }
 
+// a part cut in two near its middle — at a heading, else a blank line, else a line end (the import retries a cut-off answer on halves)
+function halves(text) {
+  const mid = text.length >> 1, near = (re) => { let best = -1; for (const m of text.matchAll(re)) if (m.index > text.length * 0.25 && m.index < text.length * 0.75 && (best < 0 || Math.abs(m.index - mid) < Math.abs(best - mid))) best = m.index; return best; };
+  let at = near(/\n(?=#{1,4} )/g); if (at < 0) at = near(/\n\n/g); if (at < 0) at = near(/\n/g); if (at < 0) at = mid;
+  return [text.slice(0, at), text.slice(at)].filter((t) => t.trim());
+}
+
 // Proposals of the parts → one: the same entity / card from two parts is merged
 function mergeImports(results) {
   const key = (...a) => a.map((v) => String(v || '').trim().toLowerCase()).join('|');
@@ -815,7 +822,7 @@ exports.gamedevPlan = onRequest({
         usedModel = m.model || usedModel;
         paidSoFar = { model: usedModel, usage };
         if (m.stop_reason === 'refusal') throw new Error('Claude відмовився виконати запит');
-        if (m.stop_reason === 'max_tokens') throw cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', usedModel, usage);
+        if (m.stop_reason === 'max_tokens') throw Object.assign(cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', usedModel, usage), { cut: true });
         try { return parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')); }
         catch (e) { if (tries > 1) return ask(content, maxTokens, tries - 1); throw Object.assign(e, { paid: { model: usedModel, usage } }); }
       };
@@ -828,8 +835,24 @@ exports.gamedevPlan = onRequest({
       // the page shows "AI is working" from this marker even after a reload
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       else if (op !== 'import' && op !== 'folderSort' && op !== 'draft' && op !== 'concepts' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
-      let results;
-      if (op === 'plan') { // pass 1 — the skeleton; pass 2 — every milestone's tasks in parallel (planTasksPrompt)
+      let results, lostParts = 0;
+      if (op === 'import') { // a part the AI answered past max_tokens → its two halves (twice at most); a part that still fails is skipped, the rest kept
+        const part = async (text, depth) => {
+          try { return [await ask(importPrompt(text, shelves, entities, world, languageName, cards), 24000)]; }
+          catch (e) {
+            if (!e.cut || depth >= 2 || text.length < 3000) throw e;
+            const out = await Promise.allSettled(halves(text).map((h) => part(h, depth + 1)));
+            if (!out.some((r) => r.status === 'fulfilled')) throw out[0].reason;
+            lostParts += out.filter((r) => r.status === 'rejected').length;
+            return out.filter((r) => r.status === 'fulfilled').flatMap((r) => r.value);
+          }
+        };
+        const out = await Promise.allSettled(splitMarkdown(markdown).map((t) => part(t, 0)));
+        const bad = out.find((r) => r.status === 'rejected');
+        if (!out.some((r) => r.status === 'fulfilled')) throw bad.reason;
+        lostParts += out.filter((r) => r.status === 'rejected').length;
+        results = out.filter((r) => r.status === 'fulfilled').flatMap((r) => r.value);
+      } else if (op === 'plan') { // pass 1 — the skeleton; pass 2 — every milestone's tasks in parallel (planTasksPrompt)
         const skel = await ask(prompts[0], 64000);
         const bible = bibleText(world, entities, cards, game, shelves, lore), sk = (skel && skel.plan) || {};
         const ms = (Array.isArray(sk.milestones) ? sk.milestones : []).filter((m) => m && str(m.name, 1)).slice(0, 14);
@@ -886,7 +909,7 @@ exports.gamedevPlan = onRequest({
       });
       reservation = null;
 
-      res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
+      res.status(200).json({ success: true, proposal, lostParts, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('gamedevPlan error:', error);
       if (gameRefForError) await gameRefForError.collection('plan').doc('current').set({ running: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
@@ -900,3 +923,4 @@ exports.gamedevPlan = onRequest({
   });
 });
 exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)
+exports._import = { halves, splitMarkdown }; // tests only (tests/gamedev-import.test.cjs)

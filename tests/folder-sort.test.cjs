@@ -21,5 +21,10 @@ check([rd.read, rd.ignore], [[1, 4], [{ files: [2], reason: 'код' }]], 'read:
 const W = require(path.join(__dirname, '../functions/src/world-folder.js'))._worldFolder;
 check(W.cleanScout([{ read: [0, 0, 7], ignore: [{ files: [0, 1], reason: 'док' }] }], [{ i: 0 }, { i: 1 }]), { read: [0], ignore: [{ files: [1], reason: 'док' }] }, 'world scout: only listed files, each once, read wins over ignore');
 check(/frameworks/.test(W.scoutSystem('Морра', 'uk')) && /Ukrainian/.test(W.scoutSystem('Морра', 'uk')), true, 'world scout prompt skips docs of frameworks, reasons in the language');
+// a game file's part the AI answered past max_tokens is retried on two halves, cut at a heading near the middle, nothing lost
+const { halves } = require(path.join(__dirname, '../functions/src/gamedev.js'))._import;
+const md = '# A\n' + 'а'.repeat(5000) + '\n# B\n' + 'б'.repeat(5000) + '\n# C\n' + 'в'.repeat(4000), hv = halves(md);
+check([hv.length, hv.join('') === md, hv[1].startsWith('\n# B')], [2, true, true], 'halves: two pieces at the middle heading, the text whole');
+check(halves('x'.repeat(9000)).map((t) => t.length), [4500, 4500], 'halves: no heading or line — cut in the middle');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;
