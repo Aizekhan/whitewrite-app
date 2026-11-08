@@ -1817,7 +1817,7 @@
       (any ? (add.length ? '<p>＋ ' + X.add + ': ' + add.join(" · ") + '</p>' : '') + (upd.length ? '<p>✎ ' + X.upd + ': ' + upd.join(" · ") + '</p>' : '') : '<p class="muted">' + X.none + '</p>') +
       '<label class="imp"><input type="checkbox" id="fill-rep"' + (f.replace ? ' checked' : '') + '><span>' + X.replace + '</span></label>' +
       (p.kept.length ? '<p class="muted">' + esc(X.kept.replace("{n}", p.kept.length)) + '</p>' : '') +
-      '<div class="row"><button class="btn primary" id="fill-go"' + (any ? '' : ' disabled') + '>' + X.apply + '</button><button class="btn" id="fill-x">' + X.cancel + '</button></div></div>';
+      '<div class="row"><button class="btn primary" id="fill-go"' + (any ? '' : ' disabled') + '>' + X.apply + '</button>' + (f.folder && any ? '' : '<button class="btn" id="fill-x">' + X.cancel + '</button>') + '</div></div>'; // a paid ✦ folder / file sorting: no «cancel» that throws it away — untick what is not needed
   }
   function bindFill() {
     if (!$("fill-copy")) return;
@@ -8476,7 +8476,7 @@
 
   function renderImport() {
     var html = '<header class="sec"><div><h1>' + (imp.repo ? STR.repo.result : imp.draft ? STR.stDraft : STR.importTitle) + '</h1><p>' + (imp.proposal ? (imp.repo ? STR.repo.intro : imp.draft ? STR.draftIntro : STR.importIntro) : "") + '</p></div>' +
-      '<div class="row"><button class="btn" id="imp-x">' + STR.close + '</button>' + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
+      '<div class="row">' + (imp.proposal && !imp.done ? '' : '<button class="btn" id="imp-x">' + STR.close + '</button>') + (imp.proposal && !imp.done ? '<button class="btn primary" id="imp-ok">' + STR.importApply + '</button>' : '') + '</div></header>';
     if (imp.busy) html += '<p class="pmsg">' + (imp.repo ? STR.repo.busy : STR.importBusy) + (imp.part ? ' · ' + esc(imp.part) : '') + '</p>';
     if (imp.error) html += '<p class="pmsg err">' + esc(imp.error) + '</p>';
     if (imp.done) html += '<p class="pmsg">' + STR.importDone + ': ' + imp.done + '</p>' + (canDev && !imp.repo ? // the next step in one click: the analysis asks, the author answers, then the plan
@@ -8494,7 +8494,7 @@
       if (p.questions.length) html += '<h2 class="group">' + STR.importQs + '</h2>' + p.questions.map(function (q, i) { return box("q", i, q.question, q.why); }).join("");
     }
     $("view").innerHTML = html;
-    $("imp-x").onclick = function () { imp = null; render(); };
+    if ($("imp-x")) $("imp-x").onclick = function () { imp = null; render(); };
     if ($("imp-next")) $("imp-next").onclick = function () { confirmCost("analyze", function () { imp = null; goSection("plan"); runPlan("analyze"); }); };
     [].forEach.call(document.querySelectorAll("[data-imp]"), function (cb) { cb.onchange = function () { imp.off[cb.dataset.imp] = !cb.checked; }; }); // survives re-renders from live snapshots
     var ok = $("imp-ok"); if (ok) ok.onclick = function () { ok.disabled = true; applyImport().catch(function (e) { imp.error = e.message; render(); }); };
