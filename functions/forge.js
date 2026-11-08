@@ -187,7 +187,8 @@ function itemIssues(item, char, game) {
     else if (['glb', 'gltf', 'fbx', 'obj'].indexOf(ext) < 0) add('warn', 'format', 'Формат .' + ext + ' — Unity краще бере GLB або FBX.', 'Format .' + ext + ' — Unity takes GLB or FBX best.');
     if (f.polyTarget && model.tris && model.tris > +f.polyTarget) add('warn', 'poly', 'Полігонів ' + model.tris + ' — більше за ціль ' + f.polyTarget + '.', model.tris + ' triangles — over the target of ' + f.polyTarget + '.');
   }
-  if (bind === 'skinned' && !f.rig) add('error', 'rig', 'Предмет зі скіном без профілю рига — не відомо, на який скелет він сяде.', 'A skinned item without a rig profile — unknown which skeleton it fits.');
+  var rigOf = f.rig || (char && char.forge && char.forge.rig) || '', glb = model && /\.(glb|gltf)$/i.test(model.name || '');
+  if (bind === 'skinned' && !rigOf) add('error', 'rig', 'Предмет зі скіном без профілю рига — не відомо, на який скелет він сяде.', 'A skinned item without a rig profile — unknown which skeleton it fits.');
   if (bind === 'rigid' && !(f.attach || []).some(function (a) { return !blank(a.bone); })) add('error', 'attach', 'Жорсткий предмет без кістки чи точки кріплення.', 'A rigid item without a bone or attachment point.');
   if (char) {
     var cf = char.forge || {};
@@ -195,8 +196,8 @@ function itemIssues(item, char, game) {
     if (bind === 'skinned' && f.rig && !cf.rig) add('warn', 'rigchar', 'У персонажа ще не визначено профіль рига.', 'The character has no rig profile yet.');
     if (bind === 'skinned' && f.body && cf.body && f.body !== cf.body) add('warn', 'body', 'Інший профіль тіла — можливий кліпінг; перевір у Unity / Blender.', 'A different body profile — clipping is possible; check in Unity / Blender.');
   }
-  if (blank(f.units)) add('warn', 'units', 'Не вказано масштаб і одиниці (наприклад, 1 unit = 1 m).', 'Scale and units not set (e.g. 1 unit = 1 m).');
-  if (model && (f.maps || []).indexOf('baseColor') < 0) add('tip', 'maps', 'Не позначено карту Base Color.', 'No Base Color map marked.');
+  if (blank(f.units) && !glb) add('warn', 'units', 'Не вказано масштаб і одиниці (наприклад, 1 unit = 1 m).', 'Scale and units not set (e.g. 1 unit = 1 m).');
+  if (model && !glb && (f.maps || []).indexOf('baseColor') < 0) add('tip', 'maps', 'Не позначено карту Base Color.', 'No Base Color map marked.');
   if (bind === 'skinned' && ['chest', 'legs', 'feet', 'hands', 'head'].indexOf(f.slot) >= 0 && !(f.mask || []).length) add('tip', 'mask', 'Чи ховає предмет частину тіла? Познач маску, щоб тіло не проступало крізь нього.', 'Does the item hide part of the body? Mark a mask so the body does not poke through.');
   (f.external || []).forEach(function (x) {
     if (x.result === 'failed') add('error', 'ext:' + x.check, 'Перевірка «' + x.check + '» (' + (x.source || 'Unity') + ') не пройдена: ' + (x.details || ''), 'Check "' + x.check + '" (' + (x.source || 'Unity') + ') failed: ' + (x.details || ''));

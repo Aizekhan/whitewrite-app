@@ -6082,7 +6082,7 @@
       integHint: "Кліпінг, деформації й сумісність скелета перевіряються в Unity чи Blender: Claude Code надсилає результат через MCP report_forge_check — він зʼявиться біля предмета.",
       item: { slot: "Слот", bind: "Кріплення", skinned: "Зі скіном (за вагами скелета)", rigid: "Жорстке (на кістку / точку)", mask: "Ховає частини тіла", attach: "Точки кріплення",
         attachPh: "кістка : точка — по рядку, напр. hand_r : grip", format: "Формат", units: "Масштаб і одиниці", unitsPh: "1 unit = 1 m", maps: "Карти текстур", lod: "LOD", lodPh: "LOD0 / LOD1 / LOD2",
-        poly: "Ціль полігонів", owners: "Чиє", concept: "Концепт предмета", model: "3D-модель", checks: "Перевірки", noIssues: "Перевірки пройдено.", status: "Статус",
+        poly: "Ціль полігонів", owners: "Чиє", up: "⤒ Завантажити модель", upNew: "⤒ Замінити модель", noModel: "Моделі предмета ще немає — завантаж GLB / FBX (текстури можна разом).", more: "Більше полів для Unity (необов'язково)", concept: "Концепт предмета", model: "3D-модель", checks: "Перевірки", noIssues: "Перевірки пройдено.", status: "Статус",
         manual: "✓ Затвердити вручну", manualQ: "Чому застереження прийнятні (коментар):", manualOff: "Зняти ручне затвердження", ext: "Звіти Unity / Blender", newQ: "Назва предмета:" },
       val: { pending: "Очікує", passed: "Пройдено", warning: "Є застереження", failed: "Не пройдено", manual: "Затверджено вручну" },
       setupHint: "Слоти, профілі ригів (скелетів) і тіл цієї гри. Предмет зі скіном сідає лише на персонажа з тим самим профілем рига.",
@@ -6156,7 +6156,7 @@
       integHint: "Clipping, deformation and skeleton compatibility are checked in Unity or Blender: Claude Code sends the result through MCP report_forge_check — it shows next to the item.",
       item: { slot: "Slot", bind: "Binding", skinned: "Skinned (follows the skeleton)", rigid: "Rigid (on a bone / point)", mask: "Hides body parts", attach: "Attachment points",
         attachPh: "bone : point — one per line, e.g. hand_r : grip", format: "Format", units: "Scale & units", unitsPh: "1 unit = 1 m", maps: "Texture maps", lod: "LOD", lodPh: "LOD0 / LOD1 / LOD2",
-        poly: "Polygon target", owners: "Whose", concept: "Item concept", model: "3D model", checks: "Checks", noIssues: "Checks pass.", status: "Status",
+        poly: "Polygon target", owners: "Whose", up: "⤒ Upload the model", upNew: "⤒ Replace the model", noModel: "The item has no model yet — upload a GLB / FBX (textures can go with it).", more: "More fields for Unity (optional)", concept: "Item concept", model: "3D model", checks: "Checks", noIssues: "Checks pass.", status: "Status",
         manual: "✓ Approve manually", manualQ: "Why the warnings are acceptable (comment):", manualOff: "Withdraw manual approval", ext: "Unity / Blender reports", newQ: "Item name:" },
       val: { pending: "Pending", passed: "Passed", warning: "Warning", failed: "Failed", manual: "Manually approved" },
       setupHint: "This game's slots, rig (skeleton) and body profiles. A skinned item fits only a character with the same rig profile.",
@@ -6345,31 +6345,6 @@
       }).join("") + '</div>' + (cur ? '<button class="btn mini ghost" data-fzpickx>' + R.pickX + '</button>' : '') + '</section>';
   }
   // the versions of a stage (or of an item: concept / model): newest first, the approved one marked, compare two side by side
-  function fzRevsHtml(o, stageId, isChar) {
-    var f = o.forge || {}, revs = FG.revsOf(f, stageId), ap = FG.approvedRev(f, stageId), by = function (id) { return (o.files || []).filter(function (x) { return x.id === id; })[0]; };
-    var fileHtml = function (x) {
-      return x ? '<span class="fz-file">' + (isImage(x) ? '<a href="' + escUrl(x.url) + '" target="_blank" rel="noopener"><img alt="" src="' + esc(x.url) + '"></a>' : '<span class="ico">' + (is3D(x) ? '🧊' : '📦') + '</span>') +
-        '<a href="' + escUrl(x.url) + '" target="_blank" rel="noopener" download="' + esc(x.name) + '">' + esc(x.name) + '</a>' + polyInfo(x) +
-        (is3D(x) ? ' <button class="btn mini" data-fzv3d="' + esc(o.key) + ':' + esc(x.id) + '">' + STR.v3d.open + '</button>' : '') + '</span>' : '';
-    };
-    var html = '<h4 class="fz-h">' + FZ.versions + '</h4>' + (canWrite ? '<div class="row"><label class="btn"><input type="file" multiple hidden data-fzup="' + esc(o.key) + ':' + stageId + '">' + FZ.upload + '</label>' +
-      (FG.stage(stageId) && FG.stage(stageId).kind === "files" || !isChar ? '' : '') + '</div>' : '');
-    if (!revs.length) return html + '<p class="muted">' + FZ.noVersions + '</p>';
-    if (revs.length > 1) html += '<p class="hint">' + FZ.compareHint + '</p>';
-    html += revs.map(function (r) {
-      var isAp = ap && ap.id === r.id, from = r.from && (f.revs || []).filter(function (x) { return x.id === r.from; })[0];
-      return '<div class="fz-rev' + (isAp ? ' ap' : '') + '"><div class="row"><b>v' + r.n + '</b>' + (isAp ? ' <span class="pill s-game">✓ ' + FZ.approvedBy + '</span>' : '') +
-        '<span class="muted">' + esc([r.byName, when(r.at), from ? FZ.restored.replace("{n}", from.n) : ""].filter(Boolean).join(" · ")) + '</span><span style="flex:1"></span>' +
-        (revs.length > 1 ? '<label class="muted"><input type="checkbox" data-fzcmp="' + r.id + '"' + (fz.cmp.indexOf(r.id) >= 0 ? ' checked' : '') + '> ' + FZ.compare + '</label>' : '') +
-        (canWrite && isChar && !isAp ? '<button class="btn mini" data-fzapprev="' + stageId + ':' + r.id + '">' + FZ.approveRev + '</button>' : '') +
-        (canWrite && revs[0].id !== r.id ? '<button class="btn mini ghost" data-fzrestore="' + esc(o.key) + ':' + stageId + ':' + r.id + '">' + FZ.restore + '</button>' : '') + '</div>' +
-        (r.note ? '<p>' + esc(r.note) + '</p>' : '') + '<div class="fz-files">' + (r.files || []).map(function (id) { return fileHtml(by(id)); }).join("") + '</div></div>';
-    }).join("");
-    var cmp = fz.cmp.map(function (id) { return revs.filter(function (r) { return r.id === id; })[0]; }).filter(Boolean);
-    if (cmp.length === 2) html = '<div class="fz-cmp">' + cmp.map(function (r) { return '<div><b>v' + r.n + '</b>' + (r.files || []).map(function (id) { return fileHtml(by(id)); }).join("") + '</div>'; }).join("") +
-      '<button class="btn mini ghost" data-fzcmpx>' + FZ.cmpClose + '</button></div>' + html;
-    return html;
-  }
   function fzEquipHtml(c, ctx) {
     var mine = FG.itemsOf(c, ctx.items), slots = fzSlots(), f = c.forge;
     var html = '<h4 class="fz-h">' + FZ.slots + '</h4><table class="fz-slots">' + slots.map(function (s) {
@@ -6485,25 +6460,29 @@
     var own = chars.filter(function (c) { return (f.owners || []).indexOf(c.id) >= 0; }), v = FG.validation(i, own[0] || null, game);
     var sl = slots.filter(function (s) { return s.id === f.slot; })[0], bind = f.bind || (sl && sl.bind) || "skinned";
     var inp = function (k, ph, type) { return '<input data-fzi="' + k + '"' + (type ? ' type="' + type + '" min="0"' : '') + ' value="' + esc(f[k] || "") + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + (canWrite ? '' : ' readonly') + '>'; };
+    var mf = FG.modelFile(i);
     var html = '<div class="row"><span class="pill ' + FZ_VCLS[v.status] + '">' + esc(I.status + ": " + FZ.val[v.status]) + '</span><button class="btn mini ghost" data-openref="' + esc(i.key) + '">' + FZ.openCard + '</button></div>' +
+      '<div class="fz-model">' + (mf ? '<p>🧊 <b>' + esc(mf.name) + '</b>' + polyInfo(mf) + ' <button class="btn mini" data-fzv3d="' + esc(i.key) + ':' + esc(mf.id) + '">' + STR.v3d.open + '</button></p>' : '<p class="muted">' + I.noModel + '</p>') +
+      (canWrite ? '<label class="btn' + (mf ? '' : ' primary') + '"><input type="file" multiple hidden data-fzup="' + esc(i.key) + ':model">' + (mf ? I.upNew : I.up) + '</label>' : '') + '</div>' +
       '<div class="fz-pass">' +
       '<label class="fz-lb">' + I.slot + fzSel('data-fzi="slot"', slots, f.slot || "", true) + '</label>' +
       '<label class="fz-lb">' + I.bind + '<select data-fzi="bind"' + dis + '>' + ["skinned", "rigid"].map(function (b) { return '<option value="' + b + '"' + (bind === b ? ' selected' : '') + '>' + esc(I[b]) + '</option>'; }).join("") + '</select></label>' +
+      (bind === "rigid" ? '<label class="fz-lb">' + I.attach + '<textarea rows="2" data-fzattach placeholder="' + esc(I.attachPh) + '"' + (canWrite ? '' : ' readonly') + '>' + esc((f.attach || []).map(function (a) { return a.bone + (a.point ? " : " + a.point : ""); }).join("\n")) + '</textarea></label>' : '') + '</div>' +
+      '<fieldset class="fz-set"><legend>' + I.owners + '</legend>' + chars.map(function (c) { return '<label><input type="checkbox" data-fzowner="' + esc(c.id) + '"' + ((f.owners || []).indexOf(c.id) >= 0 ? ' checked' : '') + dis + '> ' + esc(c.title) + '</label>'; }).join("") + '</fieldset>' +
+      '<details class="fz-ctx"><summary>' + I.more + '</summary><div class="fz-pass">' +
       '<label class="fz-lb">' + FZ.rig + fzSel('data-fzi="rig"', P.rigs || [], f.rig || "", true) + '</label>' +
       '<label class="fz-lb">' + FZ.body + fzSel('data-fzi="body"', P.bodies || [], f.body || "", true) + '</label>' +
       '<label class="fz-lb">' + I.format + inp("format", "FBX / GLB") + '</label><label class="fz-lb">' + I.units + inp("units", I.unitsPh) + '</label>' +
       '<label class="fz-lb">' + I.lod + inp("lod", I.lodPh) + '</label><label class="fz-lb">' + I.poly + inp("polyTarget", "", "number") + '</label></div>' +
       '<fieldset class="fz-set"><legend>' + I.mask + '</legend>' + FG.MASK.map(function (m) { return '<label><input type="checkbox" data-fzmask="' + m.id + '"' + ((f.mask || []).indexOf(m.id) >= 0 ? ' checked' : '') + dis + '> ' + esc(fzL(m)) + '</label>'; }).join("") + '</fieldset>' +
-      '<fieldset class="fz-set"><legend>' + I.maps + '</legend>' + FG.MAPS.map(function (m) { return '<label><input type="checkbox" data-fzmap="' + m + '"' + ((f.maps || []).indexOf(m) >= 0 ? ' checked' : '') + dis + '> ' + esc(m) + '</label>'; }).join("") + '</fieldset>' +
-      '<label class="fz-lb">' + I.attach + '<textarea rows="2" data-fzattach placeholder="' + esc(I.attachPh) + '"' + (canWrite ? '' : ' readonly') + '>' + esc((f.attach || []).map(function (a) { return a.bone + (a.point ? " : " + a.point : ""); }).join("\n")) + '</textarea></label>' +
-      '<fieldset class="fz-set"><legend>' + I.owners + '</legend>' + chars.map(function (c) { return '<label><input type="checkbox" data-fzowner="' + esc(c.id) + '"' + ((f.owners || []).indexOf(c.id) >= 0 ? ' checked' : '') + dis + '> ' + esc(c.title) + '</label>'; }).join("") + '</fieldset>' +
+      '<fieldset class="fz-set"><legend>' + I.maps + '</legend>' + FG.MAPS.map(function (m) { return '<label><input type="checkbox" data-fzmap="' + m + '"' + ((f.maps || []).indexOf(m) >= 0 ? ' checked' : '') + dis + '> ' + esc(m) + '</label>'; }).join("") + '</fieldset></details>' +
       '<h4 class="fz-h">' + I.checks + '</h4>' + fzIssuesHtml(v.issues);
     if (canWrite && v.status === "warning") html += '<button class="btn" data-fzmanual>' + I.manual + '</button>';
     if (f.approval && v.status === "manual") html += '<p class="fz-ok">✓ ' + esc(FZ.val.manual + " · " + (f.approval.byName || "") + " · " + when(f.approval.at)) + (f.approval.comment ? ' — «' + esc(f.approval.comment) + '»' : '') +
       (canWrite ? ' <button class="btn mini ghost" data-fzmanualoff>' + I.manualOff + '</button>' : '') + '</p>';
     if ((f.external || []).length) html += '<h4 class="fz-h">' + I.ext + '</h4><ul class="fz-iss">' + f.external.map(function (x) {
       return '<li class="qd-' + (x.result === "failed" ? "error" : x.result === "warning" ? "warn" : "ok") + '">' + esc(x.check + " · " + x.result + (x.details ? " — " + x.details : "") + " · " + (x.source || "") + " · " + when(x.at)) + '</li>'; }).join("") + '</ul>';
-    return html + '<h2 class="group">' + I.concept + '</h2>' + fzRevsHtml(i, "concept", false) + '<h2 class="group">' + I.model + '</h2>' + fzRevsHtml(i, "model", false);
+    return html;
   }
   // 🎞 the fitting room: the character's model (rig → mesh version, else the hero's prefab, else the reference dummy of its body type),
   // the WhiteWrite library clips (the character's own first) and its items with a 3D model; «✓ Виглядає добре» → item forge.external
