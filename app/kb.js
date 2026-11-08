@@ -475,7 +475,7 @@
         lead: "Розкажи про картку голосом замість заповнювати поля.",
         min: 2,
         body: [
-          ["p", "Кнопка <b>🎙 Надиктуй</b> — у шапці картки гри й досьє світу. Натисни великий мікрофон і говори вільно; сказане зʼявляється в полі, його можна правити, дописувати чи вставити готовий текст (у браузері без розпізнавання мови — лише вписати). Потім <b>✦ Розкласти по полях</b>."],
+          ["p", "Кнопка <b>🎙 Надиктуй</b> — у шапці картки гри й досьє світу, там, де картка — форма зі словами. У каталогах файлів (ассети й префаби, матеріали, анімації, звук і музика, референси), у конструкторах механік і звуку та в картках без текстових полів її немає. Натисни великий мікрофон і говори вільно; сказане зʼявляється в полі, його можна правити, дописувати чи вставити готовий текст (у браузері без розпізнавання мови — лише вписати). Потім <b>✦ Розкласти по полях</b>."],
           ["ul", [
             "ШІ розкладає лише сказане — нічого не вигадує; виправляє розпізнавання й пунктуацію, дописує до наявного тексту, а замінює лише те, що ти явно виправив.",
             "Таблиці («Х-ки», «Числа») — рядками: «хп сто двадцять» → HP | 120.",
@@ -1850,7 +1850,7 @@
         lead: "Tell a card by voice instead of filling its fields.",
         min: 2,
         body: [
-          ["p", "The <b>🎙 Dictate</b> button is in the head of a game card and a world dossier. Press the big microphone and speak freely; what you say appears in the box — edit it, add to it or paste ready text (in a browser without speech recognition — type only). Then <b>✦ File into fields</b>."],
+          ["p", "The <b>🎙 Dictate</b> button is in the head of a game card and a world dossier — where the card is a form of words. File catalogues (assets & prefabs, materials, animations, sound & music, references), the mechanics and sound constructors and cards without text fields don't have it. Press the big microphone and speak freely; what you say appears in the box — edit it, add to it or paste ready text (in a browser without speech recognition — type only). Then <b>✦ File into fields</b>."],
           ["ul", [
             "The AI files only what was said — it invents nothing; it fixes recognition and punctuation, adds to the existing text and replaces only what you explicitly corrected.",
             "Tables (“Stats”, “Numbers”) get rows: “HP one hundred twenty” → HP | 120.",

@@ -2484,6 +2484,17 @@
     return data;
   }
   // what the open card offers to the dictation: its text and table fields (files, pictures, palettes are not dictated)
+  // «🎙 Надиктуй» only where a card is a form of words: not the file catalogues (prefabs, materials, animations, sounds,
+  // references — files are what matters there), not the constructors (mech: tables and numbers), not a card without text fields
+  var NO_DICT = ["assets", "materials", "animation", "audio", "refs"];
+  function dictOk(c) {
+    if (NO_DICT.indexOf(c.section) >= 0 || c.mech) return false;
+    var s = sec(c.section), gk = groupKey(s);
+    return draft.canonDesc !== null || draft.defs.some(function (d) {
+      var std = d.type ? null : (s.defs || []).filter(function (x) { return x.key === d.key; })[0], type = d.type || (std && std.type) || "text";
+      return d.key !== gk && (type === "text" || type === "table");
+    });
+  }
   function cardTarget() {
     [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
     var s = sec(open.section), gk = groupKey(s), fields = [];
@@ -4776,7 +4787,7 @@
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-delete").style.display = c.isNew ? "none" : "";
-    $("e-mic").style.display = canWrite ? "" : "none";
+    $("e-mic").style.display = canWrite && dictOk(c) ? "" : "none";
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
