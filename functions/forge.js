@@ -31,7 +31,7 @@ var STAGES = [
     what: { uk: '3D-база: геометрія, пропорції, UV, матеріали, вихідний файл і прев’ю (GLB / FBX).', en: '3D base: geometry, proportions, UVs, materials, the source file and a preview (GLB / FBX).' },
     done: { uk: 'Модель перевірена й затверджена.', en: 'The model is checked and approved.' } },
   { id: 'rig', kind: 'files', deps: ['mesh'], uk: 'Риг і скелет', en: 'Rigging',
-    what: { uk: 'Скелет, ваги, профіль рига, тест деформацій.', en: 'Skeleton, skin weights, the rig profile, a deformation test.' },
+    what: { uk: 'Модель приходить уже з ригом (скелет Humanoid з іменами кісток Mixamo, ваги) — WhiteWrite скелет не ставить; тут — профіль рига й тест деформацій.', en: 'The model comes already rigged (a Humanoid skeleton with Mixamo bone names, weights) — WhiteWrite does not rig; here: the rig profile and a deformation test.' },
     done: { uk: 'Риг затверджено, профіль скелета визначено.', en: 'The rig is approved and its skeleton profile set.' } },
   { id: 'equip', kind: 'equip', deps: ['rig'], uk: 'Екіпірування', en: 'Equipment',
     what: { uk: 'Слоти, предмети, їхні концепти й моделі, матеріали, варіанти, набори (loadouts).', en: 'Slots, items, their concepts and models, materials, variants, loadouts.' },

@@ -95,7 +95,7 @@ export function view3d(file, T, siblings, onShot, opts) {
     '<button class="btn" data-a="reset">' + T.reset + '</button>' +
     (onShot ? '<button class="btn" data-a="shot" title="' + T.shotTip + '">' + T.shot + '</button>' : '') +
     '<button class="btn" data-a="close">' + T.close + '</button></div>' +
-    (opts.rig ? '<div class="v3d-rig"></div>' : '') + (opts.fit ? '<div class="v3d-fit"></div>' : '') + '<div class="v3d-shape" hidden></div><div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
+    (opts.fit ? '<div class="v3d-fit"></div>' : '') + '<div class="v3d-shape" hidden></div><div class="v3d-stage"></div><p class="v3d-hint muted">' + T.hint + '</p>';
   box.querySelector("b").textContent = file.name;
   document.body.appendChild(box);
   const stage = box.querySelector(".v3d-stage"), info = box.querySelector(".v3d-info");
@@ -152,7 +152,6 @@ export function view3d(file, T, siblings, onShot, opts) {
     model = root;
     scene.add(model);
     if (opts.shape) shapeKeys();
-    if (opts.rig) { frame(); autorig(); return; }
     if (opts.fit) fitting(); else if (clips && clips.length) { mixer = new THREE.AnimationMixer(model); mixer.clipAction(clips[0]).play(); }
     frame();
   }).catch((e) => { info.textContent = T.failed + ": " + (e && e.message ? e.message : e); });
@@ -354,191 +353,6 @@ export function view3d(file, T, siblings, onShot, opts) {
     }
   }
 
-  // 🦴 the auto-rig: 12 markers on a model without a skeleton → the WhiteWrite reference skeleton (opts.rig.ref, Humanoid 65,
-  // Mixamo bone names) fitted to them, weights by the distance to the bone segments (4 nearest, a bone never reaches across
-  // the body's middle), a SkinnedMesh; opts.fit then plays library clips on it, «Зберегти» exports a GLB + rig.json → opts.rig.onSave.
-  function autorig() {
-    const RG = opts.rig, L = RG.labels, MK = ["chin", "lshoulder", "lelbow", "lwrist", "rshoulder", "relbow", "rwrist", "groin", "lknee", "lankle", "rknee", "rankle"];
-    let panel = box.querySelector(".v3d-rig");
-    let has = false; model.traverse((o) => { if (o.isBone || o.isSkinnedMesh) has = true; });
-    if (has && !RG.force) { panel.innerHTML = '<p class="v3d-rignow">' + L.hasRig + '</p>'; return; }
-    controls.autoRotate = false; box.querySelector('[data-a="rotate"]').setAttribute("aria-pressed", "false");
-    const pts = {}, dots = {}, marks = new THREE.Group(), orig = model; scene.add(marks);
-    let step = 0, built = null, skel = null, busy = false, auto = false, drag = null;
-    const bb = () => new THREE.Box3().setFromObject(orig);
-    function front() { const b = bb(), c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3()), r = Math.max(s.x, s.y, s.z) || 1;
-      home = { pos: new THREE.Vector3(c.x, c.y, c.z + r * 1.9), target: c }; reset(); }
-    const nextStep = () => { const i = MK.findIndex((k) => !pts[k]); return i < 0 ? MK.length : i; };
-    function mark(k, p) {
-      pts[k] = p; let m = dots[k];
-      if (!m) { const b = bb(); m = new THREE.Mesh(new THREE.SphereGeometry((b.max.y - b.min.y) * 0.014, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffc233, depthTest: false }));
-        m.renderOrder = 999; m.userData.k = k; marks.add(m); dots[k] = m; }
-      m.position.copy(p);
-    }
-    function unmark(k) { const m = dots[k]; if (m) { marks.remove(m); m.geometry.dispose(); m.material.dispose(); delete dots[k]; } delete pts[k]; }
-    // A T-pose (arms out: the model about as wide as tall) → every marker guessed from the body's proportions, each in
-    // the middle of its limb (the mean of the vertices around it); the author only drags the ones that are off
-    function tpose() {
-      orig.updateMatrixWorld(true);
-      const vs = []; orig.traverse((o) => { if (!o.isMesh) return; const a = o.geometry.attributes.position, st = Math.max(1, Math.floor(a.count / 40000));
-        for (let i = 0; i < a.count; i += st) vs.push(new THREE.Vector3().fromBufferAttribute(a, i).applyMatrix4(o.matrixWorld)); });
-      const b = bb(), H = b.max.y - b.min.y, y0 = b.min.y, cx = (b.min.x + b.max.x) / 2;
-      if (vs.length < 50 || !(H > 0) || b.max.x - b.min.x < 0.75 * H) return null; // arms down (A-pose / idle): marked by hand
-      const mean = (f) => { let n = 0; const c = new THREE.Vector3(); for (const v of vs) if (f(v)) { c.add(v); n++; } return n ? c.divideScalar(n) : null; };
-      const at = (x, y, rx, ry) => mean((v) => Math.abs(v.x - x) < rx && Math.abs(v.y - y) < ry);
-      const P = {}; let armY = 0;
-      // proportions measured on the 14 reference rigs (human … ogre, ratfolk): along the arm from the middle — shoulder
-      // 0.18 · elbow 0.48 · wrist 0.775 of the reach; the hips ≈ 0.24 H below the arm line, the head ≈ 0.08 H above it
-      for (const sd of [1, -1]) { // +x — the character's left (it faces the camera)
-        const s = sd > 0 ? "l" : "r", tip = sd > 0 ? b.max.x : b.min.x, reach = Math.abs(tip - cx);
-        const hand = mean((v) => (v.x - tip) * sd > -0.04 * H); if (!hand) return null;
-        const x = (f) => cx + sd * reach * f; armY += hand.y / 2;
-        P[s + "shoulder"] = at(x(0.18), hand.y, 0.02 * H, 0.06 * H);
-        P[s + "elbow"] = at(x(0.48), hand.y, 0.02 * H, 0.05 * H);
-        P[s + "wrist"] = at(x(0.775), hand.y, 0.015 * H, 0.04 * H);
-        const leg = (f) => mean((v) => (v.x - cx) * sd > 0.01 * H && Math.abs(v.x - cx) < 0.2 * H && Math.abs(v.y - (y0 + f * H)) < 0.015 * H);
-        P[s + "knee"] = leg(0.28); P[s + "ankle"] = leg(0.052);
-      }
-      P.groin = at(cx, armY - 0.237 * H, 0.04 * H, 0.02 * H);
-      P.chin = at(cx, armY + 0.083 * H, 0.05 * H, 0.015 * H);
-      return MK.every((k) => P[k]) ? P : null;
-    }
-    function guess() { const P = tpose(); auto = !!P; if (P) MK.forEach((k) => mark(k, P[k])); step = nextStep(); }
-    front(); guess();
-    function draw() {
-      panel.innerHTML = '<ol class="v3d-steps">' + MK.map((k, i) => '<li class="' + (i === step && !built ? "on" : pts[k] ? "done" : "") + '">' + L.mk[k] + '</li>').join("") + '</ol>' +
-        '<div class="v3d-rigrow"><span class="v3d-rignow">' + (built ? L.built : step < MK.length ? L.click.replace("{m}", L.mk[MK[step]]) : auto ? L.auto : L.ready) + '</span>' +
-        '<button class="btn" data-r="back"' + (Object.keys(pts).length && !built ? '' : ' disabled') + '>' + L.back + '</button>' +
-        '<button class="btn" data-r="turn"' + (built ? ' disabled' : '') + '>' + L.turn + '</button>' +
-        (built ? '<button class="btn" data-r="redo">' + L.redo + '</button>' + (RG.onSave ? '<button class="btn primary" data-r="save">' + L.save + '</button>' : '')
-          : '<button class="btn primary" data-r="build"' + (step === MK.length ? '' : ' disabled') + '>' + L.build + '</button>') + '</div>' +
-        '<p class="muted">' + L.hint + (built ? '' : ' ' + L.drag) + '</p>';
-    }
-    draw();
-    const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
-    const aim = (e) => { const rc = renderer.domElement.getBoundingClientRect(); ndc.set(((e.clientX - rc.left) / rc.width) * 2 - 1, -((e.clientY - rc.top) / rc.height) * 2 + 1); ray.setFromCamera(ndc, camera); };
-    // the middle of the limb under the cursor: halfway between where the ray enters and leaves it
-    const onModel = (e) => {
-      aim(e); const hits = ray.intersectObject(orig, true); if (!hits.length) return null;
-      const b = bb(), hgt = b.max.y - b.min.y;
-      return hits[1] && hits[1].distance - hits[0].distance < hgt * 0.25 ? hits[0].point.clone().add(hits[1].point).multiplyScalar(0.5) : hits[0].point.clone();
-    };
-    // capture: before OrbitControls, so grabbing a marker does not turn the camera
-    renderer.domElement.addEventListener("pointerdown", (e) => {
-      down = [e.clientX, e.clientY];
-      if (built || busy) return;
-      aim(e); const h = ray.intersectObjects(marks.children, false)[0];
-      if (h) { drag = h.object.userData.k; controls.enabled = false; renderer.domElement.setPointerCapture(e.pointerId); }
-    }, true);
-    renderer.domElement.addEventListener("pointermove", (e) => { if (!drag) return; const p = onModel(e); if (p) mark(drag, p); });
-    renderer.domElement.addEventListener("pointerup", (e) => {
-      if (drag) { drag = null; controls.enabled = true; draw(); return; }
-      if (!down || built || busy || step >= MK.length || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 4) return;
-      const p = onModel(e); if (!p) return;
-      mark(MK[step], p); step = nextStep(); draw();
-    });
-    const clearMarks = () => { Object.keys(dots).forEach(unmark); };
-    panel.addEventListener("click", async (e) => {
-      const b = e.target.closest("[data-r]"); if (!b || b.disabled || busy) return;
-      const a = b.dataset.r;
-      if (a === "back") { const k = MK.slice().reverse().find((x) => pts[x]); if (k) unmark(k); auto = false; step = nextStep(); draw(); }
-      else if (a === "turn") { orig.rotation.y += Math.PI / 2; orig.updateMatrixWorld(true); clearMarks(); front(); guess(); draw(); }
-      else if (a === "build") { busy = true; b.disabled = true; try { await build(); } catch (er) { info.textContent = T.failed + ": " + (er && er.message ? er.message : er); } busy = false; draw(); }
-      else if (a === "redo") {
-        if (mixer) mixer.stopAllAction(); mixer = null;
-        scene.remove(built); disposeTree(built); built = null; skel = null; model = orig; scene.add(orig); marks.visible = true;
-        const fp = box.querySelector(".v3d-fit"); if (fp) fp.replaceWith(Object.assign(document.createElement("div"), { className: "v3d-fit" })); // the old panel's listeners go with it
-        info.textContent = ""; draw();
-      }
-      else if (a === "save") { busy = true; b.disabled = true; await save(); busy = false; }
-    });
-    async function build() {
-      info.textContent = L.building;
-      const g = await new Promise((ok, no) => new GLTFLoader().load(RG.ref, ok, undefined, no));
-      g.scene.updateMatrixWorld(true);
-      const refB = {}, order = []; let refArm = null;
-      g.scene.traverse((o) => {
-        if (!o.isBone) return; const k = boneKey(o.name); if (refB[k]) return; if (k === "hips") refArm = o.parent;
-        refB[k] = { name: String(o.name).replace(/^mixamorig[:_]?/i, ""), p: o.getWorldPosition(new THREE.Vector3()), q: o.getWorldQuaternion(new THREE.Quaternion()), parent: o.parent && o.parent.isBone ? boneKey(o.parent.name) : null, kids: [] };
-        order.push(k);
-      });
-      order.forEach((k) => { const p = refB[k].parent; if (p) refB[p].kids.push(k); });
-      disposeTree(g.scene);
-      const r = (k) => refB[k].p, P = Object.assign({}, pts), side = Math.sign(r("leftarm").x - r("hips").x) || 1;
-      [["lshoulder", "rshoulder"], ["lwrist", "rwrist"], ["lelbow", "relbow"], ["lknee", "rknee"], ["lankle", "rankle"]].forEach(([l, rr]) => { if ((P[l].x - P[rr].x) * side < 0) { const t = P[l]; P[l] = P[rr]; P[rr] = t; } }); // the character's left, whatever was clicked first
-      orig.updateMatrixWorld(true);
-      const s = (P.chin.y - P.groin.y) / (r("head").y - r("hips").y);
-      if (!(s > 0)) throw new Error(L.badMarks);
-      const anchor = { hips: P.groin, head: P.chin, leftarm: P.lshoulder, leftforearm: P.lelbow, lefthand: P.lwrist, rightarm: P.rshoulder, rightforearm: P.relbow, righthand: P.rwrist,
-        leftleg: P.lknee, leftfoot: P.lankle, rightleg: P.rknee, rightfoot: P.rankle };
-      const align = (a, b) => new THREE.Quaternion().setFromUnitVectors(a.clone().normalize(), b.clone().normalize());
-      const handR = { left: align(r("lefthand").clone().sub(r("leftforearm")), P.lwrist.clone().sub(P.lelbow)), right: align(r("righthand").clone().sub(r("rightforearm")), P.rwrist.clone().sub(P.relbow)) };
-      const underHand = (k) => { for (let x = refB[k].parent; x; x = refB[x].parent) if (x === "lefthand" || x === "righthand") return x === "lefthand" ? "left" : "right"; return ""; };
-      const T = {};
-      order.forEach((k) => {
-        const rb = refB[k];
-        if (anchor[k]) T[k] = anchor[k].clone();
-        else if (["spine", "spine1", "spine2", "neck"].indexOf(k) >= 0) { // along groin → chin, as far up as on the reference
-          const f = (r(k).y - r("hips").y) / (r("head").y - r("hips").y);
-          T[k] = P.groin.clone().lerp(P.chin, f).add(r(k).clone().sub(r("hips").clone().lerp(r("head"), f)).multiplyScalar(s));
-        } else if (rb.parent) { const off = r(k).clone().sub(r(rb.parent)).multiplyScalar(s), h = underHand(k); if (h) off.applyQuaternion(handR[h]); T[k] = T[rb.parent].clone().add(off); }
-        else T[k] = r(k).clone();
-      });
-      const prim = (k) => { const kids = refB[k].kids; if (!kids.length) return null; if (kids.length === 1) return kids[0];
-        return { hips: "spine", spine2: "neck", lefthand: "lefthandmiddle1", righthand: "righthandmiddle1" }[k] || kids[0]; };
-      const W = {};
-      order.forEach((k) => { const c = prim(k), rb = refB[k];
-        if (c) W[k] = align(r(c).clone().sub(r(k)), T[c].clone().sub(T[k])).multiply(rb.q.clone());
-        else W[k] = (rb.parent ? W[rb.parent].clone() : new THREE.Quaternion()).multiply(rb.parent ? refB[rb.parent].q.clone().invert().multiply(rb.q) : rb.q.clone()); });
-      // the armature as on the reference (its rotation / scale): the library clips' hips rotation is relative to it
-      const armature = new THREE.Object3D(), BN = {}, list = [], aq = refArm.getWorldQuaternion(new THREE.Quaternion()), asc = refArm.getWorldScale(new THREE.Vector3()).x || 1;
-      armature.name = "Armature"; refArm.getWorldPosition(armature.position); armature.quaternion.copy(aq); armature.scale.setScalar(asc);
-      order.forEach((k) => { const rb = refB[k], bone = new THREE.Bone(); bone.name = "mixamorig:" + rb.name; BN[k] = bone; list.push(bone);
-        const pq = (rb.parent ? W[rb.parent] : aq).clone().invert(), pp = rb.parent ? T[rb.parent] : armature.position;
-        bone.position.copy(T[k].clone().sub(pp).applyQuaternion(pq).divideScalar(asc)); bone.quaternion.copy(pq.clone().multiply(W[k]));
-        (rb.parent ? BN[rb.parent] : armature).add(bone); });
-      // weights: the 4 nearest bone segments, 1 / d⁴; a left bone never takes a vertex on the right of the middle (and back)
-      const segs = order.filter((k) => prim(k)).map((k) => ({ i: order.indexOf(k), a: T[k], b: T[prim(k)], side: /^left/.test(k) ? 1 : /^right/.test(k) ? -1 : 0 }));
-      const cx = T.hips.x, margin = 0.02 * s, eps = 0.01 * s, ab = new THREE.Vector3(), ap = new THREE.Vector3(), cl = new THREE.Vector3(), v = new THREE.Vector3();
-      const dist = (a, b) => { ab.subVectors(b, a); const t = Math.max(0, Math.min(1, ap.subVectors(v, a).dot(ab) / (ab.lengthSq() || 1))); return v.distanceTo(cl.copy(a).addScaledVector(ab, t)); };
-      const group = new THREE.Group(); group.name = String(file.name || "model").replace(/.[^.]+$/, ""); group.add(armature);
-      const meshes = []; orig.traverse((o) => { if (o.isMesh) meshes.push(o); });
-      let done = 0; const total = meshes.reduce((n, m) => n + m.geometry.attributes.position.count, 0);
-      for (const m of meshes) {
-        const geo = m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); geo.morphAttributes = {};
-        const pos = geo.attributes.position, n = pos.count, si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
-        for (let i = 0; i < n; i++) {
-          v.fromBufferAttribute(pos, i); const best = [];
-          for (const sg of segs) {
-            if (sg.side && (v.x - cx) * side * sg.side < -margin) continue;
-            const d = dist(sg.a, sg.b); if (best.length < 4 || d < best[3].d) { best.push({ i: sg.i, d }); best.sort((x, y) => x.d - y.d); if (best.length > 4) best.pop(); }
-          }
-          let tot = 0; best.forEach((x) => { x.w = 1 / Math.pow(x.d + eps, 4); tot += x.w; });
-          best.forEach((x, j) => { si[i * 4 + j] = x.i; sw[i * 4 + j] = x.w / tot; });
-          if (++done % 3000 === 0) { info.textContent = L.weights.replace("{p}", Math.round(done / total * 100)); await new Promise((ok) => requestAnimationFrame(ok)); if (!alive) return; }
-        }
-        geo.setAttribute("skinIndex", new THREE.Uint16BufferAttribute(si, 4)); geo.setAttribute("skinWeight", new THREE.Float32BufferAttribute(sw, 4));
-        const sm = new THREE.SkinnedMesh(geo, m.material); sm.name = m.name || "Body"; sm.frustumCulled = false; group.add(sm);
-      }
-      group.updateMatrixWorld(true); skel = new THREE.Skeleton(list);
-      group.traverse((o) => { if (o.isSkinnedMesh) o.bind(skel, new THREE.Matrix4()); });
-      scene.remove(orig); marks.visible = false; built = group; model = group; scene.add(group);
-      info.textContent = L.built;
-      if (opts.fit) fitting();
-    }
-    async function save() {
-      info.textContent = L.saving;
-      try {
-        const { GLTFExporter } = await import("three/addons/exporters/GLTFExporter.js");
-        if (mixer) mixer.stopAllAction(); skel.pose(); built.updateMatrixWorld(true); // exported in the bind pose
-        const buf = await new GLTFExporter().parseAsync(built, { binary: true }), b = new THREE.Box3().setFromObject(built);
-        const report = { schema: "artpipeline.rig/1", skeleton: "mixamo65", body_type: RG.body || "", height_m: Math.round((b.max.y - b.min.y) * 1000) / 1000, bones_found: skel.bones.length,
-          bones_missing: [], tris: countTris(built), shape_keys: [], weights: "auto · WhiteWrite (distance to bones)", source: "WhiteWrite autorig (12 markers" + (auto ? ", T-pose guess" : "") + ")" };
-        await RG.onSave(new Blob([buf], { type: "model/gltf-binary" }), report);
-        info.textContent = L.saved;
-      } catch (er) { info.textContent = T.failed + ": " + (er && er.message ? er.message : er); }
-    }
-  }
   function close() {
     alive = false;
     renderer.setAnimationLoop(null);

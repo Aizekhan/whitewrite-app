@@ -4852,7 +4852,7 @@
       legacy: "Ці файли завантажено сюди напряму, до появи префабів. Перенеси їх у «Ассети й префаби» — там буде комплект моделі.", move: "→ Перенести в «Ассети й префаби»",
       moveQ: "Створити префаб «{t}» у «Ассети й префаби» з цих файлів ({n}) і привʼязати його до картки?", moved: "Префаб створено й привʼязано.",
       title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»", upNew: "⤒ Завантажити з ПК", upNewDir: "📂 Тека з ПК (FBX · OBJ · glTF + текстури)",
-      upNewHint: "Модель ляже новим префабом у «Ассети й префаби» → «{g}» і одразу привʼяжеться до «{t}».", upNewDone: "Префаб «{t}» створено в «Ассети й префаби» й привʼязано.",
+      upNewHint: "Модель ляже новим префабом у «Ассети й префаби» → «{g}» і одразу привʼяжеться до «{t}». Для Кузні модель має бути вже з ригом: скелет Humanoid з іменами кісток Mixamo.", upNewDone: "Префаб «{t}» створено в «Ассети й префаби» й привʼязано.",
       filesHint: "картинки, документи, звук — до 200 МБ; моделі й префаби — через «🧊 Додати префаб»",
       filesHintA: "інше до картки — концепти, документи, звук; модель і текстури — у «🧩 Модель і комплект» вище", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
       noModels: "Моделі й префаби не завантажують у картку героя: додай їх у «Ассети й префаби», а тут обери «🧊 Додати префаб». Пропущено: {f}",
@@ -4867,7 +4867,7 @@
       legacy: "These files were uploaded here directly, before prefabs. Move them to “Assets & prefabs” — the model kit lives there.", move: "→ Move to “Assets & prefabs”",
       moveQ: "Create the prefab “{t}” in “Assets & prefabs” from these files ({n}) and link it to the card?", moved: "The prefab is created and linked.",
       title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”", upNew: "⤒ Upload from PC", upNewDir: "📂 Folder from PC (FBX · OBJ · glTF + textures)",
-      upNewHint: "The model becomes a new prefab in “Assets & prefabs” → “{g}” and is linked to “{t}” at once.", upNewDone: "The prefab “{t}” is created in “Assets & prefabs” and linked.",
+      upNewHint: "The model becomes a new prefab in “Assets & prefabs” → “{g}” and is linked to “{t}” at once. For the Forge the model must already be rigged: a Humanoid skeleton with Mixamo bone names.", upNewDone: "The prefab “{t}” is created in “Assets & prefabs” and linked.",
       filesHint: "images, documents, audio — up to 200 MB; models and prefabs — via “🧊 Add a prefab”",
       filesHintA: "anything else for the card — concepts, documents, audio; the model and textures go to “🧩 Model & kit” above", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
       noModels: "Models and prefabs are not uploaded onto a hero card: add them to “Assets & prefabs” and pick “🧊 Add a prefab” here. Skipped: {f}",
@@ -6105,6 +6105,7 @@
         clip: "Анімація", play: "▶", pause: "⏸", speed: "Швидкість", wear: "Одягнено:", ok: "✓ Виглядає добре", okDone: "✓ Позначено",
         okDetails: "Примірочна: «{c}», кліп «{a}» — виглядає добре", loading: "Завантажую…", wait: "Бібліотеку анімацій не вдалося завантажити — перевір звʼязок і натисни ще раз.",
         dummy: "Своєї моделі ще немає — показано манекен WhiteWrite «{b}». Додай модель на етапі «Базова модель» або префаб героя.",
+        noRig: "Модель героя без рига Humanoid — показано манекен WhiteWrite «{b}». Кузня приймає лише модель уже з ригом (імена кісток Mixamo).",
         noRig: "У моделі немає скелета — анімацію не програти. Потрібен риг mixamo65 / Unity Humanoid (етап «Риг і скелет»).",
         missing: "Кісток не знайдено: {n} — ці частини тіла стоять. Назви кісток мають бути як у Mixamo / Unity Humanoid.",
         noBone: "«{t}»: кістку «{b}» не знайдено — вкажи кістку кріплення в паспорті предмета (наприклад RightHand).",
@@ -6118,29 +6119,17 @@
         clipFar: "броня не прилягає до тіла (далеко чи інший розмір) — перевіряти нема чого",
         left: "лів.", right: "прав.", bones: { hips: "таз", spine: "поперек", spine1: "живіт", spine2: "груди", neck: "шия", head: "голова", shoulder: "ключиця", arm: "плече",
           forearm: "передпліччя", hand: "кисть", upleg: "стегно", leg: "гомілка", foot: "стопа", toebase: "пальці ніг" } },
-      arig: { btn: "🦴 Авторіг за мітками", hint: "Модель без скелета? 12 міток — WhiteWrite поставить скелет Humanoid 65 (сумісний з Mixamo), порахує ваги й збереже версію рига (GLB + rig.json). У браузері, без токенів.",
-        none: "Спершу додай модель на етапі «Базова модель» або префаб героя.",
-        mk: { chin: "Підборіддя", lshoulder: "Ліве плече (праворуч на екрані)", lelbow: "Лівий лікоть", lwrist: "Ліве зап'ястя", rshoulder: "Праве плече (ліворуч на екрані)", relbow: "Правий лікоть", rwrist: "Праве зап'ястя",
-          groin: "Пах", lknee: "Ліве коліно", lankle: "Ліва щиколотка (згин перед стопою)", rknee: "Праве коліно", rankle: "Права щиколотка (згин перед стопою)" },
-        auto: "Модель у T-позі — мітки поставлено самі. Перетягни ті, що не на місці, і «Побудувати риг».", drag: "Мітку можна перетягнути мишею.",
-        click: "Клікни на моделі: {m}", ready: "Усі мітки стоять — «Побудувати риг».", back: "↶ Назад", turn: "↻ 90°", build: "Побудувати риг", redo: "↺ Переставити мітки",
-        save: "Зберегти як версію рига", building: "Ставлю скелет…", weights: "Рахую ваги… {p}%", built: "Риг готовий — дивись анімації нижче; якщо криво, переставити мітки.",
-        saving: "Зберігаю…", saved: "✓ Збережено як нова версія етапу «Риг і скелет».", badMarks: "Мітки не схожі на людину: підборіддя має бути вище паху.",
-        hasRig: "У цієї моделі вже є скелет — відкрий «🎞 Примірочну» на етапі «Анімації».",
-        hint2: "Модель має дивитися на тебе (інакше ↻ 90°), краще в T- чи A-позі. Мітка ставиться всередину кінцівки — клікай по центру.", note: "Авторіг за мітками (WhiteWrite)" },
       from: { imgs: "На картці вже є картинки ({n}) — портрет, референси.", imgBtn: "＋ Версія з картинок картки", imgNote: "з картинок картки",
         pfBtn: "＋ Версія з префаба", pfNone: "Модель героя береться з його префаба в «Ассети й префаби».", pfEmpty: "У префаба ще немає файлу моделі — додай його в «🧩 Модель і комплект».", pfNote: "з префаба «{t}»",
-        rigBody: "Обери тип тіла — він дає еталонний скелет WhiteWrite, і тут зʼявиться готовий запит для Claude Code на підгонку моделі.",
         newItem: "＋ Новий", noItems: "У персонажа ще немає предметів — перевіряти нічого.", toEquip: "→ Екіпірування", integReq: "Запит для Claude Code: перевірити предмети",
         integAsk: "Перевір предмети персонажа «{c}» (WhiteWrite Кузня, {ref}): {items}.\n1. MCP whitewrite: get_character_forge {ref:\"{ref}\"} — затверджені моделі персонажа й предметів.\n2. У Unity чи Blender одягни кожен предмет на модель і перевір: clipping (наскрізні проходи в позах idle / walk / attack), deformation (згини), materials, scale.\n3. На кожну перевірку — report_forge_check {item:\"<ref предмета>\", check, result: passed | warning | failed, details}." },
       brief: { race: "Раса", cls: "Клас", role: "Роль у грі", silhouette: "Силует", proportions: "Пропорції", palette: "Палітра", refs: "Референси й обмеження" },
       ws: { model: "🧍 Модель", equip: "🛡 Екіпірування", anim: "🎞 Анімації", export: "⤓ Експорт", exportOff: "Експорт — коли є модель зі скелетом Humanoid",
-        src: { prefab: "префаб із картки персонажа", rig: "після авторигу", mesh: "завантажена версія" }, tris: "трикутників",
-        noModel: "У картці персонажа ще немає моделі. Додай префаб у самій картці (кнопка «🧊 Додати префаб») — Кузня візьме його сама. Поки що в Примірочній — манекен типу тіла.",
-        checking: "Перевіряю модель…", skelOk: "✓ Скелет Humanoid — анімації WhiteWrite лягають самі, можна експортувати.", skelNone: "⚠ У моделі немає скелета — анімації на неї не ляжуть.",
-        skelOther: "⚠ Скелет моделі не Humanoid (кісток: {n}) — анімації WhiteWrite на нього не ляжуть.", arig: "🦴 Підігнати скелет",
-        arigHint: "12 міток на моделі (у T-позі ставляться самі) → скелет Humanoid 65 і ваги, у браузері, без токенів. Результат стає моделлю персонажа в Кузні; префаб у картці не змінюється.",
-        blender: "Точніше — у Blender через Claude Code", rigNote: "Це модель після авторигу; префаб у картці лишився як був.", keysOk: "✓ Ключі форми Thin / Heavy / Muscular є — статура діє на модель.",
+        src: { prefab: "префаб із картки персонажа", rig: "версія рига", mesh: "завантажена версія" }, tris: "трикутників",
+        noModel: "У картці персонажа ще немає моделі. Модель — уже з ригом (скелет Humanoid, імена кісток Mixamo): WhiteWrite скелет не ставить. Додай префаб у самій картці (кнопка «🧊 Додати префаб») — Кузня візьме його сама. Поки що в Примірочній — манекен типу тіла.",
+        checking: "Перевіряю модель…", skelOk: "✓ Скелет Humanoid — анімації WhiteWrite лягають самі, можна експортувати.", skelNone: "⚠ У моделі немає скелета. Кузня приймає лише модель уже з ригом: скелет Humanoid з іменами кісток Mixamo. Зригуй її поза WhiteWrite (Mixamo, AccuRIG чи Blender) і заміни префаб у картці персонажа.",
+        skelOther: "⚠ Скелет моделі не Humanoid (кісток: {n}). Кузня приймає лише модель з ригом Humanoid (імена кісток Mixamo): перерогуй її поза WhiteWrite (Mixamo, AccuRIG чи Blender) і заміни префаб у картці персонажа.",
+        keysOk: "✓ Ключі форми Thin / Heavy / Muscular є — статура діє на модель.",
         ready: "готовий до анімацій", needRig: "треба скелет", noModelShort: "немає моделі", counts: "предметів: {n} · анімацій: {k}" },
       context: "Контекст із Біблії", openCard: "Відкрити картку", fromCanon: "З канону", notes: "Коментарі", notePh: "Коментар до етапу…", addNote: "Додати",
       slots: "Слоти", bindItem: "＋ привʼязати предмет…", unbind: "Відвʼязати", loadouts: "Набори (loadouts)", addLoadout: "＋ Набір", loadoutQ: "Назва набору:", empty: "—",
@@ -6162,9 +6151,7 @@
       ref: { title: "🦴 Еталони WhiteWrite", lead: "Готові скелети й тіла-манекени: імена кісток Mixamo, T-поза, Unity Humanoid. Модель, підігнана під еталон, одразу готова до анімації, а броня й одяг, зроблені на еталонному тілі, сідають на кожного персонажа цього типу.",
         body: "Тип тіла", shape: "Статура (ключі форми)", shapeHint: "Ваги ключів Thin / Heavy / Muscular — ті самі імена на тілі й на кожному предметі; у Unity — SetBlendShapeWeight. Ідуть у маніфест (body_shape).",
         shapes: { Thin: "Худорлявий", Heavy: "Масивний", Muscular: "Мʼязистий" }, build: { fat: "Худорлявий ◀ ▶ Повний", muscle: "Мʼязистий", height: "Зріст" }, buildT: "Статура", v3d: "🧊 Манекен у 3D", pack: "⤓ Пакет еталонів (.zip)", packHint: "Скрипт conform_to_rig.py і всі типи тіла: .fbx, .glb, .blend і rig.json. Потрібен Blender 4.5 LTS.",
-        auto: "Скелет «{r}» проставлено за типом тіла.", pick: "Хто це? Обери расу й стать", pickHint: "Тип тіла задає скелет, анімації, Foot IK і посадку броні.", pickBtn: "▦ Обрати тип тіла", pickX: "Сховати", styleT: "Стиль тіл", no3d: "3D-тіла в цьому стилі — скоро; поки що в 3D і Примірочній — реалістичний манекен того ж типу (скелет і анімації ті самі).", noConcept: "концепту ще немає", noKeys: "У моделі героя немає ключів форми Thin / Heavy / Muscular — повзунки змінюють лише манекен і маніфест, а не саму модель. Щоб статура діяла на модель, додай ці ключі в Blender (або візьми тіло-манекен за основу моделі).", fit: "Підігнати під еталон", fitHint: "Модель з етапу «Базова модель» (Meshy, Mixamo чи своя з T- або A-позою) підганяє під тип тіла скрипт conform_to_rig.py у Blender на твоєму ПК (~20–40 с). Скопіюй запит у Claude Code — він зробить усе й надішле перевірку скелета. Потім завантаж сюди новою версією FBX, GLB, прев’ю і rig.json — перевірка запише себе сама.",
-        noBody: "Спершу вибери тип тіла зліва — тоді запит знатиме, під який еталон підганяти.", check: "Перевірка скелета", none: "Ще немає — завантаж rig.json або попроси Claude Code.",
-        res: { passed: "Пройдено", warning: "Є застереження", failed: "Не пройдено" }, found: "кісток знайдено", ready: "🦴 Готовий до анімації · Humanoid", readyHint: "Скелет еталонний і перевірений: підходять будь-які Humanoid-анімації — кліпи RPG Framework, свої з Blender, Mixamo.",
+        auto: "Скелет «{r}» проставлено за типом тіла.", pick: "Хто це? Обери расу й стать", pickHint: "Тип тіла задає скелет, анімації, Foot IK і посадку броні.", pickBtn: "▦ Обрати тип тіла", pickX: "Сховати", styleT: "Стиль тіл", no3d: "3D-тіла в цьому стилі — скоро; поки що в 3D і Примірочній — реалістичний манекен того ж типу (скелет і анімації ті самі).", noConcept: "концепту ще немає", noKeys: "У моделі героя немає ключів форми Thin / Heavy / Muscular — повзунки змінюють лише манекен і маніфест, а не саму модель. Щоб статура діяла на модель, додай ці ключі в Blender (або візьми тіло-манекен за основу моделі).",
         mixamo: "Анімації Mixamo качай сам на mixamo.com (безкоштовно, з Adobe ID) — у гру їх можна вбудовувати, а роздавати файли окремо не можна.", list: "Типи тіла", rigs: "Скелети", height: "зріст", bones: "кісток" },
       maskNames: null, sec: { characters: "Персонаж", enemies: "Ворог" } },
     en: { chars: "Characters", items: "Equipment", setup: "⚙ Slots & profiles", addChar: "＋ Character", addItem: "＋ Item", search: "Search…",
@@ -6181,6 +6168,7 @@
         clip: "Animation", play: "▶", pause: "⏸", speed: "Speed", wear: "Wearing:", ok: "✓ Looks good", okDone: "✓ Marked",
         okDetails: "Fitting room: “{c}”, clip “{a}” — looks good", loading: "Loading…", wait: "The animation library could not be loaded — check the connection and click again.",
         dummy: "No model of your own yet — showing the WhiteWrite dummy “{b}”. Add a model at the “Base mesh” stage or the hero's prefab.",
+        noRig: "The hero's model has no Humanoid rig — showing the WhiteWrite dummy “{b}”. The Forge takes only a model that is already rigged (Mixamo bone names).",
         noRig: "The model has no skeleton — no animation can play. It needs a mixamo65 / Unity Humanoid rig (the “Rigging” stage).",
         missing: "Bones not found: {n} — those body parts stand still. Bone names must be as in Mixamo / Unity Humanoid.",
         noBone: "“{t}”: bone “{b}” not found — set the attachment bone in the item's passport (e.g. RightHand).",
@@ -6194,29 +6182,17 @@
         clipFar: "the armour doesn't sit on the body (too far or another size) — nothing to check",
         left: "L", right: "R", bones: { hips: "hips", spine: "lower back", spine1: "belly", spine2: "chest", neck: "neck", head: "head", shoulder: "collarbone", arm: "upper arm",
           forearm: "forearm", hand: "hand", upleg: "thigh", leg: "shin", foot: "foot", toebase: "toes" } },
-      arig: { btn: "🦴 Auto-rig by markers", hint: "A model without a skeleton? 12 markers — WhiteWrite puts in the Humanoid 65 skeleton (compatible with Mixamo), computes the weights and saves a rig version (GLB + rig.json). In the browser, no tokens.",
-        none: "First add a model at the “Base mesh” stage or the hero's prefab.",
-        mk: { chin: "Chin", lshoulder: "Left shoulder (on the screen's right)", lelbow: "Left elbow", lwrist: "Left wrist", rshoulder: "Right shoulder (on the screen's left)", relbow: "Right elbow", rwrist: "Right wrist",
-          groin: "Groin", lknee: "Left knee", lankle: "Left ankle (the bend above the foot)", rknee: "Right knee", rankle: "Right ankle (the bend above the foot)" },
-        auto: "The model is in a T-pose — the markers placed themselves. Drag the ones that are off, then “Build the rig”.", drag: "A marker can be dragged with the mouse.",
-        click: "Click on the model: {m}", ready: "All markers are placed — “Build the rig”.", back: "↶ Back", turn: "↻ 90°", build: "Build the rig", redo: "↺ Re-place the markers",
-        save: "Save as a rig version", building: "Placing the skeleton…", weights: "Computing weights… {p}%", built: "The rig is ready — watch the animations below; if it's crooked, re-place the markers.",
-        saving: "Saving…", saved: "✓ Saved as a new version of the “Rigging” stage.", badMarks: "The markers don't look like a person: the chin must be above the groin.",
-        hasRig: "This model already has a skeleton — open the “🎞 Fitting room” at the “Animation” stage.",
-        hint2: "The model must face you (otherwise ↻ 90°), best in a T or A pose. A marker goes inside the limb — click its middle.", note: "Auto-rig by markers (WhiteWrite)" },
       from: { imgs: "The card already has pictures ({n}) — a portrait, references.", imgBtn: "＋ A version from the card's pictures", imgNote: "from the card's pictures",
         pfBtn: "＋ A version from the prefab", pfNone: "The hero's model comes from its prefab in “Assets & prefabs”.", pfEmpty: "The prefab has no model file yet — add it in “🧩 Model & kit”.", pfNote: "from the prefab “{t}”",
-        rigBody: "Pick a body type — it gives the WhiteWrite reference skeleton, and a ready request for Claude Code to fit the model appears here.",
         newItem: "＋ New", noItems: "The character has no items yet — nothing to check.", toEquip: "→ Equipment", integReq: "Request for Claude Code: check the items",
         integAsk: "Check the items of the character «{c}» (WhiteWrite Forge, {ref}): {items}.\n1. MCP whitewrite: get_character_forge {ref:\"{ref}\"} — the approved models of the character and the items.\n2. In Unity or Blender put every item on the model and check: clipping (poke-through in idle / walk / attack poses), deformation (bends), materials, scale.\n3. For every check — report_forge_check {item:\"<item ref>\", check, result: passed | warning | failed, details}." },
       brief: { race: "Race", cls: "Class", role: "Game role", silhouette: "Silhouette", proportions: "Proportions", palette: "Palette", refs: "References & constraints" },
       ws: { model: "🧍 Model", equip: "🛡 Equipment", anim: "🎞 Animations", export: "⤓ Export", exportOff: "Export — once there is a model with a Humanoid skeleton",
-        src: { prefab: "the prefab from the character's card", rig: "after the auto-rig", mesh: "an uploaded version" }, tris: "triangles",
-        noModel: "The character's card has no model yet. Add a prefab in the card itself (the “🧊 Add a prefab” button) — the Forge takes it by itself. Until then the fitting room shows the body type's dummy.",
-        checking: "Checking the model…", skelOk: "✓ Humanoid skeleton — WhiteWrite animations fit by themselves, ready to export.", skelNone: "⚠ The model has no skeleton — animations will not fit it.",
-        skelOther: "⚠ The model's skeleton is not Humanoid ({n} bones) — WhiteWrite animations will not fit it.", arig: "🦴 Fit a skeleton",
-        arigHint: "12 markers on the model (placed by themselves in a T-pose) → the Humanoid 65 skeleton and weights, in the browser, no tokens. The result becomes the character's model in the Forge; the prefab in the card stays as it is.",
-        blender: "More precise — in Blender through Claude Code", rigNote: "This is the model after the auto-rig; the prefab in the card stays as it was.", keysOk: "✓ Thin / Heavy / Muscular shape keys present — the build acts on the model.",
+        src: { prefab: "the prefab from the character's card", rig: "a rig version", mesh: "an uploaded version" }, tris: "triangles",
+        noModel: "The character's card has no model yet. The model comes already rigged (a Humanoid skeleton, Mixamo bone names): WhiteWrite does not rig. Add a prefab in the card itself (the “🧊 Add a prefab” button) — the Forge takes it by itself. Until then the fitting room shows the body type's dummy.",
+        checking: "Checking the model…", skelOk: "✓ Humanoid skeleton — WhiteWrite animations fit by themselves, ready to export.", skelNone: "⚠ The model has no skeleton. The Forge takes only a model that is already rigged: a Humanoid skeleton with Mixamo bone names. Rig it outside WhiteWrite (Mixamo, AccuRIG or Blender) and replace the prefab in the character's card.",
+        skelOther: "⚠ The model's skeleton is not Humanoid ({n} bones). The Forge takes only a model with a Humanoid rig (Mixamo bone names): re-rig it outside WhiteWrite (Mixamo, AccuRIG or Blender) and replace the prefab in the character's card.",
+        keysOk: "✓ Thin / Heavy / Muscular shape keys present — the build acts on the model.",
         ready: "ready for animation", needRig: "needs a skeleton", noModelShort: "no model", counts: "items: {n} · animations: {k}" },
       context: "Context from the Bible", openCard: "Open the card", fromCanon: "From the canon", notes: "Comments", notePh: "A comment on the stage…", addNote: "Add",
       slots: "Slots", bindItem: "＋ bind an item…", unbind: "Unbind", loadouts: "Loadouts", addLoadout: "＋ Loadout", loadoutQ: "Loadout name:", empty: "—",
@@ -6238,9 +6214,7 @@
       ref: { title: "🦴 WhiteWrite references", lead: "Ready skeletons and dummy bodies: Mixamo bone names, T-pose, Unity Humanoid. A model fitted to a reference is ready for animation at once, and armour and clothes made on a reference body fit every character of that type.",
         body: "Body type", shape: "Build (shape keys)", shapeHint: "Weights of the Thin / Heavy / Muscular keys — the same names on the body and on every item; in Unity — SetBlendShapeWeight. They go into the manifest (body_shape).",
         shapes: { Thin: "Thin", Heavy: "Heavy", Muscular: "Muscular" }, build: { fat: "Thin ◀ ▶ Heavy", muscle: "Muscular", height: "Height" }, buildT: "Build", v3d: "🧊 Dummy in 3D", pack: "⤓ Reference pack (.zip)", packHint: "The conform_to_rig.py script and every body type: .fbx, .glb, .blend and rig.json. Needs Blender 4.5 LTS.",
-        auto: "Skeleton «{r}» set by the body type.", pick: "Who is it? Pick the race and sex", pickHint: "The body type sets the skeleton, the animations, Foot IK and how armour sits.", pickBtn: "▦ Pick a body type", pickX: "Hide", styleT: "Body style", no3d: "3D bodies in this style are coming; for now 3D and the fitting room show the realistic dummy of the same type (the same skeleton and animations).", noConcept: "no concept yet", noKeys: "The hero's model has no Thin / Heavy / Muscular shape keys — the sliders change only the dummy and the manifest, not the model itself. For the build to act on the model, add these keys in Blender (or build the model on the dummy body).", fit: "Fit to the reference", fitHint: "The model of the «Base mesh» stage (Meshy, Mixamo or your own in T or A pose) is fitted to the body type by conform_to_rig.py in Blender on your PC (~20–40 s). Copy the request into Claude Code — it does it all and sends the skeleton check. Then upload the FBX, GLB, preview and rig.json here as a new version — the check records itself.",
-        noBody: "Pick a body type on the left first — then the request knows which reference to fit to.", check: "Skeleton check", none: "None yet — upload rig.json or ask Claude Code.",
-        res: { passed: "Passed", warning: "Warning", failed: "Failed" }, found: "bones found", ready: "🦴 Ready for animation · Humanoid", readyHint: "The skeleton is a checked reference: any Humanoid animation fits — RPG Framework clips, your own from Blender, Mixamo.",
+        auto: "Skeleton «{r}» set by the body type.", pick: "Who is it? Pick the race and sex", pickHint: "The body type sets the skeleton, the animations, Foot IK and how armour sits.", pickBtn: "▦ Pick a body type", pickX: "Hide", styleT: "Body style", no3d: "3D bodies in this style are coming; for now 3D and the fitting room show the realistic dummy of the same type (the same skeleton and animations).", noConcept: "no concept yet", noKeys: "The hero's model has no Thin / Heavy / Muscular shape keys — the sliders change only the dummy and the manifest, not the model itself. For the build to act on the model, add these keys in Blender (or build the model on the dummy body).",
         mixamo: "Download Mixamo animations yourself at mixamo.com (free, with an Adobe ID) — they may be built into your game, but the files may not be handed out on their own.", list: "Body types", rigs: "Skeletons", height: "height", bones: "bones" },
       maskNames: null, sec: { characters: "Character", enemies: "Enemy" } },
   }[LANG];
@@ -6382,13 +6356,11 @@
   function fzModelHtml(c, st) {
     var W = FZ.ws, m = st.m, inf = st.info, html = '<div class="fz-model">';
     if (!st.own) return html + '<p>' + W.noModel + '</p><button class="btn" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button></div>';
-    html += '<p><b>' + esc(m.file.name) + '</b> <span class="muted">' + esc(W.src[m.src] || "") + (m.file.tris ? ' · ' + Number(m.file.tris).toLocaleString(LANG) + ' ' + W.tris : '') + '</span></p>' +
-      (m.src === "rig" ? '<p class="muted">' + W.rigNote + '</p>' : '');
+    html += '<p><b>' + esc(m.file.name) + '</b> <span class="muted">' + esc(W.src[m.src] || "") + (m.file.tris ? ' · ' + Number(m.file.tris).toLocaleString(LANG) + ' ' + W.tris : '') + '</span></p>';
     if (!inf) return html + '<p class="muted">' + W.checking + '</p></div>';
     if (st.hum) html += '<p class="fz-ok">' + W.skelOk + '</p>';
     else html += '<p class="warn">' + (inf.skinned ? W.skelOther.replace("{n}", inf.bones.length) : W.skelNone) + '</p>' +
-      (canWrite ? '<div class="fz-from"><span>' + esc(W.arigHint) + '</span><button class="btn primary" data-fzarig>' + esc(W.arig) + '</button></div>' : '') +
-      '<details class="fz-ctx"><summary>' + W.blender + '</summary>' + fzFitHtml(c) + '</details>';
+      (canWrite ? '<button class="btn" data-openref="' + esc(c.key) + '">' + FZ.openCard + '</button>' : '');
     if (fzHasShapes(inf.keys)) html += '<p class="fz-ok">' + W.keysOk + '</p>';
     return html + '</div>';
   }
@@ -6580,40 +6552,19 @@
     var lib = fzAnims(), X = FZ.fit;
     if (!lib) return fzWithAnims(function () { fzFitOpen(c); });
     var f = c.forge, m = fzCharModel(c), notes = [], shp = {}, fc = fzFitClips(c, lib), clips = fc.clips, first = { id: fc.first };
+    var st = fzState(c); if (st.own && st.info && !st.hum) { var rb0 = FG.refBody(f.body) ? f.body : "human_male"; m = { file: fzRefFile(rb0), sib: [], dummy: fzL(FG.refBody(rb0)), norig: true }; } // the Forge takes only a rigged model
     var all = FG.itemsOf(c, fzItems()), items = all.map(function (i) {
       var mf = FG.modelFile(i), sl = fzSlots().filter(function (s) { return s.id === i.forge.slot; })[0];
       if (!mf || !/\.(glb|gltf|fbx|obj)$/i.test(mf.name || "")) return null;
       return { id: i.id, title: i.title, file: mf, siblings: i.files, bind: i.forge.bind || (sl && sl.bind) || "skinned", bone: ((i.forge.attach || []).filter(function (a) { return a.bone; })[0] || {}).bone || "" };
     }).filter(Boolean);
-    if (m.dummy) notes.push(X.dummy.replace("{b}", m.dummy));
+    if (m.dummy) notes.push((m.norig ? X.noRig : X.dummy).replace("{b}", m.dummy));
     if (!all.length) notes.push(X.noItems); else if (all.length > items.length) notes.push(X.noModel.replace("{n}", all.length - items.length));
     FG.SHAPES.forEach(function (k) { shp[k] = +((f.shape || {})[k]) || 0; });
     view3d(m.file, m.sib, null, { shape: shp, build: fzBuildOpts(c, canWrite), readonly: !canWrite,
       fit: { clips: clips, clip: first && first.id, items: items, notes: notes, labels: X,
         onOk: canWrite ? function (id, clip) { return fzItemCheck(id, "fitting", "passed", X.okDetails.replace("{c}", c.title || "").replace("{a}", clip || "")); } : null,
         onCheck: canWrite ? function (id, result, details) { return fzItemCheck(id, "clipping", result, details); } : null } });
-  }
-  // 🦴 the auto-rig: the base mesh (the «Базова модель» version, else the hero's prefab) → 12 markers → a GLB + rig.json version of «Риг і скелет»
-  function fzMeshModel(c) {
-    var f = c.forge, files = c.files || [], ok = function (x) { return x && /\.(glb|gltf|fbx|obj)$/i.test(x.name || ""); };
-    var r = FG.approvedRev(f, "mesh") || FG.revsOf(f, "mesh")[0], m = r && (r.files || []).map(function (id) { return files.filter(function (x) { return x.id === id; })[0]; }).filter(ok)[0];
-    if (m) return { file: m, sib: files };
-    var a = assetCard(c.prefab), am = a && (a.files || []).filter(function (x) { var s = window.__ASSET_KIT.fileSlot(x); return (s === "model" || s === "prefab") && ok(x); })[0];
-    return am ? { file: am, sib: a.files } : null;
-  }
-  function fzARigOpen(c) {
-    var m = fzMeshModel(c), A = FZ.arig; if (!m) { notify(A.none); return; }
-    fzWithAnims(function (lib) {
-      var fc = fzFitClips(c, lib), base = String(m.file.name || c.title || "model").replace(/\.[^.]+$/, "");
-      var inf = fzShotInfo[m.file.url];
-      view3d(m.file, m.sib, null, { rig: { ref: FG.REF_FILES + "human_male.glb", body: c.forge.body || "", force: !!(inf && inf.skinned && !fzHumanoid(inf)), labels: Object.assign({}, A, { hint: A.hint2 }),
-          onSave: function (blob, report) {
-            var o = fzChars().filter(function (x) { return x.id === c.id; })[0] || c; // the latest forge (the snapshot may have moved on)
-            if (o.forge.rig !== "mixamo65") { o.forge = fzClone(o.forge); o.forge.rig = "mixamo65"; } // the skeleton it was built on
-            return fzUpload(o, "rig", [new File([blob], base + "_rig.glb", { type: "model/gltf-binary" }), new File([JSON.stringify(report, null, 1)], base + ".rig.json", { type: "application/json" })], A.note);
-          } },
-        fit: { clips: fc.clips, clip: fc.first, items: [], notes: [], labels: FZ.fit, onOk: null, onCheck: null } });
-    });
   }
   // 🦴 the WhiteWrite references: every body type with its dummy (3D), the download pack
   function fzRefFile(id) { return { id: "ref-" + id, name: id + ".glb", url: FG.REF_FILES + id + ".glb", type: "model/gltf-binary" }; }
@@ -6652,36 +6603,6 @@
     var row = function (k, min, max, step) { var v = bo[k];
       return '<label class="fz-lb">' + esc(R.build[k]) + ' <span class="muted">' + fzBldTxt(k, v) + '</span><input type="range" min="' + min + '" max="' + max + '" step="' + step + '" value="' + v + '" data-fzbld="' + k + '"' + (canWrite ? '' : ' disabled') + '></label>'; };
     return '<div class="fz-shape"><b>' + R.buildT + '</b>' + (noKeys ? '<small class="warn">⚠ ' + R.noKeys + '</small>' : '') + row("fat", -100, 100, 5) + row("muscle", 0, 100, 5) + row("height", rb.hmin, rb.hmax, 0.01) + '<button class="btn mini" data-fzref3d="' + rb.id + '">' + R.v3d + '</button></div>';
-  }
-  // the rig stage on a reference: the Claude Code request, the skeleton check, «ready for animation»
-  function fzFitHtml(c) {
-    var f = c.forge, R = FZ.ref, rb = FG.refBody(f.body), rc = f.rigCheck, ref = (c.src === "canon" ? "e:" : "c:") + c.id, slug = slugify(c.title || "").replace(/-/g, "_"); if (!/^[a-z0-9_]{2,}$/.test(slug)) slug = String(c.id).replace(/[^\w]/g, "_"); // file names in Latin for Blender / Unity
-    var html = '<div class="fz-fit"><h4 class="fz-h">' + R.fit + '</h4>';
-    if (!rb) return html + '<p class="muted">' + R.noBody + '</p></div>';
-    var ask = LANG === "en"
-      ? 'Fit the character «' + (c.title || '') + '» (WhiteWrite Character Forge, ' + ref + ') to the WhiteWrite reference skeleton «' + rb.id + '».\n' +
-        '1. MCP whitewrite: get_character_forge {ref:"' + ref + '"} — take the APPROVED version of the «Base mesh» stage (FBX / GLB by its URL).\n' +
-        '2. No reference pack on this PC yet? Download https://whitewrite.com' + FG.REF_PACK + ' and unzip it, e.g. to C:\\WhiteWrite\\Rigs (README.md inside).\n' +
-        '3. Blender 4.5 LTS, headless (full path to blender.exe):\n   blender -b -P <pack>\\Blender\\conform_to_rig.py -- <model> ' + rb.id + ' <out dir> ' + slug + ' --keys --preview\n' +
-        '4. Read the RESULT lines and look at <out dir>\\Previews\\' + slug + '_conform.png (source | fitted | over the body | test pose).\n' +
-        '5. report_forge_check {character:"' + ref + '", check:"skeleton", rig_json:<the whole ' + slug + '.rig.json>, source:"Blender"}.\n' +
-        '6. Tell me the full paths of ' + slug + '.fbx, ' + slug + '.glb, the preview and ' + slug + '.rig.json — I upload them to the Forge as a new «Rigging» version.'
-      : 'Підгони персонажа «' + (c.title || '') + '» (Кузня персонажів WhiteWrite, ' + ref + ') під еталонний скелет WhiteWrite «' + rb.id + '».\n' +
-        '1. MCP whitewrite: get_character_forge {ref:"' + ref + '"} — візьми ЗАТВЕРДЖЕНУ версію етапу «Базова модель» (FBX / GLB за посиланням).\n' +
-        '2. Якщо пакета еталонів на цьому ПК ще немає — завантаж https://whitewrite.com' + FG.REF_PACK + ' і розпакуй, напр. у C:\\WhiteWrite\\Rigs (усередині README.md).\n' +
-        '3. Blender 4.5 LTS без вікна (повний шлях до blender.exe):\n   blender -b -P <пакет>\\Blender\\conform_to_rig.py -- <модель> ' + rb.id + ' <тека виходу> ' + slug + ' --keys --preview\n' +
-        '4. Прочитай рядки RESULT і подивись <тека виходу>\\Previews\\' + slug + '_conform.png (джерело | підігнаний | поверх тіла | тестова поза).\n' +
-        '5. report_forge_check {character:"' + ref + '", check:"skeleton", rig_json:<увесь ' + slug + '.rig.json>, source:"Blender"}.\n' +
-        '6. Назви мені повні шляхи до ' + slug + '.fbx, ' + slug + '.glb, прев’ю і ' + slug + '.rig.json — я завантажу їх у Кузню новою версією «Риг і скелет».';
-    html += '<p class="hint">' + R.fitHint + '</p><pre class="ln-cmd">' + esc(ask) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>' +
-      ' <a class="btn ghost" href="' + FG.REF_PACK + '" download>' + R.pack + '</a>';
-    html += '<h4 class="fz-h">' + R.check + '</h4>';
-    if (!rc) html += '<p class="muted">' + R.none + '</p>';
-    else html += '<p><span class="pill ' + FZ_VCLS[rc.result] + '">' + esc(R.res[rc.result] || rc.result) + '</span> <span class="muted">' +
-      esc([rc.report && rc.report.bones_found ? rc.report.bones_found + ' ' + R.found : '', rc.report && rc.report.body_type, rc.source, when(rc.at)].filter(Boolean).join(" · ")) + '</span></p>' +
-      ((rc.issues || []).length ? '<ul class="fz-iss">' + rc.issues.map(function (i) { return '<li class="qd-' + (rc.result === "failed" ? "error" : "warn") + '">' + esc(fzL(i)) + '</li>'; }).join("") + '</ul>' : '');
-    if (FG.animReady(f)) html += '<p class="fz-ok">' + R.ready + ' — ' + R.readyHint + '</p>';
-    return html + '</div>';
   }
   function fzSetupHtml() {
     var own = (game && game.forge) || {}, d = fz.setup || (fz.setup = { slots: fzClone(fzSlots()), rigs: fzClone(own.rigs || []), bodies: fzClone(own.bodies || []) }), dis = canWrite ? '' : ' disabled';
@@ -6760,7 +6681,7 @@
   function fzSetItem(i, mut) { var f = fzClone(i.forge); mut(f); return fzSave(i, f); }
   function forgeClick(e) {
     if (section !== "forge" || !$("view").contains(e.target) && !$("topline").contains(e.target)) return false;
-    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzarig],[data-fzbody],[data-fzpick],[data-fzpickx],[data-fzws],[data-fzexport],[data-fzstyle]");
+    var t = e.target.closest("[data-fztab],[data-fzopen],[data-fzitem],[data-fzback],[data-fzstage],[data-fzapp],[data-fzapprev],[data-fzunapp],[data-fzrestore],[data-fzoff],[data-fzaddnote],[data-fzunbind],[data-fzaddlo],[data-fzlodel],[data-fzaddclip],[data-fzclipdel],[data-fzmanifest],[data-fzmanual],[data-fzmanualoff],[data-fznewchar],[data-fznewitem],[data-fzsadd],[data-fzsdel],[data-fzsreset],[data-fzssave],[data-fzcmpx],[data-fzv3d],[data-fzref3d],[data-fzlibcat],[data-fzlib3d],[data-fzlibadd],[data-fzlibmin],[data-fzfill],[data-fzfromimg],[data-fzfrompf],[data-fzpfpick],[data-fzfit],[data-fzbody],[data-fzpick],[data-fzpickx],[data-fzws],[data-fzexport],[data-fzstyle]");
     if (!t) return false;
     var d = t.dataset, c = fzOpenChar(), it = fzOpenItem();
     if (d.fztab) { fz.tab = d.fztab; fz.q = ""; fz.setup = null; fz.msg = ""; render(); return true; }
@@ -6771,7 +6692,6 @@
     if (d.fzcmpx !== undefined) { fz.cmp = []; render(); return true; }
     if (d.fzv3d) { var vp = fzSplit(d.fzv3d, 1), vo = fzFind(fzChars().concat(fzItems()), vp[0]), vf = vo && vo.files.filter(function (x) { return x.id === vp[1]; })[0]; if (vf) view3d(vf, vo.files); return true; }
     if (d.fzfit !== undefined && c) { fzFitOpen(c); return true; }
-    if (d.fzarig !== undefined && c && canWrite) { fzARigOpen(c); return true; }
     if (d.fzws) { fz.ws = d.fzws; render(); return true; }
     if (d.fzexport !== undefined && c) { fzExport(c); return true; }
     if (d.fzstyle) { fz.pickStyle = d.fzstyle; render(); return true; }
