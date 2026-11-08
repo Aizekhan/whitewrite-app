@@ -319,7 +319,7 @@
         sortBtn: "Розібрати теку ШІ", tagRules: "за правилами", ignTitle: "ШІ пропонує ігнорувати", ignHint: "Причина — від ШІ. Постав галочку, щоб повернути групу: вона ляже за назвами тек.",
         chip: "Тека гри", cont: "(продовження)", already: "Тека вже розбирається — дочекайся кінця або зупини її.", busy: "Тека ще розбирається в іншу гру — дочекайся кінця або зупини її, тоді відкривай іншу гру." },
       fill: { title: "📜 Заповни світ своїми матеріалами", lead: "Нотатки, документи, теки — усе, що вже написано про світ. Твій ШІ-агент (Claude Code, ChatGPT…) складе їх в один файл за шаблоном WhiteWrite, а сервіс лише перенесе дані в розділи — без токенів, на будь-якому тарифі.",
-        dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code", tpl: "⤓ Шаблон і правила (.md)",
+        dir: "Тека з матеріалами на ПК (за бажанням)", dirPh: "напр. D:\\Мій світ\\нотатки", copy: "⧉ Скопіювати запит для ШІ-агента", copied: "Скопійовано — встав у Claude Code",
         s1: "Вкажи теку й скопіюй запит.", s2: "Встав його в Claude Code у будь-якій теці (або в ChatGPT разом із файлами) — агент складе whitewrite-world.json за шаблоном і правилами «що куди».", s3: "Завантаж готовий файл — побачиш, що додасться, і перенесеш одним кліком.",
         up: "⤒ Завантажити файл (.md або .json)", mdTpl: "⤓ Шаблон .md — заповнити самому", mdHint: "Або без агента: заповни шаблон .md сам (Назва, «## Персонажі», «### Імʼя», «Опис: …») і завантаж — той самий перегляд і перенесення.", reading: "Читаю файл…", add: "Додасться", upd: "Доповниться", none: "У файлі немає нічого нового для цього світу.",
         rules: "закони", facts: "факти", world: "огляд світу", replace: "Замінити вже заповнені поля даними з файлу", kept: "Лишаться як є (вже заповнені): {n}. Галочка вище замінить їх.",
@@ -645,7 +645,7 @@
         sortBtn: "Sort the folder with AI", tagRules: "by the rules", ignTitle: "AI suggests ignoring", ignHint: "The reason is the AI's. Tick to bring a group back: it is placed by the folder names.",
         chip: "Game folder", cont: "(continued)", already: "A folder is already being sorted — wait for it or stop it.", busy: "A folder is still going into another game — wait for it or stop it, then open another game." },
       fill: { title: "📜 Fill the world with your material", lead: "Notes, documents, folders — whatever is already written about the world. Your AI agent (Claude Code, ChatGPT…) puts it into one file by the WhiteWrite template, and the service only moves the data into the sections — no tokens, on any plan.",
-        dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code", tpl: "⤓ Template and rules (.md)",
+        dir: "The folder with your material on the PC (optional)", dirPh: "e.g. D:\\My world\\notes", copy: "⧉ Copy the request for the AI agent", copied: "Copied — paste it into Claude Code",
         s1: "Name the folder and copy the request.", s2: "Paste it into Claude Code in any folder (or into ChatGPT with the files) — the agent builds whitewrite-world.json by the template and the «what goes where» rules.", s3: "Upload the finished file — you see what will be added and move it in with one click.",
         up: "⤒ Upload the file (.md or .json)", mdTpl: "⤓ .md template — fill it yourself", mdHint: "Or without an agent: fill the .md template yourself (the name, «## Characters», «### Name», «Description: …») and upload it — the same preview and move.", reading: "Reading the file…", add: "Will be added", upd: "Will be filled in", none: "The file has nothing new for this world.",
         rules: "laws", facts: "facts", world: "world overview", replace: "Replace fields that are already filled with the file's data", kept: "Stay as they are (already filled): {n}. The tick above replaces them.",
@@ -1783,7 +1783,7 @@
     return '<details class="fillbox canonbox wedit"' + (always || sparse || fillState ? ' open' : '') + '><summary>' + X.title + '</summary>' +
       '<p class="hint">' + X.lead + '</p>' +
       '<ol class="fillsteps"><li><span>' + X.s1 + '</span><label class="field"><span>' + X.dir + '</span><input id="fill-dir" value="' + esc(dir) + '" placeholder="' + esc(X.dirPh) + '"></label>' +
-      '<div class="row"><button class="btn primary" id="fill-copy">' + X.copy + '</button><button class="btn ghost" id="fill-tpl">' + X.tpl + '</button><span class="muted" id="fill-cst" role="status"></span></div></li>' +
+      '<div class="row"><button class="btn primary" id="fill-copy">' + X.copy + '</button><span class="muted" id="fill-cst" role="status"></span></div></li>' +
       '<li><span>' + X.s2 + '</span></li><li><span>' + X.s3 + '</span><div class="row"><label class="btn"><input type="file" id="fill-file" accept=".md,.markdown,.txt,.json,application/json" hidden>' + X.up + '</label></div></li></ol>' +
       '<p class="hint">' + X.mdHint + ' <button class="btn ghost mini" id="fill-mdtpl">' + X.mdTpl + '</button></p>' +
       '<div id="fill-res" role="status">' + fillResHtml() + '</div></details>';
@@ -1817,7 +1817,6 @@
       var txt = window.__FILL.prompt(LANG, dirNow(), world.title || "");
       navigator.clipboard.writeText(txt).then(function () { $("fill-cst").textContent = X.copied; }, function () { download("whitewrite-fill-request.md", txt, "text/markdown"); });
     };
-    $("fill-tpl").onclick = function () { download("whitewrite-fill-template.md", window.__FILL.prompt(LANG, dirNow(), world.title || ""), "text/markdown"); };
     $("fill-mdtpl").onclick = function () { download("whitewrite-world.md", window.__FILL.mdTemplate(LANG), "text/markdown"); }; // the Markdown template filled by hand
     $("fill-file").onchange = async function (e) {
       var file = e.target.files && e.target.files[0]; e.target.value = ""; if (!file) return;

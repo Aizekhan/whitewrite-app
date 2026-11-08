@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.101.0 (2026-11-08)
+**Version:** 2.101.1 (2026-11-08)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -758,6 +758,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.101.1** «📜 Заповни світ»: the «⤓ Шаблон і правила (.md)» button next to «⧉ Скопіювати запит для ШІ-агента» removed (the same request as a file); «⤓ Шаблон .md — заповнити самому» stays
 - **v2.101.0** ⚒ rigging removed (owner): no auto-rig by markers (`gb-3d.js autorig`, its CSS, the vendored `GLTFExporter` + `TextureUtils`), no «Підігнати під еталон» request; the Forge rule — a model comes already rigged (Humanoid, Mixamo bone names), else the rule message, export off, the dummy in the fitting room; KB «🦴 Модель — лише з ригом», `paid-features` characterForge text
 - **v2.100.1** «🎙 Надиктуй» only on cards that are forms of words (`dictOk`): hidden in prefabs / materials / animations / sound / references, constructors and cards without text fields
 - **v2.100.0** audit leftovers: team members' e-mails no longer on `worlds/{w}.team` (the owner sees them in friends), invites ≤ 30/day (`inviteLimits/{uid}`); Storage reads by «вибрані розділи» (`tests/storage-rules.test.mjs`); a failed upgrade invoice takes the plan and its tokens back (`subscription_payment_failed`, LS webhook now also sends the refund events); backup month claimed in a transaction; `publicMessage` on 500s; game doc `telemetryStats / knowledge / audit / auditRunning` server only; `community_blocked`; kb-help history quoted; `aiCostDaily` in pages; Mastodon / Discord fetch `redirect: 'error'`; three.js vendored, SRI on the Firebase SDK; `PROVENANCE.md` not in dist
@@ -890,5 +891,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-08 (v2.101.0)
+**Last updated:** 2026-11-08 (v2.101.1)
 **Maintained by:** WhiteWrite Team

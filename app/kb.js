@@ -1229,7 +1229,7 @@
         body: [
           ["p", "Біблія світу → <b>«Огляд світу»</b> (поки світ майже порожній — блок відкритий сам) або ⚙ Налаштування світу. Бачить лише власник світу; працює на будь-якому тарифі й не витрачає токенів: сервіс нічого не вигадує й не впорядковує, лише переносить готові дані в розділи."],
           ["ul", [
-            "Вкажи теку з матеріалами на ПК (за бажанням) і натисни <b>«⧉ Скопіювати запит для ШІ-агента»</b>. У запиті — завдання, правила «що куди» і шаблон <code>whitewrite.fill/1</code>. «⤓ Шаблон і правила (.md)» — те саме файлом.",
+            "Вкажи теку з матеріалами на ПК (за бажанням) і натисни <b>«⧉ Скопіювати запит для ШІ-агента»</b>. У запиті — завдання, правила «що куди» і шаблон <code>whitewrite.fill/1</code>.",
             "Встав запит у Claude Code у будь-якій теці (або в ChatGPT, додавши файли). Агент прочитає нотатки й складе <code>whitewrite-world.json</code>: огляд, закони, факти, персонажі (з біографією, виглядом, моментами життя), локації, фракції, артефакти, події з часом і учасниками, культура (народи, мови, віра, звичаї) і звʼязки між ними.",
             "<b>«⤒ Завантажити whitewrite-world.json»</b> — побачиш, скільки чого додасться й доповниться, і <b>«Перенести в світ»</b>.",
           ]],
@@ -2600,7 +2600,7 @@
         body: [
           ["p", "World Bible → <b>“World overview”</b> (while the world is nearly empty the block is open by itself) or ⚙ World settings. Only the world owner sees it; it works on any plan and spends no tokens: the service invents and arranges nothing, it only moves ready data into the sections."],
           ["ul", [
-            "Name the folder with your material on the PC (optional) and press <b>“⧉ Copy the request for the AI agent”</b>. The request carries the task, the «what goes where» rules and the <code>whitewrite.fill/1</code> template. “⤓ Template and rules (.md)” is the same as a file.",
+            "Name the folder with your material on the PC (optional) and press <b>“⧉ Copy the request for the AI agent”</b>. The request carries the task, the «what goes where» rules and the <code>whitewrite.fill/1</code> template.",
             "Paste it into Claude Code in any folder (or into ChatGPT, attaching the files). The agent reads the notes and builds <code>whitewrite-world.json</code>: overview, laws, facts, characters (biography, look, life moments), locations, factions, artifacts, events with time and participants, culture (peoples, languages, faith, customs) and the links between them.",
             "<b>“⤒ Upload whitewrite-world.json”</b> — you see how much will be added and filled in, then <b>“Move into the world”</b>.",
           ]],
