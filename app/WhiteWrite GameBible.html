@@ -283,7 +283,10 @@ h2.group span{ font:400 12.5px "Inter"; color:var(--tx-mid); }
 @media (min-width:900px){ #e-body{ grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:26px; } #e-body > .field.half{ grid-column:auto; } }
 .shown.blank{ border:1px dashed var(--line-2); background:#ffffff05; font-style:normal; margin:0; } /* an empty field looks like a box to fill */
 /* 🎙 dictation: the head button, the dialog's big microphone, a small one beside an answer */
-.micbtn{ margin-left:auto; } .picadd{ margin-left:auto; } .picadd + .micbtn{ margin-left:0; } .picadd[hidden]{ display:none; }
+.micbtn{ margin-left:auto; } .picadd{ margin-left:auto; } .picadd + .micbtn{ margin-left:0; }
+/* the card's status line («Завантажено файлів: 1», «Зберігаю…») sits in the head, in line left of «Додати картинку» (owner, v2.107.2) */
+.hmsg{ margin-left:auto; min-width:0; max-width:42%; font-size:13px; color:var(--tx-mid); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:right; }
+.hmsg ~ .picadd, .hmsg ~ .micbtn{ margin-left:0; } .hmsg:empty{ max-width:none; } .picadd[hidden]{ display:none; }
 .picadd .addf-menu{ left:auto; right:0; }
 .vf-mic{ display:flex; align-items:center; gap:14px; }
 .micbig{ width:64px; height:64px; border-radius:50%; border:1px solid rgba(240,169,59,.5); background:var(--gold-soft); color:var(--gold-lit); font-size:26px; cursor:pointer; flex:none; }
@@ -1304,6 +1307,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
       <select id="e-status"></select>
       <div class="addf" id="e-addf-w" hidden><button class="btn addf-btn" id="e-addf" type="button" aria-haspopup="menu" aria-expanded="false"></button><div class="addf-menu" id="e-addf-m" role="menu" hidden></div></div>
       <select id="e-sub"></select>
+      <span class="msg hmsg" id="e-msg" role="status"></span>
       <div class="addf picadd" id="e-pic-w" hidden><button class="btn addf-btn" id="e-pic" type="button" aria-haspopup="menu" aria-expanded="false"></button><div class="addf-menu" id="e-pic-m" role="menu" hidden>
         <label class="addf-it" role="menuitem" tabindex="0"><input type="file" multiple hidden accept="image/*" id="e-pic-up"><i aria-hidden="true">⤒</i><span id="e-pic-pc"></span></label>
         <button type="button" class="addf-it" role="menuitem" id="e-pic-art"><i aria-hidden="true">🎨</i><span id="e-pic-ar"></span></button></div></div>
@@ -1312,7 +1316,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
   </div>
   <div class="leaf-body" id="e-body"></div>
   <div class="leaf-foot">
-    <span class="lcorner"><span class="msg" id="e-msg"></span><button class="btn bulb" id="e-story" type="button" hidden></button></span>
+    <span class="lcorner"><button class="btn bulb" id="e-story" type="button" hidden></button></span>
     <button class="btn primary" id="e-save"></button>
     <span class="corner"><button class="btn bulb" id="e-quest" type="button" hidden></button><button class="btn danger" id="e-delete"></button></span>
   </div>
@@ -1323,12 +1327,12 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
     <button class="leafx" id="d-x" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="kicker" id="d-kicker" style="padding-left:0"></div>
     <input id="d-title" />
-    <div class="row"><select id="d-sub"></select><label class="btn picadd" id="d-pic" hidden><input type="file" multiple hidden accept="image/*" id="d-pic-up"><span id="d-pic-t"></span></label><button class="btn micbtn" id="d-mic" type="button"></button></div>
+    <div class="row"><select id="d-sub"></select><span class="msg hmsg" id="d-msg" role="status"></span><label class="btn picadd" id="d-pic" hidden><input type="file" multiple hidden accept="image/*" id="d-pic-up"><span id="d-pic-t"></span></label><button class="btn micbtn" id="d-mic" type="button"></button></div>
   </div>
   <div class="dtabs" id="d-tabs" role="tablist"></div>
   <div class="leaf-body" id="d-body"></div>
   <div class="leaf-foot">
-    <span class="lcorner"><span class="msg" id="d-msg"></span><button class="btn bulb" id="d-story" type="button" hidden></button></span>
+    <span class="lcorner"><button class="btn bulb" id="d-story" type="button" hidden></button></span>
     <button class="btn primary" id="d-save"></button>
     <span class="corner"><button class="btn bulb" id="d-quest" type="button" hidden></button><button class="btn danger" id="d-delete" hidden></button></span>
   </div>
