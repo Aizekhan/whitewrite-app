@@ -2283,7 +2283,7 @@
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
     if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; // 🧠 the constructor's draft
-      ddraft.faction = csFaction(e); ddraft.cast = e.cast || ""; ddraft.ent = { charClass: e.charClass || "", condition: e.condition || "", location: typeof e.location === "string" ? e.location : "" }; }
+      ddraft.faction = csFaction(e); ddraft.ent = { charClass: e.charClass || "", condition: e.condition || "", location: typeof e.location === "string" ? e.location : "" }; }
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
@@ -2341,11 +2341,11 @@
   // enemy / boss, race, sex, faction, age, height + build), the description under it. The traits are the «Зовнішність» fields
   // (entities/{id}.appearance, persona.js LOOK) — one place; the faction is entities/{id}.faction, «who» is entities/{id}.cast (sorts it in a game)
   var CS = {
-    uk: { cast: "Хто це", lbl: { people: "Раса", sex: "Стать", age: "Вік", height: "Зріст", build: "Статура" }, casts: { hero: "Герой", ally: "Союзник", npc: "NPC", enemy: "Ворог", boss: "Бос" }, own: "✎ Своє…", ownQ: "Своє значення", faction: "Фракція",
+    uk: { lbl: { people: "Раса", sex: "Стать", age: "Вік", height: "Зріст", build: "Статура" }, own: "✎ Своє…", ownQ: "Своє значення", faction: "Фракція",
       newFac: "＋ Нова фракція…", newFacQ: "Назва нової фракції", charClass: "Клас", home: "Де живе", newLoc: "＋ Нова локація…", newLocQ: "Назва нової локації", condition: "Стан",
       opts: { charClass: ["воїн", "маг", "лучник", "розбійник", "жрець", "цілитель", "паладин", "мисливець", "бард", "друїд", "некромант", "ремісник", "торговець", "вчений", "без класу"],
         condition: ["живий", "поранений", "зниклий", "у полоні", "мертвий", "невідомо"] }, portrait: "＋ Портрет", portraitTip: "Завантажити портрет", change: "Змінити портрет", setP: "Зробити портретом", isP: "Портрет", saveFirst: "Спершу збережи картку" },
-    en: { cast: "Who", lbl: { people: "Race", sex: "Sex", age: "Age", height: "Height", build: "Build" }, casts: { hero: "Hero", ally: "Ally", npc: "NPC", enemy: "Enemy", boss: "Boss" }, own: "✎ Own…", ownQ: "Your own value", faction: "Faction",
+    en: { lbl: { people: "Race", sex: "Sex", age: "Age", height: "Height", build: "Build" }, own: "✎ Own…", ownQ: "Your own value", faction: "Faction",
       newFac: "＋ New faction…", newFacQ: "Name of the new faction", charClass: "Class", home: "Lives in", newLoc: "＋ New location…", newLocQ: "Name of the new location", condition: "State",
       opts: { charClass: ["warrior", "mage", "archer", "rogue", "priest", "healer", "paladin", "hunter", "bard", "druid", "necromancer", "craftsman", "merchant", "scholar", "no class"],
         condition: ["alive", "wounded", "missing", "captive", "dead", "unknown"] }, portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
@@ -2371,12 +2371,10 @@
       (canWrite ? '<option value="__new">' + esc(CS.newLoc) + '</option>' : '') + '</select></label>';
   }
   function sheetHtml(e) {
-    var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = ddraft.faction, cast = ddraft.cast || "";
+    var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = ddraft.faction;
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + (canWrite && !e.isNew ? '<button type="button" class="cs-chg" data-csportrait title="' + esc(CS.change) + '" aria-label="' + esc(CS.change) + '">✎</button>' : '')
       : canWrite ? '<button type="button" class="cs-ph" data-csportrait title="' + esc(CS.portraitTip) + '">' + esc(CS.portrait) + '</button>' : '<div class="cs-ph">⚔</div>';
     return '<div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
-      '<div class="cs-f cs-who"><span>' + esc(CS.cast) + '</span><div class="cs-cast" role="group">' + Object.keys(CS.casts).map(function (k) {
-        return '<button type="button" class="cs-tag" data-cast="' + k + '" aria-pressed="' + (cast === k) + '"' + (canWrite ? '' : ' disabled') + '>' + esc(CS.casts[k]) + '</button>'; }).join("") + '</div></div>' +
       '<div class="cs-row">' + csSel("people") + csSel("sex") + '</div>' +
       '<div class="cs-row"><label class="cs-f"><span>' + esc(CS.faction) + '</span><select data-csfac' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
         facs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === fv ? ' selected' : '') + '>' + esc(x.name || x.title || x.id) + '</option>'; }).join("") +
@@ -2527,7 +2525,6 @@
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
     if (e.kind === "characters" && ddraft.faction !== csFaction(e)) body.faction = ddraft.faction || firebase.firestore.FieldValue.delete();
-    if (e.kind === "characters" && ddraft.cast !== (e.cast || "")) body.cast = ddraft.cast || firebase.firestore.FieldValue.delete();
     if (e.kind === "characters" && ddraft.ent) ["charClass", "condition", "location"].forEach(function (k) { if (ddraft.ent[k] !== (typeof e[k] === "string" ? e[k] : "")) body[k] = ddraft.ent[k] || firebase.firestore.FieldValue.delete(); });
     if (ddraft.personality) { var pz = window.__PERSONA.cleanPersona(ddraft.personality), pz0 = window.__PERSONA.cleanPersona(e.personality); if (e.isNew || JSON.stringify(pz) !== JSON.stringify(pz0)) {
       ["answers", "traits"].forEach(function (g) { Object.keys(pz0[g]).forEach(function (k) { if (!(k in pz[g])) pz[g][k] = firebase.firestore.FieldValue.delete(); }); }); // set(merge) merges maps: a cleared answer is deleted explicitly
@@ -4694,7 +4691,6 @@
   });
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
-    var ct = e.target.closest("[data-cast]"); if (ct && ddraft) { ddraft.cast = ddraft.cast === ct.dataset.cast ? "" : ct.dataset.cast; [].forEach.call(document.querySelectorAll("#d-body [data-cast]"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.cast === ddraft.cast)); }); return; }
     if (e.target.closest("[data-csportrait]")) { if (dos.isNew) { dmsg(CS.saveFirst); return; } csPortraitNext = true; $("d-pic-up").click(); return; }
     var dp = e.target.closest("[data-dportrait]"); if (dp) { setPortrait(dp.dataset.dportrait); return; }
     var db2 = e.target.closest("[data-bulb]");
