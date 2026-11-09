@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.104.3 (2026-11-09)
+**Version:** 2.104.4 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.104.4** (owner) the game cast: «Персонажі» of a game → «Герої та NPC» (subsections Герої · Союзники · NPC); «Вороги й боси» also take canon characters (`canon: "characters"`, `ownNew` — its «new» is a game card); a canon entity sits on one shelf (`shelfFor`: the card's stored section, else `canonShelf` by `role` + world `group` — boss / foe / hero / ally / NPC); «Взяти весь канон», `migrateCanonOptIn` and the import write the shelf + `fields.group`; games taken before are sorted once (`migrateCast`, `games/{g}.castSorted`)
 - **v2.104.3** (owner) the banner's own ⌖ (`bannerFrame` → `cover.banner {x, y}` on `worlds/{w}` / `games/{g}`, falls back to `cover.frame`); `wwFrame.pick` takes `aspect`, `noContain`, `title`; «＋ Нова історія» at the top of «Історії світу / гри» removed — the shelf's ＋ book does it
 - **v2.104.2** (owner) «＋ Підрозділ» back in the page — top right above the cards (`.subadd-row`; the embed observer keeps `#add-top` out of `#topline`), the menu ＋ (`#sub-btn`) removed
 - **v2.104.1** (owner) 👤 ★ out of the banner name — `wstatsRow` in the overview header, the embed lifts them onto `#topline` right of the shell logo, the topline actions pushed to the right corner; «＋ Підрозділ» → a square ＋ (`#sub-btn`) beside the world / game name at the top of the menu, shown while the view has `#add-top` (now hidden, pressed by `subBtnSync`)
@@ -907,5 +908,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.104.3)
+**Last updated:** 2026-11-09 (v2.104.4)
 **Maintained by:** WhiteWrite Team

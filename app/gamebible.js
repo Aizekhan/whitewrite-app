@@ -722,7 +722,8 @@
     { id: "lore", uk: "Лор гри", en: "Game lore",
       about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — в «Огляді світу» і «Законах».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
       defs: [F("text", "Опис", "Description")] },
-    { id: "characters", canon: "characters", uk: "Персонажі", en: "Characters",
+    { id: "characters", canon: "characters", uk: "Герої та NPC", en: "Heroes & NPCs", group: "group",
+      groups: { uk: ["Герої", "Союзники", "NPC"], en: ["Heroes", "Allies", "NPCs"] },
       about: { uk: "Персонажі світу в цій грі: роль, здібності, х-ки і свій вигляд чи модель. Біографія й звʼязки — у досьє світу.", en: "The world's characters in this game: role, abilities, stats and their own look or model. Biography and connections live in the world dossier." },
       defs: [F("portrait", "Портрет", "Portrait", "image"), F("role", "Роль у грі", "Game role"), F("kit", "Зброя й здібності", "Weapons & abilities"), NUM(true),
              F("strengths", "Сильні / слабкі сторони", "Strengths / weaknesses"), F("look", "Вигляд у цій грі", "Look in this game"), F("refpics", "Референси", "References", "image"), PREFAB()] },
@@ -756,7 +757,7 @@
              F("rules", "Правила: біоми, ваги, сусідства, щільність", "Rules: biomes, weights, neighbours, density"), F("atmosphere", "Атмосфера: погода, час доби, світло, туман, вітер, звук", "Atmosphere: weather, time of day, light, fog, wind, sound"),
              F("triggers", "Тригери й пріоритет", "Triggers & priority"), F("deps", "Залежності й версія", "Dependencies & version"),
              F("validation", "Перевірки: зʼєднання, колізії, навігація, бюджет", "Validators: connections, collisions, navigation, budget"), F("model", "Модель / префаб", "Model / prefab", "file")] },
-    { id: "enemies", uk: "Вороги й боси", en: "Enemies & bosses", group: "group",
+    { id: "enemies", canon: "characters", ownNew: true, uk: "Вороги й боси", en: "Enemies & bosses", group: "group",
       groups: { uk: ["Звичайні вороги", "Елітні вороги", "Боси"], en: ["Regular enemies", "Elite enemies", "Bosses"] },
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити. Бос із канону — тут лише його бій; біографія — у досьє світу.", en: "Who stands in the way, how it hits and where to hit it. A canon boss keeps only its fight here; the biography is in the world dossier." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
@@ -945,7 +946,7 @@
   function guideOn() { return !!(game && game.guide && game.guide.on); }
   function shelfFilled(id) {
     var g = GAME.filter(function (s) { return s.id === id; })[0];
-    if (g && g.canon && entities.some(function (e) { return e.kind === g.canon && inGame(e); })) return true;
+    if (g && g.canon && entities.some(function (e) { return e.kind === g.canon && inGame(e) && shelfFor(e) === id; })) return true;
     return cards.some(function (c) { return c.section === id && !c.canonRef && (c.mech || Object.keys(c.fields || {}).some(function (k) { return String(c.fields[k] || "").trim(); })); });
   }
   function guideNeedMet(i) { return GUIDE[i].need.every(function (any) { return any.some(shelfFilled); }); }
@@ -1314,8 +1315,41 @@
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0] || {};
     var descKey = e.desc !== undefined || e.description === undefined ? "desc" : "description";
     var extra = (c.defs || []).filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
+    var gk = groupKey(s), dflt = s.groups && !(c.fields && c.fields[gk]) ? canonShelf(e) : null;
+    if (dflt && dflt.s.id === s.id && dflt.group) { c = Object.assign({}, c); c.fields = Object.assign({}, c.fields); c.fields[gk] = dflt.group; }
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
       canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+  }
+  // v2.104.4 (owner): a canon character in a game is a hero / ally / NPC («Герої та NPC») or an enemy / boss («Вороги й боси») —
+  // by its role and world group; the shelf stored on its game card wins (the author moved it, or it was sorted when taken)
+  var CAST_RX = { boss: /бос|boss/i, foe: /ворог|антагоніст|монстр|чудовиськ|нежит|злод|enemy|antagonist|monster|villain|undead/i,
+    hero: /геро|протагоніст|hero|protagonist|гравц|player|playable/i, ally: /союзн|компаньйон|супутни|напарни|ally|companion|sidekick/i };
+  function canonShelf(e) {
+    var shelves = gameSections().filter(function (s) { return s.canon === e.kind; }); if (!shelves.length) return null;
+    if (e.kind !== "characters") return { s: shelves[0], group: "" };
+    var t = [e.role, e.group].join(" "), at = function (id, gi) {
+      var s = shelves.filter(function (x) { return x.id === id; })[0]; if (!s) return { s: shelves[0], group: "" };
+      return { s: s, group: s.groups ? (s.groups[LANG] || s.groups.uk)[gi] : "" };
+    };
+    return CAST_RX.boss.test(t) ? at("enemies", 2) : CAST_RX.foe.test(t) ? at("enemies", 0) : CAST_RX.hero.test(t) ? at("characters", 0) : CAST_RX.ally.test(t) ? at("characters", 1) : at("characters", 2);
+  }
+  function shelfFor(e) {
+    var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
+    if (c && c.section && gameSections().some(function (s) { return s.id === c.section && s.canon === e.kind; })) return c.section;
+    var d = canonShelf(e); return d ? d.s.id : "";
+  }
+  // games taken before v2.104.4 hold every canon character in «Персонажі» without a subsection: sorted once (games/{g}.castSorted)
+  async function migrateCast(g) {
+    if (!g || g.castSorted || !ME.owner || !canGame || !entities.length || !cards.length) return;
+    g.castSorted = true;
+    var batch = db.batch(), n = 0;
+    cards.forEach(function (c) {
+      if (!c.canonRef || c.section !== "characters" || (c.fields && c.fields.group)) return;
+      var e = entities.filter(function (x) { return x.id === c.canonRef; })[0], d = e && canonShelf(e); if (!d) return;
+      batch.set(gref().collection("cards").doc(c.id), { section: d.s.id, fields: { group: d.group }, updatedAt: stamp() }, { merge: true }); n++;
+    });
+    batch.set(gref(), { castSorted: true }, { merge: true });
+    await batch.commit();
   }
   function inGame(e) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0];
@@ -1329,7 +1363,7 @@
   function allCards() {
     var out = [];
     gameSections().forEach(function (s) {
-      if (s.canon) entities.filter(function (e) { return e.kind === s.canon && inGame(e); }).forEach(function (e) { out.push(canonCard(e, s)); });
+      if (s.canon) entities.filter(function (e) { return e.kind === s.canon && inGame(e) && shelfFor(e) === s.id; }).forEach(function (e) { out.push(canonCard(e, s)); });
     });
     cards.forEach(function (c) { if (!c.canonRef) out.push(gameCard(c)); });
     return out;
@@ -4610,9 +4644,9 @@
     }
     var ig = e.target.closest("[data-ingame]");
     if (ig) {
-      var ent = dos, gs = GAME.filter(function (x) { return x.canon === ent.kind; })[0];
+      var ent = dos;
       closeDossier();
-      enterGame(ig.dataset.ingame, gs ? gs.id : "overview");
+      enterGame(ig.dataset.ingame, shelfFor(ent) || "overview");
       var c = allCards().filter(function (x) { return x.key === "e:" + ent.id; })[0];
       if (c && cards.length) openCard(c);
     }
@@ -4844,7 +4878,7 @@
         var cref = db.collection("worlds").doc(worldId).collection("games").doc(id).collection("cards"), all = canonForGame();
         for (var i = 0; i < all.length; i += 400) { // a batch holds 500 writes
           var b = db.batch();
-          all.slice(i, i + 400).forEach(function (x) { b.set(cref.doc(x.e.id), { section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, { merge: true }); });
+          all.slice(i, i + 400).forEach(function (x) { b.set(cref.doc(x.e.id), Object.assign({ section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, x.group ? { fields: { group: x.group } } : {}), { merge: true }); });
           try { await b.commit(); } catch (e) { $("ng-msg").textContent = STR.failed + ": " + e.message; } // the game exists; the canon can be added by hand
         }
       }
@@ -5970,7 +6004,7 @@
   function addCard(fresh, group) {
     var s = sec(section);
     if (s.canon && fresh !== true) return pickFromCanon(s, group);
-    var c = s.canon
+    var c = s.canon && !s.ownNew
       ? { key: "new", src: "canon", id: entityId(s.canon), section: s.id, title: "", status: "idea", note: "", canonDesc: { key: "desc", value: "" }, defs: s.defs.slice(), fields: {}, isNew: true }
       : { key: "new", src: "game", id: newId("card"), section: s.id, title: "", status: "idea", note: "", defs: (s.defs || CUSTOM_DEFS).slice(), fields: {}, isNew: true };
     if (group) c.fields[groupKey(s)] = group;
@@ -6018,7 +6052,7 @@
     snap.docs.forEach(function (d) { var c = d.data(); if (c.canonRef) have[c.canonRef] = 1; });
     var batch = db.batch();
     canonForGame(have).forEach(function (x) {
-      batch.set(gref().collection("cards").doc(x.e.id), { section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, { merge: true });
+      batch.set(gref().collection("cards").doc(x.e.id), Object.assign({ section: x.s.id, canonRef: x.e.id, hidden: false, updatedAt: stamp() }, x.group ? { fields: { group: x.group } } : {}), { merge: true });
     });
     batch.update(gref(), { canonOptIn: true });
     await batch.commit();
@@ -6026,7 +6060,7 @@
   // the canon entities a game's shelves take ({ s: shelf, e: entity }), minus those already on cards
   function canonForGame(have) {
     var out = [];
-    GAME.forEach(function (s) { if (s.canon) entities.filter(function (e) { return e.kind === s.canon && !(have && have[e.id]); }).forEach(function (e) { out.push({ s: s, e: e }); }); });
+    entities.forEach(function (e) { if (have && have[e.id]) return; var d = canonShelf(e); if (d) out.push({ s: d.s, e: e, group: d.group }); });
     return out;
   }
 
@@ -8548,11 +8582,11 @@
     if (laws.length) { batch.set(wref(), { rules: (world.rules || []).concat(laws), updatedAt: stamp() }, { merge: true }); n += laws.length; }
     p.canon.forEach(function (e, i) {
       if (!on("canon", i)) return;
-      var s = GAME.filter(function (x) { return x.canon === e.kind; })[0];
+      var cs = canonShelf({ kind: e.kind, role: e.role || (e.gameFields || {}).role || "", group: e.group || "" }), s = cs ? cs.s : GAME.filter(function (x) { return x.canon === e.kind; })[0];
       var id = e.match || entityId(e.kind);
       if (!e.match) batch.set(wref().collection("entities").doc(id), { id: id, kind: e.kind, name: e.name, slug: slugify(e.name), desc: e.description,
         origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" }, createdAt: stamp(), updatedAt: stamp() }); // the author ticked it
-      var f = toFields(e.gameFields, s.defs);
+      var f = toFields(e.gameFields, s.defs); if (cs && cs.group && !f.fields.group) f.fields.group = cs.group;
       batch.set(gref().collection("cards").doc(id), { section: s.id, canonRef: id, fields: f.fields, defs: f.extra, hidden: false, updatedAt: stamp() }, { merge: true });
       n++;
     });
@@ -9888,13 +9922,13 @@
     var bySec = {}, cardsIn = function (key) { return function (snap) {
       bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       cards = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
-      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render(); if (ME.owner) backfillPolys();
+      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render(); if (ME.owner) { backfillPolys(); migrateCast(game).catch(function () {}); }
     }; };
     if (fullRead()) unsub.push(gref().collection("cards").onSnapshot(cardsIn("*"), function () { sync("bad", STR.offline); }));
     else ME.view.filter(function (v) { return !CANON.some(function (c) { return c.id === v; }); }).forEach(function (v) { // rules: one section per query
       unsub.push(gref().collection("cards").where("section", "==", v).onSnapshot(cardsIn(v), function () {}));
     });
-    migrateCanonOptIn(game).catch(function () {});
+    migrateCanonOptIn(game).then(function () { return migrateCast(game); }).catch(function () {});
     var may = function (id, on) { if (mayRead(id)) on(); }; // a member's streams: only the sections they may read
     may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }, function () {})); });
     tasks = []; changeReqs = []; execs = []; keys = []; newKey = null; lnAllMsg = "";
@@ -9977,7 +10011,7 @@
       byKind[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       entities = [].concat.apply([], Object.keys(byKind).map(function (k) { return byKind[k]; }))
         .filter(function (e) { return !(e.origin && e.origin.confirmed === false); }); // inferred canon is not fact yet
-      render();
+      render(); if (mode === "game" && game) migrateCast(game).catch(function () {});
       if (pendingFocus) { var pf = pendingFocus; pendingFocus = null; window.postMessage({ type: "ww-bible-focus", ent: pf }, location.origin); }
     }; };
     if (fullRead()) wref().collection("entities").onSnapshot(entsIn("*"), function () { sync("bad", STR.offline); });
