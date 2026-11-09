@@ -145,9 +145,8 @@ main{ min-width:0; padding:0 30px 60px; height:100vh; overflow-y:auto; }
 .srch-btn[aria-expanded="true"]{ border-color:var(--gold-lit); background:var(--gold-soft); }
 .ww-embed .srch-btn{ top:12px; }
 .brand{ padding-right:34px; }
-/* «＋ Підрозділ» (v2.104.1, owner): a square ＋ beside the world / game name at the top of the menu; it presses the section's hidden #add-top */
-.sub-btn{ right:50px; } .sub-btn[hidden]{ display:none; } #add-top{ display:none !important; }
-nav:has(.sub-btn:not([hidden])) .brand{ padding-right:74px; }
+/* «＋ Підрозділ» (v2.104.2, owner): in the page's top-right corner, just above the cards — never lifted onto the logo strip */
+.subadd-row{ display:flex; justify-content:flex-end; } header.wsec > .row{ justify-content:flex-end; }
 .wstats-row{ display:flex; justify-content:center; margin:0 0 4px; } .wstats-row .wwstats{ margin:0; }
 .ww-embed .topline > .wwstats{ margin:0; flex:none; } .ww-embed .topline > .row{ margin-left:auto; }
 .guide-next{ margin:12px 4px 4px; padding:10px 12px; border:1px dashed rgba(240,169,59,.5); border-radius:10px; font-size:12.5px; color:var(--tx-mid); line-height:1.45; }
@@ -1204,7 +1203,6 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <nav aria-label="Розділи" id="spine">
   <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav"><span aria-hidden="true">☰</span> <span id="nav-cur"></span></button>
   <button class="srch-btn" id="srch-btn" type="button" aria-expanded="false" aria-controls="searchbar"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
-  <button class="srch-btn sub-btn" id="sub-btn" type="button" hidden><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
   <div class="brand"><span id="w-title">…</span><small id="t-brand">Біблія світу</small></div>
   <div class="sync" id="sync"><span class="dot"></span>…</div>
   <div class="rule"></div>

@@ -9271,15 +9271,11 @@
       var h1 = head.querySelector("h1"), actions = head.querySelector(":scope > .row"), st = head.querySelector(".wstats-row .wwstats");
       if (st) top.appendChild(st);
       if (h1) top.appendChild(h1);
-      if (actions) top.appendChild(actions);
+      var sa = actions && actions.querySelector("#add-top"); // «＋ Підрозділ» stays in the page, top right above the cards (owner)
+      if (sa) { var sr = document.createElement("div"); sr.className = "subadd-row"; sr.appendChild(sa); head.appendChild(sr); }
+      if (actions && actions.children.length) top.appendChild(actions);
     }).observe($("view"), { childList: true });
   }
-  function subBtnSync() {
-    var at = $("add-top"), b = $("sub-btn"); b.hidden = !at;
-    if (at) { var t = STR.sub.add + " · " + L(sec(section)); b.title = t; b.setAttribute("aria-label", t); }
-  }
-  new MutationObserver(subBtnSync).observe($("view"), { childList: true });
-  $("sub-btn").addEventListener("click", function () { var at = $("add-top"); if (at) at.click(); });
   $("topline").addEventListener("click", function (e) { viewClick(e); });
   function bulkChange(e) {
     var t = e.target; if (!t.files || !t.files.length) return;

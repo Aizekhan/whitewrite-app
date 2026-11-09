@@ -861,7 +861,7 @@
         min: 2,
         body: [
           ["ul", [
-            "Квадратна кнопка <b>＋</b> угорі меню, біля назви світу чи гри, — новий підрозділ у відкритому розділі (є лише там, де розділ має підрозділи); порожній можна прибрати (✕). «＋ Додати» під заголовком створює картку саме в ньому.",
+            "«＋ Підрозділ» праворуч над картками — новий підрозділ; порожній можна прибрати (✕). «＋ Додати» під заголовком створює картку саме в ньому.",
             "Перенести картку: меню підрозділу в шапці картки чи досьє (видно, коли підрозділів хоча б два).",
             "Або перетягни мишею: на іншу картку — стане перед чи після неї; на блок підрозділу — перейде в нього. Біля краю сторінка прокручується сама.",
             "На телефоні перетягування вимкнене — переносиш через меню.",
@@ -2256,7 +2256,7 @@
         min: 2,
         body: [
           ["ul", [
-            "The square <b>＋</b> at the top of the menu, by the world / game name, adds a subsection to the open section (only where the section has subsections); an empty one can be removed (✕). “＋ Add” under a heading creates a card right there.",
+            "“＋ Subsection” at the top right, above the cards, adds one; an empty one can be removed (✕). “＋ Add” under a heading creates a card right there.",
             "Move a card: the subsection menu in the card's or dossier's header (shown when there are at least two subsections).",
             "Or drag it with the mouse: onto another card — it goes before or after it; onto a subsection block — it moves there. Near the edge the page scrolls by itself.",
             "On a phone dragging is off — use the menu.",
