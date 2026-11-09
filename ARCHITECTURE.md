@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.103.4 (2026-11-09)
+**Version:** 2.104.0 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.104.0** card & cover layout (owner, UI only — no data changes): «Огляд світу / гри» cover is a low banner (`.wcover.is-banner`, always `object-fit:cover`, ⌖ picks the strip) with the name (`worldNameHtml`) on it; the card leaf (`#leaf`) — ✕ top right (`#e-x`) instead of «Закрити», «Зберегти» centred, the corner — «💡 Створити квест на основі цього» (`#e-quest`, was a body button) while reading, «Видалити / Прибрати з цієї гри» (`#e-delete`) only in field mode (`cornerSync`); empty fields — the «＋ Додати поле» menu beside the status (`#e-addf`, `addfMenu`) instead of the «Ще поля» chips; dossier (`#dos`) — ✕ (`#d-x`), centred save, 💡 (`#d-quest`, `dosCorner`); `.more-chip` (look fields) restyled as buttons
 - **v2.103.4** a paid sorting can't be thrown away (owner): the ✦ folder / file fill preview (`fillState.folder`) has no «Скасувати» while there is something to move; the import proposal (`renderImport`) has no «Закрити» until «Додати відмічене» (`imp.done`) — an error or a done import keeps it
 - **v2.103.3** import cut-offs: `gamedevPlan op:import` retries a part whose answer hit `max_tokens` (`ask` marks the error `cut`) on two `halves` (at a heading / blank line near the middle, twice at most); a part that still fails is skipped, the rest is returned with `lostParts` (the page notifies `importLost`); `runImportText` shows the server's reason instead of a bare «Не вдалося зберегти»; `applyImport` commits in batches of 450 (Firestore's 500-write limit)
 - **v2.103.2** files on creation (owner): the game file (.md / .txt, new-game form and «⤒ Імпорт») over `MAX_IMPORT_CHARS` no longer fails — `runImportText` cuts it with `inPacks` and imports pack by pack («частина N з M»), `inMerge` joins the proposals; the world form (`flow.jsx WorldForm`) gets «📄 Створити світ із файлу (.md, .txt)» → `__wwPendingFill { direct: true }` → `startWorldFolder` skips the ✦ scouting step (every file read) and splits a text over `WORLD_FOLDER_MAX` into pieces instead of truncating it; the forge padlock stays on the Forge item only, not on its group
@@ -903,5 +904,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.103.4)
+**Last updated:** 2026-11-09 (v2.104.0)
 **Maintained by:** WhiteWrite Team

@@ -142,7 +142,7 @@
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
-      more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля" },
+      more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
@@ -469,7 +469,7 @@
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
-      more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields" },
+      more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
@@ -1521,7 +1521,7 @@
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
     var gov = s.id === "overview" && game && !query; // «Огляд гри»: the game's cover and name, as on «Огляд світу»
-    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? worldNameHtml() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
+    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? '' : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
@@ -1642,10 +1642,10 @@
   }
   function worldCoverHtml() {
     var T = coverTarget(), c = T.d && T.d.cover, st = c && c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : '';
-    return '<div class="wcover">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
+    return '<div class="wcover is-banner">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
       : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' data-vworld="' + esc(T.key) + '" muted' + (vStopped(T.key) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>' + vStopBtn(T.key)
       : '<img src="' + esc(c.url) + '"' + st + ' alt="">') +
-      (T.gid ? guideCoverBtn() : '') + (T.gid && T.own ? '<button type="button" class="wcover__ed" data-gcover title="' + esc(STR.wname.coverEdit) + '" aria-label="' + esc(STR.wname.coverEdit) + '">✎</button>' : '') + '</div>'; // the world's cover is edited on its card in «Світи»
+      (T.gid ? guideCoverBtn() : '') + (T.gid && T.own ? '<button type="button" class="wcover__ed" data-gcover title="' + esc(STR.wname.coverEdit) + '" aria-label="' + esc(STR.wname.coverEdit) + '">✎</button>' : '') + worldNameHtml() + '</div>'; // the name on the banner (v2.104) // the world's cover is edited on its card in «Світи»
   }
   // a game's cover: an image ≤ 10 MB or an MP4 / WebM video ≤ 50 MB with its ⌖ frame — the same as a world's (White.html openWorldEdit)
   function editGameCover() {
@@ -1772,7 +1772,7 @@
   }
   function renderWorld(s) {
     var d = wd(s.id);
-    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + worldNameHtml() + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) +
+    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) +
       '<div class="canonbox wedit"><h4>' + STR.worldCanon + '</h4>' +
       '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag" value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
       '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum" rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +
@@ -2313,6 +2313,7 @@
       return dosSection(x.e.kind) || x.e.kind === "events" ? '<button class="dlink" data-dent="' + esc(x.e.id) + '">' + inner + '</button>' : '<span class="dlink">' + inner + '</span>';
     }).join("") + '</div>';
   }
+  function dosCorner(type) { var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); q.textContent = QD.bulb; q.dataset.bulb = type + ":" + dos.id; }
   function renderDossier() {
     var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
     var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
@@ -2322,11 +2323,13 @@
       $("d-body").innerHTML = html + loreGroup(e.group).defs.map(function (d) {
         return '<div class="field"><label for="lf-' + d.key + '">' + esc(d.label) + '</label><textarea id="lf-' + d.key + '" data-lf="' + d.key + '" rows="4">' + esc(ddraft.fields[d.key] || "") + '</textarea></div>';
       }).join("");
-      if (!e.isNew) $("d-body").insertAdjacentHTML("beforeend", '<div class="field">' + bulbHtml("lore", e.id) + qdLinksHtml(e) + '</div>');
+      if (!e.isNew) $("d-body").insertAdjacentHTML("beforeend", '<div class="field">' + qdLinksHtml(e) + '</div>');
+      dosCorner("lore");
       $("d-tabs").innerHTML = ""; $("d-tabs").hidden = true; return;
     }
     $("d-tabs").hidden = false;
-    if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div><div class="field">' + bulbHtml("e", e.id) + '</div>';
+    if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div>';
+    dosCorner("e");
     if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
     var body = dtab === "main" ? html : dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
@@ -4889,7 +4892,6 @@
     $("e-title").value = c.title;
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
-    $("e-delete").style.display = c.isNew ? "none" : "";
     $("e-mic").style.display = canWrite && dictOk(c) ? "" : "none";
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
@@ -4908,7 +4910,17 @@
     var files = (open.files || []).some(function (f) { return f.field === d.key; });
     return type === "prefab" ? !!(open.prefab || files) : (type === "image" || type === "file" || type === "audio") ? !!(v || files) : !!v;
   }
-  function moreChip(key, label) { return '<button type="button" class="more-chip" data-more="' + esc(key) + '">＋ ' + esc(label) + '</button>'; }
+  // v2.104: the empty fields are items of the «＋ Додати поле» menu beside the status (chips looked like tags, owner)
+  function moreChip(key, label, ico) { return '<button type="button" class="addf-it" role="menuitem" data-more="' + esc(key) + '"><i aria-hidden="true">' + (ico || "✎") + '</i>' + esc(label) + '</button>'; }
+  function defIco(d) {
+    var std = d.type ? null : (sec(open.section).defs || []).filter(function (x) { return x.key === d.key; })[0], t = d.type || (std && std.type) || "text";
+    return { image: "🖼", file: "📎", audio: "♪", prefab: "🧊", table: "▦", palette: "🎨" }[t] || "✎";
+  }
+  function addfMenu(open_) {
+    var m = $("e-addf-m"), b = $("e-addf"); if (!m) return;
+    m.hidden = !open_; b.setAttribute("aria-expanded", String(!!open_));
+    if (open_) { var f = m.querySelector(".addf-it"); if (f) f.focus(); }
+  }
   function renderFields() {
     // «Референси» stay lean: the pictures first; the note and the general files block only once they hold something
     var lean = open.section === "refs" && draft.defs.some(function (d) { return d.type === "image"; });
@@ -4916,9 +4928,9 @@
     var html = "";
     if (draft.note || all || moreKeys.__note) html += '<div class="field note"><label for="f-note">' + STR.note + ' <span class="hint">' + STR.noteHint + '</span></label>' +
       '<textarea id="f-note" data-key="__note" rows="2" placeholder="' + esc(STR.notePh) + '">' + esc(draft.note) + '</textarea></div>';
-    else if (!lean && canWrite) chips.push(moreChip("__note", STR.note));
+    else if (!lean && canWrite) chips.push(moreChip("__note", STR.note, "🗒"));
     if ((open.files || []).some(function (f) { return !f.field && !(open.section === "assets" && window.__ASSET_KIT.fileSlot(f)); }) || (all && !lean)) html += filesHtml();
-    else if (!lean && canWrite) chips.push('<label class="more-chip"><input type="file" multiple id="f-up" hidden>＋ ' + esc(STR.files) + '</label>');
+    else if (!lean && canWrite) chips.push('<label class="addf-it" role="menuitem" tabindex="0"><input type="file" multiple id="f-up" hidden><i aria-hidden="true">📎</i>' + esc(STR.files) + '</label>');
     if (draft.canonDesc !== null) {
       if (draft.canonDesc || all || moreKeys.__canon) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
       else if (canWrite) chips.push(moreChip("__canon", LANG === "en" ? "Description" : "Опис"));
@@ -4929,24 +4941,31 @@
       if (lean) { if (editMode || d.type === "image" || draft.fields[d.key]) html += defHtml(d); return; }
       if (all || moreKeys[d.key] || fieldFilled(d) || !canWrite) { if (all || moreKeys[d.key] || fieldFilled(d)) html += defHtml(d); return; }
       if (hero && ["portrait", "refpics", "model"].indexOf(d.key) >= 0) return;
-      chips.push(moreChip(d.key, d.label));
+      chips.push(moreChip(d.key, d.label, defIco(d)));
     });
     var voK = !open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest ? voCardKey(open) : "";
     var voOn = voK && (all || moreKeys.__voice || ((game && game.voices) || {})[voK]);
-    if (voK && !voOn) chips.push(moreChip("__voice", VO.cardTitle));
-    if (!lean && !editMode && canWrite) chips.push(moreChip("__nf", STR.addField));
-    if (chips.length && !all) html += '<div class="field more"><label>' + esc(STR.more.title) + ' <span class="hint">' + esc(STR.more.hint) + '</span></label><div class="more-row">' + chips.join("") +
-      '<button type="button" class="more-chip is-all" data-more="__all">' + esc(STR.more.all) + '</button></div></div>';
+    if (voK && !voOn) chips.push(moreChip("__voice", VO.cardTitle, "🎙"));
+    var hasEmpty = chips.length > 0;
+    if (!lean && !editMode && canWrite) chips.push('<hr>' + moreChip("__nf", STR.more.newF, "＋"));
+    if (hasEmpty) chips.push(moreChip("__all", STR.more.all, "☰").replace('class="addf-it"', 'class="addf-it is-sub"'));
+    $("e-addf-m").innerHTML = '<div class="addf-h">' + esc(STR.more.menu) + '</div>' + chips.join("");
+    $("e-addf-w").hidden = !chips.length || all; addfMenu(false);
     if (draft.intent) html += intentHtml(draft.intent);
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (voOn) html += voCardHtml(voK);
-    if (!open.isNew && (open.src === "canon" || cardRole(open))) html += '<div class="field">' + bulbHtml(open.src === "canon" ? "e" : "card", open.id) + '</div>';
+    cornerSync(); // «💡 квест» in the foot's corner while reading, «Видалити» there in the edit mode
     if (!open.isNew && impactOf(open).length) html += impactHtml(open);
     if (editMode || (!lean && (moreAll || moreKeys.__nf))) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
     mountFieldEditors();
+  }
+  function cornerSync() {
+    var q = $("e-quest"), bt = !open.isNew && (open.src === "canon" || cardRole(open)) ? bulbHtml(open.src === "canon" ? "e" : "card", open.id) : "";
+    q.hidden = editMode || !bt; q.textContent = QD.bulb; q.dataset.bulb = (open.src === "canon" ? "e" : "card") + ":" + open.id;
+    $("e-delete").hidden = !editMode || !!open.isNew || !canWrite;
   }
   // ---------- 🧊 Prefabs: a hero card links a card of «Ассети й префаби»; an asset card carries its model kit (functions/asset-kit.js) ----------
   var PF = {
@@ -5890,7 +5909,7 @@
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
-      if (stay === true) { open.isNew = false; open.title = draft.title; $("e-delete").style.display = ""; msg(""); leafFirst = leafSnap(); return; }
+      if (stay === true) { open.isNew = false; open.title = draft.title; cornerSync(); msg(""); leafFirst = leafSnap(); return; }
       var savedTitle = draft.title;
       closeLeaf();
       if (touched.length) impactNote(savedTitle, touched);
@@ -9399,6 +9418,29 @@
     var b = e.target.closest("[data-status]"); if (!b) return;
     statusFilter[b.dataset.status] = !statusFilter[b.dataset.status]; renderStatuses(); render();
   });
+  $("e-addf").addEventListener("click", function (e) { e.stopPropagation(); addfMenu($("e-addf-m").hidden); });
+  $("e-addf-m").addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { e.stopPropagation(); addfMenu(false); $("e-addf").focus(); return; }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault(); var it = [].slice.call(this.querySelectorAll(".addf-it")), i = it.indexOf(document.activeElement);
+      (it[(i + (e.key === "ArrowDown" ? 1 : -1) + it.length) % it.length] || it[0]).focus();
+    }
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches("label.addf-it")) { e.preventDefault(); e.target.querySelector("input").click(); }
+  });
+  document.addEventListener("click", function (e) { if (!e.target.closest("#e-addf-w")) addfMenu(false); });
+  $("e-addf-m").addEventListener("change", function (e) {
+    if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; addfMenu(false); uploadFiles(list); }
+  });
+  $("e-quest").addEventListener("click", function () { var bp = this.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); });
+  $("d-quest").addEventListener("click", function () { var bp = this.dataset.bulb.split(":"); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(bp[0], bp.slice(1).join(":")); }); });
+  $("e-addf-m").addEventListener("click", function (e) {
+    var mo = e.target.closest("[data-more]"); if (!mo) return;
+    var mk = mo.dataset.more; addfMenu(false); [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
+    if (mk === "__all") moreAll = true; else moreKeys[mk] = 1;
+    renderFields();
+    var sh = document.querySelector('#e-body .shown[data-edit="' + (window.CSS && CSS.escape ? CSS.escape(mk) : mk) + '"]');
+    if (sh) { sh.scrollIntoView({ block: "nearest" }); editField(mk); } else if (mk === "__note" && $("f-note")) $("f-note").focus(); else if (mk === "__nf" && $("nf")) $("nf").focus();
+  });
   $("e-body").addEventListener("click", function (e) {
     var mo = e.target.closest("[data-more]"); if (mo) {
       var mk = mo.dataset.more; [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
@@ -9555,11 +9597,11 @@
     });
   }
   $("e-save").onclick = save;
-  $("e-close").onclick = leafClose;
+  $("e-x").onclick = leafClose;
   $("scrim").onclick = function () { if (dos) dosClose(); else leafClose(); };
   $("d-save").onclick = saveDossier;
   function dosClose() { if (!dos || !canWrite) return closeDossier(); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, closeDossier); } // like the card: closing never drops edits silently
-  $("d-close").onclick = dosClose;
+  $("d-x").onclick = dosClose;
   $("d-delete").onclick = deleteLore;
   $("e-delete").onclick = removeCard;
   window.addEventListener("ww-prices", function () { if (world && !open && !dos) render(); }); // the live price index arrived: the ✦ prices redraw
@@ -9595,8 +9637,9 @@
 
   // ---------- boot ----------
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search; $("srch-btn").title = STR.search; $("srch-btn").setAttribute("aria-label", STR.search); $("srch-x").title = STR.close; $("srch-x").setAttribute("aria-label", STR.close);
-  setEditMode(false); $("e-save").textContent = STR.save; $("e-close").textContent = STR.close;
-  $("d-save").textContent = STR.save; $("d-close").textContent = STR.close; $("d-delete").textContent = STR.cult.del;
+  setEditMode(false); $("e-save").textContent = STR.save; $("e-addf").textContent = STR.more.btn;
+  ["e-x", "d-x"].forEach(function (id) { $(id).title = STR.close; $(id).setAttribute("aria-label", STR.close); });
+  $("d-save").textContent = STR.save; $("d-delete").textContent = STR.cult.del;
   ["e-mic", "d-mic"].forEach(function (id) { $(id).textContent = VF.btn; $(id).title = VF.tip; });
   renderStatuses();
 
