@@ -869,7 +869,10 @@
     about: { uk: "Квести гри: етапи з розгалуженнями, хто дає, де, нагороди, передумови — на картках гри й на персонажах та подіях канону. Перевірка графа — під кожним квестом.", en: "The game's quests: branching stages, giver, places, rewards, prerequisites — on the game cards and on canon characters and events. A graph check under each quest." } };
   var DIALOGUES = { id: "dialogues", special: "dialogues", uk: "Діалоги", en: "Dialogues",
     about: { uk: "Розмови в грі: хто говорить, коли і за яких умов, репліки, вибори гравця, ефекти, звʼязок із квестом.", en: "Conversations in the game: who speaks, when and under which conditions, lines, player choices, effects, the quest link." } };
-  CANON.push(CANON_ISSUES, WSTORIES, CHRONICLE, CULTURE, COSMOLOGY);
+  // 🗺 «Карта світу» (owner, v2.111): the locations' map as its own item of «Світ» (it was a view switch inside «Локації»)
+  var WORLDMAP = { id: "worldmap", special: "worldmap", uk: "Карта світу", en: "World map",
+    about: { uk: "Локації світу на карті: перетягуй, щоб розкласти; клік — досьє. Хто де живе, шляхи персонажів з історій.", en: "The world's locations on a map: drag to lay them out, click for the dossier. Who lives where, the characters' paths from the stories." } };
+  CANON.push(CANON_ISSUES, WSTORIES, CHRONICLE, CULTURE, COSMOLOGY, WORLDMAP);
   var CUSTOM_DEFS = [F("text", "Опис", "Description")];
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
@@ -1023,8 +1026,8 @@
   // owner — everything; admin — everything + ✦ on the owner's tokens; editor — everything but ✦; viewer — reads; custom — chosen sections
   var ME = { owner: true, role: "owner", view: [], edit: [], viewKinds: [] }, baseWrite = false;
   function fullRead() { return ME.owner || ME.role !== "custom"; }
-  function mayRead(id) { return id === "settings" ? ME.owner : fullRead() || ME.view.indexOf(id) >= 0; }
-  function mayEdit(id) { return ME.owner || ME.role === "admin" || ME.role === "editor" || (ME.role === "custom" && ME.edit.indexOf(id) >= 0); }
+  function mayRead(id) { if (id === "worldmap") id = "w-locations"; return id === "settings" ? ME.owner : fullRead() || ME.view.indexOf(id) >= 0; }
+  function mayEdit(id) { if (id === "worldmap") id = "w-locations"; return ME.owner || ME.role === "admin" || ME.role === "editor" || (ME.role === "custom" && ME.edit.indexOf(id) >= 0); }
   function secOfKind(kind) { if (kind === "events") return "chronicle"; var c = CANON.filter(function (x) { return x.dossier === kind; })[0]; return c ? c.id : kind; }
   function firstReadable() { var s = navSections().filter(function (x) { return mayRead(x.id); })[0]; return s ? s.id : "world"; }
   function isCanon(id) { return CANON.some(function (x) { return x.id === id; }); }
@@ -1542,6 +1545,7 @@
       if (cs.special === "wstories") return renderWorldStories(cs);
       if (cs.special === "culture") return renderCulture(cs);
       if (cs.special === "cosmology") return renderCosmology(cs);
+      if (cs.special === "worldmap") return renderWorldMap(cs);
     }
     if (!canGame) return renderGameLocked();
     if (!game) return renderNewGame();
@@ -2200,18 +2204,23 @@
   function plain(v) { return String(v || "").replace(/[*`|#>-]+/g, " ").replace(/\s+/g, " ").slice(0, 220); }
   function renderDossiers(s) {
     var list = entities.filter(function (e) { return e.kind === s.dossier; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
-    var isMap = s.dossier === "locations" && locView === "map";
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row">' + (s.dossier === "locations" ? '<button class="btn" id="loc-view">' + (isMap ? STR.wt.cards : STR.wt.map) + '</button>' : '') +
-      (isMap || !canWrite ? '' : '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>') + '</div></header>' +
-      (isMap ? mapHtml(list) : subsHtml(s, list, function (e) { return e.group; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; }));
+      '<div class="row">' + (s.dossier === "locations" && mayRead("worldmap") ? '<button class="btn" id="loc-view">' + STR.wt.map + '</button>' : '') +
+      (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>' +
+      subsHtml(s, list, function (e) { return e.group; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; });
     var at = $("add-top"); if (at) at.onclick = newSubsection;
-    var lv = $("loc-view"); if (lv) lv.onclick = function () { locView = isMap ? "cards" : "map"; try { localStorage.setItem("ww-locview", locView); } catch (e) {} render(); };
-    if (isMap) bindMap(list); else dragCtx = s;
+    var lv = $("loc-view"); if (lv) lv.onclick = function () { goSection("worldmap"); }; // the map is its own item now
+    dragCtx = s;
+  }
+  function renderWorldMap(s) {
+    var list = entities.filter(function (e) { return e.kind === "locations"; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
+      '<div class="row"><button class="btn" id="loc-cards">' + STR.wt.cards + '</button></div></header>' + mapHtml(list);
+    $("loc-cards").onclick = function () { goSection("w-locations"); };
+    bindMap(list);
   }
 
   // ---------- world map: locations laid out by the author (drag → entity.mapPos), who stays where (canon), routes from story scenes ----------
-  var locView = "cards"; try { locView = localStorage.getItem("ww-locview") || "cards"; } catch (e) {}
   var MAP_W = 1000, MAP_H = 620, mapRoutes = null;
   function mapPos(l, i) { return l.mapPos || { x: MAP_W / 2 + Math.cos(i * 2.39996) * (90 + 34 * Math.sqrt(i)) * 1.6, y: MAP_H / 2 + Math.sin(i * 2.39996) * (90 + 34 * Math.sqrt(i)) }; }
   function matchLoc(v, locs) {
@@ -9511,7 +9520,7 @@
     "g-audio": ["note", "Звук", "Sound"], "g-tech": ["chip", "Технічне", "Tech"], "g-plan": ["list", "План", "Plan"], "g-exp": ["pulse", "Гравці", "Players"], "g-mkt": ["horn", "Маркетинг", "Marketing"]
   };
   var WORLD_RAIL = [
-    { id: "w-over", ico: "globe", uk: "Світ", en: "World", full: { uk: "Світ і закони", en: "World & laws" }, secs: ["world", "laws", "canonIssues"] },
+    { id: "w-over", ico: "globe", uk: "Світ", en: "World", full: { uk: "Світ і закони", en: "World & laws" }, secs: ["world", "laws", "worldmap", "canonIssues"] },
     { id: "w-cast", ico: "users", uk: "Досьє", en: "Dossiers", full: { uk: "Досьє канону", en: "Canon dossiers" }, secs: ["w-characters", "w-locations", "w-factions", "w-items"] },
     { id: "w-hist", ico: "book", uk: "Історії", en: "Stories", full: { uk: "Історії і хроніка", en: "Stories & chronicle" }, secs: ["wstories", "chronicle"] },
     { id: "w-cult", ico: "masks", uk: "Культура", en: "Culture", secs: ["culture"] },
