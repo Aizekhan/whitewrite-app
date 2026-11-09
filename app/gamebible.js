@@ -7558,9 +7558,12 @@
     if ($("st-shown")) $("st-shown").addEventListener("toggle", function () { shownOpen = this.open; });
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = async function () {
-        var id = cb.dataset.showsec, hidden = (game.hiddenSections || []).filter(function (x) { return x !== id; }), up = { hiddenSections: hidden, updatedAt: stamp() };
-        if (!cb.checked) hidden.push(id);
-        gref().set(up, { merge: true });
+        // the menu changes at once, and each tick adds / removes only its own section (quick ticks overwrote each other with the whole list — v2.107.1)
+        var id = cb.dataset.showsec, FV = firebase.firestore.FieldValue;
+        game.hiddenSections = (game.hiddenSections || []).filter(function (x) { return x !== id; }).concat(cb.checked ? [] : [id]);
+        renderNav();
+        gref().set({ hiddenSections: cb.checked ? FV.arrayRemove(id) : FV.arrayUnion(id), updatedAt: stamp() }, { merge: true })
+          .catch(function (er) { notify(STR.failed + ": " + (er.code || er.message || er)); });
       };
     });
     if ($("st-guide")) $("st-guide").onclick = guideToggle;

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.107.0 (2026-11-09)
+**Version:** 2.107.1 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.107.1** (owner) «Розділи гри в меню»: a tick updates `game.hiddenSections` locally + `renderNav()` at once and writes `arrayUnion` / `arrayRemove` of its own section (quick ticks wrote the whole list from a stale copy and overwrote each other)
 - **v2.107.0** (owner) 🛡 character sheet on a world character's «Загальне» tab (`sheetHtml`): a gold portrait frame + a traits column of its height — «Хто це» → new entity field `cast` (hero|ally|npc|enemy|boss; `canonShelf` takes it first), race / sex / age / height + build = the same `appearance` fields (persona.js LOOK) as dropdowns with «✎ Своє…», faction → `entities/{id}.faction` (from `faction` or `factions[0]`) with «＋ Нова фракція…» creating a `factions` entity; the description under it; new entity field `portrait` (file id; `entImage` prefers it), set by the frame upload (`uploadEntityFiles(list, asPortrait)`) or ☆ on a picture row (`setPortrait`)
 - **v2.106.3** (owner) settings «Розділи гри в меню» (`#st-shown`) stays open across the re-render after each tick (`shownOpen`)
 - **v2.106.2** (owner) «🖼 Додати картинку» in the card head beside «Надиктуй» (`#e-pic-w` menu: upload → `uploadFiles(…, picField())` → `artUpload`, or «🎨 З Арту» → `artPicker(picField())`; `picField()` = the card's first image field, else its own files); hidden on `STATS_SECS` cards (their quick-add buttons); the dossier gets `#d-pic` → `uploadEntityFiles`
@@ -916,5 +917,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.107.0)
+**Last updated:** 2026-11-09 (v2.107.1)
 **Maintained by:** WhiteWrite Team
