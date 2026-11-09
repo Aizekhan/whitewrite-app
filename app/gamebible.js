@@ -47,10 +47,11 @@
         reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
-      chron: { unit: "Одиниця часу", unitPh: "рік", undated: "Без місця на лінії часу", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
+      chron: { unit: "Одиниця часу", unitPh: "рік", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
         scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
-        noStories: "У цьому світі ще немає історій.", noGameStories: "У цієї гри ще немає історій.", gameStoriesHint: "Тут — історії світу з тегом цієї гри. Тег ставиться в «Налаштуваннях історії» під книгою (тут або в Біблії світу → «Історії світу»); нова історія звідси отримує його сама.", empty: "Ще немає подій з датою. Додай першу — вона злетить кометою над лінією часу.",
-        legend: "Комета — подія, довжина хвоста — її тривалість; зірка — мить. Навколо голови — учасники.",
+        noStories: "У цьому світі ще немає історій.", noGameStories: "У цієї гри ще немає історій.", gameStoriesHint: "Тут — історії світу з тегом цієї гри. Тег ставиться в «Налаштуваннях історії» під книгою (тут або в Біблії світу → «Історії світу»); нова історія звідси отримує його сама.", empty: "Ще немає подій. Додай першу — «＋ Додати» біля підрозділу.",
+        legend: "Події йдуть згори вниз за часом: із числом на лінії часу — за ним, без нього — у порядку, як їх додали. Підрозділи — епохи, війни, сюжетні лінії.",
+        noDate: "без дати", lasts: "триває {n}", moreWho: "+{n}", whoAdd: "＋ Додати учасника — почни вводити імʼя", whoNone: "Нікого не знайдено",
         at: "Початок (число на лінії часу)", dur: "Тривалість (0 — мить)", when: "Підпис часу", whenPh: "напр. «Весна 340 р.»", who: "Учасники", noChars: "У каноні ще немає персонажів." },
       pick: { title: "Додати з канону світу", hint: "Ті, кого ще немає в цій грі. Можна вибрати кількох.",
         none: "Усіх з канону вже взято в гру.", newOne: "＋ Новий у каноні", addN: "Додати", picked: "Додано в гру" },
@@ -376,10 +377,11 @@
         reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
-      chron: { unit: "Time unit", unitPh: "year", undated: "Not on the time line yet", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
+      chron: { unit: "Time unit", unitPh: "year", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
         scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
-        noStories: "No stories in this world yet.", noGameStories: "This game has no stories yet.", gameStoriesHint: "These are the world's stories tagged with this game. The tag is set in “Story settings” under a book (here or in the World Bible → “World stories”); a new story made here gets it by itself.", empty: "No dated events yet. Add the first — it flies as a comet above the time line.",
-        legend: "A comet is an event, its tail is its duration; a star is a moment. Around the head — the participants.",
+        noStories: "No stories in this world yet.", noGameStories: "This game has no stories yet.", gameStoriesHint: "These are the world's stories tagged with this game. The tag is set in “Story settings” under a book (here or in the World Bible → “World stories”); a new story made here gets it by itself.", empty: "No events yet. Add the first — “＋ Add” by a subsection.",
+        legend: "Events go top to bottom in time: those with a number on the time line by it, the rest in the order they were added. Subsections are eras, wars, story lines.",
+        noDate: "no date", lasts: "lasts {n}", moreWho: "+{n}", whoAdd: "＋ Add a participant — start typing a name", whoNone: "Nobody found",
         at: "Start (a number on the time line)", dur: "Duration (0 — a moment)", when: "Time label", whenPh: "e.g. “Spring of 340”", who: "Participants", noChars: "No characters in the canon yet." },
       pick: { title: "Add from the world canon", hint: "Those not in this game yet. You can pick several.",
         none: "Everything in the canon is already in the game.", newOne: "＋ New in canon", addN: "Add", picked: "Added to the game" },
@@ -840,7 +842,7 @@
     about: { uk: "Інтерактивний гейм-диздок і точний план розробки, складені з канону та всієї біблії гри.", en: "An interactive game design doc and a precise development plan built from the canon and the whole game bible." } };
   var ISSUES = { id: "issues", special: "issues", uk: "Неузгоджене", en: "Inconsistencies" };
   var CANON_ISSUES = { id: "canonIssues", special: "canonIssues", uk: "Неузгоджене", en: "Inconsistencies" };
-  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Хроніка", en: "Chronicle",
+  var CHRONICLE = { id: "chronicle", special: "chronicle", uk: "Хроніка та Події", en: "Chronicle & events",
     about: { uk: "Події світу на лінії часу.", en: "The world's events on the time line." } };
   var WSTORIES = { id: "wstories", special: "wstories", uk: "Історії світу", en: "World stories",
     about: { uk: "Історії, написані в цьому світі: книги для читання й письма. Тег гри відносить історію ще й до «Історій гри».", en: "The stories written in this world: books to read and write. A game tag also puts a story into that game's “Game stories”." } };
@@ -2312,9 +2314,9 @@
     return '<div class="field evrow"><label>' + STR.chron.at + '<input id="d-at" type="number" step="any" value="' + esc(ddraft.at) + '"></label>' +
       '<label>' + STR.chron.dur + '<input id="d-dur" type="number" min="0" step="any" value="' + esc(ddraft.dur) + '"></label>' +
       '<label>' + STR.chron.when + '<input id="d-when" placeholder="' + esc(STR.chron.whenPh) + '" value="' + esc(ddraft.when) + '"></label></div>' +
-      '<div class="field"><label>' + STR.chron.who + '</label>' + (chars.length ? '<div class="dlinks">' + chars.map(function (c) {
-        return '<button class="dlink who" data-who="' + esc(c.id) + '" aria-pressed="' + (ddraft.who.indexOf(c.id) >= 0) + '">' + avatar(c) + esc(c.name || "") + '</button>';
-      }).join("") + '</div>' : '<p class="muted">' + STR.chron.noChars + '</p>') + '</div>';
+      '<div class="field"><label>' + STR.chron.who + '</label>' + (chars.length ? '<div class="dlinks">' + ddraft.who.map(function (id) { return chars.filter(function (c) { return c.id === id; })[0]; }).filter(Boolean).map(function (c) {
+        return '<button class="dlink who" data-who="' + esc(c.id) + '" aria-pressed="true">' + avatar(c) + esc(c.name || "") + ' <span aria-hidden="true">✕</span></button>';
+      }).join("") + '</div>' + (canWrite ? '<input id="ev-who-q" class="ev-q" autocomplete="off" placeholder="' + esc(STR.chron.whoAdd) + '"><div class="dlinks" id="ev-who-m"></div>' : '') : '<p class="muted">' + STR.chron.noChars + '</p>') + '</div>';
   }
   function avatar(c) {
     var img = entImage(c);
@@ -2766,7 +2768,14 @@
     var b = e.target.closest("[data-lkdd],[data-lkopt]"); if (!b || !dos) return;
     if (b.dataset.lkdd) lookMenu(b); else lookPick(b);
   });
-  $("d-body").addEventListener("input", function (e) { if (e.target.dataset && e.target.dataset.lk) { dcollect(); lookCount(); } });
+  $("d-body").addEventListener("input", function (e) {
+    if (e.target.dataset && e.target.dataset.lk) { dcollect(); lookCount(); }
+    if (e.target.id === "ev-who-q") { // participants: the matches of what is typed, not chosen yet
+      var q = e.target.value.trim().toLowerCase(), m = $("ev-who-m");
+      var l = q ? entities.filter(function (c) { return c.kind === "characters" && ddraft.who.indexOf(c.id) < 0 && String(c.name || "").toLowerCase().indexOf(q) >= 0; }).slice(0, 12) : [];
+      m.innerHTML = !q ? "" : l.length ? l.map(function (c) { return '<button class="dlink who" data-who="' + esc(c.id) + '" aria-pressed="false">' + avatar(c) + esc(c.name || "") + '</button>'; }).join("") : '<span class="muted">' + esc(STR.chron.whoNone) + '</span>';
+    }
+  });
   document.addEventListener("input", function (e) { var t = e.target; if (t.dataset && t.dataset.fzbld && t.previousElementSibling) t.previousElementSibling.textContent = fzBldTxt(t.dataset.fzbld, t.value); });
   document.addEventListener("mousedown", function (e) { if (!e.target.closest || !e.target.closest(".lk-f")) lookMenuClose(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.querySelector(".lk-menu")) { e.stopPropagation(); lookMenuClose(); } }, true); // Esc closes the menu, not the dossier
@@ -4728,7 +4737,7 @@
       return;
     }
     var wh = e.target.closest("[data-who]");
-    if (wh) { dcollect(); var wi = ddraft.who.indexOf(wh.dataset.who); if (wi >= 0) ddraft.who.splice(wi, 1); else ddraft.who.push(wh.dataset.who); renderDossier(); return; }
+    if (wh) { var fromQ = !!wh.closest("#ev-who-m"); dcollect(); var wi = ddraft.who.indexOf(wh.dataset.who); if (wi >= 0) ddraft.who.splice(wi, 1); else ddraft.who.push(wh.dataset.who); renderDossier(); if (fromQ && $("ev-who-q")) $("ev-who-q").focus(); return; }
     var rn = e.target.closest("[data-rmnote]");
     if (rn) { dcollect(); ddraft.lifeNotes = ddraft.lifeNotes.filter(function (n) { return n.id !== rn.dataset.rmnote; }); renderDossier(); return; }
     if (e.target.id === "ln-add") {
@@ -4800,46 +4809,38 @@
     };
     var t = box.querySelector("#ns-title"); t.focus(); t.select();
   }
-  function niceStep(span) { var raw = span / 8, p = Math.pow(10, Math.floor(Math.log10(raw || 1))), m = raw / p; return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p; }
-  function cometsHtml(list) {
-    var lo = Infinity, hi = -Infinity;
-    list.forEach(function (e) { lo = Math.min(lo, e.at); hi = Math.max(hi, e.at + e.dur); });
-    var span = hi - lo || 1, W = Math.max(($("view").clientWidth || 900) - 20, list.length * 190), ppu = (W - 200) / span;
-    var x = function (t) { return 100 + (t - lo) * ppu; }, lanes = [], LH = 112;
-    var items = list.map(function (e) {
-      var x0 = x(e.at), hx = x(e.at + e.dur), lane = 0;
-      while (lanes[lane] !== undefined && lanes[lane] > Math.min(x0, hx - 80)) lane++;
-      lanes[lane] = hx + 80;
-      return { e: e, x0: x0, hx: hx, lane: lane };
-    });
-    var H = lanes.length * LH + 56, axisY = H - 34, html = '';
-    items.forEach(function (it) {
-      var e = it.e, y = axisY - 40 - it.lane * LH - 22, tail = it.hx - it.x0, star = !(e.dur > 0) || tail < 6;
+  // 📜 «Хроніка та Події» (owner, v2.110): instead of a comet box per subsection — one vertical chronicle; the subsections (eras) stand on
+  // its gold line, the events hang left / right of it in time order (`at`; undated ones after them, in the order they were added), each a card
+  // with its time label, a few lines of the story, the participants' faces, the place and the duration
+  function chronLine(list) {
+    var made = function (e) { return (e.createdAt && e.createdAt.toMillis && e.createdAt.toMillis()) || 0; };
+    var d = list.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }),
+      u = list.filter(function (e) { return e.at === null; }).sort(function (a, b) { return made(a) - made(b); });
+    var unit = (world && world.timeUnit) || STR.chron.unitPh;
+    return '<ol class="chl">' + d.concat(u).map(function (e, i) {
       var who = (Array.isArray(e.characters) ? e.characters : []).map(function (id) { return entities.filter(function (c) { return c.id === id; })[0]; }).filter(Boolean);
-      html += '<span class="span" style="left:' + it.x0 + 'px;width:' + Math.max(2, tail) + 'px;top:' + (axisY - 2) + 'px"></span>';
-      html += '<button class="comet' + (star ? ' star' : '') + '" data-ent="' + esc(e.id) + '" style="left:' + it.hx + 'px;top:' + y + 'px" title="' + esc((e.title || e.name || "") + (e.when ? " · " + e.when : "")) + '">' +
-        (star ? '' : '<span class="tail" style="width:' + tail + 'px"></span>') + '<span class="head"></span>' +
-        who.slice(0, 6).map(function (c, i) { var a = (-160 + i * 28) * Math.PI / 180; // participants in an arc above the head
-          return '<span class="who" style="transform:translate(' + Math.round(Math.cos(a) * 30) + 'px,' + Math.round(Math.sin(a) * 30) + 'px)" title="' + esc(c.name || "") + '">' + avatar(c) + '</span>'; }).join("") +
-        '<span class="lbl"><b>' + esc(e.title || e.name || "") + '</b>' + (e.when ? '<i>' + esc(e.when) + '</i>' : '') + '</span></button>';
-    });
-    var step = niceStep(span), ticks = '';
-    for (var t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) ticks += '<span class="tick" style="left:' + x(t) + 'px;top:' + axisY + 'px">' + esc(String(+t.toFixed(6))) + '</span>';
-    return '<div class="chron"><div class="chron-track" style="width:' + W + 'px;height:' + H + 'px"><span class="axis" style="top:' + axisY + 'px"></span>' + ticks + html +
-      '<span class="unit" style="top:' + (axisY + 14) + 'px">' + esc((world && world.timeUnit) || STR.chron.unitPh) + '</span></div></div>';
+      var place = typeof e.location === "string" && entities.filter(function (c) { return c.id === e.location; })[0], img = entImage(e);
+      var when = e.when || (e.at !== null ? String(+e.at.toFixed(6)) + " " + unit : STR.chron.noDate);
+      var meta = (who.length ? '<span class="chl-who">' + who.slice(0, 5).map(function (c) { return '<span title="' + esc(c.name || "") + '">' + avatar(c) + '</span>'; }).join("") +
+          (who.length > 5 ? '<span class="chl-more">' + esc(STR.chron.moreWho.replace("{n}", who.length - 5)) + '</span>' : '') + '</span>' : '') +
+        (place ? '<span class="chl-tag">📍 ' + esc(place.name || place.title || "") + '</span>' : '') +
+        (e.dur > 0 ? '<span class="chl-tag">⏳ ' + esc(STR.chron.lasts.replace("{n}", String(+e.dur.toFixed(6)) + " " + unit)) + '</span>' : '');
+      return '<li class="chl-it' + (i % 2 ? ' r' : '') + (e.at === null && !e.when ? ' undated' : '') + '"><span class="chl-dot" aria-hidden="true"></span>' +
+        '<button type="button" class="chl-card' + (img ? ' has-img' : '') + '" data-ent="' + esc(e.id) + '">' +
+          (img ? '<img alt="" loading="lazy" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
+          '<span class="chl-when">' + esc(when) + '</span><b class="chl-t">' + esc(e.title || e.name || STR.newCard) + '</b>' +
+          (plain(e[descKeyOf(e)] || "") ? '<span class="chl-ex">' + esc(plain(e[descKeyOf(e)])) + '</span>' : '') +
+          (meta ? '<span class="chl-meta">' + meta + '</span>' : '') + '</button></li>';
+    }).join("") + '</ol>';
   }
   function renderChronicle(s) {
     var evs = entities.filter(function (e) { return e.kind === "events"; }).map(function (e) { return Object.assign({}, e, { at: num(e.at), dur: Math.max(0, num(e.dur) || 0) }); });
-    var dated = evs.filter(function (e) { return e.at !== null; });
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row"><label class="unitbox">' + STR.chron.unit + ' <input id="ch-unit" value="' + esc((world && world.timeUnit) || "") + '" placeholder="' + esc(STR.chron.unitPh) + '"></label>' +
       (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>';
-    html += '<p class="muted">' + (dated.length ? STR.chron.legend : STR.chron.empty) + '</p>';
+    html += '<p class="muted">' + (evs.length ? STR.chron.legend : STR.chron.empty) + '</p>';
     // each subsection (an era, a war, a line of the story…) is its own time line
-    html += subsHtml(s, evs, function (e) { return e.group; }, function (l) {
-      var d = l.filter(function (e) { return e.at !== null; }).sort(function (a, b) { return a.at - b.at; }), u = l.filter(function (e) { return e.at === null; });
-      return (d.length ? cometsHtml(d) : '') + (u.length ? '<p class="muted">' + STR.chron.undated + ':</p><div class="grid">' + u.map(dosCardHtml).join("") + '</div>' : '');
-    });
+    html += '<div class="chl-book">' + subsHtml(s, evs, function (e) { return e.group; }, chronLine) + '</div>';
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.109.0 (2026-11-09)
+**Version:** 2.110.0 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.110.0** (owner) «Хроніка» → «Хроніка та Події»: the comet boxes (`cometsHtml`, `niceStep`, `.chron/.comet` CSS) replaced by one vertical chronicle (`chronLine`, `.chl*`) — the subsections (eras) on one gold line, the events as cards left / right (time label, title, description, participants' faces, place `location`, duration, picture), sorted by `at`, undated after them by `createdAt`; the event editor shows only the chosen participants (✕) + a name search to add one (`#ev-who-q`) instead of every character
 - **v2.109.0** (owner) the character sheet on a game's canon character cards (`gameSheetHtml`, `draft.sheet` = `csState(entity)`): the same traits written to the canon entity on «Зберегти» (`csEntDiff`, shared with the dossier through `csSt` / `csCollect`), the frame shows the card's own «Портрет» (else its first picture, else `entImage`) and uploads into it (`data-fup="portrait"` → «Арт» · Портрети); «Своє…» / «＋ Нова фракція / локація…» work there too (`newFaction(kind, then)`)
 - **v2.108.4** (owner) the sheet's «Стан» (`condition`, changes over time) replaced by «Світогляд» — entity field `alignment`, the nine D&D alignments + «Своє…»
 - **v2.108.3** (owner) the «Хто це» tags (hero / ally / NPC / enemy / boss) removed from the World Bible character sheet — that is a game's choice (its shelf «Герої та NPC» / «Вороги й боси»); `canonShelf` still reads an `entities/{id}.cast` if one exists
@@ -924,5 +925,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.109.0)
+**Last updated:** 2026-11-09 (v2.110.0)
 **Maintained by:** WhiteWrite Team
