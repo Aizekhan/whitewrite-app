@@ -530,6 +530,21 @@ button{ font-family:inherit; cursor:pointer; border:none; background:none; color
   box-shadow:0 8px 26px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,235,180,0.12); transition:.2s; }
 .feedback-fab svg{ width:22px; height:22px; }
 .feedback-fab.kb-fab{ right:72px; font:600 21px/1 "Cinzel",serif; }
+/* ✦ the World Bible's AI work in the background (v2.113): beside «?» while it thinks, «✓ Готово» for a while after; a click → the Bible */
+.ai-pill{ position:fixed; right:128px; bottom:20px; z-index:70; height:40px; max-width:min(340px, calc(100vw - 250px)); display:flex; align-items:center; gap:9px;
+  padding:0 16px 0 12px; border-radius:20px; cursor:pointer; font:600 13.5px "Philosopher",serif; color:#f0d398;
+  background:linear-gradient(180deg, rgba(40,28,14,0.94), rgba(22,15,8,0.96)); border:1px solid rgba(201,162,75,0.55);
+  box-shadow:0 8px 26px rgba(0,0,0,0.5), 0 0 18px rgba(232,170,80,0.18); animation:aiPillIn .3s ease both; }
+.ai-pill[hidden]{ display:none; }
+.ai-pill:hover{ border-color:rgba(240,200,120,0.85); color:#f6e3b5; }
+.ai-pill__t{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ai-pill__i{ flex:none; width:16px; height:16px; border-radius:50%; border:2px solid rgba(201,162,75,0.25); border-top-color:#e6be6c; animation:aiSpin .9s linear infinite; }
+.ai-pill.is-done .ai-pill__i, .ai-pill.is-fail .ai-pill__i{ border:none; animation:none; display:grid; place-items:center; font-size:14px; }
+.ai-pill.is-done .ai-pill__i::before{ content:"✓"; color:#9fd29a; } .ai-pill.is-fail .ai-pill__i::before{ content:"⚠"; color:#e8a35a; }
+@keyframes aiSpin{ to{ transform:rotate(360deg); } }
+@keyframes aiPillIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+body.in-kb .ai-pill{ right:72px; }
+@media (max-width:560px){ .ai-pill{ bottom:76px; right:16px; max-width:calc(100vw - 32px); } }
 body.in-kb .kb-fab{ display:none; }
 .view[data-view="kb"]{ padding-bottom:calc(96px + env(safe-area-inset-bottom)); } /* the round bottom buttons never cover the last KB cards */
 /* the avatar & account live on the home page only; on phones the other screens drop the top menu and get a logo → home in the avatar's place */
@@ -654,6 +669,7 @@ body.at-home .back-fab{ display:none; }
   <button class="feedback-fab back-fab" id="back-fab" data-i18n-title="ui.back" title="Назад" data-i18n-aria="ui.back" aria-label="Назад"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
   <button class="feedback-fab home-fab" id="home-fab" data-i18n-title="ui.home" title="На головну" data-i18n-aria="ui.home" aria-label="На головну"><img src="assets/LogoG-icon.png" alt="" draggable="false" /></button>
 
+  <button class="ai-pill" id="ai-pill" type="button" hidden aria-live="polite"><i class="ai-pill__i" aria-hidden="true"></i><span class="ai-pill__t"></span></button>
   <button class="feedback-fab kb-fab" id="kb-fab" data-i18n-title="kb.fab" title="База знань" data-i18n-aria="kb.fab" aria-label="База знань">?</button>
 
   <div class="proj-edit" id="feedback-modal">
@@ -1427,6 +1443,7 @@ body.at-home .back-fab{ display:none; }
     if (e.origin !== window.location.origin) return;
     var d = e.data || {};
     if (d.type === "ww-news") { showView("news"); return; }
+    if (d.type === "ww-ai-tasks") { aiTasks(e.source, d); return; }
     if (d.type === "ww-panel-h") { var pf = document.getElementById("w-panel"); if (pf) pf.style.height = Math.max(320, Math.min(4000, +d.h || 0)) + "px"; return; }
     if (d.type === "ww-account") { ACC_TAB = d.tab === "friends" ? "friends" : "profile"; fillAccount(); showView("account"); return; }
     if (d.type === "ww-market") { CM.tab = "mkt"; CM.open = null; CM.lot = d.lotId ? String(d.lotId) : null; showView("market"); fillMarket(); loadLots(); return; }
@@ -1775,6 +1792,37 @@ body.at-home .back-fab{ display:none; }
     }, function () { CM.collab = []; fillMarket(); });
   }
   var COMM_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/community";
+  // ✦ AI work of the World Bible in the background (v2.113): each Bible frame reports what it runs; «✦ ШІ думає…» beside «?»,
+  // «✓ Готово» / «⚠ Не вдалося» for 12 s after; a click opens the Bible (its result — a dialog or the section — waits there)
+  var aiBy = new Map(), aiLast = null, aiHideT = null;
+  function aiTasks(src, d) {
+    aiBy.set(src, d.running || []);
+    if (d.done) aiLast = { label: d.done.label, ok: d.done.ok };
+    aiDraw();
+  }
+  function aiDraw() {
+    var pill = document.getElementById("ai-pill"); if (!pill) return;
+    var run = []; aiBy.forEach(function (l) { run = run.concat(l); });
+    clearTimeout(aiHideT);
+    pill.classList.remove("is-done", "is-fail");
+    if (run.length) {
+      var n = run.reduce(function (s, r) { return s + (r.n || 1); }, 0);
+      pill.querySelector(".ai-pill__t").textContent = cmT("ШІ думає… · ", "AI is thinking… · ") + run.map(function (r) { return r.label; }).join(", ") + (n > run.length ? " ×" + n : "");
+      pill.title = cmT("Працює у фоні — можна перейти в інший розділ. Натисни, щоб повернутись у Біблію.", "Runs in the background — you may go to another section. Click to return to the Bible.");
+      pill.hidden = false;
+    } else if (aiLast) {
+      pill.classList.add(aiLast.ok ? "is-done" : "is-fail");
+      pill.querySelector(".ai-pill__t").textContent = (aiLast.ok ? cmT("Готово: ", "Done: ") : cmT("Не вдалося: ", "Failed: ")) + aiLast.label;
+      pill.title = cmT("Натисни, щоб відкрити результат у Біблії", "Click to open the result in the Bible");
+      pill.hidden = false;
+      aiHideT = setTimeout(function () { pill.hidden = true; aiLast = null; }, 12000);
+    } else pill.hidden = true;
+  }
+  document.getElementById("ai-pill").addEventListener("click", function () {
+    if (mode !== "bible" && CURRENT_WORLD) showBible();
+    var still = false; aiBy.forEach(function (l) { if (l.length) still = true; });
+    if (!still) { aiLast = null; aiDraw(); }
+  });
   function cmT(uk, en) { return (window.__i18n && window.__i18n.getLanguage && window.__i18n.getLanguage() === 'en') ? en : uk; }
   function cmDb() { return window.__firebase && window.__firebase.db; }
   function loadCommunity() {

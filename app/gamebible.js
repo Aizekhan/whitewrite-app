@@ -236,7 +236,8 @@
       costCap: "AI-операція «{op}» коштуватиме не більше {n} токенів: спишеться фактична робота AI, зазвичай менше, але ніколи не більше. Продовжити?", capShort: "✦ не більше {n} токенів",
       costTitle: "Ця дія витрачає токени", costText: "AI-операція «{op}» коштує орієнтовно ≈ {n} токенів; списується фактична робота AI, тож сума може бути трохи меншою або більшою. Продовжити?",
       costGo: "Продовжити", costTip: "AI · витрачає токени (≈ {n})",
-      ops: { worldFolderScout: "Тека світу: що читати", worldFolder: "Тека світу", folderSort: "Розбір теки гри", concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
+      aiBusy: "«{op}» ще працює — результат зʼявиться сам, навіть якщо перейти в інший розділ.",
+      ops: { styleCheck: "Перевірка стилю", cardFill: "Заповнення картки", reconstructScene: "Узгодження сцен", synthesize: "Озвучка реплік", cosmograph: "Космограф", marketing: "Маркетинг", worldFolderScout: "Тека світу: що читати", worldFolder: "Тека світу", folderSort: "Розбір теки гри", concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
         dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
@@ -565,7 +566,8 @@
       costCap: "The AI operation “{op}” will cost no more than {n} tokens: the AI's actual work is charged, usually less, never more. Continue?", capShort: "✦ no more than {n} tokens",
       costTitle: "This action spends tokens", costText: "The AI operation “{op}” costs about ≈ {n} tokens; the AI's actual work is charged, so it may be a little less or more. Continue?",
       costGo: "Continue", costTip: "AI · spends tokens (≈ {n})",
-      ops: { worldFolderScout: "World folder: what to read", worldFolder: "World folder", folderSort: "Game folder sorting", concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
+      aiBusy: "“{op}” is still working — the result will appear by itself, even if you go to another section.",
+      ops: { styleCheck: "Style check", cardFill: "Card fill", reconstructScene: "Reconciling scenes", synthesize: "Voicing lines", cosmograph: "Cosmograph", marketing: "Marketing", worldFolderScout: "World folder: what to read", worldFolder: "World folder", folderSort: "Game folder sorting", concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
         dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
@@ -6344,8 +6346,42 @@
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   // «не більше N» for an AI action on a known input (paid-features quoteChars) — the server reserves the same N and never charges more
   function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, (window.__wwUser || {}).aiModel) : 0; }
+  // ✦ AI work in the background (v2.113): a call to an AI endpoint is tracked until its answer is read through; the shell shows
+  // «✦ ШІ думає…» beside «?» while one runs and «✓ Готово» after (a click brings the Bible back). Switching sections, games or the
+  // shell's screens never stopped the call — but the redrawn button forgot it; now the same op can't be started twice meanwhile.
+  var AI_FNS = { gamedevPlan: 1, styleFromRefs: 1, narrativeDraft: 1, experience: 1, marketing: 1, cosmographAccess: 1 }, AI_OWN = { styleCheck: 1, cardFill: 1, reconstructScene: 1 };
+  var aiPend = null, aiRuns = [];
+  function aiPost(done) {
+    if (window.parent === window) return;
+    var by = {}; aiRuns.forEach(function (r) { by[r.label] = (by[r.label] || 0) + 1; });
+    try { window.parent.postMessage({ type: "ww-ai-tasks", running: Object.keys(by).map(function (l) { return { label: l, n: by[l] }; }), done: done || null }, location.origin); } catch (e) {}
+  }
+  (function () {
+    var f0 = window.fetch; if (!f0) return;
+    window.fetch = function (url, opt) {
+      var m = typeof url === "string" && url.match(/cloudfunctions\.net\/([A-Za-z]+)/), ep = m && m[1], op = null, bop = "";
+      try { bop = (JSON.parse((opt && opt.body) || "{}").op) || ""; } catch (e) {}
+      if (AI_OWN[ep]) op = ep;
+      else if (ep === "voice" && bop === "synthesize") op = bop;
+      else if (AI_FNS[ep] && aiPend && Date.now() - aiPend.at < 120000) op = aiPend.op;
+      var p = f0.apply(this, arguments); if (!op) return p;
+      var run = { label: STR.ops[op] || op, op: op }; aiRuns.push(run); aiPost();
+      var end = function (ok) {
+        var i = aiRuns.indexOf(run); if (i < 0) return; aiRuns.splice(i, 1);
+        var more = aiRuns.some(function (r) { return r.op === op; });
+        if (!more && aiPend && aiPend.op === op) aiPend = null;
+        aiPost(more ? null : { label: run.label, ok: ok });
+      };
+      return p.then(function (r) {
+        if (r.body && r.clone) r.clone().arrayBuffer().then(function () { end(r.ok); }, function () { end(false); }); else end(r.ok); // a streamed answer ends with its body
+        return r;
+      }, function (e) { end(false); throw e; });
+    };
+  })();
+  aiPost(); // a (re)loaded Bible runs nothing — the shell forgets what this frame ran before
   function confirmCost(op, run, cap, onCancel) {
     if (!ME.owner && ME.role !== "admin") return notify(STR.team.noAi);
+    if (aiRuns.some(function (r) { return r.op === op; })) return notify(STR.aiBusy.replace("{op}", STR.ops[op] || op));
     var box = document.createElement("div");
     box.className = "ask";
     box.innerHTML = '<form class="ask-box" role="dialog" aria-modal="true" aria-label="' + esc(STR.costTitle) + '"><h3><span class="aicost">✦</span> ' + esc(STR.costTitle) + '</h3>' +
@@ -6353,7 +6389,7 @@
       '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok">' + STR.costGo + '</button></div></form>';
     document.body.appendChild(box);
     var close = function () { box.remove(); }, cancel = function () { close(); if (onCancel) onCancel(); };
-    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); close(); run(); };
+    box.querySelector("form").onsubmit = function (ev) { ev.preventDefault(); close(); aiPend = { op: op, at: Date.now() }; run(); };
     box.querySelector("#ask-x").onclick = cancel;
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) cancel(); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); cancel(); } });

@@ -1364,6 +1364,8 @@
         min: 2,
         body: [
           ["p", "Генерація сцен, «✦ Порадити», «✦ Узгодити сцени», аналіз і план гри, імпорт, звірка з GitHub, аудит канону, Космограф витрачають токени. Платні дії позначені ✦: ціна видно заздалегідь, перед запуском — підтвердження."],
+          ["h", "ШІ працює у фоні"],
+          ["p", "Дія ✦ у Біблії (стиль із референсів, аналіз, імпорт, план, чернетки…) не зупиняється, якщо перейти в інший розділ, іншу гру, хаб чи на головну. Поки ШІ думає, внизу праворуч біля «?» видно <b>«ШІ думає… · назва дії»</b>; коли закінчить — <b>«✓ Готово»</b> (або «⚠ Не вдалося») ще 12 секунд. Натисни — і Біблія відкриється там, де чекає результат. Ту саму дію двічі поспіль не запустити, поки перша ще працює, — гроші не спишуться двічі."],
           ["h", "Скільки коштує"],
           ["prices"],
           ["p", "Ціни орієнтовні. Перед запуском сервер резервує суму, після відповіді списує фактичну роботу AI — скільки тексту модель прочитала й написала, — і повертає різницю. Довга сцена або великий файл коштують більше, коротка — менше. Невдалий запуск повертає все. Виняток — коли ШІ вже відпрацював: відповідь обірвалась на ліміті довжини (завеликий матеріал за раз), ШІ відмовився виконати запит або одна з паралельних частин великого імпорту не вдалася — тоді списується фактична робота ШІ, а різниця повертається. Ділі матеріал на менші частини. Якщо запуск обірвався зовсім (сервер не дочекався відповіді), зарезервоване повертається само протягом години."],
@@ -2762,6 +2764,8 @@
         min: 2,
         body: [
           ["p", "Scene generation, “✦ Advise”, “✦ Align scenes”, the game analysis and plan, import, the GitHub check, the canon audit and the Cosmograph spend tokens. Paid actions carry ✦: the price is shown in advance, with a confirmation before the run."],
+          ["h", "AI works in the background"],
+          ["p", "A ✦ action in the Bible (style from references, analysis, import, plan, drafts…) doesn't stop when you go to another section, another game, the hub or the home page. While the AI thinks, the bottom right beside “?” shows <b>“AI is thinking… · the action”</b>; when it finishes — <b>“✓ Done”</b> (or “⚠ Failed”) for 12 seconds. Click it and the Bible opens where the result waits. The same action can't be started twice while the first still runs — you're never charged twice."],
           ["h", "What it costs"],
           ["prices"],
           ["p", "Prices are approximate. Before the run the server reserves an amount; after the reply it charges the AI's actual work — how much text the model read and wrote — and returns the difference. A long scene or a big file costs more, a short one less. A failed run returns everything. The exception is when the AI has already done the work: the reply was cut off at the length limit (too much material at once), the AI refused the request, or one of the parallel parts of a big import failed — then the AI's actual work is charged and the rest returned. Split the material into smaller parts. If a run broke off entirely (the server never got the reply), the reserved tokens come back by themselves within an hour."],
