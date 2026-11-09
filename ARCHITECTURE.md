@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.104.2 (2026-11-09)
+**Version:** 2.104.3 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.104.3** (owner) the banner's own ⌖ (`bannerFrame` → `cover.banner {x, y}` on `worlds/{w}` / `games/{g}`, falls back to `cover.frame`); `wwFrame.pick` takes `aspect`, `noContain`, `title`; «＋ Нова історія» at the top of «Історії світу / гри» removed — the shelf's ＋ book does it
 - **v2.104.2** (owner) «＋ Підрозділ» back in the page — top right above the cards (`.subadd-row`; the embed observer keeps `#add-top` out of `#topline`), the menu ＋ (`#sub-btn`) removed
 - **v2.104.1** (owner) 👤 ★ out of the banner name — `wstatsRow` in the overview header, the embed lifts them onto `#topline` right of the shell logo, the topline actions pushed to the right corner; «＋ Підрозділ» → a square ＋ (`#sub-btn`) beside the world / game name at the top of the menu, shown while the view has `#add-top` (now hidden, pressed by `subBtnSync`)
 - **v2.104.0** card & cover layout (owner, UI only — no data changes): «Огляд світу / гри» cover is a low banner (`.wcover.is-banner`, always `object-fit:cover`, ⌖ picks the strip) with the name (`worldNameHtml`) on it; the card leaf (`#leaf`) — ✕ top right (`#e-x`) instead of «Закрити», «Зберегти» centred, the corner — «💡 Створити квест на основі цього» (`#e-quest`, was a body button) while reading, «Видалити / Прибрати з цієї гри» (`#e-delete`) only in field mode (`cornerSync`); empty fields — the «＋ Додати поле» menu beside the status (`#e-addf`, `addfMenu`) instead of the «Ще поля» chips; dossier (`#dos`) — ✕ (`#d-x`), centred save, 💡 (`#d-quest`, `dosCorner`); `.more-chip` (look fields) restyled as buttons
@@ -906,5 +907,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.104.2)
+**Last updated:** 2026-11-09 (v2.104.3)
 **Maintained by:** WhiteWrite Team

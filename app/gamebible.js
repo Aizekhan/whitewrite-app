@@ -107,7 +107,7 @@
       stats: { followers: "Фоловери — стежать за світом чи грою у Спільноті", rating: "Рейтинг — ♥ від спільноти" },
       team: { noAi: "✦ AI-дії в цьому світі запускають лише власник і адмін команди (на токенах власника)." },
       wname: { edit: "Редагувати назву світу", title: "Назва світу", art: "Картинка назви", artHint: "PNG з прозорим тлом виглядає найкраще; до 10 МБ. Без картинки назва пишеться шрифтом.", artPick: "＋ Завантажити картинку", artDel: "Прибрати картинку", size: "Висота назви", sizeMax: "більше не влазить у ширину рядка", uploading: "Завантажую…",
-        gEdit: "Редагувати назву гри", gTitle: "Назва гри", cover: "Обкладинка гри", coverEdit: "Змінити обкладинку гри", coverHint: "Картинка до 10 МБ або відео MP4 / WebM до 50 МБ — грає по колу без звуку.",
+        gEdit: "Редагувати назву гри", bannerFrame: "Кадр банера — яку смугу обкладинки видно", gTitle: "Назва гри", cover: "Обкладинка гри", coverEdit: "Змінити обкладинку гри", coverHint: "Картинка до 10 МБ або відео MP4 / WebM до 50 МБ — грає по колу без звуку.",
         coverPick: "＋ Завантажити", coverDel: "Прибрати", frame: "⌖ Кадр", coverType: "Підходять картинки та відео MP4 / WebM.", coverBig: "Завеликий файл: ≤ {n} МБ" },
       stWorld: "Світ", stWorldName: "Назва світу", stGame: "Гра", stGameName: "Назва гри", stRename: "Перейменувати", stRenamed: "Збережено.",
       stImport: "Імпорт нотаток (.md)", stDraft: "✦ Чернетка GDD з опису", draftQ: "Опиши гру кількома реченнями", draftPh: "Жанр, що робить гравець, яке відчуття, на кого з канону спирається, платформа… Напр.: «Рогалик у руїнах Північного лісу: Елара шукає артефакт, бої короткі й швидкі, ПК».", draftGo: "Скласти чернетку", draftIntro: "Перевір чернетку ШІ. У канон і картки потрапить лише відмічене; питання — рішення, які варто ухвалити далі.", draftHint: "Немає нотаток — опиши задум, і ШІ складе першу версію GDD на каноні світу: огляд, цикл, механіки, ворогів, рівні, арт і звук. Ти відмітиш, що взяти.", stImportHint: "AI розкладе нотатки по розділах цієї гри, ти відмітиш, що прийняти. Такий файл можна попросити скласти твого ШІ-агента, який працює над проєктом (напр. Claude Code), — хай збере інфо з вашого репозиторію в один .md.",
@@ -434,7 +434,7 @@
       stats: { followers: "Followers — following the world or game in the Community", rating: "Rating — ♥ from the community" },
       team: { noAi: "✦ AI actions in this world are run only by the owner and a team admin (on the owner's tokens)." },
       wname: { edit: "Edit the world name", title: "World name", art: "Title image", artHint: "A PNG with a transparent background looks best; up to 10 MB. Without an image the name is set in the font.", artPick: "＋ Upload an image", artDel: "Remove the image", size: "Title height", sizeMax: "wider would not fit the line", uploading: "Uploading…",
-        gEdit: "Edit the game title", gTitle: "Game title", cover: "Game cover", coverEdit: "Change the game cover", coverHint: "An image up to 10 MB or an MP4 / WebM video up to 50 MB — loops silently.",
+        gEdit: "Edit the game title", bannerFrame: "Banner frame — which strip of the cover shows", gTitle: "Game title", cover: "Game cover", coverEdit: "Change the game cover", coverHint: "An image up to 10 MB or an MP4 / WebM video up to 50 MB — loops silently.",
         coverPick: "＋ Upload", coverDel: "Remove", frame: "⌖ Frame", coverType: "Images and MP4 / WebM videos only.", coverBig: "The file is too big: ≤ {n} MB" },
       stWorld: "World", stWorldName: "World name", stGame: "Game", stGameName: "Game title", stRename: "Rename", stRenamed: "Saved.",
       stImport: "Import notes (.md)", stDraft: "✦ GDD draft from a description", draftQ: "Describe the game in a few sentences", draftPh: "Genre, what the player does, the feeling, who from the canon it builds on, platform… E.g. “A roguelike in the ruins of the Northern Forest: Elara hunts an artifact, fights are short and fast, PC”.", draftGo: "Write the draft", draftIntro: "Check the AI draft. Only what you tick goes into the canon and cards; the questions are decisions worth making next.", draftHint: "No notes — describe the idea and AI writes the first GDD on the world canon: overview, loop, mechanics, enemies, levels, art and sound. You tick what to take.", stImportHint: "AI sorts the notes into this game's sections; you tick what to accept. You can ask the AI agent working on your project (e.g. Claude Code) to compile such a file from your repository into one .md.",
@@ -1641,11 +1641,19 @@
       : { d: world, key: worldId, ref: wref(), base: "worlds/" + worldId + "/cover/", gid: undefined, own: !!(me && world && world.owner === me.uid) };
   }
   function worldCoverHtml() {
-    var T = coverTarget(), c = T.d && T.d.cover, st = c && c.frame && window.wwFrame ? ' style="' + window.wwFrame.style(c.frame) + '"' : '';
+    var T = coverTarget(), c = T.d && T.d.cover, bf = c && (c.banner || c.frame), st = bf ? ' style="object-position:' + (Number(bf.x) >= 0 ? +bf.x : 50) + '% ' + (Number(bf.y) >= 0 ? +bf.y : 50) + '%"' : '';
     return '<div class="wcover is-banner">' + (!c || !c.url ? '<img src="assets/ph-world.jpg" alt="">'
       : c.type === "video" ? '<video src="' + esc(c.url) + '"' + st + ' data-vworld="' + esc(T.key) + '" muted' + (vStopped(T.key) ? ' preload="auto"' : ' autoplay preload="metadata"') + ' loop playsinline aria-hidden="true"></video>' + vStopBtn(T.key)
       : '<img src="' + esc(c.url) + '"' + st + ' alt="">') +
+      (T.own && c && c.url && window.wwFrame ? '<button type="button" class="wcover__ed wcover__fr" data-bframe title="' + esc(STR.wname.bannerFrame) + '" aria-label="' + esc(STR.wname.bannerFrame) + '">⌖</button>' : '') +
       (T.gid ? guideCoverBtn() : '') + (T.gid && T.own ? '<button type="button" class="wcover__ed" data-gcover title="' + esc(STR.wname.coverEdit) + '" aria-label="' + esc(STR.wname.coverEdit) + '">✎</button>' : '') + worldNameHtml() + '</div>'; // the name on the banner (v2.104) // the world's cover is edited on its card in «Світи»
+  }
+  // ⌖ on the banner (owner, v2.104.3): which strip of the cover the banner shows — the picker takes the banner's own shape
+  function bannerFrame(el) {
+    var T = coverTarget(), c = T.d && T.d.cover; if (!c || !c.url || !el) return;
+    var r = el.getBoundingClientRect();
+    window.wwFrame.pick({ url: c.url, video: c.type === "video", frame: c.banner || c.frame, lang: LANG, aspect: r.width + "/" + r.height, noContain: true, title: STR.wname.bannerFrame,
+      onSave: function (fr) { return T.ref.set({ cover: { banner: { x: fr.x, y: fr.y } }, updatedAt: stamp() }, { merge: true }).then(function () { T.d.cover.banner = { x: fr.x, y: fr.y }; render(); }, function (er) { notify(STR.failed + ": " + (er.code || er.message)); throw er; }); } });
   }
   // a game's cover: an image ≤ 10 MB or an MP4 / WebM video ≤ 50 MB with its ⌖ frame — the same as a world's (White.html openWorldEdit)
   function editGameCover() {
@@ -4706,8 +4714,8 @@
   // 📚 «Історії світу» (owner, v2.102.4): every story of the world on the shelf — its own menu item, like «Історії гри» in a game
   function renderWorldStories(s) {
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row"><button class="btn primary" id="ws-new">' + STR.sub.story + '</button></div></header>' + storyShelfHtml(stories, "ws-newbook", STR.chron.noStories);
-    $("ws-new").onclick = $("ws-newbook").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
+      '</header>' + storyShelfHtml(stories, "ws-newbook", STR.chron.noStories);
+    $("ws-newbook").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId }); };
   }
 
   // the stories stand as books on a shelf (owner, v2.102): a cover opens the Book to read and write on (no mage — he greets only a new story),
@@ -4740,9 +4748,9 @@
   function renderGameStories(s) {
     var mine = stories.filter(function (p) { return (p.games || []).indexOf(gameId) >= 0; });
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row"><button class="btn primary" id="gs-new">' + STR.sub.story + '</button></div></header>' +
+      '</header>' +
       storyShelfHtml(mine, "gs-newbook", STR.chron.noGameStories) + '<p class="hint">' + STR.chron.gameStoriesHint + '</p>';
-    $("gs-new").onclick = $("gs-newbook").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId, gameId: gameId }); };
+    $("gs-newbook").onclick = function () { tellShell({ type: "ww-new-story", worldId: worldId, gameId: gameId }); };
   }
   function renderGameLocked() {
     $("view").innerHTML = '<div class="newgame"><h1>' + esc(STR.wt.gameLocked) + '</h1><p class="muted">' + esc(STR.wt.gameLockedText) + '</p>' +
@@ -9344,6 +9352,7 @@
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return; // «🔗 Що зачепить зміна» in the mechanics constructor
     if (e.target.closest("[data-wname]")) return editWorldName();
     if (e.target.closest("[data-gcover]")) return editGameCover();
+    var bfb = e.target.closest("[data-bframe]"); if (bfb) return bannerFrame(bfb.closest(".wcover"));
     if (e.target.closest("[data-guide]")) return guideToggle();
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     if (mechClick(e)) return;

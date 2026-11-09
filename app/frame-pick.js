@@ -30,20 +30,22 @@
       ".wwfr button[aria-pressed=true],.wwfr .wwfr__save{color:#1c1308;border-color:transparent;background:linear-gradient(180deg,#f6cf7e,#f0a93b)}";
     document.head.appendChild(st);
   }
-  // opts: { url, video, frame, lang, onSave(frame) → Promise|void }
+  // opts: { url, video, frame, lang, onSave(frame) → Promise|void, aspect ("w/h" — the stage's shape, default 16/9), noContain, title }
   function pick(opts) {
     css();
     var L = T[opts.lang === "en" ? "en" : "uk"], fr = norm(opts.frame);
     var box = document.createElement("div"); box.className = "wwfr";
-    box.innerHTML = '<div class="wwfr__box" role="dialog" aria-modal="true" aria-labelledby="wwfr-h"><h3 id="wwfr-h">' + L.title + '</h3><p class="wwfr__hint">' + L.hint + '</p>' +
+    box.innerHTML = '<div class="wwfr__box" role="dialog" aria-modal="true" aria-labelledby="wwfr-h"><h3 id="wwfr-h">' + (opts.title || L.title) + '</h3><p class="wwfr__hint">' + L.hint + '</p>' +
       '<div class="wwfr__stage" tabindex="0" role="application" aria-label="' + L.title + '"></div>' +
       '<div class="wwfr__row"><button type="button" data-fit="cover">' + L.cover + '</button><button type="button" data-fit="contain">' + L.contain + '</button>' +
       '<button type="button" data-reset>' + L.reset + '</button><span class="wwfr__sp"></span>' +
       '<button type="button" data-x>' + L.cancel + '</button><button type="button" class="wwfr__save" data-ok>' + L.save + '</button></div></div>';
+    if (opts.noContain) { fr.fit = "cover"; [].forEach.call(box.querySelectorAll("[data-fit]"), function (b) { b.remove(); }); }
     var stage = box.querySelector(".wwfr__stage"), media = document.createElement(opts.video ? "video" : "img");
     media.src = opts.url; media.alt = "";
     if (opts.video) { media.muted = true; media.autoplay = true; media.loop = true; media.playsInline = true; }
     stage.appendChild(media);
+    if (opts.aspect) stage.style.aspectRatio = opts.aspect;
     function paint() {
       media.style.cssText = style(fr);
       [].forEach.call(box.querySelectorAll("[data-fit]"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.fit === fr.fit)); });

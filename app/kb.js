@@ -373,7 +373,7 @@
         lead: "Поступово з AI, усе одразу або пишу сам.",
         min: 3,
         body: [
-          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» («＋ Нова історія»), у грі — в «Історіях гри», або з досьє («＋ Історія» — історія про цього героя чи подію)."],
+          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» (книга «＋ Нова історія» на полиці), у грі — в «Історіях гри», або з досьє («＋ Історія» — історія про цього героя чи подію)."],
           ["ul", [
             "🪶 Поступово (Guided, за замовчуванням) — AI пише по одній сцені, перед кожною наступною питає напрям.",
             "⚡ Автоматично (Auto) — AI пише весь обсяг одразу: оповідання, новела, сезон.",
@@ -506,7 +506,7 @@
           ["p", "Подія має початок, тривалість (хвіст комети; без тривалості — зірка), підпис часу й учасників (аватари над головою комети). Комети не перекриваються, крок шкали підбирається сам; одиницю часу задаєш ти."],
           ["p", "Кожен підрозділ хроніки — своя лінія часу; ✎ біля назви перейменовує її (події переїжджають разом). Події без дати чекають під лінією. Подію відкриває клік по комети або її назві — у досьє змінюєш назву, дату, тривалість і учасників."],
           ["h", "Історії світу"],
-          ["p", "Окремий пункт меню <b>«Історії світу»</b> (перед «Хронікою») — <b>полиця книг</b>: кожна історія світу стоїть як книга з назвою на обкладинці. Це єдине місце, де вони живуть (у хабі світу їх більше немає). Клік по обкладинці відкриває нашу Книгу з цією історією — читати її й писати далі, без ритуалу. Остання книга з «＋» (як і «＋ Нова історія» вгорі) створює нову історію: форма, а потім маг відкриває книгу — лише цього, першого разу."],
+          ["p", "Окремий пункт меню <b>«Історії світу»</b> (перед «Хронікою») — <b>полиця книг</b>: кожна історія світу стоїть як книга з назвою на обкладинці. Це єдине місце, де вони живуть (у хабі світу їх більше немає). Клік по обкладинці відкриває нашу Книгу з цією історією — читати її й писати далі, без ритуалу. Остання книга з «＋ Нова історія» створює нову історію: форма, а потім маг відкриває книгу — лише цього, першого разу."],
           ["p", "Під обкладинкою — ✎ (назва, опис, обсяг, фінал, жанри) і 🗑 (видалити, з підтвердженням). «Налаштування історії» розгортає решту: про кого вона, опис, позначку розкриття, 💡 квест із історії і два теги:"],
           ["ul", [
             "Масштаб — «Загальна історія світу» чи «Локальна історія» (про одне місце, героя чи подію).",
@@ -873,7 +873,7 @@
         lead: "Дизайн гри поверх канону світу.",
         min: 3,
         body: [
-          ["p", "У світі може бути кілька ігор, і кожна — окремий GDD. «Огляд гри» відкривається, як «Огляд світу»: угорі невисокий банер-обкладинка гри (картинка до 10 МБ або відео MP4 / WebM до 50 МБ, що грає по колу без звуку, з ⌖ кадром і ⏸/▶), а назва гри — шрифтом або картинкою з повзунком висоти — стоїть просто на ньому, знизу по центру. 👤 фоловери й ★ рейтинг — у смузі вгорі, праворуч від лого. Банер завжди заповнений: ⌖ обирає, яку смугу картинки видно. ✎ на обкладинці й біля назви бачить власник світу, при наведенні. Відкривається гра з хабу світу (картка гри → «Відкрити GDD») або з Біблії світу — «Повʼязані ігри» внизу її меню. У GDD гри меню лише гри; угорі — «‹ Канон світу», що веде назад у Біблію світу. Перемикача між іграми в GDD немає: інша гра — через хаб чи «Повʼязані ігри». Звʼязки з каноном лишаються: «＋ Додати з канону», картки персонажів і локацій канону в грі, квести на сутностях канону, 💡 у досьє (якщо ігор кілька — Біблія спитає, у яку). Меню гри — дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
+          ["p", "У світі може бути кілька ігор, і кожна — окремий GDD. «Огляд гри» відкривається, як «Огляд світу»: угорі невисокий банер-обкладинка гри (картинка до 10 МБ або відео MP4 / WebM до 50 МБ, що грає по колу без звуку, з ⌖ кадром і ⏸/▶), а назва гри — шрифтом або картинкою з повзунком висоти — стоїть просто на ньому, знизу по центру. 👤 фоловери й ★ рейтинг — у смузі вгорі, праворуч від лого. Банер завжди заповнений: ⌖ у його лівому верхньому куті (власник, при наведенні) — «Кадр банера», яку смугу обкладинки видно; кадр картки 16:9 у хабі — окремо. ✎ на обкладинці й біля назви бачить власник світу, при наведенні. Відкривається гра з хабу світу (картка гри → «Відкрити GDD») або з Біблії світу — «Повʼязані ігри» внизу її меню. У GDD гри меню лише гри; угорі — «‹ Канон світу», що веде назад у Біблію світу. Перемикача між іграми в GDD немає: інша гра — через хаб чи «Повʼязані ігри». Звʼязки з каноном лишаються: «＋ Додати з канону», картки персонажів і локацій канону в грі, квести на сутностях канону, 💡 у досьє (якщо ігор кілька — Біблія спитає, у яку). Меню гри — дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
           ["ul", [
             "<b>Огляд і лор</b> — Огляд гри · Лор гри · Історії гри",
             "<b>Персонажі й вороги</b> — Персонажі · Фракції · Вороги й боси · Кузня персонажів (виробництво персонажа й екіпірування, див. «⚒ Кузня персонажів»)",
@@ -1768,7 +1768,7 @@
         lead: "Step by step with AI, everything at once, or I write it myself.",
         min: 3,
         body: [
-          ["p", "Stories are created in the World Bible: in “World stories” (“＋ New story”), in a game — in “Game stories”, or from a dossier (“＋ Story” — a story about this hero or event)."],
+          ["p", "Stories are created in the World Bible: in “World stories” (the “＋ New story” book on the shelf), in a game — in “Game stories”, or from a dossier (“＋ Story” — a story about this hero or event)."],
           ["ul", [
             "🪶 Guided (default) — AI writes one scene at a time and asks for the direction before the next.",
             "⚡ Auto — AI writes the whole volume at once: a short story, a novella, a season.",
@@ -1901,7 +1901,7 @@
           ["p", "An event has a start, a duration (the comet's tail; no duration — a star), a time label and participants (avatars above the comet's head). Comets never overlap, the scale step picks itself; you set the time unit."],
           ["p", "Every chronicle subsection is its own time line; ✎ next to its name renames it (its events move along). Undated events wait below the line. A click on a comet or its name opens the event — in the dossier you change its name, date, duration and participants."],
           ["h", "Stories of the world"],
-          ["p", "A menu item of its own, <b>“World stories”</b> (before “Chronicle”), holds <b>a shelf of books</b>: each story of the world stands as a book with its title on the cover. This is the only place they live (the world hub no longer lists them). A click on a cover opens our Book with that story — to read it and write on, no ritual. The last book with “＋” (like “＋ New story” at the top) creates a new story: the form, then the mage opens the book — only this first time."],
+          ["p", "A menu item of its own, <b>“World stories”</b> (before “Chronicle”), holds <b>a shelf of books</b>: each story of the world stands as a book with its title on the cover. This is the only place they live (the world hub no longer lists them). A click on a cover opens our Book with that story — to read it and write on, no ritual. The last book, “＋ New story”, creates a new story: the form, then the mage opens the book — only this first time."],
           ["p", "Under a cover — ✎ (title, description, length, ending, genres) and 🗑 (delete, with a confirmation). “Story settings” unfolds the rest: who it is about, the description, the reveal mark, 💡 a quest from the story and two tags:"],
           ["ul", [
             "Scope — “World-wide story” or “Local story” (about one place, hero or event).",
@@ -2268,7 +2268,7 @@
         lead: "The game design on top of the world canon.",
         min: 3,
         body: [
-          ["p", "A world can have several games, and each is its own GDD. “Game overview” opens like “World overview”: a low cover banner on top (an image up to 10 MB or an MP4 / WebM video up to 50 MB that loops silently, with a ⌖ frame and ⏸/▶), and the game's name — in the font or as an image with a height slider — sits right on it, bottom centre. 👤 followers and ★ rating are in the strip on top, right of the logo. The banner is always filled: ⌖ picks which strip of the picture is seen. The world's owner sees ✎ on the cover and by the name, on hover. A game opens from the world hub (a game card → “Open the GDD”) or from the World Bible — “Linked games” at the foot of its menu. A game's GDD shows only the game's menu; on top, “‹ World canon” leads back to the World Bible. There is no game switcher inside a GDD: another game is through the hub or “Linked games”. The links to the canon stay: “＋ Add from canon”, canon characters and locations in the game, quests on canon entities, 💡 in dossiers (with several games the Bible asks which). The game menu is a tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
+          ["p", "A world can have several games, and each is its own GDD. “Game overview” opens like “World overview”: a low cover banner on top (an image up to 10 MB or an MP4 / WebM video up to 50 MB that loops silently, with a ⌖ frame and ⏸/▶), and the game's name — in the font or as an image with a height slider — sits right on it, bottom centre. 👤 followers and ★ rating are in the strip on top, right of the logo. The banner is always filled: ⌖ in its top-left corner (owner, on hover) is the “Banner frame” — which strip of the cover shows; the 16:9 card frame in the hub is separate. The world's owner sees ✎ on the cover and by the name, on hover. A game opens from the world hub (a game card → “Open the GDD”) or from the World Bible — “Linked games” at the foot of its menu. A game's GDD shows only the game's menu; on top, “‹ World canon” leads back to the World Bible. There is no game switcher inside a GDD: another game is through the hub or “Linked games”. The links to the canon stay: “＋ Add from canon”, canon characters and locations in the game, quests on canon entities, 💡 in dossiers (with several games the Bible asks which). The game menu is a tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
           ["ul", [
             "<b>Overview & lore</b> — Game overview · Game lore · Game stories",
             "<b>Characters & enemies</b> — Characters · Factions · Enemies & bosses · Character forge (a character's and its equipment's production, see “⚒ Character forge”)",

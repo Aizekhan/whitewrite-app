@@ -227,6 +227,7 @@ header.wsec{ grid-template-columns:1fr; } header.wsec p{ margin-left:auto; margi
 .wcover.is-banner h1.wname{ position:absolute; left:0; right:0; bottom:16px; z-index:2; margin:0; text-shadow:0 2px 14px rgba(0,0,0,.8); }
 .wcover.is-banner h1.wname img{ max-height:92px; filter:drop-shadow(0 2px 10px rgba(0,0,0,.7)); }
 .wcover.is-banner .vstop{ bottom:auto; top:10px; left:10px; right:auto; }
+.wcover__fr{ right:auto; left:54px; } .wcover:not(:has(.vstop)) .wcover__fr{ left:10px; }
 .wcover.is-banner + header.wsec{ padding-top:8px; }
 @media (max-width:820px){ .wcover.is-banner{ height:clamp(160px,26vh,240px); } .wcover.is-banner h1.wname{ bottom:10px; } }
 .canonbox, .qbox, .nbox{ margin:16px 0 4px; padding:14px 16px; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-1); }
