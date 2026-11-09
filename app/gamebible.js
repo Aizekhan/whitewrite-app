@@ -1337,6 +1337,8 @@
       var s = shelves.filter(function (x) { return x.id === id; })[0]; if (!s) return { s: shelves[0], group: "" };
       return { s: s, group: s.groups ? (s.groups[LANG] || s.groups.uk)[gi] : "" };
     };
+    var byCast = { boss: ["enemies", 2], enemy: ["enemies", 0], hero: ["characters", 0], ally: ["characters", 1], npc: ["characters", 2] }[e.cast];
+    if (byCast) return at(byCast[0], byCast[1]);
     return CAST_RX.boss.test(t) ? at("enemies", 2) : CAST_RX.foe.test(t) ? at("enemies", 0) : CAST_RX.hero.test(t) ? at("characters", 0) : CAST_RX.ally.test(t) ? at("characters", 1) : at("characters", 2);
   }
   function shelfFor(e) {
@@ -1352,7 +1354,7 @@
     cards.forEach(function (c) {
       if (!c.canonRef || c.section !== "characters" || (c.fields && c.fields.group)) return;
       var e = entities.filter(function (x) { return x.id === c.canonRef; })[0], d = e && canonShelf(e); if (!d) return;
-      if (d.s.id === "characters" && !CAST_RX.hero.test([e.role, e.group].join(" ")) && !CAST_RX.ally.test([e.role, e.group].join(" "))) return; // unknown role: «NPC» is only shown, not written
+      if (d.s.id === "characters" && !e.cast && !CAST_RX.hero.test([e.role, e.group].join(" ")) && !CAST_RX.ally.test([e.role, e.group].join(" "))) return; // unknown role: «NPC» is only shown, not written
       batch.set(gref().collection("cards").doc(c.id), { section: d.s.id, fields: { group: d.group }, updatedAt: stamp() }, { merge: true }); n++;
     });
     batch.set(gref(), { castSorted: true }, { merge: true });
@@ -2179,7 +2181,7 @@
   var dos = null, ddraft = null, dfirst = "", dtab = "main";
   function descKeyOf(e) { return e.desc !== undefined || e.description === undefined ? "desc" : "description"; }
   function dosSection(kind) { return CANON.filter(function (s) { return s.dossier === kind; })[0]; }
-  function entImage(e) { return ((e && e.files) || []).filter(isImage)[0]; }
+  function entImage(e) { var p = ((e && e.files) || []).filter(isImage); return (e && e.portrait && p.filter(function (f) { return f.id === e.portrait; })[0]) || p[0]; }
   // the author's frame of a face picture (⌖, frame-pick.js): which part fills the 16:9 thumb, or all of it
   function frameAttr(f) { return f && f.frame && window.wwFrame ? ' style="' + window.wwFrame.style(f.frame) + '"' : ''; }
   function pickFrame(target, id) {
@@ -2280,7 +2282,8 @@
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
-    if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; } // 🧠 the constructor's draft
+    if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; // 🧠 the constructor's draft
+      ddraft.faction = csFaction(e); ddraft.cast = e.cast || ""; }
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
@@ -2300,6 +2303,8 @@
     ["at", "dur", "when"].forEach(function (k) { var i = $("d-" + k); if (i) ddraft[k] = i.value; });
     [].forEach.call(document.querySelectorAll("#d-body [data-lf]"), function (t) { ddraft.fields[t.dataset.lf] = t.value; });
     pzCollect();
+    [].forEach.call(document.querySelectorAll("#d-body [data-cs]"), function (s) { if (s.value.indexOf("__") === 0) return; if (s.value) ddraft.appearance[s.dataset.cs] = s.value; else delete ddraft.appearance[s.dataset.cs]; });
+    var cf = document.querySelector("#d-body [data-csfac]"); if (cf && cf.value.indexOf("__") !== 0) ddraft.faction = cf.value;
     if (ddraft.appearance) [].forEach.call(document.querySelectorAll("#d-body [data-lk]"), function (i) { if (i.value.trim()) ddraft.appearance[i.dataset.lk] = i.value.trim(); else delete ddraft.appearance[i.dataset.lk]; });
   }
   function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
@@ -2331,11 +2336,43 @@
       '<div class="newfield"><input id="ln-at" style="flex:.5" placeholder="' + esc(STR.dos.lifeWhen) + '"><input id="ln-text" placeholder="' + esc(STR.dos.lifeText) + '">' +
       '<button class="btn" id="ln-add">' + STR.dos.lifeAdd + '</button></div></div>';
   }
+  // 🛡 Character sheet (owner, v2.107): a portrait in a frame like the Forge's, a column of the main traits beside it (who — hero / ally / NPC /
+  // enemy / boss, race, sex, faction, age, height + build), the description under it. The traits are the «Зовнішність» fields
+  // (entities/{id}.appearance, persona.js LOOK) — one place; the faction is entities/{id}.faction, «who» is entities/{id}.cast (sorts it in a game)
+  var CS = {
+    uk: { cast: "Хто це", lbl: { people: "Раса", sex: "Стать", age: "Вік", height: "Зріст", build: "Статура" }, casts: { hero: "Герой", ally: "Союзник", npc: "NPC", enemy: "Ворог", boss: "Бос" }, own: "✎ Своє…", ownQ: "Своє значення", faction: "Фракція",
+      newFac: "＋ Нова фракція…", newFacQ: "Назва нової фракції", portrait: "＋ Портрет", portraitTip: "Завантажити портрет", change: "Змінити портрет", setP: "Зробити портретом", isP: "Портрет", saveFirst: "Спершу збережи картку" },
+    en: { cast: "Who", lbl: { people: "Race", sex: "Sex", age: "Age", height: "Height", build: "Build" }, casts: { hero: "Hero", ally: "Ally", npc: "NPC", enemy: "Enemy", boss: "Boss" }, own: "✎ Own…", ownQ: "Your own value", faction: "Faction",
+      newFac: "＋ New faction…", newFacQ: "Name of the new faction", portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
+  }[LANG];
+  function csFaction(e) { var f = e.faction || (Array.isArray(e.factions) ? e.factions[0] : ""); return typeof f === "string" ? f : ""; }
+  function csOpts(f) { var base = f.opts === "peoples" ? f.base : f.opts, l = (base[LANG] || base.uk).slice(); if (f.opts === "peoples") l = lookPeoples().concat(l.filter(function (x) { return lookPeoples().indexOf(x) < 0; })); return l; }
+  function csSel(id, extra) {
+    var f = window.__PERSONA.LOOK_FIELDS.filter(function (x) { return x.id === id; })[0], v = ddraft.appearance[id] || "", l = csOpts(f);
+    if (v && l.indexOf(v) < 0) l.unshift(v);
+    return '<label class="cs-f' + (extra || "") + '"><span title="' + esc(L(f)) + '">' + esc(CS.lbl[id] || L(f)) + '</span><select data-cs="' + id + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+      l.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join("") + '<option value="__own">' + esc(CS.own) + '</option></select></label>';
+  }
+  function sheetHtml(e) {
+    var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = ddraft.faction, cast = ddraft.cast || "";
+    var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + (canWrite && !e.isNew ? '<button type="button" class="cs-chg" data-csportrait title="' + esc(CS.change) + '" aria-label="' + esc(CS.change) + '">✎</button>' : '')
+      : canWrite ? '<button type="button" class="cs-ph" data-csportrait title="' + esc(CS.portraitTip) + '">' + esc(CS.portrait) + '</button>' : '<div class="cs-ph">⚔</div>';
+    return '<div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
+      '<div class="cs-f cs-who"><span>' + esc(CS.cast) + '</span><div class="cs-cast" role="group">' + Object.keys(CS.casts).map(function (k) {
+        return '<button type="button" class="cs-tag" data-cast="' + k + '" aria-pressed="' + (cast === k) + '"' + (canWrite ? '' : ' disabled') + '>' + esc(CS.casts[k]) + '</button>'; }).join("") + '</div></div>' +
+      csSel("people") + csSel("sex") +
+      '<label class="cs-f"><span>' + esc(CS.faction) + '</span><select data-csfac' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+        facs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === fv ? ' selected' : '') + '>' + esc(x.name || x.title || x.id) + '</option>'; }).join("") +
+        (fv && !facs.some(function (x) { return x.id === fv; }) ? '<option value="' + esc(fv) + '" selected>' + esc(fv) + '</option>' : '') +
+        (canWrite ? '<option value="__new">' + esc(CS.newFac) + '</option>' : '') + '</select></label>' +
+      csSel("age") + '<div class="cs-pair">' + csSel("height") + csSel("build") + '</div></div></div>';
+  }
   function dosFileRow(f) {
     return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
       '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
       (isAsset(f) ? licChip(f, dos.files, "data-dlic") : '') +
       (is3D(f) ? '<button class="btn" data-dview3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
+      (isImage(f) && dos.kind === "characters" && canWrite ? (entImage(dos) === f ? '<span class="chip cs-isp">★ ' + esc(CS.isP) + '</span>' : '<button class="btn" data-dportrait="' + esc(f.id) + '" title="' + esc(CS.setP) + '" aria-label="' + esc(CS.setP + " " + f.name) + '">☆</button>') : '') +
       (isImage(f) ? '<button class="btn" data-dframe="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
       '<button class="btn danger" data-drmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button></div>';
   }
@@ -2379,7 +2416,8 @@
     var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
     var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
       (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
-    html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="10">' + esc(ddraft.desc) + '</textarea></div>';
+    var descHtml = '<div class="field desc"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="10">' + esc(ddraft.desc) + '</textarea></div>';
+    html = ddraft.appearance && e.col !== "lore" ? sheetHtml(e) + descHtml + html : html + descHtml; // a character: the sheet, its description under it, then the files
     if (e.col === "lore") { // culture: its group's fields, no tabs
       $("d-body").innerHTML = html + loreGroup(e.group).defs.map(function (d) {
         return '<div class="field"><label for="lf-' + d.key + '">' + esc(d.label) + '</label><textarea id="lf-' + d.key + '" data-lf="' + d.key + '" rows="4">' + esc(ddraft.fields[d.key] || "") + '</textarea></div>';
@@ -2426,8 +2464,8 @@
     } catch (er) { out = '<p class="muted">' + STR.failed + ': ' + esc(er.code || er.message || er) + '</p>'; }
     if (dos === e && dtab === "appear" && $("d-appear")) $("d-appear").innerHTML = out;
   }
-  async function uploadEntityFiles(list) {
-    var e = dos, done = 0;
+  async function uploadEntityFiles(list, asPortrait) {
+    var e = dos, done = 0, last = null;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
       if (file.size > MAX_FILE) { dmsg(STR.fileTooBig + ": " + file.name); continue; }
@@ -2440,9 +2478,10 @@
         var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
         await localInfo(file, meta);
         await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() }, { merge: true });
-        e.files = (e.files || []).concat([meta]); done++;
+        e.files = (e.files || []).concat([meta]); done++; if (isImage(meta)) last = meta.id;
       } catch (er) { dmsg(STR.failed + ": " + file.name + " — " + (er.code || er.message || er)); return; }
     }
+    if (asPortrait && last) { await colOf(e).doc(e.id).set({ portrait: last }, { merge: true }).catch(function () {}); e.portrait = last; }
     if (dos === e) { dcollect(); renderDossier(); dmsg(STR.filesDone + ": " + done); }
   }
   async function removeEntityFile(id) {
@@ -2468,6 +2507,8 @@
     }
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
+    if (e.kind === "characters" && ddraft.faction !== csFaction(e)) body.faction = ddraft.faction || firebase.firestore.FieldValue.delete();
+    if (e.kind === "characters" && ddraft.cast !== (e.cast || "")) body.cast = ddraft.cast || firebase.firestore.FieldValue.delete();
     if (ddraft.personality) { var pz = window.__PERSONA.cleanPersona(ddraft.personality), pz0 = window.__PERSONA.cleanPersona(e.personality); if (e.isNew || JSON.stringify(pz) !== JSON.stringify(pz0)) {
       ["answers", "traits"].forEach(function (g) { Object.keys(pz0[g]).forEach(function (k) { if (!(k in pz[g])) pz[g][k] = firebase.firestore.FieldValue.delete(); }); }); // set(merge) merges maps: a cleared answer is deleted explicitly
       body.personality = Object.assign(pz, { updatedAt: Date.now() });
@@ -4633,6 +4674,9 @@
   });
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
+    var ct = e.target.closest("[data-cast]"); if (ct && ddraft) { ddraft.cast = ddraft.cast === ct.dataset.cast ? "" : ct.dataset.cast; [].forEach.call(document.querySelectorAll("#d-body [data-cast]"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.cast === ddraft.cast)); }); return; }
+    if (e.target.closest("[data-csportrait]")) { if (dos.isNew) { dmsg(CS.saveFirst); return; } csPortraitNext = true; $("d-pic-up").click(); return; }
+    var dp = e.target.closest("[data-dportrait]"); if (dp) { setPortrait(dp.dataset.dportrait); return; }
     var db2 = e.target.closest("[data-bulb]");
     if (db2) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); }); return; }
     var dq = e.target.closest("[data-dqd]");
@@ -4671,6 +4715,9 @@
   });
   $("d-body").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.target.id === "ln-at" || e.target.id === "ln-text")) { e.preventDefault(); $("ln-add").click(); } });
   $("d-body").addEventListener("change", function (e) {
+    var cs = e.target.dataset && e.target.dataset.cs;
+    if (cs && e.target.value === "__own") { var sel = e.target; askName(CS.ownQ, "", function (v) { dcollect(); if (v) ddraft.appearance[cs] = v; renderDossier(); }, "", { ok: STR.save }); sel.value = ddraft.appearance[cs] || ""; return; }
+    if (e.target.hasAttribute && e.target.hasAttribute("data-csfac") && e.target.value === "__new") { e.target.value = ddraft.faction || ""; newFaction(); return; }
     if (e.target.id === "d-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); }
   });
 
@@ -9679,7 +9726,26 @@
   document.addEventListener("click", function (e) { if (!e.target.closest("#e-pic-w")) picMenu(false); });
   $("e-pic-up").addEventListener("change", function (e) { picMenu(false); if (!e.target.files.length || !open) return; var fl = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(fl, picField() || undefined); });
   $("e-pic-art").addEventListener("click", function () { picMenu(false); if (!open) return; [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(picField()); });
-  $("d-pic-up").addEventListener("change", function (e) { if (!e.target.files.length || !dos) return; var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); });
+  var csPortraitNext = false;
+  $("d-pic-up").addEventListener("change", function (e) { var asP = csPortraitNext; csPortraitNext = false; if (!e.target.files.length || !dos) return; var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list, asP); });
+  $("d-pic-up").addEventListener("cancel", function () { csPortraitNext = false; });
+  async function setPortrait(id) {
+    var e = dos; if (!e) return;
+    try { await colOf(e).doc(e.id).set({ portrait: id, updatedAt: stamp() }, { merge: true }); e.portrait = id; if (dos === e) { dcollect(); renderDossier(); } }
+    catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+  }
+  function newFaction() {
+    askName(CS.newFacQ, "", async function (name) {
+      if (!name || !dos) return;
+      var id = entityId("factions"), e = dos;
+      try {
+        await wref().collection("entities").doc(id).set({ id: id, kind: "factions", name: name, slug: slugify(name), createdAt: stamp(), updatedAt: stamp(),
+          origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
+        if (!entities.some(function (x) { return x.id === id; })) entities.push({ id: id, kind: "factions", name: name });
+        if (dos === e) { dcollect(); ddraft.faction = id; renderDossier(); }
+      } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+    });
+  }
   $("e-story").addEventListener("click", function () { var ent = entities.filter(function (x) { return x.id === open.id; })[0]; if (ent) { closeLeaf(); newStoryDialog(ent); } });
   $("e-quest").addEventListener("click", function () { var bp = this.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); });
   $("d-story").addEventListener("click", function () { if (dos) newStoryDialog(dos); });
