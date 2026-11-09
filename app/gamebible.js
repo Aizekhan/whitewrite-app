@@ -1486,8 +1486,8 @@
     var hay = (c.title + " " + c.note + " " + (c.canonDesc ? c.canonDesc.value : "") + " " + Object.keys(c.fields).map(function (k) { return c.fields[k]; }).join(" ")).toLowerCase();
     return query.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
   }
-  // 🚩 factions (owner, v2.104.5): a card is a vertical banner on a pole — its cloth colour and hem (swallowtail, point, three tails, tattered) follow its id
-  function bannerCls(id) { var h = 0; String(id || "").split("").forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return " card--banner bn-hem" + (h % 4) + " bn-cl" + ((h >>> 3) % 5); }
+  // 🚩 factions (owner, v2.115.1): a card is one of the owner's six painted banners (app/assets/banners), picked by its id
+  function bannerCls(id) { var h = 0; String(id || "").split("").forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return " card--banner bn-" + (h % 6); }
   function cardHtml(c) {
     var st = STATUS[c.status] || STATUS.idea;
     var tags = ['<span class="pill ' + st.cls + '">' + esc(L(st)) + '</span>'];
