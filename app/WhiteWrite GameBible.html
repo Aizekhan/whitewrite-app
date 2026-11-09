@@ -219,13 +219,13 @@ header.wsec{ grid-template-columns:1fr; } header.wsec p{ margin-left:auto; margi
 .wn-prev img{ max-width:100%; object-fit:contain; }
 .wn-line{ display:flex; align-items:center; justify-content:center; outline:1px dashed rgba(240,169,59,.25); } .wn-line img{ max-height:100%; } .wn-font{ font:700 34px var(--brand); color:var(--tx-hi); text-align:center; }
 .wcover{ aspect-ratio:16/9; max-height:56vh; width:100%; border-radius:14px; overflow:hidden; position:relative; border:1px solid var(--line-2); background:#0b0a0d; margin:0 0 18px; }
-.wcover img,.wcover video{ width:100%; height:100%; object-fit:cover; display:block; }
+.wcover > img,.wcover > video{ width:100%; height:100%; object-fit:cover; display:block; }
 /* «Огляд світу / гри» (v2.104): a low banner instead of a screen-high picture — the name sits on it, over a dark fade at the bottom */
 .wcover.is-banner{ aspect-ratio:auto; height:clamp(190px,30vh,320px); max-height:none; margin:0 0 6px; }
-.wcover.is-banner img, .wcover.is-banner video{ object-fit:cover !important; } /* a banner is always filled; the ⌖ frame still picks which strip is seen */
+.wcover.is-banner > img, .wcover.is-banner > video{ object-fit:cover !important; } /* a banner is always filled; the ⌖ frame still picks which strip is seen */
 .wcover.is-banner::after{ content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg,rgba(7,6,8,.15) 0%,rgba(7,6,8,0) 35%,rgba(7,6,8,.55) 72%,rgba(7,6,8,.88) 100%); }
 .wcover.is-banner h1.wname{ position:absolute; left:0; right:0; bottom:16px; z-index:2; margin:0; text-shadow:0 2px 14px rgba(0,0,0,.8); }
-.wcover.is-banner h1.wname img{ max-height:92px; filter:drop-shadow(0 2px 10px rgba(0,0,0,.7)); }
+.wcover.is-banner h1.wname img{ width:auto; max-width:100%; max-height:92px; object-fit:contain; filter:drop-shadow(0 2px 10px rgba(0,0,0,.7)); }
 .wcover.is-banner .vstop{ bottom:auto; top:10px; left:10px; right:auto; }
 .wcover__fr{ right:auto; left:54px; } .wcover:not(:has(.vstop)) .wcover__fr{ left:10px; }
 .wcover.is-banner + header.wsec{ padding-top:8px; }
