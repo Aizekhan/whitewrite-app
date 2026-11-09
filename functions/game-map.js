@@ -237,7 +237,34 @@ function brush(a, size, kind, x, y, radius, strength) {
 // 16-bit little-endian RAW for the Unity terrain importer
 function toRaw16(a) { var buf = new Uint8Array(a.length * 2); for (var i = 0; i < a.length; i++) { var v = Math.round(Math.max(0, Math.min(1, a[i])) * 65535); buf[i * 2] = v & 255; buf[i * 2 + 1] = v >> 8; } return buf; }
 
-var GAMEMAP = { RES: RES, KINDS: KINDS, LINKS: LINKS, POINTS: POINTS, SPEED: SPEED, kindOf: kindOf, zones: zones, base: base, baseImage: baseImage, heightFile: heightFile,
+// 🏞 A location card's sheet (owner, v2.115): traits picked from lists beside its picture — `card.place { kind, role, danger, size, climate, light, mood }`;
+// a value is an option id, or the author's own text («✎ Своє…»)
+var PLACE = [
+  { k: 'kind', uk: 'Тип місця', en: 'Kind of place', o: [['town', 'місто', 'town'], ['village', 'село', 'village'], ['castle', 'фортеця / замок', 'fortress / castle'], ['ruins', 'руїни', 'ruins'],
+    ['temple', 'храм / святилище', 'temple / shrine'], ['camp', 'табір', 'camp'], ['dungeon', 'підземелля', 'dungeon'], ['cave', 'печера', 'cave'], ['forest', 'ліс', 'forest'], ['mountains', 'гори', 'mountains'],
+    ['plains', 'рівнина / поля', 'plains / fields'], ['swamp', 'болото', 'swamp'], ['desert', 'пустеля', 'desert'], ['coast', 'узбережжя', 'coast'], ['island', 'острів', 'island'], ['otherworld', 'інший світ / план', 'otherworld / plane']] },
+  { k: 'role', uk: 'Роль у грі', en: 'Role in the game', o: [['hub', 'хаб / безпечна зона', 'hub / safe zone'], ['open', 'відкритий світ', 'open world'], ['linear', 'лінійний рівень', 'linear level'],
+    ['instance', 'підземелля-інстанс', 'dungeon instance'], ['arena', 'арена боса', 'boss arena'], ['combat', 'бойова зона', 'combat zone'], ['story', 'сюжетна сцена', 'story scene'], ['secret', 'таємна локація', 'secret location']] },
+  { k: 'danger', uk: 'Небезпека', en: 'Danger', o: [['safe', 'безпечно', 'safe'], ['low', 'низька', 'low'], ['mid', 'середня', 'medium'], ['high', 'висока', 'high'], ['deadly', 'смертельна', 'deadly']] },
+  { k: 'size', uk: 'Розмір', en: 'Size', o: [['room', 'кімната', 'a room'], ['small', 'мала (до 100 м)', 'small (up to 100 m)'], ['mid', 'середня (100–500 м)', 'medium (100–500 m)'],
+    ['large', 'велика (0,5–1 км)', 'large (0.5–1 km)'], ['huge', 'величезна (1–2 км)', 'huge (1–2 km)']] },
+  { k: 'climate', uk: 'Клімат', en: 'Climate', o: [['mild', 'помірний', 'temperate'], ['cold', 'холод / сніг', 'cold / snow'], ['hot', 'спека / сухо', 'hot / dry'], ['tropic', 'тропіки / волого', 'tropical / humid'],
+    ['fog', 'туман / дощ', 'fog / rain'], ['under', 'під землею', 'underground'], ['magic', 'магічний', 'magical']] },
+  { k: 'light', uk: 'Світло', en: 'Light', o: [['day', 'день', 'day'], ['dusk', 'сутінки', 'dusk'], ['night', 'ніч', 'night'], ['dark', 'вічна темрява', 'eternal dark'], ['cycle', 'цикл дня й ночі', 'day / night cycle'], ['indoor', 'штучне / вогонь', 'artificial / fire']] },
+  { k: 'mood', uk: 'Настрій', en: 'Mood', o: [['calm', 'спокійний', 'calm'], ['mystery', 'таємничий', 'mysterious'], ['tense', 'тривожний', 'tense'], ['grim', 'гнітючий', 'grim'],
+    ['solemn', 'урочистий', 'solemn'], ['horror', 'жахливий', 'horrifying'], ['joy', 'радісний', 'joyful'], ['epic', 'епічний', 'epic']] },
+];
+function placeLabel(k, v, lang) {
+  var f = byId(PLACE.map(function (x) { return { id: x.k, o: x.o }; }), k), o = f && f.o.filter(function (x) { return x[0] === v; })[0];
+  return o ? o[lang === 'en' ? 2 : 1] : String(v || '');
+}
+// card.place → [{ k, label, value }] in the language (only the filled traits)
+function placeText(place, lang) {
+  place = place || {};
+  return PLACE.filter(function (f) { return place[f.k]; }).map(function (f) { return { k: f.k, label: lbl(f, lang), value: placeLabel(f.k, place[f.k], lang) }; });
+}
+
+var GAMEMAP = { RES: RES, PLACE: PLACE, placeLabel: placeLabel, placeText: placeText, KINDS: KINDS, LINKS: LINKS, POINTS: POINTS, SPEED: SPEED, kindOf: kindOf, zones: zones, base: base, baseImage: baseImage, heightFile: heightFile,
   areaKm2: areaKm2, crossMin: crossMin, centroid: centroid, speedOf: speedOf, sceneName: sceneName, graph: graph, checks: checks, exportMap: exportMap, prompt: prompt,
   generate: generate, brush: brush, normalize: normalize, toRaw16: toRaw16, lbl: lbl };
 if (typeof module !== 'undefined' && module.exports) module.exports = GAMEMAP;

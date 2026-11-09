@@ -319,7 +319,11 @@ div.cs-ph{ cursor:default; font-size:46px; color:var(--tx-mid); }
 .field label.cs-chg{ display:grid; place-items:center; font-size:14px; color:var(--gold-bright); }
 .cs-wrap .cs{ margin:0; }
 .cs-isp{ color:var(--gold-bright); font-size:12.5px; white-space:nowrap; }
-@media (max-width:760px){ .cs-row, .cs-row3{ grid-template-columns:1fr 1fr; } .cs{ grid-template-columns:1fr; } .cs-frame{ width:min(100%,280px); margin:0 auto; } .cs-f{ grid-template-columns:1fr; gap:4px; } }
+/* 🏞 location sheet (v2.115): the same gold frame, landscape; the traits beside it; «На карті гри» under them */
+.cs--place{ grid-template-columns:minmax(240px,340px) minmax(0,1fr); } .cs--place .cs-frame{ aspect-ratio:4/3; align-self:start; }
+.cs-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font:600 11.5px "Inter",sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-lit, #f0a93b); }
+.cs-map .cs-tag{ text-transform:none; letter-spacing:0; font-weight:500; }
+@media (max-width:760px){ .cs-row, .cs-row3{ grid-template-columns:1fr 1fr; } .cs, .cs--place{ grid-template-columns:1fr; } .cs-frame{ width:min(100%,280px); margin:0 auto; } .cs-f{ grid-template-columns:1fr; gap:4px; } }
 .lk-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px 18px; margin-bottom:6px; }
 .lk-f{ display:grid; gap:4px; position:relative; }
 .lk-f > label{ font:500 12px/16px "Inter",sans-serif; color:var(--tx-mid); }

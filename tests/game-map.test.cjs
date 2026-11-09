@@ -73,6 +73,11 @@ const flat = new Float32Array(R * R).fill(0.5); GM.brush(flat, R, 'raise', 0.5, 
 check(flat[32 * R + 32] > 0.5 && flat[0] === 0.5, true, 'the raise brush lifts the centre only');
 const raw = GM.toRaw16(new Float32Array([0, 1])); check(Array.from(raw).join(), '0,0,255,255', '16-bit little-endian RAW');
 
+// 🏞 location sheet traits
+check(JSON.stringify(GM.placeText({ kind: 'ruins', mood: 'сонний', bogus: 'x' }, 'en')), JSON.stringify([{ k: 'kind', label: 'Kind of place', value: 'ruins' }, { k: 'mood', label: 'Mood', value: 'сонний' }]), 'place traits: labels in the language, own values as written');
+check(GM.placeLabel('danger', 'deadly', 'uk'), 'смертельна', 'a trait label in Ukrainian');
+check(GM.PLACE.every((f) => f.uk && f.en && f.o.length && f.o.every((o) => o.length === 3)), true, 'every trait has labels and [id, uk, en] options');
+
 // card references (KIND «zone»)
 const G = { cards, entities: [{ id: 'loc_morra', kind: 'locations', name: 'Морра' }], quests: [], dialogues: [], tasks: [], plan: {} };
 const rows = (key) => REFS.usedBy(G, key, 'uk').filter((r) => r.kind === 'zone').map((r) => r.side + ':' + (r.from.title || r.from.key)).sort().join(' | ');

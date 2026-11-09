@@ -38,7 +38,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
   { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status and files. Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
-  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style) — check them before changing it.',
+  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images). A location card has place — its traits (kind, role, danger, size, climate, light, mood). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
   { name: 'report_task_progress', description: 'A short progress note on the task you are working on (shown live to the author).',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
@@ -193,13 +193,18 @@ function cardView(ctx, ref) {
     const e = ctx.entities.find((x) => x.id === ref.slice(2)); if (!e) return null;
     const c = ctx.cards.find((x) => x.canonRef === e.id) || {};
     return { ref, canon: e.kind, title: e.name || '', description: e.desc || e.description || '', status: c.status || 'idea',
-      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...prefabOf(ctx, c) };
+      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...prefabOf(ctx, c) };
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
   const gp = groupPalette(ctx, c);
   return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
-    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...prefabOf(ctx, c) };
+    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...prefabOf(ctx, c) };
+}
+// 🏞 a location card's traits (kind of place, role, danger, size, climate, light, mood) in English; own values as written
+function placeOf(c) {
+  const t = GMAP.placeText(c && c.place, 'en');
+  return t.length ? { place: Object.fromEntries(t.map((x) => [x.k, x.value])) } : {};
 }
 // a hero card (character / enemy) links one card of «Ассети й префаби» instead of carrying model files: its title and kit
 function prefabOf(ctx, c) {

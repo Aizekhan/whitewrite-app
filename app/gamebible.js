@@ -1331,7 +1331,7 @@
     var gk = groupKey(s), dflt = s.groups && !(c.fields && c.fields[gk]) ? canonShelf(e) : null;
     if (dflt && dflt.s.id === s.id && dflt.group) { c = Object.assign({}, c); c.fields = Object.assign({}, c.fields); c.fields[gk] = dflt.group; }
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
   }
   // v2.104.4 (owner): a canon character in a game is a hero / ally / NPC («Герої та NPC») or an enemy / boss («Вороги й боси») —
   // by its role and world group; the shelf stored on its game card wins (the author moved it, or it was sorted when taken)
@@ -1374,7 +1374,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
   }
   function allCards() {
     var out = [];
@@ -5034,6 +5034,7 @@
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
     var cEnt = c.src === "canon" && !c.isNew && sec(c.section).canon === "characters" && entities.filter(function (x) { return x.id === c.id; })[0];
+    draft.place = PLACE_SECS.indexOf(c.section) >= 0 ? Object.assign({}, c.place || {}) : null; // 🏞 a location's sheet (v2.115)
     draft.sheet = cEnt ? csState(cEnt) : null; // 🛡 a canon character in a game: the same sheet as in the World Bible, it writes to the canon (v2.109)
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
     if (STATS_SECS.indexOf(c.section) >= 0) { // v2.88: the model file field becomes the prefab link; a portrait and references join
@@ -5093,6 +5094,32 @@
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">⚔</div>';
     return '<div class="field cs-wrap" data-sheet="' + esc(open.id) + '">' + sheetHtml(e, draft.sheet, frame) + '</div>';
   }
+  // 🏞 Location sheet (owner, v2.115): the location's picture in the same gold frame (landscape) and its traits beside it — lists of
+  // functions/game-map.js PLACE (+ «✎ Своє…»), kept on the game card as `place`; «На карті гри» — the map zones placed at this canon location
+  var PLACE_SECS = ["locations"];
+  function placeSheetHtml() {
+    var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "view"; }).slice(-1)[0] || pics[0];
+    if (!img && open.src === "canon") img = entImage(entities.filter(function (x) { return x.id === open.id; })[0] || {});
+    var up = canWrite ? '<label class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? PL.change : PL.picTip) + '"><input type="file" hidden accept="image/*" data-fup="view">' + (img ? '✎' : esc(PL.pic)) + '</label>' : '';
+    var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">🏞</div>';
+    var sel = function (k) {
+      var f = window.__GAMEMAP.PLACE.filter(function (x) { return x.k === k; })[0], v = draft.place[k] || "", own = v && !f.o.some(function (o) { return o[0] === v; });
+      return '<label class="cs-f"><span>' + esc(window.__GAMEMAP.lbl(f, LANG)) + '</span><select data-pl="' + k + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+        (own ? '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>' : '') +
+        f.o.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") +
+        (canWrite ? '<option value="__own">' + esc(CS.own) + '</option>' : '') + '</select></label>';
+    };
+    var zs = open.src === "canon" ? window.__GAMEMAP.zones(cards).filter(function (z) { return z.zone.location === open.id; }) : [];
+    var map = zs.length ? '<div class="cs-map">🗺 ' + esc(PL.onMap) + zs.map(function (z) { return '<button type="button" class="cs-tag" data-plzone="' + esc(z.id) + '">' + esc(z.title || "?") + '</button>'; }).join("") + '</div>' : '';
+    return '<div class="field cs-wrap"><div class="cs cs--place"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
+      '<div class="cs-row">' + sel("kind") + sel("role") + '</div><div class="cs-row">' + sel("danger") + sel("size") + '</div>' +
+      '<div class="cs-row cs-row3">' + sel("climate") + sel("light") + sel("mood") + '</div>' + map + '</div></div></div>';
+  }
+  function placeBody() { // a trait set back to «—» is deleted, not kept by the merge
+    var b = Object.assign({}, draft.place); Object.keys(open.place || {}).forEach(function (k) { if (!(k in b)) b[k] = firebase.firestore.FieldValue.delete(); }); return b;
+  }
+  var PL = { uk: { pic: "＋ Картинка локації", picTip: "Завантажити картинку локації", change: "Змінити картинку", onMap: "На карті гри" },
+    en: { pic: "＋ Location picture", picTip: "Upload a picture of the location", change: "Change the picture", onMap: "On the game map" } }[LANG === "en" ? "en" : "uk"];
   function renderFields() {
     if (draft && draft.sheet && document.querySelector('#e-body [data-sheet="' + CSS.escape(open.id) + '"]')) csCollect("#e-body", draft.sheet); // keep what was picked across re-renders
     // «Референси» stay lean: the pictures first; the note and the general files block only once they hold something
@@ -5128,6 +5155,7 @@
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0]; if (sEnt) html = gameSheetHtml(sEnt) + html; }
+    if (draft.place) html = placeSheetHtml() + html;
     if (voOn) html += voCardHtml(voK);
     cornerSync(); // «💡 квест» in the foot's corner while reading, «Видалити» there in the edit mode
     if (!open.isNew && impactOf(open).length) html += impactHtml(open);
@@ -6003,7 +6031,7 @@
   function artLib(card, file, field) { return !!card && gameId && ART_KEEP.indexOf(card.section) < 0 && /^image\//.test(file.type || "") && !/^kit:/.test(field || ""); }
   function artTarget(field) { // where an upload lands: a reference → «Референси» · Візуал, a portrait → «Картинки» · Портрети, the rest → · Інше
     var s = sec(field === "refpics" ? "refs" : "pictures"), g = s.groups[LANG] || s.groups.uk;
-    return { s: s, group: field === "refpics" ? g[0] : field === "portrait" ? g[0] : g[3] };
+    return { s: s, group: field === "refpics" ? g[0] : field === "portrait" ? g[0] : field === "view" ? g[1] : g[3] };
   }
   async function artUpload(card, file, field) {
     var t = artTarget(field), pid = newId("card"), pic = { id: pid, src: "game", section: t.s.id, title: baseName(file.name), files: [] };
@@ -6138,10 +6166,12 @@
         var view = { section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
           fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() };
         if (draft.intent) view.intent = draft.intent;
+        if (draft.place) view.place = placeBody();
         await gref().collection("cards").doc(open.id).set(view, { merge: true });
       } else {
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
         if (draft.intent) body.intent = draft.intent;
+        if (draft.place) body.place = placeBody();
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
@@ -10327,6 +10357,7 @@
     if (sh) { sh.scrollIntoView({ block: "nearest" }); editField(mk); } else if (mk === "__note" && $("f-note")) $("f-note").focus(); else if (mk === "__nf" && $("nf")) $("nf").focus();
   });
   $("e-body").addEventListener("click", function (e) {
+    var pz = e.target.closest("[data-plzone]"); if (pz) { var zid = pz.dataset.plzone; unsavedOk(leafSnap() !== leafFirst, function () { closeLeaf(); gm.sel = zid; gm.mode = ""; gm.ed = null; goSection("gamemap"); }); return; }
     var mo = e.target.closest("[data-more]"); if (mo) {
       var mk = mo.dataset.more; [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
       if (mk === "__all") moreAll = true; else moreKeys[mk] = 1;
@@ -10389,6 +10420,12 @@
   });
   $("e-body").addEventListener("change", function (e) {
     var gs = draft && draft.sheet, d0 = e.target.dataset || {};
+    if (d0.pl && draft && draft.place) {
+      var pk = d0.pl, pv = e.target.value;
+      if (pv !== "__own") { if (pv) draft.place[pk] = pv; else delete draft.place[pk]; return; }
+      e.target.value = draft.place[pk] || "";
+      askName(CS.ownQ, "", function (v) { if (v && draft && draft.place) { draft.place[pk] = v; renderFields(); } }, "", { ok: STR.save }); return;
+    }
     if (gs && (d0.cs || d0.csx) && e.target.value === "__own") {
       var k = d0.cs || d0.csx, isApp = !!d0.cs; e.target.value = (isApp ? gs.appearance[k] : gs.ent[k]) || "";
       askName(CS.ownQ, "", function (v) { csCollect("#e-body", gs); if (v) { if (isApp) gs.appearance[k] = v; else gs.ent[k] = v; } renderFields(); }, "", { ok: STR.save }); return;
