@@ -2303,9 +2303,7 @@
     ["at", "dur", "when"].forEach(function (k) { var i = $("d-" + k); if (i) ddraft[k] = i.value; });
     [].forEach.call(document.querySelectorAll("#d-body [data-lf]"), function (t) { ddraft.fields[t.dataset.lf] = t.value; });
     pzCollect();
-    [].forEach.call(document.querySelectorAll("#d-body [data-cs]"), function (s) { if (s.value.indexOf("__") === 0) return; if (s.value) ddraft.appearance[s.dataset.cs] = s.value; else delete ddraft.appearance[s.dataset.cs]; });
-    var cf = document.querySelector("#d-body [data-csfac]"); if (cf && cf.value.indexOf("__") !== 0) ddraft.faction = cf.value;
-    [].forEach.call(document.querySelectorAll("#d-body [data-csx]"), function (s) { if (s.value.indexOf("__") !== 0) ddraft.ent[s.dataset.csx] = s.value; });
+    if (ddraft.ent) csCollect("#d-body", ddraft);
     if (ddraft.appearance) [].forEach.call(document.querySelectorAll("#d-body [data-lk]"), function (i) { if (i.value.trim()) ddraft.appearance[i.dataset.lk] = i.value.trim(); else delete ddraft.appearance[i.dataset.lk]; });
   }
   function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
@@ -2350,30 +2348,47 @@
       opts: { charClass: ["warrior", "mage", "archer", "rogue", "priest", "healer", "paladin", "hunter", "bard", "druid", "necromancer", "craftsman", "merchant", "scholar", "no class"],
         alignment: ["lawful good", "neutral good", "chaotic good", "lawful neutral", "true neutral", "chaotic neutral", "lawful evil", "neutral evil", "chaotic evil"] }, portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
   }[LANG];
+  var csSt = null; // the sheet being drawn: the dossier's ddraft or a game card's draft.sheet (v2.109) — { appearance, faction, ent }
+  function csState(e) { return { appearance: window.__PERSONA.cleanLook(e.appearance), faction: csFaction(e), ent: { charClass: e.charClass || "", alignment: e.alignment || "", location: typeof e.location === "string" ? e.location : "" } }; }
+  function csCollect(root, st) {
+    if (!st) return;
+    [].forEach.call(document.querySelectorAll(root + " [data-cs]"), function (s) { if (s.value.indexOf("__") === 0) return; if (s.value) st.appearance[s.dataset.cs] = s.value; else delete st.appearance[s.dataset.cs]; });
+    var cf = document.querySelector(root + " [data-csfac]"); if (cf && cf.value.indexOf("__") !== 0) st.faction = cf.value;
+    [].forEach.call(document.querySelectorAll(root + " [data-csx]"), function (s) { if (s.value.indexOf("__") !== 0) st.ent[s.dataset.csx] = s.value; });
+  }
+  // what the sheet changed on the canon entity (appearance map with explicit deletes, faction, class, alignment, home)
+  function csEntDiff(e, st, body) {
+    var lk = window.__PERSONA.cleanLook(st.appearance), lk0 = window.__PERSONA.cleanLook(e.appearance);
+    if (JSON.stringify(lk) !== JSON.stringify(lk0)) { Object.keys(lk0).forEach(function (k) { if (!(k in lk)) lk[k] = firebase.firestore.FieldValue.delete(); }); body.appearance = lk; }
+    if (st.faction !== csFaction(e)) body.faction = st.faction || firebase.firestore.FieldValue.delete();
+    ["charClass", "alignment", "location"].forEach(function (k) { if (st.ent[k] !== (typeof e[k] === "string" ? e[k] : "")) body[k] = st.ent[k] || firebase.firestore.FieldValue.delete(); });
+    return body;
+  }
   function csFaction(e) { var f = e.faction || (Array.isArray(e.factions) ? e.factions[0] : ""); return typeof f === "string" ? f : ""; }
   function csOpts(f) { var base = f.opts === "peoples" ? f.base : f.opts, l = (base[LANG] || base.uk).slice(); if (f.opts === "peoples") l = lookPeoples().concat(l.filter(function (x) { return lookPeoples().indexOf(x) < 0; })); return l; }
   function csSel(id, extra) {
-    var f = window.__PERSONA.LOOK_FIELDS.filter(function (x) { return x.id === id; })[0], v = ddraft.appearance[id] || "", l = csOpts(f);
+    var f = window.__PERSONA.LOOK_FIELDS.filter(function (x) { return x.id === id; })[0], v = csSt.appearance[id] || "", l = csOpts(f);
     if (v && l.indexOf(v) < 0) l.unshift(v);
     return '<label class="cs-f' + (extra || "") + '"><span title="' + esc(L(f)) + '">' + esc(CS.lbl[id] || L(f)) + '</span><select data-cs="' + id + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
       l.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join("") + '<option value="__own">' + esc(CS.own) + '</option></select></label>';
   }
   function csText(k) { // the sheet's own entity fields (class, state): a list + «Своє…»
-    var v = ddraft.ent[k] || "", l = CS.opts[k].slice(); if (v && l.indexOf(v) < 0) l.unshift(v);
+    var v = csSt.ent[k] || "", l = CS.opts[k].slice(); if (v && l.indexOf(v) < 0) l.unshift(v);
     return '<label class="cs-f"><span>' + esc(CS[k]) + '</span><select data-csx="' + k + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
       l.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join("") + (canWrite ? '<option value="__own">' + esc(CS.own) + '</option>' : '') + '</select></label>';
   }
   function csLoc() { // where the character lives: a location of the canon (entities/{id}.location — a link, seen in «Звʼязки»)
-    var v = ddraft.ent.location, locs = entities.filter(function (x) { return x.kind === "locations"; });
+    var v = csSt.ent.location, locs = entities.filter(function (x) { return x.kind === "locations"; });
     return '<label class="cs-f"><span>' + esc(CS.home) + '</span><select data-csx="location"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
       locs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === v ? ' selected' : '') + '>' + esc(x.name || x.title || x.id) + '</option>'; }).join("") +
       (v && !locs.some(function (x) { return x.id === v; }) ? '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>' : '') +
       (canWrite ? '<option value="__new">' + esc(CS.newLoc) + '</option>' : '') + '</select></label>';
   }
-  function sheetHtml(e) {
-    var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = ddraft.faction;
-    var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + (canWrite && !e.isNew ? '<button type="button" class="cs-chg" data-csportrait title="' + esc(CS.change) + '" aria-label="' + esc(CS.change) + '">✎</button>' : '')
-      : canWrite ? '<button type="button" class="cs-ph" data-csportrait title="' + esc(CS.portraitTip) + '">' + esc(CS.portrait) + '</button>' : '<div class="cs-ph">⚔</div>';
+  function sheetHtml(e, st, frameOwn) { // frameOwn — a game card draws its own portrait (its look in the game)
+    csSt = st;
+    var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = st.faction;
+    var frame = frameOwn || (img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + (canWrite && !e.isNew ? '<button type="button" class="cs-chg" data-csportrait title="' + esc(CS.change) + '" aria-label="' + esc(CS.change) + '">✎</button>' : '')
+      : canWrite ? '<button type="button" class="cs-ph" data-csportrait title="' + esc(CS.portraitTip) + '">' + esc(CS.portrait) + '</button>' : '<div class="cs-ph">⚔</div>');
     return '<div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
       '<div class="cs-row">' + csSel("people") + csSel("sex") + '</div>' +
       '<div class="cs-row"><label class="cs-f"><span>' + esc(CS.faction) + '</span><select data-csfac' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
@@ -2435,7 +2450,7 @@
     var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
       (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
     var descHtml = '<div class="field desc"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="10">' + esc(ddraft.desc) + '</textarea></div>';
-    html = ddraft.appearance && e.col !== "lore" ? sheetHtml(e) + descHtml + html : html + descHtml; // a character: the sheet, its description under it, then the files
+    html = ddraft.appearance && e.col !== "lore" ? sheetHtml(e, ddraft) + descHtml + html : html + descHtml; // a character: the sheet, its description under it, then the files
     if (e.col === "lore") { // culture: its group's fields, no tabs
       $("d-body").innerHTML = html + loreGroup(e.group).defs.map(function (d) {
         return '<div class="field"><label for="lf-' + d.key + '">' + esc(d.label) + '</label><textarea id="lf-' + d.key + '" data-lf="' + d.key + '" rows="4">' + esc(ddraft.fields[d.key] || "") + '</textarea></div>';
@@ -5000,6 +5015,8 @@
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
+    var cEnt = c.src === "canon" && !c.isNew && sec(c.section).canon === "characters" && entities.filter(function (x) { return x.id === c.id; })[0];
+    draft.sheet = cEnt ? csState(cEnt) : null; // 🛡 a canon character in a game: the same sheet as in the World Bible, it writes to the canon (v2.109)
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
     if (STATS_SECS.indexOf(c.section) >= 0) { // v2.88: the model file field becomes the prefab link; a portrait and references join
       draft.defs.forEach(function (d) { if (d.key === "model" && (!d.type || d.type === "file")) { d.type = "prefab"; d.label = PREFAB().label; } });
@@ -5051,7 +5068,15 @@
     m.hidden = !open_; b.setAttribute("aria-expanded", String(!!open_));
     if (open_) { var f = m.querySelector(".addf-it"); if (f) f.focus(); }
   }
+  // the game card's frame: its own portrait (the «Портрет» field — the look in this game), else its first picture, else the canon's; a click uploads one (→ «Арт» · Портрети)
+  function gameSheetHtml(e) {
+    var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; })[0] || pics[0] || entImage(e);
+    var up = canWrite ? '<label class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? CS.change : CS.portraitTip) + '"><input type="file" hidden accept="image/*" data-fup="portrait">' + (img ? '✎' : esc(CS.portrait)) + '</label>' : '';
+    var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">⚔</div>';
+    return '<div class="field cs-wrap" data-sheet="' + esc(open.id) + '">' + sheetHtml(e, draft.sheet, frame) + '</div>';
+  }
   function renderFields() {
+    if (draft && draft.sheet && document.querySelector('#e-body [data-sheet="' + CSS.escape(open.id) + '"]')) csCollect("#e-body", draft.sheet); // keep what was picked across re-renders
     // «Референси» stay lean: the pictures first; the note and the general files block only once they hold something
     var lean = open.section === "refs" && draft.defs.some(function (d) { return d.type === "image"; });
     var all = editMode || moreAll, chips = [], hero = STATS_SECS.indexOf(open.section) >= 0 && canWrite; // a hero's portrait / references / prefab have their buttons on top
@@ -5084,6 +5109,7 @@
     if (draft.intent) html += intentHtml(draft.intent);
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
+    if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0]; if (sEnt) html = gameSheetHtml(sEnt) + html; }
     if (voOn) html += voCardHtml(voK);
     cornerSync(); // «💡 квест» in the foot's corner while reading, «Видалити» there in the edit mode
     if (!open.isNew && impactOf(open).length) html += impactHtml(open);
@@ -6087,6 +6113,7 @@
         if (open.isNew) Object.assign(ent, { id: open.id, kind: s.canon, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
         if (open.isNew || draft.title !== open.title) { ent.name = draft.title; ent.slug = slugify(draft.title); }
         if (draft.canonDesc !== open.canonDesc.value) ent[open.canonDesc.key] = draft.canonDesc;
+        if (draft.sheet) { csCollect("#e-body", draft.sheet); var e0 = entities.filter(function (x) { return x.id === open.id; })[0]; if (e0) csEntDiff(e0, draft.sheet, ent); }
         if (Object.keys(ent).length) { ent.updatedAt = stamp(); await wref().collection("entities").doc(open.id).set(ent, { merge: true }); }
         // this game's view of the entity
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
@@ -9756,7 +9783,7 @@
     try { await colOf(e).doc(e.id).set({ portrait: id, updatedAt: stamp() }, { merge: true }); e.portrait = id; if (dos === e) { dcollect(); renderDossier(); } }
     catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
   }
-  function newFaction(kind) { // a new faction (or location) of the canon, picked on the sheet at once
+  function newFaction(kind, then) { // a new faction (or location) of the canon, picked on the sheet at once; then(id) — a game card's own refresh
     kind = kind || "factions";
     askName(kind === "locations" ? CS.newLocQ : CS.newFacQ, "", async function (name) {
       if (!name || !dos) return;
@@ -9765,7 +9792,8 @@
         await wref().collection("entities").doc(id).set({ id: id, kind: kind, name: name, slug: slugify(name), createdAt: stamp(), updatedAt: stamp(),
           origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
         if (!entities.some(function (x) { return x.id === id; })) entities.push({ id: id, kind: kind, name: name });
-        if (dos === e) { dcollect(); if (kind === "locations") ddraft.ent.location = id; else ddraft.faction = id; renderDossier(); }
+        if (then) then(id);
+        else if (dos === e) { dcollect(); if (kind === "locations") ddraft.ent.location = id; else ddraft.faction = id; renderDossier(); }
       } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
     });
   }
@@ -9843,6 +9871,15 @@
     if (tb) draft.fields[tb.dataset.tbl] = tableMd(readTable(tb));
   });
   $("e-body").addEventListener("change", function (e) {
+    var gs = draft && draft.sheet, d0 = e.target.dataset || {};
+    if (gs && (d0.cs || d0.csx) && e.target.value === "__own") {
+      var k = d0.cs || d0.csx, isApp = !!d0.cs; e.target.value = (isApp ? gs.appearance[k] : gs.ent[k]) || "";
+      askName(CS.ownQ, "", function (v) { csCollect("#e-body", gs); if (v) { if (isApp) gs.appearance[k] = v; else gs.ent[k] = v; } renderFields(); }, "", { ok: STR.save }); return;
+    }
+    if (gs && (e.target.hasAttribute("data-csfac") || d0.csx === "location") && e.target.value === "__new") {
+      var loc = d0.csx === "location"; e.target.value = (loc ? gs.ent.location : gs.faction) || "";
+      newFaction(loc ? "locations" : "factions", function (id) { if (draft && draft.sheet === gs) { csCollect("#e-body", gs); if (loc) gs.ent.location = id; else gs.faction = id; renderFields(); } }); return;
+    }
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(list); }
     if (e.target.dataset.fup && e.target.files.length) { var fl = [].slice.call(e.target.files), fk = e.target.dataset.fup; e.target.value = ""; uploadFiles(fl, fk); }
     if (e.target.dataset.pfup && e.target.files.length) { var pl = [].slice.call(e.target.files), pm = e.target.dataset.pfup; e.target.value = ""; uploadPrefabFor(pl, pm); }
