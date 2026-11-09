@@ -1331,7 +1331,7 @@
     var gk = groupKey(s), dflt = s.groups && !(c.fields && c.fields[gk]) ? canonShelf(e) : null;
     if (dflt && dflt.s.id === s.id && dflt.group) { c = Object.assign({}, c); c.fields = Object.assign({}, c.fields); c.fields[gk] = dflt.group; }
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, banner: e.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
   }
   // v2.104.4 (owner): a canon character in a game is a hero / ally / NPC («Герої та NPC») or an enemy / boss («Вороги й боси») —
   // by its role and world group; the shelf stored on its game card wins (the author moved it, or it was sorted when taken)
@@ -1374,7 +1374,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
   }
   function allCards() {
     var out = [];
@@ -1486,8 +1486,16 @@
     var hay = (c.title + " " + c.note + " " + (c.canonDesc ? c.canonDesc.value : "") + " " + Object.keys(c.fields).map(function (k) { return c.fields[k]; }).join(" ")).toLowerCase();
     return query.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
   }
-  // 🚩 factions (owner, v2.115.1): a card is one of the owner's six painted banners (app/assets/banners), picked by its id
-  function bannerCls(id) { var h = 0; String(id || "").split("").forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return " card--banner bn-" + (h % 6); }
+  // 🚩 factions (owner, v2.115.1–2): a card is one of the owner's six painted banners (app/assets/banners) — the one the author picked
+  // (`banner` on the canon entity, so the World Bible and every game agree; on the card for a game-only faction), else one by its id
+  var BANNERS = ["crimson", "blue", "emerald", "burgundy", "black", "gold"];
+  function bannerOf(id, pick) { var i = BANNERS.indexOf(pick); if (i >= 0) return i; var h = 0; String(id || "").split("").forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return h % 6; }
+  function bannerCls(id, pick) { return " card--banner bn-" + bannerOf(id, pick); }
+  function bannerPickHtml(id, pick) {
+    var cur = bannerOf(id, pick), T = LANG === "en" ? ["Banner", "crimson", "blue", "emerald", "burgundy", "black", "gold"] : ["Стяг", "багряний", "синій", "смарагдовий", "бордовий", "чорний", "золотий"];
+    return '<div class="field bn-pick"><label>🚩 ' + T[0] + '</label><div class="bn-row">' + BANNERS.map(function (b, i) {
+      return '<button type="button" data-bnpick="' + b + '" aria-pressed="' + (i === cur) + '" title="' + T[i + 1] + '"' + (canWrite ? '' : ' disabled') + '><img alt="' + T[i + 1] + '" src="assets/banners/' + b + '.webp"></button>'; }).join("") + '</div></div>';
+  }
   function cardHtml(c) {
     var st = STATUS[c.status] || STATUS.idea;
     var tags = ['<span class="pill ' + st.cls + '">' + esc(L(st)) + '</span>'];
@@ -1512,7 +1520,7 @@
     if (hv) tags.unshift(polyMark(hv));
     var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
     var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
-    return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id) : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
+    return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id, c.banner) : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
@@ -2287,7 +2295,7 @@
     var img = entImage(e), tags = [];
     if ((e.lifeNotes || []).length) tags.push('<span class="flag">⟡ ' + e.lifeNotes.length + '</span>');
     if ((e.files || []).length) tags.push('<span class="flag">📎 ' + e.files.length + '</span>');
-    return '<button class="card dcard' + (e.kind === "factions" && e.col !== "lore" ? bannerCls(e.id) : '') + '" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
+    return '<button class="card dcard' + (e.kind === "factions" && e.col !== "lore" ? bannerCls(e.id, e.banner) : '') + '" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
       '<h3>' + esc(e.name || e.title || STR.newCard) + '</h3>' + (e.role ? '<p class="sub">' + esc(e.role) + '</p>' : '') +
       (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation ||
         Object.keys(e.fields || {}).map(function (k) { return e.fields[k]; }).join(" "))) + '</p></button>';
@@ -2301,6 +2309,7 @@
     ddraft = { name: e.name || e.title || "", desc: e[descKeyOf(e)] || "", dossier: Object.assign({}, e.dossier),
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
+    if (e.col !== "lore" && e.kind === "factions") ddraft.banner = e.banner || "";
     if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; // 🧠 the constructor's draft
       ddraft.faction = csFaction(e); ddraft.ent = { charClass: e.charClass || "", alignment: e.alignment || "", location: typeof e.location === "string" ? e.location : "" }; }
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
@@ -2482,6 +2491,7 @@
     if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div>';
     dosCorner("e");
     if (e.kind === "events") html = eventHtml() + html;
+    if (ddraft.banner !== undefined) html = bannerPickHtml(e.id, ddraft.banner) + html;
     var body = dtab === "main" ? html : dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? (e.kind === "characters" ? lifeHtml() : '') + '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
     $("d-body").innerHTML = '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>'; // the tabs sit on top of the window (v2.86.1); each tab shows only its own content (v2.87.1)
@@ -2558,6 +2568,7 @@
     }
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
+    if (ddraft.banner && ddraft.banner !== (e.banner || "")) body.banner = ddraft.banner;
     if (e.kind === "characters" && ddraft.faction !== csFaction(e)) body.faction = ddraft.faction || firebase.firestore.FieldValue.delete();
     if (e.kind === "characters" && ddraft.ent) ["charClass", "alignment", "location"].forEach(function (k) { if (ddraft.ent[k] !== (typeof e[k] === "string" ? e[k] : "")) body[k] = ddraft.ent[k] || firebase.firestore.FieldValue.delete(); });
     if (ddraft.personality) { var pz = window.__PERSONA.cleanPersona(ddraft.personality), pz0 = window.__PERSONA.cleanPersona(e.personality); if (e.isNew || JSON.stringify(pz) !== JSON.stringify(pz0)) {
@@ -2781,6 +2792,7 @@
     el.textContent = VF.lk.done.replace("{d}", d).replace("{n}", n); el.previousElementSibling.firstChild.style.width = Math.round(100 * d / n) + "%";
   }
   $("d-body").addEventListener("click", function (e) {
+    var bp = e.target.closest("[data-bnpick]"); if (bp && dos && canWrite) { dcollect(); ddraft.banner = bp.dataset.bnpick; renderDossier(); return; }
     var la = e.target.closest("[data-lkadd]"); if (la && dos) { dcollect(); lkOpen[la.dataset.lkadd] = 1; renderDossier(); var li = $("lk-" + la.dataset.lkadd); if (li) li.focus(); return; }
     var b = e.target.closest("[data-lkdd],[data-lkopt]"); if (!b || !dos) return;
     if (b.dataset.lkdd) lookMenu(b); else lookPick(b);
@@ -5034,6 +5046,7 @@
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
     var cEnt = c.src === "canon" && !c.isNew && sec(c.section).canon === "characters" && entities.filter(function (x) { return x.id === c.id; })[0];
+    draft.banner = c.section === "factions" ? c.banner || "" : null; // 🚩 the faction's banner (v2.115.2)
     draft.place = PLACE_SECS.indexOf(c.section) >= 0 ? Object.assign({}, c.place || {}) : null; // 🏞 a location's sheet (v2.115)
     draft.sheet = cEnt ? csState(cEnt) : null; // 🛡 a canon character in a game: the same sheet as in the World Bible, it writes to the canon (v2.109)
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
@@ -5156,6 +5169,7 @@
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0]; if (sEnt) html = gameSheetHtml(sEnt) + html; }
     if (draft.place) html = placeSheetHtml() + html;
+    if (draft.banner !== null && draft.banner !== undefined) html = bannerPickHtml(open.id, draft.banner) + html;
     if (voOn) html += voCardHtml(voK);
     cornerSync(); // «💡 квест» in the foot's corner while reading, «Видалити» there in the edit mode
     if (!open.isNew && impactOf(open).length) html += impactHtml(open);
@@ -6159,6 +6173,7 @@
         if (open.isNew) Object.assign(ent, { id: open.id, kind: s.canon, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
         if (open.isNew || draft.title !== open.title) { ent.name = draft.title; ent.slug = slugify(draft.title); }
         if (draft.canonDesc !== open.canonDesc.value) ent[open.canonDesc.key] = draft.canonDesc;
+        if (draft.banner && draft.banner !== open.banner) ent.banner = draft.banner;
         if (draft.sheet) { csCollect("#e-body", draft.sheet); var e0 = entities.filter(function (x) { return x.id === open.id; })[0]; if (e0) csEntDiff(e0, draft.sheet, ent); }
         if (Object.keys(ent).length) { ent.updatedAt = stamp(); await wref().collection("entities").doc(open.id).set(ent, { merge: true }); }
         // this game's view of the entity
@@ -6172,6 +6187,7 @@
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
         if (draft.intent) body.intent = draft.intent;
         if (draft.place) body.place = placeBody();
+        if (draft.banner) body.banner = draft.banner;
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }
@@ -10357,6 +10373,7 @@
     if (sh) { sh.scrollIntoView({ block: "nearest" }); editField(mk); } else if (mk === "__note" && $("f-note")) $("f-note").focus(); else if (mk === "__nf" && $("nf")) $("nf").focus();
   });
   $("e-body").addEventListener("click", function (e) {
+    var bp = e.target.closest("[data-bnpick]"); if (bp && draft && canWrite) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); draft.banner = bp.dataset.bnpick; renderFields(); return; }
     var pz = e.target.closest("[data-plzone]"); if (pz) { var zid = pz.dataset.plzone; unsavedOk(leafSnap() !== leafFirst, function () { closeLeaf(); gm.sel = zid; gm.mode = ""; gm.ed = null; goSection("gamemap"); }); return; }
     var mo = e.target.closest("[data-more]"); if (mo) {
       var mk = mo.dataset.more; [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.115.1 (2026-11-09)
+**Version:** 2.115.2 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -761,6 +761,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.115.2** (owner) «🚩 Стяг» at the top of a faction card / dossier — the author picks one of the six banners: `banner` (crimson | blue | emerald | burgundy | black | gold) on the canon entity (shared by the World Bible and every game; a game card of a canon faction writes it there) or on the game card for a game-only faction; none → by id (`bannerOf`)
 - **v2.115.1** (owner) faction cards — the owner's six painted banners (`app/assets/banners/{crimson,blue,emerald,burgundy,black,gold}.webp`, 512×768 transparent WebP) replace the CSS-drawn cloth; `gamebible.js bannerCls` picks `.bn-0–5` by the card id (World Bible dossiers and game cards); dark text on the gold one
 - **v2.115.0** (owner) 🏞 Location card in a game: picture in the gold frame (landscape) + traits from lists beside it (kind of place, role, danger, size, climate, light, mood, «✎ Своє…»), «На карті гри» zones, «Задум досвіду» kept; `card.place`, `game-map.js PLACE / placeText`, MCP `get_card.place`
 - **v2.114.0** (owner) «🗺 Карта гри» — new game section `gamemap` (first in «Світ і рівні»): concept map + zones as polygons, zone passport, transitions, points, relief (paint / generate / own PNG, 3D, ⤓ PNG / RAW 16-bit), checks against «Метрики рівнів», «⧉ Запит» / «⤓ JSON» / «＋ Задача в план» (milestone MAP); `functions/game-map.js` (shared), `app/gb-terrain.js`, card-refs KIND `zone`, MCP `get_game_map`, registry `gameMap`, `tests/game-map.test.cjs`
@@ -933,5 +934,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.115.1)
+**Last updated:** 2026-11-09 (v2.115.2)
 **Maintained by:** WhiteWrite Team

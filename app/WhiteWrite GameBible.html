@@ -880,6 +880,10 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .card.card--banner:hover{ transform:rotate(-1deg); border:0; filter:drop-shadow(0 6px 10px rgba(0,0,0,.55)) brightness(1.12); }
 .card.card--banner:focus-visible{ outline-offset:-6px; }
 @media (prefers-reduced-motion:reduce){ .card.card--banner:hover{ transform:none; } }
+.bn-pick .bn-row{ display:flex; flex-wrap:wrap; gap:8px; } /* 🚩 picking a faction's banner (v2.115.2) */
+.bn-pick button{ width:52px; padding:2px; background:transparent; border:2px solid transparent; border-radius:8px; cursor:pointer; }
+.bn-pick button img{ display:block; width:100%; aspect-ratio:2/3; object-fit:contain; }
+.bn-pick button[aria-pressed="true"]{ border-color:var(--gold-bright); background:rgba(240,169,59,.12); } .bn-pick button:not([disabled]):hover{ background:rgba(240,169,59,.08); }
 .card.card--banner.bn-0{ background-image:url(assets/banners/crimson.webp); } .card.card--banner.bn-1{ background-image:url(assets/banners/blue.webp); } .card.card--banner.bn-2{ background-image:url(assets/banners/emerald.webp); }
 .card.card--banner.bn-3{ background-image:url(assets/banners/burgundy.webp); } .card.card--banner.bn-4{ background-image:url(assets/banners/black.webp); } .card.card--banner.bn-5{ background-image:url(assets/banners/gold.webp); }
 .card.card--banner.bn-5{ padding-top:27%; } .card.card--banner.bn-5 h3{ color:#241001; font-weight:700; text-shadow:0 0 6px rgba(255,226,140,.95); } .card.card--banner.bn-5 .ex, .card.card--banner.bn-5 .sub{ color:#2a1503; font-weight:600; text-shadow:0 0 5px rgba(255,226,140,.9); } .card.card--banner.bn-5 .tags > *{ background:rgba(30,15,2,.55); } /* dark text on the gold cloth */
