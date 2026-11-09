@@ -6530,10 +6530,10 @@
     about: { uk: "Концепт-карта світу, поділена на зони: кожна — окрема сцена з розміром, рельєфом, точками й переходами. Claude Code будує з неї рівні в Unity чи Blender.",
       en: "The concept map of the world split into zones: each a separate scene with its size, relief, points and transitions. Claude Code builds the levels in Unity or Blender from it." } };
   var GMAP = window.__GAMEMAP;
-  var gm = { sel: "", mode: "", draft: [], linkFrom: "", ed: null, msg: "" };
+  var gm = { sel: "", mode: "", draft: [], linkFrom: "", ed: null, msg: "", hide: localStorage.getItem("ww-gm-hide") === "1" }; // hide: zones off the concept map (owner, v2.115.4), per browser
   var GM = {
     uk: { base: "Концепт-карта", up: "⤒ Концепт-карта", upNew: "⤒ Завантажити концепт-карту", draw: "✎ Обвести зону", add: "＋ Зона без місця на карті", link: "🔗 Зʼєднати зони",
-      copy: "⧉ Запит для Claude Code", json: "⤓ JSON", copied: "Скопійовано — встав у Claude Code", noBase: "Завантаж концепт-карту — картинку світу, на якій видно регіони (як карта «Морри»). Це план, а не рівень: на ній обводиш зони. Можна й без картинки — на сітці.",
+      hideZ: "◌ Сховати зони", showZ: "◍ Показати зони", hideTip: "Сховати обведені зони, переходи й підписи — видно лише саму карту (обрана зона лишається)", copy: "⧉ Запит для Claude Code", json: "⤓ JSON", copied: "Скопійовано — встав у Claude Code", noBase: "Завантаж концепт-карту — картинку світу, на якій видно регіони (як карта «Морри»). Це план, а не рівень: на ній обводиш зони. Можна й без картинки — на сітці.",
       drawHint: "Клікай по карті — ставиш вершини. Клікни першу точку, двічі клікни або Enter — зона замкнеться. Esc — скасувати.", redrawHint: "Обведи зону заново. Enter — готово, Esc — скасувати.",
       linkHint: "Клікни першу зону, потім другу — і вибери, як вони зʼєднані.", linkHint2: "Тепер клікни зону, куди веде перехід.", cancel: "Скасувати", done: "Готово",
       nameQ: "Назва зони", zonePh: "Напр. Ліс Морри", noPos: "Без місця на карті", zones: "Зони", none: "Ще немає зон.", km: "км²", min: "хв бігом", lv: "рів.",
@@ -6552,7 +6552,7 @@
       noRelief: "Рельєфу ще немає — згенеруй або намалюй, і збережи.", pts: "Точки", ptsHint: "Вибери тип і клікни по рельєфу. Точку можна перетягнути.", ptName: "Назва", ptCard: "Картка",
       td: "🧊 3D", tdOff: "Сховати 3D", leaveQ: "Рельєф не збережено. Вийти без збереження?", saving: "Зберігаю…", loading: "Завантажую рельєф…", cors: "Не вдалося прочитати карту висот." },
     en: { base: "Concept map", up: "⤒ Concept map", upNew: "⤒ Upload a concept map", draw: "✎ Outline a zone", add: "＋ Zone without a place on the map", link: "🔗 Connect zones",
-      copy: "⧉ Request for Claude Code", json: "⤓ JSON", copied: "Copied — paste it into Claude Code", noBase: "Upload a concept map — a picture of the world showing its regions. It is a plan, not a level: you outline the zones on it. It works without a picture too — on a grid.",
+      hideZ: "◌ Hide zones", showZ: "◍ Show zones", hideTip: "Hide the outlined zones, transitions and labels — only the map itself shows (the selected zone stays)", copy: "⧉ Request for Claude Code", json: "⤓ JSON", copied: "Copied — paste it into Claude Code", noBase: "Upload a concept map — a picture of the world showing its regions. It is a plan, not a level: you outline the zones on it. It works without a picture too — on a grid.",
       drawHint: "Click the map to place vertices. Click the first point, double-click or press Enter to close the zone. Esc — cancel.", redrawHint: "Outline the zone again. Enter — done, Esc — cancel.",
       linkHint: "Click the first zone, then the second — and pick how they connect.", linkHint2: "Now click the zone the transition leads to.", cancel: "Cancel", done: "Done",
       nameQ: "Zone name", zonePh: "E.g. Morra Forest", noPos: "No place on the map", zones: "Zones", none: "No zones yet.", km: "km²", min: "min running", lv: "lv.",
@@ -6616,7 +6616,7 @@
     var verts = gm.mode === "draw" || gm.mode === "redraw" ? gm.draft.map(function (p, i) { return '<i class="gm-v' + (i ? '' : ' is-first') + '" style="left:' + p[0] * 100 + '%;top:' + p[1] * 100 + '%"></i>'; }).join("") : "";
     var loose = list.filter(function (c) { return !cen[c.id]; });
     var hint = gm.mode === "draw" ? GM.drawHint : gm.mode === "redraw" ? GM.redrawHint : gm.mode === "link" ? (gm.linkFrom ? GM.linkHint2 : GM.linkHint) : "";
-    var map = '<div class="gm-map' + (gm.mode ? ' is-' + gm.mode : '') + (img ? '' : ' is-grid') + '" id="gm-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + '">' +
+    var map = '<div class="gm-map' + (gm.mode ? ' is-' + gm.mode : gm.hide ? ' is-hide' : '') + (img ? '' : ' is-grid') + '" id="gm-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + '">' +
       (img ? '<img alt="" src="' + esc(img.url) + '" draggable="false">' : '') +
       '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">' + list.filter(function (c) { return cen[c.id]; }).map(poly).join("") + lines + draft + '</svg>' + linkIcons + labels + verts + '</div>';
     var errs = chk.filter(function (x) { return x.level === "err"; }).length, warns = chk.filter(function (x) { return x.level === "warn"; }).length;
@@ -6624,6 +6624,7 @@
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
       '<div class="row gm-bar">' + (canWrite ? '<label class="btn"><input type="file" hidden accept="image/*" id="gm-up">' + (img ? GM.up : GM.upNew) + '</label>' +
         '<button class="btn' + (gm.mode === "draw" ? ' primary' : '') + '" id="gm-draw">' + GM.draw + '</button><button class="btn' + (gm.mode === "link" ? ' primary' : '') + '" id="gm-link"' + (list.length > 1 ? '' : ' disabled') + '>' + GM.link + '</button>' : '') +
+        (list.some(function (c) { return cen[c.id]; }) ? '<button class="btn' + (gm.hide ? ' primary' : '') + '" id="gm-hide" aria-pressed="' + gm.hide + '" title="' + esc(GM.hideTip) + '">' + (gm.hide ? GM.showZ : GM.hideZ) + '</button>' : '') +
         '<button class="btn" id="gm-copy"' + (list.length ? '' : ' disabled') + '>' + GM.copy + '</button><button class="btn" id="gm-json"' + (list.length ? '' : ' disabled') + '>' + GM.json + '</button></div>' +
       (hint ? '<div class="gm-hint" role="status">' + esc(hint) + ' <button class="btn mini" id="gm-cancel">' + GM.cancel + '</button>' + (gm.mode !== "link" && gm.draft.length >= 3 ? ' <button class="btn mini primary" id="gm-close">' + GM.done + '</button>' : '') + '</div>' : '') +
       (gm.msg ? '<p class="gm-msg" role="status">' + esc(gm.msg) + '</p>' : '') +
@@ -6773,6 +6774,7 @@
     on("gm-close", gmCloseDraft);
     on("gm-add", function () { askName(GM.nameQ, GM.zonePh, function (name) { if (name) gmNewZone(name, []); }, "", { ok: STR.create }); });
     on("gm-copy", function () { gmCopy(GMAP.prompt(cards, "", LANG)); });
+    on("gm-hide", function () { gm.hide = !gm.hide; try { localStorage.setItem("ww-gm-hide", gm.hide ? "1" : "0"); } catch (er) {} render(); });
     on("gm-json", function () { download("gamemap-" + (slugify(game && game.title) || "game") + ".json", JSON.stringify(gmExport(), null, 2)); });
     var up = $("gm-up"); if (up) up.onchange = function () { var f = up.files[0]; up.value = ""; gmUploadBase(f); };
     var pick = function (id) {

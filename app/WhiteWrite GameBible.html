@@ -683,6 +683,8 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
 .gm-zone:hover{ fill:color-mix(in srgb, var(--zc) 40%, transparent); }
 .gm-zone.is-sel{ stroke:var(--gold-bright); stroke-width:3; fill:color-mix(in srgb, var(--zc) 42%, transparent); } .gm-zone.is-from{ stroke:#fff; stroke-dasharray:6 4; }
 .gm-map.is-draw .gm-zone, .gm-map.is-redraw .gm-zone{ pointer-events:none; }
+.gm-map.is-hide .gm-zone:not(.is-sel), .gm-map.is-hide .gm-link, .gm-map.is-hide .gm-li, .gm-map.is-hide .gm-lbl:not(.is-sel){ display:none; } /* ◌ zones hidden (v2.115.4): only the map; the selected zone stays */
+.gm-map.is-hide .gm-zone.is-sel{ fill:transparent; }
 .gm-link{ stroke:var(--gold-bright); stroke-width:2; opacity:.85; } .gm-link--edge{ stroke-dasharray:8 6; } .gm-link--entrance{ stroke-dasharray:2 5; stroke-linecap:round; }
 .gm-draft{ fill:none; stroke:var(--gold-bright); stroke-width:2; stroke-dasharray:5 4; }
 .gm-v{ position:absolute; width:10px; height:10px; margin:-5px 0 0 -5px; border-radius:50%; background:var(--gold-bright); border:2px solid #000; pointer-events:none; } .gm-v.is-first{ width:16px; height:16px; margin:-8px 0 0 -8px; background:#fff; }
