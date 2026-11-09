@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.107.2 (2026-11-09)
+**Version:** 2.108.0 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.108.0** (owner) character sheet rows: race + sex · faction + class · age + height + build · lives in + state; new entity fields `charClass`, `condition` (lists + «Своє…», `csText`) and the sheet sets `location` (a canon location, «＋ Нова локація…», `csLoc`, `newFaction(kind)`); the card foot's «Створити історію…» sits at the left edge like «Створити квест…» at the right
 - **v2.107.2** (owner) the card / dossier status line (`#e-msg`, `#d-msg`, `.hmsg`) moved from the foot to the head row, left of «🖼 Додати картинку» — it squeezed «Створити історію…»
 - **v2.107.1** (owner) «Розділи гри в меню»: a tick updates `game.hiddenSections` locally + `renderNav()` at once and writes `arrayUnion` / `arrayRemove` of its own section (quick ticks wrote the whole list from a stale copy and overwrote each other)
 - **v2.107.0** (owner) 🛡 character sheet on a world character's «Загальне» tab (`sheetHtml`): a gold portrait frame + a traits column of its height — «Хто це» → new entity field `cast` (hero|ally|npc|enemy|boss; `canonShelf` takes it first), race / sex / age / height + build = the same `appearance` fields (persona.js LOOK) as dropdowns with «✎ Своє…», faction → `entities/{id}.faction` (from `faction` or `factions[0]`) with «＋ Нова фракція…» creating a `factions` entity; the description under it; new entity field `portrait` (file id; `entImage` prefers it), set by the frame upload (`uploadEntityFiles(list, asPortrait)`) or ☆ on a picture row (`setPortrait`)
@@ -918,5 +919,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.107.2)
+**Last updated:** 2026-11-09 (v2.108.0)
 **Maintained by:** WhiteWrite Team

@@ -2283,7 +2283,7 @@
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
     if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; // 🧠 the constructor's draft
-      ddraft.faction = csFaction(e); ddraft.cast = e.cast || ""; }
+      ddraft.faction = csFaction(e); ddraft.cast = e.cast || ""; ddraft.ent = { charClass: e.charClass || "", condition: e.condition || "", location: typeof e.location === "string" ? e.location : "" }; }
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
@@ -2305,6 +2305,7 @@
     pzCollect();
     [].forEach.call(document.querySelectorAll("#d-body [data-cs]"), function (s) { if (s.value.indexOf("__") === 0) return; if (s.value) ddraft.appearance[s.dataset.cs] = s.value; else delete ddraft.appearance[s.dataset.cs]; });
     var cf = document.querySelector("#d-body [data-csfac]"); if (cf && cf.value.indexOf("__") !== 0) ddraft.faction = cf.value;
+    [].forEach.call(document.querySelectorAll("#d-body [data-csx]"), function (s) { if (s.value.indexOf("__") !== 0) ddraft.ent[s.dataset.csx] = s.value; });
     if (ddraft.appearance) [].forEach.call(document.querySelectorAll("#d-body [data-lk]"), function (i) { if (i.value.trim()) ddraft.appearance[i.dataset.lk] = i.value.trim(); else delete ddraft.appearance[i.dataset.lk]; });
   }
   function num(v) { var n = typeof v === "number" ? v : parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
@@ -2341,9 +2342,13 @@
   // (entities/{id}.appearance, persona.js LOOK) — one place; the faction is entities/{id}.faction, «who» is entities/{id}.cast (sorts it in a game)
   var CS = {
     uk: { cast: "Хто це", lbl: { people: "Раса", sex: "Стать", age: "Вік", height: "Зріст", build: "Статура" }, casts: { hero: "Герой", ally: "Союзник", npc: "NPC", enemy: "Ворог", boss: "Бос" }, own: "✎ Своє…", ownQ: "Своє значення", faction: "Фракція",
-      newFac: "＋ Нова фракція…", newFacQ: "Назва нової фракції", portrait: "＋ Портрет", portraitTip: "Завантажити портрет", change: "Змінити портрет", setP: "Зробити портретом", isP: "Портрет", saveFirst: "Спершу збережи картку" },
+      newFac: "＋ Нова фракція…", newFacQ: "Назва нової фракції", charClass: "Клас", home: "Де живе", newLoc: "＋ Нова локація…", newLocQ: "Назва нової локації", condition: "Стан",
+      opts: { charClass: ["воїн", "маг", "лучник", "розбійник", "жрець", "цілитель", "паладин", "мисливець", "бард", "друїд", "некромант", "ремісник", "торговець", "вчений", "без класу"],
+        condition: ["живий", "поранений", "зниклий", "у полоні", "мертвий", "невідомо"] }, portrait: "＋ Портрет", portraitTip: "Завантажити портрет", change: "Змінити портрет", setP: "Зробити портретом", isP: "Портрет", saveFirst: "Спершу збережи картку" },
     en: { cast: "Who", lbl: { people: "Race", sex: "Sex", age: "Age", height: "Height", build: "Build" }, casts: { hero: "Hero", ally: "Ally", npc: "NPC", enemy: "Enemy", boss: "Boss" }, own: "✎ Own…", ownQ: "Your own value", faction: "Faction",
-      newFac: "＋ New faction…", newFacQ: "Name of the new faction", portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
+      newFac: "＋ New faction…", newFacQ: "Name of the new faction", charClass: "Class", home: "Lives in", newLoc: "＋ New location…", newLocQ: "Name of the new location", condition: "State",
+      opts: { charClass: ["warrior", "mage", "archer", "rogue", "priest", "healer", "paladin", "hunter", "bard", "druid", "necromancer", "craftsman", "merchant", "scholar", "no class"],
+        condition: ["alive", "wounded", "missing", "captive", "dead", "unknown"] }, portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
   }[LANG];
   function csFaction(e) { var f = e.faction || (Array.isArray(e.factions) ? e.factions[0] : ""); return typeof f === "string" ? f : ""; }
   function csOpts(f) { var base = f.opts === "peoples" ? f.base : f.opts, l = (base[LANG] || base.uk).slice(); if (f.opts === "peoples") l = lookPeoples().concat(l.filter(function (x) { return lookPeoples().indexOf(x) < 0; })); return l; }
@@ -2353,6 +2358,18 @@
     return '<label class="cs-f' + (extra || "") + '"><span title="' + esc(L(f)) + '">' + esc(CS.lbl[id] || L(f)) + '</span><select data-cs="' + id + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
       l.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join("") + '<option value="__own">' + esc(CS.own) + '</option></select></label>';
   }
+  function csText(k) { // the sheet's own entity fields (class, state): a list + «Своє…»
+    var v = ddraft.ent[k] || "", l = CS.opts[k].slice(); if (v && l.indexOf(v) < 0) l.unshift(v);
+    return '<label class="cs-f"><span>' + esc(CS[k]) + '</span><select data-csx="' + k + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+      l.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join("") + (canWrite ? '<option value="__own">' + esc(CS.own) + '</option>' : '') + '</select></label>';
+  }
+  function csLoc() { // where the character lives: a location of the canon (entities/{id}.location — a link, seen in «Звʼязки»)
+    var v = ddraft.ent.location, locs = entities.filter(function (x) { return x.kind === "locations"; });
+    return '<label class="cs-f"><span>' + esc(CS.home) + '</span><select data-csx="location"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+      locs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === v ? ' selected' : '') + '>' + esc(x.name || x.title || x.id) + '</option>'; }).join("") +
+      (v && !locs.some(function (x) { return x.id === v; }) ? '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>' : '') +
+      (canWrite ? '<option value="__new">' + esc(CS.newLoc) + '</option>' : '') + '</select></label>';
+  }
   function sheetHtml(e) {
     var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = ddraft.faction, cast = ddraft.cast || "";
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + (canWrite && !e.isNew ? '<button type="button" class="cs-chg" data-csportrait title="' + esc(CS.change) + '" aria-label="' + esc(CS.change) + '">✎</button>' : '')
@@ -2360,12 +2377,13 @@
     return '<div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
       '<div class="cs-f cs-who"><span>' + esc(CS.cast) + '</span><div class="cs-cast" role="group">' + Object.keys(CS.casts).map(function (k) {
         return '<button type="button" class="cs-tag" data-cast="' + k + '" aria-pressed="' + (cast === k) + '"' + (canWrite ? '' : ' disabled') + '>' + esc(CS.casts[k]) + '</button>'; }).join("") + '</div></div>' +
-      csSel("people") + csSel("sex") +
-      '<label class="cs-f"><span>' + esc(CS.faction) + '</span><select data-csfac' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+      '<div class="cs-row">' + csSel("people") + csSel("sex") + '</div>' +
+      '<div class="cs-row"><label class="cs-f"><span>' + esc(CS.faction) + '</span><select data-csfac' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
         facs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === fv ? ' selected' : '') + '>' + esc(x.name || x.title || x.id) + '</option>'; }).join("") +
         (fv && !facs.some(function (x) { return x.id === fv; }) ? '<option value="' + esc(fv) + '" selected>' + esc(fv) + '</option>' : '') +
-        (canWrite ? '<option value="__new">' + esc(CS.newFac) + '</option>' : '') + '</select></label>' +
-      csSel("age") + '<div class="cs-pair">' + csSel("height") + csSel("build") + '</div></div></div>';
+        (canWrite ? '<option value="__new">' + esc(CS.newFac) + '</option>' : '') + '</select></label>' + csText("charClass") + '</div>' +
+      '<div class="cs-row cs-row3">' + csSel("age") + csSel("height") + csSel("build") + '</div>' +
+      '<div class="cs-row">' + csLoc() + csText("condition") + '</div></div></div>';
   }
   function dosFileRow(f) {
     return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
@@ -2509,6 +2527,7 @@
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
     if (e.kind === "characters" && ddraft.faction !== csFaction(e)) body.faction = ddraft.faction || firebase.firestore.FieldValue.delete();
     if (e.kind === "characters" && ddraft.cast !== (e.cast || "")) body.cast = ddraft.cast || firebase.firestore.FieldValue.delete();
+    if (e.kind === "characters" && ddraft.ent) ["charClass", "condition", "location"].forEach(function (k) { if (ddraft.ent[k] !== (typeof e[k] === "string" ? e[k] : "")) body[k] = ddraft.ent[k] || firebase.firestore.FieldValue.delete(); });
     if (ddraft.personality) { var pz = window.__PERSONA.cleanPersona(ddraft.personality), pz0 = window.__PERSONA.cleanPersona(e.personality); if (e.isNew || JSON.stringify(pz) !== JSON.stringify(pz0)) {
       ["answers", "traits"].forEach(function (g) { Object.keys(pz0[g]).forEach(function (k) { if (!(k in pz[g])) pz[g][k] = firebase.firestore.FieldValue.delete(); }); }); // set(merge) merges maps: a cleared answer is deleted explicitly
       body.personality = Object.assign(pz, { updatedAt: Date.now() });
@@ -4718,6 +4737,9 @@
     var cs = e.target.dataset && e.target.dataset.cs;
     if (cs && e.target.value === "__own") { var sel = e.target; askName(CS.ownQ, "", function (v) { dcollect(); if (v) ddraft.appearance[cs] = v; renderDossier(); }, "", { ok: STR.save }); sel.value = ddraft.appearance[cs] || ""; return; }
     if (e.target.hasAttribute && e.target.hasAttribute("data-csfac") && e.target.value === "__new") { e.target.value = ddraft.faction || ""; newFaction(); return; }
+    var cx = e.target.dataset && e.target.dataset.csx;
+    if (cx && e.target.value === "__own") { e.target.value = ddraft.ent[cx] || ""; askName(CS.ownQ, "", function (v) { dcollect(); if (v) ddraft.ent[cx] = v; renderDossier(); }, "", { ok: STR.save }); return; }
+    if (cx === "location" && e.target.value === "__new") { e.target.value = ddraft.ent.location || ""; newFaction("locations"); return; }
     if (e.target.id === "d-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); }
   });
 
@@ -9737,15 +9759,16 @@
     try { await colOf(e).doc(e.id).set({ portrait: id, updatedAt: stamp() }, { merge: true }); e.portrait = id; if (dos === e) { dcollect(); renderDossier(); } }
     catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
   }
-  function newFaction() {
-    askName(CS.newFacQ, "", async function (name) {
+  function newFaction(kind) { // a new faction (or location) of the canon, picked on the sheet at once
+    kind = kind || "factions";
+    askName(kind === "locations" ? CS.newLocQ : CS.newFacQ, "", async function (name) {
       if (!name || !dos) return;
-      var id = entityId("factions"), e = dos;
+      var id = entityId(kind), e = dos;
       try {
-        await wref().collection("entities").doc(id).set({ id: id, kind: "factions", name: name, slug: slugify(name), createdAt: stamp(), updatedAt: stamp(),
+        await wref().collection("entities").doc(id).set({ id: id, kind: kind, name: name, slug: slugify(name), createdAt: stamp(), updatedAt: stamp(),
           origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
-        if (!entities.some(function (x) { return x.id === id; })) entities.push({ id: id, kind: "factions", name: name });
-        if (dos === e) { dcollect(); ddraft.faction = id; renderDossier(); }
+        if (!entities.some(function (x) { return x.id === id; })) entities.push({ id: id, kind: kind, name: name });
+        if (dos === e) { dcollect(); if (kind === "locations") ddraft.ent.location = id; else ddraft.faction = id; renderDossier(); }
       } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
     });
   }
