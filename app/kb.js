@@ -861,7 +861,7 @@
         min: 2,
         body: [
           ["ul", [
-            "«＋ Підрозділ» угорі — новий підрозділ; порожній можна прибрати (✕). «＋ Додати» під заголовком створює картку саме в ньому.",
+            "Квадратна кнопка <b>＋</b> угорі меню, біля назви світу чи гри, — новий підрозділ у відкритому розділі (є лише там, де розділ має підрозділи); порожній можна прибрати (✕). «＋ Додати» під заголовком створює картку саме в ньому.",
             "Перенести картку: меню підрозділу в шапці картки чи досьє (видно, коли підрозділів хоча б два).",
             "Або перетягни мишею: на іншу картку — стане перед чи після неї; на блок підрозділу — перейде в нього. Біля краю сторінка прокручується сама.",
             "На телефоні перетягування вимкнене — переносиш через меню.",
@@ -873,7 +873,7 @@
         lead: "Дизайн гри поверх канону світу.",
         min: 3,
         body: [
-          ["p", "У світі може бути кілька ігор, і кожна — окремий GDD. «Огляд гри» відкривається, як «Огляд світу»: угорі невисокий банер-обкладинка гри (картинка до 10 МБ або відео MP4 / WebM до 50 МБ, що грає по колу без звуку, з ⌖ кадром і ⏸/▶), а назва гри — шрифтом або картинкою з повзунком висоти — стоїть просто на ньому, знизу по центру. Банер завжди заповнений: ⌖ обирає, яку смугу картинки видно. ✎ на обкладинці й біля назви бачить власник світу, при наведенні. Відкривається гра з хабу світу (картка гри → «Відкрити GDD») або з Біблії світу — «Повʼязані ігри» внизу її меню. У GDD гри меню лише гри; угорі — «‹ Канон світу», що веде назад у Біблію світу. Перемикача між іграми в GDD немає: інша гра — через хаб чи «Повʼязані ігри». Звʼязки з каноном лишаються: «＋ Додати з канону», картки персонажів і локацій канону в грі, квести на сутностях канону, 💡 у досьє (якщо ігор кілька — Біблія спитає, у яку). Меню гри — дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
+          ["p", "У світі може бути кілька ігор, і кожна — окремий GDD. «Огляд гри» відкривається, як «Огляд світу»: угорі невисокий банер-обкладинка гри (картинка до 10 МБ або відео MP4 / WebM до 50 МБ, що грає по колу без звуку, з ⌖ кадром і ⏸/▶), а назва гри — шрифтом або картинкою з повзунком висоти — стоїть просто на ньому, знизу по центру. 👤 фоловери й ★ рейтинг — у смузі вгорі, праворуч від лого. Банер завжди заповнений: ⌖ обирає, яку смугу картинки видно. ✎ на обкладинці й біля назви бачить власник світу, при наведенні. Відкривається гра з хабу світу (картка гри → «Відкрити GDD») або з Біблії світу — «Повʼязані ігри» внизу її меню. У GDD гри меню лише гри; угорі — «‹ Канон світу», що веде назад у Біблію світу. Перемикача між іграми в GDD немає: інша гра — через хаб чи «Повʼязані ігри». Звʼязки з каноном лишаються: «＋ Додати з канону», картки персонажів і локацій канону в грі, квести на сутностях канону, 💡 у досьє (якщо ігор кілька — Біблія спитає, у яку). Меню гри — дерево: споріднені розділи зібрано в один пункт, що розкривається стрілкою ▸, а розділи — його підпункти:"],
           ["ul", [
             "<b>Огляд і лор</b> — Огляд гри · Лор гри · Історії гри",
             "<b>Персонажі й вороги</b> — Персонажі · Фракції · Вороги й боси · Кузня персонажів (виробництво персонажа й екіпірування, див. «⚒ Кузня персонажів»)",
@@ -2256,7 +2256,7 @@
         min: 2,
         body: [
           ["ul", [
-            "“＋ Subsection” at the top adds one; an empty one can be removed (✕). “＋ Add” under a heading creates a card right there.",
+            "The square <b>＋</b> at the top of the menu, by the world / game name, adds a subsection to the open section (only where the section has subsections); an empty one can be removed (✕). “＋ Add” under a heading creates a card right there.",
             "Move a card: the subsection menu in the card's or dossier's header (shown when there are at least two subsections).",
             "Or drag it with the mouse: onto another card — it goes before or after it; onto a subsection block — it moves there. Near the edge the page scrolls by itself.",
             "On a phone dragging is off — use the menu.",
@@ -2268,7 +2268,7 @@
         lead: "The game design on top of the world canon.",
         min: 3,
         body: [
-          ["p", "A world can have several games, and each is its own GDD. “Game overview” opens like “World overview”: a low cover banner on top (an image up to 10 MB or an MP4 / WebM video up to 50 MB that loops silently, with a ⌖ frame and ⏸/▶), and the game's name — in the font or as an image with a height slider — sits right on it, bottom centre. The banner is always filled: ⌖ picks which strip of the picture is seen. The world's owner sees ✎ on the cover and by the name, on hover. A game opens from the world hub (a game card → “Open the GDD”) or from the World Bible — “Linked games” at the foot of its menu. A game's GDD shows only the game's menu; on top, “‹ World canon” leads back to the World Bible. There is no game switcher inside a GDD: another game is through the hub or “Linked games”. The links to the canon stay: “＋ Add from canon”, canon characters and locations in the game, quests on canon entities, 💡 in dossiers (with several games the Bible asks which). The game menu is a tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
+          ["p", "A world can have several games, and each is its own GDD. “Game overview” opens like “World overview”: a low cover banner on top (an image up to 10 MB or an MP4 / WebM video up to 50 MB that loops silently, with a ⌖ frame and ⏸/▶), and the game's name — in the font or as an image with a height slider — sits right on it, bottom centre. 👤 followers and ★ rating are in the strip on top, right of the logo. The banner is always filled: ⌖ picks which strip of the picture is seen. The world's owner sees ✎ on the cover and by the name, on hover. A game opens from the world hub (a game card → “Open the GDD”) or from the World Bible — “Linked games” at the foot of its menu. A game's GDD shows only the game's menu; on top, “‹ World canon” leads back to the World Bible. There is no game switcher inside a GDD: another game is through the hub or “Linked games”. The links to the canon stay: “＋ Add from canon”, canon characters and locations in the game, quests on canon entities, 💡 in dossiers (with several games the Bible asks which). The game menu is a tree: related sections share one item that unfolds with an arrow ▸, and the sections are its sub-items:"],
           ["ul", [
             "<b>Overview & lore</b> — Game overview · Game lore · Game stories",
             "<b>Characters & enemies</b> — Characters · Factions · Enemies & bosses · Character forge (a character's and its equipment's production, see “⚒ Character forge”)",

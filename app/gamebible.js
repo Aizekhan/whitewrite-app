@@ -1521,7 +1521,7 @@
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
     var gov = s.id === "overview" && game && !query; // «Огляд гри»: the game's cover and name, as on «Огляд світу»
-    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? '' : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
+    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? wstatsRow() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
@@ -1708,9 +1708,10 @@
     return '<span class="wwstats"><span title="' + esc(STR.stats.followers) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.2"/><path d="M3.8 21.5c0-4.7 3.7-8 8.2-8s8.2 3.3 8.2 8z"/></svg>' + f + '</span>' +
       '<span title="' + esc(STR.stats.rating) + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z"/></svg>' + l + '</span></span>';
   }
+  function wstatsRow() { var h = statsHtml(coverTarget().gid); return h ? '<div class="wstats-row">' + h + '</div>' : ''; } // 👤 ★ — above the menu, right of the shell's logo (embed: lifted onto #topline)
   function worldNameHtml() {
     var T = coverTarget(), d = T.d, ta = d.titleArt, ed = T.gid ? STR.wname.gEdit : STR.wname.edit;
-    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(d.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(d.title || "") + '</span>') + statsHtml(T.gid) +
+    return '<h1 class="wname">' + (ta && ta.url ? '<img src="' + esc(ta.url) + '" alt="' + esc(d.title || "") + '" style="height:' + (Number(ta.h) || 72) + 'px">' : '<span>' + esc(d.title || "") + '</span>') +
       (T.own ? '<button class="wname__ed" type="button" data-wname title="' + esc(ed) + '" aria-label="' + esc(ed) + '">✎</button>' : '') + '</h1>';
   }
   function editWorldName() { // the world's name — or the game's on «Огляд гри» (coverTarget)
@@ -1772,7 +1773,7 @@
   }
   function renderWorld(s) {
     var d = wd(s.id);
-    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) +
+    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + wstatsRow() + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) +
       '<div class="canonbox wedit"><h4>' + STR.worldCanon + '</h4>' +
       '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag" value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
       '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum" rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +
@@ -9267,11 +9268,18 @@
       var top = $("topline"), head = $("view").querySelector("header.sec");
       top.innerHTML = "";
       if (!head || window.matchMedia("(max-width:820px)").matches) return; // phones keep the header in the page
-      var h1 = head.querySelector("h1"), actions = head.querySelector(":scope > .row");
+      var h1 = head.querySelector("h1"), actions = head.querySelector(":scope > .row"), st = head.querySelector(".wstats-row .wwstats");
+      if (st) top.appendChild(st);
       if (h1) top.appendChild(h1);
       if (actions) top.appendChild(actions);
     }).observe($("view"), { childList: true });
   }
+  function subBtnSync() {
+    var at = $("add-top"), b = $("sub-btn"); b.hidden = !at;
+    if (at) { var t = STR.sub.add + " · " + L(sec(section)); b.title = t; b.setAttribute("aria-label", t); }
+  }
+  new MutationObserver(subBtnSync).observe($("view"), { childList: true });
+  $("sub-btn").addEventListener("click", function () { var at = $("add-top"); if (at) at.click(); });
   $("topline").addEventListener("click", function (e) { viewClick(e); });
   function bulkChange(e) {
     var t = e.target; if (!t.files || !t.files.length) return;
