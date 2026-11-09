@@ -7370,6 +7370,7 @@
       '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
   // ---------- 🔌 Інтеграції: every outside service of the world / the game in one tab (functions/src/integrations.js) ----------
+  var shownOpen = false; // «Розділи гри в меню» stays open while the author ticks — each tick re-renders the settings (owner, v2.106.3)
   var setTab = "main", igMsg = {}; // settings tab: main | integ; a message per key block
   var IG_PROV = {
     model3d: [["meshy", "Meshy"], ["tripo", "Tripo"], ["other", ""]],
@@ -7471,7 +7472,7 @@
         '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
         '<p class="hint">' + STR.stExportHint + '</p>' +
         // the sections list folds into one line with its count (v2.89) — it is set once, rarely changed
-        '<details class="setfold"><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2><span class="btn mini setfold-btn"><span class="sf-open">' + STR.stShownOpen + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary>' +
+        '<details class="setfold" id="st-shown"' + (shownOpen ? ' open' : '') + '><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2><span class="btn mini setfold-btn"><span class="sf-open">' + STR.stShownOpen + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary>' +
         '<p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
           var gh = guideLater(s.id), st = guideStageOf(s.id);
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
@@ -7507,6 +7508,7 @@
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
     if (canDev) { $("st-import").onclick = function () { $("imp-file").click(); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); } // the import price comes once the file is known (startImport)
     else bindDevLock();
+    if ($("st-shown")) $("st-shown").addEventListener("toggle", function () { shownOpen = this.open; });
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = async function () {
         var id = cb.dataset.showsec, hidden = (game.hiddenSections || []).filter(function (x) { return x !== id; }), up = { hiddenSections: hidden, updatedAt: stamp() };
