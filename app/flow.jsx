@@ -236,7 +236,8 @@ function StoryForm({ onBack, onCreate, initial }) {
   const [description, setDescription] = useFState(init.description || "");
   const [title, setTitle] = useFState(init.title || "");
   const [language, setLanguage] = useFState(init.language || (window.__i18n ? window.__i18n.getLanguage() : "uk")); // the interface language by default
-  const [creation, setCreation] = useFState(init.creation || "guided");   // guided | auto | free (the author writes)
+  const [creation, setCreation] = useFState(init.creation || "free");   // free (the author writes — the default) | guided | auto (✦ З ШІ)
+  const ai = creation !== "free";
   const [scope, setScope] = useFState(init.scope && init.scope !== "endless" ? init.scope : "novella");        // shot | novella | season | endless
   const [episodes, setEpisodes] = useFState(init.episodes || 8);
   const [ending, setEnding] = useFState(init.ending || "open");         // open | closed | custom
@@ -247,7 +248,7 @@ function StoryForm({ onBack, onCreate, initial }) {
   const [dialogueTouched, setDialogueTouched] = useFState(init.dialogue != null);
   const [creating, setCreating] = useFState(false);
   const [pricingReady, setPricingReady] = useFState(false);  // Track pricing load state
-  const ready = description.trim().length > 0 || (creation === "free" && title.trim().length > 0);
+  const ready = ai ? description.trim().length > 0 : title.trim().length > 0;
 
   // Guided Mode → 'endless' (історія без меж)
   // Auto Mode → 'season' (завжди серіал, лише кількість серій змінюється)
@@ -352,128 +353,139 @@ function StoryForm({ onBack, onCreate, initial }) {
     <div className="screen screen--form stage-screen">
       <Particles density={0.5} />
 
-      <div className="form-parch">
+      <div className={`form-parch form-story ${ai ? "is-ai" : ""}`}>
         <div className="form-inner">
           <div className="form-head">
             <div className="form-kicker">{t('form.kicker')}</div>
             <h2 className="form-title">{t('form.title')}</h2>
           </div>
 
-          <label className="field">
-            <span className="field__label">{t('form.titleLabel')}</span>
-            <input
-              className="field__input"
-              value={title}
-              onChange={(e) => !creating && setTitle(e.target.value)}
-              placeholder={t('form.titlePlaceholder')}
-              disabled={creating}
-            />
-          </label>
+          <div className="form-row">
+            <label className="field">
+              <span className="field__label">{t('form.titleLabel')}</span>
+              <input
+                className="field__input"
+                value={title}
+                onChange={(e) => !creating && setTitle(e.target.value)}
+                placeholder={t('form.titlePlaceholder')}
+                disabled={creating}
+              />
+            </label>
+            <label className="field field--lang" title={t('form.languageNote')}>
+              <span className="field__label">{t('form.languageLabel')}</span>
+              <select
+                className="field__input"
+                value={language}
+                onChange={(e) => !creating && setLanguage(e.target.value)}
+                disabled={creating}
+              >
+                {LANGUAGES.map(lang => (
+                  <option key={lang.code} value={lang.code}>{lang.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-          <label className="field">
-            <span className="field__label">{t('form.languageLabel')}</span>
-            <select
-              className="field__input"
-              value={language}
-              onChange={(e) => !creating && setLanguage(e.target.value)}
-              disabled={creating}
-            >
-              {LANGUAGES.map(lang => (
-                <option key={lang.code} value={lang.code}>{lang.name}</option>
-              ))}
-            </select>
-            <span className="field__note">{t('form.languageNote')}</span>
-          </label>
-
-          <label className="field">
-            <span className="field__label">
-              {t('form.descLabel')}
-              <span className="field__counter" style={{ marginLeft: '8px', fontSize: '12px', color: description.length > 2000 ? '#d9534f' : 'rgba(194,161,87,0.7)' }}>
-                {description.length} / 2000
-              </span>
-            </span>
-            <textarea
-              className="field__area"
-              value={description}
-              onChange={(e) => {
-                if (!creating && e.target.value.length <= 2000) {
-                  setDescription(e.target.value);
-                }
-              }}
-              placeholder={t('form.descPlaceholder')}
-              rows={6}
-              disabled={creating}
-              maxLength={2000}
-            />
-          </label>
-
+          {/* ✎ Пишу сам — the default: a title is enough; ✦ З ШІ — the pace (step by step / fully automatic) and the AI's settings (owner, v2.112) */}
           <div className="field">
             <span className="field__label">{t('form.creationLabel')}</span>
-            <div className="modecards">
-              <button type="button" className={`modecard ${creation === "guided" ? "is-on" : ""}`} onClick={() => !creating && setCreation("guided")} disabled={creating}>
-                <span className="modecard__ic">{t('form.guidedIcon')}</span>
-                <span className="modecard__t">{t('form.guidedTitle')}</span>
-                <span className="modecard__d">{t('form.guidedDesc')}</span>
-              </button>
-              <button type="button" className={`modecard ${creation === "auto" ? "is-on" : ""}`} onClick={() => !creating && setCreation("auto")} disabled={creating}>
-                <span className="modecard__ic">{t('form.autoIcon')}</span>
-                <span className="modecard__t">{t('form.autoTitle')}</span>
-                <span className="modecard__d">{t('form.autoDesc')}</span>
-              </button>
-              <button type="button" className={`modecard ${creation === "free" ? "is-on" : ""}`} onClick={() => !creating && setCreation("free")} disabled={creating}>
-                <span className="modecard__ic">{t('form.freeIcon')}</span>
-                <span className="modecard__t">{t('form.freeTitle')}</span>
+            <div className="modecards modecards--2">
+              <button type="button" className={`modecard ${!ai ? "is-on" : ""}`} onClick={() => !creating && setCreation("free")} disabled={creating}>
+                <span className="modecard__t"><span className="modecard__ic">{t('form.freeIcon')}</span>{t('form.freeTitle')}</span>
                 <span className="modecard__d">{t('form.freeDesc')}</span>
+              </button>
+              <button type="button" className={`modecard ${ai ? "is-on" : ""}`} onClick={() => !creating && !ai && setCreation("guided")} disabled={creating}>
+                <span className="modecard__t"><span className="modecard__ic">{t('form.aiIcon')}</span>{t('form.aiTitle')}</span>
+                <span className="modecard__d">{t('form.aiDesc')}</span>
               </button>
             </div>
           </div>
 
-          {creation === "auto" && (
-            <label className="field">
-              <span className="field__label">
-                {t('form.episodesLabel')}
-                {pricingReady && (() => {
-                  const estimate = window.__firebasePricing.estimateAutoModeCost(episodes, window.__wwUser.plan || 'free', length);
-                  return (
-                    <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
-                      ~{estimate.totalCost.toLocaleString()} {t('ui.tokens')}
-                    </span>
-                  );
-                })()}
-              </span>
-              <div className="wslider">
-                <input
-                  type="range" min="3" max="24" step="1"
-                  value={episodes}
-                  onChange={(e) => !creating && setEpisodes(+e.target.value)}
-                  style={{ "--fill": ((episodes - 3) / 21) * 100 + "%" }}
+          {ai && (
+            <div className="form-ai">
+              <div className="field">
+                <span className="field__label">{t('form.aiPace')}</span>
+                <Segmented
+                  value={creation}
+                  onChange={(val) => !creating && setCreation(val)}
                   disabled={creating}
+                  options={[
+                    { value: "guided", label: t('form.guidedIcon') + " " + t('form.guidedTitle') },
+                    { value: "auto", label: t('form.autoIcon') + " " + t('form.autoTitle') },
+                  ]}
                 />
-                <div className="wslider__row">
-                  <span>3</span>
-                  <span className="wslider__val">{episodes} {t('form.episodesUnit')}</span>
-                  <span>24</span>
-                </div>
+                <span className="field__note">{creation === "auto" ? t('form.autoDesc') : t('form.guidedDesc')}</span>
               </div>
-            </label>
-          )}
 
-          {creation === "auto" && (
-            <label className="field">
-              <span className="field__label">{t('form.endingLabel')}</span>
-              <Segmented
-                value={ending}
-                onChange={(val) => !creating && setEnding(val)}
-                disabled={creating}
-                options={[
-                  { value: "open", label: t('form.endingOpen') },
-                  { value: "closed", label: t('form.endingClosed') },
-                  { value: "custom", label: t('form.endingCustom') },
-                ]}
-              />
-              {ending === "custom" && (
+              <label className="field">
+                <span className="field__label">
+                  {t('form.descLabel')}
+                  <span className="field__counter" style={{ marginLeft: '8px', fontSize: '12px', color: description.length > 2000 ? '#d9534f' : 'rgba(194,161,87,0.7)' }}>
+                    {description.length} / 2000
+                  </span>
+                </span>
                 <textarea
-                  className="field__area" style={{ marginTop: 10 }}
+                  className="field__area"
+                  value={description}
+                  onChange={(e) => {
+                    if (!creating && e.target.value.length <= 2000) {
+                      setDescription(e.target.value);
+                    }
+                  }}
+                  placeholder={t('form.descPlaceholder')}
+                  rows={4}
+                  disabled={creating}
+                  maxLength={2000}
+                />
+              </label>
+
+              {creation === "auto" && (
+                <div className="form-row form-row--even">
+                  <label className="field">
+                    <span className="field__label">
+                      {t('form.episodesLabel')}
+                      {pricingReady && (() => {
+                        const estimate = window.__firebasePricing.estimateAutoModeCost(episodes, window.__wwUser.plan || 'free', length);
+                        return (
+                          <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
+                            ~{estimate.totalCost.toLocaleString()} {t('ui.tokens')}
+                          </span>
+                        );
+                      })()}
+                    </span>
+                    <div className="wslider">
+                      <input
+                        type="range" min="3" max="24" step="1"
+                        value={episodes}
+                        onChange={(e) => !creating && setEpisodes(+e.target.value)}
+                        style={{ "--fill": ((episodes - 3) / 21) * 100 + "%" }}
+                        disabled={creating}
+                      />
+                      <div className="wslider__row">
+                        <span>3</span>
+                        <span className="wslider__val">{episodes} {t('form.episodesUnit')}</span>
+                        <span>24</span>
+                      </div>
+                    </div>
+                  </label>
+                  <label className="field">
+                    <span className="field__label">{t('form.endingLabel')}</span>
+                    <Segmented
+                      value={ending}
+                      onChange={(val) => !creating && setEnding(val)}
+                      disabled={creating}
+                      options={[
+                        { value: "open", label: t('form.endingOpen') },
+                        { value: "closed", label: t('form.endingClosed') },
+                        { value: "custom", label: t('form.endingCustom') },
+                      ]}
+                    />
+                  </label>
+                </div>
+              )}
+              {creation === "auto" && ending === "custom" && (
+                <textarea
+                  className="field__area" style={{ marginTop: -6, marginBottom: 14 }}
                   value={endingNote}
                   onChange={(e) => !creating && setEndingNote(e.target.value)}
                   placeholder={t('form.endingPlaceholder')}
@@ -481,56 +493,57 @@ function StoryForm({ onBack, onCreate, initial }) {
                   disabled={creating}
                 />
               )}
-            </label>
-          )}
 
-          <div className="field">
-            <span className="field__label">{t('form.genreLabel')} <span className="field__hint">{t('form.genreHint')}</span></span>
-            <div className="chips">
-              {genres_list.map((g) => (
-                <button key={g.key} type="button" className={`chip ${genres.includes(g.key) ? "is-on" : ""}`} onClick={() => !creating && toggleGenre(g.key)} disabled={creating}>
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
+              <div className="field">
+                <span className="field__label">{t('form.genreLabel')} <span className="field__hint">{t('form.genreHint')}</span></span>
+                <div className="chips">
+                  {genres_list.map((g) => (
+                    <button key={g.key} type="button" className={`chip ${genres.includes(g.key) ? "is-on" : ""}`} onClick={() => !creating && toggleGenre(g.key)} disabled={creating}>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <label className="field">
-            <span className="field__label">
-              {t('form.lengthLabel')}
-              {pricingReady && (() => {
-                const userPlan = window.__wwUser.plan || 'free';
-                const inputChars = description.length;
-                const canonTokens = 0; // First scene — no canon yet
-                const costPerScene = window.__firebasePricing.estimateSingleSceneCost(length, inputChars, userPlan, canonTokens);
-                return (
-                  <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
-                    ~{costPerScene} {t('form.lengthHint')}
+              <div className="form-row form-row--even">
+                <label className="field">
+                  <span className="field__label">
+                    {t('form.lengthLabel')}
+                    {pricingReady && (() => {
+                      const userPlan = window.__wwUser.plan || 'free';
+                      const inputChars = description.length;
+                      const canonTokens = 0; // First scene — no canon yet
+                      const costPerScene = window.__firebasePricing.estimateSingleSceneCost(length, inputChars, userPlan, canonTokens);
+                      return (
+                        <span className="field__hint" style={{ marginLeft: '8px', fontStyle: 'italic', color: 'rgba(194,161,87,0.85)' }}>
+                          ~{costPerScene} {t('form.lengthHint')}
+                        </span>
+                      );
+                    })()}
                   </span>
-                );
-              })()}
-            </span>
-            <WordSlider value={length} onChange={(val) => !creating && setLength(val)} disabled={creating} />
-          </label>
+                  <WordSlider value={length} onChange={(val) => !creating && setLength(val)} disabled={creating} />
+                </label>
 
-          <label className="field">
-            <span className="field__label">{t('form.dialogueLabel')} <span className="field__hint">{dialogueLabel(dialogue)}</span></span>
-            <div className="wslider">
-              <input
-                type="range" min="0" max="100" step="5"
-                value={dialogue}
-                onChange={(e) => { if (!creating) { setDialogue(+e.target.value); setDialogueTouched(true); } }}
-                style={{ "--fill": dialogue + "%" }}
-                disabled={creating}
-              />
-              <div className="wslider__row">
-                <span>{t('form.dialogueNarration')}</span>
-                <span className="wslider__val">{dialogue}%</span>
-                <span>{t('form.dialogueDialogues')}</span>
+                <label className="field" title={genres.length && !dialogueTouched ? t('form.dialogueNote1') : t('form.dialogueNote2')}>
+                  <span className="field__label">{t('form.dialogueLabel')} <span className="field__hint">{dialogueLabel(dialogue)}</span></span>
+                  <div className="wslider">
+                    <input
+                      type="range" min="0" max="100" step="5"
+                      value={dialogue}
+                      onChange={(e) => { if (!creating) { setDialogue(+e.target.value); setDialogueTouched(true); } }}
+                      style={{ "--fill": dialogue + "%" }}
+                      disabled={creating}
+                    />
+                    <div className="wslider__row">
+                      <span>{t('form.dialogueNarration')}</span>
+                      <span className="wslider__val">{dialogue}%</span>
+                      <span>{t('form.dialogueDialogues')}</span>
+                    </div>
+                  </div>
+                </label>
               </div>
             </div>
-            <span className="field__note">{genres.length && !dialogueTouched ? t('form.dialogueNote1') : t('form.dialogueNote2')}</span>
-          </label>
+          )}
 
           <div className="form-foot">
             <button className="link-back" type="button" onClick={onBack}>{t('form.back')}</button>

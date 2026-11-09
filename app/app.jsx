@@ -144,7 +144,7 @@ function App() {
       title: params.get("title"), subjects: (params.get("about") || "").split(",").filter(Boolean),
       reveal: params.get("reveal") || "open", revealNote: params.get("revealNote") || "" };
     else if (NEW && params.get("title")) STORY_INIT = {
-      title: params.get("title"), subjects: (params.get("about") || "").split(",").filter(Boolean),
+      title: params.get("title"), creation: "guided", subjects: (params.get("about") || "").split(",").filter(Boolean),
       reveal: params.get("reveal") || "open", revealNote: params.get("revealNote") || "" };
   } catch (e) {}
   const DIRECT = RET || SCENE != null || PROJECT_ID != null;

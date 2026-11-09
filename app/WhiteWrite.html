@@ -871,6 +871,25 @@ body{ font-family:"Philosopher",Georgia,serif; color:var(--ink);
 .modecard.is-on{ border-color:#e6be6c; background:linear-gradient(180deg, rgba(104,72,30,0.6), rgba(54,36,16,0.6));
   box-shadow:inset 0 1px 0 rgba(255,235,180,0.18); }
 .modecard__ic{ font-size:20px; }
+/* the story form (v2.112): compact — ✎ Пишу сам needs only a title; ✦ З ШІ opens its pace and settings below a gold rule */
+.form-story{ width:min(600px, 92vw); transition:width .3s ease; }
+.form-story.is-ai{ width:min(720px, 94vw); }
+.form-story .form-inner{ padding:clamp(28px,4vw,42px) clamp(26px,5vw,50px); }
+.form-story .form-head{ margin-bottom:18px; }
+.form-story .field{ margin-bottom:14px; }
+.form-story .field__label{ margin-bottom:7px; }
+.form-story .form-foot{ margin-top:18px; }
+.form-row{ display:grid; grid-template-columns:minmax(0,1fr) 190px; gap:0 14px; align-items:end; }
+.form-row--even{ grid-template-columns:1fr 1fr; gap:0 26px; align-items:start; }
+.modecards--2{ grid-template-columns:1fr 1fr; }
+.form-story .modecard__t{ display:flex; align-items:center; gap:8px; }
+.form-story .modecard__ic{ font-size:17px; color:#e6be6c; }
+.form-ai{ margin-top:4px; padding-top:16px; border-top:1px dashed rgba(201,162,75,0.35); animation:formAiIn .35s ease both; }
+@keyframes formAiIn{ from{ opacity:0; transform:translateY(-6px) } to{ opacity:1; transform:none } }
+.form-ai .seg__opt.is-on{ transform:none; }
+.form-ai .seg__opt{ min-width:0; padding:9px 8px; font-size:13.5px; } .form-ai .field__note{ margin-top:6px; }
+.form-story .chips{ gap:6px; } .form-story .chip{ font-size:12.5px; padding:5px 11px; }
+@media (max-width:600px){ .form-row, .form-row--even, .modecards--2{ grid-template-columns:1fr; } }
 .modecard__t{ font-size:clamp(14px,1.4vw,16px); font-weight:600; color:#f3e4bb; }
 .modecard__d{ font-size:clamp(11.5px,1.1vw,13px); line-height:1.45; color:#b7975a; font-style:italic; }
 

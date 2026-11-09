@@ -369,17 +369,16 @@
         ] },
 
       // ── КНИГА ────────────────────────────────────────────────────────
-      { cat: "book", id: "first-story", icon: "book", title: "Нова історія: три режими",
-        lead: "Поступово з AI, усе одразу або пишу сам.",
+      { cat: "book", id: "first-story", icon: "book", title: "Нова історія: пишу сам або з ШІ",
+        lead: "За замовчуванням — пишу сам; з ШІ — поступово або повністю автоматично.",
         min: 3,
         body: [
           ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» (книга «＋ Нова історія» на полиці), у грі — в «Історіях гри», або з досьє («📜 Створити історію на основі цього» внизу картки, зліва від «Зберегти»; так само й на канонічних картках гри — історія про цього героя чи подію). На телефоні ці кнопки — маленькі значки: 📜＋ історія, 💡＋ квест."],
           ["ul", [
-            "🪶 Поступово (Guided, за замовчуванням) — AI пише по одній сцені, перед кожною наступною питає напрям.",
-            "⚡ Автоматично (Auto) — AI пише весь обсяг одразу: оповідання, новела, сезон.",
-            "✍ Пишу сам — без генерації: досить назви, книга відкривається на аркуші для письма.",
+            "✎ Пишу сам (за замовчуванням) — без генерації: досить назви (і мови), книга відкривається на аркуші для письма. Опису, жанрів, довжини сцен і діалогів форма тут не питає.",
+            "✦ Написати з ШІ — під золотою рискою зʼявляється «Як іде ШІ»: 🪶 Поступово з автором (по одній сцені, перед кожною питає напрям) або ⚡ Повністю автоматично (увесь обсяг одразу — тоді ще кількість серій і фінал).",
           ]],
-          ["p", "Обсяг, фінал і жанри (до чотирьох) — гнучкий каркас, не контракт. Кожна сцена читає поточний канон світу."],
+          ["p", "Лише для ШІ форма питає, про що історія, жанр і тон (до чотирьох), довжину сцен і частку діалогів — гнучкий каркас, не контракт. Кожна сцена читає поточний канон світу."],
           ["p", "З досьє «📜 Створити історію на основі цього» спершу питає, як писати: <b>✦ З допомогою ШІ</b> — відкривається ця сама форма, вже з назвою й героєм; <b>✎ Пишу сам</b> — книга одразу на чистому аркуші."],
         ] },
       { cat: "book", id: "scene-intent", icon: "wand", title: "«Що далі?» — напрям наступної сцени",
@@ -1768,17 +1767,16 @@
         ] },
 
       // ── THE BOOK ─────────────────────────────────────────────────────
-      { cat: "book", id: "first-story", icon: "book", title: "A new story: three modes",
-        lead: "Step by step with AI, everything at once, or I write it myself.",
+      { cat: "book", id: "first-story", icon: "book", title: "A new story: write myself or with AI",
+        lead: "By default — I write myself; with AI — step by step or fully automatic.",
         min: 3,
         body: [
           ["p", "Stories are created in the World Bible: in “World stories” (the “＋ New story” book on the shelf), in a game — in “Game stories”, or from a dossier (“📜 Create a story based on this” at the bottom of the card, left of “Save”; the same on canon cards of a game — a story about this hero or event). On a phone these buttons are small icons: 📜＋ a story, 💡＋ a quest."],
           ["ul", [
-            "🪶 Guided (default) — AI writes one scene at a time and asks for the direction before the next.",
-            "⚡ Auto — AI writes the whole volume at once: a short story, a novella, a season.",
-            "✍ I write it myself — no generation: a title is enough, the book opens on the writing sheet.",
+            "✎ I write myself (default) — no generation: a title (and the language) is enough, the book opens on the writing sheet. The form asks no description, genres, scene length or dialogue here.",
+            "✦ Write with AI — below a gold rule “How the AI goes” appears: 🪶 Step by step with author (one scene at a time, asking the direction before each) or ⚡ Fully automatic (the whole volume at once — then also the number of episodes and the ending).",
           ]],
-          ["p", "Length, ending and genres (up to four) are a flexible frame, not a contract. Every scene reads the world's current canon."],
+          ["p", "Only for AI the form asks what the story is about, genre and tone (up to four), scene length and the share of dialogue — a flexible frame, not a contract. Every scene reads the world's current canon."],
           ["p", "From a dossier, “📜 Create a story based on this” first asks how to write: <b>✦ With AI</b> — this same form opens with the title and the hero filled in; <b>✎ I write myself</b> — the book opens straight on a blank sheet."],
         ] },
       { cat: "book", id: "scene-intent", icon: "wand", title: "“What's next?” — the next scene's direction",

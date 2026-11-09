@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.111.0 (2026-11-09)
+**Version:** 2.112.0 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.112.0** (owner) The story form (`app/flow.jsx` `StoryForm`, CSS `.form-story` in `app/WhiteWrite.html`) is compact: title + language in one row, two cards «✎ Пишу сам» (the default now, `creation: 'free'` — a title is enough) and «✦ Написати з ШІ»; only AI opens, below a gold rule, «Як іде ШІ» (🪶 Поступово з автором `guided` / ⚡ Повністю автоматично `auto`), «Про що історія», genres, scene length + dialogue side by side (auto: episodes + ending). The dossier's «✦ З ШІ» opens the form on `guided` (`STORY_INIT.creation`). Data sent to `onCreate` unchanged
 - **v2.111.0** (owner) «Карта світу» — its own World Bible section `worldmap` (special, in the «Світ» rail group after «Закони», `renderWorldMap` → the same `mapHtml` / `bindMap`); team access follows «Локації» (`mayRead` / `mayEdit` map it to `w-locations`); the «Локації» page's view switch (`locView`, localStorage `ww-locview`) is gone — «🗺 Карта» there opens the new section
 - **v2.110.0** (owner) «Хроніка» → «Хроніка та Події»: the comet boxes (`cometsHtml`, `niceStep`, `.chron/.comet` CSS) replaced by one vertical chronicle (`chronLine`, `.chl*`) — the subsections (eras) on one gold line, the events as cards left / right (time label, title, description, participants' faces, place `location`, duration, picture), sorted by `at`, undated after them by `createdAt`; the event editor shows only the chosen participants (✕) + a name search to add one (`#ev-who-q`) instead of every character
 - **v2.109.0** (owner) the character sheet on a game's canon character cards (`gameSheetHtml`, `draft.sheet` = `csState(entity)`): the same traits written to the canon entity on «Зберегти» (`csEntDiff`, shared with the dossier through `csSt` / `csCollect`), the frame shows the card's own «Портрет» (else its first picture, else `entImage`) and uploads into it (`data-fup="portrait"` → «Арт» · Портрети); «Своє…» / «＋ Нова фракція / локація…» work there too (`newFaction(kind, then)`)
@@ -926,5 +927,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.111.0)
+**Last updated:** 2026-11-09 (v2.112.0)
 **Maintained by:** WhiteWrite Team
