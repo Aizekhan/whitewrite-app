@@ -2283,7 +2283,7 @@
       lifeNotes: (e.lifeNotes || []).map(function (n) { return Object.assign({}, n); }) };
     if (e.col === "lore") ddraft.fields = Object.assign({}, e.fields);
     if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; // 🧠 the constructor's draft
-      ddraft.faction = csFaction(e); ddraft.ent = { charClass: e.charClass || "", condition: e.condition || "", location: typeof e.location === "string" ? e.location : "" }; }
+      ddraft.faction = csFaction(e); ddraft.ent = { charClass: e.charClass || "", alignment: e.alignment || "", location: typeof e.location === "string" ? e.location : "" }; }
     $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
@@ -2342,13 +2342,13 @@
   // (entities/{id}.appearance, persona.js LOOK) — one place; the faction is entities/{id}.faction, «who» is entities/{id}.cast (sorts it in a game)
   var CS = {
     uk: { lbl: { people: "Раса", sex: "Стать", age: "Вік", height: "Зріст", build: "Статура" }, own: "✎ Своє…", ownQ: "Своє значення", faction: "Фракція",
-      newFac: "＋ Нова фракція…", newFacQ: "Назва нової фракції", charClass: "Клас", home: "Де живе", newLoc: "＋ Нова локація…", newLocQ: "Назва нової локації", condition: "Стан",
+      newFac: "＋ Нова фракція…", newFacQ: "Назва нової фракції", charClass: "Клас", home: "Де живе", newLoc: "＋ Нова локація…", newLocQ: "Назва нової локації", alignment: "Світогляд",
       opts: { charClass: ["воїн", "маг", "лучник", "розбійник", "жрець", "цілитель", "паладин", "мисливець", "бард", "друїд", "некромант", "ремісник", "торговець", "вчений", "без класу"],
-        condition: ["живий", "поранений", "зниклий", "у полоні", "мертвий", "невідомо"] }, portrait: "＋ Портрет", portraitTip: "Завантажити портрет", change: "Змінити портрет", setP: "Зробити портретом", isP: "Портрет", saveFirst: "Спершу збережи картку" },
+        alignment: ["законно-добрий", "нейтрально-добрий", "хаотично-добрий", "законно-нейтральний", "істинно нейтральний", "хаотично-нейтральний", "законно-злий", "нейтрально-злий", "хаотично-злий"] }, portrait: "＋ Портрет", portraitTip: "Завантажити портрет", change: "Змінити портрет", setP: "Зробити портретом", isP: "Портрет", saveFirst: "Спершу збережи картку" },
     en: { lbl: { people: "Race", sex: "Sex", age: "Age", height: "Height", build: "Build" }, own: "✎ Own…", ownQ: "Your own value", faction: "Faction",
-      newFac: "＋ New faction…", newFacQ: "Name of the new faction", charClass: "Class", home: "Lives in", newLoc: "＋ New location…", newLocQ: "Name of the new location", condition: "State",
+      newFac: "＋ New faction…", newFacQ: "Name of the new faction", charClass: "Class", home: "Lives in", newLoc: "＋ New location…", newLocQ: "Name of the new location", alignment: "Alignment",
       opts: { charClass: ["warrior", "mage", "archer", "rogue", "priest", "healer", "paladin", "hunter", "bard", "druid", "necromancer", "craftsman", "merchant", "scholar", "no class"],
-        condition: ["alive", "wounded", "missing", "captive", "dead", "unknown"] }, portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
+        alignment: ["lawful good", "neutral good", "chaotic good", "lawful neutral", "true neutral", "chaotic neutral", "lawful evil", "neutral evil", "chaotic evil"] }, portrait: "＋ Portrait", portraitTip: "Upload a portrait", change: "Change the portrait", setP: "Make it the portrait", isP: "Portrait", saveFirst: "Save the card first" }
   }[LANG];
   function csFaction(e) { var f = e.faction || (Array.isArray(e.factions) ? e.factions[0] : ""); return typeof f === "string" ? f : ""; }
   function csOpts(f) { var base = f.opts === "peoples" ? f.base : f.opts, l = (base[LANG] || base.uk).slice(); if (f.opts === "peoples") l = lookPeoples().concat(l.filter(function (x) { return lookPeoples().indexOf(x) < 0; })); return l; }
@@ -2381,7 +2381,7 @@
         (fv && !facs.some(function (x) { return x.id === fv; }) ? '<option value="' + esc(fv) + '" selected>' + esc(fv) + '</option>' : '') +
         (canWrite ? '<option value="__new">' + esc(CS.newFac) + '</option>' : '') + '</select></label>' + csText("charClass") + '</div>' +
       '<div class="cs-row cs-row3">' + csSel("age") + csSel("height") + csSel("build") + '</div>' +
-      '<div class="cs-row">' + csLoc() + csText("condition") + '</div></div></div>';
+      '<div class="cs-row">' + csLoc() + csText("alignment") + '</div></div></div>';
   }
   function dosFileRow(f) {
     return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
@@ -2525,7 +2525,7 @@
     var e = dos, name = ddraft.name.trim() || e.name || e.title || STR.newCard, body = { dossier: ddraft.dossier, updatedAt: stamp() };
     if (e.kind === "characters") body.lifeNotes = ddraft.lifeNotes;
     if (e.kind === "characters" && ddraft.faction !== csFaction(e)) body.faction = ddraft.faction || firebase.firestore.FieldValue.delete();
-    if (e.kind === "characters" && ddraft.ent) ["charClass", "condition", "location"].forEach(function (k) { if (ddraft.ent[k] !== (typeof e[k] === "string" ? e[k] : "")) body[k] = ddraft.ent[k] || firebase.firestore.FieldValue.delete(); });
+    if (e.kind === "characters" && ddraft.ent) ["charClass", "alignment", "location"].forEach(function (k) { if (ddraft.ent[k] !== (typeof e[k] === "string" ? e[k] : "")) body[k] = ddraft.ent[k] || firebase.firestore.FieldValue.delete(); });
     if (ddraft.personality) { var pz = window.__PERSONA.cleanPersona(ddraft.personality), pz0 = window.__PERSONA.cleanPersona(e.personality); if (e.isNew || JSON.stringify(pz) !== JSON.stringify(pz0)) {
       ["answers", "traits"].forEach(function (g) { Object.keys(pz0[g]).forEach(function (k) { if (!(k in pz[g])) pz[g][k] = firebase.firestore.FieldValue.delete(); }); }); // set(merge) merges maps: a cleared answer is deleted explicitly
       body.personality = Object.assign(pz, { updatedAt: Date.now() });

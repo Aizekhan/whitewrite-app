@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.108.3 (2026-11-09)
+**Version:** 2.108.4 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.108.4** (owner) the sheet's «Стан» (`condition`, changes over time) replaced by «Світогляд» — entity field `alignment`, the nine D&D alignments + «Своє…»
 - **v2.108.3** (owner) the «Хто це» tags (hero / ally / NPC / enemy / boss) removed from the World Bible character sheet — that is a game's choice (its shelf «Герої та NPC» / «Вороги й боси»); `canonShelf` still reads an `entities/{id}.cast` if one exists
 - **v2.108.2** (owner) a character's «Хронологія життя» (`lifeHtml`) moved from «Загальне» to the «Поява в історіях та іграх» tab, above the appearances
 - **v2.108.1** (owner) the card foot's «Створити історію / квест…» are built by `footBtn` (icon 📜 / 💡 + words); on a phone (≤ 560 px) only the icon with a ＋ badge, the foot is one row: 📜＋ · Зберегти · 💡＋
@@ -922,5 +923,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.108.3)
+**Last updated:** 2026-11-09 (v2.108.4)
 **Maintained by:** WhiteWrite Team
