@@ -1346,6 +1346,7 @@
     cards.forEach(function (c) {
       if (!c.canonRef || c.section !== "characters" || (c.fields && c.fields.group)) return;
       var e = entities.filter(function (x) { return x.id === c.canonRef; })[0], d = e && canonShelf(e); if (!d) return;
+      if (d.s.id === "characters" && !CAST_RX.hero.test([e.role, e.group].join(" ")) && !CAST_RX.ally.test([e.role, e.group].join(" "))) return; // unknown role: «NPC» is only shown, not written
       batch.set(gref().collection("cards").doc(c.id), { section: d.s.id, fields: { group: d.group }, updatedAt: stamp() }, { merge: true }); n++;
     });
     batch.set(gref(), { castSorted: true }, { merge: true });
@@ -1437,6 +1438,8 @@
   }
   function renderNav() {
     var all = allCards();
+    if (!railNarrow()) return renderRail(all);
+    document.body.classList.remove("rail-shut");
     if (mode === "game") { // a game's GDD: «Канон світу» on top leads to the World Bible, then only this game's menu
       $("nav").innerHTML = '<button class="navh navtoggle" id="to-world"><span class="arr"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></span>' + STR.canonGroup + '</button>' +
         '<div class="navh gamehead">🎮 ' + esc(game ? game.title || "…" : canGame ? STR.newGame.replace(/^\+\s*/, "") : STR.wt.gameLocked) + '</div>' + (game && canGame ? gameNav(all) + guideNextHtml() : "");
@@ -9298,8 +9301,120 @@
   function goSection(id, then) { leaveOk(id, function () { goSectionNow(id); if (then) then(); }); }
   function goSectionNow(id) {
     if (isCanon(id)) mode = "world"; else if (id !== "settings" && gameSections().some(function (s) { return s.id === id; })) mode = "game"; // a link across opens the other Bible
-    section = id; query = ""; imp = null; if (intake) { intake.view = false; if (!intake.running && intake.stage === "plan") intake = null; } setTimeout(inChip, 0); $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
+    section = id; query = ""; imp = null; railPick = null; if (intake) { intake.view = false; if (!intake.running && intake.stage === "plan") intake = null; } setTimeout(inChip, 0); $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
+  // ---------- 🧭 the rail (owner, v2.105): a thin column of icons = the main menu items; a click opens their sub-items in the panel (#spine) ----------
+  // Desktop only — phones keep the full tree in the drawer. The panel stays open until its icon is clicked again (railShut, remembered).
+  var RAIL_ICO = {
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14c2.8.2 5 2.2 5 5"/>',
+    book: '<path d="M4 19V5a2 2 0 0 1 2-2h14v14H6a2 2 0 0 0-2 2zm0 0a2 2 0 0 0 2 2h14"/>',
+    masks: '<path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 9h.01M15 9h.01M9 13c1.6 1.2 4.4 1.2 6 0"/>',
+    star: '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.6l-5.3 2.8 1.2-6-4.5-4.1 6-.7z"/>',
+    pad: '<path d="M6 8h12a4 4 0 0 1 4 4v2a3 3 0 0 1-5.4 1.8L15 14H9l-1.6 1.8A3 3 0 0 1 2 14v-2a4 4 0 0 1 4-4z"/><path d="M8 10v3M6.5 11.5h3M16 11h.01M18 13h.01"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+    map: '<path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/>',
+    scroll: '<path d="M8 4h10a2 2 0 0 1 2 2v12a3 3 0 0 1-3 3H7"/><path d="M8 4a3 3 0 0 0-3 3v1h3M7 21a3 3 0 0 1-3-3v-1h10v1a3 3 0 0 0 3 3"/><path d="M11 9h5M11 13h5"/>',
+    puzzle: '<path d="M10 3h4v2.5a2 2 0 1 0 4 0V3h3v7h-2.5a2 2 0 1 0 0 4H21v7h-7v-2.5a2 2 0 1 0-4 0V21H3v-7h2.5a2 2 0 1 0 0-4H3V3z"/>',
+    chart: '<path d="M4 20h16M6 16l4-5 3 3 5-7"/><path d="M14 7h4v4"/>',
+    sword: '<path d="M14.5 3H21v6.5L9.5 21 3 14.5z"/><path d="M6 11l7 7M3 21l3-3"/>',
+    palette: '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-1.1-1-1.6-1-2.6 0-.9.7-1.6 1.6-1.6H17a4 4 0 0 0 4-4C21 6.7 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/>',
+    note: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+    chip: '<rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9zM9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>',
+    folder: '<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    list: '<path d="M10 6h10M10 12h10M10 18h10M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>',
+    pulse: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+    horn: '<path d="M3 10v4h4l8 5V5l-8 5z"/><path d="M18.5 9a4 4 0 0 1 0 6"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'
+  };
+  var RAIL_G = { // the game groups' icons and short labels (NAV_GROUPS ids)
+    "g-overview": ["compass", "Огляд", "Overview"], "g-cast": ["users", "Персонажі", "Cast"], "g-world": ["map", "Світ", "World"], "g-narr": ["scroll", "Квести", "Quests"],
+    "g-mech": ["puzzle", "Механіки", "Mechanics"], "g-prog": ["chart", "Прогресія", "Progress"], "g-items": ["sword", "Предмети", "Items"], "g-art": ["palette", "Арт", "Art"],
+    "g-audio": ["note", "Звук", "Sound"], "g-tech": ["chip", "Технічне", "Tech"], "g-plan": ["list", "План", "Plan"], "g-exp": ["pulse", "Гравці", "Players"], "g-mkt": ["horn", "Маркетинг", "Marketing"]
+  };
+  var WORLD_RAIL = [
+    { id: "w-over", ico: "globe", uk: "Світ", en: "World", full: { uk: "Світ і закони", en: "World & laws" }, secs: ["world", "laws", "canonIssues"] },
+    { id: "w-cast", ico: "users", uk: "Досьє", en: "Dossiers", full: { uk: "Досьє канону", en: "Canon dossiers" }, secs: ["w-characters", "w-locations", "w-factions", "w-items"] },
+    { id: "w-hist", ico: "book", uk: "Історії", en: "Stories", full: { uk: "Історії і хроніка", en: "Stories & chronicle" }, secs: ["wstories", "chronicle"] },
+    { id: "w-cult", ico: "masks", uk: "Культура", en: "Culture", secs: ["culture"] },
+    { id: "w-cosmo", ico: "star", uk: "Космос", en: "Cosmos", secs: ["cosmology"] }
+  ];
+  var railShut = false; try { railShut = localStorage.getItem("ww-bible-railshut") === "1"; } catch (e) {}
+  var railPick = null; // a rail item without its own page (the games, empty «Свої») — shown in the panel until a section is opened
+  function railNarrow() { return window.matchMedia("(max-width:820px)").matches; }
+  function railGroups() {
+    var out = [];
+    if (mode === "game") {
+      if (!game || !canGame) return out;
+      var listed = {}; NAV_GROUPS.forEach(function (g) { if (g.members) g.members.forEach(function (m) { listed[m] = 1; }); });
+      NAV_GROUPS.forEach(function (g) {
+        if (g === "custom") {
+          var own = gameSections().filter(function (s) { return !listed[s.id] && mayRead(s.id); }).map(function (s) { return s.id; });
+          if (own.length || ME.owner) out.push({ id: "g-custom", ico: "folder", label: LANG === "en" ? "Own" : "Свої", full: LANG === "en" ? "Your own sections" : "Свої розділи", secs: own, custom: true });
+          return;
+        }
+        var mem = groupMembers(g); if (!mem.length) return;
+        var r = RAIL_G[g.id] || ["folder", L(g), L(g)];
+        out.push({ id: g.id, ico: r[0], label: LANG === "en" ? r[2] : r[1], full: g.uk ? L(g) : L(sec(mem[0])), secs: mem, grp: g,
+          lock: mem.some(function (m) { return devLocked(sec(m)); }), later: mem.every(function (m) { return guideLater(m); }) });
+      });
+    } else {
+      WORLD_RAIL.forEach(function (g) {
+        var secs = g.secs.filter(function (id) { return CANON.some(function (s) { return s.id === id; }) && mayRead(id); });
+        if (secs.length) out.push({ id: g.id, ico: g.ico, label: L(g), full: g.full ? L(g.full) : L(sec(secs[0])), secs: secs });
+      });
+      if (games.length || (canGame && ME.owner)) out.push({ id: "w-games", ico: "pad", label: LANG === "en" ? "Games" : "Ігри", full: STR.linkedGames, secs: [], games: true });
+    }
+    return out;
+  }
+  function railCur(gs) {
+    gs = gs || railGroups();
+    var p = railPick && gs.filter(function (g) { return g.id === railPick; })[0];
+    return p || gs.filter(function (g) { return g.secs.indexOf(section) >= 0; })[0] || null;
+  }
+  function railIco(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (RAIL_ICO[name] || RAIL_ICO.folder) + '</svg>'; }
+  function railBtn(id, ico, label, full, on, extra) {
+    return '<button type="button" class="rail-it" data-rg="' + esc(id) + '" title="' + esc(full || label) + '" aria-label="' + esc(full || label) + '"' + (on ? ' aria-current="true"' : '') + (extra || '') + '>' + railIco(ico) + '<span>' + esc(label) + '</span></button>';
+  }
+  // the desktop menu: the rail of icons + the panel with the open item's sub-items
+  function renderRail(all) {
+    var gs = railGroups(), cur = railCur(gs), html = railBtn("search", "search", LANG === "en" ? "Search" : "Пошук", STR.search, false);
+    if (mode === "game") html += railBtn("to-world", "back", LANG === "en" ? "Canon" : "Канон", STR.canonGroup, false);
+    html += '<span class="rail-div"></span>' + gs.map(function (g) {
+      return railBtn(g.id, g.ico, g.label, g.full, cur && cur.id === g.id, g.later ? ' data-later="1"' : '').replace('</span></button>', '</span>' + (g.lock ? '<i class="rail-lock" aria-hidden="true">🔒</i>' : '') + '</button>');
+    }).join("") + '<span class="rail-sp"></span>' + railBtn("settings", "gear", LANG === "en" ? "Settings" : "Налашт.", mode === "game" ? STR.settingsGame : STR.settingsWorld, section === "settings");
+    $("rail").innerHTML = html; $("t-brand").textContent = mode === "game" ? STR.brandGame : STR.brand;
+    if (cur && cur.grp && cur.secs.indexOf(section) >= 0) lastSub[cur.id] = section;
+    var panel = !!cur && (cur.secs.length > 1 || cur.games || cur.custom), body = "";
+    if (panel) {
+      if (mode === "game") body += '<div class="navh gamehead">🎮 ' + esc(game.title || "…") + '</div>';
+      body += '<div class="navh panel-h">' + esc(cur.full) + '</div>';
+      if (cur.games) body += games.map(function (g) { return '<button class="nav-item nav-game" data-opengame="' + esc(g.id) + '">🎮 ' + esc(g.title || "…") + '</button>'; }).join("") +
+        (canGame && ME.owner ? '<button class="nav-item nav-game" data-opengame="__new">' + esc(STR.newGame) + '</button>' : '');
+      else body += cur.secs.map(function (id) { return navItem(sec(id), all, NAV_SHORT[id] && L(NAV_SHORT[id])); }).join("");
+      if (mode === "game") body += guideNextHtml();
+    }
+    $("nav").innerHTML = body;
+    $("newsec-slot").innerHTML = panel && cur.custom && ME.owner ? '<button class="nav-add" id="sec-add">' + STR.addSection + '</button>' : '';
+    $("nav-foot").innerHTML = "";
+    document.body.classList.toggle("rail-shut", railShut || !panel);
+  }
+  $("rail").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rg]"); if (!b) return;
+    var id = b.dataset.rg;
+    if (id === "search") { $("srch-btn").click(); return; }
+    if (id === "to-world") { enterWorld(); return; }
+    if (id === "settings") { goSection("settings"); return; }
+    var gs = railGroups(), g = gs.filter(function (x) { return x.id === id; })[0], cur = railCur(gs); if (!g) return;
+    if (cur && cur.id === id) railShut = !railShut;
+    else if (!g.secs.length) { railPick = id; railShut = false; }
+    else { railPick = null; railShut = false; try { localStorage.setItem("ww-bible-railshut", "0"); } catch (er) {} return goSection(g.secs.indexOf(lastSub[id]) >= 0 ? lastSub[id] : g.secs[0]); }
+    try { localStorage.setItem("ww-bible-railshut", railShut ? "1" : "0"); } catch (er) {}
+    renderNav();
+  });
+  window.matchMedia("(max-width:820px)").addEventListener("change", function () { if (world) renderNav(); });
   // phones: the sections fold into a drawer under one «☰ section» button
   $("nav-toggle").addEventListener("click", function () { var o = $("spine").classList.toggle("is-open"); this.setAttribute("aria-expanded", String(o)); });
   $("nav").addEventListener("click", navClick);

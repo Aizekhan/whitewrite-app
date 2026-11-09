@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.104.6 (2026-11-09)
+**Version:** 2.105.0 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.105.0** (owner) the Bible menu on desktop is a rail of icons (`#rail`, `renderRail`, `RAIL_G` for `NAV_GROUPS`, `WORLD_RAIL` for the canon, `railPick` for the games / own sections, `railShut` in localStorage `ww-bible-railshut`) + the panel (`#spine`) with the open item's sub-items; phones (≤ 820 px) keep the old tree (`renderNav` narrow branch); `migrateCast` writes only confident roles (an unknown one shows «NPC» without writing it)
 - **v2.104.6** fix: the title image on the overview banner was stretched by the cover's `.wcover img` rule (full width, cover) and looked gone — the cover rules now take only `.wcover > img / > video`
 - **v2.104.5** (owner) faction cards (game `factions`, canon dossiers of kind `factions`) are vertical banners — `bannerCls(id)` → `.card--banner .bn-hem0–3 .bn-cl0–4` (CSS only: pole, cloth, clip-path hem)
 - **v2.104.4** (owner) the game cast: «Персонажі» of a game → «Герої та NPC» (subsections Герої · Союзники · NPC); «Вороги й боси» also take canon characters (`canon: "characters"`, `ownNew` — its «new» is a game card); a canon entity sits on one shelf (`shelfFor`: the card's stored section, else `canonShelf` by `role` + world `group` — boss / foe / hero / ally / NPC); «Взяти весь канон», `migrateCanonOptIn` and the import write the shelf + `fields.group`; games taken before are sorted once (`migrateCast`, `games/{g}.castSorted`)
@@ -910,5 +911,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.104.6)
+**Last updated:** 2026-11-09 (v2.105.0)
 **Maintained by:** WhiteWrite Team
