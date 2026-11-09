@@ -1467,6 +1467,8 @@
     var hay = (c.title + " " + c.note + " " + (c.canonDesc ? c.canonDesc.value : "") + " " + Object.keys(c.fields).map(function (k) { return c.fields[k]; }).join(" ")).toLowerCase();
     return query.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
   }
+  // 🚩 factions (owner, v2.104.5): a card is a vertical banner on a pole — its cloth colour and hem (swallowtail, point, three tails, tattered) follow its id
+  function bannerCls(id) { var h = 0; String(id || "").split("").forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) >>> 0; }); return " card--banner bn-hem" + (h % 4) + " bn-cl" + ((h >>> 3) % 5); }
   function cardHtml(c) {
     var st = STATUS[c.status] || STATUS.idea;
     var tags = ['<span class="pill ' + st.cls + '">' + esc(L(st)) + '</span>'];
@@ -1491,7 +1493,7 @@
     if (hv) tags.unshift(polyMark(hv));
     var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
     var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
-    return '<button class="card' + (model ? ' has3d' : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
+    return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id) : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
@@ -2255,7 +2257,7 @@
     var img = entImage(e), tags = [];
     if ((e.lifeNotes || []).length) tags.push('<span class="flag">⟡ ' + e.lifeNotes.length + '</span>');
     if ((e.files || []).length) tags.push('<span class="flag">📎 ' + e.files.length + '</span>');
-    return '<button class="card dcard" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
+    return '<button class="card dcard' + (e.kind === "factions" && e.col !== "lore" ? bannerCls(e.id) : '') + '" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
       '<h3>' + esc(e.name || e.title || STR.newCard) + '</h3>' + (e.role ? '<p class="sub">' + esc(e.role) + '</p>' : '') +
       (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation ||
         Object.keys(e.fields || {}).map(function (k) { return e.fields[k]; }).join(" "))) + '</p></button>';

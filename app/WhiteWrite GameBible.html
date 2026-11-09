@@ -726,6 +726,29 @@ textarea{ width:100%; background:#0b0a0d; border:1px solid var(--line-2); border
 .newfield input{ flex:1; background:var(--bg-2); border:1px solid var(--line-2); border-radius:8px; padding:6px 9px; }
 /* files on a card */
 .card .thumb{ width:calc(100% + 28px); margin:-12px -14px 2px; aspect-ratio:16/9; object-fit:cover; border-radius:12px 12px 0 0; background:var(--bg-1); }
+/* 🚩 faction cards = vertical banners (owner, v2.104.5): a gold pole on top, the cloth hangs between 6% and 94%, its hem cut by .bn-hem0–3, its colour .bn-cl0–4 */
+.grid:has(> .card--banner){ grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:22px 18px; }
+.card.card--banner{ --cloth:#4a171d; --tail:46px; border:0; border-radius:0; background:transparent; padding:22px calc(6% + 16px) calc(var(--tail) + 18px); min-height:330px; text-align:center; align-items:center;
+  transform-origin:50% 0; transition:transform .35s ease, filter .2s; }
+.card.card--banner::before{ content:""; position:absolute; z-index:0; inset:8px 6% 0; background:
+  linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,0) 14%,rgba(255,255,255,.05) 50%,rgba(0,0,0,0) 86%,rgba(0,0,0,.35)),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 5px),
+  linear-gradient(180deg,var(--cloth),color-mix(in srgb,var(--cloth) 70%,#000));
+  box-shadow:inset 0 0 0 1px rgba(240,169,59,.35), inset 0 10px 0 -6px rgba(240,169,59,.55); }
+.card.card--banner::after{ content:""; position:absolute; z-index:2; left:0; right:0; top:0; height:10px; border-radius:5px;
+  background:linear-gradient(180deg,#f6d38a,#c98a2b 55%,#7a4f14); box-shadow:0 2px 6px rgba(0,0,0,.6); }
+.card.card--banner > *{ position:relative; z-index:1; }
+.card.card--banner .thumb{ width:100%; margin:0 0 4px; aspect-ratio:1; border-radius:50%; border:2px solid rgba(240,169,59,.6); box-shadow:0 0 0 4px rgba(0,0,0,.25); max-width:120px; }
+.card.card--banner h3{ font-family:var(--brand); font-size:16px; letter-spacing:.03em; color:var(--gold-bright); text-shadow:0 1px 3px rgba(0,0,0,.7); }
+.card.card--banner .tags{ justify-content:center; } .card.card--banner .ex, .card.card--banner .sub{ color:rgba(255,240,215,.78); text-align:center; }
+.card.card--banner:hover{ transform:rotate(-1deg); border:0; filter:brightness(1.12); }
+.card.card--banner:focus-visible{ outline-offset:-6px; }
+@media (prefers-reduced-motion:reduce){ .card.card--banner:hover{ transform:none; } }
+.bn-cl0{ --cloth:#4a171d !important; } .bn-cl1{ --cloth:#172a46 !important; } .bn-cl2{ --cloth:#183a24 !important; } .bn-cl3{ --cloth:#47300f !important; } .bn-cl4{ --cloth:#2a2d33 !important; }
+.bn-hem0::before{ clip-path:polygon(0 0,100% 0,100% 100%,50% calc(100% - var(--tail)),0 100%); } /* swallowtail */
+.bn-hem1::before{ clip-path:polygon(0 0,100% 0,100% calc(100% - var(--tail)),50% 100%,0 calc(100% - var(--tail))); } /* point */
+.bn-hem2::before{ clip-path:polygon(0 0,100% 0,100% 100%,83% calc(100% - var(--tail)),67% 100%,50% calc(100% - var(--tail)),33% 100%,17% calc(100% - var(--tail)),0 100%); } /* three tails */
+.bn-hem3::before{ clip-path:polygon(0 0,100% 0,100% calc(100% - 20px),93% calc(100% - 4px),86% calc(100% - 30px),78% 100%,69% calc(100% - 22px),60% calc(100% - 6px),51% calc(100% - 34px),42% calc(100% - 2px),33% calc(100% - 24px),24% calc(100% - 8px),15% calc(100% - 32px),7% calc(100% - 10px),0 calc(100% - 26px)); } /* tattered */
 .field.files .file{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; padding:6px 0; border-bottom:1px solid var(--line); }
 .field.files .file img{ width:72px; height:48px; object-fit:cover; border-radius:6px; display:block; }
 .field.files .file .ico{ width:72px; text-align:center; font-size:22px; }
