@@ -142,7 +142,7 @@
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
-      artPick: { btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
+      artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
@@ -470,7 +470,7 @@
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
-      artPick: { btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
+      artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
@@ -2367,7 +2367,13 @@
       return dosSection(x.e.kind) || x.e.kind === "events" ? '<button class="dlink" data-dent="' + esc(x.e.id) + '">' + inner + '</button>' : '<span class="dlink">' + inner + '</span>';
     }).join("") + '</div>';
   }
-  function dosCorner(type) { var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; sb.textContent = STR.story.add;
+  // the image field the top «🖼 Додати картинку» fills: the card's first picture field, else the card's own files
+  function picField() {
+    var d = draft.defs.filter(function (d) { var std = d.type ? null : (sec(open.section).defs || []).filter(function (x) { return x.key === d.key; })[0]; return (d.type || (std && std.type)) === "image"; })[0];
+    return d ? d.key : "";
+  }
+  function picMenu(on) { var m = $("e-pic-m"); if (!m) return; m.hidden = !on; $("e-pic").setAttribute("aria-expanded", String(!!on)); }
+  function dosCorner(type) { $("d-pic").hidden = !!dos.isNew; var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; sb.textContent = STR.story.add;
     var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); q.textContent = QD.bulb; q.dataset.bulb = type + ":" + dos.id; }
   function renderDossier() {
     var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
@@ -4948,6 +4954,7 @@
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-mic").style.display = canWrite && dictOk(c) ? "" : "none";
+    $("e-pic-w").hidden = !canWrite || STATS_SECS.indexOf(c.section) >= 0; picMenu(false);
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
@@ -9665,6 +9672,12 @@
   $("e-addf-m").addEventListener("change", function (e) {
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; addfMenu(false); uploadFiles(list); }
   });
+  $("e-pic").addEventListener("click", function (e) { e.stopPropagation(); picMenu($("e-pic-m").hidden); });
+  $("e-pic-m").addEventListener("keydown", function (e) { if (e.key === "Escape") { picMenu(false); $("e-pic").focus(); } else if ((e.key === "Enter" || e.key === " ") && e.target.tagName === "LABEL") { e.preventDefault(); $("e-pic-up").click(); } });
+  document.addEventListener("click", function (e) { if (!e.target.closest("#e-pic-w")) picMenu(false); });
+  $("e-pic-up").addEventListener("change", function (e) { picMenu(false); if (!e.target.files.length || !open) return; var fl = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(fl, picField() || undefined); });
+  $("e-pic-art").addEventListener("click", function () { picMenu(false); if (!open) return; [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(picField()); });
+  $("d-pic-up").addEventListener("change", function (e) { if (!e.target.files.length || !dos) return; var list = [].slice.call(e.target.files); e.target.value = ""; uploadEntityFiles(list); });
   $("e-story").addEventListener("click", function () { var ent = entities.filter(function (x) { return x.id === open.id; })[0]; if (ent) { closeLeaf(); newStoryDialog(ent); } });
   $("e-quest").addEventListener("click", function () { var bp = this.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); });
   $("d-story").addEventListener("click", function () { if (dos) newStoryDialog(dos); });
@@ -9878,6 +9891,7 @@
   ["e-x", "d-x"].forEach(function (id) { $(id).title = STR.close; $(id).setAttribute("aria-label", STR.close); });
   $("d-save").textContent = STR.save; $("d-delete").textContent = STR.cult.del;
   ["e-mic", "d-mic"].forEach(function (id) { $(id).textContent = VF.btn; $(id).title = VF.tip; });
+  $("e-pic").textContent = $("d-pic-t").textContent = STR.artPick.head; $("e-pic-pc").textContent = STR.artPick.fromPc; $("e-pic-ar").textContent = STR.artPick.btn.replace(/^🎨\s*/, "");
   renderStatuses();
 
   function sync(state, text) { $("sync").innerHTML = '<span class="dot ' + state + '"></span>' + esc(text); }
