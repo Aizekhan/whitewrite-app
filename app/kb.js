@@ -488,7 +488,7 @@
         lead: "Розклади світ перетягуванням.",
         min: 2,
         body: [
-          ["p", "Окремий пункт <b>«Карта світу»</b> у «Світ» (або «🗺 Карта» вгорі «Локацій»). Перетягуй локації, щоб скласти мапу світу; клік відкриває досьє. Під назвою — хто там перебуває (за каноном персонажів), пунктирні лінії — шляхи персонажів між сценами історій."],
+          ["p", "Окремий пункт <b>«Карта світу»</b> у «Світ» (або «🗺 Карта» вгорі «Локацій»). Перетягуй локації, щоб скласти мапу світу; клік відкриває досьє. Під назвою — хто там перебуває (за каноном персонажів), пунктирні лінії — шляхи персонажів між сценами історій. <b>«⤒ Картинка карти»</b> (власник світу, до 10 МБ) кладе вашу карту світу на фон — локації розставляєте поверх неї; «⤒ Змінити картинку» / «✕ Прибрати картинку» — там само, локації лишаються на місцях."],
           ["p", "«▦ Картки» повертає звичайний вигляд; вибір запамʼятовується."],
         ] },
       { cat: "world", id: "reconcile", icon: "wand", title: "«✦ Узгодити сцени» після зміни канону",
@@ -1928,7 +1928,7 @@
         lead: "Lay out the world by dragging.",
         min: 2,
         body: [
-          ["p", "An item of its own, <b>“World map”</b> under “World” (or “🗺 Map” at the top of “Locations”). Drag locations to lay out the world; a click opens the dossier. Under a name — who is there (from the characters' canon); dashed lines — the characters' routes between scenes of the stories."],
+          ["p", "An item of its own, <b>“World map”</b> under “World” (or “🗺 Map” at the top of “Locations”). Drag locations to lay out the world; a click opens the dossier. Under a name — who is there (from the characters' canon); dashed lines — the characters' routes between scenes of the stories. <b>“⤒ Map picture”</b> (the world owner, up to 10 MB) puts your world map in the background — you place the locations on top of it; “⤒ Change the picture” / “✕ Remove the picture” are there too, and the locations stay where they are."],
           ["p", "“▦ Cards” returns to the usual view; the choice is remembered."],
         ] },
       { cat: "world", id: "reconcile", icon: "wand", title: "“✦ Align scenes” after a canon change",

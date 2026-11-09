@@ -165,7 +165,7 @@
           unknown: "Права не з'ясовано. Не використовуй комерційно, доки не знайдеш ліцензію." } },
       wt: { tagline: "Гасло світу", taglinePh: "Одним рядком — про що цей світ", summary: "Про світ", summaryPh: "Що це за світ, яка в ньому напруга, чим він живе…",
         factK: "Що", factV: "Як є", addFact: "＋ Факт", addLaw: "＋ Закон", lawPh: "Закон світу…", noLaws: "Законів ще немає — додай перший: те, чого в цьому світі не можна порушити.",
-        save: "Зберегти", dirty: "Є незбережені зміни", map: "🗺 Карта", cards: "▦ Картки", mapHint: "Перетягуй локації, щоб розкласти світ. Клік — досьє.",
+        save: "Зберегти", dirty: "Є незбережені зміни", bgUp: "⤒ Картинка карти", bgChg: "⤒ Змінити картинку", bgDel: "✕ Прибрати картинку", bgTip: "Картинка карти світу на фон (до 10 МБ) — локації лягають поверх неї", bgDelQ: "Прибрати картинку з фону карти? Локації лишаться на своїх місцях.", bgBig: "Картинка більша за 10 МБ", map: "🗺 Карта", cards: "▦ Картки", mapHint: "Перетягуй локації, щоб розкласти світ. Клік — досьє.",
         routes: "Лінії — шляхи персонажів між сценами історій", noLocs: "Локацій ще немає.", state: "Стан у часі", scene: "сцена",
         aspects: { status: "Статус", location: "Місце", possession: "Володіє", allegiance: "Сторона", condition: "Стан" },
         impact: "Вплив змін", impactText: "Сцен історій, де є ця сутність: {n}. Змінив канон — ШІ узгодить їх: покаже «було → стане», а ти приймеш або відхилиш кожну.",
@@ -495,7 +495,7 @@
           unknown: "Rights unknown. Don't use commercially until you find the licence." } },
       wt: { tagline: "Tagline", taglinePh: "One line — what this world is about", summary: "About the world", summaryPh: "What world this is, its tension, what it lives by…",
         factK: "What", factV: "How it is", addFact: "＋ Fact", addLaw: "＋ Law", lawPh: "A law of the world…", noLaws: "No laws yet — add the first: what can never be broken in this world.",
-        save: "Save", dirty: "Unsaved changes", map: "🗺 Map", cards: "▦ Cards", mapHint: "Drag locations to lay out the world. Click — the dossier.",
+        save: "Save", dirty: "Unsaved changes", bgUp: "⤒ Map picture", bgChg: "⤒ Change the picture", bgDel: "✕ Remove the picture", bgTip: "A picture of the world map as the background (up to 10 MB) — locations sit on top of it", bgDelQ: "Remove the picture from the map background? Locations stay where they are.", bgBig: "The picture is over 10 MB", map: "🗺 Map", cards: "▦ Cards", mapHint: "Drag locations to lay out the world. Click — the dossier.",
         routes: "Lines — characters' paths between story scenes", noLocs: "No locations yet.", state: "State over time", scene: "scene",
         aspects: { status: "Status", location: "Location", possession: "Holds", allegiance: "Allegiance", condition: "Condition" },
         impact: "Impact of changes", impactText: "Story scenes with this entity: {n}. Changed the canon? The AI brings them in line: it shows “before → after”, and you accept or reject each.",
@@ -2232,11 +2232,29 @@
   function renderWorldMap(s) {
     var list = entities.filter(function (e) { return e.kind === "locations"; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row"><button class="btn" id="loc-cards">' + STR.wt.cards + '</button></div></header>' + mapHtml(list);
+      '<div class="row">' + (ME.owner && canonWrite ? '<label class="btn" title="' + esc(STR.wt.bgTip) + '"><input type="file" hidden accept="image/*" id="wmap-up">' + (world.mapImage ? STR.wt.bgChg : STR.wt.bgUp) + '</label>' +
+        (world.mapImage ? '<button class="btn ghost" id="wmap-del">' + STR.wt.bgDel + '</button>' : '') : '') + '<button class="btn" id="loc-cards">' + STR.wt.cards + '</button></div></header>' + mapHtml(list);
     $("loc-cards").onclick = function () { goSection("w-locations"); };
+    var up = $("wmap-up"); if (up) up.onchange = function () { var f = up.files[0]; up.value = ""; if (f) wmapUpload(f); };
+    var del = $("wmap-del"); if (del) del.onclick = async function () {
+      if (!(await askConfirm(STR.wt.bgDelQ))) return; var old = world.mapImage && world.mapImage.path;
+      await wref().set({ mapImage: firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true });
+      if (old) firebase.storage().ref(old).delete().catch(function () {});
+    };
     bindMap(list);
   }
 
+  // 🗺 the world map's background picture (owner, v2.115.5): worlds/{w}.mapImage { url, path, name } — Storage worlds/{w}/cover/ (the cover's rules: owner, image ≤ 10 MB, any plan)
+  async function wmapUpload(f) {
+    if (!/^image\//.test(f.type || "")) return;
+    if (f.size >= 10 * 1024 * 1024) return notify(STR.wt.bgBig);
+    var old = world.mapImage && world.mapImage.path, path = "worlds/" + worldId + "/cover/worldmap-" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-80);
+    try {
+      var task = firebase.storage().ref(path).put(f, { contentType: f.type }); await task;
+      await wref().set({ mapImage: { url: await task.snapshot.ref.getDownloadURL(), path: path, name: f.name }, updatedAt: stamp() }, { merge: true });
+      if (old) firebase.storage().ref(old).delete().catch(function () {});
+    } catch (er) { notify(STR.failed + ": " + (er.code || er.message)); }
+  }
   // ---------- world map: locations laid out by the author (drag → entity.mapPos), who stays where (canon), routes from story scenes ----------
   var MAP_W = 1000, MAP_H = 620, mapRoutes = null;
   function mapPos(l, i) { return l.mapPos || { x: MAP_W / 2 + Math.cos(i * 2.39996) * (90 + 34 * Math.sqrt(i)) * 1.6, y: MAP_H / 2 + Math.sin(i * 2.39996) * (90 + 34 * Math.sqrt(i)) }; }
@@ -2256,6 +2274,7 @@
     }).join("");
     return '<div class="wmap"><svg id="wmap" viewBox="0 0 ' + MAP_W + ' ' + MAP_H + '" role="img" aria-label="' + esc(STR.wt.map) + '">' +
       '<defs><pattern id="wmap-grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="0.6"/></pattern></defs>' +
+      (world.mapImage && world.mapImage.url ? '<image class="wmap-bg" href="' + esc(world.mapImage.url) + '" width="' + MAP_W + '" height="' + MAP_H + '" preserveAspectRatio="xMidYMid meet"/>' : '') +
       '<rect width="' + MAP_W + '" height="' + MAP_H + '" fill="url(#wmap-grid)" class="wmap-grid"/>' + lines +
       locs.map(function (l) {
         var p = P[l.id], who = here[l.id] || [];

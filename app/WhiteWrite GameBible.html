@@ -751,6 +751,7 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
 .gm-uns{ color:var(--warn); }
 @media (max-width:980px){ .gm, .gm-ed{ grid-template-columns:1fr; } .gm-side{ position:static; max-height:none; } }
 .wmap{ margin-top:6px; border:1px solid var(--line-2); border-radius:14px; background:radial-gradient(circle at 50% 40%,rgba(240,169,59,.07),transparent 70%),var(--bg-1); overflow:hidden; }
+.wmap-bg{ pointer-events:none; } .wmap-name, .wmap-who, .wmap-count{ paint-order:stroke; stroke:rgba(0,0,0,.7); stroke-width:3px; } .wmap-bg ~ .wmap-grid{ opacity:.4; } /* the map picture under the locations (v2.115.5) */
 .wmap svg{ display:block; width:100%; height:auto; touch-action:none; user-select:none; }
 
 .wmap-route{ stroke:rgba(240,169,59,.45); stroke-dasharray:6 5; stroke-linecap:round; }
