@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.115.2 (2026-11-09)
+**Version:** 2.115.3 (2026-11-10)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -761,6 +761,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.115.3** (owner) a faction banner shows a bigger emblem (up to 118 px) and only the status — the «канон» pill, 📎 / ⟡ counts and the 🖌 style mark are left to the card / dossier
 - **v2.115.2** (owner) «🚩 Стяг» at the top of a faction card / dossier — the author picks one of the six banners: `banner` (crimson | blue | emerald | burgundy | black | gold) on the canon entity (shared by the World Bible and every game; a game card of a canon faction writes it there) or on the game card for a game-only faction; none → by id (`bannerOf`)
 - **v2.115.1** (owner) faction cards — the owner's six painted banners (`app/assets/banners/{crimson,blue,emerald,burgundy,black,gold}.webp`, 512×768 transparent WebP) replace the CSS-drawn cloth; `gamebible.js bannerCls` picks `.bn-0–5` by the card id (World Bible dossiers and game cards); dark text on the gold one
 - **v2.115.0** (owner) 🏞 Location card in a game: picture in the gold frame (landscape) + traits from lists beside it (kind of place, role, danger, size, climate, light, mood, «✎ Своє…»), «На карті гри» zones, «Задум досвіду» kept; `card.place`, `game-map.js PLACE / placeText`, MCP `get_card.place`
@@ -934,5 +935,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.115.2)
+**Last updated:** 2026-11-10 (v2.115.3)
 **Maintained by:** WhiteWrite Team

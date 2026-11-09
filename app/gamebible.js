@@ -1519,6 +1519,7 @@
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
     if (hv) tags.unshift(polyMark(hv));
     var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
+    if (c.section === "factions") tags = tags.slice(0, 1); // 🚩 a banner shows only its status — «канон», files, the style mark live inside the card (owner, v2.115.3)
     var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
     return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id, c.banner) : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
@@ -2295,6 +2296,7 @@
     var img = entImage(e), tags = [];
     if ((e.lifeNotes || []).length) tags.push('<span class="flag">⟡ ' + e.lifeNotes.length + '</span>');
     if ((e.files || []).length) tags.push('<span class="flag">📎 ' + e.files.length + '</span>');
+    if (e.kind === "factions" && e.col !== "lore") tags = []; // 🚩 a banner: the counts live inside the dossier (owner, v2.115.3)
     return '<button class="card dcard' + (e.kind === "factions" && e.col !== "lore" ? bannerCls(e.id, e.banner) : '') + '" ' + (e.col === "lore" ? "data-lore" : "data-ent") + '="' + esc(e.id) + '">' + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : '') +
       '<h3>' + esc(e.name || e.title || STR.newCard) + '</h3>' + (e.role ? '<p class="sub">' + esc(e.role) + '</p>' : '') +
       (tags.length ? '<div class="tags">' + tags.join("") + '</div>' : '') + '<p class="ex">' + esc(plain(e[descKeyOf(e)] || (e.dossier || {}).story || e.motivation ||
