@@ -142,6 +142,7 @@
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
+      artPick: { btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
@@ -469,6 +470,7 @@
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
+      artPick: { btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
@@ -805,6 +807,10 @@
              F("avoid", "Заборонені кольори", "Colours to avoid", "palette"), F("light", "Світло й настрій", "Light & mood"), F("materials", "Матеріали й текстури", "Materials & textures"),
              F("shapes", "Форми й силует", "Shapes & silhouette"), F("budget", "Бюджет полігонів і текстур", "Polygon & texture budget"), F("rules", "Так / ні", "Do / don't"),
              F("places", "Локації й рівні біома", "The biome's locations & levels"), F("refs", "Референси стилю", "Style references", "image")] },
+    { id: "pictures", uk: "Картинки", en: "Pictures", group: "group",
+      groups: { uk: ["Портрети", "Концепти", "Ілюстрації", "Інше"], en: ["Portraits", "Concepts", "Illustrations", "Other"] },
+      about: { uk: "Усі картинки гри в одному місці: що вантажиш у будь-яку картку, лягає сюди, а звідси обирається «🎨 З Арту».", en: "Every picture of the game in one place: what you upload onto any card lands here, and “🎨 From Art” picks from here." },
+      defs: [F("group", "Група", "Group"), F("pics", "Картинки", "Pictures", "image")] },
     { id: "refs", uk: "Референси", en: "References", group: "group",
       groups: { uk: ["Візуал", "Геймплей", "Звук", "UI"], en: ["Visuals", "Gameplay", "Sound", "UI"] },
       about: { uk: "Мудборд та ігри-зразки: що саме беремо і чого уникаємо.", en: "Moodboard and reference games: what exactly we take and what we avoid." },
@@ -993,7 +999,7 @@
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-prog", members: ["progression"] }, // «Прогресія й економіка» — its own menu item (owner): the progression constructor lives there
     { id: "g-items", uk: "Предмети", en: "Items", members: ["gear", "items"] },
-    { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "assets", "materials", "animation", "ui"] },
+    { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "pictures", "assets", "materials", "animation", "ui"] },
     { id: "g-audio", members: ["audio"] }, // «Звук і музика» — its own menu item (the Sound factory lives there)
     { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
     "custom",
@@ -5091,7 +5097,8 @@
   function quickAddHtml() {
     return '<div class="field quickadd"><button type="button" class="btn" data-pfpick>' + PF.qPrefab + '</button>' +
       '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="portrait">' + PF.qPortrait + '</label>' +
-      '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="refpics">' + PF.qRef + '</label></div>';
+      '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="refpics">' + PF.qRef + '</label>' +
+      '<button type="button" class="btn" data-artpick="portrait">' + esc(STR.artPick.btn) + '</button></div>';
   }
   // the kit: a model comes as ONE self-contained file (GLB, .blend, .unitypackage, ZIP) or as a FOLDER (FBX / OBJ / glTF with textures); the slots are recognised by name (v2.88.1)
   function kitHtml() {
@@ -5627,7 +5634,8 @@
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
-    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : type === "audio" ? ' accept="audio/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : type === "audio" ? STR.soundAdd : STR.filesAdd) + '</label>';
+    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : type === "audio" ? ' accept="audio/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : type === "audio" ? STR.soundAdd : STR.filesAdd) + '</label>' +
+      (type === "image" && gameId && ART_SRC.indexOf(open.section) < 0 ? '<button type="button" class="btn" data-artpick="' + esc(key) + '">' + esc(STR.artPick.btn) + '</button>' : '');
     return '<div class="field files">' + list + add + '</div>';
   }
   function setEditMode(on) {
@@ -5861,6 +5869,7 @@
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
       if (file.size > MAX_FILE) { msg(STR.fileTooBig + ": " + file.name); continue; }
+      if (artLib(card, file, field)) { try { await artUpload(card, file, field); done++; } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; } continue; }
       try {
         await putFile(card, file, /^kit:(file|dir)$/.test(field) ? "kit:" + (window.__ASSET_KIT.classify(file.name) || "other") : field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
         done++;
@@ -5868,11 +5877,67 @@
     }
     if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
   }
+  // 🎨 the game's picture library (owner, v2.106): «Арт» → «Картинки» (portraits, concepts, illustrations, other) and «Референси»
+  var ART_SRC = ["pictures", "refs", "artstyle", "ui", "materials"], ART_KEEP = ["pictures", "refs", "artstyle", "assets", "ui", "materials", "animation"];
+  function artLib(card, file, field) { return !!card && gameId && ART_KEEP.indexOf(card.section) < 0 && /^image\//.test(file.type || "") && !/^kit:/.test(field || ""); }
+  function artTarget(field) { // where an upload lands: a reference → «Референси» · Візуал, a portrait → «Картинки» · Портрети, the rest → · Інше
+    var s = sec(field === "refpics" ? "refs" : "pictures"), g = s.groups[LANG] || s.groups.uk;
+    return { s: s, group: field === "refpics" ? g[0] : field === "portrait" ? g[0] : g[3] };
+  }
+  async function artUpload(card, file, field) {
+    var t = artTarget(field), pid = newId("card"), pic = { id: pid, src: "game", section: t.s.id, title: baseName(file.name), files: [] };
+    await gref().collection("cards").doc(pid).set({ section: t.s.id, title: pic.title, status: "idea", note: "", defs: t.s.defs.slice(), fields: { group: t.group }, files: [], order: Date.now(), createdAt: stamp(), updatedAt: stamp() });
+    var meta = await putFile(pic, file, "pics", function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
+    await linkPic(card, meta, pid, field);
+  }
+  async function linkPic(card, meta, pid, field) {
+    var copy = Object.assign({}, meta, { id: newId("file"), linked: true, pic: pid }); delete copy.field; if (field) copy.field = field;
+    var body = { section: card.section, files: firebase.firestore.FieldValue.arrayUnion(copy), updatedAt: stamp() };
+    if (card.src === "canon") body.canonRef = card.id;
+    await gref().collection("cards").doc(card.id).set(body, { merge: true });
+    card.files = (card.files || []).concat([copy]);
+  }
+  function pathShared(card, path) { return cards.some(function (c) { return c.id !== card.id && (c.files || []).some(function (f) { return f.path === path; }); }); }
+  // «🎨 З Арту»: every picture of «Арт» (Картинки, Референси, Стиль, UI, Матеріали) — tick and add to this card's picture field
+  function artPicker(field) {
+    var card = open; if (!card) return;
+    var pool = []; allCards().forEach(function (c) { if (ART_SRC.indexOf(c.section) < 0 || c.id === card.id) return; (c.files || []).filter(isImage).forEach(function (f) { if (!f.linked) pool.push({ c: c, f: f }); }); });
+    var have = {}; (card.files || []).forEach(function (f) { have[f.path] = 1; });
+    var imgDefs = draft.defs.filter(function (d) { var std = d.type ? null : (sec(card.section).defs || []).filter(function (x) { return x.key === d.key; })[0]; return (d.type || (std && std.type)) === "image"; });
+    var A = STR.artPick, box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<form class="ask-box is-long art-pick" role="dialog" aria-modal="true" aria-label="' + esc(A.title) + '"><h3>🎨 ' + esc(A.title) + '</h3>' +
+      (pool.length ? '<input id="ap-q" placeholder="' + esc(A.search) + '" autocomplete="off"><div class="ap-grid" id="ap-grid"></div>' : '<p class="warn">' + esc(A.empty) + '</p>') +
+      (imgDefs.length > 1 ? '<label class="field"><span>' + esc(A.into) + '</span><select id="ap-into">' + imgDefs.map(function (d) { return '<option value="' + esc(d.key) + '"' + (d.key === field ? ' selected' : '') + '>' + esc(d.label) + '</option>'; }).join("") + '</select></label>' : '') +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button><button class="btn primary" id="ask-ok" disabled>' + esc(A.add) + '</button></div></form>';
+    document.body.appendChild(box);
+    var picked = {}, q = function (id) { return box.querySelector("#" + id); };
+    var draw = function (s) {
+      s = (s || "").toLowerCase(); var el = q("ap-grid"); if (!el) return;
+      var l = pool.filter(function (x) { return !s || (x.c.title + " " + x.f.name + " " + ((x.c.fields || {}).group || "") + " " + L(sec(x.c.section))).toLowerCase().indexOf(s) >= 0; });
+      el.innerHTML = l.length ? l.map(function (x) { var k = x.c.id + "|" + x.f.id, on = picked[k] || have[x.f.path];
+        return '<label class="ap-it' + (have[x.f.path] ? ' is-have' : '') + '"><input type="checkbox" value="' + esc(k) + '"' + (on ? ' checked' : '') + (have[x.f.path] ? ' disabled' : '') + '><img loading="lazy" alt="" src="' + esc(x.f.url) + '"><span>' + esc(x.c.title || x.f.name) + '<i>' + esc(L(sec(x.c.section)) + ((x.c.fields || {}).group ? " · " + x.c.fields.group : "")) + '</i></span></label>'; }).join("") : '<p class="muted">' + esc(A.none) + '</p>';
+    };
+    draw("");
+    var close = function () { box.remove(); };
+    if (q("ap-q")) { q("ap-q").oninput = function (e) { draw(e.target.value); }; q("ap-q").focus(); }
+    box.addEventListener("change", function (e) { if (e.target.type === "checkbox") { picked[e.target.value] = e.target.checked; q("ask-ok").disabled = !Object.keys(picked).some(function (k) { return picked[k]; }); } });
+    q("ask-x").onclick = close;
+    box.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); close(); } });
+    box.querySelector("form").onsubmit = async function (ev) {
+      ev.preventDefault(); q("ask-ok").disabled = true;
+      var into = q("ap-into") ? q("ap-into").value : field;
+      if (card.isNew) { await save(true); if (card.isNew) return close(); }
+      try {
+        for (var k in picked) { if (!picked[k]) continue; var x = pool.filter(function (p) { return p.c.id + "|" + p.f.id === k; })[0]; if (x) await linkPic(card, x.f, x.c.id, into); }
+        close(); if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(A.done); }
+      } catch (e) { close(); msg(STR.failed + ": " + (e.code || e.message || e)); }
+    };
+  }
   async function removeFile(id) {
     var card = open, f = (card.files || []).filter(function (x) { return x.id === id; })[0];
     if (!f || !(await askConfirm(STR.confirmFile + " " + f.name + "?", { danger: true }))) return;
     try {
-      if (!f.linked) await firebase.storage().ref(f.path).delete().catch(function (e) { if (e.code !== "storage/object-not-found") throw e; });
+      if (!f.linked && !pathShared(card, f.path)) await firebase.storage().ref(f.path).delete().catch(function (e) { if (e.code !== "storage/object-not-found") throw e; });
       await gref().collection("cards").doc(card.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
       card.files = card.files.filter(function (x) { return x.id !== id; });
       if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); }
@@ -5973,7 +6038,7 @@
       await gref().collection("cards").doc(open.id).set({ section: open.section, canonRef: open.id, hidden: true }, { merge: true });
     } else {
       if (!(await askConfirm(STR.confirmDel, { danger: true }))) return;
-      await Promise.all((open.files || []).filter(function (f) { return !f.linked; }).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+      await Promise.all((open.files || []).filter(function (f) { return !f.linked && !pathShared(open, f.path); }).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await gref().collection("cards").doc(open.id).delete();
     }
     closeLeaf();
@@ -9618,6 +9683,7 @@
     var qb = e.target.closest("[data-bulb]"); if (qb) { var bp = qb.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return;
     var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
+    var ap = e.target.closest("[data-artpick]"); if (ap) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(ap.dataset.artpick); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var pf = e.target.closest("[data-pfpick],[data-pfunlink],[data-pfopen],[data-pfmove],[data-kitna],[data-pfgo]"); if (pf) { prefabClick(pf); return; }
     var fr = e.target.closest("[data-frame]"); if (fr) { pickFrame(open, fr.dataset.frame); return; }
