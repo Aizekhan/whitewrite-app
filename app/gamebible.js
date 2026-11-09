@@ -2449,9 +2449,8 @@
     $("d-tabs").hidden = false;
     if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div>';
     dosCorner("e");
-    if (e.kind === "characters") html += lifeHtml();
     if (e.kind === "events") html = eventHtml() + html;
-    var body = dtab === "main" ? html : dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
+    var body = dtab === "main" ? html : dtab === "persona" && ddraft.personality ? personaHtml() : dtab === "look" && ddraft.appearance ? lookHtml(t[1][2]) : dtab === "links" ? linksHtml(e) + qdLinksHtml(e) : dtab === "appear" ? (e.kind === "characters" ? lifeHtml() : '') + '<div id="d-appear"><p class="muted">' + STR.dos.loading + '</p></div>'
       : '<textarea id="d-text" data-k="' + dtab + '" rows="12" placeholder="' + esc((dtab === t[1][0] ? t[1] : t[0])[2]) + '">' + esc(ddraft.dossier[dtab] || "") + '</textarea>';
     $("d-body").innerHTML = '<div class="field dpanel" role="tabpanel" id="d-panel">' + body + '</div>'; // the tabs sit on top of the window (v2.86.1); each tab shows only its own content (v2.87.1)
     $("d-tabs").innerHTML = [["main", VF.dosMain], t[0]].concat(ddraft.personality ? [["persona", VF.pz.tab]] : [], [["links", STR.dos.links], t[1], ["appear", e.kind === "events" ? STR.dos.appearStories : STR.dos.appear]]).map(function (x) {

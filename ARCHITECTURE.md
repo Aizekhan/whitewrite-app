@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.108.1 (2026-11-09)
+**Version:** 2.108.2 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.108.2** (owner) a character's «Хронологія життя» (`lifeHtml`) moved from «Загальне» to the «Поява в історіях та іграх» tab, above the appearances
 - **v2.108.1** (owner) the card foot's «Створити історію / квест…» are built by `footBtn` (icon 📜 / 💡 + words); on a phone (≤ 560 px) only the icon with a ＋ badge, the foot is one row: 📜＋ · Зберегти · 💡＋
 - **v2.108.0** (owner) character sheet rows: race + sex · faction + class · age + height + build · lives in + state; new entity fields `charClass`, `condition` (lists + «Своє…», `csText`) and the sheet sets `location` (a canon location, «＋ Нова локація…», `csLoc`, `newFaction(kind)`); the card foot's «Створити історію…» sits at the left edge like «Створити квест…» at the right
 - **v2.107.2** (owner) the card / dossier status line (`#e-msg`, `#d-msg`, `.hmsg`) moved from the foot to the head row, left of «🖼 Додати картинку» — it squeezed «Створити історію…»
@@ -920,5 +921,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.108.1)
+**Last updated:** 2026-11-09 (v2.108.2)
 **Maintained by:** WhiteWrite Team
