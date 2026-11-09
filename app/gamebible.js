@@ -40,7 +40,7 @@
         renew: "Продовжити на 30 днів", setTitle: "Космограф", setOff: "Вимкнено. Коли увімкнеш, з балансу спишеться {n} токенів, і Космограф працюватиме 30 днів.",
         setOn: "Увімкнено, оплачено до {d}.", setPaidOff: "Вимкнено, але оплачений місяць триває до {d}: увімкнення до цієї дати безкоштовне.",
         enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам." },
-      story: { title: "Історії", add: "📖 Створити історію на основі цього", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
+      story: { title: "Історії", add: "📜 Створити історію на основі цього", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
         newTitle: "Нова історія", titlePh: "Назва історії", reveal: "Для читача", revealNote: "Коли розкриється", revealNotePh: "напр. «після сцени, де Ліра знаходить руну»",
         write: "Писати", revealAria: "Видимість для читача", how: "Як писати",
         hows: { ai: "✦ З допомогою ШІ", self: "✎ Пишу сам" }, howHint: { ai: "форма історії: жанр, обсяг, режим — далі ШІ пише сцену за сценою, ти обираєш напрям", self: "книга відкриється одразу на чистому аркуші" },
@@ -369,7 +369,7 @@
         renew: "Extend for 30 days", setTitle: "Cosmograph", setOff: "Off. Turning it on spends {n} tokens, and the Cosmograph works for 30 days.",
         setOn: "On, paid until {d}.", setPaidOff: "Off, but the paid month lasts until {d}: turning it on before then is free.",
         enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself." },
-      story: { title: "Stories", add: "📖 Create a story based on this", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
+      story: { title: "Stories", add: "📜 Create a story based on this", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
         newTitle: "New story", titlePh: "Story title", reveal: "For the reader", revealNote: "When it is revealed", revealNotePh: "e.g. “after the scene where Lira finds the rune”",
         write: "Write", revealAria: "Visibility for the reader", how: "How to write",
         hows: { ai: "✦ With AI", self: "✎ I write myself" }, howHint: { ai: "the story form: genre, length, mode — then AI writes scene by scene, you choose the direction", self: "the book opens straight on a blank sheet" },
@@ -2428,8 +2428,10 @@
     return d ? d.key : "";
   }
   function picMenu(on) { var m = $("e-pic-m"); if (!m) return; m.hidden = !on; $("e-pic").setAttribute("aria-expanded", String(!!on)); }
-  function dosCorner(type) { $("d-pic").hidden = !!dos.isNew; var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; sb.textContent = STR.story.add;
-    var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); q.textContent = QD.bulb; q.dataset.bulb = type + ":" + dos.id; }
+  // the card foot's «Створити історію / квест…»: an icon + its words; on a phone only the icon with ＋ (owner, v2.108.1)
+  function footBtn(b, ico, text) { var t = String(text).replace(/^\S+\s+/, ""); b.innerHTML = '<i class="fb-ico" aria-hidden="true">' + ico + '<b>＋</b></i><span>' + esc(t) + '</span>'; b.title = t; b.setAttribute("aria-label", t); }
+  function dosCorner(type) { $("d-pic").hidden = !!dos.isNew; var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; footBtn(sb, "📜", STR.story.add);
+    var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); footBtn(q, "💡", QD.bulb); q.dataset.bulb = type + ":" + dos.id; }
   function renderDossier() {
     var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
     var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
@@ -5097,8 +5099,8 @@
   }
   function cornerSync() {
     var q = $("e-quest"), bt = !open.isNew && (open.src === "canon" || cardRole(open)) ? bulbHtml(open.src === "canon" ? "e" : "card", open.id) : "";
-    var sb = $("e-story"); sb.hidden = editMode || !!open.isNew || open.src !== "canon"; sb.textContent = STR.story.add;
-    q.hidden = editMode || !bt; q.textContent = QD.bulb; q.dataset.bulb = (open.src === "canon" ? "e" : "card") + ":" + open.id;
+    var sb = $("e-story"); sb.hidden = editMode || !!open.isNew || open.src !== "canon"; footBtn(sb, "📜", STR.story.add);
+    q.hidden = editMode || !bt; footBtn(q, "💡", QD.bulb); q.dataset.bulb = (open.src === "canon" ? "e" : "card") + ":" + open.id;
     $("e-delete").hidden = !editMode || !!open.isNew || !canWrite;
   }
   // ---------- 🧊 Prefabs: a hero card links a card of «Ассети й префаби»; an asset card carries its model kit (functions/asset-kit.js) ----------

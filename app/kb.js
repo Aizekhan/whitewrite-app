@@ -373,14 +373,14 @@
         lead: "Поступово з AI, усе одразу або пишу сам.",
         min: 3,
         body: [
-          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» (книга «＋ Нова історія» на полиці), у грі — в «Історіях гри», або з досьє («📖 Створити історію на основі цього» внизу картки, зліва від «Зберегти»; так само й на канонічних картках гри — історія про цього героя чи подію)."],
+          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» (книга «＋ Нова історія» на полиці), у грі — в «Історіях гри», або з досьє («📜 Створити історію на основі цього» внизу картки, зліва від «Зберегти»; так само й на канонічних картках гри — історія про цього героя чи подію). На телефоні ці кнопки — маленькі значки: 📜＋ історія, 💡＋ квест."],
           ["ul", [
             "🪶 Поступово (Guided, за замовчуванням) — AI пише по одній сцені, перед кожною наступною питає напрям.",
             "⚡ Автоматично (Auto) — AI пише весь обсяг одразу: оповідання, новела, сезон.",
             "✍ Пишу сам — без генерації: досить назви, книга відкривається на аркуші для письма.",
           ]],
           ["p", "Обсяг, фінал і жанри (до чотирьох) — гнучкий каркас, не контракт. Кожна сцена читає поточний канон світу."],
-          ["p", "З досьє «📖 Створити історію на основі цього» спершу питає, як писати: <b>✦ З допомогою ШІ</b> — відкривається ця сама форма, вже з назвою й героєм; <b>✎ Пишу сам</b> — книга одразу на чистому аркуші."],
+          ["p", "З досьє «📜 Створити історію на основі цього» спершу питає, як писати: <b>✦ З допомогою ШІ</b> — відкривається ця сама форма, вже з назвою й героєм; <b>✎ Пишу сам</b> — книга одразу на чистому аркуші."],
         ] },
       { cat: "book", id: "scene-intent", icon: "wand", title: "«Що далі?» — напрям наступної сцени",
         lead: "Ти задаєш напрям, а не промпт.",
@@ -424,7 +424,7 @@
         lead: "Що читач уже знає, а що — ні.",
         min: 2,
         body: [
-          ["p", "У досьє героя чи події є блок «Історії» — усі історії про нього, кнопка «Відкрити»; нову створює «📖 Створити історію на основі цього» внизу картки. «Відкрити» одразу розгортає книгу; ритуал, де маг відкриває книгу, буває лише раз — коли історія створюється."],
+          ["p", "У досьє героя чи події є блок «Історії» — усі історії про нього, кнопка «Відкрити»; нову створює «📜 Створити історію на основі цього» внизу картки. «Відкрити» одразу розгортає книгу; ритуал, де маг відкриває книгу, буває лише раз — коли історія створюється."],
           ["ul", [
             "Відкрита читачеві — канон історії розкрито.",
             "Розкриється згодом — з приміткою, коли саме.",
@@ -1772,14 +1772,14 @@
         lead: "Step by step with AI, everything at once, or I write it myself.",
         min: 3,
         body: [
-          ["p", "Stories are created in the World Bible: in “World stories” (the “＋ New story” book on the shelf), in a game — in “Game stories”, or from a dossier (“📖 Create a story based on this” at the bottom of the card, left of “Save”; the same on canon cards of a game — a story about this hero or event)."],
+          ["p", "Stories are created in the World Bible: in “World stories” (the “＋ New story” book on the shelf), in a game — in “Game stories”, or from a dossier (“📜 Create a story based on this” at the bottom of the card, left of “Save”; the same on canon cards of a game — a story about this hero or event). On a phone these buttons are small icons: 📜＋ a story, 💡＋ a quest."],
           ["ul", [
             "🪶 Guided (default) — AI writes one scene at a time and asks for the direction before the next.",
             "⚡ Auto — AI writes the whole volume at once: a short story, a novella, a season.",
             "✍ I write it myself — no generation: a title is enough, the book opens on the writing sheet.",
           ]],
           ["p", "Length, ending and genres (up to four) are a flexible frame, not a contract. Every scene reads the world's current canon."],
-          ["p", "From a dossier, “📖 Create a story based on this” first asks how to write: <b>✦ With AI</b> — this same form opens with the title and the hero filled in; <b>✎ I write myself</b> — the book opens straight on a blank sheet."],
+          ["p", "From a dossier, “📜 Create a story based on this” first asks how to write: <b>✦ With AI</b> — this same form opens with the title and the hero filled in; <b>✎ I write myself</b> — the book opens straight on a blank sheet."],
         ] },
       { cat: "book", id: "scene-intent", icon: "wand", title: "“What's next?” — the next scene's direction",
         lead: "You set a direction, not a prompt.",
@@ -1823,7 +1823,7 @@
         lead: "What the reader already knows — and what not yet.",
         min: 2,
         body: [
-          ["p", "A hero's or event's dossier has a “Stories” block — every story about it, “Open”; a new one comes from “📖 Create a story based on this” at the bottom of the card. “Open” goes straight into the book; the ritual where a mage opens the book plays only once — when a story is created."],
+          ["p", "A hero's or event's dossier has a “Stories” block — every story about it, “Open”; a new one comes from “📜 Create a story based on this” at the bottom of the card. “Open” goes straight into the book; the ritual where a mage opens the book plays only once — when a story is created."],
           ["ul", [
             "Open to the reader — this canon is revealed.",
             "Revealed later — with a note on when.",
