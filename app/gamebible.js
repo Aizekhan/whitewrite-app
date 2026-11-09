@@ -40,7 +40,7 @@
         renew: "Продовжити на 30 днів", setTitle: "Космограф", setOff: "Вимкнено. Коли увімкнеш, з балансу спишеться {n} токенів, і Космограф працюватиме 30 днів.",
         setOn: "Увімкнено, оплачено до {d}.", setPaidOff: "Вимкнено, але оплачений місяць триває до {d}: увімкнення до цієї дати безкоштовне.",
         enable: "Увімкнути Космограф", disable: "Вимкнути", costText: "Космограф для цього світу коштує {n} токенів за 30 днів. Списуються один раз; далі місяць не продовжується сам." },
-      story: { title: "Історії", add: "＋ Історія", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
+      story: { title: "Історії", add: "📖 Створити історію на основі цього", none: "Ще немає історій про це. Напиши першу — книга відкриється тут же.", open: "Відкрити",
         newTitle: "Нова історія", titlePh: "Назва історії", reveal: "Для читача", revealNote: "Коли розкриється", revealNotePh: "напр. «після сцени, де Ліра знаходить руну»",
         write: "Писати", revealAria: "Видимість для читача", how: "Як писати",
         hows: { ai: "✦ З допомогою ШІ", self: "✎ Пишу сам" }, howHint: { ai: "форма історії: жанр, обсяг, режим — далі ШІ пише сцену за сценою, ти обираєш напрям", self: "книга відкриється одразу на чистому аркуші" },
@@ -369,7 +369,7 @@
         renew: "Extend for 30 days", setTitle: "Cosmograph", setOff: "Off. Turning it on spends {n} tokens, and the Cosmograph works for 30 days.",
         setOn: "On, paid until {d}.", setPaidOff: "Off, but the paid month lasts until {d}: turning it on before then is free.",
         enable: "Turn the Cosmograph on", disable: "Turn off", costText: "The Cosmograph for this world costs {n} tokens per 30 days. Charged once; the month does not renew by itself." },
-      story: { title: "Stories", add: "＋ Story", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
+      story: { title: "Stories", add: "📖 Create a story based on this", none: "No stories about this yet. Write the first — the book opens right here.", open: "Open",
         newTitle: "New story", titlePh: "Story title", reveal: "For the reader", revealNote: "When it is revealed", revealNotePh: "e.g. “after the scene where Lira finds the rune”",
         write: "Write", revealAria: "Visibility for the reader", how: "How to write",
         hows: { ai: "✦ With AI", self: "✎ I write myself" }, howHint: { ai: "the story form: genre, length, mode — then AI writes scene by scene, you choose the direction", self: "the book opens straight on a blank sheet" },
@@ -2367,12 +2367,13 @@
       return dosSection(x.e.kind) || x.e.kind === "events" ? '<button class="dlink" data-dent="' + esc(x.e.id) + '">' + inner + '</button>' : '<span class="dlink">' + inner + '</span>';
     }).join("") + '</div>';
   }
-  function dosCorner(type) { var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); q.textContent = QD.bulb; q.dataset.bulb = type + ":" + dos.id; }
+  function dosCorner(type) { var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; sb.textContent = STR.story.add;
+    var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); q.textContent = QD.bulb; q.dataset.bulb = type + ":" + dos.id; }
   function renderDossier() {
     var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
     var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
       (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
-    html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="4">' + esc(ddraft.desc) + '</textarea></div>';
+    html += '<div class="field"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="10">' + esc(ddraft.desc) + '</textarea></div>';
     if (e.col === "lore") { // culture: its group's fields, no tabs
       $("d-body").innerHTML = html + loreGroup(e.group).defs.map(function (d) {
         return '<div class="field"><label for="lf-' + d.key + '">' + esc(d.label) + '</label><textarea id="lf-' + d.key + '" data-lf="' + d.key + '" rows="4">' + esc(ddraft.fields[d.key] || "") + '</textarea></div>';
@@ -4630,7 +4631,7 @@
     if (db2) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); }); return; }
     var dq = e.target.closest("[data-dqd]");
     if (dq) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { closeDossier(); openQD(dq.dataset.dqd.split(":")[0], dq.dataset.dqd.split(":")[1]); }); return; }
-    if (e.target.closest("#d-story")) { newStoryDialog(dos); return; }
+
     if (e.target.closest("#d-recon")) { var re = dos; worldScenes().then(function (sc) { reconDialog(re, affectedScenes(sc, re)); }); return; }
     var ds = e.target.closest("[data-story]"); if (ds) { tellShell({ type: "ww-open-story", projectId: ds.dataset.story }); return; }
     var rm = e.target.closest("[data-drmfile]"); if (rm) { removeEntityFile(rm.dataset.drmfile); return; }
@@ -4677,7 +4678,7 @@
   }
   function storiesHtml(e) {
     var list = stories.filter(function (p) { return (p.subjects || []).indexOf(e.id) >= 0; });
-    return '<label>' + STR.story.title + ' <button class="btn mini" id="d-story" type="button">' + STR.story.add + '</button></label>' +
+    return '<label>' + STR.story.title + '</label>' +
       (list.length ? '<div class="dstories">' + list.map(function (p) {
         return '<div class="dstory">' + revealChip(p) + '<b>' + esc(p.title || "…") + '</b><span style="flex:1"></span><button class="btn" data-story="' + esc(p.id) + '">' + STR.story.open + '</button></div>';
       }).join("") + '</div>' : '<p class="muted">' + STR.story.none + '</p>');
@@ -4952,8 +4953,10 @@
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
   }
 
+  // «Опис» is the card's main text: whole width, a big box to write in (owner, v2.106.1)
+  function isDesc(key, label) { return key === "__canon" || key === "text" || /^(опис|description)$/i.test(String(label || "").trim()); }
   function fieldHtml(key, label, value, extra) {
-    return '<div class="field"><label>' + esc(label) + (extra || "") + '</label><div class="shown' + (value ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(key) + '">' +
+    return '<div class="field' + (isDesc(key, label) ? " desc" : "") + '"><label>' + esc(label) + (extra || "") + '</label><div class="shown' + (value ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(key) + '">' +
       (value ? md(value) : STR.blank) + '</div></div>';
   }
   // a card shows what is filled; every empty field waits as a chip «＋ назва» under them (owner, v2.89: less on the screen, nothing lost —
@@ -5018,6 +5021,7 @@
   }
   function cornerSync() {
     var q = $("e-quest"), bt = !open.isNew && (open.src === "canon" || cardRole(open)) ? bulbHtml(open.src === "canon" ? "e" : "card", open.id) : "";
+    var sb = $("e-story"); sb.hidden = editMode || !!open.isNew || open.src !== "canon"; sb.textContent = STR.story.add;
     q.hidden = editMode || !bt; q.textContent = QD.bulb; q.dataset.bulb = (open.src === "canon" ? "e" : "card") + ":" + open.id;
     $("e-delete").hidden = !editMode || !!open.isNew || !canWrite;
   }
@@ -5590,8 +5594,8 @@
       : type === "scene" ? '<div class="sb" data-board="' + esc(d.key) + '"></div>'
       : type === "image" || type === "file" || type === "audio" ? (v ? '<div class="shown" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + md(v) + '</div>' : '') + fieldFilesHtml(d.key, type) // text written there before stays visible
       : '<div class="shown' + (v ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(d.key) + '">' + (v ? md(v) : STR.blank) + '</div>';
-    var half = type === "text" && String(v).length < 600; // short text fields sit two in a row in the card window; tables, files, pictures and long texts take the whole width
-    return '<div class="field' + (half ? " half" : "") + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
+    var desc = isDesc(d.key, d.label), half = type === "text" && !desc && String(v).length < 600; // short text fields sit two in a row in the card window; tables, files, pictures, long texts and «Опис» take the whole width
+    return '<div class="field' + (half ? " half" : "") + (desc ? " desc" : "") + (editMode ? " editing" : "") + '" data-field="' + esc(d.key) + '">' + head + body + '</div>';
   }
   // Tables are kept as Markdown tables in the field, so AI, MCP and exports read them as text.
   // head: the default column names (a def's cols); text written before a field became a table → one row per line, «назва: значення» split in two
@@ -5949,7 +5953,8 @@
     var ta = document.createElement("textarea");
     ta.value = key === "__canon" ? draft.canonDesc : (draft.fields[key] || "");
     ta.dataset.key = key;
-    ta.rows = Math.min(24, Math.max(3, ta.value.split("\n").length + 1));
+    var big = !!el.closest(".field.desc");
+    ta.rows = Math.min(24, Math.max(big ? 10 : 3, ta.value.split("\n").length + 1));
     el.replaceWith(ta); ta.focus();
     // re-render after the click that moved the focus has landed (re-rendering on blur swallowed that click and what was typed next);
     // focus already in another field of the card → leave this one as it is, save() collects every open textarea
@@ -9660,7 +9665,9 @@
   $("e-addf-m").addEventListener("change", function (e) {
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; addfMenu(false); uploadFiles(list); }
   });
+  $("e-story").addEventListener("click", function () { var ent = entities.filter(function (x) { return x.id === open.id; })[0]; if (ent) { closeLeaf(); newStoryDialog(ent); } });
   $("e-quest").addEventListener("click", function () { var bp = this.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); });
+  $("d-story").addEventListener("click", function () { if (dos) newStoryDialog(dos); });
   $("d-quest").addEventListener("click", function () { var bp = this.dataset.bulb.split(":"); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(bp[0], bp.slice(1).join(":")); }); });
   $("e-addf-m").addEventListener("click", function (e) {
     var mo = e.target.closest("[data-more]"); if (!mo) return;

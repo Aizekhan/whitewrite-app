@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.106.0 (2026-11-09)
+**Version:** 2.106.1 (2026-11-09)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -759,6 +759,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.106.1** (owner) «Опис» of a card is whole width and big (`isDesc`, `.field.desc`, editor ≥ 10 rows, dossier `#d-desc` 10 rows); «📖 Створити історію на основі цього» is a button in the card foot left of «Зберегти» (`#d-story` in the dossier, `#e-story` on canon cards of a game → `newStoryDialog`), styled like «💡 Створити квест…»; the small «＋ Історія» in the dossier's stories block is gone
 - **v2.106.0** (owner) picture library in «Арт»: new game section `pictures` (Портрети · Концепти · Ілюстрації · Інше, after `refs` in `g-art`); «🎨 З Арту» (`artPicker`, `data-artpick`) beside image fields and in «＋ Додати поле» picks from `artLib()` (cards of `ART_SRC` sections with images); an image uploaded from any card goes through `artUpload` → a picture card in `artTarget(field)` (refpics → refs / Візуал, portrait → pictures / Портрети, else pictures / Інше) + `linkPic` — the card's `files[]` keeps a linked copy `{linked:true, pic:<pictureCardId>}`; `pathShared()` keeps a shared Storage object when one card drops it; `card-refs.js` KIND `picture` (`card.files.pic`) → «🔗 Що зачепить зміна» / MCP `used_by`; old pictures are not moved
 - **v2.105.0** (owner) the Bible menu on desktop is a rail of icons (`#rail`, `renderRail`, `RAIL_G` for `NAV_GROUPS`, `WORLD_RAIL` for the canon, `railPick` for the games / own sections, `railShut` in localStorage `ww-bible-railshut`) + the panel (`#spine`) with the open item's sub-items; phones (≤ 820 px) keep the old tree (`renderNav` narrow branch); `migrateCast` writes only confident roles (an unknown one shows «NPC» without writing it)
 - **v2.104.6** fix: the title image on the overview banner was stretched by the cover's `.wcover img` rule (full width, cover) and looked gone — the cover rules now take only `.wcover > img / > video`
@@ -912,5 +913,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-09 (v2.106.0)
+**Last updated:** 2026-11-09 (v2.106.1)
 **Maintained by:** WhiteWrite Team

@@ -373,14 +373,14 @@
         lead: "Поступово з AI, усе одразу або пишу сам.",
         min: 3,
         body: [
-          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» (книга «＋ Нова історія» на полиці), у грі — в «Історіях гри», або з досьє («＋ Історія» — історія про цього героя чи подію)."],
+          ["p", "Історію створюють у Біблії світу: у розділі «Історії світу» (книга «＋ Нова історія» на полиці), у грі — в «Історіях гри», або з досьє («📖 Створити історію на основі цього» внизу картки, зліва від «Зберегти»; так само й на канонічних картках гри — історія про цього героя чи подію)."],
           ["ul", [
             "🪶 Поступово (Guided, за замовчуванням) — AI пише по одній сцені, перед кожною наступною питає напрям.",
             "⚡ Автоматично (Auto) — AI пише весь обсяг одразу: оповідання, новела, сезон.",
             "✍ Пишу сам — без генерації: досить назви, книга відкривається на аркуші для письма.",
           ]],
           ["p", "Обсяг, фінал і жанри (до чотирьох) — гнучкий каркас, не контракт. Кожна сцена читає поточний канон світу."],
-          ["p", "З досьє «＋ Історія» спершу питає, як писати: <b>✦ З допомогою ШІ</b> — відкривається ця сама форма, вже з назвою й героєм; <b>✎ Пишу сам</b> — книга одразу на чистому аркуші."],
+          ["p", "З досьє «📖 Створити історію на основі цього» спершу питає, як писати: <b>✦ З допомогою ШІ</b> — відкривається ця сама форма, вже з назвою й героєм; <b>✎ Пишу сам</b> — книга одразу на чистому аркуші."],
         ] },
       { cat: "book", id: "scene-intent", icon: "wand", title: "«Що далі?» — напрям наступної сцени",
         lead: "Ти задаєш напрям, а не промпт.",
@@ -424,7 +424,7 @@
         lead: "Що читач уже знає, а що — ні.",
         min: 2,
         body: [
-          ["p", "У досьє героя чи події є блок «Історії» — усі історії про нього, кнопки «Відкрити» і «＋ Історія». «Відкрити» одразу розгортає книгу; ритуал, де маг відкриває книгу, буває лише раз — коли історія створюється."],
+          ["p", "У досьє героя чи події є блок «Історії» — усі історії про нього, кнопка «Відкрити»; нову створює «📖 Створити історію на основі цього» внизу картки. «Відкрити» одразу розгортає книгу; ритуал, де маг відкриває книгу, буває лише раз — коли історія створюється."],
           ["ul", [
             "Відкрита читачеві — канон історії розкрито.",
             "Розкриється згодом — з приміткою, коли саме.",
@@ -901,6 +901,7 @@
           ["p", "Відкрита картка спершу читається: курсор у назву ставиться лише в новій картці. Файли й картинки додаються одразу, навіть у новій картці — вона збережеться сама перед першим завантаженням. У «Референсах» нічого заповнювати не треба: <b>«＋ Картинки»</b> угорі розділу (або «＋ Додати» біля підрозділу) бере одразу кілька картинок — кожна стає окремою карткою з назвою файлу (її можна змінити), на картинці видно формат (PNG, JPG…). Розкласти референси по підрозділах можна потім — меню підрозділу в картці або перетягуванням."],
           ["p", "Файли (до 200 МБ) лежать у сховищі; 3D-моделі відкриваються кнопкою «🧊 3D» прямо в браузері."],
           ["p", "<b>🎨 Картинки — одна бібліотека в «Арт».</b> Біля кожного поля-картинки (портрет, концепт, референс…) і в «＋ Додати поле» є <b>«🎨 З Арту»</b> — вибір з уже завантажених картинок гри (пошук за назвою; якщо в картці кілька полів-картинок — «Куди»). Картинка, завантажена прямо з картки, сама стає карткою в «Арт»: портрет — у «Картинки → Портрети», референс — у «Референси → Візуал», решта — у «Картинки → Інше». Картка лише посилається на картинку, тож одна картинка може стояти на кількох картках; прибрати її з картки — не видалити з бібліотеки. Розділ «Картинки» (Портрети · Концепти · Ілюстрації · Інше) — в «Арт» після «Референсів». Картинки, додані раніше, лишаються на своїх картках."],
+          ["p", "Поле <b>«Опис»</b> — головний текст картки: на всю ширину й велике, щоб було де писати."],
           ["p", "<b>🧊 Префаб героя.</b> Моделі й префаби (FBX, glTF / GLB, OBJ, Blend, .prefab, .unitypackage…) завантажують лише в «Ассети й префаби». У картці персонажа чи ворога гри вгорі три кнопки: <b>«🧊 Додати префаб»</b> — обрати готову картку з «Ассети й префаби» (спершу ті, що в підрозділі «Персонажі» / «Вороги», є пошук і видно, наскільки повний комплект), <b>«🖼 Додати портрет»</b> (перший портрет стає фасадом картки) і <b>«📌 Додати референс»</b>. Поле «Префаб» показує обране: «Відкрити префаб», «Змінити», «Відʼєднати». Префаба ще немає — <b>«⤒ Завантажити з ПК»</b> (GLB, Blend, .unitypackage, ZIP) або <b>«📂 Тека з ПК»</b> (FBX, OBJ, glTF разом із текстурами) — і в полі «Префаб», і у вікні вибору: сервіс сам створює картку в «Ассети й префаби» → «Персонажі» / «Вороги» з назвою героя, кладе файли в її «🧩 Модель і комплект» і одразу привʼязує до героя. Переходити в інший розділ не треба. Модель, кинута прямо в картку героя, не завантажиться — сервіс підкаже, куди її покласти. Файли, завантажені в героя раніше, лишаються з кнопкою «→ Перенести в «Ассети й префаби»»: вона створює картку префаба з цими файлами й одразу привʼязує її. Імпорт теки робить так само: моделі героя лягають окремою карткою в «Ассети й префаби» (Персонажі / Вороги) і привʼязуються до героя."],
           ["p", "<b>🧩 Модель і комплект</b> — угорі кожної картки «Ассети й префаби». Дві кнопки: <b>«⤒ Файл»</b> — GLB, .blend, .unitypackage чи ZIP (самодостатні: матеріали, текстури, риг і анімації всередині) і <b>«📂 Тека»</b> — FBX, OBJ, glTF разом із текстурами (вони тримають текстури окремими файлами, тому FBX сам по собі сервіс не прийме й попросить теку). Що де лежить, сервіс розпізнає за назвами файлів (BaseColor / _D → колір, Normal / _N → нормалі, ORM / Metallic / Roughness, AO, Emission, LOD1, @Idle → анімації, .mat, license.txt…; .meta і чужі readme пропускає). Під кнопками — чекліст по групах: Геометрія, Матеріал і текстури, Скелет і рух, Готове до гри. ✓ — знайдено, пунктирний ✓ — всередині GLB, ○ — бракує, закреслене — не потрібно (натисни на порожній пункт, щоб позначити; риг і анімації не потрібні поза підрозділами «Персонажі» й «Вороги»). Смужка «Готово N з M» рахує лише потрібне (UV, LOD, колайдер, превʼю, пакет — за бажанням), на картці в сітці — 🧩 N/M. Агент бачить комплект через MCP (<code>get_card → kit</code>, у героя — <code>prefab</code> з комплектом)."],
           ["p", "Агент бачить картки, поля й посилання на файли через MCP."],
@@ -1769,14 +1770,14 @@
         lead: "Step by step with AI, everything at once, or I write it myself.",
         min: 3,
         body: [
-          ["p", "Stories are created in the World Bible: in “World stories” (the “＋ New story” book on the shelf), in a game — in “Game stories”, or from a dossier (“＋ Story” — a story about this hero or event)."],
+          ["p", "Stories are created in the World Bible: in “World stories” (the “＋ New story” book on the shelf), in a game — in “Game stories”, or from a dossier (“📖 Create a story based on this” at the bottom of the card, left of “Save”; the same on canon cards of a game — a story about this hero or event)."],
           ["ul", [
             "🪶 Guided (default) — AI writes one scene at a time and asks for the direction before the next.",
             "⚡ Auto — AI writes the whole volume at once: a short story, a novella, a season.",
             "✍ I write it myself — no generation: a title is enough, the book opens on the writing sheet.",
           ]],
           ["p", "Length, ending and genres (up to four) are a flexible frame, not a contract. Every scene reads the world's current canon."],
-          ["p", "From a dossier, “＋ Story” first asks how to write: <b>✦ With AI</b> — this same form opens with the title and the hero filled in; <b>✎ I write myself</b> — the book opens straight on a blank sheet."],
+          ["p", "From a dossier, “📖 Create a story based on this” first asks how to write: <b>✦ With AI</b> — this same form opens with the title and the hero filled in; <b>✎ I write myself</b> — the book opens straight on a blank sheet."],
         ] },
       { cat: "book", id: "scene-intent", icon: "wand", title: "“What's next?” — the next scene's direction",
         lead: "You set a direction, not a prompt.",
@@ -1820,7 +1821,7 @@
         lead: "What the reader already knows — and what not yet.",
         min: 2,
         body: [
-          ["p", "A hero's or event's dossier has a “Stories” block — every story about it, “Open” and “＋ Story”. “Open” goes straight into the book; the ritual where a mage opens the book plays only once — when a story is created."],
+          ["p", "A hero's or event's dossier has a “Stories” block — every story about it, “Open”; a new one comes from “📖 Create a story based on this” at the bottom of the card. “Open” goes straight into the book; the ritual where a mage opens the book plays only once — when a story is created."],
           ["ul", [
             "Open to the reader — this canon is revealed.",
             "Revealed later — with a note on when.",
@@ -2297,6 +2298,7 @@
           ["p", "An opened card is read first: the cursor goes into the title only in a new card. Files and pictures are added at once, even in a new card — it saves itself before the first upload. In “References” there is nothing to fill in: <b>“＋ Pictures”</b> at the top of the section (or “＋ Add” by a subsection) takes several pictures at once — each becomes its own card named after the file (the name stays editable), and the picture shows its format (PNG, JPG…). Sort the references into subsections later — with the subsection menu in the card or by dragging."],
           ["p", "Files (up to 200 MB) are kept in storage; 3D models open with “🧊 3D” right in the browser."],
           ["p", "<b>🎨 Pictures — one library in “Art”.</b> Every picture field (portrait, concept, reference…) and “＋ Add a field” has <b>“🎨 From Art”</b> — pick from the game's pictures already uploaded (search by name; if the card has several picture fields — “Into”). A picture uploaded right from a card becomes a card in “Art” by itself: a portrait goes to “Pictures → Portraits”, a reference to “References → Visual”, the rest to “Pictures → Other”. The card only links the picture, so one picture can be on several cards; removing it from a card doesn't delete it from the library. The “Pictures” section (Portraits · Concepts · Illustrations · Other) is in “Art” after “References”. Pictures added before stay on their cards."],
+          ["p", "The <b>“Description”</b> field is the card's main text: full width and big, room to write."],
           ["p", "<b>🧊 A hero's prefab.</b> Models and prefabs (FBX, glTF / GLB, OBJ, Blend, .prefab, .unitypackage…) are uploaded only to “Assets & prefabs”. A game character or enemy card has three buttons at the top: <b>“🧊 Add a prefab”</b> — pick a ready card of “Assets & prefabs” (the “Characters” / “Enemies” subsection first, with search and how complete the kit is), <b>“🖼 Add a portrait”</b> (the first portrait becomes the card's face) and <b>“📌 Add a reference”</b>. The “Prefab” field shows the pick: “Open the prefab”, “Change”, “Unlink”. No prefab yet — <b>“⤒ Upload from PC”</b> (GLB, Blend, .unitypackage, ZIP) or <b>“📂 Folder from PC”</b> (FBX, OBJ, glTF with their textures), both in the “Prefab” field and in the picker: the service creates the card in “Assets & prefabs” → “Characters” / “Enemies” named after the hero, puts the files into its “🧩 Model & kit” and links it to the hero at once. No need to go to the other section. A model dropped straight onto a hero card is not uploaded — the service tells you where it goes. Files uploaded onto a hero before stay, with “→ Move to “Assets & prefabs””: it makes a prefab card of them and links it at once. The folder import does the same: a hero's models become a separate card in “Assets & prefabs” (Characters / Enemies), linked to the hero."],
           ["p", "<b>🧩 Model & kit</b> — at the top of every card of “Assets & prefabs”. Two buttons: <b>“⤒ File”</b> — GLB, .blend, .unitypackage or ZIP (self-contained: materials, textures, rig and animations inside) and <b>“📂 Folder”</b> — FBX, OBJ, glTF with their textures (they keep textures in separate files, so a lone FBX is refused and the service asks for the folder). The service recognises what is what by file names (BaseColor / _D → colour, Normal / _N → normals, ORM / Metallic / Roughness, AO, Emission, LOD1, @Idle → animations, .mat, license.txt…; .meta and foreign readmes are skipped). Under the buttons — a checklist by group: Geometry, Material & textures, Skeleton & motion, Ready for the game. ✓ — found, dashed ✓ — inside the GLB, ○ — missing, struck out — not needed (click an empty item to mark it; rig and animations are not needed outside “Characters” and “Enemies”). The “N of M ready” bar counts only what is needed (UV, LOD, collider, preview, package are optional), the card in the grid shows 🧩 N/M. The agent sees the kit over MCP (<code>get_card → kit</code>, a hero's <code>prefab</code> with its kit)."],
           ["p", "The agent sees cards, fields and file links over MCP."],

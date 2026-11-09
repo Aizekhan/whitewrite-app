@@ -123,6 +123,13 @@ var KINDS = [
     edges: function (G) {
       return live(G).filter(function (c) { return c.prefab; }).map(function (c) { return { from: from('card', c, { key: cardKey(c) }), to: 'c:' + c.prefab }; });
     } },
+  // a picture on a card that lives in «Арт» → «Картинки» / «Референси» (v2.106: an upload lands there, or it is picked «з Арту») — file.pic
+  { id: 'picture', uk: 'Картинка з Арту', en: 'Picture from Art', out: { uk: 'Картинка', en: 'Picture' }, fields: ['card.files.pic'],
+    edges: function (G) {
+      var out = [];
+      live(G).forEach(function (c) { arr(c.files).forEach(function (f) { if (f && f.pic && f.pic !== c.id) out.push({ from: from('card', c, { key: cardKey(c) }), to: 'c:' + f.pic, extra: f.field || '' }); }); });
+      return out;
+    } },
   { id: 'style', uk: 'Задає стиль', en: 'Sets the style of', out: { uk: 'Стиль біому', en: 'Biome style' }, fields: ['card.fields.places (artstyle)'],
     edges: function (G) {
       var out = [], all = live(G), style = all.filter(function (c) { return c.section === 'artstyle'; });
