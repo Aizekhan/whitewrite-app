@@ -11,6 +11,7 @@ const SG = require('../style-guide.js');
 const { telemetrySchema, intentText } = require('./experience')._experience;
 const NV = require('../narrative-validate.js');
 const MECH = require('../mechanics.js');
+const GMAP = require('../game-map.js'); // 🗺 «Карта гри» → get_game_map
 const FORGE = require('../forge.js');
 const PAID = require('../paid-features.js'); // characterForge.soon: the forge tools answer «in development»
 const REFS = require('../card-refs.js');
@@ -113,6 +114,8 @@ const TOOLS = [
   { name: 'check_style', description: 'Ask the art director (Claude, on the author\'s tokens) whether a picture fits the game\'s visual style: a Unity screenshot of a scene, a render of a prefab or a texture. Send a PNG/JPEG/WebP as base64, ≤ 1568 px on the long side and ≤ 5 MB. Returns score 0-100 (70+ fits, 40-69 partly, below 40 off-style), summary, issues and fixes. Nothing is stored; use it after visual work and before submit_task_result.',
     inputSchema: { type: 'object', required: ['image_base64'], properties: { image_base64: { type: 'string' }, media_type: { type: 'string', enum: ['image/png', 'image/jpeg', 'image/webp'] },
       location: { type: 'string', description: 'The location / level shown — picks its biome' }, what: { type: 'string', description: 'What the picture is (scene, prefab, texture…)' } } } },
+  { name: 'get_game_map', description: 'The game map (Game Bible «🗺 Карта гри», whitewrite.gamemap/1): the concept map (url — keep it as the in-game UI world map) and its zones — each its own Unity scene (scene name), kind (open zone, neutral strip, hub, dungeon instance), size in metres, player levels, the start zone, biome (→ get_style_guide), canon location, level card, description, heightmap (PNG url, 513×513, height_m), points in metres from the south-west corner (spawn, portal, waypoint, town, poi, enemy camp, boss, mine, resource, chest — with linked cards), transitions (portal / map edge / entrance, one-way); the map checks, what RPG Framework has for zones and how to build it. zone "c:<cardId>" or a title → that zone only, with a ready prompt.',
+    inputSchema: { type: 'object', properties: { zone: { type: 'string', description: '"c:<cardId>" or the zone title; empty = the whole map' } } } },
   { name: 'get_mechanics', description: 'The game mechanics from the Game Bible constructor: each with category, template (e.g. UMCF — Universal Melee Combat Framework) and template_id, stage, purpose, completeness % and the count of open problems. Then read one with get_mechanic. Design artefacts are mechanics too: game_feel (hitstop, shake, rumble, input buffer, coyote time per action), controls (input map per device), accessibility (checklist), economy (currencies, loot tables), loops (core / meta / long-term), level_metrics (character metrics + level pacing), difficulty (TTK / TTD per zone), release (store / legal / build checklist per platform). section "audio" lists the Sound factory instead: adaptive music (music states, layers, transitions on game events, leitmotifs, mix), ambience, UI sounds, music prompts — plus the plain sound cards. section "progression" lists the Progression builder: xp_curve (XP to every level, hours per level and to the cap), prog_currencies (income / spending simulation), prog_loot (sources × loot tables → items an hour, “one every N min”), prog_shop (hours of income per purchase), prog_upgrades (price per tier, hours to max), prog_balance (money and levels per stage: short / ok / rich) — get_mechanic returns these numbers in computed.',
     inputSchema: { type: 'object', properties: { section: { type: 'string', enum: ['mechanics', 'audio', 'progression'], description: 'mechanics (default), audio — the Sound factory, or progression — the Progression builder' },
       category: { type: 'string', description: 'A category id — mechanics: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose, feel, loops, leveldesign, balance, release; audio: music, sfx, voice, ambience, uisound; empty = all' } } } },
@@ -688,6 +691,17 @@ async function callTool(name, args, key) {
           lang: 'English', what: str(args.what, 200) || 'a screenshot from the Unity project', logAs: 'style_check_mcp' });
         return { style: SG.styleName(r), applies: r.biome ? 'biome' : 'overall', ...out.result, tokens_spent: out.tokensConsumed };
       } catch (e) { if (e instanceof STYLE.CheckError) throw new Error(e.body.error + (e.body.code ? ' (' + e.body.code + ')' : '')); throw e; }
+    }
+    case 'get_game_map': {
+      const titleOf = (id) => { const c = ctx.cards.find((x) => x.id === id); return c ? c.title || (ctx.entities.find((e) => e.id === c.canonRef) || {}).name || '' : ''; };
+      const entName = (id) => (ctx.entities.find((e) => e.id === id) || {}).name || '';
+      const map = GMAP.exportMap(ctx.cards, { lang: 'en', refTitle: titleOf, entName, man: ctx.game.framework || MECH.FW_BUILTIN, capStatus: MECH.capStatus });
+      const z = str(args.zone, 200);
+      if (!z) return { ...map, prompt: GMAP.prompt(ctx.cards, '', 'en') };
+      const one = map.zones.find((x) => x.ref === z || x.ref === 'c:' + z || x.title.toLowerCase() === z.toLowerCase());
+      if (!one) throw rpcError(-32602, `Zone ${z} not found`);
+      return { format: map.format, concept_map: map.concept_map, running_speed_m_s: map.running_speed_m_s, zone: one,
+        checks: map.checks.filter((x) => x.zone === one.ref), framework: map.framework, how_to_build: map.how_to_build, prompt: GMAP.prompt(ctx.cards, one.ref.slice(2), 'en') };
     }
     case 'get_mechanics': {
       const cat = str(args.category, 40), sec = args.section === 'audio' || args.section === 'progression' ? args.section : 'mechanics';

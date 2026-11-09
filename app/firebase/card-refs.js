@@ -130,6 +130,22 @@ var KINDS = [
       live(G).forEach(function (c) { arr(c.files).forEach(function (f) { if (f && f.pic && f.pic !== c.id) out.push({ from: from('card', c, { key: cardKey(c) }), to: 'c:' + f.pic, extra: f.field || '' }); }); });
       return out;
     } },
+  // a zone of «🗺 Карта гри» (v2.114): its biome (artstyle), canon location, level card, transitions to other zones, cards of its points
+  { id: 'zone', uk: 'Зона карти', en: 'Map zone', out: { uk: 'У зоні карти', en: 'In the map zone' },
+    fields: ['card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref'],
+    edges: function (G) {
+      var out = [];
+      live(G).forEach(function (c) {
+        var z = c.zone; if (!z) return;
+        var f = from('card', c, { key: cardKey(c) }), add = function (to, extra) { if (to && to !== f.key) out.push({ from: f, to: to, extra: extra || '' }); };
+        if (z.biome) add('c:' + z.biome, 'biome');
+        if (z.location) add('e:' + z.location, 'location');
+        if (z.level) add('c:' + z.level, 'level');
+        arr(z.links).forEach(function (l) { if (l && l.to) add('c:' + l.to, l.kind || 'link'); });
+        arr(z.points).forEach(function (p) { if (p && p.ref) add('c:' + p.ref, p.name || p.t || ''); });
+      });
+      return out;
+    } },
   { id: 'style', uk: 'Задає стиль', en: 'Sets the style of', out: { uk: 'Стиль біому', en: 'Biome style' }, fields: ['card.fields.places (artstyle)'],
     edges: function (G) {
       var out = [], all = live(G), style = all.filter(function (c) { return c.section === 'artstyle'; });
