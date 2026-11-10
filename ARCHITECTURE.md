@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.120.0 (2026-11-10)
+**Version:** 2.120.1 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -773,6 +773,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.120.1** 🗺 a place opened from the game map (`.gp-stage`, full screen) clears the shell's logo in the embedded Bible (`padding-top:124px`, like `.v3d`; phones 14px) — «‹ Назад» sat under the logo
 - **v2.120.0** (owner «забагато інформації, хочу спростити») ⚙ Project settings → «Claude Code» = two steps for the person (1 install Claude Code — `irm https://claude.ai/install.ps1 | iex`; 2 connect the game — «⧉ Скопіювати все для PowerShell» + «Підготуй усе для роботи з WhiteWrite»), then only the state the agent leaves (connected / Unity env / log / plan / GitHub) and «Далі: опиши гру»; the old steps 3–9 (separate key, 📂 folder, launch lines, env check, log block, repo, agentWrite) fold into «Для досвідчених». `get_guide setup` rewritten as the full PC + project setup with the person's stops; MCP `initialize` points «Підготуй усе…» to it. New MCP **`get_updates`** (`updatesSince`, `mcpKeys.lastUpdatesAt`, since, cap 50, the agent's own writes skipped) and the session rule `SESSION_RULE` (initialize, setup, CLAUDE.md block): `get_updates` at the start + one question about watching (так / ні / завжди / ніколи, remembered in CLAUDE.md, `/loop` / ScheduleWakeup / CronCreate, tasks offered not taken). KB: road = agent-install · agent-connect, + agent-auto, agent-updates; the old manual steps under «Для досвідчених» (`adv`, `White.html fillKb`); `tests/mcp-updates.test.cjs`.
 - **v2.119.1** live E2E check of v2.118.0 on the owner account (all 8 areas ✅, 0 app console errors) — fixes: a story created from the form puts `#work/book?projectId=` into the address (`__setCurrentProject` / `ww-mode work`), so a reload opens the new book; an oversize file in `uploadFiles` is reported in a dialog after «Завантажено файлів» (that line wiped it); the book's bookmarks count only entities still in the canon (`relatedForScene` → `wEnt`); «Відновлено: …» after a world restore is a dialog too (the settings line was below the fold); the story editor's field «Опис історії» (was «Опис світу»), Ukrainian `aria-label`; the book ribbon says WhiteWrite (was White Tree)
 - **v2.119.0** 🧊 models are GLB only (owner): `asset-kit.js` `EXT.mesh = ['glb']`, `NOT_GLB` / `isGlb` / `notGlb` (no `BUNDLE` / `FOLDER` / `needsFolder`); one «⤒ Модель (.glb)» in the kit and the hero's prefab (no «📂 Тека»); `glbOnly` refuses FBX / OBJ / glTF / STL… on every upload (cards, dossier, Forge) with «Як перетворити в GLB →» (KB `glb-only`, new: Blender Import FBX → Export glTF 2.0 → glTF Binary, Apply Modifiers / Skinning / Shape Keys / Animation, Unity assets); the game folder skips them with a list; old files stay as plain files (`fileSlot` 'legacy', `glbOld` mark, no 3D, «Готовність Біблії» line, MCP `kit.not_glb`, Forge format error); `gb-3d.js` GLB only, FBX / OBJ / STL loaders + NURBS / fflate unvendored; Forge texts, `paid-features` Forge text, MCP `get_card` description; the FBX outputs (animation library pack, reference rig pack) untouched
@@ -986,5 +987,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-10 (v2.120.0)
+**Last updated:** 2026-11-11 (v2.120.1)
 **Maintained by:** WhiteWrite Team

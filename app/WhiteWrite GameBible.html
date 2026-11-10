@@ -679,6 +679,7 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
 .gp-stage{ position:fixed; inset:0; z-index:8; overflow:auto; background:var(--bg-0); padding:14px 22px 22px; }
 .gp-stage header.sec{ margin:0 0 8px; } .gp-stage header.sec h1{ margin:4px 0 0; }
 .gp-stage .gp-map{ width:min(100%, calc((100vh - 190px) * var(--ar, 1.6))); margin:0 auto; }
+.ww-embed .gp-stage{ padding-top:124px; } .ww-embed .gp-stage .gp-map{ width:min(100%, calc((100vh - 300px) * var(--ar, 1.6))); } /* «‹ Назад» clears the shell's logo, like .v3d */
 .gp-sheets{ margin:22px 0 8px; } .gp-sheetgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
 .gp-sheet{ display:flex; flex-direction:column; gap:4px; padding:8px; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-1); color:var(--tx-hi); font:inherit; text-align:left; cursor:pointer; }
 .gp-sheet img, .gp-sheet > i{ width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:8px; display:grid; place-items:center; font-style:normal; font-size:28px; background:var(--bg-2); }
@@ -1393,7 +1394,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
   body, body.rail-shut{ grid-template-columns:1fr; } .rail{ display:none; } body.rail-shut #spine{ display:flex; }
   nav{ position:sticky; top:0; z-index:20; height:auto; flex-direction:column; padding:10px 16px; }
   .ww-embed nav{ margin-top:0; top:0; height:auto; padding-bottom:10px; } /* phones: the shell hides its top menu in the Bible (White.html) */
-  .leaf, .ww-embed .leaf{ top:0; bottom:0; width:100vw; border-radius:0; border:0; } .ww-embed .v3d{ padding-top:14px; } /* phones: the window takes the whole screen */
+  .leaf, .ww-embed .leaf{ top:0; bottom:0; width:100vw; border-radius:0; border:0; } .ww-embed .v3d, .ww-embed .gp-stage{ padding-top:14px; } .ww-embed .gp-stage .gp-map{ width:min(100%, calc((100vh - 190px) * var(--ar, 1.6))); } /* phones: the window takes the whole screen */
   .nav-toggle{ display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line-2); background:var(--bg-2); color:var(--tx-hi); font:inherit; font-weight:600; cursor:pointer; }
   nav:not(.is-open) > :not(.nav-toggle):not(.srch-btn){ display:none !important; }
   .srch-btn, .ww-embed .srch-btn{ top:16px; right:22px; } .nav-toggle{ padding-right:52px !important; }
