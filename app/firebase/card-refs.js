@@ -146,6 +146,19 @@ var KINDS = [
       });
       return out;
     } },
+  // a place on «🗺 Карта гри» (v2.116): its card, and the cards and scenes of its points of interest
+  { id: 'mappin', uk: 'Точка карти', en: 'Map place', out: { uk: 'На точці карти', en: 'On the map place' },
+    fields: ['card.gpin.ref', 'card.gpin.pois.ref', 'card.gpin.pois.scene'],
+    edges: function (G) {
+      var out = [];
+      live(G).forEach(function (c) {
+        var g = c.gpin; if (!g) return;
+        var f = from('card', c, { key: cardKey(c) }), add = function (to, extra) { if (to && to !== f.key) out.push({ from: f, to: to, extra: extra || '' }); };
+        if (g.ref) add(g.ref, '');
+        arr(g.pois).forEach(function (p) { if (!p) return; if (p.ref) add(p.ref, p.title || ''); if (p.scene) add('c:' + p.scene, p.title || ''); });
+      });
+      return out;
+    } },
   { id: 'style', uk: 'Задає стиль', en: 'Sets the style of', out: { uk: 'Стиль біому', en: 'Biome style' }, fields: ['card.fields.places (artstyle)'],
     edges: function (G) {
       var out = [], all = live(G), style = all.filter(function (c) { return c.section === 'artstyle'; });

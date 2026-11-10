@@ -20,6 +20,9 @@ const cards = [
   { id: 'st1', section: 'artstyle', title: 'Ліс', fields: {} },
   { id: 'lv1', section: 'levels', title: 'Рівень 1' },
   { id: 'wolf', section: 'enemies', title: 'Вовк' },
+  { id: 'pin1', section: 'gamemap', order: 9, title: 'Селище', files: [{ id: 'f1', field: 'plan', name: 'v.png', type: 'image/png', url: 'https://x/v.png' }, { id: 'f2', field: 'poi:q1', name: 'w.png', type: 'image/png', url: 'https://x/w.png' }],
+    gpin: { x: 0.2, y: 0.3, ref: 'e:loc_morra', note: 'тихе', pois: [{ id: 'q1', x: 0.5, y: 0.5, title: 'Криниця', ref: 'c:wolf', note: '', scene: 'sc1' }] } },
+  { id: 'sc1', section: 'scenes', title: 'Біля криниці' },
 ];
 
 // zones and basics
@@ -32,6 +35,9 @@ check(GM.crossMin({ w: 700, h: 0 }, 7), null, 'no size → no crossing time');
 check(GM.centroid(sq(0, 0, 1)).map((v) => Math.round(v * 100)).join(), '50,50', 'centroid of a square of {x,y} points → [x, y]');
 check(GM.speedOf([{ id: 'm', mech: { tpl: 'level_metrics', sections: [{ id: 'metrics', values: { walk: 3, sprint: 9 } }] } }]), 9, 'running speed from «Метрики рівнів»');
 check(GM.speedOf([]), GM.SPEED, 'default running speed');
+
+check(GM.pins(cards).map((c) => c.id).join(), 'pin1', 'pins: only place cards');
+check(GM.zones(cards).some((c) => c.id === 'pin1'), false, 'a place is not a zone');
 
 // checks
 const ck = GM.checks(cards);
@@ -60,6 +66,9 @@ check(JSON.stringify(z1.points[1]), JSON.stringify({ type: 'boss', label: 'Boss'
 check(z1.biome.title + ' / ' + z1.canon_location.name + ' / ' + z1.level_card.title, 'Ліс / Морра / Рівень 1', 'export: biome, canon location, level card');
 check(ex.zones[1].links.map((l) => l.to + ':' + l.kind).join(), 'c:z1:portal', 'export: a two-way link is seen from the other zone');
 check(JSON.stringify(z1.outline_on_concept[0]), '[0.1,0.1]', 'export: the outline as [x, y] pairs');
+const pl = ex.places[0];
+check(pl.ref + ' ' + pl.card.ref + ' ' + pl.card.title + ' ' + pl.picture, 'c:pin1 e:loc_morra Морра https://x/v.png', 'export: a place with its card and picture');
+check(JSON.stringify(pl.points_of_interest[0]), JSON.stringify({ title: 'Криниця', at_on_picture: [0.5, 0.5], card: { ref: 'c:wolf', title: 'Вовк' }, note: '', scene: { ref: 'c:sc1', title: 'Біля криниці' }, pictures: ['https://x/w.png'] }), 'export: a point of interest with its card, scene and pictures');
 check(Array.isArray(ex.framework) && ex.framework.length === 3, true, 'export: the framework note');
 check(/get_game_map \{"zone":"c:z1"\}/.test(GM.prompt(cards, 'z1', 'en')), true, 'a zone prompt names the MCP call');
 check(/3 zones/.test(GM.prompt(cards, '', 'en')), true, 'the whole-map prompt');
@@ -86,6 +95,10 @@ check(rows('c:st1'), 'in:Ліс Морри', 'a biome sees the zone');
 check(rows('e:loc_morra'), 'in:Ліс Морри', 'a canon location sees the zone');
 check(rows('c:z1'), 'out:Вовк | out:Гори Тарн | out:Ліс | out:Морра | out:Рівень 1', 'a zone lists what it points at');
 check(rows('c:z2'), 'in:Ліс Морри', 'the linked zone sees the transition (one record per pair)');
+const prow = (key) => REFS.usedBy(G, key, 'uk').filter((r) => r.kind === 'mappin').map((r) => r.side + ':' + (r.from.title || r.from.key)).sort().join(' | ');
+check(prow('e:loc_morra'), 'in:Селище', 'a canon location sees the map place');
+check(prow('c:sc1'), 'in:Селище', 'a scene sees the place whose point of interest uses it');
+check(prow('c:pin1'), 'out:Біля криниці | out:Вовк | out:Морра', 'a place lists its card, the cards and scenes of its points');
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
 process.exit(fails ? 1 : 0);

@@ -802,7 +802,7 @@
       about: { uk: "Сцени гри: що відбувається, настрій і світло, палітра кольорів, мініпостановка — хто й що де стоїть у кадрі.", en: "The game's scenes: what happens, mood and light, the colour palette, a mock-up — who and what stands where in the frame." },
       defs: [F("group", "Група", "Group"), F("what", "Що відбувається", "What happens"), F("location", "Локація", "Location"), F("mood", "Настрій і світло", "Mood & light"),
              F("palette", "Палітра кольорів", "Colour palette", "palette"), F("board", "Мініпостановка сцени", "Scene mock-up", "scene"),
-             F("camera", "Камера й кадр", "Camera & framing"), F("refs", "Референси", "References", "image")] },
+             F("camera", "Камера й кадр", "Camera & framing"), F("refs", "Референси", "References", "image"), F("blend", "Файл сцени (Blender .blend, .glb)", "Scene file (Blender .blend, .glb)", "file")] },
     { id: "artstyle", uk: "Візуальний стиль", en: "Visual style", group: "group",
       groups: { uk: ["Загальний стиль", "Біоми й локації"], en: ["Overall style", "Biomes & locations"] },
       about: { uk: "Стиль гри: загальний і для кожного біома. Палітра стилю перевіряє всі картинки гри — значок 🖌 на картці показує, чи вона в стилі. Біом підбирається сам: за назвою картки, її підрозділом чи локацією зі списку «Локації й рівні біома».",
@@ -6593,7 +6593,7 @@
     about: { uk: "Концепт-карта світу, поділена на зони: кожна — окрема сцена з розміром, рельєфом, точками й переходами. Claude Code будує з неї рівні в Unity чи Blender.",
       en: "The concept map of the world split into zones: each a separate scene with its size, relief, points and transitions. Claude Code builds the levels in Unity or Blender from it." } };
   var GMAP = window.__GAMEMAP;
-  var gm = { sel: "", mode: "", draft: [], linkFrom: "", ed: null, msg: "", hide: localStorage.getItem("ww-gm-hide") === "1" }; // hide: zones off the concept map (owner, v2.115.4), per browser
+  var gm = { sel: "", psel: "", plan: "", poi: "", pmode: "", mode: "", draft: [], linkFrom: "", ed: null, msg: "", hide: localStorage.getItem("ww-gm-hide") === "1" }; // hide: zones off the concept map (owner, v2.115.4), per browser
   var GM = {
     uk: { base: "Концепт-карта", up: "⤒ Концепт-карта", upNew: "⤒ Завантажити концепт-карту", draw: "✎ Обвести зону", add: "＋ Зона без місця на карті", link: "🔗 Зʼєднати зони",
       hideZ: "◌ Сховати зони", showZ: "◍ Показати зони", hideTip: "Сховати обведені зони, переходи й підписи — видно лише саму карту (обрана зона лишається)", copy: "⧉ Запит для Claude Code", json: "⤓ JSON", copied: "Скопійовано — встав у Claude Code", noBase: "Завантаж концепт-карту — картинку світу, на якій видно регіони (як карта «Морри»). Це план, а не рівень: на ній обводиш зони. Можна й без картинки — на сітці.",
@@ -6652,6 +6652,8 @@
   }
   function renderGameMap(s) {
     if (gm.ed) return renderZoneEd();
+    if (gm.plan) return renderPinPlan(s);
+    if (gm.psel && !gpCard(gm.psel)) gm.psel = "";
     var list = GMAP.zones(cards), b = GMAP.base(cards), img = GMAP.baseImage(b), speed = GMAP.speedOf(cards), chk = GMAP.checks(cards, speed);
     if (gm.sel && !gmZone(gm.sel)) gm.sel = "";
     var ratio = (b && +b.ratio) || 0.62, byZone = {};
@@ -6678,15 +6680,16 @@
     var draft = gm.mode === "draw" || gm.mode === "redraw" ? '<polyline class="gm-draft" points="' + gm.draft.map(function (p) { return p[0] * 1000 + "," + p[1] * 1000; }).join(" ") + '" vector-effect="non-scaling-stroke"/>' : "";
     var verts = gm.mode === "draw" || gm.mode === "redraw" ? gm.draft.map(function (p, i) { return '<i class="gm-v' + (i ? '' : ' is-first') + '" style="left:' + p[0] * 100 + '%;top:' + p[1] * 100 + '%"></i>'; }).join("") : "";
     var loose = list.filter(function (c) { return !cen[c.id]; });
-    var hint = gm.mode === "draw" ? GM.drawHint : gm.mode === "redraw" ? GM.redrawHint : gm.mode === "link" ? (gm.linkFrom ? GM.linkHint2 : GM.linkHint) : "";
+    var hint = gm.mode === "draw" ? GM.drawHint : gm.mode === "redraw" ? GM.redrawHint : gm.mode === "link" ? (gm.linkFrom ? GM.linkHint2 : GM.linkHint) : gm.mode === "pin" ? GP.pinHint : "";
     var map = '<div class="gm-map' + (gm.mode ? ' is-' + gm.mode : gm.hide ? ' is-hide' : '') + (img ? '' : ' is-grid') + '" id="gm-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + '">' +
       (img ? '<img alt="" src="' + esc(img.url) + '" draggable="false">' : '') +
-      '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">' + list.filter(function (c) { return cen[c.id]; }).map(poly).join("") + lines + draft + '</svg>' + linkIcons + labels + verts + '</div>';
+      '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">' + list.filter(function (c) { return cen[c.id]; }).map(poly).join("") + lines + draft + '</svg>' + linkIcons + labels + verts + GMAP.pins(cards).map(function (c) { return gpPinHtml(c, c.id === gm.psel); }).join("") + '</div>';
     var errs = chk.filter(function (x) { return x.level === "err"; }).length, warns = chk.filter(function (x) { return x.level === "warn"; }).length;
     var fw = window.__MECH.capStatus(gmMan(), "world.zones");
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
       '<div class="row gm-bar">' + (canWrite ? '<label class="btn"><input type="file" hidden accept="image/*" id="gm-up">' + (img ? GM.up : GM.upNew) + '</label>' +
-        '<button class="btn' + (gm.mode === "draw" ? ' primary' : '') + '" id="gm-draw">' + GM.draw + '</button><button class="btn' + (gm.mode === "link" ? ' primary' : '') + '" id="gm-link"' + (list.length > 1 ? '' : ' disabled') + '>' + GM.link + '</button>' : '') +
+        '<button class="btn' + (gm.mode === "draw" ? ' primary' : '') + '" id="gm-draw">' + GM.draw + '</button><button class="btn' + (gm.mode === "link" ? ' primary' : '') + '" id="gm-link"' + (list.length > 1 ? '' : ' disabled') + '>' + GM.link + '</button>' +
+        '<button class="btn' + (gm.mode === "pin" ? ' primary' : '') + '" id="gm-pin" title="' + esc(GP.pinTip) + '">' + GP.pinAdd + '</button>' : '') +
         (list.some(function (c) { return cen[c.id]; }) ? '<button class="btn' + (gm.hide ? ' primary' : '') + '" id="gm-hide" aria-pressed="' + gm.hide + '" title="' + esc(GM.hideTip) + '">' + (gm.hide ? GM.showZ : GM.hideZ) + '</button>' : '') +
         '<button class="btn" id="gm-copy"' + (list.length ? '' : ' disabled') + '>' + GM.copy + '</button><button class="btn" id="gm-json"' + (list.length ? '' : ' disabled') + '>' + GM.json + '</button></div>' +
       (hint ? '<div class="gm-hint" role="status">' + esc(hint) + ' <button class="btn mini" id="gm-cancel">' + GM.cancel + '</button>' + (gm.mode !== "link" && gm.draft.length >= 3 ? ' <button class="btn mini primary" id="gm-close">' + GM.done + '</button>' : '') + '</div>' : '') +
@@ -6694,11 +6697,11 @@
       '<div class="gm">' + '<div class="gm-mapwrap">' + (img ? '' : '<p class="muted gm-nobase">' + esc(GM.noBase) + '</p>') + map +
         (loose.length ? '<div class="gm-loose"><span class="muted">' + esc(GM.noPos) + ':</span> ' + loose.map(function (c) { return '<button type="button" class="chip gm-chip' + (c.id === gm.sel ? ' is-on' : '') + '" data-gmz="' + esc(c.id) + '">' + esc(c.title || "?") + '</button>'; }).join(" ") + '</div>' : '') +
         (canWrite ? '<button class="btn mini ghost gm-add" id="gm-add">' + GM.add + '</button>' : '') + '</div>' +
-        '<aside class="gm-side">' + (gm.sel ? gmPassport(gmZone(gm.sel), speed, chk) : gmList(list, speed, byZone)) + '</aside></div>' +
+        '<aside class="gm-side">' + (gm.psel ? gpPanel(gpCard(gm.psel)) : gm.sel ? gmPassport(gmZone(gm.sel), speed, chk) : gmList(list, speed, byZone) + gpList()) + '</aside></div>' +
       '<section class="gm-checks"><h2>' + GM.checks + (errs + warns ? ' <span class="gm-bad">' + (errs + warns) + '</span>' : '') + '</h2>' +
         (chk.length ? '<ul>' + chk.map(function (x) { return '<li class="gm-ck gm-ck--' + x.level + '"' + (x.zone ? ' data-gmz="' + esc(x.zone) + '" tabindex="0"' : '') + '><i>' + (x.level === "err" ? "⛔" : x.level === "warn" ? "⚠" : "💡") + '</i>' + esc(gmL(x)) + '</li>'; }).join("") + '</ul>' : '<p class="gm-ok">✓ ' + esc(GM.ok) + '</p>') +
         '<p class="muted gm-fw">' + esc((fw.status === "full" ? GM.fwOk : GM.fw).replace("{v}", "v" + gmMan().version)) + '</p></section>';
-    bindGameMap(list);
+    bindGameMap(list); gpBindMap();
   }
   function gmList(list, speed, byZone) {
     if (!list.length) return '<h2>' + GM.zones + '</h2><p class="muted">' + esc(GM.none) + '</p>';
@@ -6833,6 +6836,7 @@
     var setMode = function (m) { gm.mode = gm.mode === m ? "" : m; gm.draft = []; gm.linkFrom = ""; gm.msg = ""; render(); };
     on("gm-draw", function () { setMode("draw"); });
     on("gm-link", function () { setMode("link"); });
+    on("gm-pin", function () { setMode("pin"); });
     on("gm-cancel", function () { gm.mode = ""; gm.draft = []; gm.linkFrom = ""; render(); });
     on("gm-close", gmCloseDraft);
     on("gm-add", function () { askName(GM.nameQ, GM.zonePh, function (name) { if (name) gmNewZone(name, []); }, "", { ok: STR.create }); });
@@ -6847,10 +6851,10 @@
         if (gm.linkFrom === id) return;
         var a = gmZone(gm.linkFrom), b = gmZone(id); gm.mode = ""; gm.linkFrom = ""; render(); if (a && b) gmLinkAsk(a, b); return;
       }
-      gm.sel = gm.sel === id && !$("gm-x") ? "" : id; gm.msg = ""; render();
+      gm.psel = ""; gm.sel = gm.sel === id && !$("gm-x") ? "" : id; gm.msg = ""; render();
     };
     $("view").querySelectorAll("[data-gmz]").forEach(function (el) {
-      if (el.closest("#gm-map") && (gm.mode === "draw" || gm.mode === "redraw")) return;
+      if (el.closest("#gm-map") && (gm.mode === "draw" || gm.mode === "redraw" || gm.mode === "pin")) return;
       el.addEventListener("click", function (ev) { ev.stopPropagation(); pick(el.dataset.gmz); });
       if (el.tagName === "LI") el.addEventListener("keydown", function (ev) { if (ev.key === "Enter") pick(el.dataset.gmz); });
     });
@@ -6889,11 +6893,276 @@
   }
   document.addEventListener("keydown", function (ev) {
     if (section !== "gamemap" || mode !== "game" || gm.ed || document.querySelector(".ask")) return;
+    if (ev.key === "Escape" && gm.plan && gm.pmode) { gm.pmode = ""; render(); return; }
     if (ev.key === "Escape" && gm.mode) { gm.mode = ""; gm.draft = []; gm.linkFrom = ""; render(); }
     else if (ev.key === "Enter" && (gm.mode === "draw" || gm.mode === "redraw") && !/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName)) { ev.preventDefault(); gmCloseDraft(); }
     else if ((ev.key === "Backspace" || ev.key === "z" && (ev.ctrlKey || ev.metaKey)) && gm.draft.length && !/^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) { ev.preventDefault(); gm.draft.pop(); render(); }
   });
 
+
+  // ---- ◉ places on «Карта гри» (owner, v2.116): a pin = a game card of «gamemap» with `gpin` { x, y (0..1 on the concept), ref (a card key «c:…» / «e:…»
+  // of Локації, Персонажі, Вороги…), note (one line), ratio, pois [{ id, x, y (0..1 on the place picture), title, ref, note, scene (a «Сцени» card id) }] };
+  // the place picture is its file `plan`, a point of interest's pictures — files `poi:<id>` (upload or «🎨 З Арту»). Visual first: a name, a line of comment.
+  var GP = {
+    uk: { pinAdd: "◉ Поставити точку", pinTip: "Точка на карті — місце, яке відкривається своєю картинкою з точками інтересу", pinHint: "Клікни на карті — там з’явиться точка. Esc — скасувати.",
+      pinQ: "Назва точки", pinPh: "Напр. Селище Морра", pins: "Точки", card: "Картка", cardNone: "— без картки —", open: "Відкрити картку", note: "Коментар", notePh: "Один рядок, за бажанням",
+      plan: "🗺 Відкрити місце", del: "🗑 Видалити точку", delQ: "Видалити точку «{t}» разом з картинкою місця і точками інтересу?", close: "Закрити", drag: "Перетягуй точки, щоб пересунути; клік — відкрити.",
+      back: "‹ Карта гри", up: "⤒ Змінити картинку місця", upNew: "⤒ Картинка місця", noPlan: "Завантаж картинку місця — план, арт чи скриншот. На ній ставиш точки інтересу.",
+      poiAdd: "◉ Точка інтересу", poiHint: "Клікни на картинці — там з’явиться точка інтересу. Esc — скасувати.", poiQ: "Назва точки інтересу", poiPh: "Напр. Стара криниця",
+      pois: "Точки інтересу", noPois: "Ще немає точок інтересу.", scene: "Сцена", sceneNone: "— без сцени —", sceneOpen: "Відкрити сцену", pics: "Вид і референси", picsAdd: "＋ Картинки",
+      poiDel: "🗑 Видалити точку інтересу", poiDelQ: "Видалити точку інтересу «{t}» з її картинками?", picRm: "Прибрати картинку", none: "Ще немає точок — «◉ Поставити точку»." },
+    en: { pinAdd: "◉ Place a point", pinTip: "A point on the map — a place that opens as its own picture with points of interest", pinHint: "Click the map — a point appears there. Esc cancels.",
+      pinQ: "Point name", pinPh: "E.g. Morra village", pins: "Points", card: "Card", cardNone: "— no card —", open: "Open the card", note: "Comment", notePh: "One line, optional",
+      plan: "🗺 Open the place", del: "🗑 Delete the point", delQ: "Delete the point “{t}” with its place picture and points of interest?", close: "Close", drag: "Drag points to move them; click to open.",
+      back: "‹ Game map", up: "⤒ Change the place picture", upNew: "⤒ Place picture", noPlan: "Upload a picture of the place — a plan, art or a screenshot. You put points of interest on it.",
+      poiAdd: "◉ Point of interest", poiHint: "Click the picture — a point of interest appears there. Esc cancels.", poiQ: "Point of interest name", poiPh: "E.g. The old well",
+      pois: "Points of interest", noPois: "No points of interest yet.", scene: "Scene", sceneNone: "— no scene —", sceneOpen: "Open the scene", pics: "Look & references", picsAdd: "＋ Pictures",
+      poiDel: "🗑 Delete the point of interest", poiDelQ: "Delete the point of interest “{t}” with its pictures?", picRm: "Remove the picture", none: "No points yet — “◉ Place a point”." } }[LANG === "en" ? "en" : "uk"];
+  var GP_SECS = ["locations", "characters", "enemies", "factions", "items", "gear", "levels", "assets"];
+  function gpCard(id) { return GMAP.pins(cards).filter(function (c) { return c.id === id; })[0] || null; }
+  function gpRefCard(ref) { return ref ? allCards().filter(function (x) { return x.key === ref; })[0] || null : null; }
+  function gpRefImg(x) {
+    if (!x) return null; var pics = (x.files || []).filter(isImage);
+    return pics.filter(function (f) { return f.field === "portrait" || f.field === "view"; }).slice(-1)[0] || pics[0] || (x.src === "canon" ? entImage(entities.filter(function (e) { return e.id === x.id; })[0] || {}) : null);
+  }
+  function gpPlanImg(c) { return (c.files || []).filter(function (f) { return f.field === "plan" && isImage(f); }).slice(-1)[0] || null; }
+  function gpPoiPics(c, id) { return (c.files || []).filter(function (f) { return f.field === "poi:" + id && isImage(f); }); }
+  function gpSet(c, patch) {
+    c.gpin = Object.assign({}, c.gpin, patch);
+    return gref().collection("cards").doc(c.id).set({ gpin: c.gpin, updatedAt: stamp() }, { merge: true }).catch(function (e) { gm.msg = STR.failed + ": " + e.message; render(); });
+  }
+  function gpPoiSet(c, id, patch) { return gpSet(c, { pois: (c.gpin.pois || []).map(function (p) { return p.id === id ? Object.assign({}, p, patch) : p; }) }); }
+  function gpDot(x, y, id, title, img, sel, attr, extra) {
+    return '<button type="button" class="gm-pin' + (img ? ' has-img' : '') + (sel ? ' is-sel' : '') + '" ' + attr + '="' + esc(id) + '" style="left:' + (x * 100) + '%;top:' + (y * 100) + '%" title="' + esc(title) + '">' +
+      '<i' + (img ? ' style="background-image:url(&quot;' + esc(img.url) + '&quot;)"' : '') + '></i><span>' + esc(title || "?") + (extra || "") + '</span></button>';
+  }
+  function gpPinHtml(c, sel) {
+    var g = c.gpin || {}, img = gpPlanImg(c) || gpRefImg(gpRefCard(g.ref)), n = (g.pois || []).length;
+    return gpDot(+g.x || 0, +g.y || 0, c.id, c.title, img, sel, "data-gmpin", n ? ' <small>◉ ' + n + '</small>' : '');
+  }
+  function gpList() {
+    var l = GMAP.pins(cards);
+    return '<h2 class="gp-h">' + GP.pins + (l.length ? ' · ' + l.length : '') + '</h2>' + (l.length ? '<ul class="gm-zl">' + l.map(function (c) {
+      var x = gpRefCard(c.gpin.ref);
+      return '<li><button type="button" data-gmpin="' + esc(c.id) + '"><i class="gm-dot" style="background:var(--gold-bright)"></i><b>' + esc(c.title || "?") + '</b><small>' + esc((x ? x.title + ' · ' : '') + ((c.gpin.pois || []).length ? '◉ ' + c.gpin.pois.length : '')) + '</small></button></li>';
+    }).join("") + '</ul>' : '<p class="muted">' + esc(GP.none) + '</p>');
+  }
+  function gpCardOpts(cur) {
+    var all = allCards(), has = !cur;
+    var groups = GP_SECS.map(function (sid) {
+      var l = all.filter(function (x) { return x.section === sid; }).sort(function (a, b) { return String(a.title).localeCompare(String(b.title)); }); if (!l.length) return "";
+      return '<optgroup label="' + esc(L(sec(sid))) + '">' + l.map(function (x) { if (x.key === cur) has = true; return '<option value="' + esc(x.key) + '"' + (x.key === cur ? ' selected' : '') + '>' + esc(x.title || "?") + '</option>'; }).join("") + '</optgroup>';
+    }).join("");
+    return '<option value="">' + esc(GP.cardNone) + '</option>' + groups + (has ? '' : '<option value="' + esc(cur) + '" selected>?</option>');
+  }
+  function gpMini(ref) {
+    var x = gpRefCard(ref); if (!x) return '';
+    var img = gpRefImg(x);
+    return '<div class="gp-mini">' + (img ? '<img alt="" src="' + esc(img.url) + '">' : '<i class="gp-noimg">◉</i>') + '<div><b>' + esc(x.title || "?") + '</b><small>' + esc(L(sec(x.section))) + '</small></div>' +
+      '<button type="button" class="btn mini" data-gpopen="' + esc(x.key) + '">' + GP.open + '</button></div>';
+  }
+  function gpPanel(c) {
+    if (!c) return ""; var g = c.gpin || {}, dis = canWrite ? '' : ' disabled';
+    return '<div class="gm-pass" data-gpp="' + esc(c.id) + '"><div class="gm-ph"><input class="gm-title" data-gpf="title" value="' + esc(c.title || "") + '" aria-label="' + esc(GP.pinQ) + '"' + dis + '>' +
+      '<button class="btn mini ghost" id="gp-x" aria-label="' + esc(GP.close) + '">✕</button></div>' +
+      '<label class="gm-f"><span>' + GP.card + '</span><select data-gpf="ref"' + dis + '>' + gpCardOpts(g.ref || "") + '</select></label>' + gpMini(g.ref) +
+      '<label class="gm-f gm-f--wide"><span>' + GP.note + '</span><input data-gpf="note" value="' + esc(g.note || "") + '" placeholder="' + esc(GP.notePh) + '" maxlength="200"' + dis + '></label>' +
+      '<div class="gm-acts"><button class="btn primary" id="gp-plan">' + GP.plan + ((g.pois || []).length ? ' · ◉ ' + g.pois.length : '') + '</button>' + (canWrite ? '<button class="btn danger" id="gp-del">' + GP.del + '</button>' : '') + '</div>' +
+      '<p class="muted gm-tip">' + esc(GP.drag) + '</p></div>';
+  }
+  // drag a point (pins on the map, points of interest on the place picture): a click without moving opens it
+  function gpDrag(box, attr, moved, clicked) {
+    if (!box) return;
+    box.querySelectorAll("[" + attr + "]").forEach(function (el) {
+      el.addEventListener("click", function (ev) { ev.stopPropagation(); });
+      el.addEventListener("pointerdown", function (ev) {
+        if (ev.button !== 0 || gm.mode || gm.pmode) return; ev.stopPropagation();
+        var r = box.getBoundingClientRect(), x0 = ev.clientX, y0 = ev.clientY, mv = false, id = el.getAttribute(attr);
+        el.setPointerCapture(ev.pointerId);
+        var move = function (e) {
+          if (!canWrite) return; if (!mv && Math.abs(e.clientX - x0) + Math.abs(e.clientY - y0) < 5) return; mv = true;
+          el.style.left = Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)) + "%"; el.style.top = Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100)) + "%";
+        };
+        var up = function (e) {
+          el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up);
+          if (mv) moved(id, Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * 10000) / 10000, Math.round(Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) * 10000) / 10000);
+          else if (e.type === "pointerup") clicked(id);
+        };
+        el.addEventListener("pointermove", move); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+      });
+    });
+  }
+  function gpNew(name, p) {
+    var id = newId("card");
+    gm.psel = id; gm.sel = ""; gm.msg = "";
+    gref().collection("cards").doc(id).set({ section: "gamemap", title: name, status: "idea", note: "", defs: [], fields: {}, files: [], order: Date.now(), createdAt: stamp(), updatedAt: stamp(),
+      gpin: { x: Math.round(p[0] * 10000) / 10000, y: Math.round(p[1] * 10000) / 10000, ref: "", note: "", pois: [] } }).then(render, function (e) { gm.msg = STR.failed + ": " + e.message; render(); });
+  }
+  async function gpDelete(c) {
+    if (!(await askConfirm(GP.delQ.replace("{t}", c.title || "?"), { danger: true }))) return;
+    try {
+      await gref().collection("cards").doc(c.id).delete();
+      (c.files || []).forEach(function (f) { if (!f.linked && !pathShared(c, f.path)) firebase.storage().ref(f.path).delete().catch(function () {}); });
+      gm.psel = ""; gm.plan = ""; gm.poi = "";
+    } catch (e) { gm.msg = STR.failed + ": " + e.message; }
+    render();
+  }
+  function gpOpenRef(ref) { var x = gpRefCard(ref); if (!x) return; if (x.src === "game" && (x.section === "mechanics" || mFactory(x.section) && x.mech)) return openMech(x); openCard(x); }
+  function gpBindMap() {
+    var mapEl = $("gm-map");
+    if (mapEl && gm.mode === "pin") mapEl.addEventListener("click", function (ev) {
+      var p = gmPoint(ev); gm.mode = ""; render();
+      askName(GP.pinQ, GP.pinPh, function (name) { if (name) gpNew(name, p); }, "", { ok: STR.create });
+    });
+    var pick = function (id) { gm.psel = gm.psel === id ? "" : id; gm.sel = ""; gm.msg = ""; render(); };
+    gpDrag(mapEl, "data-gmpin", function (id, x, y) { var c = gpCard(id); if (c) gpSet(c, { x: x, y: y }); }, pick);
+    $("view").querySelectorAll(".gm-side [data-gmpin]").forEach(function (b) { b.onclick = function () { pick(b.dataset.gmpin); }; });
+    var pp = document.querySelector("#view [data-gpp]"); if (!pp) return;
+    var c = gpCard(pp.dataset.gpp); if (!c) return;
+    $("gp-x").onclick = function () { gm.psel = ""; render(); };
+    $("gp-plan").onclick = function () { gm.plan = c.id; gm.poi = ""; gm.pmode = ""; render(); };
+    var del = $("gp-del"); if (del) del.onclick = function () { gpDelete(c); };
+    gpBindFields(pp, c, null);
+  }
+  // the fields of a pin (poi = null) or of a point of interest: title, card, comment, scene
+  function gpBindFields(box, c, poi) {
+    box.querySelectorAll("[data-gpf]").forEach(function (el) {
+      el.addEventListener("change", function () {
+        var k = el.dataset.gpf, v = el.value.trim();
+        if (k === "title" && !v) { el.value = poi ? poi.title || "" : c.title || ""; return; }
+        if (poi) { var pt = {}; pt[k] = v; gpPoiSet(c, poi.id, pt); render(); return; }
+        if (k === "title") { c.title = v; gref().collection("cards").doc(c.id).set({ title: v, updatedAt: stamp() }, { merge: true }); render(); return; }
+        var p = {}; p[k] = v; gpSet(c, p); render();
+      });
+    });
+    box.querySelectorAll("[data-gpopen]").forEach(function (b) { b.onclick = function () { gpOpenRef(b.dataset.gpopen); }; });
+  }
+  // the place: its picture with points of interest
+  function renderPinPlan(s) {
+    var c = gpCard(gm.plan); if (!c) { gm.plan = ""; return renderGameMap(s); }
+    var g = c.gpin || {}, img = gpPlanImg(c), pois = g.pois || [], ratio = (img && +g.ratio) || 0.62;
+    if (gm.poi && !pois.some(function (p) { return p.id === gm.poi; })) gm.poi = "";
+    var dots = pois.map(function (p) { var pic = gpPoiPics(c, p.id).slice(-1)[0] || gpRefImg(gpRefCard(p.ref)); return gpDot(+p.x || 0, +p.y || 0, p.id, p.title, pic, p.id === gm.poi, "data-gppoi"); }).join("");
+    var poi = gm.poi ? pois.filter(function (p) { return p.id === gm.poi; })[0] : null;
+    $("view").innerHTML = '<header class="sec"><div><button class="btn mini ghost" id="gp-back">' + GP.back + '</button><h1>' + esc(c.title || "?") + '</h1>' + (g.note ? '<p>' + esc(g.note) + '</p>' : '') + '</div></header>' +
+      '<div class="row gm-bar">' + (canWrite ? '<label class="btn"><input type="file" hidden accept="image/*" id="gp-up">' + (img ? GP.up : GP.upNew) + '</label>' +
+        '<button class="btn" id="gp-art">' + esc(STR.artPick.btn) + '</button>' +
+        '<button class="btn' + (gm.pmode ? ' primary' : '') + '" id="gp-poi">' + GP.poiAdd + '</button>' : '') + '</div>' +
+      (gm.pmode ? '<div class="gm-hint" role="status">' + esc(GP.poiHint) + ' <button class="btn mini" id="gp-cancel">' + GM.cancel + '</button></div>' : '') +
+      (gm.msg ? '<p class="gm-msg" role="status">' + esc(gm.msg) + '</p>' : '') +
+      '<div class="gm"><div class="gm-mapwrap">' + (img ? '' : '<p class="muted gm-nobase">' + esc(GP.noPlan) + '</p>') +
+        '<div class="gm-map gp-map' + (gm.pmode ? ' is-pin' : '') + (img ? '' : ' is-grid') + '" id="gp-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + '">' + (img ? '<img alt="" src="' + esc(img.url) + '" draggable="false">' : '') + dots + '</div></div>' +
+        '<aside class="gm-side">' + (poi ? gpPoiPanel(c, poi) : gpPoiList(c)) + '</aside></div>';
+    gpBindPlan(c, poi);
+  }
+  function gpPoiList(c) {
+    var pois = (c.gpin || {}).pois || [];
+    return gpMini((c.gpin || {}).ref) + '<h2>' + GP.pois + (pois.length ? ' · ' + pois.length : '') + '</h2>' + (pois.length ? '<ul class="gm-zl">' + pois.map(function (p) {
+      var x = gpRefCard(p.ref), sc = p.scene ? cards.filter(function (k) { return k.id === p.scene; })[0] : null, n = gpPoiPics(c, p.id).length;
+      return '<li><button type="button" data-gppoi="' + esc(p.id) + '"><i class="gm-dot" style="background:var(--gold-bright)"></i><b>' + esc(p.title || "?") + '</b><small>' +
+        esc([x ? x.title : "", sc ? "🎬 " + (sc.title || "") : "", n ? "🖼 " + n : ""].filter(Boolean).join(" · ")) + '</small></button></li>';
+    }).join("") + '</ul>' : '<p class="muted">' + esc(GP.noPois) + '</p>');
+  }
+  function gpPoiPanel(c, p) {
+    var dis = canWrite ? '' : ' disabled', scenes = cards.filter(function (k) { return k.section === "scenes" && !k.hidden; }), pics = gpPoiPics(c, p.id);
+    return '<div class="gm-pass" data-gpq="' + esc(p.id) + '"><div class="gm-ph"><input class="gm-title" data-gpf="title" value="' + esc(p.title || "") + '" aria-label="' + esc(GP.poiQ) + '"' + dis + '>' +
+      '<button class="btn mini ghost" id="gp-qx" aria-label="' + esc(GP.close) + '">✕</button></div>' +
+      '<h3>' + GP.pics + '</h3><div class="gp-pics">' + pics.map(function (f) {
+        return '<div class="gp-pic"><a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name || "") + '" src="' + esc(f.url) + '"></a>' +
+          (canWrite ? '<button type="button" class="btn mini danger" data-gprm="' + esc(f.id) + '" title="' + esc(GP.picRm) + '" aria-label="' + esc(GP.picRm) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>' +
+      (canWrite ? '<button type="button" class="btn" id="gp-padd">' + GP.picsAdd + '</button>' : '') +
+      '<label class="gm-f"><span>' + GP.card + '</span><select data-gpf="ref"' + dis + '>' + gpCardOpts(p.ref || "") + '</select></label>' + gpMini(p.ref) +
+      '<label class="gm-f"><span>' + GP.scene + '</span><select data-gpf="scene"' + dis + '><option value="">' + esc(GP.sceneNone) + '</option>' + scenes.map(function (k) { return '<option value="' + esc(k.id) + '"' + (k.id === p.scene ? ' selected' : '') + '>' + esc(k.title || "?") + '</option>'; }).join("") + '</select></label>' +
+      (p.scene && scenes.some(function (k) { return k.id === p.scene; }) ? '<button type="button" class="btn mini" data-gpopen="c:' + esc(p.scene) + '">' + GP.sceneOpen + '</button>' : '') +
+      '<label class="gm-f gm-f--wide"><span>' + GP.note + '</span><input data-gpf="note" value="' + esc(p.note || "") + '" placeholder="' + esc(GP.notePh) + '" maxlength="200"' + dis + '></label>' +
+      (canWrite ? '<div class="gm-acts"><button class="btn danger" id="gp-qdel">' + GP.poiDel + '</button></div>' : '') + '</div>';
+  }
+  async function gpUpload(c, list, field, replace) {
+    try {
+      for (var i = 0; i < list.length; i++) {
+        var f = list[i]; if (!isImage({ name: f.name, type: f.type })) continue;
+        if (f.size > MAX_FILE) { gm.msg = STR.fileTooBig + ": " + f.name; render(); continue; }
+        var old = replace ? (c.files || []).filter(function (x) { return x.field === field; }) : [];
+        if (field === "plan") { try { var bm = await createImageBitmap(f); gpSet(c, { ratio: Math.round(bm.height / bm.width * 10000) / 10000 }); bm.close && bm.close(); } catch (e) {} }
+        gm.msg = STR.uploading + " " + f.name; render();
+        await putFile(c, f, field);
+        for (var j = 0; j < old.length; j++) await gpRmFile(c, old[j], true);
+      }
+      gm.msg = "";
+    } catch (e) { gm.msg = STR.failed + ": " + (e.code || e.message || e); }
+    render();
+  }
+  async function gpRmFile(c, f, quiet) {
+    if (!quiet && !(await askConfirm(STR.confirmFile + " " + (f.name || "") + "?", { danger: true }))) return;
+    if (!f.linked && !pathShared(c, f.path)) await firebase.storage().ref(f.path).delete().catch(function () {});
+    await gref().collection("cards").doc(c.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
+    c.files = (c.files || []).filter(function (x) { return x.id !== f.id; });
+    if (!quiet) render();
+  }
+  // «🎨 З Арту» for a place / a point of interest: a click on a picture links it (it stays one picture of «Арт»)
+  function gpArtPick(c, field, replace) {
+    var pool = []; allCards().forEach(function (x) { if (ART_SRC.indexOf(x.section) < 0) return; (x.files || []).filter(isImage).forEach(function (f) { if (!f.linked) pool.push({ c: x, f: f }); }); });
+    var A = STR.artPick, box = document.createElement("div"); box.className = "ask";
+    box.innerHTML = '<div class="ask-box is-long art-pick" role="dialog" aria-modal="true" aria-label="' + esc(A.title) + '"><h3>🎨 ' + esc(A.title) + '</h3>' +
+      (pool.length ? '<input id="ap-q" placeholder="' + esc(A.search) + '" autocomplete="off"><div class="ap-grid" id="ap-grid"></div>' : '<p class="warn">' + esc(A.empty) + '</p>') +
+      '<div class="row"><button type="button" class="btn" id="ask-x">' + STR.cancel + '</button></div></div>';
+    document.body.appendChild(box);
+    var close = function () { box.remove(); }, q = box.querySelector("#ap-q");
+    var draw = function (t) {
+      t = (t || "").toLowerCase(); var el = box.querySelector("#ap-grid"); if (!el) return;
+      var l = pool.filter(function (x) { return !t || (x.c.title + " " + x.f.name).toLowerCase().indexOf(t) >= 0; });
+      el.innerHTML = l.length ? l.map(function (x, i) { return '<button type="button" class="ap-it" data-api="' + pool.indexOf(x) + '"><img loading="lazy" alt="" src="' + esc(x.f.url) + '"><span>' + esc(x.c.title || x.f.name) + '</span></button>'; }).join("") : '<p class="muted">' + esc(A.none) + '</p>';
+    };
+    draw(""); if (q) { q.oninput = function () { draw(q.value); }; q.focus(); }
+    box.querySelector("#ask-x").onclick = close;
+    box.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); close(); } });
+    box.addEventListener("click", async function (e) {
+      var b = e.target.closest("[data-api]"); if (!b) return; var x = pool[+b.dataset.api]; close();
+      try {
+        var old = replace ? (c.files || []).filter(function (f) { return f.field === field; }) : [];
+        await linkPic(c, x.f, x.c.id, field);
+        if (field === "plan") { var im = new Image(); im.onload = function () { if (im.naturalWidth) gpSet(c, { ratio: Math.round(im.naturalHeight / im.naturalWidth * 10000) / 10000 }); }; im.src = x.f.url; }
+        for (var j = 0; j < old.length; j++) await gpRmFile(c, old[j], true);
+      } catch (er) { gm.msg = STR.failed + ": " + (er.code || er.message || er); }
+      render();
+    });
+  }
+  function gpBindPlan(c, poi) {
+    var mapEl = $("gp-map"), on = function (id, fn) { var el = $(id); if (el) el.onclick = fn; };
+    on("gp-back", function () { gm.plan = ""; gm.poi = ""; gm.pmode = ""; gm.psel = c.id; render(); });
+    var up = $("gp-up"); if (up) up.onchange = function () { var l = [].slice.call(up.files); up.value = ""; gpUpload(c, l.slice(0, 1), "plan", true); };
+    on("gp-art", function () { gpArtPick(c, "plan", true); });
+    on("gp-poi", function () { gm.pmode = gm.pmode ? "" : "poi"; render(); });
+    on("gp-cancel", function () { gm.pmode = ""; render(); });
+    if (mapEl && gm.pmode) mapEl.addEventListener("click", function (ev) {
+      var r = mapEl.getBoundingClientRect(), p = [Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height))];
+      gm.pmode = ""; render();
+      askName(GP.poiQ, GP.poiPh, function (name) {
+        if (!name) return; var id = newId("poi"); gm.poi = id;
+        gpSet(c, { pois: ((c.gpin || {}).pois || []).concat([{ id: id, x: Math.round(p[0] * 10000) / 10000, y: Math.round(p[1] * 10000) / 10000, title: name, ref: "", note: "", scene: "" }]) }); render();
+      }, "", { ok: STR.create });
+    });
+    var pick = function (id) { gm.poi = gm.poi === id ? "" : id; render(); };
+    gpDrag(mapEl, "data-gppoi", function (id, x, y) { gpPoiSet(c, id, { x: x, y: y }); }, pick);
+    $("view").querySelectorAll(".gm-side [data-gppoi]").forEach(function (b) { b.onclick = function () { pick(b.dataset.gppoi); }; });
+    var side = document.querySelector("#view .gm-side"); if (side) side.querySelectorAll("[data-gpopen]").forEach(function (b) { b.onclick = function () { gpOpenRef(b.dataset.gpopen); }; });
+    var qp = document.querySelector("#view [data-gpq]"); if (!qp || !poi) return;
+    on("gp-qx", function () { gm.poi = ""; render(); });
+    gpBindFields(qp, c, poi);
+    qp.querySelectorAll("[data-gprm]").forEach(function (b) { b.onclick = function () { var f = (c.files || []).filter(function (x) { return x.id === b.dataset.gprm; })[0]; if (f) gpRmFile(c, f); }; });
+    var add = $("gp-padd"); if (add) add.onclick = function () {
+      picChooser(add, [{ label: STR.artPick.pc, run: function () {
+        var inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.hidden = true; document.body.appendChild(inp);
+        inp.onchange = function () { var l = [].slice.call(inp.files); inp.remove(); gpUpload(c, l, "poi:" + poi.id, false); }; inp.click();
+      } }, { label: STR.artPick.btn, run: function () { gpArtPick(c, "poi:" + poi.id, false); } }]);
+    };
+    on("gp-qdel", async function () {
+      if (!(await askConfirm(GP.poiDelQ.replace("{t}", poi.title || "?"), { danger: true }))) return;
+      var fl = (c.files || []).filter(function (f) { return f.field === "poi:" + poi.id; });
+      for (var i = 0; i < fl.length; i++) await gpRmFile(c, fl[i], true);
+      gm.poi = ""; gpSet(c, { pois: ((c.gpin || {}).pois || []).filter(function (x) { return x.id !== poi.id; }) }); render();
+    });
+  }
   // ---- ⛰ the zone editor: relief (paint / generate / own PNG) + points; the heights live in memory until «💾 Зберегти рельєф» ----
   function gmOpenEd(c) {
     var R = GMAP.RES, f = GMAP.heightFile(c), seed = 1 + (Math.abs(String(c.id).split("").reduce(function (h, ch) { return (h * 31 + ch.charCodeAt(0)) | 0; }, 7)) % 99999);

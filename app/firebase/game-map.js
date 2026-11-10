@@ -7,6 +7,9 @@
 //     location (canon entity id), level (levels card id), scene, heightM (m), links [{ to: zone card id, kind, oneWay }],
 //     points [{ id, t, x, y (0..1 inside the zone, y down = north up), name, ref (card id) }] }; the heightmap is a PNG file
 //     on the zone card (field 'height', RES × RES, white = heightM).
+//   a place (v2.116) — a card with `gpin` = { x, y (0..1 on the concept), ref (a card key «c:<id>» / «e:<entity id>»), note, ratio,
+//     pois [{ id, x, y (0..1 on the place picture), title, ref (card key), note, scene (a «Сцени» card id) }] }; its picture is the file
+//     'plan', a point of interest's pictures — files 'poi:<id>'. Visual first: a name and one line of comment.
 // A zone is a separate Unity scene (a dungeon — an instance scene); zones connect by portals, map edges with a short load,
 // or entrances (a mine → its dungeon). The concept map stays in the game as the UI world map (waypoints).
 // ============================================================================
@@ -44,6 +47,7 @@ function lbl(x, lang) { return x ? x[lang === 'en' ? 'en' : 'uk'] : ''; }
 function kindOf(id) { return byId(KINDS, id) || KINDS[0]; }
 function live(cards) { return arr(cards).filter(function (c) { return c && c.section === 'gamemap' && !c.hidden; }); }
 function zones(cards) { return live(cards).filter(function (c) { return c.zone && !c.gmapBase; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
+function pins(cards) { return live(cards).filter(function (c) { return c.gpin && !c.zone && !c.gmapBase; }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); }
 function base(cards) { return live(cards).filter(function (c) { return c.gmapBase; })[0] || null; }
 function isPic(f) { return /^image\//.test(f.type || '') || /\.(png|jpe?g|webp|gif)$/i.test(f.name || ''); }
 function baseImage(b) { return b ? arr(b.files).filter(function (f) { return f.field === 'map' && isPic(f); }).slice(-1)[0] || null : null; }
@@ -159,6 +163,7 @@ function exportMap(cards, opts) {
     concept_map: img ? { url: img.url, note: 'The concept plan the author drew the zones on — not a level, a plan. Keep it as the in-game UI world map (waypoints, discovered zones).' } : null,
     running_speed_m_s: speed,
     zones: list.map(zoneOut),
+    places: pins(cards).map(function (c) { return placeOut(c, opts); }),
     checks: checks(cards, speed).map(function (x) { return { level: x.level, zone: x.zone ? 'c:' + x.zone : null, text: lbl(x, lang) }; }),
     framework: frameworkNote(opts.man, opts.capStatus),
     how_to_build: [
@@ -168,6 +173,24 @@ function exportMap(cards, opts) {
       'Place points as empty GameObjects (spawn, portal, waypoint, camp, boss…) named after them, then build on them; a portal point connects to the link of the same zone.',
       'Start with greybox: the terrain, the points and working transitions; art comes after the author approves the greybox.',
     ],
+  };
+}
+// a place for the export: where it is on the concept, its card, its picture and points of interest with their cards, scenes and pictures
+function placeOut(c, opts) {
+  var g = c.gpin || {}, files = arr(c.files);
+  var card = function (ref) {
+    if (!ref) return null; var i = String(ref).indexOf(':'), kind = String(ref).slice(0, i), id = String(ref).slice(i + 1);
+    var t = kind === 'e' ? (opts.entName ? opts.entName(id) : '') || (opts.refTitle ? opts.refTitle(id) : '') : opts.refTitle ? opts.refTitle(id) : '';
+    return { ref: ref, title: t || '' };
+  };
+  var pics = function (field) { return files.filter(function (f) { return f.field === field && isPic(f); }).map(function (f) { return f.url; }); };
+  return {
+    ref: 'c:' + c.id, title: c.title || '', at_on_concept: [+g.x || 0, +g.y || 0], card: card(g.ref), note: g.note || '',
+    picture: pics('plan').slice(-1)[0] || null,
+    points_of_interest: arr(g.pois).map(function (p) {
+      return { title: p.title || '', at_on_picture: [+p.x || 0, +p.y || 0], card: card(p.ref), note: p.note || '',
+        scene: p.scene ? { ref: 'c:' + p.scene, title: opts.refTitle ? opts.refTitle(p.scene) || '' : '' } : null, pictures: pics('poi:' + p.id) };
+    }),
   };
 }
 // a ready request for Claude Code: one zone (zoneId) or the whole map
@@ -264,7 +287,7 @@ function placeText(place, lang) {
   return PLACE.filter(function (f) { return place[f.k]; }).map(function (f) { return { k: f.k, label: lbl(f, lang), value: placeLabel(f.k, place[f.k], lang) }; });
 }
 
-var GAMEMAP = { RES: RES, PLACE: PLACE, placeLabel: placeLabel, placeText: placeText, KINDS: KINDS, LINKS: LINKS, POINTS: POINTS, SPEED: SPEED, kindOf: kindOf, zones: zones, base: base, baseImage: baseImage, heightFile: heightFile,
+var GAMEMAP = { RES: RES, PLACE: PLACE, placeLabel: placeLabel, placeText: placeText, KINDS: KINDS, LINKS: LINKS, POINTS: POINTS, SPEED: SPEED, kindOf: kindOf, zones: zones, pins: pins, base: base, baseImage: baseImage, heightFile: heightFile,
   areaKm2: areaKm2, crossMin: crossMin, centroid: centroid, speedOf: speedOf, sceneName: sceneName, graph: graph, checks: checks, exportMap: exportMap, prompt: prompt,
   generate: generate, brush: brush, normalize: normalize, toRaw16: toRaw16, lbl: lbl };
 if (typeof module !== 'undefined' && module.exports) module.exports = GAMEMAP;
