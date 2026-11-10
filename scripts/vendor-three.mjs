@@ -7,8 +7,7 @@ import { fileURLToPath } from 'node:url';
 const VERSION = '0.169.0';
 const BASE = `https://unpkg.com/three@${VERSION}/`;
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'app', 'vendor', 'three');
-const ENTRY = ['build/three.module.js', 'examples/jsm/controls/OrbitControls.js', 'examples/jsm/loaders/GLTFLoader.js',
-  'examples/jsm/loaders/FBXLoader.js', 'examples/jsm/loaders/OBJLoader.js', 'examples/jsm/loaders/STLLoader.js'];
+const ENTRY = ['build/three.module.js', 'examples/jsm/controls/OrbitControls.js', 'examples/jsm/loaders/GLTFLoader.js']; // models are GLB only (v2.119.0)
 
 const seen = new Set(), queue = [...ENTRY];
 while (queue.length) {

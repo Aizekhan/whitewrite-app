@@ -7,16 +7,18 @@
 // or stays empty. `rig: true` slots matter for living things (groups Персонажі / Вороги) and start as «не потрібно» elsewhere.
 // Hero cards (game characters / enemies) do not take model files from the PC: they link one of these cards (card.prefab).
 
+// 3D models are GLB only (owner, v2.119.0): one file with its textures, rig and animations inside. FBX / OBJ / glTF / STL… keep textures
+// beside them (a folder) — they are refused with how to convert (KB «glb-only»); files of those formats uploaded before stay as plain files.
 var EXT = {
-  mesh: ['fbx', 'glb', 'gltf', 'obj', 'blend', 'dae', '3ds', 'stl', 'usd', 'usdz', 'max', 'ma', 'mb'],
+  mesh: ['glb'],
   image: ['png', 'jpg', 'jpeg', 'tga', 'tif', 'tiff', 'exr', 'psd', 'webp', 'bmp', 'svg', 'dds', 'hdr'],
 };
 var SLOTS = [
-  { id: 'model', group: 'mesh', ext: EXT.mesh, uk: 'Модель (меш)', en: 'Model (mesh)', hint: { uk: 'Основний файл: FBX, glTF / GLB, OBJ, Blend…', en: 'The main file: FBX, glTF / GLB, OBJ, Blend…' } },
+  { id: 'model', group: 'mesh', ext: EXT.mesh, uk: 'Модель (GLB)', en: 'Model (GLB)', hint: { uk: 'Один файл .glb: текстури, риг і анімації всередині', en: 'One .glb file: textures, rig and animations inside' } },
   { id: 'uv', group: 'mesh', optional: true, ext: EXT.image.concat(['pdf']), uk: 'UV-розгортка', en: 'UV layout', hint: { uk: 'Схема розгортки — якщо текстури малюватимуть під неї', en: 'The UV layout — if textures are to be painted on it' } },
   { id: 'lod', group: 'mesh', optional: true, ext: EXT.mesh, uk: 'LOD-и (спрощені моделі)', en: 'LODs (simplified models)', hint: { uk: 'LOD1, LOD2… для дальньої відстані', en: 'LOD1, LOD2… for distance' } },
   { id: 'collider', group: 'mesh', optional: true, ext: EXT.mesh, uk: 'Колайдер (колізійна сітка)', en: 'Collider (collision mesh)', hint: { uk: 'Проста сітка для фізики; інакше — примітиви в Unity', en: 'A simple mesh for physics; else primitives in Unity' } },
-  { id: 'material', group: 'surface', ext: ['mat', 'sbsar', 'sbs', 'mtl', 'json', 'shadergraph', 'shader', 'txt', 'md'], uk: 'Матеріал', en: 'Material', hint: { uk: 'Unity .mat, Substance .sbsar, .mtl або опис шейдера (URP Lit, тайлінг…)', en: 'Unity .mat, Substance .sbsar, .mtl or a shader note (URP Lit, tiling…)' } },
+  { id: 'material', group: 'surface', ext: ['mat', 'sbsar', 'sbs', 'json', 'shadergraph', 'shader', 'txt', 'md'], uk: 'Матеріал', en: 'Material', hint: { uk: 'Unity .mat, Substance .sbsar або опис шейдера (URP Lit, тайлінг…)', en: 'Unity .mat, Substance .sbsar or a shader note (URP Lit, tiling…)' } },
   { id: 'albedo', group: 'surface', ext: EXT.image, uk: 'Колір (Albedo / Base Color)', en: 'Colour (Albedo / Base Color)' },
   { id: 'normal', group: 'surface', ext: EXT.image, uk: 'Нормалі (Normal map)', en: 'Normal map' },
   { id: 'mask', group: 'surface', ext: EXT.image, uk: 'Metallic / Roughness (ORM, Mask map)', en: 'Metallic / Roughness (ORM, Mask map)', hint: { uk: 'Або окремо, або упаковані в одну карту', en: 'Separate or packed into one map' } },
@@ -25,8 +27,8 @@ var SLOTS = [
   { id: 'opacity', group: 'surface', ext: EXT.image, uk: 'Прозорість (Alpha / Opacity)', en: 'Opacity (Alpha)', optional: true },
   { id: 'height', group: 'surface', ext: EXT.image, uk: 'Висота (Height / Displacement)', en: 'Height / Displacement', optional: true },
   { id: 'rig', group: 'motion', rig: true, ext: EXT.mesh.concat(['json']), uk: 'Скелет / риг', en: 'Skeleton / rig', hint: { uk: 'Якщо риг не всередині моделі', en: 'If the rig is not inside the model' } },
-  { id: 'anims', group: 'motion', rig: true, ext: EXT.mesh.concat(['anim', 'controller']), uk: 'Анімації', en: 'Animations', hint: { uk: 'Кліпи FBX / .anim; бібліотека WhiteWrite — у Кузні персонажів', en: 'FBX / .anim clips; the WhiteWrite library is in the Character forge' } },
-  { id: 'prefab', group: 'ready', optional: true, ext: ['prefab', 'unitypackage', 'zip', 'rar', '7z', 'uasset'], uk: 'Unity-префаб / пакет', en: 'Unity prefab / package', hint: { uk: 'Готовий .prefab чи .unitypackage з усім разом', en: 'A ready .prefab or .unitypackage with everything' } },
+  { id: 'anims', group: 'motion', rig: true, ext: EXT.mesh.concat(['anim', 'controller']), uk: 'Анімації', en: 'Animations', hint: { uk: 'Кліпи GLB / .anim; бібліотека WhiteWrite — у Кузні персонажів', en: 'GLB / .anim clips; the WhiteWrite library is in the Character forge' } },
+  { id: 'prefab', group: 'ready', optional: true, ext: ['prefab', 'unitypackage', 'zip', 'rar', '7z', 'uasset'], uk: 'Unity-префаб / пакет', en: 'Unity prefab / package', hint: { uk: 'Готовий .prefab чи .unitypackage — вкладення для Unity, не модель для 3D', en: 'A ready .prefab or .unitypackage — an attachment for Unity, not a model for 3D' } },
   { id: 'preview', group: 'ready', optional: true, ext: EXT.image, uk: 'Превʼю / іконка', en: 'Preview / icon' },
   { id: 'license', group: 'ready', ext: ['txt', 'md', 'pdf', 'html'], uk: 'Ліцензія', en: 'Licence', hint: { uk: 'license.txt з джерела — колір ліцензії визначиться сам', en: 'license.txt from the source — the licence colour is detected' } },
 ];
@@ -40,6 +42,10 @@ var LIVING = ['Персонажі', 'Вороги', 'Characters', 'Enemies']; //
 
 function slot(id) { return SLOTS.filter(function (s) { return s.id === id; })[0] || null; }
 function extOf(name) { var m = /\.([^.\/]+)$/.exec(String(name || '')); return m ? m[1].toLowerCase() : ''; }
+// model formats the service does not take (they need a folder of textures beside them): refused on upload, shown as plain files when old
+var NOT_GLB = ['fbx', 'gltf', 'obj', 'stl', 'dae', '3ds', 'ply', 'usd', 'usda', 'usdc', 'usdz'];
+function isGlb(name) { return extOf(name) === 'glb'; }
+function notGlb(name) { return NOT_GLB.indexOf(extOf(name)) >= 0; }
 // a file a hero card must not take from the PC (it links a prefab card instead)
 function isModelFile(name) { return EXT.mesh.concat(['prefab', 'unitypackage', 'uasset']).indexOf(extOf(name)) >= 0; }
 // «не потрібно» of a card: what the author marked, or — never touched — the rig slots of a non-living asset
@@ -49,15 +55,11 @@ function naOf(card) {
   var g = String(((card && card.fields) || {}).category || '');
   return LIVING.indexOf(g) >= 0 ? [] : SLOTS.filter(function (s) { return s.rig; }).map(function (s) { return s.id; });
 }
-// how a model comes in (owner, v2.88.1): a self-contained file (GLB, .blend, .unitypackage, an archive) or a folder (FBX / OBJ / glTF keep textures beside them)
-var BUNDLE = ['glb', 'blend', 'usdz', 'unitypackage', 'zip', 'rar', '7z'];
-var FOLDER = ['fbx', 'obj', 'gltf', 'dae', '3ds', 'max', 'ma', 'mb'];
-function needsFolder(name) { return FOLDER.indexOf(extOf(name)) >= 0; }
-function isBundle(name) { return BUNDLE.indexOf(extOf(name)) >= 0; }
-// the slot a file of a model folder fills, by its extension and name ('other' = a texture we cannot name, '' = not part of the kit)
+// the slot a file fills, by its extension and name ('other' = a texture we cannot name, '' = not part of the kit: .blend and other
+// source files, a non-GLB model — plain files of the card)
 function classify(name) {
   var x = extOf(name), b = String(name || '').split('/').pop().replace(/\.[^.]+$/, '').toLowerCase();
-  if (['mat', 'sbsar', 'sbs', 'mtl', 'shadergraph', 'shader'].indexOf(x) >= 0) return 'material';
+  if (['mat', 'sbsar', 'sbs', 'shadergraph', 'shader'].indexOf(x) >= 0) return 'material';
   if (['prefab', 'unitypackage', 'uasset', 'zip', 'rar', '7z'].indexOf(x) >= 0) return 'prefab';
   if (['anim', 'controller'].indexOf(x) >= 0) return 'anims';
   if (['txt', 'md', 'pdf', 'html'].indexOf(x) >= 0) return /licen[cs]e|copyright|credits|terms/.test(b) ? 'license' : '';
@@ -83,30 +85,32 @@ function classify(name) {
 // the slot a file fills: "kit:<slot>", or — a file uploaded before the kit (no field) — by its name
 function fileSlot(f) {
   if (!f) return '';
+  if (notGlb(f.name) && (!f.field || /^kit:/.test(f.field))) return 'legacy'; // an FBX / OBJ / glTF… of the kit uploaded before GLB only: listed with «convert to GLB», fills no slot
   if (/^kit:/.test(f.field || '')) return f.field.slice(4);
   return f.field ? '' : classify(f.name);
 }
 // the kit state: per slot files / na / empty; done = filled of the needed (optional empty slots do not count against it)
 function kitState(card) {
   var files = (card && card.files) || [], na = naOf(card);
-  var bundle = files.some(function (f) { var s = fileSlot(f); return (s === 'model' || s === 'prefab') && isBundle(f.name); });
+  var bundle = files.some(function (f) { return fileSlot(f) === 'model' && isGlb(f.name); });
   var rows = SLOTS.map(function (s) {
     var fs = files.filter(function (f) { return fileSlot(f) === s.id; });
-    // a GLB / .blend / package carries its materials, textures, rig and animations inside
+    // a GLB carries its materials, textures, rig and animations inside
     var inside = bundle && (s.group === 'surface' || s.group === 'motion') && !s.optional;
     return { slot: s, files: fs, state: fs.length ? 'ok' : na.indexOf(s.id) >= 0 ? 'na' : inside ? 'in' : 'empty' };
   });
   var need = rows.filter(function (r) { return r.state !== 'na' && !(r.slot.optional && r.state === 'empty'); });
   return { rows: rows, done: need.filter(function (r) { return r.state === 'ok' || r.state === 'in'; }).length, total: need.length, na: na, bundle: bundle,
-    other: files.filter(function (f) { return fileSlot(f) === 'other'; }) };
+    other: files.filter(function (f) { return fileSlot(f) === 'other'; }), legacy: files.filter(function (f) { return fileSlot(f) === 'legacy'; }) };
 }
 // for MCP / exports: { slot: [file names] | 'not needed' | 'missing' }
 function kitSummary(card, lang) {
   var st = kitState(card), out = {};
   st.rows.forEach(function (r) { out[r.slot.id] = r.state === 'ok' ? r.files.map(function (f) { return { name: f.name, url: f.url }; }) : r.state === 'na' ? 'not needed' : r.state === 'in' ? 'inside the model file' : r.slot.optional ? 'optional, empty' : 'missing'; });
-  return { done: st.done, total: st.total, bundle: st.bundle, slots: out, other_textures: st.other.map(function (f) { return f.name; }) };
+  return { done: st.done, total: st.total, bundle: st.bundle, slots: out, other_textures: st.other.map(function (f) { return f.name; }),
+    not_glb: st.legacy.map(function (f) { return f.name; }) }; // old FBX / OBJ… files: convert to GLB
 }
 
-var KIT = { SLOTS: SLOTS, GROUPS: GROUPS, EXT: EXT, LIVING: LIVING, slot: slot, extOf: extOf, fileSlot: fileSlot, classify: classify, needsFolder: needsFolder, isBundle: isBundle, BUNDLE: BUNDLE, FOLDER: FOLDER, isModelFile: isModelFile, naOf: naOf, kitState: kitState, kitSummary: kitSummary };
+var KIT = { SLOTS: SLOTS, GROUPS: GROUPS, EXT: EXT, LIVING: LIVING, slot: slot, extOf: extOf, fileSlot: fileSlot, classify: classify, isGlb: isGlb, notGlb: notGlb, NOT_GLB: NOT_GLB, isModelFile: isModelFile, naOf: naOf, kitState: kitState, kitSummary: kitSummary };
 if (typeof module !== 'undefined' && module.exports) module.exports = KIT;
 if (typeof window !== 'undefined') window.__ASSET_KIT = KIT;

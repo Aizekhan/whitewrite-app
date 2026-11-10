@@ -11,7 +11,8 @@ check(new Set(ids).size, ids.length, 'slot ids are unique');
 check(K.SLOTS.every((s) => s.uk && s.en && K.GROUPS.some((g) => g.id === s.group) && s.ext.length), true, 'every slot has uk + en, a group and extensions');
 
 // model files: what a hero card refuses
-check(K.isModelFile('Hero.FBX'), true, 'fbx is a model');
+check(K.isModelFile('Hero.GLB'), true, 'a GLB is a model');
+check(K.isModelFile('Hero.FBX'), false, 'an FBX is no model of the service (refused before: notGlb)');
 check(K.isModelFile('hero.prefab'), true, 'a prefab is refused on a hero too');
 check(K.isModelFile('portrait.png'), false, 'a picture is not a model');
 
@@ -19,7 +20,10 @@ check(K.isModelFile('portrait.png'), false, 'a picture is not a model');
 const hero = { fields: { category: 'Персонажі' }, files: [{ name: 'h.fbx', field: 'kit:model' }, { name: 'a.png', field: 'kit:albedo' }] };
 const st = K.kitState(hero);
 check(st.rows.find((r) => r.slot.id === 'rig').state, 'empty', 'a character needs a rig');
-check(st.done, 2, 'two slots filled');
+check(st.done, 1, 'an old FBX fills no slot: only the texture counts');
+check(st.rows.find((r) => r.slot.id === 'model').state, 'empty', 'an old FBX leaves «Модель» empty');
+check(st.legacy.length === 1 && st.legacy[0].name, 'h.fbx', 'an old FBX is listed as a legacy file');
+check(K.kitSummary(hero).not_glb.join(), 'h.fbx', 'MCP names the files to convert');
 check(st.total, K.SLOTS.filter((s) => !s.optional).length, 'optional empty slots do not count');
 const prop = K.kitState({ fields: { category: 'Пропси' }, files: [] });
 check(prop.rows.find((r) => r.slot.id === 'anims').state, 'na', 'a prop needs no animations by default');
@@ -33,11 +37,13 @@ check(K.fileSlot({ name: 'pack.unitypackage' }), 'prefab', 'an old package fills
 check(K.fileSlot({ name: 'x.png', field: 'portrait' }), '', 'a field file is not a kit file');
 check(K.kitSummary(hero).slots.rig, 'missing', 'MCP summary says what is missing');
 
-// a model comes as one self-contained file or as a folder; the folder's files are recognised by name (v2.88.1)
-check(K.needsFolder('Knight.FBX'), true, 'an FBX needs its folder');
-check(K.needsFolder('knight.glb'), false, 'a GLB is one file');
-[['Knight_BaseColor.png', 'albedo'], ['T_Knight_N.png', 'normal'], ['Knight_ORM.png', 'mask'], ['Knight_AO.tga', 'ao'], ['Knight_LOD1.fbx', 'lod'],
- ['Knight@Idle.fbx', 'anims'], ['Knight.mat', 'material'], ['license.txt', 'license'], ['readme.md', ''], ['x.meta', ''], ['cape.png', 'other']]
+// models are GLB only (v2.119.0): FBX / OBJ / glTF / STL are refused; .blend and other sources are plain files, not the model
+['Knight.FBX', 'helm.obj', 'scene.gltf', 'part.stl', 'x.dae', 'y.usdz'].forEach((n) => check(K.notGlb(n), true, n + ' is refused'));
+['knight.glb', 'knight.blend', 'pack.unitypackage', 'a.png'].forEach((n) => check(K.notGlb(n), false, n + ' is not a refused model'));
+check(K.fileSlot({ name: 'knight.blend' }), '', 'a .blend is a plain file of the card');
+check(K.fileSlot({ name: 'old.fbx', field: 'scenefile' }), '', 'an FBX of another field is not the kit\'s');
+[['Knight_BaseColor.png', 'albedo'], ['T_Knight_N.png', 'normal'], ['Knight_ORM.png', 'mask'], ['Knight_AO.tga', 'ao'], ['Knight_LOD1.glb', 'lod'],
+ ['Knight@Idle.glb', 'anims'], ['Knight.mat', 'material'], ['license.txt', 'license'], ['readme.md', ''], ['x.meta', ''], ['cape.png', 'other'], ['Knight.fbx', ''], ['Knight.mtl', '']]
   .forEach(([n, w]) => check(K.classify(n), w, n + ' → ' + (w || 'skipped')));
 const glb = K.kitState({ fields: { category: 'Персонажі' }, files: [{ name: 'k.glb', field: 'kit:model' }] });
 check(glb.rows.find((r) => r.slot.id === 'albedo').state, 'in', 'a GLB carries its textures inside');

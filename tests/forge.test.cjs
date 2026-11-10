@@ -42,17 +42,20 @@ check(F.stageState(c, 'rig', {}), 'ready', 'rig with a profile and a version is 
 approve(c.forge, 'rig');
 
 // equipment checks
-const boots = { id: 'i1', title: 'Чоботи', files: [{ id: 'm1', name: 'boots.fbx', url: 'm', tris: 9000 }],
+const boots = { id: 'i1', title: 'Чоботи', files: [{ id: 'm1', name: 'boots.glb', url: 'm', tris: 9000 }],
   forge: { slot: 'feet', rig: 'humanoid_a', body: 'female_elf_a', units: '1 unit = 1 m', maps: ['baseColor'], mask: ['feet'], owners: ['c1'], polyTarget: 12000 } };
 check(F.validation(boots, c, {}).status, 'passed', 'matching boots pass');
 const sword = { id: 'i2', title: 'Меч', files: [{ id: 'm2', name: 'sword.glb', url: 's' }], forge: { slot: 'mainhand', units: 'm', maps: ['baseColor'], owners: ['c1'] } };
 check(F.validation(sword, c, {}).status, 'failed', 'a rigid weapon without an attachment point fails');
 sword.forge.attach = [{ bone: 'hand_r', point: 'grip' }];
 check(F.validation(sword, c, {}).status, 'passed', 'with a bone it passes');
-const cloak = { id: 'i3', title: 'Плащ', files: [{ id: 'm3', name: 'cloak.fbx', url: 'c' }], forge: { slot: 'back', rig: 'quadruped', units: 'm', maps: ['baseColor'], owners: ['c1'] } };
+const cloak = { id: 'i3', title: 'Плащ', files: [{ id: 'm3', name: 'cloak.glb', url: 'c' }], forge: { slot: 'back', rig: 'quadruped', units: 'm', maps: ['baseColor'], owners: ['c1'] } };
 check(F.itemIssues(cloak, c, {}).some((i) => i.code === 'rigmatch' && i.level === 'error'), true, 'another skeleton is a hard failure');
 const obj = { id: 'i4', title: 'Шолом', files: [{ id: 'm4', name: 'helm.obj', url: 'h' }], forge: { slot: 'head', rig: 'humanoid_a', units: 'm', owners: [] } };
-check(F.itemIssues(obj, c, {}).some((i) => i.code === 'format' && i.level === 'error'), true, 'a skinned OBJ is refused (no weights)');
+check(F.itemIssues(obj, c, {}).some((i) => i.code === 'format' && i.level === 'error'), true, 'an old OBJ is refused: GLB only');
+const oldFbx = { id: 'i7', title: 'Наручі', files: [{ id: 'm7', name: 'bracers.fbx', url: 'b' }], forge: { slot: 'hands', rig: 'humanoid_a', units: 'm', owners: [] } };
+check(F.modelFile(oldFbx).name + ' ' + F.validation(oldFbx, c, {}).status, 'bracers.fbx failed', 'an old FBX is still found, and fails with «convert to GLB»');
+check(F.modelFile({ files: [{ id: 'a', name: 'old.fbx' }, { id: 'b', name: 'new.glb' }], forge: {} }).name, 'new.glb', 'a GLB wins over an old FBX on the card');
 const nomodel = { id: 'i5', title: 'Пояс', files: [], forge: { slot: 'waist', rig: 'humanoid_a', units: 'm', owners: ['c1'] } };
 check(F.validation(nomodel, c, {}).status, 'pending', 'no model yet → pending');
 const otherBody = { id: 'i6', title: 'Нагрудник', files: [{ id: 'm6', name: 'chest.glb', url: 'x' }], forge: { slot: 'chest', rig: 'humanoid_a', body: 'male_orc_b', units: 'm', maps: ['baseColor'], mask: ['torso'], owners: ['c1'] } };

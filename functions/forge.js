@@ -28,7 +28,7 @@ var STAGES = [
     what: { uk: 'Концепти, фронт / бік / спина, T- чи A-поза, обличчя, одяг.', en: 'Concepts, front / side / back, T or A pose, face, clothing.' },
     done: { uk: 'Фінальний дизайн затверджено.', en: 'The final design is approved.' } },
   { id: 'mesh', kind: 'files', deps: ['concept'], uk: 'Базова модель', en: 'Base mesh',
-    what: { uk: '3D-база: геометрія, пропорції, UV, матеріали, вихідний файл і прев’ю (GLB / FBX).', en: '3D base: geometry, proportions, UVs, materials, the source file and a preview (GLB / FBX).' },
+    what: { uk: '3D-база: геометрія, пропорції, UV, матеріали, вихідний файл і прев’ю (GLB).', en: '3D base: geometry, proportions, UVs, materials, the source file and a preview (GLB).' },
     done: { uk: 'Модель перевірена й затверджена.', en: 'The model is checked and approved.' } },
   { id: 'rig', kind: 'files', deps: ['mesh'], uk: 'Риг і скелет', en: 'Rigging',
     what: { uk: 'Модель приходить уже з ригом (скелет Humanoid з іменами кісток Mixamo, ваги) — WhiteWrite скелет не ставить; тут — профіль рига й тест деформацій.', en: 'The model comes already rigged (a Humanoid skeleton with Mixamo bone names, weights) — WhiteWrite does not rig; here: the rig profile and a deformation test.' },
@@ -43,7 +43,7 @@ var STAGES = [
     what: { uk: 'Idle, ходьба / біг, атака, блок / ухилення, смерть і потрібні кліпи.', en: 'Idle, walk / run, attack, block / dodge, death and the clips it needs.' },
     done: { uk: 'Анімації перевірені на моделі й екіпіруванні.', en: 'Animations are checked on the model and the equipment.' } },
   { id: 'export', kind: 'export', deps: ['mesh', 'rig', 'equip', 'integrate', 'anim'], uk: 'Експорт', en: 'Export',
-    what: { uk: 'FBX / GLB, текстури, матеріали, LOD, пакет префаба для Unity.', en: 'FBX / GLB, textures, materials, LODs, a prefab package for Unity.' },
+    what: { uk: 'GLB (текстури всередині), матеріали, LOD, пакет префаба для Unity.', en: 'GLB (textures inside), materials, LODs, a prefab package for Unity.' },
     done: { uk: 'Експортний пакет зібраний і перевірений.', en: 'The export package is put together and checked.' } },
 ];
 // a pipeline per kind of character — the author can switch any stage off or back on for one character (forge.off)
@@ -202,15 +202,15 @@ function itemIssues(item, char, game) {
   if (!f.slot) add('error', 'slot', 'Не вибрано слот.', 'No slot chosen.');
   else if (!slot) add('error', 'slot', 'Слота «' + f.slot + '» немає в списку слотів гри.', 'Slot "' + f.slot + '" is not in the game\'s slot list.');
   var model = modelFile(item);
-  if (!model) add('warn', 'model', 'Ще немає 3D-моделі (GLB / FBX).', 'No 3D model yet (GLB / FBX).');
+  if (!model) add('warn', 'model', 'Ще немає 3D-моделі (GLB).', 'No 3D model yet (GLB).');
   else {
     var ext = (String(model.name || '').match(/\.([a-z0-9]+)$/i) || [])[1] || '';
     ext = ext.toLowerCase();
-    if (bind === 'skinned' && ['glb', 'gltf', 'fbx'].indexOf(ext) < 0) add('error', 'format', 'Предмет зі скіном має бути GLB або FBX (зараз .' + ext + ').', 'A skinned item must be GLB or FBX (now .' + ext + ').');
-    else if (['glb', 'gltf', 'fbx', 'obj'].indexOf(ext) < 0) add('warn', 'format', 'Формат .' + ext + ' — Unity краще бере GLB або FBX.', 'Format .' + ext + ' — Unity takes GLB or FBX best.');
+    // models are GLB only (v2.119.0): an older FBX / OBJ… is not opened in 3D — convert it (KB «glb-only»)
+    if (ext !== 'glb') add('error', 'format', 'Модель .' + ext + ' — сервіс приймає лише GLB: перетвори її (Blender → Export → glTF Binary) і завантаж знову.', 'A .' + ext + ' model — the service takes GLB only: convert it (Blender → Export → glTF Binary) and upload it again.');
     if (f.polyTarget && model.tris && model.tris > +f.polyTarget) add('warn', 'poly', 'Полігонів ' + model.tris + ' — більше за ціль ' + f.polyTarget + '.', model.tris + ' triangles — over the target of ' + f.polyTarget + '.');
   }
-  var rigOf = f.rig || (char && char.forge && char.forge.rig) || '', glb = model && /\.(glb|gltf)$/i.test(model.name || '');
+  var rigOf = f.rig || (char && char.forge && char.forge.rig) || '', glb = model && /\.glb$/i.test(model.name || '');
   if (bind === 'skinned' && !rigOf) add('error', 'rig', 'Предмет зі скіном без профілю рига — не відомо, на який скелет він сяде.', 'A skinned item without a rig profile — unknown which skeleton it fits.');
   if (bind === 'rigid' && !(f.attach || []).some(function (a) { return !blank(a.bone); })) add('error', 'attach', 'Жорсткий предмет без кістки чи точки кріплення.', 'A rigid item without a bone or attachment point.');
   if (char) {
@@ -228,12 +228,14 @@ function itemIssues(item, char, game) {
   });
   return out;
 }
-// the newest model file: the latest "model" revision, else any 3D file on the card
+// the newest model file: the latest "model" revision, else any 3D file on the card — a GLB first; an older FBX / OBJ… is still
+// found (the checks then say «convert to GLB»), it is never opened in 3D
+var MODEL_RE = /\.(glb|gltf|fbx|obj|stl|dae|3ds|ply|usdz?|usd[ac])$/i;
 function modelFile(item) {
   var files = (item && item.files) || [], byId = function (id) { return files.filter(function (x) { return x.id === id; })[0]; };
-  var ap = approvedRev(item.forge, 'model'), r = ap || revsOf(item.forge, 'model')[0];
-  var inRev = r && (r.files || []).map(byId).filter(function (x) { return x && /\.(glb|gltf|fbx|obj|stl)$/i.test(x.name || ''); })[0];
-  return inRev || files.filter(function (x) { return /\.(glb|gltf|fbx|obj|stl)$/i.test(x.name || ''); })[0] || null;
+  var ap = approvedRev(item.forge, 'model'), r = ap || revsOf(item.forge, 'model')[0], glb = function (x) { return x && /\.glb$/i.test(x.name || ''); }, any = function (x) { return x && MODEL_RE.test(x.name || ''); };
+  var inRev = r && (r.files || []).map(byId);
+  return (inRev && (inRev.filter(glb)[0] || inRev.filter(any)[0])) || files.filter(glb)[0] || files.filter(any)[0] || null;
 }
 // Pending — no model yet · Failed — a hard failure · Manually approved — the author accepted the warnings for this model revision · Warning · Passed
 function validation(item, char, game) {
@@ -264,7 +266,7 @@ function blockers(char, stageId, ctx) {
   if (st.kind === 'files' && !revsOf(f, stageId).length) uk('Ще немає жодної версії — завантаж файли.', 'No version yet — upload files.');
   if (stageId === 'rig' && !f.rig) uk('Не вибрано профіль рига (скелета).', 'No rig (skeleton) profile chosen.');
   if (stageId === 'rig' && refRig(f.rig)) { // a reference skeleton: the fit is proven by conform_to_rig.py's rig.json (or Claude Code's report)
-    if (!f.rigCheck) uk('Немає перевірки скелета: завантаж rig.json з conform_to_rig.py разом з FBX / GLB (або Claude Code надішле report_forge_check).', 'No skeleton check: upload the rig.json of conform_to_rig.py with the FBX / GLB (or Claude Code sends report_forge_check).');
+    if (!f.rigCheck) uk('Немає перевірки скелета: завантаж rig.json з conform_to_rig.py разом з GLB (або Claude Code надішле report_forge_check).', 'No skeleton check: upload the rig.json of conform_to_rig.py with the GLB (or Claude Code sends report_forge_check).');
     else if (f.rigCheck.result === 'failed') uk('Перевірка скелета не пройдена — підгони модель ще раз.', 'The skeleton check failed — fit the model again.');
   }
   var mine = itemsOf(char, ctx && ctx.items);
@@ -282,7 +284,7 @@ function blockers(char, stageId, ctx) {
     var left = clipsOf(f).filter(function (c) { return c.status !== 'checked'; });
     if (left.length) uk('Не перевірено кліпів: ' + left.map(function (c) { return c.name; }).join(', ') + '.', 'Clips not checked: ' + left.map(function (c) { return c.en || c.name; }).join(', ') + '.');
   }
-  if (st.kind === 'export' && !revsOf(f, 'export').length) uk('Немає експортного пакета — завантаж його (FBX / GLB, текстури, LOD).', 'No export package — upload it (FBX / GLB, textures, LODs).');
+  if (st.kind === 'export' && !revsOf(f, 'export').length) uk('Немає експортного пакета — завантаж його (GLB, LOD, пакет префаба).', 'No export package — upload it (GLB, LODs, a prefab package).');
   return out;
 }
 // approved · ready (nothing blocks approval) · progress (work started) · todo · locked (an earlier stage is not approved)

@@ -1,19 +1,16 @@
-// 3D viewer for model files on Game Bible cards (glb / gltf / fbx / obj / stl).
+// 3D viewer for model files on Game Bible cards — GLB only (owner, v2.119.0: FBX / OBJ / glTF / STL are not opened; convert to GLB).
 // ES module, loaded on demand by gamebible.js: import("./gb-3d.js").then(m => m.view3d(file, labels, cardFiles)).
 // three.js is vendored in app/vendor/three/ (scripts/vendor-three.mjs) and mapped by the import map in "WhiteWrite GameBible.html".
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
-import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
-import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
-export const MODEL_EXT = /\.(glb|gltf|fbx|obj|stl)$/i;
+export const MODEL_EXT = /\.glb$/i;
 
-// Textures and .bin buffers the model refers to (e.g. "texture_0.png") are looked up by file name
+// A GLB carries its textures inside; a rare external texture it names (e.g. "texture_0.png") is looked up by file name
 // among the other files of the same card.
 function load(file, siblings) {
-  const ext = (file.name.match(MODEL_EXT) || [])[1].toLowerCase();
+  if (!MODEL_EXT.test(file.name || "")) return Promise.reject(new Error("GLB only"));
   const manager = new THREE.LoadingManager();
   manager.setURLModifier((url) => {
     if (url === file.url || /^(blob|data):/.test(url)) return url;
@@ -22,13 +19,7 @@ function load(file, siblings) {
     return hit ? hit.url : url;
   });
   return new Promise((resolve, reject) => {
-    if (ext === "glb" || ext === "gltf") new GLTFLoader(manager).load(file.url, (g) => resolve({ root: g.scene, clips: g.animations, meta: gltfRights(g.parser.json) }), undefined, reject);
-    else if (ext === "fbx") new FBXLoader(manager).load(file.url, (o) => resolve({ root: o, clips: o.animations }), undefined, reject);
-    else if (ext === "obj") new OBJLoader(manager).load(file.url, (o) => resolve({ root: o, clips: [] }), undefined, reject);
-    else new STLLoader(manager).load(file.url, (geo) => {
-      geo.computeVertexNormals();
-      resolve({ root: new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xb9b3a8, roughness: 0.7 })), clips: [] });
-    }, undefined, reject);
+    new GLTFLoader(manager).load(file.url, (g) => resolve({ root: g.scene, clips: g.animations, meta: gltfRights(g.parser.json) }), undefined, reject);
   });
 }
 

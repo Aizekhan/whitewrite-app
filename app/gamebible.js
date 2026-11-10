@@ -194,7 +194,9 @@
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}", importLost: "Частину тексту ({n} шм.) ШІ не зміг розібрати навіть дрібнішими шматками — її немає в пропозиції. Решту — відміть і перенеси; той шматок можна імпортувати окремим файлом.",
-      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до {mb} МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
+      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до {mb} МБ; моделі — лише .glb (відкриваються в 3D)", filesAdd: "＋ Додати файли",
+      glb: { refuse: "Сервіс приймає моделі лише у форматі GLB — {f} не завантажено. Як перетворити: Blender → File → Export → glTF 2.0 → формат glTF Binary (.glb).", how: "Як перетворити в GLB →",
+        old: "⚠ формат більше не відкривається в 3D — перетвори в GLB", skipped: "Моделі не у форматі GLB — не завантажуються ({n}). Перетвори їх у GLB (Blender → Export → glTF Binary) і обери теку ще раз:" },
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
       alib: { btn: "🎧 Аудіотека", cards: "▦ Картки", title: "Аудіотека гри", intro: "Усі звуки й треки гри в одному місці. Фабрика звуку бере їх звідси: у кожному стані, шарі, стінгері, амбієнті й звуку UI — «＋ З Аудіотеки» або «⤒ Новий» (новий файл теж лягає сюди).",
@@ -234,7 +236,7 @@
         role: { implements: "робить", "uses-asset": "ассет", "in-level": "у рівні", "follows-style": "стиль", "constrained-by": "обмеження" },
         state: { "": "—", greybox: "greybox", standin: "заглушка-префаб", styled: "у стилі", final: "фінал" }, stateNeed: "потрібен стан",
         health: "Готовність Біблії", healthOk: "Біблії вистачає для MVP.", red: "Ліцензія не дозволяє комерційне використання — у MVP не можна: {n}",
-        blue: "Ліцензія невідома — перевір перед релізом: {n}", heavy: "Моделі понад 100 000 полігонів: {n}", noGrey: "Рівні без greybox: {n}",
+        blue: "Ліцензія невідома — перевір перед релізом: {n}", heavy: "Моделі понад 100 000 полігонів: {n}", notGlb: "Картки з моделями не у GLB (FBX, OBJ…) — у 3D не відкриваються, перетвори в GLB: {n}", noGrey: "Рівні без greybox: {n}",
         mCard: "Картка", mSection: "Розділ", mState: "Стан", mLic: "Ліцензія", mPoly: "Полігони", mTasks: "Задачі", mEmpty: "Ще немає ассетів — додай картки в «Ассети й префаби», «Матеріали», «Анімації», «Звук» чи «UI»." },
       planTitle: "План розробки", gate: "Ворота", goal: "Мета", deps: "залежить від", prompt: "Промпт для Claude Code", copy: "Копіювати",
       copied: "Скопійовано", parallel: "Паралельні потоки", risks: "Ризики", gaps: "Прогалини рушія / фреймворку", engineNotes: "Про рушій",
@@ -534,7 +536,9 @@
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importPart: "part {d} of {n}", importLost: "The AI could not sort part of the text ({n} piece(s)) even in smaller bits — it is not in the proposal. Tick and take the rest; that piece can be imported as a separate file.",
-      files: "Files", filesHint: "prefabs, models, images, audio — up to {mb} MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
+      files: "Files", filesHint: "prefabs, models, images, audio — up to {mb} MB; models — .glb only (they open in 3D)", filesAdd: "＋ Add files",
+      glb: { refuse: "The service takes models in GLB format only — {f} was not uploaded. To convert: Blender → File → Export → glTF 2.0 → format glTF Binary (.glb).", how: "How to convert to GLB →",
+        old: "⚠ this format no longer opens in 3D — convert it to GLB", skipped: "Models not in GLB format — not uploaded ({n}). Convert them to GLB (Blender → Export → glTF Binary) and pick the folder again:" },
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
       alib: { btn: "🎧 Audio library", cards: "▦ Cards", title: "The game's Audio library", intro: "Every sound and track of the game in one place. The Sound factory takes them from here: in every state, layer, stinger, ambience and UI sound — “＋ From the library” or “⤒ New” (a new file lands here too).",
@@ -574,7 +578,7 @@
         role: { implements: "builds", "uses-asset": "asset", "in-level": "in level", "follows-style": "style", "constrained-by": "constraint" },
         state: { "": "—", greybox: "greybox", standin: "stand-in prefab", styled: "styled", final: "final" }, stateNeed: "required state",
         health: "Bible readiness", healthOk: "The Bible holds enough for the MVP.", red: "The licence forbids commercial use — not in the MVP: {n}",
-        blue: "Licence unknown — check before release: {n}", heavy: "Models over 100,000 polygons: {n}", noGrey: "Levels without a greybox: {n}",
+        blue: "Licence unknown — check before release: {n}", heavy: "Models over 100,000 polygons: {n}", notGlb: "Cards with models not in GLB (FBX, OBJ…) — they do not open in 3D, convert them to GLB: {n}", noGrey: "Levels without a greybox: {n}",
         mCard: "Card", mSection: "Section", mState: "State", mLic: "Licence", mPoly: "Polygons", mTasks: "Tasks", mEmpty: "No assets yet — add cards to “Assets & prefabs”, “Materials”, “Animation”, “Sound” or “UI”." },
       planTitle: "Development plan", gate: "Gate", goal: "Goal", deps: "depends on", prompt: "Prompt for Claude Code", copy: "Copy",
       copied: "Copied", parallel: "Parallel streams", risks: "Risks", gaps: "Engine / framework gaps", engineNotes: "Engine notes",
@@ -2605,7 +2609,7 @@
   }
   function dosFileRow(f) {
     return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
-      '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
+      '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) + glbOld(f) +
       (isAsset(f) ? licChip(f, dos.files, "data-dlic") : '') +
       (is3D(f) ? '<button class="btn" data-dview3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
       (isImage(f) && dos.kind === "characters" && canWrite ? (entImage(dos) === f ? '<span class="chip cs-isp">★ ' + esc(CS.isP) + '</span>' : '<button class="btn" data-dportrait="' + esc(f.id) + '" title="' + esc(CS.setP) + '" aria-label="' + esc(CS.setP + " " + f.name) + '">☆</button>') : '') +
@@ -2713,6 +2717,7 @@
     if (dos === e && dtab === "appear" && $("d-appear")) $("d-appear").innerHTML = out;
   }
   async function uploadEntityFiles(list, asPortrait) {
+    list = glbOnly(list); if (!list.length) return;
     var e = dos, done = 0, last = null;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
@@ -5522,31 +5527,29 @@
       none: "Префаб ще не обрано. Модель завантажують у «Ассети й префаби» (з комплектом: текстури, матеріал, риг…), а тут лише обирають.",
       legacy: "Ці файли завантажено сюди напряму, до появи префабів. Перенеси їх у «Ассети й префаби» — там буде комплект моделі.", move: "→ Перенести в «Ассети й префаби»",
       moveQ: "Створити префаб «{t}» у «Ассети й префаби» з цих файлів ({n}) і привʼязати його до картки?", moved: "Префаб створено й привʼязано.",
-      title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»", upNew: "⤒ Завантажити з ПК", upNewDir: "📂 Тека з ПК (FBX · OBJ · glTF + текстури)",
+      title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»", upNew: "⤒ Модель (.glb)",
       upNewHint: "Модель ляже новим префабом у «Ассети й префаби» → «{g}» і одразу привʼяжеться до «{t}». Для Кузні модель має бути вже з ригом: скелет Humanoid з іменами кісток Mixamo.", upNewDone: "Префаб «{t}» створено в «Ассети й префаби» й привʼязано.",
       filesHint: "картинки, документи, звук — до {mb} МБ; моделі й префаби — через «🧊 Додати префаб»",
       filesHintA: "інше до картки — концепти, документи, звук; модель і текстури — у «🧩 Модель і комплект» вище", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
       noModels: "Моделі й префаби не завантажують у картку героя: додай їх у «Ассети й префаби», а тут обери «🧊 Додати префаб». Пропущено: {f}",
-      kitTitle: "🧩 Модель і комплект", kitHint: "GLB, .blend, .unitypackage чи ZIP — одним файлом; FBX, OBJ, glTF — текою разом із текстурами. Що де — сервіс розпізнає сам",
-      upFile: "⤒ Файл (GLB · Blend · unitypackage · ZIP)", upDir: "📂 Тека (FBX · OBJ · glTF + текстури)",
+      kitTitle: "🧩 Модель і комплект", kitHint: "модель — лише GLB: один файл, текстури, риг і анімації всередині. Текстури, матеріал, ліцензію, .unitypackage — кнопкою «＋ Текстури й інше», що де — сервіс розпізнає сам",
+      upFile: "⤒ Модель (.glb)", upMore: "＋ Текстури й інше",
       bundle: "Модель — самодостатній файл: матеріали, текстури, риг і анімації всередині. Перевір у «🧊 3D».", inside: "всередині файлу моделі",
       tapNa: "натисни — «не потрібно»", tapNeed: "натисни — знову потрібно",
-      needDir: "{f} тримає текстури окремими файлами — завантаж усю теку моделі кнопкою «📂 Тека».", noMesh: "У теці немає файлу моделі (FBX, OBJ, glTF…).",
       kitDone: "Готово {d} з {n}", add: "⤒ Додати", na: "Не потрібно", need: "Потрібно", opt: "за потреби" },
     en: { pick: "＋ Pick a prefab from “Assets & prefabs”", change: "Change the prefab", open: "Open the prefab", unlink: "Unlink", gone: "The linked prefab was deleted from “Assets & prefabs”.",
       none: "No prefab picked yet. Models are uploaded to “Assets & prefabs” (with their kit: textures, material, rig…) and only picked here.",
       legacy: "These files were uploaded here directly, before prefabs. Move them to “Assets & prefabs” — the model kit lives there.", move: "→ Move to “Assets & prefabs”",
       moveQ: "Create the prefab “{t}” in “Assets & prefabs” from these files ({n}) and link it to the card?", moved: "The prefab is created and linked.",
-      title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”", upNew: "⤒ Upload from PC", upNewDir: "📂 Folder from PC (FBX · OBJ · glTF + textures)",
+      title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”", upNew: "⤒ Model (.glb)",
       upNewHint: "The model becomes a new prefab in “Assets & prefabs” → “{g}” and is linked to “{t}” at once. For the Forge the model must already be rigged: a Humanoid skeleton with Mixamo bone names.", upNewDone: "The prefab “{t}” is created in “Assets & prefabs” and linked.",
       filesHint: "images, documents, audio — up to {mb} MB; models and prefabs — via “🧊 Add a prefab”",
       filesHintA: "anything else for the card — concepts, documents, audio; the model and textures go to “🧩 Model & kit” above", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
       noModels: "Models and prefabs are not uploaded onto a hero card: add them to “Assets & prefabs” and pick “🧊 Add a prefab” here. Skipped: {f}",
-      kitTitle: "🧩 Model & kit", kitHint: "GLB, .blend, .unitypackage or ZIP — as one file; FBX, OBJ, glTF — as a folder with their textures. The service recognises what is what",
-      upFile: "⤒ File (GLB · Blend · unitypackage · ZIP)", upDir: "📂 Folder (FBX · OBJ · glTF + textures)",
+      kitTitle: "🧩 Model & kit", kitHint: "the model is GLB only: one file, textures, rig and animations inside. Textures, a material, the licence, a .unitypackage — with “＋ Textures & more”; the service recognises what is what",
+      upFile: "⤒ Model (.glb)", upMore: "＋ Textures & more",
       bundle: "The model is a self-contained file: materials, textures, rig and animations are inside. Check it in “🧊 3D”.", inside: "inside the model file",
       tapNa: "click — “not needed”", tapNeed: "click — needed again",
-      needDir: "{f} keeps its textures in separate files — upload the whole model folder with “📂 Folder”.", noMesh: "The folder has no model file (FBX, OBJ, glTF…).",
       kitDone: "{d} of {n} ready", add: "⤒ Add", na: "Not needed", need: "Needed", opt: "if needed" }
   }[LANG];
   function assetCard(id) { return id ? allCards().filter(function (c) { return c.src === "game" && c.id === id && c.section === "assets"; })[0] : null; }
@@ -5556,17 +5559,14 @@
       '<span class="pf-txt"><b>' + esc(a.title || STR.newCard) + '</b><span class="muted">' + esc(a.fields.category || "") + (a.fields.category ? ' · ' : '') + '🧩 ' + esc(PF.kitShort) + ' ' + st.done + '/' + st.total + '</span></span>';
   }
   function prefabUpHtml() {
-    var K = window.__ASSET_KIT;
-    return '<label class="btn"><input type="file" hidden data-pfup="file" accept="' + K.BUNDLE.map(function (x) { return "." + x; }).join(",") + ',.stl,.usd">' + PF.upNew + '</label>' +
-      '<label class="btn"><input type="file" hidden multiple webkitdirectory data-pfup="dir">' + PF.upNewDir + '</label>';
+    return '<label class="btn"><input type="file" hidden data-pfup="file" accept=".glb">' + PF.upNew + '</label>'; // GLB only (v2.119.0): no model folders
   }
   function prefabGroup(T) { var groups = sec("assets").groups[LANG] || sec("assets").groups.uk; return groups[T.section === "enemies" ? 1 : 0]; }
   // «⤒ Завантажити з ПК» on a hero: a new prefab card in «Ассети й префаби» (its group by the hero / enemy), the model kit
   // uploaded onto it (the same slots as «🧩 Модель і комплект»), then linked to the hero — no trip to the other section
   async function uploadPrefabFor(list, mode, tc) {
-    var K = window.__ASSET_KIT, T = tc || open;
-    if (mode === "file") { var loose = list.filter(function (f) { return K.needsFolder(f.name); }); if (loose.length) { notify(PF.needDir.replace("{f}", loose[0].name)); return; } }
-    else { list = list.filter(function (f) { return K.classify(f.name); }); if (!list.some(function (f) { var c = K.classify(f.name); return c === "model" || c === "prefab"; })) { notify(PF.noMesh); return; } }
+    var T = tc || open;
+    list = glbOnly(list); if (!list.length) return;
     var big = list.filter(tooBig); if (big.length) { notify(bigMsg(big[0])); return; }
     if (!tc && open.isNew) { await save(true); if (open.isNew) return; }
     var title = (!tc && $("e-title") ? $("e-title").value.trim() : "") || T.title || STR.newCard, s = sec("assets"), aid = newId("card");
@@ -5575,7 +5575,7 @@
       await gref().collection("cards").doc(aid).set({ section: "assets", title: title, status: "idea", note: "", defs: s.defs, fields: { category: prefabGroup(T) }, files: [], createdAt: stamp(), order: Date.now(), updatedAt: stamp() });
       for (var i = 0; i < list.length; i++) {
         var file = list[i];
-        await putFile(asset, file, "kit:" + (K.classify(file.name) || "other"), function (sn) { say(STR.uploading + " " + file.name + " · " + Math.round(100 * sn.bytesTransferred / (sn.totalBytes || 1)) + "%"); });
+        await putFile(asset, file, kitField(file), function (sn) { say(STR.uploading + " " + file.name + " · " + Math.round(100 * sn.bytesTransferred / (sn.totalBytes || 1)) + "%"); });
       }
       await setPrefab(aid, tc);
       say(PF.upNewDone.replace("{t}", title));
@@ -5594,12 +5594,12 @@
       '<button type="button" class="btn" data-picch="portrait">' + PF.qPortrait + '</button>' +
       '<button type="button" class="btn" data-picch="refpics">' + PF.qRef + '</button></div>';
   }
-  // the kit: a model comes as ONE self-contained file (GLB, .blend, .unitypackage, ZIP) or as a FOLDER (FBX / OBJ / glTF with textures); the slots are recognised by name (v2.88.1)
+  // the kit: the model is ONE GLB (v2.119.0 — no model folders); other kit files come through «＋ Додати файли», the slots are recognised by name (v2.88.1)
   function kitHtml() {
     var K = window.__ASSET_KIT, st = K.kitState(open), mark = { ok: "✓", in: "✓", na: "—", empty: "○" };
     return '<div class="field kit"><label>' + esc(PF.kitTitle) + ' <span class="hint">' + esc(PF.kitHint) + '</span></label>' +
-      (canWrite ? '<div class="quickadd kit-up"><label class="btn"><input type="file" hidden data-fup="kit:file" accept="' + K.BUNDLE.map(function (x) { return "." + x; }).join(",") + ',.stl,.usd">' + PF.upFile + '</label>' +
-        '<label class="btn"><input type="file" hidden multiple webkitdirectory data-fup="kit:dir">' + PF.upDir + '</label></div>' : '') +
+      (canWrite ? '<div class="quickadd kit-up"><label class="btn"><input type="file" hidden data-fup="kit:file" accept=".glb">' + PF.upFile + '</label>' +
+        '<label class="btn"><input type="file" hidden multiple data-fup="kit:file">' + PF.upMore + '</label></div>' : '') +
       '<div class="pz-head"><div class="pz-prog"><i style="width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%"></i></div><span class="muted">' + esc(PF.kitDone.replace("{d}", st.done).replace("{n}", st.total)) + '</span></div>' +
       (st.bundle ? '<p class="muted">' + esc(PF.bundle) + '</p>' : '') +
       '<div class="kit-chips">' + K.GROUPS.map(function (g) {
@@ -5654,7 +5654,7 @@
     var card = open, files = (card.files || []).filter(function (f) { return f.field === key; }), title = $("e-title").value.trim() || card.title || STR.newCard;
     if (!files.length || !(await askConfirm(PF.moveQ.replace("{t}", title).replace("{n}", files.length)))) return;
     var s = sec("assets"), groups = s.groups[LANG] || s.groups.uk, aid = newId("card");
-    var moved = files.map(function (f) { return Object.assign({}, f, { field: "kit:" + (window.__ASSET_KIT.classify(f.name) || "other") }); });
+    var moved = files.map(function (f) { var m = Object.assign({}, f), k = kitField(f); if (k) m.field = k; else delete m.field; return m; }); // a .blend / an old FBX: a plain file of the prefab
     try {
       await gref().collection("cards").doc(aid).set({ section: "assets", title: title, status: "idea", note: "", defs: s.defs, fields: { category: groups[card.section === "enemies" ? 1 : 0] }, files: moved, createdAt: stamp(), order: Date.now(), updatedAt: stamp() });
       var body = { section: card.section, prefab: aid, files: firebase.firestore.FieldValue.arrayRemove.apply(null, files), updatedAt: stamp() };
@@ -6176,8 +6176,17 @@
   function tooBig(f) { return f.size > gameFileMax(); }
   function bigMsg(f) { var mb = gameFileMax() / 1048576; return STR.fileTooBigG.replace("{n}", mb).replace("{up}", mb < 200 ? STR.fileTooBigUp : "") + ": " + f.name; }
   function bigRefused(f, e) { return !ME.owner && f.size > 20 * 1048576 && e && /unauthorized/.test(e.code || "") ? STR.fileTooBigTeam + ": " + f.name : null; }
-  var MODEL_EXT = /\.(glb|gltf|fbx|obj|stl)$/i; // keep in sync with gb-3d.js
+  var MODEL_EXT = /\.glb$/i; // keep in sync with gb-3d.js — models are GLB only (v2.119.0)
   function is3D(f) { return MODEL_EXT.test(f.name || ""); }
+  // an FBX / OBJ / glTF / STL… (functions/asset-kit.js NOT_GLB): refused on upload with how to convert (KB «glb-only»); an old one stays a plain file
+  function notGlb(f) { return window.__ASSET_KIT.notGlb(f && f.name); }
+  function glbOld(f) { return notGlb(f) ? '<span class="warn glb-old" title="' + esc(STR.glb.old) + '">' + esc(STR.glb.old) + ' <a href="#" data-kbglb>' + esc(STR.glb.how) + '</a></span>' : ''; }
+  function kitField(f) { var k = window.__ASSET_KIT.classify(f.name); return k ? "kit:" + k : isImage(f) ? "kit:other" : undefined; } // a .blend, a readme: a plain file of the card
+  function glbOnly(list) { // the files minus the non-GLB models; those are named in one message with the way to the KB article
+    var bad = list.filter(notGlb); if (!bad.length) return list;
+    askConfirm(STR.glb.refuse.replace("{f}", bad.map(function (f) { return f.name; }).join(", ")), { okLabel: STR.glb.how }).then(function (ok) { if (ok) tellShell({ type: "ww-kb-article", id: "glb-only" }); });
+    return list.filter(function (f) { return bad.indexOf(f) < 0; });
+  }
   // ---------- polygon budget: a model over 100 000 polygons (triangles) carries a small red mark (file.tris, counted once) ----------
   var POLY_MAX = 100000, polyTried = {}, polyBusy = false;
   function heavy(f) { return is3D(f) && f.tris > POLY_MAX; }
@@ -6319,7 +6328,7 @@
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
   function fileRow(f) {
       return '<div class="file">' + (isImage(f) ? '<a class="fthumb" href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name || "") + '" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
-        '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
+        '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) + glbOld(f) +
         (isAsset(f) ? licChip(f, open.files, "data-lic") : '') + (isImage(f) ? styleMark(f.url, open, f.id) : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
         (isImage(f) ? (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') : '') +
@@ -6351,14 +6360,10 @@
   function baseName(n) { return String(n || "").replace(/\.[^.]+$/, "").replace(/_+/g, " ").trim(); }
   function extOf(n) { var m = /\.([^.]+)$/.exec(n || ""); return m ? m[1].toUpperCase() : ""; }
   async function uploadFiles(list, field) {
+    list = glbOnly(list); if (!list.length) return;
     if (open && STATS_SECS.indexOf(open.section) >= 0) { // a hero links a prefab of «Ассети й префаби» instead (v2.88)
       var models = list.filter(function (f) { return window.__ASSET_KIT.isModelFile(f.name); });
       if (models.length) { notify(PF.noModels.replace("{f}", models.map(function (f) { return f.name; }).join(", "))); list = list.filter(function (f) { return models.indexOf(f) < 0; }); if (!list.length) return; }
-    }
-    if (field === "kit:file" || field === "kit:dir") {
-      var KT = window.__ASSET_KIT;
-      if (field === "kit:file") { var loose = list.filter(function (f) { return KT.needsFolder(f.name); }); if (loose.length) { notify(PF.needDir.replace("{f}", loose[0].name)); return; } }
-      else { list = list.filter(function (f) { return KT.classify(f.name); }); if (!list.some(function (f) { var c = KT.classify(f.name); return c === "model" || c === "prefab"; })) { notify(PF.noMesh); return; } }
     }
     // a reference is named after its picture (the name stays editable)
     var t = $("e-title").value.trim(), named = open && open.section === "refs" && list.length && (!t || t === STR.newCard);
@@ -6370,7 +6375,7 @@
       if (tooBig(file)) { msg(bigMsg(file)); continue; }
       if (artLib(card, file, field)) { try { await artUpload(card, file, field); done++; } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; } continue; }
       try {
-        await putFile(card, file, /^kit:(file|dir)$/.test(field) ? "kit:" + (window.__ASSET_KIT.classify(file.name) || "other") : field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
+        await putFile(card, file, field === "kit:file" ? kitField(file) : field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
         done++;
       } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
     }
@@ -7820,7 +7825,7 @@
       integHint: "Кліпінг, деформації й сумісність скелета перевіряються в Unity чи Blender: Claude Code надсилає результат через MCP report_forge_check — він зʼявиться біля предмета.",
       item: { slot: "Слот", bind: "Кріплення", skinned: "Зі скіном (за вагами скелета)", rigid: "Жорстке (на кістку / точку)", mask: "Ховає частини тіла", attach: "Точки кріплення",
         attachPh: "кістка : точка — по рядку, напр. hand_r : grip", format: "Формат", units: "Масштаб і одиниці", unitsPh: "1 unit = 1 m", maps: "Карти текстур", lod: "LOD", lodPh: "LOD0 / LOD1 / LOD2",
-        poly: "Ціль полігонів", owners: "Чиє", up: "⤒ Завантажити модель", upNew: "⤒ Замінити модель", noModel: "Моделі предмета ще немає — завантаж GLB / FBX (текстури можна разом).", more: "Більше полів для Unity (необов'язково)", concept: "Концепт предмета", model: "3D-модель", checks: "Перевірки", noIssues: "Перевірки пройдено.", status: "Статус",
+        poly: "Ціль полігонів", owners: "Чиє", up: "⤒ Завантажити модель", upNew: "⤒ Замінити модель", noModel: "Моделі предмета ще немає — завантаж GLB (текстури всередині).", more: "Більше полів для Unity (необов'язково)", concept: "Концепт предмета", model: "3D-модель", checks: "Перевірки", noIssues: "Перевірки пройдено.", status: "Статус",
         manual: "✓ Затвердити вручну", manualQ: "Чому застереження прийнятні (коментар):", manualOff: "Зняти ручне затвердження", ext: "Звіти Unity / Blender", newQ: "Назва предмета:" },
       val: { pending: "Очікує", passed: "Пройдено", warning: "Є застереження", failed: "Не пройдено", manual: "Затверджено вручну" },
       setupHint: "Слоти, профілі ригів (скелетів) і тіл цієї гри. Предмет зі скіном сідає лише на персонажа з тим самим профілем рига.",
@@ -7883,7 +7888,7 @@
       integHint: "Clipping, deformation and skeleton compatibility are checked in Unity or Blender: Claude Code sends the result through MCP report_forge_check — it shows next to the item.",
       item: { slot: "Slot", bind: "Binding", skinned: "Skinned (follows the skeleton)", rigid: "Rigid (on a bone / point)", mask: "Hides body parts", attach: "Attachment points",
         attachPh: "bone : point — one per line, e.g. hand_r : grip", format: "Format", units: "Scale & units", unitsPh: "1 unit = 1 m", maps: "Texture maps", lod: "LOD", lodPh: "LOD0 / LOD1 / LOD2",
-        poly: "Polygon target", owners: "Whose", up: "⤒ Upload the model", upNew: "⤒ Replace the model", noModel: "The item has no model yet — upload a GLB / FBX (textures can go with it).", more: "More fields for Unity (optional)", concept: "Item concept", model: "3D model", checks: "Checks", noIssues: "Checks pass.", status: "Status",
+        poly: "Polygon target", owners: "Whose", up: "⤒ Upload the model", upNew: "⤒ Replace the model", noModel: "The item has no model yet — upload a GLB (textures inside).", more: "More fields for Unity (optional)", concept: "Item concept", model: "3D model", checks: "Checks", noIssues: "Checks pass.", status: "Status",
         manual: "✓ Approve manually", manualQ: "Why the warnings are acceptable (comment):", manualOff: "Withdraw manual approval", ext: "Unity / Blender reports", newQ: "Item name:" },
       val: { pending: "Pending", passed: "Passed", warning: "Warning", failed: "Failed", manual: "Manually approved" },
       setupHint: "This game's slots, rig (skeleton) and body profiles. A skinned item fits only a character with the same rig profile.",
@@ -8180,7 +8185,7 @@
     var inp = function (k, ph, type) { return '<input data-fzi="' + k + '"' + (type ? ' type="' + type + '" min="0"' : '') + ' value="' + esc(f[k] || "") + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + (canWrite ? '' : ' readonly') + '>'; };
     var mf = FG.modelFile(i);
     var html = '<div class="row"><span class="pill ' + FZ_VCLS[v.status] + '">' + esc(I.status + ": " + FZ.val[v.status]) + '</span><button class="btn mini ghost" data-openref="' + esc(i.key) + '">' + FZ.openCard + '</button></div>' +
-      '<div class="fz-model">' + (mf ? '<p>🧊 <b>' + esc(mf.name) + '</b>' + polyInfo(mf) + ' <button class="btn mini" data-fzv3d="' + esc(i.key) + ':' + esc(mf.id) + '">' + STR.v3d.open + '</button></p>' : '<p class="muted">' + I.noModel + '</p>') +
+      '<div class="fz-model">' + (mf ? '<p>🧊 <b>' + esc(mf.name) + '</b>' + polyInfo(mf) + glbOld(mf) + (is3D(mf) ? ' <button class="btn mini" data-fzv3d="' + esc(i.key) + ':' + esc(mf.id) + '">' + STR.v3d.open + '</button>' : '') + '</p>' : '<p class="muted">' + I.noModel + '</p>') +
       (canWrite ? '<label class="btn' + (mf ? '' : ' primary') + '"><input type="file" multiple hidden data-fzup="' + esc(i.key) + ':model">' + (mf ? I.upNew : I.up) + '</label>' : '') + '</div>' +
       '<div class="fz-pass">' +
       '<label class="fz-lb">' + I.slot + fzSel('data-fzi="slot"', slots, f.slot || "", true) + '</label>' +
@@ -8190,7 +8195,7 @@
       '<details class="fz-ctx"><summary>' + I.more + '</summary><div class="fz-pass">' +
       '<label class="fz-lb">' + FZ.rig + fzSel('data-fzi="rig"', P.rigs || [], f.rig || "", true) + '</label>' +
       '<label class="fz-lb">' + FZ.body + fzSel('data-fzi="body"', P.bodies || [], f.body || "", true) + '</label>' +
-      '<label class="fz-lb">' + I.format + inp("format", "FBX / GLB") + '</label><label class="fz-lb">' + I.units + inp("units", I.unitsPh) + '</label>' +
+      '<label class="fz-lb">' + I.format + inp("format", "GLB") + '</label><label class="fz-lb">' + I.units + inp("units", I.unitsPh) + '</label>' +
       '<label class="fz-lb">' + I.lod + inp("lod", I.lodPh) + '</label><label class="fz-lb">' + I.poly + inp("polyTarget", "", "number") + '</label></div>' +
       '<fieldset class="fz-set"><legend>' + I.mask + '</legend>' + FG.MASK.map(function (m) { return '<label><input type="checkbox" data-fzmask="' + m.id + '"' + ((f.mask || []).indexOf(m.id) >= 0 ? ' checked' : '') + dis + '> ' + esc(fzL(m)) + '</label>'; }).join("") + '</fieldset>' +
       '<fieldset class="fz-set"><legend>' + I.maps + '</legend>' + FG.MAPS.map(function (m) { return '<label><input type="checkbox" data-fzmap="' + m + '"' + ((f.maps || []).indexOf(m) >= 0 ? ' checked' : '') + dis + '> ' + esc(m) + '</label>'; }).join("") + '</fieldset></details>' +
@@ -8205,7 +8210,7 @@
   // 🎞 the fitting room: the character's model (rig → mesh version, else the hero's prefab, else the reference dummy of its body type),
   // the WhiteWrite library clips (the character's own first) and its items with a 3D model; «✓ Виглядає добре» → item forge.external
   function fzCharModel(c) {
-    var f = c.forge, files = c.files || [], ok = function (x) { return x && /\.(glb|gltf|fbx|obj)$/i.test(x.name || ""); }, m = null;
+    var f = c.forge, files = c.files || [], ok = function (x) { return x && is3D(x); }, m = null; // GLB only: an old FBX falls back to the prefab / the dummy
     var src = "";
     ["rig", "mesh"].some(function (sid) { var r = FG.approvedRev(f, sid) || FG.revsOf(f, sid)[0];
       m = r && (r.files || []).map(function (id) { return files.filter(function (x) { return x.id === id; })[0]; }).filter(ok)[0]; src = sid; return !!m; });
@@ -8237,7 +8242,7 @@
     var st = fzState(c); if (st.own && st.info && !st.hum) { var rb0 = FG.refBody(f.body) ? f.body : "human_male"; m = { file: fzRefFile(rb0), sib: [], dummy: fzL(FG.refBody(rb0)), norig: true }; } // the Forge takes only a rigged model
     var all = FG.itemsOf(c, fzItems()), items = all.map(function (i) {
       var mf = FG.modelFile(i), sl = fzSlots().filter(function (s) { return s.id === i.forge.slot; })[0];
-      if (!mf || !/\.(glb|gltf|fbx|obj)$/i.test(mf.name || "")) return null;
+      if (!mf || !is3D(mf)) return null;
       return { id: i.id, title: i.title, file: mf, siblings: i.files, bind: i.forge.bind || (sl && sl.bind) || "skinned", bone: ((i.forge.attach || []).filter(function (a) { return a.bone; })[0] || {}).bone || "" };
     }).filter(Boolean);
     if (m.dummy) notes.push((m.norig ? X.noRig : X.dummy).replace("{b}", m.dummy));
@@ -8308,7 +8313,7 @@
   function fzOpenChar() { return fz.open && fzFind(fzChars(), fz.open); }
   function fzOpenItem() { return fz.item && fzFind(fzItems(), fz.item); }
   async function fzUpload(o, stageId, list, preNote) {
-    if (!list.length) return;
+    list = glbOnly(list); if (!list.length) return;
     var note = preNote != null ? preNote : await askText(FZ.noteQ, { ok: STR.save, optional: true }); if (note === null) return;
     var metas = [], rigJson = null;
     if (stageId === "rig" && o.forge && o.forge.type !== undefined) { // conform_to_rig.py's <id>.rig.json among the files → the skeleton check (functions/forge.js rigCheck)
@@ -9710,7 +9715,7 @@
   // (packs ≤ GAME_FOLDER_MAX = gamedevPlan MAX_IMPORT_CHARS, one import each, merged into the usual proposal with ticks).
   // intake.W / intake.G pin the game: another game cannot be opened while it runs.
   var intake = null, inLast = 0, inTimer = 0;
-  var IN_EXT = { image: /\.(png|jpe?g|gif|webp|svg|bmp|tga|psd|tiff?|exr|hdr)$/i, model: /\.(glb|gltf|fbx|obj|stl|blend|max|ma|mb|c4d|3ds|dae|usdz?)$/i,
+  var IN_EXT = { image: /\.(png|jpe?g|gif|webp|svg|bmp|tga|psd|tiff?|exr|hdr)$/i, model: /\.glb$/i, source: /\.(blend|max|ma|mb|c4d|spp|ztl|zpr)$/i,
     audio: /\.(wav|mp3|ogg|flac|aiff?|m4a)$/i, video: /\.(mp4|webm|mov)$/i, prefab: /\.(prefab|unitypackage|uasset|umap|unity|asset)$/i,
     material: /\.(mat|sbsar|sbs|shadergraph)$/i, anim: /\.(anim|controller|overridecontroller|playable)$/i, font: /\.(ttf|otf|woff2?)$/i, archive: /\.(zip|rar|7z)$/i };
   var IN_CODE = /\.(meta|cs|js|mjs|ts|cpp|c|h|hpp|hlsl|shader|cginc|compute|glsl|py|dll|so|exe|pdb|asmdef|asmref|csproj|sln|lock|log|tmp)$|(^|\/)\.[^\/]+$/i; // code is Claude Code's (GitHub repo), not the Bible's
@@ -9733,7 +9738,7 @@
   ];
   var IN_ASSETS = /^(models?|meshes|prefabs?|assets?|ассети|моделі|префаби)$/;
   var IN_ENTITY = ["characters", "enemies", "locations", "levels", "gear"]; // a subfolder there is one thing (Characters/Viktoria/… → «Viktoria»)
-  var IN_FALLBACK = { image: "refs", video: "refs", model: "assets", prefab: "assets", archive: "assets", material: "materials", anim: "animation", font: "ui", audio: "audio" };
+  var IN_FALLBACK = { image: "refs", video: "refs", model: "assets", source: "assets", prefab: "assets", archive: "assets", material: "materials", anim: "animation", font: "ui", audio: "audio" };
   var IN_TARGETS = ["characters", "locations", "enemies", "levels", "gear", "assets", "materials", "animation", "audio", "ui", "scenes", "refs", "tech"];
   function inKind(name) { for (var k in IN_EXT) if (IN_EXT[k].test(name)) return k; return ""; }
   function inStem(n) { // «footstep_02.wav», «sword_albedo.png» → «footstep», «sword»: variations and texture maps share one card
@@ -9782,7 +9787,7 @@
   async function startIntake(list) {
     if (intake && intake.running) return notify(STR.intake.already);
     imp = null; intake = { reading: true, view: true, name: "" }; render();
-    var I = { W: worldId, G: gameId, name: "", view: true, stage: "plan", ents: [], groups: [], byKey: {}, tooBig: [], limit: (canDev ? 200 : 20) * 1048576, ignored: [], sort: null,
+    var I = { W: worldId, G: gameId, name: "", view: true, stage: "plan", ents: [], groups: [], byKey: {}, tooBig: [], notGlb: [], limit: (canDev ? 200 : 20) * 1048576, ignored: [], sort: null,
       skip: { tool: 0, code: 0, docs: 0, other: 0, empty: 0, bigText: 0 }, text: { files: [], chars: 0, packs: [], on: canDev, at: 0, done: [], failed: [], spent: 0, proposal: null },
       up: { n: 0, done: 0, dup: 0, bytes: 0, sent: 0, cur: "", failed: [] } };
     for (var i = 0; i < list.length; i++) { // every file the plan can place → I.ents (the AI sees this list; tool folders, code and empty files never reach it)
@@ -9795,6 +9800,7 @@
         I.skip.code++; continue;
       }
       if (!f.size) { I.skip.empty++; continue; }
+      if (notGlb(f)) { I.notGlb.push(rel); continue; } // GLB only (v2.119.0): an FBX / OBJ / glTF… is named in the plan with how to convert
       var e = { f: f, rel: rel, dir: dir, kind: isLicText(f) ? "lic" : FOLDER_TEXT.test(f.name) ? "text" : inKind(f.name) };
       if (e.kind === "text") {
         if (IN_TECH_TEXT.test(rel)) { I.skip.docs++; continue; }
@@ -9963,8 +9969,9 @@
         I.ignored.map(function (x, k) { return '<label class="imp"><input type="checkbox" data-inback="' + k + '"' + (x.back ? ' checked' : '') + '><span><b>' + esc(x.reason || "—") + '</b><span class="muted"> — ' + esc(X.nFiles.replace("{n}", x.ents.length)) + ': ' +
           esc(x.ents.slice(0, 3).map(function (e) { return e.rel; }).join(", ")) + (x.ents.length > 3 ? " …" : "") + '</span></span></label>'; }).join("") + '</details></section>';
       var sk = I.skip, skipped = [sk.tool && X.skTool.replace("{n}", sk.tool), sk.code && X.skCode.replace("{n}", sk.code), sk.docs && X.skDocs.replace("{n}", sk.docs), sk.unread && X.skUnread.replace("{n}", sk.unread), sk.other && X.skOther.replace("{n}", sk.other), sk.bigText && X.skBigText.replace("{n}", sk.bigText), sk.empty && X.skEmpty.replace("{n}", sk.empty)].filter(Boolean);
-      if (skipped.length || I.tooBig.length) html += '<section class="psec"><h2 class="group">' + esc(X.skipTitle) + '</h2><p class="hint">' + esc(skipped.join(" · ")) + '</p>' +
-        (I.tooBig.length ? '<p class="warn">⚠ ' + esc(X.tooBig.replace("{n}", I.tooBig.length).replace("{max}", fileSize(I.limit))) + '</p><ul class="contra">' + I.tooBig.slice(0, 30).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') + '</section>';
+      if (skipped.length || I.tooBig.length || I.notGlb.length) html += '<section class="psec"><h2 class="group">' + esc(X.skipTitle) + '</h2><p class="hint">' + esc(skipped.join(" · ")) + '</p>' +
+        (I.tooBig.length ? '<p class="warn">⚠ ' + esc(X.tooBig.replace("{n}", I.tooBig.length).replace("{max}", fileSize(I.limit))) + '</p><ul class="contra">' + I.tooBig.slice(0, 30).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') +
+        (I.notGlb.length ? '<p class="warn">⚠ ' + esc(STR.glb.skipped.replace("{n}", I.notGlb.length)) + ' <a href="#" data-kbglb>' + esc(STR.glb.how) + '</a></p><ul class="contra">' + I.notGlb.slice(0, 30).map(function (r) { return '<li>' + esc(r) + '</li>'; }).join("") + '</ul>' : '') + '</section>';
     } else {
       html += '<section class="psec" id="in-prog">' + inProgHtml() + '</section>';
       if (!I.running) html += '<p class="pmsg">' + esc(I.stopped ? X.stopped : X.done.replace("{f}", I.up.done - I.up.dup).replace("{c}", I.cardsMade || 0)) + '</p>' + (I.text.proposal ? '<p class="hint">' + esc(X.reviewHint) + '</p>' : '');
@@ -10584,10 +10591,11 @@
   }
   // what blocks or weakens the MVP in the Bible itself: licences, heavy models, levels without a greybox + the planner's own notes
   function healthHtml(plan) {
-    var P = STR.pp, all = allCards(), red = [], blue = [], hv = [], items = [];
+    var P = STR.pp, all = allCards(), red = [], blue = [], hv = [], old = [], items = [];
     all.forEach(function (c) {
       (c.files || []).forEach(function (f) {
         if (heavy(f) && hv.indexOf(c) < 0) hv.push(c);
+        if (notGlb(f) && old.indexOf(c) < 0) old.push(c); // an FBX / OBJ… uploaded before GLB only (v2.119.0)
         if (!isAsset(f)) return;
         var col = LIC_COLOR[licOf(f, c.files).id] || "blue";
         if (col === "red" && red.indexOf(c) < 0) red.push(c);
@@ -10599,6 +10607,7 @@
     if (red.length) items.push('<li class="h-red">' + P.red.replace("{n}", red.length) + chips(red) + '</li>');
     if (blue.length) items.push('<li class="h-warn">' + P.blue.replace("{n}", blue.length) + chips(blue) + '</li>');
     if (hv.length) items.push('<li class="h-warn">' + P.heavy.replace("{n}", hv.length) + chips(hv) + '</li>');
+    if (old.length) items.push('<li class="h-warn">' + P.notGlb.replace("{n}", old.length) + ' <a href="#" data-kbglb>' + esc(STR.glb.how) + '</a>' + chips(old) + '</li>');
     if (noGrey.length) items.push('<li class="h-warn">' + P.noGrey.replace("{n}", noGrey.length) + chips(noGrey) + '</li>');
     (plan.health || []).forEach(function (h) { items.push('<li class="h-note"><b>' + esc(h.issue) + '</b>' + (h.fix ? ' — ' + esc(h.fix) : '') +
       ((h.cards || []).length ? '<div class="cchips">' + h.cards.map(function (r) { return cardChip(r); }).join("") + '</div>' : '') + '</li>'); });
@@ -11030,6 +11039,7 @@
   $("view").addEventListener("change", qdInput);
   $("view").addEventListener("change", voChange);
   $("e-body").addEventListener("click", voClick);
+  document.addEventListener("click", function (e) { var a = e.target.closest && e.target.closest("[data-kbglb]"); if (a) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: "glb-only" }); } }); // «Як перетворити в GLB →» by an old FBX / in the folder plan
   $("e-body").addEventListener("change", voChange);
   $("view").addEventListener("input", medInput);
   $("view").addEventListener("change", medInput);
