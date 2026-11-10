@@ -2074,7 +2074,11 @@
           note: [X.readN.replace("{n}", files.length).replace("{a}", ents.length), bad.length ? Y.bad.replace("{p}", bad.join(", ")) : "", spent ? STR.spent + ": " + spent : ""].filter(Boolean).join(" · ") };
         fillRedraw();
         if (parsed.error) return fail(fillState.msg);
-        prog(4, 1, 1, P.done, "done"); if (FP) FP.el.hidden = false;
+        // the author gave this material for the new world: it goes onto the shelves at once — a «Перенести» left unpressed lost the paid sorting
+        var keep = fillState; prog(4, 0, 1, STR.fill.applying.replace("{n}", 0).replace("{all}", "…"));
+        await applyFill();
+        if (!fillState) { fillState = keep; fillRedraw(); return fail(STR.failed); } // the write failed: the preview stays, «Перенести» retries
+        prog(4, 1, 1, fillState.msg || P.done, "done"); if (FP) FP.el.hidden = false;
         var fb = document.querySelector(".fillbox"); if (fb) { fb.open = true; fb.scrollIntoView({ behavior: "smooth", block: "start" }); }
       }, batches.reduce(function (m, bt) { return m + quoteOf("worldFolder", bt.map(function (f) { return f.text; }).join("")); }, 0), cancelled);
     });

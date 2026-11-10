@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.117.2 (2026-11-10)
+**Version:** 2.117.3 (2026-11-10)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -765,6 +765,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.117.3** (owner) world from a folder / file at creation: `startWorldFolder` applies the sorted fill at once (`applyFill`) instead of waiting for «Перенести в світ» — the preview lived only in the page, so an unpressed button lost a paid sorting (world left empty); a failed write keeps the preview for a retry. `worldFolder` itself still writes nothing.
 - **v2.117.2** (owner) maps: «Карта гри» shows every game location (section `locations`) as a circle by itself (`gpLocs` — where the world map has it, else a stable spiral spot); a drag / click makes it a point (`gpLocPin`: card `gpl_<key>`, `gpin.ref` = the location); a click on a point opens its place at once, on (almost) the whole screen (`.gp-stage`), with the location's picture when no place picture is uploaded; the place's card / comment / delete in its side list; a point of interest with a location / level card → «🗺 Увійти в місце» (`gpInnerOpen`, an inner place `gpin.inner` = the outer card, not on the game map); «Інші карти» under the game map (`gpin.sheet: true`); `game-map.js placeOut` → `inside` / `separate_map` / `at_on_concept`. «Карта світу»: several maps — `worlds/{w}.maps [{ id, title, image }]` as tabs, `entity.mapAt { <mapId>: { x, y } }` (a location on another map leaves the main one), rename / delete (its locations go back), pictures in `worlds/{w}/cover/`
 - **v2.117.1** (owner) a picture card opens as the picture on the whole screen in every picture section (`PIC_SECS`: refs, pictures, ui, materials; `refView` → `picView(items, i)`), and picture thumbnails inside an open card (`.fimg a`) open in the same viewer instead of a new tab (ctrl/shift-click still opens a tab); viewer z-index above the card
 - **v2.117.0** (owner, MCP agent feedback) Claude Code writes on the user's word: MCP `save_card`, `save_quest`, `save_dialogue` with `agentPrev` undo («🤖 Змінив Claude Code» · «↶ Повернути як було» · «✓ Лишити» in the card and the quest / dialogue editor), switch `games/{g}.agentWrite` (settings → Claude Code); initialize instructions → `get_guide setup` first, saves only on the user's request; `get_next_task` with no roadmap says what to tell the user; the MCP key in an environment variable (`setx` + `${WHITEWRITE_KEY_<GAME>}` in the header), restart Claude Code or `/mcp` after adding; `setup-guides.js` setup rules; `tests/mcp-write.test.cjs`
@@ -948,5 +949,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-10 (v2.117.2)
+**Last updated:** 2026-11-10 (v2.117.3)
 **Maintained by:** WhiteWrite Team
