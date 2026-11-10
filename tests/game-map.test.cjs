@@ -23,6 +23,8 @@ const cards = [
   { id: 'pin1', section: 'gamemap', order: 9, title: 'Селище', files: [{ id: 'f1', field: 'plan', name: 'v.png', type: 'image/png', url: 'https://x/v.png' }, { id: 'f2', field: 'poi:q1', name: 'w.png', type: 'image/png', url: 'https://x/w.png' }],
     gpin: { x: 0.2, y: 0.3, ref: 'e:loc_morra', note: 'тихе', pois: [{ id: 'q1', x: 0.5, y: 0.5, title: 'Криниця', ref: 'c:wolf', note: '', scene: 'sc1' }] } },
   { id: 'sc1', section: 'scenes', title: 'Біля криниці' },
+  { id: 'pin2', section: 'gamemap', order: 10, title: 'Данж', gpin: { x: 0.5, y: 0.5, ref: '', inner: 'pin1', pois: [] } },
+  { id: 'pin3', section: 'gamemap', order: 11, title: 'Підземний світ', gpin: { x: 0, y: 0, ref: '', sheet: true, pois: [] } },
 ];
 
 // zones and basics
@@ -36,7 +38,7 @@ check(GM.centroid(sq(0, 0, 1)).map((v) => Math.round(v * 100)).join(), '50,50', 
 check(GM.speedOf([{ id: 'm', mech: { tpl: 'level_metrics', sections: [{ id: 'metrics', values: { walk: 3, sprint: 9 } }] } }]), 9, 'running speed from «Метрики рівнів»');
 check(GM.speedOf([]), GM.SPEED, 'default running speed');
 
-check(GM.pins(cards).map((c) => c.id).join(), 'pin1', 'pins: only place cards');
+check(GM.pins(cards).map((c) => c.id).join(), 'pin1,pin2,pin3', 'pins: only place cards');
 check(GM.zones(cards).some((c) => c.id === 'pin1'), false, 'a place is not a zone');
 
 // checks
@@ -67,6 +69,7 @@ check(z1.biome.title + ' / ' + z1.canon_location.name + ' / ' + z1.level_card.ti
 check(ex.zones[1].links.map((l) => l.to + ':' + l.kind).join(), 'c:z1:portal', 'export: a two-way link is seen from the other zone');
 check(JSON.stringify(z1.outline_on_concept[0]), '[0.1,0.1]', 'export: the outline as [x, y] pairs');
 const pl = ex.places[0];
+check(JSON.stringify([ex.places[1].inside, ex.places[1].at_on_concept, ex.places[2].separate_map, ex.places[2].at_on_concept]), JSON.stringify(['c:pin1', undefined, true, undefined].map((x) => x === undefined ? null : x)), 'export: a place inside another and a separate map say where they are');
 check(pl.ref + ' ' + pl.card.ref + ' ' + pl.card.title + ' ' + pl.picture, 'c:pin1 e:loc_morra Морра https://x/v.png', 'export: a place with its card and picture');
 check(JSON.stringify(pl.points_of_interest[0]), JSON.stringify({ title: 'Криниця', at_on_picture: [0.5, 0.5], card: { ref: 'c:wolf', title: 'Вовк' }, note: '', scene: { ref: 'c:sc1', title: 'Біля криниці' }, pictures: ['https://x/w.png'] }), 'export: a point of interest with its card, scene and pictures');
 check(Array.isArray(ex.framework) && ex.framework.length === 3, true, 'export: the framework note');
@@ -98,7 +101,7 @@ check(rows('c:z2'), 'in:Ліс Морри', 'the linked zone sees the transition
 const prow = (key) => REFS.usedBy(G, key, 'uk').filter((r) => r.kind === 'mappin').map((r) => r.side + ':' + (r.from.title || r.from.key)).sort().join(' | ');
 check(prow('e:loc_morra'), 'in:Селище', 'a canon location sees the map place');
 check(prow('c:sc1'), 'in:Селище', 'a scene sees the place whose point of interest uses it');
-check(prow('c:pin1'), 'out:Біля криниці | out:Вовк | out:Морра', 'a place lists its card, the cards and scenes of its points');
+check(prow('c:pin1'), 'in:Данж | out:Біля криниці | out:Вовк | out:Морра', 'a place lists its card, the cards and scenes of its points, and the place inside it');
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
 process.exit(fails ? 1 : 0);

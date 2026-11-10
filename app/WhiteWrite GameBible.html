@@ -671,6 +671,16 @@ button.mcell:hover{ border-color:var(--line-2); background:var(--bg-3); }
 .qai{ gap:10px; } .qai input{ flex:1; } .qai-slim{ margin:0 0 14px; } #q-aimsg:empty{ display:none; } .btn.bulb{ justify-self:start; }
 /* world map — locations by drag (entity.mapPos) */
 /* 🗺 Карта гри (v2.114): the concept map with zones (svg polygons + html labels), the passport on the right, the checks below; the relief editor */
+/* 🗺 a place on (almost) the whole screen, other maps under the game map (v2.117.2) */
+.wm-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; } .wm-tabs .chip.is-on{ border-color:var(--gold); color:var(--gold-bright); } .wm-tabadd{ border-style:dashed; }
+.wm-locs{ margin-top:10px; flex-wrap:wrap; gap:6px; align-items:center; } .wm-x{ border:0; background:none; color:var(--tx-lo); cursor:pointer; padding:0 0 0 4px; } .wm-x:hover{ color:var(--s-redo); }
+.gp-stage{ position:fixed; inset:0; z-index:8; overflow:auto; background:var(--bg-0); padding:14px 22px 22px; }
+.gp-stage header.sec{ margin:0 0 8px; } .gp-stage header.sec h1{ margin:4px 0 0; }
+.gp-stage .gp-map{ width:min(100%, calc((100vh - 190px) * var(--ar, 1.6))); margin:0 auto; }
+.gp-sheets{ margin:22px 0 8px; } .gp-sheetgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+.gp-sheet{ display:flex; flex-direction:column; gap:4px; padding:8px; border:1px solid var(--line-2); border-radius:12px; background:var(--bg-1); color:var(--tx-hi); font:inherit; text-align:left; cursor:pointer; }
+.gp-sheet img, .gp-sheet > i{ width:100%; aspect-ratio:16/10; object-fit:cover; border-radius:8px; display:grid; place-items:center; font-style:normal; font-size:28px; background:var(--bg-2); }
+.gp-sheet:hover{ border-color:var(--gold); } .gp-sheet small{ color:var(--tx-lo); } .gp-sheet--add{ border-style:dashed; }
 .gm{ display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; align-items:start; }
 .gm-mapwrap{ min-width:0; }
 .gm-bar{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }

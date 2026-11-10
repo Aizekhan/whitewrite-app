@@ -167,7 +167,9 @@
           unknown: "Права не з'ясовано. Не використовуй комерційно, доки не знайдеш ліцензію." } },
       wt: { tagline: "Гасло світу", taglinePh: "Одним рядком — про що цей світ", summary: "Про світ", summaryPh: "Що це за світ, яка в ньому напруга, чим він живе…",
         factK: "Що", factV: "Як є", addFact: "＋ Факт", addLaw: "＋ Закон", lawPh: "Закон світу…", noLaws: "Законів ще немає — додай перший: те, чого в цьому світі не можна порушити.",
-        save: "Зберегти", dirty: "Є незбережені зміни", bgUp: "⤒ Картинка карти", bgChg: "⤒ Змінити картинку", bgDel: "✕ Прибрати картинку", bgTip: "Картинка карти світу на фон (до 10 МБ) — локації лягають поверх неї", bgDelQ: "Прибрати картинку з фону карти? Локації лишаться на своїх місцях.", bgBig: "Картинка більша за 10 МБ", map: "🗺 Карта", cards: "▦ Картки", mapHint: "Перетягуй локації, щоб розкласти світ. Клік — досьє.",
+        save: "Зберегти", dirty: "Є незбережені зміни", mainMap: "Головна карта", mapAdd: "＋ Ще карта", mapQ: "Назва карти", mapPh: "Напр. Підземний світ", mapRen: "✎ Перейменувати", mapDel: "🗑 Видалити карту",
+        mapDelQ: "Видалити карту «{t}»? Її локації повернуться на головну карту.", mapEmpty: "На цій карті ще немає локацій — додай їх зі списку під картою.", locAdd: "＋ Локація на цю карту…", locOff: "Прибрати з цієї карти",
+        bgUp: "⤒ Картинка карти", bgChg: "⤒ Змінити картинку", bgDel: "✕ Прибрати картинку", bgTip: "Картинка карти світу на фон (до 10 МБ) — локації лягають поверх неї", bgDelQ: "Прибрати картинку з фону карти? Локації лишаться на своїх місцях.", bgBig: "Картинка більша за 10 МБ", map: "🗺 Карта", cards: "▦ Картки", mapHint: "Перетягуй локації, щоб розкласти світ. Клік — досьє.",
         routes: "Лінії — шляхи персонажів між сценами історій", noLocs: "Локацій ще немає.", state: "Стан у часі", scene: "сцена",
         aspects: { status: "Статус", location: "Місце", possession: "Володіє", allegiance: "Сторона", condition: "Стан" },
         impact: "Вплив змін", impactText: "Сцен історій, де є ця сутність: {n}. Змінив канон — ШІ узгодить їх: покаже «було → стане», а ти приймеш або відхилиш кожну.",
@@ -499,7 +501,9 @@
           unknown: "Rights unknown. Don't use commercially until you find the licence." } },
       wt: { tagline: "Tagline", taglinePh: "One line — what this world is about", summary: "About the world", summaryPh: "What world this is, its tension, what it lives by…",
         factK: "What", factV: "How it is", addFact: "＋ Fact", addLaw: "＋ Law", lawPh: "A law of the world…", noLaws: "No laws yet — add the first: what can never be broken in this world.",
-        save: "Save", dirty: "Unsaved changes", bgUp: "⤒ Map picture", bgChg: "⤒ Change the picture", bgDel: "✕ Remove the picture", bgTip: "A picture of the world map as the background (up to 10 MB) — locations sit on top of it", bgDelQ: "Remove the picture from the map background? Locations stay where they are.", bgBig: "The picture is over 10 MB", map: "🗺 Map", cards: "▦ Cards", mapHint: "Drag locations to lay out the world. Click — the dossier.",
+        save: "Save", dirty: "Unsaved changes", mainMap: "Main map", mapAdd: "＋ Another map", mapQ: "Map name", mapPh: "E.g. The Underworld", mapRen: "✎ Rename", mapDel: "🗑 Delete the map",
+        mapDelQ: "Delete the map “{t}”? Its locations go back to the main map.", mapEmpty: "No locations on this map yet — add them from the list under the map.", locAdd: "＋ A location on this map…", locOff: "Remove from this map",
+        bgUp: "⤒ Map picture", bgChg: "⤒ Change the picture", bgDel: "✕ Remove the picture", bgTip: "A picture of the world map as the background (up to 10 MB) — locations sit on top of it", bgDelQ: "Remove the picture from the map background? Locations stay where they are.", bgBig: "The picture is over 10 MB", map: "🗺 Map", cards: "▦ Cards", mapHint: "Drag locations to lay out the world. Click — the dossier.",
         routes: "Lines — characters' paths between story scenes", noLocs: "No locations yet.", state: "State over time", scene: "scene",
         aspects: { status: "Status", location: "Location", possession: "Holds", allegiance: "Allegiance", condition: "Condition" },
         impact: "Impact of changes", impactText: "Story scenes with this entity: {n}. Changed the canon? The AI brings them in line: it shows “before → after”, and you accept or reject each.",
@@ -2273,29 +2277,68 @@
     var lv = $("loc-view"); if (lv) lv.onclick = function () { goSection("worldmap"); }; // the map is its own item now
     dragCtx = s;
   }
+  // 🗺 several world maps (owner, v2.117.2): the main one + worlds/{w}.maps [{ id, title, image { url, path, name } }] — other worlds, planes, an underworld.
+  // A location sits on one map: entity.mapAt { <mapId>: { x, y } } puts it on another map (and off the main one); the main map keeps entity.mapPos.
+  var wmSel = "";
+  function wmMaps() { return Array.isArray(world.maps) ? world.maps : []; }
+  function wmCur() { return wmSel ? wmMaps().filter(function (m) { return m.id === wmSel; })[0] || null : null; }
+  function wmOn(e, id) { return !!(e.mapAt && e.mapAt[id]); }
+  function wmOffMain(e) { return wmMaps().some(function (m) { return wmOn(e, m.id); }); }
   function renderWorldMap(s) {
-    var list = entities.filter(function (e) { return e.kind === "locations"; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
+    if (wmSel && !wmCur()) wmSel = "";
+    var cur = wmCur(), img = cur ? cur.image : world.mapImage, own = ME.owner && canonWrite;
+    var all = entities.filter(function (e) { return e.kind === "locations"; }).sort(byOrder(function (e) { return e.name || e.title || ""; }));
+    var list = all.filter(function (e) { return cur ? wmOn(e, cur.id) : !wmOffMain(e); });
+    var tabs = wmMaps().length || own ? '<div class="wm-tabs" role="tablist">' + [{ id: "", title: STR.wt.mainMap }].concat(wmMaps()).map(function (m) {
+      return '<button type="button" role="tab" class="chip' + (m.id === wmSel ? ' is-on' : '') + '" aria-selected="' + (m.id === wmSel) + '" data-wmtab="' + esc(m.id) + '">' + esc(m.title || "?") + '</button>'; }).join("") +
+      (own ? '<button type="button" class="chip wm-tabadd" id="wm-new">' + STR.wt.mapAdd + '</button>' : '') + '</div>' : '';
+    var extra = cur && canonWrite ? '<div class="row wm-locs">' + list.map(function (e) { return '<span class="chip">' + esc(e.name || "?") + ' <button type="button" class="wm-x" data-wmoff="' + esc(e.id) + '" aria-label="' + esc(STR.wt.locOff + " " + (e.name || "")) + '" title="' + esc(STR.wt.locOff) + '">✕</button></span>'; }).join("") +
+      '<select id="wm-addloc" aria-label="' + esc(STR.wt.locAdd) + '"><option value="">' + esc(STR.wt.locAdd) + '</option>' + all.filter(function (e) { return !wmOn(e, cur.id); }).map(function (e) { return '<option value="' + esc(e.id) + '">' + esc(e.name || "?") + '</option>'; }).join("") + '</select></div>' : '';
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row">' + (ME.owner && canonWrite ? '<label class="btn" title="' + esc(STR.wt.bgTip) + '"><input type="file" hidden accept="image/*" id="wmap-up">' + (world.mapImage ? STR.wt.bgChg : STR.wt.bgUp) + '</label>' +
-        (world.mapImage ? '<button class="btn ghost" id="wmap-del">' + STR.wt.bgDel + '</button>' : '') : '') + '<button class="btn" id="loc-cards">' + STR.wt.cards + '</button></div></header>' + mapHtml(list);
+      '<div class="row">' + (own ? '<label class="btn" title="' + esc(STR.wt.bgTip) + '"><input type="file" hidden accept="image/*" id="wmap-up">' + (img ? STR.wt.bgChg : STR.wt.bgUp) + '</label>' +
+        (img ? '<button class="btn ghost" id="wmap-del">' + STR.wt.bgDel + '</button>' : '') + (cur ? '<button class="btn ghost" id="wm-ren">' + STR.wt.mapRen + '</button><button class="btn danger" id="wm-drop">' + STR.wt.mapDel + '</button>' : '') : '') +
+        '<button class="btn" id="loc-cards">' + STR.wt.cards + '</button></div></header>' + tabs + (cur && !list.length ? '<p class="muted">' + esc(STR.wt.mapEmpty) + '</p>' : '') + mapHtml(list, cur ? true : false) + extra;
     $("loc-cards").onclick = function () { goSection("w-locations"); };
-    var up = $("wmap-up"); if (up) up.onchange = function () { var f = up.files[0]; up.value = ""; if (f) wmapUpload(f); };
+    [].forEach.call(document.querySelectorAll("[data-wmtab]"), function (b) { b.onclick = function () { wmSel = b.dataset.wmtab; render(); }; });
+    var nw = $("wm-new"); if (nw) nw.onclick = function () {
+      askName(STR.wt.mapQ, STR.wt.mapPh, function (name) {
+        if (!name) return; var id = newId("map");
+        wref().set({ maps: wmMaps().concat([{ id: id, title: name }]), updatedAt: stamp() }, { merge: true }).then(function () { wmSel = id; render(); }, function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
+      }, "", { ok: STR.create });
+    };
+    var rn = $("wm-ren"); if (rn) rn.onclick = function () {
+      askName(STR.wt.mapQ, STR.wt.mapPh, function (name) { if (name) wref().set({ maps: wmMaps().map(function (m) { return m.id === cur.id ? Object.assign({}, m, { title: name }) : m; }), updatedAt: stamp() }, { merge: true }); }, cur.title || "", { ok: STR.save });
+    };
+    var dr = $("wm-drop"); if (dr) dr.onclick = async function () {
+      if (!(await askConfirm(STR.wt.mapDelQ.replace("{t}", cur.title || "?"), { danger: true }))) return;
+      var D = firebase.firestore.FieldValue.delete(), b = db.batch();
+      list.forEach(function (e) { var u = {}; u["mapAt." + cur.id] = D; b.update(wref().collection("entities").doc(e.id), u); }); // its locations go back to the main map
+      b.set(wref(), { maps: wmMaps().filter(function (m) { return m.id !== cur.id; }), updatedAt: stamp() }, { merge: true });
+      await b.commit(); if (cur.image && cur.image.path) firebase.storage().ref(cur.image.path).delete().catch(function () {});
+      wmSel = ""; render();
+    };
+    var al = $("wm-addloc"); if (al) al.onchange = function () { var u = {}; u["mapAt." + cur.id] = { x: MAP_W / 2, y: MAP_H / 2 }; if (al.value) wref().collection("entities").doc(al.value).update(u); };
+    [].forEach.call(document.querySelectorAll("[data-wmoff]"), function (b) { b.onclick = function () { var u = {}; u["mapAt." + cur.id] = firebase.firestore.FieldValue.delete(); wref().collection("entities").doc(b.dataset.wmoff).update(u); }; });
+    var up = $("wmap-up"); if (up) up.onchange = function () { var f = up.files[0]; up.value = ""; if (f) wmapUpload(f, cur); };
     var del = $("wmap-del"); if (del) del.onclick = async function () {
-      if (!(await askConfirm(STR.wt.bgDelQ))) return; var old = world.mapImage && world.mapImage.path;
-      await wref().set({ mapImage: firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true });
+      if (!(await askConfirm(STR.wt.bgDelQ))) return; var old = img && img.path;
+      if (cur) await wref().set({ maps: wmMaps().map(function (m) { if (m.id !== cur.id) return m; var c = Object.assign({}, m); delete c.image; return c; }), updatedAt: stamp() }, { merge: true });
+      else await wref().set({ mapImage: firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true });
       if (old) firebase.storage().ref(old).delete().catch(function () {});
     };
     bindMap(list);
   }
 
   // 🗺 the world map's background picture (owner, v2.115.5): worlds/{w}.mapImage { url, path, name } — Storage worlds/{w}/cover/ (the cover's rules: owner, image ≤ 10 MB, any plan)
-  async function wmapUpload(f) {
+  async function wmapUpload(f, cur) { // cur: one of the other maps (worlds/{w}.maps[i].image)
     if (!/^image\//.test(f.type || "")) return;
     if (f.size >= 10 * 1024 * 1024) return notify(STR.wt.bgBig);
-    var old = world.mapImage && world.mapImage.path, path = "worlds/" + worldId + "/cover/worldmap-" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-80);
+    var old = cur ? cur.image && cur.image.path : world.mapImage && world.mapImage.path, path = "worlds/" + worldId + "/cover/worldmap-" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-80);
     try {
       var task = firebase.storage().ref(path).put(f, { contentType: f.type }); await task;
-      await wref().set({ mapImage: { url: await task.snapshot.ref.getDownloadURL(), path: path, name: f.name }, updatedAt: stamp() }, { merge: true });
+      var im = { url: await task.snapshot.ref.getDownloadURL(), path: path, name: f.name };
+      if (cur) await wref().set({ maps: wmMaps().map(function (m) { return m.id === cur.id ? Object.assign({}, m, { image: im }) : m; }), updatedAt: stamp() }, { merge: true });
+      else await wref().set({ mapImage: im, updatedAt: stamp() }, { merge: true });
       if (old) firebase.storage().ref(old).delete().catch(function () {});
     } catch (er) { notify(STR.failed + ": " + (er.code || er.message)); }
   }
@@ -2307,18 +2350,18 @@
     var t = String(v || "").toLowerCase(); if (!t) return null;
     return locs.slice().sort(function (a, b) { return (b.name || "").length - (a.name || "").length; }).filter(function (l) { return l.name && t.indexOf(l.name.toLowerCase()) >= 0; })[0] || null;
   }
-  function mapHtml(locs) {
-    if (!locs.length) return '<p class="empty">' + STR.wt.noLocs + '</p>';
-    var P = {}, here = {};
-    locs.forEach(function (l, i) { P[l.id] = mapPos(l, i); });
+  function mapHtml(locs, other) {
+    if (!locs.length && !other) return '<p class="empty">' + STR.wt.noLocs + '</p>';
+    var P = {}, here = {}, cur = wmCur(), bg = cur ? cur.image : world.mapImage;
+    locs.forEach(function (l, i) { P[l.id] = cur ? l.mapAt[cur.id] : mapPos(l, i); });
     entities.forEach(function (c) { if (c.kind !== "characters") return; var l = matchLoc(c.location || (Array.isArray(c.locations) ? c.locations[0] : null), locs); if (l) (here[l.id] = here[l.id] || []).push(c); });
-    var lines = Object.keys(mapRoutes || {}).map(function (k) {
+    var lines = cur ? "" : Object.keys(mapRoutes || {}).map(function (k) {
       var ab = k.split("|"), a = P[ab[0]], b = P[ab[1]]; if (!a || !b) return "";
       return '<line class="wmap-route" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '" stroke-width="' + (1.2 + Math.min(mapRoutes[k], 5) * 0.8) + '"/>';
     }).join("");
     return '<div class="wmap"><svg id="wmap" viewBox="0 0 ' + MAP_W + ' ' + MAP_H + '" role="img" aria-label="' + esc(STR.wt.map) + '">' +
       '<defs><pattern id="wmap-grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M50 0H0V50" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="0.6"/></pattern></defs>' +
-      (world.mapImage && world.mapImage.url ? '<image class="wmap-bg" href="' + esc(world.mapImage.url) + '" width="' + MAP_W + '" height="' + MAP_H + '" preserveAspectRatio="xMidYMid meet"/>' : '') +
+      (bg && bg.url ? '<image class="wmap-bg" href="' + esc(bg.url) + '" width="' + MAP_W + '" height="' + MAP_H + '" preserveAspectRatio="xMidYMid meet"/>' : '') +
       '<rect width="' + MAP_W + '" height="' + MAP_H + '" fill="url(#wmap-grid)" class="wmap-grid"/>' + lines +
       locs.map(function (l) {
         var p = P[l.id], who = here[l.id] || [];
@@ -2350,8 +2393,9 @@
       var d = drag; drag = null; if (!d) return;
       var l = locs.filter(function (x) { return x.id === d.g.dataset.loc; })[0];
       if (!d.moved) { openDossier(l); return; }
-      l.mapPos = d.pos;
-      wref().collection("entities").doc(l.id).update({ mapPos: d.pos }).catch(function (er) { console.error("Map save failed:", er); });
+      var cm = wmCur(), u = {};
+      if (cm) { l.mapAt[cm.id] = d.pos; u["mapAt." + cm.id] = d.pos; } else { l.mapPos = d.pos; u.mapPos = d.pos; }
+      wref().collection("entities").doc(l.id).update(u).catch(function (er) { console.error("Map save failed:", er); });
     });
     svg.addEventListener("keydown", function (ev) { var g = ev.target.closest("[data-loc]"); if (g && ev.key === "Enter") openDossier(locs.filter(function (x) { return x.id === g.dataset.loc; })[0]); });
   }
@@ -6746,7 +6790,7 @@
     var hint = gm.mode === "draw" ? GM.drawHint : gm.mode === "redraw" ? GM.redrawHint : gm.mode === "link" ? (gm.linkFrom ? GM.linkHint2 : GM.linkHint) : gm.mode === "pin" ? GP.pinHint : "";
     var map = '<div class="gm-map' + (gm.mode ? ' is-' + gm.mode : gm.hide ? ' is-hide' : '') + (img ? '' : ' is-grid') + '" id="gm-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + '">' +
       (img ? '<img alt="" src="' + esc(img.url) + '" draggable="false">' : '') +
-      '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">' + list.filter(function (c) { return cen[c.id]; }).map(poly).join("") + lines + draft + '</svg>' + linkIcons + labels + verts + GMAP.pins(cards).map(function (c) { return gpPinHtml(c, c.id === gm.psel); }).join("") + '</div>';
+      '<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">' + list.filter(function (c) { return cen[c.id]; }).map(poly).join("") + lines + draft + '</svg>' + linkIcons + labels + verts + gpTop().map(function (c) { return gpPinHtml(c, c.id === gm.psel); }).join("") + gpLocHtml() + '</div>';
     var errs = chk.filter(function (x) { return x.level === "err"; }).length, warns = chk.filter(function (x) { return x.level === "warn"; }).length;
     var fw = window.__MECH.capStatus(gmMan(), "world.zones");
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
@@ -6761,7 +6805,7 @@
         (loose.length ? '<div class="gm-loose"><span class="muted">' + esc(GM.noPos) + ':</span> ' + loose.map(function (c) { return '<button type="button" class="chip gm-chip' + (c.id === gm.sel ? ' is-on' : '') + '" data-gmz="' + esc(c.id) + '">' + esc(c.title || "?") + '</button>'; }).join(" ") + '</div>' : '') +
         (canWrite ? '<button class="btn mini ghost gm-add" id="gm-add">' + GM.add + '</button>' : '') + '</div>' +
         '<aside class="gm-side">' + (gm.psel ? gpPanel(gpCard(gm.psel)) : gm.sel ? gmPassport(gmZone(gm.sel), speed, chk) : gmList(list, speed, byZone) + gpList()) + '</aside></div>' +
-      '<section class="gm-checks"><h2>' + GM.checks + (errs + warns ? ' <span class="gm-bad">' + (errs + warns) + '</span>' : '') + '</h2>' +
+      gpSheetsHtml() + '<section class="gm-checks"><h2>' + GM.checks + (errs + warns ? ' <span class="gm-bad">' + (errs + warns) + '</span>' : '') + '</h2>' +
         (chk.length ? '<ul>' + chk.map(function (x) { return '<li class="gm-ck gm-ck--' + x.level + '"' + (x.zone ? ' data-gmz="' + esc(x.zone) + '" tabindex="0"' : '') + '><i>' + (x.level === "err" ? "⛔" : x.level === "warn" ? "⚠" : "💡") + '</i>' + esc(gmL(x)) + '</li>'; }).join("") + '</ul>' : '<p class="gm-ok">✓ ' + esc(GM.ok) + '</p>') +
         '<p class="muted gm-fw">' + esc((fw.status === "full" ? GM.fwOk : GM.fw).replace("{v}", "v" + gmMan().version)) + '</p></section>';
     bindGameMap(list); gpBindMap();
@@ -6973,14 +7017,18 @@
       back: "‹ Карта гри", up: "⤒ Змінити картинку місця", upNew: "⤒ Картинка місця", noPlan: "Завантаж картинку місця — план, арт чи скриншот. На ній ставиш точки інтересу.",
       poiAdd: "◉ Точка інтересу", poiHint: "Клікни на картинці — там з’явиться точка інтересу. Esc — скасувати.", poiQ: "Назва точки інтересу", poiPh: "Напр. Стара криниця",
       pois: "Точки інтересу", noPois: "Ще немає точок інтересу.", scene: "Сцена", sceneNone: "— без сцени —", sceneOpen: "Відкрити сцену", pics: "Вид і референси", picsAdd: "＋ Картинки",
-      poiDel: "🗑 Видалити точку інтересу", poiDelQ: "Видалити точку інтересу «{t}» з її картинками?", picRm: "Прибрати картинку", none: "Ще немає точок — «◉ Поставити точку»." },
+      poiDel: "🗑 Видалити точку інтересу", poiDelQ: "Видалити точку інтересу «{t}» з її картинками?", picRm: "Прибрати картинку", none: "Ще немає точок — «◉ Поставити точку».",
+      inner: "🗺 Увійти в місце", sheets: "Інші карти", sheetsHint: "Ще карти під головною: інший світ чи план буття, підземний рівень, місто зблизька. Кожна — своя картинка з точками.", sheetAdd: "Ще карта", sheetQ: "Назва карти", sheetPh: "Напр. Підземний світ",
+      locs: "Локації гри", locsHint: "Кожна локація гри — кружечок на карті, як на «Карті світу». Перетягни його на місце; клік відкриває місце — картинку локації майже на весь екран, а на ній точки: НПЦ, вороги, данжі зі списків меню." },
     en: { pinAdd: "◉ Place a point", pinTip: "A point on the map — a place that opens as its own picture with points of interest", pinHint: "Click the map — a point appears there. Esc cancels.",
       pinQ: "Point name", pinPh: "E.g. Morra village", pins: "Points", card: "Card", cardNone: "— no card —", open: "Open the card", note: "Comment", notePh: "One line, optional",
       plan: "🗺 Open the place", del: "🗑 Delete the point", delQ: "Delete the point “{t}” with its place picture and points of interest?", close: "Close", drag: "Drag points to move them; click to open.",
       back: "‹ Game map", up: "⤒ Change the place picture", upNew: "⤒ Place picture", noPlan: "Upload a picture of the place — a plan, art or a screenshot. You put points of interest on it.",
       poiAdd: "◉ Point of interest", poiHint: "Click the picture — a point of interest appears there. Esc cancels.", poiQ: "Point of interest name", poiPh: "E.g. The old well",
       pois: "Points of interest", noPois: "No points of interest yet.", scene: "Scene", sceneNone: "— no scene —", sceneOpen: "Open the scene", pics: "Look & references", picsAdd: "＋ Pictures",
-      poiDel: "🗑 Delete the point of interest", poiDelQ: "Delete the point of interest “{t}” with its pictures?", picRm: "Remove the picture", none: "No points yet — “◉ Place a point”." } }[LANG === "en" ? "en" : "uk"];
+      poiDel: "🗑 Delete the point of interest", poiDelQ: "Delete the point of interest “{t}” with its pictures?", picRm: "Remove the picture", none: "No points yet — “◉ Place a point”.",
+      inner: "🗺 Enter the place", sheets: "Other maps", sheetsHint: "More maps under the main one: another world or plane, an underground level, a city close up. Each is its own picture with points.", sheetAdd: "Another map", sheetQ: "Map name", sheetPh: "E.g. The Underworld",
+      locs: "The game's locations", locsHint: "Every location of the game is a circle on the map, as on the “World map”. Drag it into place; a click opens the place — the location's picture on almost the whole screen, with points on it: NPCs, enemies, dungeons from the menu lists." } }[LANG === "en" ? "en" : "uk"];
   var GP_SECS = ["locations", "characters", "enemies", "factions", "items", "gear", "levels", "assets"];
   function gpCard(id) { return GMAP.pins(cards).filter(function (c) { return c.id === id; })[0] || null; }
   function gpRefCard(ref) { return ref ? allCards().filter(function (x) { return x.key === ref; })[0] || null : null; }
@@ -7003,12 +7051,56 @@
     var g = c.gpin || {}, img = gpPlanImg(c) || gpRefImg(gpRefCard(g.ref)), n = (g.pois || []).length;
     return gpDot(+g.x || 0, +g.y || 0, c.id, c.title, img, sel, "data-gmpin", n ? ' <small>◉ ' + n + '</small>' : '');
   }
+  // 📍 every location of the game is a circle on the game map by itself, like the dossiers on «Карта світу» (owner, v2.117.2): until it is moved or
+  // opened it is virtual (where the world map has it, else on a spiral); a drag / click by the author makes it a point (a gamemap card with gpin.ref = the location)
+  function gpAllLocs() {
+    return allCards().filter(function (x) { return x.section === "locations" && !x.hidden; })
+      .sort(function (a, b) { return (a.order || 0) - (b.order || 0) || String(a.title).localeCompare(String(b.title)); });
+  }
+  function gpLocs() {
+    var pinned = {}; GMAP.pins(cards).forEach(function (c) { if (c.gpin && c.gpin.ref) pinned[c.gpin.ref] = 1; });
+    return gpAllLocs().filter(function (x) { return !pinned[x.key]; });
+  }
+  function gpLocPos(x) { // a stable spot: the place in the list of all the game's locations, not of the ones still unplaced
+    var i = Math.max(0, gpAllLocs().map(function (y) { return y.key; }).indexOf(x.key));
+    var e = x.src === "canon" && entities.filter(function (y) { return y.id === x.id; })[0];
+    if (e && e.mapPos) return [Math.round(e.mapPos.x / MAP_W * 10000) / 10000, Math.round(e.mapPos.y / MAP_H * 10000) / 10000];
+    var r = 0.07 + 0.035 * Math.sqrt(i);
+    return [Math.max(0.04, Math.min(0.96, 0.5 + Math.cos(i * 2.39996) * r * 1.2)), Math.max(0.05, Math.min(0.95, 0.5 + Math.sin(i * 2.39996) * r))];
+  }
+  function gpLocHtml() {
+    return gpLocs().map(function (x) { var p = gpLocPos(x); return gpDot(p[0], p[1], x.key, x.title, gpRefImg(x), false, "data-gmloc"); }).join("");
+  }
+  function gpLocPin(key, pos, inner) { // the location becomes a point: one card per location (a stable id — a second click finds it)
+    var x = allCards().filter(function (y) { return y.key === key; })[0]; if (!x) return null;
+    var p = pos || gpLocPos(x), id = "gpl_" + key.replace(/[^\w]/g, "_");
+    var body = { section: "gamemap", title: x.title || "", status: "idea", note: "", defs: [], fields: {}, files: [], order: Date.now(), gpin: { x: p[0], y: p[1], ref: key, note: "", pois: [] } };
+    if (inner) body.gpin.inner = inner;
+    var c = Object.assign({ id: id }, body);
+    cards.push(c);
+    gref().collection("cards").doc(id).set(Object.assign(body, { createdAt: stamp(), updatedAt: stamp() }), { merge: true })
+      .catch(function (e) { gm.msg = STR.failed + ": " + e.message; render(); });
+    return c;
+  }
+  function gpTop() { return GMAP.pins(cards).filter(function (c) { return !(c.gpin || {}).inner && !(c.gpin || {}).sheet; }); }
+  // 🗺 more maps (owner, v2.117.2): other worlds, planes, a dungeon level — each its own picture with points, listed under the game map
+  function gpSheets() { return GMAP.pins(cards).filter(function (c) { return (c.gpin || {}).sheet; }); }
+  function gpSheetsHtml() {
+    var l = gpSheets();
+    if (!l.length && !canWrite) return "";
+    return '<section class="gp-sheets"><h2>' + GP.sheets + (l.length ? ' · ' + l.length : '') + '</h2><p class="muted">' + esc(GP.sheetsHint) + '</p><div class="gp-sheetgrid">' +
+      l.map(function (c) { var im = gpPlanImg(c); return '<button type="button" class="gp-sheet" data-gpsheet="' + esc(c.id) + '">' + (im ? '<img loading="lazy" alt="" src="' + esc(im.url) + '">' : '<i>🗺</i>') +
+        '<b>' + esc(c.title || "?") + '</b><small>' + ((c.gpin.pois || []).length ? '◉ ' + c.gpin.pois.length : '') + '</small></button>'; }).join("") +
+      (canWrite ? '<button type="button" class="gp-sheet gp-sheet--add" id="gp-sheet-add"><i>＋</i><b>' + GP.sheetAdd + '</b></button>' : '') + '</div></section>';
+  } // on the game map; inner — inside another place
   function gpList() {
-    var l = GMAP.pins(cards);
+    var l = gpTop(), locs = gpLocs();
     return '<h2 class="gp-h">' + GP.pins + (l.length ? ' · ' + l.length : '') + '</h2>' + (l.length ? '<ul class="gm-zl">' + l.map(function (c) {
       var x = gpRefCard(c.gpin.ref);
       return '<li><button type="button" data-gmpin="' + esc(c.id) + '"><i class="gm-dot" style="background:var(--gold-bright)"></i><b>' + esc(c.title || "?") + '</b><small>' + esc((x ? x.title + ' · ' : '') + ((c.gpin.pois || []).length ? '◉ ' + c.gpin.pois.length : '')) + '</small></button></li>';
-    }).join("") + '</ul>' : '<p class="muted">' + esc(GP.none) + '</p>');
+    }).join("") + '</ul>' : '<p class="muted">' + esc(GP.none) + '</p>') +
+      (locs.length ? '<h2 class="gp-h">' + GP.locs + ' · ' + locs.length + '</h2><p class="muted">' + esc(GP.locsHint) + '</p><ul class="gm-zl">' + locs.map(function (x) {
+        return '<li><button type="button" data-gmloc="' + esc(x.key) + '"><i class="gm-dot" style="background:var(--gold)"></i><b>' + esc(x.title || "?") + '</b></button></li>'; }).join("") + '</ul>' : '');
   }
   function gpCardOpts(cur) {
     var all = allCards(), has = !cur;
@@ -7077,8 +7169,22 @@
       var p = gmPoint(ev); gm.mode = ""; render();
       askName(GP.pinQ, GP.pinPh, function (name) { if (name) gpNew(name, p); }, "", { ok: STR.create });
     });
-    var pick = function (id) { gm.psel = gm.psel === id ? "" : id; gm.sel = ""; gm.msg = ""; render(); };
+    var pick = function (id) { gm.plan = id; gm.poi = ""; gm.pmode = ""; gm.psel = ""; gm.sel = ""; gm.msg = ""; render(); }; // v2.117.2: straight into the place
     gpDrag(mapEl, "data-gmpin", function (id, x, y) { var c = gpCard(id); if (c) gpSet(c, { x: x, y: y }); }, pick);
+    var locOpen = function (key) { // a location circle: the author gets its point panel, a reader its card
+      if (!canWrite) return gpOpenRef(key);
+      var c = gpLocPin(key); if (c) pick(c.id);
+    };
+    gpDrag(mapEl, "data-gmloc", function (key, x, y) { gpLocPin(key, [x, y]); render(); }, locOpen);
+    $("view").querySelectorAll(".gm-side [data-gmloc]").forEach(function (b) { b.onclick = function () { locOpen(b.dataset.gmloc); }; });
+    $("view").querySelectorAll("[data-gpsheet]").forEach(function (b) { b.onclick = function () { pick(b.dataset.gpsheet); }; });
+    var sa = $("gp-sheet-add"); if (sa) sa.onclick = function () {
+      askName(GP.sheetQ, GP.sheetPh, function (name) {
+        if (!name) return; var id = newId("card");
+        gref().collection("cards").doc(id).set({ section: "gamemap", title: name, status: "idea", note: "", defs: [], fields: {}, files: [], order: Date.now(), createdAt: stamp(), updatedAt: stamp(),
+          gpin: { x: 0, y: 0, ref: "", note: "", pois: [], sheet: true } }).then(function () { pick(id); }, function (e) { gm.msg = STR.failed + ": " + e.message; render(); });
+      }, "", { ok: STR.create });
+    };
     $("view").querySelectorAll(".gm-side [data-gmpin]").forEach(function (b) { b.onclick = function () { pick(b.dataset.gmpin); }; });
     var pp = document.querySelector("#view [data-gpp]"); if (!pp) return;
     var c = gpCard(pp.dataset.gpp); if (!c) return;
@@ -7103,28 +7209,36 @@
   // the place: its picture with points of interest
   function renderPinPlan(s) {
     var c = gpCard(gm.plan); if (!c) { gm.plan = ""; return renderGameMap(s); }
-    var g = c.gpin || {}, img = gpPlanImg(c), pois = g.pois || [], ratio = (img && +g.ratio) || 0.62;
+    var g = c.gpin || {}, own = gpPlanImg(c), img = own || gpRefImg(gpRefCard(g.ref)), pois = g.pois || [], ratio = (own && +g.ratio) || (img && gm.ratio && gm.ratio[img.url]) || 0.62;
+    var outer = g.inner ? gpCard(g.inner) : null;
     if (gm.poi && !pois.some(function (p) { return p.id === gm.poi; })) gm.poi = "";
     var dots = pois.map(function (p) { var pic = gpPoiPics(c, p.id).slice(-1)[0] || gpRefImg(gpRefCard(p.ref)); return gpDot(+p.x || 0, +p.y || 0, p.id, p.title, pic, p.id === gm.poi, "data-gppoi"); }).join("");
     var poi = gm.poi ? pois.filter(function (p) { return p.id === gm.poi; })[0] : null;
-    $("view").innerHTML = '<header class="sec"><div><button class="btn mini ghost" id="gp-back">' + GP.back + '</button><h1>' + esc(c.title || "?") + '</h1>' + (g.note ? '<p>' + esc(g.note) + '</p>' : '') + '</div></header>' +
+    $("view").innerHTML = '<div class="gp-stage"><header class="sec"><div><button class="btn mini ghost" id="gp-back">' + (outer ? '‹ ' + esc(outer.title || "?") : GP.back) + '</button><h1>' + esc(c.title || "?") + '</h1>' + (g.note ? '<p>' + esc(g.note) + '</p>' : '') + '</div></header>' +
       '<div class="row gm-bar">' + (canWrite ? '<label class="btn"><input type="file" hidden accept="image/*" id="gp-up">' + (img ? GP.up : GP.upNew) + '</label>' +
         '<button class="btn" id="gp-art">' + esc(STR.artPick.btn) + '</button>' +
         '<button class="btn' + (gm.pmode ? ' primary' : '') + '" id="gp-poi">' + GP.poiAdd + '</button>' : '') + '</div>' +
       (gm.pmode ? '<div class="gm-hint" role="status">' + esc(GP.poiHint) + ' <button class="btn mini" id="gp-cancel">' + GM.cancel + '</button></div>' : '') +
       (gm.msg ? '<p class="gm-msg" role="status">' + esc(gm.msg) + '</p>' : '') +
       '<div class="gm"><div class="gm-mapwrap">' + (img ? '' : '<p class="muted gm-nobase">' + esc(GP.noPlan) + '</p>') +
-        '<div class="gm-map gp-map' + (gm.pmode ? ' is-pin' : '') + (img ? '' : ' is-grid') + '" id="gp-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + '">' + (img ? '<img alt="" src="' + esc(img.url) + '" draggable="false">' : '') + dots + '</div></div>' +
-        '<aside class="gm-side">' + (poi ? gpPoiPanel(c, poi) : gpPoiList(c)) + '</aside></div>';
+        '<div class="gm-map gp-map' + (gm.pmode ? ' is-pin' : '') + (img ? '' : ' is-grid') + '" id="gp-map" style="aspect-ratio:' + (1 / ratio).toFixed(4) + ';--ar:' + (1 / ratio).toFixed(4) + '">' + (img ? '<img alt="" src="' + esc(img.url) + '" draggable="false">' : '') + dots + '</div></div>' +
+        '<aside class="gm-side">' + (poi ? gpPoiPanel(c, poi) : gpPoiList(c)) + '</aside></div></div>';
     gpBindPlan(c, poi);
   }
   function gpPoiList(c) {
-    var pois = (c.gpin || {}).pois || [];
-    return gpMini((c.gpin || {}).ref) + '<h2>' + GP.pois + (pois.length ? ' · ' + pois.length : '') + '</h2>' + (pois.length ? '<ul class="gm-zl">' + pois.map(function (p) {
+    var g = c.gpin || {}, pois = g.pois || [], dis = canWrite ? '' : ' disabled';
+    return '<div class="gm-pass" data-gpp="' + esc(c.id) + '"><label class="gm-f"><span>' + GP.card + '</span><select data-gpf="ref"' + dis + '>' + gpCardOpts(g.ref || "") + '</select></label>' + gpMini(g.ref) +
+      '<label class="gm-f gm-f--wide"><span>' + GP.note + '</span><input data-gpf="note" value="' + esc(g.note || "") + '" placeholder="' + esc(GP.notePh) + '" maxlength="200"' + dis + '></label>' +
+      (canWrite ? '<div class="gm-acts"><button class="btn danger" id="gp-del">' + GP.del + '</button></div>' : '') + '</div>' + '<h2>' + GP.pois + (pois.length ? ' · ' + pois.length : '') + '</h2>' + (pois.length ? '<ul class="gm-zl">' + pois.map(function (p) {
       var x = gpRefCard(p.ref), sc = p.scene ? cards.filter(function (k) { return k.id === p.scene; })[0] : null, n = gpPoiPics(c, p.id).length;
       return '<li><button type="button" data-gppoi="' + esc(p.id) + '"><i class="gm-dot" style="background:var(--gold-bright)"></i><b>' + esc(p.title || "?") + '</b><small>' +
         esc([x ? x.title : "", sc ? "🎬 " + (sc.title || "") : "", n ? "🖼 " + n : ""].filter(Boolean).join(" · ")) + '</small></button></li>';
     }).join("") + '</ul>' : '<p class="muted">' + esc(GP.noPois) + '</p>');
+  }
+  function gpInnerOk(ref) { var x = gpRefCard(ref); return !!x && (x.section === "locations" || x.section === "levels"); }
+  function gpInnerOpen(c, ref) { // the place of that location: its point if it has one (on the map or inside), else a new one inside this place
+    var have = GMAP.pins(cards).filter(function (k) { return (k.gpin || {}).ref === ref; })[0] || gpLocPin(ref, [0.5, 0.5], c.id);
+    if (have) { gm.plan = have.id; gm.poi = ""; gm.pmode = ""; render(); }
   }
   function gpPoiPanel(c, p) {
     var dis = canWrite ? '' : ' disabled', scenes = cards.filter(function (k) { return k.section === "scenes" && !k.hidden; }), pics = gpPoiPics(c, p.id);
@@ -7135,6 +7249,7 @@
           (canWrite ? '<button type="button" class="btn mini danger" data-gprm="' + esc(f.id) + '" title="' + esc(GP.picRm) + '" aria-label="' + esc(GP.picRm) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>' +
       (canWrite ? '<button type="button" class="btn" id="gp-padd">' + GP.picsAdd + '</button>' : '') +
       '<label class="gm-f"><span>' + GP.card + '</span><select data-gpf="ref"' + dis + '>' + gpCardOpts(p.ref || "") + '</select></label>' + gpMini(p.ref) +
+      (gpInnerOk(p.ref) ? '<button type="button" class="btn primary" id="gp-inner">' + GP.inner + '</button>' : '') +
       '<label class="gm-f"><span>' + GP.scene + '</span><select data-gpf="scene"' + dis + '><option value="">' + esc(GP.sceneNone) + '</option>' + scenes.map(function (k) { return '<option value="' + esc(k.id) + '"' + (k.id === p.scene ? ' selected' : '') + '>' + esc(k.title || "?") + '</option>'; }).join("") + '</select></label>' +
       (p.scene && scenes.some(function (k) { return k.id === p.scene; }) ? '<button type="button" class="btn mini" data-gpopen="c:' + esc(p.scene) + '">' + GP.sceneOpen + '</button>' : '') +
       '<label class="gm-f gm-f--wide"><span>' + GP.note + '</span><input data-gpf="note" value="' + esc(p.note || "") + '" placeholder="' + esc(GP.notePh) + '" maxlength="200"' + dis + '></label>' +
@@ -7192,7 +7307,12 @@
   }
   function gpBindPlan(c, poi) {
     var mapEl = $("gp-map"), on = function (id, fn) { var el = $(id); if (el) el.onclick = fn; };
-    on("gp-back", function () { gm.plan = ""; gm.poi = ""; gm.pmode = ""; gm.psel = c.id; render(); });
+    var outer = (c.gpin || {}).inner && gpCard(c.gpin.inner);
+    on("gp-back", function () { gm.plan = outer ? outer.id : ""; gm.poi = ""; gm.pmode = ""; gm.psel = ""; render(); });
+    var im = mapEl && mapEl.querySelector("img"); // a borrowed picture (the location's) keeps its own proportions
+    if (im && !gpPlanImg(c)) { var fit = function () { if (!im.naturalWidth) return; gm.ratio = gm.ratio || {}; var r = im.naturalHeight / im.naturalWidth; if (Math.abs((gm.ratio[im.src] || 0.62) - r) > 0.01) { gm.ratio[im.src] = r; mapEl.style.aspectRatio = (1 / r).toFixed(4); mapEl.style.setProperty("--ar", (1 / r).toFixed(4)); } }; if (im.complete) fit(); else im.onload = fit; }
+    var pp = document.querySelector("#view .gm-side [data-gpp]");
+    if (pp) { gpBindFields(pp, c, null); on("gp-del", function () { gpDelete(c).then(function () { if (!gpCard(c.id)) { gm.plan = outer ? outer.id : ""; render(); } }); }); }
     var up = $("gp-up"); if (up) up.onchange = function () { var l = [].slice.call(up.files); up.value = ""; gpUpload(c, l.slice(0, 1), "plan", true); };
     on("gp-art", function () { gpArtPick(c, "plan", true); });
     on("gp-poi", function () { gm.pmode = gm.pmode ? "" : "poi"; render(); });
@@ -7211,6 +7331,7 @@
     var side = document.querySelector("#view .gm-side"); if (side) side.querySelectorAll("[data-gpopen]").forEach(function (b) { b.onclick = function () { gpOpenRef(b.dataset.gpopen); }; });
     var qp = document.querySelector("#view [data-gpq]"); if (!qp || !poi) return;
     on("gp-qx", function () { gm.poi = ""; render(); });
+    on("gp-inner", function () { gpInnerOpen(c, poi.ref); });
     gpBindFields(qp, c, poi);
     qp.querySelectorAll("[data-gprm]").forEach(function (b) { b.onclick = function () { var f = (c.files || []).filter(function (x) { return x.id === b.dataset.gprm; })[0]; if (f) gpRmFile(c, f); }; });
     var add = $("gp-padd"); if (add) add.onclick = function () {

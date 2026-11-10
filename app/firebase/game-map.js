@@ -8,7 +8,8 @@
 //     points [{ id, t, x, y (0..1 inside the zone, y down = north up), name, ref (card id) }] }; the heightmap is a PNG file
 //     on the zone card (field 'height', RES × RES, white = heightM).
 //   a place (v2.116) — a card with `gpin` = { x, y (0..1 on the concept), ref (a card key «c:<id>» / «e:<entity id>»), note, ratio,
-//     pois [{ id, x, y (0..1 on the place picture), title, ref (card key), note, scene (a «Сцени» card id) }] }; its picture is the file
+//     pois [{ id, x, y (0..1 on the place picture), title, ref (card key), note, scene (a «Сцени» card id) }], inner (the outer place's card id),
+//     sheet (true: a separate map listed under the game map, not a point on it) }; its picture is the file
 //     'plan', a point of interest's pictures — files 'poi:<id>'. Visual first: a name and one line of comment.
 // A zone is a separate Unity scene (a dungeon — an instance scene); zones connect by portals, map edges with a short load,
 // or entrances (a mine → its dungeon). The concept map stays in the game as the UI world map (waypoints).
@@ -185,7 +186,9 @@ function placeOut(c, opts) {
   };
   var pics = function (field) { return files.filter(function (f) { return f.field === field && isPic(f); }).map(function (f) { return f.url; }); };
   return {
-    ref: 'c:' + c.id, title: c.title || '', at_on_concept: [+g.x || 0, +g.y || 0], card: card(g.ref), note: g.note || '',
+    ref: 'c:' + c.id, title: c.title || '', card: card(g.ref), note: g.note || '',
+    // where it is: on the concept map, inside another place (a dungeon in a village — opened from a point of interest), or a separate map of its own (another world / plane)
+    ...(g.sheet ? { separate_map: true } : g.inner ? { inside: 'c:' + g.inner } : { at_on_concept: [+g.x || 0, +g.y || 0] }),
     picture: pics('plan').slice(-1)[0] || null,
     points_of_interest: arr(g.pois).map(function (p) {
       return { title: p.title || '', at_on_picture: [+p.x || 0, +p.y || 0], card: card(p.ref), note: p.note || '',

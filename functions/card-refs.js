@@ -148,13 +148,14 @@ var KINDS = [
     } },
   // a place on «🗺 Карта гри» (v2.116): its card, and the cards and scenes of its points of interest
   { id: 'mappin', uk: 'Точка карти', en: 'Map place', out: { uk: 'На точці карти', en: 'On the map place' },
-    fields: ['card.gpin.ref', 'card.gpin.pois.ref', 'card.gpin.pois.scene'],
+    fields: ['card.gpin.ref', 'card.gpin.pois.ref', 'card.gpin.pois.scene', 'card.gpin.inner'],
     edges: function (G) {
       var out = [];
       live(G).forEach(function (c) {
         var g = c.gpin; if (!g) return;
         var f = from('card', c, { key: cardKey(c) }), add = function (to, extra) { if (to && to !== f.key) out.push({ from: f, to: to, extra: extra || '' }); };
         if (g.ref) add(g.ref, '');
+        if (g.inner) add('c:' + g.inner, ''); // a place inside another place (v2.117.2)
         arr(g.pois).forEach(function (p) { if (!p) return; if (p.ref) add(p.ref, p.title || ''); if (p.scene) add('c:' + p.scene, p.title || ''); });
       });
       return out;
