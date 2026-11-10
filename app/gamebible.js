@@ -143,7 +143,7 @@
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
-      artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
+      artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", pc: "⤒ З комп’ютера", rm: "🗑 Прибрати з картки", rmCanon: "Це картинка з канону світу — прибирається в досьє Біблії світу", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
@@ -473,7 +473,7 @@
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
-      artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
+      artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", pc: "⤒ From the computer", rm: "🗑 Remove from the card", rmCanon: "This picture is from the world canon — remove it in the World Bible dossier", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
@@ -4780,7 +4780,10 @@
   });
   $("d-body").addEventListener("click", function (e) {
     var l = e.target.closest("[data-dent]"); if (l) { switchDossier(l.dataset.dent); return; }
-    if (e.target.closest("[data-csportrait]")) { if (dos.isNew) { dmsg(CS.saveFirst); return; } csPortraitNext = true; $("d-pic-up").click(); return; }
+    var csp = e.target.closest("[data-csportrait]"); if (csp) { if (dos.isNew) { dmsg(CS.saveFirst); return; }
+      var up = function () { csPortraitNext = true; $("d-pic-up").click(); }, cur = entImage(dos);
+      if (!cur) return up();
+      picChooser(csp, [{ label: STR.artPick.pc, run: up }, { label: STR.artPick.rm, danger: true, run: function () { removeEntityFile(cur.id); } }]); return; }
     var dp = e.target.closest("[data-dportrait]"); if (dp) { setPortrait(dp.dataset.dportrait); return; }
     var db2 = e.target.closest("[data-bulb]");
     if (db2) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); }); return; }
@@ -5138,8 +5141,8 @@
   }
   // the game card's frame: its own portrait (the «Портрет» field — the look in this game), else its first picture, else the canon's; a click uploads one (→ «Арт» · Портрети)
   function gameSheetHtml(e) {
-    var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; })[0] || pics[0] || entImage(e);
-    var up = canWrite ? '<label class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? CS.change : CS.portraitTip) + '"><input type="file" hidden accept="image/*" data-fup="portrait">' + (img ? '✎' : esc(CS.portrait)) + '</label>' : '';
+    var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; }).slice(-1)[0] || pics[0] || entImage(e);
+    var up = canWrite ? '<button type="button" class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? CS.change : CS.portraitTip) + '" data-picch="portrait" data-picid="' + esc(img && pics.indexOf(img) >= 0 ? img.id : img ? "__canon" : "") + '">' + (img ? '✎' : esc(CS.portrait)) + '</button>' : '';
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">⚔</div>';
     return '<div class="field cs-wrap" data-sheet="' + esc(open.id) + '">' + sheetHtml(e, draft.sheet, frame) + '</div>';
   }
@@ -5149,7 +5152,7 @@
   function placeSheetHtml() {
     var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "view"; }).slice(-1)[0] || pics[0];
     if (!img && open.src === "canon") img = entImage(entities.filter(function (x) { return x.id === open.id; })[0] || {});
-    var up = canWrite ? '<label class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? PL.change : PL.picTip) + '"><input type="file" hidden accept="image/*" data-fup="view">' + (img ? '✎' : esc(PL.pic)) + '</label>' : '';
+    var up = canWrite ? '<button type="button" class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? PL.change : PL.picTip) + '" data-picch="view" data-picid="' + esc(img && pics.indexOf(img) >= 0 ? img.id : img ? "__canon" : "") + '">' + (img ? '✎' : esc(PL.pic)) + '</button>' : '';
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">🏞</div>';
     var sel = function (k) {
       var f = window.__GAMEMAP.PLACE.filter(function (x) { return x.k === k; })[0], v = draft.place[k] || "", own = v && !f.o.some(function (o) { return o[0] === v; });
@@ -5169,8 +5172,8 @@
   }
   var PL = { uk: { pic: "＋ Картинка локації", picTip: "Завантажити картинку локації", change: "Змінити картинку", onMap: "На карті гри" },
     en: { pic: "＋ Location picture", picTip: "Upload a picture of the location", change: "Change the picture", onMap: "On the game map" } }[LANG === "en" ? "en" : "uk"];
-  function renderFields() {
-    if (draft && draft.sheet && document.querySelector('#e-body [data-sheet="' + CSS.escape(open.id) + '"]')) csCollect("#e-body", draft.sheet); // keep what was picked across re-renders
+  function renderFields(sheetSet) { // sheetSet: the sheet's state was just set in code (an own value, a new faction) — the selects on screen still show the old one (v2.115.8)
+    if (!sheetSet && draft && draft.sheet && document.querySelector('#e-body [data-sheet="' + CSS.escape(open.id) + '"]')) csCollect("#e-body", draft.sheet); // keep what was picked across re-renders
     // «Референси» stay lean: the pictures first; the note and the general files block only once they hold something
     var lean = open.section === "refs" && draft.defs.some(function (d) { return d.type === "image"; });
     var all = editMode || moreAll, chips = [], hero = STATS_SECS.indexOf(open.section) >= 0 && canWrite; // a hero's portrait / references / prefab have their buttons on top
@@ -5295,9 +5298,8 @@
   }
   function quickAddHtml() {
     return '<div class="field quickadd"><button type="button" class="btn" data-pfpick>' + PF.qPrefab + '</button>' +
-      '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="portrait">' + PF.qPortrait + '</label>' +
-      '<label class="btn"><input type="file" multiple hidden accept="image/*" data-fup="refpics">' + PF.qRef + '</label>' +
-      '<button type="button" class="btn" data-artpick="portrait">' + esc(STR.artPick.btn) + '</button></div>';
+      '<button type="button" class="btn" data-picch="portrait">' + PF.qPortrait + '</button>' +
+      '<button type="button" class="btn" data-picch="refpics">' + PF.qRef + '</button></div>';
   }
   // the kit: a model comes as ONE self-contained file (GLB, .blend, .unitypackage, ZIP) or as a FOLDER (FBX / OBJ / glTF with textures); the slots are recognised by name (v2.88.1)
   function kitHtml() {
@@ -5833,8 +5835,8 @@
           (canWrite ? '<button class="btn" data-frame="' + esc(f.id) + '" title="' + esc(STR.frameTip) + '" aria-label="' + esc(STR.frameTip + " " + f.name) + '">⌖</button>' : '') +
           (canWrite ? '<button class="btn danger" data-rmfile="' + esc(f.id) + '" aria-label="' + esc(STR.remove + " " + f.name) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>'
       : files.map(fileRow).join("");
-    var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "image" ? ' accept="image/*"' : type === "audio" ? ' accept="audio/*"' : '') + '>' + (type === "image" ? STR.imagesAdd : type === "audio" ? STR.soundAdd : STR.filesAdd) + '</label>' +
-      (type === "image" && gameId && ART_SRC.indexOf(open.section) < 0 ? '<button type="button" class="btn" data-artpick="' + esc(key) + '">' + esc(STR.artPick.btn) + '</button>' : '');
+    var add = !canWrite ? "" : type === "image" ? '<button type="button" class="btn" data-picch="' + esc(key) + '">' + STR.imagesAdd + '</button>' // ⤒ / 🎨 in one menu (v2.115.8)
+      : '<label class="btn"><input type="file" multiple hidden data-fup="' + esc(key) + '"' + (type === "audio" ? ' accept="audio/*"' : '') + '>' + (type === "audio" ? STR.soundAdd : STR.filesAdd) + '</label>';
     return '<div class="field files">' + list + add + '</div>';
   }
   function setEditMode(on) {
@@ -6097,6 +6099,33 @@
     card.files = (card.files || []).concat([copy]);
   }
   function pathShared(card, path) { return cards.some(function (c) { return c.id !== card.id && (c.files || []).some(function (f) { return f.path === path; }); }); }
+  // 🖼 the picture menu (owner, v2.115.8): every place a card takes a picture — the frame's ✎ / «＋ Портрет», a picture field's «＋ Додати картинки»,
+  // the quick buttons — opens one menu: «⤒ З комп’ютера» · «🎨 З Арту» (the game's picture library) · «🗑 Прибрати з картки» (the shown picture)
+  function picChooser(btn, items) {
+    var old = document.querySelector(".pic-ch"); if (old) { old._close(); if (old._for === btn) return; }
+    var m = document.createElement("div"); m.className = "pic-ch"; m.setAttribute("role", "menu"); m._for = btn;
+    m.innerHTML = items.map(function (it, i) { return '<button type="button" role="menuitem" class="' + (it.danger ? 'is-danger' : '') + '" data-pi="' + i + '"' + (it.off ? ' disabled title="' + esc(it.off) + '"' : '') + '>' + esc(it.label) + '</button>'; }).join("");
+    document.body.appendChild(m);
+    var r = btn.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+    m.style.left = Math.max(8, Math.min(innerWidth - mw - 8, r.left)) + "px"; m.style.top = (r.bottom + mh + 8 > innerHeight ? Math.max(8, r.top - mh - 6) : r.bottom + 6) + "px";
+    var close = m._close = function () { m.remove(); document.removeEventListener("pointerdown", out, true); document.removeEventListener("keydown", key, true); };
+    var out = function (ev) { if (!m.contains(ev.target) && !btn.contains(ev.target)) close(); };
+    var key = function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); btn.focus(); } };
+    document.addEventListener("pointerdown", out, true); document.addEventListener("keydown", key, true);
+    m.addEventListener("click", function (ev) { var b = ev.target.closest("[data-pi]"); if (!b || b.disabled) return; close(); items[+b.dataset.pi].run(); });
+    var f = m.querySelector("button:not([disabled])"); if (f) f.focus();
+  }
+  function cardPicMenu(btn) {
+    var field = btn.dataset.picch, fid = btn.dataset.picid || "", A = STR.artPick, single = btn.classList.contains("cs-chg") || btn.classList.contains("cs-ph");
+    var items = [{ label: A.pc, run: function () {
+      var inp = document.createElement("input"); inp.type = "file"; inp.hidden = true; inp.accept = "image/*"; inp.multiple = !single; inp.dataset.fup = field;
+      $("e-body").appendChild(inp); inp.addEventListener("change", function () { setTimeout(function () { inp.remove(); }, 0); }); inp.click();
+    } }];
+    if (gameId && ART_SRC.indexOf(open.section) < 0) items.push({ label: A.btn, run: function () { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(field); } });
+    if (fid === "__canon") items.push({ label: A.rm, danger: true, off: A.rmCanon, run: function () {} });
+    else if (fid) items.push({ label: A.rm, danger: true, run: function () { removeFile(fid); } });
+    picChooser(btn, items);
+  }
   // «🎨 З Арту»: every picture of «Арт» (Картинки, Референси, Стиль, UI, Матеріали) — tick and add to this card's picture field
   function artPicker(field) {
     var card = open; if (!card) return;
@@ -10456,6 +10485,7 @@
     var qb = e.target.closest("[data-bulb]"); if (qb) { var bp = qb.dataset.bulb.split(":"); closeLeaf(); questFrom(bp[0], bp.slice(1).join(":")); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return;
     var qq = e.target.closest("[data-dqd]"); if (qq) { var qp2 = qq.dataset.dqd.split(":"); closeLeaf(); openQD(qp2[0], qp2.slice(1).join(":")); return; }
+    var pch = e.target.closest("[data-picch]"); if (pch) { cardPicMenu(pch); return; }
     var ap = e.target.closest("[data-artpick]"); if (ap) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(ap.dataset.artpick); return; }
     var rm = e.target.closest("[data-rmfile]"); if (rm) { removeFile(rm.dataset.rmfile); return; }
     var pf = e.target.closest("[data-pfpick],[data-pfunlink],[data-pfopen],[data-pfmove],[data-kitna],[data-pfgo]"); if (pf) { prefabClick(pf); return; }
@@ -10514,11 +10544,11 @@
     }
     if (gs && (d0.cs || d0.csx) && e.target.value === "__own") {
       var k = d0.cs || d0.csx, isApp = !!d0.cs; e.target.value = (isApp ? gs.appearance[k] : gs.ent[k]) || "";
-      askName(CS.ownQ, "", function (v) { csCollect("#e-body", gs); if (v) { if (isApp) gs.appearance[k] = v; else gs.ent[k] = v; } renderFields(); }, "", { ok: STR.save }); return;
+      askName(CS.ownQ, "", function (v) { csCollect("#e-body", gs); if (v) { if (isApp) gs.appearance[k] = v; else gs.ent[k] = v; } renderFields(true); }, "", { ok: STR.save }); return;
     }
     if (gs && (e.target.hasAttribute("data-csfac") || d0.csx === "location") && e.target.value === "__new") {
       var loc = d0.csx === "location"; e.target.value = (loc ? gs.ent.location : gs.faction) || "";
-      newFaction(loc ? "locations" : "factions", function (id) { if (draft && draft.sheet === gs) { csCollect("#e-body", gs); if (loc) gs.ent.location = id; else gs.faction = id; renderFields(); } }); return;
+      newFaction(loc ? "locations" : "factions", function (id) { if (draft && draft.sheet === gs) { csCollect("#e-body", gs); if (loc) gs.ent.location = id; else gs.faction = id; renderFields(true); } }); return;
     }
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(list); }
     if (e.target.dataset.fup && e.target.files.length) { var fl = [].slice.call(e.target.files), fk = e.target.dataset.fup; e.target.value = ""; uploadFiles(fl, fk); }

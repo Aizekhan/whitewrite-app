@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.115.7 (2026-11-10)
+**Version:** 2.115.8 (2026-11-10)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -761,6 +761,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.115.8** (owner) one picture menu on cards (`picChooser` / `cardPicMenu`, `[data-picch]`): the frame ✎ / «＋ Портрет» / «＋ Картинка локації», image fields' «＋ Додати картинки», the hero quick buttons → «⤒ З комп’ютера» · «🎨 З Арту» · «🗑 Прибрати з картки» (the shown file; a canon picture is disabled with a hint); the separate «🎨 З Арту» buttons by fields are gone; the frame shows the latest portrait; the World Bible dossier frame ✎ → upload / remove. Fix: an own value («✎ Своє…») / a new faction or home in a game card's character sheet was read back from the old selects by `renderFields` — `renderFields(true)` skips that re-read
 - **v2.115.7** (owner) fixes: card drag — the ghost keeps the card's px size and padding (a banner's % padding blew it up), `dragAbort` on pointercancel / blur / hidden tab and no native image drag inside cards (a ghost no longer hangs on screen); «＋ Підрозділ» — a subsection made in this visit is its own block and is scrolled to (`freshSubs`, was folded into «Порожні»), an empty game section still lists the author's own subsections (`ownSubs`); faction banners carry no tags at all (status too)
 - **v2.115.6** (owner) «Референси»: a click on a reference card opens the picture on the whole screen (`gamebible.js refView`, `.refv`) — ‹ › / arrow keys through the references shown, «✎ Картка» opens the card editor, Esc / ✕ / backdrop closes
 - **v2.115.5** (owner) «Карта світу»: a background picture — `worlds/{w}.mapImage { url, path, name }` (world owner, written by the client; Storage `worlds/{w}/cover/worldmap-*` under the cover rules: owner, image ≤ 10 MB, any plan; the old file is removed on change / «✕ Прибрати»; world deletion clears the prefix); an SVG `<image class="wmap-bg">` (meet) under the grid and the locations
@@ -939,5 +940,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-10 (v2.115.7)
+**Last updated:** 2026-11-10 (v2.115.8)
 **Maintained by:** WhiteWrite Team
