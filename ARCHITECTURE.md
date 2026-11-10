@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.117.0 (2026-11-10)
+**Version:** 2.117.1 (2026-11-10)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -765,6 +765,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.117.1** (owner) a picture card opens as the picture on the whole screen in every picture section (`PIC_SECS`: refs, pictures, ui, materials; `refView` → `picView(items, i)`), and picture thumbnails inside an open card (`.fimg a`) open in the same viewer instead of a new tab (ctrl/shift-click still opens a tab); viewer z-index above the card
 - **v2.117.0** (owner, MCP agent feedback) Claude Code writes on the user's word: MCP `save_card`, `save_quest`, `save_dialogue` with `agentPrev` undo («🤖 Змінив Claude Code» · «↶ Повернути як було» · «✓ Лишити» in the card and the quest / dialogue editor), switch `games/{g}.agentWrite` (settings → Claude Code); initialize instructions → `get_guide setup` first, saves only on the user's request; `get_next_task` with no roadmap says what to tell the user; the MCP key in an environment variable (`setx` + `${WHITEWRITE_KEY_<GAME>}` in the header), restart Claude Code or `/mcp` after adding; `setup-guides.js` setup rules; `tests/mcp-write.test.cjs`
 - **v2.116.0** (owner) «Карта гри» places: «◉ Поставити точку» — a pin = a `gamemap` card with `gpin { x, y, ref (card key c:/e:), note, ratio, pois [{ id, x, y, title, ref, note, scene }] }`, files `plan` (the place picture) and `poi:<id>` (pictures of a point of interest; upload or «🎨 З Арту» via `linkPic`); draggable circles (`gpDrag`), the pin panel (card from Локації / Персонажі / Вороги / Фракції / Артефакти / Предмети / Рівні / Ассети, one-line comment), «🗺 Відкрити місце» → `renderPinPlan` (the picture + points of interest, their panel: pictures, card, scene from «Сцени», comment); `functions/game-map.js` `pins`, `exportMap.places` (`placeOut`) → MCP get_game_map; card-refs KIND `mappin` (gpin.ref, pois.ref, pois.scene); «Сцени» get a file field «Файл сцени (Blender .blend, .glb)» (`blend`)
 - **v2.115.8** (owner) one picture menu on cards (`picChooser` / `cardPicMenu`, `[data-picch]`): the frame ✎ / «＋ Портрет» / «＋ Картинка локації», image fields' «＋ Додати картинки», the hero quick buttons → «⤒ З комп’ютера» · «🎨 З Арту» · «🗑 Прибрати з картки» (the shown file; a canon picture is disabled with a hint); the separate «🎨 З Арту» buttons by fields are gone; the frame shows the latest portrait; the World Bible dossier frame ✎ → upload / remove. Fix: an own value («✎ Своє…») / a new faction or home in a game card's character sheet was read back from the old selects by `renderFields` — `renderFields(true)` skips that re-read
@@ -946,5 +947,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-10 (v2.117.0)
+**Last updated:** 2026-11-10 (v2.117.1)
 **Maintained by:** WhiteWrite Team
