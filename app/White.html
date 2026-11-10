@@ -683,7 +683,8 @@ body.at-home .back-fab{ display:none; }
         <button class="auth-tab" id="fb-tidea" onclick="window.__fbTab&&window.__fbTab('idea')" data-i18n="feedback.ideaTab">✦ Побажання</button>
       </div>
       <label class="pe-field"><span class="pe-lbl" id="fb-lbl" data-i18n="feedback.bugLabel">Опишіть проблему</span>
-        <textarea class="pe-area" id="fb-text" rows="5" data-i18n-placeholder="feedback.placeholder" placeholder="Що сталося / що хотілося б покращити…"></textarea></label>
+        <textarea class="pe-area" id="fb-text" rows="5" maxlength="5000" data-i18n-placeholder="feedback.placeholder" placeholder="Що сталося / що хотілося б покращити…"></textarea></label>
+      <div id="fb-msg" role="alert" style="display:none;color:#e0857a;font-size:13px;margin:-4px 0 10px"></div>
       <button class="pe-btn pe-btn--save" id="fb-submit" style="width:100%;justify-content:center" onclick="window.__fbSend&&window.__fbSend()" data-i18n="feedback.send">Надіслати</button>
     </div>
   </div>
@@ -804,6 +805,7 @@ body.at-home .back-fab{ display:none; }
   }
   function wwNotice(msg) { return wwDialog(msg, false); }
   function wwConfirm(msg) { return wwDialog(msg, true); }
+  window.wwNotice = wwNotice; window.wwConfirm = wwConfirm; // the book iframe and firebase-projects.js use them (ww-embed.js forwards)
   /* ---- icons ---- */
   var I = {
     library: '<path d="M4 5v14M9 5v14M14 6l4 13M4 5h5M9 5h5"/>',
@@ -816,6 +818,7 @@ body.at-home .back-fab{ display:none; }
     user: '<circle cx="12" cy="8" r="3.6"/><path d="M5.5 19.5c.7-3.5 3.3-5.3 6.5-5.3s5.8 1.8 6.5 5.3"/>',
     home: '<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>',
     feather: '<path d="M19 5c-3 0-9 2-12 8-1.3 2.6-2 5-2 5s2.4-.7 5-2c6-3 8-9 9-11z"/><path d="M5 19 11 13M16 8l-4 1 1-4"/>',
+    image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="m21 16-5-5-9 8"/>',
     edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
     trash: '<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>',
     open: '<path d="M5 12h14M13 6l6 6-6 6"/>',
@@ -896,92 +899,107 @@ body.at-home .back-fab{ display:none; }
 
   window.__reloadProjects = loadProjects;
   var editProjectIdx = null;
-  var SCOPE_LBL = { shot: "Оповідання", novella: "Новела", season: "Сезон", endless: "Без меж" };
-  // ordered smallest→largest capacity; can't shrink below already-written scenes
+  var peT = function (k, fb) { var v = window.__i18n ? window.__i18n.t(k) : k; return v === k ? fb : v; };
+  var SCOPE_KEY = { shot: "editor.scopeShot", novella: "editor.scopeNovella", season: "editor.scopeSeason", endless: "editor.scopeEndless" };
+  var SCOPE_UK = { shot: "Оповідання", novella: "Новела", season: "Сезон", endless: "Без меж" };
+  function scopeLbl(s) { return peT(SCOPE_KEY[s], SCOPE_UK[s] || s); }
+  // ordered smallest→largest capacity; can't shrink below already-written scenes. The capacities are the scenes
+  // «Автоматично» writes for the scope (app.jsx getScenesCount: shot 3, novella 8, season up to 24 episodes).
   var SCOPE_ORDER = ["shot", "novella", "season", "endless"];
-  var SCOPE_CAP = { shot: 1, novella: 6, season: 24, endless: Infinity };
-  var ALL_GENRES = ["Фентезі","Темне фентезі","Hard SF","Космоопера","Кіберпанк","Постапокаліпсис","Горор","Містика","Детектив","Трилер","Романтика","Пригоди","Історичне","Міф і казка","Аніме / манґа","Драма","Комедія","Янг-адалт","Слайс-оф-лайф","Вестерн"];
+  var SCOPE_CAP = { shot: 3, novella: 8, season: 24, endless: Infinity };
+  // the story form's genre keys (flow.jsx GENRE_KEYS) — a story keeps keys; older stories kept Ukrainian names
+  var GENRE_KEYS = ["fantasy", "darkFantasy", "hardSF", "spaceOpera", "cyberpunk", "postApocalyptic", "horror", "mystery", "detective", "thriller",
+    "romance", "adventure", "historical", "mythFairy", "anime", "drama", "comedy", "youngAdult", "sliceOfLife", "western", "documentary"];
+  var GENRE_UK = ["Фентезі","Темне фентезі","Hard SF","Космоопера","Кіберпанк","Постапокаліпсис","Горор","Містика","Детектив","Трилер","Романтика","Пригоди","Історичне","Міф і казка","Аніме / манґа","Драма","Комедія","Янг-адалт","Слайс-оф-лайф","Вестерн","Документалка"];
+  function genreKey(g) { var i = GENRE_UK.indexOf(g); return i >= 0 ? GENRE_KEYS[i] : g; }
+  var MAX_STORY_DESC = 2000; // generateScene refuses a longer project description (functions/src/scenes.js)
 
   function openProjectEdit(i) {
     editProjectIdx = i;
     var p = PROJECTS[i], ov = document.getElementById("proj-edit");
+    var up = peT("editor.coverUpload", "Завантажити"), repl = peT("editor.coverReplace", "Замінити");
     ov.querySelector("#pe-title").value = p.title;
     // cover
     var cov = ov.querySelector("#pe-cover");
     cov.style.backgroundImage = "url(" + (p.cover || "assets/ph-project.png") + ")";
     ov.querySelector("#pe-cover-del").style.display = p.cover ? "inline-block" : "none";
-    ov.querySelector("#pe-cover-btn").firstChild.textContent = p.cover ? "Замінити" : "Завантажити";
+    ov.querySelector("#pe-cover-btn").firstChild.textContent = p.cover ? repl : up;
     ov.querySelector("#pe-cover .pe-cover__ph").style.display = p.cover ? "none" : "block";
-    ov.querySelector("#pe-desc").value = p.desc;
+    var da = ov.querySelector("#pe-desc"); da.maxLength = MAX_STORY_DESC; da.value = String(p.desc || "").slice(0, MAX_STORY_DESC);
     ov.querySelector("#pe-scope").value = p.scope;
     // can't shrink scope below already-written scenes
     var sc = ov.querySelector("#pe-scope");
     [].forEach.call(sc.options, function (o) {
       var tooSmall = SCOPE_CAP[o.value] < (p.written || 0);
       o.disabled = tooSmall;
-      o.textContent = SCOPE_LBL[o.value] + (tooSmall ? " — замало (вже " + p.written + " сцен)" : "");
+      o.textContent = scopeLbl(o.value) + (tooSmall ? peT("editor.scopeTooSmall", " — замало (вже {n} сцен)").replace("{n}", p.written) : "");
     });
     var sh = ov.querySelector("#pe-scope-hint");
-    sh.textContent = (p.written > 0) ? "Вже написано " + p.written + " сцен — обсяг не можна зменшити нижче цього." : "";
+    sh.textContent = (p.written > 0) ? peT("editor.scopeWritten", "Вже написано {n} сцен — обсяг не можна зменшити нижче цього.").replace("{n}", p.written) : "";
     ov.querySelector("#pe-ending").value = p.ending;
     var gc = ov.querySelector("#pe-genres"); gc.innerHTML = "";
-    ALL_GENRES.forEach(function (g) {
+    var have = (p.genres || []).map(genreKey);
+    GENRE_KEYS.forEach(function (g) {
       var chip = document.createElement("button");
       chip.type = "button";
-      chip.className = "pe-chip" + (p.genres.indexOf(g) >= 0 ? " is-on" : "");
-      chip.textContent = g;
+      chip.className = "pe-chip" + (have.indexOf(g) >= 0 ? " is-on" : "");
+      chip.dataset.genre = g;
+      chip.textContent = peT("genre." + g, GENRE_UK[GENRE_KEYS.indexOf(g)]);
       chip.onclick = function () { chip.classList.toggle("is-on"); };
       gc.appendChild(chip);
     });
     ov.classList.add("is-on");
-    // cover upload wiring (rebind each open)
+    // cover upload wiring (rebind each open): the picture goes to Storage on «Зберегти» (projects/{p}/cover/), never a data-URL in the document
     var fileInp = ov.querySelector("#pe-cover-file");
+    fileInp.value = "";
     fileInp.onchange = function (ev) {
       var f = ev.target.files && ev.target.files[0]; if (!f) return;
-      var rd = new FileReader();
-      rd.onload = function () { _peCover = rd.result; var cv = ov.querySelector("#pe-cover");
-        cv.style.backgroundImage = "url(" + _peCover + ")"; cv.querySelector(".pe-cover__ph").style.display = "none";
-        ov.querySelector("#pe-cover-del").style.display = "inline-block"; ov.querySelector("#pe-cover-btn").firstChild.textContent = "Замінити"; };
-      rd.readAsDataURL(f);
+      if (!/^image\//.test(f.type) || f.size > 10 * 1024 * 1024) { wwNotice(peT("editor.coverBad", "Обкладинка — картинка до 10 МБ.")); return; }
+      _peCoverFile = f; _peCover = URL.createObjectURL(f); var cv = ov.querySelector("#pe-cover");
+      cv.style.backgroundImage = "url(" + _peCover + ")"; cv.querySelector(".pe-cover__ph").style.display = "none";
+      ov.querySelector("#pe-cover-del").style.display = "inline-block"; ov.querySelector("#pe-cover-btn").firstChild.textContent = repl;
     };
-    ov.querySelector("#pe-cover-del").onclick = function () { _peCover = null; var cv = ov.querySelector("#pe-cover");
+    ov.querySelector("#pe-cover-del").onclick = function () { _peCover = null; _peCoverFile = null; var cv = ov.querySelector("#pe-cover");
       cv.style.backgroundImage = "url(assets/ph-project.png)"; cv.querySelector(".pe-cover__ph").style.display = "block";
-      this.style.display = "none"; ov.querySelector("#pe-cover-btn").firstChild.textContent = "Завантажити"; };
-    _peCover = p.cover || null;
+      this.style.display = "none"; ov.querySelector("#pe-cover-btn").firstChild.textContent = up; };
+    _peCover = p.cover || null; _peCoverFile = null;
   }
-  var _peCover = null;
+  var _peCover = null, _peCoverFile = null;
   function closeProjectEdit() { document.getElementById("proj-edit").classList.remove("is-on"); editProjectIdx = null; }
   async function saveProjectEdit() {
     if (editProjectIdx == null) return;
     var p = PROJECTS[editProjectIdx], ov = document.getElementById("proj-edit");
     var title = ov.querySelector("#pe-title").value.trim() || p.title;
-    var cover = _peCover || null;
-    var desc = ov.querySelector("#pe-desc").value.trim() || p.desc;
+    var desc = (ov.querySelector("#pe-desc").value.trim() || p.desc || "").slice(0, MAX_STORY_DESC);
     var prevScope = p.scope;
     var chosen = ov.querySelector("#pe-scope").value;
     // guard: never accept a scope that can't hold the written scenes — keep previous
     var scope = (SCOPE_CAP[chosen] < (p.written || 0)) ? prevScope : chosen;
     var ending = ov.querySelector("#pe-ending").value;
-    var genres = [].map.call(ov.querySelectorAll(".pe-chip.is-on"), function (c) { return c.textContent; });
-    var meta = (genres[0] || "Історія") + " · " + SCOPE_LBL[scope];
+    var genres = [].map.call(ov.querySelectorAll(".pe-chip.is-on"), function (c) { return c.dataset.genre; });
+    var meta = (genres[0] ? peT("genre." + genres[0], genres[0]) : peT("editor.storyMeta", "Історія")) + " · " + scopeLbl(scope);
 
     // Save to Firestore
     if (window.__firebaseProjects && p.id) {
+      var saveBtn = ov.querySelector(".pe-btn--save"), oldPath = p.coverPath || null, patch;
       try {
-        await window.__firebaseProjects.updateProject(p.id, {
-          title: title,
-          cover: cover,
-          desc: desc,
-          scope: scope,
-          ending: ending,
-          genres: genres,
-          meta: meta
-        });
+        if (saveBtn) saveBtn.disabled = true;
+        patch = { title: title, desc: desc, scope: scope, ending: ending, genres: genres, meta: meta };
+        if (_peCoverFile) { // a new picture → Storage (storage.rules projects/{p}/cover: the story's owner, an image ≤ 10 MB)
+          var path = "projects/" + p.id + "/cover/" + Date.now() + "_" + _peCoverFile.name.replace(/[^\w.\-]+/g, "_").slice(-80);
+          var task = firebase.storage().ref(path).put(_peCoverFile, { contentType: _peCoverFile.type });
+          await task;
+          patch.cover = await task.snapshot.ref.getDownloadURL(); patch.coverPath = path;
+        } else if (!_peCover) { patch.cover = null; patch.coverPath = null; }
+        await window.__firebaseProjects.updateProject(p.id, patch);
+        if ((_peCoverFile || !_peCover) && oldPath && oldPath !== patch.coverPath) firebase.storage().ref(oldPath).delete().catch(function () {}); // the replaced picture
       } catch (error) {
         console.error('Failed to update project:', error);
-        wwNotice('Не вдалося зберегти зміни: ' + error.message);
+        if (saveBtn) saveBtn.disabled = false;
+        wwNotice(peT("editor.saveFailed", "Не вдалося зберегти зміни: ") + (error.code || error.message));
         return;
       }
+      if (saveBtn) saveBtn.disabled = false;
     }
 
     closeProjectEdit();
@@ -1004,6 +1022,7 @@ body.at-home .back-fab{ display:none; }
   }
   function histPush() {
     if (mode == null || _back || !shown) return; // going back never records the screen it leaves (else ✕ loops back into it)
+    if (shown.mode === "create") return; // a story / world form lives in the book iframe — no view to go back to (it would be a blank screen)
     if (hist.length && hist[hist.length - 1].key === shown.key) return;
     hist.push(shown); if (hist.length > 60) hist.shift();
     updateBack();
@@ -1019,7 +1038,7 @@ body.at-home .back-fab{ display:none; }
     _back = true;
     if (s && s.world !== undefined && (s.mode === "narr" || s.mode === "bible" || s.inWork)) CURRENT_WORLD = s.world;
     if (!s) showHome();
-    else if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else if (s.mode === "bible") backToBible(s.sec); else showView(s.mode);
+    else if (s.inWork) showPillar(s.mode); else if (s.mode === "home") showHome(); else if (s.mode === "bible") backToBible(s.sec); else if (views[s.mode]) showView(s.mode); else showHome();
     _back = false; updateBack();
   }
 
@@ -1116,8 +1135,9 @@ body.at-home .back-fab{ display:none; }
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === p); });
     renderRail();
-    if (!isNewProject) {
-      try { history.replaceState(null, "", "#work/" + p); } catch (e) {}
+    if (!isNewProject) { // the book keeps its story in the address: a reload / a shared link opens the same story (initial route)
+      var pidQ = p === "book" && ((query && (query.match(/(?:^|&)projectId=([^&]+)/) || [])[1]) || window.__currentProjectId);
+      try { history.replaceState(null, "", "#work/" + p + (pidQ ? "?projectId=" + pidQ : "")); } catch (e) {}
     }
 
     // Send current projectId to iframe immediately on load
@@ -1218,7 +1238,7 @@ body.at-home .back-fab{ display:none; }
 
   // Open an existing narrative straight into reading + pillars.
   function openNarrative(projectId, ritual) {
-    if (!window.__wwAuth) { openAuth(); return; }
+    if (!window.__wwAuth) { openAuth(function () { openNarrative(projectId, ritual); }); return; }
     if (!projectId) {
       console.error('openNarrative called without projectId');
       return;
@@ -1315,9 +1335,17 @@ body.at-home .back-fab{ display:none; }
     else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
+  // the screen the visitor is on (Спільнота, KB, the hub's Маркет…): after the sign-in they are back on it, not on the home page
+  function returnHere() {
+    var s = here();
+    return function () {
+      if (s.world !== undefined && (s.mode === "narr" || s.mode === "bible")) CURRENT_WORLD = s.world;
+      if (s.mode === "bible") backToBible(s.sec); else if (views[s.mode]) showView(s.mode); else showHome();
+    };
+  }
   function afterAuth() {
-    var next = authNext; authNext = null; closeAuth(); showHome();
-    if (!next) return;
+    var next = authNext; authNext = null; closeAuth();
+    if (!next) { showHome(); return; }
     var tries = 0, go = function () { if (window.__wwAuth || tries++ > 50) Promise.resolve(loadProjects()).then(next); else setTimeout(go, 100); }; go();
   }
   function closeAuth() { document.getElementById("auth-modal").classList.remove("is-on"); }
@@ -1397,17 +1425,34 @@ body.at-home .back-fab{ display:none; }
   // feedback (bug / suggestion)
   document.getElementById("feedback-fab").addEventListener("click", function () { document.getElementById("feedback-modal").classList.add("is-on"); });
   document.getElementById("kb-fab").addEventListener("click", function () { showView("kb"); });
-  window.__fbClose = function () { document.getElementById("feedback-modal").classList.remove("is-on"); var s = document.getElementById("fb-submit"); s.textContent = "Надіслати"; document.getElementById("fb-text").value = ""; };
+  var fbKind = "bug", fbBusy = false;
+  var fbT = function (k, fb) { var v = window.__i18n ? window.__i18n.t(k) : k; return v === k ? fb : v; };
+  function fbMsg(text) { var m = document.getElementById("fb-msg"); if (m) { m.textContent = text || ""; m.style.display = text ? "block" : "none"; } }
+  window.__fbClose = function () { document.getElementById("feedback-modal").classList.remove("is-on"); var s = document.getElementById("fb-submit"); s.textContent = fbT("feedback.send", "Надіслати"); s.disabled = false; document.getElementById("fb-text").value = ""; fbMsg(""); };
   window.__fbTab = function (t) {
-    var bug = t === "bug";
+    var bug = t === "bug"; fbKind = bug ? "bug" : "idea";
     document.getElementById("fb-tbug").classList.toggle("is-on", bug);
     document.getElementById("fb-tidea").classList.toggle("is-on", !bug);
-    document.getElementById("fb-lbl").textContent = bug ? "Опишіть проблему" : "Ваша ідея чи побажання";
+    document.getElementById("fb-lbl").textContent = bug ? fbT("feedback.bugLabel", "Опишіть проблему") : fbT("feedback.ideaLabel", "Ваша ідея чи побажання");
   };
-  window.__fbSend = function () {
-    var s = document.getElementById("fb-submit");
-    s.textContent = "✓ Дякуємо! Надіслано";
-    setTimeout(window.__fbClose, 1200);
+  // feedback/{id} (firestore.rules: create-only for a signed-in author, ≤ 5000 characters; only admins read — Акаунт → «Зворотний зв'язок»)
+  window.__fbSend = async function () {
+    var s = document.getElementById("fb-submit"), ta = document.getElementById("fb-text");
+    var text = (ta.value || "").trim().slice(0, 5000);
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
+    if (!text || fbBusy) return;
+    if (!user) { fbMsg(fbT("feedback.loginFirst", "Увійдіть, щоб надіслати повідомлення.")); openAuth(function () { document.getElementById("feedback-modal").classList.add("is-on"); fbMsg(""); }); return; }
+    fbBusy = true; s.disabled = true; fbMsg("");
+    try {
+      await fb.db.collection("feedback").add({ uid: user.uid, email: user.email || "", text: text, kind: fbKind,
+        page: String(location.hash || "#home").slice(0, 200), at: firebase.firestore.FieldValue.serverTimestamp() });
+      s.textContent = fbT("feedback.sent", "✓ Дякуємо! Надіслано");
+      setTimeout(window.__fbClose, 1200);
+    } catch (e) {
+      console.error("feedback", e);
+      s.disabled = false;
+      fbMsg(fbT("feedback.failed", "Не вдалося надіслати: ") + (e.code || e.message));
+    } finally { fbBusy = false; }
   };
   window.__wwAuthTab = function (t) {
     var i18nt = window.__i18n ? window.__i18n.t : function(k) { return k; };
@@ -1435,7 +1480,7 @@ body.at-home .back-fab{ display:none; }
   document.getElementById("rail-collapse").addEventListener("click", function () { document.querySelector(".rail").classList.toggle("is-collapsed"); });
   document.getElementById("backbtn").addEventListener("click", goBack);
   document.getElementById("userdock").addEventListener("click", function () {
-    if (!window.__wwAuth) { openAuth(); return; }
+    if (!window.__wwAuth) { openAuth(function () { fillAccount(); showView("account"); }); return; }
     fillAccount(); showView("account"); // showView records the screen we came from (with its inWork) before leaving it
   });
 
@@ -1492,8 +1537,8 @@ body.at-home .back-fab{ display:none; }
     if (d.type === "ww-nav" && d.pillar) {
       // Auto-inject projectId if available and not already in query
       var query = d.query || "";
-      if (currentProjectId && query.indexOf("projectId=") < 0) {
-        query = (query ? query + "&" : "") + "projectId=" + currentProjectId;
+      if (window.__currentProjectId && query.indexOf("projectId=") < 0) {
+        query = (query ? query + "&" : "") + "projectId=" + window.__currentProjectId;
       }
       showPillar(d.pillar, query);
       return;
@@ -1852,7 +1897,7 @@ body.at-home .back-fab{ display:none; }
   }
   function cmCall(body) {
     var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
-    if (!user) { openAuth(); return Promise.reject(new Error("auth")); }
+    if (!user) { openAuth(returnHere()); return Promise.reject(new Error("auth")); }
     return user.getIdToken().then(function (token) {
       return fetch(COMM_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(body) });
     }).then(function (r) { return r.json().catch(function () { return { error: "HTTP " + r.status }; }).then(function (d) { if (!r.ok || d.error) throw new Error(d.error || "HTTP " + r.status); return d; }); });
@@ -2037,7 +2082,7 @@ body.at-home .back-fab{ display:none; }
   function bindCollab(v) {
     var db = cmDb(), u = cmUser(), fail = function (er) { CM.cbMsg = cmT("Не вдалося: ", "Failed: ") + (er.code || er.message); fillMarket(); };
     [].forEach.call(v.querySelectorAll("[data-cbform]"), function (b) { b.onclick = function () {
-      if (!u) { openAuth(); return; }
+      if (!u) { openAuth(returnHere()); return; }
       CM.form = b.dataset.cbform; CM.cbMsg = ""; if (!CM.list) loadCommunity(); fillMarket(); var t = v.querySelector("#cb-title"); if (t) t.focus(); }; });
     var f = v.querySelector("#cb-form");
     if (f) f.onsubmit = function (e) {
@@ -2057,7 +2102,7 @@ body.at-home .back-fab{ display:none; }
       db.collection("collab").doc(del.dataset.cbdel).delete().then(function () { CM.form = null; CM.cbMsg = cmT("Анкету видалено.", "The post is deleted."); loadCollab(); }, fail);
     };
     [].forEach.call(v.querySelectorAll("[data-cbrep]"), function (b) { b.onclick = function () {
-      if (!u) { openAuth(); return; } CM.cbReport = CM.cbReport === b.dataset.cbrep ? "" : b.dataset.cbrep; fillMarket(); var r = v.querySelector("#cb-reason"); if (r) r.focus(); }; });
+      if (!u) { openAuth(returnHere()); return; } CM.cbReport = CM.cbReport === b.dataset.cbrep ? "" : b.dataset.cbrep; fillMarket(); var r = v.querySelector("#cb-reason"); if (r) r.focus(); }; });
     [].forEach.call(v.querySelectorAll("[data-cbsend]"), function (b) { b.onclick = function () {
       var reason = v.querySelector("#cb-reason").value.trim(); if (!reason) return;
       cmCall({ action: "report", col: "collab", pubId: b.dataset.cbsend, reason: reason }).then(function () { CM.cbReport = ""; CM.cbMsg = cmT("Дякуємо, модератор перегляне.", "Thank you, a moderator will look."); fillMarket(); }, fail); }; });
@@ -2071,7 +2116,7 @@ body.at-home .back-fab{ display:none; }
   var mkPrice = function (c) { return "$" + ((c || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }); };
   function mkCall(body) {
     var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser;
-    if (!user) { openAuth(); return Promise.reject(new Error("auth")); }
+    if (!user) { openAuth(returnHere()); return Promise.reject(new Error("auth")); }
     return user.getIdToken().then(function (token) {
       return fetch(MARKET_FN, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }, body: JSON.stringify(body) });
     }).then(function (r) { return r.json().catch(function () { return { error: "HTTP " + r.status }; }).then(function (d) { if (!r.ok || d.error) throw new Error(d.error || "HTTP " + r.status); return d; }); });
@@ -2214,7 +2259,7 @@ body.at-home .back-fab{ display:none; }
       cmCall({ action: "like", pubId: CM.open, on: on }).then(function (r) { CM.liked = on; CM.pub.likes = r.likes; fillMarket(); }, function (er) { if (er.message !== "auth") { CM.msg = er.message; fillMarket(); } });
     };
     if (q("[data-cmreport]")) q("[data-cmreport]").onclick = function () {
-      if (!(window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser)) { openAuth(); return; }
+      if (!(window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser)) { openAuth(returnHere()); return; }
       CM.report = !CM.report; fillMarket(); if (CM.report) v.querySelector("#cm-reason").focus();
     };
     if (q("[data-cmsend]")) q("[data-cmsend]").onclick = function () {
@@ -2314,7 +2359,7 @@ body.at-home .back-fab{ display:none; }
       e.preventDefault();
       var inp = views.kb.querySelector("#kb-ask-q"), q = inp.value.trim(); if (!q || KBASK.busy) return;
       var u = window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser;
-      if (!u) { KBASK.q = q; openAuth(); return; }
+      if (!u) { KBASK.q = q; openAuth(returnHere()); return; }
       KBASK.q = q; KBASK.busy = true; KBASK.err = ""; fillKb();
       try {
         var r = await fetch("https://us-central1-whitewrite-app.cloudfunctions.net/kbAsk", { method: "POST",
@@ -2455,11 +2500,12 @@ body.at-home .back-fab{ display:none; }
           '<input type="file" id="acc-avfile" accept="image/*" style="display:none" />' +
           '<div class="acc__id">' +
             '<div class="acc__name" id="acc-name">' + u.name + '</div>' +
-            '<span class="acc__plan">' + svg("sparkle") + t('plan.' + u.plan) + (u.subscriptionStatus && u.subscriptionStatus !== 'active' && u.plan !== 'free' ? ' <span style="opacity:0.6">' + t('plan.cancelled') + '</span>' : '') + (u.paidPlan && u.plan === 'free' ? ' <span style="opacity:0.6">' + t('plan.paused').replace('{plan}', t('plan.' + u.paidPlan)) + '</span>' : '') + '</span>' +
+            '<span class="acc__plan">' + svg("sparkle") + t('plan.' + u.plan) + (u.subscriptionStatus && u.subscriptionStatus !== 'active' && u.plan !== 'free' ? ' <span style="opacity:0.6">' + t(u.subscriptionStatus === 'past_due' ? 'plan.pastDue' : 'plan.cancelled') + '</span>' : '') + (u.paidPlan && u.plan === 'free' ? ' <span style="opacity:0.6">' + t('plan.paused').replace('{plan}', t('plan.' + u.paidPlan)) + '</span>' : '') + '</span>' +
             '<button class="acc__editbtn" id="acc-edit">' + svg("edit") + ' ' + t('account.editProfile') + '</button>' +
           '</div>' +
           '<div class="acc__tokens"><span class="acc__tokn" id="acc-tokn">' + ((u.tokensRemaining !== undefined ? u.tokensRemaining : 0).toLocaleString()) + '</span><span class="acc__tokl">' + t('account.tokensRemaining') + '</span>' +
-            '<button class="acc__topup" id="acc-topup">' + t('account.topUp') + '</button></div>' +
+            '<button class="acc__topup" id="acc-topup">' + t('account.topUp') + '</button>' +
+            (u.hasSubscription ? '<button class="acc__topup" id="acc-portal" title="' + t('account.manageBillingTip') + '">' + t('account.manageBilling') + '</button>' : '') + '</div>' +
         '</div>' +
         '<div class="acc-stats" id="acc-stats">' +
           accStat("—", t('stats.universes')) + accStat("—", t('stats.scenes')) + accStat("—", t('stats.canonEntities')) +
@@ -2469,7 +2515,7 @@ body.at-home .back-fab{ display:none; }
           planCards(u.plan, currentLang === 'en') +
         '</div>' +
         modelHtml(u, currentLang === 'en') +
-        '<div id="acc-notices"></div><div id="acc-costs"></div><div id="acc-fwreq"></div>' +
+        '<div id="acc-notices"></div><div id="acc-costs"></div><div id="acc-fwreq"></div><div id="acc-feedback"></div>' +
         integHtml(currentLang) +
         '<div id="acc-ledger"></div>' +
         '</div>' +
@@ -2477,7 +2523,7 @@ body.at-home .back-fab{ display:none; }
       '</div>';
     bindAccount();
     bindModel(currentLang === 'en');
-    loadNotices(currentLang === 'en'); loadCosts(currentLang === 'en'); loadFwRequests(currentLang === 'en');
+    loadNotices(currentLang === 'en'); loadCosts(currentLang === 'en'); loadFwRequests(currentLang === 'en'); loadFeedback(currentLang === 'en');
     loadIntegKeys(currentLang);
     loadLedger(currentLang === 'en');
     [].forEach.call(views.account.querySelectorAll("[data-acctab]"), function (b) { b.onclick = function () { ACC_TAB = b.dataset.acctab; fillAccount(); }; });
@@ -2649,6 +2695,25 @@ body.at-home .back-fab{ display:none; }
       });
     }).catch(function (e) { console.warn('fwreq', e); });
   }
+  // Admins: «Зворотний зв'язок» from the shell's ✉ button (feedback/{id}, firestore.rules: authors create, admins read / mark read)
+  function loadFeedback(en) {
+    var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser, box = document.getElementById('acc-feedback');
+    if (!box || !user) return;
+    user.getIdTokenResult().then(function (r) {
+      if (!r.claims || r.claims.admin !== true) return;
+      return fb.db.collection('feedback').orderBy('at', 'desc').limit(50).get().then(function (snap) {
+        var docs = snap.docs.filter(function (d) { return !d.data().resolved; });
+        if (!docs.length) return;
+        box.innerHTML = '<div class="vsec-h">' + svg("sparkle") + (en ? 'Feedback · bugs and wishes' : 'Зворотний зв\'язок · баги й побажання') + '</div>' +
+          docs.map(function (d) { var x = d.data(), at = x.at && x.at.toDate ? x.at.toDate().toLocaleString(en ? 'en-GB' : 'uk-UA') : '';
+            return '<div class="integ notice"><div class="integ__t">' + (x.kind === 'bug' ? '🐞 ' : '✦ ') + esc(x.email || x.uid) + ' <span class="muted">' + esc(at) + ' · ' + esc(x.page || '') + '</span></div>' +
+              '<pre class="notice__b">' + esc(x.text || '') + '</pre><button class="pe-btn" data-fbread="' + d.id + '">' + (en ? '✓ Read' : '✓ Прочитано') + '</button></div>'; }).join('');
+        [].forEach.call(box.querySelectorAll('[data-fbread]'), function (b) {
+          b.onclick = function () { fb.db.collection('feedback').doc(b.dataset.fbread).update({ resolved: true }).then(function () { b.parentNode.remove(); }, function (e) { wwNotice(e.code || e.message); }); };
+        });
+      });
+    }).catch(function (e) { console.warn('feedback', e); });
+  }
   function loadCosts(en) {
     var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser, box = document.getElementById('acc-costs');
     if (!box || !user) return;
@@ -2786,17 +2851,46 @@ body.at-home .back-fab{ display:none; }
 
     var av = document.getElementById("acc-av"), file = document.getElementById("acc-avfile");
     if (av) av.onclick = function () { file.click(); };
-    if (file) file.onchange = function (e) {
+    // the profile is saved for real: the avatar → Storage users/{uid}/avatar/ (storage.rules, an image ≤ 2 MB), its URL and the name →
+    // Firebase Auth (photoURL / displayName, read by firebase-auth.js on every sign-in) and users/{uid} (avatar / displayName, firestore.rules clientUserFields)
+    var fbu = function () { return window.__firebase && window.__firebase.auth && window.__firebase.auth.currentUser; };
+    var saveProfile = function (patch) {
+      var au = fbu(); if (!au) return Promise.reject(new Error("auth"));
+      var prof = {}; if (patch.displayName != null) prof.displayName = patch.displayName; if (patch.avatar != null) prof.photoURL = patch.avatar;
+      return au.updateProfile(prof).then(function () {
+        return window.__firebase.db.collection("users").doc(au.uid).set(Object.assign({}, patch, { updatedAt: firebase.firestore.FieldValue.serverTimestamp() }), { merge: true });
+      });
+    };
+    if (file) file.onchange = async function (e) {
       var f = e.target.files && e.target.files[0]; if (!f) return;
-      var rd = new FileReader(); rd.onload = function () { u.avatar = rd.result; fillAccount(); syncDockAvatar(); }; rd.readAsDataURL(f);
+      var au = fbu(); if (!au) return;
+      if (!/^image\//.test(f.type) || f.size > 2 * 1024 * 1024) { wwNotice(t('account.avatarBad')); file.value = ""; return; }
+      try {
+        var oldRef = null; try { oldRef = u.avatar && u.avatar.indexOf("firebasestorage") >= 0 ? firebase.storage().refFromURL(u.avatar) : null; } catch (x) {}
+        if (oldRef && oldRef.fullPath.indexOf("users/" + au.uid + "/avatar/") !== 0) oldRef = null; // only our own previous avatar
+        var path = "users/" + au.uid + "/avatar/" + Date.now() + "_" + f.name.replace(/[^\w.\-]+/g, "_").slice(-60);
+        var task = firebase.storage().ref(path).put(f, { contentType: f.type }); await task;
+        var url = await task.snapshot.ref.getDownloadURL();
+        await saveProfile({ avatar: url });
+        u.avatar = url;
+        if (oldRef) oldRef.delete().catch(function () {}); // the replaced picture
+        fillAccount(); syncDockAvatar();
+      } catch (er) { wwNotice(t('account.profileSaveFailed') + ' ' + (er.code || er.message)); }
+      file.value = "";
     };
     var ed = document.getElementById("acc-edit");
     if (ed) ed.onclick = function () {
-      var v = window.prompt ? null : null; // use inline editable
       var nameEl = document.getElementById("acc-name");
       nameEl.contentEditable = "true"; nameEl.classList.add("is-editing"); nameEl.focus();
       ed.innerHTML = svg("sparkle") + " " + t('account.save');
-      ed.onclick = function () { nameEl.contentEditable = "false"; nameEl.classList.remove("is-editing"); u.name = nameEl.innerText.trim() || u.name; fillAccount(); syncDockAvatar(); };
+      ed.onclick = function () {
+        var name = nameEl.innerText.trim().slice(0, 60);
+        nameEl.contentEditable = "false"; nameEl.classList.remove("is-editing");
+        if (!name || name === u.name) { fillAccount(); return; }
+        ed.disabled = true;
+        saveProfile({ displayName: name }).then(function () { u.name = name; fillAccount(); syncDockAvatar(); },
+          function (er) { ed.disabled = false; wwNotice(t('account.profileSaveFailed') + ' ' + (er.code || er.message)); fillAccount(); });
+      };
     };
     [].forEach.call(document.querySelectorAll(".plan__btn"), function (b) {
       b.onclick = async function () {
@@ -2861,7 +2955,7 @@ body.at-home .back-fab{ display:none; }
           window.location.href = checkoutUrl;
         } catch (error) {
           console.error('Checkout error:', error);
-          wwNotice(t('alert.checkoutError'));
+          wwNotice(t('alert.checkoutError') + ' ' + error.message); // the server's reason (409: already subscribed / on hold → «Керувати оплатою»)
           b.disabled = false;
           b.textContent = t('plan.choose');
         }
@@ -2887,10 +2981,18 @@ body.at-home .back-fab{ display:none; }
         window.location.href = checkoutUrl;
       } catch (error) {
         console.error('Token top-up error:', error);
-        wwNotice(t('alert.checkoutError'));
+        wwNotice(t('alert.checkoutError') + ' ' + error.message);
         tu.disabled = false;
         tu.textContent = t('account.topUp');
       }
+    };
+
+    var po = document.getElementById("acc-portal");
+    if (po) po.onclick = async function () {
+      po.disabled = true;
+      try { var url = await window.__lemonSqueezy.openPortal(); window.open(url, "_blank", "noopener"); }
+      catch (e) { wwNotice(t('alert.checkoutError') + ' ' + e.message); }
+      po.disabled = false;
     };
 
     // Load real account stats
@@ -2904,26 +3006,15 @@ body.at-home .back-fab{ display:none; }
       // Get user's projects
       const projects = await window.__firebaseProjects.getUserProjects(window.__wwUser.uid);
 
-      // Count total scenes across all projects
-      let totalScenes = 0;
-      let totalCanonEntities = 0;
-
-      for (const project of projects) {
-        // Count scenes
-        if (project.scenes) {
-          totalScenes += Object.keys(project.scenes).length;
-        }
-
-        // Count canon entities
-        if (project.canon) {
-          const canon = project.canon;
-          totalCanonEntities += (canon.characters || []).length;
-          totalCanonEntities += (canon.locations || []).length;
-          totalCanonEntities += (canon.events || []).length;
-          totalCanonEntities += (canon.factions || []).length;
-          totalCanonEntities += (canon.artifacts || []).length;
-        }
-      }
+      // Scenes live in projects/{p}/scenes, the canon in worlds/{w}/entities (the legacy project.canon is not read any more):
+      // count queries; an SDK without them falls back to the project's own `written` counter / the docs
+      const db = window.__firebase.db;
+      const countOf = (q) => (typeof q.count === 'function' ? q.count().get().then((sn) => sn.data().count) : q.get().then((sn) => sn.size));
+      const sceneCounts = await Promise.all(projects.map((p) => countOf(db.collection('projects').doc(p.id).collection('scenes')).catch(() => p.written || 0)));
+      const ownWorlds = (WORLDS || []).filter((w) => !w.shared);
+      const entityCounts = await Promise.all(ownWorlds.map((w) => countOf(db.collection('worlds').doc(w.id).collection('entities')).catch(() => 0)));
+      const totalScenes = sceneCounts.reduce((a, b) => a + b, 0);
+      const totalCanonEntities = entityCounts.reduce((a, b) => a + b, 0);
 
       // Update stats in DOM
       const statsContainer = document.getElementById("acc-stats");
@@ -2982,6 +3073,13 @@ body.at-home .back-fab{ display:none; }
     }
     if (dock) dock.classList.remove('is-loading');
   }
+  // Акаунт on its plans (tariffs, top-up): the book's «not enough tokens», the story limit (firebase-projects.js) — the iframes call it through ww-embed.js
+  window.__openAccount = function () {
+    var go = function () { showView("account"); setTimeout(function () { var g = views.account && views.account.querySelector(".plan-grid"); if (g && g.scrollIntoView) g.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60); };
+    if (!window.__wwAuth) { openAuth(go); return; }
+    go();
+  };
+  window.__syncDockAvatar = syncDockAvatar; // firebase-auth.js (after the user doc loads) and the book iframe (after ✦, via ww-embed.js) refresh the dock
 
   // Reload account modal with fresh data (called when user data changes)
   window.__reloadAccount = function() {
@@ -3044,7 +3142,17 @@ body.at-home .back-fab{ display:none; }
 
   /* ---- initial route ---- */
   var h = (location.hash || "").replace("#", "");
-  if (h.indexOf("work/") === 0 && PILLARS[h.slice(5)]) { showPillar(h.slice(5)); }
+  var hq = h.indexOf("?") >= 0 ? h.slice(h.indexOf("?") + 1) : ""; h = h.split("?")[0];
+  var hPid = new URLSearchParams(hq).get("projectId"); // #work/book?projectId=X — a reload inside a story, WhiteWrite.html?projectId=X
+  if (h === "work/book" && hPid) {
+    showHome(); // the cover until the sign-in is known, then the story itself (its world from the loaded list)
+    (function waitAuth(n) {
+      if (window.__wwAuth) { Promise.resolve(loadProjects()).then(function () { openNarrative(hPid); }); return; }
+      if (window.__wwAuth === false && n > 30) { openAuth(function () { openNarrative(hPid); }); return; }
+      if (n < 100) setTimeout(function () { waitAuth(n + 1); }, 100);
+    })(0);
+  }
+  else if (h.indexOf("work/") === 0 && PILLARS[h.slice(5)]) { showPillar(h.slice(5)); }
   else if (SECTIONS[h] || h === "account" || h === "kb") { showView(h); }
   else { showHome(); }
 

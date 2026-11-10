@@ -209,13 +209,22 @@
     const [text, setText] = useState(scene.text || "");
     const [state, setState] = useState("saved"); // saved | dirty | saving | error
     const timer = useRef(null), last = useRef({ title: scene.title || "", text: scene.text || "" }), area = useRef(null);
-    const save = async (v) => {
-      if (v.title === last.current.title && v.text === last.current.text) { setState("saved"); return; }
-      setState("saving");
-      try {
-        await window.__firebaseScenes.updateScene(projectId, scene.id, { title: v.title, text: v.text, status: "draft" });
-        last.current = v; setState("saved");
-      } catch (e) { console.error("[SceneSheet] save failed", e); setState("error"); }
+    // Saves run one after another and each writes the NEWEST text (want): a slow older autosave can never land after a newer one.
+    // Resolves true when the newest text is stored, false on a failure (the sheet keeps the text and shows the error).
+    const want = useRef(last.current), chain = useRef(Promise.resolve(true));
+    const save = (v) => {
+      if (v) want.current = v;
+      chain.current = chain.current.then(async () => {
+        const cur = want.current;
+        if (cur.title === last.current.title && cur.text === last.current.text) { setState("saved"); return true; }
+        setState("saving");
+        try {
+          await window.__firebaseScenes.updateScene(projectId, scene.id, { title: cur.title, text: cur.text, status: "draft" });
+          last.current = cur; setState(want.current === cur ? "saved" : "dirty");
+          return true;
+        } catch (e) { console.error("[SceneSheet] save failed", e); setState("error"); return false; }
+      });
+      return chain.current;
     };
     const change = (v) => { setState("dirty"); clearTimeout(timer.current); timer.current = setTimeout(() => save(v), 900); };
     useEffect(() => { if (area.current) { area.current.focus(); area.current.setSelectionRange(text.length, text.length); } }, []);
@@ -230,7 +239,9 @@
         } catch (e) { console.warn("[SceneSheet] cleanup", e); }
         onClose(null); return;
       }
-      await save(v);
+      if (!(await save(v))) { // never close (and re-read the book) over a text that is not stored
+        if (window.wwNotice) window.wwNotice(tt('book.sheet.saveFailed')); return;
+      }
       onClose(scene.id);
     };
     useEffect(() => {

@@ -17,6 +17,7 @@ const path = require('path');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, claudeApiKey, stripeSecretKey, MODEL_PRICING, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { activeModels, claudeText } = require('./claude');
 const ledger = require('./ledger');
 const { LICENCE, licenceFee, USD_PER_TOKEN, byOp } = require('../paid-features.js');
@@ -198,7 +199,7 @@ async function handle(op, b, tok) {
     if (!w.exists || w.data().owner !== uid) throw fail(403, 'Світ не знайдено або немає доступу');
     if (w.data().freeze) throw fail(409, 'Світ уже на перевірці або в продажу');
     if (!getPlanBudget(userData.plan || 'free').allowGameDev) throw fail(403, 'Заявку на сертифікацію подає лише Worldbuilder', { code: 'PLAN_REQUIRED' });
-    if (userData.subscriptionStatus !== 'active') throw fail(403, 'Активна підписка необхідна', { requiresSubscription: true });
+    if (!subscriptionActive(userData)) throw fail(403, 'Активна підписка необхідна', { requiresSubscription: true });
     const s = await buildSnapshot(worldId, uid);
     const fee = licenceFee(s.chars);
     if (fee == null) throw fail(413, `Світ завеликий для одного продажу (${s.chars.toLocaleString()} з ${LICENCE.maxChars.toLocaleString()} символів)`);

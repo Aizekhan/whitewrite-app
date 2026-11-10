@@ -47,6 +47,10 @@
         reveals: { open: "Відкрита читачеві", later: "Розкриється згодом", internal: "Внутрішній канон" },
         revealHint: { open: "Читач бачить її як є.", later: "Таємниця: читач дізнається згодом.", internal: "Лише для автора: ідея чи правда за лаштунками, не для читача." } },
       cult: { del: "Видалити запис", delQ: "Видалити цей запис культури разом з його файлами?" },
+      edel: { btn: "Видалити", q: "Видалити «{t}» з канону світу назавжди?", busy: "Перевіряю, що зачепить видалення…", done: "«{t}» видалено з канону.",
+        links: "Звʼязки з іншими сутностями ({n}) приберуться: {l}.", cards: "Картки в іграх ({n}: {g}) стануть власними картками гри — назва й опис скопіюються, звʼязок із каноном зникне.",
+        refs: "Квести й діалоги посилаються на «{t}» ({n}): {l}. Посилання лишаться без цілі — перевір їх після видалення.", scenes: "Сцени історій згадують «{t}» ({n}) — текст сцен не зміниться.",
+        files: "Файли досьє ({n}) буде видалено зі сховища.", none: "Ніщо інше в світі на «{t}» не посилається.", noGames: "Не всі ігри вдалося перевірити (немає доступу до карток): {g}." },
       chron: { unit: "Одиниця часу", unitPh: "рік", openStory: "Відкрити", openBook: "Відкрити книгу «{t}»", storyMore: "Налаштування історії", newBook: "Нова історія", editStory: "Редагувати історію", delStory: "Видалити історію",
         scopeAria: "Масштаб історії", scopes: { world: "Загальна історія світу", local: "Локальна історія" }, gamesLabel: "Ігри:", gamesHint: "До яких ігор світу належить історія",
         noStories: "У цьому світі ще немає історій.", noGameStories: "У цієї гри ще немає історій.", gameStoriesHint: "Тут — історії світу з тегом цієї гри. Тег ставиться в «Налаштуваннях історії» під книгою (тут або в Біблії світу → «Історії світу»); нова історія звідси отримує його сама.", empty: "Ще немає подій. Додай першу — «＋ Додати» біля підрозділу.",
@@ -124,6 +128,8 @@
       createGame: "Створити гру", ngDesc: "Опис гри", ngDescPh: "Що це за гра: жанр, що робить гравець, відчуття… (необовʼязково)", ngMd: "⤒ Файл гри (.md)", ngMdHint: "Усе, що вже є про гру, — одним файлом з ПК: після створення ШІ розкладе його по розділах GDD, ти відмітиш, що взяти. Варіантів на вибір не буде.", ngMdLocked: "🔒 Файл гри (.md) розбирає ШІ — це частина Worldbuilder. Опис нижче збережеться в «Огляді гри».", ngMin: "✎ Заповнити мінімально тим, що я дав", ngMinHint: "Без варіантів: гра отримає лише твою назву й опис (картка «Огляд гри»).",
       firstGame: "Перша гра на цьому каноні", allCanon: "Взяти весь канон світу ({n})", conc: { btn: "✦ 3 концепти з канону", hint: "Не знаєш, яку гру робити? ШІ запропонує три різні ігри на цьому каноні; обрана стане назвою і «Оглядом гри».", busy: "ШІ придумує ігри…", pick: "Обрати", picked: "✓ Обрано", canon: "Канон", why: "Чому варто" }, allCanonHint: "Персонажі, локації, фракції й артефакти одразу стануть картками гри; зайве потім прибереш. Без галочки — додаватимеш вибірково: «＋ Додати з канону».",
       gameLimit: "На твоєму тарифі — {n} гра. Видали наявну або перейди на Worldbuilder: там ігор скільки завгодно.",
+      canonRO: { title: "Канон — лише для читання", text: "Редагувати канон світу — огляд, закони, досьє, культуру, хроніку, карту й файли — можна з тарифу Storyteller. Читати канон і брати його в гру можна на будь-якому тарифі.", member: "Лише перегляд: цей розділ редагує власник світу або учасник із правом редагування.", short: "🔒 Канон редагується з тарифу Storyteller",
+        audit: "«Неузгоджене» заповнює ✦ ШІ-аудит канону: він шукає суперечності між оглядом, законами, досьє, культурою й хронікою і питає, як їх розвʼязати. Аудит — частина Worldbuilder." },
       devLock: { title: "Це — частина Worldbuilder", text: "GDD гри — розділи, картки, механіки, квести й діалоги, стиль, файли до 20 МБ — відкритий на будь-якому тарифі. Продакшн-план, Claude Code (MCP), імпорт і звірка з ШІ, ✦ чернетки, досвід гравців, маркетинг, GitHub, файли до 200 МБ і скільки завгодно ігор — на Worldbuilder." },
       firstGameText: "Канон світу — спільний: персонажі, місця, закони. Гра бере з нього все потрібне й додає свої механіки, ассети і план. На одному каноні можна зробити кілька різних ігор.",
       addSection: "+ Свій розділ", sectionName: "Назва розділу, напр. «Звук»",
@@ -188,13 +194,13 @@
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
       importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}", importLost: "Частину тексту ({n} шм.) ШІ не зміг розібрати навіть дрібнішими шматками — її немає в пропозиції. Решту — відміть і перенеси; той шматок можна імпортувати окремим файлом.",
-      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до 200 МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
+      files: "Файли", filesHint: "префаби, моделі, картинки, звук — до {mb} МБ; у 3D відкриваються .glb .gltf .fbx .obj .stl", filesAdd: "＋ Додати файли",
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
       alib: { btn: "🎧 Аудіотека", cards: "▦ Картки", title: "Аудіотека гри", intro: "Усі звуки й треки гри в одному місці. Фабрика звуку бере їх звідси: у кожному стані, шарі, стінгері, амбієнті й звуку UI — «＋ З Аудіотеки» або «⤒ Новий» (новий файл теж лягає сюди).",
         sum: "{n} звуків · {f} файлів · {m} хв", missing: "Бракує звуку", missingHint: "Слоти Фабрики звуку без жодного файлу.", missingNone: "Усі слоти Фабрики мають звук.", lib: "Звуки", none: "В Аудіотеці ще немає звуків — «⤒ Звуки» вгорі.", unused: "не використано", used: "Де звучить",
         variants: "варіацій", open: "Відкрити", play: "Слухати", stop: "Зупинити", search: "Пошук звуку…", pick: "＋ З Аудіотеки", up: "⤒ Новий", rm: "Прибрати зі слота", pickTitle: "Звук з Аудіотеки", pickHint: "Позначені звуки ляжуть у слот; кілька — варіації (гра бере випадковий).", add: "Додати", nothing: "Нічого не знайдено" },
-      uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", storageFull: "Сховище тарифу заповнене ({n} ГБ на всі твої світи): видали непотрібні файли або перейди на вищий тариф", confirmFile: "Видалити файл",
+      uploading: "Завантажую", filesDone: "Завантажено файлів", fileTooBig: "Файл більший за 200 МБ", fileTooBigG: "Файл більший за {n} МБ — це ліміт тарифу на один файл гри{up}", fileTooBigUp: " (на Worldbuilder — до 200 МБ)", fileTooBigTeam: "Сервер не прийняв файл: на тарифі власника світу один файл гри — до 20 МБ (Worldbuilder — до 200 МБ)", storageFull: "Сховище тарифу заповнене ({n} ГБ на всі твої світи): видали непотрібні файли або перейди на вищий тариф", confirmFile: "Видалити файл",
       v3d: { shot: "📷 Знімок для стилю", shotTip: "Зберегти цей ракурс картинкою на картці — її перевірить стиль гри", shotDone: "Знімок збережено на картці", open: "🧊 3D", view: "Переглянути в 3D", loading: "Завантажую модель…", rotate: "Обертання", wire: "Каркас", reset: "Скинути вид", close: "Закрити", tris: "трикутників",
         hint: "Тягни — обертати · коліщатко — зум · права кнопка — зсув · Esc — закрити", failed: "Не вдалося відкрити модель" },
       analyze: "✦ Проаналізувати біблію", reanalyze: "↻ Оновити аналіз", makePlan: "✦ Згенерувати план розробки", remakePlan: "↻ Перегенерувати план",
@@ -202,7 +208,7 @@
       busyPlan: "AI складає план розробки… Для великої біблії це 5–15 хвилин; можна піти зі сторінки — план зʼявиться тут сам.",
       scTitle: "Чого бракує в біблії", scIntro: "План знайшов, чого не вистачає для розробки. Відмічене зʼявиться порожніми картками зі статусом «В роботі» — заповнюй їх сам або згодом через Claude Code.",
       exTitle: "Claude Code — виконавець", exIntro: "Claude Code у репозиторії гри підключається до WhiteWrite по MCP: бере наступну готову задачу з усім контекстом (картки, файли, критерії), працює в Unity і здає звіт сюди на перевірку. Ключ діє лише для цієї гри.",
-      exConnect: "Підключити Claude Code", exAnother: "Ще один ключ", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
+      exConnect: "Підключити Claude Code", exOwnerOnly: "Ключ MCP для Claude Code створює лише власник світу — попроси його підключити агента", exAnother: "Ще один ключ", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
       exThen: "Ключ ляже у змінну середовища Windows, а в налаштуваннях Claude Code буде лише її назва. Claude Code, уже відкритий, нових інструментів не бачить: закрий його й запусти знову з цієї теки (або перевір /mcp — whitewrite має бути з галочкою). Потім: «Візьми наступну задачу з WhiteWrite і виконай її».", exUsed: "останній виклик", exNever: "ще не було", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
       exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну", framework: "надіслав маніфест фреймворку" },
       ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
@@ -289,7 +295,7 @@
         abHyp: "Гіпотеза", abHypPh: "Напр.: підказка-світляк допоможе знайти механізм", abVariants: "Варіанти", abVariantsPh: "A, B", abEvent: "Подія успіху", abCreate: "Почати експеримент", abNone: "Експериментів ще немає.",
         abRunning: "триває", abDone: "завершено", abStop: "Завершити", abRate: "конверсія", abP: "p-значення", abSmall: "Замало гравців для висновку (треба ≥ 30 у кожному варіанті).",
         endpoint: "Адреса прийому подій", keys: "Ключі гри (лише запис)", keyLabel: "Назва ключа", keyLabelPh: "Напр.: playtest-build", keyCreate: "Створити ключ", keyOnce: "Скопіюй зараз — більше ключ не покажеться:",
-        keyRevoke: "Відкликати", keyNone: "Ключів ще немає.", stats: "Сьогодні отримано подій: {n}", retention: "Сирі події зберігаються 30 днів, денні підсумки — 400 днів; старіші Firestore видаляє сам.",
+        keyRevoke: "Відкликати", keyNone: "Ключів ще немає.", keyOwner: "Ключі телеметрії створює й відкликає власник світу або адмін команди.", stats: "Сьогодні отримано подій: {n}", retention: "Сирі події зберігаються 30 днів, денні підсумки — 400 днів; старіші Firestore видаляє сам.",
         oneBtn: "⧉ Ключ + запит для Claude Code", oneHint: "Одним кліком: новий ключ запису і готовий запит для Claude Code з адресою й ключем — встав його в сесію агента в репозиторії гри.", oneDone: "Скопійовано — встав у Claude Code (новий ключ уже створено).",
         onePrompt: "Підключи телеметрію гри до WhiteWrite. Виклич get_telemetry_schema і реалізуй її: черга подій, пакети, повтори, згода гравця, без особистих даних. Адреса прийому: {url}. Ключ запису: {key} — збережи його в налаштуваннях збірки поза кодом (файл у .gitignore або змінна середовища), не в публічному репозиторії. Спершу план — код потім.",
         howTitle: "Як підключити гру", how: "Попроси Claude Code у репозиторії гри: «Виклич get_telemetry_schema і реалізуй телеметрію за нею: черга, пакети, згода гравця». Ключ — у Project Settings гри, не в коді репозиторію, якщо репо публічне.",
@@ -382,6 +388,10 @@
         reveals: { open: "Open to the reader", later: "Revealed later", internal: "Internal canon" },
         revealHint: { open: "The reader sees it as it is.", later: "A secret: the reader learns it later.", internal: "For the author only: an idea or the truth behind the scenes, not for the reader." } },
       cult: { del: "Delete entry", delQ: "Delete this culture entry with its files?" },
+      edel: { btn: "Delete", q: "Delete “{t}” from the world canon for good?", busy: "Checking what the deletion touches…", done: "“{t}” deleted from the canon.",
+        links: "Links with other entities ({n}) will be removed: {l}.", cards: "Cards in games ({n}: {g}) become the games' own cards — the name and description are copied, the link to the canon goes.",
+        refs: "Quests and dialogues point at “{t}” ({n}): {l}. Those references will point at nothing — check them after the deletion.", scenes: "Story scenes mention “{t}” ({n}) — the scene texts stay as they are.",
+        files: "The dossier's files ({n}) will be deleted from storage.", none: "Nothing else in the world points at “{t}”.", noGames: "Not every game could be checked (no access to its cards): {g}." },
       chron: { unit: "Time unit", unitPh: "year", openStory: "Open", openBook: "Open the book “{t}”", storyMore: "Story settings", newBook: "New story", editStory: "Edit the story", delStory: "Delete the story",
         scopeAria: "Story scope", scopes: { world: "World-wide story", local: "Local story" }, gamesLabel: "Games:", gamesHint: "Which games of the world the story belongs to",
         noStories: "No stories in this world yet.", noGameStories: "This game has no stories yet.", gameStoriesHint: "These are the world's stories tagged with this game. The tag is set in “Story settings” under a book (here or in the World Bible → “World stories”); a new story made here gets it by itself.", empty: "No events yet. Add the first — “＋ Add” by a subsection.",
@@ -458,6 +468,8 @@
       createGame: "Create game", ngDesc: "Game description", ngDescPh: "What the game is: genre, what the player does, the feeling… (optional)", ngMd: "⤒ Game file (.md)", ngMdHint: "Everything you already have about the game in one file from your PC: after creating, AI sorts it into the GDD sections and you tick what to take. No variants to pick.", ngMdLocked: "🔒 The game file (.md) is read by AI — part of Worldbuilder. The description below is kept in “Game overview”.", ngMin: "✎ Fill it minimally with what I gave", ngMinHint: "No variants: the game gets only your name and description (the “Game overview” card).",
       firstGame: "The first game on this canon", allCanon: "Take the whole world canon ({n})", conc: { btn: "✦ 3 concepts from the canon", hint: "Not sure which game to make? AI proposes three different games on this canon; the picked one becomes the name and the “Game overview”.", busy: "AI is coming up with games…", pick: "Pick", picked: "✓ Picked", canon: "Canon", why: "Why make it" }, allCanonHint: "Characters, locations, factions and artifacts become the game's cards at once; remove what you don't need later. Unticked — add them one by one: “＋ Add from canon”.",
       gameLimit: "Your plan has {n} game. Delete the one you have or move to Worldbuilder: any number of games there.",
+      canonRO: { title: "The canon is read-only", text: "Editing the world canon — overview, laws, dossiers, culture, chronicle, map and files — opens from the Storyteller plan. Reading the canon and taking it into a game works on every plan.", member: "View only: this section is edited by the world owner or a member with the right to edit it.", short: "🔒 The canon is edited from the Storyteller plan",
+        audit: "«Inconsistencies» is filled by the ✦ AI canon audit: it looks for contradictions between the overview, laws, dossiers, culture and chronicle and asks how to settle them. The audit is part of Worldbuilder." },
       devLock: { title: "This is part of Worldbuilder", text: "A game's GDD — sections, cards, mechanics, quests and dialogues, style, files up to 20 MB — is open on every plan. The production plan, Claude Code (MCP), AI import and reconciling, ✦ drafts, player experience, marketing, GitHub, files up to 200 MB and any number of games are on Worldbuilder." },
       firstGameText: "The world canon is shared: characters, places, laws. A game takes what it needs and adds its own mechanics, assets and plan. One canon can carry several different games.",
       addSection: "+ Own section", sectionName: "Section name, e.g. “Sound”",
@@ -522,13 +534,13 @@
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
       importContra: "Contradictions → Production plan", importPart: "part {d} of {n}", importLost: "The AI could not sort part of the text ({n} piece(s)) even in smaller bits — it is not in the proposal. Tick and take the rest; that piece can be imported as a separate file.",
-      files: "Files", filesHint: "prefabs, models, images, audio — up to 200 MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
+      files: "Files", filesHint: "prefabs, models, images, audio — up to {mb} MB; .glb .gltf .fbx .obj .stl open in 3D", filesAdd: "＋ Add files",
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
       alib: { btn: "🎧 Audio library", cards: "▦ Cards", title: "The game's Audio library", intro: "Every sound and track of the game in one place. The Sound factory takes them from here: in every state, layer, stinger, ambience and UI sound — “＋ From the library” or “⤒ New” (a new file lands here too).",
         sum: "{n} sounds · {f} files · {m} min", missing: "Missing sound", missingHint: "Sound factory slots without any file.", missingNone: "Every Sound factory slot has a sound.", lib: "Sounds", none: "No sounds in the library yet — “⤒ Sounds” at the top.", unused: "unused", used: "Where it plays",
         variants: "variations", open: "Open", play: "Listen", stop: "Stop", search: "Find a sound…", pick: "＋ From the library", up: "⤒ New", rm: "Remove from the slot", pickTitle: "A sound from the library", pickHint: "The ticked sounds go into the slot; several are variations (the game picks one at random).", add: "Add", nothing: "Nothing found" },
-      uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", storageFull: "Your plan’s storage is full ({n} GB for all your worlds): delete files you don’t need or move to a higher plan", confirmFile: "Delete file",
+      uploading: "Uploading", filesDone: "Files uploaded", fileTooBig: "File is larger than 200 MB", fileTooBigG: "File is larger than {n} MB — your plan's limit for one game file{up}", fileTooBigUp: " (up to 200 MB on Worldbuilder)", fileTooBigTeam: "The server refused the file: on the world owner's plan one game file is up to 20 MB (up to 200 MB on Worldbuilder)", storageFull: "Your plan’s storage is full ({n} GB for all your worlds): delete files you don’t need or move to a higher plan", confirmFile: "Delete file",
       v3d: { shot: "📷 Snapshot for the style", shotTip: "Save this view as a picture on the card — the game style will check it", shotDone: "Snapshot saved on the card", open: "🧊 3D", view: "View in 3D", loading: "Loading model…", rotate: "Rotate", wire: "Wireframe", reset: "Reset view", close: "Close", tris: "triangles",
         hint: "Drag to orbit · wheel to zoom · right button to pan · Esc to close", failed: "Could not open the model" },
       analyze: "✦ Analyze the bible", reanalyze: "↻ Refresh analysis", makePlan: "✦ Generate the development plan", remakePlan: "↻ Regenerate plan",
@@ -536,7 +548,7 @@
       busyPlan: "AI is building the development plan… For a big bible this takes 5–15 minutes; you can leave — the plan appears here by itself.",
       scTitle: "Missing from the bible", scIntro: "The plan found what development still lacks. Ticked items become empty cards with the “In progress” status — fill them yourself or later through Claude Code.",
       exTitle: "Claude Code — executor", exIntro: "Claude Code in the game repository connects to WhiteWrite over MCP: it takes the next ready task with its full context (cards, files, criteria), works in Unity and hands a report in here for review. The key works for this game only.",
-      exConnect: "Connect Claude Code", exAnother: "Another key", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
+      exConnect: "Connect Claude Code", exOwnerOnly: "Only the world's owner creates the MCP key for Claude Code — ask them to connect the agent", exAnother: "Another key", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
       exThen: "The key goes into a Windows environment variable; Claude Code’s settings keep only its name. A Claude Code that is already open does not see the new tools: close it and start it again from this folder (or check /mcp — whitewrite should have a tick). Then: “Take the next task from WhiteWrite and do it”.", exUsed: "last call", exNever: "never", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
       exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request", framework: "sent the framework manifest" },
       ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
@@ -623,7 +635,7 @@
         abHyp: "Hypothesis", abHypPh: "E.g.: a firefly hint helps find the mechanism", abVariants: "Variants", abVariantsPh: "A, B", abEvent: "Success event", abCreate: "Start the experiment", abNone: "No experiments yet.",
         abRunning: "running", abDone: "finished", abStop: "Finish", abRate: "conversion", abP: "p-value", abSmall: "Too few players for a conclusion (≥ 30 per variant needed).",
         endpoint: "Ingest endpoint", keys: "Game keys (write-only)", keyLabel: "Key name", keyLabelPh: "E.g.: playtest-build", keyCreate: "Create a key", keyOnce: "Copy it now — it will not be shown again:",
-        keyRevoke: "Revoke", keyNone: "No keys yet.", stats: "Events received today: {n}", retention: "Raw events are kept 30 days, daily totals 400 days; Firestore deletes older ones by itself.",
+        keyRevoke: "Revoke", keyNone: "No keys yet.", keyOwner: "Telemetry keys are created and revoked by the world's owner or a team admin.", stats: "Events received today: {n}", retention: "Raw events are kept 30 days, daily totals 400 days; Firestore deletes older ones by itself.",
         oneBtn: "⧉ Key + request for Claude Code", oneHint: "One click: a new write key and a ready request for Claude Code with the endpoint and the key — paste it into the agent's session in the game repository.", oneDone: "Copied — paste it into Claude Code (a new key has been created).",
         onePrompt: "Connect the game's telemetry to WhiteWrite. Call get_telemetry_schema and implement it: an event queue, batches, retries, player consent, no personal data. Ingest endpoint: {url}. Write key: {key} — keep it in the build settings outside the code (a .gitignored file or an environment variable), not in a public repository. Plan first — code later.",
         howTitle: "How to connect the game", how: "Ask Claude Code in the game repository: “Call get_telemetry_schema and implement telemetry from it: queue, batches, player consent.” Keep the key in the game's settings, not in the code of a public repo.",
@@ -935,13 +947,44 @@
     if (!quotaSeen || Date.now() - quotaSeen.at > 60000) {
       var rows = await db.collection("storageUsage").where("owner", "==", me.uid).get().catch(function () { return { docs: [] }; });
       quotaSeen = { at: Date.now(), bytes: rows.docs.reduce(function (n, d) { return n + Math.max(0, d.get("bytes") || 0); }, 0),
-        quota: PF.planBudget(((window.__wwUser || {}).plan) || "free").storageGB * 1073741824 };
+        quota: PF.planBudget(wwUser().plan).storageGB * 1073741824 };
     }
     if (quotaSeen.bytes + size > quotaSeen.quota) return false;
     quotaSeen.bytes += size; // this upload, until the next read
     return true;
   }
-  function quotaMsg() { var PF = window.__PAID_FEATURES; return STR.storageFull.replace("{n}", PF ? PF.planBudget(((window.__wwUser || {}).plan) || "free").storageGB : "?"); }
+  function quotaMsg() { var PF = window.__PAID_FEATURES; return STR.storageFull.replace("{n}", PF ? PF.planBudget(wwUser().plan).storageGB : "?"); }
+  // ---------- the signed-in user: ONE source in the Bible (v2.118.0) ----------
+  // The page has no firebase-auth.js: window.__wwUser is the shell's object (same origin, the same uid) or, opened alone, our own —
+  // the plan and the Claude model always from users/{uid} read at the start (setUser). The ≈ prices, the Storage quota and the dock read it.
+  function wwUser() { return window.__wwUser || { plan: planName || "free" }; }
+  function setUser(uid, d) {
+    var PF = window.__PAID_FEATURES, u = null, plan = d.plan || "free";
+    try { if (window.parent !== window && window.parent.__wwUser && window.parent.__wwUser.uid === uid) u = window.parent.__wwUser; } catch (e) {}
+    u = u || { uid: uid };
+    u.plan = plan; u.aiModel = PF ? PF.modelTier(plan, (d.settings || {}).aiModel) : "sonnet";
+    window.__wwUser = u;
+  }
+  // the dock's ✦ balance (#tokcount in the shell): every answer of a Cloud Function that says tokensRemaining (or tokensConsumed)
+  // updates window.__wwUser.tokensRemaining and asks the shell to redraw (ww-embed.js window.__syncDockAvatar → the shell's own)
+  function tokensFrom(d) {
+    var u = window.__wwUser; if (!u || !d || typeof d !== "object") return;
+    if (typeof d.tokensRemaining === "number") u.tokensRemaining = Math.max(0, d.tokensRemaining);
+    else if (typeof d.tokensConsumed === "number" && d.tokensConsumed > 0 && typeof u.tokensRemaining === "number") u.tokensRemaining = Math.max(0, u.tokensRemaining - d.tokensConsumed);
+    else return;
+    if (typeof window.__syncDockAvatar === "function") window.__syncDockAvatar();
+  }
+  (function () {
+    var f0 = window.fetch; if (!f0) return;
+    window.fetch = function (url) {
+      var p = f0.apply(this, arguments);
+      if (typeof url !== "string" || url.indexOf("cloudfunctions.net/") < 0) return p;
+      return p.then(function (r) {
+        try { if (r.ok && r.clone && /json/.test((r.headers && r.headers.get("content-type")) || "")) r.clone().json().then(tokensFrom, function () {}); } catch (e) {}
+        return r;
+      });
+    };
+  })();
   var memberMark = function (create) { var me = firebase.auth().currentUser; return me && world && world.owner !== me.uid ? me.uid : (create ? null : firebase.firestore.FieldValue.delete()); };
   var wref = function () { return db.collection("worlds").doc(worldId); };
   var gref = function () { return wref().collection("games").doc(gameId); };
@@ -1046,6 +1089,14 @@
   function fullRead() { return ME.owner || ME.role !== "custom"; }
   function mayRead(id) { if (id === "worldmap") id = "w-locations"; return id === "settings" ? ME.owner : fullRead() || ME.view.indexOf(id) >= 0; }
   function mayEdit(id) { if (id === "worldmap") id = "w-locations"; return ME.owner || ME.role === "admin" || ME.role === "editor" || (ME.role === "custom" && ME.edit.indexOf(id) >= 0); }
+  // 🔒 the canon on Free is read-only (owner decision v2.50, enforced v2.118.0 by firestore.rules canonPlans / storage.rules ownerCanon);
+  // a viewer, or a member without the section, reads it too. canWrite in a canon section already says this; canonOk — for the canon part of a game card
+  function canonOk(kind) { return ME.owner ? canonWrite : baseWrite && mayEdit(secOfKind(kind)); }
+  function roNoteHtml() {
+    return ME.owner ? '<section class="setbox devlock"><h2>🔒 ' + esc(STR.canonRO.title) + '</h2><p class="hint">' + esc(STR.canonRO.text) + '</p><div class="setrow"><button class="btn primary" data-upgrade>' + STR.upgrade + '</button></div></section>'
+      : '<p class="hint ro-note">🔒 ' + esc(STR.canonRO.member) + '</p>';
+  }
+  function freshWorld() { var c = world && world.createdAt && world.createdAt.toMillis ? world.createdAt.toMillis() : 0; return Date.now() - c < 25 * 60000; } // firestore.rules freshWorld: a new world is filled on any plan
   function secOfKind(kind) { if (kind === "events") return "chronicle"; var c = CANON.filter(function (x) { return x.dossier === kind; })[0]; return c ? c.id : kind; }
   function firstReadable() { var s = navSections().filter(function (x) { return mayRead(x.id); })[0]; return s ? s.id : "world"; }
   function isCanon(id) { return CANON.some(function (x) { return x.id === id; }); }
@@ -1134,10 +1185,10 @@
     var html = "", head = function (g, label, n, canDrop) {
       var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
       return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
-        (s.id === "refs" && canWrite && game ? bulkPicker("refs", g, "btn mini", STR.sub.item) : '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>') +
+        (s.id === "refs" && canWrite && game ? bulkPicker("refs", g, "btn mini", STR.sub.item) : canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' : '') + // 🔒 read-only: no «＋ Додати»
         (s.id === "audio" && canWrite && game ? bulkPicker("audio", g, "btn mini", STR.soundsAdd) : '') +
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
-        (canDrop ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
+        (canDrop && canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
     var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; }, empties = [];
     subs.concat(extra).forEach(function (g) {
@@ -1150,7 +1201,7 @@
     }
     if (empties.length) html += '<div class="subempty"><span class="muted">' + STR.sub.more + '</span>' + empties.map(function (g) { // still drop targets and «＋ Додати» each
       var label = labelOf ? labelOf(g) : g;
-      return '<div class="subsec subsec-mini" data-sub="' + esc(g) + '"><button class="btn mini ghost" data-addsub="' + esc(g) + '" title="' + esc(STR.sub.item + " · " + label) + '">＋ ' + esc(label) + '</button>' +
+      return '<div class="subsec subsec-mini" data-sub="' + esc(g) + '">' + (canWrite ? '<button class="btn mini ghost" data-addsub="' + esc(g) + '" title="' + esc(STR.sub.item + " · " + label) + '">＋ ' + esc(label) + '</button>' : '<span class="chip">' + esc(label) + '</span>') +
         (canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</div>';
     }).join("") + '</div>';
     return html;
@@ -1161,7 +1212,7 @@
     lib.assets.forEach(function (a) { nf += a.files.length; a.files.forEach(function (f) { secs += +f.duration || 0; }); });
     var miss = lib.missing.slice(0, 200);
     return '<section class="alib"><p class="hint">' + esc(A.intro) + '</p><p class="muted">' + esc(A.sum.replace("{n}", lib.assets.length).replace("{f}", nf).replace("{m}", Math.round(secs / 6) / 10)) + '</p>' +
-      (dialogues.length ? '<div class="row"><button type="button" class="btn" data-vcsvall="1">' + VO.scriptAll + '</button>' + (canQuest ? '<label class="btn" title="' + esc(VO.byKeysTip) + '">' + VO.byKeys + '<input type="file" hidden multiple accept="audio/*" data-vkeys="1"></label>' : '') + '</div>' : '') +
+      (dialogues.length ? '<div class="row"><button type="button" class="btn" data-vcsvall="1">' + VO.scriptAll + '</button>' + (qdBase && mayEdit("dialogues") && mayEdit("audio") ? '<label class="btn" title="' + esc(VO.byKeysTip) + '">' + VO.byKeys + '<input type="file" hidden multiple accept="audio/*" data-vkeys="1"></label>' : '') + '</div>' : '') +
       '<h2 class="group">' + A.missing + ' <span>' + lib.missing.length + '</span></h2><p class="hint">' + esc(lib.missing.length ? A.missingHint : A.missingNone) + '</p>' +
       (miss.length ? '<ul class="alib-miss">' + miss.map(function (w) {
         return '<li><button class="btn mini" data-amech="' + esc(w.card) + '">' + A.open + '</button> <b>' + esc(w.title) + '</b> · ' + esc(w.secTitle) + (w.rowName ? ' · ' + esc(w.rowName) : '') + ' · <span class="muted">' + esc(w.label) + '</span></li>'; }).join("") + '</ul>' : '') +
@@ -1324,7 +1375,7 @@
       if (game && PAL_SECS.indexOf(s.id) >= 0) groupPalDialog(name);
     });
   }
-  function dropSubsection(g) { var s = sec(section); saveSubs(s, subsOf(s).filter(function (x) { return x !== g; })); }
+  function dropSubsection(g) { var s = sec(section); saveSubs(s, subsOf(s).filter(function (x) { return x !== g; })).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); }); }
   // ✎ a subsection of canon entities (a chronicle's time line, a dossier group): the list and every entity's group move together
   function renameSubsection(g) {
     var s = sec(section), kind = s.special === "chronicle" ? "events" : s.dossier;
@@ -1332,9 +1383,13 @@
       if (!name || name === g) return;
       var list = subsOf(s), i = list.indexOf(g);
       if (i >= 0) list[i] = name; else if (list.indexOf(name) < 0) list.push(name);
-      var batch = db.batch();
-      entities.filter(function (e) { return e.kind === kind && e.group === g; }).forEach(function (e) { batch.update(wref().collection("entities").doc(e.id), { group: name, updatedAt: stamp() }); });
-      Promise.all([saveSubs(s, list.filter(function (x, j) { return list.indexOf(x) === j; })), batch.commit()]).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
+      // one batch (v2.118.0): the list and every entity's group change together or not at all — never a half-renamed subsection
+      var batch = db.batch(), patch = { subsections: {} }, ents = entities.filter(function (e) { return e.kind === kind && e.group === g; });
+      if (ents.length > 450) return notify(STR.failed + ": " + ents.length + " > 450");
+      ents.forEach(function (e) { batch.update(wref().collection("entities").doc(e.id), { group: name, updatedAt: stamp() }); });
+      patch.subsections[s.id] = list.filter(function (x, j) { return list.indexOf(x) === j; });
+      batch.set(wref(), patch, { merge: true });
+      batch.commit().catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
     }, g);
   }
   // «＋ Додати» under a subheading: a card, a dossier, an event or a culture entry born in that subsection
@@ -1343,7 +1398,7 @@
     if (s.dossier) return openDossier({ id: entityId(s.dossier), kind: s.dossier, isNew: true, group: g });
     if (s.special === "chronicle") return openDossier({ id: entityId("events"), kind: "events", isNew: true, group: g });
     if (s.special === "culture") return openDossier({ id: newId("lore"), col: "lore", group: g || "customs", isNew: true });
-    if (s.special === "quests" || s.special === "dialogues") { if (canQuest) openQD(s.special, null, g ? { type: g } : null); return; }
+    if (s.special === "quests" || s.special === "dialogues") { if (qdBase && mayEdit(s.special)) openQD(s.special, null, g ? { type: g } : null); return; }
     if (s.id === "mechanics" || mFactory(s.id)) return mechNew(g);
     addCard(false, g);
   }
@@ -1581,9 +1636,9 @@
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
     if (mode === "game" && isCanon(section)) section = "overview";
     lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
-    if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); }
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     else canWrite = mode === "game" ? canGame : canonWrite;
+    if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); } // after a member's move to a section they read
     if (mode === "game" && game && guideOn() && canWrite && guideStage() > ((game.guide && game.guide.stage) || 0)) { // a stage reached: remembered, its sections stay
       var gst = guideStage(); game.guide = { on: true, stage: gst }; gref().set({ guide: { on: true, stage: gst } }, { merge: true }); sync("ok", STR.guide.opened.replace("{s}", L(GUIDE[gst])));
     }
@@ -1594,7 +1649,7 @@
     if (cosmo && (section !== "cosmology" || imp || query)) dropCosmo();
     $("statuses").hidden = mode === "world" || !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing|forge|gamemap)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = section === "settings" ? (mode === "game" ? STR.settingsGame : STR.settingsWorld) : cur ? L(cur) : "";
-    if (section === "settings" && !imp) return renderSettings();
+    if (section === "settings" && !imp && !query) return renderSettings(); // a query searches from the settings too
     if (mode === "world" && query) return renderCanonSearch();
     if (section === "canonIssues" && !imp && !query) return renderCanonIssues();
     var cs = CANON.filter(function (x) { return x.id === section; })[0];
@@ -1646,7 +1701,7 @@
         ((s.id === "mechanics" || mFactory(s.id)) && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : s.id === "progression" ? MCP : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
-        ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" role="status">' + esc(bulkProg) + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
+        ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" data-sid="' + s.id + '" role="status">' + esc(bulkProg.sid === s.id ? bulkProg.t : "") + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
         (s.id === "audio" ? '<button class="btn" id="alib-tog" aria-pressed="' + audioLib + '">' + (audioLib ? STR.alib.cards : STR.alib.btn) + '</button>' : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
@@ -1811,7 +1866,8 @@
           cover = { url: await task.ref.getDownloadURL(), path: path, type: file.type };
         } else if (removed) cover = null;
         if (cover) { if (frame) cover.frame = frame; else delete cover.frame; }
-        await T.ref.set({ cover: cover || firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true });
+        // update, not a merge: the cover map is written whole, so a new file drops the old ⌖ frame and banner
+        await T.ref.update({ cover: cover || firebase.firestore.FieldValue.delete(), updatedAt: stamp() });
         if (cur && cur.path && (removed || file)) firebase.storage().ref(cur.path).delete().catch(function () {});
         close();
       } catch (e) { q("ask-ok").disabled = false; say(STR.failed + ": " + (e.code || e.message || e)); }
@@ -1888,7 +1944,7 @@
       var body = { title: t, titleArt: ta.url ? { url: ta.url, path: ta.path, h: ta.h } : firebase.firestore.FieldValue.delete(), updatedAt: stamp() };
       try {
         await T.ref.set(body, { merge: true });
-        if (old && old !== ta.path) firebase.storage().ref(old).delete().catch(function () {});
+        if (old && old !== ta.path) dropOwn(old).catch(function () {});
         up = null; if (!T.gid && t !== world.title) tellShell({ type: "ww-worlds-changed" });
         box.remove();
       } catch (e) { q("wn-msg").textContent = STR.failed + ": " + (e.code || e.message || e); }
@@ -1898,24 +1954,25 @@
     draw(); q("wn-t").focus();
   }
   function renderWorld(s) {
-    var d = wd(s.id);
-    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + wstatsRow() + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) +
+    var d = wd(s.id), RO = canWrite ? '' : ' readonly'; // 🔒 read-only: the same fields, no add / remove / save
+    $("view").innerHTML = worldCoverHtml() + '<header class="sec wsec"><div>' + wstatsRow() + '<p>' + esc(L(s.about)) + '</p></div></header>' + fillBoxHtml(false) + (canWrite ? '' : roNoteHtml()) +
       '<div class="canonbox wedit"><h4>' + STR.worldCanon + '</h4>' +
-      '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag" value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
-      '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum" rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +
+      '<label class="field"><span>' + STR.wt.tagline + '</span><input id="w-tag"' + RO + ' value="' + esc(d.tagline) + '" placeholder="' + esc(STR.wt.taglinePh) + '"></label>' +
+      '<label class="field"><span>' + STR.wt.summary + '</span><textarea id="w-sum"' + RO + ' rows="5" placeholder="' + esc(STR.wt.summaryPh) + '">' + esc(d.summary) + '</textarea></label>' +
       '<h4 style="margin-top:12px">' + STR.facts + '</h4>' + d.facts.map(function (f, i) {
-        return '<div class="wrow"><input data-fk="k" data-i="' + i + '" value="' + esc(f.k) + '" placeholder="' + esc(STR.wt.factK) + '" aria-label="' + esc(STR.wt.factK) + '">' +
-          '<input data-fk="v" data-i="' + i + '" value="' + esc(f.v) + '" placeholder="' + esc(STR.wt.factV) + '" aria-label="' + esc(STR.wt.factV) + '">' +
-          '<button class="btn ghost" data-rmfact="' + i + '" aria-label="' + esc(STR.remove) + '">✕</button></div>';
-      }).join("") + '<button class="btn mini ghost" id="w-addfact">' + STR.wt.addFact + '</button></div>' +
-      wsaveRow() + '<p class="muted">' + STR.worldReadonly + '</p>';
-    wbind(s.id); bindFill();
+        return '<div class="wrow"><input data-fk="k" data-i="' + i + '"' + RO + ' value="' + esc(f.k) + '" placeholder="' + esc(STR.wt.factK) + '" aria-label="' + esc(STR.wt.factK) + '">' +
+          '<input data-fk="v" data-i="' + i + '"' + RO + ' value="' + esc(f.v) + '" placeholder="' + esc(STR.wt.factV) + '" aria-label="' + esc(STR.wt.factV) + '">' +
+          (canWrite ? '<button class="btn ghost" data-rmfact="' + i + '" aria-label="' + esc(STR.remove) + '">✕</button>' : '') + '</div>';
+      }).join("") + (canWrite ? '<button class="btn mini ghost" id="w-addfact">' + STR.wt.addFact + '</button>' : '') + '</div>' +
+      (canWrite ? wsaveRow() : '') + '<p class="muted">' + STR.worldReadonly + '</p>';
+    if (canWrite) wbind(s.id); else { $("view").oninput = $("view").onclick = null; bindDevLock(); }
+    bindFill();
   }
   // ---------- 📜 «Заповни світ своїми матеріалами»: the author's agent writes whitewrite.fill/1 (functions/world-fill.js), we only move it ----------
   // The owner only (it writes every section), any plan, no tokens. Open by itself while the world is nearly empty; a fold after that.
   var fillState = null; // { name, parsed, replace } — the uploaded file waiting for «Перенести»; { msg } — a line to show
   function fillBoxHtml(always) {
-    if (!ME.owner || PANEL || !window.__FILL) return "";
+    if (!ME.owner || PANEL || !window.__FILL || !(canonWrite || freshWorld())) return ""; // 🔒 it writes the canon: Storyteller+, or a world just created (any plan)
     var X = STR.fill, sparse = entities.length < 5 && !lore.length, dir = ""; try { dir = localStorage.getItem("ww-fill-dir-" + worldId) || ""; } catch (e) {}
     return '<details class="fillbox canonbox wedit"' + (always || sparse || fillState ? ' open' : '') + '><summary>' + X.title + '</summary>' +
       '<p class="hint">' + X.lead + '</p>' +
@@ -2113,14 +2170,14 @@
     } catch (er) { fillState = null; say(STR.failed + ": " + (er.code || er.message || er)); }
   }
   function renderLaws(s) {
-    var d = wd(s.id);
-    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' +
+    var d = wd(s.id), RO = canWrite ? '' : ' readonly'; // 🔒 read-only: the laws, no add / remove / save
+    $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>' + (canWrite ? '' : roNoteHtml()) +
       '<div class="canonbox wedit"><h4>' + STR.laws + '<span class="cmark">' + STR.canonTag + '</span></h4>' + (d.rules.length ? '<ol class="wlaws">' + d.rules.map(function (r, i) {
-        return '<li class="wrow"><input data-rule="' + i + '" value="' + esc(r) + '" placeholder="' + esc(STR.wt.lawPh) + '" aria-label="' + esc(STR.laws + " " + (i + 1)) + '">' +
-          '<button class="btn ghost" data-rmlaw="' + i + '" aria-label="' + esc(STR.remove) + '">✕</button></li>';
-      }).join("") + '</ol>' : '<p class="muted">' + STR.wt.noLaws + '</p>') + '<button class="btn mini ghost" id="w-addlaw">' + STR.wt.addLaw + '</button></div>' +
-      wsaveRow() + '<p class="muted">' + STR.worldReadonly + '</p>';
-    wbind(s.id);
+        return '<li class="wrow"><input data-rule="' + i + '"' + RO + ' value="' + esc(r) + '" placeholder="' + esc(STR.wt.lawPh) + '" aria-label="' + esc(STR.laws + " " + (i + 1)) + '">' +
+          (canWrite ? '<button class="btn ghost" data-rmlaw="' + i + '" aria-label="' + esc(STR.remove) + '">✕</button>' : '') + '</li>';
+      }).join("") + '</ol>' : '<p class="muted">' + STR.wt.noLaws + '</p>') + (canWrite ? '<button class="btn mini ghost" id="w-addlaw">' + STR.wt.addLaw + '</button>' : '') + '</div>' +
+      (canWrite ? wsaveRow() : '') + '<p class="muted">' + STR.worldReadonly + '</p>';
+    if (canWrite) wbind(s.id); else { $("view").oninput = $("view").onclick = null; bindDevLock(); }
   }
 
   // ---------- scenes of every story of the world: state over time, the map's routes, the impact of a canon change ----------
@@ -2189,8 +2246,8 @@
     }).join("") + '</div>';
   }
   function reconDialog(e, list) {
-    var pc = window.__getPlanConfig(((window.__wwUser || {}).plan) || planName || "free");
-    var PF = window.__PAID_FEATURES, per = PF ? PF.featureCost(PF.byOp("reconcile"), COST_BASE, (window.__wwUser || {}).aiModel) : COST_BASE; // the server reserves the same per scene (× the Claude model scale)
+    var pc = window.__getPlanConfig(wwUser().plan);
+    var PF = window.__PAID_FEATURES, per = PF ? PF.featureCost(PF.byOp("reconcile"), COST_BASE, wwUser().aiModel) : COST_BASE; // the server reserves the same per scene (× the Claude model scale)
     var box = document.createElement("div"), rows = {}, running = false, stopped = false;
     box.className = "ask";
     var pinned = function (sc) { return (sc.reconstruction || {}).mode === "pinned"; };
@@ -2296,7 +2353,7 @@
     var tabs = wmMaps().length || own ? '<div class="wm-tabs" role="tablist">' + [{ id: "", title: STR.wt.mainMap }].concat(wmMaps()).map(function (m) {
       return '<button type="button" role="tab" class="chip' + (m.id === wmSel ? ' is-on' : '') + '" aria-selected="' + (m.id === wmSel) + '" data-wmtab="' + esc(m.id) + '">' + esc(m.title || "?") + '</button>'; }).join("") +
       (own ? '<button type="button" class="chip wm-tabadd" id="wm-new">' + STR.wt.mapAdd + '</button>' : '') + '</div>' : '';
-    var extra = cur && canonWrite ? '<div class="row wm-locs">' + list.map(function (e) { return '<span class="chip">' + esc(e.name || "?") + ' <button type="button" class="wm-x" data-wmoff="' + esc(e.id) + '" aria-label="' + esc(STR.wt.locOff + " " + (e.name || "")) + '" title="' + esc(STR.wt.locOff) + '">✕</button></span>'; }).join("") +
+    var extra = cur && canWrite ? '<div class="row wm-locs">' + list.map(function (e) { return '<span class="chip">' + esc(e.name || "?") + ' <button type="button" class="wm-x" data-wmoff="' + esc(e.id) + '" aria-label="' + esc(STR.wt.locOff + " " + (e.name || "")) + '" title="' + esc(STR.wt.locOff) + '">✕</button></span>'; }).join("") +
       '<select id="wm-addloc" aria-label="' + esc(STR.wt.locAdd) + '"><option value="">' + esc(STR.wt.locAdd) + '</option>' + all.filter(function (e) { return !wmOn(e, cur.id); }).map(function (e) { return '<option value="' + esc(e.id) + '">' + esc(e.name || "?") + '</option>'; }).join("") + '</select></div>' : '';
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (own ? '<label class="btn" title="' + esc(STR.wt.bgTip) + '"><input type="file" hidden accept="image/*" id="wmap-up">' + (img ? STR.wt.bgChg : STR.wt.bgUp) + '</label>' +
@@ -2318,17 +2375,23 @@
       var D = firebase.firestore.FieldValue.delete(), b = db.batch();
       list.forEach(function (e) { var u = {}; u["mapAt." + cur.id] = D; b.update(wref().collection("entities").doc(e.id), u); }); // its locations go back to the main map
       b.set(wref(), { maps: wmMaps().filter(function (m) { return m.id !== cur.id; }), updatedAt: stamp() }, { merge: true });
-      await b.commit(); if (cur.image && cur.image.path) firebase.storage().ref(cur.image.path).delete().catch(function () {});
+      await b.commit(); if (cur.image) dropOwn(cur.image.path).catch(function () {});
       wmSel = ""; render();
     };
-    var al = $("wm-addloc"); if (al) al.onchange = function () { var u = {}; u["mapAt." + cur.id] = { x: MAP_W / 2, y: MAP_H / 2 }; if (al.value) wref().collection("entities").doc(al.value).update(u); };
-    [].forEach.call(document.querySelectorAll("[data-wmoff]"), function (b) { b.onclick = function () { var u = {}; u["mapAt." + cur.id] = firebase.firestore.FieldValue.delete(); wref().collection("entities").doc(b.dataset.wmoff).update(u); }; });
+    var mapErr = function (er) { notify(STR.failed + ": " + (er.code || er.message)); };
+    var al = $("wm-addloc"); if (al) al.onchange = function () { // a location sits on ONE map: put on this one, it leaves every other (the main one by itself — wmOffMain)
+      var l = entities.filter(function (x) { return x.id === al.value; })[0]; if (!l) return;
+      var u = {}; u["mapAt." + cur.id] = { x: MAP_W / 2, y: MAP_H / 2 };
+      Object.keys(l.mapAt || {}).forEach(function (id) { if (id !== cur.id) u["mapAt." + id] = firebase.firestore.FieldValue.delete(); });
+      wref().collection("entities").doc(l.id).update(u).catch(mapErr);
+    };
+    [].forEach.call(document.querySelectorAll("[data-wmoff]"), function (b) { b.onclick = function () { var u = {}; u["mapAt." + cur.id] = firebase.firestore.FieldValue.delete(); wref().collection("entities").doc(b.dataset.wmoff).update(u).catch(mapErr); }; });
     var up = $("wmap-up"); if (up) up.onchange = function () { var f = up.files[0]; up.value = ""; if (f) wmapUpload(f, cur); };
     var del = $("wmap-del"); if (del) del.onclick = async function () {
       if (!(await askConfirm(STR.wt.bgDelQ))) return; var old = img && img.path;
       if (cur) await wref().set({ maps: wmMaps().map(function (m) { if (m.id !== cur.id) return m; var c = Object.assign({}, m); delete c.image; return c; }), updatedAt: stamp() }, { merge: true });
       else await wref().set({ mapImage: firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true });
-      if (old) firebase.storage().ref(old).delete().catch(function () {});
+      dropOwn(old).catch(function () {});
     };
     bindMap(list);
   }
@@ -2343,7 +2406,7 @@
       var im = { url: await task.snapshot.ref.getDownloadURL(), path: path, name: f.name };
       if (cur) await wref().set({ maps: wmMaps().map(function (m) { return m.id === cur.id ? Object.assign({}, m, { image: im }) : m; }), updatedAt: stamp() }, { merge: true });
       else await wref().set({ mapImage: im, updatedAt: stamp() }, { merge: true });
-      if (old) firebase.storage().ref(old).delete().catch(function () {});
+      dropOwn(old).catch(function () {}); // only this world's folder
     } catch (er) { notify(STR.failed + ": " + (er.code || er.message)); }
   }
   // ---------- world map: locations laid out by the author (drag → entity.mapPos), who stays where (canon), routes from story scenes ----------
@@ -2392,14 +2455,14 @@
     var toSvg = function (ev) { var r = svg.getBoundingClientRect();
       return { x: Math.round(Math.max(30, Math.min(MAP_W - 30, (ev.clientX - r.left) / r.width * MAP_W))), y: Math.round(Math.max(30, Math.min(MAP_H - 30, (ev.clientY - r.top) / r.height * MAP_H))) }; };
     svg.addEventListener("pointerdown", function (ev) { var g = ev.target.closest("[data-loc]"); if (!g) return; svg.setPointerCapture(ev.pointerId); drag = { g: g, moved: false }; });
-    svg.addEventListener("pointermove", function (ev) { if (!drag) return; drag.pos = toSvg(ev); drag.moved = true; drag.g.setAttribute("transform", "translate(" + drag.pos.x + "," + drag.pos.y + ")"); });
+    svg.addEventListener("pointermove", function (ev) { if (!drag || !canWrite) return; /* 🔒 read-only: a click opens the dossier, nothing moves */ drag.pos = toSvg(ev); drag.moved = true; drag.g.setAttribute("transform", "translate(" + drag.pos.x + "," + drag.pos.y + ")"); });
     svg.addEventListener("pointerup", function () {
       var d = drag; drag = null; if (!d) return;
       var l = locs.filter(function (x) { return x.id === d.g.dataset.loc; })[0];
       if (!d.moved) { openDossier(l); return; }
       var cm = wmCur(), u = {};
       if (cm) { l.mapAt[cm.id] = d.pos; u["mapAt." + cm.id] = d.pos; } else { l.mapPos = d.pos; u.mapPos = d.pos; }
-      wref().collection("entities").doc(l.id).update(u).catch(function (er) { console.error("Map save failed:", er); });
+      wref().collection("entities").doc(l.id).update(u).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); render(); });
     });
     svg.addEventListener("keydown", function (ev) { var g = ev.target.closest("[data-loc]"); if (g && ev.key === "Enter") openDossier(locs.filter(function (x) { return x.id === g.dataset.loc; })[0]); });
   }
@@ -2425,7 +2488,8 @@
     if (e.col !== "lore" && e.kind === "factions") ddraft.banner = e.banner || "";
     if (e.col !== "lore" && e.kind === "characters") { ddraft.personality = window.__PERSONA.cleanPersona(e.personality); ddraft.appearance = window.__PERSONA.cleanLook(e.appearance); pst = { mode: "step", i: 0 }; // 🧠 the constructor's draft
       ddraft.faction = csFaction(e); ddraft.ent = { charClass: e.charClass || "", alignment: e.alignment || "", location: typeof e.location === "string" ? e.location : "" }; }
-    $("d-delete").hidden = !(e.col === "lore" && !e.isNew);
+    $("d-delete").hidden = !!e.isNew || !canWrite; $("d-delete").disabled = false; $("d-delete").textContent = e.col === "lore" ? STR.cult.del : STR.edel.btn; // 🗑 a culture entry or a canon entity (v2.118.0)
+    $("d-save").hidden = !canWrite; $("d-title").readOnly = !canWrite; // 🔒 read-only: Free, a viewer, a member without the section
     if (e.kind === "events") Object.assign(ddraft, { at: num(e.at) === null ? "" : String(e.at), dur: num(e.dur) === null ? "" : String(e.dur), when: e.when || "",
       who: (Array.isArray(e.characters) ? e.characters : []).slice() });
     dfirst = JSON.stringify(ddraft);
@@ -2584,12 +2648,12 @@
   function picMenu(on) { var m = $("e-pic-m"); if (!m) return; m.hidden = !on; $("e-pic").setAttribute("aria-expanded", String(!!on)); }
   // the card foot's «Створити історію / квест…»: an icon + its words; on a phone only the icon with ＋ (owner, v2.108.1)
   function footBtn(b, ico, text) { var t = String(text).replace(/^\S+\s+/, ""); b.innerHTML = '<i class="fb-ico" aria-hidden="true">' + ico + '<b>＋</b></i><span>' + esc(t) + '</span>'; b.title = t; b.setAttribute("aria-label", t); }
-  function dosCorner(type) { $("d-pic").hidden = !!dos.isNew; var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; footBtn(sb, "📜", STR.story.add);
+  function dosCorner(type) { $("d-pic").hidden = !!dos.isNew || !canWrite; var sb = $("d-story"); sb.hidden = !!dos.isNew || dos.col === "lore"; footBtn(sb, "📜", STR.story.add);
     var q = $("d-quest"); q.hidden = dos.isNew || !bulbHtml(type, dos.id); footBtn(q, "💡", QD.bulb); q.dataset.bulb = type + ":" + dos.id; }
   function renderDossier() {
     var e = dos, t = STR.dos.tabs[e.kind] || STR.dos.tabs.artifacts, files = e.files || [], plainPics = e.col === "lore" || e.kind === "events"; // events and culture have no game look
     var html = '<div class="field files"><label>' + (plainPics ? STR.dos.picsPlain : STR.dos.pics) + ' <span class="hint">' + (plainPics ? STR.dos.picsPlainHint : STR.dos.picsHint) + '</span></label>' + files.map(dosFileRow).join("") +
-      (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>') + '</div>';
+      (e.isNew ? '<p class="muted">' + STR.dos.saveFirst + '</p>' : canWrite ? '<label class="btn"><input type="file" multiple id="d-up" hidden>' + STR.filesAdd + '</label>' : '') + '</div>';
     var descHtml = '<div class="field desc"><label for="d-desc">' + STR.dos.desc + ' <span class="canon">· ' + STR.canonField + '</span></label><textarea id="d-desc" rows="10">' + esc(ddraft.desc) + '</textarea></div>';
     html = ddraft.appearance && e.col !== "lore" ? sheetHtml(e, ddraft) + descHtml + html : html + descHtml; // a character: the sheet, its description under it, then the files
     if (e.col === "lore") { // culture: its group's fields, no tabs
@@ -2598,7 +2662,7 @@
       }).join("");
       if (!e.isNew) $("d-body").insertAdjacentHTML("beforeend", '<div class="field">' + qdLinksHtml(e) + '</div>');
       dosCorner("lore");
-      $("d-tabs").innerHTML = ""; $("d-tabs").hidden = true; return;
+      $("d-tabs").innerHTML = ""; $("d-tabs").hidden = true; dosRO(); return;
     }
     $("d-tabs").hidden = false;
     if (!e.isNew) html += '<div class="field" id="d-stories">' + storiesHtml(e) + '</div>';
@@ -2612,14 +2676,24 @@
       return '<button role="tab" data-dtab="' + x[0] + '" aria-selected="' + (x[0] === dtab) + '">' + esc(x[1]) + '</button>';
     }).join("");
     if (dtab === "appear") loadAppearance(e);
+    dosRO();
+  }
+  // 🔒 a dossier without the right to edit it (Free, a viewer, a member without the section): read, never write (v2.118.0)
+  function dosRO() {
+    if (canWrite) return;
+    var b = $("d-body");
+    [].forEach.call(b.querySelectorAll("textarea, input:not([type=file])"), function (x) { if (/^(range|checkbox|radio)$/.test(x.type)) x.disabled = true; else x.readOnly = true; });
+    [].forEach.call(b.querySelectorAll("select, [data-bnpick], [data-who], [data-pzidea], [data-lkadd], [data-lkdd]"), function (x) { x.disabled = true; });
+    [].forEach.call(b.querySelectorAll("[data-drmfile], [data-dportrait], [data-rmnote], #ln-add, .newfield, [data-csportrait], #ev-who-q"), function (x) { x.style.display = "none"; });
+    b.insertAdjacentHTML("afterbegin", '<p class="hint ro-note">' + esc(ME.owner ? STR.canonRO.short : "🔒 " + STR.canonRO.member) + '</p>');
   }
   async function loadAppearance(e) {
     var out = "";
     try {
       var played = GAME.some(function (x) { return x.canon === e.kind; }); // events have no game section
-      var inGames = e.isNew || !played ? [] : await Promise.all(games.map(function (g) {
-        return wref().collection("games").doc(g.id).collection("cards").doc(e.id).get().then(function (d) { return { g: g, c: d.exists ? d.data() : {} }; });
-      }));
+      var inGames = e.isNew || !played ? [] : (await Promise.all(games.map(function (g) { // only games with a card of it (canonRef); no access → skipped
+        return wref().collection("games").doc(g.id).collection("cards").doc(e.id).get().then(function (d) { return d.exists && d.data().canonRef === e.id ? { g: g, c: d.data() } : null; }, function () { return null; });
+      }))).filter(Boolean);
       var uid = firebase.auth().currentUser.uid;
       var projects = e.isNew ? { docs: [] } : await db.collection("projects").where("owner", "==", uid).where("worldId", "==", worldId).get();
       var stories = await Promise.all(projects.docs.map(function (p) {
@@ -2642,7 +2716,7 @@
     var e = dos, done = 0, last = null;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
-      if (file.size > MAX_FILE) { dmsg(STR.fileTooBig + ": " + file.name); continue; }
+      if (file.size > gameFileMax()) { dmsg(bigMsg(file)); continue; } // storage.rules worlds/{w}/files: 20 MB below Worldbuilder, 200 MB on it
       if (!(await storageRoom(file.size))) { dmsg(quotaMsg()); break; }
       var id = newId("file"), path = "worlds/" + worldId + "/files/" + e.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
       try {
@@ -2653,7 +2727,7 @@
         await localInfo(file, meta);
         await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayUnion(meta), updatedAt: stamp() }, { merge: true });
         e.files = (e.files || []).concat([meta]); done++; if (isImage(meta)) last = meta.id;
-      } catch (er) { dmsg(STR.failed + ": " + file.name + " — " + (er.code || er.message || er)); return; }
+      } catch (er) { dmsg(bigRefused(file, er) || STR.failed + ": " + file.name + " — " + (er.code || er.message || er)); return; }
     }
     if (asPortrait && last) { await colOf(e).doc(e.id).set({ portrait: last }, { merge: true }).catch(function () {}); e.portrait = last; }
     if (dos === e) { dcollect(); renderDossier(); dmsg(STR.filesDone + ": " + done); }
@@ -2662,7 +2736,7 @@
     var e = dos, f = (e.files || []).filter(function (x) { return x.id === id; })[0];
     if (!f || !(await askConfirm(STR.confirmFile + " " + f.name + "?", { danger: true }))) return;
     try {
-      await firebase.storage().ref(f.path).delete().catch(function (er) { if (er.code !== "storage/object-not-found") throw er; });
+      await dropOwn(f.path).catch(function (er) { if (er.code !== "storage/object-not-found") throw er; }); // another world's file (an old restored copy) stays
       await colOf(e).doc(e.id).set({ files: firebase.firestore.FieldValue.arrayRemove(f), updatedAt: stamp() }, { merge: true });
       e.files = e.files.filter(function (x) { return x.id !== id; });
       if (dos === e) { dcollect(); renderDossier(); }
@@ -2703,9 +2777,77 @@
   }
   async function deleteLore() {
     var e = dos; if (!e || e.col !== "lore" || !(await askConfirm(STR.cult.delQ, { danger: true }))) return;
-    await Promise.all((e.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
-    await colOf(e).doc(e.id).delete();
-    closeDossier();
+    try {
+      await Promise.all((e.files || []).map(function (f) { return dropOwn(f.path).catch(function () {}); }));
+      await colOf(e).doc(e.id).delete();
+      closeDossier();
+    } catch (er) { dmsg(STR.failed + ": " + (er.code || er.message || er)); }
+  }
+  // a file of THIS world only (worlds/{worldId}/…): deleting never reaches another world's files — a restored copy may still point at them
+  function ownPath(p, pre) { return typeof p === "string" && p.indexOf(pre || "worlds/" + worldId + "/") === 0; }
+  function dropOwn(p, pre) { return ownPath(p, pre) ? firebase.storage().ref(p).delete() : Promise.resolve(); }
+  // 🗑 deleting a canon entity (v2.118.0): first what it touches — links of other entities (entLinks), each game's card of it (canonRef)
+  // and the games' quests / dialogues pointing at it (functions/card-refs.js usedBy, key "e:<id>"), story scenes (canonRefs);
+  // then: a game card becomes the game's own card (name + description copied, canonRef removed; an opt-out marker is deleted),
+  // the files leave Storage, the other entities lose the link and the entity goes — in one batch with the links
+  async function entityImpact(e) {
+    var out = { links: entLinks(e), games: [], blind: [], scenes: [] };
+    await Promise.all(games.map(async function (g) {
+      var gr = wref().collection("games").doc(g.id), card = null, qs = [], ds = [];
+      try { var d = await gr.collection("cards").doc(e.id).get(); if (d.exists && d.data().canonRef === e.id) card = Object.assign({ id: d.id }, d.data()); }
+      catch (er) { out.blind.push(g.title || g.id); return; } // a member without the game's cards: not shown, not touched
+      var rows = function (sn) { return sn.docs.map(function (x) { return Object.assign({ id: x.id }, x.data()); }); };
+      qs = await gr.collection("quests").get().then(rows, function () { return []; });
+      ds = await gr.collection("dialogues").get().then(rows, function () { return []; });
+      var refs = window.__CARD_REFS && (qs.length || ds.length) ? window.__CARD_REFS.usedBy({ cards: card ? [card] : [], entities: entities, quests: qs, dialogues: ds, tasks: [], plan: null }, "e:" + e.id, LANG) : [];
+      if (card || refs.length) out.games.push({ g: g, card: card, refs: refs });
+    }));
+    try { out.scenes = affectedScenes(await worldScenes(), e); } catch (er) {}
+    return out;
+  }
+  async function deleteDossier() {
+    var e = dos; if (!e || e.isNew || !canWrite) return;
+    if (e.col === "lore") return deleteLore();
+    var X = STR.edel, t = e.name || e.title || "…", nm = function (x) { return x.name || x.title || "…"; };
+    $("d-delete").disabled = true; dmsg(X.busy);
+    try {
+      var im = await entityImpact(e), files = (e.files || []).filter(function (f) { return ownPath(f.path); });
+      var shown = im.games.filter(function (x) { return x.card && !x.card.hidden; }), refs = [].concat.apply([], im.games.map(function (x) { return x.refs.map(function (r) { return r.label + " «" + (r.from.title || "…") + "» (" + (x.g.title || "") + ")"; }); }));
+      var lines = [X.q.replace("{t}", t)];
+      if (im.links.length) lines.push(X.links.replace("{n}", im.links.length).replace("{l}", im.links.slice(0, 8).map(function (x) { return nm(x.e); }).join(", ") + (im.links.length > 8 ? "…" : "")));
+      if (shown.length) lines.push(X.cards.replace("{n}", shown.length).replace("{g}", shown.map(function (x) { return x.g.title || x.g.id; }).join(", ")));
+      if (refs.length) lines.push(X.refs.replace("{t}", t).replace("{n}", refs.length).replace("{l}", refs.slice(0, 6).join(", ") + (refs.length > 6 ? "…" : "")));
+      if (im.scenes.length) lines.push(X.scenes.replace("{t}", t).replace("{n}", im.scenes.length));
+      if (files.length) lines.push(X.files.replace("{n}", files.length));
+      if (im.blind.length) lines.push(X.noGames.replace("{g}", im.blind.join(", ")));
+      if (lines.length === 1) lines.push(X.none.replace("{t}", t));
+      dmsg("");
+      if (!(await askConfirm(lines.join("\n\n"), { danger: true, okLabel: X.btn }))) { $("d-delete").disabled = false; return; }
+      dmsg(STR.saving);
+      var D = firebase.firestore.FieldValue.delete(), desc = e[descKeyOf(e)] || "";
+      for (var i = 0; i < im.games.length; i++) { // the games keep their work: the card stays, as the game's own
+        var x = im.games[i]; if (!x.card) continue;
+        var cref = wref().collection("games").doc(x.g.id).collection("cards").doc(x.card.id);
+        if (x.card.hidden) await cref.delete();
+        else await cref.update({ title: t, canonRef: D, note: [x.card.note || "", desc].filter(Boolean).join("\n\n"), updatedAt: stamp() });
+      }
+      await Promise.all(files.map(function (f) { return dropOwn(f.path).catch(function (er) { if (er.code !== "storage/object-not-found") throw er; }); }));
+      var ups = [];
+      entities.forEach(function (o) {
+        if (o.id === e.id) return;
+        var u = {};
+        KINDS.forEach(function (k) { if (Array.isArray(o[k]) && o[k].indexOf(e.id) >= 0) u[k] = o[k].filter(function (id) { return id !== e.id; }); });
+        if (Array.isArray(o.relations) && o.relations.some(function (r) { return r && r.id === e.id; })) u.relations = o.relations.filter(function (r) { return !(r && r.id === e.id); });
+        ["owner", "location", "faction"].forEach(function (k) { if (o[k] === e.id) u[k] = D; });
+        if (Object.keys(u).length) { u.updatedAt = stamp(); ups.push([o.id, u]); }
+      });
+      if (ups.length > 450) throw new Error(ups.length + " > 450");
+      var batch = db.batch();
+      ups.forEach(function (x) { batch.update(wref().collection("entities").doc(x[0]), x[1]); });
+      batch.delete(wref().collection("entities").doc(e.id));
+      await batch.commit();
+      closeDossier(); notify(X.done.replace("{t}", t));
+    } catch (er) { if (dos === e) { $("d-delete").disabled = false; dmsg(STR.failed + ": " + (er.code || er.message || er)); } }
   }
   // ---------- 🎙 Dictation → the open card's fields (cardFill {op:voiceFill}) · 🧠 the personality constructor (functions/persona.js) ----------
   // The browser recognises the speech (Web Speech API, free; Chrome / Edge / Safari); the AI files the text into the fields of the
@@ -2770,7 +2912,6 @@
       body: JSON.stringify(Object.assign({ worldId: worldId, language: LANG }, body)) });
     var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
     if (!r.ok) { var er = new Error(data.error || "HTTP " + r.status); er.code = data.code; throw er; }
-    if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
     return data;
   }
   // what the open card offers to the dictation: its text and table fields (files, pictures, palettes are not dictated)
@@ -3071,7 +3212,7 @@
         deadEnd: "{id}: a dead end — nowhere to go and not marked as an end", noParticipants: "No participants", missingStage: "No such quest stage: {id}",
         noNodes: "No lines", emptyText: "{id}: an empty line", speakerNotIn: "{id}: the speaker is not a participant" } }
   }[LANG];
-  var quests = [], dialogues = [], canQuest = false, qed = null; // qed: { col, id, isNew, d (draft), first }
+  var quests = [], dialogues = [], canQuest = false, qdBase = false, qed = null; // qed: { col, id, isNew, d (draft), first }
   var qprop = null, qbusy = "", NARR_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/narrativeDraft"; // qprop: the AI proposal of the open draft
   var QREFS = ["giver", "characters", "locations", "factions", "artifacts", "events"];
   function entName(id) {
@@ -3100,6 +3241,8 @@
           nodes: [{ id: "n1", speaker: "", text: "", locKey: "", cond: "", effects: "", choices: [], next: "", end: true }], notes: "" };
   }
   function qdDirty() { return !!qed && JSON.stringify(qed.d) !== qed.first; }
+  // qdBase: game design on the owner's plan; canQuest — may this person write the open collection (a team member: by role / chosen sections, as firestore.rules)
+  function qdRight(col) { canQuest = qdBase && mayEdit(col); }
   function openQD(col, id, preset) {
     if (qdDirty()) return unsavedOk(true, function () { qed = null; openQD(col, id, preset); });
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
@@ -3107,7 +3250,7 @@
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
     qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d, sel: 0, detail: false, open: {}, pq: "", agent: agentOf(x) }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game"; // sel: the open line / stage; open: the author's disclosures
     if (section !== col) { section = col; query = ""; imp = null; $("q").value = ""; }
-    render(); $("main").scrollTop = 0;
+    qdRight(col); render(); $("main").scrollTop = 0;
   }
   function qdCardHtml(col, x) {
     var iss = nvCheck(col, x), w = window.__NARRATIVE ? window.__NARRATIVE.worst(iss) : "", ap = x.approval || "draft";
@@ -3119,7 +3262,7 @@
       '<div class="tags">' + tags.join("") + '</div><p class="ex">' + esc(plain(x.summary || x.trigger || "")) + '</p></button>';
   }
   function renderQD(s) {
-    var col = s.special;
+    var col = s.special; qdRight(col);
     if (qed && qed.col === col) { // a live snapshot must not pull the field from under the author's cursor
       var ed = $("q-ed"); if (ed && ed.dataset.id === qed.id && ed.contains(document.activeElement) && document.activeElement !== ed) return;
       return renderQEditor();
@@ -3362,7 +3505,7 @@
       confirm: "Озвучити {n} реплік(и) через Google TTS — ≈ {t} токенів (за символи тексту). Продовжити?", busy: "Озвучую…", done: "Озвучено реплік: {n} · витрачено {t}", needGoogle: "У того, хто говорить, не вибрано голос Google.",
       needText: "Порожня репліка", saveFirst: "Спершу збережи діалог.", sample: "Привіт! Так звучить мій голос.", noBrowser: "Браузер не вміє говорити.",
       cardTitle: "🎙 Голос", cardHint: "Діє в усіх діалогах цієї гри, де він говорить. Той самий вибір — у діалозі → «🎙 Озвучка».",
-      stop: "■ Стоп", gender: "Стать", gAll: "усі", gF: "жіночі", gM: "чоловічі", gN: "нейтральні", gNames: { FEMALE: "жіночий", MALE: "чоловічий", NEUTRAL: "нейтральний" }, cached: "вже прослухано — без токенів",
+      lockWB: "🔒 Голоси Google і ✦ озвучка — частина Worldbuilder (токени за символи). На твоєму тарифі — безкоштовна проба голосом браузера й власні записи (⤒).", stop: "■ Стоп", gender: "Стать", gAll: "усі", gF: "жіночі", gM: "чоловічі", gN: "нейтральні", gNames: { FEMALE: "жіночий", MALE: "чоловічий", NEUTRAL: "нейтральний" }, cached: "вже прослухано — без токенів",
       scriptAll: "⤓ Сценарій озвучки (CSV)", byKeys: "⤒ Озвучка за ключами", byKeysTip: "Файли з назвою = ключ локалізації репліки (напр. dlg.tavern.n3.wav) — кожен ляже в Аудіотеку й у свою репліку", byKeysDone: "Привʼязано файлів: {n}; без репліки: {m}" },
     en: { box: "🎙 Voice-over", hint: "A voice for everyone who speaks. A try with the browser voice is free; Google voices the lines into files that go into the Audio library (“Voice”) and the line's slot.",
       service: "Service", voice: "Voice", lang: "Language", rate: "Speed", pitch: "Pitch", try: "▶ Try", tryAi: "✦ Try", browser: "Browser (free, a try only)", google: "Google Text-to-Speech", eleven: "ElevenLabs — soon",
@@ -3372,7 +3515,7 @@
       confirm: "Voice {n} line(s) with Google TTS — ≈ {t} tokens (by the characters of text). Go on?", busy: "Voicing…", done: "Lines voiced: {n} · spent {t}", needGoogle: "The speaker has no Google voice chosen.",
       needText: "An empty line", saveFirst: "Save the dialogue first.", sample: "Hello! This is how my voice sounds.", noBrowser: "This browser cannot speak.",
       cardTitle: "🎙 Voice", cardHint: "Used in every dialogue of this game where they speak. The same choice — in a dialogue → “🎙 Voice-over”.",
-      stop: "■ Stop", gender: "Gender", gAll: "all", gF: "female", gM: "male", gN: "neutral", gNames: { FEMALE: "female", MALE: "male", NEUTRAL: "neutral" }, cached: "already heard — no tokens",
+      lockWB: "🔒 Google voices and ✦ voicing are part of Worldbuilder (tokens by characters). On your plan — a free try with the browser voice and your own recordings (⤒).", stop: "■ Stop", gender: "Gender", gAll: "all", gF: "female", gM: "male", gN: "neutral", gNames: { FEMALE: "female", MALE: "male", NEUTRAL: "neutral" }, cached: "already heard — no tokens",
       scriptAll: "⤓ Voice-over script (CSV)", byKeys: "⤒ Voice files by keys", byKeysTip: "Files named after a line's localisation key (e.g. dlg.tavern.n3.wav) — each goes into the library and its line", byKeysDone: "Files linked: {n}; without a line: {m}" }
   }[LANG === "en" ? "en" : "uk"];
   var VO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/voice", VO_LANGS = ["uk-UA", "en-US", "en-GB", "pl-PL", "de-DE", "fr-FR", "es-ES", "it-IT", "pt-BR", "ja-JP", "ko-KR", "zh-CN"];
@@ -3404,7 +3547,7 @@
   function voCastHtml(d) {
     var who = speakersOf(d);
     if (!who.length) return qbox(VO.box, '<p class="muted">' + VO.noSpeakers + '</p>');
-    return qdis("cast", false, '<h4>' + VO.box + '</h4> <span class="mol-n">' + who.length + '</span>', '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(voRowHtml).join("") + '<div class="row"><button type="button" class="btn ghost" data-vall="1">' + VO.all + '</button><button type="button" class="btn ghost" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>', "qbox"); // the cast folds away: the lines come first
+    return qdis("cast", false, '<h4>' + VO.box + '</h4> <span class="mol-n">' + who.length + '</span>', '<p class="hint">' + esc(VO.hint) + '</p>' + who.map(voRowHtml).join("") + '<div class="row">' + (canDev ? '<button type="button" class="btn ghost" data-vall="1">' + VO.all + '</button>' : '<button type="button" class="btn ghost" disabled title="' + esc(VO.lockWB) + '">🔒 ' + VO.all + '</button>') + '<button type="button" class="btn ghost" data-vcsv="1">' + VO.csv + '</button><span class="hint" id="vo-msg" role="status">' + esc(voMsg) + '</span></div>', "qbox"); // the cast folds away: the lines come first
   }
   // 🎙 the voice of a character / enemy card: the same games/{g}.voices[speaker] the dialogues use (entity id, or "c:<cardId>" for the game's own cards)
   function voCardKey(c) { return c.src === "canon" ? c.id : "c:" + c.id; }
@@ -3417,25 +3560,28 @@
     var vc = $("vo-card"); if (vc) vc.outerHTML = voCardHtml(vc.dataset.key);
   }
   function voRowHtml(w) {
-    var PF = window.__PAID_FEATURES;
+    var PF = window.__PAID_FEATURES, lockG = !canDev, ro = !canWrite && !canQuest; // Google = Worldbuilder (voice.js); a reader only listens
     {
       var c = castOf(w), opts, gl = gVoices[c.lang];
       if (c.service === "google") opts = gl === "…" ? [["", VO.loading]] : (gl || []).filter(function (v) { return !c.gender || v.gender === c.gender || v.name === c.voice; })
         .map(function (v) { return [v.name, v.name + (v.gender ? " · " + (VO.gNames[v.gender] || v.gender.toLowerCase()) : "") + " · ≈ " + v.price]; });
       else opts = browserVoices(c.lang).map(function (v) { return [v.name, v.name]; });
       var sel = function (k, pairs, cur) { return '<select data-vcast="' + esc(w) + '" data-k="' + k + '" aria-label="' + esc(VO[k] + " · " + whoName(w)) + '">' + pairs.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + (p[2] ? " disabled" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>'; };
-      return '<div class="vcast"><b>' + esc(whoName(w)) + '</b>' +
-        sel("service", [["browser", VO.browser], ["google", VO.google], ["eleven", VO.eleven, 1]], c.service) +
+      var out = '<div class="vcast"><b>' + esc(whoName(w)) + '</b>' +
+        sel("service", [["browser", VO.browser], ["google", VO.google + (lockG ? " 🔒" : ""), lockG && c.service !== "google" ? 1 : 0], ["eleven", VO.eleven, 1]], c.service) +
         sel("lang", VO_LANGS.map(function (l) { return [l, l]; }), c.lang) +
         (c.service === "google" ? sel("gender", [["", VO.gAll], ["FEMALE", VO.gF], ["MALE", VO.gM], ["NEUTRAL", VO.gN]], c.gender || "") : "") +
         sel("voice", [["", VO.auto]].concat(opts), c.voice) +
         '<label class="vnum">' + VO.rate + ' <input type="number" step="0.1" min="0.5" max="2" data-vcast="' + esc(w) + '" data-k="rate" value="' + esc(c.rate) + '"></label>' +
         '<label class="vnum">' + VO.pitch + ' <input type="number" step="1" min="-10" max="10" data-vcast="' + esc(w) + '" data-k="pitch" value="' + esc(c.pitch) + '"></label>' +
         (voPlay === w ? '<button type="button" class="btn mini" data-vstop="1">' + VO.stop + '</button>' :
+          c.service === "google" && lockG ? '<button type="button" class="btn mini" disabled title="' + esc(VO.lockWB) + '">🔒 ' + VO.tryAi + '</button>' :
           c.service === "google" ? '<button type="button" class="btn mini" data-vtryai="' + esc(w) + '"' + (voHeard[voKey(c)] ? ' title="' + esc(VO.cached) + '">' + VO.try : '>' + VO.tryAi + ' · ≈ ' + PF.ttsCost(VO.sample.length, c.voice)) + '</button>' :
           '<button type="button" class="btn mini" data-vtry="' + esc(w) + '">' + VO.try + '</button>') +
         (c.service === "google" ? (gl ? '' : '<button type="button" class="btn mini" data-vload="' + esc(c.lang) + '">' + VO.loadVoices + '</button>') +
-          '<span class="muted">' + esc(VO.per1k.replace("{n}", PF.ttsCost(1000, c.voice || "standard"))) + '</span>' : '') + '</div>';
+          '<span class="muted">' + esc(VO.per1k.replace("{n}", PF.ttsCost(1000, c.voice || "standard"))) + '</span>' : '') + '</div>' +
+        (lockG ? '<p class="hint">' + esc(VO.lockWB) + ' <a href="#" class="kblink" data-kbart="plans">' + esc(STR.devLock.title) + '</a></p>' : '');
+      return ro ? out.replace(/<(select|input) /g, "<$1 disabled ") : out;
     }
   }
   function voLineHtml(d, n, i) {
@@ -3446,7 +3592,8 @@
         (canQuest ? '<button type="button" class="btn ghost mini" data-vrm="' + i + '" data-v="' + esc(id) + '" title="' + esc(VO.rm) + '" aria-label="' + esc(VO.rm) + '">✕</button>' : '') + '</span>';
     }).join("") + (n.vstatus && ids.length ? '<span class="pill">' + esc(VO.st[n.vstatus] || n.vstatus) + '</span>' : '') +
       '<button type="button" class="btn ghost mini" data-vsay="' + i + '" title="' + esc(VO.sayTip) + '" aria-label="' + esc(VO.sayTip) + '">' + VO.say + '</button>' +
-      (canQuest ? '<button type="button" class="btn ghost mini" data-vone="' + i + '" title="' + esc(VO.oneTip) + '" aria-label="' + esc(VO.oneTip) + '">' + VO.one + '</button>' +
+      (canQuest ? (canDev ? '<button type="button" class="btn ghost mini" data-vone="' + i + '" title="' + esc(VO.oneTip) + '" aria-label="' + esc(VO.oneTip) + '">' + VO.one + '</button>'
+          : '<button type="button" class="btn ghost mini" disabled title="' + esc(VO.lockWB) + '" aria-label="' + esc(VO.lockWB) + '">🔒</button>') +
         '<label class="btn ghost mini" title="' + esc(VO.upTip) + '">' + VO.up + '<input type="file" hidden accept="audio/*" data-vup="' + i + '"></label>' : '') + '</div>';
   }
   async function voSetCast(who, k, v) {
@@ -3489,8 +3636,9 @@
     var q = qed, n = q.d.nodes[i], s = sec("audio"), g = subsOf(s)[window.__MECH.LIB_GROUPS.voice] || "";
     var ren = new File([file], lineKey(q.d, n) + (/\.[^.]+$/.exec(file.name) || [""])[0], { type: file.type });
     voMark(STR.uploading + "…");
-    var ids = await bulkCards("audio", [ren], g);
-    if (qed !== q || !ids.length) return;
+    var ids = await bulkCards("audio", [ren], g); // a failed upload leaves no empty card (bulkCards)
+    if (qed !== q) return;
+    if (!ids.length) { voMark(""); return; }
     n.voice = ids; n.vstatus = "rec"; voMsg = ""; renderQEditor();
   }
   function csvCell(v) { v = String(v == null ? "" : v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
@@ -3515,8 +3663,16 @@
       var nodes = touched[hit.d.id] || (touched[hit.d.id] = JSON.parse(JSON.stringify(hit.d.nodes)));
       nodes[hit.i].voice = ids; nodes[hit.i].vstatus = "rec"; n++;
     }
-    for (var id in touched) { try { await gref().collection("dialogues").doc(id).set({ nodes: touched[id], updatedAt: stamp() }, { merge: true }); } catch (e) { await notify(STR.failed + ": " + e.message); } }
-    bulkStatus(VO.byKeysDone.replace("{n}", n).replace("{m}", miss));
+    for (var id in touched) {
+      try { await gref().collection("dialogues").doc(id).set({ nodes: touched[id], updatedAt: stamp() }, { merge: true }); } catch (e) { await notify(STR.failed + ": " + e.message); continue; }
+      if (qed && qed.col === "dialogues" && qed.id === id && qed.d.nodes) { // the open draft takes the voices too — saving it later must not wipe them
+        var was = !qdDirty(), byId = {}; touched[id].forEach(function (x) { if (x.id) byId[x.id] = x; });
+        qed.d.nodes.forEach(function (x) { var y = byId[x.id]; if (y && y.vstatus === "rec" && y.voice) { x.voice = y.voice; x.vstatus = "rec"; } });
+        if (was) qed.first = JSON.stringify(qed.d);
+        if ($("q-ed")) renderQEditor();
+      }
+    }
+    bulkStatus(VO.byKeysDone.replace("{n}", n).replace("{m}", miss), "audio");
   }
   function voClick(e) {
     var inCard = !!e.target.closest("#vo-card");
@@ -4502,7 +4658,12 @@
         if (!n || !n.trim()) return renderMEditor();
         var row = { _id: MX().newRowId(rs) };
         (rs.fields || []).forEach(function (x) { if (x.t === "bool") row[x.k] = false; });
-        if (rs.rowLabel) row[rs.rowLabel] = n.trim();
+        if (!rs.rowLabel) { // an own table without a name column: the first text field names its rows, else a «Назва» field is made — the name must show in the link
+          var tf = (rs.fields || []).filter(function (x) { return (x.t || "text") === "text"; })[0];
+          if (!tf) { tf = { k: (rs.fields || []).some(function (x) { return x.k === "name"; }) ? "name_" + Date.now().toString(36) : "name", l: LANG === "en" ? "Name" : "Назва", t: "text", custom: true }; rs.fields = [tf].concat(rs.fields || []); }
+          rs.rowLabel = tf.k;
+        }
+        row[rs.rowLabel] = n.trim();
         rs.rows = (rs.rows || []).concat([row]);
         if (k[0] === "w") { if (med.wiz) med.wiz.row[k[2]] = row._id; } else if (k[1] === "-") ws.values[k[2]] = row._id; else ws.rows[+k[1]][k[2]] = row._id;
         renderMEditor(); mState();
@@ -4662,7 +4823,7 @@
   }
   // the dossier lists the quests and dialogues its entity takes part in (derived, nothing stored on the entity)
   // ---- 💡 a quest from a source (spec 2.2): the source travels into the form, the obvious links are prefilled, AI is one click away ----
-  function bulbHtml(type, id) { return canQuest && (mode === "game" ? game : games.length) ? '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>' : ''; }
+  function bulbHtml(type, id) { return qdBase && mayEdit("quests") && (mode === "game" ? game : games.length) ? '<button class="btn mini bulb" type="button" data-bulb="' + type + ':' + esc(id) + '">' + QD.bulb + '</button>' : ''; }
   function srcCol(type) { return type === "story" || type === "lore" || type === "card" ? type : "e"; }
   function srcItem(type, id) {
     if (type === "card") return cards.filter(function (x) { return x.id === id && !x.canonRef; })[0];
@@ -4671,7 +4832,7 @@
     return entities.filter(function (x) { return x.id === id; })[0];
   }
   function questFrom(type, id) {
-    if (!canQuest || !games.length) { notify(QD.locked); return; }
+    if (!qdBase || !mayEdit("quests") || !games.length) { notify(QD.locked); return; }
     if (mode !== "game" || !game) return pickGame(function (gid) { if (dos) closeDossier(); enterGame(gid); if (mode === "game" && game) questFrom(type, id); });
     var x = srcItem(type, id); if (!x) return;
     var kind = srcCol(type) === "e" ? x.kind : type, pre = { source: { type: kind, id: id, title: x.title || x.name || "" } };
@@ -4871,7 +5032,7 @@
           });
         },
         onUploadMap: async function (file) {
-          if (file.size > MAX_FILE) throw new Error(STR.fileTooBig);
+          if (file.size > gameFileMax()) throw new Error(bigMsg(file));
           var path = "worlds/" + worldId + "/files/cosmos/" + newId("map") + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
           var task = firebase.storage().ref(path).put(file, { contentType: file.type || "image/jpeg" });
           await task; var url = await task.snapshot.ref.getDownloadURL();
@@ -5030,14 +5191,15 @@
   function renderChronicle(s) {
     var evs = entities.filter(function (e) { return e.kind === "events"; }).map(function (e) { return Object.assign({}, e, { at: num(e.at), dur: Math.max(0, num(e.dur) || 0) }); });
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row"><label class="unitbox">' + STR.chron.unit + ' <input id="ch-unit" value="' + esc((world && world.timeUnit) || "") + '" placeholder="' + esc(STR.chron.unitPh) + '"></label>' +
-      (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>';
+      '<div class="row"><label class="unitbox">' + STR.chron.unit + ' <input id="ch-unit"' + (canWrite ? '' : ' readonly') + ' value="' + esc((world && world.timeUnit) || "") + '" placeholder="' + esc(STR.chron.unitPh) + '"></label>' +
+      (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div></header>' + (canWrite ? '' : roNoteHtml());
     html += '<p class="muted">' + (evs.length ? STR.chron.legend : STR.chron.empty) + '</p>';
     // each subsection (an era, a war, a line of the story…) is its own time line
     html += '<div class="chl-book">' + subsHtml(s, evs, function (e) { return e.group; }, chronLine) + '</div>';
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
-    $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim() }, { merge: true }); };
+    if (canWrite) $("ch-unit").onchange = function (e) { wref().set({ timeUnit: e.target.value.trim(), updatedAt: stamp() }, { merge: true }).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); }); };
+    else bindDevLock();
   }
   // 📚 «Історії світу» (owner, v2.102.4): every story of the world on the shelf — its own menu item, like «Історії гри» in a game
   function renderWorldStories(s) {
@@ -5231,6 +5393,7 @@
     setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
+    $("e-title").readOnly = !canWrite || canonLocked(c); // a canon card's name is the canon's: 🔒 on Free (v2.118.0)
     $("e-status").innerHTML = STATUSES.map(function (s) { return '<option value="' + s.id + '"' + (s.id === c.status ? " selected" : "") + '>' + esc(L(s)) + '</option>'; }).join("");
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-mic").style.display = canWrite && dictOk(c) ? "" : "none";
@@ -5242,6 +5405,8 @@
   }
 
   // «Опис» is the card's main text: whole width, a big box to write in (owner, v2.106.1)
+  // 🔒 the canon part of a game card (name, «Опис», the character sheet) without the right to edit the canon: shown, never written (v2.118.0)
+  function canonLocked(c) { c = c || open; return !!(c && c.src === "canon" && !canonOk(sec(c.section).canon || c.kind)); }
   function isDesc(key, label) { return key === "__canon" || key === "text" || /^(опис|description)$/i.test(String(label || "").trim()); }
   function fieldHtml(key, label, value, extra) {
     return '<div class="field' + (isDesc(key, label) ? " desc" : "") + '"><label>' + esc(label) + (extra || "") + '</label><div class="shown' + (value ? "" : " blank") + '" tabindex="0" role="button" data-edit="' + esc(key) + '">' +
@@ -5271,7 +5436,8 @@
     var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; }).slice(-1)[0] || pics[0] || entImage(e);
     var up = canWrite ? '<button type="button" class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? CS.change : CS.portraitTip) + '" data-picch="portrait" data-picid="' + esc(img && pics.indexOf(img) >= 0 ? img.id : img ? "__canon" : "") + '">' + (img ? '✎' : esc(CS.portrait)) + '</button>' : '';
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">⚔</div>';
-    return '<div class="field cs-wrap" data-sheet="' + esc(open.id) + '">' + sheetHtml(e, draft.sheet, frame) + '</div>';
+    var cw = canWrite; if (canonLocked()) canWrite = false; // the sheet's traits are the canon's: read-only when the canon is (the portrait is the game's)
+    try { return '<div class="field cs-wrap" data-sheet="' + esc(open.id) + '">' + sheetHtml(e, draft.sheet, frame) + '</div>'; } finally { canWrite = cw; }
   }
   // 🏞 Location sheet (owner, v2.115): the location's picture in the same gold frame (landscape) and its traits beside it — lists of
   // functions/game-map.js PLACE (+ «✎ Своє…»), kept on the game card as `place`; «На карті гри» — the map zones placed at this canon location
@@ -5311,8 +5477,8 @@
     if ((open.files || []).some(function (f) { return !f.field && !(open.section === "assets" && window.__ASSET_KIT.fileSlot(f)); }) || (all && !lean)) html += filesHtml();
     else if (!lean && canWrite) chips.push('<label class="addf-it" role="menuitem" tabindex="0"><input type="file" multiple id="f-up" hidden><i aria-hidden="true">📎</i>' + esc(STR.files) + '</label>');
     if (draft.canonDesc !== null) {
-      if (draft.canonDesc || all || moreKeys.__canon) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>');
-      else if (canWrite) chips.push(moreChip("__canon", LANG === "en" ? "Description" : "Опис"));
+      if (draft.canonDesc || all || moreKeys.__canon) html += fieldHtml("__canon", LANG === "en" ? "Description" : "Опис", draft.canonDesc, ' <span class="canon">· ' + STR.canonField + '</span>' + (canonLocked() ? ' <span class="hint">' + esc(ME.owner ? STR.canonRO.short : "🔒") + '</span>' : ''));
+      else if (canWrite && !canonLocked()) chips.push(moreChip("__canon", LANG === "en" ? "Description" : "Опис"));
     }
     var gk = groupKey(sec(open.section)); // the subsection: set by the «＋ Додати» it was added under
     draft.defs.forEach(function (d) {
@@ -5322,7 +5488,7 @@
       if (hero && ["portrait", "refpics", "model"].indexOf(d.key) >= 0) return;
       chips.push(moreChip(d.key, d.label, defIco(d)));
     });
-    var voK = !open.isNew && (open.section === "characters" || open.section === "enemies") && canQuest ? voCardKey(open) : "";
+    var voK = !open.isNew && (open.section === "characters" || open.section === "enemies") && canGame ? voCardKey(open) : "";
     var voOn = voK && (all || moreKeys.__voice || ((game && game.voices) || {})[voK]);
     if (voK && !voOn) chips.push(moreChip("__voice", VO.cardTitle, "🎙"));
     var hasEmpty = chips.length > 0;
@@ -5358,7 +5524,7 @@
       moveQ: "Створити префаб «{t}» у «Ассети й префаби» з цих файлів ({n}) і привʼязати його до картки?", moved: "Префаб створено й привʼязано.",
       title: "Префаб для «{t}»", search: "Пошук префаба…", empty: "У «Ассети й префаби» ще немає префабів.", noMatch: "Нічого не знайдено.", go: "Перейти в «Ассети й префаби»", upNew: "⤒ Завантажити з ПК", upNewDir: "📂 Тека з ПК (FBX · OBJ · glTF + текстури)",
       upNewHint: "Модель ляже новим префабом у «Ассети й префаби» → «{g}» і одразу привʼяжеться до «{t}». Для Кузні модель має бути вже з ригом: скелет Humanoid з іменами кісток Mixamo.", upNewDone: "Префаб «{t}» створено в «Ассети й префаби» й привʼязано.",
-      filesHint: "картинки, документи, звук — до 200 МБ; моделі й префаби — через «🧊 Додати префаб»",
+      filesHint: "картинки, документи, звук — до {mb} МБ; моделі й префаби — через «🧊 Додати префаб»",
       filesHintA: "інше до картки — концепти, документи, звук; модель і текстури — у «🧩 Модель і комплект» вище", kitShort: "комплект", qPrefab: "🧊 Додати префаб", qPortrait: "🖼 Додати портрет", qRef: "📌 Додати референс",
       noModels: "Моделі й префаби не завантажують у картку героя: додай їх у «Ассети й префаби», а тут обери «🧊 Додати префаб». Пропущено: {f}",
       kitTitle: "🧩 Модель і комплект", kitHint: "GLB, .blend, .unitypackage чи ZIP — одним файлом; FBX, OBJ, glTF — текою разом із текстурами. Що де — сервіс розпізнає сам",
@@ -5373,7 +5539,7 @@
       moveQ: "Create the prefab “{t}” in “Assets & prefabs” from these files ({n}) and link it to the card?", moved: "The prefab is created and linked.",
       title: "A prefab for “{t}”", search: "Find a prefab…", empty: "“Assets & prefabs” has no prefabs yet.", noMatch: "Nothing found.", go: "Go to “Assets & prefabs”", upNew: "⤒ Upload from PC", upNewDir: "📂 Folder from PC (FBX · OBJ · glTF + textures)",
       upNewHint: "The model becomes a new prefab in “Assets & prefabs” → “{g}” and is linked to “{t}” at once. For the Forge the model must already be rigged: a Humanoid skeleton with Mixamo bone names.", upNewDone: "The prefab “{t}” is created in “Assets & prefabs” and linked.",
-      filesHint: "images, documents, audio — up to 200 MB; models and prefabs — via “🧊 Add a prefab”",
+      filesHint: "images, documents, audio — up to {mb} MB; models and prefabs — via “🧊 Add a prefab”",
       filesHintA: "anything else for the card — concepts, documents, audio; the model and textures go to “🧩 Model & kit” above", kitShort: "kit", qPrefab: "🧊 Add a prefab", qPortrait: "🖼 Add a portrait", qRef: "📌 Add a reference",
       noModels: "Models and prefabs are not uploaded onto a hero card: add them to “Assets & prefabs” and pick “🧊 Add a prefab” here. Skipped: {f}",
       kitTitle: "🧩 Model & kit", kitHint: "GLB, .blend, .unitypackage or ZIP — as one file; FBX, OBJ, glTF — as a folder with their textures. The service recognises what is what",
@@ -5401,7 +5567,7 @@
     var K = window.__ASSET_KIT, T = tc || open;
     if (mode === "file") { var loose = list.filter(function (f) { return K.needsFolder(f.name); }); if (loose.length) { notify(PF.needDir.replace("{f}", loose[0].name)); return; } }
     else { list = list.filter(function (f) { return K.classify(f.name); }); if (!list.some(function (f) { var c = K.classify(f.name); return c === "model" || c === "prefab"; })) { notify(PF.noMesh); return; } }
-    var big = list.filter(function (f) { return f.size > MAX_FILE; }); if (big.length) { notify(STR.fileTooBig + ": " + big[0].name); return; }
+    var big = list.filter(tooBig); if (big.length) { notify(bigMsg(big[0])); return; }
     if (!tc && open.isNew) { await save(true); if (open.isNew) return; }
     var title = (!tc && $("e-title") ? $("e-title").value.trim() : "") || T.title || STR.newCard, s = sec("assets"), aid = newId("card");
     var asset = { id: aid, src: "game", section: "assets", title: title, files: [] }, say = function (t) { if (tc) { fz.msg = t; render(); } else if (open === T) msg(t); };
@@ -5674,7 +5840,6 @@
     if (!r.ok) { var er = new Error(data.error || "HTTP " + r.status); er.code = data.code; throw er; }
     [c].concat(cards.filter(function (x) { return x.id === c.id; })).forEach(function (x) { x.styleAi = Object.assign({}, x.styleAi); x.styleAi[f.id] = data.styleAi; }); // the card snapshot brings the same a moment later
     if (open === c) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); } else render();
-    if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
     return data;
   }
   // «✦ Перевірити всі»: every picture of the game's cards without a fresh AI score (new and stale), one by one
@@ -5717,8 +5882,7 @@
           body: JSON.stringify({ worldId: worldId, gameId: gameId, images: images, language: LANG }) });
         var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
         if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
-        if (window.__wwUser && data.tokensRemaining != null) window.__wwUser.tokens = data.tokensRemaining;
-        sfrPick(data.proposal, images.length);
+            sfrPick(data.proposal, images.length);
       } catch (e) { notify(STR.failed + ": " + e.message); }
       btn.disabled = false; btn.innerHTML = label;
     });
@@ -6005,7 +6169,13 @@
     if (gone.length) open.files = open.files.filter(function (f) { return f.field !== key; });
   }
   // ---------- files on a card: prefabs, models, images… (Storage: worlds/{w}/games/{g}/files/{cardId}/…) ----------
-  var MAX_FILE = 200 * 1024 * 1024;
+  var MAX_FILE = 200 * 1024 * 1024; // a world file (storage.rules worlds/{w}/files)
+  // a file on a game card — the world owner's plan (paid-features PLANS.fileMB = storage.rules ownerGameDev: 200 MB on Worldbuilder, else 20);
+  // a member works on the owner's plan, unknown here → the server decides and a refusal of a big file says why (bigRefused)
+  function gameFileMax() { var PF = window.__PAID_FEATURES; if (!ME.owner) return MAX_FILE; return (PF ? PF.planBudget(((window.__wwUser || {}).plan) || planName || "free").fileMB : 20) * 1048576; }
+  function tooBig(f) { return f.size > gameFileMax(); }
+  function bigMsg(f) { var mb = gameFileMax() / 1048576; return STR.fileTooBigG.replace("{n}", mb).replace("{up}", mb < 200 ? STR.fileTooBigUp : "") + ": " + f.name; }
+  function bigRefused(f, e) { return !ME.owner && f.size > 20 * 1048576 && e && /unauthorized/.test(e.code || "") ? STR.fileTooBigTeam + ": " + f.name : null; }
   var MODEL_EXT = /\.(glb|gltf|fbx|obj|stl)$/i; // keep in sync with gb-3d.js
   function is3D(f) { return MODEL_EXT.test(f.name || ""); }
   // ---------- polygon budget: a model over 100 000 polygons (triangles) carries a small red mark (file.tris, counted once) ----------
@@ -6148,7 +6318,7 @@
   function isImage(f) { return /^image\//.test(f.type || "") || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || ""); }
   function fileSize(n) { return n >= 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
   function fileRow(f) {
-      return '<div class="file">' + (isImage(f) ? '<a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
+      return '<div class="file">' + (isImage(f) ? '<a class="fthumb" href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name || "") + '" src="' + esc(f.url) + '"></a>' : '<span class="ico">' + (is3D(f) ? '🧊' : '📦') + '</span>') +
         '<a class="fname" href="' + escUrl(f.url) + '" target="_blank" rel="noopener" download="' + esc(f.name) + '">' + esc(f.name) + '</a><span class="muted">' + fileSize(f.size || 0) + '</span>' + polyInfo(f) +
         (isAsset(f) ? licChip(f, open.files, "data-lic") : '') + (isImage(f) ? styleMark(f.url, open, f.id) : '') +
         (is3D(f) ? '<button class="btn" data-view3d="' + esc(f.id) + '">' + STR.v3d.open + '</button>' : '') +
@@ -6158,15 +6328,16 @@
   function filesHtml() {
     var list = (open.files || []).filter(function (f) { return !f.field && !(open.section === "assets" && window.__ASSET_KIT.fileSlot(f)); }).map(fileRow).join(""); // an asset's models sit in its kit
     var add = !canWrite ? "" : '<label class="btn"><input type="file" multiple id="f-up" hidden>' + STR.filesAdd + '</label>';
-    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + (STATS_SECS.indexOf(open.section) >= 0 ? PF.filesHint : open.section === "assets" ? PF.filesHintA : STR.filesHint) + '</span></label>' + list + add + '</div>';
+    return '<div class="field files"><label>' + STR.files + ' <span class="hint">' + (STATS_SECS.indexOf(open.section) >= 0 ? PF.filesHint : open.section === "assets" ? PF.filesHintA : STR.filesHint).replace("{mb}", gameFileMax() / 1048576) + '</span></label>' + list + add + '</div>';
   }
   // one file onto a card: Storage + the card's files[] (the card's pickers and the bulk «＋ Картинки» of «Референси»)
   async function putFile(card, file, field, progress) {
+    if (tooBig(file)) throw new Error(bigMsg(file));
     if (!(await storageRoom(file.size))) throw new Error(quotaMsg());
     var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + card.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
     var task = firebase.storage().ref(path).put(file, { contentType: file.type || "application/octet-stream" });
     if (progress) task.on("state_changed", progress);
-    await task;
+    try { await task; } catch (e) { var why = bigRefused(file, e); throw why ? new Error(why) : e; }
     var meta = { id: id, name: file.name, path: path, url: await task.snapshot.ref.getDownloadURL(), size: file.size, type: file.type || "", uploadedAt: Date.now() };
     await localInfo(file, meta);
     if (field) meta.field = field;
@@ -6196,7 +6367,7 @@
     var card = open, done = 0;
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
-      if (file.size > MAX_FILE) { msg(STR.fileTooBig + ": " + file.name); continue; }
+      if (tooBig(file)) { msg(bigMsg(file)); continue; }
       if (artLib(card, file, field)) { try { await artUpload(card, file, field); done++; } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; } continue; }
       try {
         await putFile(card, file, /^kit:(file|dir)$/.test(field) ? "kit:" + (window.__ASSET_KIT.classify(file.name) || "other") : field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
@@ -6300,6 +6471,7 @@
   }
 
   function editField(key) {
+    if (key === "__canon" && canonLocked()) return notify(ME.owner ? STR.canonRO.text : STR.canonRO.member);
     var el = document.querySelector('.shown[data-edit="' + CSS.escape(key) + '"]'); if (!el) return;
     var ta = document.createElement("textarea");
     ta.value = key === "__canon" ? draft.canonDesc : (draft.fields[key] || "");
@@ -6331,7 +6503,7 @@
   }
   function collect(ta) {
     var k = ta.dataset.key;
-    if (!k) return;
+    if (!k || !draft) return; // a field's blur can land after the card closed
     if (k === "__note") draft.note = ta.value; else if (k === "__canon") draft.canonDesc = ta.value; else draft.fields[k] = ta.value;
   }
   function msg(t) { $("e-msg").textContent = t; }
@@ -6360,14 +6532,14 @@
     try {
       if (open.src === "canon") {
         var s = sec(open.section);
-        // canon: only the shared name/description, and only when they changed
-        var ent = {};
+        // canon: only the shared name/description, and only when they changed — and only with the right to edit the canon (🔒 Free)
+        var ent = {}, lockC = canonLocked();
         if (open.isNew) Object.assign(ent, { id: open.id, kind: s.canon, createdAt: stamp(), origin: { source: "explicit", confidence: null, confirmed: true, createdBy: "user" } });
         if (open.isNew || draft.title !== open.title) { ent.name = draft.title; ent.slug = slugify(draft.title); }
         if (draft.canonDesc !== open.canonDesc.value) ent[open.canonDesc.key] = draft.canonDesc;
         if (draft.banner && draft.banner !== open.banner) ent.banner = draft.banner;
         if (draft.sheet) { csCollect("#e-body", draft.sheet); var e0 = entities.filter(function (x) { return x.id === open.id; })[0]; if (e0) csEntDiff(e0, draft.sheet, ent); }
-        if (Object.keys(ent).length) { ent.updatedAt = stamp(); await wref().collection("entities").doc(open.id).set(ent, { merge: true }); }
+        if (Object.keys(ent).length && !lockC) { ent.updatedAt = stamp(); await wref().collection("entities").doc(open.id).set(ent, { merge: true }); }
         // this game's view of the entity
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
         var view = { section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
@@ -6394,7 +6566,16 @@
     }
   }
 
+  // the picture thumbnails open in the viewer ‹ › (KB «Картинки»): «📎 Файли» rows of a card, the 🗺 place's pictures — Ctrl / ⌘-click still opens a tab
+  function thumbView(e, sel, boxSel) {
+    var a = e.target.closest(sel); if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return false;
+    e.preventDefault();
+    var box = a.closest(boxSel) || document, els = [].slice.call(box.querySelectorAll(sel));
+    picView(els.map(function (x) { var im = x.querySelector("img"); return { title: (im && im.alt) || "", url: x.getAttribute("href") }; }), els.indexOf(a));
+    return true;
+  }
   $("e-body").addEventListener("click", function (e) {
+    if (thumbView(e, "a.fthumb", ".files")) return;
     var a = e.target.closest(".fimg a"); if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
     e.preventDefault();
     var all = [].map.call(a.closest(".fimgs").querySelectorAll(".fimg a"), function (x) { var im = x.querySelector("img"); return { title: (im && im.alt) || "", url: x.getAttribute("href") }; });
@@ -6406,7 +6587,12 @@
     try {
       if (e.target.closest("[data-agundo]")) {
         if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
-        await agentUndo(ref, a.prev); closeLeaf(); notify(STR.agent.undone);
+        // the files the agent's version brought leave Storage too: all of a new card's, those not in the old version of a changed one
+        var keepP = a.prev._new || !("files" in a.prev) ? null : (a.prev.files || []).map(function (f) { return f.path; });
+        var gone = a.prev._new || keepP ? (open.files || []).filter(function (f) { return !f.linked && !pathShared(open, f.path) && (!keepP || keepP.indexOf(f.path) < 0); }) : [];
+        await agentUndo(ref, a.prev);
+        await Promise.all(gone.map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+        closeLeaf(); notify(STR.agent.undone);
       } else if (e.target.closest("[data-agkeep]")) { await ref.set(AGENT_CLEAR(), { merge: true }); open.agent = null; $("e-agent").hidden = true; }
     } catch (er) { msg(STR.failed + ": " + (er.code || er.message || er)); }
   });
@@ -6423,21 +6609,26 @@
     closeLeaf();
   }
 
+  // a card made only to carry an upload that failed: the card and whatever of it reached Storage leave
+  function dropNewCard(card) {
+    return Promise.all((card.files || []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }))
+      .then(function () { return gref().collection("cards").doc(card.id).delete(); }).catch(function () {});
+  }
   // «Референси» / «Звук і музика» (Аудіотека): many files at once — each one is its own card named after the file, in the subsection it was picked under
   var BULK = { refs: { field: "pics", accept: "image/*", ok: function (f) { return isImage(f); }, done: "refsDone" },
     audio: { field: "sound", accept: "audio/*", ok: function (f) { return window.__MECH.isAudio(f); }, done: "soundsDone" } };
-  var bulkProg = "";
+  var bulkProg = { sid: "", t: "" }; // shown only in the section it belongs to
   function bulkPicker(sid, g, cls, label) {
     return '<label class="' + cls + '" title="' + esc(sid === "audio" ? STR.soundsTip : STR.refsTip) + '"><input type="file" multiple hidden accept="' + BULK[sid].accept + '" data-bulkup="' + sid + '" data-bulkg="' + esc(g) + '">' + label + '</label>';
   }
-  function bulkStatus(t) { bulkProg = t; var el = $("bulk-prog"); if (el) el.textContent = t; }
+  function bulkStatus(t, sid) { bulkProg = { sid: sid, t: t }; var el = $("bulk-prog"); if (el && el.getAttribute("data-sid") === sid) el.textContent = t; }
   // → the ids of the cards made (a Sound factory slot takes them at once)
   async function bulkCards(sid, list, group) {
     var s = sec(sid), b = BULK[sid], gk = groupKey(s), ids = [], files = list.filter(b.ok);
     for (var i = 0; i < files.length; i++) {
       var file = files[i];
-      if (file.size > MAX_FILE) { await notify(STR.fileTooBig + ": " + file.name); continue; }
-      bulkStatus(STR.uploading + " " + (i + 1) + " / " + files.length + " · " + file.name);
+      if (tooBig(file)) { await notify(bigMsg(file)); continue; }
+      bulkStatus(STR.uploading + " " + (i + 1) + " / " + files.length + " · " + file.name, sid);
       var card = { src: "game", id: newId("card"), section: s.id, title: baseName(file.name) || STR.newCard, status: "idea", note: "", defs: s.defs.slice(), fields: {} };
       if (group) card.fields[gk] = group;
       try {
@@ -6445,15 +6636,18 @@
           createdAt: stamp(), updatedAt: stamp(), order: Date.now() }, { merge: true });
         await putFile(card, file, b.field);
         ids.push(card.id);
-      } catch (e) { bulkStatus(""); await notify(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return ids; }
+      } catch (e) { // the file did not land → the empty card just made goes too (and a file that reached Storage without its card)
+        await dropNewCard(card);
+        bulkStatus("", sid); await notify(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return ids;
+      }
     }
-    bulkStatus(STR[b.done] + ": " + ids.length);
+    bulkStatus(STR[b.done] + ": " + ids.length, sid);
     return ids;
   }
   function addCard(fresh, group) {
     var s = sec(section);
     if (s.canon && fresh !== true) return pickFromCanon(s, group);
-    var c = s.canon && !s.ownNew
+    var c = s.canon && !s.ownNew && canonOk(s.canon) // 🔒 without canon editing a new card is the game's own (it can't be born in the canon)
       ? { key: "new", src: "canon", id: entityId(s.canon), section: s.id, title: "", status: "idea", note: "", canonDesc: { key: "desc", value: "" }, defs: s.defs.slice(), fields: {}, isNew: true }
       : { key: "new", src: "game", id: newId("card"), section: s.id, title: "", status: "idea", note: "", defs: (s.defs || CUSTOM_DEFS).slice(), fields: {}, isNew: true };
     if (group) c.fields[groupKey(s)] = group;
@@ -6570,6 +6764,8 @@
   }
   function renderCanonIssues() {
     var au = (world && world.audit) || {}, a = (world && world.auditAnswers) || {}, open1 = canonIssues();
+    if (!canDev && !au.at) { $("view").innerHTML = '<header class="sec"><div><h1>' + esc(STR.issues) + '</h1><p>' + esc(STR.canonIssuesAbout) + '</p></div></header>' +
+      '<section class="setbox devlock"><h2>🔒 ' + esc(STR.devLock.title) + '</h2><p class="hint">' + esc(STR.canonRO.audit) + '</p><div class="setrow"><button class="btn primary" data-upgrade>' + STR.upgrade + '</button></div></section>'; bindDevLock(); return; } // 🔒 the ✦ audit is Worldbuilder
     var run = world && world.auditRunning && world.auditRunning.toMillis && Date.now() - world.auditRunning.toMillis() < 35 * 60000;
     var busy = canonBusy || run;
     var html = issuesHead(STR.issues, STR.canonIssuesAbout, "ci-audit", busy, !!au.at);
@@ -6604,10 +6800,10 @@
   }
   // AI operations spend tokens: a small ✦ marks them, and the author confirms the approximate price first.
   var COST_BASE = 300; // economy_operations/generateScene providers.claude.cost; × the same factor gamedevPlan reserves
-  function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE, (window.__wwUser || {}).aiModel) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
+  function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE, wwUser().aiModel) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   // «не більше N» for an AI action on a known input (paid-features quoteChars) — the server reserves the same N and never charges more
-  function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, (window.__wwUser || {}).aiModel) : 0; }
+  function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, wwUser().aiModel) : 0; }
   // ✦ AI work in the background (v2.113): a call to an AI endpoint is tracked until its answer is read through; the shell shows
   // «✦ ШІ думає…» beside «?» while one runs and «✓ Готово» after (a click brings the Bible back). Switching sections, games or the
   // shell's screens never stopped the call — but the redrawn button forgot it; now the same op can't be started twice meanwhile.
@@ -6676,7 +6872,7 @@
       actSetup: "Блок для CLAUDE.md проєкту", actSetupHint: "Встав його в CLAUDE.md у теці гри. Агент звітує в кінці сесії й після великих змін; без мережі — зберігає звіт і надсилає наступного разу.",
       allCats: "Усі категорії", allPriv: "Будь-яка приватність", verify: { commit_found: "✓ коміт є в репо", commit_missing: "⚠ коміту немає в репо", unverified: "не перевірено" },
       change: { added: "＋", changed: "↻", removed: "−", fixed: "✓" },
-      privacy: { internal: "Внутрішнє", confidential: "Конфіденційне", spoiler: "Спойлер", excluded: "Виключено", marketing_approved: "Для маркетингу" },
+      privacy: { internal: "Внутрішнє", confidential: "Конфіденційне", spoiler: "Спойлер", excluded: "Виключено", marketing_approved: "Для маркетингу" }, privOwner: "Приватність запису змінює лише власник світу",
       privHint: "Що з цього можна показувати гравцям — вирішуєш ти. «Для маркетингу» — лише те, що ти схвалив.",
       cat: { mechanic: "Механіка", level: "Рівень", character: "Персонаж", item: "Предмет", ui: "Інтерфейс", audio: "Аудіо", art: "Арт", performance: "Швидкодія",
         fix: "Виправлення", tooling: "Інструменти", release: "Реліз", other: "Інше" },
@@ -6711,7 +6907,7 @@
       actSetup: "Block for the project's CLAUDE.md", actSetupHint: "Paste it into CLAUDE.md in the game's folder. The agent reports at the end of a session and after big changes; offline it keeps the report and sends it next time.",
       allCats: "All categories", allPriv: "Any privacy", verify: { commit_found: "✓ commit is in the repo", commit_missing: "⚠ commit not in the repo", unverified: "not verified" },
       change: { added: "＋", changed: "↻", removed: "−", fixed: "✓" },
-      privacy: { internal: "Internal", confidential: "Confidential", spoiler: "Spoiler", excluded: "Excluded", marketing_approved: "For marketing" },
+      privacy: { internal: "Internal", confidential: "Confidential", spoiler: "Spoiler", excluded: "Excluded", marketing_approved: "For marketing" }, privOwner: "Only the world's owner changes an entry's privacy",
       privHint: "You decide what of this players may see. “For marketing” is only what you approved.",
       cat: { mechanic: "Mechanic", level: "Level", character: "Character", item: "Item", ui: "UI", audio: "Audio", art: "Art", performance: "Performance",
         fix: "Fix", tooling: "Tooling", release: "Release", other: "Other" },
@@ -6965,19 +7161,39 @@
     catch (e) { gm.msg = STR.failed + ": " + e.message; }
     render();
   }
+  // A hand-made plan task «<prefix>.n» (EX.n from «Досвід гравців», MAP.n from «Карта гри»): n = the highest number already used + 1
+  // (a deleted task leaves no gap to collide with), written in a transaction that refuses an id already taken (another tab, a stale list) —
+  // then the next number is tried. make(id, n) → { task: the doc, plan: the plan/current patch, more: (t) => other writes }
+  async function addManualTask(prefix, make) {
+    var re = new RegExp("^" + prefix + "[.]([0-9]+)$"), top = 0;
+    var seen = tasks.concat([].concat.apply([], ((planDoc.plan || {}).milestones || []).map(function (m) { return m.tasks || []; })));
+    seen.forEach(function (t) { var m = re.exec(t.id || ""); if (m) top = Math.max(top, +m[1]); });
+    for (var tries = 0; tries < 5; tries++) {
+      var n = top + 1 + tries, id = prefix + "." + n, w = make(id, n), ref = gref().collection("tasks").doc(id);
+      var ok = await db.runTransaction(function (t) {
+        return t.get(ref).then(function (d) {
+          if (d.exists) return false;
+          t.set(gref().collection("plan").doc("current"), w.plan, { merge: true }); t.set(ref, w.task); if (w.more) w.more(t);
+          return true;
+        });
+      });
+      if (ok) return id;
+    }
+    throw new Error(prefix + ".n");
+  }
   // «＋ Задача в план»: milestone MAP (no gate) — Claude Code takes it with get_next_task and reads the zone with get_game_map
   async function gmTask(c) {
-    var n = tasks.filter(function (t) { return t.milestone === "MAP"; }).length + 1, id = "MAP." + n, list = GMAP.zones(cards), z = c.zone;
+    var list = GMAP.zones(cards), z = c.zone;
     var links = GMAP.graph(list).edges.filter(function (e) { return e.from === c.id || e.to === c.id; }).map(function (e) { return gmName(gmZone(e.from === c.id ? e.to : e.from)); });
+    var make = function (id, n) {
     var task = { id: id, milestone: "MAP", title: GM.taskT.replace("{t}", c.title || "?"), detail: (c.fields || {}).text || "", deps: [], size: "M", owner: "dev", cards: ["c:" + c.id],
       accept: [GM.acc1.replace("{s}", GMAP.sceneName(c)).replace("{w}", z.w || "?").replace("{h}", z.h || "?"), GM.acc2.replace("{n}", (z.points || []).length), links.length ? GM.acc3.replace("{l}", links.join(", ")) : GM.acc4], tests: [],
       prompt: GMAP.prompt(cards, c.id, "en") };
     var plan = (planDoc.plan || {}), ms = (plan.milestones || []).filter(function (m) { return m.id !== "MAP"; }), mp = (plan.milestones || []).filter(function (m) { return m.id === "MAP"; })[0];
     mp = mp ? Object.assign({}, mp, { tasks: (mp.tasks || []).concat([task]) }) : { id: "MAP", name: GM.ms, goal: GM.msGoal, gate: "", tasks: [task] };
-    var batch = db.batch();
-    batch.set(gref().collection("plan").doc("current"), { plan: { milestones: ms.concat([mp]) } }, { merge: true });
-    batch.set(gref().collection("tasks").doc(id), Object.assign({}, task, { status: "todo", order: 8000 + n, history: [], createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }));
-    try { await batch.commit(); gm.msg = GM.taskDone.replace("{id}", id); } catch (e) { gm.msg = STR.failed + ": " + e.message; }
+    return { plan: { plan: { milestones: ms.concat([mp]) } }, task: Object.assign({}, task, { status: "todo", order: 8000 + n, history: [], createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }) };
+    };
+    try { var id = await addManualTask("MAP", make); gm.msg = GM.taskDone.replace("{id}", id); } catch (e) { gm.msg = STR.failed + ": " + e.message; }
     render();
   }
   function bindGameMap(list) {
@@ -7120,6 +7336,7 @@
     if (inner) body.gpin.inner = inner;
     var c = Object.assign({ id: id }, body);
     cards.push(c);
+    if (!canWrite) { c.local = true; return c; } // a reader (no write right): the place opens empty, nothing is created
     gref().collection("cards").doc(id).set(Object.assign(body, { createdAt: stamp(), updatedAt: stamp() }), { merge: true })
       .catch(function (e) { gm.msg = STR.failed + ": " + e.message; render(); });
     return c;
@@ -7287,7 +7504,7 @@
     return '<div class="gm-pass" data-gpq="' + esc(p.id) + '"><div class="gm-ph"><input class="gm-title" data-gpf="title" value="' + esc(p.title || "") + '" aria-label="' + esc(GP.poiQ) + '"' + dis + '>' +
       '<button class="btn mini ghost" id="gp-qx" aria-label="' + esc(GP.close) + '">✕</button></div>' +
       '<h3>' + GP.pics + '</h3><div class="gp-pics">' + pics.map(function (f) {
-        return '<div class="gp-pic"><a href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name || "") + '" src="' + esc(f.url) + '"></a>' +
+        return '<div class="gp-pic"><a class="gpthumb" href="' + escUrl(f.url) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(f.name || "") + '" src="' + esc(f.url) + '"></a>' +
           (canWrite ? '<button type="button" class="btn mini danger" data-gprm="' + esc(f.id) + '" title="' + esc(GP.picRm) + '" aria-label="' + esc(GP.picRm) + '">✕</button>' : '') + '</div>'; }).join("") + '</div>' +
       (canWrite ? '<button type="button" class="btn" id="gp-padd">' + GP.picsAdd + '</button>' : '') +
       '<label class="gm-f"><span>' + GP.card + '</span><select data-gpf="ref"' + dis + '>' + gpCardOpts(p.ref || "") + '</select></label>' + gpMini(p.ref) +
@@ -7301,7 +7518,7 @@
     try {
       for (var i = 0; i < list.length; i++) {
         var f = list[i]; if (!isImage({ name: f.name, type: f.type })) continue;
-        if (f.size > MAX_FILE) { gm.msg = STR.fileTooBig + ": " + f.name; render(); continue; }
+        if (tooBig(f)) { gm.msg = bigMsg(f); render(); continue; }
         var old = replace ? (c.files || []).filter(function (x) { return x.field === field; }) : [];
         if (field === "plan") { try { var bm = await createImageBitmap(f); gpSet(c, { ratio: Math.round(bm.height / bm.width * 10000) / 10000 }); bm.close && bm.close(); } catch (e) {} }
         gm.msg = STR.uploading + " " + f.name; render();
@@ -8100,7 +8317,7 @@
     }
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
-      if (file.size > MAX_FILE) { fz.msg = STR.fileTooBig + ": " + file.name; render(); return; }
+      if (tooBig(file)) { fz.msg = bigMsg(file); render(); return; }
       if (!(await storageRoom(file.size))) { fz.msg = quotaMsg(); render(); return; }
       var id = newId("file"), path = "worlds/" + worldId + "/games/" + gameId + "/files/" + o.id + "/" + id + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
       try {
@@ -8360,8 +8577,9 @@
           return '<div class="act-e"><span class="act-c">' + (KN.change[e.change] || "") + '</span><div><p><b>' + esc(e.text) + '</b></p>' +
             (e.playerImpact ? '<p>' + esc(e.playerImpact) + '</p>' : '') + '<p class="muted">' + esc(meta) + '</p>' +
             (e.limits ? '<p class="muted">⚠ ' + esc(e.limits) + '</p>' : '') + '</div>' +
-            '<select data-actpriv="' + esc(x.id) + ':' + esc(e.id) + '" aria-label="' + esc(KN.allPriv) + '"' + (canGame ? '' : ' disabled') + '>' +
-            Object.keys(KN.privacy).map(function (k) { return '<option value="' + k + '"' + (k === e.privacy ? ' selected' : '') + '>' + esc(KN.privacy[k]) + '</option>'; }).join("") + '</select></div>';
+            (ME.owner && canGame ? '<select data-actpriv="' + esc(x.id) + ':' + esc(e.id) + '" aria-label="' + esc(KN.allPriv) + '">' + // firestore.rules: only the owner re-marks privacy
+            Object.keys(KN.privacy).map(function (k) { return '<option value="' + k + '"' + (k === e.privacy ? ' selected' : '') + '>' + esc(KN.privacy[k]) + '</option>'; }).join("") + '</select>'
+              : '<span class="pill" title="' + esc(KN.privOwner) + '">' + esc(KN.privacy[e.privacy] || e.privacy || "") + '</span>') + '</div>';
         }).join("") + '</section>';
     });
     var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log");
@@ -8571,7 +8789,7 @@
       [4, R.key, live.length > 0, "agent-new-game", '<p class="hint">' + R.keyHint + '</p>' +
         (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
         '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
-        (canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>' +
+        (ME.owner && canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : !ME.owner ? '<span class="hint">' + STR.exOwnerOnly + '</span>' : '') + '</div>' +
         (ME.owner ? '<label class="imp"><input type="checkbox" id="st-agentw"' + (game.agentWrite === false ? '' : ' checked') + '><span>' + esc(R.agentW) + '</span></label><p class="hint">' + esc(R.agentWHint) + '</p>' : '')],
       [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn' + (planDoc.plan || cards.length > 2 ? '' : ' primary') + '" id="st-draft">' + STR.stDraft + costMark("draft") + '</button><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
         '<button class="btn" data-gosec="plan">' + R.toPlan + '</button><span class="muted">' + (planDoc.plan ? R.planYes : R.planNo) + '</span></div><p class="hint">' + STR.draftHint + ' ' + STR.stImportHint + '</p>'],
@@ -8584,8 +8802,8 @@
     var need = s.filter(function (x) { return !x[5]; }), ok = need.filter(function (x) { return x[2]; }).length;
     return '<section class="setbox"><h2>' + R.title + ' <span class="sroad__count">' + R.done.replace("{n}", ok).replace("{t}", need.length) + '</span></h2>' +
       '<p class="hint">' + R.hint + ' <a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p>' +
-      (canWrite ? '<div class="nbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow">' + (window.showDirectoryPicker ? '<button class="btn primary" id="ln-folder">' + R.folderBtn + '</button>' : '') + '<button class="btn' + (window.showDirectoryPicker ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
-        '<p class="hint">' + (window.showDirectoryPicker ? R.folderHint : R.folderNo) + '</p></div>' : '') +
+      (ME.owner && canWrite ? '<div class="nbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow">' + (window.showDirectoryPicker ? '<button class="btn primary" id="ln-folder">' + R.folderBtn + '</button>' : '') + '<button class="btn' + (window.showDirectoryPicker ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
+        '<p class="hint">' + (window.showDirectoryPicker ? R.folderHint : R.folderNo) + '</p></div>' : !ME.owner ? '<p class="hint">' + STR.exOwnerOnly + '</p>' : '') + // an MCP key is the owner's (firestore.rules mcpKeys)
       '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
   }
   // ---------- 🔌 Інтеграції: every outside service of the world / the game in one tab (functions/src/integrations.js) ----------
@@ -8714,8 +8932,8 @@
     if (!$("st-wsave")) return;
     $("st-wsave").onclick = async function () {
       var t = $("st-wname").value.trim(); if (!t) return;
-      await wref().set({ title: t, updatedAt: stamp() }, { merge: true });
-      tellShell({ type: "ww-worlds-changed" }); note(STR.stRenamed);
+      try { await wref().set({ title: t, updatedAt: stamp() }, { merge: true }); tellShell({ type: "ww-worlds-changed" }); note(STR.stRenamed); }
+      catch (er) { note(STR.failed + ": " + (er.code || er.message || er)); }
     };
     $("st-wexp").onclick = exportWorld;
     $("st-json").onchange = function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) restoreJson(f).catch(function (er) { note(STR.failed + ": " + (er.message || er)); }); };
@@ -8963,10 +9181,50 @@
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
   async function docsOf(ref) { var s = await ref.get(); return s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }
+  // fields only the server writes (firestore.rules: worlds create / games update) — never in a copy, never restored (v2.118.0)
+  var W_SERVER = ["cosmograph", "freeze", "team", "teamUids", "backup", "licence", "boughtFrom", "boughtAt", "integrations", "audit", "auditRunning"];
+  var G_SERVER = ["repo", "ingestKeys", "integrations", "framework", "telemetryStats", "knowledge", "audit", "auditRunning"];
+  function strip(o, keys) { keys.forEach(function (k) { delete o[k]; }); return o; }
   async function exportWorld() {
     var ents = await docsOf(wref().collection("entities")), cult = await docsOf(wref().collection("lore"));
     download(slugify(world.title || "world") + ".world.json", JSON.stringify({ format: "whitewrite.world/1", exportedAt: new Date().toISOString(),
-      world: Object.assign({ id: worldId }, world), entities: ents, lore: cult, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
+      world: strip(Object.assign({ id: worldId }, world), W_SERVER), entities: ents, lore: cult, games: games.map(function (g) { return { id: g.id, title: g.title }; }) }, null, 2));
+  }
+  // a restored world never shares files with the original: each file is copied into the new world's folder (cover, title, maps,
+  // dossier / culture files, the sky's pictures); one that can't be read any more (or past the quota / the plan) loses its link
+  function baseOf(f) { return String((f && (f.path || f.name)) || "file").split("/").pop().replace(/[\/\\#?\[\]*]/g, "_").slice(-120) || "file"; }
+  async function copyTo(url, path, type) {
+    if (!/^https:\/\//.test(url || "")) return null;
+    try {
+      var blob = await (await fetch(url)).blob();
+      if (!(await storageRoom(blob.size))) return null;
+      var t = firebase.storage().ref(path).put(blob, { contentType: blob.type || type || "application/octet-stream" }); await t;
+      return await t.snapshot.ref.getDownloadURL();
+    } catch (e) { return null; }
+  }
+  async function copyFileObj(f, dir) {
+    if (!f || !f.url) return null;
+    var path = dir + Date.now().toString(36) + "-" + baseOf(f), url = await copyTo(f.url, path, f.type);
+    return url ? Object.assign({}, f, { path: path, url: url }) : null;
+  }
+  async function copyWorldFiles(wid, w, ents, cult) {
+    var base = "worlds/" + wid + "/", D = firebase.firestore.FieldValue.delete(), up = {};
+    var one = async function (k) { if (!w[k]) return; var c = await copyFileObj(w[k], base + "cover/"); up[k] = c || D; };
+    await one("cover"); await one("titleArt"); await one("mapImage");
+    if (Array.isArray(w.maps)) up.maps = await Promise.all(w.maps.map(async function (m) {
+      var c = Object.assign({}, m); if (!m.image) return c;
+      var im = await copyFileObj(m.image, base + "cover/"); if (im) c.image = im; else delete c.image; return c;
+    }));
+    if (w.cosmos && w.cosmos.planet) {
+      var cs = JSON.parse(JSON.stringify(w.cosmos)), sky = async function (o) { if (!o || !o.map) return; var u = await copyTo(o.map, base + "files/cosmos/" + newId("map") + "-" + baseOf({ path: decodeURIComponent(String(o.map).split("?")[0]) })); if (u) o.map = u; else delete o.map; };
+      await sky(cs.planet); for (var m of (cs.moons || [])) await sky(m);
+      up.cosmos = cs;
+    }
+    for (var e of ents.concat(cult)) if (Array.isArray(e.files) && e.files.length) {
+      var out = []; for (var f of e.files) { var c = await copyFileObj(f, base + "files/" + e.id + "/"); if (c) out.push(c); }
+      e.files = out; if (e.portrait && !out.some(function (x) { return x.id === e.portrait; })) delete e.portrait;
+    }
+    return up;
   }
   // Restore from an export: never overwrites — a game file becomes a new game here, a world file a new world.
   function revive(v) { // exported Firestore timestamps come back as {seconds, nanoseconds}
@@ -8989,25 +9247,33 @@
     var data; try { data = JSON.parse(await file.text()); } catch (e) { data = null; }
     var note = function (t) { $("st-msg").textContent = t; };
     if (data && data.format === "whitewrite.game/1" && data.game) {
-      var meta = revive(Object.assign({}, data.game)), gid = await createGameDoc(meta.title || "", (meta.engine && meta.engine.profile) || ""), g = wref().collection("games").doc(gid);
-      delete meta.id; delete meta.createdAt; meta.updatedAt = stamp();
-      await g.set(meta, { merge: true });
-      await writeAll(g.collection("cards"), data.cards || []);
-      await writeAll(g.collection("plan"), data.plan || []);
-      await writeAll(g.collection("tasks"), data.tasks || []);
-      await writeAll(g.collection("changeRequests"), data.changeRequests || []);
-      await writeAll(g.collection("quests"), data.quests || [], true); // dialogues point to quests by id
-      await writeAll(g.collection("dialogues"), data.dialogues || [], true);
+      var meta = strip(revive(Object.assign({}, data.game)), G_SERVER.concat(["cover", "titleArt"])), gid = await createGameDoc(meta.title || "", (meta.engine && meta.engine.profile) || ""), g = wref().collection("games").doc(gid);
+      delete meta.id; delete meta.createdAt; meta.updatedAt = stamp(); // the server's fields and the original game's cover files stay with the original
+      try {
+        await g.set(meta, { merge: true });
+        await writeAll(g.collection("cards"), data.cards || []);
+        await writeAll(g.collection("plan"), data.plan || []);
+        await writeAll(g.collection("tasks"), data.tasks || []);
+        await writeAll(g.collection("changeRequests"), data.changeRequests || []);
+        await writeAll(g.collection("quests"), data.quests || [], true); // dialogues point to quests by id
+        await writeAll(g.collection("dialogues"), data.dialogues || [], true);
+      } catch (er) { await removeGame(gid).catch(function () {}); throw er; } // no half-restored game left behind
       note(STR.stRestored + ": " + (meta.title || gid)); // it appears in the «Гра:» picker
       return;
     }
     if (data && data.format === "whitewrite.world/1" && data.world) {
-      var wid = newId("world"), w = Object.assign({}, revive(data.world));
-      delete w.id; delete w.audit; delete w.auditRunning; delete w.cosmograph; // the paid month belongs to the original world
-      w.owner = firebase.auth().currentUser.uid; w.createdAt = stamp(); w.updatedAt = stamp();
+      var wid = newId("world"), w = strip(Object.assign({}, revive(data.world)), W_SERVER); // the paid month, the team, the sale… belong to the original world
+      var files = { cover: w.cover, titleArt: w.titleArt, mapImage: w.mapImage, maps: w.maps, cosmos: w.cosmos };
+      ["cover", "titleArt", "mapImage", "cosmos"].forEach(function (k) { delete w[k]; }); // no link into the original's folder, even for a moment
+      if (Array.isArray(w.maps)) w.maps = w.maps.map(function (m) { var c = Object.assign({}, m); delete c.image; return c; });
+      delete w.id; w.owner = firebase.auth().currentUser.uid; w.createdAt = stamp(); w.updatedAt = stamp();
+      var ents = (data.entities || []).map(function (e) { return revive(Object.assign({}, e)); }), cult = (data.lore || []).map(function (e) { return revive(Object.assign({}, e)); });
       await db.collection("worlds").doc(wid).set(w);
-      await writeAll(db.collection("worlds").doc(wid).collection("entities"), data.entities || [], true);
-      await writeAll(db.collection("worlds").doc(wid).collection("lore"), data.lore || [], true);
+      note(STR.uploading + "…");
+      var fileUp = await copyWorldFiles(wid, files, ents, cult);
+      await writeAll(db.collection("worlds").doc(wid).collection("entities"), ents, true);
+      await writeAll(db.collection("worlds").doc(wid).collection("lore"), cult, true);
+      if (Object.keys(fileUp).length) await db.collection("worlds").doc(wid).set(Object.assign(fileUp, { updatedAt: stamp() }), { merge: true });
       note(STR.stRestored + ": " + (w.title || wid));
       tellShell({ type: "ww-worlds-changed" });
       return;
@@ -9057,8 +9323,9 @@
   async function removeGame(id) {
     var g = wref().collection("games").doc(id);
     var cs = (await g.collection("cards").get()).docs;
+    var gpre = "worlds/" + worldId + "/games/" + id + "/"; // only this game's own files: a restored copy's cards may point at the original's
     await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
-      return f.path ? firebase.storage().ref(f.path).delete().catch(function () {}) : null; }); })));
+      return dropOwn(f.path, gpre).catch(function () {}); }); })));
     for (var s of (await g.collection("activity").get()).docs) await deleteDocs(s.ref.collection("entries"));
     for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "quests", "dialogues", "knowledge", "kAssets", "kRelations", "activity", "env", "posts", "channels", "marketing"]) await deleteDocs(g.collection(sub));
     await callEx({ op: "purge", gameId: id }).catch(function () {}); // telemetry, metrics, issues, playtests, experiments, ingest keys
@@ -9069,7 +9336,7 @@
     await Promise.all(fr.docs.map(function (d) { return d.ref.delete(); }));
     await fnCall("integrations", { op: "purge", worldId: worldId, gameId: id }).catch(function () {}); // its 🔌 keys (server only), before the game doc goes
     var gd = (await g.get()).data() || {}; // the «Огляд гри» cover and title image (Storage worlds/{w}/games/{g}/cover/)
-    await Promise.all([gd.cover, gd.titleArt].map(function (x) { return x && x.path ? firebase.storage().ref(x.path).delete().catch(function () {}) : null; }));
+    await Promise.all([gd.cover, gd.titleArt].map(function (x) { return x ? dropOwn(x.path, gpre).catch(function () {}) : null; }));
     await g.delete();
   }
   async function deleteGame() {
@@ -9087,12 +9354,12 @@
       unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = [];
       for (var g of games) await removeGame(g.id);
       await fnCall("integrations", { op: "purge", worldId: worldId }).catch(function () {}); // the world's 🔌 keys
-      await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
+      await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return dropOwn(f.path).catch(function () {}); })); // only this world's folder
       await deleteDocs(wref().collection("entities"));
       await deleteDocs(wref().collection("lore"));
       await Promise.all(cosmoFiles(world.cosmos).map(function (u) { return firebase.storage().refFromURL(u).delete().catch(function () {}); })); // the Космограф's map and moon pictures
-      if (world.cover && world.cover.path) await firebase.storage().ref(world.cover.path).delete().catch(function () {}); // the card's image / video
-      if (world.titleArt && world.titleArt.path) await firebase.storage().ref(world.titleArt.path).delete().catch(function () {}); // «Огляд світу» title image
+      await Promise.all([world.cover, world.titleArt, world.mapImage].concat(wmMaps().map(function (m) { return m.image; })) // the card's image / video, the title image, the map pictures
+        .map(function (x) { return x ? dropOwn(x.path).catch(function () {}) : null; }));
       await wref().delete(); // last: the rules check ownership through the world doc
       tellShell({ type: "ww-worlds-changed", deleted: true });
     });
@@ -9358,17 +9625,25 @@
   }
 
   var INGEST_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/telemetryIngest";
+  // today's event count: the daily aggregate (telemetryDaily/{day}.total) — the game doc's telemetryStats is refreshed at most every 10 minutes (experience.js)
+  var exToday = { key: "", n: null };
+  function exTodayLoad() {
+    var day = new Date().toISOString().slice(0, 10), k = gameId + "/" + day; if (exToday.key === k) return;
+    exToday = { key: k, n: null };
+    gref().collection("telemetryDaily").doc(day).get().then(function (d) { if (exToday.key !== k) return; exToday.n = d.exists ? d.get("total") || 0 : 0; if (section === "experience" && exTab === "connect") render(); }, function () {});
+  }
   function exConnect() {
-    var X = STR.ex, st = (game && game.telemetryStats) || {}, ks = (game && game.ingestKeys) || [];
+    var X = STR.ex, st = (game && game.telemetryStats) || {}, ks = (game && game.ingestKeys) || [], keyOk = canWrite && (ME.owner || ME.role === "admin"); // keys: the owner or an admin (experience.js)
+    exTodayLoad();
     var sample = { events: [{ event_id: "8f1c…-uuid", event_name: "ZoneEntered", schema_version: 1, build_id: "0.4.2", session_id: "s-…", player_id: "salted-hash", timestamp: 1767225600000,
       zone_id: (cards.filter(function (c) { return c.section === "levels" || c.section === "locations"; })[0] || {}).id || "card_…", position: [12.5, 0, -4], context: { platform: "pc" }, properties: {} }] };
-    return (canWrite ? '<section class="setbox"><p class="hint">' + X.oneHint + '</p><div class="setrow"><button class="btn primary" id="ex-one">' + X.oneBtn + '</button></div></section>' : '') +
+    return (keyOk ? '<section class="setbox"><p class="hint">' + X.oneHint + '</p><div class="setrow"><button class="btn primary" id="ex-one">' + X.oneBtn + '</button></div></section>' : '') +
       '<section class="setbox"><h2>' + X.endpoint + '</h2><code class="ex-url">' + INGEST_URL + '</code>' +
-      '<p class="hint">' + X.retention + (st.day ? ' ' + esc(X.stats.replace("{n}", st.day === new Date().toISOString().slice(0, 10) ? st.count : 0)) : '') + '</p>' +
+      '<p class="hint">' + X.retention + (exToday.n != null || st.day ? ' ' + esc(X.stats.replace("{n}", exToday.n != null ? exToday.n : st.day === new Date().toISOString().slice(0, 10) ? st.count : 0)) : '') + '</p>' +
       '<h2>' + X.keys + '</h2>' + (exKey ? '<p class="pmsg">' + X.keyOnce + ' <code class="ex-url">' + esc(exKey) + '</code></p>' : '') +
       (ks.length ? ks.map(function (k) { return '<div class="secrow"><span><code>' + esc(k.prefix) + '…</code> ' + esc(k.label || "") + ' <span class="muted">' + dateTxt(k.at) + '</span></span>' +
-        (canWrite ? '<button class="btn danger" data-exrevoke="' + esc(k.hash) + '">' + X.keyRevoke + '</button>' : '') + '</div>'; }).join("") : '<p class="muted">' + X.keyNone + '</p>') +
-      (canWrite ? '<div class="setrow"><input id="ex-klabel" aria-label="' + esc(X.keyLabel) + '" placeholder="' + esc(X.keyLabelPh) + '"><button class="btn" id="ex-kmake">' + X.keyCreate + '</button></div>' : '') +
+        (keyOk ? '<button class="btn danger" data-exrevoke="' + esc(k.hash) + '">' + X.keyRevoke + '</button>' : '') + '</div>'; }).join("") : '<p class="muted">' + X.keyNone + '</p>') +
+      (keyOk ? '<div class="setrow"><input id="ex-klabel" aria-label="' + esc(X.keyLabel) + '" placeholder="' + esc(X.keyLabelPh) + '"><button class="btn" id="ex-kmake">' + X.keyCreate + '</button></div>' : canWrite ? '<p class="hint">' + X.keyOwner + '</p>' : '') +
       '<h2>' + X.howTitle + '</h2><p>' + X.how + '</p><p class="hint">' + X.privacy + '</p>' +
       '<details><summary>' + X.sampleJson + '</summary><pre>' + esc(JSON.stringify(sample, null, 2)) + '</pre></details></section>';
   }
@@ -9376,7 +9651,7 @@
   // An issue becomes a task of the Production plan (milestone EXP) — Claude Code takes it with get_next_task; success = the check after it
   async function issueToPlan(x) {
     var picked = document.querySelector('input[name="act-' + CSS.escape(x.id) + '"]:checked'), act = (x.actions || [])[picked ? +picked.value : 0] || { change: x.title };
-    var n = tasks.filter(function (t) { return t.milestone === "EXP"; }).length + 1, id = "EX." + n;
+    var make = function (id, n) {
     var accept = [act.change].concat((x.validation && x.validation.target || []).map(function (t) { return (LANG === "en" ? "Expected after a playtest: " : "Очікувано після плейтесту: ") + t.metric + " " + (t.direction === "up" ? "↑" : "↓"); }));
     var task = { id: id, milestone: "EXP", title: x.title, detail: x.hypothesis + (act.risk ? "\nRisk: " + act.risk : ""), deps: [], size: "S", owner: "dev",
       cards: [x.scope && x.scope.ref].filter(Boolean), accept: accept, tests: [],
@@ -9384,12 +9659,11 @@
         ". Keep the approved design (else submit_change_request). Then submit_task_result, and submit_validation_result with how you checked it." };
     var plan = (planDoc.plan || {}), ms = (plan.milestones || []).filter(function (m) { return m.id !== "EXP"; }), exp = (plan.milestones || []).filter(function (m) { return m.id === "EXP"; })[0];
     exp = exp ? Object.assign({}, exp, { tasks: (exp.tasks || []).concat([task]) }) : { id: "EXP", name: STR.ex.msName, goal: STR.ex.msGoal, gate: "", tasks: [task] };
-    var batch = db.batch();
-    batch.set(gref().collection("plan").doc("current"), { plan: { milestones: ms.concat([exp]) } }, { merge: true });
-    batch.set(gref().collection("tasks").doc(id), Object.assign({}, task, { kind: "bug", severity: ({ high: "s2", medium: "s3", low: "s4" })[x.priority] || "s3", foundIn: "telemetry:" + String(x.id).slice(0, 100), // a bug found by telemetry
-      status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }));
-    batch.set(gref().collection("experienceIssues").doc(x.id), { status: "planned", taskId: id, chosenAction: act.change, updatedAt: stamp() }, { merge: true });
-    await batch.commit();
+    return { plan: { plan: { milestones: ms.concat([exp]) } }, task: Object.assign({}, task, { kind: "bug", severity: ({ high: "s2", medium: "s3", low: "s4" })[x.priority] || "s3", foundIn: "telemetry:" + String(x.id).slice(0, 100), // a bug found by telemetry
+      status: "todo", order: 9000 + n, history: [], issueId: x.id, createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }),
+      more: function (t) { t.set(gref().collection("experienceIssues").doc(x.id), { status: "planned", taskId: id, chosenAction: act.change, updatedAt: stamp() }, { merge: true }); } };
+    };
+    var id = await addManualTask("EX", make);
     exMsg = STR.ex.planned.replace("{id}", id); render();
   }
 
@@ -9410,7 +9684,9 @@
     on("ab-go", function () {
       var hyp = $("ab-hyp").value.trim(), vars = $("ab-var").value.split(",").map(function (v) { return v.trim(); }).filter(Boolean);
       if (!hyp || vars.length < 2) return $("ab-hyp").focus();
-      gref().collection("experiments").add({ hypothesis: hyp, variants: vars.slice(0, 4), metricEvent: $("ab-ev").value, status: "running", createdAt: stamp() });
+      var go = this; go.disabled = true;
+      gref().collection("experiments").add({ hypothesis: hyp, variants: vars.slice(0, 4), metricEvent: $("ab-ev").value, status: "running", createdAt: stamp() })
+        .catch(function (er) { go.disabled = false; notify(STR.failed + ": " + (er.code || er.message || er)); });
     });
     on("ex-one", function () { // the key and the agent's request in one copy
       exRun("…", function () { return callEx({ op: "keyCreate", label: "claude-code" }).then(function (d) {
@@ -9423,8 +9699,8 @@
     [].forEach.call(v.querySelectorAll("[data-exrevoke]"), function (b) { b.onclick = function () { exRun("…", function () { return callEx({ op: "keyRevoke", hash: b.dataset.exrevoke }).then(function () { exKey = null; return ""; }); }); }; });
     [].forEach.call(v.querySelectorAll("[data-explan]"), function (b) { b.onclick = function () { b.disabled = true; var x = exIssues.filter(function (i) { return i.id === b.dataset.explan; })[0]; issueToPlan(x).catch(function (e) { exMsg = STR.failed + ": " + e.message; render(); }); }; });
     [].forEach.call(v.querySelectorAll("[data-exval]"), function (b) { b.onclick = function () { exRun(X.computing, function () { return callEx({ op: "validate", issueId: b.dataset.exval, build: exBuild }).then(function (d) { return X.verdict[d.result.verdict] || d.result.verdict; }); }); }; });
-    [].forEach.call(v.querySelectorAll("[data-exset]"), function (b) { b.onclick = function () { var p = b.dataset.exset.split(":"); gref().collection("experienceIssues").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }); }; });
-    [].forEach.call(v.querySelectorAll("[data-ptset]"), function (b) { b.onclick = function () { var p = b.dataset.ptset.split(":"); gref().collection("playtests").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }); }; });
+    [].forEach.call(v.querySelectorAll("[data-exset]"), function (b) { b.onclick = function () { var p = b.dataset.exset.split(":"); gref().collection("experienceIssues").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message || er)); }); }; });
+    [].forEach.call(v.querySelectorAll("[data-ptset]"), function (b) { b.onclick = function () { var p = b.dataset.ptset.split(":"); gref().collection("playtests").doc(p.slice(1).join(":")).set({ status: p[0], updatedAt: stamp() }, { merge: true }).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message || er)); }); }; });
     [].forEach.call(v.querySelectorAll("[data-abstop]"), function (b) { b.onclick = function () { stopExperiment(b.dataset.abstop).catch(function (e) { exMsg = STR.failed + ": " + e.message; render(); }); }; });
   }
 
@@ -9748,7 +10024,9 @@
     return g.made;
   }
   async function inPut(I, job) { // one file → Storage + the card's files[] (as putFile, but pinned to the intake's game and without the automatic ✦ style check)
-    var g = job.g, f = job.x.f, card = await inCard(I, g);
+    var g = job.g, f = job.x.f;
+    if (tooBig(f)) throw new Error(bigMsg(f)); // before the card: a file past the plan's limit makes no empty card
+    var card = await inCard(I, g);
     if (g.have[f.name + "|" + f.size]) { I.up.dup++; I.up.done++; I.up.sent += f.size; return; } // already on the card: a resumed folder
     I.up.cur = job.x.rel;
     if (!(await storageRoom(f.size))) throw new Error(quotaMsg());
@@ -10077,7 +10355,8 @@
       return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span> · ' + STR.exUsed + ': ' + esc(used) + '</span>' +
         (canWrite ? '<button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button>' : '') + '</div>';
     }).join("");
-    if (canWrite) html += '<div class="row"><button class="btn" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>';
+    if (ME.owner && canWrite) html += '<div class="row"><button class="btn" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>';
+    else if (!ME.owner) html += '<p class="hint">' + STR.exOwnerOnly + '</p>';
     if (execs.length) html += '<h3 class="sub">' + STR.exLog + '</h3><ul class="exlog">' + execs.slice(0, 8).map(function (x) {
       var at = x.at && x.at.toDate ? x.at.toDate().toLocaleTimeString(LANG === "en" ? "en-GB" : "uk-UA") : "";
       var what = (x.data && (x.data.message || x.data.summary || x.data.problem || x.data.what)) || "";
@@ -10799,6 +11078,7 @@
   function viewClick(e) {
     var es = e.target.closest("[data-estate]"); if (es) { if (es.dataset.estate === "mech") mechNew(""); else styleFromRefs(es); return; } // an empty section's first step
     var eg = e.target.closest("[data-edgo]"); if (eg) { edFlash($(eg.dataset.edgo)); return; } // an editor's progress line → its checks
+    if (thumbView(e, "a.gpthumb", ".gp-pics")) return;
     var kbl = e.target.closest("[data-kbart]"); if (kbl) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: kbl.dataset.kbart }); return; }
     var fd = e.target.closest("[data-fwdec]"); if (fd) { var fdp = fd.dataset.fwdec.split("|"); fd.disabled = true; fwDecide(fdp[0], fdp[1], fdp[2]).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); fd.disabled = false; }); return; }
     var ib = e.target.closest(".impact button"); if (ib && impactGo(ib)) return; // «🔗 Що зачепить зміна» in the mechanics constructor
@@ -10823,7 +11103,7 @@
     }
     var rs = e.target.closest("[data-resolve]");
     if (rs) { var rq = rs.closest(".q"), rt = rq.querySelector("textarea").value.trim(); if (!rt) { rq.querySelector("textarea").focus(); return; }
-      rs.disabled = true; resolveIssue(rq.dataset.ck, rq.dataset.c, rt).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+      rs.disabled = true; resolveIssue(rq.dataset.ck, rq.dataset.c, rt).catch(function (er) { var m = STR.failed + ": " + (er.code || er.message); if (rq.dataset.ck === "canon") canonMsg = m; else planMsg = m; render(); }); return; }
     var au = e.target.closest("#i-audit");
     if (au) { confirmCost("analyze", function () { runPlan("analyze"); }); return; }
     var cau = e.target.closest("#ci-audit");
@@ -10832,7 +11112,7 @@
     if (e.target.closest("[data-qall]")) { qqAll = !qqAll; render(); var pq = $("p-queue"); if (pq) pq.scrollIntoView({ block: "start" }); return; }
     var ans = e.target.closest("[data-answer]");
     if (ans) { var q = ans.closest(".q"); ans.disabled = true; answerQuestion(q.dataset.q, q.querySelector("textarea").value.trim()).catch(function (er) { planMsg = er.message; render(); }); return; }
-    var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { ex.disabled = false; notify(STR.failed + ": " + er.message); }); return; } // planMsg shows only on the plan page
     var rv = e.target.closest("[data-revoke]");
     if (rv) { askConfirm(STR.exRevokeQ, { danger: true }).then(function (ok) { if (ok) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); }); return; }
     var orf = e.target.closest("[data-openref]"); if (orf) { var oc = allCards().filter(function (x) { return x.key === orf.dataset.openref; })[0]; if (oc) openCard(oc); return; }
@@ -10844,7 +11124,7 @@
     var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
     var cr = e.target.closest("[data-cr]");
-    if (cr) { gref().collection("changeRequests").doc(cr.dataset.cr).set({ status: cr.dataset.to, decidedAt: stamp() }, { merge: true }); return; }
+    if (cr) { gref().collection("changeRequests").doc(cr.dataset.cr).set({ status: cr.dataset.to, decidedAt: stamp() }, { merge: true }).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message || er)); }); return; }
     var gs = e.target.closest("[data-gosec]"); if (gs) { goSection(gs.dataset.gosec); return; } // ⚙ Налаштування → «Claude Code» steps lead to their sections
     var cp = e.target.closest("[data-copy]");
     if (cp) { navigator.clipboard.writeText(cp.previousElementSibling.textContent).then(function () { cp.textContent = STR.copied; }); return; }
@@ -11152,7 +11432,7 @@
   $("d-save").onclick = saveDossier;
   function dosClose() { if (!dos || !canWrite) return closeDossier(); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, closeDossier); } // like the card: closing never drops edits silently
   $("d-x").onclick = dosClose;
-  $("d-delete").onclick = deleteLore;
+  $("d-delete").onclick = deleteDossier;
   $("e-delete").onclick = removeCard;
   window.addEventListener("ww-prices", function () { if (world && !open && !dos) render(); }); // the live price index arrived: the ✦ prices redraw
   $("imp-file").addEventListener("change", function (e) { var f = e.target.files && e.target.files[0]; e.target.value = ""; if (f) startImport(f); });
@@ -11189,7 +11469,7 @@
   $("t-brand").textContent = STR.brand; $("q").placeholder = STR.search; $("srch-btn").title = STR.search; $("srch-btn").setAttribute("aria-label", STR.search); $("srch-x").title = STR.close; $("srch-x").setAttribute("aria-label", STR.close);
   setEditMode(false); $("e-save").textContent = STR.save; $("e-addf").textContent = STR.more.btn;
   ["e-x", "d-x"].forEach(function (id) { $(id).title = STR.close; $(id).setAttribute("aria-label", STR.close); });
-  $("d-save").textContent = STR.save; $("d-delete").textContent = STR.cult.del;
+  $("d-save").textContent = STR.save; if (!dos) $("d-delete").textContent = STR.cult.del;
   ["e-mic", "d-mic"].forEach(function (id) { $(id).textContent = VF.btn; $(id).title = VF.tip; });
   $("e-pic").textContent = $("d-pic-t").textContent = STR.artPick.head; $("e-pic-pc").textContent = STR.artPick.fromPc; $("e-pic-ar").textContent = STR.artPick.btn.replace(/^🎨\s*/, "");
   renderStatuses();
@@ -11314,7 +11594,7 @@
   // ⚒ Кузня персонажів «в розробці» (paid-features characterForge.soon): the menu shows 🔒, the page a placeholder; the admin keeps working in it
   function forgeSoon() { var PF = window.__PAID_FEATURES, f = PF && PF.byOp && PF.byOp("characterForge"); return !PF || !!(f && f.soon); }
   function renderForgeSoon(s) {
-    var K = STR.forgeSoon;
+    var K = STR.hub.forgeSoon;
     $("view").innerHTML = '<header class="sec"><div><h1>🔒 ' + esc(L(s)) + '</h1></div></header><div class="mk-soon"><b>🚧 ' + esc(K.badge) + '</b><p>' + esc(K.idea) + '</p><p class="hint">' + esc(K.now) + '</p></div>';
   }
   function marketSoon() { var PF = window.__PAID_FEATURES, f = PF && PF.byOp && PF.byOp("licenceReview"); return !!(f && f.soon); }
@@ -11491,17 +11771,17 @@
       var u = await db.collection("users").doc(user.uid).get();
       ghLogin = u.exists && u.data().github ? (u.data().github.login || "✓") : null; // one saved GitHub token (functions/src/github-token.js)
       var plan = (u.exists && u.data().plan) || "free";
-      var pc = window.__getPlanConfig(plan); planName = plan;
+      var pc = window.__getPlanConfig(plan); planName = plan; setUser(user.uid, u.exists ? u.data() : {});
       var w = await wref().get();
       if (!w.exists) return locked(STR.brand, STR.noWorld, false);
       var tm = w.data().owner !== user.uid ? (w.data().team || {})[user.uid] : null;
       if (tm) { // a team member works in the owner's world, on the owner's plan (the rules check it); what they see — by role
         ME = { owner: false, role: tm.role, view: tm.view || [], edit: tm.edit || [], viewKinds: tm.viewKinds || [] };
-        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; canQuest = true; canDev = true; canFolder = tm.role === "admin"; // the server checks the owner's plan
+        canWrite = baseWrite = tm.role !== "viewer" && (tm.role !== "custom" || ME.edit.length > 0); canGame = true; qdBase = true; canQuest = mayEdit("quests") || mayEdit("dialogues"); canDev = true; canFolder = tm.role === "admin"; // the server checks the owner's plan
         document.documentElement.classList.add("ww-member");
         if (!mayRead(section)) section = firstReadable();
       } else {
-        canonWrite = !!pc.allowWorldTree; canGame = !!pc.allowGameDesign; canDev = !!pc.allowGameDev; canQuest = canGame; // quests & dialogues are part of the game design
+        canonWrite = !!pc.allowWorldTree; canGame = !!pc.allowGameDesign; canDev = !!pc.allowGameDev; qdBase = canQuest = canGame; // quests & dialogues are part of the game design
         canFolder = !!pc.allowFolderFill;
         canWrite = baseWrite = canonWrite || canGame;
         if (!canWrite && !PANEL) return locked(STR.lockedTitle, STR.lockedText, true); // the hub panel (Спільнота, Команда…) works on any plan

@@ -14,6 +14,7 @@ const {
   buildCanonContext,
   publicMessage
 } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
 
@@ -68,7 +69,7 @@ exports.analyzeScene = onRequest({
           error: 'ANALYZE mode не доступний на вашому плані. Upgrade до Novelist або вище.'
         });
       }
-      if (userData.subscriptionStatus !== 'active') {
+      if (!subscriptionActive(userData)) {
         return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
       }
 

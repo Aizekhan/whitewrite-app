@@ -14,6 +14,7 @@ const {
   buildCanonContext,
   publicMessage
 } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
 
@@ -31,7 +32,7 @@ const { featureCost, byOp } = require('../paid-features.js');
  *  - previousScenes?: Array<{title: string, text: string}> (for continuity)
  *
  * Output:
- *  - scene: { title: string, text: string, entities: string[] }
+ *  - scene: { title: string, text: string, entities: [{ kind, type, id, name }] } — canon entities named in the text (ids from the world's canon)
  */
 exports.generateScene = onRequest({
   region: 'us-central1',
@@ -190,7 +191,7 @@ exports.generateScene = onRequest({
       }
 
       // Check subscription status for paid plans
-      if (userPlan !== 'free' && userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
+      if (userPlan !== 'free' && userPlan !== 'seed' && !subscriptionActive(userData)) {
         res.status(403).json({
           error: 'Активна підписка необхідна для генерації',
           requiresSubscription: true,
@@ -492,29 +493,16 @@ ${intentDescription}
  */
 function extractMentionedEntities(text, canon) {
   const mentioned = [];
-  const textLower = text.toLowerCase();
-
-  // Check characters
-  Object.entries(canon.characters || {}).forEach(([id, char]) => {
-    if (char.name && textLower.includes(char.name.toLowerCase())) {
-      mentioned.push({ type: 'character', id, name: char.name });
-    }
+  const textLower = String(text || '').toLowerCase();
+  // only entities that exist in the world's canon (real ids) — nothing is invented and nothing is written to the canon;
+  // `kind` is the canon collection (the scene keeps them as canonRefs.<kind>), `type` stays for older clients
+  const KINDS = { characters: 'character', locations: 'location', factions: 'faction', artifacts: 'artifact', events: 'event' };
+  Object.entries(KINDS).forEach(([kind, type]) => {
+    Object.entries(canon[kind] || {}).forEach(([id, e]) => {
+      const name = e && (kind === 'events' ? (e.title || e.name) : e.name);
+      if (name && String(name).trim().length >= 2 && textLower.includes(String(name).toLowerCase())) mentioned.push({ type, kind, id, name });
+    });
   });
-
-  // Check locations
-  Object.entries(canon.locations || {}).forEach(([id, loc]) => {
-    if (loc.name && textLower.includes(loc.name.toLowerCase())) {
-      mentioned.push({ type: 'location', id, name: loc.name });
-    }
-  });
-
-  // Check factions
-  Object.entries(canon.factions || {}).forEach(([id, faction]) => {
-    if (faction.name && textLower.includes(faction.name.toLowerCase())) {
-      mentioned.push({ type: 'faction', id, name: faction.name });
-    }
-  });
-
   return mentioned;
 }
 
@@ -612,7 +600,7 @@ exports.reconstructScene = onRequest({
         res.status(403).json({ error: 'Реконструкція доступна з плану Novelist', code: 'PLAN_REQUIRED', plan: userPlan });
         return;
       }
-      if (userData.subscriptionStatus !== 'active') {
+      if (!subscriptionActive(userData)) {
         res.status(403).json({ error: 'Активна підписка необхідна для реконструкції', requiresSubscription: true, plan: userPlan });
         return;
       }
@@ -703,6 +691,10 @@ ${sceneText}
       console.error('reconstructScene error:', error);
       if (reservation) {
         await settle(db, uid, reservation, error, 'reconstructScene').catch(e => console.error('[reconstructScene] Refund failed:', e)); // a refusal is paid (claude.js)
+      }
+      // canon-store loadCanon: 403 — not the owner's world, 423 — the world is frozen (Маркет); said as they are, not as a 500
+      if (error.status === 403 || error.status === 423) {
+        return res.status(error.status).json({ error: error.status === 423 ? error.message : 'Ви не є власником цього світу', code: error.status === 423 ? 'FROZEN' : 'FORBIDDEN' });
       }
       res.status(500).json({ error: `Помилка реконструкції: ${publicMessage(error)}` });
     }

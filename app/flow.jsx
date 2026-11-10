@@ -38,7 +38,7 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
       <div className="hero-panel" onClick={(e) => e.stopPropagation()}>
         <h1 className="hero-title">{t('hero.title').split('\n').map((line, i) => i > 0 ? [<br key={i}/>, line] : line)}</h1>
         <p className="hero-lede">{t('hero.lede')}</p>
-        <button className="hero-cta" type="button" onClick={(e) => { e.stopPropagation(); try { if (window.parent && window.parent.__wwAuth === false) { window.parent.__wwOpenAuth && window.parent.__wwOpenAuth(); return; } } catch (err) {} onBegin(); }}>
+        <button className="hero-cta" type="button" onClick={(e) => { e.stopPropagation(); try { if (window.parent && window.parent.__wwAuth === false) { window.parent.__wwOpenAuth && window.parent.__wwOpenAuth(() => { try { onBegin(); } catch (x) {} }); return; } } catch (err) {} onBegin(); }}>
           <span className="hero-cta__star">✦</span> {t(hasWorlds ? 'hero.ctaChoose' : 'hero.ctaCreate')}
         </button>
       </div>
@@ -252,7 +252,7 @@ function StoryForm({ onBack, onCreate, initial }) {
 
   // Guided Mode → 'endless' (історія без меж)
   // Auto Mode → 'season' (завжди серіал, лише кількість серій змінюється)
-  const effectiveScope = creation === 'guided' ? 'endless' : 'season';
+  const effectiveScope = creation === 'auto' ? 'season' : 'endless'; // «Пишу сам» and «Покроково» are open-ended — never shown as «Сезон»
 
   // Load pricing from Firestore on mount + poll for user/pricing ready
   React.useEffect(() => {
@@ -341,8 +341,8 @@ function StoryForm({ onBack, onCreate, initial }) {
     } catch (error) {
       console.error('Failed to create project:', error);
       const t = window.__i18n ? window.__i18n.t : (k) => k;
-      alert(t('form.errorCreate') + ': ' + error.message);
-      setCreating(false);
+      setCreating(false); // the button comes back whatever went wrong (app.jsx enterBook throws every failure before the story exists)
+      if (!error.silent) { const m = t('form.errorCreate') + ': ' + error.message; if (window.wwNotice) window.wwNotice(m); else alert(m); } // silent: a dialog already spoke
     }
   }
 
@@ -622,7 +622,7 @@ function WorldForm({ onBack, onCreate, initial }) {
     try {
       try { window.top.__wwPendingFill = plan === "folder" ? { name: folder.name, folder: folder.list, direct: !!folder.direct } : null; } catch (e) {} // the shell keeps it: the new world's Bible (a sibling frame) takes it once
       await onCreate({ title: title.trim() || "", description: desc, language: window.__i18n ? window.__i18n.getLanguage() : "uk", genres: [], ideas: plan === "ideas" });
-    } catch (error) { alert(t('form.errorCreate') + ': ' + error.message); setCreating(false); }
+    } catch (error) { setCreating(false); (window.wwNotice || alert)(t('form.errorCreate') + ': ' + error.message); }
   }
   const cost = (() => { if (plan !== "ideas") return 0; const PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp('genesis'), null, (window.__wwUser || {}).aiModel) : 0; })();
 

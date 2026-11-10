@@ -1,7 +1,7 @@
 rules_version = '2';
 // Files on Game Bible cards (prefabs, models, images, audio). Mirrors firestore.rules for worlds/{w}/games:
-// the world owner reads; dossier files need a plan with allowGameDev (functions/plans.js); game files — any plan
-// (allowGameDesign), up to 20 MB a file below Worldbuilder and 200 MB on it.
+// the world owner reads; dossier files need a plan that edits the canon (allowWorldTree, Storyteller+); game files — any plan
+// (allowGameDesign); both up to 20 MB a file below Worldbuilder and 200 MB on it.
 service firebase.storage {
   match /b/{bucket}/o {
     function isWorldOwner(worldId) {
@@ -25,21 +25,37 @@ service firebase.storage {
     }
     function readEntityFiles(worldId, entityId) {
       return fullRead(worldId) || (member(worldId) != null && (entityId == 'cosmos' ? 'cosmology' in member(worldId).get('view', []) :
+        entityId.matches('lore_.*') ? 'culture' in member(worldId).get('view', []) :
         firestore.get(/databases/(default)/documents/worlds/$(worldId)/entities/$(entityId)).data.kind in member(worldId).get('viewKinds', [])));
+    }
+    // a member with the right to edit that section (role custom: the entity's kind, «Культура» for a culture entry, «Космологія» for the sky)
+    function editEntityFiles(worldId, entityId) {
+      return canWrite(worldId) || (member(worldId) != null && member(worldId).role == 'custom' && (entityId == 'cosmos' ? 'cosmology' in member(worldId).get('edit', []) :
+        entityId.matches('lore_.*') ? 'culture' in member(worldId).get('edit', []) :
+        firestore.get(/databases/(default)/documents/worlds/$(worldId)/entities/$(entityId)).data.kind in member(worldId).get('editKinds', [])));
     }
     function canWrite(worldId) {
       return isWorldOwner(worldId) || (member(worldId) != null && member(worldId).role in ['admin', 'editor']);
     }
+    function ownerPlan(worldId) {
+      return firestore.get(/databases/(default)/documents/users/$(firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free');
+    }
     function ownerGameDev(worldId) {
-      return firestore.get(/databases/(default)/documents/users/$(firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
+      return ownerPlan(worldId) in ['worldbuilder', 'worldforge'];
+    }
+    // the plans that edit the canon — functions/paid-features.js 'bible' (allowWorldTree), the same list as firestore.rules canonPlans()
+    // (tests/canon-plans.test.cjs checks both against the registry)
+    function ownerCanon(worldId) {
+      return ownerPlan(worldId) in ['storyteller', 'novelist', 'worldbuilder', 'worldforge'];
     }
 
-    // World-level files of canon entities (dossier images and models), shared by every story and game.
+    // World-level files of canon entities (dossier and culture pictures, models, the sky's maps), shared by every story and game:
+    // from the plan that edits the canon (Storyteller+), up to 20 MB a file below Worldbuilder and 200 MB on it — as game files (v2.118.0)
     match /worlds/{worldId}/files/{entityId}/{rest=**} {
       allow read: if request.auth != null && readEntityFiles(worldId, entityId);
-      allow delete: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId);
-      allow create, update: if request.auth != null && canWrite(worldId) && ownerGameDev(worldId) && worldOpen(worldId) &&
-                               request.resource.size < 200 * 1024 * 1024;
+      allow delete: if request.auth != null && editEntityFiles(worldId, entityId) && ownerCanon(worldId) && worldOpen(worldId);
+      allow create, update: if request.auth != null && editEntityFiles(worldId, entityId) && ownerCanon(worldId) && worldOpen(worldId) &&
+                               request.resource.size < (ownerGameDev(worldId) ? 200 : 20) * 1024 * 1024;
     }
 
     // The world's cover on its card (Світи, the world hub): an image ≤ 10 MB or an MP4/WebM video ≤ 50 MB, any plan.
@@ -58,6 +74,21 @@ service firebase.storage {
       allow create, update: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId) &&
                                ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
                                 (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
+    }
+    // A story's cover (Біблія → «Історії і хроніка» → ✎, the shell's story form): the story's owner, an image ≤ 10 MB.
+    // projects/{p}.cover keeps the download URL, .coverPath the file; deleting the story removes it (functions/src/cleanup.js projectDeleted).
+    match /projects/{projectId}/cover/{file} {
+      allow read: if request.auth != null && firestore.get(/databases/(default)/documents/projects/$(projectId)).data.owner == request.auth.uid;
+      allow delete: if request.auth != null && firestore.get(/databases/(default)/documents/projects/$(projectId)).data.owner == request.auth.uid;
+      allow create, update: if request.auth != null && firestore.get(/databases/(default)/documents/projects/$(projectId)).data.owner == request.auth.uid &&
+                               request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024;
+    }
+    // The author's avatar (Акаунт → profile): only its owner writes, an image ≤ 2 MB; the URL goes to Auth photoURL and users/{uid}.avatar
+    match /users/{userId}/avatar/{file} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId &&
+                               request.resource.contentType.matches('image/.*') && request.resource.size < 2 * 1024 * 1024;
     }
     // 🎞 the WhiteWrite animation library (functions/forge.js ANIM_STORE): per-body-type GLBs for the Forge's 3D preview, ours to give out.
     // Any signed-in user reads; nobody writes from a client (uploaded with the admin SDK).

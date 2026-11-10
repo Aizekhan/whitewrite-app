@@ -127,7 +127,7 @@ This project reports its development history to WhiteWrite (the author's Mini-Ma
 
 **Check before sending** — compare with \`git diff\` / \`git log\` of this session: report only what this session actually did or verified; never someone else's work. Mark unfinished work \`partial\` or \`experimental\`.
 
-**Privacy** — \`privacy\` per entry: \`internal\` (refactors, tooling — never public), \`confidential\`, \`spoiler\` (story reveals), \`excluded\`, or \`marketing_approved\` only when the author said so. No secrets, keys, personal data, absolute paths.
+**Privacy** — \`privacy\` per entry: \`internal\` (refactors, tooling — never public), \`confidential\`, \`spoiler\` (story reveals), \`excluded\`; \`marketing_approved\` («Для маркетингу») is set only by the author in the Bible — the server turns it into \`internal\`. No secrets, keys, personal data, absolute paths.
 
 **No network** — if the call fails, append the same JSON as one line to \`.whitewrite/activity-pending.jsonl\` (add \`.whitewrite/\` to .gitignore) and tell the author; at the start of the next session send every pending line (same session_id — no duplicates) and clear the file. A failed sync never blocks ending the session.
 

@@ -21,6 +21,15 @@ const mocks = [
   get('/worlds/w1/entities/city', { kind: 'locations' }),
 ];
 const R = (name, expectation, uid, path) => ({ name, tc: { expectation, functionMocks: mocks, request: { auth: uid ? { uid } : null, path: O + path, method: 'get' } } });
+// v2.118.0: dossier / culture / sky files from the plan that edits the canon (Storyteller+), 20 MB below Worldbuilder, 200 MB on it;
+// u4 custom edits characters + culture, u5 editor
+const TEAM2 = Object.assign({}, TEAM, { u4: { role: 'custom', view: ['w-characters', 'culture'], edit: ['w-characters', 'culture'], viewKinds: ['characters'], editKinds: ['characters'] },
+  u5: { role: 'editor', view: [], edit: [] } });
+const wmocks = (plan) => [get('/worlds/w1', { owner: 'u1', team: TEAM2 }), get('/users/u1', { plan }),
+  get('/worlds/w1/entities/hero', { kind: 'characters' }), get('/worlds/w1/entities/city', { kind: 'locations' })];
+const MB = 1024 * 1024;
+const W = (name, expectation, uid, path, plan, size) => ({ name, tc: { expectation, functionMocks: wmocks(plan),
+  request: { auth: { uid }, path: O + path, method: 'create', resource: { size, contentType: 'image/png' } } } });
 
 const cases = [
   R('the owner reads any card file', 'ALLOW', 'u1', 'worlds/w1/games/g1/files/lvl1/a.png'),
@@ -34,6 +43,16 @@ const cases = [
   R('a stranger CANNOT read a card file', 'DENY', 'u9', 'worlds/w1/games/g1/files/mech1/a.png'),
   R('a member reads the world cover', 'ALLOW', 'u2', 'worlds/w1/cover/c.jpg'),
   R('a signed-in user reads the animation library', 'ALLOW', 'u9', 'library/anims/human.glb'),
+  W('Free CANNOT upload a dossier file (canon is read-only)', 'DENY', 'u1', 'worlds/w1/files/hero/p.png', 'free', MB),
+  W('Storyteller uploads a dossier file', 'ALLOW', 'u1', 'worlds/w1/files/hero/p.png', 'storyteller', MB),
+  W('Storyteller uploads a culture file', 'ALLOW', 'u1', 'worlds/w1/files/lore_abc/p.png', 'storyteller', MB),
+  W('Storyteller CANNOT upload a dossier file over 20 MB', 'DENY', 'u1', 'worlds/w1/files/hero/p.png', 'storyteller', 25 * MB),
+  W('Worldbuilder uploads a dossier file up to 200 MB', 'ALLOW', 'u1', 'worlds/w1/files/hero/p.png', 'worldbuilder', 150 * MB),
+  W('an editor uploads a dossier file (owner on Storyteller)', 'ALLOW', 'u5', 'worlds/w1/files/city/p.png', 'storyteller', MB),
+  W('a custom member uploads a file of the kind they edit', 'ALLOW', 'u4', 'worlds/w1/files/hero/p.png', 'novelist', MB),
+  W('a custom member uploads a culture file with «Культура»', 'ALLOW', 'u4', 'worlds/w1/files/lore_abc/p.png', 'novelist', MB),
+  W('a custom member CANNOT upload a file of another kind', 'DENY', 'u4', 'worlds/w1/files/city/p.png', 'novelist', MB),
+  W('a viewer CANNOT upload a dossier file', 'DENY', 'u3', 'worlds/w1/files/hero/p.png', 'worldbuilder', MB),
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

@@ -11,6 +11,7 @@ const {
   claudeApiKey,
   publicMessage
 } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
 
@@ -120,7 +121,7 @@ exports.genesisWorld = onRequest({
       const userDoc = await db.collection('users').doc(uid).get();
       const userData = userDoc.exists ? userDoc.data() : {};
       const userPlan = userData.plan || 'free';
-      if (userPlan !== 'free' && userPlan !== 'seed' && userData.subscriptionStatus !== 'active') {
+      if (userPlan !== 'free' && userPlan !== 'seed' && !subscriptionActive(userData)) {
         res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true, plan: userPlan });
         return;
       }

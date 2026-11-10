@@ -9,6 +9,7 @@
 // The provider is one function (googleSpeak) — ElevenLabs etc. plug in beside it (service in the cast).
 const crypto = require('crypto');
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { payerFor } = require('./team')._team;
 const { byOp, ttsCost, ttsUsd, TTS, USD_PER_TOKEN } = require('../paid-features.js');
 const ledger = require('./ledger');
@@ -59,7 +60,7 @@ async function access(req, body) {
   const userData = u.exists ? u.data() : {};
   const feature = byOp('voiceTts');
   if (!getPlanBudget(userData.plan || 'free')[feature.flag]) throw new VoiceError(403, { error: 'Озвучка ШІ — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
-  if (userData.subscriptionStatus !== 'active') throw new VoiceError(403, { error: 'Активна підписка необхідна для ШІ', requiresSubscription: true });
+  if (!subscriptionActive(userData)) throw new VoiceError(403, { error: 'Активна підписка необхідна для ШІ', requiresSubscription: true });
   return { uid, worldId, gameId, gref, game: g.data(), userData };
 }
 

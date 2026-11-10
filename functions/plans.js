@@ -12,4 +12,11 @@ function getPlanBudget(plan) {
   return PLAN_BUDGETS[plan] || PLAN_BUDGETS.free;
 }
 
-module.exports = { PLAN_BUDGETS, getPlanBudget };
+// A paid subscription that opens the ✦ gates: active, or past_due — Lemon Squeezy is still retrying the card (its grace
+// period; the plan is kept, lemon.js). paused / unpaid already moved the plan to free; cancelled-but-paid stays 'active'.
+const LIVE_SUBSCRIPTION = ['active', 'past_due'];
+function subscriptionActive(user) {
+  return LIVE_SUBSCRIPTION.includes((user || {}).subscriptionStatus);
+}
+
+module.exports = { PLAN_BUDGETS, getPlanBudget, subscriptionActive, LIVE_SUBSCRIPTION };

@@ -3,7 +3,8 @@ const path = require('path');
 const F = require('path').join(__dirname, '../functions/');
 const store = {}; const notices = []; const files = [];
 const docRef = (p) => ({ get: async () => ({ exists: !!store[p], data: () => store[p] }), set: async (d, o) => { store[p] = Object.assign({}, o && o.merge ? store[p] : {}, d); } });
-const db = { collection: (c) => ({ doc: (id) => docRef(c + '/' + id), add: async (d) => { notices.push(d); return { id: 'n' + notices.length }; } }) };
+const db = { collection: (c) => ({ doc: (id) => docRef(c + '/' + id), add: async (d) => { notices.push(d); return { id: 'n' + notices.length }; } }),
+  runTransaction: async (f) => f({ get: (r) => r.get(), set: (r, d, o) => r.set(d, o) }) };
 const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS' } }, storage: () => ({ bucket: () => ({ file: (n) => ({ save: async () => files.push(n) }) }) }) };
 require.cache[require.resolve(F + 'src/common.js')] = { exports: { onRequest: (o, f) => f, admin, db, cors: (q, r, f) => f(), claudeApiKey: { value: () => 'k' }, requireAdmin: async () => true } };
 let smokeFail = false;
@@ -85,5 +86,11 @@ let fails = 0; const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ')
     && notices.some((x) => /застарілою/.test(x.title)), 'deprecated active Opus → critical notice with the date, new one held (+60%), daily mode, users stay');
   await W._modelWatch.runWatch({ now: T + 50 * 864e5 });
   check(S().active.opus === 'claude-opus-7' && S().mode === 'watch' && /скоро знімуть/.test(notices[notices.length - 1].title) && !S().deprecated.opus, 'within 14 days of retirement → forced switch to the priced newer Opus: ' + notices[notices.length - 1].title);
+  // 11. a model breaks DURING the check (claude.js withFallback writes broken[id]) → the final write keeps it (no stale overwrite)
+  const realFetch = global.fetch;
+  global.fetch = async (url) => { if (url.includes('deprecations')) store['config/ai_models'] = Object.assign({}, S(), { broken: { 'claude-sonnet-7': { to: 'claude-sonnet-5-5', at: 123 } } }); return realFetch(url); };
+  await W._modelWatch.runWatch({ force: true, now: T + 51 * 864e5 });
+  global.fetch = realFetch;
+  check(!!(S().broken && S().broken['claude-sonnet-7']) && S().mode === 'daily', 'a model marked broken while the watch runs stays in config/ai_models.broken (and the watch goes daily)');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });

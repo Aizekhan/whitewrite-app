@@ -45,13 +45,33 @@ async function createSubscriptionCheckout(plan, userEmail) {
     body: JSON.stringify({ plan: plan, userEmail: userEmail })
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
 
-  if (!response.ok || data.error) {
-    throw new Error(data.error || 'Failed to create checkout');
-  }
+  if (!response.ok || data.error) throw checkoutError(response, data);
 
   return data.url;
+}
+
+// the server's refusal reaches the author: 409 HAS_SUBSCRIPTION / SUBSCRIPTION_ON_HOLD → its own words (i18n), else the server's message
+function checkoutError(response, data) {
+  const t = window.__i18n ? window.__i18n.t : (k) => k;
+  const key = { HAS_SUBSCRIPTION: 'alert.hasSubscription', SUBSCRIPTION_ON_HOLD: 'alert.subscriptionOnHold' }[data.code];
+  const msg = key && t(key) !== key ? t(key) : (data.error || ('HTTP ' + response.status));
+  const e = new Error(msg); e.code = data.code || null; e.status = response.status;
+  return e;
+}
+
+// Акаунт → «Керувати оплатою»: the LS customer portal (card, invoices, resume), signed fresh by changeSubscription {op:'portal'}
+async function openPortal() {
+  const idToken = await window.__firebase.auth.currentUser.getIdToken();
+  const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/changeSubscription', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+    body: JSON.stringify({ op: 'portal' })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.portal) throw new Error(data.error || ('HTTP ' + response.status));
+  return data.portal;
 }
 
 // Create Lemon Squeezy checkout URL for token top-up
@@ -74,16 +94,14 @@ async function createTokenTopUpCheckout(userEmail) {
     body: JSON.stringify({ topup: '500', userEmail: userEmail })
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
 
-  if (!response.ok || data.error) {
-    throw new Error(data.error || 'Failed to create checkout');
-  }
+  if (!response.ok || data.error) throw checkoutError(response, data);
 
   return data.url;
 }
 
-// Change an active subscription (changeSubscription): op 'quote' | 'change' | 'cancelPending'
+// Change an active subscription (changeSubscription): op 'quote' | 'change' | 'cancelPending' (op 'portal' — openPortal)
 async function changePlan(op, plan) {
   const idToken = await window.__firebase.auth.currentUser.getIdToken();
   const response = await fetch('https://us-central1-whitewrite-app.cloudfunctions.net/changeSubscription', {
@@ -101,5 +119,6 @@ async function changePlan(op, plan) {
 window.__lemonSqueezy = {
   createSubscriptionCheckout,
   createTokenTopUpCheckout,
-  changePlan
+  changePlan,
+  openPortal
 };

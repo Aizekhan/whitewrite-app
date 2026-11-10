@@ -100,14 +100,15 @@ window.__firebaseProjects = {
     const silent = (msg) => { const e = new Error(msg); e.silent = true; return e; };
     if (out.code === 'PROJECT_LIMIT') {
       const plan = window.__getPlanConfig ? window.__getPlanConfig(out.plan).name : out.plan;
-      if (confirm(fill('project.limitAsk', { plan, limit: out.limit, cost: out.slotCost, have: out.tokensRemaining }))) {
+      const ask = window.wwConfirm ? window.wwConfirm : (m) => Promise.resolve(confirm(m)); // the shell's styled dialog (White.html / ww-embed.js)
+      if (await ask(fill('project.limitAsk', { plan, limit: out.limit, cost: out.slotCost, have: out.tokensRemaining }))) {
         return this.createProject(data, true);
       }
       openPlans();
       throw silent('PROJECT_LIMIT');
     }
     if (out.code === 'OUT_OF_TOKENS') {
-      alert(fill('project.slotNoTokens', { cost: out.tokensNeeded, have: out.tokensRemaining }));
+      await (window.wwNotice ? window.wwNotice(fill('project.slotNoTokens', { cost: out.tokensNeeded, have: out.tokensRemaining })) : Promise.resolve(alert(fill('project.slotNoTokens', { cost: out.tokensNeeded, have: out.tokensRemaining }))));
       openPlans();
       throw silent('OUT_OF_TOKENS');
     }

@@ -191,6 +191,10 @@ const check = (ok, msg) => { console.log((ok ? 'PASS ' : 'FAIL ') + msg); if (!o
   check(logs.every((l) => l.expireAt && l.expireAt.toMillis() > Date.now() + 300 * 86400000), 'usage_logs carry a TTL expireAt (≈400 days)');
   check(logs.length && logs.every((l) => Math.abs(l.userPaidUSD - l.userTokensCharged * require(F('paid-features.js')).USD_PER_TOKEN) < 1e-3), 'usage_logs userPaidUSD = tokens × USD_PER_TOKEN (the loss alarm works)');
 
+  // ✦ gates: past_due (LS still retrying the card, the plan kept) works like active; paused / unpaid / expired do not
+  const { subscriptionActive } = require(F('plans.js'));
+  check(subscriptionActive({ subscriptionStatus: 'active' }) && subscriptionActive({ subscriptionStatus: 'past_due' }) &&
+    !subscriptionActive({ subscriptionStatus: 'paused' }) && !subscriptionActive({ subscriptionStatus: 'unpaid' }) && !subscriptionActive({}), 'past_due keeps the ✦ gates open for the grace period, paused / unpaid close them');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exitCode = 1; });

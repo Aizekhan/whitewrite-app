@@ -108,7 +108,7 @@ const TOOLS = [
         entry_id: { type: 'string' }, change: { type: 'string', enum: ['added', 'changed', 'removed', 'fixed'] }, category: { type: 'string' }, text: { type: 'string' },
         status: { type: 'string', enum: ['completed', 'partial', 'experimental', 'planned'] }, player_impact: { type: 'string' },
         evidence: { type: 'object' }, media: { type: 'array', items: { type: 'string' } }, limits: { type: 'string' }, hints: { type: 'string' },
-        privacy: { type: 'string', enum: ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'] }, task_id: { type: 'string' } } } } } } },
+        privacy: { type: 'string', enum: ['internal', 'confidential', 'spoiler', 'excluded'], description: 'marketing_approved («Для маркетингу») is set only by the author in the Bible' }, task_id: { type: 'string' } } } } } } },
   { name: 'get_style_guide', description: 'The game\'s visual style (Game Bible «Візуальний стиль»): the overall style and the biome for a location — manifesto, palette and colours to avoid ("#hex — name" per line), light & mood, materials, shapes & silhouette, polygon & texture budget, do / don\'t, style reference URLs; plus every biome with its locations. Read it before making or placing art, materials, lighting or a scene.',
     inputSchema: { type: 'object', properties: { location: { type: 'string', description: 'A location / level / card name — picks its biome; empty = the overall style' }, card_ref: { type: 'string', description: '"c:<cardId>" — the style that applies to that card' } } } },
   { name: 'check_style', description: 'Ask the art director (Claude, on the author\'s tokens) whether a picture fits the game\'s visual style: a Unity screenshot of a scene, a render of a prefab or a texture. Send a PNG/JPEG/WebP as base64, ≤ 1568 px on the long side and ≤ 5 MB. Returns score 0-100 (70+ fits, 40-69 partly, below 40 off-style), summary, issues and fixes. Nothing is stored; use it after visual work and before submit_task_result.',
@@ -564,7 +564,8 @@ async function knowledgeSubmit(ctx, args) {
       all.docs.forEach((d) => { if (d.data().lastSnap !== snapId && !d.data().missingSince) { tomb++; bw.set(d.ref, { missingSince: snapId }, { merge: true }); } });
       await bw.close();
     }
-    await kref.set({ status: 'imported', endedAt: ts(), 'counts.tombstoned': tomb, overview: str(args.overview_md, 150000), unresolved: str(args.unresolved_md, 150000),
+    await kref.set({ status: 'imported', endedAt: ts(), counts: { tombstoned: tomb }, // a nested map: set() keeps a dotted key literal
+      overview: str(args.overview_md, 150000), unresolved: str(args.unresolved_md, 150000),
       report: str(args.report_md, 150000) }, { merge: true });
     await ctx.gref.set({ knowledge: { lastSnap: snapId, at: ts() } }, { merge: true });
     return { ok: true, status: 'imported', tombstoned: tomb };
@@ -626,7 +627,7 @@ async function activitySubmit(ctx, key, args) {
       text: str(e.text, 2000), status: ['completed', 'partial', 'experimental', 'planned'].includes(e.status) ? e.status : 'completed', playerImpact: str(e.player_impact, 1000),
       evidence: { files: list(ev.files, 50, (f) => str(f, 300)), commit: str(ev.commit, 60), pr: str(ev.pr, 200), tests: clip(ev.tests || null) },
       media: list(e.media, 20, (m) => str(m, 300)), limits: str(e.limits, 800), hints: str(e.hints, 800),
-      privacy: ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'].includes(e.privacy) ? e.privacy : 'internal', taskId: str(e.task_id, 32) };
+      privacy: ['internal', 'confidential', 'spoiler', 'excluded'].includes(e.privacy) ? e.privacy : 'internal', taskId: str(e.task_id, 32) };
   });
   const aref = ctx.gref.collection('activity').doc(sid);
   const refs = entries.map((e) => aref.collection('entries').doc(e.id));

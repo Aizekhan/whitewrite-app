@@ -15,6 +15,8 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
+const { teamAccess } = require('./team')._team; // Команда: who may do what in the game
+const { subscriptionActive } = require('../plans.js'); // past_due still counts as active (plans.js)
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
 
@@ -177,7 +179,7 @@ function cleanDraft(p, platform, wantPoll) {
 // ---------- the endpoint ----------
 exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, telegramBotToken], timeoutSeconds: 120 }, async (req, res) => {
   return cors(req, res, async () => {
-    let uid, reservation = null;
+    let uid, reservation = null, paid = null; // paid: the Claude call already reached the API → a later error is charged for it (settle)
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const auth = req.headers.authorization || '';
@@ -187,8 +189,14 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       const worldId = str(b.worldId, 120), gameId = str(b.gameId, 120), op = str(b.op, 30);
       if (!worldId || !gameId || !op) return res.status(400).json({ error: 'Missing worldId/gameId/op' });
       const wref = db.collection('worlds').doc(worldId), gref = wref.collection('games').doc(gameId), sref = gref.collection('marketing').doc('state');
-      const [w, g, u, st] = await Promise.all([wref.get(), gref.get(), db.collection('users').doc(uid).get(), sref.get()]);
-      if (!w.exists || w.data().owner !== uid || !g.exists) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      const [w, g, st] = await Promise.all([wref.get(), gref.get(), sref.get()]);
+      const acc = w.exists && g.exists ? teamAccess(w.data(), uid, 'marketing') : null;
+      if (!acc) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      // owner-level ops (tokens for the month, ✦, channel secrets, purge): the owner or a team admin; purge — the owner alone
+      if ((op === 'purge' && !acc.owner) || (['activate', 'deactivate', 'draft', 'connect', 'disconnect'].includes(op) && !acc.ai)) return res.status(403).json({ error: 'Це може лише власник світу або адмін команди', code: 'TEAM_ROLE' });
+      if (w.data().freeze && !['status', 'purge'].includes(op)) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
+      uid = acc.uid; // the owner's plan and tokens (a team admin's ✦ is paid by the owner — team.js payerFor)
+      const u = await db.collection('users').doc(uid).get();
       const userData = u.exists ? u.data() : {}, state = st.exists ? st.data() : {}, key = worldId + '__' + gameId;
       const me = await bot().catch(() => null);
       const telegram = { configured: !!me, bot: me ? me.username : '' };
@@ -203,7 +211,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
         return res.status(200).json({ success: true });
       }
       if (!getPlanBudget(userData.plan || 'free').allowGameDev) return res.status(403).json({ error: 'Маркетинг доступний на тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
-      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
+      if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
 
       if (op === 'activate') {
         if (millis(state.paidUntil) > now()) { await sref.set({ enabled: true }, { merge: true }); return res.status(200).json({ success: true, tokensConsumed: 0, paidUntil: millis(state.paidUntil) }); }
@@ -245,6 +253,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
         const settings = state.settings || {};
         const { system, prompt } = draftPrompt(g.data(), entries, { ...b, platform }, settings, (settings.language || b.language) === 'en' ? 'English' : 'Ukrainian');
         const msg = await claudeText(claudeApiKey.value(), { model, system, prompt, maxTokens: 3000, effort: 'low' });
+        paid = { model: msg.model, usage: msg.usage };
         const draft = cleanDraft(parseJson(msg.text) || {}, platform, !!b.poll);
         if (!draft.text && !draft.poll) throw new Error('AI повернув порожній пост');
         const usage = { input_tokens: msg.usage.input_tokens || 0, output_tokens: msg.usage.output_tokens || 0 };
@@ -275,7 +284,9 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       if (op === 'approve') { await setStatus('approved', { approvedAt: ts() }); return res.status(200).json({ success: true }); }
       if (op === 'reject') { if (post.status === 'scheduled') await qref.delete(); await setStatus('rejected'); return res.status(200).json({ success: true }); }
       if (op === 'delete') { if (post.status === 'publishing' && !stale) return res.status(409).json({ error: 'Пост публікується' }); await Promise.all([qref.delete(), pref.delete()]); return res.status(200).json({ success: true }); }
-      if (op === 'cancel') { await qref.delete(); await setStatus('approved', { at: admin.firestore.FieldValue.delete() }); return res.status(200).json({ success: true }); }
+      if (op === 'cancel') {
+        if (post.status !== 'scheduled') return res.status(409).json({ error: 'Пост не заплановано' });
+        await qref.delete(); await setStatus('approved', { at: admin.firestore.FieldValue.delete() }); return res.status(200).json({ success: true }); }
       if (op === 'schedule' || op === 'publish') {
         if (!['approved', 'scheduled', 'failed'].includes(post.status) && !stale) return res.status(409).json({ error: 'Спершу схвали пост' });
         const ch = await gref.collection('channels').doc(str(b.channelId, 60)).get();
@@ -305,6 +316,7 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       }
       return res.status(400).json({ error: 'Невідома дія' });
     } catch (error) {
+      if (paid && !error.paid) error.paid = paid; // an empty answer or a failed write after the paid call
       if (reservation) await settle(db, uid, reservation, error, 'marketing').catch((e) => console.error('[marketing] refund failed:', e)); // a refusal is paid (claude.js)
       if (error.status) return res.status(error.status).json({ error: error.message, ...(error.extra || {}) });
       console.error('marketing error:', error);

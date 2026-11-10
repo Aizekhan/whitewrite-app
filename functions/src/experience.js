@@ -10,7 +10,9 @@
 // (ARCHITECTURE.md §Experience → «Scale»), keeping Firestore for aggregates, issues and playtests.
 const crypto = require('crypto');
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // past_due still counts as active (plans.js)
 const { featureCost, byOp } = require('../paid-features.js');
+const { teamAccess } = require('./team')._team; // Команда: who may do what in the game
 const { modelFor, claudeText } = require('./claude');
 
 const RAW_DAYS = 30;
@@ -157,6 +159,9 @@ function cleanEvent(e, now) {
   return { id: id.replace(/[/.]/g, '_'), ev: out };
 }
 
+const STATS_EVERY_MS = 10 * 60000;
+function statsDue(st, day, now) { return st.day !== day || !(st.at > now - STATS_EVERY_MS); }
+
 exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', timeoutSeconds: 60 }, async (req, res) => {
   // game builds call from anywhere (native, WebGL): no cookies, the key is the only credential
   res.set('Access-Control-Allow-Origin', '*');
@@ -183,26 +188,35 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
     if (!g.exists) return res.status(410).json({ error: 'The game no longer exists', code: 'GAME_GONE' });
     if (((d0.exists && d0.data().total) || 0) >= DAILY_CAP) { res.set('Retry-After', '3600'); return res.status(429).json({ error: `Daily event cap reached (${DAILY_CAP})`, code: 'DAILY_CAP' }); }
     const exp = expire(RAW_DAYS);
-    for (let i = 0; i < ok.length; i += 450) {
+    // same event_id → same doc: a retried event is not stored or counted again (the answer says how many were duplicates)
+    const seen = new Set(), uniq = ok.filter((x) => (seen.has(x.id) ? false : seen.add(x.id)));
+    const fresh = [];
+    for (let i = 0; i < uniq.length; i += 450) {
+      const part = uniq.slice(i, i + 450), got = await db.getAll(...part.map((x) => gref.collection('telemetry').doc(x.id)));
       const b = db.batch();
-      ok.slice(i, i + 450).forEach((x) => b.set(gref.collection('telemetry').doc(x.id), { ...x.ev, expireAt: exp })); // same event_id → same doc: retries deduplicate
+      part.forEach((x, j) => { if (got[j].exists) return; fresh.push(x); b.set(gref.collection('telemetry').doc(x.id), { ...x.ev, expireAt: exp }); });
       await b.commit();
     }
-    if (ok.length) {
+    const duplicates = ok.length - fresh.length;
+    if (fresh.length) {
       const day = new Date(now).toISOString().slice(0, 10), inc = admin.firestore.FieldValue.increment;
-      const daily = { day, total: inc(ok.length), expireAt: expire(DAILY_DAYS), events: {}, builds: {} };
-      ok.forEach((x) => { daily.events[x.ev.n] = (daily.events[x.ev.n] || 0) + 1; const bk = safeKey(x.ev.b || '-'); daily.builds[bk] = (daily.builds[bk] || 0) + 1; });
+      const daily = { day, total: inc(fresh.length), expireAt: expire(DAILY_DAYS), events: {}, builds: {} };
+      fresh.forEach((x) => { daily.events[x.ev.n] = (daily.events[x.ev.n] || 0) + 1; const bk = safeKey(x.ev.b || '-'); daily.builds[bk] = (daily.builds[bk] || 0) + 1; });
       Object.keys(daily.events).forEach((k) => { daily.events[k] = inc(daily.events[k]); });
       Object.keys(daily.builds).forEach((k) => { daily.builds[k] = inc(daily.builds[k]); });
       await gref.collection('telemetryDaily').doc(day).set(daily, { merge: true });
-      const dd = await gref.collection('telemetryDaily').doc(day).get(), st = (g.data() || {}).telemetryStats || {};
-      const count = (dd.data() || {}).total || ok.length;
-      const stats = { day, count, lastAt: ts() };
-      if (count > SCALE_EVENTS_PER_DAY) stats.scaleAlert = { day, count };
-      else if (st.scaleAlert) stats.scaleAlert = st.scaleAlert; // keeps the reminder until someone acts on it
-      await gref.update({ telemetryStats: stats }); // update, not set: fails instead of recreating a game deleted meanwhile
+      // the game doc is NOT written per batch (a hot document and a re-render of every open Bible): today's live count is
+      // telemetryDaily/{day}.total; telemetryStats is a summary refreshed when the day turns, the scale alert first fires, or every STATS_EVERY_MS
+      const st = (g.data() || {}).telemetryStats || {}, count = ((d0.exists && d0.data().total) || 0) + fresh.length;
+      const alert = count > SCALE_EVENTS_PER_DAY && !(st.scaleAlert && st.scaleAlert.day === day);
+      if (statsDue(st, day, now) || alert) {
+        const stats = { day, count, lastAt: ts(), at: now };
+        if (count > SCALE_EVENTS_PER_DAY) stats.scaleAlert = { day, count };
+        else if (st.scaleAlert) stats.scaleAlert = st.scaleAlert; // keeps the reminder until someone acts on it
+        await gref.update({ telemetryStats: stats }); // update, not set: fails instead of recreating a game deleted meanwhile
+      }
     }
-    res.status(200).json({ accepted: ok.length, rejected });
+    res.status(200).json({ accepted: fresh.length, duplicates, rejected });
   } catch (error) {
     console.error('telemetryIngest error:', error);
     res.status(500).json({ error: 'Ingest failed' });
@@ -416,9 +430,15 @@ function parseJson(text) {
 
 async function loadEvents(gref, days, build) {
   const since = Date.now() - Math.min(RAW_DAYS, Math.max(1, days || RAW_DAYS)) * DAY;
+  if (build) { // one build: filtered in the query (index telemetry b ↑ t ↓, firestore.indexes.json) — MAX_READ events of THAT build
+    try {
+      const one = await gref.collection('telemetry').where('b', '==', build).where('t', '>=', since).orderBy('t', 'desc').limit(MAX_READ).get();
+      return { evs: one.docs.map((d) => d.data()), truncated: one.size >= MAX_READ };
+    } catch (e) { if (e.code !== 9 && !/index/i.test(e.message || '')) throw e; } // the index is still building: the latest events of all builds, filtered here
+  }
   const snap = await gref.collection('telemetry').where('t', '>=', since).orderBy('t', 'desc').limit(MAX_READ).get();
   const evs = snap.docs.map((d) => d.data()).filter((e) => !build || e.b === build);
-  return { evs, truncated: snap.size >= MAX_READ };
+  return { evs, truncated: snap.size >= MAX_READ }; // truncated + a build: the build's events among the newest MAX_READ of all
 }
 function optsFrom(cards, experiments) {
   const meaningful = [], pacing = {};
@@ -452,7 +472,7 @@ function intentsText(cards, entities) {
  */
 exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey], timeoutSeconds: 540, memory: '1GiB' }, async (req, res) => {
   return cors(req, res, async () => {
-    let uid, reservation = null;
+    let uid, reservation = null, paid = null; // paid: the Claude call already reached the API → a later error is charged for it (settle)
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const authHeader = req.headers.authorization || '';
@@ -464,8 +484,13 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       if (!op || !worldId || !gameId) return res.status(400).json({ error: 'Missing op/worldId/gameId' });
       const languageName = LANGUAGES[body.language] || LANGUAGES.uk;
       const wref = db.collection('worlds').doc(worldId), gref = wref.collection('games').doc(gameId);
-      const [w, g, userDoc] = await Promise.all([wref.get(), gref.get(), db.collection('users').doc(uid).get()]);
-      if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      const [w, g] = await Promise.all([wref.get(), gref.get()]);
+      const acc = w.exists ? teamAccess(w.data(), uid, 'experience', 'telemetry') : null;
+      if (!acc) return res.status(403).json({ error: 'Гру не знайдено або немає доступу' });
+      // purge (game deletion) — the owner alone; keys and ✦ — the owner or a team admin (✦ on the owner's tokens); metrics / validate — any editor
+      if ((op === 'purge' && !acc.owner) || (['keyCreate', 'keyRevoke', 'report', 'playtest'].includes(op) && !acc.ai)) return res.status(403).json({ error: 'Це може лише власник світу або адмін команди', code: 'TEAM_ROLE' });
+      uid = acc.uid; // the owner's plan and tokens
+      const userDoc = await db.collection('users').doc(uid).get();
 
       if (op === 'purge') { // the game is being deleted: its telemetry and experience go with it
         // the keys go first: a timeout in the long delete below must not leave the game's builds able to write
@@ -530,7 +555,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       }
 
       // ---- AI ops: priced like the game analysis (the client shows the price first) ----
-      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
+      if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
       const metricsDoc = op === 'report' ? await gref.collection('experience').doc('metrics').get() : null;
       if (op === 'report' && (!metricsDoc.exists || !(metricsDoc.data().sample || {}).events)) return res.status(400).json({ error: 'Спершу зберіть події й порахуйте метрики', code: 'NO_METRICS' });
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
@@ -556,6 +581,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
         prompt = playtestPrompt(bible, openIssues, str(body.focus, 600), languageName);
       }
       const msg = await claudeText(claudeApiKey.value(), { model, prompt, maxTokens: 20000, effort: 'medium', stream: true });
+      paid = { model: msg.model, usage: msg.usage };
       if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
       const parsed = parseJson(msg.text);
       let out = {};
@@ -586,10 +612,11 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       res.status(200).json({ success: true, ...out, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('experience error:', error);
+      if (paid && !error.paid) error.paid = paid; // an unparsable answer or a failed write after the paid call
       if (reservation) await settle(db, uid, reservation, error, 'experience').catch((e) => console.error('[experience] Refund failed:', e));
       res.status(500).json({ error: `Помилка аналітики досвіду: ${publicMessage(error)}` });
     }
   });
 });
 
-exports._experience = { computeMetrics, flatten, telemetrySchema, intentText, cleanEvent, STANDARD_EVENTS, DEFAULT_MEANINGFUL, INTENT_TAGS, ENVELOPE };
+exports._experience = { statsDue, STATS_EVERY_MS, computeMetrics, flatten, telemetrySchema, intentText, cleanEvent, STANDARD_EVENTS, DEFAULT_MEANINGFUL, INTENT_TAGS, ENVELOPE };

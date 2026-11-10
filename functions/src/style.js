@@ -6,6 +6,7 @@
 // MCP check_style (mcp.js) runs the same check on a screenshot from Unity and returns it without storing.
 // Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js styleCheck).
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { featureCost, byOp } = require('../paid-features.js');
 const { modelFor, claudeText } = require('./claude');
@@ -37,7 +38,7 @@ class CheckError extends Error { constructor(status, body) { super(body.error); 
 // One check: the plan, the reserve, Claude, the charge. style = resolveStyle(…); image / refs = image blocks.
 async function runCheck({ uid, userData, game, style, image, refs, lang, what, logAs }) {
   if (!getPlanBudget(userData.plan || 'free').allowGameDev) throw new CheckError(403, { error: 'Візуальний стиль — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
-  if (userData.subscriptionStatus !== 'active') throw new CheckError(403, { error: 'Активна підписка необхідна для ШІ-перевірки', requiresSubscription: true });
+  if (!subscriptionActive(userData)) throw new CheckError(403, { error: 'Активна підписка необхідна для ШІ-перевірки', requiresSubscription: true });
   const brief = S.styleBrief(style);
   if (!brief) throw new CheckError(400, { error: 'У гри ще немає візуального стилю', code: 'NO_STYLE' });
 
@@ -145,7 +146,7 @@ exports.styleFromRefs = onRequest({ region: 'us-central1', secrets: [claudeApiKe
       if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
       const userData = userDoc.exists ? userDoc.data() : {};
       if (!getPlanBudget(userData.plan || 'free').allowGameDev) return res.status(403).json({ error: 'Візуальний стиль з ШІ — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
-      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для ШІ', requiresSubscription: true });
+      if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна для ШІ', requiresSubscription: true });
 
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;

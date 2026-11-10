@@ -209,7 +209,7 @@ function App() {
         setStage("book");
       } catch (error) {
         console.error('Failed to load project:', error);
-        alert('Не вдалося завантажити проєкт: ' + error.message);
+        (window.wwNotice || alert)((window.__i18n ? window.__i18n.t : (k) => k)('error.projectLoad') + ' ' + error.message);
         setStage("start");
       } finally {
         setLoadingProject(false);
@@ -240,195 +240,174 @@ function App() {
   }
 
   // Persist the universe title so the workspace ↔ book stay the same world.
+  // Errors before the story exists reach the form (StoryForm.submit shows them and gives the button back); nothing is
+  // created when the tokens can't pay for the first scene(s). Once the story exists it always opens — even if a scene
+  // failed (the server refused, the tokens ran out midway): it is the author's story, and «＋» / Scene Intent continue it.
   async function enterBook(data) {
+    const t = window.__i18n ? window.__i18n.t : (k) => k;
+    const fill = (k, o) => Object.keys(o).reduce((m, x) => m.split('{' + x + '}').join(o[x]), t(k));
+    const notice = (m) => (window.wwNotice ? window.wwNotice(m) : Promise.resolve(alert(m)));
+    const ask = (m) => (window.wwConfirm ? window.wwConfirm(m) : Promise.resolve(confirm(m)));
+    const silent = (m) => { const e = new Error(m); e.silent = true; return e; };
+    // a story from the Bible with no form («Пишу сам» from a dossier): speak here and leave for the cover — never the demo book
+    const fail = async (error) => {
+      setGenerationProgress({ current: 0, total: 0, isGenerating: false });
+      if (stage !== "auto") throw error;
+      if (!error.silent) await notice(t('error.projectCreation') + ': ' + error.message);
+      setStage("start");
+    };
     // The book may open before the sign-in has loaded (a story straight from the Bible): wait for it,
     // otherwise no project is created and the book would fall back to the demo.
     for (let i = 0; i < 100 && !(window.__firebaseProjects && window.__wwUser); i++) await new Promise((r) => setTimeout(r, 100));
-    if (!(window.__firebaseProjects && window.__wwUser)) {
-      const t = window.__i18n ? window.__i18n.t : (k) => k;
-      alert(t('error.projectCreation') + ': ' + t('error.notSignedIn'));
-      setStage(FREE ? "start" : "form");
-      return;
-    }
-    // Create project in Firestore
-    if (window.__firebaseProjects && window.__wwUser) {
-      try {
-        const projectData = {
-          title: data.title || titleFromPremise(data.description),
-          desc: data.description || '',
-          language: data.language || 'uk',
-          scope: data.scope || 'novella',
-          ending: data.ending || 'open',
-          genres: data.genres || [],
-          creation: data.creation || 'guided',
-          length: data.length || 700,
-          dialogue: data.dialogue || 50,
-          episodes: data.episodes || null,
-          endingNote: data.endingNote || '',
-          worldId: WORLD_ID,
-          subjects: data.subjects || [],       // canon entities the story is about (World Bible dossier «Історії»)
-          reveal: data.reveal || 'open',       // open | later | internal — what the reader may see
-          revealNote: data.revealNote || ''
-        };
+    if (!(window.__firebaseProjects && window.__wwUser && window.__wwUser.uid)) return fail(new Error(t('error.notSignedIn')));
 
-        const projectId = await window.__firebaseProjects.createProject(projectData);
-        if (GAME_ID) await window.__firebaseProjects.updateProject(projectId, { games: [GAME_ID] }).catch(() => {}); // the same field the Bible's game tags write
+    // Auto mode: generate all scenes at once; Guided: only the first; free: none
+    const isAutoMode = data.creation === 'auto';
+    const scenesToGenerate = data.creation === 'free' ? 0 : isAutoMode ? getScenesCount(data.scope, data.episodes) : 1;
+    const canGenerate = scenesToGenerate > 0 && window.__firebaseAI && window.__firebaseScenes;
 
-        // Store projectId for book to use
-        data.projectId = projectId;
-
-        // PHASE 3: Notify shell about new projectId (if embedded in shell)
-        if (window.self !== window.top && window.parent.__setCurrentProject) {
-          window.parent.__setCurrentProject(projectId);
-        }
-
-        // Free mode: the author writes — no generation, the book opens into the writing sheet
-        if (data.creation === 'free') {
-          setForm(data);
-          try { localStorage.setItem("ww_title", (data.title && data.title.trim()) || titleFromPremise(data.description)); } catch (e) {}
-          setStage("book");
-          return;
-        }
-
-        // Auto mode: generate all scenes at once
-        // Guided mode: generate only first scene
-        const isAutoMode = data.creation === 'auto';
-        const scenesToGenerate = isAutoMode ? getScenesCount(data.scope, data.episodes) : 1;
-
-
-        if (window.__firebaseAI && window.__firebaseScenes) {
-          try {
-
-            // Phase 1.2: Check token balance for ALL scenes upfront (Auto Mode)
-            const user = window.__wwUser;
-            if (!user || !user.uid) {
-              alert('Увійдіть в акаунт для генерації сцен.');
-              return;
-            }
-
-            const costPerScene = window.__TOKEN_COSTS?.scene || 160; // the author's Claude model (token-budget.js)
-            const totalCost = costPerScene * scenesToGenerate;
-            if (user.tokensRemaining < totalCost) {
-              console.warn(`Insufficient tokens for ${scenesToGenerate} scenes: need ${totalCost}, have ${user.tokensRemaining}`);
-
-              const planName = window.__getPlanConfig ? window.__getPlanConfig(user.plan).name : 'Free';
-              const maxScenes = Math.floor(user.tokensRemaining / costPerScene);
-              const message = `Недостатньо токенів для генерації ${scenesToGenerate} сцен!\n\nПотрібно: ${totalCost} токенів (${scenesToGenerate} × ${costPerScene})\nДоступно: ${user.tokensRemaining} токенів\n\nМожна згенерувати: до ${maxScenes} сцен\n\nВаш поточний план: ${planName}`;
-
-              if (confirm(message + '\n\nВідкрити налаштування акаунту?')) {
-                if (typeof window.__openAccount === 'function') {
-                  window.__openAccount();
-                }
-              }
-              return; // BLOCK generation
-            }
-
-            // Start progress tracking
-            setGenerationProgress({ current: 0, total: scenesToGenerate, isGenerating: true });
-
-            for (let i = 0; i < scenesToGenerate; i++) {
-              try {
-                // Update progress
-                setGenerationProgress({ current: i, total: scenesToGenerate, isGenerating: true });
-
-                // Free tier: add delay between scenes to avoid rate limits
-                if (i > 0) {
-                  await new Promise(resolve => setTimeout(resolve, 3000));
-                }
-
-                // Get previous scenes for continuity
-                const previousScenes = await window.__firebaseScenes.getScenes(projectId);
-                const last3 = previousScenes.slice(-3).map(s => ({
-                  title: s.title,
-                  text: s.text,
-                  n: s.n
-                }));
-
-                // Choose intent based on position in story
-                const intent = getSceneIntent(i, scenesToGenerate, isAutoMode);
-
-
-                // Pre-generate sceneId for canon linking
-                const sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-
-                const result = await window.__firebaseAI.generateScene(
-                  projectId,
-                  intent,
-                  null,
-                  last3,
-                  0,  // retryCount
-                  sceneId  // Pass sceneId for canon linking
-                );
-
-                if (result.success) {
-
-                  // Use the same sceneId that was passed to Cloud Function
-                  await window.__firebaseScenes.addScene(projectId, {
-                    id: sceneId,  // Use pre-generated ID
-                    title: result.scene.title,
-                    text: result.scene.text,
-                    intent: result.scene.intent
-                    // canonRefs will be filled by extraction asynchronously
-                  });
-
-
-                  // Phase 1.1: Sync tokens from server response (server already deducted)
-                  if (result.tokensConsumed && window.__wwUser) {
-                    const cost = result.tokensConsumed;
-                    const remaining = result.tokensRemaining;
-
-                    // Update local state to match server
-                    window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
-                    window.__wwUser.tokensRemaining = remaining;
-
-
-                    // Show toast notification (only on last scene in Auto Mode)
-                    const showToast = (() => { try { return window.parent.__showTokenToast || window.__showTokenToast; } catch (e) { return window.__showTokenToast; } })(); // the toast lives in the shell (White.html), this runs in the book iframe
-                    if (i === scenesToGenerate - 1 && typeof showToast === 'function') {
-                      const totalCost = cost * scenesToGenerate; // Approximate total (may vary if Claude used)
-                      showToast(totalCost, remaining);
-                    }
-
-                    // Refresh UI
-                    if (typeof window.__syncDockAvatar === 'function') {
-                      window.__syncDockAvatar();
-                    }
-                  }
-                } else {
-                  console.error(`[${i + 1}/${scenesToGenerate}] ✗ Generation failed:`, result.error);
-                  const t = window.__i18n ? window.__i18n.t : (k) => k;
-                  const errorMsg = t('error.sceneGeneration').replace('{number}', i + 1);
-                  const countMsg = t('error.scenesGenerated').replace('{count}', i).replace('{total}', scenesToGenerate);
-                  alert(`${errorMsg}: ${result.error}\n\n${countMsg}`);
-                  break; // Stop on error
-                }
-              } catch (sceneError) {
-                console.error(`[${i + 1}/${scenesToGenerate}] ✗ Exception:`, sceneError);
-                const t = window.__i18n ? window.__i18n.t : (k) => k;
-                const errorMsg = t('error.sceneGeneration').replace('{number}', i + 1);
-                const countMsg = t('error.scenesGenerated').replace('{count}', i).replace('{total}', scenesToGenerate);
-                alert(`${errorMsg}: ${sceneError.message}\n\n${countMsg}`);
-                break;
-              }
-            }
-
-          } catch (genError) {
-            console.error('Failed to generate scenes:', genError);
-          } finally {
-            // Stop progress tracking
-            setGenerationProgress({ current: 0, total: 0, isGenerating: false });
-          }
-        }
-      } catch (error) {
-        console.error('Failed to create project:', error);
-        const t = window.__i18n ? window.__i18n.t : (k) => k;
-        if (!error.silent) alert(t('error.projectCreation') + ': ' + error.message); // silent: the limit dialog already spoke
-        setGenerationProgress({ current: 0, total: 0, isGenerating: false });
-        if (stage === "auto") setStage("start"); // a story from the Bible: never the demo book
-        return;
+    // Phase 1.2: the tokens for ALL the scenes are checked BEFORE the story is created (no empty orphan story)
+    if (canGenerate) {
+      const user = window.__wwUser;
+      const costPerScene = window.__TOKEN_COSTS?.scene || 160; // the author's Claude model (token-budget.js)
+      const totalCost = costPerScene * scenesToGenerate;
+      if ((user.tokensRemaining || 0) < totalCost) {
+        const planName = window.__getPlanConfig ? window.__getPlanConfig(user.plan).name : 'Free';
+        const msg = fill('form.notEnoughTokens', { n: scenesToGenerate, need: totalCost, have: user.tokensRemaining || 0, max: Math.floor((user.tokensRemaining || 0) / costPerScene), plan: planName });
+        if (await ask(msg) && typeof window.__openAccount === 'function') window.__openAccount();
+        return fail(silent('OUT_OF_TOKENS'));
       }
     }
 
+    // Create project in Firestore (the createProject function holds the plan's limit)
+    let projectId;
+    try {
+      const projectData = {
+        title: data.title || titleFromPremise(data.description),
+        desc: data.description || '',
+        language: data.language || 'uk',
+        scope: data.scope || 'novella',
+        ending: data.ending || 'open',
+        genres: data.genres || [],
+        creation: data.creation || 'guided',
+        length: data.length || 700,
+        dialogue: data.dialogue || 50,
+        episodes: data.episodes || null,
+        endingNote: data.endingNote || '',
+        worldId: WORLD_ID,
+        subjects: data.subjects || [],       // canon entities the story is about (World Bible dossier «Історії»)
+        reveal: data.reveal || 'open',       // open | later | internal — what the reader may see
+        revealNote: data.revealNote || ''
+      };
+      projectId = await window.__firebaseProjects.createProject(projectData);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      return fail(error); // silent: the limit dialog already spoke
+    }
+    if (GAME_ID) await window.__firebaseProjects.updateProject(projectId, { games: [GAME_ID] }).catch(() => {}); // the same field the Bible's game tags write
+
+    // Store projectId for book to use
+    data.projectId = projectId;
+
+    // PHASE 3: Notify shell about new projectId (if embedded in shell)
+    if (window.self !== window.top && window.parent.__setCurrentProject) {
+      window.parent.__setCurrentProject(projectId);
+    }
+
+    if (canGenerate) {
+      try {
+        // Start progress tracking
+        setGenerationProgress({ current: 0, total: scenesToGenerate, isGenerating: true });
+
+        for (let i = 0; i < scenesToGenerate; i++) {
+          const sceneFailed = (why) => {
+            const errorMsg = t('error.sceneGeneration').replace('{number}', i + 1);
+            const countMsg = t('error.scenesGenerated').replace('{count}', i).replace('{total}', scenesToGenerate);
+            return notice(`${errorMsg}: ${why}\n\n${countMsg}`);
+          };
+          try {
+            // Update progress
+            setGenerationProgress({ current: i, total: scenesToGenerate, isGenerating: true });
+
+            // Free tier: add delay between scenes to avoid rate limits
+            if (i > 0) {
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+
+            // Get previous scenes for continuity
+            const previousScenes = await window.__firebaseScenes.getScenes(projectId);
+            const last3 = previousScenes.slice(-3).map(s => ({
+              title: s.title,
+              text: s.text,
+              n: s.n
+            }));
+
+            // Choose intent based on position in story
+            const intent = getSceneIntent(i, scenesToGenerate, isAutoMode);
+
+            // Pre-generate sceneId for canon linking
+            const sceneId = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            const result = await window.__firebaseAI.generateScene(
+              projectId,
+              intent,
+              null,
+              last3,
+              0,  // retryCount
+              sceneId  // Pass sceneId for canon linking
+            );
+
+            if (!result.success) {
+              console.error(`[${i + 1}/${scenesToGenerate}] ✗ Generation failed:`, result.error);
+              setGenerationProgress({ current: 0, total: 0, isGenerating: false });
+              await sceneFailed(result.error);
+              break; // Stop on error
+            }
+
+            // Use the same sceneId that was passed to Cloud Function
+            await window.__firebaseScenes.addScene(projectId, {
+              id: sceneId,  // Use pre-generated ID
+              title: result.scene.title,
+              text: result.scene.text,
+              intent: result.scene.intent,
+              entities: result.scene.entities || [] // canon entities named in the text → scene.canonRefs
+            });
+
+            // Phase 1.1: Sync tokens from server response (server already deducted)
+            if (result.tokensConsumed && window.__wwUser) {
+              const cost = result.tokensConsumed;
+              const remaining = result.tokensRemaining;
+
+              // Update local state to match server
+              window.__wwUser.tokensUsed = (window.__wwUser.tokensUsed || 0) + cost;
+              window.__wwUser.tokensRemaining = remaining;
+
+              // Show toast notification (only on last scene in Auto Mode)
+              const showToast = (() => { try { return window.parent.__showTokenToast || window.__showTokenToast; } catch (e) { return window.__showTokenToast; } })(); // the toast lives in the shell (White.html), this runs in the book iframe
+              if (i === scenesToGenerate - 1 && typeof showToast === 'function') {
+                const totalCost = cost * scenesToGenerate; // Approximate total (may vary if Claude used)
+                showToast(totalCost, remaining);
+              }
+
+              // Refresh the shell's dock (ww-embed.js hands the balance up)
+              if (typeof window.__syncDockAvatar === 'function') {
+                window.__syncDockAvatar();
+              }
+            }
+          } catch (sceneError) {
+            console.error(`[${i + 1}/${scenesToGenerate}] ✗ Exception:`, sceneError);
+            setGenerationProgress({ current: 0, total: 0, isGenerating: false });
+            await sceneFailed(sceneError.message);
+            break;
+          }
+        }
+      } finally {
+        // Stop progress tracking
+        setGenerationProgress({ current: 0, total: 0, isGenerating: false });
+      }
+    }
+
+    // the story exists: it opens (free mode — into the writing sheet)
     setForm(data);
     try { localStorage.setItem("ww_title", (data && data.title && data.title.trim()) || titleFromPremise(data && data.description)); } catch (e) {}
     setStage("book");

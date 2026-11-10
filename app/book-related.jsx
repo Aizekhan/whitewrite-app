@@ -68,10 +68,12 @@
     const [open, setOpen] = useRelState(null);
     const popRef = React.useRef(null);
     const lastFocus = React.useRef(null);
+    const openRef = React.useRef(null); openRef.current = open;
     useRelEffect(() => {
-      const k = (e) => { if (e.key === "Escape") setOpen(null); };
-      window.addEventListener("keydown", k);
-      return () => window.removeEventListener("keydown", k);
+      // capture on window runs before the book's own Esc (which closes the whole book): an open note / «Aa» eats it
+      const k = (e) => { if (e.key === "Escape" && openRef.current) { e.preventDefault(); e.stopPropagation(); setOpen(null); } };
+      window.addEventListener("keydown", k, true);
+      return () => window.removeEventListener("keydown", k, true);
     }, []);
     useRelEffect(() => { setOpen(null); }, [scene]);
     // move focus into the popover on open, restore on close; trap Tab
@@ -107,6 +109,9 @@
               <span className="bm__n">{groups[t].length}</span>
             </button>
           ))}
+          <button className="bm bm--explore" type="button" title={t('book.exploreCanon')} aria-label={t('book.exploreCanon')} onClick={exploreCanon}>
+            <span className="bm__glyph">✦</span>
+          </button>
           <button className={`bm bm--explore ${open === "__text" ? "is-active" : ""}`} type="button" title={t('book.textSettings')} onClick={() => setOpen(open === "__text" ? null : "__text")}>
             <span className="bm__glyph">Aa</span>
           </button>

@@ -7,6 +7,7 @@
 // Any plan (paid plans need an active subscription, as genesisWorld); reserve featureCost(voiceFill | personaIdeas) →
 // Claude (the author's model) → charge the real cost. A team admin acts on the owner's tokens (payerFor).
 const { onRequest, admin, db, cors, charge, getBalance, reserve, cutOff, settle, claudeApiKey, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { payerFor } = require('./team')._team;
 const { featureCost, byOp } = require('../paid-features.js');
 const P = require('../persona.js');
@@ -84,7 +85,7 @@ exports.cardFill = onRequest({ region: 'us-central1', secrets: [claudeApiKey], t
       if (!w.exists || w.data().owner !== uid) return res.status(403).json({ error: 'Світ не знайдено або немає доступу' });
       if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
       const userData = userDoc.exists ? userDoc.data() : {}, plan = userData.plan || 'free';
-      if (plan !== 'free' && userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
+      if (plan !== 'free' && !subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
 
       let system, prompt, fields = null, ctx = null, q = null;
       if (op === 'voiceFill') {

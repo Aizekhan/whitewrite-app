@@ -249,9 +249,15 @@ async function runWatch({ force = false, now = Date.now() } = {}) {
   const oldIdx = state.priceIndex || {};
   const moved = Object.keys(priceIndex).filter((t) => Math.abs((oldIdx[t] || 1) - priceIndex[t]) >= 0.001);
   if (moved.length) report.push('індекс цін: ' + moved.map((t) => `${t} ${oldIdx[t] || 1} → ${priceIndex[t]}`).join(', ') + ' — ціни на кнопках, у тарифах і базі знань змінено');
-  // the whole doc is written (no merge) so settled keys of held/upcoming/deprecated/broken really disappear
-  await ref.set(Object.assign({}, state, { active, pricing: livePricing, priceIndex, snapshot, held, upcoming, deprecated, broken, mode, fullAt: now,
-    checkedAt: admin.firestore.FieldValue.serverTimestamp(), report }, changed ? { lastChange: admin.firestore.FieldValue.serverTimestamp() } : {}));
+  // the whole doc is written (no merge) so settled keys of held/upcoming/deprecated/broken really disappear — but on top of the doc
+  // as it is NOW (a transaction): a model that vanished during this check (claude.js withFallback wrote broken[id] meanwhile) stays
+  await db.runTransaction(async (t) => {
+    const cur = (await t.get(ref)).data() || {}, was0 = state.broken || {}, keep = Object.assign({}, broken);
+    Object.entries(cur.broken || {}).forEach(([id, b]) => { if (!was0[id] || (b && b.at) !== (was0[id] && was0[id].at)) keep[id] = b; });
+    const m = Object.keys(keep).length > Object.keys(broken).length ? 'daily' : mode;
+    t.set(ref, Object.assign({}, cur, { active, pricing: livePricing, priceIndex, snapshot, held, upcoming, deprecated, broken: keep, mode: m, fullAt: now,
+      checkedAt: admin.firestore.FieldValue.serverTimestamp(), report }, changed ? { lastChange: admin.firestore.FieldValue.serverTimestamp() } : {}));
+  });
   console.log('[modelWatch]', report.join(' · '));
   return report;
 }

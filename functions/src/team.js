@@ -29,6 +29,18 @@ async function payerFor(uid, worldId) {
   return d.owner !== uid && m && m.role === 'admin' ? d.owner : uid;
 }
 
+// Game production endpoints (experience, marketing): the owner and a team admin do everything (an admin's ✦ is paid by the
+// owner, as payerFor); an editor, or a «вибрані розділи» member editing one of `secs`, — everything but ✦ and paid ops;
+// a viewer — nothing. → { uid: whose plan / tokens, ai: may spend, owner: the caller is the owner } | null
+function teamAccess(wd, caller, ...secs) {
+  if (wd.owner === caller) return { uid: caller, ai: true, owner: true };
+  const m = (wd.team || {})[caller];
+  if (!m) return null;
+  if (m.role === 'admin') return { uid: wd.owner, ai: true, owner: false };
+  if (m.role === 'editor' || (m.role === 'custom' && (m.edit || []).some((x) => secs.includes(x)))) return { uid: wd.owner, ai: false, owner: false };
+  return null;
+}
+
 async function who(uid) {
   const [u, a] = await Promise.all([db.collection('users').doc(uid).get(), admin.auth().getUser(uid).catch(() => null)]);
   return { name: str((u.exists && u.data().name) || (a && a.displayName) || '', 120), email: (a && a.email) || '' };
@@ -129,4 +141,4 @@ exports.team = onRequest({ region: 'us-central1' }, async (req, res) => {
   });
 });
 
-exports._team = { payerFor, member, ROLES, KIND_OF };
+exports._team = { payerFor, teamAccess, member, ROLES, KIND_OF };

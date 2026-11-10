@@ -46,6 +46,17 @@ const M = (name, expectation, method, path, uid, data, res) => ({ name, tc: {
   request: Object.assign({ auth: { uid }, path, method }, data ? { resource: { data } } : {}),
   resource: method === 'create' ? undefined : { data: res || data || {} } } });
 const W1 = { owner: 'u1', team: TEAM, teamUids: ['u2', 'u3', 'u4'], tagline: 'a' };
+// v2.118.0 Канон on the owner's plan (canonPlans = paid-features 'bible' allowWorldTree, Storyteller+); u5 custom edits the characters,
+// the chronicle and «Неузгоджене»; u6 custom edits «Огляд світу» only
+const TEAM_C = Object.assign({}, TEAM, { u5: { role: 'custom', view: ['w-characters', 'chronicle', 'canonIssues'], edit: ['w-characters', 'chronicle', 'canonIssues'], viewKinds: ['characters', 'events'], editKinds: ['characters', 'events'] },
+  u6: { role: 'custom', view: ['world'], edit: ['world'], viewKinds: [], editKinds: [] } });
+const WC = { owner: 'u1', team: TEAM_C, teamUids: ['u2', 'u3', 'u4', 'u5', 'u6'], tagline: 'a', summary: 's', subsections: { 'w-characters': ['A'] } };
+const K = (name, expectation, method, path, uid, plan, data, res) => ({ name, tc: {
+  expectation, functionMocks: [{ function: 'get', args: [{ exactValue: D + '/worlds/w1' }], result: { value: { data: WC } } },
+    { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan } } } }],
+  request: Object.assign({ auth: { uid }, path, method }, data ? { resource: { data } } : {}),
+  resource: method === 'create' ? undefined : { data: res || data || {} } } });
+const WCx = (patch) => Object.assign({}, WC, patch);
 
 const cases = [
   T('owner writes a card', 'ALLOW', 'create', G + '/cards/c1', 'u1', 'worldbuilder', { title: 'x' }),
@@ -172,6 +183,14 @@ const cases = [
   M('custom member CANNOT edit a view-only canon kind', 'DENY', 'update', D + '/worlds/w1/entities/e1', 'u2', { kind: 'characters', name: 'x' }),
   M('custom member CANNOT read the plan without «plan»', 'DENY', 'get', G + '/tasks/t1', 'u2', null, { status: 'todo' }),
   M('custom member CANNOT read culture without «culture»', 'DENY', 'get', D + '/worlds/w1/lore/l1', 'u2', null, { name: 'x' }),
+  // v2.118.0: the game doc — a «вибрані розділи» member writes only their sections' subsections / 🎨 palettes (and voices with a speaking section)
+  M('custom member adds a subsection to an editable section', 'ALLOW', 'update', G, 'u2', { title: 'G', subsections: { mechanics: ['A', 'B'] } }, { title: 'G', subsections: { mechanics: ['A'] } }),
+  M('custom member sets a group palette of an editable section', 'ALLOW', 'update', G, 'u2', { title: 'G', subPalettes: { mechanics: { A: ['#fff'] } } }, { title: 'G' }),
+  M('custom member CANNOT add a subsection to another section', 'DENY', 'update', G, 'u2', { title: 'G', subsections: { levels: ['A'] } }, { title: 'G' }),
+  M('custom member CANNOT set voices without a speaking section', 'DENY', 'update', G, 'u2', { title: 'G', voices: { e1: { service: 'browser' } } }, { title: 'G' }),
+  M('custom member CANNOT rename the game', 'DENY', 'update', G, 'u2', { title: 'H' }, { title: 'G' }),
+  M('a viewer CANNOT add a subsection', 'DENY', 'update', G, 'u3', { title: 'G', subsections: { mechanics: ['A'] } }, { title: 'G' }),
+  M('an editor edits the game doc', 'ALLOW', 'update', G, 'u4', { title: 'H' }, { title: 'G' }),
   M('a viewer reads any card', 'ALLOW', 'get', G + '/cards/c2', 'u3', null, { section: 'levels' }),
   M('a viewer CANNOT edit a card', 'DENY', 'update', G + '/cards/c2', 'u3', { section: 'levels', title: 'x' }),
   M('an editor edits any card', 'ALLOW', 'update', G + '/cards/c2', 'u4', { section: 'levels', title: 'x' }),
@@ -217,8 +236,48 @@ const cases = [
   P('a user CANNOT read a request of another author', 'DENY', 'get', '/fwRequests/u2__g9__x.y', 'u1', { uid: 'u2', cap: 'x.y' }),
   { name: 'an admin reads the framework requests', tc: { expectation: 'ALLOW', request: { auth: { uid: 'a1', token: { admin: true } }, path: D + '/fwRequests/u2__g9__x.y', method: 'get' }, resource: { data: { uid: 'u2', cap: 'x.y' } } } },
   P('a user CANNOT read the AI cost summary', 'DENY', 'get', '/admin_costs/2026-11-02', 'u1', { totalUsd: 1 }),
+  // «Зворотний зв'язок»: a signed-in author creates their own message (≤ 5000 chars); only admins read
+  P('an author sends feedback', 'ALLOW', 'create', '/feedback/f1', 'u1', { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home' }),
+  P('feedback CANNOT be sent signed out', 'DENY', 'create', '/feedback/f1', null, { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home' }),
+  P('feedback CANNOT be sent under another author', 'DENY', 'create', '/feedback/f1', 'u2', { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home' }),
+  P('feedback CANNOT be empty', 'DENY', 'create', '/feedback/f1', 'u1', { uid: 'u1', email: 'a@b.c', text: '', kind: 'bug', page: '#home' }),
+  P('feedback CANNOT be over 5000 characters', 'DENY', 'create', '/feedback/f1', 'u1', { uid: 'u1', email: 'a@b.c', text: 'x'.repeat(5001), kind: 'bug', page: '#home' }),
+  P('feedback CANNOT carry extra fields', 'DENY', 'create', '/feedback/f1', 'u1', { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home', resolved: true }),
+  P('an author CANNOT read feedback', 'DENY', 'get', '/feedback/f1', 'u1', { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home' }),
+  P('an author CANNOT edit their feedback', 'DENY', 'update', '/feedback/f1', 'u1', { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home' }),
+  { name: 'an admin reads feedback', tc: { expectation: 'ALLOW', request: { auth: { uid: 'a1', token: { admin: true } }, path: D + '/feedback/f1', method: 'get' }, resource: { data: { uid: 'u1', email: 'a@b.c', text: 'The map is blank', kind: 'bug', page: '#home' } } } },
   { name: 'an admin reads the AI cost summary', tc: { expectation: 'ALLOW', request: { auth: { uid: 'a1', token: { admin: true } }, path: D + '/admin_costs/2026-11-02', method: 'get' }, resource: { data: { totalUsd: 1 } } } },
   { name: 'even an admin CANNOT write the AI cost summary', tc: { expectation: 'DENY', request: { auth: { uid: 'a1', token: { admin: true } }, path: D + '/admin_costs/2026-11-02', method: 'create', resource: { data: { totalUsd: 0 } } } } },
+  // Канон on Free is read-only (v2.118.0)
+  K('Free owner CANNOT create a canon entity', 'DENY', 'create', D + '/worlds/w1/entities/e1', 'u1', 'free', { kind: 'characters', name: 'x' }),
+  K('Free owner CANNOT edit a canon entity', 'DENY', 'update', D + '/worlds/w1/entities/e1', 'u1', 'free', { kind: 'characters', name: 'y' }, { kind: 'characters', name: 'x' }),
+  K('Free owner CANNOT delete a canon entity', 'DENY', 'delete', D + '/worlds/w1/entities/e1', 'u1', 'free', null, { kind: 'characters' }),
+  K('Free owner CANNOT write culture', 'DENY', 'create', D + '/worlds/w1/lore/l1', 'u1', 'free', { name: 'x' }),
+  K('Storyteller owner creates a canon entity', 'ALLOW', 'create', D + '/worlds/w1/entities/e1', 'u1', 'storyteller', { kind: 'characters', name: 'x' }),
+  K('Storyteller owner deletes a canon entity', 'ALLOW', 'delete', D + '/worlds/w1/entities/e1', 'u1', 'storyteller', null, { kind: 'characters' }),
+  K('Novelist owner writes culture', 'ALLOW', 'create', D + '/worlds/w1/lore/l1', 'u1', 'novelist', { name: 'x' }),
+  K('an editor CANNOT edit the canon of a Free owner', 'DENY', 'update', D + '/worlds/w1/entities/e1', 'u4', 'free', { kind: 'characters', name: 'y' }, { kind: 'characters', name: 'x' }),
+  K('an editor deletes an entity (owner on Storyteller)', 'ALLOW', 'delete', D + '/worlds/w1/entities/e1', 'u4', 'storyteller', null, { kind: 'locations' }),
+  K('a custom member deletes an entity of the kind they edit', 'ALLOW', 'delete', D + '/worlds/w1/entities/e1', 'u5', 'storyteller', null, { kind: 'characters' }),
+  K('a custom member CANNOT delete an entity of another kind', 'DENY', 'delete', D + '/worlds/w1/entities/e1', 'u5', 'storyteller', null, { kind: 'locations' }),
+  K('a viewer CANNOT delete an entity', 'DENY', 'delete', D + '/worlds/w1/entities/e1', 'u3', 'worldbuilder', null, { kind: 'characters' }),
+  K('Free owner CANNOT change the world summary', 'DENY', 'update', D + '/worlds/w1', 'u1', 'free', WCx({ summary: 'new' }), WC),
+  K('Free owner CANNOT change the laws', 'DENY', 'update', D + '/worlds/w1', 'u1', 'free', WCx({ rules: ['x'] }), WC),
+  K('Free owner CANNOT add a subsection', 'DENY', 'update', D + '/worlds/w1', 'u1', 'free', WCx({ subsections: { 'w-characters': ['A', 'B'] } }), WC),
+  K('Free owner still renames the world and its tagline (the shell card)', 'ALLOW', 'update', D + '/worlds/w1', 'u1', 'free', WCx({ title: 'T', tagline: 'b' }), WC),
+  K('Storyteller owner changes the summary', 'ALLOW', 'update', D + '/worlds/w1', 'u1', 'storyteller', WCx({ summary: 'new' }), WC),
+  // a member with the right to a section edits its world-doc fields
+  K('an editor adds a subsection', 'ALLOW', 'update', D + '/worlds/w1', 'u4', 'storyteller', WCx({ subsections: { 'w-characters': ['A', 'B'] } }), WC),
+  K('an editor sets the chronicle time unit', 'ALLOW', 'update', D + '/worlds/w1', 'u4', 'storyteller', WCx({ timeUnit: 'year' }), WC),
+  K('an editor answers an inconsistency', 'ALLOW', 'update', D + '/worlds/w1', 'u4', 'worldbuilder', WCx({ auditAnswers: { t1: 'ok' } }), WC),
+  K('an editor CANNOT change the world maps', 'DENY', 'update', D + '/worlds/w1', 'u4', 'worldbuilder', WCx({ maps: [{ id: 'm1', title: 'x' }] }), WC),
+  K('a custom member adds a subsection of a section they edit', 'ALLOW', 'update', D + '/worlds/w1', 'u5', 'storyteller', WCx({ subsections: { 'w-characters': ['A', 'B'] } }), WC),
+  K('a custom member CANNOT add a subsection of another section', 'DENY', 'update', D + '/worlds/w1', 'u5', 'storyteller', WCx({ subsections: { 'w-characters': ['A'], 'w-locations': ['X'] } }), WC),
+  K('a custom member with the chronicle sets the time unit', 'ALLOW', 'update', D + '/worlds/w1', 'u5', 'storyteller', WCx({ timeUnit: 'year' }), WC),
+  K('a custom member without the chronicle CANNOT set the time unit', 'DENY', 'update', D + '/worlds/w1', 'u6', 'storyteller', WCx({ timeUnit: 'year' }), WC),
+  K('a custom member with «Неузгоджене» answers an inconsistency', 'ALLOW', 'update', D + '/worlds/w1', 'u5', 'worldbuilder', WCx({ auditAnswers: { t1: 'ok' } }), WC),
+  K('a custom member without «Огляд світу» CANNOT change the summary', 'DENY', 'update', D + '/worlds/w1', 'u5', 'storyteller', WCx({ summary: 'x' }), WC),
+  K('a custom member with «Огляд світу» CANNOT change it on a Free owner', 'DENY', 'update', D + '/worlds/w1', 'u6', 'free', WCx({ summary: 'x' }), WC),
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

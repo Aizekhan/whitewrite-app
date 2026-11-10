@@ -19,7 +19,7 @@ const db = { collection: col, bulkWriter: () => { const ops = []; return { delet
 const admin = { firestore: { FieldPath: { documentId: () => ID } },
   storage: () => ({ bucket: () => ({ deleteFiles: async ({ prefix }) => { deletedFiles.push(prefix); } }) }) };
 require.cache[F('src/common.js')] = { loaded: true, exports: { admin, db } };
-const { cleanGame, cleanWorld } = require(F('src/cleanup.js'))._cleanup;
+const { cleanGame, cleanWorld, cleanProject } = require(F('src/cleanup.js'))._cleanup;
 
 const put = (p, d) => { store.add(p); if (d) data[p] = d; };
 (async () => {
@@ -48,7 +48,13 @@ const put = (p, d) => { store.add(p); if (d) data[p] = d; };
   check(!left('community/w') && !left('community/w__g2') && !left('worlds/w/entities/e1') && deletedFiles.includes('worlds/w/'), 'its showcases, subcollections and files are gone');
   check(left('community/x') && left('backupTokens/x') && left('worlds/x/entities/e1') && left('mcpKeys/m_x'), 'another world keeps everything');
 
+  put('projects/p1'); put('projects/p1/scenes/s1'); put('projects/p1/scenes/s2'); put('projects/p2/scenes/s1');
+  store.delete('projects/p1'); // the client deleted the story document
+  await cleanProject('p1');
+  check(!left('projects/p1/scenes/s1') && !left('projects/p1/scenes/s2') && deletedFiles.includes('projects/p1/'), 'a deleted story loses its scenes and its cover files');
+  check(left('projects/p2/scenes/s1'), 'another story keeps its scenes');
+
   const idx = require('fs').readFileSync(path.join(__dirname, '../functions/index.js'), 'utf8');
-  check(/exports\.gameDeleted = cleanup\.gameDeleted/.test(idx) && /exports\.worldDeleted = cleanup\.worldDeleted/.test(idx), 'both triggers are exported');
+  check(/exports\.gameDeleted = cleanup\.gameDeleted/.test(idx) && /exports\.worldDeleted = cleanup\.worldDeleted/.test(idx) && /exports\.projectDeleted = cleanup\.projectDeleted/.test(idx), 'all three triggers are exported');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });

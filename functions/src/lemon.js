@@ -45,7 +45,9 @@ async function trustedUid(custom, email) {
  *  - down: from the next billing month — LS PATCH variant + disable_prorations (new price at renewal, no credit);
  *          the plan stays until renews_at (users.pendingPlan / pendingFrom; the webhook applies it after that date)
  *  - free: cancel at the period end (LS cancelled: true; the webhook keeps the plan until ends_at)
- * Body: { op: 'quote'|'change'|'cancelPending', plan }
+ * Body: { op: 'quote'|'change'|'cancelPending'|'portal', plan }
+ *  - portal: Акаунт → «Керувати оплатою» — the LS customer portal (card, invoices, resume). LS signs that URL for 24 h only,
+ *    so it is fetched fresh from the subscription on every click (never stored); any status with a subscription (past_due too)
  */
 exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: true, timeoutSeconds: 60 }, async (req, res) => {
   return cors(req, res, async () => {
@@ -57,6 +59,14 @@ exports.changeSubscription = onRequest({ secrets: [lemonSqueezyApiKey], cors: tr
       const userRef = db.collection('users').doc(uid);
       const user = (await userRef.get()).data() || {};
       const subId = user.lemonSqueezySubscriptionId;
+      if (op === 'portal') {
+        if (!subId) return res.status(409).json({ code: 'NO_SUBSCRIPTION', error: 'No subscription yet' });
+        const pr = await fetch(LS_API + subId, { headers: lsHeaders() });
+        const ps = ((await pr.json().catch(() => ({}))) || {}).data;
+        const url = ps && ps.attributes && ps.attributes.urls && ps.attributes.urls.customer_portal;
+        if (!pr.ok || !url) return res.status(502).json({ error: 'Lemon Squeezy: no customer portal for this subscription' });
+        return res.json({ portal: url });
+      }
       if (!subId || user.subscriptionStatus !== 'active') return res.status(409).json({ code: 'NO_SUBSCRIPTION', error: 'No active subscription — use checkout' });
       const lsConfig = (await db.collection('config').doc('lemon_squeezy').get()).data() || {};
       const variants = lsConfig.variants || {};

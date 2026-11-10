@@ -1,4 +1,4 @@
-// Server-side cleanup after the author deletes a game or a world. The page deletes the content itself (gamebible.js
+// Server-side cleanup after the author deletes a game, a world or a story. The page deletes the content itself (gamebible.js
 // removeGame / deleteWorld, the rules check ownership), but what it can't reach — or leaves behind when the tab closes
 // halfway — goes here, once the doc is gone: GitHub tokens, MCP / ingest / integration keys, marketing secrets and the
 // queue, Community showcases, every file under the path in Storage, and any subcollection still left.
@@ -49,4 +49,12 @@ exports.gameDeleted = onDocumentDeleted({ document: 'worlds/{worldId}/games/{gam
   (event) => cleanGame(event.params.worldId, event.params.gameId));
 exports.worldDeleted = onDocumentDeleted({ document: 'worlds/{worldId}', region: 'us-central1', timeoutSeconds: 540 },
   (event) => cleanWorld(event.params.worldId));
-exports._cleanup = { cleanGame, cleanWorld }; // tests only
+// A story (projects/{p}): the client deletes only the project document — its scenes subcollection and its cover
+// in Storage (projects/{p}/cover/) are removed here, so a deleted story leaves nothing behind.
+async function cleanProject(p) {
+  await removeFiles(`projects/${p}/`);
+  await db.recursiveDelete(db.collection('projects').doc(p));
+}
+exports.projectDeleted = onDocumentDeleted({ document: 'projects/{projectId}', region: 'us-central1', timeoutSeconds: 540 },
+  (event) => cleanProject(event.params.projectId));
+exports._cleanup = { cleanGame, cleanWorld, cleanProject }; // tests only

@@ -1,6 +1,19 @@
 // Firestore CRUD for scenes (subcollection)
 // Scenes live in projects/{projectId}/scenes/{sceneId}
 
+// generateScene's `entities` ([{ kind, type, id }] — or the older { characters: [ids], … }) → canonRefs { characters: [ids], … }
+var SCENE_REF_KINDS = ['characters', 'locations', 'events', 'factions', 'artifacts'];
+var SCENE_REF_TYPE = { character: 'characters', location: 'locations', event: 'events', faction: 'factions', artifact: 'artifacts' };
+function refsFromEntities(ents) {
+  if (!ents) return null;
+  var out = {}, any = false;
+  SCENE_REF_KINDS.forEach(function (k) { out[k] = []; });
+  var add = function (k, id) { if (out[k] && typeof id === 'string' && id && out[k].indexOf(id) < 0) { out[k].push(id); any = true; } };
+  if (Array.isArray(ents)) ents.forEach(function (e) { if (e) add(e.kind || SCENE_REF_TYPE[e.type], e.id); });
+  else SCENE_REF_KINDS.forEach(function (k) { (Array.isArray(ents[k]) ? ents[k] : []).forEach(function (id) { add(k, id); }); });
+  return any ? out : null;
+}
+
 window.__firebaseScenes = {
   // Get current user ID
   get uid() {
@@ -99,9 +112,10 @@ window.__firebaseScenes = {
       status: sceneData.status || 'draft',
       generatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      // Canon references (characters/locations/events/factions/artifacts → ids) are written by extraction on the
-      // server; a default here would wipe them when extraction finishes first (merge write), so only explicit ones.
-      ...(sceneData.canonRefs ? { canonRefs: sceneData.canonRefs } : {}),
+      // Canon references (canonRefs.<kind> → entity ids): the canon entities generateScene found named in the text
+      // (`entities`, ids of the world's confirmed canon — nothing new is invented, nothing is written to the canon;
+      // auto-canon is off). The book's bookmarks and the Bible's dossier «Історії» read them. Explicit canonRefs win.
+      ...(sceneData.canonRefs ? { canonRefs: sceneData.canonRefs } : (refsFromEntities(sceneData.entities) ? { canonRefs: refsFromEntities(sceneData.entities) } : {})),
       reconstruction: {
         mode: sceneData.reconstruction?.mode || 'review',
         affectedBy: sceneData.reconstruction?.affectedBy || [],
@@ -109,7 +123,7 @@ window.__firebaseScenes = {
       }
     };
 
-    // Write scene to subcollection (merge to preserve canonRefs from extraction)
+    // Write scene to subcollection
     await window.__firebase.db
       .collection('projects')
       .doc(projectId)

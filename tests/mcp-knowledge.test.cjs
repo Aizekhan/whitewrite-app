@@ -7,7 +7,7 @@ const inc = (n) => ({ __inc: n });
 function merge(a, b) {
   const o = Object.assign({}, a);
   Object.entries(b).forEach(([k, v]) => {
-    if (k.includes('.')) { const [h, t] = k.split('.'); o[h] = merge(o[h] || {}, { [t]: v }); return; }
+    // a dotted key stays literal in set() — as in Firestore (only update() splits it): the mock must not hide that bug
     if (v === DEL) delete o[k];
     else if (v && v.__inc !== undefined) o[k] = (o[k] || 0) + v.__inc;
     else if (v && typeof v === 'object' && !Array.isArray(v) && v !== TS && a && typeof a[k] === 'object') o[k] = merge(a[k], v);
@@ -80,6 +80,8 @@ const recs = [
   const e3 = await knowledgeSubmit(ctx, { snapshot_id: 's3', part: 'end' });
   check(e3.tombstoned + '|' + store.get(G + '/kAssets/' + GUID(3)).missingSince + '|' + !!store.get(G + '/kAssets/' + GUID(3)).path, '1|s3|true', 'a full scan marks the unseen script missing, never deletes it');
   check(store.get(G + '/kAssets/' + GUID(2)).description, 'red', 'a changed record is updated');
+  const s3 = (await knowledgeStatus(ctx, { snapshot_id: 's3' })).counts || {};
+  check(s3.tombstoned + '|' + s3.added + '|' + ('counts.tombstoned' in store.get(G + '/knowledge/s3')), '1|0|false', 'the snapshot counts the missing ones (a nested map, not a literal «counts.tombstoned» key)');
   // search
   check((await knowledgeSearch(ctx, { q: 'hero' })).total, 3, 'search by text');
   check((await knowledgeSearch(ctx, { type: 'material' })).assets[0].path, 'Assets/Materials/Hero.mat', 'search by type');
@@ -92,6 +94,7 @@ const recs = [
     { entry_id: 'e2', text: 'Refactor input', category: 'whatever' }, { entry_id: '', text: 'no id' }] };
   const a1 = await activitySubmit(ctx, key, act);
   check(a1.accepted + '|' + a1.duplicates + '|' + a1.verify, '2|0|unverified', 'two entries accepted; no repo → unverified');
+  check(store.get(G + '/activity/sess-1/entries/e1').privacy, 'internal', 'the agent cannot mark an entry «Для маркетингу» itself (only the author in the Bible)');
   const e2 = store.get(G + '/activity/sess-1/entries/e2');
   check(e2.category + '|' + e2.privacy + '|' + e2.status, 'other|internal|completed', 'defaults: unknown category → other, privacy → internal');
   store.set(G + '/activity/sess-1/entries/e1', { ...store.get(G + '/activity/sess-1/entries/e1'), privacy: 'excluded' }); // the author re-marked it

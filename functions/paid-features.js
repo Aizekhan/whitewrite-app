@@ -20,11 +20,12 @@ const PLAN_ORDER = ['free', 'storyteller', 'novelist', 'worldbuilder'];
 
 const PLANS = {
   // storageGB: files of all the owner's worlds in Firebase Storage (functions/src/storage-quota.js; ≈ $0.026 / GB a month)
-  free:         { name: 'Free',         price: 0,  monthly: 200,    maxProjects: 1,   maxGames: 1,   storageGB: 1 },
-  storyteller:  { name: 'Storyteller',  price: 12, monthly: 2400,   maxProjects: 5,   maxGames: 1,   storageGB: 2 },
-  novelist:     { name: 'Novelist',     price: 29, monthly: 32000,  maxProjects: 999, maxGames: 1,   storageGB: 5, popular: true },
-  worldbuilder: { name: 'Worldbuilder', price: 69, monthly: 180000, maxProjects: 999, maxGames: 999, storageGB: 50 },
-  worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, maxGames: 999, storageGB: 50, hidden: true, as: 'worldbuilder' } // dev/testing
+  // fileMB: one file on a game card (storage.rules worlds/{w}/games/{g}/files — 200 on Worldbuilder, else 20; the Bible checks it before the upload)
+  free:         { name: 'Free',         price: 0,  monthly: 200,    maxProjects: 1,   maxGames: 1,   storageGB: 1,  fileMB: 20 },
+  storyteller:  { name: 'Storyteller',  price: 12, monthly: 2400,   maxProjects: 5,   maxGames: 1,   storageGB: 2,  fileMB: 20 },
+  novelist:     { name: 'Novelist',     price: 29, monthly: 32000,  maxProjects: 999, maxGames: 1,   storageGB: 5,  fileMB: 20, popular: true },
+  worldbuilder: { name: 'Worldbuilder', price: 69, monthly: 180000, maxProjects: 999, maxGames: 999, storageGB: 50, fileMB: 200 },
+  worldforge:   { name: 'Worldforge',   price: 0,  monthly: 180000, maxProjects: 999, maxGames: 999, storageGB: 50, fileMB: 200, hidden: true, as: 'worldbuilder' } // dev/testing
 };
 
 const USD_PER_TOKEN = 0.00015; // API dollars one token pays for (see MARGIN above)
@@ -91,7 +92,7 @@ const FEATURES = [
   { id: 'bible', kind: 'gate', flag: 'allowWorldTree', minPlan: 'storyteller',
     uk: { name: 'Біблія світу: редагування канону', desc: 'Огляд, закони, досьє, культура, хроніка, карта локацій.' },
     en: { name: 'World Bible: canon editing', desc: 'Overview, laws, dossiers, culture, chronicle, location map.' },
-    where: 'Біблія світу', server: 'firestore.rules (власник світу)' },
+    where: 'Біблія світу', server: 'firestore.rules canonPlans() (entities, lore, поля канону світу) · storage.rules ownerCanon() (файли досьє й культури) — тариф власника світу; tests/canon-plans.test.cjs' },
   { id: 'persona', kind: 'gate', flag: 'allowWorldTree', minPlan: 'storyteller',
     uk: { name: '🧠 Конструктор особистості', desc: 'Вкладка в досьє персонажа світу: питання крок за кроком (суть, минуле, внутрішній світ, поведінка, стосунки, арка) і шкали темпераменту. Без токенів; ШІ бере особистість у сцени, квести, діалоги й GDD.' },
     en: { name: '🧠 Personality constructor', desc: 'A tab in a world character\'s dossier: questions step by step (core, past, inner world, behaviour, relationships, arc) and temperament scales. No tokens; the AI uses the personality in scenes, quests, dialogues and the GDD.' },
@@ -327,7 +328,7 @@ function unlocked(feature, plan) { return planRank(plan) >= PLAN_ORDER.indexOf(f
 // Plan → { monthly, maxProjects, allow…: bool } — the shape plans.js / token-budget.js always had
 function planBudget(plan) {
   const p = PLANS[plan] || PLANS.free;
-  const out = { monthly: p.monthly, maxProjects: p.maxProjects, maxGames: p.maxGames || 1, storageGB: p.storageGB || 1 };
+  const out = { monthly: p.monthly, maxProjects: p.maxProjects, maxGames: p.maxGames || 1, storageGB: p.storageGB || 1, fileMB: p.fileMB || 20 };
   FEATURES.forEach((f) => {
     if (!f.flag) return;
     const on = unlocked(f, PLANS[plan] ? plan : 'free');

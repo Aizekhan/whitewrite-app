@@ -3,6 +3,7 @@
 // once per 30 days for that world. worlds/{w}.cosmograph { enabled, paidUntil, paidAt } is written only here
 // (firestore.rules keep it read-only for clients); the sky itself lives in worlds/{w}.cosmos (client-written).
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const ledger = require('./ledger'); // users/{uid}/ledger — «Історія токенів»
 
 const { featureCost, byOp } = require('../paid-features.js');
@@ -36,7 +37,7 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
       if (!getPlanBudget(userData.plan || 'free').allowGameDev) {
         return res.status(403).json({ error: 'Біблія світу доступна на тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
       }
-      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
+      if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
       const now = Date.now();
       const paidUntil = cur.paidUntil && cur.paidUntil.toMillis ? cur.paidUntil.toMillis() : 0;
       if (paidUntil > now) { // this month is paid: just turn it on

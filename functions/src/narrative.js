@@ -4,6 +4,7 @@
 // Links are kept only when the id exists — a canon entity (its id) or a game card (c:<id>, narrative-validate.js refPool);
 // anything new the AI invents is returned as `ideas`, never as canon. Access: allowGameDev (Worldbuilder), an active subscription; reserve → Claude → charge the real cost (paid-features.js questDraft / dialogueDraft).
 const { onRequest, admin, db, cors, charge, getBalance, reserve, refund, cutOff, settle, getPlanBudget, claudeApiKey, buildCanonContext, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { emptyCanon, CANON_KINDS } = require('../canon-store.js');
 const { featureCost, byOp } = require('../paid-features.js');
@@ -138,7 +139,7 @@ exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiK
       if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
       const userData = userDoc.exists ? userDoc.data() : {};
       if (!getPlanBudget(userData.plan || 'free').allowGameDev) return res.status(403).json({ error: 'Квести й діалоги — у тарифі Worldbuilder', code: 'PLAN_REQUIRED' });
-      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
+      if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true });
 
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;

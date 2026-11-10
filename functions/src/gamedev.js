@@ -25,6 +25,7 @@ const {
 const { savedGithub, rememberGithub, loginOf } = require('./github-token');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { intentText } = require('./experience')._experience;
+const { subscriptionActive } = require('../plans.js'); // past_due still counts as active (plans.js)
 const { featureCost, byOp, quoteChars } = require('../paid-features.js');
 const { personaText, lookText } = require('../persona.js');
 const { modelFor, withFallback } = require('./claude');
@@ -241,22 +242,45 @@ function cleanScaffold(p, shelves) {
 // Task Engine: the plan's tasks become worlds/{w}/games/{g}/tasks/{taskId} with a status the executor (Claude Code via MCP)
 // and the author's review move along: todo → in_progress → review → done (or rework / blocked).
 // A new plan replaces open tasks; tasks already taken, handed in or done are kept — and bugs (kind 'bug', MCP report_bug) always are.
-async function writeTasks(gameRef, plan) {
+// Milestones the author adds by hand, not the AI plan: EXP (an experience issue → EX.n) and MAP (a game map zone → MAP.n).
+// A regenerated plan keeps them and their tasks, whatever their status.
+const MANUAL_MS = ['EXP', 'MAP'];
+const BATCH_MAX = 450; // Firestore: at most 500 writes in one batch
+async function inBatches(ops) { // ops: (batch) => void, each one write
+  for (let i = 0; i < ops.length; i += BATCH_MAX) {
+    const b = db.batch(); ops.slice(i, i + BATCH_MAX).forEach((f) => f(b)); await b.commit();
+  }
+}
+// The AI plan's tasks: the new ones first (in batches), then the plan doc itself (writePlan), then the old open tasks it replaced —
+// so a failure midway never leaves a plan whose tasks are missing. Kept: started / done tasks, bugs, the manual EX.n / MAP.n.
+async function writeTasks(gameRef, plan, writePlan) {
   const old = await gameRef.collection('tasks').get();
-  const kept = new Set(), who = {}; // who: the person a replaced task was given to — the same task id keeps them
-  const batch = db.batch();
-  old.docs.forEach((d) => { if (d.data().kind !== 'bug' && ['todo', 'rework'].includes(d.data().status)) { batch.delete(d.ref); if (d.data().assignee) who[d.id] = d.data().assignee; } else kept.add(d.id); });
+  const kept = new Set(), who = {}, stale = []; // who: the person a replaced task was given to — the same task id keeps them
+  old.docs.forEach((d) => {
+    const x = d.data();
+    if (x.kind !== 'bug' && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(d); if (x.assignee) who[d.id] = x.assignee; } else kept.add(d.id);
+  });
+  const sets = [], fresh = new Set();
   let order = 0;
   for (const m of plan.milestones) {
+    if (MANUAL_MS.includes(m.id)) continue; // carried over as they are
     for (const t of m.tasks) {
       order++;
       const id = t.id.replace(/[\/\s]/g, '_');
       if (!id || kept.has(id)) continue;
-      batch.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, track: m.track, status: 'todo', order, history: [], ...(who[id] ? { assignee: who[id] } : {}),
-        createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      fresh.add(id);
+      sets.push((b) => b.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, track: m.track, status: 'todo', order, history: [], ...(who[id] ? { assignee: who[id] } : {}),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() }));
     }
   }
-  await batch.commit();
+  await inBatches(sets);
+  if (writePlan) await writePlan();
+  await inBatches(stale.filter((d) => !fresh.has(d.id)).map((d) => (b) => b.delete(d.ref)));
+}
+// the manual milestones of the plan being replaced, appended to the new one
+function withManual(plan, prevPlan) {
+  const keep = ((prevPlan && prevPlan.milestones) || []).filter((m) => MANUAL_MS.includes(m.id));
+  return { ...plan, milestones: (plan.milestones || []).filter((m) => !MANUAL_MS.includes(m.id)).concat(keep) };
 }
 
 function cleanImport(p, shelves, entities, world) {
@@ -747,7 +771,7 @@ exports.gamedevPlan = onRequest({
         try { return res.status(200).json(await repoLink(op, caller, worldId, gameId, body)); }
         catch (e) { if (!e.httpStatus) throw e; return res.status(e.httpStatus).json({ error: e.message }); }
       }
-      if (userData.subscriptionStatus !== 'active') {
+      if (!subscriptionActive(userData)) {
         return res.status(403).json({ error: 'Активна підписка необхідна для генерації', requiresSubscription: true, plan: userPlan });
       }
 
@@ -894,10 +918,11 @@ exports.gamedevPlan = onRequest({
           Object.assign(update, { gdd: a.gdd, contradictions: mergeContradictions(prev.contradictions, prev.resolved || {}, a.contradictions),
             asked: kept.concat(a.questions), analyzedAt: admin.firestore.FieldValue.serverTimestamp() });
         } else {
-          Object.assign(update, { plan: cleanPlan(parsed), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
+          Object.assign(update, { plan: withManual(cleanPlan(parsed), prev.plan), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
         }
-        await gameRef.collection('plan').doc('current').set(update, { merge: true });
-        if (op === 'plan') await writeTasks(gameRef, update.plan);
+        const writePlan = () => gameRef.collection('plan').doc('current').set(update, { merge: true });
+        if (op === 'plan') await writeTasks(gameRef, update.plan, writePlan); // the tasks first, then the plan
+        else await writePlan();
       }
 
       const { userCost } = await charge(db, uid, 'generateScene', usedModel, usage, null, {

@@ -26,6 +26,24 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
+  // the dock (✦ tokens) lives in the shell: a pillar that spent tokens hands its fresh balance up and asks the shell to redraw
+  if (embedded) window.__syncDockAvatar = function () {
+    try {
+      var p = window.parent, u = window.__wwUser;
+      if (p === window || !p.__wwUser) return;
+      if (u && u.tokensRemaining != null) { p.__wwUser.tokensRemaining = u.tokensRemaining; if (u.tokensUsed != null) p.__wwUser.tokensUsed = u.tokensUsed; }
+      if (typeof p.__syncDockAvatar === "function") p.__syncDockAvatar();
+    } catch (e) {}
+  };
+
+  // the shell's styled notice / confirm (Promise) instead of the browser's alert / confirm; standalone — the browser's own
+  var shellDlg = function (k) { try { return window.parent !== window && typeof window.parent[k] === "function" ? window.parent[k] : null; } catch (e) { return null; } };
+  window.wwNotice = function (msg) { var f = shellDlg("wwNotice"); if (f) return f(msg); alert(msg); return Promise.resolve(true); };
+  window.wwConfirm = function (msg) { var f = shellDlg("wwConfirm"); if (f) return f(msg); return Promise.resolve(confirm(msg)); };
+
+  // Акаунт → plans lives in the shell too
+  if (embedded) window.__openAccount = function () { try { if (window.parent !== window && typeof window.parent.__openAccount === "function") window.parent.__openAccount(); } catch (e) {} };
+
   function hrefToPillar(href) {
     if (!href) return "book";
     if (href.indexOf("GameBible") >= 0 || href.indexOf("WorldTree") >= 0) return "canon"; // the shell opens the story's World Bible

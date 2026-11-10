@@ -275,7 +275,7 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
       window.__sceneIntentCanGenerate = () => false;
       window.__sceneIntentIsBusy = () => false;
     };
-  }, [canGo, busy]);
+  }, [canGo, busy, sel, note, propProjectId]); // generate() closes over sel / note: a stale copy sent «H» for «Hero betrays the king»
 
   async function generate() {
     if (!canGo || busy) return;
@@ -283,7 +283,7 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
     // Phase 1.2: Check token balance BEFORE generation
     const user = window.__wwUser;
     if (!user || !user.uid) {
-      alert(t('intent.loginRequired'));
+      (window.wwNotice || alert)(t('intent.loginRequired'));
       return;
     }
 
@@ -296,7 +296,7 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
       const planName = window.__getPlanConfig ? window.__getPlanConfig(user.plan).name : 'Free';
       const message = `${t('intent.insufficientTokens')}\n\n${t('intent.needed')}: ${cost} ${t('ui.tokens')}\n${t('intent.available')}: ${user.tokensRemaining} ${t('ui.tokens')}\n\n${t('intent.currentPlan')}: ${planName}\n\n${t('intent.upgradePlan')}`;
 
-      if (confirm(message + '\n\n' + t('intent.openSettings'))) {
+      if (await (window.wwConfirm ? window.wwConfirm(message + '\n\n' + t('intent.openSettings')) : Promise.resolve(confirm(message + '\n\n' + t('intent.openSettings'))))) {
         // Open account modal
         if (typeof window.__openAccount === 'function') {
           window.__openAccount();
@@ -315,7 +315,7 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
     // Use prop projectId if passed, otherwise fallback to window
     const actualProjectId = propProjectId || window.__currentProjectId;
     if (!actualProjectId) {
-      alert(t('error.projectNotFound'));
+      (window.wwNotice || alert)(t('error.projectNotFound'));
       setBusy(false);
       return;
     }
@@ -362,12 +362,7 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
               text: result.scene.text,
               intent: result.scene.intent,
               customIntent: sel === 'custom' ? note : null,
-              entities: {
-                characters: result.scene.entities?.filter(e => e.type === 'character').map(e => e.id) || [],
-                locations: result.scene.entities?.filter(e => e.type === 'location').map(e => e.id) || [],
-                events: [],
-                artifacts: []
-              }
+              entities: result.scene.entities || [] // canon entities named in the text → scene.canonRefs (firebase-scenes.js)
             });
 
             // Phase 1.1: Sync tokens from server response (server already deducted)
@@ -408,17 +403,17 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
             }
           } catch (saveError) {
             console.error('Failed to save scene:', saveError);
-            alert('Сцена згенерована, але не вдалося зберегти: ' + saveError.message);
+            (window.wwNotice || alert)(t('intent.saveFailed') + ' ' + saveError.message);
           }
         } else {
-          alert(`${t('intent.sceneGenerated')}\n\n${t('intent.sceneName')}: ${result.scene.title}\n\n${t('intent.firebaseNotConnected')}`);
+          (window.wwNotice || alert)(`${t('intent.sceneGenerated')}\n\n${t('intent.sceneName')}: ${result.scene.title}\n\n${t('intent.firebaseNotConnected')}`);
         }
       } else {
-        alert(t('intent.generationError') + ': ' + result.error);
+        (window.wwNotice || alert)(t('intent.generationError') + ': ' + result.error);
       }
     } catch (error) {
       console.error('Generation failed:', error);
-      alert(t('intent.error') + ': ' + error.message);
+      (window.wwNotice || alert)(t('intent.error') + ': ' + error.message);
     } finally {
       setBusy(false);
 

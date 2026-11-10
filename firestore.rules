@@ -82,6 +82,24 @@ service cloud.firestore {
     function ownerGameDev(worldId) {
       return get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
     }
+    // Канон (v2.118.0): editing the canon needs the OWNER's plan to open it — the registry's feature 'bible' (flag allowWorldTree,
+    // functions/paid-features.js). The list = the plans whose planBudget has allowWorldTree; tests/canon-plans.test.cjs checks it
+    // against the registry. A fresh world (≤ 30 min after createdAt) is filled on any plan: Genesis / restore / «Заповни світ» write it
+    // from the client right after creating it (app/firebase/firebase-canon.js createWorld, gamebible.js restoreJson / applyFill).
+    function canonPlans() {
+      return ['storyteller', 'novelist', 'worldbuilder', 'worldforge'];
+    }
+    function freshWorld(w) {
+      return request.time < w.get('createdAt', timestamp.value(0)) + duration.value(30, 'm');
+    }
+    function canonOpen(worldId) {
+      let w = get(/databases/$(database)/documents/worlds/$(worldId)).data;
+      return get(/databases/$(database)/documents/users/$(w.owner)).data.get('plan', 'free') in canonPlans() || freshWorld(w);
+    }
+    // world-doc fields that are the canon (the overview's tagline stays open: the shell's world card edits it with the title on any plan)
+    function canonWorldKeys() {
+      return ['summary', 'facts', 'rules', 'subsections', 'timeUnit', 'auditAnswers', 'maps', 'mapImage'];
+    }
     // the Bible menu section of a game subcollection (cards carry their own `section`)
     function subSec(sub) {
       return sub in ['plan', 'tasks', 'changeRequests', 'executions'] ? 'plan'
@@ -118,29 +136,39 @@ service cloud.firestore {
                        !request.resource.data.keys().hasAny(['cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']);
       allow update: if isAuthenticated() && resource.data.get('freeze', null) == null &&
                        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner', 'cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']) &&
-                       (resource.data.owner == request.auth.uid || memberWorldEdit());
+                       (resource.data.owner == request.auth.uid || memberWorldEdit()) &&
+                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(canonWorldKeys()) || worldCanonOpen());
+      function worldCanonOpen() {
+        return get(/databases/$(database)/documents/users/$(resource.data.owner)).data.get('plan', 'free') in canonPlans() || freshWorld(resource.data);
+      }
+      // a member with the right to a section edits its world-doc fields: the overview, laws, the sky, the subsections of the sections
+      // they edit (subsections.{sectionId}), the chronicle's time unit, the answers of «Неузгоджене» (canonIssues)
       function memberWorldEdit() {
         let m = resource.data.get('team', {}).get(request.auth.uid, null);
         let keys = request.resource.data.diff(resource.data).affectedKeys();
-        return m != null && keys.hasOnly(['tagline', 'summary', 'facts', 'rules', 'cosmos', 'updatedAt']) &&
+        return m != null && keys.hasOnly(['tagline', 'summary', 'facts', 'rules', 'cosmos', 'subsections', 'timeUnit', 'auditAnswers', 'updatedAt']) &&
                (m.role in ['admin', 'editor'] || (
                  (!keys.hasAny(['tagline', 'summary', 'facts']) || 'world' in m.get('edit', [])) &&
                  (!keys.hasAny(['rules']) || 'laws' in m.get('edit', [])) &&
-                 (!keys.hasAny(['cosmos']) || 'cosmology' in m.get('edit', []))));
+                 (!keys.hasAny(['cosmos']) || 'cosmology' in m.get('edit', [])) &&
+                 (!keys.hasAny(['timeUnit']) || 'chronicle' in m.get('edit', [])) &&
+                 (!keys.hasAny(['auditAnswers']) || 'canonIssues' in m.get('edit', [])) &&
+                 (!keys.hasAny(['subsections']) || request.resource.data.subsections.diff(resource.data.get('subsections', {})).affectedKeys().hasOnly(m.get('edit', [])))));
       }
 
       match /entities/{entityId} {
         allow read: if isAuthenticated() && readKind(worldId, resource.data.kind);
-        allow create: if isAuthenticated() && editKind(worldId, request.resource.data.kind) && worldOpen(worldId);
+        // + the owner's plan opens canon editing (canonOpen; a world on Free is read-only after its first 30 minutes)
+        allow create: if isAuthenticated() && editKind(worldId, request.resource.data.kind) && worldOpen(worldId) && canonOpen(worldId);
         // the kind it has now too: a member may not pull another kind's entity into theirs
-        allow update: if isAuthenticated() && editKind(worldId, resource.data.kind) && editKind(worldId, request.resource.data.kind) && worldOpen(worldId);
-        allow delete: if isAuthenticated() && editKind(worldId, resource.data.kind) && worldOpen(worldId);
+        allow update: if isAuthenticated() && editKind(worldId, resource.data.kind) && editKind(worldId, request.resource.data.kind) && worldOpen(worldId) && canonOpen(worldId);
+        allow delete: if isAuthenticated() && editKind(worldId, resource.data.kind) && worldOpen(worldId) && canonOpen(worldId);
       }
 
       // Culture of the world (peoples, languages, faith, customs) — World Bible «Культура».
       match /lore/{loreId} {
         allow read: if isAuthenticated() && readSec(worldId, 'culture');
-        allow write: if isAuthenticated() && editSec(worldId, 'culture') && worldOpen(worldId);
+        allow write: if isAuthenticated() && editSec(worldId, 'culture') && worldOpen(worldId) && canonOpen(worldId);
       }
 
       // Games built on this canon (one canon → many games): game doc + cards + production plan.
@@ -156,9 +184,20 @@ service cloud.firestore {
         // .repo / .ingestKeys / .integrations / .framework — server only (gamedev.js repoConnect, experience.js keys, integrations.js, mcp.js report_framework_capabilities);
         // .telemetryStats (experience.js telemetryIngest), .knowledge (mcp.js submit_project_knowledge), .audit / .auditRunning (gamedev.js) — server only too; .launch builds the PowerShell lines
         // the OWNER pastes on their PC (gamebible.js «Запуск Claude Code») — so only the owner changes it
-        allow update: if isAuthenticated() && fullEdit(worldId) && worldOpen(worldId) &&
+        allow update: if isAuthenticated() && worldOpen(worldId) && ((fullEdit(worldId) &&
                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys', 'integrations', 'framework', 'telemetryStats', 'knowledge', 'audit', 'auditRunning']) &&
-                         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId));
+                         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId))) || memberGameEdit());
+        // a «вибрані розділи» member writes on the game doc only what belongs to their sections: the subsections and the 🎨 group
+        // palettes of a section they edit, and the 🎙 voices (games/{g}.voices) with «Діалоги» or a character / enemy section
+        function memberGameEdit() {
+          let m = mem(worldId);
+          let e = m == null ? [] : m.get('edit', []);
+          let keys = request.resource.data.diff(resource.data).affectedKeys();
+          return m != null && m.role == 'custom' && keys.hasOnly(['subsections', 'subPalettes', 'voices', 'updatedAt']) &&
+                 (!keys.hasAny(['subsections']) || request.resource.data.subsections.diff(resource.data.get('subsections', {})).affectedKeys().hasOnly(e)) &&
+                 (!keys.hasAny(['subPalettes']) || request.resource.data.subPalettes.diff(resource.data.get('subPalettes', {})).affectedKeys().hasOnly(e)) &&
+                 (!keys.hasAny(['voices']) || e.hasAny(['dialogues', 'characters', 'enemies']));
+        }
         // the owner only: deleting a game is final (functions/src/cleanup.js gameDeleted removes everything under it)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId);
       }
@@ -372,6 +411,21 @@ service cloud.firestore {
     match /admin_costs/{day} {
       allow read: if isAuthenticated() && request.auth.token.admin == true;
       allow write: if false;
+    }
+    // «Зворотний зв'язок» (the shell's ✉ button): a signed-in author only creates their own message; admins read
+    // (Акаунт → «Зворотний зв'язок») and may only mark it read; nobody edits or deletes from a client
+    match /feedback/{id} {
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid &&
+                       request.resource.data.keys().hasOnly(['uid', 'email', 'text', 'kind', 'page', 'at']) &&
+                       request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 5000 &&
+                       request.resource.data.kind in ['bug', 'idea'] &&
+                       request.resource.data.email is string && request.resource.data.email.size() <= 320 &&
+                       request.resource.data.page is string && request.resource.data.page.size() <= 200 &&
+                       (!request.resource.data.keys().hasAny(['at']) || request.resource.data.at is timestamp);
+      allow read: if isAuthenticated() && request.auth.token.admin == true;
+      allow update: if isAuthenticated() && request.auth.token.admin == true &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolved']);
+      allow delete: if false;
     }
     // Admin notices (functions/src/model-watch.js): admins read them and may only mark them read
     match /admin_notices/{id} {

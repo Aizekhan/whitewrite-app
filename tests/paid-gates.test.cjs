@@ -14,7 +14,6 @@ const quoted = (word) => server.indexOf("'" + word + "'") >= 0 || server.indexOf
 // gates the browser enforces on purpose: no AI cost, the author's own data
 const CLIENT_ONLY = {
   allowExport: 'DOCX / PDF are built in the browser from the story the author already reads (app/book-export.js)',
-  allowWorldTree: 'Bible editing of the author\'s own canon — no AI, no cost; every ✦ inside the Bible checks its own flag on the server',
   allowSonnet: 'the model choice — the server picks the tier by MODEL_TIERS (claude.js modelTier), checked below',
   allowOpus: 'the model choice — the server picks the tier by MODEL_TIERS (claude.js modelTier), checked below',
 };

@@ -4,6 +4,7 @@
 // the parts are merged (FILL.merge) and returned. NOTHING is written here: the page shows the same preview as the fill file and
 // the author presses «Перенести в світ». Reserve = «не більше N» (quoteChars on the text size), charge = the real cost, capped.
 const { onRequest, admin, db, cors, charge, getBalance, reserve, settle, getPlanBudget, claudeApiKey, publicMessage } = require('./common');
+const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { payerFor } = require('./team')._team;
 const { byOp, quoteChars } = require('../paid-features.js');
 const { modelFor, claudeText, allPaid } = require('./claude');
@@ -103,7 +104,7 @@ exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey]
       if (w.data().freeze) return res.status(423).json({ error: 'Світ заморожено (Маркет): зміни недоступні', code: 'FROZEN' });
       const userData = userDoc.exists ? userDoc.data() : {};
       if (!getPlanBudget(userData.plan || 'free').allowFolderFill) return res.status(403).json({ error: 'Тека з ШІ — з тарифу Storyteller', code: 'PLAN_REQUIRED' });
-      if (userData.subscriptionStatus !== 'active') return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
+      if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
 
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free');
       const cap = quoteChars(scout ? byOp('worldFolderScout') : byOp('worldFolder'), scout ? lines.join('\n') : files.map((f) => f.text).join(''), tier); // «не більше N» — the page showed the same number

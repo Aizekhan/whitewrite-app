@@ -326,7 +326,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   // scenes are saved as they are written; «Зберегти історію» stamps the story and returns to the world's stories
   const saveStory = useCallback(async () => {
     const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
-    try { if (projectId) await window.__firebaseProjects.updateProject(projectId, {}); } catch (e) { alert(tt('error.generic') + ': ' + e.message); return; }
+    try { if (projectId) await window.__firebaseProjects.updateProject(projectId, {}); } catch (e) { (window.wwNotice || alert)(tt('error.generic') + ': ' + e.message); return; }
     setWhisper((p) => ({ text: tt('intent.saved'), sig: p.sig + 1 }));
     if (window.self !== window.top) setTimeout(() => window.parent.postMessage({ type: "ww-story-saved", projectId }, window.location.origin), 700);
   }, [projectId]);
@@ -526,7 +526,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
               const canGenerate = window.__sceneIntentCanGenerate ? window.__sceneIntentCanGenerate() : false;
 
               if (!canGenerate) {
-                alert('Обери напрям історії перед генерацією!');
+                (window.wwNotice || alert)((window.__i18n ? window.__i18n.t : (k) => k)('intent.chooseFirst'));
                 return;
               }
 
@@ -534,7 +534,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
                 window.__sceneIntentGenerate();
               } else {
                 console.error('[Book] window.__sceneIntentGenerate is not defined!');
-                alert('Помилка: функція генерації не знайдена. Перезавантаж сторінку.');
+                (window.wwNotice || alert)((window.__i18n ? window.__i18n.t : (k) => k)('intent.noGenerator'));
               }
             }}
             aria-label={(window.__i18n ? window.__i18n.t('intent.generate') : 'Почати наступну сцену')}
