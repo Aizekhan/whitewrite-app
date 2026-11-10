@@ -482,7 +482,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
       {/* Subtle brand/title ribbon */}
       <div className="ribbon">
-        <span className="ribbon__brand">White&nbsp;Tree</span>
+        <span className="ribbon__brand">WhiteWrite</span>
         <span className="ribbon__sep">·</span>
         <span className="ribbon__universe">{title}</span>
       </div>

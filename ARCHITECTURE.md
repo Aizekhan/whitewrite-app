@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.119.0 (2026-11-10)
+**Version:** 2.119.1 (2026-11-10)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -770,6 +770,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.119.1** live E2E check of v2.118.0 on the owner account (all 8 areas ✅, 0 app console errors) — fixes: a story created from the form puts `#work/book?projectId=` into the address (`__setCurrentProject` / `ww-mode work`), so a reload opens the new book; an oversize file in `uploadFiles` is reported in a dialog after «Завантажено файлів» (that line wiped it); the book's bookmarks count only entities still in the canon (`relatedForScene` → `wEnt`); «Відновлено: …» after a world restore is a dialog too (the settings line was below the fold); the story editor's field «Опис історії» (was «Опис світу»), Ukrainian `aria-label`; the book ribbon says WhiteWrite (was White Tree)
 - **v2.119.0** 🧊 models are GLB only (owner): `asset-kit.js` `EXT.mesh = ['glb']`, `NOT_GLB` / `isGlb` / `notGlb` (no `BUNDLE` / `FOLDER` / `needsFolder`); one «⤒ Модель (.glb)» in the kit and the hero's prefab (no «📂 Тека»); `glbOnly` refuses FBX / OBJ / glTF / STL… on every upload (cards, dossier, Forge) with «Як перетворити в GLB →» (KB `glb-only`, new: Blender Import FBX → Export glTF 2.0 → glTF Binary, Apply Modifiers / Skinning / Shape Keys / Animation, Unity assets); the game folder skips them with a list; old files stay as plain files (`fileSlot` 'legacy', `glbOld` mark, no 3D, «Готовність Біблії» line, MCP `kit.not_glb`, Forge format error); `gb-3d.js` GLB only, FBX / OBJ / STL loaders + NURBS / fflate unvendored; Forge texts, `paid-features` Forge text, MCP `get_card` description; the FBX outputs (animation library pack, reference rig pack) untouched
 - **v2.118.0** (audit · Біблія світу й доступ) **Canon on the owner's plan, on the server**: `firestore.rules canonPlans()` (= registry `bible` / `allowWorldTree`, Storyteller+; `tests/canon-plans.test.cjs` checks it and `storage.rules ownerCanon()` against `paid-features.js`) gates `entities` / `lore` writes (`canonOpen`) and the world doc's canon keys `canonWorldKeys()` (`summary, facts, rules, subsections, timeUnit, auditAnswers, maps, mapImage`; `tagline` and `title` stay open — the shell's world card); a fresh world (`freshWorld`: ≤ 30 min after `createdAt`) is filled on any plan (Genesis `createWorld`, restore, «Заповни світ»). `paid-gates` no longer lists `allowWorldTree` as client-only.
 - **v2.118.0** (audit · Біблія світу й доступ) **Team in the world doc**: `memberWorldEdit` adds `subsections` (custom: only keys of sections in `edit`), `timeUnit` (`chronicle`), `auditAnswers` (`canonIssues`); a subsection rename is one batch (list + every entity's group); add / drop / time unit / map writes report a failure. Map chips «＋ локація / ✕» for whoever edits «Локації» (`canWrite`, not the owner's `canonWrite`); a location put on map B leaves every other map (`mapAt.<other>` deleted). Rules tests +29 (`tests/rules.test.mjs` `K(…)`).
@@ -981,5 +982,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-10 (v2.118.0)
+**Last updated:** 2026-11-10 (v2.119.1)
 **Maintained by:** WhiteWrite Team

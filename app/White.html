@@ -691,7 +691,7 @@ body.at-home .back-fab{ display:none; }
 
   <div class="proj-edit" id="proj-edit">
     <div class="pe-scrim" onclick="window.__peClose&&window.__peClose()"></div>
-    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Edit story">
+    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Редагувати історію">
       <button class="pe-x" onclick="window.__peClose&&window.__peClose()" aria-label="Close">✕</button>
       <div class="pe-kicker" data-i18n="editor.kicker">Світ</div>
       <h2 class="pe-title-h" data-i18n="editor.title">Редагувати історію</h2>
@@ -703,7 +703,7 @@ body.at-home .back-fab{ display:none; }
         </div>
       </label>
       <label class="pe-field"><span class="pe-lbl" data-i18n="editor.nameLabel">Назва</span><input class="pe-input" id="pe-title" /></label>
-      <label class="pe-field"><span class="pe-lbl" data-i18n="editor.descLabel">Опис світу</span><textarea class="pe-area" id="pe-desc" rows="5"></textarea></label>
+      <label class="pe-field"><span class="pe-lbl" data-i18n="editor.descLabel">Опис історії</span><textarea class="pe-area" id="pe-desc" rows="5"></textarea></label>
       <div class="pe-two">
         <label class="pe-field"><span class="pe-lbl" data-i18n="editor.scopeLabel">Обсяг</span>
           <select class="pe-sel" id="pe-scope">
@@ -1187,6 +1187,8 @@ body.at-home .back-fab{ display:none; }
     }
 
     window.__currentProjectId = projectId;
+    // a story just created from the form: the address follows it, so a reload opens the new book (not «Світи»)
+    if (mode === "book" && inWork) { try { history.replaceState(null, "", "#work/book?projectId=" + projectId); } catch (e) {} }
 
     // Notify all loaded iframes about projectId change
     try {
@@ -1555,7 +1557,8 @@ body.at-home .back-fab{ display:none; }
     }
     // the book tells the shell whether the reader is on the cover (home) or inside a story (work)
     if (d.type === "ww-mode") {
-      if (d.mode === "work") { if (Date.now() < suppressWorkUntil) return; inWork = true; mode = "book"; renderRail(); }
+      if (d.mode === "work") { if (Date.now() < suppressWorkUntil) return; inWork = true; mode = "book"; renderRail();
+        if (window.__currentProjectId) { try { history.replaceState(null, "", "#work/book?projectId=" + window.__currentProjectId); } catch (e) {} } }
       else if (d.mode === "create") { inWork = false; mode = "create"; renderRail(); } // a story / world form: «Біблія світу» leads back
       else { inWork = false; mode = "home"; renderRail(); }
     }

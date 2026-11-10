@@ -40,7 +40,8 @@
     const s = wScene(n) || {};
     const facs = new Set();
     (s.events || []).forEach((eid) => { const e = wEnt("events", eid); (e && e.factions || []).forEach((f) => facs.add(f)); });
-    return { characters: s.characters || [], locations: s.locations || [], events: s.events || [], factions: [...facs], artifacts: s.artifacts || [] };
+    const live = (t, ids) => (ids || []).filter((id) => wEnt(t, id)); // an entity deleted from the canon leaves no empty «Персонажі 1»
+    return { characters: live("characters", s.characters), locations: live("locations", s.locations), events: live("events", s.events), factions: live("factions", [...facs]), artifacts: live("artifacts", s.artifacts) };
   }
 
   function relFade(href) {

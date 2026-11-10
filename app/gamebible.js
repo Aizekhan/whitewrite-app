@@ -6369,17 +6369,18 @@
     var t = $("e-title").value.trim(), named = open && open.section === "refs" && list.length && (!t || t === STR.newCard);
     if (named) $("e-title").value = baseName(list[0].name);
     if (open && (open.isNew || named)) { await save(true); if (open.isNew) return; } // a new card: save it first, then the files go straight on it
-    var card = open, done = 0;
+    var card = open, done = 0, big = [];
     for (var i = 0; i < list.length; i++) {
       var file = list[i];
-      if (tooBig(file)) { msg(bigMsg(file)); continue; }
+      if (tooBig(file)) { big.push(file); continue; }
       if (artLib(card, file, field)) { try { await artUpload(card, file, field); done++; } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; } continue; }
       try {
         await putFile(card, file, field === "kit:file" ? kitField(file) : field, function (s) { if (open === card) msg(STR.uploading + " " + file.name + " · " + Math.round(100 * s.bytesTransferred / (s.totalBytes || 1)) + "%"); });
         done++;
       } catch (e) { msg(STR.failed + ": " + file.name + " — " + (e.code || e.message || e)); return; }
     }
-    if (open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
+    if (card && open === card) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); renderFields(); msg(STR.filesDone + ": " + done); }
+    if (big.length) notify(big.map(bigMsg).join(" · ")); // a dialog — the «Завантажено файлів» line no longer wipes why a file did not go
   }
   // 🎨 the game's picture library (owner, v2.106): «Арт» → «Картинки» (portraits, concepts, illustrations, other) and «Референси»
   var ART_SRC = ["pictures", "refs", "artstyle", "ui", "materials"], ART_KEEP = ["pictures", "refs", "artstyle", "assets", "ui", "materials", "animation"];
@@ -9280,6 +9281,7 @@
       await writeAll(db.collection("worlds").doc(wid).collection("lore"), cult, true);
       if (Object.keys(fileUp).length) await db.collection("worlds").doc(wid).set(Object.assign(fileUp, { updatedAt: stamp() }), { merge: true });
       note(STR.stRestored + ": " + (w.title || wid));
+      notify(STR.stRestored + ": " + (w.title || wid)); // the settings line sits below the fold — the author must see it worked
       tellShell({ type: "ww-worlds-changed" });
       return;
     }
