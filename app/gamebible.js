@@ -10326,7 +10326,38 @@
     var c = e.target.closest(".card"); if (!c) return;
     var card = allCards().filter(function (x) { return x.key === c.dataset.key; })[0];
     if (card && card.src === "game" && (card.section === "mechanics" || mFactory(card.section) && card.mech)) return openMech(card); // mechanics, Фабрика звуку and Конструктор прогресії open in the constructor
+    if (card && card.section === "refs" && (card.files || []).some(isImage)) return refView(card); // 🖼 a reference opens as the picture itself (owner, v2.115.6)
     if (card) openCard(card);
+  }
+  // 🖼 a reference on the whole screen: ← → through the references shown in the section, «✎ Картка» opens the card (name, group, delete), Esc / ✕ / a click beside it closes
+  function refView(card) {
+    var keys = [].map.call(document.querySelectorAll("#view .card[data-key]"), function (el) { return el.dataset.key; });
+    var list = allCards().filter(function (x) { return x.section === "refs" && (x.files || []).some(isImage) && keys.indexOf(x.key) >= 0; })
+      .sort(function (a, b) { return keys.indexOf(a.key) - keys.indexOf(b.key); });
+    var i = Math.max(0, list.indexOf(list.filter(function (x) { return x.key === card.key; })[0]));
+    var RV = LANG === "en" ? { prev: "Previous", next: "Next", card: "✎ Card", close: "Close" } : { prev: "Попередній", next: "Наступний", card: "✎ Картка", close: "Закрити" };
+    var back = document.activeElement, box = document.createElement("div");
+    box.className = "refv"; box.setAttribute("role", "dialog"); box.setAttribute("aria-modal", "true"); box.tabIndex = -1;
+    var close = function () { box.remove(); if (back && back.focus) back.focus(); };
+    var show = function () {
+      var c = list[i], pics = (c.files || []).filter(isImage), img = pics[pics.length - 1];
+      box.setAttribute("aria-label", c.title || "");
+      box.innerHTML = '<img class="refv-img" alt="' + esc(c.title || "") + '" src="' + esc(img.url) + '">' +
+        '<div class="refv-bar"><b>' + esc(c.title || "") + '</b>' + (list.length > 1 ? '<span class="muted">' + (i + 1) + ' / ' + list.length + '</span>' : '') +
+        '<button class="btn" data-rv="card">' + RV.card + '</button><button class="btn" data-rv="x" aria-label="' + RV.close + '">✕</button></div>' +
+        (list.length > 1 ? '<button class="refv-nav refv-prev" data-rv="prev" aria-label="' + RV.prev + '">‹</button><button class="refv-nav refv-next" data-rv="next" aria-label="' + RV.next + '">›</button>' : '');
+    };
+    var go = function (d) { if (list.length > 1) { i = (i + d + list.length) % list.length; show(); } };
+    box.addEventListener("click", function (ev) {
+      var b = ev.target.closest("[data-rv]"), a = b && b.dataset.rv;
+      if (a === "prev") return go(-1); if (a === "next") return go(1);
+      if (a === "card") { var c = list[i]; close(); return openCard(c); }
+      if (a === "x" || ev.target === box) close();
+    });
+    box.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") { ev.stopPropagation(); close(); } else if (ev.key === "ArrowLeft") go(-1); else if (ev.key === "ArrowRight") go(1);
+    });
+    show(); document.body.appendChild(box); box.focus();
   }
   $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); render(); });
   // 🔍 by the name over the menu opens the search with its status filters; closing it clears both

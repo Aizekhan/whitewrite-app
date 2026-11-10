@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.115.5 (2026-11-10)
+**Version:** 2.115.6 (2026-11-10)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -761,6 +761,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.115.6** (owner) «Референси»: a click on a reference card opens the picture on the whole screen (`gamebible.js refView`, `.refv`) — ‹ › / arrow keys through the references shown, «✎ Картка» opens the card editor, Esc / ✕ / backdrop closes
 - **v2.115.5** (owner) «Карта світу»: a background picture — `worlds/{w}.mapImage { url, path, name }` (world owner, written by the client; Storage `worlds/{w}/cover/worldmap-*` under the cover rules: owner, image ≤ 10 MB, any plan; the old file is removed on change / «✕ Прибрати»; world deletion clears the prefix); an SVG `<image class="wmap-bg">` (meet) under the grid and the locations
 - **v2.115.4** (owner) «Карта гри»: «◌ Сховати зони» / «◍ Показати зони» — `gm.hide` (localStorage `ww-gm-hide`) → `.gm-map.is-hide` hides zone polygons, links, link icons and labels except the selected zone; draw / link modes always show them
 - **v2.115.3** (owner) a faction banner shows a bigger emblem (up to 118 px) and only the status — the «канон» pill, 📎 / ⟡ counts and the 🖌 style mark are left to the card / dossier
@@ -937,5 +938,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-10 (v2.115.5)
+**Last updated:** 2026-11-10 (v2.115.6)
 **Maintained by:** WhiteWrite Team
