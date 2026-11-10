@@ -1126,7 +1126,7 @@
     var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; }, empties = [];
     subs.concat(extra).forEach(function (g) {
       var list = by[g] || [];
-      if (!list.length && items.length) return empties.push(g); // the cards live elsewhere: the empty subsections fold into one line below
+      if (!list.length && items.length && !freshSubs[s.id + "|" + g]) return empties.push(g); // the cards live elsewhere: the empty subsections fold into one line below
       html += block(g, head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>'));
     });
     if (loose.length || !(subs.length + extra.length)) {
@@ -1234,6 +1234,7 @@
       var r = drag.card.getBoundingClientRect();
       drag.on = true; drag.dx = drag.x - r.left; drag.dy = drag.y - r.top;
       drag.ghost = drag.card.cloneNode(true); drag.ghost.classList.add("drag-ghost"); drag.ghost.style.width = r.width + "px";
+      drag.ghost.style.height = r.height + "px"; drag.ghost.style.padding = getComputedStyle(drag.card).padding; // % paddings (a faction banner) would count from the page
       document.body.appendChild(drag.ghost); drag.card.classList.add("dragging"); document.body.classList.add("is-dragging");
     }
     ev.preventDefault();
@@ -1256,6 +1257,15 @@
     dragBlockClick = true; setTimeout(function () { dragBlockClick = false; }, 0);
     if (d.to && !d.to.same) dropCard(d.card, d.to);
   });
+  // a drag that never got its pointerup (the browser took over, the window lost focus): nothing stays hanging on the screen (v2.115.7)
+  function dragAbort() {
+    var d = drag; drag = null; clearDropMarks(); document.body.classList.remove("is-dragging");
+    if (d) d.card.classList.remove("dragging");
+    [].forEach.call(document.querySelectorAll(".drag-ghost"), function (x) { x.remove(); });
+  }
+  document.addEventListener("pointercancel", dragAbort); window.addEventListener("blur", dragAbort);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) dragAbort(); });
+  $("view").addEventListener("dragstart", function (ev) { if (ev.target.closest && ev.target.closest(".card")) ev.preventDefault(); }); // a card's picture is not dragged out by the browser
   $("view").addEventListener("click", function (ev) { if (dragBlockClick) { ev.stopPropagation(); ev.preventDefault(); } }, true);
   // The new order of the target subsection (index → order) and the dragged card's subsection; only what changed is written.
   function dropCard(card, to) {
@@ -1285,11 +1295,16 @@
     if (n) batch.commit().catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); render(); });
   }
 
+  var freshSubs = {}; // subsections made in this visit: shown as their own block (not folded into «Порожні» below) and scrolled to (v2.115.7)
+  function ownSubs(s) { var own = ((inCanon(s) ? world : game) || {}).subsections || {}; return Array.isArray(own[s.id]) && own[s.id].length; }
   function newSubsection() {
     var s = sec(section);
     askName(STR.sub.title, STR.sub.ph, function (name) {
       if (!name) return;
-      var list = subsOf(s); if (list.indexOf(name) < 0) saveSubs(s, list.concat(name));
+      freshSubs[s.id + "|" + name] = 1;
+      var list = subsOf(s), seen = function () { var el = $("view").querySelector('.subsec[data-sub="' + CSS.escape(name) + '"]'); if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); edFlash(el); } };
+      if (list.indexOf(name) < 0) saveSubs(s, list.concat(name)).then(function () { setTimeout(seen, 150); }, function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
+      else seen();
       if (game && PAL_SECS.indexOf(s.id) >= 0) groupPalDialog(name);
     });
   }
@@ -1519,7 +1534,7 @@
     var hv = (c.files || []).filter(heavy).sort(function (a, b) { return b.tris - a.tris; })[0];
     if (hv) tags.unshift(polyMark(hv));
     var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
-    if (c.section === "factions") tags = tags.slice(0, 1); // 🚩 a banner shows only its status — «канон», files, the style mark live inside the card (owner, v2.115.3)
+    if (c.section === "factions") tags = []; // 🚩 a banner carries no tags — status, «канон», files, the style mark live inside the card (owner, v2.115.3 / v2.115.7)
     var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
     return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id, c.banner) : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
@@ -1604,7 +1619,7 @@
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
     else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
-    else if (!list.length && !s.special) html += emptySecHtml(s);
+    else if (!list.length && !s.special) html += emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
     else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
