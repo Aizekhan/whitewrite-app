@@ -2308,11 +2308,14 @@ body.at-home .back-fab{ display:none; }
       var steps = list.filter(function (a) { return a.step; }).sort(function (a, b) { return a.step - b.step; });
       var rest = list.filter(function (a) { return !a.step; }), intro = rest.filter(function (a) { return a.id === "agent-start"; });
       rest = rest.filter(function (a) { return a.id !== "agent-start"; });
+      var adv = rest.filter(function (a) { return a.adv; }); // the manual setup steps (kb.js adv) — out of the main road (v2.120)
+      rest = rest.filter(function (a) { return !a.adv; });
       var stage = "";
       cards = intro.map(card).join("") + '<ol class="road">' + steps.map(function (a) {
         var head = a.stage !== stage ? '<li class="road__stage">' + KB.stages[stage = a.stage] + '</li>' : '';
         return head + '<li class="road__s"><span class="road__n">' + a.step + '</span>' + card(a) + '</li>';
-      }).join("") + '</ol>' + (rest.length ? '<div class="vsec-h">' + svg("library") + KB.stages.ref + '</div><div class="grid grid--kb">' + rest.map(card).join("") + '</div>' : '');
+      }).join("") + '</ol>' + (rest.length ? '<div class="vsec-h">' + svg("library") + KB.stages.ref + '</div><div class="grid grid--kb">' + rest.map(card).join("") + '</div>' : '') +
+        (adv.length ? '<div class="vsec-h">' + svg("library") + (KB.stages.adv || KB.stages.ref) + '</div><div class="grid grid--kb">' + adv.map(card).join("") + '</div>' : '');
     }
 
     views.kb.innerHTML =

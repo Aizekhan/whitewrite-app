@@ -6885,18 +6885,21 @@
       stt: { completed: "", partial: "частково", experimental: "експеримент", planned: "заплановано" },
       tests: "тести {p}/{r}", files: "файлів: {n}",
       envNone: "Перевірки ще не було.", envAt: "Перевірено {d}",
-      // ⚙ Налаштування → «Claude Code»: the once-per-game steps 3–7 and 9 of the KB road (kb.js), each ticked from real data
-      road: { title: "Claude Code — підключення гри", hint: "Зроби кроки по черзі — галочки ставляться самі. Номери ті самі, що в Базі знань → «Шлях з агентом» (кроки 1–2 — один раз на ПК).",
-        done: "Готово {n} з {t}", ok: "готово", change: "Змінити", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
-        launch: "Тека гри й запуск", key: "Ключ MCP", design: "Дизайн гри → продакшн-план", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
+      // ⚙ Налаштування → «Claude Code»: two steps for the person + the state from live data + «Для досвідчених» (kb.js agent-install / agent-connect)
+      road: { title: "Claude Code — підключення гри", hint: "Тобі — лише два кроки. Решту Claude Code встановить і перевірить сам, а галочки нижче поставить, коли зробить.",
+        s1: "Крок 1. Встанови Claude Code", s1Hint: "Відкрий PowerShell (Пуск → «PowerShell»), встав цей рядок і натисни Enter:", s1Login: "Потім напиши <b>claude</b> і увійди у свій акаунт Claude (підписка Pro / Max або API-ключ). Уже встановлено — пропусти.",
+        s2: "Крок 2. Підключи гру", s2Hint: "Впиши теку гри на ПК і натисни кнопку — одна вставка в PowerShell створить теку, підключить WhiteWrite новим ключем, додасть блок у CLAUDE.md і запустить Claude Code. Ключ — лише в скопійованому блоці, тож копіюй, коли готовий вставити.",
+        askHint: "Далі в Claude Code напиши:", ask: "Підготуй усе для роботи з WhiteWrite", askAfter: "Агент сам встановить і перевірить решту (Git, Unity, фреймворк, журнал), а тебе попросить лише увійти в акаунти (Unity Hub, GitHub) чи підтвердити встановлення.",
+        stTitle: "Стан", stClaude: "Claude Code підключено", stClaudeWait: "ключ є — Claude Code ще не звертався", stEnv: "Середовище Unity готове", stEnvBad: "агент знайшов проблеми — він скаже, що зробити", stLog: "Журнал розробки підключено", stPlan: "Продакшн-план є", stRepo: "GitHub-репозиторій",
+        next: "Далі: опиши гру —", adv: "Для досвідчених", advShow: "▾ Показати", advHint: "Те саме вручну: окремий ключ, тека без PowerShell, запуск, перевірка середовища, журнал, GitHub. Зазвичай не потрібно — Claude Code робить це сам.",
+        done: "Готово {n} з {t}", ok: "готово", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
+        launch: "Тека гри й запуск", key: "Ключ MCP", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
         keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри (ключ ляже у змінну середовища, не в налаштування). Потім перезапусти Claude Code або перевір /mcp.",
         keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
         agentW: "Claude Code може створювати й змінювати картки, квести й діалоги — коли ти просиш його в чаті",
         agentWHint: "Кожну зміну агента видно на картці («🤖 Змінив Claude Code») і її можна повернути одним кліком. Вимкнено — агент лише читає й пропонує зміни (запити на зміну).",
-        allTitle: "Швидкий старт", allBtn: "⧉ Скопіювати все для PowerShell", allHint: "Одна вставка в PowerShell робить кроки 3, 4 і 7: створює теку гри, підключає WhiteWrite новим ключем MCP, додає блок журналу в CLAUDE.md (один раз) і запускає Claude Code. Ключ — лише в цьому блоці, тож копіюй, коли готовий вставити.", allDir: "Спершу впиши теку гри в кроці 3.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).", folderBtn: "📂 Підготувати теку гри", folderHint: "📂 — без PowerShell: обери (або створи) теку гри, і браузер сам запише туди .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і рядок .mcp.json у .gitignore (ключ не потрапить у репо). Потім відкрий теку в Провіднику → правий клік → «Відкрити в терміналі» → запусти рядок, який зʼявиться тут. Claude Code один раз спитає, чи довіряти серверу whitewrite з проєкту, — відповідай «так».", folderNo: "📂 Підготувати теку без PowerShell можна в Chrome чи Edge на компʼютері — цей браузер не дає сайтам записувати в теки.", folderDone: "Готово в теці «{dir}»: {files}. Запусти в ній:",
-        designHint: "Агент бере задачі з продакшн-плану, а план AI складає з Біблії гри. Є документи чи нотатки — імпортуй їх; потім «Аналіз і аудит» ✦ → «Продакшн-план» ✦.",
-        planYes: "Продакшн-план є.", planNo: "Плану ще немає.", toPlan: "До продакшн-плану →",
-        firstHint: "Нова гра — запит із кроку 6 Бази знань (з фреймворком чи без). Unity-проєкт уже є — ця команда: агент перевірить підключення, середовище, знання проєкту, фреймворк і виконає найменшу задачу.",
+        allBtn: "⧉ Скопіювати все для PowerShell", allDir: "Спершу впиши теку гри.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).", folderBtn: "📂 Підготувати теку гри", folderHint: "📂 — без PowerShell: обери (або створи) теку гри, і браузер сам запише туди .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і рядок .mcp.json у .gitignore (ключ не потрапить у репо). Потім відкрий теку в Провіднику → правий клік → «Відкрити в терміналі» → запусти рядок, який зʼявиться тут. Claude Code один раз спитає, чи довіряти серверу whitewrite з проєкту, — відповідай «так».", folderDone: "Готово в теці «{dir}»: {files}. Запусти в ній:",
+        toPlan: "До продакшн-плану →",
         envAgain: "Перевірити середовище ще раз",
         logHint: "Встав цей блок у CLAUDE.md у теці гри — і агент звітуватиме після кожної сесії (з цього пишуться й пости маркетингу).",
         logBlock: "Показати блок", logCopy: "Копіювати блок для CLAUDE.md", logs: "Отримано звітів: {n}", toLog: "До журналу →",
@@ -6920,17 +6923,20 @@
       stt: { completed: "", partial: "partial", experimental: "experimental", planned: "planned" },
       tests: "tests {p}/{r}", files: "files: {n}",
       envNone: "No check yet.", envAt: "Checked {d}",
-      road: { title: "Claude Code — connecting the game", hint: "Do the steps in order — the ticks set themselves. The numbers match Knowledge base → “The path with the agent” (steps 1–2 are once per PC).",
-        done: "Done {n} of {t}", ok: "done", change: "Change", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
-        launch: "Game folder and launch", key: "MCP key", design: "Game design → production plan", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
+      road: { title: "Claude Code — connecting the game", hint: "Only two steps are yours. Claude Code installs and checks the rest itself and sets the ticks below when it is done.",
+        s1: "Step 1. Install Claude Code", s1Hint: "Open PowerShell (Start → “PowerShell”), paste this line and press Enter:", s1Login: "Then type <b>claude</b> and sign in to your Claude account (a Pro / Max plan or an API key). Already installed — skip it.",
+        s2: "Step 2. Connect the game", s2Hint: "Type the game's folder on your PC and press the button — one paste into PowerShell creates the folder, connects WhiteWrite with a new key, adds a block to CLAUDE.md and starts Claude Code. The key is only in the copied block, so copy it when you are ready to paste.",
+        askHint: "Then write in Claude Code:", ask: "Set everything up for WhiteWrite", askAfter: "The agent installs and checks the rest itself (Git, Unity, the framework, the log) and asks you only to sign in to accounts (Unity Hub, GitHub) or to confirm an install.",
+        stTitle: "Status", stClaude: "Claude Code connected", stClaudeWait: "a key exists — Claude Code has not called yet", stEnv: "Unity environment ready", stEnvBad: "the agent found problems — it will tell you what to do", stLog: "Development log connected", stPlan: "Production plan exists", stRepo: "GitHub repository",
+        next: "Next: describe the game —", adv: "For advanced users", advShow: "▾ Show", advHint: "The same by hand: a separate key, the folder without PowerShell, the launch, the environment check, the log, GitHub. Usually not needed — Claude Code does it itself.",
+        done: "Done {n} of {t}", ok: "done", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
+        launch: "Game folder and launch", key: "MCP key", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
         keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder (the key goes into an environment variable, not the settings). Then restart Claude Code or check /mcp.",
         keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
         agentW: "Claude Code may create and change cards, quests and dialogues — when you ask it in the chat",
         agentWHint: "Every change by the agent shows on the card (“🤖 Changed by Claude Code”) and can be undone with one click. Off — the agent only reads and proposes changes (change requests).",
-        allTitle: "Quick start", allBtn: "⧉ Copy everything for PowerShell", allHint: "One paste into PowerShell does steps 3, 4 and 7: creates the game folder, connects WhiteWrite with a new MCP key, adds the log block to CLAUDE.md (once) and starts Claude Code. The key is only in this block, so copy it when you are ready to paste.", allDir: "First type the game folder in step 3.", allDone: "Copied — paste it into PowerShell (a new key has been created).", folderBtn: "📂 Prepare the game folder", folderHint: "📂 — no PowerShell: pick (or create) the game folder and the browser writes .mcp.json with a new MCP key, the log block in CLAUDE.md and a .mcp.json line in .gitignore (the key never reaches the repo). Then open the folder in Explorer → right-click → «Open in Terminal» → run the line that appears here. Claude Code asks once whether to trust the project's whitewrite server — answer yes.", folderNo: "📂 Preparing the folder without PowerShell works in Chrome or Edge on a computer — this browser doesn't let sites write to folders.", folderDone: "Done in «{dir}»: {files}. Run in it:",
-        designHint: "The agent takes tasks from the production plan, and AI builds the plan from the Game Bible. Have documents or notes — import them; then “Analysis & audit” ✦ → “Production plan” ✦.",
-        planYes: "The production plan exists.", planNo: "No plan yet.", toPlan: "To the production plan →",
-        firstHint: "A new game — the request from step 6 of the Knowledge base (with the framework or without). The Unity project exists — this command: the agent checks the connection, the environment, the project knowledge, the framework and does the smallest task.",
+        allBtn: "⧉ Copy everything for PowerShell", allDir: "First type the game folder.", allDone: "Copied — paste it into PowerShell (a new key has been created).", folderBtn: "📂 Prepare the game folder", folderHint: "📂 — no PowerShell: pick (or create) the game folder and the browser writes .mcp.json with a new MCP key, the log block in CLAUDE.md and a .mcp.json line in .gitignore (the key never reaches the repo). Then open the folder in Explorer → right-click → «Open in Terminal» → run the line that appears here. Claude Code asks once whether to trust the project's whitewrite server — answer yes.", folderDone: "Done in «{dir}»: {files}. Run in it:",
+        toPlan: "To the production plan →",
         envAgain: "Check the environment again",
         logHint: "Paste this block into CLAUDE.md in the game's folder — and the agent reports after every session (marketing posts are written from it too).",
         logBlock: "Show the block", logCopy: "Copy the block for CLAUDE.md", logs: "Reports received: {n}", toLog: "To the log →",
@@ -8779,38 +8785,54 @@
     else h += '<p class="muted">' + KN.envNone + '</p>';
     return h + '<details class="kn-guide"><summary>' + KN.road.envAgain + '</summary>' + guideHtml("unity_env") + '</details>';
   }
-  // ⚙ Налаштування → «Claude Code»: one road of the once-per-game steps, numbered as in the KB (kb.js agent-* step 3–7, 9)
+  // ⚙ Налаштування → «Claude Code» (v2.120, owner: «забагато інформації»): two steps for the person — install Claude Code, connect the game
+  // (allInOne) and ask «Підготуй усе…» — the agent does the rest from get_guide setup; below, only the state the agent leaves in live data
+  // (a key used, env/current, activity sessions, the plan, the repo). The manual tools fold into «Для досвідчених» (kb.js agent-*).
+  var CC_INSTALL = "irm https://claude.ai/install.ps1 | iex"; // Claude Code's official Windows installer (kb.js agent-install, setup-guides.js)
+  var advOpen = false;
   function agentRoadHtml() {
     var R = KN.road, live = keys.filter(function (k) { return !k.revoked; }), G = window.__SETUP_GUIDES, logMd = G && G.guide("activity_log");
-    var step = function (n, title, done, kb, body, optional) {
-      var h = '<h3>' + title + (optional ? ' <span class="muted">· ' + R.opt + '</span>' : '') + (done ? ' <span class="sroad__ok">' + R.ok + '</span>' : '') + '</h3>';
-      // a done step folds into its title line (v2.89): «Змінити» opens it; a key just made stays open — it is shown once
-      if (done && !(n === 4 && newKey)) return '<li class="sroad__s is-done"><span class="sroad__n">' + n + '</span><details class="sroad__b sroad__fold"><summary>' + h + '<span class="sroad__edit">' + R.change + '</span></summary>' + body +
-        '<a href="#" class="kblink" data-kb="' + kb + '">' + R.more + '</a></details></li>';
-      return '<li class="sroad__s' + (done ? ' is-done' : '') + '"><span class="sroad__n">' + n + '</span><div class="sroad__b">' + h + body +
+    var owner = ME.owner && canWrite, used = live.some(function (k) { return !!k.lastUsedAt; });
+    var step = function (n, title, done, kb, body) {
+      return '<li class="sroad__s' + (done ? ' is-done' : '') + '"><span class="sroad__n">' + n + '</span><div class="sroad__b"><h3>' + title + (done ? ' <span class="sroad__ok">' + R.ok + '</span>' : '') + '</h3>' + body +
         '<a href="#" class="kblink" data-kb="' + kb + '">' + R.more + '</a></div></li>';
     };
-    var s = [
-      [3, R.launch, !!(game.launch && game.launch.dir), "agent-launch", launchHtml()],
-      [4, R.key, live.length > 0, "agent-new-game", '<p class="hint">' + R.keyHint + '</p>' +
-        (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
-        '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
-        (ME.owner && canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : !ME.owner ? '<span class="hint">' + STR.exOwnerOnly + '</span>' : '') + '</div>' +
-        (ME.owner ? '<label class="imp"><input type="checkbox" id="st-agentw"' + (game.agentWrite === false ? '' : ' checked') + '><span>' + esc(R.agentW) + '</span></label><p class="hint">' + esc(R.agentWHint) + '</p>' : '')],
-      [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn' + (planDoc.plan || cards.length > 2 ? '' : ' primary') + '" id="st-draft">' + STR.stDraft + costMark("draft") + '</button><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
-        '<button class="btn" data-gosec="plan">' + R.toPlan + '</button><span class="muted">' + (planDoc.plan ? R.planYes : R.planNo) + '</span></div><p class="hint">' + STR.draftHint + ' ' + STR.stImportHint + '</p>'],
-      [6, R.first, !!envDoc, "agent-first", '<p class="hint">' + R.firstHint + '</p>' + guideHtml("setup") + envHtml()],
-      [7, R.log, actSessions.length > 0, "agent-activity", '<p class="hint">' + R.logHint + '</p>' +
-        (logMd ? '<pre hidden>' + esc(logMd.markdown) + '</pre><button class="btn' + (actSessions.length ? '' : ' primary') + '" data-copy>' + R.logCopy + '</button>' + // copy at once; the long text only on demand
-          '<details class="kn-guide"><summary>' + R.logBlock + '</summary><pre class="ln-cmd">' + esc(logMd.markdown) + '</pre></details>' : '') +
-        '<div class="setrow">' + (actSessions.length ? '<span class="muted">' + R.logs.replace("{n}", actSessions.length) + '</span>' : '') + '<button class="btn" data-gosec="activity">' + R.toLog + '</button></div>'],
-      [9, R.repo, !!(game.repo && game.repo.full), "agent-github", '<p class="hint">' + R.repoHint + '</p>' + repoHtml(), true]];
-    var need = s.filter(function (x) { return !x[5]; }), ok = need.filter(function (x) { return x[2]; }).length;
+    var s2 = owner ? '<p class="hint">' + R.s2Hint + '</p>' + launchHtml() +
+        '<div class="setrow"><button class="btn' + (used ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
+        '<p class="hint">' + R.askHint + '</p><pre class="ln-cmd">' + esc(R.ask) + '</pre><button class="btn" data-copy>⧉ ' + STR.copy + '</button><p class="hint">' + R.askAfter + '</p>'
+      : '<p class="hint">' + STR.exOwnerOnly + '</p>'; // an MCP key is the owner's (firestore.rules mcpKeys)
+    // the state: ✓ / ○ from live data, no instructions — the agent sets them (MCP calls)
+    var st = [
+      [used, R.stClaude, !used && live.length ? R.stClaudeWait : ""],
+      [!!(envDoc && envDoc.ok), R.stEnv, envDoc && !envDoc.ok ? R.stEnvBad : ""],
+      [actSessions.length > 0, R.stLog, actSessions.length ? R.logs.replace("{n}", actSessions.length) : ""],
+      [!!planDoc.plan, R.stPlan, ""],
+      [!!(game.repo && game.repo.full), R.stRepo, game.repo && game.repo.full ? game.repo.full : R.opt, true]];
+    var need = st.filter(function (x) { return !x[3]; }), ok = need.filter(function (x) { return x[0]; }).length;
+    var stHtml = '<h3>' + R.stTitle + '</h3><ul class="cc-state">' + st.map(function (x) {
+      return '<li class="' + (x[0] ? 'is-ok' : '') + '"><span aria-hidden="true">' + (x[0] ? '✓' : '○') + '</span> ' + esc(x[1]) + (x[2] ? ' <span class="muted">· ' + esc(x[2]) + '</span>' : '') + '</li>'; }).join("") + '</ul>';
+    var next = '<div class="setrow"><span class="muted">' + R.next + '</span><button class="btn' + (planDoc.plan || cards.length > 2 ? '' : ' primary') + '" id="st-draft">' + STR.stDraft + costMark("draft") + '</button>' +
+      '<button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button><button class="btn" data-gosec="plan">' + R.toPlan + '</button></div>';
+    // «Для досвідчених»: everything that was on the road before — kept for those who use it, out of sight
+    var adv = '<details class="setfold cc-adv" id="cc-adv"' + (advOpen ? ' open' : '') + '><summary><h3>' + R.adv + '</h3><span class="btn mini setfold-btn"><span class="sf-open">' + R.advShow + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary><p class="hint">' + R.advHint + '</p>' +
+      '<h4>' + R.launch + '</h4>' + (owner ? '' : launchHtml()) + launchHtml("cmd") +
+      (owner && window.showDirectoryPicker ? '<div class="setrow"><button class="btn" id="ln-folder">' + R.folderBtn + '</button></div><p class="hint">' + R.folderHint + '</p>' : '') +
+      '<h4>' + R.key + '</h4><p class="hint">' + R.keyHint + '</p>' +
+      (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
+      '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
+      (owner ? '<button class="btn" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>' +
+      (ME.owner ? '<label class="imp"><input type="checkbox" id="st-agentw"' + (game.agentWrite === false ? '' : ' checked') + '><span>' + esc(R.agentW) + '</span></label><p class="hint">' + esc(R.agentWHint) + '</p>' : '') +
+      '<h4>' + R.first + '</h4>' + guideHtml("setup") + envHtml() +
+      '<h4>' + R.log + '</h4><p class="hint">' + R.logHint + '</p>' +
+      (logMd ? '<pre hidden>' + esc(logMd.markdown) + '</pre><button class="btn" data-copy>' + R.logCopy + '</button>' +
+        '<details class="kn-guide"><summary>' + R.logBlock + '</summary><pre class="ln-cmd">' + esc(logMd.markdown) + '</pre></details>' : '') +
+      '<div class="setrow"><button class="btn" data-gosec="activity">' + R.toLog + '</button></div>' +
+      '<h4>' + R.repo + ' <span class="muted">· ' + R.opt + '</span></h4><p class="hint">' + R.repoHint + '</p>' + repoHtml() +
+      '<p><a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p></details>';
     return '<section class="setbox"><h2>' + R.title + ' <span class="sroad__count">' + R.done.replace("{n}", ok).replace("{t}", need.length) + '</span></h2>' +
-      '<p class="hint">' + R.hint + ' <a href="#" class="kblink" data-kb="agent-start">' + R.kbAll + '</a></p>' +
-      (ME.owner && canWrite ? '<div class="nbox"><h4>' + R.allTitle + '</h4><p class="hint">' + R.allHint + '</p><div class="setrow">' + (window.showDirectoryPicker ? '<button class="btn primary" id="ln-folder">' + R.folderBtn + '</button>' : '') + '<button class="btn' + (window.showDirectoryPicker ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
-        '<p class="hint">' + (window.showDirectoryPicker ? R.folderHint : R.folderNo) + '</p></div>' : !ME.owner ? '<p class="hint">' + STR.exOwnerOnly + '</p>' : '') + // an MCP key is the owner's (firestore.rules mcpKeys)
-      '<ol class="sroad">' + s.map(function (x) { return step(x[0], x[1], x[2], x[3], x[4], x[5]); }).join("") + '</ol></section>';
+      '<p class="hint">' + R.hint + '</p>' +
+      '<ol class="sroad">' + step(1, R.s1, used, "agent-install", '<p class="hint">' + R.s1Hint + '</p><pre class="ln-cmd">' + esc(CC_INSTALL) + '</pre><button class="btn" data-copy>⧉ ' + STR.copy + '</button><p class="hint">' + R.s1Login + '</p>') +
+      step(2, R.s2, used, "agent-connect", s2) + '</ol>' + stHtml + next + adv + '</section>';
   }
   // ---------- 🔌 Інтеграції: every outside service of the world / the game in one tab (functions/src/integrations.js) ----------
   var shownOpen = false; // «Розділи гри в меню» stays open while the author ticks — each tick re-renders the settings (owner, v2.106.3)
@@ -8953,6 +8975,7 @@
     if (canDev) { $("st-import").onclick = function () { $("imp-file").click(); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); } // the import price comes once the file is known (startImport)
     else bindDevLock();
     if ($("st-shown")) $("st-shown").addEventListener("toggle", function () { shownOpen = this.open; });
+    if ($("cc-adv")) $("cc-adv").addEventListener("toggle", function () { advOpen = this.open; });
     [].forEach.call(document.querySelectorAll("[data-showsec]"), function (cb) {
       cb.onchange = async function () {
         // the menu changes at once, and each tick adds / removes only its own section (quick ticks overwrote each other with the whole list — v2.107.1)
@@ -9399,20 +9422,21 @@
     return 'cd "' + (psDir(l.dir) || STR.launch.dirPh) + '"\nclaude' + (psModel(l.model) ? ' --model ' + psModel(l.model) : '') + (l.skip === false ? '' : ' --dangerously-skip-permissions');
   }
   function launchNow() { return { dir: $("ln-dir").value.trim(), model: $("ln-model").value, skip: $("ln-skip").checked }; }
-  function launchHtml() {
+  // two parts (v2.120): the folder / model / permissions sit in step 2 «Підключи гру», the launch lines alone under «Для досвідчених»
+  function launchHtml(part) {
     var l = Object.assign({ model: "opus" }, game.launch), R = STR.launch;
-    return '<p class="hint">' + R.hint + '</p>' + // the title is the step's (agentRoadHtml)
-      '<div class="setrow"><input id="ln-dir" aria-label="' + esc(R.dir) + '" placeholder="' + esc(R.dirPh) + '" value="' + esc(l.dir || "") + '">' +
+    if (part === "cmd") return '<p class="hint">' + R.hint + '</p><pre class="ln-cmd" id="ln-cmd">' + esc(launchText(l)) + '</pre>' +
+      '<div class="setrow"><button class="btn" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>';
+    return '<div class="setrow"><input id="ln-dir" aria-label="' + esc(R.dir) + '" placeholder="' + esc(R.dirPh) + '" value="' + esc(l.dir || "") + '">' +
       '<select id="ln-model" aria-label="' + esc(R.model) + '">' + [["opus", R.opus], ["sonnet", "Sonnet"], ["", R.dflt]].map(function (m) {
         return '<option value="' + m[0] + '"' + (m[0] === (l.model || "") ? " selected" : "") + '>' + esc(m[1]) + '</option>'; }).join("") + '</select></div>' +
       '<label class="imp"><input type="checkbox" id="ln-skip"' + (l.skip === false ? '' : ' checked') + '><span>' + esc(R.skip) + '</span></label>' +
-      '<p class="hint" id="ln-warn"' + (l.skip === false ? ' hidden' : '') + '>' + esc(R.skipWarn) + '</p>' +
-      '<pre class="ln-cmd" id="ln-cmd">' + esc(launchText(l)) + '</pre>' +
-      '<div class="setrow"><button class="btn primary" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>';
+      '<p class="hint" id="ln-warn"' + (l.skip === false ? ' hidden' : '') + '>' + esc(R.skipWarn) + '</p>';
   }
   function bindLaunch() {
-    var show = function () { $("ln-cmd").textContent = launchText(launchNow()); $("ln-warn").hidden = !$("ln-skip").checked; };
-    var save = function () { show(); gref().set({ launch: launchNow(), updatedAt: stamp() }, { merge: true }).then(function () { $("ln-msg").textContent = STR.launch.saved; }); };
+    if (!$("ln-dir")) return; // a team member: no folder of their own here
+    var show = function () { if ($("ln-cmd")) $("ln-cmd").textContent = launchText(launchNow()); $("ln-warn").hidden = !$("ln-skip").checked; };
+    var save = function () { show(); gref().set({ launch: launchNow(), updatedAt: stamp() }, { merge: true }).then(function () { var m = $("ln-msg") || $("ln-allmsg"); if (m) m.textContent = STR.launch.saved; }); };
     $("ln-dir").oninput = show; $("ln-dir").onchange = save; $("ln-model").onchange = save; $("ln-skip").onchange = save;
     if ($("ln-all")) $("ln-all").onclick = async function () {
       var l = launchNow(), b = this, R = KN.road;

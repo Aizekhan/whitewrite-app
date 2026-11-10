@@ -1380,8 +1380,15 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 .sroad__b{ display:grid; gap:8px; min-width:0; padding-top:6px; }
 .sroad__b h3{ margin:0; font-size:15.5px; }
 .sroad__b > .kblink{ font-size:13px; justify-self:start; }
+.sroad__b > .btn{ justify-self:start; } /* a copy button under its command, not stretched (v2.120) */
 .sroad__ok{ font:600 11px/1 Inter,sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--s-game); margin-left:6px; }
 .sroad__count{ font:600 12px/1 Inter,sans-serif; color:var(--tx-mid); margin-left:8px; letter-spacing:.02em; }
+/* the state the agent leaves (v2.120): ✓ / ○ lines, no instructions; the manual tools fold into «Для досвідчених» */
+.cc-state{ list-style:none; margin:2px 0 12px; padding:0; display:grid; gap:4px; }
+.cc-state li > span:first-child{ display:inline-block; width:1.2em; color:var(--tx-mid); }
+.cc-state li.is-ok > span:first-child{ color:var(--s-game); }
+.cc-adv{ margin-top:16px; border-top:1px solid var(--line-2); padding-top:10px; }
+.cc-adv h3{ margin:4px 0; } .cc-adv h4{ margin:16px 0 4px; }
 @media (max-width:820px){
   body, body.rail-shut{ grid-template-columns:1fr; } .rail{ display:none; } body.rail-shut #spine{ display:flex; }
   nav{ position:sticky; top:0; z-index:20; height:auto; flex-direction:column; padding:10px 16px; }
