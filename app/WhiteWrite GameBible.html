@@ -938,6 +938,9 @@ h2.group .btn.mini{ margin-left:10px; padding:2px 10px; font:500 12.5px "Inter";
 body.is-dragging, body.is-dragging *{ cursor:grabbing !important; user-select:none; }
 .grid > .card.dragging{ opacity:.35; }
 /* 🖼 the picture menu (v2.115.8) */
+/* 🤖 a change by Claude Code (v2.117) */
+.agentbar{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:10px; padding:8px 12px; border:1px solid rgba(240,169,59,.35); border-radius:10px; background:rgba(240,169,59,.08); color:var(--tx-hi); font-size:13px; }
+.agentbar[hidden]{ display:none; } .agentbar span{ flex:1 1 220px; }
 .pic-ch{ position:fixed; z-index:95; min-width:210px; display:flex; flex-direction:column; padding:6px; background:var(--bg-2); border:1px solid var(--line-2); border-radius:12px; box-shadow:0 14px 34px #000a; }
 .pic-ch button{ text-align:left; padding:9px 12px; border:0; border-radius:8px; background:transparent; color:var(--tx-hi); font:inherit; cursor:pointer; }
 .pic-ch button:hover:not([disabled]), .pic-ch button:focus-visible{ background:rgba(240,169,59,.12); } .pic-ch button.is-danger{ color:var(--s-redo); } .pic-ch button[disabled]{ opacity:.45; cursor:default; }
@@ -1439,6 +1442,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
         <button type="button" class="addf-it" role="menuitem" id="e-pic-art"><i aria-hidden="true">🎨</i><span id="e-pic-ar"></span></button></div></div>
       <button class="btn micbtn" id="e-mic" type="button"></button>
     </div>
+    <div class="agentbar" id="e-agent" role="status" hidden></div>
   </div>
   <div class="leaf-body" id="e-body"></div>
   <div class="leaf-foot">

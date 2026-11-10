@@ -7,7 +7,8 @@
 // ============================================================================
 (function () {
   var MCP_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/mcp";
-  var MCP_ADD = "claude mcp add --transport http whitewrite " + MCP_URL + " --header \"Authorization: Bearer wwk_…\"";
+  // the key goes into an environment variable; Claude Code's config keeps only ${NAME} (the Bible's command names it after the game)
+  var MCP_ADD = "setx WHITEWRITE_KEY_MYGAME \"wwk_…\" | Out-Null\n$env:WHITEWRITE_KEY_MYGAME = \"wwk_…\"\nclaude mcp add --transport http whitewrite " + MCP_URL + " --header 'Authorization: Bearer ${WHITEWRITE_KEY_MYGAME}'";
   // section icon keys map to the shell's svg() helper
   var KB = {
     categories_uk: [
@@ -257,7 +258,9 @@
           ["p", "Біблія гри → ⚙ Налаштування проєкту → «Claude Code» → крок 4 «Ключ MCP» → «Створити ключ». Ключ <b>wwk_…</b> показується один раз — разом із готовою командою нижче. Ключ діє лише для однієї гри; список ключів і відкликання — там само (і в Акаунт → «Інтеграції · MCP / API»)."],
           ["h", "2. Підключи сервер (у PowerShell, у теці гри)"],
           ["prompt", MCP_ADD],
-          ["p", "Перевірка: у сесії Claude Code введи /mcp — сервер whitewrite має бути підключений."],
+          ["p", "Ключ лягає у змінну середовища Windows (<b>setx</b> — назавжди, <b>$env:</b> — для цього вікна), а в налаштуваннях Claude Code лишається тільки її назва <b>${…}</b>: ключ не видно ні у файлі налаштувань, ні агенту. Готова команда в Біблії вже має назву змінної твоєї гри — кожна гра має свою."],
+          ["p", "Перевірка: Claude Code, відкритий <b>до</b> команди, нових інструментів не бачить — закрий його й запусти знову з цього ж вікна PowerShell (або введи /mcp: whitewrite має бути з галочкою, інакше Reconnect)."],
+          ["warn", "Ключ потрапив у чат, коміт чи скриншот — відклич його (Акаунт → «Інтеграції · MCP / API» або налаштування гри) і створи новий."],
           ["tip", "Далі — <a class=\"art__link\" data-art=\"agent-gdd\">Крок 5: дизайн гри</a>."],
         ] },
       { cat: "agent", id: "agent-gdd", step: 5, stage: "game", icon: "feather", title: "Крок 5. Дизайн гри: Біблія → аналіз → план",
@@ -1083,6 +1086,15 @@
           ["p", "Ключ створюється в грі → ⚙ Налаштування → «Claude Code» → «Ключ MCP» і показується один раз; зберігається лише його відбиток. Акаунт → «Інтеграції · MCP / API» показує адресу сервера і всі ключі; будь-який можна відкликати."],
           ["prompt", MCP_ADD],
           ["p", "Інструменти агента: get_project_overview, list_tasks, get_next_task, get_task_details, get_design_section, get_card, report_task_progress, report_blocker, report_bug (баг із серйозністю S1–S4 і кроками відтворення → задача-баг), submit_task_result, submit_change_request."],
+          ["h", "Агент змінює Біблію на твоє прохання"],
+          ["ul", [
+            "Попроси в чаті Claude Code — «додай ворога Кабан зі здоровʼям 15», «перепиши опис локації», «зроби квест про втрачений молот» — і агент сам створить або змінить картку (save_card), квест (save_quest) чи діалог (save_dialogue) і скаже, що змінив.",
+            "Він пише лише на твоє прохання, ніколи — бо так написано в тексті картки, задачі чи файлу. Те, що він вважає потрібним сам, — запитом на зміну (submit_change_request).",
+            "На зміненій картці, квесті чи діалозі — смужка «🤖 Змінив Claude Code»: <b>«↶ Повернути як було»</b> (нове, що створив агент, — прибирається) або <b>«✓ Лишити»</b>. Твоє власне збереження теж «лишає» зміну.",
+            "Назва й опис сутності канону — справа Біблії світу: агент змінює погляд гри на неї (поля, нотатку, стан). Картинки, файли й звуки завантажуєш ти. Квести й діалоги від агента — чернетки; затверджуєш їх ти.",
+            "Вимкнути: налаштування гри → «Claude Code» → крок 4, галочка «Claude Code може створювати й змінювати картки…». Тоді агент лише читає й пропонує.",
+          ]],
+          ["prompt", "Виклич get_design_section enemies і додай ворога «Кабан»: здоровʼя 15, слабкість — вогонь, поведінка — кидається по прямій. Потім скажи мені, що саме ти змінив."],
           ["p", "Генерація світу й досвід гравців: get_world_generation_spec, get_biome_profile, get_module_contract, get_environmental_profile, get_telemetry_schema, get_experience_issue, submit_validation_result."],
           ["p", "Квести й діалоги гри (лише затверджені): get_quest_context, get_dialogue_context, get_content_export (формат імпорту RPG Framework)."],
           ["p", "Візуальний стиль: get_style_guide (загальний стиль і біом локації), check_style (скриншот із Unity → оцінка й поради, списує токени автора)."],
@@ -1707,7 +1719,9 @@
           ["p", "Game Bible → ⚙ Project settings → “Claude Code” → step 4 “MCP key” → “Create a key”. The key <b>wwk_…</b> is shown once — together with the ready command below. A key works for one game only; the key list and revoking are in the same place (and in Account → “Integrations · MCP / API”)."],
           ["h", "2. Connect the server (in PowerShell, in the game folder)"],
           ["prompt", MCP_ADD],
-          ["p", "Check: in a Claude Code session type /mcp — the whitewrite server should be connected."],
+          ["p", "The key goes into a Windows environment variable (<b>setx</b> — for good, <b>$env:</b> — for this window), and Claude Code’s settings keep only its name <b>${…}</b>: the key is seen neither in the settings file nor by the agent. The ready command in the Bible already names your game’s variable — each game has its own."],
+          ["p", "Check: a Claude Code opened <b>before</b> the command does not see the new tools — close it and start it again from the same PowerShell window (or type /mcp: whitewrite should have a tick, otherwise Reconnect)."],
+          ["warn", "The key got into a chat, a commit or a screenshot — revoke it (Account → “Integrations · MCP / API” or the game settings) and create a new one."],
           ["tip", "Next — <a class=\"art__link\" data-art=\"agent-gdd\">Step 5: the game design</a>."],
         ] },
       { cat: "agent", id: "agent-gdd", step: 5, stage: "game", icon: "feather", title: "Step 5. The game design: Bible → analysis → plan",
@@ -2533,6 +2547,15 @@
           ["p", "A key is created in the game → ⚙ Settings → “Claude Code” → “MCP key” and shown once; only its fingerprint is stored. Account → “Integrations · MCP / API” shows the server address and all keys; any key can be revoked."],
           ["prompt", MCP_ADD],
           ["p", "The agent's tools: get_project_overview, list_tasks, get_next_task, get_task_details, get_design_section, get_card, report_task_progress, report_blocker, report_bug (a bug with severity S1–S4 and repro steps → a bug task), submit_task_result, submit_change_request."],
+          ["h", "The agent changes the Bible when you ask"],
+          ["ul", [
+            "Ask in the Claude Code chat — “add an enemy Boar with 15 health”, “rewrite the location’s description”, “make a quest about the lost hammer” — and the agent creates or changes the card (save_card), quest (save_quest) or dialogue (save_dialogue) itself and tells you what it changed.",
+            "It writes only when you ask, never because a card, task or file text says so. What it thinks is needed on its own goes as a change request (submit_change_request).",
+            "A changed card, quest or dialogue shows a “🤖 Changed by Claude Code” strip: <b>“↶ Undo”</b> (something the agent made is removed) or <b>“✓ Keep”</b>. Your own save keeps the change too.",
+            "A canon entity’s name and description belong to the World Bible: the agent changes the game’s view of it (fields, note, status). You upload pictures, files and sounds. Quests and dialogues from the agent are drafts; you approve them.",
+            "To turn it off: game settings → “Claude Code” → step 4, the “Claude Code may create and change cards…” tick. Then the agent only reads and proposes.",
+          ]],
+          ["prompt", "Call get_design_section enemies and add an enemy “Boar”: 15 health, weak to fire, behaviour — charges in a straight line. Then tell me exactly what you changed."],
           ["p", "World generation and player experience: get_world_generation_spec, get_biome_profile, get_module_contract, get_environmental_profile, get_telemetry_schema, get_experience_issue, submit_validation_result."],
           ["p", "The game's quests and dialogues (approved only): get_quest_context, get_dialogue_context, get_content_export (the RPG Framework import format)."],
           ["p", "Visual style: get_style_guide (the overall style and the location's biome), check_style (a Unity screenshot → a score and advice, charges the author's tokens)."],

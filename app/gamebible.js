@@ -146,6 +146,8 @@
       artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", pc: "⤒ З комп’ютера", rm: "🗑 Прибрати з картки", rmCanon: "Це картинка з канону світу — прибирається в досьє Біблії світу", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
+      agent: { by: "🤖 Змінив Claude Code на твоє прохання · {d}", undo: "↶ Повернути як було", undoNew: "↶ Прибрати (створив агент)", keep: "✓ Лишити",
+        undoNewQ: "Прибрати те, що створив Claude Code?", undone: "Повернуто як було до Claude Code." },
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
       poly: { tip: "{n} полігонів — понад 100 000: важко для гри, варто спростити (LOD / ретопологія)", n: "полігонів" },
@@ -199,7 +201,7 @@
       scTitle: "Чого бракує в біблії", scIntro: "План знайшов, чого не вистачає для розробки. Відмічене зʼявиться порожніми картками зі статусом «В роботі» — заповнюй їх сам або згодом через Claude Code.",
       exTitle: "Claude Code — виконавець", exIntro: "Claude Code у репозиторії гри підключається до WhiteWrite по MCP: бере наступну готову задачу з усім контекстом (картки, файли, критерії), працює в Unity і здає звіт сюди на перевірку. Ключ діє лише для цієї гри.",
       exConnect: "Підключити Claude Code", exAnother: "Ще один ключ", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
-      exThen: "Потім у Claude Code: «Візьми наступну задачу з WhiteWrite і виконай її».", exUsed: "останній виклик", exNever: "ще не було", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
+      exThen: "Ключ ляже у змінну середовища Windows, а в налаштуваннях Claude Code буде лише її назва. Claude Code, уже відкритий, нових інструментів не бачить: закрий його й запусти знову з цієї теки (або перевір /mcp — whitewrite має бути з галочкою). Потім: «Візьми наступну задачу з WhiteWrite і виконай її».", exUsed: "останній виклик", exNever: "ще не було", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
       exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну", framework: "надіслав маніфест фреймворку" },
       ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
       progress: "Прогрес", acceptTitle: "Критерії приймання", tests: "Тести", testsNone: "не запускались", report: "Звіт", changes: "Змінені файли",
@@ -476,6 +478,8 @@
       artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", pc: "⤒ From the computer", rm: "🗑 Remove from the card", rmCanon: "This picture is from the world canon — remove it in the World Bible dossier", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
+      agent: { by: "🤖 Changed by Claude Code at your request · {d}", undo: "↶ Undo", undoNew: "↶ Remove (made by the agent)", keep: "✓ Keep",
+        undoNewQ: "Remove what Claude Code made?", undone: "Back to how it was before Claude Code." },
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
       poly: { tip: "{n} polygons — over 100,000: heavy for a game, worth simplifying (LOD / retopology)", n: "polygons" },
@@ -529,7 +533,7 @@
       scTitle: "Missing from the bible", scIntro: "The plan found what development still lacks. Ticked items become empty cards with the “In progress” status — fill them yourself or later through Claude Code.",
       exTitle: "Claude Code — executor", exIntro: "Claude Code in the game repository connects to WhiteWrite over MCP: it takes the next ready task with its full context (cards, files, criteria), works in Unity and hands a report in here for review. The key works for this game only.",
       exConnect: "Connect Claude Code", exAnother: "Another key", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
-      exThen: "Then in Claude Code: “Take the next task from WhiteWrite and do it”.", exUsed: "last call", exNever: "never", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
+      exThen: "The key goes into a Windows environment variable; Claude Code’s settings keep only its name. A Claude Code that is already open does not see the new tools: close it and start it again from this folder (or check /mcp — whitewrite should have a tick). Then: “Take the next task from WhiteWrite and do it”.", exUsed: "last call", exNever: "never", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
       exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request", framework: "sent the framework manifest" },
       ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
       progress: "Progress", acceptTitle: "Acceptance criteria", tests: "Tests", testsNone: "not run", report: "Report", changes: "Changed files",
@@ -879,6 +883,14 @@
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
   var MCP_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/mcp";
+  // 🔑 the MCP key lives in a Windows environment variable (setx + this window), Claude Code's config keeps only ${NAME} (v2.117, MCP feedback):
+  // the key is not written in the command's config, nor seen by the agent; one variable per game (several games on one PC)
+  function keyVar() { return "WHITEWRITE_KEY_" + String(gameId || "").replace(/[^A-Za-z0-9]/g, "_").toUpperCase(); }
+  function mcpAddCmd(key) {
+    var v = keyVar();
+    return 'setx ' + v + ' "' + key + '" | Out-Null\n$env:' + v + ' = "' + key + '"\n' +
+      "claude mcp add --transport http whitewrite " + MCP_URL + " --header 'Authorization: Bearer ${" + v + "}'";
+  }
 
   // ---------- state ----------
   var params = new URLSearchParams(location.search);
@@ -1338,6 +1350,23 @@
   }
   function sec(id) { return CANON.concat(gameSectionsAll(), [SETTINGS]).filter(function (s) { return s.id === id; })[0] || GAME[0]; } // hidden sections too: their cards keep their fields
 
+  // 🤖 a change Claude Code made on the user's word (MCP save_card / save_quest / save_dialogue, v2.117): agentPrev = the version before it
+  function agentOf(c) { return c && c.agentAt ? { at: c.agentAt, prev: c.agentPrev || {}, doc: c.id } : null; }
+  function agentBar(a, can) {
+    if (!a) return "";
+    var at = new Date(a.at).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return '<span>' + esc(STR.agent.by.replace("{d}", at)) + '</span>' + (can ? '<button type="button" class="btn mini" data-agundo>' + esc(a.prev._new ? STR.agent.undoNew : STR.agent.undo) + '</button>' +
+      '<button type="button" class="btn ghost mini" data-agkeep>' + esc(STR.agent.keep) + '</button>' : '');
+  }
+  var AGENT_CLEAR = function () { var D = firebase.firestore.FieldValue.delete(); return { agentPrev: D, agentAt: D, agentKey: D }; };
+  // ↶ back to the version before the agent: a new card / quest / dialogue is removed, a changed one gets its old fields back (null = there was none)
+  async function agentUndo(ref, prev) {
+    if (prev._new) return ref.delete();
+    var D = firebase.firestore.FieldValue.delete(), body = Object.assign(AGENT_CLEAR(), { updatedAt: stamp() });
+    Object.keys(prev).forEach(function (k) { body[k] = prev[k] === null ? D : prev[k]; });
+    return ref.update(body); // update, not merge: the old fields map replaces the new one
+  }
+
   // Unified card view: a canon entity seen through this game, or a game-only card.
   function canonCard(e, s) {
     var c = cards.filter(function (x) { return x.canonRef === e.id; })[0] || {};
@@ -1346,7 +1375,7 @@
     var gk = groupKey(s), dflt = s.groups && !(c.fields && c.fields[gk]) ? canonShelf(e) : null;
     if (dflt && dflt.s.id === s.id && dflt.group) { c = Object.assign({}, c); c.fields = Object.assign({}, c.fields); c.fields[gk] = dflt.group; }
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, banner: e.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, banner: e.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
   }
   // v2.104.4 (owner): a canon character in a game is a hero / ally / NPC («Герої та NPC») or an enemy / boss («Вороги й боси») —
   // by its role and world group; the shelf stored on its game card wins (the author moved it, or it was sorted when taken)
@@ -1389,7 +1418,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
   }
   function allCards() {
     var out = [];
@@ -3026,9 +3055,9 @@
   function openQD(col, id, preset) {
     if (qdDirty()) return unsavedOk(true, function () { qed = null; openQD(col, id, preset); });
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
-    if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order"].indexOf(k) < 0) own[k] = x[k]; });
+    if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order", "agentPrev", "agentAt", "agentKey"].indexOf(k) < 0) own[k] = x[k]; });
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
-    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d, sel: 0, detail: false, open: {}, pq: "" }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game"; // sel: the open line / stage; open: the author's disclosures
+    qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d, sel: 0, detail: false, open: {}, pq: "", agent: agentOf(x) }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game"; // sel: the open line / stage; open: the author's disclosures
     if (section !== col) { section = col; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
   }
@@ -3179,7 +3208,8 @@
     var pfSel = pf ? (pf.dataset.qpq ? "[data-qpq]" : '[data-qtog="' + pf.dataset.qtog + '"][data-id="' + (window.CSS && CSS.escape ? CSS.escape(pf.dataset.id || "") : pf.dataset.id) + '"]') : "";
     $("view").innerHTML = '<div class="qed" id="q-ed" data-id="' + esc(q.id) + '" tabindex="-1">' +
       edHead({ back: 'data-qact="back"', backLabel: isQ ? ED.backQ : ED.backD, title: d.title || (isQ ? QD.newQ : QD.newD), progId: "q-prog", prog: qdProgHtml(), state: canQuest ? "q-state" : "",
-        actions: canQuest ? '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button>' : '' }) + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
+        actions: canQuest ? '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button>' : '' }) +
+      (qed.agent ? '<div class="agentbar" role="status">' + agentBar(qed.agent, canQuest).replace("data-agundo", 'data-qact="agUndo"').replace("data-agkeep", 'data-qact="agKeep"') + '</div>' : '') + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
       '<div class="qbox" id="q-issues" aria-live="polite">' + qdIssuesHtml() + '</div>' +
       (canQuest ? (q.isNew ? '' : '<div class="row wsave"><button class="btn danger" data-qact="delete">' + QD.del + '</button></div>') : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') + '</div>';
     if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input:not(.qpq),textarea,select,[data-qtog],[data-qact^=add],[data-qact^=rm]"), function (el) { el.disabled = true; });
@@ -3508,6 +3538,7 @@
     if (p[0] === "back") { unsavedOk(qdDirty(), function () { qed = null; render(); }); return; }
     if (p[0] === "save") return saveQD();
     if (p[0] === "delete") return deleteQD();
+    if (p[0] === "agUndo" || p[0] === "agKeep") return qdAgent(p[0] === "agUndo");
     if (p[0] === "openSrc") return openSrc();
     if (p[0] === "ai") return confirmCost(qed.col === "quests" ? "questDraft" : "dialogueDraft", aiDraft);
     if (p[0] === "pAcc") { propAccept(p[1]); renderQEditor(); return; }
@@ -3538,15 +3569,24 @@
     if (k >= 0) l.splice(k, 1); else l.push(id);
     qed.d[field] = l; renderQEditor();
   }
+  async function qdAgent(undo) { // 🤖 «↶ Повернути як було» / «✓ Лишити» on a quest or dialogue Claude Code saved
+    var q = qed, a = q && q.agent; if (!a) return;
+    var ref = gref().collection(q.col).doc(q.id);
+    try {
+      if (!undo) { await ref.set(AGENT_CLEAR(), { merge: true }); q.agent = null; renderQEditor(); return; }
+      if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
+      await agentUndo(ref, a.prev); qed = null; render(); notify(STR.agent.undone);
+    } catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
+  }
   async function saveQD() {
     var q = qed, btn = $("q-save");
     q.d.title = String(q.d.title || "").trim() || (q.col === "quests" ? QD.newQ : QD.newD);
-    var body = Object.assign(JSON.parse(JSON.stringify(q.d)), { updatedAt: stamp() }); if (q.isNew) body.createdAt = stamp();
+    var body = Object.assign(JSON.parse(JSON.stringify(q.d)), { updatedAt: stamp() }, q.agent ? AGENT_CLEAR() : {}); if (q.isNew) body.createdAt = stamp();
     btn.disabled = true; $("q-state").textContent = STR.saving;
     try {
       await gref().collection(q.col).doc(q.id).set(body, { merge: true });
       if (qed !== q) return;
-      q.isNew = false; q.first = JSON.stringify(q.d); renderQEditor(); $("q-state").textContent = STR.saved;
+      q.isNew = false; q.agent = null; q.first = JSON.stringify(q.d); renderQEditor(); $("q-state").textContent = STR.saved;
     } catch (er) { if (qed === q) { btn.disabled = false; $("q-state").textContent = STR.failed + ": " + (er.code || er.message); } }
   }
   async function deleteQD() {
@@ -5109,6 +5149,7 @@
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-mic").style.display = canWrite && dictOk(c) ? "" : "none";
     $("e-pic-w").hidden = !canWrite || STATS_SECS.indexOf(c.section) >= 0; picMenu(false);
+    $("e-agent").innerHTML = agentBar(c.agent, canWrite); $("e-agent").hidden = !c.agent;
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
@@ -6245,11 +6286,13 @@
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
         var view = { section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
           fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() };
+        if (open.agent) Object.assign(view, AGENT_CLEAR()); // the author's own save: the agent's version is the author's now
         if (draft.intent) view.intent = draft.intent;
         if (draft.place) view.place = placeBody();
         await gref().collection("cards").doc(open.id).set(view, { merge: true });
       } else {
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
+        if (open.agent) Object.assign(body, AGENT_CLEAR());
         if (draft.intent) body.intent = draft.intent;
         if (draft.place) body.place = placeBody();
         if (draft.banner) body.banner = draft.banner;
@@ -6265,6 +6308,16 @@
     }
   }
 
+  $("e-agent").addEventListener("click", async function (e) {
+    var a = open && open.agent; if (!a) return;
+    var ref = gref().collection("cards").doc(a.doc);
+    try {
+      if (e.target.closest("[data-agundo]")) {
+        if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
+        await agentUndo(ref, a.prev); closeLeaf(); notify(STR.agent.undone);
+      } else if (e.target.closest("[data-agkeep]")) { await ref.set(AGENT_CLEAR(), { merge: true }); open.agent = null; $("e-agent").hidden = true; }
+    } catch (er) { msg(STR.failed + ": " + (er.code || er.message || er)); }
+  });
   async function removeCard() {
     if (!open || open.isNew) return;
     if (open.src === "canon") {
@@ -6542,8 +6595,10 @@
       road: { title: "Claude Code — підключення гри", hint: "Зроби кроки по черзі — галочки ставляться самі. Номери ті самі, що в Базі знань → «Шлях з агентом» (кроки 1–2 — один раз на ПК).",
         done: "Готово {n} з {t}", ok: "готово", change: "Змінити", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
         launch: "Тека гри й запуск", key: "Ключ MCP", design: "Дизайн гри → продакшн-план", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
-        keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри.",
+        keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри (ключ ляже у змінну середовища, не в налаштування). Потім перезапусти Claude Code або перевір /mcp.",
         keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
+        agentW: "Claude Code може створювати й змінювати картки, квести й діалоги — коли ти просиш його в чаті",
+        agentWHint: "Кожну зміну агента видно на картці («🤖 Змінив Claude Code») і її можна повернути одним кліком. Вимкнено — агент лише читає й пропонує зміни (запити на зміну).",
         allTitle: "Швидкий старт", allBtn: "⧉ Скопіювати все для PowerShell", allHint: "Одна вставка в PowerShell робить кроки 3, 4 і 7: створює теку гри, підключає WhiteWrite новим ключем MCP, додає блок журналу в CLAUDE.md (один раз) і запускає Claude Code. Ключ — лише в цьому блоці, тож копіюй, коли готовий вставити.", allDir: "Спершу впиши теку гри в кроці 3.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).", folderBtn: "📂 Підготувати теку гри", folderHint: "📂 — без PowerShell: обери (або створи) теку гри, і браузер сам запише туди .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і рядок .mcp.json у .gitignore (ключ не потрапить у репо). Потім відкрий теку в Провіднику → правий клік → «Відкрити в терміналі» → запусти рядок, який зʼявиться тут. Claude Code один раз спитає, чи довіряти серверу whitewrite з проєкту, — відповідай «так».", folderNo: "📂 Підготувати теку без PowerShell можна в Chrome чи Edge на компʼютері — цей браузер не дає сайтам записувати в теки.", folderDone: "Готово в теці «{dir}»: {files}. Запусти в ній:",
         designHint: "Агент бере задачі з продакшн-плану, а план AI складає з Біблії гри. Є документи чи нотатки — імпортуй їх; потім «Аналіз і аудит» ✦ → «Продакшн-план» ✦.",
         planYes: "Продакшн-план є.", planNo: "Плану ще немає.", toPlan: "До продакшн-плану →",
@@ -6574,8 +6629,10 @@
       road: { title: "Claude Code — connecting the game", hint: "Do the steps in order — the ticks set themselves. The numbers match Knowledge base → “The path with the agent” (steps 1–2 are once per PC).",
         done: "Done {n} of {t}", ok: "done", change: "Change", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
         launch: "Game folder and launch", key: "MCP key", design: "Game design → production plan", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
-        keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder.",
+        keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder (the key goes into an environment variable, not the settings). Then restart Claude Code or check /mcp.",
         keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
+        agentW: "Claude Code may create and change cards, quests and dialogues — when you ask it in the chat",
+        agentWHint: "Every change by the agent shows on the card (“🤖 Changed by Claude Code”) and can be undone with one click. Off — the agent only reads and proposes changes (change requests).",
         allTitle: "Quick start", allBtn: "⧉ Copy everything for PowerShell", allHint: "One paste into PowerShell does steps 3, 4 and 7: creates the game folder, connects WhiteWrite with a new MCP key, adds the log block to CLAUDE.md (once) and starts Claude Code. The key is only in this block, so copy it when you are ready to paste.", allDir: "First type the game folder in step 3.", allDone: "Copied — paste it into PowerShell (a new key has been created).", folderBtn: "📂 Prepare the game folder", folderHint: "📂 — no PowerShell: pick (or create) the game folder and the browser writes .mcp.json with a new MCP key, the log block in CLAUDE.md and a .mcp.json line in .gitignore (the key never reaches the repo). Then open the folder in Explorer → right-click → «Open in Terminal» → run the line that appears here. Claude Code asks once whether to trust the project's whitewrite server — answer yes.", folderNo: "📂 Preparing the folder without PowerShell works in Chrome or Edge on a computer — this browser doesn't let sites write to folders.", folderDone: "Done in «{dir}»: {files}. Run in it:",
         designHint: "The agent takes tasks from the production plan, and AI builds the plan from the Game Bible. Have documents or notes — import them; then “Analysis & audit” ✦ → “Production plan” ✦.",
         planYes: "The production plan exists.", planNo: "No plan yet.", toPlan: "To the production plan →",
@@ -8343,9 +8400,10 @@
     var s = [
       [3, R.launch, !!(game.launch && game.launch.dir), "agent-launch", launchHtml()],
       [4, R.key, live.length > 0, "agent-new-game", '<p class="hint">' + R.keyHint + '</p>' +
-        (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
+        (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
         '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
-        (canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>'],
+        (canWrite ? '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>' +
+        (ME.owner ? '<label class="imp"><input type="checkbox" id="st-agentw"' + (game.agentWrite === false ? '' : ' checked') + '><span>' + esc(R.agentW) + '</span></label><p class="hint">' + esc(R.agentWHint) + '</p>' : '')],
       [5, R.design, !!planDoc.plan, "agent-gdd", '<p class="hint">' + R.designHint + '</p><div class="setrow"><button class="btn' + (planDoc.plan || cards.length > 2 ? '' : ' primary') + '" id="st-draft">' + STR.stDraft + costMark("draft") + '</button><button class="btn" id="st-import">' + STR.stImport + costMark("import") + '</button>' +
         '<button class="btn" data-gosec="plan">' + R.toPlan + '</button><span class="muted">' + (planDoc.plan ? R.planYes : R.planNo) + '</span></div><p class="hint">' + STR.draftHint + ' ' + STR.stImportHint + '</p>'],
       [6, R.first, !!envDoc, "agent-first", '<p class="hint">' + R.firstHint + '</p>' + guideHtml("setup") + envHtml()],
@@ -8397,7 +8455,7 @@
     var live = keys.filter(function (k) { return !k.revoked; });
     html += box(I.repo, repoHtml());
     if (ME.owner) html += box(I.mcp, '<p class="hint">' + I.mcpHint + '</p>' +
-      (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre><button class="btn" data-copy>' + STR.copy + '</button></div>' : '') +
+      (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
       live.map(function (k) { return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span>' + (k.label ? ' · ' + esc(k.label) : '') + '</span><button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button></div>'; }).join("") +
       '<div class="setrow"><button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>');
     html += box(I.tele, '<p class="hint">' + I.teleHint + '</p><p>' + esc(I.teleKeys.replace("{n}", (game.ingestKeys || []).length)) + '</p>' + go("data-iggo", "experience", I.teleGo));
@@ -8498,6 +8556,7 @@
     }
     $("st-gsave").onclick = async function () { var t = $("st-gname").value.trim(); if (t) { await gref().set({ title: t, updatedAt: stamp() }, { merge: true }); note(STR.stRenamed); } };
     $("engine").onchange = function (e) { gref().set({ engine: { profile: e.target.value } }, { merge: true }); };
+    if ($("st-agentw")) $("st-agentw").onchange = function (e) { gref().set({ agentWrite: e.target.checked, updatedAt: stamp() }, { merge: true }); };
     if (canDev) { $("st-import").onclick = function () { $("imp-file").click(); }; $("st-draft").onclick = startDraft; bindRepo(); bindLaunch(); } // the import price comes once the file is known (startImport)
     else bindDevLock();
     if ($("st-shown")) $("st-shown").addEventListener("toggle", function () { shownOpen = this.open; });
@@ -9843,7 +9902,7 @@
   function execHtml() {
     var live = keys.filter(function (k) { return !k.revoked; });
     var html = '<section class="psec"><h2 class="group">' + STR.exTitle + '</h2><p class="muted">' + STR.exIntro + '</p>';
-    if (newKey) html += '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>claude mcp add --transport http whitewrite ' + MCP_URL + ' --header "Authorization: Bearer ' + esc(newKey) + '"</pre>' +
+    if (newKey) html += '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre>' +
       '<button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>';
     html += live.map(function (k) {
       var used = k.lastUsedAt && k.lastUsedAt.toDate ? k.lastUsedAt.toDate().toLocaleString(LANG === "en" ? "en-GB" : "uk-UA") : STR.exNever;
@@ -9876,7 +9935,7 @@
     return "# WhiteWrite · " + String(game.title || "").replace(/[\r\n]+/g, " ") + "\n" +
       'New-Item -ItemType Directory -Force "' + dir + '" | Out-Null\n' +
       'cd "' + dir + '"\n' +
-      "claude mcp add --transport http whitewrite " + MCP_URL + ' --header "Authorization: Bearer ' + key + '"\n' +
+      mcpAddCmd(key) + "\n" +
       (md ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.activity/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
         "@'\n" + md.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
       launchText(l);
