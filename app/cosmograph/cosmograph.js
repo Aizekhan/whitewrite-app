@@ -2,7 +2,7 @@
 // A generalised port of MorraSimulator (D:\MorraSimulator\morra-simulator): orbit math, map conventions and the
 // "light on the map" idea come from there; Morra's own physics (magic, radiation roles, magosphere) stays in Morra.
 // ES module loaded on demand by gamebible.js: import("./cosmograph/cosmograph.js").then(m => m.mountCosmograph(el, opts)).
-//   opts: { config, lang, S (strings), canEdit, onSave(config) → Promise, onUploadMap(file) → Promise<url> }
+//   opts: { config, lang, S (strings), canEdit, onSave(config) → Promise, onUploadMap(file) → Promise<url>, confirm(text) → Promise<bool> }
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { position, dirToLatLon } from "./orbit.js";
@@ -17,7 +17,9 @@ const UK = {
   phase: "Фаза на старті, °", ecc: "Ексцентриситет", power: "Сила світла", reverse: "Назустріч", remove: "Прибрати", presets: "Почати з пресету",
   pEarth: "Земля", pSuns: "Три сонця", presetQ: "Замінити поточне небо пресетом?", point: "Точка", lat: "Шир.", lon: "Довг.", local: "Місцевий час",
   above: "Над горизонтом", none: "нікого — ніч", hint: "Клікни на планету — побачиш місцевий час і небо над точкою.", maxBodies: "Не більше 4",
-  speeds: [["1 год/с", 1], ["1 доба/с", "d"], ["1 тиждень/с", "w"], ["1 місяць/с", "m"], ["1 рік/с", "y"]], uploading: "Завантажую карту…",
+  speeds: [["1 год/с", 1], ["1 доба/с", "d"], ["1 тиждень/с", "w"], ["1 місяць/с", "m"], ["1 рік/с", "y"]], uploading: "Завантажую картинку…",
+  moonPic: "⤒ Картинка супутника", colourOnly: "Лише колір", mapNow: "Зараз", mapOwn: "своя карта", mapGen: "згенерована за назвою", picOwn: "своя картинка", picNone: "лише колір",
+  unsaved: "● Є незбережені зміни", notImage: "Це не картинка — потрібен JPG, PNG або WebP.", picFailed: "Не вдалося відкрити картинку — показую запасну.",
 };
 const EN = {
   dayW: "Day", monthW: "month", play: "Play", pause: "Pause", speed: "Speed", year: "Year", day: "day", edit: "Set up the sky", close: "Close", save: "Save the sky",
@@ -28,7 +30,9 @@ const EN = {
   phase: "Phase at start, °", ecc: "Eccentricity", power: "Light power", reverse: "Retrograde", remove: "Remove", presets: "Start from a preset",
   pEarth: "Earth", pSuns: "Three suns", presetQ: "Replace the current sky with a preset?", point: "Point", lat: "Lat", lon: "Lon", local: "Local time",
   above: "Above the horizon", none: "nobody — night", hint: "Click the planet to see the local time and the sky above that point.", maxBodies: "At most 4",
-  speeds: [["1 h/s", 1], ["1 day/s", "d"], ["1 week/s", "w"], ["1 month/s", "m"], ["1 year/s", "y"]], uploading: "Uploading the map…",
+  speeds: [["1 h/s", 1], ["1 day/s", "d"], ["1 week/s", "w"], ["1 month/s", "m"], ["1 year/s", "y"]], uploading: "Uploading the picture…",
+  moonPic: "⤒ Moon picture", colourOnly: "Colour only", mapNow: "Now", mapOwn: "own map", mapGen: "generated from the name", picOwn: "own picture", picNone: "colour only",
+  unsaved: "● Unsaved changes", notImage: "This is not a picture — use JPG, PNG or WebP.", picFailed: "Could not open the picture — showing a fallback.",
 };
 
 const CSS = `
@@ -57,6 +61,9 @@ const CSS = `
 .cg-body .cg-bh input[type=text]{ flex:1; }
 .cg-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .cg-msg{ color:#7fc48a; min-height:1em; }
+.cg-dirty{ font:12px "Inter",sans-serif; color:#f0a93b; text-shadow:0 1px 4px #000; }
+.cg-dirty[hidden]{ display:none; }
+.cg-now{ font-size:11.5px; color:#8a857e; }
 .cg-save{ background:linear-gradient(180deg,#f6cf7e,#d97706) !important; color:#1a1206 !important; border:none !important; font-weight:600 !important; }
 `;
 
@@ -130,7 +137,7 @@ export function mountCosmograph(host, opts) {
   host.innerHTML = `<div class="cg"><canvas></canvas><div class="cg-hud"><div class="cg-date"></div><div class="cg-time"></div></div>
     <div class="cg-info">${esc(S.hint)}</div>
     <div class="cg-bar"><button data-cg="play"></button><select data-cg="speed" aria-label="${esc(S.speed)}">${S.speeds.map((x, i) => `<option value="${i}">${esc(x[0])}</option>`).join("")}</select>
-      <span class="cg-yl"></span><input type="range" min="0" max="1000" data-cg="year" aria-label="${esc(S.year)}">${opts.canEdit ? `<button data-cg="edit">${esc(S.edit)}</button>` : ""}</div>
+      <span class="cg-yl"></span><input type="range" min="0" max="1000" data-cg="year" aria-label="${esc(S.year)}">${opts.canEdit ? `<span class="cg-dirty" hidden>${esc(S.unsaved)}</span><button data-cg="edit">${esc(S.edit)}</button>` : ""}</div>
     <aside class="cg-panel" hidden></aside></div>`;
   const root = host.querySelector(".cg"), canvas = root.querySelector("canvas"), panel = root.querySelector(".cg-panel");
 
@@ -155,8 +162,9 @@ export function mountCosmograph(host, opts) {
   const planet = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 64), new THREE.ShaderMaterial({ uniforms: uni, vertexShader: VERT, fragmentShader: FRAG }));
   scene.add(planet);
   const atmoU = { sunDir: { value: new THREE.Vector3(1, 0, 0) } };
-  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 32), new THREE.ShaderMaterial({ uniforms: atmoU, vertexShader: ATMO_V, fragmentShader: ATMO_F,
-    side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false })));
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 32), new THREE.ShaderMaterial({ uniforms: atmoU, vertexShader: ATMO_V, fragmentShader: ATMO_F,
+    side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+  scene.add(atmo);
   const marker = new THREE.Mesh(new THREE.SphereGeometry(0.018, 12, 8), new THREE.MeshBasicMaterial({ color: 0xf6cf7e }));
   marker.visible = false; planet.add(marker);
   scene.add(new THREE.AmbientLight(0xffffff, 0.04));
@@ -165,21 +173,40 @@ export function mountCosmograph(host, opts) {
   let bodies = new THREE.Group(); scene.add(bodies);
   let stars = [], moons = [], spin = { l0: 0, rate: 0 };
 
+  loader.setCrossOrigin("anonymous");
+  const srcOf = (m) => (m === EARTH_MAP ? new URL("./earth-blue-marble.jpg", import.meta.url).href : m);
+  let note = () => {}; // the editor's message line (set below)
+  // The planet map: reloaded only when the map (or, for a generated one, the name) changes; a late load of a replaced map is dropped.
+  let mapKey = null, mapTok = 0, mapNow = "";
   function setMap() {
-    const m = cfg.planet.map;
-    const done = (t) => { if (uni.map.value) uni.map.value.dispose(); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; uni.map.value = t; };
-    if (!m) return done(blankMap(cfg.planet.name.length * 7919 + 13));
-    const url = m === EARTH_MAP ? new URL("./earth-blue-marble.jpg", import.meta.url).href : m;
-    loader.setCrossOrigin("anonymous");
-    loader.load(url, done, undefined, () => done(blankMap(11)));
+    const m = cfg.planet.map, key = m || "gen:" + cfg.planet.name;
+    if (key === mapKey) return;
+    mapKey = key; const tok = ++mapTok;
+    const done = (t, src) => { if (tok !== mapTok) return t.dispose(); if (uni.map.value) uni.map.value.dispose(); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; uni.map.value = t; mapNow = src; };
+    if (!m) return done(blankMap(cfg.planet.name.length * 7919 + 13), "");
+    loader.load(srcOf(m), (t) => done(t, m), undefined, () => { if (tok === mapTok) note(S.picFailed); done(blankMap(11), ""); });
   }
+  // Moon pictures: one texture per URL, shared by the moons that use it, disposed when no moon does.
+  const texs = new Map(); // url → { tex, mats: Set<material> }
+  function useTex(url, mat) {
+    let e = texs.get(url);
+    if (!e) {
+      e = { tex: null, mats: new Set() }; texs.set(url, e); const mine = e;
+      loader.load(srcOf(url), (tx) => { if (texs.get(url) !== mine) return tx.dispose(); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; mine.tex = tx; mine.mats.forEach((m) => paint(m, tx)); },
+        undefined, () => { if (texs.get(url) === mine) note(S.picFailed); });
+    }
+    e.mats.add(mat); if (e.tex) paint(mat, e.tex);
+  }
+  const paint = (m, tx) => { m.map = tx; m.color.set(0xffffff); m.needsUpdate = true; };
   const H = () => cfg.planet.dayHours, Rp = () => cfg.planet.radiusKm;
-  const truePos = (b, t) => position({ distance: b.distanceKm, eccentricity: b.eccentricity, periodDays: b.periodDays, inclination: b.inclination, node: b.node,
+  // A body never dips into the planet: the drawn orbit keeps its closest point beyond both radii + 2% (the saved value stays as typed).
+  const truePos = (b, t) => position({ distance: Math.max(b.distanceKm, ((Rp() + b.radiusKm) * 1.02) / (1 - b.eccentricity)), eccentricity: b.eccentricity, periodDays: b.periodDays, inclination: b.inclination, node: b.node,
     phase: b.phase, reverse: b.reverse }, t, H(), cfg.planet.tilt);
   const lonOf = (v) => dirToLatLon(v).lon;
 
   function build() {
-    scene.remove(bodies); bodies.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    texs.forEach((e) => e.mats.clear());
+    scene.remove(bodies); bodies.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); if (o.dispose && o.isLight) o.dispose(); });
     bodies = new THREE.Group(); scene.add(bodies);
     const mk = (b, kind) => {
       const col = new THREE.Color(b.color), g = new THREE.Group(), r = Rp();
@@ -187,9 +214,13 @@ export function mountCosmograph(host, opts) {
       if (kind === "s") {
         mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 16), new THREE.MeshBasicMaterial({ color: col }));
         const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: glow, color: col, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
-        spr.scale.setScalar(6); mesh.add(spr);
+        spr.scale.setScalar(6); spr.material.opacity = Math.min(1, 0.15 + 0.85 * b.power); mesh.add(spr); // the glow follows the light power
         const light = new THREE.DirectionalLight(col, 1.4 * b.power); light.target.position.set(0, 0, 0); g.add(light); g.add(light.target); g.userData.light = light;
-      } else mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), new THREE.MeshStandardMaterial({ color: col, roughness: 1, metalness: 0 }));
+      } else {
+        const mat = new THREE.MeshStandardMaterial({ color: col, roughness: 1, metalness: 0 });
+        if (b.map) useTex(b.map, mat); // the picture replaces the colour once it has loaded
+        mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), mat);
+      }
       g.add(mesh); g.userData.mesh = mesh; g.userData.body = b;
       // the orbit drawn through one full period, compressed like the bodies
       const pts = [];
@@ -199,7 +230,8 @@ export function mountCosmograph(host, opts) {
       return g;
     };
     stars = cfg.stars.map((b) => mk(b, "s")); moons = cfg.moons.map((b) => mk(b, "m"));
-    uni.nS.value = stars.length; uni.nM.value = moons.length;
+    uni.nS.value = stars.length; uni.nM.value = moons.length; atmo.visible = stars.length > 0;
+    texs.forEach((e, u) => { if (!e.mats.size) { if (e.tex) e.tex.dispose(); texs.delete(u); } }); // pictures no moon uses any more
     // The planet turns so that the solar day of the first sun lasts exactly dayHours, and t = 0 is midnight at longitude 0.
     if (cfg.stars.length) {
       const s0 = truePos(cfg.stars[0], 0), s1 = truePos(cfg.stars[0], H() / 50);
@@ -278,62 +310,95 @@ export function mountCosmograph(host, opts) {
 
   // ---------- editor ----------
   const num = (k, label, v, step) => `<label>${esc(label)}<input type="number" step="${step || "any"}" data-k="${k}" value="${esc(v)}"></label>`;
+  const upBtn = (target, label) => `<label class="cg-up" style="display:inline-block"><input type="file" accept="image/*" data-up="${target}" hidden><span class="btnlike" style="cursor:pointer;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 11px;color:#f3efe7">${esc(label)}</span></label>`;
   const bodyForm = (b, kind, i) => `<div class="cg-body"><div class="cg-bh"><input type="color" data-k="${kind}.${i}.color" value="${esc(b.color)}" aria-label="${esc(S.color)}">
-      <input type="text" data-k="${kind}.${i}.name" value="${esc(b.name)}" aria-label="${esc(S.name)}"><button data-rm="${kind}.${i}">✕</button></div>
+      <input type="text" data-k="${kind}.${i}.name" value="${esc(b.name)}" aria-label="${esc(S.name)}"><button data-rm="${kind}.${i}" aria-label="${esc(S.remove)}" title="${esc(S.remove)}">✕</button></div>
     <div class="cg-g2">${num(`${kind}.${i}.radiusKm`, S.radius, b.radiusKm)}${num(`${kind}.${i}.distanceKm`, S.dist, b.distanceKm)}${num(`${kind}.${i}.periodDays`, S.period, b.periodDays)}
       ${num(`${kind}.${i}.inclination`, S.incl, b.inclination)}${num(`${kind}.${i}.node`, S.node, b.node)}${num(`${kind}.${i}.phase`, S.phase, b.phase)}
       ${num(`${kind}.${i}.eccentricity`, S.ecc, b.eccentricity, "0.01")}${kind === "stars" ? num(`${kind}.${i}.power`, S.power, b.power, "0.05") : ""}
-      <label>${esc(S.reverse)}<input type="checkbox" data-k="${kind}.${i}.reverse"${b.reverse ? " checked" : ""}></label></div></div>`;
+      <label>${esc(S.reverse)}<input type="checkbox" data-k="${kind}.${i}.reverse"${b.reverse ? " checked" : ""}></label></div>
+    ${kind === "moons" ? `<div class="cg-row">${upBtn(`moons.${i}`, S.moonPic)}${b.map ? `<button data-mmap="${i}">${esc(S.colourOnly)}</button>` : ""}<span class="cg-now">${esc(S.mapNow)}: ${esc(b.map ? S.picOwn : S.picNone)}</span></div>` : ""}</div>`;
   function form() {
     const p = cfg.planet, c = cfg.calendar;
     panel.innerHTML = `<div class="cg-row"><b style="flex:1;color:#f3efe7">${esc(S.edit)}</b><button data-act="close">${esc(S.close)}</button></div>
       <div class="cg-row">${esc(S.presets)}: <button data-preset="earth">${esc(S.pEarth)}</button><button data-preset="suns3">${esc(S.pSuns)}</button></div>
       <h4>${esc(S.planet)}</h4><label>${esc(S.name)}<input type="text" data-k="planet.name" value="${esc(p.name)}"></label>
       <div class="cg-g2">${num("planet.radiusKm", S.radius, p.radiusKm)}${num("planet.tilt", S.tilt, p.tilt)}${num("planet.dayHours", S.dayH, p.dayHours)}</div>
-      <label>${esc(S.map)}</label><div class="cg-row"><label class="cg-up" style="display:inline-block"><input type="file" accept="image/*" data-act="upload" hidden><span class="btnlike" style="cursor:pointer;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 11px;color:#f3efe7">${esc(S.mapUpload)}</span></label>
+      <label>${esc(S.map)}</label><div class="cg-row">${upBtn("planet", S.mapUpload)}
         <button data-map="earth">${esc(S.mapEarth)}</button><button data-map="none">${esc(S.mapNone)}</button></div>
+      <span class="cg-now">${esc(S.mapNow)}: ${esc(p.map === EARTH_MAP ? S.mapEarth : p.map ? S.mapOwn : S.mapGen)}</span>
       <h4>${esc(S.calendar)}</h4><label>${esc(S.months)}<input type="text" data-k="cal.monthNames" value="${esc(c.monthNames.join(", "))}"></label>
       <label>${esc(S.monthDays)}<input type="text" data-k="cal.monthDays" value="${esc(c.monthDays.join(", "))}"></label>
       <div class="cg-g2">${num("cal.startYear", S.startYear, c.startYear, "1")}<label>${esc(S.era)}<input type="text" data-k="cal.era" value="${esc(c.era)}"></label></div>
       <h4>${esc(S.stars)} <button data-add="stars"${cfg.stars.length >= MAX_BODIES ? " disabled title=\"" + esc(S.maxBodies) + "\"" : ""}>${esc(S.addStar)}</button></h4>${cfg.stars.map((b, i) => bodyForm(b, "stars", i)).join("")}
       <h4>${esc(S.moons)} <button data-add="moons"${cfg.moons.length >= MAX_BODIES ? " disabled title=\"" + esc(S.maxBodies) + "\"" : ""}>${esc(S.addMoon)}</button></h4>${cfg.moons.map((b, i) => bodyForm(b, "moons", i)).join("")}
-      <div class="cg-row"><button class="cg-save" data-act="save">${esc(S.save)}</button><span class="cg-msg"></span></div>`;
+      <div class="cg-row"><button class="cg-save" data-act="save">${esc(S.save)}</button><span class="cg-msg">${esc(msg)}</span></div>`;
   }
-  const say = (m) => { const el = panel.querySelector(".cg-msg"); if (el) el.textContent = m; };
-  function apply(rebuildMap) { cfg = normalize(cfg, opts.lang); build(); if (rebuildMap) setMap(); place(); hud(); }
-  panel.addEventListener("change", (e) => {
-    const k = e.target.dataset.k;
-    if (e.target.dataset.act === "upload" && e.target.files.length && opts.onUploadMap) {
-      const f = e.target.files[0]; e.target.value = ""; say(S.uploading);
-      opts.onUploadMap(f).then((url) => { cfg.planet.map = url; apply(true); say(""); }).catch((er) => say(er.message || String(er)));
-      return;
-    }
+  let msg = "", savedJson = opts.config && opts.config.planet ? JSON.stringify(cfg) : ""; // a world whose sky was never saved starts «unsaved»
+  const say = (m) => { msg = m || ""; const el = panel.querySelector(".cg-msg"); if (el) el.textContent = msg; };
+  note = say;
+  const dirty = () => JSON.stringify(cfg) !== savedJson;
+  // Every change: normalise, rebuild the bodies (count, colour, size, orbit, light), swap the map if it changed, redraw at once.
+  const mark = () => { const d = root.querySelector(".cg-dirty"); if (d) d.hidden = !dirty(); };
+  function apply() { cfg = normalize(cfg, opts.lang); build(); setMap(); place(); hud(); mark(); }
+  const valueAt = (k) => { const [a, b, c] = k.split("."); return a === "planet" ? cfg.planet[b] : a === "cal" ? cfg.calendar[b] : cfg[a][+b] && cfg[a][+b][c]; };
+  function edit(e) {
+    const el = e.target, k = el.dataset.k, live = e.type === "input";
+    if (el.dataset.up) { if (!live) upload(el); return; }
     if (!k) return;
-    const v = e.target.type === "checkbox" ? e.target.checked : e.target.value, [a, b, c] = k.split(".");
+    const [a, b, c] = k.split(".");
+    if (live && (a === "cal" || el.type === "checkbox")) return; // the calendar is applied when the field is left (a half-typed list would reshape the year)
+    const v = el.type === "checkbox" ? el.checked : el.value;
     if (a === "planet") cfg.planet[b] = v;
     else if (a === "cal") {
-      if (b === "monthNames") cfg.calendar.monthNames = String(v).split(",").map((x) => x.trim()).filter(Boolean);
-      else if (b === "monthDays") {
-        const parts = String(v).split(/[,\s]+/).filter(Boolean).map(Number).filter((x) => x > 0);
-        cfg.calendar.monthDays = parts.length === 1 ? Array(Math.max(1, cfg.calendar.monthNames.length || cfg.calendar.monthDays.length)).fill(parts[0]) : parts.length ? parts : cfg.calendar.monthDays;
-      } else cfg.calendar[b] = v;
-    } else cfg[a][+b][c] = v;
-    apply(false);
-    if (a === "cal" || (a === "planet" && b === "dayHours")) form();
-  });
+      const cal = cfg.calendar;
+      if (b === "monthNames") {
+        cal.monthNames = String(v).split(",").map((x) => x.trim()).filter(Boolean);
+        const N = cal.monthNames.length, last = cal.monthDays[cal.monthDays.length - 1] || 30; // as many months as names
+        if (N && N !== cal.monthDays.length) cal.monthDays = cal.monthNames.map((_, i) => cal.monthDays[i] || last);
+      } else if (b === "monthDays") {
+        const x = String(v).match(/^\s*(\d+(?:[.,]\d+)?)\s*[×xх*]\s*(\d+)\s*$/i); // «30 × 12» — 12 months of 30 days
+        const parts = x ? Array(Math.min(1000, +x[2] || 1)).fill(parseFloat(x[1].replace(",", "."))) : String(v).split(/[,;\s]+/).filter(Boolean).map(Number).filter((y) => y > 0);
+        cal.monthDays = parts.length === 1 && !x ? Array(Math.max(1, cal.monthNames.length || cal.monthDays.length)).fill(parts[0]) : parts.length ? parts : cal.monthDays;
+      } else cal[b] = v;
+    } else if (cfg[a] && cfg[a][+b]) cfg[a][+b][c] = v;
+    apply();
+    if (live) return;
+    if (a === "cal") form();
+    else if (el.type === "number") { const nv = valueAt(k); if (nv !== undefined && String(nv) !== el.value) el.value = String(nv); } // show the value really used (limits)
+  }
+  function upload(el) {
+    const f = el.files && el.files[0], target = el.dataset.up; el.value = "";
+    if (!f || !opts.onUploadMap) return;
+    if (!/^image\//.test(f.type || "")) return say(S.notImage);
+    const moon = target === "planet" ? null : cfg.moons[+target.split(".")[1]], moonId = moon && moon.id;
+    say(S.uploading);
+    opts.onUploadMap(f).then((url) => {
+      if (target === "planet") cfg.planet.map = url;
+      else { const m = cfg.moons.find((x) => x.id === moonId); if (!m) return say(""); m.map = url; } // the moon may have been removed meanwhile
+      apply(); msg = ""; form();
+    }).catch((er) => say(er.message || String(er)));
+  }
+  panel.addEventListener("input", edit);
+  panel.addEventListener("change", edit);
+  const ask = opts.confirm || ((q) => Promise.resolve(window.confirm(q)));
   panel.addEventListener("click", (e) => {
     const t2 = e.target.closest("button"); if (!t2) return;
     if (t2.dataset.act === "close") { panel.hidden = true; return; }
-    if (t2.dataset.preset) { if (!confirm(S.presetQ)) return; cfg = preset(t2.dataset.preset, opts.lang); t = 0; apply(true); form(); return; }
-    if (t2.dataset.map) { cfg.planet.map = t2.dataset.map === "earth" ? EARTH_MAP : ""; apply(true); return; }
+    if (t2.dataset.preset) { const id = t2.dataset.preset; ask(S.presetQ).then((ok) => { if (!ok) return; cfg = preset(id, opts.lang); t = 0; msg = ""; apply(); form(); }); return; }
+    if (t2.dataset.map) { cfg.planet.map = t2.dataset.map === "earth" ? EARTH_MAP : ""; apply(); form(); return; }
+    if (t2.dataset.mmap) { const m = cfg.moons[+t2.dataset.mmap]; if (m) m.map = ""; apply(); form(); return; }
     if (t2.dataset.add) {
-      const list = cfg[t2.dataset.add]; if (list.length >= MAX_BODIES) return;
-      const base = list[list.length - 1] || (t2.dataset.add === "stars" ? preset("earth").stars[0] : preset("earth").moons[0]);
-      list.push(Object.assign({}, base, { id: (t2.dataset.add === "stars" ? "s" : "m") + Date.now().toString(36), name: base.name + " " + (list.length + 1), phase: (base.phase + 90) % 360 }));
-      apply(false); form(); return;
+      const kind = t2.dataset.add, list = cfg[kind]; if (list.length >= MAX_BODIES) return;
+      const base = list[list.length - 1] || (kind === "stars" ? preset("earth", opts.lang).stars[0] : preset("earth", opts.lang).moons[0]);
+      list.push(Object.assign({}, base, { id: (kind === "stars" ? "s" : "m") + Date.now().toString(36), name: base.name + " " + (list.length + 1), phase: (base.phase + 90) % 360 }));
+      apply(); form(); return;
     }
-    if (t2.dataset.rm) { const [kind, i] = t2.dataset.rm.split("."); cfg[kind].splice(+i, 1); apply(false); form(); return; }
-    if (t2.dataset.act === "save" && opts.onSave) { t2.disabled = true; opts.onSave(JSON.parse(JSON.stringify(cfg))).then(() => say(S.saved)).catch((er) => say(er.message || String(er))).finally(() => { t2.disabled = false; }); }
+    if (t2.dataset.rm) { const [kind, i] = t2.dataset.rm.split("."); cfg[kind].splice(+i, 1); apply(); form(); return; }
+    if (t2.dataset.act === "save" && opts.onSave) {
+      const snap = JSON.parse(JSON.stringify(cfg)); t2.disabled = true;
+      opts.onSave(snap).then(() => { savedJson = JSON.stringify(snap); say(S.saved); mark(); }).catch((er) => say(er.message || String(er))).finally(() => { t2.disabled = false; });
+    }
   });
 
   // ---------- loop ----------
@@ -347,17 +412,28 @@ export function mountCosmograph(host, opts) {
     place(); controls.update(); renderer.render(scene, camera);
     if (now - hudAt > 120) { hudAt = now; hud(); }
   }
-  build(); setMap(); resize(); place(); hud();
+  build(); setMap(); resize(); place(); hud(); mark();
   if (stars.length) { // open on the day side, a little off the sun, so the terminator is in view
-    const d = uni.sDir.value[0].clone().setY(0).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.7);
-    camera.position.set(d.x * 4.9, 1.6, d.z * 4.9);
+    const d = uni.sDir.value[0].clone().setY(0);
+    if (d.lengthSq() > 1e-6) { d.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.7); camera.position.set(d.x * 4.9, 1.6, d.z * 4.9); } // a sun over the pole: keep the default view
   }
   raf = requestAnimationFrame(frame);
   const api = {
-    destroy() { cancelAnimationFrame(raf); ro.disconnect(); controls.dispose(); renderer.dispose(); scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); host.innerHTML = ""; },
+    destroy() {
+      cancelAnimationFrame(raf); ro.disconnect(); controls.dispose(); mapTok++; // a map still loading is dropped
+      scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+      if (uni.map.value) uni.map.value.dispose(); glow.dispose(); texs.forEach((e) => e.tex && e.tex.dispose()); texs.clear();
+      renderer.dispose(); host.innerHTML = ""; if (window.__COSMOGRAPH__ === api) delete window.__COSMOGRAPH__;
+    },
     get config() { return JSON.parse(JSON.stringify(cfg)); },
     get time() { return t; },
-    setTime(h) { t = h; place(); hud(); },
+    setTime(h) { h = +h; if (isFinite(h)) { t = h; place(); hud(); } },
+    get dirty() { return dirty(); },
+    get scene() { // what is really drawn (for checks): bodies, shader lights / eclipse casters, the map and moon pictures in use
+      return { suns: stars.length, moons: moons.length, shaderSuns: uni.nS.value, shaderMoons: uni.nM.value, lights: stars.filter((g) => g.userData.light).length,
+        objects: bodies.children.length, map: mapNow, mapLoaded: !!uni.map.value, moonPictures: moons.map((g) => !!g.userData.mesh.material.map), atmosphere: atmo.visible,
+        sunColours: stars.map((g, i) => uni.sCol.value[i].toArray().map((x) => +x.toFixed(3))) };
+    },
     sample(lat, lon) { // light per sun at a point (for tests and future canon checks): 0..1 lambert, eclipses ignored
       const n = new THREE.Vector3(); const a = THREE.MathUtils.degToRad(lat), o = THREE.MathUtils.degToRad(lon);
       n.set(Math.cos(a) * Math.cos(o), Math.sin(a), -Math.cos(a) * Math.sin(o)).applyAxisAngle(new THREE.Vector3(0, 1, 0), planet.rotation.y);

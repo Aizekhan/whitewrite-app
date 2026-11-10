@@ -37,16 +37,19 @@ const body = (b, i, kind) => ({
   radiusKm: n(b.radiusKm, 1000, 1), distanceKm: n(b.distanceKm, 100000, 1), periodDays: n(b.periodDays, 30, 0.01),
   inclination: n(b.inclination, 0, -180, 180), node: n(b.node, 0, -360, 360), phase: n(b.phase, 0, -360, 360), eccentricity: n(b.eccentricity, 0, 0, 0.95),
   power: n(b.power, 1, 0, 10), reverse: !!b.reverse,
+  ...(kind === "m" ? { map: pic(b.map) } : {}), // a moon's picture (equirectangular, like the planet map); "" — the colour only
 });
+// A picture reference: a preset id or an uploaded https URL; anything else (empty, a typo, javascript:…) — none.
+const pic = (m) => (typeof m === "string" && (/^https:\/\//.test(m) || m === EARTH_MAP) ? m : "");
 export const MAX_BODIES = 4; // per kind: the planet shader takes up to 4 suns and 4 moons
 
 export function normalize(c, lang) {
-  if (!c || !c.planet) return preset("earth", lang);
+  if (!c || !c.planet) return normalize(preset("earth", lang), lang);
   const p = c.planet, cal = c.calendar || {};
   const days = (Array.isArray(cal.monthDays) && cal.monthDays.length ? cal.monthDays : [30]).map((d) => Math.round(n(d, 30, 1, 1000)));
   return {
     preset: c.preset || "",
-    planet: { name: String(p.name || ""), radiusKm: n(p.radiusKm, 6371, 1), tilt: n(p.tilt, 0, -90, 90), dayHours: n(p.dayHours, 24, 0.1), map: String(p.map || "") },
+    planet: { name: String(p.name || ""), radiusKm: n(p.radiusKm, 6371, 1), tilt: n(p.tilt, 0, -90, 90), dayHours: n(p.dayHours, 24, 0.1), map: pic(p.map) },
     calendar: { monthNames: (cal.monthNames || []).map(String).slice(0, days.length), monthDays: days, startYear: Math.round(n(cal.startYear, 1)), era: String(cal.era || "") },
     stars: (c.stars || []).slice(0, MAX_BODIES).map((b, i) => body(b, i, "s")),
     moons: (c.moons || []).slice(0, MAX_BODIES).map((b, i) => body(b, i, "m")),

@@ -1591,7 +1591,7 @@
     attachLazy();
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
     renderNav(); dragCtx = null;
-    if (cosmo && (section !== "cosmology" || imp || query)) { cosmo.api.destroy(); cosmo = null; }
+    if (cosmo && (section !== "cosmology" || imp || query)) dropCosmo();
     $("statuses").hidden = mode === "world" || !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing|forge|gamemap)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = section === "settings" ? (mode === "game" ? STR.settingsGame : STR.settingsWorld) : cur ? L(cur) : "";
     if (section === "settings" && !imp) return renderSettings();
@@ -4829,11 +4829,25 @@
     if (!r.ok) throw new Error(data.error || "HTTP " + r.status);
     return data;
   }
+  // Storage files of this world's sky (planet map, moon pictures) — only ones in its own folder (a restored copy may point at the original's files).
+  function cosmoFiles(c) {
+    var urls = c && c.planet ? [c.planet.map].concat((c.moons || []).map(function (m) { return m.map; })) : [];
+    return urls.filter(function (u) {
+      if (!/^https:\/\/firebasestorage\./.test(u || "")) return false;
+      try { return firebase.storage().refFromURL(u).fullPath.indexOf("worlds/" + worldId + "/files/cosmos/") === 0; } catch (e) { return false; }
+    });
+  }
+  function dropFiles(urls, keep) { urls.forEach(function (u) { if (keep.indexOf(u) < 0) firebase.storage().refFromURL(u).delete().catch(function () {}); }); }
+  function dropCosmo() { // leaving the sky: pictures uploaded but never saved are removed (the saved sky does not point at them)
+    var c = cosmo; cosmo = null; if (!c) return;
+    if (c.api) c.api.destroy(); // the module may still be loading
+    dropFiles(c.uploads, cosmoFiles(c.saved || world.cosmos));
+  }
   function renderCosmology(s) {
     var st = cosmoState();
     var head = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header>';
     if (!(st.enabled && st.paid)) {
-      if (cosmo) { cosmo.api.destroy(); cosmo = null; }
+      if (cosmo) dropCosmo();
       $("view").innerHTML = head + '<div class="nbox cosmo-off"><h4>' + (st.enabled ? STR.cosmo.expired : STR.cosmo.off) + '</h4><p>' + (st.enabled ? STR.cosmo.expiredText : STR.cosmo.offText) + '</p>' +
         '<div class="row">' + (st.enabled ? '<button class="btn primary" id="cg-renew">' + STR.cosmo.renew + costMark("cosmograph") + '</button>' : '<button class="btn" id="cg-settings">' + STR.cosmo.toSettings + '</button>') + '</div>' +
         '<p class="hint" id="cg-msg"></p></div>';
@@ -4844,17 +4858,24 @@
     $("view").innerHTML = head + '<div class="cosmo-host" id="cg-slot"></div>';
     if (cosmo) { $("cg-slot").replaceWith(cosmo.el); return; } // keep the running sky through re-renders
     var el = document.createElement("div"); el.className = "cosmo-host"; $("cg-slot").replaceWith(el);
-    cosmo = { el: el, api: null };
+    cosmo = { el: el, api: null, uploads: [], saved: null }; // uploads — pictures sent this visit; saved — the sky last saved from here
     var mine = cosmo;
     import("./cosmograph/cosmograph.js").then(function (m) {
       if (cosmo !== mine) return;
       mine.api = m.mountCosmograph(el, { config: world.cosmos || null, lang: LANG, canEdit: canWrite,
-        onSave: function (cfg) { return wref().update({ cosmos: cfg, updatedAt: stamp() }); },
+        confirm: function (q) { return askConfirm(q); },
+        onSave: function (cfg) {
+          var before = cosmoFiles(mine.saved || world.cosmos).concat(mine.uploads);
+          return wref().update({ cosmos: cfg, updatedAt: stamp() }).then(function () {
+            mine.saved = cfg; mine.uploads = []; dropFiles(before, cosmoFiles(cfg)); // a replaced map / moon picture leaves Storage
+          });
+        },
         onUploadMap: async function (file) {
           if (file.size > MAX_FILE) throw new Error(STR.fileTooBig);
           var path = "worlds/" + worldId + "/files/cosmos/" + newId("map") + "-" + file.name.replace(/[\/\\#?\[\]*]/g, "_");
           var task = firebase.storage().ref(path).put(file, { contentType: file.type || "image/jpeg" });
-          await task; return task.snapshot.ref.getDownloadURL();
+          await task; var url = await task.snapshot.ref.getDownloadURL();
+          mine.uploads.push(url); return url;
         } });
     }).catch(function (er) { el.innerHTML = '<p class="muted">' + STR.failed + ': ' + esc(er.message || er) + '</p>'; });
   }
@@ -9069,8 +9090,7 @@
       await Promise.all(entities.concat(lore).reduce(function (all, e) { return all.concat(e.files || []); }, []).map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
       await deleteDocs(wref().collection("entities"));
       await deleteDocs(wref().collection("lore"));
-      var skyMap = world.cosmos && world.cosmos.planet && world.cosmos.planet.map; // an uploaded map of the Космограф
-      if (/^https:\/\/firebasestorage\./.test(skyMap || "")) await firebase.storage().refFromURL(skyMap).delete().catch(function () {});
+      await Promise.all(cosmoFiles(world.cosmos).map(function (u) { return firebase.storage().refFromURL(u).delete().catch(function () {}); })); // the Космограф's map and moon pictures
       if (world.cover && world.cover.path) await firebase.storage().ref(world.cover.path).delete().catch(function () {}); // the card's image / video
       if (world.titleArt && world.titleArt.path) await firebase.storage().ref(world.titleArt.path).delete().catch(function () {}); // «Огляд світу» title image
       await wref().delete(); // last: the rules check ownership through the world doc

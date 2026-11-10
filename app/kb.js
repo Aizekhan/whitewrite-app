@@ -852,6 +852,15 @@
         min: 2,
         body: [
           ["p", "Космограф моделює планету, її нахил і добу, сонця й місяці з їхніми орбітами, сезони, затемнення й календар. Пресет «Земля» або свій світ із власною картою планети."],
+          ["ul", [
+            "<b>«Налаштувати небо»</b> внизу праворуч відкриває редактор. Кожна зміна одразу видна на небі: назва, радіус, нахил осі, тривалість доби; колір, розмір, відстань, період, нахил орбіти, вузол, фаза, ексцентриситет і «Назустріч» кожного тіла; сила світла сонця (0 — сонце не світить і ледве сяє).",
+            "<b>Карта поверхні</b>: «Завантажити карту» (рівнокутна 2:1, JPG / PNG / WebP), «Карта Землі» або «Без карти» — тоді планета малюється за її назвою. Під кнопками видно, яка карта зараз.",
+            "<b>Картинка супутника</b>: «⤒ Картинка супутника» в картці супутника обтягує його картинкою замість кольору, «Лише колір» — прибирає її.",
+            "<b>Сонця й супутники</b>: «＋ Зоря» / «＋ Супутник» — до 4 кожного, ✕ — прибрати; кожне сонце одразу світить на планету й дає затемнення.",
+            "<b>Календар</b>: назви місяців через кому (скільки назв — стільки місяців), дні — через кому, одне число (для всіх місяців) або «30 × 12» (12 місяців по 30 днів); перший рік і ера — у даті вгорі.",
+            "Неможливі значення виправляються самі, і поле показує те, що взято: нахил осі — до ±90°, ексцентриситет — до 0,95; тіло ніколи не заходить у планету.",
+            "Небо зберігає кнопка <b>«Зберегти небо»</b>; доки не збережено, внизу горить «● Є незбережені зміни». Замінена й незбережена картинка прибирається зі сховища сама.",
+          ]],
           ["p", "Вмикається в ⚙ Налаштуваннях проєкту, тариф Worldbuilder: 2000 токенів на світ за 30 днів. Вимкнення зберігає оплачений місяць; нічого не продовжується саме."],
         ] },
       { cat: "world", id: "issues", icon: "brain", title: "Неузгоджене",
@@ -2318,6 +2327,15 @@
         min: 2,
         body: [
           ["p", "The Cosmograph models the planet, its tilt and day, suns and moons with their orbits, seasons, eclipses and a calendar. The “Earth” preset, or your own world with your own planet map."],
+          ["ul", [
+            "<b>“Set up the sky”</b> at the bottom right opens the editor. Every change shows in the sky at once: name, radius, axial tilt, length of the day; each body's colour, size, distance, period, orbit inclination, node, phase, eccentricity and “Retrograde”; a sun's light power (0 — the sun gives no light and barely glows).",
+            "<b>Surface map</b>: “Upload a map” (equirectangular 2:1, JPG / PNG / WebP), “Earth map” or “No map” — then the planet is drawn from its name. Below the buttons you see which map is on now.",
+            "<b>Moon picture</b>: “⤒ Moon picture” in a moon's block wraps it in a picture instead of its colour, “Colour only” removes it.",
+            "<b>Suns and moons</b>: “＋ Star” / “＋ Moon” — up to 4 of each, ✕ removes; every sun lights the planet and casts eclipses at once.",
+            "<b>Calendar</b>: month names comma separated (as many names, as many months), days comma separated, one number (for every month) or “30 × 12” (12 months of 30 days); the first year and the era go into the date at the top.",
+            "Impossible values fix themselves and the field shows what is used: axial tilt up to ±90°, eccentricity up to 0.95; a body never dips into the planet.",
+            "The sky is kept by <b>“Save the sky”</b>; until then “● Unsaved changes” is lit at the bottom. A replaced or unsaved picture is removed from storage by itself.",
+          ]],
           ["p", "Turned on in ⚙ Project settings, Worldbuilder plan: 2000 tokens per world for 30 days. Turning it off keeps the paid month; nothing renews by itself."],
         ] },
       { cat: "world", id: "issues", icon: "brain", title: "Inconsistencies",
