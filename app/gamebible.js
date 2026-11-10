@@ -3652,7 +3652,7 @@
       purpose: "Призначення", purposePh: "Яку проблему гри вона вирішує і що відчуває гравець", rules: "Правила роботи", rulesPh: "Як вона працює — по кроках або списком", tags: "Теги", tagsPh: "через кому",
       links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна",
       files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
-      fill: "Заповнено", req: "обовʼязкові", checks: "Перевірка", clean: "Без проблем", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
+      fill: "Заповнено", req: "обовʼязкові", checks: "Перевірка", clean: "Без проблем", newRef: "＋ Додати нове…", newRefT: "Нове в «{t}»", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
       rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Поле", fieldName: "Назва поля", fieldType: "Тип", rmField: "Прибрати поле",
       addSec: "＋ Розділ-поля", addTable: "＋ Розділ-таблиця", secName: "Назва розділу", rmSec: "Прибрати розділ", rmSecQ: "Прибрати розділ «{t}» з усіма даними?",
       none: "—", save: "Зберегти", del: "Видалити", delQ: "Видалити механіку «{t}»?", newM: "Нова механіка", fw: "RPG Framework", fwS: { exists: "є", partial: "частково", missing: "немає" },
@@ -3667,7 +3667,7 @@
       purpose: "Purpose", purposePh: "Which design problem it solves and what the player feels", rules: "How it works", rulesPh: "Step by step or as a list", tags: "Tags", tagsPh: "comma separated",
       links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own",
       files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
-      fill: "Filled", req: "required", checks: "Checks", clean: "No problems", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
+      fill: "Filled", req: "required", checks: "Checks", clean: "No problems", newRef: "＋ Add new…", newRefT: "New in “{t}”", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
       rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Field", fieldName: "Field name", fieldType: "Type", rmField: "Remove field",
       addSec: "＋ Fields section", addTable: "＋ Table section", secName: "Section name", rmSec: "Remove section", rmSecQ: "Remove section “{t}” with all its data?",
       none: "—", save: "Save", del: "Delete", delQ: "Delete mechanic “{t}”?", newM: "New mechanic", fw: "RPG Framework", fwS: { exists: "exists", partial: "partial", missing: "missing" },
@@ -3779,10 +3779,11 @@
   function msec(id) { return med.m.sections.filter(function (s) { return s.id === id; })[0]; }
   function mopts(f) { return (f.o || []).map(function (o) { return [o.v, ml(o.l)]; }); }
   function mrowOpts(f) { var rs = msec(f.ref); return rs ? (rs.rows || []).map(function (r) { return [r._id, MX().rowName(rs, r)]; }) : []; }
-  function mselect(path, pairs, cur, aria) {
+  function mselect(path, pairs, cur, aria, newRef) {
     if (cur && !pairs.some(function (p) { return p[0] === cur; })) pairs = pairs.concat([[cur, cur + " ⚠"]]); // a link to a removed row stays visible
     return '<select data-mf="' + path + '" aria-label="' + esc(aria) + '"><option value="">' + MC.none + '</option>' + pairs.map(function (p) {
-      return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>';
+      return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") +
+      (newRef ? '<option value="__newref">' + esc(MC.newRef) + '</option>' : '') + '</select>'; // a new row of the linked table right here (its tab may be in the advanced view only)
   }
   var mPickOpen = ""; // the table cell whose «＋» chip picker stays open across a re-render
   function mchips(path, pairs, cur, aria, inTable) {
@@ -3801,7 +3802,7 @@
     if (f.t === "bool") return '<input type="checkbox" data-mf="' + path + '"' + (v ? " checked" : "") + ' aria-label="' + esc(aria) + '">';
     if (f.t === "sel") return mselect(path, mopts(f), v || "", aria);
     if (f.t === "multi") return mchips(path, mopts(f), v, aria, inTable);
-    if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria);
+    if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria, canWrite && msec(f.ref) && msec(f.ref).kind === "table");
     if (f.t === "refs") return mchips(path, mrowOpts(f), v, aria, inTable);
     if (f.t === "sound") return msound(path, f, v, inTable);
     if (f.t === "card") return mcardPick(path, f, v);
@@ -4492,6 +4493,22 @@
     if (t.dataset.mg) { med[t.dataset.mg] = t.value; if (t.dataset.mg === "title") { var h = document.querySelector("#m-ed header h1, #topline h1"); if (h) h.textContent = t.value || MC.newM; } mState(); return; }
     var p = t.dataset.mf; if (!p) return;
     var k = p.split("."), m = med.m;
+    if (t.tagName === "SELECT" && t.value === "__newref") { // «＋ Додати нове…» of a link: a named row in the linked table (e.g. a weapon in «База зброї»), chosen here
+      if (e.type !== "change") return;
+      var ws = k[0] === "w" ? med.wiz && msec(med.wiz.s) : m.sections[+k[0]], rf = ws && (ws.fields || []).filter(function (x) { return x.k === k[2]; })[0], rs = rf && msec(rf.ref);
+      if (!rs) return renderMEditor();
+      med.cell = "";
+      askName(MC.newRefT.replace("{t}", ml(rs.title)), "", function (n) {
+        if (!n || !n.trim()) return renderMEditor();
+        var row = { _id: MX().newRowId(rs) };
+        (rs.fields || []).forEach(function (x) { if (x.t === "bool") row[x.k] = false; });
+        if (rs.rowLabel) row[rs.rowLabel] = n.trim();
+        rs.rows = (rs.rows || []).concat([row]);
+        if (k[0] === "w") { if (med.wiz) med.wiz.row[k[2]] = row._id; } else if (k[1] === "-") ws.values[k[2]] = row._id; else ws.rows[+k[1]][k[2]] = row._id;
+        renderMEditor(); mState();
+      });
+      return;
+    }
     if (k[0] === "w") { // the first-row questions: a draft row, written into the table on «Готово»
       if (!med.wiz) return;
       var wf = (msec(med.wiz.s).fields || []).filter(function (x) { return x.k === k[2]; })[0];

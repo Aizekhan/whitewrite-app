@@ -814,7 +814,8 @@
             "Один рядок — одне комбо, усе з випадаючих списків: <b>хто</b> б’є (гравець, персонажі й вороги гри або «✎ Інший…»), <b>зброя</b>, <b>рух перед ударом</b> (стоячи, крок, ривок, відскок, вбік, обхід, стрибок, присід), <b>удар</b> (тичок, рубка, навскіс, згори, з розвороту, випад, підсічка, поштовх), <b>замах</b> — «Одразу» чи «Тримає до дистанції», і назви анімацій «рух → удар».",
             "<b>«Починати з»</b> рахується сам: k × досяжність зброї (k за ударом: тичок 0.75, рубка 0.8, згори 0.7, випад 0.85 — можна змінити). ✓ — почата атака влучить; ⚠ — б’є з самої межі (ціль ступить назад — промах) або впритул. Під ним — звідки починається ривок чи крок.",
             "<b>«Зона удару в часі»</b> — смужка: замах (золотий, смугастий — якщо тримає), удар (червоний), відновлення. Точні секунди, нотатки й усі 13 детальних вкладок UMCF — у «Розширеному вигляді».",
-            "Фільтр бійця над таблицею показує комбо одного персонажа чи монстра."
+            "Фільтр бійця над таблицею показує комбо одного персонажа чи монстра.",
+            "<b>Нова зброя</b> — у списку «Зброя» пункт <b>«＋ Додати нове…»</b>: впиши назву, і зброя одразу зʼявиться в «Базі зброї» й стане в рядок. Її довжину й дальність заповни у вкладці «База зброї» (розширений вигляд) — доки дальності немає, «Починати з» показує ⚠ —. Так само «＋ Додати нове…» є в кожному полі-посиланні механіки (атака, рух…)."
           ]],
           ["p", "<b>«👁 Очима монстра»</b> — що робить гравець (відступає, наближається, блокує, ухиляється, атакує, лікується…) → яким типом удару відповідає монстр, за бажанням — саме яким комбо, і як часто (●○○○ рідко … ●●●● майже завжди). ⚠ — у монстра немає ударів такого типу в комбо-таблиці. Дії гравця й удари монстра описані тими самими словами, тож їх можна зіставляти й згодом адаптувати поведінку."],
           ["h", "UMCF: ближній бій, що не промахується через логіку"],
@@ -2279,7 +2280,8 @@
             "One row is one combo, all from dropdowns: <b>who</b> strikes (the player, the game’s characters and enemies, or “✎ Other…”), <b>weapon</b>, <b>movement before the strike</b> (standing, step, dash, hop back, sidestep, circle, jump, crouch), <b>strike</b> (thrust, slash, diagonal, overhead, spin, lunge, sweep, bash), <b>wind-up</b> — “At once” or “Held until in range”, and the animation names “move → strike”.",
             "<b>“Start from”</b> is computed: k × the weapon’s reach (k by strike: thrust 0.75, slash 0.8, overhead 0.7, lunge 0.85 — editable). ✓ — a started attack lands; ⚠ — it strikes from the very edge (the target steps back — a miss) or point-blank. Below — where the dash or step begins.",
             "<b>“Hit zone in time”</b> — a bar: wind-up (gold, striped when held), hit (red), recovery. Exact seconds, notes and all 13 detailed UMCF tabs are in the “Advanced view”.",
-            "The fighter filter above the table shows one character’s or monster’s combos."
+            "The fighter filter above the table shows one character’s or monster’s combos.",
+            "<b>A new weapon</b> — the “Weapon” list has <b>“＋ Add new…”</b>: type a name and the weapon appears in “Weapon definitions” and goes into the row at once. Fill its length and reach in the “Weapon definitions” tab (advanced view) — until it has a reach, “Start from” shows ⚠ —. Every link field of a mechanic (attack, movement…) has the same “＋ Add new…”."
           ]],
           ["p", "<b>“👁 Through the monster’s eyes”</b> — what the player does (retreats, approaches, blocks, dodges, attacks, heals…) → which strike type the monster answers with, optionally the exact combo, and how often (●○○○ rarely … ●●●● almost always). ⚠ — the monster has no strikes of that type in the combo table. The player’s actions and the monster’s strikes use the same words, so they can be matched and the behaviour adapted later."],
           ["h", "UMCF: melee that never misses because of logic"],
