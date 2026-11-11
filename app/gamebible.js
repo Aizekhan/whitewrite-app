@@ -138,7 +138,7 @@
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
         type: "＋ Тип", typeTitle: "Міні-підрозділ у «{g}»", typePh: "Напр. «Маги», «Вбивці», «Воїни»", where: "Де", whereTop: "Окремий підрозділ на сторінці", whereIn: "Міні-підрозділ у «{g}»",
-        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу",
+        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Перетягни за назву, щоб змінити порядок",
         general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія", rename: "Перейменувати підрозділ",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
@@ -484,7 +484,7 @@
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
         type: "＋ Type", typeTitle: "Mini-subsection in “{g}”", typePh: "E.g. “Mages”, “Assassins”, “Warriors”", where: "Where", whereTop: "A subsection of its own on the page", whereIn: "A mini-subsection in “{g}”",
-        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection",
+        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Drag by the name to change the order",
         general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story", rename: "Rename the subsection",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
@@ -1317,9 +1317,13 @@
       if (subs.indexOf(g) < 0 && extra.indexOf(g) < 0) extra.push(g);
       (by[g] = by[g] || []).push(x);
     });
+    // ⇅ the owner (v2.129.0): a subsection is dragged by its heading to another place on the page, a mini-subsection inside its subsection —
+    // where cards are dragged too (not the chronicle, quests & dialogues, a «Прогресія» sub-item or a search)
+    var sd = canWrite && !query && s.special !== "chronicle" && s.special !== "quests" && s.special !== "dialogues" && !(s.id === "progression" && progSub),
+      sdAttr = ' data-sdrag="1" title="' + esc(STR.sub.drag) + '"';
     var html = "", head = function (g, label, n, canDrop) {
       var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
-      return '<h2 class="group">' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
+      return '<h2 class="group"' + (sd && g ? sdAttr : '') + '>' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
         (s.id === "refs" && canWrite && game ? bulkPicker("refs", g, "btn mini", STR.sub.item) : canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' : '') + // 🔒 read-only: no «＋ Додати»
         (s.id === "audio" && canWrite && game ? bulkPicker("audio", g, "btn mini", STR.soundsAdd) : '') +
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
@@ -1334,7 +1338,7 @@
         var rest = list.filter(function (x) { return !(x.fields && x.fields.subtype); }), inner = rest.length ? body(rest) : '';
         ts.forEach(function (t) {
           var tl = list.filter(function (x) { return x.fields && x.fields.subtype === t; });
-          inner += '<div class="subsec subtype" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '"><h3 class="group subtype-h">' + esc(t) + ' <span>' + tl.length + '</span>' +
+          inner += '<div class="subsec subtype" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '"><h3 class="group subtype-h"' + (sd ? sdAttr : '') + '>' + esc(t) + ' <span>' + tl.length + '</span>' +
             (canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '" data-subtype="' + esc(t) + '">' + STR.sub.item + '</button>' : '') +
             (canWrite && !tl.length ? '<button class="btn mini ghost" data-typedel="' + esc(g) + '" data-subtype="' + esc(t) + '" title="' + esc(STR.sub.typeDel) + '" aria-label="' + esc(STR.sub.typeDel + " " + t) + '">✕</button>' : '') +
             '</h3>' + (tl.length ? body(tl) : '<p class="muted">' + STR.sub.empty + '</p>') + '</div>';
@@ -1437,10 +1441,12 @@
   // ---------- drag a card to another place in its subsection or into another subsection (mouse / pen; touch uses the menu) ----------
   var audioLib = false, alibQ = ""; // «Звук і музика» shown as the Audio library (a list of every sound) instead of the cards
   var dragCtx = null, drag = null, dragBlockClick = false; // dragCtx: the section whose grid is on screen, set by its render
-  function clearDropMarks() { [].forEach.call(document.querySelectorAll(".drop-before,.drop-after,.drop-into"), function (x) { x.classList.remove("drop-before", "drop-after", "drop-into"); }); }
+  function clearDropMarks() { [].forEach.call(document.querySelectorAll(".drop-before,.drop-after,.drop-into,.drop-above,.drop-below"), function (x) { x.classList.remove("drop-before", "drop-after", "drop-into", "drop-above", "drop-below"); }); }
   function cardRef(el) { return el.dataset.key || (el.dataset.ent ? "ent:" + el.dataset.ent : el.dataset.lore ? "lore:" + el.dataset.lore : ""); }
   $("view").addEventListener("pointerdown", function (ev) {
     if (!dragCtx || !canWrite || query || ev.button !== 0 || ev.pointerType === "touch") return;
+    var hd = ev.target.closest("[data-sdrag]");
+    if (hd && !ev.target.closest("button,input,select,label,a")) { drag = { card: hd.parentNode, block: hd.classList.contains("subtype-h") ? "type" : "sub", head: hd, x: ev.clientX, y: ev.clientY, on: false }; return; }
     var card = ev.target.closest(".subsec .grid > .card"); if (!card || ev.target.closest("[data-view3d],[data-aplay]")) return;
     drag = { card: card, x: ev.clientX, y: ev.clientY, on: false };
   });
@@ -1448,6 +1454,26 @@
     if (!drag) return;
     if (!drag.on) {
       if (Math.abs(ev.clientX - drag.x) + Math.abs(ev.clientY - drag.y) < 8) return;
+      if (drag.block) { // ⇅ a block: its heading flies, the block fades in place
+        var hr = drag.head.getBoundingClientRect();
+        drag.on = true; drag.dx = drag.x - hr.left; drag.dy = drag.y - hr.top;
+        drag.ghost = drag.head.cloneNode(true); drag.ghost.classList.add("drag-ghost", "sub-ghost"); drag.ghost.style.width = hr.width + "px"; drag.ghost.removeAttribute("title");
+        document.body.appendChild(drag.ghost); drag.card.classList.add("dragging"); document.body.classList.add("is-dragging");
+      }
+    }
+    if (drag.block) {
+      ev.preventDefault();
+      drag.ghost.style.transform = "translate(" + (ev.clientX - drag.dx) + "px," + (ev.clientY - drag.dy) + "px)";
+      var bm = $("main"); if (ev.clientY < 90) bm.scrollTop -= 14; else if (ev.clientY > innerHeight - 70) bm.scrollTop += 14;
+      var bel = document.elementFromPoint(ev.clientX, ev.clientY), bt = bel && bel.closest(drag.block === "type" ? "#view .subsec.subtype" : "#view .subsec:not(.subtype)");
+      if (bt === drag.card) { clearDropMarks(); drag.to = null; return; }
+      if (!bt || bt.parentNode !== drag.card.parentNode || (drag.block === "sub" && !bt.dataset.sub)) return; // a gap between blocks keeps the last mark
+      var bb = bt.getBoundingClientRect(), up = ev.clientY < bb.top + bb.height / 2;
+      clearDropMarks(); bt.classList.add(up ? "drop-above" : "drop-below");
+      drag.to = { before: up ? bt : bt.nextElementSibling };
+      return;
+    }
+    if (!drag.on) {
       var r = drag.card.getBoundingClientRect();
       drag.on = true; drag.dx = drag.x - r.left; drag.dy = drag.y - r.top;
       drag.ghost = drag.card.cloneNode(true); drag.ghost.classList.add("drag-ghost"); drag.ghost.style.width = r.width + "px";
@@ -1472,8 +1498,18 @@
     var d = drag; drag = null; if (!d || !d.on) return;
     d.ghost.remove(); d.card.classList.remove("dragging"); document.body.classList.remove("is-dragging"); clearDropMarks();
     dragBlockClick = true; setTimeout(function () { dragBlockClick = false; }, 0);
+    if (d.block) { if (d.to) dropBlock(d); return; }
     if (d.to && !d.to.same) dropCard(d.card, d.to);
   });
+  // ⇅ the new order of the subsections on the page (games/{g} | worlds/{w}.subsections) or of the mini-subsections in one (games/{g}.subtypes)
+  function dropBlock(d) {
+    var s = dragCtx, el = d.card, box = el.parentNode, before = d.to.before;
+    if (!s || before === el || before === el.nextElementSibling) return;
+    box.insertBefore(el, before || null); // shown at once, the live snapshot settles it
+    var sel = d.block === "type" ? ".subsec.subtype" : ".subsec:not(.subtype)";
+    var names = [].filter.call(box.children, function (x) { return x.matches(sel) && x.dataset.sub; }).map(function (x) { return d.block === "type" ? x.dataset.subtype : x.dataset.sub; });
+    (d.block === "type" ? saveTypes(s, el.dataset.sub, names) : saveSubs(s, names)).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); render(); });
+  }
   // a drag that never got its pointerup (the browser took over, the window lost focus): nothing stays hanging on the screen (v2.115.7)
   function dragAbort() {
     var d = drag; drag = null; clearDropMarks(); document.body.classList.remove("is-dragging");
