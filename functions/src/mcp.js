@@ -38,7 +38,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { claim: { type: 'boolean', description: 'Mark the returned task in_progress (default true)' } } } },
   { name: 'get_task_details', description: 'Full context of one task by id (e.g. "M2.3"): goal, detail, acceptance criteria, tests, related cards with fields and file URLs, deps, review history.',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
-  { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status and files. Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
+  { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status, subsection and files; subsections = the subsections of the section in the Bible order (exact names for save_card subsection). Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
   { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero / enemy card has appearance, faction, class, alignment, lives_in. used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
@@ -141,9 +141,11 @@ const TOOLS = [
       'Update: ref "c:<cardId>" (game card) or "e:<entityId>" (a canon entity seen through this game: changes this game\'s view of it — fields, note, status; the canon name and description stay in the World Bible). ' +
       'Create: no ref, section (overview, characters, enemies, locations, levels, factions, items, gear, mechanics, progression, worldgen, assets, materials, animation, audio, ui, scenes, artstyle, pictures, refs, tech, lore) and title. ' +
       'fields: { "<field name as get_card / get_design_section shows it>": "text" } — only the fields you send change; "" clears one; a new name becomes a new field. ' +
+      'subsection: the subsection the card stands in (e.g. enemies: "Звичайні вороги" / "Елітні вороги" / "Боси") — take the exact names from get_design_section → subsections; "" puts it back in «Інше». Never send it as a field (group / Група / Підрозділ are read as subsection). ' +
+      'Pictures are not text: put one on a card with card_image_upload. ' +
       'status: idea | agreed | work | ingame | redo. The author can undo your last change of each card. Tell the user what you changed.',
     inputSchema: { type: 'object', properties: {
-      ref: { type: 'string' }, section: { type: 'string' }, title: { type: 'string' }, fields: { type: 'object', additionalProperties: { type: 'string' } },
+      ref: { type: 'string' }, section: { type: 'string' }, title: { type: 'string' }, subsection: { type: 'string' }, fields: { type: 'object', additionalProperties: { type: 'string' } },
       note: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] } } } },
   { name: 'save_quest', description: 'Create or change a quest of this game — ONLY when the user asked for it in this chat. id to update (from get_quest_context or an earlier save_quest), none to create (approval starts as draft; the author approves). ' +
       'Send only what changes: title, type (main | side | daily | …), summary, giver, characters, locations, factions, artifacts, events (refs: "c:<cardId>" for game cards, a canon entity id, or an exact name), objectives (one per line), ' +
@@ -159,6 +161,10 @@ const TOOLS = [
       'Returns the dialogue and its checks. The approval is the author\'s. The author can undo your last change.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' }, title: { type: 'string' }, type: { type: 'string' }, participants: { type: 'array', items: { type: 'string' } },
       location: { type: 'string' }, quest_id: { type: 'string' }, stage_id: { type: 'string' }, trigger: { type: 'string' }, nodes: { type: 'array', items: { type: 'object' } }, notes: { type: 'string' } } } },
+  { name: 'card_image_upload', description: 'Put a picture (or, on an «Анімації й VFX» card, an MP4 / WebM clip) from the disk onto a Game Bible card — ONLY when the user asked for it in this chat. ' +
+      'Returns a one-time upload URL (15 min) and a ready command: run it in your shell (curl sends the file; nothing goes through this chat). ' +
+      'The picture lands in the card\'s main frame: a hero / enemy portrait, an art card\'s picture, a location\'s view; field picks another picture field by its name. Images up to 10 MB, clips up to 50 MB; the owner\'s storage quota counts it.',
+    inputSchema: { type: 'object', properties: { ref: { type: 'string' }, file_name: { type: 'string' }, field: { type: 'string' } }, required: ['ref', 'file_name'] } },
   { name: 'submit_change_request', description: 'Propose a change to an approved decision (GDD, a card, the plan, the architecture) that you found yourself while working. When the USER asks you in this chat to change a card, quest or dialogue, use save_card / save_quest / save_dialogue instead.',
     inputSchema: { type: 'object', required: ['what', 'why'], properties: {
       task_id: { type: 'string' }, what: { type: 'string' }, why: { type: 'string' }, proposal: { type: 'string' }, impact: { type: 'string' } } } },
@@ -219,12 +225,12 @@ function cardView(ctx, ref) {
     const e = ctx.entities.find((x) => x.id === ref.slice(2)); if (!e) return null;
     const c = ctx.cards.find((x) => x.canonRef === e.id) || {};
     return { ref, canon: e.kind, title: e.name || '', description: e.desc || e.description || '', status: c.status || 'idea',
-      section: c.section || e.kind, fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...prefabOf(ctx, c) };
+      section: c.section || e.kind, ...(subOf(c) ? { subsection: subOf(c) } : {}), fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...prefabOf(ctx, c) };
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
   const gp = groupPalette(ctx, c);
-  return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
+  return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, ...(subOf(c) ? { subsection: subOf(c) } : {}), fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
     ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c) };
 }
 // 🛡 a game-only hero / enemy card's traits (card.sheet — the same as a canon character's: appearance, faction, class, alignment, home)
@@ -732,6 +738,52 @@ const WRITE_SECS = ['overview', 'lore', 'characters', 'enemies', 'locations', 'l
   'assets', 'materials', 'animation', 'audio', 'ui', 'scenes', 'artstyle', 'pictures', 'refs', 'tech'];
 const FILE_TYPES = ['image', 'file', 'audio', 'prefab', 'sound', 'model'];
 const CARD_STATUS = ['idea', 'agreed', 'work', 'ingame', 'redo'];
+// 🗂 subsections (v2.125): a card's subsection is fields[subKey] (fields.group; assets / materials — fields.category), the Bible groups by it.
+// The standard ones per section = gamebible.js GAME[].groups (tests/mcp-subsections.test.cjs keeps them equal); the author's own ones live in
+// games/{g}.subsections[section]. A field the agent names group / Група / Підрозділ / subsection… is this, never a field of its own.
+const SUB_KEY = { assets: 'category', materials: 'category' };
+const SUB_STD = {
+  characters: [['Герої', 'Heroes'], ['Союзники', 'Allies'], ['NPC', 'NPCs']],
+  levels: [['Туторіал', 'Tutorial'], ['Основні рівні', 'Main levels'], ['Рівні босів', 'Boss levels'], ['Хаби', 'Hubs'], ['Побічний контент', 'Side content']],
+  worldgen: [['Біоми', 'Biomes'], ['Модулі маршрутів', 'Route modules'], ['Модулі оточення', 'Environment modules'], ['Ігрові модулі', 'Gameplay modules'], ['Атмосферні сценарії', 'Atmospheric scenarios'], ['Правила генерації', 'Generation rules']],
+  enemies: [['Звичайні вороги', 'Regular enemies'], ['Елітні вороги', 'Elite enemies'], ['Боси', 'Bosses']],
+  gear: [['Зброя', 'Weapons'], ['Броня', 'Armour'], ['Розхідники', 'Consumables'], ['Ключові предмети', 'Key items'], ['Косметика', 'Cosmetics']],
+  assets: [['Персонажі', 'Characters'], ['Вороги', 'Enemies'], ['Оточення', 'Environment'], ['Пропси', 'Props'], ['Зброя й предмети', 'Weapons & items'], ['Ефекти', 'Effects'], ['UI', 'UI']],
+  materials: [['Персонажі', 'Characters'], ['Оточення', 'Environment'], ['Рослинність', 'Foliage'], ['Шейдери', 'Shaders'], ['Небо й освітлення', 'Sky & lighting']],
+  animation: [['Персонаж', 'Character'], ['Вороги', 'Enemies'], ['VFX бою', 'Combat VFX'], ['VFX оточення', 'Environment VFX'], ['UI-анімації', 'UI animation']],
+  audio: [['Музика', 'Music'], ['Звукові ефекти', 'Sound effects'], ['Озвучка', 'Voice'], ['Амбієнт', 'Ambience'], ['Звуки UI', 'UI sounds']],
+  ui: [['HUD', 'HUD'], ['Меню', 'Menus'], ['Інвентар', 'Inventory'], ['Діалоги', 'Dialogue'], ['Онбординг', 'Onboarding'], ['Налаштування', 'Settings']],
+  scenes: [['Ключові сцени', 'Key scenes'], ['Катсцени', 'Cutscenes'], ['Ігрові моменти', 'Gameplay moments'], ['Бої', 'Fights'], ['Екрани й меню', 'Screens & menus']],
+  artstyle: [['Загальний стиль', 'Overall style'], ['Біоми й локації', 'Biomes & locations']],
+  pictures: [['Портрети', 'Portraits'], ['Концепти', 'Concepts'], ['Ілюстрації', 'Illustrations'], ['Інше', 'Other']],
+  refs: [['Візуал', 'Visuals'], ['Геймплей', 'Gameplay'], ['Звук', 'Sound'], ['UI', 'UI']],
+  tech: [['Рушій і збірка', 'Engine & build'], ['Платформи', 'Platforms'], ['Перформанс', 'Performance'], ['Сейви', 'Saves'], ['Мультиплеєр', 'Multiplayer'], ['Інструменти', 'Tools']],
+};
+const SUB_NAMES = /^(group|groups|category|subsection|sub[-_ ]?section|група|підрозділ|підпункт|категорія)$/i;
+const subKey = (section) => SUB_KEY[section] || 'group';
+const subStd = (section) => section === 'mechanics' ? MECH.CATEGORIES.map((c) => [c.uk, c.en])
+  : section === 'progression' ? MECH.PROG_CATEGORIES.map((c) => [c.uk, c.en]) : SUB_STD[section] || [];
+const subOf = (c) => str(((c && c.fields) || {})[subKey(c && c.section)], 80);
+// the section's subsections in the Bible's order: standard, the author's own, then any other found on its cards
+function subList(ctx, section) {
+  const out = subStd(section).map((x) => x[0]), add = (n) => { n = str(n, 80); if (n && !out.some((x) => x.toLowerCase() === n.toLowerCase())) out.push(n); };
+  const own = ((ctx.game && ctx.game.subsections) || {})[section];
+  (Array.isArray(own) ? own : []).forEach(add);
+  ctx.cards.filter((c) => c.section === section && !c.hidden).forEach((c) => add(subOf(c)));
+  return out;
+}
+// a name as the agent wrote it (Ukrainian or English, any case, an old mechanics name) → the subsection's own name; unknown → as written (a new subsection)
+function subName(ctx, section, v) {
+  let n = str(v, 80); if (!n) return { name: '', known: true };
+  if (section === 'mechanics' && MECH.GROUP_ALIAS[n]) n = MECH.GROUP_ALIAS[n];
+  const low = n.toLowerCase(), std = subStd(section).find((x) => x[0].toLowerCase() === low || x[1].toLowerCase() === low);
+  if (std) return { name: std[0], known: true };
+  const all = subList(ctx, section), own = all.find((x) => x.toLowerCase() === low);
+  if (own) return { name: own, known: true };
+  const pre = all.concat(subStd(section).map((x) => x[1])).filter((x) => x.toLowerCase().startsWith(low)); // «Економіка» → «Економіка й крафт», when only one fits
+  if (pre.length === 1) return subName(ctx, section, pre[0]);
+  return { name: n, known: false };
+}
 const CANON_SEC = { characters: 'characters', locations: 'locations', factions: 'factions', artifacts: 'items' }; // canon kind → the game shelf
 const keyOf = (label) => 'f_' + (str(label, 40).toLowerCase().replace(/[^a-z0-9а-яіїєґ]+/gi, '_').replace(/^_|_$/g, '') || Date.now().toString(36));
 const newDocId = (p) => p + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -761,8 +813,34 @@ function fieldPlan(ctx, card, section, input, seed) {
   });
   return { defs, set, added, skipped };
 }
-async function saveCard(ctx, key, args) {
+// the subsection the agent asked for: `subsection`, else a field named group / Група / Підрозділ… (those never become fields)
+function takeSub(section, args) {
+  const fields = {}; let sub = args.subsection;
+  Object.entries(args.fields && typeof args.fields === 'object' ? args.fields : {}).forEach(([k, v]) => {
+    if (SUB_NAMES.test(str(k, 80)) || k === subKey(section)) { if (sub === undefined) sub = v; } else fields[k] = v;
+  });
+  return { args: { ...args, fields }, sub };
+}
+const SUB_JUNK = ['f_group', 'f_група', 'f_підрозділ', 'f_category', 'f_категорія', 'f_subsection']; // fields the earlier attempts made (before v2.125)
+function subWrite(ctx, section, sub, card, body, out) {
+  if (sub === undefined) return;
+  const r = subName(ctx, section, sub);
+  body.fields = { ...(body.fields || {}), [subKey(section)]: r.name };
+  const had = Object.keys((card && card.fields) || {}).filter((k) => SUB_JUNK.includes(k));
+  if (had.length) {
+    had.forEach((k) => { body.fields[k] = admin.firestore.FieldValue.delete(); });
+    body.defs = (body.defs || (card && card.defs) || []).filter((d) => !SUB_JUNK.includes(d.key));
+  }
+  out.subsection = r.name || '(none: «Інше»)';
+  if (!r.known) out.new_subsection = 'Not one of this section\'s subsections, so it shows as a new one. The section has: ' + subList(ctx, section).join(' · ');
+}
+function sectionOfRef(ctx, ref) {
+  if (ref.startsWith('e:')) { const c = ctx.cards.find((x) => x.canonRef === ref.slice(2)), e = ctx.entities.find((x) => x.id === ref.slice(2)); return (c && c.section) || (e && CANON_SEC[e.kind]) || ''; }
+  const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '')); return c ? c.section : '';
+}
+async function saveCard(ctx, key, args0) {
   agentGate(ctx);
+  const ts0 = takeSub(args0.ref ? sectionOfRef(ctx, str(args0.ref, 160)) : str(args0.section, 40), args0), args = ts0.args;
   const ref = str(args.ref, 160), now = admin.firestore.FieldValue.serverTimestamp();
   const status = args.status === undefined ? null : str(args.status, 12);
   if (status && !CARD_STATUS.includes(status)) throw rpcError(-32602, 'status must be ' + CARD_STATUS.join(' | '));
@@ -779,8 +857,9 @@ async function saveCard(ctx, key, args) {
     if (args.note !== undefined) body.note = str(args.note, 8000);
     if (status) body.status = status;
     if (!c) Object.assign(body, { title: e.name || '', status: status || 'idea', createdAt: now, order: Date.now() });
+    const so = {}; subWrite(ctx, section, ts0.sub, c, body, so);
     await ctx.gref.collection('cards').doc(id).set(body, { merge: true });
-    return { ok: true, ref, created_game_card: !c, changed: Object.keys(fp.set).length + (args.note !== undefined ? 1 : 0) + (status ? 1 : 0), new_fields: fp.added, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
+    return { ok: true, ref, created_game_card: !c, changed: Object.keys(fp.set).length + (args.note !== undefined ? 1 : 0) + (status ? 1 : 0) + (ts0.sub !== undefined ? 1 : 0), new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
   }
   if (ref) {
     const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
@@ -791,8 +870,9 @@ async function saveCard(ctx, key, args) {
     if (args.title !== undefined) { if (!str(args.title, 200)) throw rpcError(-32602, 'title cannot be empty'); body.title = str(args.title, 200); }
     if (args.note !== undefined) body.note = str(args.note, 8000);
     if (status) body.status = status;
+    const so = {}; subWrite(ctx, c.section, ts0.sub, c, body, so);
     await ctx.gref.collection('cards').doc(c.id).set(body, { merge: true });
-    return { ok: true, ref: 'c:' + c.id, title: body.title || c.title || '', changed: Object.keys(body).filter((k) => ['title', 'note', 'status'].includes(k)).concat(Object.keys(fp.set)).length, new_fields: fp.added, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
+    return { ok: true, ref: 'c:' + c.id, title: body.title || c.title || '', changed: Object.keys(body).filter((k) => ['title', 'note', 'status'].includes(k)).concat(Object.keys(fp.set)).length + (ts0.sub !== undefined ? 1 : 0), new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
   }
   const section = str(args.section, 40), title = str(args.title, 200);
   if (!WRITE_SECS.includes(section)) throw rpcError(-32602, 'section must be one of ' + WRITE_SECS.join(', '));
@@ -800,10 +880,11 @@ async function saveCard(ctx, key, args) {
   // a new card takes the field list of the section's latest card (the Bible gives new cards the section's fields)
   const tpl = ctx.cards.filter((c) => c.section === section && !c.canonRef && Array.isArray(c.defs) && c.defs.length && !c.mech).sort((a, b) => (b.order || 0) - (a.order || 0))[0];
   const fp = fieldPlan(ctx, tpl ? { defs: tpl.defs, fields: {} } : null, section, args.fields, true);
-  const id = newDocId('card');
-  await ctx.gref.collection('cards').doc(id).set({ section, title, status: status || 'idea', note: str(args.note, 8000), defs: fp.defs, fields: fp.set, files: [],
-    order: Date.now(), createdAt: now, updatedAt: now, ...agentMark(key, { _new: true }) });
-  return { ok: true, ref: 'c:' + id, created: true, section, title, new_fields: fp.added, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
+  const id = newDocId('card'), nb = { section, title, status: status || 'idea', note: str(args.note, 8000), defs: fp.defs, fields: fp.set, files: [],
+    order: Date.now(), createdAt: now, updatedAt: now, ...agentMark(key, { _new: true }) }, so = {};
+  subWrite(ctx, section, ts0.sub, null, nb, so);
+  await ctx.gref.collection('cards').doc(id).set(nb);
+  return { ok: true, ref: 'c:' + id, created: true, section, title, new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
 }
 // refs from the agent: "c:<card>", a canon id, "e:<id>", or an exact name of either → the stored id
 function refId(ctx, v) {
@@ -909,7 +990,7 @@ async function callTool(name, args, key) {
         ctx.entities.filter((e) => e.kind === kind && !ctx.cards.some((c) => c.canonRef === e.id)).forEach((e) => out.push(cardView(ctx, 'e:' + e.id)));
       }
       const pals = (ctx.game.subPalettes || {})[s];
-      return { section: s, cards: out, ...(pals && Object.keys(pals).length ? { group_palettes: pals } : {}) };
+      return { section: s, subsections: subList(ctx, s), cards: out, ...(pals && Object.keys(pals).length ? { group_palettes: pals } : {}) };
     }
     case 'get_style_guide': {
       const styleCards = ctx.cards.filter((c) => c.section === 'artstyle' && !c.hidden);
@@ -1159,6 +1240,7 @@ async function callTool(name, args, key) {
       await logExecution(ctx, key, 'activity', '', { session: out.session_id, accepted: out.accepted });
       return out;
     }
+    case 'card_image_upload': return uploadTicket(ctx, key, args);
     case 'save_card': { const out = await saveCard(ctx, key, args); await logExecution(ctx, key, 'agent_write', '', { kind: 'card', ref: out.ref, created: !!out.created }); return out; }
     case 'save_quest': case 'save_dialogue': {
       const out = await saveNarrative(ctx, key, name === 'save_quest' ? 'quests' : 'dialogues', args);
@@ -1216,6 +1298,66 @@ async function handle(msg, key) {
   }
 }
 
+// 🖼 card_image_upload (v2.125): a one-time ticket mcpUploads/{sha256} (server only) → the agent's shell sends the bytes with curl to
+// POST /mcp?upload=<ticket>; the file lands like a Bible upload (Storage worlds/{w}/games/{g}/files/{card}/…, card.files[] with its field).
+const UPLOAD_TTL = 15 * 60 * 1000;
+const FRAME_FIELD = { characters: 'portrait', enemies: 'portrait', locations: 'view', artstyle: 'refs', animation: 'clip', pictures: 'pics', refs: 'pics' }; // gamebible.js ART_FRAME / the sheets
+const UPLOAD_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm' };
+async function uploadTicket(ctx, key, args) {
+  agentGate(ctx);
+  const ref = str(args.ref, 160), name = str(args.file_name, 160).split(/[\\/]/).pop();
+  const c = ref.startsWith('e:') ? ctx.cards.find((x) => x.canonRef === ref.slice(2)) : ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
+  if (!c) throw rpcError(-32602, ref.startsWith('e:') ? `${ref} has no game card yet: call save_card with this ref first.` : `No game card ${ref}. Call get_design_section.`);
+  const ext = (/\.([a-z0-9]+)$/i.exec(name) || [])[1], type = ext && UPLOAD_TYPES[ext.toLowerCase()];
+  if (!type) throw rpcError(-32602, 'file_name must end in .png, .jpg, .webp, .gif (or .mp4 / .webm for an animation clip)');
+  if (/^video/.test(type) && c.section !== 'animation') throw rpcError(-32602, 'A video goes only on an «Анімації й VFX» card.');
+  let field = FRAME_FIELD[c.section] || 'view';
+  if (args.field) {
+    const want = str(args.field, 80).toLowerCase(), d = (c.defs || []).find((x) => x.key === args.field || str(x.label, 80).toLowerCase() === want);
+    if (!d || d.type !== 'image') throw rpcError(-32602, `No picture field "${args.field}" on this card. Leave field out for the main frame.`);
+    field = d.key;
+  }
+  const raw = 'wwu_' + crypto.randomBytes(24).toString('hex'), hash = crypto.createHash('sha256').update(raw).digest('hex');
+  await db.collection('mcpUploads').doc(hash).set({ worldId: key.worldId, gameId: key.gameId, uid: key.uid, cardId: c.id, section: c.section, field, name, type,
+    keyId: key.id, expiresAt: Date.now() + UPLOAD_TTL, expireAt: new Date(Date.now() + 24 * 3600 * 1000) });
+  const url = 'https://us-central1-whitewrite-app.cloudfunctions.net/mcp?upload=' + raw;
+  return { ok: true, card: 'c:' + c.id, title: c.title || '', field, expires_in_min: 15,
+    command_powershell: `curl.exe -sS -X POST -H "Content-Type: ${type}" --data-binary "@<full path to ${name}>" "${url}"`,
+    command_bash: `curl -sS -X POST -H 'Content-Type: ${type}' --data-binary '@<full path to ${name}>' '${url}'`,
+    note: 'Put the real path of the file in place of <full path …> and run it once; the answer says where the picture landed. One file per ticket. If curl cannot open a path with non-Latin letters, copy the file to a Latin path first.' };
+}
+async function handleUpload(req, res) {
+  const raw = String(req.query.upload || '');
+  if (!/^wwu_[0-9a-f]{48}$/.test(raw)) return res.status(400).json({ error: 'Bad upload ticket' });
+  const ref = db.collection('mcpUploads').doc(crypto.createHash('sha256').update(raw).digest('hex'));
+  const t = await db.runTransaction(async (tx) => { // one file per ticket
+    const d = await tx.get(ref); if (!d.exists) return null;
+    tx.delete(ref); return d.data();
+  });
+  if (!t || t.expiresAt < Date.now()) return res.status(410).json({ error: 'The ticket is used or expired: ask card_image_upload for a new one' });
+  const bytes = req.rawBody || (Buffer.isBuffer(req.body) ? req.body : null), size = bytes ? bytes.length : 0, video = /^video/.test(t.type), max = (video ? 50 : 10) * 1024 * 1024;
+  if (!size) return res.status(400).json({ error: 'No file in the body (curl --data-binary @file)' });
+  if (size > max) return res.status(413).json({ error: `Too big: ${(size / 1048576).toFixed(1)} MB (up to ${max / 1048576} MB)` });
+  const head = bytes.slice(0, 12).toString('hex'), real = /^89504e47/.test(head) ? 'image/png' : /^ffd8ff/.test(head) ? 'image/jpeg' : /^47494638/.test(head) ? 'image/gif'
+    : /^52494646.{8}57454250/.test(head) ? 'image/webp' : /^1a45dfa3/.test(head) ? 'video/webm' : /^.{8}66747970/.test(head) ? 'video/mp4' : '';
+  if (real !== t.type) return res.status(415).json({ error: `The file is not ${t.type} (by its bytes: ${real || 'unknown'})` });
+  const [w, user] = await Promise.all([db.collection('worlds').doc(t.worldId).get(), db.collection('users').doc(t.uid).get()]);
+  if (!w.exists || w.data().owner !== t.uid) return res.status(403).json({ error: 'Game not found or no access' });
+  const plan = getPlanBudget((user.exists && user.data().plan) || 'free');
+  if (size > (plan.fileMB || 20) * 1048576) return res.status(413).json({ error: `Larger than ${plan.fileMB} MB — the plan's limit for one game file` });
+  const q = await require('./storage-quota')._quota.usage(t.uid);
+  if (q.bytes + size > q.quota) return res.status(507).json({ error: `The plan's storage is full (${Math.round(q.quota / 1073741824)} GB): delete files or move to a higher plan` });
+  const id = 'file_' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
+  const path = `worlds/${t.worldId}/games/${t.gameId}/files/${t.cardId}/${id}-${t.name.replace(/[\/\\#?\[\]*]/g, '_')}`;
+  const token = crypto.randomUUID(), bucket = admin.storage().bucket();
+  await bucket.file(path).save(bytes, { contentType: t.type, resumable: false, metadata: { metadata: { firebaseStorageDownloadTokens: token } } });
+  const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+  const meta = { id, name: t.name, path, url, size, type: t.type, uploadedAt: Date.now(), field: t.field, byAgent: true };
+  const gref = db.collection('worlds').doc(t.worldId).collection('games').doc(t.gameId);
+  await gref.collection('cards').doc(t.cardId).set({ files: admin.firestore.FieldValue.arrayUnion(meta), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  return res.status(200).json({ ok: true, card: 'c:' + t.cardId, field: t.field, file: t.name, size, url });
+}
+
 async function authKey(req) {
   const h = req.headers.authorization || '';
   const raw = h.startsWith('Bearer ') ? h.slice(7).trim() : '';
@@ -1234,6 +1376,7 @@ const MAX_BATCH = 20; // each call may read the whole game: an unbounded batch w
 exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '512MiB', invoker: 'public', secrets: [claudeApiKey] }, async (req, res) => {
   if (req.method === 'GET' || req.method === 'DELETE') return res.status(405).set('Allow', 'POST').send(''); // stateless: no SSE stream, no sessions
   if (req.method !== 'POST') return res.status(405).send('');
+  if (req.query && req.query.upload) return handleUpload(req, res).catch((e) => { console.error('[mcp] upload', e); res.status(500).json({ error: 'Upload failed' }); });
   const key = await authKey(req).catch((e) => { console.error('[mcp] auth', e); return null; });
   if (!key) {
     return res.status(401).json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Invalid or revoked WhiteWrite key (Game Bible → Production plan → Claude Code), or the plan has no Game Dev access' } });
