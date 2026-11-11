@@ -89,7 +89,7 @@ function bibleText(world, entities, cards, game, shelves, lore) {
   if ((world.rules || []).length) lines.push('Laws of the world:', ...world.rules.map((r) => `- ${r}`));
   const sky = world.cosmos; // World Bible «Космологія» (Космограф)
   if (sky && sky.planet) {
-    const yd = (sky.calendar && sky.calendar.monthDays || []).reduce((a, b) => a + b, 0);
+    const cal = sky.calendar || {}, yd = cal.yearDays || (cal.monthDays || []).reduce((a, b) => a + b, 0); // yearDays — written by the Космограф since v2.121 (a year may be a sun's orbit)
     lines.push(`Sky: planet ${sky.planet.name || ''} (radius ${sky.planet.radiusKm} km, axial tilt ${sky.planet.tilt}°, day ${sky.planet.dayHours} h, year ${yd} days); ` +
       `suns: ${(sky.stars || []).map((s) => `${s.name} (period ${s.periodDays} d)`).join(', ') || 'none'}; moons: ${(sky.moons || []).map((m) => `${m.name} (period ${m.periodDays} d)`).join(', ') || 'none'}.`);
   }

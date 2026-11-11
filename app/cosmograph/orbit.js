@@ -37,13 +37,18 @@ export function eccentricAnomaly(mean, e) {
 }
 
 // Position (km, planet-centred) of a body at simulation hour t.
-// body: { distance, eccentricity, periodDays, inclination, node, phase, reverse }; tiltDeg — the planet's axial tilt.
+// body: { distance, eccentricity, periodDays, inclination, node, periapsis, lift, phase, reverse }; tiltDeg — the planet's axial tilt.
+// periapsis — the argument of periapsis (the simulator kept it on the node line); lift — the orbit plane shifted along its normal
+// by distance·tan(lift) (MorraSimulator's orbitPlaneOffset as an angle): a sun that always stays over the south, say.
 export function position(body, t, hoursInDay, tiltDeg) {
   const periodH = Math.max(1e-6, (body.periodDays || 1) * hoursInDay);
   const mean = deg(body.phase || 0) + (body.reverse ? -1 : 1) * (Math.PI * 2) * (t / periodH);
   const e = THREE.MathUtils.clamp(body.eccentricity || 0, 0, 0.99), a = Math.max(0, body.distance || 0), E = eccentricAnomaly(mean, e);
-  const b = basis(body.inclination, body.node);
-  const p = b.primary.multiplyScalar(a * (Math.cos(E) - e)).add(b.secondary.multiplyScalar(a * Math.sqrt(1 - e * e) * Math.sin(E)));
+  const b = basis(body.inclination, body.node), w = deg(body.periapsis || 0);
+  const x = a * (Math.cos(E) - e), y = a * Math.sqrt(1 - e * e) * Math.sin(E);
+  const p = b.primary.clone().multiplyScalar(x * Math.cos(w) - y * Math.sin(w)).add(b.secondary.clone().multiplyScalar(x * Math.sin(w) + y * Math.cos(w)));
+  const lift = THREE.MathUtils.clamp(body.lift || 0, -80, 80);
+  if (lift) p.add(b.normal.clone().multiplyScalar(-a * Math.tan(deg(lift)))); // + lift → north (the basis normal points south at inclination 0)
   return p.applyAxisAngle(new THREE.Vector3(1, 0, 0), deg(tiltDeg || 0)); // ecliptic → equatorial frame
 }
 

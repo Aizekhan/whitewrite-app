@@ -427,8 +427,12 @@ function findWg(ctx, name, kinds) {
   return c;
 }
 const sky = (world) => { const s = world.cosmos; if (!s || !s.planet) return null;
-  return { planet: s.planet.name || '', dayHours: s.planet.dayHours, axialTilt: s.planet.tilt, yearDays: ((s.calendar && s.calendar.monthDays) || []).reduce((a, b) => a + b, 0),
-    suns: (s.stars || []).map((x) => ({ name: x.name, periodDays: x.periodDays })), moons: (s.moons || []).map((x) => ({ name: x.name, periodDays: x.periodDays })) }; };
+  const c = s.calendar || {}, ids = (l) => (l || []).reduce((o, x) => { o[x.id] = x.name; return o; }, {}); // calendar: year = a sun's orbit or own days; months none / by a moon / own (v2.121)
+  return { planet: s.planet.name || '', dayHours: s.planet.dayHours, axialTilt: s.planet.tilt, yearDays: c.yearDays || (c.monthDays || []).reduce((a, b) => a + b, 0),
+    year: typeof c.year === 'string' && c.year.indexOf('sun:') === 0 ? `orbit of ${ids(s.stars)[c.year.slice(4)] || 'a sun'}` : 'own length',
+    months: c.months === 'list' ? (c.monthDays || []).map((d, i) => ({ name: (c.monthNames || [])[i] || `Month ${i + 1}`, days: d }))
+      : typeof c.months === 'string' && c.months.indexOf('moon:') === 0 ? `by the phases of ${ids(s.moons)[c.months.slice(5)] || 'a moon'}` : c.months ? 'none' : (c.monthDays || []).length,
+    suns: (s.stars || []).map((x) => ({ name: x.name, periodDays: x.periodDays, light: x.power, heat: x.heat })), moons: (s.moons || []).map((x) => ({ name: x.name, periodDays: x.periodDays })) }; };
 const issueView = (x) => ({ id: x.id, title: x.title, category: x.category, priority: x.priority, status: x.status, scope: x.scope, evidence: x.evidence, sample: x.sample,
   hypothesis: x.hypothesis, alternatives: x.alternatives, confidence: x.confidence, confidence_basis: x.confidenceWhy, player_impact: x.impact, suggested_actions: x.actions,
   validation_plan: x.validation, baseline: x.baseline, validations: (x.validations || []).slice(-5), related: x.related, task: x.taskId || '' });
