@@ -237,7 +237,9 @@ function cardView(ctx, ref) {
 function sheetOf(ctx, c) {
   if (c && c.beast && beastText(c.beast, 'en')) return { creature: beastText(c.beast, 'en') }; // 🐺 an enemy: the monster sheet
   const st = c && c.section !== 'enemies' && c.sheet; if (!st) return {}; // a person's traits never on a monster
-  const name = (id) => { const e = id && ctx.entities.find((x) => x.id === id); return e ? e.name || id : id || ''; };
+  const name = (id) => { // a canon entity, or a game card «c:<id>» (a game-only faction, v2.127.1)
+    const c = /^c:/.test(id || '') && ctx.cards.find((x) => x.id === id.slice(2)); if (c) return c.title || id;
+    const e = id && ctx.entities.find((x) => x.id === id); return e ? e.name || id : id || ''; };
   const out = {}, look = lookText(st.appearance, 'en');
   if (look) out.appearance = look;
   if (st.faction) out.faction = name(st.faction);

@@ -2708,6 +2708,8 @@
   function sheetHtml(e, st, frameOwn) { // frameOwn — a game card draws its own portrait (its look in the game)
     csSt = st;
     var img = entImage(e), facs = entities.filter(function (x) { return x.kind === "factions"; }), fv = st.faction;
+    if (frameOwn && open && open.src !== "canon") // a game's own hero / NPC also picks the game's own factions (cards «Фракції» not from the canon) — c:<card id> (v2.127.1)
+      facs = facs.concat(cards.filter(function (x) { return x.section === "factions" && !x.canonRef && !x.hidden && x.src !== "canon"; }).map(function (x) { return { id: "c:" + x.id, name: x.title }; }));
     var frame = frameOwn || (img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + (canWrite && !e.isNew ? '<button type="button" class="cs-chg" data-csportrait title="' + esc(CS.change) + '" aria-label="' + esc(CS.change) + '">✎</button>' : '')
       : canWrite ? '<button type="button" class="cs-ph" data-csportrait title="' + esc(CS.portraitTip) + '">' + esc(CS.portrait) + '</button>' : '<div class="cs-ph">⚔</div>');
     return '<div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
@@ -11694,7 +11696,7 @@
   function newFaction(kind, then) { // a new faction (or location) of the canon, picked on the sheet at once; then(id) — a game card's own refresh
     kind = kind || "factions";
     askName(kind === "locations" ? CS.newLocQ : CS.newFacQ, "", async function (name) {
-      if (!name || !dos) return;
+      if (!name || (!dos && !then)) return; // a game card's sheet has no dossier open — it was a silent no-op
       var id = entityId(kind), e = dos;
       try {
         await wref().collection("entities").doc(id).set({ id: id, kind: kind, name: name, slug: slugify(name), createdAt: stamp(), updatedAt: stamp(),
@@ -11807,7 +11809,16 @@
     }
     if (gs && (e.target.hasAttribute("data-csfac") || d0.csx === "location") && e.target.value === "__new") {
       var loc = d0.csx === "location"; e.target.value = (loc ? gs.ent.location : gs.faction) || "";
-      newFaction(loc ? "locations" : "factions", function (id) { if (draft && draft.sheet === gs) { csCollect("#e-body", gs); if (loc) gs.ent.location = id; else gs.faction = id; renderFields(true); } }); return;
+      var setGs = function (id) { if (draft && draft.sheet === gs) { csCollect("#e-body", gs); if (loc) gs.ent.location = id; else gs.faction = id; renderFields(true); } };
+      if (!loc && open.src !== "canon") { // a game's own card: the new faction is a card of the game's «Фракції», like the ones it already has
+        askName(CS.newFacQ, "", async function (name) {
+          if (!name) return; var fid = newId("card");
+          try { await gref().collection("cards").doc(fid).set({ section: "factions", title: name, status: "idea", note: "", defs: sec("factions").defs.slice(), fields: {}, order: Date.now(), createdAt: stamp(), updatedAt: stamp() });
+            if (!cards.some(function (x) { return x.id === fid; })) cards.push({ id: fid, section: "factions", title: name }); setGs("c:" + fid); }
+          catch (er) { msg(STR.failed + ": " + (er.code || er.message || er)); }
+        }); return;
+      }
+      newFaction(loc ? "locations" : "factions", setGs); return;
     }
     if (e.target.id === "f-up" && e.target.files.length) { var list = [].slice.call(e.target.files); e.target.value = ""; uploadFiles(list); }
     if (e.target.dataset.fup && e.target.files.length) { var fl = [].slice.call(e.target.files), fk = e.target.dataset.fup; e.target.value = ""; uploadFiles(fl, fk); }
