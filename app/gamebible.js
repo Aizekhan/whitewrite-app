@@ -872,6 +872,101 @@
     ["PlayerJoined", "PlayerLeft", "ReviveRequested", "ReviveCompleted", "TeamObjectiveCompleted"], ["SurveyAnswered"]];
   var TL_MEANINGFUL = ["CombatStarted", "EncounterCompleted", "CheckpointReached", "QuestStepCompleted", "QuestCompleted", "LevelCompleted", "LocationDiscovered", "SecretFound",
     "CollectibleFound", "RewardReceived", "ItemAcquired", "ObjectInteracted", "TeamObjectiveCompleted"];
+  // 🧩 fields by subsection (owner audit, v2.127.0): a weapon is not a cosmetic, a tutorial is not a boss level. `all` — every card of the section,
+  // `add[i]` — cards of the i-th standard subsection (GAME[].groups order), `drop[i]` — fields that do not fit it (removed only while empty).
+  // Joined when a card opens (`subDefs`): an older card gets the missing fields too; on save they become the card's own (`defs`, canon — extra)
+  var SUBT = function (key, uk, en, cuk, cen) { return Object.assign(F(key, uk, en, "table"), { cols: LANG === "en" ? cen : cuk }); };
+  var SUB_DEFS = {
+    lore: { all: [F("present", "Як гравець про це дізнається (записки, діалоги, оточення)", "How the player learns it (notes, dialogue, environment)"),
+      F("where", "Де це знайти в грі", "Where to find it in the game"), F("reveal", "Таємниці й коли їх розкрити", "Secrets and when to reveal them")] },
+    locations: { all: [F("activities", "Що гравець тут робить (цілі, активності)", "What the player does here (goals, activities)"),
+      F("secrets", "Секрети й нагороди", "Secrets & rewards"), F("travel", "Як сюди потрапити й звідси вийти", "How to get in and out")] },
+    factions: { all: [SUBT("rep", "Репутація: рівні й що відкривають", "Reputation: tiers and what they unlock", ["Рівень", "Як досягти", "Що відкриває"], ["Tier", "How to reach", "Unlocks"]),
+      F("stance", "Ставлення до гравця на старті", "Attitude to the player at the start"), F("relations", "Союзники й вороги фракції", "The faction's allies & enemies"),
+      F("members", "Хто в ній (персонажі, вороги)", "Who is in it (characters, enemies)")] },
+    items: { all: [F("power", "Унікальна сила і її ціна (кулдаун, обмеження)", "Unique power and its cost (cooldown, limits)"),
+      F("lore", "Історія предмета для гравця", "The item's story for the player"), F("upgrade", "Покращення, втрата, знищення", "Upgrade, loss, destruction")] },
+    characters: {
+      add: [[F("playstyle", "Стиль гри й керування", "Playstyle & controls"), F("unique", "Унікальна механіка героя", "The hero's unique mechanic"), F("arc", "Як змінюється за гру (арка, прокачка)", "How it changes over the game (arc, growth)")],
+        [F("helps", "Як допомагає гравцю", "How it helps the player"), F("joins", "Коли приєднується й коли йде", "When it joins and leaves"), F("bond", "Стосунки з героєм (довіра, романтика, конфлікт)", "Bond with the hero (trust, romance, conflict)")],
+        [F("function", "Функція (торговець, квестодавець, тренер…)", "Function (merchant, quest giver, trainer…)"), F("schedule", "Де й коли його знайти", "Where and when to find them"),
+          F("offers", "Що дає гравцю (квести, товари, підказки)", "What they give the player (quests, goods, hints)"), F("voice", "Манера мови, коронні фрази", "Way of speaking, catchphrases")]],
+      drop: [null, null, ["kit", "strengths", "numbers"]] },
+    enemies: {
+      add: [[F("spawn", "Де й якими групами зʼявляється", "Where and in what groups it spawns"), F("loot", "Що падає (лут, досвід)", "Drops (loot, XP)")],
+        [F("mods", "Чим сильніший за звичайних (модифікатори)", "What makes it stronger than regular ones (modifiers)"), F("spawn", "Де й якими групами зʼявляється", "Where and in what groups it spawns"), F("loot", "Що падає (лут, досвід)", "Drops (loot, XP)")],
+        [SUBT("phases", "Фази бою", "Fight phases", ["Фаза", "Коли (HP %)", "Нові атаки й поведінка"], ["Phase", "When (HP %)", "New attacks & behaviour"]),
+          F("arena", "Арена: розмір, укриття, небезпеки", "Arena: size, cover, hazards"), F("reward", "Що відкриває перемога", "What the victory unlocks")]] },
+    companions: {
+      add: [[F("bondp", "Приручення й привʼязаність", "Taming & affection")],
+        [F("ai", "Як поводиться в бою (агресія, триматися поруч)", "How it behaves in a fight (aggression, stay close)"), F("downed", "Що коли падає (воскресіння, відкат)", "When it falls (revive, cooldown)")],
+        [F("speed", "Швидкість, витривалість, стрибок", "Speed, stamina, jump"), F("terrain", "Де можна їздити (вода, гори, бій верхи)", "Where it can go (water, mountains, mounted combat)"), F("mount", "Як сісти й зійти, виклик свистом", "Mounting, dismounting, whistle call")],
+        [F("summon", "Як призвати (ціна, кулдаун)", "How to summon (cost, cooldown)"), F("lifetime", "Скільки живе й скільки одночасно", "How long it lasts and how many at once")]] },
+    levels: {
+      add: [[SUBT("teaches", "Чого вчить по черзі", "What it teaches, in order", ["Крок", "Механіка", "Як перевіряємо, що гравець навчився"], ["Step", "Mechanic", "How we check the player learned it"]), F("hints", "Підказки й UI навчання", "Hints & tutorial UI")],
+        [SUBT("beats", "Ритм рівня (напруга ↔ відпочинок)", "Level rhythm (tension ↔ rest)", ["Ділянка", "Що відбувається", "Напруга 1–5"], ["Segment", "What happens", "Tension 1–5"]),
+          F("newmech", "Нова механіка чи поворот рівня", "The level's new mechanic or twist"), F("checkpoints", "Чекпойнти й збереження", "Checkpoints & saves"), F("secrets", "Секрети й нагороди", "Secrets & rewards")],
+        [F("boss", "Бос (картка з «Ворогів і босів»)", "Boss (a card of “Enemies & bosses”)"), F("arena", "Арена: розмір, укриття, небезпеки", "Arena: size, cover, hazards"),
+          F("checkpoints", "Чекпойнт перед босом", "Checkpoint before the boss"), F("reward", "Нагорода й що відкриває", "Reward and what it unlocks")],
+        [F("services", "Сервіси (торговці, крафт, квести, відпочинок)", "Services (merchants, crafting, quests, rest)"), F("travel", "Швидке переміщення", "Fast travel"), F("changes", "Як змінюється з прогресом", "How it changes with progress")],
+        [F("unlock", "Як знайти, умова відкриття", "How to find it, unlock condition"), F("reward", "Нагорода", "Reward"), F("repeat", "Чи повторюється", "Is it repeatable")]] },
+    gear: {
+      add: [[F("wclass", "Клас зброї (меч, лук, посох…)", "Weapon class (sword, bow, staff…)"), F("damage", "Шкода й тип шкоди", "Damage & damage type"), F("speed", "Швидкість, дальність", "Speed, range"),
+          F("moves", "Особливі удари й модифікатори", "Special moves & modifiers"), F("rarity", "Рідкісність", "Rarity")],
+        [F("slot", "Слот (голова, тіло, руки, ноги…)", "Slot (head, body, hands, legs…)"), F("defense", "Захист і опори", "Defence & resistances"), F("weight", "Вага й вплив на рух", "Weight & effect on movement"),
+          F("set", "Бонус набору", "Set bonus"), F("rarity", "Рідкісність", "Rarity")],
+        [F("duration", "Дія й тривалість", "Effect & duration"), F("cooldown", "Кулдаун", "Cooldown"), F("stack", "Скільки в одному слоті", "Stack size"), F("price", "Ціна або рецепт", "Price or recipe")],
+        [F("unlocks", "Що відкриває (двері, квест, механіку)", "What it unlocks (door, quest, mechanic)"), F("quest", "Повʼязаний квест", "Related quest"), F("lose", "Чи можна втратити або продати", "Can it be lost or sold")],
+        [F("slot", "На що одягається / де видно", "Where it is worn / shown"), F("rarity", "Рідкісність", "Rarity")]],
+      drop: [null, null, null, ["numbers"], ["effect", "numbers"]] },
+    assets: {
+      add: [[F("rig", "Риг і скелет", "Rig & skeleton"), F("anims", "Потрібні анімації", "Animations needed"), F("lod", "LOD і бюджет полігонів", "LOD & poly budget")],
+        [F("rig", "Риг і скелет", "Rig & skeleton"), F("anims", "Потрібні анімації", "Animations needed"), F("lod", "LOD і бюджет полігонів", "LOD & poly budget")],
+        [F("modular", "Модульність і сітка", "Modularity & grid"), F("collision", "Колізія й навігація", "Collision & navigation"), F("lod", "LOD і бюджет полігонів", "LOD & poly budget")],
+        [F("interact", "Чи інтерактивний (підбирається, ламається, відкривається)", "Interactive? (picked up, breaks, opens)"), F("collision", "Колізія й фізика", "Collision & physics")],
+        [F("handle", "Хват і точки кріплення", "Grip & attach points"), F("vfx", "Ефекти й звук удару", "Hit effects & sound")],
+        [F("trigger", "Коли грає (тригер)", "When it plays (trigger)"), F("timing", "Тривалість і петля", "Duration & loop"), F("cost", "Вартість (частинки, overdraw)", "Cost (particles, overdraw)")],
+        [F("res", "Роздільність, 9-slice", "Resolution, 9-slice"), F("states", "Стани (звичайний, наведення, натиснуто, вимкнено)", "States (normal, hover, pressed, disabled)")]] },
+    materials: {
+      add: [null, null, [F("wind", "Вітер, сезони, щільність", "Wind, seasons, density")], [F("params", "Параметри шейдера", "Shader parameters"), F("perf", "Вартість і платформи", "Cost & platforms")],
+        [F("tod", "Час доби й погода", "Time of day & weather")]] },
+    animation: {
+      add: [[F("kind", "Тип (цикл, разова, з рухом кореня)", "Kind (loop, one-shot, root motion)"), F("events", "Події в кліпі (удар, крок, звук)", "Clip events (hit, step, sound)"), F("blend", "Переходи: з чого й у що", "Transitions: from and to")],
+        [F("kind", "Тип (цикл, разова, з рухом кореня)", "Kind (loop, one-shot, root motion)"), F("events", "Події в кліпі (удар, крок, звук)", "Clip events (hit, step, sound)"), F("tell", "Як гравець читає атаку (замах, підсвітка)", "How the player reads the attack (wind-up, glow)")],
+        [F("trigger", "Тригер (атака, влучання, смерть)", "Trigger (attack, hit, death)"), F("element", "Стихія й колір", "Element & colour"), F("sfx", "Звук", "Sound")],
+        [F("where", "Де (локація, біом)", "Where (location, biome)"), F("loop", "Петля чи одноразовий", "Loop or one-shot")],
+        [F("screen", "Екран UI", "UI screen"), F("easing", "Крива й тривалість", "Easing & duration")]] },
+    audio: {
+      add: [[F("state", "Стан гри, темп, лад", "Game state, tempo, key")], [F("trigger", "Подія-тригер", "Trigger event"), F("vars", "Варіації й рандом (висота, гучність)", "Variations & randomisation (pitch, volume)")],
+        [F("speaker", "Хто говорить", "Who speaks"), F("line", "Репліка й ключ локалізації", "Line & localisation key")], [F("where", "Локація чи біом", "Location or biome"), F("layers", "Шари (день, ніч, погода)", "Layers (day, night, weather)")],
+        [F("action", "Дія в інтерфейсі", "UI action")]] },
+    ui: { all: [F("layout", "Макет екрана", "Screen layout", "scene")],
+      add: [[F("always", "Що видно завжди, а що — ситуативно", "Always visible vs situational"), F("readable", "Читабельність у бою", "Readability in combat")],
+        [F("nav", "Навігація (геймпад, мишка, тач)", "Navigation (gamepad, mouse, touch)")],
+        [F("slots", "Слоти, сортування, ліміт місць чи ваги", "Slots, sorting, space or weight limit"), F("compare", "Порівняння предметів", "Item comparison")],
+        [F("choices", "Вибори, таймер, субтитри", "Choices, timer, subtitles")],
+        [SUBT("steps", "Кроки навчання", "Teaching steps", ["Крок", "Що вчимо", "Коли зʼявляється"], ["Step", "What it teaches", "When it appears"])],
+        [F("tabs", "Розділи (графіка, звук, керування, доступність)", "Tabs (graphics, sound, controls, accessibility)"), F("defaults", "Значення за замовчуванням", "Defaults")]] },
+    tech: {
+      add: [[F("engine", "Рушій, версія, пайплайн рендеру", "Engine, version, render pipeline"), F("build", "Збірка й CI", "Build & CI")],
+        [F("specs", "Мінімальні вимоги", "Minimum specs"), F("input", "Керування (клавіатура, геймпад, тач)", "Input (keyboard, gamepad, touch)"), F("store", "Вимоги магазину / сертифікація", "Store requirements / certification")],
+        [F("target", "Цільовий FPS і роздільність", "Target FPS & resolution"), F("budget", "Бюджет: draw calls, памʼять, полігони", "Budget: draw calls, memory, polygons")],
+        [F("what", "Що зберігається", "What is saved"), F("when", "Коли (автосейв, чекпойнти, вручну)", "When (autosave, checkpoints, manual)"), F("cloud", "Хмара й версії сейвів", "Cloud & save versions")],
+        [F("model", "Модель (кооп, PvP), скільки гравців", "Model (co-op, PvP), how many players"), F("net", "Мережа (хост, Relay, LAN)", "Network (host, Relay, LAN)")],
+        [F("who", "Для кого інструмент", "Who the tool is for"), F("run", "Як запустити", "How to run it")]] },
+  };
+  function subDefs(c) { // join the section's / subsection's fields the card does not have yet; drop the ones that do not fit its subsection while empty
+    var s = sec(c.section), sp = SUB_DEFS[s.id]; if (!sp || c.mech) return;
+    var g = String(draft.fields[groupKey(s)] || ""), i = s.groups ? s.groups.uk.indexOf(g) : -1; if (s.groups && i < 0) i = s.groups.en.indexOf(g);
+    var add = (sp.all || []).concat((i >= 0 && sp.add && sp.add[i]) || []), media = ["image", "prefab", "file", "audio"], keys = add.map(function (d) { return d.key; });
+    add.forEach(function (d) {
+      if (draft.defs.some(function (x) { return x.key === d.key; })) return;
+      var at = draft.defs.map(function (x) { return media.indexOf(x.type) >= 0; }).indexOf(true);
+      draft.defs.splice(at < 0 ? draft.defs.length : at, 0, Object.assign({}, d));
+    });
+    ((i >= 0 && sp.drop && sp.drop[i]) || []).forEach(function (k) { if (!String(draft.fields[k] || "").trim()) draft.defs = draft.defs.filter(function (x) { return x.key !== k; }); });
+    return keys;
+  }
   var INTENT_SECS = ["levels", "locations", "mechanics", "worldgen"], INTENT_TAGS = ["tension", "exploration", "rest", "learning", "reward", "social"];
   var EXPERIENCE = { id: "experience", special: "experience", uk: "Досвід гравців", en: "Player experience",
     about: { uk: "Телеметрія, метрики, теплові карти, проблеми досвіду, плейтести й A/B-тести.", en: "Telemetry, metrics, heatmaps, experience issues, playtests and A/B tests." } };
@@ -5636,7 +5731,9 @@
     if (ov0 && ov0.id === c.id) VISION().forEach(function (d) { if (!draft.defs.some(function (x) { return x.key === d.key; })) draft.defs.push(d); }); // the game's first overview card gets the vision fields (older cards had none)
     if (c.section === "audio" && !c.mech && !draft.defs.some(function (d) { return d.type === "audio"; })) // older sound cards get the sound field (Аудіотека)
       draft.defs.splice(draft.defs[0] && draft.defs[0].key === "group" ? 1 : 0, 0, { key: "sound", label: LANG === "en" ? "Sound" : "Звук", type: "audio" });
+    var subKeys = subDefs(c) || []; // 🧩 the subsection's own fields (v2.127.0)
     moreKeys = {}; moreAll = false;
+    if (c.isNew && canWrite) subKeys.forEach(function (k) { moreKeys[k] = 1; }); // a new card opens on its subsection's fields, not on an empty page
     setEditMode(false);
     $("e-kicker").textContent = L(sec(c.section)) + (c.src === "canon" ? " · " + STR.canonTag : " · " + game.title);
     $("e-title").value = c.title;
