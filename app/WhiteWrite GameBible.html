@@ -323,6 +323,17 @@ div.cs-ph{ cursor:default; font-size:46px; color:var(--tx-mid); }
 .cs-isp{ color:var(--gold-bright); font-size:12.5px; white-space:nowrap; }
 /* 🏞 location sheet (v2.115): the same gold frame, landscape; the traits beside it; «На карті гри» under them */
 .cs--place{ grid-template-columns:minmax(240px,340px) minmax(0,1fr); } .cs--place .cs-frame{ aspect-ratio:4/3; align-self:start; }
+.cs-frame--art{ aspect-ratio:16/9; width:min(100%,640px); margin:0 auto; } /* 🖼 «Арт» (v2.124): the card's picture / an animation's clip, shown whole */
+.cs-frame--art > img, .cs-frame--art > video{ display:block; width:100%; height:100%; object-fit:contain; border-radius:9px; background:radial-gradient(ellipse at 50% 35%,#2a2620,#121110); }
+.cs-frame > img, .cs-frame > video, .fimg img, .file a > img, .gp-pic a > img{ cursor:zoom-in; }
+/* ⛶ full-screen picture (v2.124) */
+.zoom{ position:fixed; inset:0; z-index:9999; display:grid; place-items:center; background:rgba(4,3,2,.97); padding:64px 72px; }
+.zoom-m{ width:calc(100vw - 144px); height:calc(100vh - 128px); object-fit:contain; } /* a small picture is scaled up to the screen too */
+.zoom-bar{ position:absolute; top:14px; right:16px; display:flex; gap:8px; }
+.zoom-b{ display:grid; place-items:center; width:40px; height:40px; border-radius:50%; border:1px solid rgba(246,211,138,.6); background:rgba(10,9,8,.8); color:var(--gold-bright); font-size:18px; cursor:pointer; text-decoration:none; }
+.zoom-nav{ position:absolute; top:50%; transform:translateY(-50%); width:48px; height:48px; font-size:28px; } .zoom-prev{ left:12px; } .zoom-next{ right:12px; }
+.zoom-n{ position:absolute; bottom:16px; left:50%; transform:translateX(-50%); color:var(--tx-mid); font-size:13px; }
+@media (max-width:760px){ .zoom{ padding:56px 8px; } .zoom-m{ width:calc(100vw - 16px); height:calc(100vh - 128px); } .zoom-nav{ top:auto; bottom:8px; transform:none; } }
 .cs-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font:600 11.5px "Inter",sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-lit, #f0a93b); }
 .cs-map .cs-tag{ text-transform:none; letter-spacing:0; font-weight:500; }
 @media (max-width:760px){ .cs-row, .cs-row3{ grid-template-columns:1fr 1fr; } .cs, .cs--place{ grid-template-columns:1fr; } .cs-frame{ width:min(100%,280px); margin:0 auto; } .cs-f{ grid-template-columns:1fr; gap:4px; } }

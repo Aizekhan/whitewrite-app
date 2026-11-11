@@ -150,6 +150,8 @@
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
       artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", pc: "⤒ З комп’ютера", rm: "🗑 Прибрати з картки", rmCanon: "Це картинка з канону світу — прибирається в досьє Біблії світу", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
+      artFrame: { pic: "＋ Картинка", clip: "＋ Анімація (відео чи GIF)", change: "Змінити", tip: "Завантажити головну картинку картки", clipTip: "Завантажити анімацію: відео MP4 / WebM або GIF" },
+      zoom: { close: "Закрити (Esc)", prev: "Попередня", next: "Наступна", orig: "Відкрити оригінал" },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
       agent: { by: "🤖 Змінив Claude Code на твоє прохання · {d}", undo: "↶ Повернути як було", undoNew: "↶ Прибрати (створив агент)", keep: "✓ Лишити",
@@ -492,6 +494,8 @@
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
       artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", pc: "⤒ From the computer", rm: "🗑 Remove from the card", rmCanon: "This picture is from the world canon — remove it in the World Bible dossier", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
+      artFrame: { pic: "＋ Picture", clip: "＋ Animation (video or GIF)", change: "Change", tip: "Upload the card's main picture", clipTip: "Upload the animation: an MP4 / WebM video or a GIF" },
+      zoom: { close: "Close (Esc)", prev: "Previous", next: "Next", orig: "Open the original" },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
       agent: { by: "🤖 Changed by Claude Code at your request · {d}", undo: "↶ Undo", undoNew: "↶ Remove (made by the agent)", keep: "✓ Keep",
@@ -1613,7 +1617,8 @@
     if (c.src === "canon") tags.push('<span class="pill canon-pill">' + STR.canonTag + '</span>');
     if (c.note) tags.push('<span class="flag">' + STR.note + '</span>');
     if (query && c.section !== section) tags.push('<span class="pill s-agreed">' + esc(L(sec(c.section))) + '</span>');
-    var pics = (c.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; })[0] || pics[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
+    var pics = (c.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait" || f.field === ART_FRAME[c.section]; }).slice(-1)[0] || pics[0] || (c.src === "canon" && entImage(entities.filter(function (e) { return e.id === c.id; })[0]));
+    var vid = c.section === "animation" && artMedia(c, "clip"); if (vid && !isVideo(vid)) { img = vid; vid = null; } // 🎞 an animation's tile plays its clip
     if (c.section === "assets") { var ks = window.__ASSET_KIT.kitState(c); tags.push('<span class="flag" title="' + esc(PF.kitTitle) + '">🧩 ' + ks.done + '/' + ks.total + '</span>'); }
     if ((c.files || []).length) tags.push('<span class="flag">📎 ' + c.files.length + '</span>');
     var lc = worstLic(c.files); if (lc) tags.push(lc);
@@ -1632,7 +1637,7 @@
     var fdefs = (c.defs || []).concat(sec(c.section).defs || []), pd = fdefs.filter(function (d) { return d.type === "palette" && c.fields[d.key]; })[0], bd = fdefs.filter(function (d) { return d.type === "scene" && c.fields[d.key]; })[0];
     if (c.section === "factions") tags = []; // 🚩 a banner carries no tags — status, «канон», files, the style mark live inside the card (owner, v2.115.3 / v2.115.7)
     var gpal = PAL_SECS.indexOf(c.section) >= 0 ? groupPal(c.section, normGroup(sec(c.section), c.fields[groupKey(sec(c.section))] || "")) : "";
-    return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id, c.banner) : '') + '" data-key="' + esc(c.key) + '">' + corner + (img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
+    return '<button class="card' + (model ? ' has3d' : '') + (c.section === "factions" ? bannerCls(c.id, c.banner) : '') + '" data-key="' + esc(c.key) + '">' + corner + (vid ? '<video class="thumb" src="' + esc(vid.url) + '" muted loop autoplay playsinline preload="metadata"></video>' : img ? '<img class="thumb" loading="lazy" alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' : bd ? sceneThumb(c.fields[bd.key]) : '') +
       '<h3>' + esc(c.title || STR.newCard) + '</h3>' + swatches(pd ? c.fields[pd.key] : gpal) + '<div class="tags">' + tags.join("") +
       '</div><p class="ex">' + esc(excerpt(c)) + '</p></button>';
   }
@@ -5692,6 +5697,59 @@
       '<div class="cs-row">' + sel("kind") + sel("role") + '</div><div class="cs-row">' + sel("danger") + sel("size") + '</div>' +
       '<div class="cs-row cs-row3">' + sel("climate") + sel("light") + sel("mood") + '</div>' + map + '</div></div></div>';
   }
+  // 🖼 «Арт» (owner, v2.124): every art card opens on its picture in the gold frame, like a hero's portrait; «Анімації й VFX» — on the clip
+  // itself (an MP4 / WebM video or a GIF, played in a loop); the frame's file is a card file with field ART_FRAME[section] (no def: the frame is the field)
+  var ART_FRAME = { artstyle: "refs", assets: "view", materials: "view", animation: "clip", ui: "view" };
+  function isVideo(f) { return /^video\//.test(f.type || "") || /\.(mp4|webm|mov|m4v)$/i.test(f.name || ""); }
+  function artMedia(c, field) {
+    var fl = (c.files || []).filter(function (f) { return isImage(f) || field === "clip" && isVideo(f); });
+    return fl.filter(function (f) { return f.field === field; }).slice(-1)[0] || (field === "clip" && fl.filter(isVideo)[0]) || fl[0] || null;
+  }
+  function artFrameHtml() {
+    var field = ART_FRAME[open.section], clip = field === "clip", m = artMedia(open, field), A = STR.artFrame;
+    var up = canWrite ? '<button type="button" class="' + (m ? 'cs-chg' : 'cs-ph') + '" title="' + esc(m ? A.change : clip ? A.clipTip : A.tip) + '" aria-label="' + esc(m ? A.change : clip ? A.clipTip : A.tip) + '" data-picch="' + field + '" data-picid="' + esc(m ? m.id : "") + '">' + (m ? '✎' : esc(clip ? A.clip : A.pic)) + '</button>' : '';
+    var media = !m ? up || '<div class="cs-ph">' + (clip ? '🎞' : '🖼') + '</div>'
+      : (isVideo(m) ? '<video src="' + esc(m.url) + '" muted loop autoplay playsinline></video>' : '<img alt="' + esc(m.name || "") + '" src="' + esc(m.url) + '"' + frameAttr(m) + '>') + up;
+    return '<div class="field cs-wrap"><div class="cs-frame cs-frame--art">' + media + '</div></div>';
+  }
+  // ⛶ a picture in a frame or a card's gallery opens full screen (owner, v2.124): heroes, enemies, locations, dossiers, «Арт», UI;
+  // ‹ › / ← → walk the pictures beside it, Esc / ✕ / a click past the picture closes, ↗ opens the original
+  var ZOOM_SEL = '.cs-frame > img, .cs-frame > video, a[target="_blank"] > img';
+  function zoomItem(n) { var a = n.parentNode && n.parentNode.tagName === "A" ? n.parentNode : null; return { url: a ? a.href : n.currentSrc || n.src, video: n.tagName === "VIDEO", alt: n.alt || "" }; }
+  function zoomOpen(el) {
+    var near = el.closest(".fimgs, .files, .gp-pics, .cs-wrap, .field") || el.parentNode, nodes = [].slice.call(near.querySelectorAll(ZOOM_SEL));
+    if (nodes.indexOf(el) < 0) nodes = [el];
+    var items = nodes.map(zoomItem), i = nodes.indexOf(el), Z = STR.zoom, box = document.createElement("div");
+    box.className = "zoom"; box.setAttribute("role", "dialog"); box.setAttribute("aria-modal", "true");
+    var back = document.activeElement;
+    var draw = function () {
+      var it = items[i];
+      box.innerHTML = (it.video ? '<video class="zoom-m" src="' + esc(it.url) + '" controls autoplay loop playsinline></video>' : '<img class="zoom-m" alt="' + esc(it.alt) + '" src="' + esc(it.url) + '">') +
+        '<div class="zoom-bar"><a class="zoom-b" href="' + escUrl(it.url) + '" target="_blank" rel="noopener" title="' + esc(Z.orig) + '" aria-label="' + esc(Z.orig) + '">↗</a>' +
+        '<button type="button" class="zoom-b" data-zx title="' + esc(Z.close) + '" aria-label="' + esc(Z.close) + '">✕</button></div>' +
+        (items.length > 1 ? '<button type="button" class="zoom-b zoom-nav zoom-prev" data-zs="-1" title="' + esc(Z.prev) + '" aria-label="' + esc(Z.prev) + '">‹</button>' +
+          '<button type="button" class="zoom-b zoom-nav zoom-next" data-zs="1" title="' + esc(Z.next) + '" aria-label="' + esc(Z.next) + '">›</button><span class="zoom-n">' + (i + 1) + ' / ' + items.length + '</span>' : '');
+      box.querySelector("[data-zx]").focus();
+    };
+    var step = function (d) { i = (i + d + items.length) % items.length; draw(); };
+    var close = function () { document.removeEventListener("keydown", key, true); box.remove(); if (back && back.focus) back.focus(); };
+    var key = function (e) {
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
+      else if (items.length > 1 && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); e.stopPropagation(); step(e.key === "ArrowLeft" ? -1 : 1); }
+      else if (e.key === "Tab") { var f = [].slice.call(box.querySelectorAll("a, button")); if (f.length) { var k = f.indexOf(document.activeElement); e.preventDefault(); f[(k + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus(); } }
+    };
+    box.addEventListener("click", function (e) {
+      var sb = e.target.closest("[data-zs]"); if (sb) return step(+sb.dataset.zs);
+      if (e.target.closest("[data-zx]") || !e.target.closest(".zoom-m, .zoom-b")) close();
+    });
+    document.addEventListener("keydown", key, true);
+    document.body.appendChild(box); draw();
+  }
+  document.addEventListener("click", function (e) {
+    if (e.button || e.ctrlKey || e.metaKey || e.shiftKey) return; // a modified click still opens the original in a new tab
+    var el = e.target.closest && e.target.closest(ZOOM_SEL); if (!el || el.closest(".zoom")) return;
+    e.preventDefault(); e.stopPropagation(); zoomOpen(el);
+  }, true);
   function placeBody() { // a trait set back to «—» is deleted, not kept by the merge
     var b = Object.assign({}, draft.place); Object.keys(open.place || {}).forEach(function (k) { if (!(k in b)) b[k] = firebase.firestore.FieldValue.delete(); }); return b;
   }
@@ -5730,6 +5788,7 @@
     $("e-addf-w").hidden = !chips.length || all; addfMenu(false);
     if (draft.intent) html += intentHtml(draft.intent);
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
+    if (ART_FRAME[open.section]) html = artFrameHtml() + html; // 🖼 the picture (an animation's clip) above everything
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0]; if (sEnt) html = gameSheetHtml(sEnt) + html; }
     if (draft.place) html = placeSheetHtml() + html;
@@ -6649,7 +6708,7 @@
   function cardPicMenu(btn) {
     var field = btn.dataset.picch, fid = btn.dataset.picid || "", A = STR.artPick, single = btn.classList.contains("cs-chg") || btn.classList.contains("cs-ph");
     var items = [{ label: A.pc, run: function () {
-      var inp = document.createElement("input"); inp.type = "file"; inp.hidden = true; inp.accept = "image/*"; inp.multiple = !single; inp.dataset.fup = field;
+      var inp = document.createElement("input"); inp.type = "file"; inp.hidden = true; inp.accept = field === "clip" ? "video/mp4,video/webm,image/*" : "image/*"; inp.multiple = !single; inp.dataset.fup = field;
       $("e-body").appendChild(inp); inp.addEventListener("change", function () { setTimeout(function () { inp.remove(); }, 0); }); inp.click();
     } }];
     if (gameId && ART_SRC.indexOf(open.section) < 0) items.push({ label: A.btn, run: function () { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(field); } });
