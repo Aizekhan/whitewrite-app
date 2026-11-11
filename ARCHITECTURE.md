@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.124.0 (2026-11-11)
+**Version:** 2.124.1 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -773,6 +773,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.124.1** (owner) every hero / enemy card opens on the character sheet (portrait frame + traits), not only a saved canon character: a new card (canon → the new entity takes the traits) and a game-only one (an enemy, a card in any subsection) — its traits on the card as `cards/{id}.sheet` {appearance, faction, charClass, alignment, location} (csEntDiff against the old one); MCP `get_card` of a game card gives appearance, faction, class, alignment, lives_in (`sheetOf`); `ART_FRAME` + gear, items, levels
 - **v2.124.0** (owner) «Арт» cards open on their picture: a gold frame on top (`artFrameHtml`, `ART_FRAME` — artstyle → field `refs`, assets / materials / ui → `view`, animation → `clip`, an MP4 / WebM video or a GIF looped; a card file with that field, no def), tiles show it (an animation tile plays the clip, `artMedia` / `isVideo`); ⛶ full-screen view (`zoomOpen`, capture click on `.cs-frame` media and `a[target=_blank] > img` — card galleries, dossier files, map pictures; ‹ › / arrows, ↗ original, Esc)
 - **v2.123.1** (owner) empty subsections are no longer folded into a «Порожні підрозділи:» line of «＋ Name ✕» chips — every subsection (empty too) is its own block with its heading, «＋ Додати» and ✕ (`subsHtml`; `freshSubs`, `.subempty`, `.subsec-mini`, `sub.more` removed)
 - **v2.123.0** (owner) «Магазин»: several shops in one card (name, kind, merchant, place, opening hour, markup, buyback, restock), each good picks its shop; per-shop summary and checks; older cards get an empty shops table
@@ -993,5 +994,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.124.0)
+**Last updated:** 2026-11-11 (v2.124.1)
 **Maintained by:** WhiteWrite Team

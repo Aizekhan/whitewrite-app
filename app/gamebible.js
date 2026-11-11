@@ -1488,7 +1488,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
   }
   function allCards() {
     var out = [];
@@ -5613,6 +5613,7 @@
     draft.banner = c.section === "factions" ? c.banner || "" : null; // 🚩 the faction's banner (v2.115.2)
     draft.place = PLACE_SECS.indexOf(c.section) >= 0 ? Object.assign({}, c.place || {}) : null; // 🏞 a location's sheet (v2.115)
     draft.sheet = cEnt ? csState(cEnt) : null; // 🛡 a canon character in a game: the same sheet as in the World Bible, it writes to the canon (v2.109)
+    if (!draft.sheet && STATS_SECS.indexOf(c.section) >= 0) draft.sheet = csState(c.src === "canon" ? {} : c.sheet || {}); // a new one, or the game's own (an enemy, a card in any subsection): the same frame and traits (owner, v2.124.1) — kept on the card as `sheet`
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
     if (STATS_SECS.indexOf(c.section) >= 0) { // v2.88: the model file field becomes the prefab link; a portrait and references join
       draft.defs.forEach(function (d) { if (d.key === "model" && (!d.type || d.type === "file")) { d.type = "prefab"; d.label = PREFAB().label; } });
@@ -5699,7 +5700,7 @@
   }
   // 🖼 «Арт» (owner, v2.124): every art card opens on its picture in the gold frame, like a hero's portrait; «Анімації й VFX» — on the clip
   // itself (an MP4 / WebM video or a GIF, played in a loop); the frame's file is a card file with field ART_FRAME[section] (no def: the frame is the field)
-  var ART_FRAME = { artstyle: "refs", assets: "view", materials: "view", animation: "clip", ui: "view" };
+  var ART_FRAME = { artstyle: "refs", assets: "view", materials: "view", animation: "clip", ui: "view", gear: "view", items: "view", levels: "view" }; // + items, gear, levels (owner, v2.124.1)
   function isVideo(f) { return /^video\//.test(f.type || "") || /\.(mp4|webm|mov|m4v)$/i.test(f.name || ""); }
   function artMedia(c, field) {
     var fl = (c.files || []).filter(function (f) { return isImage(f) || field === "clip" && isVideo(f); });
@@ -5790,7 +5791,7 @@
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (ART_FRAME[open.section]) html = artFrameHtml() + html; // 🖼 the picture (an animation's clip) above everything
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
-    if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0]; if (sEnt) html = gameSheetHtml(sEnt) + html; }
+    if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0] || { id: open.id, isNew: true }; html = gameSheetHtml(sEnt) + html; }
     if (draft.place) html = placeSheetHtml() + html;
     if (draft.banner !== null && draft.banner !== undefined) html = bannerPickHtml(open.id, draft.banner) + html;
     if (voOn) html += voCardHtml(voK);
@@ -6830,7 +6831,7 @@
         if (open.isNew || draft.title !== open.title) { ent.name = draft.title; ent.slug = slugify(draft.title); }
         if (draft.canonDesc !== open.canonDesc.value) ent[open.canonDesc.key] = draft.canonDesc;
         if (draft.banner && draft.banner !== open.banner) ent.banner = draft.banner;
-        if (draft.sheet) { csCollect("#e-body", draft.sheet); var e0 = entities.filter(function (x) { return x.id === open.id; })[0]; if (e0) csEntDiff(e0, draft.sheet, ent); }
+        if (draft.sheet) { csCollect("#e-body", draft.sheet); var e0 = entities.filter(function (x) { return x.id === open.id; })[0] || {}; csEntDiff(e0, draft.sheet, ent); } // a new entity (or one not loaded yet): its traits as they are
         if (Object.keys(ent).length && !lockC) { ent.updatedAt = stamp(); await wref().collection("entities").doc(open.id).set(ent, { merge: true }); }
         // this game's view of the entity
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
@@ -6846,6 +6847,8 @@
         if (draft.intent) body.intent = draft.intent;
         if (draft.place) body.place = placeBody();
         if (draft.banner) body.banner = draft.banner;
+        if (draft.sheet) { csCollect("#e-body", draft.sheet); var sh = csEntDiff(open.sheet || {}, draft.sheet, {}); if (Object.keys(sh).length) body.sheet = sh;
+          open.sheet = { appearance: window.__PERSONA.cleanLook(draft.sheet.appearance), faction: draft.sheet.faction || "", charClass: draft.sheet.ent.charClass || "", alignment: draft.sheet.ent.alignment || "", location: draft.sheet.ent.location || "" }; } // the game's own hero / enemy: its traits on the card
         if (open.isNew) { body.createdAt = stamp(); body.order = Date.now(); }
         await gref().collection("cards").doc(open.id).set(body, { merge: true });
       }

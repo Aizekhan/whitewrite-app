@@ -40,7 +40,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
   { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status and files. Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
-  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
+  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero / enemy card has appearance, faction, class, alignment, lives_in. used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
   { name: 'report_task_progress', description: 'A short progress note on the task you are working on (shown live to the author).',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
@@ -225,7 +225,19 @@ function cardView(ctx, ref) {
   if (!c) return null;
   const gp = groupPalette(ctx, c);
   return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
-    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...prefabOf(ctx, c) };
+    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c) };
+}
+// 🛡 a game-only hero / enemy card's traits (card.sheet — the same as a canon character's: appearance, faction, class, alignment, home)
+function sheetOf(ctx, c) {
+  const st = c && c.sheet; if (!st) return {};
+  const name = (id) => { const e = id && ctx.entities.find((x) => x.id === id); return e ? e.name || id : id || ''; };
+  const out = {}, look = lookText(st.appearance, 'en');
+  if (look) out.appearance = look;
+  if (st.faction) out.faction = name(st.faction);
+  if (st.charClass) out.class = st.charClass;
+  if (st.alignment) out.alignment = st.alignment;
+  if (st.location) out.lives_in = name(st.location);
+  return out;
 }
 // 🏞 a location card's traits (kind of place, role, danger, size, climate, light, mood) in English; own values as written
 function placeOf(c) {
