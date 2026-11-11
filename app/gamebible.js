@@ -136,7 +136,7 @@
       sectionAbout: "Про що цей розділ (необовʼязково)", create: "Створити", cancel: "Скасувати",
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
-      group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", more: "Порожні підрозділи:", start: "Почни звідси:",
+      group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
         general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія", rename: "Перейменувати підрозділ",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
@@ -478,7 +478,7 @@
       sectionAbout: "What this section is about (optional)", create: "Create", cancel: "Cancel",
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
-      group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", more: "Empty subsections:", start: "Start here:",
+      group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
         general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story", rename: "Rename the subsection",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
@@ -1205,20 +1205,14 @@
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
         (canDrop && canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
-    var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; }, empties = [];
-    subs.concat(extra).forEach(function (g) {
+    var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
+    subs.concat(extra).forEach(function (g) { // every subsection is its own block on the page, empty ones too (owner, v2.123.1)
       var list = by[g] || [];
-      if (!list.length && items.length && !freshSubs[s.id + "|" + g]) return empties.push(g); // the cards live elsewhere: the empty subsections fold into one line below
       html += block(g, head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>'));
     });
     if (loose.length || !(subs.length + extra.length)) {
       html += block("", head("", looseLabel(s, subs.length + extra.length), loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>'));
     }
-    if (empties.length) html += '<div class="subempty"><span class="muted">' + STR.sub.more + '</span>' + empties.map(function (g) { // still drop targets and «＋ Додати» each
-      var label = labelOf ? labelOf(g) : g;
-      return '<div class="subsec subsec-mini" data-sub="' + esc(g) + '">' + (canWrite ? '<button class="btn mini ghost" data-addsub="' + esc(g) + '" title="' + esc(STR.sub.item + " · " + label) + '">＋ ' + esc(label) + '</button>' : '<span class="chip">' + esc(label) + '</span>') +
-        (canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</div>';
-    }).join("") + '</div>';
     return html;
   }
   // ---------- 🎧 Аудіотека: every sound of the game, where it plays, and which Sound factory slots still have none (mechanics.js audioLibrary) ----------
@@ -1377,13 +1371,11 @@
     if (n) batch.commit().catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); render(); });
   }
 
-  var freshSubs = {}; // subsections made in this visit: shown as their own block (not folded into «Порожні» below) and scrolled to (v2.115.7)
   function ownSubs(s) { var own = ((inCanon(s) ? world : game) || {}).subsections || {}; return Array.isArray(own[s.id]) && own[s.id].length; }
   function newSubsection() {
     var s = sec(section);
     askName(STR.sub.title, STR.sub.ph, function (name) {
       if (!name) return;
-      freshSubs[s.id + "|" + name] = 1;
       var list = subsOf(s), seen = function () { var el = $("view").querySelector('.subsec[data-sub="' + CSS.escape(name) + '"]'); if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); edFlash(el); } };
       if (list.indexOf(name) < 0) saveSubs(s, list.concat(name)).then(function () { setTimeout(seen, 150); }, function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
       else seen();

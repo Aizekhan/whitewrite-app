@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.123.0 (2026-11-11)
+**Version:** 2.123.1 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -773,6 +773,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.123.1** (owner) empty subsections are no longer folded into a «Порожні підрозділи:» line of «＋ Name ✕» chips — every subsection (empty too) is its own block with its heading, «＋ Додати» and ✕ (`subsHtml`; `freshSubs`, `.subempty`, `.subsec-mini`, `sub.more` removed)
 - **v2.123.0** (owner) «Магазин»: several shops in one card (name, kind, merchant, place, opening hour, markup, buyback, restock), each good picks its shop; per-shop summary and checks; older cards get an empty shops table
 - **v2.122.0** (owner) «Прогресія» in the menu unfolds into its subsections (Досвід і рівні, Дерева розвитку, Валюти, Лут, Магазин, Апгрейди, Баланс — one section, a filter, no migration); 🌳 development trees: `prog_skilltree` / `prog_upgradetree` and a tree section in any card — a visual editor (drag nodes, pull requirements, new node on a click), «▶ Пройти як гравець», `treeStats` / `treeChecks`, MCP `computed.tree(s)`
 - **v2.121.0** (owner audit of «Космологія») Космограф: calendar from the sky (year = a sun's orbit or own days; months none / by a moon's phases / own rows — no comma lists), light falls with distance, heat per sun, sun-on-sun eclipses, the planet's shadow on moons, moonlight on the night side, map layers (light / heat / eclipse shadows / suns up), point card with a sky chart, body card, «◷ Події року» (eclipses, equinoxes, solstices; marks on the year slider), «◐ Вигляд» (orbits, labels, axis, camera), ±1 day, 10 years/s, periapsis + plane shift, albedo, night brightness, atmosphere colour, «Два сонця» preset, gold headings; `astro.js`, `calendar.js`, `events.js`; MCP / gamedev read `calendar.yearDays`
@@ -991,5 +992,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.123.0)
+**Last updated:** 2026-11-11 (v2.123.1)
 **Maintained by:** WhiteWrite Team
