@@ -140,9 +140,9 @@ var BEAST = [
   { k: 'size', uk: 'Розмір', en: 'Size', o: [['tiny', 'крихітний (до колін)', 'tiny (knee-high)'], ['small', 'малий (до пояса)', 'small (waist-high)'], ['medium', 'як людина', 'human-sized'],
     ['large', 'великий (2–3 × людина)', 'large (2–3 × a human)'], ['huge', 'велетенський', 'huge']] },
   { k: 'behaviour', uk: 'Тактика', en: 'Tactics', o: [['aggressive', 'нападає першим', 'attacks first'], ['pack', 'полює зграєю', 'hunts in a pack'], ['ambush', 'із засідки', 'ambush'],
-    ['territorial', 'охороняє свою територію', 'territorial'], ['patrol', 'патрулює', 'patrols'], ['guard', 'вартує місце', 'guards a place'], ['cautious', 'обережний, тікає', 'cautious, flees'],
+    ['territorial', 'охороняє свою територію', 'territorial'], ['patrol', 'патрулює', 'patrols'], ['guard', 'обороняє обʼєкт / місце', 'defends an object / place'], ['cautious', 'обережний, тікає', 'cautious, flees'],
     ['passive', 'мирний (дичина)', 'passive (game)']] },
-  { k: 'move', uk: 'Пересування', en: 'Movement', o: [['four', 'на чотирьох лапах', 'on four legs'], ['two', 'на двох ногах', 'on two legs'], ['many', 'багато ніг', 'many legs'],
+  { k: 'move', uk: 'Пересування', en: 'Movement', o: [['four', 'на чотирьох лапах', 'on four legs'], ['two', 'на двох ногах', 'on two legs'], ['run', 'швидко бігає', 'runs fast'], ['many', 'багато ніг', 'many legs'],
     ['fly', 'літає', 'flies'], ['hover', 'ширяє / левітує', 'hovers'], ['swim', 'плаває', 'swims'], ['crawl', 'повзає / риє', 'crawls / burrows'], ['slow', 'повільно бреде', 'shambles']] },
   { k: 'attack', uk: 'Тип атаки', en: 'Attack type', o: [['melee', 'ближня (кігті, ікла, зброя)', 'melee (claws, fangs, weapon)'], ['charge', 'кидок / таран', 'charge / ram'],
     ['ranged', 'здалеку (плювок, стріли)', 'ranged (spit, arrows)'], ['magic', 'магія', 'magic'], ['poison', 'отрута', 'poison'], ['area', 'по площі', 'area'], ['mixed', 'змішана', 'mixed']] },
@@ -151,6 +151,9 @@ var BEAST = [
     ['plains', 'рівнини', 'plains'], ['anywhere', 'всюди', 'anywhere']] },
   { k: 'threat', uk: 'Загроза', en: 'Threat', o: [['weak', 'слабка', 'weak'], ['mid', 'середня', 'medium'], ['high', 'висока', 'high'], ['deadly', 'смертельна', 'deadly']] },
 ];
+var BEAST_MULTI = { behaviour: 3, move: 3 }; // up to 3 picks (owner, v2.125.2): on two legs + flies + runs; pack + defends a place…
+// a multi trait is an array; an older single value reads as one pick
+function beastList(b, k) { var v = (b || {})[k]; return (Array.isArray(v) ? v : v ? [v] : []).filter(Boolean).slice(0, BEAST_MULTI[k] || 1); }
 function beastLabel(k, v, lang) {
   var f = BEAST.filter(function (x) { return x.k === k; })[0], o = f && f.o.filter(function (x) { return x[0] === v; })[0];
   return o ? o[lang === 'en' ? 2 : 1] : String(v || '');
@@ -158,10 +161,10 @@ function beastLabel(k, v, lang) {
 // card.beast → «Тип істоти: звір; Розмір: …» ('' when empty)
 function beastText(b, lang) {
   lang = lang === 'en' ? 'en' : 'uk'; b = b || {};
-  return BEAST.filter(function (f) { return b[f.k]; }).map(function (f) { return f[lang] + ': ' + beastLabel(f.k, b[f.k], lang); }).join('; ');
+  return BEAST.filter(function (f) { return beastList(b, f.k).length; }).map(function (f) { return f[lang] + ': ' + beastList(b, f.k).map(function (v) { return beastLabel(f.k, v, lang); }).join(' + '); }).join('; ');
 }
 
 var PERSONA = { STEPS: STEPS, TRAITS: TRAITS, QUESTIONS: QUESTIONS, question: question, progress: progress, traitWords: traitWords, personaText: personaText, cleanPersona: cleanPersona,
-  LOOK: LOOK, LOOK_FIELDS: LOOK_FIELDS, cleanLook: cleanLook, lookText: lookText, BEAST: BEAST, beastLabel: beastLabel, beastText: beastText };
+  LOOK: LOOK, LOOK_FIELDS: LOOK_FIELDS, cleanLook: cleanLook, lookText: lookText, BEAST: BEAST, BEAST_MULTI: BEAST_MULTI, beastList: beastList, beastLabel: beastLabel, beastText: beastText };
 if (typeof module !== 'undefined' && module.exports) module.exports = PERSONA;
 if (typeof window !== 'undefined') window.__PERSONA = PERSONA;

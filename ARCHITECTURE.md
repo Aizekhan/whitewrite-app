@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.125.1 (2026-11-11)
+**Version:** 2.125.2 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -775,6 +775,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.125.2** (owner) the creature sheet's «Тактика» and «Пересування» take up to 3 picks (`persona.js` `BEAST_MULTI`, `beastList` — `card.beast.behaviour` / `.move` are arrays, an older single value reads as one pick; one more empty select while there is room, «—» removes a pick; `beastText` joins with « + »); options «обороняє обʼєкт / місце», «швидко бігає»
 - **v2.125.1** (owner: a person's traits on a monster were wrong) «Вороги й боси» get a creature sheet instead of the character sheet: `functions/persona.js` `BEAST` (kind, size, behaviour → «Тактика», move, attack → «Тип атаки», habitat, threat; uk/en lists + «✎ Своє…») and `beastText`; `cards/{id}.beast` {k: value} (game card and a canon enemy's view card; `beastSheetHtml` / `beastBody`, «—» deletes the key); the character sheet (`draft.sheet`, `cs*`) is only for «Герої та NPC»; MCP `get_card` → `creature`, an enemy's leftover v2.124.1 `sheet` is never shown. Audit of every game shelf: no other shelf shows another kind's traits (locations — place sheet, art / gear / items / levels — picture frame, the rest — their own fields)
 - **v2.125.0** (owner, Morra agent report) MCP: `save_card` `subsection` (a «group» field no longer becomes `f_group` — the cards stayed in «Інше»), `get_design_section` `subsections`, `card_image_upload` (a picture from the disk into the card's frame via a one-time curl upload, `mcpUploads`)
 - **v2.124.1** (owner) every hero / enemy card opens on the character sheet (portrait frame + traits), not only a saved canon character: a new card (canon → the new entity takes the traits) and a game-only one (an enemy, a card in any subsection) — its traits on the card as `cards/{id}.sheet` {appearance, faction, charClass, alignment, location} (csEntDiff against the old one); MCP `get_card` of a game card gives appearance, faction, class, alignment, lives_in (`sheetOf`); `ART_FRAME` + gear, items, levels
@@ -998,5 +999,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.125.1)
+**Last updated:** 2026-11-11 (v2.125.2)
 **Maintained by:** WhiteWrite Team

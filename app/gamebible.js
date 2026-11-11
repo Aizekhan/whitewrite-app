@@ -5758,12 +5758,19 @@
     if (!img && open.src === "canon") img = entImage(entities.filter(function (x) { return x.id === open.id; })[0] || {});
     var up = canWrite ? '<button type="button" class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? CS.change : CS.portraitTip) + '" data-picch="portrait" data-picid="' + esc(img && pics.indexOf(img) >= 0 ? img.id : img ? "__canon" : "") + '">' + (img ? '✎' : esc(CS.portrait)) + '</button>' : '';
     var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">🐺</div>';
-    var sel = function (k) {
-      var f = window.__PERSONA.BEAST.filter(function (x) { return x.k === k; })[0], v = draft.beast[k] || "", own = v && !f.o.some(function (o) { return o[0] === v; });
-      return '<label class="cs-f"><span>' + esc(LANG === "en" ? f.en : f.uk) + '</span><select data-bt="' + k + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
-        (own ? '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>' : '') +
-        f.o.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") +
-        (canWrite ? '<option value="__own">' + esc(CS.own) + '</option>' : '') + '</select></label>';
+    var P = window.__PERSONA;
+    var sel = function (k) { // tactics and movement: up to 3 picks — one more empty select appears while there is room (v2.125.2)
+      var f = P.BEAST.filter(function (x) { return x.k === k; })[0], max = P.BEAST_MULTI[k] || 1, vals = P.beastList(draft.beast, k);
+      var n = max > 1 ? Math.min(max, vals.length + (canWrite ? 1 : 0)) || 1 : 1;
+      var one = function (i) {
+        var v = vals[i] || "", own = v && !f.o.some(function (o) { return o[0] === v; });
+        return '<select data-bt="' + k + '" data-bi="' + i + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+          (own ? '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>' : '') +
+          f.o.filter(function (o) { return o[0] === v || vals.indexOf(o[0]) < 0; }).map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") +
+          (canWrite ? '<option value="__own">' + esc(CS.own) + '</option>' : '') + '</select>';
+      };
+      for (var i = 0, h = ""; i < n; i++) h += one(i);
+      return '<label class="cs-f"><span>' + esc(LANG === "en" ? f.en : f.uk) + (max > 1 ? ' <small>' + (LANG === "en" ? "up to " : "до ") + max + '</small>' : '') + '</span>' + h + '</label>';
     };
     return '<div class="field cs-wrap"><div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
       '<div class="cs-row">' + sel("kind") + sel("size") + '</div><div class="cs-row">' + sel("behaviour") + sel("move") + '</div>' +
@@ -11670,10 +11677,16 @@
   $("e-body").addEventListener("change", function (e) {
     var gs = draft && draft.sheet, d0 = e.target.dataset || {};
     if (d0.bt && draft && draft.beast) { // 🐺 the monster sheet
-      var bk = d0.bt, bv = e.target.value;
-      if (bv !== "__own") { if (bv) draft.beast[bk] = bv; else delete draft.beast[bk]; return; }
-      e.target.value = draft.beast[bk] || "";
-      askName(CS.ownQ, "", function (v) { if (v && draft && draft.beast) { draft.beast[bk] = v; renderFields(); } }, "", { ok: STR.save }); return;
+      var bk = d0.bt, bv = e.target.value, bi = +d0.bi || 0, multi = window.__PERSONA.BEAST_MULTI[bk];
+      var bset = function (v) { // a multi trait keeps an array of picks; «—» removes the pick
+        if (!multi) { if (v) draft.beast[bk] = v; else delete draft.beast[bk]; return; }
+        var arr = window.__PERSONA.beastList(draft.beast, bk); if (v) arr[bi] = v; else arr.splice(bi, 1);
+        arr = arr.filter(Boolean); if (arr.length) draft.beast[bk] = arr; else delete draft.beast[bk];
+        renderFields();
+      };
+      if (bv !== "__own") { bset(bv); return; }
+      e.target.value = window.__PERSONA.beastList(draft.beast, bk)[bi] || (multi ? "" : draft.beast[bk] || "");
+      askName(CS.ownQ, "", function (v) { if (v && draft && draft.beast) { bset(v); renderFields(); } }, "", { ok: STR.save }); return;
     }
     if (d0.pl && draft && draft.place) {
       var pk = d0.pl, pv = e.target.value;
