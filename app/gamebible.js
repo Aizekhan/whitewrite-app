@@ -4903,7 +4903,8 @@
   // ---------- 🌳 Дерево розвитку: a tree section (s.tree) drawn as a tree — the same rows as the table (mechanics.js treeStats / treeChecks) ----------
   // A node sits on a grid cell (col, row; a node without one gets a cell by its depth). Drag a node to move it, pull its ● onto another node —
   // that node now requires it. «▶ Пройти як гравець» buys nodes at a chosen level (points) or hour (currency); nothing of it is saved.
-  var MTR = { uk: { table: "▦ Таблиця", tree: "🌳 Дерево", sim: "▶ Пройти як гравець", simOff: "✕ Завершити", add: "＋ Вузол", child: "＋ Наступний вузол", rm: "✕ Прибрати вузол",
+  var MTR = { uk: { icon: "Емблема", iconUp: "⤒ Картинка", iconChg: "⤒ Замінити", iconRm: "Прибрати", iconHint: "Мала картинка вміння — видно на вузлі дерева. Найкраще квадратна, PNG з прозорим тлом.", iconSave: "Спершу збережи механіку — тоді додаси емблеми вузлам.", iconBusy: "Завантажую емблему…",
+      table: "▦ Таблиця", tree: "🌳 Дерево", sim: "▶ Пройти як гравець", simOff: "✕ Завершити", add: "＋ Вузол", child: "＋ Наступний вузол", rm: "✕ Прибрати вузол",
       rmQ: "Прибрати вузол «{t}»? Вимоги інших вузлів на нього теж зникнуть.", newNode: "Новий вузол", addHere: "Новий вузол тут", link: "Потягни на вузол, який цього потребує",
       cycle: "Так вийде замкнене коло: «{a}» уже потребує «{b}».", hint: "Клікни вузол — його поля внизу. Перетягни вузол на іншу клітинку; потягни ● під вузлом на інший вузол — це вимога. Клік на порожню клітинку — новий вузол.",
       pts: "Очок до рівня {l}: {a} · усе дерево: {t} · гравець відкриє {p}%", money: "Усе дерево: {t} {u}{h}", plain: "Вузлів: {n} · глибина {d}", hrs: " · ≈ {h} заробітку",
@@ -4911,7 +4912,8 @@
       cyc: "замкнене коло", lv: "Рівень гравця", hr: "Година гри", left: "Лишилось: {n}", spent: "Витрачено {s} з {a}", reset: "Скинути", sell: "Забрати ранг",
       simHint: "Клікни вузол, щоб узяти його (вимоги, рівень і очки враховано). − забирає ранг.", over: "Перевитрачено — на цьому рівні стільки немає.", branch: "Гілка", any: "будь-який із попередніх",
       kinds: { stat: "Параметр", passive: "Пасивка", active: "Здібність", unlock: "Відкриває", keystone: "Ключовий" }, secTree: "🌳 Дерево розвитку", secTreeName: "Дерево розвитку" },
-    en: { table: "▦ Table", tree: "🌳 Tree", sim: "▶ Play it as the player", simOff: "✕ Finish", add: "＋ Node", child: "＋ Next node", rm: "✕ Remove node",
+    en: { icon: "Emblem", iconUp: "⤒ Picture", iconChg: "⤒ Replace", iconRm: "Remove", iconHint: "A small picture of the skill — shown on the tree node. Square works best, a PNG with a transparent background.", iconSave: "Save the mechanic first — then add emblems to its nodes.", iconBusy: "Uploading the emblem…",
+      table: "▦ Table", tree: "🌳 Tree", sim: "▶ Play it as the player", simOff: "✕ Finish", add: "＋ Node", child: "＋ Next node", rm: "✕ Remove node",
       rmQ: "Remove node “{t}”? Other nodes' requirements on it go too.", newNode: "New node", addHere: "A new node here", link: "Pull onto the node that requires this one",
       cycle: "That makes a closed loop: “{a}” already requires “{b}”.", hint: "Click a node — its fields are below. Drag a node to another cell; pull the ● under a node onto another node — that is a requirement. Click an empty cell — a new node.",
       pts: "Points by level {l}: {a} · the whole tree: {t} · the player opens {p}%", money: "The whole tree: {t} {u}{h}", plain: "Nodes: {n} · depth {d}", hrs: " · ≈ {h} of income",
@@ -5000,7 +5002,7 @@
       var meta = (tnum(r.cost) ? (+r.cost).toLocaleString() + (st.mode === "points" ? (LANG === "en" ? " pt" : " оч.") : st.unit ? " " + st.unit : "") : "—") + (ranks > 1 ? " × " + ranks : "");
       var tip = [MTR.kinds[kind] || kind, r.effect || "", r.branch ? MTR.branch + ": " + r.branch : "", r.needMode === "any" ? MTR.any : ""].filter(Boolean).join(" · ");
       return '<div class="' + cls + '" data-tnode="' + si + ':' + ri + '" data-mrow="' + esc(rk) + '" style="left:' + (p.c * TW + 8) + 'px;top:' + (p.r * TH + 8) + 'px;width:' + (TW - 16) + 'px;height:' + (TH - 26) + 'px" title="' + esc(tip) + '">' +
-        '<button type="button" class="mtr-b" data-mact="' + (sim ? 'tBuy' : 'tSel') + ':' + si + ':' + ri + '"' + (sim && !sim.got[r._id] && !mSimCan(s, st, sim, r) ? ' aria-disabled="true"' : '') + '><b>' + esc(r.name || r._id) + '</b>' +
+        '<button type="button" class="mtr-b" data-mact="' + (sim ? 'tBuy' : 'tSel') + ':' + si + ':' + ri + '"' + (sim && !sim.got[r._id] && !mSimCan(s, st, sim, r) ? ' aria-disabled="true"' : '') + '><span class="mtr-t">' + (r.icon && r.icon.url ? '<img class="mtr-ic" alt="" src="' + esc(r.icon.url) + '">' : '') + '<b>' + esc(r.name || r._id) + '</b></span>' +
         '<span class="mtr-m"><span class="mono">' + esc(meta) + '</span>' + (tnum(r.level) && +r.level > 1 ? '<span class="mtr-lv">' + esc((LANG === "en" ? "lv " : "рів. ") + r.level) + '</span>' : '') +
         (sim && ranks > 1 ? '<span class="mtr-rk">' + (sim.got[r._id] || 0) + '/' + ranks + '</span>' : '') + '</span></button>' +
         (sim && sim.got[r._id] ? '<button type="button" class="mtr-sell" data-mact="tSell:' + si + ':' + ri + '" title="' + esc(MTR.sell) + '" aria-label="' + esc(MTR.sell + " · " + (r.name || r._id)) + '">−</button>' : '') +
@@ -5019,7 +5021,11 @@
         : st.mode === "money" ? MTR.nMoney.replace("{p}", n0.reach.toLocaleString()).replace("{u}", st.unit).replace("{h}", n0.hours != null ? MTR.hrs.replace("{h}", H(n0.hours)) : "")
         : MTR.nPlain.replace("{d}", n0.depth + 1).replace("{l}", n0.level || 1);
       var wideT = { long: 1, json: 1, multi: 1, refs: 1, card: 1, sound: 1 };
-      ins = '<div class="mtr-ins" data-mrow="' + esc(s.id + "|" + sr._id) + '"><p class="mtr-info"><b>' + esc(sr.name || sr._id) + '</b> · ' + esc(info) + '</p><div class="qgrid">' +
+      var ic = sr.icon && sr.icon.url; // 🏅 the node's emblem (owner, v2.131.0): a file of this mechanic card, row.icon = { id, url }
+      var emb = '<div class="mtr-emb"><span class="qh">' + esc(MTR.icon) + '</span>' + (ic ? '<img class="mtr-emb-i" alt="" src="' + esc(ic) + '">' : '<span class="mtr-emb-i mtr-emb-0">🏅</span>') +
+        (canWrite ? '<label class="btn mini"><input type="file" hidden accept="image/*" data-ticon="' + si + ':' + ri0 + '">' + (ic ? MTR.iconChg : MTR.iconUp) + '</label>' + (ic ? '<button type="button" class="btn mini ghost" data-mact="tIconRm:' + si + ':' + ri0 + '">' + MTR.iconRm + '</button>' : '') : '') +
+        '<span class="hint">' + esc(MTR.iconHint) + '</span></div>';
+      ins = '<div class="mtr-ins" data-mrow="' + esc(s.id + "|" + sr._id) + '"><p class="mtr-info"><b>' + esc(sr.name || sr._id) + '</b> · ' + esc(info) + '</p>' + emb + '<div class="qgrid">' +
         (s.fields || []).filter(function (f) { return f.k !== "col" && f.k !== "row"; }).map(function (f) {
           var inner = minput(si + "." + ri0 + "." + f.k, f, sr[f.k], false), k = s.id + "|" + sr._id + "|" + f.k;
           return '<div class="mtr-f' + (wideT[f.t] ? ' wide' : '') + (probs[k] ? ' mprob' : '') + '" data-mk="' + esc(k) + '">' + (wideT[f.t] ? qblk(ml(f.l), inner) : qfld(ml(f.l), inner)) + '</div>';
@@ -5028,12 +5034,39 @@
     }
     return bar + head + (sim ? simBar : canWrite && !s.hint ? '<p class="hint">' + esc(MTR.hint) + '</p>' : '') + (rows.length || canWrite ? cv : mEmptyTable(s, si, "tAdd:" + si + ":-1:-1", MTR.add)) + ins;
   }
-  function mTreeAct(p) { // tView / tSim / tAdd / tChild / tDel / tSel / tBuy / tSell / tReset
+  // 🏅 a node's emblem: uploaded as a file of the mechanic card (field «tnode:<row id>», so it leaves with the card), the row keeps { id, url }
+  async function mIconUp(si, ri, file) {
+    if (!med || !file || !isImage(file)) return;
+    if (med.isNew) return notify(MTR.iconSave);
+    var card = cards.filter(function (c) { return c.id === med.id; })[0], s = med.m.sections[si], r = s && (s.rows || [])[ri]; if (!card || !r) return;
+    sync("ok", MTR.iconBusy);
+    try {
+      var meta = await putFile(card, file, "tnode:" + r._id), old = r.icon, was = medDirty();
+      r.icon = { id: meta.id, url: meta.url }; if (!was) med.first = JSON.stringify([med.title, med.status, med.m]);
+      await mIconStore(s, r); renderMEditor(); sync("ok", "");
+      if (old) mIconDrop(old, s);
+    } catch (e) { sync("ok", ""); notify(STR.failed + ": " + (e.code || e.message || e)); }
+  }
+  function mIconStore(s, r) { // the emblem is kept at once in the saved mechanic too (the file is already there) — the rest of the edits still wait for «Зберегти»
+    var raw = cards.filter(function (c) { return c.id === med.id; })[0], rs = raw && raw.mech && (raw.mech.sections || []).filter(function (x) { return x.id === s.id; })[0];
+    var row = rs && (rs.rows || []).filter(function (x) { return x._id === r._id; })[0]; if (!row) return Promise.resolve();
+    if (r.icon) row.icon = r.icon; else delete row.icon;
+    return gref().collection("cards").doc(raw.id).set({ mech: raw.mech, updatedAt: stamp() }, { merge: true }).catch(function (e) { notify(STR.failed + ": " + (e.code || e.message || e)); });
+  }
+  function mIconDrop(icon, s) { // the file goes unless another node still shows it
+    var card = cards.filter(function (c) { return c.id === med.id; })[0]; if (!card || !icon) return;
+    if ((s.rows || []).some(function (x) { return x.icon && x.icon.id === icon.id; })) return;
+    var f = (card.files || []).filter(function (x) { return x.id === icon.id; })[0]; if (!f) return;
+    card.files = card.files.filter(function (x) { return x !== f; });
+    gref().collection("cards").doc(card.id).set({ files: card.files, updatedAt: stamp() }, { merge: true }).then(function () { return firebase.storage().ref(f.path).delete(); }).catch(function () {});
+  }
+  function mTreeAct(p) { // tView / tSim / tAdd / tChild / tDel / tSel / tBuy / tSell / tReset / tIconRm
     var m = med.m, si = +p[1], s = m.sections[si], ri = +p[2], rows = s.rows = s.rows || [], st = MX().treeStats(m, s.id);
     med.tsel = med.tsel || {}; med.tview = med.tview || {};
     if (p[0] === "tView") { med.tview[s.id] = med.tview[s.id] === "table" ? "tree" : "table"; med.tsim = null; }
     else if (p[0] === "tSim") med.tsim = med.tsim && med.tsim.sid === s.id ? null : { sid: s.id, lv: st.mode === "money" ? 1 : st.mode === "points" ? st.maxLevel : 1, got: {} };
     else if (p[0] === "tReset") { if (med.tsim) med.tsim.got = {}; }
+    else if (p[0] === "tIconRm") { var ir = rows[ri]; if (ir && ir.icon) { var old = ir.icon, was = medDirty(); delete ir.icon; if (!was) med.first = JSON.stringify([med.title, med.status, med.m]); mIconStore(s, ir).then(function () { mIconDrop(old, s); }); } }
     else if (p[0] === "tBuy") { var r = rows[ri]; if (med.tsim && r && mSimCan(s, st, med.tsim, r)) med.tsim.got[r._id] = (med.tsim.got[r._id] || 0) + 1; }
     else if (p[0] === "tSell") { var r1 = rows[ri]; if (med.tsim && r1 && med.tsim.got[r1._id]) { if (!--med.tsim.got[r1._id]) delete med.tsim.got[r1._id]; mSimPrune(s, st, med.tsim); } }
     else if (p[0] === "tSel") { if (Date.now() - tDragAt < 400) return; var r2 = rows[ri]; med.tsel[s.id] = r2 && med.tsel[s.id] !== r2._id ? r2._id : ""; }
@@ -5305,7 +5338,7 @@
   function mAct(a) {
     var p = a.split(":"), m = med.m, s = m.sections[+p[1]], i = +p[2];
     if (p[0] === "back") { medLeave(function () { render(); }); return; }
-    if (/^t(View|Sim|Reset|Buy|Sell|Sel|Add|Child|Del)$/.test(p[0])) return mTreeAct(p); // 🌳 the tree view
+    if (/^t(View|Sim|Reset|Buy|Sell|Sel|Add|Child|Del|IconRm)$/.test(p[0])) return mTreeAct(p); // 🌳 the tree view
     if (p[0] === "save") return saveMech();
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
@@ -11753,6 +11786,7 @@
     var fl = [].slice.call(t.files);
     if (t.dataset.bulkup) { t.value = ""; bulkCards(t.dataset.bulkup, fl, t.dataset.bulkg || ""); }
     if (t.dataset.sndup) { t.value = ""; sndUpload(t.dataset.sndup, fl); }
+    if (t.dataset.ticon) { var tip = t.dataset.ticon.split(":"); t.value = ""; mIconUp(+tip[0], +tip[1], fl[0]); } // 🏅 a tree node's emblem
     if (t.dataset.vkeys) { t.value = ""; voByKeys(fl); } // 🎙 voice files named after the lines' keys → the library → the lines // a Sound factory slot: new files → the library → the slot
   }
   $("topline").addEventListener("change", bulkChange);

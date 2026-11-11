@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.130.3 (2026-11-11)
+**Version:** 2.131.0 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -775,6 +775,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.131.0** (owner) 🏅 skill tree node emblem: the tree inspector's «Емблема» (`data-ticon` → `mIconUp`) uploads via `putFile` as a file of the mechanic card (`field: "tnode:<row id>"`, so it leaves with the card and counts in the Storage quota), the row keeps `icon: { id, url }` (shown on the node `.mtr-ic`; MCP get_mechanic rows carry it), `mIconStore` writes just that row's icon into the saved `card.mech` at once; replace / «Прибрати» (`tIconRm`) drop the old file unless another node shows it (`mIconDrop`)
 - **v2.130.3** (owner: «what is this ＋ field with a list, nothing gets added») mechanics editor: «＋ Поле» → «＋ Своє поле» / «＋ Свій стовпчик» (tables) with a hint, labelled «Назва» / «Що в ньому», a primary «Додати» and Enter (`#mf-name` keydown → `mAct addField`); an empty card slot (`mcardPick`) reads «＋ Додати картку» instead of a bare ＋
 - **v2.130.2** (owner) «Обрати кілька» also in «Квести» / «Діалоги» (`cardRef` `qd:<col>:<id>`; move = `type`, delete = the docs) and the chronicle (`.chl-card` events → `ent:`; move = `group`, delete via `entityImpact` + `purgeEntities`); `pickCtx` (set by each render) replaces `dragCtx` for picking, `PICK_SEL` takes the chronicle's tiles
 - **v2.130.1** (owner) «☑ Вибрати» → «Обрати кілька», hidden on a page without cards; embedded in the shell it stays in the page beside «＋ Підрозділ» (the `#topline` observer moves `#pick-tog` with `#add-top` into `.subadd-row`); fix: the first click on a section showed no button — `pickUi` looked the id up globally and found the previous page's button still on the logo strip
@@ -1008,5 +1009,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.130.3)
+**Last updated:** 2026-11-11 (v2.131.0)
 **Maintained by:** WhiteWrite Team
