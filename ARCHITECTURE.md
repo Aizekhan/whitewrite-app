@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.130.2 (2026-11-11)
+**Version:** 2.130.3 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -775,6 +775,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.130.3** (owner: «what is this ＋ field with a list, nothing gets added») mechanics editor: «＋ Поле» → «＋ Своє поле» / «＋ Свій стовпчик» (tables) with a hint, labelled «Назва» / «Що в ньому», a primary «Додати» and Enter (`#mf-name` keydown → `mAct addField`); an empty card slot (`mcardPick`) reads «＋ Додати картку» instead of a bare ＋
 - **v2.130.2** (owner) «Обрати кілька» also in «Квести» / «Діалоги» (`cardRef` `qd:<col>:<id>`; move = `type`, delete = the docs) and the chronicle (`.chl-card` events → `ent:`; move = `group`, delete via `entityImpact` + `purgeEntities`); `pickCtx` (set by each render) replaces `dragCtx` for picking, `PICK_SEL` takes the chronicle's tiles
 - **v2.130.1** (owner) «☑ Вибрати» → «Обрати кілька», hidden on a page without cards; embedded in the shell it stays in the page beside «＋ Підрозділ» (the `#topline` observer moves `#pick-tog` with `#add-top` into `.subadd-row`); fix: the first click on a section showed no button — `pickUi` looked the id up globally and found the previous page's button still on the logo strip
 - **v2.130.0** (owner) ☑ bulk cards: `gamebible.js` `pick` {sec, keys} — «☑ Вибрати» in the section header (`pickUi`, added where `dragCtx` is), Ctrl/⌘ + click, Shift + click range, «☑ усі» per (mini-)subsection, a fixed `#pick-bar`; `pickMove` → `pickTargets` (this section's subsections + mini-subsections; game-only non-mechanics cards also any other game card section: `section` changes, the old group key is dropped, `subtype` set / dropped), `pickDelete` (game cards: files that no staying card holds leave Storage, the doc goes; canon cards → `hidden`; culture → lore docs; dossiers → `entityImpact` per entity, one summed confirmation, `purgeEntities` — shared with `deleteDossier` now — strips links to the whole set at once), writes in batches of 400 (`pickCommit`). ⌖ «Положення й вигляд» in the frame's ✎ menu (`cardPicMenu`, the dossier portrait `data-csportrait`) → `pickFrame(target, id, frameShape(btn))`; `frame-pick.js` keeps a tall stage ≤ 60% of the window
@@ -1007,5 +1008,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.130.2)
+**Last updated:** 2026-11-11 (v2.130.3)
 **Maintained by:** WhiteWrite Team

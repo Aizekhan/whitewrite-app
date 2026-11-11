@@ -1584,6 +1584,9 @@
     else if (k === "none") pick.keys = {};
     pickUi();
   });
+  document.addEventListener("keydown", function (e) { // Enter in a mechanic's «＋ Своє поле» name adds it
+    if (e.key === "Enter" && e.target && e.target.id === "mf-name") { e.preventDefault(); var b = document.querySelector('#m-ed [data-mact^="addField:"]'); if (b) mAct(b.dataset.mact); }
+  });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && pick && !document.querySelector(".ask") && !open && !dos) { pick = null; pickUi(); } });
   // where the picked cards can go: every subsection (+ its mini-subsections) of this section; game cards — of the other game card sections too
   function pickTargets(s, refs) {
@@ -4183,7 +4186,7 @@
       links: "Повʼязані механіки", noLinks: "Інших механік у грі поки немає.", tpl: "Шаблон", ownTpl: "Власна",
       files: "📎 Файли й нотатки", saveFirst: "Спершу збережи — тоді можна додати файли.",
       fill: "Заповнено", req: "обовʼязкові", checks: "Перевірка", clean: "Без проблем", newRef: "＋ Додати нове…", newRefT: "Нове в «{t}»", addRow: "＋ Рядок", dupRow: "Дублювати", rmRow: "Видалити рядок",
-      rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Поле", fieldName: "Назва поля", fieldType: "Тип", rmField: "Прибрати поле",
+      rowSearch: "Пошук у таблиці…", rows: "рядків", noRows: "Порожньо — додай перший рядок.", addField: "＋ Своє поле", addCol: "＋ Свій стовпчик", fieldName: "Назва", fieldType: "Що в ньому", addFieldOk: "Додати", addFieldHint: "Бракує параметра в шаблоні? Додай свій: дай назву (напр. «Бонус очок за босів») і вибери, що в ньому буде — число, текст, вибір зі списку, картки гри… Поле стане в цей розділ (у таблиці — стовпчиком), збережеться разом із механікою кнопкою «Зберегти», і Claude Code його теж побачить. Прибрати своє поле — ✕ біля його назви.", rmField: "Прибрати поле",
       addSec: "＋ Розділ-поля", addTable: "＋ Розділ-таблиця", secName: "Назва розділу", rmSec: "Прибрати розділ", rmSecQ: "Прибрати розділ «{t}» з усіма даними?",
       none: "—", save: "Зберегти", del: "Видалити", delQ: "Видалити механіку «{t}»?", newM: "Нова механіка", fw: "RPG Framework", fwS: { exists: "є", partial: "частково", missing: "немає" },
       lvl: { error: "помилка", warn: "попередження", tip: "порада" }, legacy: "Стара картка: опис і числа перенесено в «Призначення» й «Правила». Збережи — і вона стане механікою конструктора.",
@@ -4198,7 +4201,7 @@
       links: "Related mechanics", noLinks: "The game has no other mechanics yet.", tpl: "Template", ownTpl: "Own",
       files: "📎 Files & notes", saveFirst: "Save first — then files can be added.",
       fill: "Filled", req: "required", checks: "Checks", clean: "No problems", newRef: "＋ Add new…", newRefT: "New in “{t}”", addRow: "＋ Row", dupRow: "Duplicate", rmRow: "Delete row",
-      rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Field", fieldName: "Field name", fieldType: "Type", rmField: "Remove field",
+      rowSearch: "Search the table…", rows: "rows", noRows: "Empty — add the first row.", addField: "＋ Own field", addCol: "＋ Own column", fieldName: "Name", fieldType: "What it holds", addFieldOk: "Add", addFieldHint: "A parameter the template lacks? Add your own: name it (e.g. “Bonus points for bosses”) and pick what it holds — a number, text, a choice from a list, game cards… It lands in this section (in a table — as a column), is saved with the mechanic by “Save”, and Claude Code sees it too. Remove your own field with ✕ beside its name.", rmField: "Remove field",
       addSec: "＋ Fields section", addTable: "＋ Table section", secName: "Section name", rmSec: "Remove section", rmSecQ: "Remove section “{t}” with all its data?",
       none: "—", save: "Save", del: "Delete", delQ: "Delete mechanic “{t}”?", newM: "New mechanic", fw: "RPG Framework", fwS: { exists: "exists", partial: "partial", missing: "missing" },
       lvl: { error: "error", warn: "warning", tip: "tip" }, legacy: "An older card: its description and numbers moved into “Purpose” and “How it works”. Save it and it becomes a constructor mechanic.",
@@ -4395,7 +4398,7 @@
       return c ? chip(c, true) : '<button type="button" class="mchip" data-mcard="' + path + '" data-v="' + esc(t) + '" aria-pressed="true" title="' + esc(MCX.cardMissing) + '">' + esc(t) + ' ⚠</button>'; }).join("");
     var groups = ids.map(function (id) { var cs = list.filter(function (c) { return c.section === id; });
       return '<div class="qpg"><span class="qh">' + esc(L(sec(id))) + ' <span class="mol-n">' + cs.length + '</span></span><span class="mchips">' + cs.map(function (c) { return chip(c, have.indexOf(c.id) >= 0); }).join("") + '</span></div>'; }).join("");
-    var pop = canWrite ? '<details class="mpop mcpick" data-mpick="' + path + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-haspopup="dialog" aria-label="' + esc(MCX.cardAdd + ": " + ml(f.l)) + '" title="' + esc(MCX.cardAdd) + '">＋</summary>' +
+    var pop = canWrite ? '<details class="mpop mcpick" data-mpick="' + path + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-haspopup="dialog" aria-label="' + esc(MCX.cardAdd + ": " + ml(f.l)) + '" title="' + esc(MCX.cardAdd) + '">' + (toks.length ? '＋' : '＋ ' + esc(MCX.cardAdd)) + '</summary>' + // an empty slot says what the ＋ does (owner, v2.130.3)
       '<div class="mpop-b qpick" role="dialog" aria-label="' + esc(ml(f.l)) + '"><input type="search" class="qpq" data-mcq="1" value="' + esc(med.cq || "") + '" placeholder="' + esc(MCX.cardFind) + '" aria-label="' + esc(MCX.cardFind) + '">' +
       (groups || '<p class="muted">' + esc(MCX.cardNone) + '</p>') + '</div></details>' : '';
     return '<span class="mchips mcards" role="group" aria-label="' + esc(ml(f.l)) + '">' + chosen + pop + '</span>';
@@ -5175,9 +5178,11 @@
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
       (kind === "combo" ? mComboHtml(s, si, probs) : kind === "react" ? mReactHtml(s, si, probs) : kind === "table" ? (s.tree ? mTreeHtml(s, si, probs) : mTableHtml(s, si, probs)) :
         (mhid(s) ? '<div class="row mtbar"><span style="flex:1"></span>' + mAllFields(s) + '</div>' : '') + mFieldsHtml(s, si, probs)) + mCalcHtml(s) +
-      (canWrite && kind !== "combo" && kind !== "react" ? '<div class="row maddf-r"><details class="maddf-d"><summary class="btn ghost mini">' + MC.addField + '</summary><div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
-        MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
-        '<button type="button" class="btn mini" data-mact="addField:' + si + '">' + MC.addField + '</button></div></details><span style="flex:1"></span>' +
+      // ＋ own field (owner, v2.130.3: it was a bare name + a type list, and picking a type did nothing) — a small form with its why, «Додати» / Enter
+      (canWrite && kind !== "combo" && kind !== "react" ? '<div class="row maddf-r"><details class="maddf-d"><summary class="btn ghost mini">' + (kind === "table" ? MC.addCol : MC.addField) + '</summary><p class="hint maddf-h">' + esc(MC.addFieldHint) + '</p><div class="row maddf">' +
+        '<label class="field"><span class="qh">' + esc(MC.fieldName) + '</span><input id="mf-name" placeholder="' + esc(LANG === "en" ? "Bonus points for bosses" : "Бонус очок за босів") + '"></label><label class="field"><span class="qh">' + esc(MC.fieldType) + '</span><select id="mf-type">' +
+        MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") +
+        '</select></label><button type="button" class="btn mini primary" data-mact="addField:' + si + '">' + MC.addFieldOk + '</button></div></details><span style="flex:1"></span>' +
         (s.custom ? '<button type="button" class="btn ghost mini" data-mact="rmSec:' + si + '">' + MC.rmSec + '</button>' : '') + '</div>' : ''));
     $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1">' +
       edHead({ back: 'data-mact="back"', backLabel: MC.back, title: med.title || MC.newM, progId: "m-bar", prog: mProgHtml(r), state: canWrite ? "m-state" : "",
