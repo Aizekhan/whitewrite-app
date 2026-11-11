@@ -4903,7 +4903,7 @@
   // ---------- 🌳 Дерево розвитку: a tree section (s.tree) drawn as a tree — the same rows as the table (mechanics.js treeStats / treeChecks) ----------
   // A node sits on a grid cell (col, row; a node without one gets a cell by its depth). Drag a node to move it, pull its ● onto another node —
   // that node now requires it. «▶ Пройти як гравець» buys nodes at a chosen level (points) or hour (currency); nothing of it is saved.
-  var MTR = { uk: { icon: "Емблема", iconUp: "⤒ Картинка", iconChg: "⤒ Замінити", iconRm: "Прибрати", iconHint: "Мала картинка вміння — видно на вузлі дерева. Найкраще квадратна, PNG з прозорим тлом.", iconSave: "Спершу збережи механіку — тоді додаси емблеми вузлам.", iconBusy: "Завантажую емблему…",
+  var MTR = { uk: { brPts: "{n} у гілці", icon: "Емблема", iconUp: "⤒ Картинка", iconChg: "⤒ Замінити", iconRm: "Прибрати", iconHint: "Мала картинка вміння — видно на вузлі дерева. Найкраще квадратна, PNG з прозорим тлом.", iconSave: "Спершу збережи механіку — тоді додаси емблеми вузлам.", iconBusy: "Завантажую емблему…",
       table: "▦ Таблиця", tree: "🌳 Дерево", sim: "▶ Пройти як гравець", simOff: "✕ Завершити", add: "＋ Вузол", child: "＋ Наступний вузол", rm: "✕ Прибрати вузол",
       rmQ: "Прибрати вузол «{t}»? Вимоги інших вузлів на нього теж зникнуть.", newNode: "Новий вузол", addHere: "Новий вузол тут", link: "Потягни на вузол, який цього потребує",
       cycle: "Так вийде замкнене коло: «{a}» уже потребує «{b}».", hint: "Клікни вузол — його поля внизу. Перетягни вузол на іншу клітинку; потягни ● під вузлом на інший вузол — це вимога. Клік на порожню клітинку — новий вузол.",
@@ -4912,7 +4912,7 @@
       cyc: "замкнене коло", lv: "Рівень гравця", hr: "Година гри", left: "Лишилось: {n}", spent: "Витрачено {s} з {a}", reset: "Скинути", sell: "Забрати ранг",
       simHint: "Клікни вузол, щоб узяти його (вимоги, рівень і очки враховано). − забирає ранг.", over: "Перевитрачено — на цьому рівні стільки немає.", branch: "Гілка", any: "будь-який із попередніх",
       kinds: { stat: "Параметр", passive: "Пасивка", active: "Здібність", unlock: "Відкриває", keystone: "Ключовий" }, secTree: "🌳 Дерево розвитку", secTreeName: "Дерево розвитку" },
-    en: { icon: "Emblem", iconUp: "⤒ Picture", iconChg: "⤒ Replace", iconRm: "Remove", iconHint: "A small picture of the skill — shown on the tree node. Square works best, a PNG with a transparent background.", iconSave: "Save the mechanic first — then add emblems to its nodes.", iconBusy: "Uploading the emblem…",
+    en: { brPts: "{n} in branch", icon: "Emblem", iconUp: "⤒ Picture", iconChg: "⤒ Replace", iconRm: "Remove", iconHint: "A small picture of the skill — shown on the tree node. Square works best, a PNG with a transparent background.", iconSave: "Save the mechanic first — then add emblems to its nodes.", iconBusy: "Uploading the emblem…",
       table: "▦ Table", tree: "🌳 Tree", sim: "▶ Play it as the player", simOff: "✕ Finish", add: "＋ Node", child: "＋ Next node", rm: "✕ Remove node",
       rmQ: "Remove node “{t}”? Other nodes' requirements on it go too.", newNode: "New node", addHere: "A new node here", link: "Pull onto the node that requires this one",
       cycle: "That makes a closed loop: “{a}” already requires “{b}”.", hint: "Click a node — its fields are below. Drag a node to another cell; pull the ● under a node onto another node — that is a requirement. Click an empty cell — a new node.",
@@ -4943,12 +4943,17 @@
     if (st.mode === "money") { var w = (msec("wallet") || {}).values || {}, acc = 0; for (var h = 0; h < lv; h++) acc += Math.max(0, +w.income || 0) * Math.pow(1 + (+w.growth || 0) / 100, h); return Math.round(acc); }
     return Infinity;
   }
+  function mSimBranch(s, sim, r) { // «Очок у гілці»: points already spent on the other nodes of its branch reach the node's ask
+    var n = +r.branchPts || 0, b = String(r.branch || "").trim(); if (!(n > 0) || !b) return true;
+    return (s.rows || []).reduce(function (a, x) { return x !== r && String(x.branch || "").trim() === b ? a + (sim.got[x._id] || 0) * Math.max(0, +x.cost || 0) : a; }, 0) >= n;
+  }
   function mSimSpent(s, got) { var n = 0; (s.rows || []).forEach(function (r) { n += (got[r._id] || 0) * Math.max(0, +r.cost || 0); }); return n; }
   function mSimCan(s, st, sim, r) {
     var ranks = Math.max(1, Math.min(20, Math.round(+r.ranks || 1))), ps = mTreeNeeds(s, r._id).filter(function (p) { return p !== r._id && (s.rows || []).some(function (x) { return x._id === p; }); });
     if ((sim.got[r._id] || 0) >= ranks) return false;
     if (st.mode !== "money" && tnum(r.level) && +r.level > sim.lv) return false;
     if (ps.length && !(r.needMode === "any" ? ps.some(function (p) { return sim.got[p]; }) : ps.every(function (p) { return sim.got[p]; }))) return false;
+    if (!mSimBranch(s, sim, r)) return false;
     return mSimSpent(s, sim.got) + Math.max(0, +r.cost || 0) <= mSimBudget(s, st, sim.lv);
   }
   function mSimPrune(s, st, sim) { // a rank taken back / a lower level: what no longer stands goes too
@@ -4957,7 +4962,7 @@
       (s.rows || []).forEach(function (r) {
         if (!sim.got[r._id]) return;
         var ps = mTreeNeeds(s, r._id).filter(function (p) { return p !== r._id && (s.rows || []).some(function (x) { return x._id === p; }); });
-        var ok = (st.mode === "money" || !tnum(r.level) || +r.level <= sim.lv) && (!ps.length || (r.needMode === "any" ? ps.some(function (p) { return sim.got[p]; }) : ps.every(function (p) { return sim.got[p]; })));
+        var ok = (st.mode === "money" || !tnum(r.level) || +r.level <= sim.lv) && (!ps.length || (r.needMode === "any" ? ps.some(function (p) { return sim.got[p]; }) : ps.every(function (p) { return sim.got[p]; }))) && mSimBranch(s, sim, r);
         if (!ok) { delete sim.got[r._id]; again = true; }
       });
     }
@@ -5000,10 +5005,11 @@
       var cls = "mtr-n k-" + esc(kind) + (sel === r._id && !sim ? " sel" : "") + (probs[rk] ? " mprob" : "") + (st.cycles.indexOf(r._id) >= 0 ? " cyc" : "");
       if (sim) cls += sim.got[r._id] ? " got" : mSimCan(s, st, sim, r) ? " can" : " lock";
       var meta = (tnum(r.cost) ? (+r.cost).toLocaleString() + (st.mode === "points" ? (LANG === "en" ? " pt" : " оч.") : st.unit ? " " + st.unit : "") : "—") + (ranks > 1 ? " × " + ranks : "");
-      var tip = [MTR.kinds[kind] || kind, r.effect || "", r.branch ? MTR.branch + ": " + r.branch : "", r.needMode === "any" ? MTR.any : ""].filter(Boolean).join(" · ");
+      var tip = [MTR.kinds[kind] || kind, r.effect || "", r.branch ? MTR.branch + ": " + r.branch : "", r.needMode === "any" ? MTR.any : "", +r.branchPts > 0 ? MTR.brPts.replace("{n}", r.branchPts) : ""].filter(Boolean).join(" · ");
       return '<div class="' + cls + '" data-tnode="' + si + ':' + ri + '" data-mrow="' + esc(rk) + '" style="left:' + (p.c * TW + 8) + 'px;top:' + (p.r * TH + 8) + 'px;width:' + (TW - 16) + 'px;height:' + (TH - 26) + 'px" title="' + esc(tip) + '">' +
         '<button type="button" class="mtr-b" data-mact="' + (sim ? 'tBuy' : 'tSel') + ':' + si + ':' + ri + '"' + (sim && !sim.got[r._id] && !mSimCan(s, st, sim, r) ? ' aria-disabled="true"' : '') + '><span class="mtr-t">' + (r.icon && r.icon.url ? '<img class="mtr-ic" alt="" src="' + esc(r.icon.url) + '">' : '') + '<b>' + esc(r.name || r._id) + '</b></span>' +
         '<span class="mtr-m"><span class="mono">' + esc(meta) + '</span>' + (tnum(r.level) && +r.level > 1 ? '<span class="mtr-lv">' + esc((LANG === "en" ? "lv " : "рів. ") + r.level) + '</span>' : '') +
+        (+r.branchPts > 0 ? '<span class="mtr-lv">' + esc(MTR.brPts.replace("{n}", r.branchPts)) + '</span>' : '') +
         (sim && ranks > 1 ? '<span class="mtr-rk">' + (sim.got[r._id] || 0) + '/' + ranks + '</span>' : '') + '</span></button>' +
         (sim && sim.got[r._id] ? '<button type="button" class="mtr-sell" data-mact="tSell:' + si + ':' + ri + '" title="' + esc(MTR.sell) + '" aria-label="' + esc(MTR.sell + " · " + (r.name || r._id)) + '">−</button>' : '') +
         (canWrite && !sim ? '<span class="mtr-h" data-tlink="' + si + ':' + ri + '" title="' + esc(MTR.link) + '" aria-hidden="true"></span>' : '') + '</div>';

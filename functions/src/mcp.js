@@ -150,10 +150,10 @@ const TOOLS = [
       note: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] } } } },
   { name: 'save_mechanic', description: 'Fill or change a constructor mechanic (mechanics, the Sound factory, the Progression builder: XP curve, skill / upgrade trees, shops…) — ONLY when the user asked for it in this chat. save_card cannot reach the constructor; this does. ' +
       'ref: "c:<cardId>" or the title (get_mechanics). purpose, rules, status — as on a card. sections: [{ id: the section id or title from get_mechanic, ' +
-      'values: { "<field key or label>": value } for a fields section; rows: [ { id?, "<column key or label>": value } ] for a table — the rows you send ARE the table now (rows left out are removed; a row with its id keeps what you do not send, e.g. a tree node keeps its emblem); ' +
+      'values: { "<field key or label>": value } for a fields section; rows: [ { id?, "<column key or label>": value } ] for a table — the rows you send ARE the table now (rows left out are removed; each row is exactly what you send — columns you leave out are empty; a row matched by its id or name keeps only its emblem and its cell); ' +
       'add_fields: [{ label, type: text | long | num | pct | time | bool | sel | multi | formula | range | json | card, options: [..] for sel / multi }] — the author’s own field («＋ Своє поле»), then fill it in values / rows }]. ' +
       'Values are typed: numbers, sel / multi by option value or label, ref / refs (e.g. a tree node’s needs) by row id or row name — rows sent in the same call count, card fields by "c:<id>" or card title, range as "1–5". Sound slots take files (the author). ' +
-      'A skill tree: section "points" (unit, start, perLevel, maxLevel, respec, owner) and "nodes" rows (name, kind, cost, ranks, effect, needs, needMode all | any, level, branch, col / row for the cell — leave them out and the Bible lays the nodes out by depth). ' +
+      'A skill tree: section "points" (unit, start, perLevel, maxLevel, respec, owner) and "nodes" rows (name, kind, cost, ranks, effect, needs, needMode all | any, level, branchPts = points already spent on other nodes of its branch before it opens (a keystone after 6 points in the branch), branch, col / row for the cell — leave them out and the Bible lays the nodes out by depth). ' +
       'Returns what changed, what did not (not_changed — fix and send again), completeness, the constructor checks and computed numbers. The author can undo your change.',
     inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string' }, purpose: { type: 'string' }, rules: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] },
       sections: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, values: { type: 'object' }, rows: { type: 'array', items: { type: 'object' } },
@@ -941,7 +941,7 @@ async function saveMechanic(ctx, key, args) {
   const r = str(args.ref, 200), id = r.replace(/^c:/, '');
   const c = ctx.cards.find((x) => (x.section === 'mechanics' || x.section === 'audio' || x.section === 'progression') && x.mech && !x.canonRef && (x.id === id || lowS(x.title) === lowS(r)));
   if (!c) throw rpcError(-32602, `No constructor mechanic ${r}. Call get_mechanics (section mechanics | audio | progression); an older card without a constructor is changed with save_card.`);
-  const m = JSON.parse(JSON.stringify(c.mech)), warn = [], changed = [];
+  const m = MECH.upgrade(JSON.parse(JSON.stringify(c.mech))), warn = [], changed = []; // the newer template / tree columns (e.g. «Очок у гілці») are there to fill
   if (args.purpose !== undefined) { m.purpose = str(args.purpose, 8000); changed.push('purpose'); }
   if (args.rules !== undefined) { m.rules = str(args.rules, 20000); changed.push('rules'); }
   const status = args.status === undefined ? null : str(args.status, 12);
@@ -971,11 +971,13 @@ async function saveMechanic(ctx, key, args) {
         pending.push({ l: f.t === 'ref' || f.t === 'refs', fn: () => { const val = mechValue(ctx, f, v, rowIdOf, warn, s.id + '.' + f.k); if (val === null) return; if (val === undefined) delete s.values[f.k]; else s.values[f.k] = val; changed.push(s.id + '.' + f.k); } });
       });
     }
-    if (Array.isArray(inp.rows) && s.kind === 'table') { // the rows sent are the table now: a row with a known id keeps what you leave out (its emblem too)
+    if (Array.isArray(inp.rows) && s.kind === 'table') { // the rows sent are the table now, each row is what you send (v2.133: an old row's other columns no longer linger)
       const old = s.rows || [], fresh = [];
       inp.rows.slice(0, 300).forEach((row) => {
         if (!row || typeof row !== 'object') return;
-        const was = old.find((o) => o._id === str(row.id, 40)), nr = was ? { ...was } : { _id: MECH.newRowId({ prefix: s.prefix, rows: old.concat(fresh) }) };
+        // the same row (by id, else by name) keeps only what the agent cannot send — its emblem — and its cell on the drawn tree unless col / row are sent
+        const was = old.find((o) => o._id === str(row.id, 40)) || (row.id ? null : old.find((o) => !fresh.some((y) => y._id === o._id) && lowS(MECH.rowName(s, o)) === lowS(row[s.rowLabel] || row.name || ''))), nr = { _id: was ? was._id : MECH.newRowId({ prefix: s.prefix, rows: old.concat(fresh) }) };
+        if (was) ['icon', 'col', 'row'].forEach((k) => { if (was[k] !== undefined) nr[k] = was[k]; });
         fresh.push(nr);
         Object.entries(row).forEach(([k, v]) => {
           if (k === 'id') return; const f = fieldOf(s, k); if (!f) { warn.push(`${s.id}: no column "${k}"`); return; }

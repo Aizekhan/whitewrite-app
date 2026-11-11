@@ -18,6 +18,7 @@ const writes = [];
 const gref = { set: async () => {}, collection: () => ({ doc: (id) => ({ set: async (body) => { writes.push({ id, body }); } }) }) };
 const mech = JSON.parse(JSON.stringify(MECH.instantiate('prog_skilltree', 'uk')));
 mech.sections.find((s) => s.id === 'nodes').rows[0].icon = { id: 'f1', url: 'u' };
+const nf = mech.sections.find((s) => s.id === 'nodes').fields; nf.splice(nf.findIndex((f) => f.k === 'branchPts'), 1); // a mechanic saved before «Очок у гілці»
 const firstId = mech.sections.find((s) => s.id === 'nodes').rows[0]._id;
 const ctx = { gref, game: {}, entities: [], cards: [
   { id: 't1', section: 'progression', title: 'Дерево навичок', status: 'idea', fields: { group: 'Дерева' }, mech },
@@ -30,7 +31,8 @@ const key = { prefix: 'wwk_ab12' };
     { id: 'points', values: { 'Очки за вбивство героя': 5 } },
     { id: 'Дерево', rows: [
       { id: firstId, name: 'Друге дихання', cost: 1, ranks: 3, effect: '+10% витривалості' },
-      { name: 'Крила', kind: 'Ключовий вузол', cost: 3, effect: 'Політ', needs: ['Друге дихання'], branch: 'Прокачка себе' },
+      { name: 'Крила', kind: 'Ключовий вузол', cost: 3, effect: 'Політ', needs: ['Друге дихання'], branch: 'Прокачка себе', 'Очок у гілці': 6 },
+      { name: 'Іскра', cost: 1, effect: 'Вогник' },
       { name: 'Зайвий', cost: 'багато', needs: 'Нема такого' },
     ] },
   ] });
@@ -41,11 +43,15 @@ const key = { prefix: 'wwk_ab12' };
   check(JSON.stringify(pts.values.owner), '["h1"]', 'a card field by the card title → its id');
   const own = pts.fields.find((f) => f.custom);
   check(own && own.l + '|' + own.t + '|' + pts.values[own.k], 'Очки за вбивство героя|num|5', 'an own field is added and filled');
-  check(nodes.rows.length, 3, 'the rows sent are the table now (the template nodes are gone)');
+  check(nodes.rows.length, 4, 'the rows sent are the table now (the template nodes are gone)');
   check(nodes.rows[0].name + '|' + (nodes.rows[0].icon && nodes.rows[0].icon.id), 'Друге дихання|f1', 'a row by its id keeps what was not sent (its emblem)');
   check(JSON.stringify(nodes.rows[1].needs), JSON.stringify([firstId]), 'needs by a node name → its id');
   check(nodes.rows[1].kind, 'keystone', 'a node kind by its label');
-  check(nodes.rows[2].cost === undefined && (out.not_changed || []).some((w) => /not a number/.test(w)), true, 'a non-number is reported, not stored');
+  check(nodes.rows[0].branch, undefined, 'a row sent is the whole row: the template’s branch it did not send is gone');
+  check(nodes.rows[1].branchPts, 6, '«Очок у гілці» is filled on a mechanic saved before the column existed');
+  const spark = mech.sections.find((s) => s.id === 'nodes').rows.find((r) => r.name === 'Іскра');
+  check(nodes.rows[2]._id + '|' + nodes.rows[2].col + '|' + (nodes.rows[2].needs === undefined), spark._id + '|' + spark.col + '|true', 'a row by its name keeps its id and cell, not its old columns');
+  check(nodes.rows[3].cost === undefined && (out.not_changed || []).some((w) => /not a number/.test(w)), true, 'a non-number is reported, not stored');
   check((out.not_changed || []).some((w) => /no row "Нема такого"/.test(w)), true, 'an unknown required node is reported');
   check(b.agentPrev.status + '|' + (b.agentPrev.mech.sections.find((s) => s.id === 'nodes').rows.length > 3), 'idea|true', 'the previous version is kept for undo');
   check(b.agentKey, 'wwk_ab12', 'the key that wrote it');

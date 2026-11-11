@@ -247,6 +247,13 @@ check(ts.nodes.find((n) => n.id === 'N10').level + '|' + ts.nodes.find((n) => n.
 check(codes(tr).filter((i) => i.level !== 'tip').length, 0, 'the skill tree sample has no warnings');
 st(tr, 'nodes').rows[0].needs = ['N10'];
 check(codes(tr, 'error').some((i) => /замкнене коло/.test(i.uk)), true, 'a closed loop of requirements is an error');
+const bt = M.instantiate('prog_skilltree'); st(bt, 'nodes').rows = [{ _id: 'A', name: 'a', cost: 1, ranks: 3, effect: 'x', branch: 'X' }, { _id: 'B', name: 'b', cost: 1, ranks: 3, effect: 'x', branch: 'X' },
+  { _id: 'K', name: 'k', kind: 'keystone', cost: 3, effect: 'x', branch: 'X', branchPts: 6 }, { _id: 'C', name: 'c', cost: 1, effect: 'x', needs: ['K'], branch: 'Y' }];
+check(M.treeStats(bt).nodes.map((n) => n.reach + '@' + n.level).join(','), '1@1,1@1,9@9,10@10', '«Очок у гілці»: a keystone after 6 points in its branch costs 3 + 6, a node under it too');
+st(bt, 'nodes').rows[2].branchPts = 7;
+check(codes(bt, 'error').some((i) => i.row === 'K' && /лише 6/.test(i.uk)), true, 'a branch holding fewer points than asked is an error');
+const ob = M.instantiate('prog_skilltree'); st(ob, 'nodes').fields = st(ob, 'nodes').fields.filter((f) => f.k !== 'branchPts'); ob.tplVersion = 99;
+check(M.upgrade(ob) && st(ob, 'nodes').fields.map((f) => f.k).indexOf('branchPts') === st(ob, 'nodes').fields.map((f) => f.k).indexOf('level') + 1, true, 'an older tree gets «Очок у гілці» after the level');
 const ut = M.treeStats(M.instantiate('prog_upgradetree'));
 check(ut.mode + '|' + ut.total + '|' + ut.hoursAll, 'money|20200|12.5', 'the upgrade tree: its price and hours of income');
 const otree = M.instantiate('leveling'); otree.sections.push(M.treeSection('perks', 'Перки'));
