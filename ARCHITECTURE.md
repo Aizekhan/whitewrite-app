@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.120.1 (2026-11-11)
+**Version:** 2.120.2 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -773,6 +773,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.120.2** 🗺 the place's title is on the logo strip like every section's (the lifted `h1` sat under `.gp-stage`: `body:has(.gp-stage) .topline` z-index 8)
 - **v2.120.1** 🗺 a place opened from the game map (`.gp-stage`, full screen) clears the shell's logo in the embedded Bible (`padding-top:124px`, like `.v3d`; phones 14px) — «‹ Назад» sat under the logo
 - **v2.120.0** (owner «забагато інформації, хочу спростити») ⚙ Project settings → «Claude Code» = two steps for the person (1 install Claude Code — `irm https://claude.ai/install.ps1 | iex`; 2 connect the game — «⧉ Скопіювати все для PowerShell» + «Підготуй усе для роботи з WhiteWrite»), then only the state the agent leaves (connected / Unity env / log / plan / GitHub) and «Далі: опиши гру»; the old steps 3–9 (separate key, 📂 folder, launch lines, env check, log block, repo, agentWrite) fold into «Для досвідчених». `get_guide setup` rewritten as the full PC + project setup with the person's stops; MCP `initialize` points «Підготуй усе…» to it. New MCP **`get_updates`** (`updatesSince`, `mcpKeys.lastUpdatesAt`, since, cap 50, the agent's own writes skipped) and the session rule `SESSION_RULE` (initialize, setup, CLAUDE.md block): `get_updates` at the start + one question about watching (так / ні / завжди / ніколи, remembered in CLAUDE.md, `/loop` / ScheduleWakeup / CronCreate, tasks offered not taken). KB: road = agent-install · agent-connect, + agent-auto, agent-updates; the old manual steps under «Для досвідчених» (`adv`, `White.html fillKb`); `tests/mcp-updates.test.cjs`.
 - **v2.119.1** live E2E check of v2.118.0 on the owner account (all 8 areas ✅, 0 app console errors) — fixes: a story created from the form puts `#work/book?projectId=` into the address (`__setCurrentProject` / `ww-mode work`), so a reload opens the new book; an oversize file in `uploadFiles` is reported in a dialog after «Завантажено файлів» (that line wiped it); the book's bookmarks count only entities still in the canon (`relatedForScene` → `wEnt`); «Відновлено: …» after a world restore is a dialog too (the settings line was below the fold); the story editor's field «Опис історії» (was «Опис світу»), Ukrainian `aria-label`; the book ribbon says WhiteWrite (was White Tree)
@@ -987,5 +988,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.120.1)
+**Last updated:** 2026-11-11 (v2.120.2)
 **Maintained by:** WhiteWrite Team
