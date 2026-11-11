@@ -772,8 +772,8 @@
       about: { uk: "Системи гри: правила, числа й звʼязки між ними — власні або з шаблонів (UMCF та інші). Правка тут — це завдання змінити гру.", en: "The game's systems: rules, numbers and how they connect — your own or from templates (UMCF and others). An edit here is a task to change the game." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Правила й числа", "Rules & numbers"), F("deps", "Залежить від", "Depends on")] },
     { id: "progression", uk: "Прогресія й економіка", en: "Progression & economy", group: "group",
-      groups: { uk: ["Досвід і рівні", "Валюти", "Лут і нагороди", "Магазин", "Апгрейди", "Баланс"], en: ["XP & levels", "Currencies", "Loot & rewards", "Shop", "Upgrades", "Balance"] },
-      about: { uk: "Досвід, рівні, валюти, лут, магазин, апгрейди — і баланс чисел між ними. «📈 Конструктор прогресії» рахує, де гравець застрягне чи розбагатіє.", en: "XP, levels, currencies, loot, shop, upgrades — and the balance of numbers between them. The “📈 Progression builder” computes where the player gets stuck or rich." },
+      groups: { uk: ["Досвід і рівні", "Дерева розвитку", "Валюти", "Лут і нагороди", "Магазин", "Апгрейди", "Баланс"], en: ["XP & levels", "Development trees", "Currencies", "Loot & rewards", "Shop", "Upgrades", "Balance"] }, // = mechanics.js PROG_CATEGORIES; each is a sub-item of «Прогресія» in the menu
+      about: { uk: "Досвід, рівні, дерева розвитку, валюти, лут, магазин, апгрейди — і баланс чисел між ними. «📈 Конструктор прогресії» рахує, де гравець застрягне чи розбагатіє.", en: "XP, levels, development trees, currencies, loot, shop, upgrades — and the balance of numbers between them. The “📈 Progression builder” computes where the player gets stuck or rich." },
       defs: [F("group", "Група", "Group"), F("text", "Опис", "Description"), F("numbers", "Числа й формули", "Numbers & formulas"), F("sinks", "Звідки береться / куди йде", "Sources / sinks")] },
     { id: "levels", uk: "Рівні й контент", en: "Levels & content", group: "group",
       groups: { uk: ["Туторіал", "Основні рівні", "Рівні босів", "Хаби", "Побічний контент"], en: ["Tutorial", "Main levels", "Boss levels", "Hubs", "Side content"] },
@@ -1067,7 +1067,7 @@
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["gamemap", "locations", "levels", "worldgen", "scenes"] },
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
-    { id: "g-prog", members: ["progression"] }, // «Прогресія й економіка» — its own menu item (owner): the progression constructor lives there
+    { id: "g-prog", uk: "Прогресія", en: "Progression", members: ["progression"], subs: true }, // its own menu item (owner): the progression constructor lives there; its sub-items = the section's subsections (navProgSubs)
     { id: "g-items", uk: "Предмети", en: "Items", members: ["gear", "items"] },
     { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "pictures", "assets", "materials", "animation", "ui"] },
     { id: "g-audio", members: ["audio"] }, // «Звук і музика» — its own menu item (the Sound factory lives there)
@@ -1078,6 +1078,16 @@
     { id: "g-mkt", members: ["marketing"] },
   ];
   var lastSub = {}; // the section last open in each group: opening the group returns to it
+  // «Прогресія» (owner, v2.122): one section, its subsections (Досвід і рівні, Дерева розвитку, Валюти, Лут, Магазин, Апгрейди, Баланс, the author's own)
+  // are its sub-items in the menu — a sub-item shows only that subsection (progSub); the cards stay in one section (team rights, MCP, Community)
+  var progSub = "", navPSub = null;
+  function navProgSubs(all) {
+    var s = sec("progression"); if (!s) return "";
+    var n = function (g) { return all.filter(function (c) { return c.section === "progression" && (!g || normGroup(s, (c.fields || {})[groupKey(s)] || "") === g); }).length; };
+    return [""].concat(subsOf(s)).map(function (g) {
+      return '<button class="nav-item nav-sub nav-psub" data-sec="progression" data-psub="' + esc(g) + '" aria-current="' + (section === "progression" && !imp && progSub === g) + '">' + esc(g || (LANG === "en" ? "All" : "Усе")) + '<span class="n">' + (n(g) || "") + '</span></button>';
+    }).join("");
+  }
   // the menu is a one-level tree: a group folds with an arrow (navOpen, remembered) to its sections; a section's
   // subsections stay on its canvas, not in the menu
   var navOpen = {}; try { navOpen = JSON.parse(localStorage.getItem("ww-bible-navopen") || "{}") || {}; } catch (e) { navOpen = {}; }
@@ -1180,6 +1190,7 @@
   // One block per subsection: heading with its count and «＋ Додати»; empty custom ones can be removed.
   function subsHtml(s, items, groupOf, body, labelOf) {
     var subs = subsOf(s), by = {}, extra = [], loose = [];
+    if (s.id === "progression" && progSub) { subs = [progSub]; items = items.filter(function (x) { return groupOf(x) === progSub; }); } // a «Прогресія» sub-item: that subsection alone
     items.forEach(function (x) {
       var g = groupOf(x) || "";
       if (!g) return loose.push(x);
@@ -1550,12 +1561,13 @@
     NAV_GROUPS.forEach(function (g) {
       if (g === "custom") { gameSections().filter(function (s) { return !listed[s.id]; }).forEach(function (s) { out.push(navTop(navItem(s, all))); }); return; }
       var mem = groupMembers(g); if (!mem.length) return;
-      if (mem.length === 1) { out.push(navTop(navItem(sec(mem[0]), all))); return; }
+      if (mem.length === 1 && !g.subs) { out.push(navTop(navItem(sec(mem[0]), all))); return; }
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
       var gLater = mem.every(function (m) { return guideLater(m); }) ? GUIDE[Math.min.apply(null, mem.map(guideStageOf))] : null; // the whole group is later: the group dims too
       out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
-      if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
+      if (open && g.subs) out.push('<div class="nav-subs">' + navProgSubs(all) + '</div>');
+      else if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
   }
@@ -1698,7 +1710,7 @@
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
     var gov = s.id === "overview" && game && !query; // «Огляд гри»: the game's cover and name, as on «Огляд світу»
-    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? wstatsRow() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s))) + '</h1>') +
+    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? wstatsRow() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s)) + (s.id === "progression" && progSub ? " · " + esc(progSub) : "")) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
@@ -1711,14 +1723,14 @@
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
     else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
-    else if (!list.length && !s.special) html += emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
+    else if (!list.length && !s.special && !(s.id === "progression" && progSub)) html += emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
     else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
     var alt = $("alib-tog"); if (alt) alt.onclick = function () { audioLib = !audioLib; render(); };
     var alq = $("alib-q"); if (alq) alq.oninput = function () { alibQ = alq.value; $("alib-list").innerHTML = audioLibList(); };
-    var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(""); };
+    var mn = $("mech-new"); if (mn) mn.onclick = function () { mechNew(s.id === "progression" ? progSub : ""); };
     var sta = $("st-all"); if (sta) sta.onclick = function () { styleCheckAll(sta); };
     var sfr = $("st-refs"); if (sfr) sfr.onclick = function () { styleFromRefs(sfr); };
     var tlb = $("tl-seed"); if (tlb) tlb.onclick = function () { tlb.disabled = true; seedTelemetry().catch(function (e) { notify(STR.failed + ": " + e.message); tlb.disabled = false; }); };
@@ -3852,11 +3864,11 @@
   // «📈 Конструктор прогресії» — the same constructor in «Прогресія й економіка» (templates with sec: 'progression')
   var MCP = Object.assign({}, MC0, {
     uk: { add: "📈 Конструктор прогресії", own: "✎ Звичайна картка", ownHint: "Опис і числа текстом — без шаблону й розрахунків.", choose: "📈 Конструктор прогресії",
-      catHint: "Картка під кожну задачу: крива досвіду, валюти, лут, магазин, апгрейди, баланс по етапах. Кожна сама рахує години, шанси й ціни — і показує, де гравець застрягне чи розбагатіє.",
+      catHint: "Картка під кожну задачу: крива досвіду, дерево навичок, валюти, лут, магазин, апгрейди (лінійки чи дерево), баланс по етапах. Кожна сама рахує години, шанси й ціни — і показує, де гравець застрягне чи розбагатіє.",
       back: "← До прогресії", links: "Повʼязані картки прогресії", noLinks: "Інших карток прогресії поки немає.", newM: "Картка прогресії", delQ: "Видалити «{t}»?",
       purposePh: "Що має відчувати гравець: темп, рідкість, цілі" },
     en: { add: "📈 Progression builder", own: "✎ Plain card", ownHint: "A description and numbers as text — no template, no computation.", choose: "📈 Progression builder",
-      catHint: "A card for each job: the XP curve, currencies, loot, the shop, upgrades, balance by stage. Each computes hours, chances and prices — and shows where the player gets stuck or rich.",
+      catHint: "A card for each job: the XP curve, a skill tree, currencies, loot, the shop, upgrades (tracks or a tree), balance by stage. Each computes hours, chances and prices — and shows where the player gets stuck or rich.",
       back: "← To progression", links: "Related progression cards", noLinks: "No other progression cards yet.", newM: "Progression card", delQ: "Delete “{t}”?",
       purposePh: "What the player should feel: pace, rarity, goals" }
   }[LANG]);
@@ -4150,6 +4162,7 @@
       if (m.tpl === "prog_upgrades") return M.upgradeTracks(m).map(function (t) { return t.name + " — " + t.total + (t.hours != null ? " (" + H(t.hours) + ")" : ""); }).join("; ");
       if (m.tpl === "prog_balance") return M.balanceStages(m).map(function (b) { return b.stage + ": " + MCPX.bal[b.verdict].replace("{h}", b.grind ? H(b.grind) : "—"); }).join("; ");
       if (m.tpl === "prog_loot") return M.lootFlow(m).map(function (t) { return t.table + " — " + t.perHour + (en ? "/h" : "/год"); }).join("; ");
+      if (m.tpl === "prog_skilltree" || m.tpl === "prog_upgradetree") { var t = M.treeStats(m); return t.mode === "money" ? MTR.money.replace("{t}", t.total).replace("{u}", t.unit).replace("{h}", t.hoursAll != null ? MTR.hrs.replace("{h}", H(t.hoursAll)) : "") : MTR.pts.replace("{l}", t.maxLevel).replace("{a}", t.available).replace("{t}", t.total).replace("{p}", t.share == null ? "—" : t.share); }
       if (m.tpl === "prog_currencies") return M.econSim(m).rows.map(function (c) { return c.name + ": " + c.status; }).join("; ");
     } catch (e) {}
     return "";
@@ -4518,6 +4531,211 @@
     }).join("");
     return bar + '<div class="mtable mrt"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
   }
+  // ---------- 🌳 Дерево розвитку: a tree section (s.tree) drawn as a tree — the same rows as the table (mechanics.js treeStats / treeChecks) ----------
+  // A node sits on a grid cell (col, row; a node without one gets a cell by its depth). Drag a node to move it, pull its ● onto another node —
+  // that node now requires it. «▶ Пройти як гравець» buys nodes at a chosen level (points) or hour (currency); nothing of it is saved.
+  var MTR = { uk: { table: "▦ Таблиця", tree: "🌳 Дерево", sim: "▶ Пройти як гравець", simOff: "✕ Завершити", add: "＋ Вузол", child: "＋ Наступний вузол", rm: "✕ Прибрати вузол",
+      rmQ: "Прибрати вузол «{t}»? Вимоги інших вузлів на нього теж зникнуть.", newNode: "Новий вузол", addHere: "Новий вузол тут", link: "Потягни на вузол, який цього потребує",
+      cycle: "Так вийде замкнене коло: «{a}» уже потребує «{b}».", hint: "Клікни вузол — його поля внизу. Перетягни вузол на іншу клітинку; потягни ● під вузлом на інший вузол — це вимога. Клік на порожню клітинку — новий вузол.",
+      pts: "Очок до рівня {l}: {a} · усе дерево: {t} · гравець відкриє {p}%", money: "Усе дерево: {t} {u}{h}", plain: "Вузлів: {n} · глибина {d}", hrs: " · ≈ {h} заробітку",
+      nPts: "Відкривається з рівня {l} · разом з попередніми — {p} оч.", nNever: "До максимального рівня не досяжний (треба {p} оч.)", nMoney: "Разом з попередніми — {p} {u}{h}", nPlain: "Глибина {d} · з рівня {l}",
+      cyc: "замкнене коло", lv: "Рівень гравця", hr: "Година гри", left: "Лишилось: {n}", spent: "Витрачено {s} з {a}", reset: "Скинути", sell: "Забрати ранг",
+      simHint: "Клікни вузол, щоб узяти його (вимоги, рівень і очки враховано). − забирає ранг.", over: "Перевитрачено — на цьому рівні стільки немає.", branch: "Гілка", any: "будь-який із попередніх",
+      kinds: { stat: "Параметр", passive: "Пасивка", active: "Здібність", unlock: "Відкриває", keystone: "Ключовий" }, secTree: "🌳 Дерево розвитку", secTreeName: "Дерево розвитку" },
+    en: { table: "▦ Table", tree: "🌳 Tree", sim: "▶ Play it as the player", simOff: "✕ Finish", add: "＋ Node", child: "＋ Next node", rm: "✕ Remove node",
+      rmQ: "Remove node “{t}”? Other nodes' requirements on it go too.", newNode: "New node", addHere: "A new node here", link: "Pull onto the node that requires this one",
+      cycle: "That makes a closed loop: “{a}” already requires “{b}”.", hint: "Click a node — its fields are below. Drag a node to another cell; pull the ● under a node onto another node — that is a requirement. Click an empty cell — a new node.",
+      pts: "Points by level {l}: {a} · the whole tree: {t} · the player opens {p}%", money: "The whole tree: {t} {u}{h}", plain: "Nodes: {n} · depth {d}", hrs: " · ≈ {h} of income",
+      nPts: "Opens from level {l} · with what it needs — {p} pts", nNever: "Out of reach by the max level (needs {p} pts)", nMoney: "With what it needs — {p} {u}{h}", nPlain: "Depth {d} · from level {l}",
+      cyc: "a closed loop", lv: "Player level", hr: "Hour of play", left: "Left: {n}", spent: "Spent {s} of {a}", reset: "Reset", sell: "Take a rank back",
+      simHint: "Click a node to take it (requirements, level and points count). − takes a rank back.", over: "Overspent — this level has not that much.", branch: "Branch", any: "any one of the previous",
+      kinds: { stat: "Stat", passive: "Passive", active: "Ability", unlock: "Unlock", keystone: "Keystone" }, secTree: "🌳 Development tree", secTreeName: "Development tree" } }[LANG];
+  var TW = 172, TH = 104, tDragAt = 0; // a grid cell, px; when the last drag ended
+  function tnum(v) { return v !== "" && v != null && !isNaN(+v); }
+  function mTreePos(s) { // rowId → { c, r }: the stored cell, else the first free cell on the row of its depth
+    var st = MX().treeStats(med.m, s.id), depth = {}, pos = {}, taken = {};
+    st.nodes.forEach(function (n) { depth[n.id] = n.depth; });
+    (s.rows || []).forEach(function (r) { if (!tnum(r.col) || !tnum(r.row)) return; var c = Math.max(0, Math.min(39, Math.round(+r.col))), w = Math.max(0, Math.min(39, Math.round(+r.row))), k = c + "," + w; if (!taken[k]) { taken[k] = r._id; pos[r._id] = { c: c, r: w }; } });
+    (s.rows || []).forEach(function (r) { if (pos[r._id]) return; var w = Math.min(39, depth[r._id] || 0), c = 0; while (taken[c + "," + w] && c < 39) c++; taken[c + "," + w] = r._id; pos[r._id] = { c: c, r: w }; });
+    return { pos: pos, taken: taken, st: st };
+  }
+  function mTreePin(s) { var p = mTreePos(s).pos; (s.rows || []).forEach(function (r) { r.col = p[r._id].c; r.row = p[r._id].r; }); } // before a move: every node keeps its cell
+  function mTreeNeeds(s, id) { var r = (s.rows || []).filter(function (x) { return x._id === id; })[0]; return r && Array.isArray(r.needs) ? r.needs : []; }
+  function mTreeAncestor(s, a, b) { // does a (transitively) require b?
+    var seen = {}, st = [a];
+    while (st.length) { var x = st.pop(); if (x === b) return true; if (seen[x]) continue; seen[x] = 1; st = st.concat(mTreeNeeds(s, x)); }
+    return false;
+  }
+  // the simulation: what the player has at level (or hour) lv, what they took
+  function mSimBudget(s, st, lv) {
+    if (st.mode === "points") { var pv = (msec("points") || {}).values || {}; return (+pv.start || 0) + (+pv.perLevel || 0) * (lv - 1); }
+    if (st.mode === "money") { var w = (msec("wallet") || {}).values || {}, acc = 0; for (var h = 0; h < lv; h++) acc += Math.max(0, +w.income || 0) * Math.pow(1 + (+w.growth || 0) / 100, h); return Math.round(acc); }
+    return Infinity;
+  }
+  function mSimSpent(s, got) { var n = 0; (s.rows || []).forEach(function (r) { n += (got[r._id] || 0) * Math.max(0, +r.cost || 0); }); return n; }
+  function mSimCan(s, st, sim, r) {
+    var ranks = Math.max(1, Math.min(20, Math.round(+r.ranks || 1))), ps = mTreeNeeds(s, r._id).filter(function (p) { return p !== r._id && (s.rows || []).some(function (x) { return x._id === p; }); });
+    if ((sim.got[r._id] || 0) >= ranks) return false;
+    if (st.mode !== "money" && tnum(r.level) && +r.level > sim.lv) return false;
+    if (ps.length && !(r.needMode === "any" ? ps.some(function (p) { return sim.got[p]; }) : ps.every(function (p) { return sim.got[p]; }))) return false;
+    return mSimSpent(s, sim.got) + Math.max(0, +r.cost || 0) <= mSimBudget(s, st, sim.lv);
+  }
+  function mSimPrune(s, st, sim) { // a rank taken back / a lower level: what no longer stands goes too
+    for (var again = true, n = 0; again && n < 50; n++) {
+      again = false;
+      (s.rows || []).forEach(function (r) {
+        if (!sim.got[r._id]) return;
+        var ps = mTreeNeeds(s, r._id).filter(function (p) { return p !== r._id && (s.rows || []).some(function (x) { return x._id === p; }); });
+        var ok = (st.mode === "money" || !tnum(r.level) || +r.level <= sim.lv) && (!ps.length || (r.needMode === "any" ? ps.some(function (p) { return sim.got[p]; }) : ps.every(function (p) { return sim.got[p]; })));
+        if (!ok) { delete sim.got[r._id]; again = true; }
+      });
+    }
+  }
+  function mTreeHtml(s, si, probs) {
+    var view = (med.tview || {})[s.id] || "tree", M = MX(), H = function (h) { return M.fmtH(h, LANG); };
+    var sim = med.tsim && med.tsim.sid === s.id ? med.tsim : null, lay = mTreePos(s), st = lay.st, pos = lay.pos, rows = s.rows || [];
+    var nst = {}; st.nodes.forEach(function (n) { nst[n.id] = n; });
+    var bar = '<div class="row mtbar mtr-bar">' + '<button type="button" class="btn mini" data-mact="tView:' + si + '" aria-pressed="' + (view === "table") + '">' + (view === "table" ? MTR.tree : MTR.table) + '</button>' +
+      (view === "tree" && rows.length ? '<button type="button" class="btn mini' + (sim ? ' primary' : '') + '" data-mact="tSim:' + si + '">' + (sim ? MTR.simOff : MTR.sim) + '</button>' : '') +
+      '<span style="flex:1"></span>' + (view === "tree" && canWrite && !sim ? '<button type="button" class="btn mini" data-mact="tAdd:' + si + ':-1:-1">' + MTR.add + '</button>' : '') + '</div>';
+    if (view === "table") return bar + mTableHtml(s, si, probs);
+    var sum = st.mode === "points" ? MTR.pts.replace("{l}", st.maxLevel).replace("{a}", st.available).replace("{t}", st.total).replace("{p}", st.share == null ? "—" : st.share)
+      : st.mode === "money" ? MTR.money.replace("{t}", st.total.toLocaleString()).replace("{u}", st.unit).replace("{h}", st.hoursAll != null ? MTR.hrs.replace("{h}", H(st.hoursAll)) : "")
+      : MTR.plain.replace("{n}", rows.length).replace("{d}", st.nodes.reduce(function (a, n) { return Math.max(a, n.depth + 1); }, 0));
+    var head = '<p class="mtr-sum">' + esc(sum) + (st.cycles.length ? ' <span class="mcv mcv-warn">⚠ ' + esc(MTR.cyc) + '</span>' : '') + st.branches.map(function (b) {
+      return ' <span class="chip">' + esc(b.name) + ' · ' + b.n + ' · ' + b.cost.toLocaleString() + '</span>'; }).join("") + '</p>';
+    var simBar = "";
+    if (sim) {
+      var budget = mSimBudget(s, st, sim.lv), spent = mSimSpent(s, sim.got), mx = st.mode === "money" ? Math.max(1, Math.ceil(st.hoursAll || 20)) : st.mode === "points" ? st.maxLevel : Math.max(1, rows.reduce(function (a, r) { return Math.max(a, tnum(r.level) ? +r.level : 1); }, 1));
+      simBar = '<div class="mtr-simbar"><label>' + esc(st.mode === "money" ? MTR.hr : MTR.lv) + ' <input type="range" min="' + (st.mode === "money" ? 0 : 1) + '" max="' + mx + '" value="' + Math.min(mx, sim.lv) + '" data-tsimlv="' + si + '"> <b class="mono">' + sim.lv + '</b></label>' +
+        (budget !== Infinity ? '<span class="mono">' + esc(MTR.spent.replace("{s}", spent.toLocaleString()).replace("{a}", budget.toLocaleString())) + '</span>' + (spent > budget ? ' <span class="mcv mcv-warn">⚠ ' + esc(MTR.over) + '</span>' : '') : '') +
+        '<span style="flex:1"></span><button type="button" class="btn mini ghost" data-mact="tReset:' + si + '">' + MTR.reset + '</button></div><p class="hint">' + esc(MTR.simHint) + '</p>';
+    }
+    var C = 1, R = 1; Object.keys(pos).forEach(function (k) { C = Math.max(C, pos[k].c + 1); R = Math.max(R, pos[k].r + 1); });
+    if (canWrite && !sim) { C = Math.min(40, C + 1); R = Math.min(40, R + 1); }
+    var byId = {}; rows.forEach(function (r) { byId[r._id] = r; });
+    var edges = "";
+    rows.forEach(function (r) {
+      mTreeNeeds(s, r._id).forEach(function (p) {
+        if (!pos[p] || p === r._id || !byId[p]) return;
+        var a = pos[p], b = pos[r._id], x1 = a.c * TW + TW / 2, y1 = a.r * TH + TH - 16, x2 = b.c * TW + TW / 2, y2 = b.r * TH + 12, my = (y1 + y2) / 2;
+        var on = sim && sim.got[p] && sim.got[r._id];
+        edges += '<path class="mtr-e' + (r.needMode === "any" ? ' any' : '') + (on ? ' on' : '') + '" d="M' + x1 + ' ' + y1 + ' C' + x1 + ' ' + my + ' ' + x2 + ' ' + my + ' ' + x2 + ' ' + y2 + '"/>';
+      });
+    });
+    var sel = (med.tsel || {})[s.id];
+    var nodes = rows.map(function (r, ri) {
+      var p = pos[r._id], n = nst[r._id] || {}, rk = s.id + "|" + r._id, ranks = Math.max(1, Math.min(20, Math.round(+r.ranks || 1))), kind = r.kind || "stat";
+      var cls = "mtr-n k-" + esc(kind) + (sel === r._id && !sim ? " sel" : "") + (probs[rk] ? " mprob" : "") + (st.cycles.indexOf(r._id) >= 0 ? " cyc" : "");
+      if (sim) cls += sim.got[r._id] ? " got" : mSimCan(s, st, sim, r) ? " can" : " lock";
+      var meta = (tnum(r.cost) ? (+r.cost).toLocaleString() + (st.mode === "points" ? (LANG === "en" ? " pt" : " оч.") : st.unit ? " " + st.unit : "") : "—") + (ranks > 1 ? " × " + ranks : "");
+      var tip = [MTR.kinds[kind] || kind, r.effect || "", r.branch ? MTR.branch + ": " + r.branch : "", r.needMode === "any" ? MTR.any : ""].filter(Boolean).join(" · ");
+      return '<div class="' + cls + '" data-tnode="' + si + ':' + ri + '" data-mrow="' + esc(rk) + '" style="left:' + (p.c * TW + 8) + 'px;top:' + (p.r * TH + 8) + 'px;width:' + (TW - 16) + 'px;height:' + (TH - 26) + 'px" title="' + esc(tip) + '">' +
+        '<button type="button" class="mtr-b" data-mact="' + (sim ? 'tBuy' : 'tSel') + ':' + si + ':' + ri + '"' + (sim && !sim.got[r._id] && !mSimCan(s, st, sim, r) ? ' aria-disabled="true"' : '') + '><b>' + esc(r.name || r._id) + '</b>' +
+        '<span class="mtr-m"><span class="mono">' + esc(meta) + '</span>' + (tnum(r.level) && +r.level > 1 ? '<span class="mtr-lv">' + esc((LANG === "en" ? "lv " : "рів. ") + r.level) + '</span>' : '') +
+        (sim && ranks > 1 ? '<span class="mtr-rk">' + (sim.got[r._id] || 0) + '/' + ranks + '</span>' : '') + '</span></button>' +
+        (sim && sim.got[r._id] ? '<button type="button" class="mtr-sell" data-mact="tSell:' + si + ':' + ri + '" title="' + esc(MTR.sell) + '" aria-label="' + esc(MTR.sell + " · " + (r.name || r._id)) + '">−</button>' : '') +
+        (canWrite && !sim ? '<span class="mtr-h" data-tlink="' + si + ':' + ri + '" title="' + esc(MTR.link) + '" aria-hidden="true"></span>' : '') + '</div>';
+    }).join("");
+    var adds = "";
+    if (canWrite && !sim) for (var c = 0; c < C; c++) for (var w = 0; w < R; w++) if (!lay.taken[c + "," + w])
+      adds += '<button type="button" class="mtr-add" data-mact="tAdd:' + si + ':' + c + ':' + w + '" style="left:' + (c * TW + 8) + 'px;top:' + (w * TH + 8) + 'px;width:' + (TW - 16) + 'px;height:' + (TH - 26) + 'px" aria-label="' + esc(MTR.addHere) + '" title="' + esc(MTR.addHere) + '">＋</button>';
+    var cv = '<div class="mtr-cv" id="mtr-cv-' + si + '"><div class="mtr-in" data-tsi="' + si + '" style="width:' + C * TW + 'px;height:' + R * TH + 'px">' +
+      '<svg class="mtr-svg" width="' + C * TW + '" height="' + R * TH + '" aria-hidden="true">' + edges + '<path class="mtr-tmp" d=""/></svg>' + adds + nodes + '</div></div>';
+    var ins = "";
+    var sr = !sim && sel && rows.filter(function (r) { return r._id === sel; })[0];
+    if (sr) {
+      var ri0 = rows.indexOf(sr), n0 = nst[sr._id] || {};
+      var info = n0.reach == null ? MTR.cyc : st.mode === "points" ? (n0.level == null ? MTR.nNever.replace("{p}", n0.reach) : MTR.nPts.replace("{l}", n0.level).replace("{p}", n0.reach))
+        : st.mode === "money" ? MTR.nMoney.replace("{p}", n0.reach.toLocaleString()).replace("{u}", st.unit).replace("{h}", n0.hours != null ? MTR.hrs.replace("{h}", H(n0.hours)) : "")
+        : MTR.nPlain.replace("{d}", n0.depth + 1).replace("{l}", n0.level || 1);
+      var wideT = { long: 1, json: 1, multi: 1, refs: 1, card: 1, sound: 1 };
+      ins = '<div class="mtr-ins" data-mrow="' + esc(s.id + "|" + sr._id) + '"><p class="mtr-info"><b>' + esc(sr.name || sr._id) + '</b> · ' + esc(info) + '</p><div class="qgrid">' +
+        (s.fields || []).filter(function (f) { return f.k !== "col" && f.k !== "row"; }).map(function (f) {
+          var inner = minput(si + "." + ri0 + "." + f.k, f, sr[f.k], false), k = s.id + "|" + sr._id + "|" + f.k;
+          return '<div class="mtr-f' + (wideT[f.t] ? ' wide' : '') + (probs[k] ? ' mprob' : '') + '" data-mk="' + esc(k) + '">' + (wideT[f.t] ? qblk(ml(f.l), inner) : qfld(ml(f.l), inner)) + '</div>';
+        }).join("") + '</div>' +
+        (canWrite ? '<div class="row"><button type="button" class="btn mini" data-mact="tChild:' + si + ':' + ri0 + '">' + MTR.child + '</button><span style="flex:1"></span><button type="button" class="btn mini ghost danger" data-mact="tDel:' + si + ':' + ri0 + '">' + MTR.rm + '</button></div>' : '') + '</div>';
+    }
+    return bar + head + (sim ? simBar : canWrite && !s.hint ? '<p class="hint">' + esc(MTR.hint) + '</p>' : '') + (rows.length || canWrite ? cv : mEmptyTable(s, si, "tAdd:" + si + ":-1:-1", MTR.add)) + ins;
+  }
+  function mTreeAct(p) { // tView / tSim / tAdd / tChild / tDel / tSel / tBuy / tSell / tReset
+    var m = med.m, si = +p[1], s = m.sections[si], ri = +p[2], rows = s.rows = s.rows || [], st = MX().treeStats(m, s.id);
+    med.tsel = med.tsel || {}; med.tview = med.tview || {};
+    if (p[0] === "tView") { med.tview[s.id] = med.tview[s.id] === "table" ? "tree" : "table"; med.tsim = null; }
+    else if (p[0] === "tSim") med.tsim = med.tsim && med.tsim.sid === s.id ? null : { sid: s.id, lv: st.mode === "money" ? 1 : st.mode === "points" ? st.maxLevel : 1, got: {} };
+    else if (p[0] === "tReset") { if (med.tsim) med.tsim.got = {}; }
+    else if (p[0] === "tBuy") { var r = rows[ri]; if (med.tsim && r && mSimCan(s, st, med.tsim, r)) med.tsim.got[r._id] = (med.tsim.got[r._id] || 0) + 1; }
+    else if (p[0] === "tSell") { var r1 = rows[ri]; if (med.tsim && r1 && med.tsim.got[r1._id]) { if (!--med.tsim.got[r1._id]) delete med.tsim.got[r1._id]; mSimPrune(s, st, med.tsim); } }
+    else if (p[0] === "tSel") { if (Date.now() - tDragAt < 400) return; var r2 = rows[ri]; med.tsel[s.id] = r2 && med.tsel[s.id] !== r2._id ? r2._id : ""; }
+    else if (p[0] === "tAdd" || p[0] === "tChild") {
+      mTreePin(s);
+      var par = p[0] === "tChild" ? rows[ri] : null, taken = {}; rows.forEach(function (x) { taken[x.col + "," + x.row] = 1; });
+      var c = p[0] === "tAdd" ? +p[2] : par.col, w = p[0] === "tAdd" ? +p[3] : Math.min(39, par.row + 1);
+      if (c < 0 || w < 0) { w = 0; c = 0; } // «＋ Вузол» in the bar: the first free cell of the top row
+      while (taken[c + "," + w] && c < 39) c++;
+      var nr = { _id: MX().newRowId(s), name: MTR.newNode, kind: "stat", cost: 1, ranks: 1, needs: par ? [par._id] : [], col: c, row: w };
+      if (par && par.branch) nr.branch = par.branch;
+      rows.push(nr); med.tsel[s.id] = nr._id;
+      renderMEditor(); mState();
+      var ni = document.querySelector('#m-ed .mtr-ins [data-mf="' + si + '.' + (rows.length - 1) + '.name"]'); if (ni) { ni.focus(); ni.select(); }
+      return;
+    } else if (p[0] === "tDel") {
+      var rd = rows[ri]; if (!rd) return;
+      askConfirm(MTR.rmQ.replace("{t}", rd.name || rd._id), { danger: true }).then(function (ok) {
+        if (!ok) return;
+        rows.splice(rows.indexOf(rd), 1);
+        rows.forEach(function (x) { if (Array.isArray(x.needs)) x.needs = x.needs.filter(function (id) { return id !== rd._id; }); });
+        med.tsel[s.id] = ""; renderMEditor(); mState();
+      });
+      return;
+    }
+    renderMEditor(); mState();
+  }
+  // drag a node to a cell (another node there swaps with it); pull ● onto a node: that node requires this one (again — the link goes)
+  function mTreeBind() {
+    [].forEach.call(document.querySelectorAll("#m-ed .mtr-in"), function (inn) {
+      if (!canWrite) return;
+      inn.onpointerdown = function (e) {
+        if (e.button || (med.tsim && med.tsim.sid)) return;
+        var h = e.target.closest("[data-tlink]"), nd = e.target.closest("[data-tnode]"); if (!nd || e.target.closest(".mtr-sell")) return;
+        var p = nd.dataset.tnode.split(":"), si = +p[0], s = med.m.sections[si], r = s.rows[+p[1]], x0 = e.clientX, y0 = e.clientY, moved = false, tmp = inn.querySelector(".mtr-tmp");
+        var sx = nd.offsetLeft + nd.offsetWidth / 2, sy = nd.offsetTop + nd.offsetHeight;
+        var mv = function (ev) {
+          var dx = ev.clientX - x0, dy = ev.clientY - y0;
+          if (!moved && Math.abs(dx) + Math.abs(dy) < 6) return;
+          moved = true;
+          if (h) { var b2 = inn.getBoundingClientRect(), tx = ev.clientX - b2.left, ty = ev.clientY - b2.top; tmp.setAttribute("d", "M" + sx + " " + sy + " C" + sx + " " + (sy + ty) / 2 + " " + tx + " " + (sy + ty) / 2 + " " + tx + " " + ty); }
+          else { nd.style.transform = "translate(" + dx + "px," + dy + "px)"; nd.classList.add("drag"); }
+        };
+        var up = function (ev) {
+          window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
+          if (!moved) return; // a click: the node's button selects it
+          tDragAt = Date.now(); // the click that may follow a drag is not a selection
+          var b2 = inn.getBoundingClientRect();
+          if (h) {
+            var t = document.elementFromPoint(ev.clientX, ev.clientY), tn = t && t.closest("[data-tnode]");
+            if (tn && tn !== nd && ev.type === "pointerup") {
+              var child = s.rows[+tn.dataset.tnode.split(":")[1]], needs = Array.isArray(child.needs) ? child.needs.slice() : [], at = needs.indexOf(r._id);
+              if (at >= 0) needs.splice(at, 1);
+              else if (mTreeAncestor(s, r._id, child._id)) { tmp.setAttribute("d", ""); notify(MTR.cycle.replace("{a}", r.name || r._id).replace("{b}", child.name || child._id)); return; }
+              else needs.push(r._id);
+              child.needs = needs; med.tsel = med.tsel || {}; med.tsel[s.id] = child._id;
+            }
+          } else if (ev.type === "pointerup") {
+            mTreePin(s);
+            var c = Math.max(0, Math.min(39, Math.floor((ev.clientX - b2.left) / TW))), w = Math.max(0, Math.min(39, Math.floor((ev.clientY - b2.top) / TH)));
+            var other = s.rows.filter(function (x) { return x !== r && x.col === c && x.row === w; })[0];
+            if (other) { other.col = r.col; other.row = r.row; }
+            r.col = c; r.row = w;
+          }
+          renderMEditor(); mState();
+        };
+        window.addEventListener("pointermove", mv); window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+        if (h) e.preventDefault(); // pulling a link does not select text
+      };
+    });
+  }
   function mGeneralHtml() {
     var m = med.m, M = MX(), c = M.category(m.cat), others = cards.filter(function (x) { return x.section === med.sec && x.id !== med.id; });
     var t = M.template(m.tpl);
@@ -4580,7 +4798,7 @@
       (adv.length ? '<details class="mol-adv" data-moladv="1"' + (med.advOpen ? ' open' : '') + '><summary>' + esc(MC.advGroup) + ' <span class="mol-n">' + adv.length + '</span>' + (advWarn ? ' <i class="mdot md-warn" aria-hidden="true">⚠</i>' : '') + '</summary><ul>' +
         adv.map(function (s) { return it(s.id, ml(s.title), mSecState(s, r)); }).join("") + '</ul></details>' : '') + '</nav>' +
       (canWrite ? '<details class="mpop mol-add"><summary class="btn ghost mini">' + MC.addSecMenu + '</summary><div class="mpop-b" role="menu"><button type="button" role="menuitem" data-mact="addSec:fields">' + MC.addSec + '</button>' +
-        '<button type="button" role="menuitem" data-mact="addSec:table">' + MC.addTable + '</button></div></details>' : ''); // outside the nav: phones reach it too
+        '<button type="button" role="menuitem" data-mact="addSec:table">' + MC.addTable + '</button><button type="button" role="menuitem" data-mact="addSec:tree">' + MTR.secTree + '</button></div></details>' : ''); // outside the nav: phones reach it too
   }
   function renderMEditor() {
     mCL = null;
@@ -4589,7 +4807,7 @@
     if (s && s.adv) med.advOpen = true; // opening an advanced section unfolds its group
     var kind = !s ? "" : s.id === "ctable" && s.kind === "table" ? "combo" : s.id === "reactions" && s.kind === "table" ? "react" : s.kind;
     var body = !s ? mGeneralHtml() : qbox(ml(s.title), (s.hint ? '<p class="hint">' + esc(ml(s.hint)) + '</p>' : '') + mfw(s) +
-      (kind === "combo" ? mComboHtml(s, si, probs) : kind === "react" ? mReactHtml(s, si, probs) : kind === "table" ? mTableHtml(s, si, probs) :
+      (kind === "combo" ? mComboHtml(s, si, probs) : kind === "react" ? mReactHtml(s, si, probs) : kind === "table" ? (s.tree ? mTreeHtml(s, si, probs) : mTableHtml(s, si, probs)) :
         (mhid(s) ? '<div class="row mtbar"><span style="flex:1"></span>' + mAllFields(s) + '</div>' : '') + mFieldsHtml(s, si, probs)) + mCalcHtml(s) +
       (canWrite && kind !== "combo" && kind !== "react" ? '<div class="row maddf-r"><details class="maddf-d"><summary class="btn ghost mini">' + MC.addField + '</summary><div class="row maddf"><input id="mf-name" placeholder="' + esc(MC.fieldName) + '" aria-label="' + esc(MC.fieldName) + '"><select id="mf-type" aria-label="' + esc(MC.fieldType) + '">' +
         MX().TYPES.filter(function (t) { return t !== "ref" && t !== "refs" && (t !== "sound" || med.sec === "audio"); }).map(function (t) { return '<option value="' + t + '">' + esc(MX().TYPE_NAMES[t][LANG === "en" ? 1 : 0]) + '</option>'; }).join("") + '</select>' +
@@ -4608,7 +4826,7 @@
   function mAfter() { // after a render: the header's height for the sticky outline, popovers in place, the open cell focused
     var me = $("m-ed"), h = me && me.querySelector(".edhead"); if (h) me.style.setProperty("--edh", h.offsetHeight + "px");
     edSticky();
-    mcqFilter();
+    mcqFilter(); mTreeBind();
     [].forEach.call(document.querySelectorAll("#m-ed details.mpop[open]"), mPopPos);
     var ed = med.cell && document.querySelector("[data-mced]");
     if (ed && !ed.contains(document.activeElement)) {
@@ -4630,6 +4848,7 @@
       return mGo(i.sec, i.row || "", mIssField(i));
     }
     med.tab = secId === "general" || !msec(secId) ? "general" : secId; med.cell = "";
+    if (row && msec(secId) && msec(secId).tree) { (med.tsel = med.tsel || {})[secId] = row; med.tsim = null; } // 🌳 the node opens below the tree
     if (row) { delete med.find[secId]; med.cwho = ""; }
     renderMEditor();
     var q = function (sel) { return document.querySelector("#m-ed " + sel); }, k = function (x) { return '"' + CSS.escape(x) + '"'; };
@@ -4650,6 +4869,11 @@
     if (t.dataset.moltab) { if (e.type === "change") { med.tab = t.value; med.cell = ""; renderMEditor(); var ms = document.querySelector("[data-moltab]"); if (ms) ms.focus(); } return; }
     if (t.dataset.mfwadd !== undefined) { if (e.type !== "change" || !t.value) return; var fwa = med.m.fw = med.m.fw || {}; fwa.caps = (fwa.caps || []).concat([t.value]); renderMEditor(); return; }
     if (t.dataset.mfwneed !== undefined) { (med.m.fw = med.m.fw || {}).need = t.value; mState(); return; }
+    if (t.dataset.tsimlv !== undefined) { // ▶ the simulation's level / hour: the number follows the slider, the tree on release
+      var lb = t.parentNode.querySelector("b"); if (lb) lb.textContent = t.value;
+      if (e.type === "change" && med.tsim) { var ts = med.m.sections[+t.dataset.tsimlv]; med.tsim.lv = +t.value; mSimPrune(ts, MX().treeStats(med.m, ts.id), med.tsim); renderMEditor(); var sl = document.querySelector("[data-tsimlv]"); if (sl) sl.focus(); }
+      return;
+    }
     if (t.dataset.mfind !== undefined) { if (e.type !== "input") return; med.find[t.dataset.mfind] = t.value; var pos = t.selectionStart; renderMEditor(); var n = document.querySelector('[data-mfind="' + t.dataset.mfind + '"]'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } return; }
     if (t.dataset.mg) { med[t.dataset.mg] = t.value; if (t.dataset.mg === "title") { var h = document.querySelector("#m-ed header h1, #topline h1"); if (h) h.textContent = t.value || MC.newM; } mState(); return; }
     var p = t.dataset.mf; if (!p) return;
@@ -4692,7 +4916,7 @@
     if (k[1] === "-") s.values[k[2]] = mval(f, t); else s.rows[+k[1]][k[2]] = mval(f, t);
     if (t.closest("[data-mced]")) { if (e.type === "change" && t.tagName === "SELECT") mCommit(true); else mState(); return; } // an open cell: a choice commits, typing waits for Enter / leaving
     if (e.type === "change" && (s.id === "ctable" || s.id === "reactions")) { setTimeout(function () { if (med && $("m-ed")) renderMEditor(); }, 0); mState(); return; } // the start distance, the time bar and the combo choices follow
-    if (e.type === "change" && s.kind === "table" && k[2] === s.rowLabel) { renderMEditor(); return; } // names of rows show in the links
+    if (e.type === "change" && s.kind === "table" && (k[2] === s.rowLabel || s.tree)) { renderMEditor(); return; } // names of rows show in the links; a tree redraws its nodes
     mState();
   }
   function mChip(path, v) {
@@ -4710,6 +4934,7 @@
   function mAct(a) {
     var p = a.split(":"), m = med.m, s = m.sections[+p[1]], i = +p[2];
     if (p[0] === "back") { medLeave(function () { render(); }); return; }
+    if (/^t(View|Sim|Reset|Buy|Sell|Sel|Add|Child|Del)$/.test(p[0])) return mTreeAct(p); // 🌳 the tree view
     if (p[0] === "save") return saveMech();
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
@@ -4768,10 +4993,11 @@
       s.fields = s.fields.filter(function (f) { return f.k !== p[2]; });
       if (s.values) delete s.values[p[2]]; (s.rows || []).forEach(function (r) { delete r[p[2]]; });
     } else if (p[0] === "addSec") {
-      var table = p[1] === "table";
-      askName(table ? MC.addTable : MC.addSec, MC.secName, function (name) {
+      var table = p[1] === "table", tree = p[1] === "tree";
+      askName(tree ? MTR.secTree : table ? MC.addTable : MC.addSec, tree ? MTR.secTreeName : MC.secName, function (name) {
         if (!name) return;
         var id = mKey(name, m.sections.map(function (x) { return x.id; }).concat(["general"]));
+        if (tree) { m.sections.push(MX().treeSection(id, name)); med.tab = id; renderMEditor(); mState(); return; } // 🌳 a development tree inside any card
         m.sections.push(table ? { id: id, title: name, hint: "", kind: "table", fields: [{ k: "name", l: LANG === "en" ? "Name" : "Назва", t: "text", req: "r", custom: true }], rows: [], rowLabel: "name", prefix: "R", custom: true }
           : { id: id, title: name, hint: "", kind: "fields", fields: [], values: {}, custom: true });
         med.tab = id; renderMEditor();
@@ -10911,11 +11137,12 @@
       if (!open || mem.indexOf(section) >= 0) return renderNav();
       return goSection(mem.indexOf(lastSub[g.id]) >= 0 ? lastSub[g.id] : mem[0]);
     }
-    var b = e.target.closest(".nav-item"); if (b) goSection(b.dataset.sec);
+    var b = e.target.closest(".nav-item"); if (b) { navPSub = b.dataset.psub != null ? b.dataset.psub : null; goSection(b.dataset.sec); }
   }
   function goSection(id, then) { leaveOk(id, function () { goSectionNow(id); if (then) then(); }); }
   function goSectionNow(id) {
     if (isCanon(id)) mode = "world"; else if (id !== "settings" && gameSections().some(function (s) { return s.id === id; })) mode = "game"; // a link across opens the other Bible
+    progSub = id === "progression" && navPSub != null ? navPSub : ""; navPSub = null;
     section = id; query = ""; imp = null; railPick = null; if (intake) { intake.view = false; if (!intake.running && intake.stage === "plan") intake = null; } setTimeout(inChip, 0); $("q").value = ""; $("spine").classList.remove("is-open"); $("nav-toggle").setAttribute("aria-expanded", "false"); render(); $("main").scrollTop = 0;
   }
   // ---------- 🧭 the rail (owner, v2.105): a thin column of icons = the main menu items; a click opens their sub-items in the panel (#spine) ----------
@@ -11002,12 +11229,13 @@
     }).join("") + '<span class="rail-sp"></span>' + railBtn("settings", "gear", LANG === "en" ? "Settings" : "Налашт.", mode === "game" ? STR.settingsGame : STR.settingsWorld, section === "settings");
     $("rail").innerHTML = html; $("t-brand").textContent = mode === "game" ? STR.brandGame : STR.brand;
     if (cur && cur.grp && cur.secs.indexOf(section) >= 0) lastSub[cur.id] = section;
-    var panel = !!cur && (cur.secs.length > 1 || cur.games || cur.custom), body = "";
+    var panel = !!cur && (cur.secs.length > 1 || cur.games || cur.custom || !!(cur.grp && cur.grp.subs)), body = "";
     if (panel) {
       if (mode === "game") body += '<div class="navh gamehead">🎮 ' + esc(game.title || "…") + '</div>';
       body += '<div class="navh panel-h">' + esc(cur.full) + '</div>';
       if (cur.games) body += games.map(function (g) { return '<button class="nav-item nav-game" data-opengame="' + esc(g.id) + '">🎮 ' + esc(g.title || "…") + '</button>'; }).join("") +
         (canGame && ME.owner ? '<button class="nav-item nav-game" data-opengame="__new">' + esc(STR.newGame) + '</button>' : '');
+      else if (cur.grp && cur.grp.subs) body += navProgSubs(all);
       else body += cur.secs.map(function (id) { return navItem(sec(id), all, NAV_SHORT[id] && L(NAV_SHORT[id])); }).join("");
       if (mode === "game") body += guideNextHtml();
     }

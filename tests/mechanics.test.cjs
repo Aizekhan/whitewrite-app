@@ -207,9 +207,9 @@ check(M.exportMech({ id: 'f', mech: fe }, 'en').issues.some((i) => i.field === '
 check(M.frameworkNote('economy', 'loot', M.FW_BUILTIN).status + '|' + M.frameworkNote('controls', 'map').status, 'exists|missing', 'framework notes: loot exists, the input map is game code');
 
 // 📈 Конструктор прогресії: its own catalog, categories = the section's groups, every sample computes cleanly
-check(M.templatesFor('progression').map((t) => t.id).join(','), 'xp_curve,prog_currencies,prog_loot,prog_shop,prog_upgrades,prog_balance', 'the Progression builder catalog');
+check(M.templatesFor('progression').map((t) => t.id).join(','), 'xp_curve,prog_skilltree,prog_currencies,prog_loot,prog_shop,prog_upgrades,prog_upgradetree,prog_balance', 'the Progression builder catalog');
 check(M.templatesFor('mechanics').some((t) => t.sec === 'progression'), false, 'no progression template among the mechanics');
-check(M.categoriesFor('progression').map((c) => c.uk).join('|'), 'Досвід і рівні|Валюти|Лут і нагороди|Магазин|Апгрейди|Баланс', 'progression categories = the section groups');
+check(M.categoriesFor('progression').map((c) => c.uk).join('|'), 'Досвід і рівні|Дерева розвитку|Валюти|Лут і нагороди|Магазин|Апгрейди|Баланс', 'progression categories = the section groups');
 const xp = M.instantiate('xp_curve');
 check(Math.abs(M.xpCurve(xp).totalHours - 25) < 7, true, 'the XP sample reaches the cap near its 25 h plan');
 check(codes(xp).filter((i) => i.level !== 'tip').length, 0, 'the XP sample has no warnings');
@@ -231,6 +231,20 @@ check(bs[1].verdict + '|' + bs[0].bank, 'short|300', 'act 2 too dear; act 1 left
 check(codes(bl, 'warn').some((i) => /гринду/.test(i.uk)), true, 'a short stage warns about grinding');
 check(M.fmtH(0.2) + '|' + M.fmtH(2.5, 'en'), '12 хв|2 h 30 min', 'hours read as hours and minutes');
 check(M.calc(M.instantiate('prog_currencies')).simulation.rows.length, 3, 'currencies reuse the economy simulation');
+
+// 🌳 development trees: points and the share opened, currency hours, cycles and levels caught, a tree inside any card
+const tr = M.instantiate('prog_skilltree'), ts = M.treeStats(tr);
+check(ts.mode + '|' + ts.available + '|' + ts.total + '|' + ts.share, 'points|20|26|77', 'the skill tree: 20 points by level 20 open 77% of it');
+check(ts.nodes.find((n) => n.id === 'N10').level + '|' + ts.nodes.find((n) => n.id === 'N10').reach, '15|7', 'a keystone needing any one branch: the cheapest path, its own level');
+check(codes(tr).filter((i) => i.level !== 'tip').length, 0, 'the skill tree sample has no warnings');
+st(tr, 'nodes').rows[0].needs = ['N10'];
+check(codes(tr, 'error').some((i) => /замкнене коло/.test(i.uk)), true, 'a closed loop of requirements is an error');
+const ut = M.treeStats(M.instantiate('prog_upgradetree'));
+check(ut.mode + '|' + ut.total + '|' + ut.hoursAll, 'money|20200|12.5', 'the upgrade tree: its price and hours of income');
+const otree = M.instantiate('leveling'); otree.sections.push(M.treeSection('perks', 'Перки'));
+st(otree, 'perks').rows = [{ _id: 'N1', name: 'A', cost: 1, effect: 'x' }, { _id: 'N2', name: 'B', cost: 1, effect: 'y', needs: ['N1'] }];
+check(M.calc(otree).trees.perks.nodes[1].depth, 1, 'a tree section in any card is computed');
+check(M.exportMech({ id: 't', mech: otree }, 'en').sections.find((x) => x.id === 'perks').tree, true, 'the agent sees a tree section as a tree');
 
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

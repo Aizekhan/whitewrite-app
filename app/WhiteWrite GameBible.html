@@ -1327,6 +1327,30 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 .askpick .qpg[hidden], .askpick .mchip[hidden]{ display:none; }
 /* v2.80 mechanics: card-field picker, computed results, ★ must-haves, the guide's later sections */
 .mcards{ align-items:center; } .mcpick > .mpop-b.qpick{ display:grid; }
+/* 🌳 a development tree (gamebible.js mTreeHtml): nodes on a grid, links as curves; kind = the left edge colour, a problem = the warn outline */
+.mtr-sum{ margin:6px 0; font-size:13.5px; color:var(--tx); } .mtr-sum .chip{ margin-left:4px; }
+.mtr-cv{ position:relative; overflow:auto; max-height:68vh; border:1px solid var(--line-2); border-radius:10px; background:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 1.5px) 0 0/24px 24px, var(--bg-1); }
+.mtr-in{ position:relative; touch-action:none; }
+.mtr-svg{ position:absolute; inset:0; pointer-events:none; }
+.mtr-e{ fill:none; stroke:var(--line-2); stroke-width:2; } .mtr-e.any{ stroke-dasharray:6 5; } .mtr-e.on{ stroke:var(--gold-lit); stroke-width:2.6; }
+.mtr-tmp{ fill:none; stroke:var(--gold-lit); stroke-width:2; stroke-dasharray:4 4; }
+.mtr-n{ position:absolute; box-sizing:border-box; border:1px solid var(--line-2); border-left:4px solid var(--s-idea); border-radius:10px; background:var(--bg-3); cursor:grab; user-select:none; }
+.mtr-n.drag{ z-index:5; opacity:.85; cursor:grabbing; box-shadow:0 8px 24px rgba(0,0,0,.5); }
+.mtr-n.k-passive{ border-left-color:var(--s-agreed); } .mtr-n.k-active{ border-left-color:var(--s-work); } .mtr-n.k-unlock{ border-left-color:var(--s-game); } .mtr-n.k-keystone{ border-left-color:var(--gold-lit); background:linear-gradient(var(--gold-soft), var(--gold-soft)), var(--bg-3); }
+.mtr-n.sel{ outline:2px solid var(--gold-lit); outline-offset:2px; } .mtr-n.mprob, .mtr-n.cyc{ border-color:var(--warn); }
+.mtr-b{ all:unset; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; width:100%; height:100%; padding:7px 9px; cursor:inherit; }
+.mtr-b:focus-visible{ outline:2px solid var(--gold-lit); border-radius:8px; }
+.mtr-b b{ flex-shrink:0; font:600 13px/1.25 var(--serif); color:var(--tx-hi); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.mtr-m{ display:flex; gap:6px; align-items:center; font-size:12px; color:var(--tx-mid); white-space:nowrap; overflow:hidden; } .mtr-lv{ padding:0 6px; border-radius:8px; background:rgba(255,255,255,.07); } .mtr-rk{ margin-left:auto; color:var(--gold-bright); }
+.mtr-h{ position:absolute; left:50%; bottom:-7px; width:12px; height:12px; margin-left:-6px; border-radius:50%; background:var(--gold); border:2px solid var(--bg-1); cursor:crosshair; }
+.mtr-add{ position:absolute; box-sizing:border-box; border:1px dashed transparent; border-radius:10px; background:none; color:transparent; font-size:20px; cursor:pointer; }
+.mtr-in:hover .mtr-add{ border-color:var(--line); color:var(--tx-low); } .mtr-add:hover, .mtr-add:focus-visible{ border-color:var(--gold); color:var(--gold-lit); }
+.mtr-n.lock{ opacity:.45; } .mtr-n.can{ border-color:var(--gold); } .mtr-n.got{ background:linear-gradient(rgba(240,169,59,.22), rgba(240,169,59,.22)), var(--bg-3); border-color:var(--gold-lit); }
+.mtr-n.got .mtr-b b::before{ content:"✓ "; color:var(--gold-bright); }
+.mtr-sell{ position:absolute; top:4px; right:4px; width:22px; height:22px; border-radius:50%; border:1px solid var(--line-2); background:var(--bg-2); color:var(--tx-hi); cursor:pointer; }
+.mtr-simbar{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin:6px 0; } .mtr-simbar input[type=range]{ width:min(320px, 50vw); vertical-align:middle; accent-color:var(--gold); }
+.mtr-ins{ margin-top:12px; padding:10px 12px; border:1px solid var(--line-2); border-radius:10px; } .mtr-info{ margin:0 0 8px; font-size:13.5px; }
+.mtr-ins .mtr-f.wide{ grid-column:1 / -1; } .mtr-ins .mtr-f.mprob .qh{ color:var(--warn); }
 .mcalc{ margin-top:14px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:rgba(255,255,255,.02); }
 .mcalc h5{ margin:0 0 8px; font:600 13px/1.3 var(--serif); color:var(--tx-hi); } .mcalc-sub{ margin:10px 0 4px; font-size:13.5px; }
 .mcalc-t table{ font-size:13px; } .mcalc-t td, .mcalc-t th{ vertical-align:middle; }

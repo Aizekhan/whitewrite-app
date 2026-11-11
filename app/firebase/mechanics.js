@@ -569,6 +569,7 @@ var FW_CAPS = {
   dodge: { base: ['combat.dodge'] }, blockparry: { block: ['combat.block'], parry: ['combat.parry'] },
   attributes: { attrs: ['stats.container'] }, leveling: { curve: ['progression.levels'] }, status: { effects: ['status_effects.core'] },
   inventory: { layout: ['items.inventory', 'items.equipment'] }, enemyai: { archetypes: ['ai.perception', 'ai.behavior_tree'] },
+  prog_skilltree: { nodes: ['skills.trees'], points: ['stats.point_allocation'] }, prog_upgradetree: { nodes: ['skills.trees'] },
 };
 // a mechanic's category → the framework modules worth offering when the author picks what it relies on
 var CAT_MODULES = { combat: ['combat', 'ai'], stats: ['stats'], progression: ['progression', 'skills'], abilities: ['skills', 'status_effects'], gear: ['items'], status: ['status_effects'],
@@ -1329,6 +1330,7 @@ FW_CAPS.difficulty = { zones: ['stats.container', 'progression.enemy_levels'] };
 // hours of income for a purchase, where they get stuck or rich) and warns before a playtester does.
 var PROG_CATEGORIES = [
   { id: 'xp', uk: 'Досвід і рівні', en: 'XP & levels', subs: [] },
+  { id: 'tree', uk: 'Дерева розвитку', en: 'Development trees', subs: [] },
   { id: 'currency', uk: 'Валюти', en: 'Currencies', subs: [] },
   { id: 'loot', uk: 'Лут і нагороди', en: 'Loot & rewards', subs: [] },
   { id: 'shop', uk: 'Магазин', en: 'Shop', subs: [] },
@@ -1434,6 +1436,116 @@ var PROG_BALANCE = {
         { _id: 'ST3', stage: 'Акт 3', hours: 6, income: 1500, need: 7000, plevel: 20, elevel: 20 }, { _id: 'ST4', stage: 'Фінал', hours: 2, income: 2000, need: 6000, plevel: 26, elevel: 28 }] },
   ],
 };
+// 🌳 Development trees (owner: «реально візуально добавляти дерево розвитку»): a node table the Bible draws as a tree (section.tree) —
+// drag nodes on a grid, pull links, «Пройти як гравець». The same table for the agent (MCP get_mechanic) and the checks.
+// A node needs its parents (all of them, or any one), costs points (a skill tree: points per level) or currency (an upgrade tree: the wallet).
+var NODE_KINDS = O([['stat', '＋ Параметр', '＋ Stat'], ['passive', 'Пасивка', 'Passive'], ['active', 'Здібність', 'Ability'], ['unlock', 'Відкриває', 'Unlock'], ['keystone', 'Ключовий вузол', 'Keystone']]);
+var NEED_MODES = O([['all', 'усі попередні', 'all of the previous'], ['any', 'будь-який попередній', 'any one of the previous']]);
+function treeNodeFields(costLabel, sid) {
+  return [F('name', 'Вузол', 'Node', 'text', R), F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: NODE_KINDS })), F('cost', costLabel[0], costLabel[1], 'num', X(R, { min: 0 })),
+    F('ranks', 'Рангів', 'Ranks', 'num', X(REC, { min: 1, max: 20, h: T('Скільки разів можна взяти вузол (ціна — за кожен ранг)', 'How many times the node can be taken (the price is per rank)') })),
+    F('effect', 'Що дає', 'Effect', 'text', R), F('needs', 'Потребує', 'Requires', 'refs', { req: 'opt', ref: sid || 'nodes' }),
+    F('needMode', 'Умова', 'Condition', 'sel', { req: 'opt', o: NEED_MODES }), F('level', 'З рівня гравця', 'From player level', 'num', { req: 'opt', min: 1 }),
+    F('branch', 'Гілка', 'Branch', 'text', { req: 'opt' }), F('card', 'Картка', 'Card', 'card', { req: 'opt', secs: ['mechanics', 'gear', 'items', 'characters', 'enemies'] }),
+    F('col', 'Колонка', 'Column', 'num', { req: 'opt', adv: true, min: 0, max: 40 }), F('row', 'Ряд', 'Row', 'num', { req: 'opt', adv: true, min: 0, max: 40 })];
+}
+// «＋ Розділ ▾ → 🌳 Дерево» in any card (a class, a weapon, a base): an empty tree section of its own
+function treeSection(id, title) { return { id: id, title: title, hint: '', kind: 'table', tree: true, rowLabel: 'name', prefix: 'N', fields: treeNodeFields(['Ціна', 'Cost'], id), rows: [], custom: true }; }
+var N = function (id, name, kind, cost, ranks, effect, needs, col, row, x) { return Object.assign({ _id: id, name: name, kind: kind, cost: cost, ranks: ranks, effect: effect, needs: needs || [], col: col, row: row }, x || {}); };
+var PROG_SKILLTREE = {
+  id: 'prog_skilltree', sec: 'progression', version: 1, cat: 'tree', sub: '', complexity: 2, name: T('Дерево навичок', 'Skill tree'),
+  desc: T('Візуальне дерево: вузли з ціною в очках, рангами, вимогами й рівнем; гілки й ключові вузли. Рахує, скільки очок гравець має до максимального рівня, яку частину дерева відкриє, з якого рівня досяжний кожен вузол — і показує цикли, недосяжне й «відкриє все — вибір нічого не важить». «▶ Пройти як гравець» — набрати білд на будь-якому рівні.', 'A visual tree: nodes with a point cost, ranks, requirements and a level; branches and keystones. It computes the points the player has by the max level, how much of the tree they open, the level each node is reachable from — and shows cycles, the unreachable and “opens everything — no choice matters”. “▶ Play it as the player” — build at any level.'),
+  purpose: T('Кожне очко — вибір: гравець відкриває свій білд, а не все дерево.', 'Every point is a choice: the player builds their own path, not the whole tree.'),
+  sections: [
+    { id: 'points', title: T('Очки', 'Points'), kind: 'fields', hint: T('Звідки гравець бере очки. Частину дерева, яку він відкриє, рахує вкладка «Дерево».', 'Where the player gets the points. How much of the tree they open is computed on the “Tree” tab.'),
+      fields: [F('unit', 'Як звуться очки', 'What the points are called', 'text', REC), F('start', 'Очок на старті', 'Points at the start', 'num', X(REC, { min: 0 })),
+        F('perLevel', 'Очок за рівень', 'Points per level', 'num', X(R, { min: 0 })), F('maxLevel', 'Максимальний рівень', 'Max level', 'num', X(R, { min: 1, max: 500 })),
+        F('respec', 'Перерозподіл', 'Respec', 'sel', X(REC, { o: O([['free', 'безкоштовно', 'free'], ['paid', 'за плату', 'paid'], ['none', 'немає', 'none']]) })),
+        F('owner', 'Чиє дерево', 'Whose tree', 'card', { req: 'opt', secs: ['characters', 'enemies', 'mechanics'] })],
+      values: { unit: 'Очки навичок', start: 1, perLevel: 1, maxLevel: 20, respec: 'paid' } },
+    { id: 'nodes', title: T('Дерево', 'Tree'), kind: 'table', tree: true, rowLabel: 'name', prefix: 'N', fields: treeNodeFields(['Ціна, очок', 'Cost, points']),
+      hint: T('Перетягни вузол на іншу клітинку; потягни за ● під вузлом до іншого — це вимога. Клік на порожню клітинку — новий вузол.', 'Drag a node to another cell; pull the ● under a node onto another — that is a requirement. Click an empty cell — a new node.'),
+      rows: [N('N1', 'Міцна статура', 'stat', 1, 3, '+5% здоровʼя за ранг', [], 0, 0, { branch: 'Сила' }), N('N2', 'Важкий удар', 'active', 1, 1, 'Удар, що збиває з ніг', ['N1'], 0, 1, { branch: 'Сила' }),
+        N('N3', 'Невгамовність', 'passive', 2, 2, 'Менше оглушень на 20% за ранг', ['N2'], 0, 2, { branch: 'Сила', level: 8 }),
+        N('N4', 'Швидкі ноги', 'stat', 1, 3, '+4% швидкості за ранг', [], 2, 0, { branch: 'Спритність' }), N('N5', 'Перекид убік', 'active', 1, 1, 'Ухилення без витривалості раз на 6 с', ['N4'], 2, 1, { branch: 'Спритність' }),
+        N('N6', 'Подвійний постріл', 'active', 2, 1, 'Два постріли за один', ['N5'], 2, 2, { branch: 'Спритність', level: 8 }),
+        N('N7', 'Іскра', 'active', 1, 1, 'Мала вогняна стріла', [], 4, 0, { branch: 'Магія' }), N('N8', 'Зосередження', 'stat', 1, 3, '+5% мани за ранг', ['N7'], 4, 1, { branch: 'Магія' }),
+        N('N9', 'Вогняна хвиля', 'active', 2, 1, 'Хвиля вогню перед собою', ['N8'], 4, 2, { branch: 'Магія', level: 10 }),
+        N('N10', 'Майстер бою', 'keystone', 3, 1, 'Кожен третій удар — критичний', ['N3', 'N6'], 1, 3, { needMode: 'any', level: 15 }),
+        N('N11', 'Архімаг', 'keystone', 3, 1, 'Заклинання без затримки раз на хвилину', ['N9'], 4, 3, { level: 15 })] },
+  ],
+};
+var PROG_UPGRADETREE = {
+  id: 'prog_upgradetree', sec: 'progression', version: 1, cat: 'upgrade', sub: '', complexity: 2, name: T('Дерево апгрейдів', 'Upgrade tree'),
+  desc: T('Покращення зброї, бази, корабля чи технологій деревом: вузли з ціною у валюті, вимогами й розгалуженнями (вогняне лезо АБО отруйне). Рахує, скільки годин заробітку до кожного вузла й до всього дерева.', 'Upgrades of a weapon, a base, a ship or technologies as a tree: nodes with a currency price, requirements and forks (fire blade OR poison blade). It computes the hours of income to each node and to the whole tree.'),
+  purpose: T('Кожна гілка — помітний вибір, а повне дерево — довга ціль, не стіна.', 'Every branch is a felt choice, and the full tree is a long goal, not a wall.'),
+  sections: [WALLET,
+    { id: 'nodes', title: T('Дерево', 'Tree'), kind: 'table', tree: true, rowLabel: 'name', prefix: 'N', fields: treeNodeFields(['Ціна', 'Price']),
+      hint: T('Перетягни вузол на іншу клітинку; потягни за ● під вузлом до іншого — це вимога. Клік на порожню клітинку — новий вузол.', 'Drag a node to another cell; pull the ● under a node onto another — that is a requirement. Click an empty cell — a new node.'),
+      rows: [N('N1', 'Заточка I', 'stat', 300, 1, '+10% шкоди', [], 1, 0), N('N2', 'Заточка II', 'stat', 900, 1, '+15% шкоди', ['N1'], 1, 1),
+        N('N3', 'Вогняне лезо', 'unlock', 2500, 1, 'Підпалює ціль', ['N2'], 0, 2, { branch: 'Вогонь' }), N('N4', 'Отруйне лезо', 'unlock', 2500, 1, 'Отрута 5 с', ['N2'], 2, 2, { branch: 'Отрута' }),
+        N('N5', 'Пекельний жар', 'keystone', 7000, 1, 'Вибух при вбивстві', ['N3'], 0, 3, { branch: 'Вогонь' }), N('N6', 'Чума', 'keystone', 7000, 1, 'Отрута переходить на сусідів', ['N4'], 2, 3, { branch: 'Отрута' })] },
+  ],
+};
+// a tree section (sid, default «nodes»): its nodes are paid in points (a «points» section), in currency (a «wallet» section) or not counted (plain)
+// → { mode points|money|plain, unit, nodes: [{ id, name, depth, reach (cost to open it with what it needs), level (the earliest level), hours (money), total (all ranks) }],
+//     total, available (points by the max level), share, cycles: [ids], branches: [{ name, n, cost }] }
+function treeStats(m, sid) {
+  var rows = rowsOfM(m, sid || 'nodes'), byId = {}, money = !!secOfM(m, 'wallet'), pts = !money && !!secOfM(m, 'points'), pv = valsOf(m, 'points'), w = valsOf(m, 'wallet');
+  rows.forEach(function (r) { byId[r._id] = r; });
+  var one = function (r) { return Math.max(0, +r.cost || 0); }, ranks = function (r) { return Math.max(1, Math.min(20, Math.round(+r.ranks || 1))); };
+  var par = function (r) { return (Array.isArray(r.needs) ? r.needs : []).filter(function (p) { return byId[p] && p !== r._id; }); };
+  var state = {}, depth = {}, cycles = [];
+  var dfs = function (id) {
+    if (state[id] === 1) { if (cycles.indexOf(id) < 0) cycles.push(id); return 0; }
+    if (state[id] === 2) return depth[id];
+    state[id] = 1; var d = 0; par(byId[id]).forEach(function (p) { d = Math.max(d, dfs(p) + 1); }); state[id] = 2; depth[id] = d; return d;
+  };
+  rows.forEach(function (r) { dfs(r._id); });
+  var memo = {};
+  var reach = function (id, path) { // the set of nodes to open first (rank 1 each): all parents, or the cheapest one for «any»
+    if (memo[id]) return memo[id];
+    if (path[id]) return { set: {}, pts: Infinity };
+    path[id] = 1;
+    var r = byId[id], ps = par(r), set = {};
+    if (ps.length && r.needMode === 'any') { var best = null; ps.forEach(function (p) { var x = reach(p, Object.assign({}, path)); if (!best || x.pts < best.pts) best = x; }); set = Object.assign({}, best.set); if (best.pts === Infinity) set.__x = 1; }
+    else ps.forEach(function (p) { var x = reach(p, Object.assign({}, path)); Object.assign(set, x.set); if (x.pts === Infinity) set.__x = 1; });
+    set[id] = 1;
+    var pts = set.__x ? Infinity : Object.keys(set).reduce(function (a, k) { return a + one(byId[k]); }, 0), lv = Object.keys(set).reduce(function (a, k) { return k === '__x' ? a : Math.max(a, +byId[k].level || 1); }, 1);
+    return (memo[id] = { set: set, pts: pts, lv: lv });
+  };
+  var start = +pv.start || 0, per = +pv.perLevel || 0, max = Math.max(1, Math.round(+pv.maxLevel || 1)), available = pts ? start + per * (max - 1) : null;
+  var hoursFor = function (amount) { var inc = +w.income || 0, acc = 0, h = 0; if (!(inc > 0)) return null; for (; h < 2000 && acc < amount; h++) acc += incomeAt(w, h); return acc >= amount ? Math.round((h - (acc - amount) / incomeAt(w, Math.max(0, h - 1))) * 10) / 10 : null; };
+  var total = 0, br = {};
+  var nodes = rows.map(function (r) {
+    var x = reach(r._id, {}), all = one(r) * ranks(r);
+    total += all;
+    var b = String(r.branch || '').trim(); if (b) { br[b] = br[b] || { name: b, n: 0, cost: 0 }; br[b].n++; br[b].cost += all; }
+    var lvPts = pts && x.pts !== Infinity ? (per > 0 ? Math.max(1, Math.ceil((x.pts - start) / per) + 1) : x.pts <= start ? 1 : Infinity) : null;
+    return { id: r._id, name: r.name || r._id, depth: depth[r._id] || 0, reach: x.pts === Infinity ? null : x.pts, total: all,
+      level: !pts ? (x.pts === Infinity ? null : x.lv) : lvPts == null || lvPts === Infinity ? null : Math.max(lvPts, x.lv), hours: money && x.pts !== Infinity ? hoursFor(x.pts) : null };
+  });
+  return { mode: money ? 'money' : pts ? 'points' : 'plain', unit: money ? (w.currency || '') : pts ? (pv.unit || '') : '', money: money, nodes: nodes, total: total, available: available, maxLevel: max,
+    share: available != null && total > 0 ? Math.round(available / total * 100) : null, hoursAll: money ? hoursFor(total) : null, cycles: cycles,
+    branches: Object.keys(br).map(function (k) { return br[k]; }) };
+}
+function treeChecks(m, add, sid) {
+  var t = treeStats(m, sid), S = sid, rows = rowsOfM(m, sid), byId = {};
+  rows.forEach(function (r) { byId[r._id] = r; });
+  t.cycles.forEach(function (id) { var r = byId[id]; add('error', S, id, '«' + (r.name || id) + '»: замкнене коло вимог — вузол потребує сам себе через інші.', '“' + (r.name || id) + '”: a closed loop of requirements — the node needs itself through others.', 'needs'); });
+  t.nodes.forEach(function (n) {
+    var r = byId[n.id];
+    if (t.mode === 'points' && +r.level > t.maxLevel) add('error', S, n.id, '«' + n.name + '» потребує рівня ' + r.level + ', а максимальний — ' + t.maxLevel + '.', '“' + n.name + '” needs level ' + r.level + ', the max is ' + t.maxLevel + '.', 'level');
+    else if (t.mode === 'points' && n.reach != null && n.level == null) add('warn', S, n.id, '«' + n.name + '»: до максимального рівня гравцю не вистачить очок, щоб до нього дійти (треба ' + n.reach + ').', '“' + n.name + '”: by the max level the player lacks the points to reach it (needs ' + n.reach + ').', 'cost');
+    if (r.kind === 'keystone' && !(Array.isArray(r.needs) && r.needs.length) && !(+r.level > 1)) add('tip', S, n.id, '«' + n.name + '» — ключовий вузол без вимог: його візьмуть першим.', '“' + n.name + '” is a keystone with no requirements: it will be taken first.', 'needs');
+    (Array.isArray(r.needs) ? r.needs : []).forEach(function (p) { if (byId[p] && +byId[p].level > +r.level && +r.level > 0) add('tip', S, n.id, '«' + n.name + '» відкривається з рівня ' + r.level + ', але потребує вузол з рівня ' + byId[p].level + '.', '“' + n.name + '” opens from level ' + r.level + ' yet needs a node from level ' + byId[p].level + '.', 'level'); });
+  });
+  if (t.share != null && rows.length >= 4) {
+    if (t.share >= 100) add('tip', S, '', 'До максимального рівня гравець відкриє все дерево (' + t.available + ' з ' + t.total + ') — вибір між гілками нічого не важить.', 'By the max level the player opens the whole tree (' + t.available + ' of ' + t.total + ') — choosing between branches means nothing.', 'cost');
+    else if (t.share < 25) add('tip', S, '', 'Гравець відкриє лише ' + t.share + '% дерева — більшість вузлів він не побачить.', 'The player opens only ' + t.share + '% of the tree — most nodes they will never see.', 'cost');
+  }
+  if (t.money && t.hoursAll != null && t.hoursAll > 60) add('tip', S, '', 'Усе дерево коштує ' + fmtH(t.hoursAll) + ' заробітку — перевір, чи гра стільки триває.', 'The whole tree costs ' + fmtH(t.hoursAll, 'en') + ' of income — check the game lasts that long.', 'cost');
+}
 // ---- the progression computations (the Bible's «Розрахунок», MCP get_mechanic → computed) ----
 function secOfM(m, id) { return ((m && m.sections) || []).filter(function (s) { return s.id === id; })[0]; }
 function valsOf(m, id) { return (secOfM(m, id) || {}).values || {}; }
@@ -1572,12 +1684,19 @@ function balanceChecks(m, add) {
 var CALCS = { economy: function (m) { return { simulation: econSim(m), loot: lootChances(m) }; }, loops: function (m) { return { loops: loopClosure(m) }; },
   level_metrics: function (m) { return { pacing: pacing(m) }; }, difficulty: function (m) { return { zones: difficultyCurve(m) }; }, release: function (m) { return releaseStatus(m); },
   xp_curve: function (m) { return { curve: xpCurve(m) }; }, prog_currencies: function (m) { return { simulation: econSim(m) }; }, prog_loot: function (m) { return { loot: lootFlow(m) }; },
-  prog_shop: function (m) { return { shop: shopAfford(m) }; }, prog_upgrades: function (m) { return { tracks: upgradeTracks(m) }; }, prog_balance: function (m) { return { stages: balanceStages(m) }; } };
-function calc(m) { var f = m && CALCS[m.tpl]; return f ? f(m) : null; }
+  prog_shop: function (m) { return { shop: shopAfford(m) }; }, prog_upgrades: function (m) { return { tracks: upgradeTracks(m) }; }, prog_balance: function (m) { return { stages: balanceStages(m) }; },
+  prog_skilltree: function (m) { return { tree: treeStats(m) }; }, prog_upgradetree: function (m) { return { tree: treeStats(m) }; } };
+// 🌳 a tree section in any card is computed too (MCP get_mechanic → computed.trees)
+function treeCalcs(m) { var out = {}; ((m && m.sections) || []).forEach(function (s) { if (s.tree && s.kind === 'table') out[s.id] = treeStats(m, s.id); }); return out; }
+function calc(m) {
+  var f = m && CALCS[m.tpl], r = f ? f(m) : null, t = treeCalcs(m);
+  if (Object.keys(t).length && !(m.tpl === 'prog_skilltree' || m.tpl === 'prog_upgradetree')) { r = r || {}; r.trees = t; }
+  return r;
+}
 
 var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, FEEL, CONTROLS, ACCESS, ECONOMY, LOOPS, LEVEL_METRICS, DIFFICULTY, RELEASE,
   MUSIC, AMBIENCE, UISOUND, PROMPTS, // sec: 'audio' — Фабрика звуку
-  XP_CURVE, PROG_CURRENCIES, PROG_LOOT, PROG_SHOP, PROG_UPGRADES, PROG_BALANCE]; // sec: 'progression' — Конструктор прогресії; the rest — Mechanics
+  XP_CURVE, PROG_SKILLTREE, PROG_CURRENCIES, PROG_LOOT, PROG_SHOP, PROG_UPGRADES, PROG_UPGRADETREE, PROG_BALANCE]; // sec: 'progression' — Конструктор прогресії; the rest — Mechanics
 var TEMPLATE_CHECKS = { umcf: umcfChecks, dodge: dodgeChecks, blockparry: blockChecks, attributes: attrChecks, leveling: levelChecks, status: statusChecks,
   game_feel: feelChecks, controls: controlsChecks, accessibility: accessChecks, economy: economyChecks, loops: loopChecks, level_metrics: levelMetricChecks,
   difficulty: difficultyChecks, release: releaseChecks, adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks,
@@ -1604,7 +1723,7 @@ function instantiate(tplId) {
 function sectionOf(s) { // a template section → the card's own copy
   var o = { id: s.id, title: clone(s.title), hint: clone(s.hint || ''), kind: s.kind, fields: clone(s.fields) };
   if (s.adv) o.adv = true;
-  if (s.kind === 'table') { o.rows = clone(s.rows || []); o.rowLabel = s.rowLabel || ''; o.prefix = s.prefix || 'R'; if (s.prompt) o.prompt = true; } else o.values = clone(s.values || {});
+  if (s.kind === 'table') { o.rows = clone(s.rows || []); o.rowLabel = s.rowLabel || ''; o.prefix = s.prefix || 'R'; if (s.prompt) o.prompt = true; if (s.tree) o.tree = true; } else o.values = clone(s.values || {});
   return o;
 }
 // ⚔ where a combo starts: k × the weapon's reach (+ what the movement covers before the strike); status ok | edge (k > 0.85 — a step back and it misses) | close (k < 0.5) | noreach
@@ -1663,6 +1782,7 @@ function check(m) {
       });
     }
   });
+  secs.forEach(function (s) { if (s.tree && s.kind === 'table') treeChecks(m, add, s.id); }); // 🌳 any tree section, in any card
   var tc = TEMPLATE_CHECKS[m.tpl];
   if (tc) tc(m, add, rowsOf, function (r) { var s = secs.filter(function (x) { return (x.rows || []).indexOf(r) >= 0; })[0]; return s ? rowName(s, r) : ''; }, val);
   var all = req[1] + rec[1], done = req[0] + rec[0];
@@ -1745,6 +1865,7 @@ function exportMech(card, lang, lib, man, cards) { // lib: audioLibrary(cards).a
     var name = function (refSec, id) { var rs = (m.sections || []).filter(function (x) { return x.id === refSec; })[0]; var r = rs && (rs.rows || []).filter(function (x) { return x._id === id; })[0]; return r ? { id: id, name: rowName(rs, r) } : { id: id, name: null }; };
     var plain = function (o) { var out = {}; (s.fields || []).forEach(function (f) { var v = o[f.k]; if (empty(v)) return; out[f.k] = f.t === 'ref' ? name(f.ref, v) : f.t === 'refs' ? v.map(function (id) { return name(f.ref, id); }) : f.t === 'sound' ? (Array.isArray(v) ? v : []).map(snd) : f.t === 'card' ? cardTokens(v).map(crd) : v; }); return out; };
     var o = { id: s.id, title: lbl(s.title, L), kind: s.kind, fields: cols };
+    if (s.tree) o.tree = true; // 🌳 rows are nodes: needs = the nodes it requires (needMode all | any), col / row = its cell in the drawn tree
     if (s.kind === 'table') o.rows = (s.rows || []).map(function (r) { var x = Object.assign({ id: r._id }, plain(r)), p = s.prompt && rowPrompt(m, s.id, r, L); if (p) x.generator_prompt = p; if (s.id === 'ctable') x.start = comboStart(m, r); return x; }); else o.values = plain(s.values || {});
     return o;
   });
@@ -1760,7 +1881,7 @@ function exportMech(card, lang, lib, man, cards) { // lib: audioLibrary(cards).a
 }
 
 var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: CATEGORIES, GROUP_ALIAS: GROUP_ALIAS, TEMPLATES: TEMPLATES,
-  AUDIO_CATEGORIES: AUDIO_CATEGORIES, PROG_CATEGORIES: PROG_CATEGORIES, xpCurve: xpCurve, lootFlow: lootFlow, shopAfford: shopAfford, upgradeTracks: upgradeTracks, balanceStages: balanceStages, fmtH: fmtH, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
+  AUDIO_CATEGORIES: AUDIO_CATEGORIES, PROG_CATEGORIES: PROG_CATEGORIES, xpCurve: xpCurve, lootFlow: lootFlow, shopAfford: shopAfford, upgradeTracks: upgradeTracks, balanceStages: balanceStages, treeStats: treeStats, treeSection: treeSection, NODE_KINDS: NODE_KINDS, fmtH: fmtH, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
   isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN,
   cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
