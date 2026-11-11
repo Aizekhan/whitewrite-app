@@ -15,7 +15,7 @@ const GMAP = require('../game-map.js'); // 🗺 «Карта гри» → get_ga
 const FORGE = require('../forge.js');
 const PAID = require('../paid-features.js'); // characterForge.soon: the forge tools answer «in development»
 const REFS = require('../card-refs.js');
-const { personaText, lookText } = require('../persona.js');
+const { personaText, lookText, beastText } = require('../persona.js');
 const KIT = require('../asset-kit.js'); // 🧩 a prefab's kit (asset cards) and the prefab a hero card links (card.prefab) // 🧠 a canon character's personality and 👤 appearance (World Bible) → get_card
 const GUIDES = require('../setup-guides.js');
 const STYLE = require('./style')._style;
@@ -40,7 +40,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
   { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status, subsection and files; subsections = the subsections of the section in the Bible order (exact names for save_card subsection). Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
-  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero / enemy card has appearance, faction, class, alignment, lives_in. used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
+  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero card has appearance, faction, class, alignment, lives_in; an enemy card has creature (type, size, tactics, movement, attack, habitat, threat). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
   { name: 'report_task_progress', description: 'A short progress note on the task you are working on (shown live to the author).',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
@@ -225,7 +225,7 @@ function cardView(ctx, ref) {
     const e = ctx.entities.find((x) => x.id === ref.slice(2)); if (!e) return null;
     const c = ctx.cards.find((x) => x.canonRef === e.id) || {};
     return { ref, canon: e.kind, title: e.name || '', description: e.desc || e.description || '', status: c.status || 'idea',
-      section: c.section || e.kind, ...(subOf(c) ? { subsection: subOf(c) } : {}), fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...prefabOf(ctx, c) };
+      section: c.section || e.kind, ...(subOf(c) ? { subsection: subOf(c) } : {}), fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c) };
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
@@ -235,7 +235,8 @@ function cardView(ctx, ref) {
 }
 // 🛡 a game-only hero / enemy card's traits (card.sheet — the same as a canon character's: appearance, faction, class, alignment, home)
 function sheetOf(ctx, c) {
-  const st = c && c.sheet; if (!st) return {};
+  if (c && c.beast && beastText(c.beast, 'en')) return { creature: beastText(c.beast, 'en') }; // 🐺 an enemy: the monster sheet
+  const st = c && c.section !== 'enemies' && c.sheet; if (!st) return {}; // a person's traits never on a monster
   const name = (id) => { const e = id && ctx.entities.find((x) => x.id === id); return e ? e.name || id : id || ''; };
   const out = {}, look = lookText(st.appearance, 'en');
   if (look) out.appearance = look;

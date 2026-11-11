@@ -1488,7 +1488,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, beast: c.beast || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
   }
   function allCards() {
     var out = [];
@@ -5609,11 +5609,12 @@
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
       intent: INTENT_SECS.indexOf(c.section) >= 0 ? Object.assign({ tags: [] }, c.intent || {}, { tags: ((c.intent && c.intent.tags) || []).slice() }) : null };
-    var cEnt = c.src === "canon" && !c.isNew && sec(c.section).canon === "characters" && entities.filter(function (x) { return x.id === c.id; })[0];
+    var cEnt = c.src === "canon" && !c.isNew && c.section === "characters" && entities.filter(function (x) { return x.id === c.id; })[0]; // a person's sheet — only for heroes & NPCs
     draft.banner = c.section === "factions" ? c.banner || "" : null; // 🚩 the faction's banner (v2.115.2)
     draft.place = PLACE_SECS.indexOf(c.section) >= 0 ? Object.assign({}, c.place || {}) : null; // 🏞 a location's sheet (v2.115)
     draft.sheet = cEnt ? csState(cEnt) : null; // 🛡 a canon character in a game: the same sheet as in the World Bible, it writes to the canon (v2.109)
-    if (!draft.sheet && STATS_SECS.indexOf(c.section) >= 0) draft.sheet = csState(c.src === "canon" ? {} : c.sheet || {}); // a new one, or the game's own (an enemy, a card in any subsection): the same frame and traits (owner, v2.124.1) — kept on the card as `sheet`
+    if (!draft.sheet && c.section === "characters") draft.sheet = csState(c.src === "canon" ? {} : c.sheet || {});
+    draft.beast = c.section === "enemies" ? Object.assign({}, c.beast || {}) : null; // 🐺 an enemy is a creature: its own sheet (owner, v2.125.1) // a new one, or the game's own (an enemy, a card in any subsection): the same frame and traits (owner, v2.124.1) — kept on the card as `sheet`
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
     if (STATS_SECS.indexOf(c.section) >= 0) { // v2.88: the model file field becomes the prefab link; a portrait and references join
       draft.defs.forEach(function (d) { if (d.key === "model" && (!d.type || d.type === "file")) { d.type = "prefab"; d.label = PREFAB().label; } });
@@ -5751,6 +5752,26 @@
     var el = e.target.closest && e.target.closest(ZOOM_SEL); if (!el || el.closest(".zoom")) return;
     e.preventDefault(); e.stopPropagation(); zoomOpen(el);
   }, true);
+  // 🐺 the monster sheet (owner, v2.125.1): the portrait in the hero's gold frame, the creature's traits beside it (persona.js BEAST, «✎ Своє…»)
+  function beastSheetHtml() {
+    var pics = (open.files || []).filter(isImage), img = pics.filter(function (f) { return f.field === "portrait"; }).slice(-1)[0] || pics[0];
+    if (!img && open.src === "canon") img = entImage(entities.filter(function (x) { return x.id === open.id; })[0] || {});
+    var up = canWrite ? '<button type="button" class="' + (img ? 'cs-chg' : 'cs-ph') + '" title="' + esc(img ? CS.change : CS.portraitTip) + '" data-picch="portrait" data-picid="' + esc(img && pics.indexOf(img) >= 0 ? img.id : img ? "__canon" : "") + '">' + (img ? '✎' : esc(CS.portrait)) + '</button>' : '';
+    var frame = img ? '<img alt="" src="' + esc(img.url) + '"' + frameAttr(img) + '>' + up : up || '<div class="cs-ph">🐺</div>';
+    var sel = function (k) {
+      var f = window.__PERSONA.BEAST.filter(function (x) { return x.k === k; })[0], v = draft.beast[k] || "", own = v && !f.o.some(function (o) { return o[0] === v; });
+      return '<label class="cs-f"><span>' + esc(LANG === "en" ? f.en : f.uk) + '</span><select data-bt="' + k + '"' + (canWrite ? '' : ' disabled') + '><option value="">—</option>' +
+        (own ? '<option value="' + esc(v) + '" selected>' + esc(v) + '</option>' : '') +
+        f.o.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[LANG === "en" ? 2 : 1]) + '</option>'; }).join("") +
+        (canWrite ? '<option value="__own">' + esc(CS.own) + '</option>' : '') + '</select></label>';
+    };
+    return '<div class="field cs-wrap"><div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
+      '<div class="cs-row">' + sel("kind") + sel("size") + '</div><div class="cs-row">' + sel("behaviour") + sel("move") + '</div>' +
+      '<div class="cs-row cs-row3">' + sel("attack") + sel("habitat") + sel("threat") + '</div></div></div></div>';
+  }
+  function beastBody() { // a trait set back to «—» is deleted, not kept by the merge
+    var b = Object.assign({}, draft.beast); Object.keys(open.beast || {}).forEach(function (k) { if (!(k in b)) b[k] = firebase.firestore.FieldValue.delete(); }); return b;
+  }
   function placeBody() { // a trait set back to «—» is deleted, not kept by the merge
     var b = Object.assign({}, draft.place); Object.keys(open.place || {}).forEach(function (k) { if (!(k in b)) b[k] = firebase.firestore.FieldValue.delete(); }); return b;
   }
@@ -5793,6 +5814,7 @@
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
     if (draft.sheet) { var sEnt = entities.filter(function (x) { return x.id === open.id; })[0] || { id: open.id, isNew: true }; html = gameSheetHtml(sEnt) + html; }
     if (draft.place) html = placeSheetHtml() + html;
+    if (draft.beast) html = beastSheetHtml() + html;
     if (draft.banner !== null && draft.banner !== undefined) html = bannerPickHtml(open.id, draft.banner) + html;
     if (voOn) html += voCardHtml(voK);
     cornerSync(); // «💡 квест» in the foot's corner while reading, «Видалити» there in the edit mode
@@ -6840,12 +6862,14 @@
         if (open.agent) Object.assign(view, AGENT_CLEAR()); // the author's own save: the agent's version is the author's now
         if (draft.intent) view.intent = draft.intent;
         if (draft.place) view.place = placeBody();
+        if (draft.beast) view.beast = beastBody();
         await gref().collection("cards").doc(open.id).set(view, { merge: true });
       } else {
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
         if (open.agent) Object.assign(body, AGENT_CLEAR());
         if (draft.intent) body.intent = draft.intent;
         if (draft.place) body.place = placeBody();
+        if (draft.beast) body.beast = beastBody();
         if (draft.banner) body.banner = draft.banner;
         if (draft.sheet) { csCollect("#e-body", draft.sheet); var sh = csEntDiff(open.sheet || {}, draft.sheet, {}); if (Object.keys(sh).length) body.sheet = sh;
           open.sheet = { appearance: window.__PERSONA.cleanLook(draft.sheet.appearance), faction: draft.sheet.faction || "", charClass: draft.sheet.ent.charClass || "", alignment: draft.sheet.ent.alignment || "", location: draft.sheet.ent.location || "" }; } // the game's own hero / enemy: its traits on the card
@@ -11645,6 +11669,12 @@
   });
   $("e-body").addEventListener("change", function (e) {
     var gs = draft && draft.sheet, d0 = e.target.dataset || {};
+    if (d0.bt && draft && draft.beast) { // 🐺 the monster sheet
+      var bk = d0.bt, bv = e.target.value;
+      if (bv !== "__own") { if (bv) draft.beast[bk] = bv; else delete draft.beast[bk]; return; }
+      e.target.value = draft.beast[bk] || "";
+      askName(CS.ownQ, "", function (v) { if (v && draft && draft.beast) { draft.beast[bk] = v; renderFields(); } }, "", { ok: STR.save }); return;
+    }
     if (d0.pl && draft && draft.place) {
       var pk = d0.pl, pv = e.target.value;
       if (pv !== "__own") { if (pv) draft.place[pk] = pv; else delete draft.place[pk]; return; }

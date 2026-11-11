@@ -130,7 +130,38 @@ function lookText(a, lang) {
   return LOOK_FIELDS.filter(function (f) { return a[f.id]; }).map(function (f) { return tr(f, lang) + ': ' + a[f.id]; }).join('; ');
 }
 
+// 🐺 the monster sheet (owner, v2.125.1): an enemy card is a creature, not a person — kind, size, behaviour, movement, attack, habitat,
+// threat (the rank is its subsection: Звичайні / Елітні / Боси). Kept on the game card as `beast` { k: value }; own values as written.
+var BEAST = [
+  { k: 'kind', uk: 'Тип істоти', en: 'Creature type', o: [['beast', 'звір', 'beast'], ['flyer', 'птах / летюча істота', 'bird / flyer'], ['insect', 'павук / комаха', 'spider / insect'],
+    ['reptile', 'рептилія / ящір', 'reptile / lizard'], ['dragon', 'дракон / віверна', 'dragon / wyvern'], ['undead', 'нежить', 'undead'], ['demon', 'демон / біс', 'demon / imp'],
+    ['spirit', 'дух / примара', 'spirit / ghost'], ['elemental', 'елементаль', 'elemental'], ['construct', 'голем / конструкт', 'golem / construct'], ['plant', 'рослина / древень', 'plant / treant'],
+    ['humanoid', 'гуманоїд (гоблін, троль…)', 'humanoid (goblin, troll…)'], ['aberration', 'чудовисько', 'aberration']] },
+  { k: 'size', uk: 'Розмір', en: 'Size', o: [['tiny', 'крихітний (до колін)', 'tiny (knee-high)'], ['small', 'малий (до пояса)', 'small (waist-high)'], ['medium', 'як людина', 'human-sized'],
+    ['large', 'великий (2–3 × людина)', 'large (2–3 × a human)'], ['huge', 'велетенський', 'huge']] },
+  { k: 'behaviour', uk: 'Тактика', en: 'Tactics', o: [['aggressive', 'нападає першим', 'attacks first'], ['pack', 'полює зграєю', 'hunts in a pack'], ['ambush', 'із засідки', 'ambush'],
+    ['territorial', 'охороняє свою територію', 'territorial'], ['patrol', 'патрулює', 'patrols'], ['guard', 'вартує місце', 'guards a place'], ['cautious', 'обережний, тікає', 'cautious, flees'],
+    ['passive', 'мирний (дичина)', 'passive (game)']] },
+  { k: 'move', uk: 'Пересування', en: 'Movement', o: [['four', 'на чотирьох лапах', 'on four legs'], ['two', 'на двох ногах', 'on two legs'], ['many', 'багато ніг', 'many legs'],
+    ['fly', 'літає', 'flies'], ['hover', 'ширяє / левітує', 'hovers'], ['swim', 'плаває', 'swims'], ['crawl', 'повзає / риє', 'crawls / burrows'], ['slow', 'повільно бреде', 'shambles']] },
+  { k: 'attack', uk: 'Тип атаки', en: 'Attack type', o: [['melee', 'ближня (кігті, ікла, зброя)', 'melee (claws, fangs, weapon)'], ['charge', 'кидок / таран', 'charge / ram'],
+    ['ranged', 'здалеку (плювок, стріли)', 'ranged (spit, arrows)'], ['magic', 'магія', 'magic'], ['poison', 'отрута', 'poison'], ['area', 'по площі', 'area'], ['mixed', 'змішана', 'mixed']] },
+  { k: 'habitat', uk: 'Де водиться', en: 'Habitat', o: [['snow', 'сніги', 'snow'], ['forest', 'ліс', 'forest'], ['swamp', 'болото', 'swamp'], ['volcano', 'вулкан', 'volcano'],
+    ['mountains', 'гори', 'mountains'], ['caves', 'печери / підземелля', 'caves / dungeons'], ['ruins', 'руїни', 'ruins'], ['desert', 'пустеля', 'desert'], ['water', 'вода / узбережжя', 'water / coast'],
+    ['plains', 'рівнини', 'plains'], ['anywhere', 'всюди', 'anywhere']] },
+  { k: 'threat', uk: 'Загроза', en: 'Threat', o: [['weak', 'слабка', 'weak'], ['mid', 'середня', 'medium'], ['high', 'висока', 'high'], ['deadly', 'смертельна', 'deadly']] },
+];
+function beastLabel(k, v, lang) {
+  var f = BEAST.filter(function (x) { return x.k === k; })[0], o = f && f.o.filter(function (x) { return x[0] === v; })[0];
+  return o ? o[lang === 'en' ? 2 : 1] : String(v || '');
+}
+// card.beast → «Тип істоти: звір; Розмір: …» ('' when empty)
+function beastText(b, lang) {
+  lang = lang === 'en' ? 'en' : 'uk'; b = b || {};
+  return BEAST.filter(function (f) { return b[f.k]; }).map(function (f) { return f[lang] + ': ' + beastLabel(f.k, b[f.k], lang); }).join('; ');
+}
+
 var PERSONA = { STEPS: STEPS, TRAITS: TRAITS, QUESTIONS: QUESTIONS, question: question, progress: progress, traitWords: traitWords, personaText: personaText, cleanPersona: cleanPersona,
-  LOOK: LOOK, LOOK_FIELDS: LOOK_FIELDS, cleanLook: cleanLook, lookText: lookText };
+  LOOK: LOOK, LOOK_FIELDS: LOOK_FIELDS, cleanLook: cleanLook, lookText: lookText, BEAST: BEAST, beastLabel: beastLabel, beastText: beastText };
 if (typeof module !== 'undefined' && module.exports) module.exports = PERSONA;
 if (typeof window !== 'undefined') window.__PERSONA = PERSONA;
