@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.127.1 (2026-11-11)
+**Version:** 2.128.0 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -775,6 +775,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.128.0** (owner) 🏷 mini-subsections: types inside a subsection (`games/{g}.subtypes[section][subsection] = [names]`, a card's `fields.subtype`) — `gamebible.js` `typesOn` (game card sections; not mechanics / factories / refs / canon dossiers), `typesOf`, `saveTypes`, `newType`; «＋ Підрозділ» asks where (a subsection of its own or a mini-subsection of one, `askForm`), «＋ Тип» on a subsection heading; nested `.subsec.subtype` blocks with «＋ Додати» / ✕ (empty); drag-and-drop and the card's «move» select carry the type (`subsection\u0001type`), a new card / a canon pick is born in it; rules: a «вибрані розділи» member writes `subtypes` of their sections; MCP `save_card mini_subsection` (+ `typeWrite` arrayUnion), `get_card` / `get_design_section` → `mini_subsection` / `mini_subsections`, another subsection drops the old type; tests/mcp-subsections.test.cjs
 - **v2.127.1** (owner: «Фракція» on a hero sheet listed nothing in a game whose factions are game cards — Morra) the sheet of a game's own card also lists the game's faction cards (`!canonRef`), stored as `sheet.faction = "c:<card id>"`; «＋ Нова фракція…» there creates a game card in «Фракції» (it was a silent no-op: `newFaction` needed an open dossier); a canon character keeps canon factions only; MCP `sheetOf` names a `c:` faction by its card title; `card-refs.js` KIND `faction` (card.sheet.faction → «🔗 Що зачепить зміна», MCP used_by)
 - **v2.127.0** (owner audit: a card must fit its menu item) fields by subsection — `gamebible.js` `SUB_DEFS` {section: {all, add[i], drop[i]}} (i = the standard subsection's index in GAME[].groups): lore, locations, factions (reputation table), items get `all`; characters (hero / ally / NPC — an NPC drops empty kit, strengths, stats), enemies (spawn & loot / modifiers / boss phases, arena, reward), companions, levels (tutorial steps table, level rhythm table, boss arena, hub services, side unlock), gear (weapon / armour / consumable / key item / cosmetic; drops numbers / effect where they do not fit), assets, materials, animation, audio, ui (every screen + «Макет екрана» `scene` field), tech; `subDefs(c)` joins the missing ones when a card opens (before the media fields; mechanics templates untouched), a new card opens with them shown (`moreKeys`); saved as the card's own defs (canon — extra). MCP still lists the section's fields only
 - **v2.126.0** (owner) 🐾 game section `companions` «Супутники й улюбленці» / «Companions & pets» in the «Персонажі й вороги» menu group (game-only, no canon; subsections Улюбленці · Бойові супутники · Їздові тварини · Призвані істоти; fields helps / abilities / obtain / growth + Х-ки, portrait, references, prefab — `STATS_SECS`); the creature sheet (`card.beast`) with `persona.js` BEAST `role` (up to 3) instead of tactics and threat; wired into G2 gate, Спільнота (`COMM_GAME`), the folder / GDD import (Pets / Companions / Mounts…), quests & dialogues (`narrative-validate.js` `CARD_ROLES` → characters), MCP (`WRITE_SECS`, `SUB_STD`, `FRAME_FIELD` portrait). An empty section with subsections now shows them as blocks instead of the «Ще порожньо» start (except «Візуальний стиль»)
@@ -1002,5 +1003,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.127.1)
+**Last updated:** 2026-11-11 (v2.128.0)
 **Maintained by:** WhiteWrite Team

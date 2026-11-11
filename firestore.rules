@@ -193,8 +193,9 @@ service cloud.firestore {
           let m = mem(worldId);
           let e = m == null ? [] : m.get('edit', []);
           let keys = request.resource.data.diff(resource.data).affectedKeys();
-          return m != null && m.role == 'custom' && keys.hasOnly(['subsections', 'subPalettes', 'voices', 'updatedAt']) &&
+          return m != null && m.role == 'custom' && keys.hasOnly(['subsections', 'subtypes', 'subPalettes', 'voices', 'updatedAt']) &&
                  (!keys.hasAny(['subsections']) || request.resource.data.subsections.diff(resource.data.get('subsections', {})).affectedKeys().hasOnly(e)) &&
+                 (!keys.hasAny(['subtypes']) || request.resource.data.subtypes.diff(resource.data.get('subtypes', {})).affectedKeys().hasOnly(e)) &&
                  (!keys.hasAny(['subPalettes']) || request.resource.data.subPalettes.diff(resource.data.get('subPalettes', {})).affectedKeys().hasOnly(e)) &&
                  (!keys.hasAny(['voices']) || e.hasAny(['dialogues', 'characters', 'enemies']));
         }

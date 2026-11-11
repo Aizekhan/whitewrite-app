@@ -123,6 +123,11 @@ var KINDS = [
     edges: function (G) {
       return live(G).filter(function (c) { return c.prefab; }).map(function (c) { return { from: from('card', c, { key: cardKey(c) }), to: 'c:' + c.prefab }; });
     } },
+  // a game's own hero / NPC picks a game faction card on its sheet (v2.127.1): sheet.faction = "c:<id>" (a canon one is an entity id — the canon's own link)
+  { id: 'faction', uk: 'Член фракції', en: 'Faction member', out: { uk: 'Фракція', en: 'Faction' }, fields: ['card.sheet.faction'],
+    edges: function (G) {
+      return live(G).filter(function (c) { return c.sheet && String(c.sheet.faction || '').indexOf('c:') === 0; }).map(function (c) { return { from: from('card', c, { key: cardKey(c) }), to: c.sheet.faction }; });
+    } },
   // a picture on a card that lives in «Арт» → «Картинки» / «Референси» (v2.106: an upload lands there, or it is picked «з Арту») — file.pic
   { id: 'picture', uk: 'Картинка з Арту', en: 'Picture from Art', out: { uk: 'Картинка', en: 'Picture' }, fields: ['card.files.pic'],
     edges: function (G) {

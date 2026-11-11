@@ -6,7 +6,7 @@ const src = fs.readFileSync(path.join(__dirname, '../functions/src/mcp.js'), 'ut
 const bible = fs.readFileSync(path.join(__dirname, '../app/gamebible.js'), 'utf8');
 const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js'), MECH = require('../functions/mechanics.js');
-const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS', delete: () => 'DEL' } } };
+const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS', delete: () => 'DEL', arrayUnion: (v) => ['UNION', v] } } };
 const { saveCard, SUB_STD, subList } = new Function('NV', 'admin', 'MECH',
   pick('const str =', '// ---------- tools') + pick('async function narrative', '// 🎙') +
   pick('// ---------- ✎ writes on the user', 'async function callTool') +
@@ -26,7 +26,8 @@ Object.keys(SUB_STD).forEach((id) => {
 
 // 2. save_card
 const writes = [];
-const gref = { collection: (col) => ({ doc: (id) => ({ set: async (body, opt) => { writes.push({ id, body }); } }) }) };
+const gameSets = [];
+const gref = { set: async (body) => { gameSets.push(body); }, collection: (col) => ({ doc: (id) => ({ set: async (body, opt) => { writes.push({ id, body }); } }) }) };
 const ctx = { gref, game: { subsections: { mechanics: ['Своя група'] } }, entities: [],
   cards: [
     { id: 'w1', section: 'enemies', title: 'Wolf', defs: [{ key: 'f_group', label: 'group' }, { key: 'f_група', label: 'Група' }, { key: 'hp', label: 'HP' }], fields: { f_group: 'Звичайні вороги', f_група: '', hp: '10' } },
@@ -55,5 +56,16 @@ const last = () => writes[writes.length - 1].body;
   out = await saveCard(ctx, key, { ref: 'c:m1', subsection: 'Магія крові' });
   check(last().fields.group + '|' + (!!out.new_subsection && /Економіка й крафт/.test(out.new_subsection)), 'Магія крові|true', 'an unknown name is kept as a new one, the answer lists the real ones');
   check(subList(ctx, 'mechanics').indexOf('Своя група') >= 0, true, 'the author\'s own subsections are listed');
+  // 🏷 mini-subsections (v2.128.0)
+  out = await saveCard(ctx, key, { ref: 'c:g1', mini_subsection: 'Маги' });
+  check(last().fields.subtype + '|' + out.mini_subsection, 'Маги|Маги', 'mini_subsection sets fields.subtype');
+  check(JSON.stringify(gameSets[gameSets.length - 1]), JSON.stringify({ subtypes: { enemies: { 'Звичайні вороги': ['UNION', 'Маги'] } } }), 'and lists it under the card subsection');
+  out = await saveCard(ctx, key, { section: 'enemies', title: 'Shaman', subsection: 'Елітні вороги', mini_subsection: 'Шамани' });
+  check(last().fields.group + '|' + last().fields.subtype, 'Елітні вороги|Шамани', 'a new card is born in its mini-subsection');
+  ctx.cards[1].fields.subtype = 'Маги';
+  await saveCard(ctx, key, { ref: 'c:g1', subsection: 'Боси' });
+  check(last().fields.subtype, 'DEL', 'another subsection leaves the old mini-subsection behind');
+  const em = await saveCard(ctx, key, { ref: 'c:m1', mini_subsection: 'X' }).then(() => '', (e) => e.message);
+  check(/lives inside/.test(em), true, 'a mini-subsection needs a subsection');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exit(fails ? 1 : 0);
 })();

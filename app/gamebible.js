@@ -137,6 +137,8 @@
       save: "Зберегти", close: "Закрити", remove: "Прибрати картку", hide: "Прибрати з цієї гри", deleteSection: "Видалити розділ",
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
+        type: "＋ Тип", typeTitle: "Міні-підрозділ у «{g}»", typePh: "Напр. «Маги», «Вбивці», «Воїни»", where: "Де", whereTop: "Окремий підрозділ на сторінці", whereIn: "Міні-підрозділ у «{g}»",
+        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу",
         general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія", rename: "Перейменувати підрозділ",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
@@ -481,6 +483,8 @@
       save: "Save", close: "Close", remove: "Remove card", hide: "Remove from this game", deleteSection: "Delete section",
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
+        type: "＋ Type", typeTitle: "Mini-subsection in “{g}”", typePh: "E.g. “Mages”, “Assassins”, “Warriors”", where: "Where", whereTop: "A subsection of its own on the page", whereIn: "A mini-subsection in “{g}”",
+        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection",
         general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story", rename: "Rename the subsection",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
@@ -1289,6 +1293,16 @@
     if (s.special === "dialogues") return Object.keys(QD.dtypes);
     return s.groups ? (s.groups[LANG] || s.groups.uk).slice() : [];
   }
+  // 🏷 mini-subsections (owner, v2.128.0): types inside a subsection — «Бойові супутники» → «Вбивці», «Воїни», «Маги»… The list lives on the game,
+  // games/{g}.subtypes[section][subsection] = [names]; a card's type is its fields.subtype. Game card sections only (not the canon's dossiers,
+  // the mechanics / factory constructors or «Референси» with their own add buttons).
+  function typesOn(s) { return !!(game && s && !inCanon(s) && groupKey(s) && !s.special && s.id !== "mechanics" && s.id !== "refs" && !mFactory(s.id)); }
+  function typesOf(s, g) { var m = ((game || {}).subtypes || {})[s.id] || {}; return Array.isArray(m[g]) ? m[g].slice() : []; }
+  function saveTypes(s, g, list) { var p = { subtypes: {} }; p.subtypes[s.id] = {}; p.subtypes[s.id][g] = list; return gref().set(p, { merge: true }); }
+  function newType(s, g, name) {
+    var list = typesOf(s, g); if (list.indexOf(name) >= 0) return;
+    saveTypes(s, g, list.concat(name)).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
+  }
   function saveSubs(s, list) {
     var patch = { subsections: {} }; patch.subsections[s.id] = list;
     return (inCanon(s) ? wref() : gref()).set(patch, { merge: true });
@@ -1309,11 +1323,25 @@
         (s.id === "refs" && canWrite && game ? bulkPicker("refs", g, "btn mini", STR.sub.item) : canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' : '') + // 🔒 read-only: no «＋ Додати»
         (s.id === "audio" && canWrite && game ? bulkPicker("audio", g, "btn mini", STR.soundsAdd) : '') +
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
+        (g && canWrite && typesOn(s) ? '<button class="btn mini ghost" data-addtype="' + esc(g) + '">' + STR.sub.type + '</button>' : '') +
         (canDrop && canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
     var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
     subs.concat(extra).forEach(function (g) { // every subsection is its own block on the page, empty ones too (owner, v2.123.1)
-      var list = by[g] || [];
+      var list = by[g] || [], ts = typesOn(s) ? typesOf(s, g) : [];
+      if (ts.length || (typesOn(s) && list.some(function (x) { return x.fields && x.fields.subtype; }))) { // 🏷 its mini-subsections, each a block of its own
+        list.forEach(function (x) { var t = x.fields && x.fields.subtype; if (t && ts.indexOf(t) < 0) ts.push(t); });
+        var rest = list.filter(function (x) { return !(x.fields && x.fields.subtype); }), inner = rest.length ? body(rest) : '';
+        ts.forEach(function (t) {
+          var tl = list.filter(function (x) { return x.fields && x.fields.subtype === t; });
+          inner += '<div class="subsec subtype" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '"><h3 class="group subtype-h">' + esc(t) + ' <span>' + tl.length + '</span>' +
+            (canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '" data-subtype="' + esc(t) + '">' + STR.sub.item + '</button>' : '') +
+            (canWrite && !tl.length ? '<button class="btn mini ghost" data-typedel="' + esc(g) + '" data-subtype="' + esc(t) + '" title="' + esc(STR.sub.typeDel) + '" aria-label="' + esc(STR.sub.typeDel + " " + t) + '">✕</button>' : '') +
+            '</h3>' + (tl.length ? body(tl) : '<p class="muted">' + STR.sub.empty + '</p>') + '</div>';
+        });
+        html += block(g, head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + inner);
+        return;
+      }
       html += block(g, head(g, labelOf ? labelOf(g) : g, list.length, !list.length && subs.indexOf(g) >= 0) + (list.length ? body(list) : '<p class="muted">' + STR.sub.empty + '</p>'));
     });
     if (loose.length || !(subs.length + extra.length)) {
@@ -1366,6 +1394,12 @@
     if (el.hidden) return;
     var used = allCards().filter(function (c) { return c.section === s.id; }).map(function (c) { return c.fields[k] && normGroup(s, c.fields[k]); });
     el.innerHTML = subOptions(s, draft.fields[k] ? normGroup(s, draft.fields[k]) : "", null, used);
+    if (typesOn(s)) [].slice.call(el.options).forEach(function (o) { // 🏷 each subsection's mini-subsections right under it: value «subsection + \u0001 + type»
+      var g = o.value, cur = draft.fields.subtype || "", here = g === (draft.fields[k] ? normGroup(s, draft.fields[k]) : ""); if (!g) return;
+      var ts = typesOf(s, g); if (here && cur && ts.indexOf(cur) < 0) ts.push(cur);
+      if (here && cur) o.selected = false;
+      ts.slice().reverse().forEach(function (t) { var n = document.createElement("option"); n.value = g + "\u0001" + t; n.textContent = " ↳ " + t; if (here && t === cur) n.selected = true; o.after(n); });
+    });
     el.hidden = el.options.length < 2; // nowhere else to go
     el.title = STR.sub.move; el.setAttribute("aria-label", STR.sub.move);
   }
@@ -1381,13 +1415,14 @@
     el.title = STR.sub.move; el.setAttribute("aria-label", STR.sub.move);
   }
   $("e-sub").addEventListener("change", function () {
-    var s = sec(open.section), k = groupKey(s), g = this.value, c = open;
-    draft.fields[k] = g;
+    var s = sec(open.section), k = groupKey(s), g = this.value, c = open, t = "";
+    if (g.indexOf("\u0001") >= 0) { t = g.slice(g.indexOf("\u0001") + 1); g = g.slice(0, g.indexOf("\u0001")); } // 🏷 a mini-subsection
+    draft.fields[k] = g; if (t) draft.fields.subtype = t; else delete draft.fields.subtype;
     if (c.isNew) return; // saved with the card
-    var f = {}; f[k] = g;
+    var f = {}; f[k] = g; if (typesOn(s)) f.subtype = t || firebase.firestore.FieldValue.delete();
     var body = { fields: f, updatedAt: stamp() };
     if (c.src === "canon") Object.assign(body, { section: c.section, canonRef: c.id });
-    gref().collection("cards").doc(c.id).set(body, { merge: true }).then(function () { c.fields[k] = g; msg(STR.sub.moved.replace("{s}", g || looseLabel(s, 1))); })
+    gref().collection("cards").doc(c.id).set(body, { merge: true }).then(function () { c.fields[k] = g; if (t) c.fields.subtype = t; else delete c.fields.subtype; if (open === c && draft) leafFirst = leafSnap(); msg(STR.sub.moved.replace("{s}", (g || looseLabel(s, 1)) + (t ? " › " + t : ""))); })
       .catch(function (er) { msg(STR.failed + ": " + (er.code || er.message)); });
   });
   $("d-sub").addEventListener("change", function () {
@@ -1426,12 +1461,12 @@
     var el = document.elementFromPoint(ev.clientX, ev.clientY), sub = el && el.closest("#view .subsec");
     drag.to = null; if (!sub) return;
     var over = el.closest(".grid > .card");
-    if (over === drag.card) { drag.to = { sub: sub.dataset.sub, same: true }; return; }
+    if (over === drag.card) { drag.to = { sub: sub.dataset.sub, st: sub.dataset.subtype || "", el: sub, same: true }; return; }
     if (over) {
       var b = over.getBoundingClientRect(), left = ev.clientX < b.left + b.width / 2;
       over.classList.add(left ? "drop-before" : "drop-after");
-      drag.to = { sub: sub.dataset.sub, before: left ? over : over.nextElementSibling };
-    } else { sub.classList.add("drop-into"); drag.to = { sub: sub.dataset.sub, before: null }; }
+      drag.to = { sub: sub.dataset.sub, st: sub.dataset.subtype || "", el: sub, before: left ? over : over.nextElementSibling };
+    } else { sub.classList.add("drop-into"); drag.to = { sub: sub.dataset.sub, st: sub.dataset.subtype || "", el: sub, before: null }; }
   });
   document.addEventListener("pointerup", function () {
     var d = drag; drag = null; if (!d || !d.on) return;
@@ -1451,24 +1486,24 @@
   $("view").addEventListener("click", function (ev) { if (dragBlockClick) { ev.stopPropagation(); ev.preventDefault(); } }, true);
   // The new order of the target subsection (index → order) and the dragged card's subsection; only what changed is written.
   function dropCard(card, to) {
-    var s = dragCtx, k = groupKey(s), target = $("view").querySelector('.subsec[data-sub="' + CSS.escape(to.sub) + '"]');
-    var grid = target.querySelector(".grid"), list = grid ? [].slice.call(grid.children).filter(function (x) { return x !== card; }) : [];
+    var s = dragCtx, k = groupKey(s), target = to.el || $("view").querySelector('.subsec[data-sub="' + CSS.escape(to.sub) + '"]'), types = typesOn(s);
+    var grid = target.querySelector(":scope > .grid"), list = grid ? [].slice.call(grid.children).filter(function (x) { return x !== card; }) : [];
     var at = to.before && to.before !== card ? list.indexOf(to.before) : list.length; if (at < 0) at = list.length;
     list.splice(at, 0, card);
     if (grid) grid.insertBefore(card, to.before && to.before !== card ? to.before : null); else target.appendChild(card); // shown at once, the live snapshot settles it
     var cur = {}; // current order / group of every item, by ref
     if (s.dossier || s.special === "culture") (s.special === "culture" ? lore : entities).forEach(function (x) { cur[(x.col === "lore" ? "lore:" : "ent:") + x.id] = x; });
-    else allCards().forEach(function (c) { cur[c.key] = { order: c.order, group: c.fields[k] ? normGroup(s, c.fields[k]) : "" }; });
+    else allCards().forEach(function (c) { cur[c.key] = { order: c.order, group: c.fields[k] ? normGroup(s, c.fields[k]) : "", st: c.fields.subtype || "" }; });
     var dragged = cardRef(card), batch = db.batch(), n = 0;
     list.forEach(function (el, i) {
-      var ref = cardRef(el), x = cur[ref] || {}, moved = ref === dragged && (x.group || "") !== to.sub;
+      var ref = cardRef(el), x = cur[ref] || {}, moved = ref === dragged && ((x.group || "") !== to.sub || (types && (x.st || "") !== (to.st || "")));
       if (x.order === i && !moved) return;
       var id = ref.slice(ref.indexOf(":") + 1), body = { order: i, updatedAt: stamp() };
       if (ref.indexOf("ent:") === 0 || ref.indexOf("lore:") === 0) {
         if (moved) body.group = to.sub;
         batch.set(wref().collection(ref.indexOf("lore:") === 0 ? "lore" : "entities").doc(id), body, { merge: true });
       } else {
-        if (moved) { body.fields = {}; body.fields[k] = to.sub; }
+        if (moved) { body.fields = {}; body.fields[k] = to.sub; if (types) body.fields.subtype = to.st || firebase.firestore.FieldValue.delete(); } // 🏷 into a mini-subsection or out of it
         if (ref.indexOf("e:") === 0) Object.assign(body, { section: s.id, canonRef: id });
         batch.set(gref().collection("cards").doc(id), body, { merge: true });
       }
@@ -1479,7 +1514,18 @@
 
   function ownSubs(s) { var own = ((inCanon(s) ? world : game) || {}).subsections || {}; return Array.isArray(own[s.id]) && own[s.id].length; }
   function newSubsection() {
-    var s = sec(section);
+    var s = sec(section), subs = typesOn(s) ? groupsOf(s) : [];
+    if (subs.length) { // the owner (v2.128.0): «＋ Підрозділ» asks where — a subsection of its own or a mini-subsection inside one
+      askForm(STR.sub.title, [{ k: "name", label: STR.sub.title, ph: STR.sub.ph, req: true },
+        { k: "in", label: STR.sub.where, type: "select", value: "", opts: [["", STR.sub.whereTop]].concat(subs.map(function (g) { return [g, STR.sub.whereIn.replace("{g}", g)]; })) }], { ok: STR.create })
+        .then(function (r) {
+          var name = r && String(r.name || "").trim(); if (!name) return;
+          if (r["in"]) return newType(s, r["in"], name);
+          var list = subsOf(s); if (list.indexOf(name) < 0) saveSubs(s, list.concat(name)).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
+          if (game && PAL_SECS.indexOf(s.id) >= 0) groupPalDialog(name);
+        });
+      return;
+    }
     askName(STR.sub.title, STR.sub.ph, function (name) {
       if (!name) return;
       var list = subsOf(s), seen = function () { var el = $("view").querySelector('.subsec[data-sub="' + CSS.escape(name) + '"]'); if (el) { el.scrollIntoView({ block: "center", behavior: "smooth" }); edFlash(el); } };
@@ -1506,14 +1552,14 @@
     }, g);
   }
   // «＋ Додати» under a subheading: a card, a dossier, an event or a culture entry born in that subsection
-  function addIn(g) {
+  function addIn(g, t) {
     var s = sec(section);
     if (s.dossier) return openDossier({ id: entityId(s.dossier), kind: s.dossier, isNew: true, group: g });
     if (s.special === "chronicle") return openDossier({ id: entityId("events"), kind: "events", isNew: true, group: g });
     if (s.special === "culture") return openDossier({ id: newId("lore"), col: "lore", group: g || "customs", isNew: true });
     if (s.special === "quests" || s.special === "dialogues") { if (qdBase && mayEdit(s.special)) openQD(s.special, null, g ? { type: g } : null); return; }
     if (s.id === "mechanics" || mFactory(s.id)) return mechNew(g);
-    addCard(false, g);
+    addCard(false, g, t);
   }
   function groupsOf(s) {
     var k = groupKey(s), seen = subsOf(s);
@@ -7078,18 +7124,19 @@
     bulkStatus(STR[b.done] + ": " + ids.length, sid);
     return ids;
   }
-  function addCard(fresh, group) {
+  function addCard(fresh, group, type) {
     var s = sec(section);
-    if (s.canon && fresh !== true) return pickFromCanon(s, group);
+    if (s.canon && fresh !== true) return pickFromCanon(s, group, type);
     var c = s.canon && !s.ownNew && canonOk(s.canon) // 🔒 without canon editing a new card is the game's own (it can't be born in the canon)
       ? { key: "new", src: "canon", id: entityId(s.canon), section: s.id, title: "", status: "idea", note: "", canonDesc: { key: "desc", value: "" }, defs: s.defs.slice(), fields: {}, isNew: true }
       : { key: "new", src: "game", id: newId("card"), section: s.id, title: "", status: "idea", note: "", defs: (s.defs || CUSTOM_DEFS).slice(), fields: {}, isNew: true };
     if (group) c.fields[groupKey(s)] = group;
+    if (type && typesOn(s)) c.fields.subtype = type; // 🏷 born in its mini-subsection
     openCard(c);
   }
 
   // The game takes canon entities by choice: a picker of those not in the game yet, or a new one born in the canon.
-  function pickFromCanon(s, group) {
+  function pickFromCanon(s, group, type) {
     var free = entities.filter(function (e) { return e.kind === s.canon && !inGame(e); })
       .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
     var box = document.createElement("div");
@@ -7105,7 +7152,7 @@
     document.body.appendChild(box);
     function close() { box.remove(); }
     box.querySelector("#ask-x").onclick = close;
-    box.querySelector("#pick-new").onclick = function () { close(); addCard(true, group); };
+    box.querySelector("#pick-new").onclick = function () { close(); addCard(true, group, type); };
     box.addEventListener("mousedown", function (ev) { if (ev.target === box) close(); });
     box.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); } });
     box.addEventListener("change", function () { var ok = box.querySelector("#pick-ok"); if (ok) ok.disabled = !box.querySelector(".picklist input:checked"); });
@@ -7115,7 +7162,7 @@
       var batch = db.batch();
       ids.forEach(function (id) {
         var c = { section: s.id, canonRef: id, hidden: false, status: "idea", updatedAt: stamp() };
-        if (group) { c.fields = {}; c.fields[groupKey(s)] = group; }
+        if (group) { c.fields = {}; c.fields[groupKey(s)] = group; if (type && typesOn(s)) c.fields.subtype = type; }
         batch.set(gref().collection("cards").doc(id), c, { merge: true });
       });
       await batch.commit(); close();
@@ -11600,7 +11647,9 @@
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
     var se = e.target.closest("[data-sedit]"); if (se) { tellShell({ type: "ww-edit-story", projectId: se.dataset.sedit }); return; } // the shell's story form
     var sd = e.target.closest("[data-sdel]"); if (sd) { tellShell({ type: "ww-delete-story", projectId: sd.dataset.sdel }); return; } // the shell asks to confirm
-    var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub); return; }
+    var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub, as.dataset.subtype); return; }
+    var at = e.target.closest("[data-addtype]"); if (at) { var ats = sec(section), atg = at.dataset.addtype; askName(STR.sub.typeTitle.replace("{g}", atg), STR.sub.typePh, function (n) { if (n) newType(ats, atg, n); }); return; }
+    var td = e.target.closest("[data-typedel]"); if (td) { var tds = sec(section); saveTypes(tds, td.dataset.typedel, typesOf(tds, td.dataset.typedel).filter(function (x) { return x !== td.dataset.subtype; })).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); }); return; }
     if (e.target.closest("[data-bulkup],[data-sndup]")) return; // the file pickers open by themselves
     var ap = e.target.closest("[data-aplay]"); if (ap) { e.stopPropagation(); playSound(soundUrl(ap.dataset.aplay), ap); return; }
     var am = e.target.closest("[data-amech]"); if (am) { var mc = allCards().filter(function (x) { return x.id === am.dataset.amech; })[0]; if (mc) { audioLib = false; openMech(mc); } return; }

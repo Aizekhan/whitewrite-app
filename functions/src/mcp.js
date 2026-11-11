@@ -38,7 +38,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { claim: { type: 'boolean', description: 'Mark the returned task in_progress (default true)' } } } },
   { name: 'get_task_details', description: 'Full context of one task by id (e.g. "M2.3"): goal, detail, acceptance criteria, tests, related cards with fields and file URLs, deps, review history.',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
-  { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status, subsection and files; subsections = the subsections of the section in the Bible order (exact names for save_card subsection). Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
+  { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status, subsection and files; subsections = the subsections of the section in the Bible order (exact names for save_card subsection), mini_subsections = the types inside them (subsection → [names]); a card shows its mini_subsection. Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
   { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero card has appearance, faction, class, alignment, lives_in; an enemy / companion card has creature (type, size, tactics or role, movement, attack, habitat, threat). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
@@ -141,11 +141,12 @@ const TOOLS = [
       'Update: ref "c:<cardId>" (game card) or "e:<entityId>" (a canon entity seen through this game: changes this game\'s view of it — fields, note, status; the canon name and description stay in the World Bible). ' +
       'Create: no ref, section (overview, characters, enemies, companions, locations, levels, factions, items, gear, mechanics, progression, worldgen, assets, materials, animation, audio, ui, scenes, artstyle, pictures, refs, tech, lore) and title. ' +
       'fields: { "<field name as get_card / get_design_section shows it>": "text" } — only the fields you send change; "" clears one; a new name becomes a new field. ' +
+      'mini_subsection: a type inside the subsection (e.g. "Бойові супутники" → "Маги" / "Вбивці") — a new name is added to that subsection; "" takes the card out of it. ' +
       'subsection: the subsection the card stands in (e.g. enemies: "Звичайні вороги" / "Елітні вороги" / "Боси") — take the exact names from get_design_section → subsections; "" puts it back in «Інше». Never send it as a field (group / Група / Підрозділ are read as subsection). ' +
       'Pictures are not text: put one on a card with card_image_upload. ' +
       'status: idea | agreed | work | ingame | redo. The author can undo your last change of each card. Tell the user what you changed.',
     inputSchema: { type: 'object', properties: {
-      ref: { type: 'string' }, section: { type: 'string' }, title: { type: 'string' }, subsection: { type: 'string' }, fields: { type: 'object', additionalProperties: { type: 'string' } },
+      ref: { type: 'string' }, section: { type: 'string' }, title: { type: 'string' }, subsection: { type: 'string' }, mini_subsection: { type: 'string' }, fields: { type: 'object', additionalProperties: { type: 'string' } },
       note: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] } } } },
   { name: 'save_quest', description: 'Create or change a quest of this game — ONLY when the user asked for it in this chat. id to update (from get_quest_context or an earlier save_quest), none to create (approval starts as draft; the author approves). ' +
       'Send only what changes: title, type (main | side | daily | …), summary, giver, characters, locations, factions, artifacts, events (refs: "c:<cardId>" for game cards, a canon entity id, or an exact name), objectives (one per line), ' +
@@ -211,7 +212,7 @@ async function readGame(key) {
 
 const named = (c) => {
   const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
-  return Object.fromEntries(Object.entries(c.fields || {}).filter(([, v]) => str(v, 1)).map(([k, v]) => [labels[k] || k, v]));
+  return Object.fromEntries(Object.entries(c.fields || {}).filter(([k, v]) => k !== 'subtype' && str(v, 1)).map(([k, v]) => [labels[k] || k, v]));
 };
 const files = (c) => {
   const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
@@ -225,12 +226,12 @@ function cardView(ctx, ref) {
     const e = ctx.entities.find((x) => x.id === ref.slice(2)); if (!e) return null;
     const c = ctx.cards.find((x) => x.canonRef === e.id) || {};
     return { ref, canon: e.kind, title: e.name || '', description: e.desc || e.description || '', status: c.status || 'idea',
-      section: c.section || e.kind, ...(subOf(c) ? { subsection: subOf(c) } : {}), fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c) };
+      section: c.section || e.kind, ...(subOf(c) ? { subsection: subOf(c) } : {}), ...(c.fields && c.fields.subtype ? { mini_subsection: c.fields.subtype } : {}), fields: named(c), note: c.note || '', files: files(c), ...(lookText(e.appearance, 'en') ? { appearance: lookText(e.appearance, 'en') } : {}), ...(personaText(e.personality, 'en') ? { personality: personaText(e.personality, 'en') } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c) };
   }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '') && !x.canonRef);
   if (!c) return null;
   const gp = groupPalette(ctx, c);
-  return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, ...(subOf(c) ? { subsection: subOf(c) } : {}), fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
+  return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, ...(subOf(c) ? { subsection: subOf(c) } : {}), ...(c.fields && c.fields.subtype ? { mini_subsection: c.fields.subtype } : {}), fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
     ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c) };
 }
 // 🛡 a game-only hero / enemy card's traits (card.sheet — the same as a canon character's: appearance, faction, class, alignment, home)
@@ -826,7 +827,16 @@ function takeSub(section, args) {
   return { args: { ...args, fields }, sub };
 }
 const SUB_JUNK = ['f_group', 'f_група', 'f_підрозділ', 'f_category', 'f_категорія', 'f_subsection']; // fields the earlier attempts made (before v2.125)
-function subWrite(ctx, section, sub, card, body, out) {
+function subWrite(ctx, section, sub, card, body, out, mini) {
+  const cur = (card && card.fields && card.fields[subKey(section)]) || '';
+  if (mini !== undefined) { // 🏷 a mini-subsection inside the subsection (v2.128.0): fields.subtype + games/{g}.subtypes[section][subsection]
+    const m = str(mini, 80), grp = sub !== undefined ? subName(ctx, section, sub).name : cur;
+    if (m && !grp) throw rpcError(-32602, 'mini_subsection lives inside a subsection: send subsection too');
+    body.fields = { ...(body.fields || {}), subtype: m || admin.firestore.FieldValue.delete() };
+    out.mini_subsection = m || '(none)'; if (m) out._type = [grp, m];
+  } else if (sub !== undefined && card && card.fields && card.fields.subtype && subName(ctx, section, sub).name !== cur) {
+    body.fields = { ...(body.fields || {}), subtype: admin.firestore.FieldValue.delete() }; // another subsection: its mini-subsection stays behind
+  }
   if (sub === undefined) return;
   const r = subName(ctx, section, sub);
   body.fields = { ...(body.fields || {}), [subKey(section)]: r.name };
@@ -837,6 +847,11 @@ function subWrite(ctx, section, sub, card, body, out) {
   }
   out.subsection = r.name || '(none: «Інше»)';
   if (!r.known) out.new_subsection = 'Not one of this section\'s subsections, so it shows as a new one. The section has: ' + subList(ctx, section).join(' · ');
+}
+async function typeWrite(ctx, section, out) { // the Bible lists a new mini-subsection under its subsection
+  const t = out._type; delete out._type; if (!t) return;
+  const list = (((ctx.game || {}).subtypes || {})[section] || {})[t[0]] || [];
+  if (!list.includes(t[1])) await ctx.gref.set({ subtypes: { [section]: { [t[0]]: admin.firestore.FieldValue.arrayUnion(t[1]) } } }, { merge: true });
 }
 function sectionOfRef(ctx, ref) {
   if (ref.startsWith('e:')) { const c = ctx.cards.find((x) => x.canonRef === ref.slice(2)), e = ctx.entities.find((x) => x.id === ref.slice(2)); return (c && c.section) || (e && CANON_SEC[e.kind]) || ''; }
@@ -861,8 +876,8 @@ async function saveCard(ctx, key, args0) {
     if (args.note !== undefined) body.note = str(args.note, 8000);
     if (status) body.status = status;
     if (!c) Object.assign(body, { title: e.name || '', status: status || 'idea', createdAt: now, order: Date.now() });
-    const so = {}; subWrite(ctx, section, ts0.sub, c, body, so);
-    await ctx.gref.collection('cards').doc(id).set(body, { merge: true });
+    const so = {}; subWrite(ctx, section, ts0.sub, c, body, so, args.mini_subsection);
+    await ctx.gref.collection('cards').doc(id).set(body, { merge: true }); await typeWrite(ctx, section, so);
     return { ok: true, ref, created_game_card: !c, changed: Object.keys(fp.set).length + (args.note !== undefined ? 1 : 0) + (status ? 1 : 0) + (ts0.sub !== undefined ? 1 : 0), new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
   }
   if (ref) {
@@ -874,8 +889,8 @@ async function saveCard(ctx, key, args0) {
     if (args.title !== undefined) { if (!str(args.title, 200)) throw rpcError(-32602, 'title cannot be empty'); body.title = str(args.title, 200); }
     if (args.note !== undefined) body.note = str(args.note, 8000);
     if (status) body.status = status;
-    const so = {}; subWrite(ctx, c.section, ts0.sub, c, body, so);
-    await ctx.gref.collection('cards').doc(c.id).set(body, { merge: true });
+    const so = {}; subWrite(ctx, c.section, ts0.sub, c, body, so, args.mini_subsection);
+    await ctx.gref.collection('cards').doc(c.id).set(body, { merge: true }); await typeWrite(ctx, c.section, so);
     return { ok: true, ref: 'c:' + c.id, title: body.title || c.title || '', changed: Object.keys(body).filter((k) => ['title', 'note', 'status'].includes(k)).concat(Object.keys(fp.set)).length + (ts0.sub !== undefined ? 1 : 0), new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
   }
   const section = str(args.section, 40), title = str(args.title, 200);
@@ -886,8 +901,8 @@ async function saveCard(ctx, key, args0) {
   const fp = fieldPlan(ctx, tpl ? { defs: tpl.defs, fields: {} } : null, section, args.fields, true);
   const id = newDocId('card'), nb = { section, title, status: status || 'idea', note: str(args.note, 8000), defs: fp.defs, fields: fp.set, files: [],
     order: Date.now(), createdAt: now, updatedAt: now, ...agentMark(key, { _new: true }) }, so = {};
-  subWrite(ctx, section, ts0.sub, null, nb, so);
-  await ctx.gref.collection('cards').doc(id).set(nb);
+  subWrite(ctx, section, ts0.sub, null, nb, so, args.mini_subsection);
+  await ctx.gref.collection('cards').doc(id).set(nb); await typeWrite(ctx, section, so);
   return { ok: true, ref: 'c:' + id, created: true, section, title, new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
 }
 // refs from the agent: "c:<card>", a canon id, "e:<id>", or an exact name of either → the stored id
@@ -994,7 +1009,8 @@ async function callTool(name, args, key) {
         ctx.entities.filter((e) => e.kind === kind && !ctx.cards.some((c) => c.canonRef === e.id)).forEach((e) => out.push(cardView(ctx, 'e:' + e.id)));
       }
       const pals = (ctx.game.subPalettes || {})[s];
-      return { section: s, subsections: subList(ctx, s), cards: out, ...(pals && Object.keys(pals).length ? { group_palettes: pals } : {}) };
+      const mini = ((ctx.game || {}).subtypes || {})[s];
+      return { section: s, subsections: subList(ctx, s), ...(mini && Object.keys(mini).length ? { mini_subsections: mini } : {}), cards: out, ...(pals && Object.keys(pals).length ? { group_palettes: pals } : {}) };
     }
     case 'get_style_guide': {
       const styleCards = ctx.cards.filter((c) => c.section === 'artstyle' && !c.hidden);
