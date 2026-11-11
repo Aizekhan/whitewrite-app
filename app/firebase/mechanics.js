@@ -936,7 +936,8 @@ function upgrade(m) {
   t.sections.forEach(function (ts, i) {
     if (!ts.since || ts.since <= (m.tplVersion || 0) || m.sections.some(function (x) { return x.id === ts.id; })) return;
     var prev = i ? m.sections.map(function (x) { return x.id; }).indexOf(t.sections[i - 1].id) : -1;
-    m.sections.splice(prev + 1, 0, sectionOf(ts));
+    var ns = sectionOf(ts); if (ts.emptyOnUpgrade && ns.rows) ns.rows = []; // the sample rows would mean nothing to the author's own rows
+    m.sections.splice(prev + 1, 0, ns);
   });
   (m.sections || []).forEach(function (s) {
     var ts = t.sections.filter(function (x) { return x.id === s.id; })[0]; if (!ts || !s.fields) return;
@@ -1392,18 +1393,31 @@ var PROG_LOOT = {
   ],
 };
 var SHOP_KINDS = O([['consumable', 'Витратне', 'Consumable'], ['gear', 'Спорядження', 'Gear'], ['upgrade', 'Покращення', 'Upgrade'], ['key', 'Ключ / доступ', 'Key / access'], ['cosmetic', 'Косметика', 'Cosmetic']]);
+var SHOP_TYPES = O([['general', 'Загальна крамниця', 'General store'], ['smith', 'Коваль / зброяр', 'Smith / armourer'], ['alchemist', 'Алхімік / зілля', 'Alchemist / potions'], ['magic', 'Чарівна лавка', 'Magic shop'],
+  ['trader', 'Мандрівний торговець', 'Travelling trader'], ['black', 'Чорний ринок', 'Black market'], ['event', 'Подієвий / сезонний', 'Event / seasonal'], ['premium', 'Преміум / за донат', 'Premium']]);
+var RESTOCK = O([['never', 'не поповнюється', 'never'], ['visit', 'кожен візит', 'every visit'], ['day', 'щодня (ігровий день)', 'daily (game day)'], ['act', 'з новим актом / етапом', 'with a new act / stage']]);
+// v2 (owner): several shops in one card — each with its name, kind, merchant, place, opening hour and markup; a good belongs to one of them
+var SHOPS = { id: 'shops', since: 2, emptyOnUpgrade: true, title: T('Магазини', 'Shops'), kind: 'table', rowLabel: 'name', prefix: 'SP',
+  hint: T('Кожен магазин гри: хто торгує, де, з якої години відкривається й наскільки дорожчий. Товари нижче вибирають свій магазин. Без магазинів — один спільний.', 'Every shop of the game: who sells, where, from which hour it opens and how much dearer it is. Goods below pick their shop. No shops — one shared.'),
+  fields: [F('name', 'Магазин', 'Shop', 'text', R), F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: SHOP_TYPES })), F('merchant', 'Торговець', 'Merchant', 'card', { req: 'opt', secs: ['characters', 'enemies'] }),
+    F('place', 'Де', 'Where', 'card', { req: 'opt', secs: ['locations', 'levels'] }), F('from', 'Відкривається з години', 'Opens from hour', 'num', X(REC, { min: 0 })),
+    F('markup', 'Націнка', 'Markup', 'pct', { req: 'opt', min: -90, max: 500, h: T('ціна товару тут = ціна × (1 + націнка)', 'a good’s price here = price × (1 + markup)') }),
+    F('buyback', 'Скупка, % ціни', 'Buys back, % of price', 'pct', { req: 'opt', adv: true, min: 0, max: 100 }), F('restock', 'Поповнення', 'Restock', 'sel', { req: 'opt', adv: true, o: RESTOCK }),
+    F('note', 'Нотатка', 'Note', 'text', { req: 'opt', adv: true })],
+  rows: [{ _id: 'SP1', name: 'Крамниця Марти', kind: 'general', from: 0, markup: 0, buyback: 30, restock: 'visit' }, { _id: 'SP2', name: 'Кузня Борга', kind: 'smith', from: 1, markup: 10, buyback: 40, restock: 'act' },
+    { _id: 'SP3', name: 'Чорний ринок', kind: 'black', from: 8, markup: 40, buyback: 60, restock: 'day' }] };
 var PROG_SHOP = {
-  id: 'prog_shop', sec: 'progression', version: 1, cat: 'shop', sub: '', complexity: 1, name: T('Магазин', 'Shop'),
-  desc: T('Товари з ціною й годиною, коли вони зʼявляються, — і для кожного: скільки часу гравцю заробляти на нього. Видно імпульсні покупки, цілі й стіни гринду, а також «порожні» години, коли купити нічого.', 'Goods with a price and the hour they appear — and for each: how long the player has to earn for it. Impulse buys, goals and grind walls show, and the “empty” hours with nothing to buy.'),
+  id: 'prog_shop', sec: 'progression', version: 2, cat: 'shop', sub: '', complexity: 1, name: T('Магазин', 'Shop'),
+  desc: T('Магазини гри (крамниця, коваль, чорний ринок — з торговцем, місцем, годиною відкриття й націнкою) і їхні товари з ціною й годиною появи — і для кожного: скільки часу гравцю заробляти на нього. Видно імпульсні покупки, цілі й стіни гринду, а також «порожні» години, коли купити нічого.', 'The game’s shops (a store, a smith, a black market — with a merchant, a place, an opening hour and a markup) and their goods with a price and the hour they appear — and for each: how long the player has to earn for it. Impulse buys, goals and grind walls show, and the “empty” hours with nothing to buy.'),
   purpose: T('У магазині завжди є і дрібна покупка, і ціль, на яку варто збирати.', 'The shop always has a small buy and a goal worth saving for.'),
-  sections: [WALLET,
+  sections: [WALLET, SHOPS,
     { id: 'goods', title: T('Товари', 'Goods'), kind: 'table', rowLabel: 'item', prefix: 'SH',
       hint: T('«З години» — коли товар зʼявляється (після першого міста, акту…). Ціна — у валюті гаманця.', '“From hour” — when the item appears (after the first town, act…). Price — in the wallet currency.'),
-      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items'] })), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
+      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items'] })), F('shop', 'Магазин', 'Shop', 'ref', { req: 'opt', ref: 'shops', since: 2 }), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
         F('from', 'З години', 'From hour', 'num', X(REC, { min: 0 })), F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: SHOP_KINDS })), F('stock', 'Ліміт', 'Stock', 'num', { req: 'opt', adv: true, min: 0 })],
-      rows: [{ _id: 'SH1', item: 'Зілля здоровʼя', price: 50, from: 0, kind: 'consumable' }, { _id: 'SH2', item: 'Сталевий меч', price: 2500, from: 1, kind: 'gear' },
-        { _id: 'SH3', item: 'Карта підземель', price: 800, from: 2, kind: 'key' }, { _id: 'SH4', item: 'Кольчуга', price: 6000, from: 3, kind: 'gear' },
-        { _id: 'SH5', item: 'Легендарний щит', price: 60000, from: 10, kind: 'gear' }] },
+      rows: [{ _id: 'SH1', item: 'Зілля здоровʼя', shop: 'SP1', price: 50, from: 0, kind: 'consumable' }, { _id: 'SH2', item: 'Сталевий меч', shop: 'SP2', price: 2500, from: 1, kind: 'gear' },
+        { _id: 'SH3', item: 'Карта підземель', shop: 'SP1', price: 800, from: 2, kind: 'key' }, { _id: 'SH4', item: 'Кольчуга', shop: 'SP2', price: 6000, from: 3, kind: 'gear' },
+        { _id: 'SH5', item: 'Легендарний щит', shop: 'SP3', price: 60000, from: 10, kind: 'gear' }] },
   ],
 };
 var PROG_UPGRADES = {
@@ -1615,17 +1629,26 @@ function progLootChecks(m, add) {
   });
 }
 function incomeAt(w, h) { return Math.max(0, +w.income || 0) * Math.pow(1 + (+w.growth || 0) / 100, h); }
-// → [{ id, item, price, from, kind, hours (of income at that hour), verdict impulse|small|goal|grind|wall }] sorted by hour, gaps: [[from, to]]
+// → { goods: [{ id, item, shop (row id), shopName, price (with the shop's markup), from (not before the shop opens), kind, hours (of income at that hour),
+//   verdict impulse|small|goal|grind|wall }] sorted by hour, gaps: [[from, to]], shops: [{ id, name, kind, from, markup, goods (n), items: [names], verdicts {…} }], currency }
 function shopAfford(m) {
-  var w = valsOf(m, 'wallet');
+  var w = valsOf(m, 'wallet'), shops = {};
+  rowsOfM(m, 'shops').forEach(function (s) { shops[s._id] = s; });
   var goods = rowsOfM(m, 'goods').map(function (r) {
-    var from = num(r.from) ? +r.from : 0, inc = incomeAt(w, from), h = inc > 0 && num(r.price) ? +r.price / inc : null;
-    return { id: r._id, item: cardLabel(r.item), price: +r.price || 0, from: from, kind: r.kind || '', hours: h,
+    var sp = shops[r.shop], mk = sp && num(sp.markup) ? +sp.markup / 100 : 0, open = sp && num(sp.from) ? +sp.from : 0;
+    var from = Math.max(num(r.from) ? +r.from : 0, open), price = num(r.price) ? Math.round(+r.price * (1 + mk)) : null, inc = incomeAt(w, from), h = inc > 0 && price != null ? price / inc : null;
+    return { id: r._id, item: cardLabel(r.item), shop: sp ? sp._id : '', shopName: sp ? sp.name || sp._id : '', price: price || 0, from: from, kind: r.kind || '', hours: h,
       verdict: h == null ? 'none' : h < 0.1 ? 'impulse' : h < 0.5 ? 'small' : h <= 3 ? 'goal' : h <= 8 ? 'grind' : 'wall' };
   }).sort(function (a, b) { return a.from - b.from; });
   var gaps = [], hrs = goods.map(function (g) { return g.from; });
   for (var i = 1; i < hrs.length; i++) if (hrs[i] - hrs[i - 1] > 3) gaps.push([hrs[i - 1], hrs[i]]);
-  return { goods: goods, gaps: gaps, currency: w.currency || '' };
+  var list = rowsOfM(m, 'shops').map(function (s) {
+    var mine = goods.filter(function (g) { return g.shop === s._id; }), v = {};
+    mine.forEach(function (g) { v[g.verdict] = (v[g.verdict] || 0) + 1; });
+    return { id: s._id, name: s.name || s._id, kind: s.kind || '', from: num(s.from) ? +s.from : 0, markup: num(s.markup) ? +s.markup : 0, goods: mine.length,
+      items: mine.map(function (g) { return g.item || g.id; }), verdicts: v };
+  });
+  return { goods: goods, gaps: gaps, shops: list, currency: w.currency || '' };
 }
 function shopChecks(m, add) {
   var s = shopAfford(m), w = valsOf(m, 'wallet');
@@ -1635,6 +1658,16 @@ function shopChecks(m, add) {
     if (g.verdict === 'wall') add('warn', 'goods', g.id, '«' + nm + '»: ' + fmtH(g.hours) + ' заробітку — це стіна гринду. Знизь ціну або дай товар пізніше.', '“' + nm + '”: ' + fmtH(g.hours, 'en') + ' of income — a grind wall. Lower the price or offer it later.', 'price');
     else if (g.verdict === 'grind') add('tip', 'goods', g.id, '«' + nm + '»: ' + fmtH(g.hours) + ' заробітку — довга ціль. Добре, якщо це навмисно.', '“' + nm + '”: ' + fmtH(g.hours, 'en') + ' of income — a long goal. Fine if intended.', 'price');
     if (g.kind === 'consumable' && g.hours != null && g.hours > 0.5) add('warn', 'goods', g.id, '«' + nm + '» витратне, а коштує ' + fmtH(g.hours) + ' заробітку — гравець його берегтиме й не вживатиме.', '“' + nm + '” is a consumable yet costs ' + fmtH(g.hours, 'en') + ' of income — the player will hoard it.', 'price');
+  });
+  var rows = rowsOfM(m, 'goods'), shops = rowsOfM(m, 'shops');
+  s.shops.forEach(function (sp) {
+    if (!sp.goods) add('warn', 'shops', sp.id, '«' + sp.name + '»: у магазині немає жодного товару.', '“' + sp.name + '”: the shop has no goods.', 'name');
+    else if (sp.goods >= 3 && !sp.verdicts.impulse && !sp.verdicts.small) add('tip', 'shops', sp.id, '«' + sp.name + '»: немає дрібної покупки — гравець зайде й піде ні з чим.', '“' + sp.name + '”: no small buy — the player walks in and out with nothing.', 'name');
+  });
+  if (shops.length) rows.forEach(function (r) {
+    var sp = shops.filter(function (x) { return x._id === r.shop; })[0], nm = cardLabel(r.item) || r._id;
+    if (!sp) add('tip', 'goods', r._id, '«' + nm + '»: не вибрано, в якому магазині він продається.', '“' + nm + '”: no shop is chosen for it.', 'shop');
+    else if (num(sp.from) && num(r.from) && +r.from < +sp.from) add('tip', 'goods', r._id, '«' + nm + '» зʼявиться лише з ' + sp.from + '-ї години — тоді відкривається «' + (sp.name || sp._id) + '».', '“' + nm + '” appears only from hour ' + sp.from + ' — when “' + (sp.name || sp._id) + '” opens.', 'from');
   });
   s.gaps.forEach(function (g) { add('tip', 'goods', '', 'З ' + g[0] + '-ї по ' + g[1] + '-у годину в магазині нічого нового — гроші накопичуються без мети.', 'From hour ' + g[0] + ' to ' + g[1] + ' the shop has nothing new — money piles up with no goal.', 'from'); });
 }

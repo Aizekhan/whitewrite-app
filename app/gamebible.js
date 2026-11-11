@@ -4110,14 +4110,14 @@
   // ---------- 📈 Конструктор прогресії: what each progression card computes (mechanics.js xpCurve / lootFlow / shopAfford / upgradeTracks / balanceStages) ----------
   var MCPX = { uk: { toMax: "До рівня {l} — {h}", target: "задумано {t} год", perLv: "Час на кожен рівень", lv: "Рівень", xp: "Досвіду", sum: "Усього", tLv: "На рівень", fromStart: "Від старту",
       src: "з: {s}", perH: "{n} предметів за годину", noSrc: "жодне джерело не дає цю таблицю", rar: "Рідкість", perHour: "За годину", every: "Один раз на",
-      goods: "Товар", price: "Ціна", from: "З години", work: "Заробляти", verdict: { impulse: "імпульсна покупка", small: "дрібна покупка", goal: "ціль", grind: "довга ціль", wall: "стіна гринду", none: "немає доходу" },
+      goods: "Товар", price: "Ціна", from: "З години", work: "Заробляти", shop: "Магазин", opens: "Відкривається", nGoods: "Товарів", what: "Що продає", markup: "націнка {n}%", fromH: "з {h}-ї год", noGoods: "немає товарів", noSmall: "немає дрібної покупки", verdict: { impulse: "імпульсна покупка", small: "дрібна покупка", goal: "ціль", grind: "довга ціль", wall: "стіна гринду", none: "немає доходу" },
       gap: "{a}–{b} год: нічого нового", track: "Лінійка", costs: "Ціна по рівнях", total: "Усього до максимуму", toMaxH: "Заробити", last: "Останній рівень", eff: "Вигода останнього", effV: "у {n}× менша",
       stage: "Етап", earned: "Заробить", need: "Мусить витратити", left: "Лишиться", money: "Гроші", power: "Сила", bal: { short: "бракує · ≈ {h} гринду", ok: "якраз", rich: "розбагатів" },
       feel: { easy: "сильніший на {n} — нудно", hard: "слабший на {n} — застрягне", ok: "рівня ворогів" },
       rarity: { common: "звичайний", uncommon: "незвичайний", rare: "рідкісний", epic: "епічний", legendary: "легендарний" } },
     en: { toMax: "Level {l} takes {h}", target: "the plan is {t} h", perLv: "Time per level", lv: "Level", xp: "XP", sum: "Total", tLv: "Per level", fromStart: "From the start",
       src: "from: {s}", perH: "{n} items an hour", noSrc: "no source uses this table", rar: "Rarity", perHour: "An hour", every: "Once per",
-      goods: "Item", price: "Price", from: "From hour", work: "To earn", verdict: { impulse: "impulse buy", small: "small buy", goal: "a goal", grind: "a long goal", wall: "a grind wall", none: "no income" },
+      goods: "Item", price: "Price", from: "From hour", work: "To earn", shop: "Shop", opens: "Opens", nGoods: "Goods", what: "Sells", markup: "markup {n}%", fromH: "from hour {h}", noGoods: "no goods", noSmall: "no small buy", verdict: { impulse: "impulse buy", small: "small buy", goal: "a goal", grind: "a long goal", wall: "a grind wall", none: "no income" },
       gap: "{a}–{b} h: nothing new", track: "Track", costs: "Price by level", total: "Total to the max", toMaxH: "To earn", last: "Last level", eff: "Last level's value", effV: "{n}× lower",
       stage: "Stage", earned: "Earns", need: "Must spend", left: "Left over", money: "Money", power: "Power", bal: { short: "short · ≈ {h} of grinding", ok: "just right", rich: "got rich" },
       feel: { easy: "{n} levels above — boring", hard: "{n} levels below — stuck", ok: "on par with enemies" },
@@ -4138,10 +4138,19 @@
         mCalcTable([MCX.item, K.rar, MCX.chance, K.perHour, K.every], t.items.map(function (i) {
           return [esc(mCardText(rowItem(i.id)) || i.item || i.id), esc(K.rarity[i.rarity] || "—"), mono(i.chance + " %"), mono(i.perHour), i.every == null ? '<span class="muted">—</span>' : mono(H(i.every)) + (i.pity ? ' <span class="muted">· ' + esc(MCX.pity) + ' ' + i.pity + '</span>' : '')]; }));
     }).join("");
+    if (m.tpl === "prog_shop" && s.id === "shops") { // every shop: when it opens, its markup, what it sells and whether there is something small to buy
+      var sp = M.shopAfford(m), kinds = (((msec("shops") || {}).fields || []).filter(function (f) { return f.k === "kind"; })[0]);
+      if (!sp.shops.length) return "";
+      return mCalcTable([K.shop, K.opens, K.nGoods, K.what], sp.shops.map(function (x) {
+        var kn = kinds ? (mopts(kinds).filter(function (o) { return o[0] === x.kind; })[0] || [])[1] : "";
+        return [esc(x.name) + (kn ? ' <span class="muted">· ' + esc(kn) + '</span>' : ''), mono(esc(K.fromH.replace("{h}", x.from))) + (x.markup ? ' <span class="muted">· ' + esc(K.markup.replace("{n}", x.markup)) + '</span>' : ''),
+          x.goods ? mono(x.goods) : tag(false, K.noGoods),
+          esc(x.items.join(", ")) + (x.goods >= 3 && !x.verdicts.impulse && !x.verdicts.small ? ' ' + tag(false, K.noSmall) : '')]; }));
+    }
     if (m.tpl === "prog_shop" && s.id === "goods") {
-      var sh = M.shopAfford(m), good = { impulse: 1, small: 1, goal: 1 };
-      return mCalcTable([K.goods, K.price, K.from, K.work, ""], sh.goods.map(function (g) {
-        return [esc(g.item || g.id), mono(n(g.price) + (sh.currency ? " " + esc(sh.currency) : "")), mono(g.from), mono(H(g.hours)), tag(!!good[g.verdict], K.verdict[g.verdict] || g.verdict)]; })) +
+      var sh = M.shopAfford(m), good = { impulse: 1, small: 1, goal: 1 }, many = sh.shops.length > 0;
+      return mCalcTable([K.goods].concat(many ? [K.shop] : [], [K.price, K.from, K.work, ""]), sh.goods.map(function (g) {
+        return [esc(g.item || g.id)].concat(many ? [g.shopName ? esc(g.shopName) : '<span class="muted">—</span>'] : [], [mono(n(g.price) + (sh.currency ? " " + esc(sh.currency) : "")), mono(g.from), mono(H(g.hours)), tag(!!good[g.verdict], K.verdict[g.verdict] || g.verdict)]); })) +
         (sh.gaps.length ? '<p class="mcalc-sub">' + sh.gaps.map(function (g) { return tag(false, K.gap.replace("{a}", g[0]).replace("{b}", g[1])); }).join(" ") + '</p>' : '');
     }
     if (m.tpl === "prog_upgrades" && s.id === "tracks") return mCalcTable([K.track, K.costs, K.total, K.toMaxH, K.last, K.eff], M.upgradeTracks(m).map(function (t) {
@@ -4158,7 +4167,7 @@
     var M = MX(), H = function (h) { return M.fmtH(h, LANG); }, en = LANG === "en";
     try {
       if (m.tpl === "xp_curve") { var x = M.xpCurve(m); return (en ? "Level " : "Рівень ") + x.max + ": " + H(x.totalHours); }
-      if (m.tpl === "prog_shop") return M.shopAfford(m).goods.map(function (g) { return (g.item || g.id) + " — " + (g.hours == null ? "—" : H(g.hours)); }).join("; ");
+      if (m.tpl === "prog_shop") return M.shopAfford(m).goods.map(function (g) { return (g.item || g.id) + (g.shopName ? " (" + g.shopName + ")" : "") + " — " + (g.hours == null ? "—" : H(g.hours)); }).join("; ");
       if (m.tpl === "prog_upgrades") return M.upgradeTracks(m).map(function (t) { return t.name + " — " + t.total + (t.hours != null ? " (" + H(t.hours) + ")" : ""); }).join("; ");
       if (m.tpl === "prog_balance") return M.balanceStages(m).map(function (b) { return b.stage + ": " + MCPX.bal[b.verdict].replace("{h}", b.grind ? H(b.grind) : "—"); }).join("; ");
       if (m.tpl === "prog_loot") return M.lootFlow(m).map(function (t) { return t.table + " — " + t.perHour + (en ? "/h" : "/год"); }).join("; ");

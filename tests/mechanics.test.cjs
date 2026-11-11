@@ -232,6 +232,14 @@ check(codes(bl, 'warn').some((i) => /гринду/.test(i.uk)), true, 'a short s
 check(M.fmtH(0.2) + '|' + M.fmtH(2.5, 'en'), '12 хв|2 h 30 min', 'hours read as hours and minutes');
 check(M.calc(M.instantiate('prog_currencies')).simulation.rows.length, 3, 'currencies reuse the economy simulation');
 
+// 🏪 several shops (v2.123): markup and opening hour count, a shop with no goods is flagged, older cards get an empty shops table
+const sp = M.instantiate('prog_shop'), sa = M.shopAfford(sp);
+check(sa.goods.find((g) => g.id === 'SH2').price + '|' + sa.shops.map((x) => x.goods).join(','), '2750|2,2,1', 'the smith adds 10%; goods per shop');
+st(sp, 'shops').rows.push({ _id: 'SP9', name: 'Порожня', from: 0 });
+check(codes(sp, 'warn').some((i) => i.row === 'SP9'), true, 'a shop with no goods');
+const sold = JSON.parse(JSON.stringify(M.instantiate('prog_shop'))); sold.tplVersion = 1; sold.sections = sold.sections.filter((x) => x.id !== 'shops');
+check(M.upgrade(sold).sections.map((x) => x.id + ':' + (x.rows || []).length).join(','), 'wallet:0,shops:0,goods:5', 'an older shop card gets an empty shops table');
+
 // 🌳 development trees: points and the share opened, currency hours, cycles and levels caught, a tree inside any card
 const tr = M.instantiate('prog_skilltree'), ts = M.treeStats(tr);
 check(ts.mode + '|' + ts.available + '|' + ts.total + '|' + ts.share, 'points|20|26|77', 'the skill tree: 20 points by level 20 open 77% of it');
