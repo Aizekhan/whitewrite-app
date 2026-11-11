@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.125.2 (2026-11-11)
+**Version:** 2.126.0 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -775,6 +775,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.126.0** (owner) 🐾 game section `companions` «Супутники й улюбленці» / «Companions & pets» in the «Персонажі й вороги» menu group (game-only, no canon; subsections Улюбленці · Бойові супутники · Їздові тварини · Призвані істоти; fields helps / abilities / obtain / growth + Х-ки, portrait, references, prefab — `STATS_SECS`); the creature sheet (`card.beast`) with `persona.js` BEAST `role` (up to 3) instead of tactics and threat; wired into G2 gate, Спільнота (`COMM_GAME`), the folder / GDD import (Pets / Companions / Mounts…), quests & dialogues (`narrative-validate.js` `CARD_ROLES` → characters), MCP (`WRITE_SECS`, `SUB_STD`, `FRAME_FIELD` portrait). An empty section with subsections now shows them as blocks instead of the «Ще порожньо» start (except «Візуальний стиль»)
 - **v2.125.2** (owner) the creature sheet's «Тактика» and «Пересування» take up to 3 picks (`persona.js` `BEAST_MULTI`, `beastList` — `card.beast.behaviour` / `.move` are arrays, an older single value reads as one pick; one more empty select while there is room, «—» removes a pick; `beastText` joins with « + »); options «обороняє обʼєкт / місце», «швидко бігає»
 - **v2.125.1** (owner: a person's traits on a monster were wrong) «Вороги й боси» get a creature sheet instead of the character sheet: `functions/persona.js` `BEAST` (kind, size, behaviour → «Тактика», move, attack → «Тип атаки», habitat, threat; uk/en lists + «✎ Своє…») and `beastText`; `cards/{id}.beast` {k: value} (game card and a canon enemy's view card; `beastSheetHtml` / `beastBody`, «—» deletes the key); the character sheet (`draft.sheet`, `cs*`) is only for «Герої та NPC»; MCP `get_card` → `creature`, an enemy's leftover v2.124.1 `sheet` is never shown. Audit of every game shelf: no other shelf shows another kind's traits (locations — place sheet, art / gear / items / levels — picture frame, the rest — their own fields)
 - **v2.125.0** (owner, Morra agent report) MCP: `save_card` `subsection` (a «group» field no longer becomes `f_group` — the cards stayed in «Інше»), `get_design_section` `subsections`, `card_image_upload` (a picture from the disk into the card's frame via a one-time curl upload, `mcpUploads`)
@@ -999,5 +1000,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.125.2)
+**Last updated:** 2026-11-11 (v2.126.0)
 **Maintained by:** WhiteWrite Team

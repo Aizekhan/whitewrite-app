@@ -142,6 +142,10 @@ var BEAST = [
   { k: 'behaviour', uk: 'Тактика', en: 'Tactics', o: [['aggressive', 'нападає першим', 'attacks first'], ['pack', 'полює зграєю', 'hunts in a pack'], ['ambush', 'із засідки', 'ambush'],
     ['territorial', 'охороняє свою територію', 'territorial'], ['patrol', 'патрулює', 'patrols'], ['guard', 'обороняє обʼєкт / місце', 'defends an object / place'], ['cautious', 'обережний, тікає', 'cautious, flees'],
     ['passive', 'мирний (дичина)', 'passive (game)']] },
+  // 🐾 «Супутники й улюбленці» only (v2.126.0): what the creature does beside the hero; the sheet shows it instead of tactics
+  { k: 'role', uk: 'Роль поруч із гравцем', en: 'Role beside the player', o: [['fight', 'бʼється поруч', 'fights alongside'], ['tank', 'захищає гравця', 'protects the player'],
+    ['heal', 'лікує / підсилює', 'heals / buffs'], ['scout', 'розвідує й шукає', 'scouts & finds'], ['carry', 'носить речі', 'carries items'], ['ride', 'їздова', 'mount'],
+    ['gather', 'збирає ресурси', 'gathers resources'], ['craft', 'допомагає в крафті', 'helps crafting'], ['social', 'компанія й настрій', 'company & mood'], ['cosmetic', 'лише для краси', 'cosmetic only']] },
   { k: 'move', uk: 'Пересування', en: 'Movement', o: [['four', 'на чотирьох лапах', 'on four legs'], ['two', 'на двох ногах', 'on two legs'], ['run', 'швидко бігає', 'runs fast'], ['many', 'багато ніг', 'many legs'],
     ['fly', 'літає', 'flies'], ['hover', 'ширяє / левітує', 'hovers'], ['swim', 'плаває', 'swims'], ['crawl', 'повзає / риє', 'crawls / burrows'], ['slow', 'повільно бреде', 'shambles']] },
   { k: 'attack', uk: 'Тип атаки', en: 'Attack type', o: [['melee', 'ближня (кігті, ікла, зброя)', 'melee (claws, fangs, weapon)'], ['charge', 'кидок / таран', 'charge / ram'],
@@ -151,7 +155,7 @@ var BEAST = [
     ['plains', 'рівнини', 'plains'], ['anywhere', 'всюди', 'anywhere']] },
   { k: 'threat', uk: 'Загроза', en: 'Threat', o: [['weak', 'слабка', 'weak'], ['mid', 'середня', 'medium'], ['high', 'висока', 'high'], ['deadly', 'смертельна', 'deadly']] },
 ];
-var BEAST_MULTI = { behaviour: 3, move: 3 }; // up to 3 picks (owner, v2.125.2): on two legs + flies + runs; pack + defends a place…
+var BEAST_MULTI = { behaviour: 3, move: 3, role: 3 }; // up to 3 picks (owner, v2.125.2): on two legs + flies + runs; pack + defends a place…
 // a multi trait is an array; an older single value reads as one pick
 function beastList(b, k) { var v = (b || {})[k]; return (Array.isArray(v) ? v : v ? [v] : []).filter(Boolean).slice(0, BEAST_MULTI[k] || 1); }
 function beastLabel(k, v, lang) {

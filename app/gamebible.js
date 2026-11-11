@@ -729,7 +729,7 @@
   var NUM = function (stats) { return Object.assign(stats ? F("numbers", "Х-ки", "Stats", "table") : F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
   // hero cards link a prefab card of «Ассети й префаби» (card.prefab; card-refs KIND «prefab») — model files are not uploaded onto them (v2.88)
   var PREFAB = function () { return F("model", "Префаб", "Prefab", "prefab"); };
-  var STATS_SECS = ["characters", "enemies"]; // their «numbers» field is called «Х-ки» (owner, v2.86); older cards are renamed on opening
+  var STATS_SECS = ["characters", "enemies", "companions"]; // their «numbers» field is called «Х-ки» (owner, v2.86); older cards are renamed on opening
   var CANON = [
     { id: "world", special: "world", uk: "Огляд світу", en: "World overview",
       about: { uk: "Про що цей світ: суть, тон, ключові факти. Спільне для всіх історій та ігор.", en: "What this world is: its essence, tone and key facts. Shared by every story and game." } },
@@ -796,6 +796,13 @@
       about: { uk: "Хто стоїть на шляху, як бʼє і куди його бити. Бос із канону — тут лише його бій; біографія — у досьє світу.", en: "Who stands in the way, how it hits and where to hit it. A canon boss keeps only its fight here; the biography is in the world dossier." },
       defs: [F("group", "Тип (ворог / бос)", "Type (enemy / boss)"), F("behaviour", "Поведінка", "Behaviour"), F("attacks", "Атаки", "Attacks"),
              F("weakness", "Як перемогти", "How to beat"), NUM(true), F("portrait", "Портрет", "Portrait", "image"), F("refpics", "Референси", "References", "image"), PREFAB()] },
+    // 🐾 pets, combat companions, mounts, summons (owner, v2.126.0): the game's own creatures on the player's side — the creature sheet with «Роль»
+    { id: "companions", uk: "Супутники й улюбленці", en: "Companions & pets", group: "group",
+      groups: { uk: ["Улюбленці", "Бойові супутники", "Їздові тварини", "Призвані істоти"], en: ["Pets", "Combat companions", "Mounts", "Summons"] },
+      about: { uk: "Хто йде поруч із гравцем: улюбленці, бойові супутники, їздові тварини, призвані істоти — що вміють, як їх отримати й розвивати. Людина-союзник — у «Героях та NPC» → «Союзники».", en: "Who goes along with the player: pets, combat companions, mounts, summons — what they can do, how to get and grow them. A human ally is in “Heroes & NPCs” → “Allies”." },
+      defs: [F("group", "Тип (улюбленець / бойовий / їздовий / призваний)", "Type (pet / combat / mount / summon)"), F("helps", "Що робить для гравця", "What it does for the player"),
+             F("abilities", "Здібності й команди", "Abilities & commands"), F("obtain", "Як отримати", "How to get it"), F("growth", "Розвиток і догляд", "Growth & care"),
+             NUM(true), F("portrait", "Портрет", "Portrait", "image"), F("refpics", "Референси", "References", "image"), PREFAB()] },
     { id: "gear", uk: "Предмети й спорядження", en: "Items & gear", group: "group",
       groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
@@ -1017,7 +1024,7 @@
     { uk: "G0–G1 · Задум, ядро і greybox", en: "G0–G1 · Concept, core & greybox", after: "", show: ["overview", "lore", "refs", "artstyle", "characters", "mechanics", "levels", "locations", "plan", "tech"],
       todo: { uk: "огляд і бачення, ігрові цикли, відчуття гри, керування, один рівень з метриками, greybox", en: "overview & vision, game loops, game feel, controls, one level with metrics, greybox" },
       need: [["overview"], ["mechanics"], ["levels", "locations"]] },
-    { uk: "G2 · Перший рівень і наповнення", en: "G2 · First level & content", after: "G1", show: ["enemies", "factions", "scenes", "worldgen", "quests", "dialogues", "forge", "gear", "items", "assets", "materials", "animation", "ui", "audio", "issues", "knowledge", "activity"],
+    { uk: "G2 · Перший рівень і наповнення", en: "G2 · First level & content", after: "G1", show: ["enemies", "companions", "factions", "scenes", "worldgen", "quests", "dialogues", "forge", "gear", "items", "assets", "materials", "animation", "ui", "audio", "issues", "knowledge", "activity"],
       todo: { uk: "квести й діалоги, Кузня персонажів, вороги, арт і звук", en: "quests & dialogues, the Character forge, enemies, art & sound" }, need: [["enemies"], ["assets", "animation", "ui", "audio"]] },
     { uk: "G3 · Баланс і гравці", en: "G3 · Balance & players", after: "G2", show: ["progression", "experience", "telemetry"],
       todo: { uk: "економіка, крива складності, плейтести й телеметрія", en: "economy, the difficulty curve, playtests & telemetry" }, need: [["progression", "gear", "items"]] },
@@ -1067,7 +1074,7 @@
   // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
   var NAV_GROUPS = [
     { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "gstories"] },
-    { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies", "forge"] },
+    { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies", "companions", "forge"] },
     { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["gamemap", "locations", "levels", "worldgen", "scenes"] },
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
@@ -1720,7 +1727,8 @@
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
     if (query) html += list.length ? grid(list) : '<p class="empty">' + STR.nothing + '</p>';
     else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
-    else if (!list.length && !s.special && !(s.id === "progression" && progSub)) html += emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
+    else if (!list.length && !s.special && !(s.id === "progression" && progSub)) html += subsOf(s).length && s.id !== "artstyle" ? subsHtml(s, [], function () { return ""; }, grid) // an empty section with subsections shows them as blocks (owner, v2.126.0)
+      : emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
     else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
@@ -5614,7 +5622,7 @@
     draft.place = PLACE_SECS.indexOf(c.section) >= 0 ? Object.assign({}, c.place || {}) : null; // 🏞 a location's sheet (v2.115)
     draft.sheet = cEnt ? csState(cEnt) : null; // 🛡 a canon character in a game: the same sheet as in the World Bible, it writes to the canon (v2.109)
     if (!draft.sheet && c.section === "characters") draft.sheet = csState(c.src === "canon" ? {} : c.sheet || {});
-    draft.beast = c.section === "enemies" ? Object.assign({}, c.beast || {}) : null; // 🐺 an enemy is a creature: its own sheet (owner, v2.125.1) // a new one, or the game's own (an enemy, a card in any subsection): the same frame and traits (owner, v2.124.1) — kept on the card as `sheet`
+    draft.beast = c.section === "enemies" || c.section === "companions" ? Object.assign({}, c.beast || {}) : null; // 🐺 an enemy is a creature: its own sheet (owner, v2.125.1) // a new one, or the game's own (an enemy, a card in any subsection): the same frame and traits (owner, v2.124.1) — kept on the card as `sheet`
     if (STATS_SECS.indexOf(c.section) >= 0) draft.defs.forEach(function (d) { if (d.key === "numbers" && (d.label === "Числа" || d.label === "Numbers")) d.label = NUM(true).label; });
     if (STATS_SECS.indexOf(c.section) >= 0) { // v2.88: the model file field becomes the prefab link; a portrait and references join
       draft.defs.forEach(function (d) { if (d.key === "model" && (!d.type || d.type === "file")) { d.type = "prefab"; d.label = PREFAB().label; } });
@@ -5772,9 +5780,10 @@
       for (var i = 0, h = ""; i < n; i++) h += one(i);
       return '<label class="cs-f"><span>' + esc(LANG === "en" ? f.en : f.uk) + (max > 1 ? ' <small>' + (LANG === "en" ? "up to " : "до ") + max + '</small>' : '') + '</span>' + h + '</label>';
     };
+    var pal = open.section === "companions"; // 🐾 a companion: its role beside the hero instead of an enemy's tactics and threat
     return '<div class="field cs-wrap"><div class="cs"><div class="cs-frame">' + frame + '</div><div class="cs-stats">' +
-      '<div class="cs-row">' + sel("kind") + sel("size") + '</div><div class="cs-row">' + sel("behaviour") + sel("move") + '</div>' +
-      '<div class="cs-row cs-row3">' + sel("attack") + sel("habitat") + sel("threat") + '</div></div></div></div>';
+      '<div class="cs-row">' + sel("kind") + sel("size") + '</div><div class="cs-row">' + sel(pal ? "role" : "behaviour") + sel("move") + '</div>' +
+      (pal ? '<div class="cs-row">' + sel("attack") + sel("habitat") + '</div>' : '<div class="cs-row cs-row3">' + sel("attack") + sel("habitat") + sel("threat") + '</div>') + '</div></div></div>';
   }
   function beastBody() { // a trait set back to «—» is deleted, not kept by the merge
     var b = Object.assign({}, draft.beast); Object.keys(open.beast || {}).forEach(function (k) { if (!(k in b)) b[k] = firebase.firestore.FieldValue.delete(); }); return b;
@@ -9317,7 +9326,7 @@
   // The snapshot is built here from what the author sees; the server checks ownership, trims and stores it.
   var COMM_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/community", commPubs = {}; // pubId → community doc | null
   var COMM_CANON = ["laws", "w-characters", "w-locations", "w-factions", "w-items", "chronicle", "culture"];
-  var COMM_GAME = ["overview", "lore", "characters", "locations", "factions", "items", "mechanics", "levels", "enemies", "gear", "scenes", "refs"];
+  var COMM_GAME = ["overview", "lore", "characters", "locations", "factions", "items", "mechanics", "levels", "enemies", "companions", "gear", "scenes", "refs"];
   // The author ticks what the Community sees: the world itself and / or each game. A ticked game is its own card; the world alone
   // is one world card; the world ticked WITH games has no card of its own — it opens inside every ticked game's card (withWorld).
   var commCards = {}, commSel = null, commDraft = {}, commMsg = ""; // gid → that game's cards (one read) · the ticks { w, g: {gid: true} } · typed, not yet published
@@ -10073,6 +10082,7 @@
   var IN_PATH = [ // a folder name → the section; the shallowest one wins, models / prefabs / assets only when nothing else matched
     ["refs", /^(refs?|references?|референс\S*|moodboards?|inspiration|натхнення|concepts?|concept.?art|концепт\S*)$/],
     ["characters", /^(characters?|chars?|heroes|hero|npcs?|персонаж\S*|герої|герой)$/],
+    ["companions", /^(pets?|companions?|mounts?|summons?|familiars?|супутник\S*|улюблен\S*|компаньйон\S*|їздов\S*)$/],
     ["enemies", /^(enemies|enemy|monsters?|mobs?|bosses|boss|creatures?|вороги|ворог|монстр\S*|боси?)$/],
     ["locations", /^(locations?|places?|локації|місця)$/],
     ["levels", /^(levels?|maps?|scenes?|environments?|env|рівн\S*|мапи|карти|сцени)$/],
@@ -10083,9 +10093,9 @@
     ["audio", /^(audio|sounds?|sfx|music|voice|vo|ambien\S*|звук\S*|музика|озвучка)$/]
   ];
   var IN_ASSETS = /^(models?|meshes|prefabs?|assets?|ассети|моделі|префаби)$/;
-  var IN_ENTITY = ["characters", "enemies", "locations", "levels", "gear"]; // a subfolder there is one thing (Characters/Viktoria/… → «Viktoria»)
+  var IN_ENTITY = ["characters", "enemies", "companions", "locations", "levels", "gear"]; // a subfolder there is one thing (Characters/Viktoria/… → «Viktoria»)
   var IN_FALLBACK = { image: "refs", video: "refs", model: "assets", source: "assets", prefab: "assets", archive: "assets", material: "materials", anim: "animation", font: "ui", audio: "audio" };
-  var IN_TARGETS = ["characters", "locations", "enemies", "levels", "gear", "assets", "materials", "animation", "audio", "ui", "scenes", "refs", "tech"];
+  var IN_TARGETS = ["characters", "locations", "enemies", "companions", "levels", "gear", "assets", "materials", "animation", "audio", "ui", "scenes", "refs", "tech"];
   function inKind(name) { for (var k in IN_EXT) if (IN_EXT[k].test(name)) return k; return ""; }
   function inStem(n) { // «footstep_02.wav», «sword_albedo.png» → «footstep», «sword»: variations and texture maps share one card
     var s = baseName(n), t;
@@ -10665,7 +10675,7 @@
   var GDD_AREAS = [[/vision|pillar|бачен|задум|стовп|концеп|monetiz|монетиз|business|бізнес/, "overview"], [/econom|економ|loot|лут|progress|прогрес/, "progression"],
     [/loop|цикл|game feel|відчут|control|керуван|accessib|доступн|mechanic|механік|difficult|складн|balance|баланс|release|реліз|combat|бій|бойов|movement|рух/, "mechanics"],
     [/lore|лор|setting|сеттинг/, "lore"], [/hub|хаб|city|town|місто/, "locations"],
-    [/item|предмет|gear|спорядж|inventor|інвентар/, "gear"], [/character|персонаж/, "characters"], [/enem|ворог|boss|бос/, "enemies"], [/level|рівн|pacing|темп/, "levels"],
+    [/item|предмет|gear|спорядж|inventor|інвентар/, "gear"], [/\bpets?\b|companion|mount|summon|супутник|улюблен|компаньйон|їздов/, "companions"], [/character|персонаж/, "characters"], [/enem|ворог|boss|бос/, "enemies"], [/level|рівн|pacing|темп/, "levels"],
     [/\bui\b|\bux\b|інтерфейс/, "ui"], [/audio|sound|music|звук|музик/, "audio"], [/\bart\b|арт|visual|візуал/, "artstyle"], [/narrat|story|quest|сюжет|квест|наратив/, "quests"],
     [/tech|engine|технічн|рушій|multiplayer|мультипле/, "tech"], [/world|світ/, "locations"]];
   function gddSecFor(title, own) {

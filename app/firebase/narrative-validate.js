@@ -13,7 +13,7 @@
 
 const REF_FIELDS = ['giver', 'characters', 'locations', 'factions', 'artifacts', 'events'];
 // game card sections that can take part in a quest, and the role they play (enemies are characters, levels are places…)
-const CARD_ROLES = { characters: 'characters', enemies: 'characters', locations: 'locations', levels: 'locations', factions: 'factions', items: 'artifacts', gear: 'artifacts' };
+const CARD_ROLES = { characters: 'characters', enemies: 'characters', companions: 'characters', locations: 'locations', levels: 'locations', factions: 'factions', items: 'artifacts', gear: 'artifacts' };
 
 // Everything a quest or dialogue may link to: confirmed canon entities (id) + the game's own cards (c:<id>) in the role sections.
 // Canon entities seen in the game are cards with canonRef — they are linked by the entity id, so they are not repeated.

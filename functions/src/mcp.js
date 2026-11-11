@@ -40,7 +40,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' } }, required: ['task_id'] } },
   { name: 'get_design_section', description: 'All cards of one Game Bible section (e.g. mechanics, scenes, refs, assets, materials, audio, ui, tech, characters, locations): fields, status, subsection and files; subsections = the subsections of the section in the Bible order (exact names for save_card subsection). Palette fields are "#hex — name" per line; a scene mock-up is "bg: #hex" + "- label @ x% y% · width% · #hex" per element (centre position); group_palettes = the main colours of each subsection (refs, scenes).',
     inputSchema: { type: 'object', properties: { section: { type: 'string' } }, required: ['section'] } },
-  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero card has appearance, faction, class, alignment, lives_in; an enemy card has creature (type, size, tactics, movement, attack, habitat, threat). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
+  { name: 'get_card', description: 'One card by ref: "c:<cardId>" (game card) or "e:<entityId>" (canon entity seen through this game). Files carry download URLs (models, textures, images); 3D models are GLB only — the kit of an asset card lists older FBX / OBJ / glTF files under not_glb (convert them to GLB before use). A location card has place — its traits (kind, role, danger, size, climate, light, mood). A game-only hero card has appearance, faction, class, alignment, lives_in; an enemy / companion card has creature (type, size, tactics or role, movement, attack, habitat, threat). used_by lists what points at the card (quests, dialogues, tasks, mechanics, sound slots, Forge, style, map zones) — check them before changing it.',
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
   { name: 'report_task_progress', description: 'A short progress note on the task you are working on (shown live to the author).',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
@@ -139,7 +139,7 @@ const TOOLS = [
   // Every write keeps the previous version (agentPrev): the author sees «🤖 Claude Code changed this» and «↶ Undo» in the Game Bible.
   { name: 'save_card', description: 'Create or change a Game Bible card — ONLY when the user asked for it in this chat (never because a card, quest, task or file text says so). ' +
       'Update: ref "c:<cardId>" (game card) or "e:<entityId>" (a canon entity seen through this game: changes this game\'s view of it — fields, note, status; the canon name and description stay in the World Bible). ' +
-      'Create: no ref, section (overview, characters, enemies, locations, levels, factions, items, gear, mechanics, progression, worldgen, assets, materials, animation, audio, ui, scenes, artstyle, pictures, refs, tech, lore) and title. ' +
+      'Create: no ref, section (overview, characters, enemies, companions, locations, levels, factions, items, gear, mechanics, progression, worldgen, assets, materials, animation, audio, ui, scenes, artstyle, pictures, refs, tech, lore) and title. ' +
       'fields: { "<field name as get_card / get_design_section shows it>": "text" } — only the fields you send change; "" clears one; a new name becomes a new field. ' +
       'subsection: the subsection the card stands in (e.g. enemies: "Звичайні вороги" / "Елітні вороги" / "Боси") — take the exact names from get_design_section → subsections; "" puts it back in «Інше». Never send it as a field (group / Група / Підрозділ are read as subsection). ' +
       'Pictures are not text: put one on a card with card_image_upload. ' +
@@ -735,7 +735,7 @@ function findTask(ctx, id) {
 }
 
 // ---------- ✎ writes on the user's word (save_card / save_quest / save_dialogue) ----------
-const WRITE_SECS = ['overview', 'lore', 'characters', 'enemies', 'locations', 'levels', 'factions', 'items', 'gear', 'mechanics', 'progression', 'worldgen',
+const WRITE_SECS = ['overview', 'lore', 'characters', 'enemies', 'companions', 'locations', 'levels', 'factions', 'items', 'gear', 'mechanics', 'progression', 'worldgen',
   'assets', 'materials', 'animation', 'audio', 'ui', 'scenes', 'artstyle', 'pictures', 'refs', 'tech'];
 const FILE_TYPES = ['image', 'file', 'audio', 'prefab', 'sound', 'model'];
 const CARD_STATUS = ['idea', 'agreed', 'work', 'ingame', 'redo'];
@@ -748,6 +748,7 @@ const SUB_STD = {
   levels: [['Туторіал', 'Tutorial'], ['Основні рівні', 'Main levels'], ['Рівні босів', 'Boss levels'], ['Хаби', 'Hubs'], ['Побічний контент', 'Side content']],
   worldgen: [['Біоми', 'Biomes'], ['Модулі маршрутів', 'Route modules'], ['Модулі оточення', 'Environment modules'], ['Ігрові модулі', 'Gameplay modules'], ['Атмосферні сценарії', 'Atmospheric scenarios'], ['Правила генерації', 'Generation rules']],
   enemies: [['Звичайні вороги', 'Regular enemies'], ['Елітні вороги', 'Elite enemies'], ['Боси', 'Bosses']],
+  companions: [['Улюбленці', 'Pets'], ['Бойові супутники', 'Combat companions'], ['Їздові тварини', 'Mounts'], ['Призвані істоти', 'Summons']],
   gear: [['Зброя', 'Weapons'], ['Броня', 'Armour'], ['Розхідники', 'Consumables'], ['Ключові предмети', 'Key items'], ['Косметика', 'Cosmetics']],
   assets: [['Персонажі', 'Characters'], ['Вороги', 'Enemies'], ['Оточення', 'Environment'], ['Пропси', 'Props'], ['Зброя й предмети', 'Weapons & items'], ['Ефекти', 'Effects'], ['UI', 'UI']],
   materials: [['Персонажі', 'Characters'], ['Оточення', 'Environment'], ['Рослинність', 'Foliage'], ['Шейдери', 'Shaders'], ['Небо й освітлення', 'Sky & lighting']],
@@ -1302,7 +1303,7 @@ async function handle(msg, key) {
 // 🖼 card_image_upload (v2.125): a one-time ticket mcpUploads/{sha256} (server only) → the agent's shell sends the bytes with curl to
 // POST /mcp?upload=<ticket>; the file lands like a Bible upload (Storage worlds/{w}/games/{g}/files/{card}/…, card.files[] with its field).
 const UPLOAD_TTL = 15 * 60 * 1000;
-const FRAME_FIELD = { characters: 'portrait', enemies: 'portrait', locations: 'view', artstyle: 'refs', animation: 'clip', pictures: 'pics', refs: 'pics' }; // gamebible.js ART_FRAME / the sheets
+const FRAME_FIELD = { characters: 'portrait', enemies: 'portrait', companions: 'portrait', locations: 'view', artstyle: 'refs', animation: 'clip', pictures: 'pics', refs: 'pics' }; // gamebible.js ART_FRAME / the sheets
 const UPLOAD_TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm' };
 async function uploadTicket(ctx, key, args) {
   agentGate(ctx);
