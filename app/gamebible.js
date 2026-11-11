@@ -139,6 +139,12 @@
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
         type: "＋ Тип", typeTitle: "Міні-підрозділ у «{g}»", typePh: "Напр. «Маги», «Вбивці», «Воїни»", where: "Де", whereTop: "Окремий підрозділ на сторінці", whereIn: "Міні-підрозділ у «{g}»",
         typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Перетягни за назву, щоб змінити порядок",
+        pick: "☑ Вибрати", pickTip: "Вибрати кілька карток і перенести чи видалити їх разом (ще: Ctrl + клік по картці, Shift + клік — усі між двома)", picked: "Вибрано: {n}",
+        pickAll: "Усі на сторінці", pickNone: "Зняти вибір", pickBlk: "☑ усі", pickBlkTip: "Вибрати всі картки цього підрозділу", pickMove: "⇄ Перенести…", pickDel: "🗑 Видалити", pickDone: "Готово",
+        moveTitle: "Перенести вибране: {n}", moveTo: "Куди", moveHere: "Цей розділ", moveOk: "Перенести", movedN: "Перенесено: {n}",
+        delQ: "Видалити вибрані картки ({n})? Їхні файли теж зникнуть. Це не скасувати.", delCanonQ: "{m} з них — з канону: з гри вони приберуться, у Біблії світу лишаться.", deletedN: "Видалено: {n}",
+        delEntQ: "Видалити з канону ({n}): {l}? Це не скасувати.", entLinks: "Звʼязки інших записів канону з ними ({n}) приберуться.", entCards: "Картки в іграх ({n}) лишаться в іграх як свої.",
+        entRefs: "Квести й діалоги, що на них посилаються: {n}.", entScenes: "Сцени історій, де вони згадуються: {n}.", entFiles: "Файли ({n}) видаляться.",
         general: "Загальне", timeline: "Лінія часу", del: "Прибрати порожній підрозділ", story: "＋ Нова історія", rename: "Перейменувати підрозділ",
         move: "Підрозділ — перенести картку", moved: "Перенесено: «{s}»" },
       note: "Примітка для Claude", noteHint: "що зробити з цим у грі", notePh: "Напр.: зроби темнішим, перегенеруй з меншим polycount, додай у GDD…",
@@ -151,7 +157,7 @@
         rm: "Прибрати", hint: "Перетягуй елементи по сцені; клік — вибрати й змінити колір, підпис, ширину й висоту (повзунками або ручками на краях: праворуч ↔, знизу ↕, у куті — обидві), заокруглення (50 — коло чи овал). Кольори — з палітри картки.", empty: "Сцена порожня — додай перший елемент." },
       fieldDel: "Видалити поле", fieldLabel: "Назва поля", fieldType: "Тип поля", addRow: "＋ Рядок", addCol: "＋ Стовпець", col: "Стовпець",
       rmRow: "Прибрати рядок", rmCol: "Прибрати стовпець", imagesAdd: "＋ Додати картинки", soundAdd: "＋ Додати звук",
-      artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", pc: "⤒ З комп’ютера", rm: "🗑 Прибрати з картки", rmCanon: "Це картинка з канону світу — прибирається в досьє Біблії світу", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
+      artPick: { head: "🖼 Додати картинку", fromPc: "Завантажити з ПК", pc: "⤒ З комп’ютера", frame: "⌖ Положення й вигляд", rm: "🗑 Прибрати з картки", rmCanon: "Це картинка з канону світу — прибирається в досьє Біблії світу", btn: "🎨 З Арту", title: "Картинки з «Арт»", search: "Пошук картинки…", empty: "У «Арт» ще немає картинок — завантаж їх у «Картинки» чи «Референси», або просто в будь-яку картку.", none: "Нічого не знайдено.", into: "Куди додати", add: "Додати відмічені", done: "Додано з «Арт»." },
       artFrame: { pic: "＋ Картинка", clip: "＋ Анімація (відео чи GIF)", change: "Змінити", tip: "Завантажити головну картинку картки", clipTip: "Завантажити анімацію: відео MP4 / WebM або GIF" },
       zoom: { close: "Закрити (Esc)", prev: "Попередня", next: "Наступна", orig: "Відкрити оригінал" },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
@@ -485,6 +491,12 @@
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
         type: "＋ Type", typeTitle: "Mini-subsection in “{g}”", typePh: "E.g. “Mages”, “Assassins”, “Warriors”", where: "Where", whereTop: "A subsection of its own on the page", whereIn: "A mini-subsection in “{g}”",
         typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Drag by the name to change the order",
+        pick: "☑ Select", pickTip: "Select several cards and move or delete them together (also: Ctrl + click a card, Shift + click — all between two)", picked: "Selected: {n}",
+        pickAll: "All on the page", pickNone: "Clear", pickBlk: "☑ all", pickBlkTip: "Select every card of this subsection", pickMove: "⇄ Move…", pickDel: "🗑 Delete", pickDone: "Done",
+        moveTitle: "Move the selected: {n}", moveTo: "Where", moveHere: "This section", moveOk: "Move", movedN: "Moved: {n}",
+        delQ: "Delete the selected cards ({n})? Their files go too. This can't be undone.", delCanonQ: "{m} of them are from the canon: they leave the game and stay in the World Bible.", deletedN: "Deleted: {n}",
+        delEntQ: "Delete from the canon ({n}): {l}? This can't be undone.", entLinks: "Links of other canon entries to them ({n}) are removed.", entCards: "Cards in games ({n}) stay in the games as their own.",
+        entRefs: "Quests and dialogues pointing at them: {n}.", entScenes: "Story scenes that mention them: {n}.", entFiles: "Files ({n}) are deleted.",
         general: "General", timeline: "Time line", del: "Remove the empty subsection", story: "＋ New story", rename: "Rename the subsection",
         move: "Subsection — move the card", moved: "Moved to “{s}”" },
       note: "Note for Claude", noteHint: "what to do with it in the game", notePh: "E.g.: make it darker, regenerate with lower polycount, add to the GDD…",
@@ -497,7 +509,7 @@
         rm: "Remove", hint: "Drag elements around the scene; click one to change its colour, label, width and height (with the sliders or the handles on its edges: right ↔, bottom ↕, the corner — both), rounding (50 — a circle or oval). Colours come from the card's palette.", empty: "The scene is empty — add the first element." },
       fieldDel: "Delete field", fieldLabel: "Field name", fieldType: "Field type", addRow: "＋ Row", addCol: "＋ Column", col: "Column",
       rmRow: "Remove row", rmCol: "Remove column", imagesAdd: "＋ Add images", soundAdd: "＋ Add a sound",
-      artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", pc: "⤒ From the computer", rm: "🗑 Remove from the card", rmCanon: "This picture is from the world canon — remove it in the World Bible dossier", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
+      artPick: { head: "🖼 Add a picture", fromPc: "Upload from PC", pc: "⤒ From the computer", frame: "⌖ Position & fit", rm: "🗑 Remove from the card", rmCanon: "This picture is from the world canon — remove it in the World Bible dossier", btn: "🎨 From Art", title: "Pictures from “Art”", search: "Find a picture…", empty: "“Art” has no pictures yet — upload them to “Pictures” or “References”, or simply onto any card.", none: "Nothing found.", into: "Add to", add: "Add the ticked ones", done: "Added from “Art”." },
       artFrame: { pic: "＋ Picture", clip: "＋ Animation (video or GIF)", change: "Change", tip: "Upload the card's main picture", clipTip: "Upload the animation: an MP4 / WebM video or a GIF" },
       zoom: { close: "Close (Esc)", prev: "Previous", next: "Next", orig: "Open the original" },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
@@ -1510,6 +1522,150 @@
     var names = [].filter.call(box.children, function (x) { return x.matches(sel) && x.dataset.sub; }).map(function (x) { return d.block === "type" ? x.dataset.subtype : x.dataset.sub; });
     (d.block === "type" ? saveTypes(s, el.dataset.sub, names) : saveSubs(s, names)).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); render(); });
   }
+  // ☑ many cards at once (owner, v2.130.0): «☑ Вибрати» (or Ctrl / ⌘ + click on a card, Shift + click — the cards between) → a bar below:
+  // move them into another subsection / mini-subsection, another game card section (game cards), or delete them. Where cards are dragged (dragCtx).
+  var pick = null; // { sec, keys: { ref: 1 }, last }
+  function pickEls() { return [].slice.call($("view").querySelectorAll(".subsec .grid > .card")).filter(function (el) { return cardRef(el); }); }
+  function pickUi() {
+    var bar = $("pick-bar"); if (bar) bar.remove();
+    if (pick && (pick.sec !== section || !dragCtx || !canWrite)) pick = null;
+    var row = dragCtx && canWrite && $("view").querySelector("header.sec .row");
+    if (row && !$("pick-tog")) {
+      var tb = document.createElement("button"); tb.className = "btn"; tb.id = "pick-tog"; tb.title = STR.sub.pickTip; row.insertBefore(tb, $("add-top") || null);
+      tb.onclick = function () { pick = pick ? null : { sec: section, keys: {} }; pickUi(); };
+    }
+    var tg = $("pick-tog"); if (tg) { tg.textContent = pick ? STR.sub.pickDone : STR.sub.pick; tg.setAttribute("aria-pressed", String(!!pick)); }
+    document.body.classList.toggle("picking", !!pick);
+    var els = pickEls();
+    els.forEach(function (el) { var m = el.querySelector(":scope > .pick-mark"); if (m) m.remove(); el.classList.remove("is-picked"); el.removeAttribute("aria-pressed"); });
+    [].forEach.call($("view").querySelectorAll("[data-pickblk]"), function (x) { x.remove(); });
+    if (!pick) return;
+    var here = {}; els.forEach(function (el) { here[cardRef(el)] = 1; });
+    Object.keys(pick.keys).forEach(function (k) { if (!here[k]) delete pick.keys[k]; }); // gone meanwhile (a live snapshot)
+    els.forEach(function (el) {
+      var on = !!pick.keys[cardRef(el)], m = document.createElement("span"); m.className = "pick-mark"; m.setAttribute("aria-hidden", "true"); m.textContent = on ? "✓" : "";
+      el.prepend(m); el.classList.toggle("is-picked", on); el.setAttribute("aria-pressed", String(on));
+    });
+    [].forEach.call($("view").querySelectorAll(".subsec > h2.group, .subsec.subtype > h3.subtype-h"), function (h) {
+      if (!h.parentNode.querySelector(".grid > .card")) return;
+      var b = document.createElement("button"); b.className = "btn mini ghost"; b.dataset.pickblk = "1"; b.textContent = STR.sub.pickBlk; b.title = STR.sub.pickBlkTip; h.appendChild(b);
+    });
+    var n = Object.keys(pick.keys).length;
+    bar = document.createElement("div"); bar.id = "pick-bar"; bar.className = "pick-bar"; bar.setAttribute("role", "toolbar"); bar.setAttribute("aria-label", STR.sub.pick);
+    bar.innerHTML = '<b role="status">' + esc(STR.sub.picked.replace("{n}", n)) + '</b><button class="btn mini" data-pk="all">' + STR.sub.pickAll + '</button>' +
+      (n ? '<button class="btn mini" data-pk="none">' + STR.sub.pickNone + '</button><button class="btn mini primary" data-pk="move">' + STR.sub.pickMove + '</button><button class="btn mini danger" data-pk="del">' + STR.sub.pickDel + '</button>' : '') +
+      '<button class="btn mini ghost" data-pk="done">' + STR.sub.pickDone + '</button>';
+    document.body.appendChild(bar);
+  }
+  // a click in the view while picking: a card toggles (Shift — the run from the last one), «☑ усі» takes the subsection's cards → true = handled
+  function pickClick(e) {
+    var pb = e.target.closest("[data-pickblk]");
+    if (pick && pb) {
+      var inner = [].slice.call(pb.closest(".subsec").querySelectorAll(".grid > .card")).filter(function (el) { return cardRef(el); }), all = inner.every(function (el) { return pick.keys[cardRef(el)]; });
+      inner.forEach(function (el) { if (all) delete pick.keys[cardRef(el)]; else pick.keys[cardRef(el)] = 1; }); pickUi(); return true;
+    }
+    var el = e.target.closest("#view .subsec .grid > .card"); if (!el || !cardRef(el)) return false;
+    if (!pick) { if (!(e.ctrlKey || e.metaKey) || !dragCtx || !canWrite) return false; pick = { sec: section, keys: {} }; }
+    var ref = cardRef(el), refs = pickEls().map(cardRef);
+    if (e.shiftKey && pick.last && refs.indexOf(pick.last) >= 0) { var a = refs.indexOf(pick.last), b = refs.indexOf(ref); refs.slice(Math.min(a, b), Math.max(a, b) + 1).forEach(function (k) { pick.keys[k] = 1; }); }
+    else if (pick.keys[ref]) delete pick.keys[ref]; else pick.keys[ref] = 1;
+    pick.last = ref; e.preventDefault(); e.stopPropagation(); pickUi(); return true;
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("#pick-bar [data-pk]"); if (!b || !pick) return;
+    var k = b.dataset.pk;
+    if (k === "move") return pickMove();
+    if (k === "del") return pickDelete();
+    if (k === "done") pick = null;
+    else if (k === "all") pickEls().forEach(function (el) { pick.keys[cardRef(el)] = 1; });
+    else if (k === "none") pick.keys = {};
+    pickUi();
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && pick && !document.querySelector(".ask") && !open && !dos) { pick = null; pickUi(); } });
+  // where the picked cards can go: every subsection (+ its mini-subsections) of this section; game cards — of the other game card sections too
+  function pickTargets(s, refs) {
+    var gameOnly = refs.every(function (r) { return r.indexOf("c:") === 0; });
+    var mech = refs.some(function (r) { var c = allCards().filter(function (x) { return x.key === r; })[0]; return c && (c.mech || c.section === "mechanics" || mFactory(c.section)); });
+    var secs = [s];
+    if (mode === "game" && !inCanon(s) && gameOnly && !mech && s.id !== "mechanics" && !mFactory(s.id)) gameSections().forEach(function (x) {
+      if (x.id !== s.id && !x.special && groupKey(x) && x.id !== "mechanics" && !mFactory(x.id) && (ME.owner || mayEdit(x.id))) secs.push(x);
+    });
+    return secs.map(function (x) {
+      var opts = [], gs = inCanon(x) ? subOptionsList(x) : groupsOf(x);
+      gs.forEach(function (g) { opts.push([x.id + "\u0002" + g, g, 0]); if (typesOn(x)) typesOf(x, g).forEach(function (t) { opts.push([x.id + "\u0002" + g + "\u0001" + t, "  ↳ " + t, 1]); }); });
+      if (x.special !== "culture") opts.push([x.id + "\u0002", looseLabel(x, gs.length), 1]);
+      return { s: x, opts: opts };
+    });
+  }
+  function subOptionsList(s) {
+    var list = subsOf(s);
+    (s.special === "culture" ? lore : entities.filter(function (e) { return e.kind === s.dossier; })).forEach(function (e) { if (e.group && list.indexOf(e.group) < 0) list.push(e.group); });
+    return list;
+  }
+  async function pickMove() {
+    var s = dragCtx, refs = Object.keys(pick.keys); if (!s || !refs.length) return;
+    var lab = s.special === "culture" ? function (g) { return L(loreGroup(g)); } : function (g) { return g; };
+    var sel = '<select id="pk-to">' + pickTargets(s, refs).map(function (x) {
+      return '<optgroup label="' + esc(x.s.id === s.id ? STR.sub.moveHere + " · " + L(x.s) : L(x.s)) + '">' +
+        x.opts.map(function (o) { return '<option value="' + esc(o[0]) + '">' + esc(o[2] ? o[1] : lab(o[1])) + '</option>'; }).join("") + '</optgroup>'; }).join("") + '</select>';
+    var r = await askForm(STR.sub.moveTitle.replace("{n}", refs.length), [{ k: "to", label: STR.sub.moveTo, html: sel }], { ok: STR.sub.moveOk, read: function (box) { return { to: box.querySelector("#pk-to").value }; } });
+    if (!r || !r.to) return;
+    var to = r.to, sid = to.slice(0, to.indexOf("\u0002")), g = to.slice(to.indexOf("\u0002") + 1), t = "";
+    if (g.indexOf("\u0001") >= 0) { t = g.slice(g.indexOf("\u0001") + 1); g = g.slice(0, g.indexOf("\u0001")); }
+    var ts = sid === s.id ? s : sec(sid), kFrom = groupKey(s), kTo = groupKey(ts), D = firebase.firestore.FieldValue.delete(), base = Date.now(), ops = [];
+    refs.forEach(function (ref, i) {
+      var id = ref.slice(ref.indexOf(":") + 1), body = { order: base + i, updatedAt: stamp() };
+      if (ref.indexOf("ent:") === 0 || ref.indexOf("lore:") === 0) { body.group = g; ops.push([wref().collection(ref.indexOf("lore:") === 0 ? "lore" : "entities").doc(id), body]); return; }
+      body.fields = {}; body.fields[kTo] = g || D;
+      if (typesOn(ts)) body.fields.subtype = t || D; else if (typesOn(s)) body.fields.subtype = D;
+      if (ts.id !== s.id) { body.section = ts.id; if (kFrom && kFrom !== kTo) body.fields[kFrom] = D; } // another game section: the card goes with all its fields
+      if (ref.indexOf("e:") === 0) Object.assign(body, { section: s.id, canonRef: id });
+      ops.push([gref().collection("cards").doc(id), body]);
+    });
+    try {
+      await pickCommit(ops, function (b, o) { b.set(o[0], o[1], { merge: true }); });
+      pick = null; pickUi(); sync("ok", STR.sub.movedN.replace("{n}", ops.length) + " → " + L(ts) + (g ? " · " + lab(g) : "") + (t ? " › " + t : ""));
+    } catch (er) { notify(STR.failed + ": " + (er.code || er.message || er)); }
+  }
+  function pickCommit(ops, put) { // batches of 400 (Firestore takes up to 500 writes in one)
+    var chain = Promise.resolve();
+    for (var i = 0; i < ops.length; i += 400) (function (part) { chain = chain.then(function () { var b = db.batch(); part.forEach(function (o) { put(b, o); }); return b.commit(); }); })(ops.slice(i, i + 400));
+    return chain;
+  }
+  async function pickDelete() {
+    var s = dragCtx, refs = Object.keys(pick.keys), Q = STR.sub; if (!s || !refs.length) return;
+    try {
+      if (s.dossier) { // canon entities: first what they touch, as deleting one dossier does (deleteDossier)
+        var ents = refs.map(function (r) { return entities.filter(function (x) { return "ent:" + x.id === r; })[0]; }).filter(Boolean);
+        sync("ok", STR.edel.busy);
+        var ims = await Promise.all(ents.map(entityImpact)), sum = function (f) { return ims.reduce(function (n, im) { return n + f(im); }, 0); };
+        var lines = [Q.delEntQ.replace("{n}", ents.length).replace("{l}", ents.slice(0, 8).map(function (e) { return e.name || e.title || "…"; }).join(", ") + (ents.length > 8 ? "…" : ""))];
+        var nl = sum(function (im) { return im.links.length; }), nc = sum(function (im) { return im.games.filter(function (x) { return x.card && !x.card.hidden; }).length; });
+        var nr = sum(function (im) { return im.games.reduce(function (a, x) { return a + x.refs.length; }, 0); }), ns = sum(function (im) { return im.scenes.length; });
+        var nf = ents.reduce(function (n, e) { return n + (e.files || []).filter(function (f) { return ownPath(f.path); }).length; }, 0);
+        if (nl) lines.push(Q.entLinks.replace("{n}", nl)); if (nc) lines.push(Q.entCards.replace("{n}", nc)); if (nr) lines.push(Q.entRefs.replace("{n}", nr));
+        if (ns) lines.push(Q.entScenes.replace("{n}", ns)); if (nf) lines.push(Q.entFiles.replace("{n}", nf));
+        var blind = [].concat.apply([], ims.map(function (im) { return im.blind; })).filter(function (x, i, l) { return l.indexOf(x) === i; });
+        if (blind.length) lines.push(STR.edel.noGames.replace("{g}", blind.join(", ")));
+        if (!(await askConfirm(lines.join("\n\n"), { danger: true, okLabel: Q.pickDel }))) return;
+        await purgeEntities(ents, ims);
+      } else if (s.special === "culture") {
+        var ls = refs.map(function (r) { return lore.filter(function (x) { return "lore:" + x.id === r; })[0]; }).filter(Boolean);
+        if (!(await askConfirm(Q.delQ.replace("{n}", ls.length), { danger: true, okLabel: Q.pickDel }))) return;
+        await Promise.all([].concat.apply([], ls.map(function (e) { return (e.files || []).map(function (f) { return dropOwn(f.path).catch(function () {}); }); })));
+        await pickCommit(ls, function (b, e) { b.delete(wref().collection("lore").doc(e.id)); });
+      } else {
+        var cs = refs.map(function (r) { return allCards().filter(function (x) { return x.key === r; })[0]; }).filter(Boolean), canonN = cs.filter(function (c) { return c.src === "canon"; }).length;
+        if (!(await askConfirm(Q.delQ.replace("{n}", cs.length) + (canonN ? "\n\n" + Q.delCanonQ.replace("{m}", canonN) : ""), { danger: true, okLabel: Q.pickDel }))) return;
+        var own = cs.filter(function (c) { return c.src !== "canon"; }), gone = own.map(function (c) { return c.id; });
+        await Promise.all([].concat.apply([], own.map(function (c) { // a file another (staying) card also holds stays
+          return (c.files || []).filter(function (f) { return !f.linked && !cards.some(function (o) { return gone.indexOf(o.id) < 0 && (o.files || []).some(function (x) { return x.path === f.path; }); }); })
+            .map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }); })));
+        await pickCommit(cs, function (b, c) { var r = gref().collection("cards").doc(c.id); if (c.src === "canon") b.set(r, { section: c.section, canonRef: c.id, hidden: true }, { merge: true }); else b.delete(r); }); // a canon card only leaves the game
+      }
+      var n = refs.length; pick = null; pickUi(); sync("ok", Q.deletedN.replace("{n}", n));
+    } catch (er) { notify(STR.failed + ": " + (er.code || er.message || er)); }
+  }
   // a drag that never got its pointerup (the browser took over, the window lost focus): nothing stays hanging on the screen (v2.115.7)
   function dragAbort() {
     var d = drag; drag = null; clearDropMarks(); document.body.classList.remove("is-dragging");
@@ -1842,7 +1998,7 @@
     if (mode === "game" && game && section !== "settings" && !gameSections().some(function (s) { return s.id === section; })) section = "overview"; // a hidden section's link lands on the overview
     attachLazy();
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
-    renderNav(); dragCtx = null;
+    renderNav(); dragCtx = null; var pkb = $("pick-bar"); if (pkb) pkb.remove(); document.body.classList.remove("picking");
     if (cosmo && (section !== "cosmology" || imp || query)) dropCosmo();
     $("statuses").hidden = mode === "world" || !query && (section === "settings" || CANON.some(function (x) { return x.id === section; }) || /^(plan|issues|experience|knowledge|activity|marketing|forge|gamemap)$/.test(sec(section).special || "")); // status filters only where there are game cards
     var cur = sections().concat([SETTINGS]).filter(function (x) { return x.id === section; })[0]; $("nav-cur").textContent = section === "settings" ? (mode === "game" ? STR.settingsGame : STR.settingsWorld) : cur ? L(cur) : "";
@@ -1909,6 +2065,7 @@
     else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
+    pickUi();
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
     var alt = $("alib-tog"); if (alt) alt.onclick = function () { audioLib = !audioLib; render(); };
     var alq = $("alib-q"); if (alq) alq.oninput = function () { alibQ = alq.value; $("alib-list").innerHTML = audioLibList(); };
@@ -2514,9 +2671,11 @@
   function entImage(e) { var p = ((e && e.files) || []).filter(isImage); return (e && e.portrait && p.filter(function (f) { return f.id === e.portrait; })[0]) || p[0]; }
   // the author's frame of a face picture (⌖, frame-pick.js): which part fills the 16:9 thumb, or all of it
   function frameAttr(f) { return f && f.frame && window.wwFrame ? ' style="' + window.wwFrame.style(f.frame) + '"' : ''; }
-  function pickFrame(target, id) {
+  // ⌖ from a frame's ✎ (owner, v2.130.0): the picker takes that frame's own shape (a portrait, a 16:9 view…)
+  function frameShape(btn) { var fr = btn && btn.closest(".cs-frame"); return fr && fr.offsetWidth && fr.offsetHeight ? fr.offsetWidth + "/" + fr.offsetHeight : ""; }
+  function pickFrame(target, id, aspect) {
     var f = (target.files || []).filter(function (x) { return x.id === id; })[0]; if (!f || !window.wwFrame) return;
-    window.wwFrame.pick({ url: f.url, frame: f.frame, lang: LANG, onSave: async function (fr) {
+    window.wwFrame.pick({ url: f.url, frame: f.frame, lang: LANG, aspect: aspect || "", onSave: async function (fr) {
       var list = target.files.map(function (x) { return x.id === id ? Object.assign({}, x, { frame: fr }) : x; });
       var ref = target === dos ? colOf(dos).doc(dos.id) : gref().collection("cards").doc(target.id);
       try { await ref.set({ files: list, updatedAt: stamp() }, { merge: true }); }
@@ -2534,7 +2693,7 @@
       subsHtml(s, list, function (e) { return e.group; }, function (l) { return '<div class="grid">' + l.map(dosCardHtml).join("") + '</div>'; });
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     var lv = $("loc-view"); if (lv) lv.onclick = function () { goSection("worldmap"); }; // the map is its own item now
-    dragCtx = s;
+    dragCtx = s; pickUi();
   }
   // 🗺 several world maps (owner, v2.117.2): the main one + worlds/{w}.maps [{ id, title, image { url, path, name } }] — other worlds, planes, an underworld.
   // A location sits on one map: entity.mapAt { <mapId>: { x, y } } puts it on another map (and off the main one); the main map keeps entity.mapPos.
@@ -3006,6 +3165,31 @@
     try { out.scenes = affectedScenes(await worldScenes(), e); } catch (er) {}
     return out;
   }
+  // the entities go (one, or ☑ many at once): each game's card of them stays as the game's own, their files leave Storage, the other entities lose the links
+  async function purgeEntities(list, ims) {
+    var D = firebase.firestore.FieldValue.delete(), ids = list.map(function (e) { return e.id; }), gone = function (id) { return ids.indexOf(id) >= 0; };
+    for (var j = 0; j < list.length; j++) {
+      var e = list[j], im = ims[j], t = e.name || e.title || "…", desc = e[descKeyOf(e)] || "";
+      for (var i = 0; i < im.games.length; i++) { // the games keep their work: the card stays, as the game's own
+        var x = im.games[i]; if (!x.card) continue;
+        var cref = wref().collection("games").doc(x.g.id).collection("cards").doc(x.card.id);
+        if (x.card.hidden) await cref.delete();
+        else await cref.update({ title: t, canonRef: D, note: [x.card.note || "", desc].filter(Boolean).join("\n\n"), updatedAt: stamp() });
+      }
+      await Promise.all((e.files || []).filter(function (f) { return ownPath(f.path); }).map(function (f) { return dropOwn(f.path).catch(function (er) { if (er.code !== "storage/object-not-found") throw er; }); }));
+    }
+    var ops = [];
+    entities.forEach(function (o) {
+      if (gone(o.id)) return;
+      var u = {};
+      KINDS.forEach(function (k) { if (Array.isArray(o[k]) && o[k].some(gone)) u[k] = o[k].filter(function (id) { return !gone(id); }); });
+      if (Array.isArray(o.relations) && o.relations.some(function (r) { return r && gone(r.id); })) u.relations = o.relations.filter(function (r) { return !(r && gone(r.id)); });
+      ["owner", "location", "faction"].forEach(function (k) { if (o[k] && gone(o[k])) u[k] = D; });
+      if (Object.keys(u).length) { u.updatedAt = stamp(); ops.push(["u", o.id, u]); }
+    });
+    ids.forEach(function (id) { ops.push(["d", id]); }); // the links first, then the entities — one batch while it fits (400)
+    await pickCommit(ops, function (b, o) { var r = wref().collection("entities").doc(o[1]); if (o[0] === "u") b.update(r, o[2]); else b.delete(r); });
+  }
   async function deleteDossier() {
     var e = dos; if (!e || e.isNew || !canWrite) return;
     if (e.col === "lore") return deleteLore();
@@ -3025,28 +3209,7 @@
       dmsg("");
       if (!(await askConfirm(lines.join("\n\n"), { danger: true, okLabel: X.btn }))) { $("d-delete").disabled = false; return; }
       dmsg(STR.saving);
-      var D = firebase.firestore.FieldValue.delete(), desc = e[descKeyOf(e)] || "";
-      for (var i = 0; i < im.games.length; i++) { // the games keep their work: the card stays, as the game's own
-        var x = im.games[i]; if (!x.card) continue;
-        var cref = wref().collection("games").doc(x.g.id).collection("cards").doc(x.card.id);
-        if (x.card.hidden) await cref.delete();
-        else await cref.update({ title: t, canonRef: D, note: [x.card.note || "", desc].filter(Boolean).join("\n\n"), updatedAt: stamp() });
-      }
-      await Promise.all(files.map(function (f) { return dropOwn(f.path).catch(function (er) { if (er.code !== "storage/object-not-found") throw er; }); }));
-      var ups = [];
-      entities.forEach(function (o) {
-        if (o.id === e.id) return;
-        var u = {};
-        KINDS.forEach(function (k) { if (Array.isArray(o[k]) && o[k].indexOf(e.id) >= 0) u[k] = o[k].filter(function (id) { return id !== e.id; }); });
-        if (Array.isArray(o.relations) && o.relations.some(function (r) { return r && r.id === e.id; })) u.relations = o.relations.filter(function (r) { return !(r && r.id === e.id); });
-        ["owner", "location", "faction"].forEach(function (k) { if (o[k] === e.id) u[k] = D; });
-        if (Object.keys(u).length) { u.updatedAt = stamp(); ups.push([o.id, u]); }
-      });
-      if (ups.length > 450) throw new Error(ups.length + " > 450");
-      var batch = db.batch();
-      ups.forEach(function (x) { batch.update(wref().collection("entities").doc(x[0]), x[1]); });
-      batch.delete(wref().collection("entities").doc(e.id));
-      await batch.commit();
+      await purgeEntities([e], [im]);
       closeDossier(); notify(X.done.replace("{t}", t));
     } catch (er) { if (dos === e) { $("d-delete").disabled = false; dmsg(STR.failed + ": " + (er.code || er.message || er)); } }
   }
@@ -3335,7 +3498,7 @@
       function (g) { return L(loreGroup(g)); });
     $("view").innerHTML = html;
     var at = $("add-top"); if (at) at.onclick = newSubsection;
-    dragCtx = s;
+    dragCtx = s; pickUi();
   }
   // ---------- Квести й Діалоги гри: games/{g}/quests, games/{g}/dialogues (Worldbuilder, allowGameDev) ----------
   // Links: the game's own cards in role sections (c:<id>, narrative-validate.js CARD_ROLES) and canon entities (their id), incl. canon events.
@@ -5494,7 +5657,9 @@
     var csp = e.target.closest("[data-csportrait]"); if (csp) { if (dos.isNew) { dmsg(CS.saveFirst); return; }
       var up = function () { csPortraitNext = true; $("d-pic-up").click(); }, cur = entImage(dos);
       if (!cur) return up();
-      picChooser(csp, [{ label: STR.artPick.pc, run: up }, { label: STR.artPick.rm, danger: true, run: function () { removeEntityFile(cur.id); } }]); return; }
+      var cpi = [{ label: STR.artPick.pc, run: up }];
+      if ((dos.files || []).some(function (f) { return f.id === cur.id; }) && isImage(cur)) cpi.push({ label: STR.artPick.frame, run: function () { pickFrame(dos, cur.id, frameShape(csp)); } }); // ⌖ position & fit in the frame
+      picChooser(csp, cpi.concat([{ label: STR.artPick.rm, danger: true, run: function () { removeEntityFile(cur.id); } }])); return; }
     var dp = e.target.closest("[data-dportrait]"); if (dp) { setPortrait(dp.dataset.dportrait); return; }
     var db2 = e.target.closest("[data-bulb]");
     if (db2) { dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, function () { questFrom(db2.dataset.bulb.split(":")[0], db2.dataset.bulb.split(":")[1]); }); return; }
@@ -6932,6 +7097,8 @@
       $("e-body").appendChild(inp); inp.addEventListener("change", function () { setTimeout(function () { inp.remove(); }, 0); }); inp.click();
     } }];
     if (gameId && ART_SRC.indexOf(open.section) < 0) items.push({ label: A.btn, run: function () { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); artPicker(field); } });
+    var ff = fid && (open.files || []).filter(function (f) { return f.id === fid; })[0];
+    if (ff && isImage(ff) && btn.closest(".cs-frame")) items.push({ label: A.frame, run: function () { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); pickFrame(open, fid, frameShape(btn)); } }); // ⌖ the picture's position & fit in its frame
     if (fid === "__canon") items.push({ label: A.rm, danger: true, off: A.rmCanon, run: function () {} });
     else if (fid) items.push({ label: A.rm, danger: true, run: function () { removeFile(fid); } });
     picChooser(btn, items);
@@ -11626,6 +11793,7 @@
     if (!dos || dos.id !== x.id) openDossier(x);
   });
   function viewClick(e) {
+    if (pickClick(e)) return; // ☑ picking cards
     var es = e.target.closest("[data-estate]"); if (es) { if (es.dataset.estate === "mech") mechNew(""); else styleFromRefs(es); return; } // an empty section's first step
     var eg = e.target.closest("[data-edgo]"); if (eg) { edFlash($(eg.dataset.edgo)); return; } // an editor's progress line → its checks
     if (thumbView(e, "a.gpthumb", ".gp-pics")) return;

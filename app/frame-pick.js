@@ -71,7 +71,12 @@
       if (ok) { ok.disabled = true; Promise.resolve(opts.onSave(norm(fr))).then(close, function () { ok.disabled = false; }); }
     });
     box.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); close(); } });
-    document.body.appendChild(box); paint(); stage.focus();
+    document.body.appendChild(box); paint();
+    if (opts.aspect) { // a tall shape (a portrait frame) stays on the screen with its buttons: no taller than 60% of the window
+      var ab = String(opts.aspect).split("/"), ar = (+ab[0] || 16) / (+ab[1] || 9), bw = stage.parentNode.clientWidth - 36, mh = innerHeight * 0.6;
+      if (bw / ar > mh) { stage.style.width = Math.round(mh * ar) + "px"; stage.style.justifySelf = "center"; }
+    }
+    stage.focus();
   }
   window.wwFrame = { pick: pick, style: style };
 })();
