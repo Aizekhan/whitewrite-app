@@ -978,8 +978,8 @@ h3.group.subtype-h .btn.mini{ padding:2px 10px; font:500 12.5px "Inter"; letter-
 h3.group.subtype-h .btn.mini.ghost{ border-color:transparent; background:none; color:var(--tx-mid); }
 /* ☑ picking many cards at once (v2.130.0) */
 .pick-mark{ position:absolute; top:-8px; right:-8px; z-index:3; width:22px; height:22px; border-radius:50%; border:2px solid var(--tx-mid); background:#000a; color:#111; font:700 13px/18px "Inter"; text-align:center; pointer-events:none; }
-.card.is-picked{ outline:2px solid var(--gold-lit); outline-offset:2px; }
-.card.is-picked .pick-mark{ background:var(--gold-lit); border-color:var(--gold-lit); }
+.card.is-picked, .chl-card.is-picked{ outline:2px solid var(--gold-lit); outline-offset:2px; }
+.is-picked .pick-mark{ background:var(--gold-lit); border-color:var(--gold-lit); }
 .pick-bar{ position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:80; display:flex; width:max-content; flex-wrap:wrap; gap:8px; align-items:center; max-width:calc(100vw - 32px);
   background:var(--bg-3); border:1px solid var(--line-2); border-radius:14px; padding:10px 14px; box-shadow:0 14px 40px #000a; }
 .pick-bar b{ color:var(--tx-hi); margin-right:6px; white-space:nowrap; }
