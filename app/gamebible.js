@@ -4260,7 +4260,7 @@
       m = MX().instantiate(""); m.cat = catOfGroup(f.group || ""); m.purpose = f.text || "";
       m.rules = [f.numbers, f.deps ? (LANG === "en" ? "Depends on: " : "Залежить від: ") + f.deps : ""].filter(Boolean).join("\n\n"); m.legacy = !!raw;
     }
-    med = { id: raw ? raw.id : newId("card"), isNew: !raw, card: c, title: (raw && raw.title) || (preset && preset.tpl ? ml(MX().template(preset.tpl).name) : ""),
+    med = { agent: agentOf(raw), id: raw ? raw.id : newId("card"), isNew: !raw, card: c, title: (raw && raw.title) || (preset && preset.tpl ? ml(MX().template(preset.tpl).name) : ""),
       status: (raw && raw.status) || "idea", m: m, tab: m.sections.some(function (x) { return x.id === "ctable"; }) ? "ctable" : "general", adv: false, find: {}, sort: {}, cell: "", wiz: null, wizOff: {}, cgby: "group",
       sec: (raw && raw.section) || secId || (preset && MX().template(preset.tpl) && MX().template(preset.tpl).sec) || "mechanics" };
     mcFor(med.sec);
@@ -5220,6 +5220,7 @@
     $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1">' +
       edHead({ back: 'data-mact="back"', backLabel: MC.back, title: med.title || MC.newM, progId: "m-bar", prog: mProgHtml(r), state: canWrite ? "m-state" : "",
         actions: (med.isNew ? '' : '<button class="btn" data-mact="files">' + MC.files + '</button>') + (canWrite ? '<button class="btn primary" data-mact="save" id="m-save">' + MC.save + '</button>' : '') }) +
+      (med.agent ? '<div class="agentbar" role="status">' + agentBar(med.agent, canWrite).replace("data-agundo", 'data-mact="agUndo"').replace("data-agkeep", 'data-mact="agKeep"') + '</div>' : '') + // 🤖 save_mechanic (v2.132.0)
       '<div class="medgrid"><div class="mout" id="m-out">' + mOutlineHtml(r) + '</div><div class="medmain">' + body +
       '<div class="qbox" id="m-issues" aria-live="polite">' + mIssuesHtml(r) + '</div>' +
       (!med.isNew && !s ? impactHtml(allCards().filter(function (x) { return x.key === "c:" + med.id; })[0] || { isNew: true }) : '') +
@@ -5340,6 +5341,7 @@
     if (p[0] === "back") { medLeave(function () { render(); }); return; }
     if (/^t(View|Sim|Reset|Buy|Sell|Sel|Add|Child|Del|IconRm)$/.test(p[0])) return mTreeAct(p); // 🌳 the tree view
     if (p[0] === "save") return saveMech();
+    if (p[0] === "agUndo" || p[0] === "agKeep") return mechAgent(p[0] === "agUndo");
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
     if (p[0] === "fwrm") { var fwr = m.fw || {}; fwr.caps = (fwr.caps || []).filter(function (x) { return x !== p[1]; }); renderMEditor(); return; }
@@ -5421,12 +5423,22 @@
     if (d.sec === "audio") body.fields.mood = d.m.purpose || ""; // the audio cards' description field
     if (d.sec === "progression") body.fields.numbers = mProgSummary(d.m); // the plain card field: what the builder computed, in one line (search, MCP get_card)
     if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec(d.sec).defs.slice(); }
+    if (d.agent) Object.assign(body, AGENT_CLEAR()); // the author's own save: the agent's version is the author's now
     btn.disabled = true; $("m-state").textContent = STR.saving;
     try {
       await gref().collection("cards").doc(d.id).set(body, { merge: true });
       if (med !== d) return;
-      d.isNew = false; d.legacy = false; d.first = JSON.stringify([d.title, d.status, d.m]); renderMEditor(); $("m-state").textContent = STR.saved;
+      d.isNew = false; d.legacy = false; d.agent = null; d.first = JSON.stringify([d.title, d.status, d.m]); renderMEditor(); $("m-state").textContent = STR.saved;
     } catch (er) { if (med === d) { btn.disabled = false; $("m-state").textContent = STR.failed + ": " + (er.code || er.message); } }
+  }
+  async function mechAgent(undo) { // 🤖 «↶ Повернути як було» / «✓ Лишити» on a mechanic Claude Code filled (MCP save_mechanic)
+    var d = med, a = d && d.agent; if (!a) return;
+    var ref = gref().collection("cards").doc(d.id);
+    try {
+      if (!undo) { await ref.set(AGENT_CLEAR(), { merge: true }); d.agent = null; renderMEditor(); return; }
+      if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
+      await agentUndo(ref, a.prev); med = null; render(); notify(STR.agent.undone);
+    } catch (er) { $("m-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   async function deleteMech() {
     var d = med, raw = cards.filter(function (x) { return x.id === d.id; })[0]; if (!(await askConfirm(MC.delQ.replace("{t}", d.title || "…"), { danger: true }))) return;
