@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.130.0 (2026-11-11)
+**Version:** 2.130.1 (2026-11-11)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -775,6 +775,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.130.1** (owner) «☑ Вибрати» → «Обрати кілька», hidden on a page without cards; embedded in the shell it stays in the page beside «＋ Підрозділ» (the `#topline` observer moves `#pick-tog` with `#add-top` into `.subadd-row`); fix: the first click on a section showed no button — `pickUi` looked the id up globally and found the previous page's button still on the logo strip
 - **v2.130.0** (owner) ☑ bulk cards: `gamebible.js` `pick` {sec, keys} — «☑ Вибрати» in the section header (`pickUi`, added where `dragCtx` is), Ctrl/⌘ + click, Shift + click range, «☑ усі» per (mini-)subsection, a fixed `#pick-bar`; `pickMove` → `pickTargets` (this section's subsections + mini-subsections; game-only non-mechanics cards also any other game card section: `section` changes, the old group key is dropped, `subtype` set / dropped), `pickDelete` (game cards: files that no staying card holds leave Storage, the doc goes; canon cards → `hidden`; culture → lore docs; dossiers → `entityImpact` per entity, one summed confirmation, `purgeEntities` — shared with `deleteDossier` now — strips links to the whole set at once), writes in batches of 400 (`pickCommit`). ⌖ «Положення й вигляд» in the frame's ✎ menu (`cardPicMenu`, the dossier portrait `data-csportrait`) → `pickFrame(target, id, frameShape(btn))`; `frame-pick.js` keeps a tall stage ≤ 60% of the window
 - **v2.129.0** (owner) ⇅ subsections and mini-subsections are dragged by their heading (`[data-sdrag]`, mouse / pen) — `gamebible.js` `drag.block` "sub" | "type", `dropBlock` writes the new order: `subsections[section]` (games/{g} or worlds/{w} for the canon) via `saveSubs`, `subtypes[section][subsection]` via `saveTypes`; a mini-subsection moves only among its siblings; where cards are dragged (not the chronicle, quests & dialogues, a «Прогресія» sub-item, a search)
 - **v2.128.0** (owner) 🏷 mini-subsections: types inside a subsection (`games/{g}.subtypes[section][subsection] = [names]`, a card's `fields.subtype`) — `gamebible.js` `typesOn` (game card sections; not mechanics / factories / refs / canon dossiers), `typesOf`, `saveTypes`, `newType`; «＋ Підрозділ» asks where (a subsection of its own or a mini-subsection of one, `askForm`), «＋ Тип» on a subsection heading; nested `.subsec.subtype` blocks with «＋ Додати» / ✕ (empty); drag-and-drop and the card's «move» select carry the type (`subsection\u0001type`), a new card / a canon pick is born in it; rules: a «вибрані розділи» member writes `subtypes` of their sections; MCP `save_card mini_subsection` (+ `typeWrite` arrayUnion), `get_card` / `get_design_section` → `mini_subsection` / `mini_subsections`, another subsection drops the old type; tests/mcp-subsections.test.cjs
@@ -1005,5 +1006,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.130.0)
+**Last updated:** 2026-11-11 (v2.130.1)
 **Maintained by:** WhiteWrite Team

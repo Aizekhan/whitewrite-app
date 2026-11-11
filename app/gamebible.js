@@ -139,7 +139,7 @@
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
         type: "＋ Тип", typeTitle: "Міні-підрозділ у «{g}»", typePh: "Напр. «Маги», «Вбивці», «Воїни»", where: "Де", whereTop: "Окремий підрозділ на сторінці", whereIn: "Міні-підрозділ у «{g}»",
         typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Перетягни за назву, щоб змінити порядок",
-        pick: "☑ Вибрати", pickTip: "Вибрати кілька карток і перенести чи видалити їх разом (ще: Ctrl + клік по картці, Shift + клік — усі між двома)", picked: "Вибрано: {n}",
+        pick: "Обрати кілька", pickTip: "Вибрати кілька карток і перенести чи видалити їх разом (ще: Ctrl + клік по картці, Shift + клік — усі між двома)", picked: "Вибрано: {n}",
         pickAll: "Усі на сторінці", pickNone: "Зняти вибір", pickBlk: "☑ усі", pickBlkTip: "Вибрати всі картки цього підрозділу", pickMove: "⇄ Перенести…", pickDel: "🗑 Видалити", pickDone: "Готово",
         moveTitle: "Перенести вибране: {n}", moveTo: "Куди", moveHere: "Цей розділ", moveOk: "Перенести", movedN: "Перенесено: {n}",
         delQ: "Видалити вибрані картки ({n})? Їхні файли теж зникнуть. Це не скасувати.", delCanonQ: "{m} з них — з канону: з гри вони приберуться, у Біблії світу лишаться.", deletedN: "Видалено: {n}",
@@ -491,7 +491,7 @@
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
         type: "＋ Type", typeTitle: "Mini-subsection in “{g}”", typePh: "E.g. “Mages”, “Assassins”, “Warriors”", where: "Where", whereTop: "A subsection of its own on the page", whereIn: "A mini-subsection in “{g}”",
         typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Drag by the name to change the order",
-        pick: "☑ Select", pickTip: "Select several cards and move or delete them together (also: Ctrl + click a card, Shift + click — all between two)", picked: "Selected: {n}",
+        pick: "Select several", pickTip: "Select several cards and move or delete them together (also: Ctrl + click a card, Shift + click — all between two)", picked: "Selected: {n}",
         pickAll: "All on the page", pickNone: "Clear", pickBlk: "☑ all", pickBlkTip: "Select every card of this subsection", pickMove: "⇄ Move…", pickDel: "🗑 Delete", pickDone: "Done",
         moveTitle: "Move the selected: {n}", moveTo: "Where", moveHere: "This section", moveOk: "Move", movedN: "Moved: {n}",
         delQ: "Delete the selected cards ({n})? Their files go too. This can't be undone.", delCanonQ: "{m} of them are from the canon: they leave the game and stay in the World Bible.", deletedN: "Deleted: {n}",
@@ -1530,11 +1530,12 @@
     var bar = $("pick-bar"); if (bar) bar.remove();
     if (pick && (pick.sec !== section || !dragCtx || !canWrite)) pick = null;
     var row = dragCtx && canWrite && $("view").querySelector("header.sec .row");
-    if (row && !$("pick-tog")) {
-      var tb = document.createElement("button"); tb.className = "btn"; tb.id = "pick-tog"; tb.title = STR.sub.pickTip; row.insertBefore(tb, $("add-top") || null);
+    if (row && !row.querySelector("#pick-tog")) { // a fresh render: a button of the page before it (the logo strip keeps it a moment longer) goes — else the first click on a section showed none (owner)
+      var old = $("pick-tog"); if (old) old.remove();
+      var at = row.querySelector("#add-top"), tb = document.createElement("button"); tb.className = "btn"; tb.id = "pick-tog"; tb.title = STR.sub.pickTip; row.insertBefore(tb, at || null);
       tb.onclick = function () { pick = pick ? null : { sec: section, keys: {} }; pickUi(); };
     }
-    var tg = $("pick-tog"); if (tg) { tg.textContent = pick ? STR.sub.pickDone : STR.sub.pick; tg.setAttribute("aria-pressed", String(!!pick)); }
+    var tg = $("pick-tog"); if (tg) { tg.textContent = pick ? STR.sub.pickDone : STR.sub.pick; tg.setAttribute("aria-pressed", String(!!pick)); tg.style.display = pick || pickEls().length ? "" : "none"; } // nothing to pick on an empty page
     document.body.classList.toggle("picking", !!pick);
     var els = pickEls();
     els.forEach(function (el) { var m = el.querySelector(":scope > .pick-mark"); if (m) m.remove(); el.classList.remove("is-picked"); el.removeAttribute("aria-pressed"); });
@@ -11726,8 +11727,8 @@
       var h1 = head.querySelector("h1"), actions = head.querySelector(":scope > .row"), st = head.querySelector(".wstats-row .wwstats");
       if (st) top.appendChild(st);
       if (h1) top.appendChild(h1);
-      var sa = actions && actions.querySelector("#add-top"); // «＋ Підрозділ» stays in the page, top right above the cards (owner)
-      if (sa) { var sr = document.createElement("div"); sr.className = "subadd-row"; sr.appendChild(sa); head.appendChild(sr); }
+      var sa = actions && actions.querySelector("#add-top"), sp = actions && actions.querySelector("#pick-tog"); // «Обрати кілька» + «＋ Підрозділ» stay in the page together, top right above the cards (owner)
+      if (sa || sp) { var sr = document.createElement("div"); sr.className = "subadd-row"; if (sp) sr.appendChild(sp); if (sa) sr.appendChild(sa); head.appendChild(sr); }
       if (actions && actions.children.length) top.appendChild(actions);
     }).observe($("view"), { childList: true });
   }
