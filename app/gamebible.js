@@ -138,7 +138,7 @@
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
         type: "＋ Тип", typeTitle: "Міні-підрозділ у «{g}»", typePh: "Напр. «Маги», «Вбивці», «Воїни»", where: "Де", whereTop: "Окремий підрозділ на сторінці", whereIn: "Міні-підрозділ у «{g}»",
-        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Перетягни за назву, щоб змінити порядок", fold: "Згорнути підрозділ", unfold: "Розгорнути підрозділ", foldAll: "▸ Згорнути всі", unfoldAll: "▾ Розгорнути всі",
+        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Клік по назві — згорнути / розгорнути; перетягни за назву, щоб змінити порядок", fold: "Згорнути підрозділ", unfold: "Розгорнути підрозділ", foldAll: "Згорнути всі", unfoldAll: "Розгорнути всі",
         pick: "Обрати кілька", pickTip: "Вибрати кілька карток і перенести чи видалити їх разом (ще: Ctrl + клік по картці, Shift + клік — усі між двома)", picked: "Вибрано: {n}",
         pickAll: "Усі на сторінці", pickNone: "Зняти вибір", pickBlk: "☑ усі", pickBlkTip: "Вибрати всі картки цього підрозділу", pickMove: "⇄ Перенести…", pickDel: "🗑 Видалити", pickDone: "Готово",
         moveTitle: "Перенести вибране: {n}", moveTo: "Куди", moveHere: "Цей розділ", moveOk: "Перенести", movedN: "Перенесено: {n}",
@@ -490,7 +490,7 @@
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
         type: "＋ Type", typeTitle: "Mini-subsection in “{g}”", typePh: "E.g. “Mages”, “Assassins”, “Warriors”", where: "Where", whereTop: "A subsection of its own on the page", whereIn: "A mini-subsection in “{g}”",
-        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Drag by the name to change the order", fold: "Collapse the subsection", unfold: "Expand the subsection", foldAll: "▸ Collapse all", unfoldAll: "▾ Expand all",
+        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Click the name to collapse / expand; drag it to change the order", fold: "Collapse the subsection", unfold: "Expand the subsection", foldAll: "Collapse all", unfoldAll: "Expand all",
         pick: "Select several", pickTip: "Select several cards and move or delete them together (also: Ctrl + click a card, Shift + click — all between two)", picked: "Selected: {n}",
         pickAll: "All on the page", pickNone: "Clear", pickBlk: "☑ all", pickBlkTip: "Select every card of this subsection", pickMove: "⇄ Move…", pickDel: "🗑 Delete", pickDone: "Done",
         moveTitle: "Move the selected: {n}", moveTo: "Where", moveHere: "This section", moveOk: "Move", movedN: "Moved: {n}",
@@ -1324,12 +1324,12 @@
   var subFold = {}; try { subFold = JSON.parse(localStorage.getItem("ww-bible-fold") || "{}") || {}; } catch (e) { subFold = {}; }
   function foldKey(s, g, t) { return (inCanon(s) ? "w:" + worldId : "g:" + gameId) + "|" + s.id + "|" + g + (t ? "|" + t : ""); }
   function saveFold() { try { localStorage.setItem("ww-bible-fold", JSON.stringify(subFold)); } catch (e) {} }
-  function foldBtn(on, g, t) { return query ? '' : '<button type="button" class="subfold" data-subfold="' + esc(g) + '"' + (t ? ' data-subtype="' + esc(t) + '"' : '') + ' aria-expanded="' + !on + '" title="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '" aria-label="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '">' + (on ? '▸' : '▾') + '</button>'; }
+  function foldBtn(on, g, t) { return query ? '' : '<button type="button" class="subfold" data-subfold="' + esc(g) + '"' + (t ? ' data-subtype="' + esc(t) + '"' : '') + ' aria-expanded="' + !on + '" title="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '" aria-label="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '">' + ARROW + '</button>'; } // the menu's chevron: › folded, turned down when open
   // a click on ▾/▸ — just that block, no re-render; «Згорнути всі» / «Розгорнути всі» — every subsection of the page
   function foldToggle(b) {
     var s = sec(section), box = b.closest(".subsec"), k = foldKey(s, b.dataset.subfold, b.dataset.subtype), on = !subFold[k];
     if (on) subFold[k] = 1; else delete subFold[k]; saveFold();
-    box.classList.toggle("folded", on); b.textContent = on ? "▸" : "▾"; b.setAttribute("aria-expanded", String(!on));
+    box.classList.toggle("folded", on); b.setAttribute("aria-expanded", String(!on));
     b.title = on ? STR.sub.unfold : STR.sub.fold; b.setAttribute("aria-label", b.title);
   }
   function foldAll(on) {
@@ -11943,6 +11943,8 @@
     var se = e.target.closest("[data-sedit]"); if (se) { tellShell({ type: "ww-edit-story", projectId: se.dataset.sedit }); return; } // the shell's story form
     var sd = e.target.closest("[data-sdel]"); if (sd) { tellShell({ type: "ww-delete-story", projectId: sd.dataset.sdel }); return; } // the shell asks to confirm
     var sfb = e.target.closest("[data-subfold]"); if (sfb) { foldToggle(sfb); return; }
+    var sfh = !e.target.closest("button,input,label,a,select") && e.target.closest(".subsec > h2.group, .subsec.subtype > h3.subtype-h"); // a click on the subsection's name folds it too (a drag by it doesn't — dragBlockClick)
+    if (sfh && sfh.querySelector(":scope > [data-subfold]")) { foldToggle(sfh.querySelector(":scope > [data-subfold]")); return; }
     var sfa = e.target.closest("[data-foldall]"); if (sfa) { foldAll(sfa.dataset.foldall === "1"); return; }
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub, as.dataset.subtype); return; }
     var at = e.target.closest("[data-addtype]"); if (at) { var ats = sec(section), atg = at.dataset.addtype; askName(STR.sub.typeTitle.replace("{g}", atg), STR.sub.typePh, function (n) { if (n) newType(ats, atg, n); }); return; }
