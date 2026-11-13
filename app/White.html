@@ -1304,7 +1304,9 @@ body.at-home .back-fab{ display:none; }
   window.__wwOpenWorld = openWorld;
   // the book's start screen knows whether to offer "create" or "choose" a world
   function announceWorlds() {
+    if (!window.__wwUser && window.__wwAuth !== false) return; // sign-in not known yet: an empty list is no answer — the start screen keeps its guess (no flash of «Створи свій світ»)
     window.__wwWorldsCount = WORLDS.length;
+    try { localStorage.setItem("ww-worlds-n", String(WORLDS.length)); } catch (e) {} // the next load's first guess
     var f = frames.book;
     if (f && f.contentWindow) try { f.contentWindow.postMessage({ type: "ww-worlds", count: WORLDS.length }, window.location.origin); } catch (e) {}
   }

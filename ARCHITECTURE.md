@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.133.0 (2026-11-11)
+**Version:** 2.134.1 (2026-11-13)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -777,6 +777,8 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.134.1** (owner) no flashes on load: the start screen's CTA guesses «Обери свій світ» until the shell knows the worlds (`app.jsx` — `__wwWorldsCount`, else localStorage `ww-worlds-n`, else `ww_auth`), the shell's `announceWorlds` stays silent before sign-in is known and remembers the count; a game opened from the hub (`gameId` / `ww-bible-open` while loading) renders nothing until the games snapshot (`gamebible.js gamesIn`) — no World Bible first
+- **v2.134.0** (owner) ▸ folding subsections: every subsection / mini-subsection heading built by `subsHtml` (game card sections, dossiers, culture, quests & dialogues, the chronicle) gets ▾/▸ (`data-subfold` → `foldToggle`, class `.subsec.folded` hides all but the heading, no re-render); «▸ Згорнути всі» / «▾ Розгорнути всі» above the blocks when the page has 2+ (`data-foldall` → `foldAll`). Per browser only — localStorage `ww-bible-fold`, key `w:<world>|g:<game> · section · subsection [· type]`; a search ignores folding; no Firestore, MCP or rules change
 - **v2.133.0** (owner, after the agent's report) 🌳 tree node column `branchPts` «Очок у гілці» (`mechanics.js treeNodeFields`; `treeUpgrade` adds it after `level` to every tree section, own ones too, from `upgrade`): `treeStats` reach adds the points still missing in each branch of the node's set (`branchNeed`, Infinity when the rest of the branch holds fewer), checks — error when the branch cannot hold it, warn without a branch, no keystone tip; Bible sim `mSimBranch` (can take / prune), the node chip «N у гілці». MCP `save_mechanic`: `MECH.upgrade` first; a row sent is the whole row — the old row (by id, else by name) keeps only `icon`, `col`, `row`; KB uk+en
 - **v2.132.0** (owner, MCP agent report) MCP `save_mechanic` — the agent fills a constructor mechanic (section values, table rows / tree nodes, own fields), typed and linked by name; undo bar in the mechanic editor; KB uk+en
 - **v2.131.0** (owner) 🏅 skill tree node emblem: the tree inspector's «Емблема» (`data-ticon` → `mIconUp`) uploads via `putFile` as a file of the mechanic card (`field: "tnode:<row id>"`, so it leaves with the card and counts in the Storage quota), the row keeps `icon: { id, url }` (shown on the node `.mtr-ic`; MCP get_mechanic rows carry it), `mIconStore` writes just that row's icon into the saved `card.mech` at once; replace / «Прибрати» (`tIconRm`) drop the old file unless another node shows it (`mIconDrop`)
@@ -1013,5 +1015,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-11 (v2.133.0)
+**Last updated:** 2026-11-13 (v2.134.1)
 **Maintained by:** WhiteWrite Team

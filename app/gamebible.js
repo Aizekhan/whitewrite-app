@@ -138,7 +138,7 @@
       found: "Знайдено", nothing: "Нічого не знайдено.", newCard: "Нова картка", other: "Інше", sectionsAria: "Розділи",
       group: "Підрозділ", sub: { add: "＋ Підрозділ", title: "Новий підрозділ", ph: "Назва підрозділу, напр. «Головні герої»", item: "＋ Додати", empty: "Ще порожньо.", start: "Почни звідси:",
         type: "＋ Тип", typeTitle: "Міні-підрозділ у «{g}»", typePh: "Напр. «Маги», «Вбивці», «Воїни»", where: "Де", whereTop: "Окремий підрозділ на сторінці", whereIn: "Міні-підрозділ у «{g}»",
-        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Перетягни за назву, щоб змінити порядок",
+        typeDel: "Прибрати міні-підрозділ", typeNone: "без міні-підрозділу", drag: "Перетягни за назву, щоб змінити порядок", fold: "Згорнути підрозділ", unfold: "Розгорнути підрозділ", foldAll: "▸ Згорнути всі", unfoldAll: "▾ Розгорнути всі",
         pick: "Обрати кілька", pickTip: "Вибрати кілька карток і перенести чи видалити їх разом (ще: Ctrl + клік по картці, Shift + клік — усі між двома)", picked: "Вибрано: {n}",
         pickAll: "Усі на сторінці", pickNone: "Зняти вибір", pickBlk: "☑ усі", pickBlkTip: "Вибрати всі картки цього підрозділу", pickMove: "⇄ Перенести…", pickDel: "🗑 Видалити", pickDone: "Готово",
         moveTitle: "Перенести вибране: {n}", moveTo: "Куди", moveHere: "Цей розділ", moveOk: "Перенести", movedN: "Перенесено: {n}",
@@ -490,7 +490,7 @@
       found: "Found", nothing: "Nothing found.", newCard: "New card", other: "Other", sectionsAria: "Sections",
       group: "Subsection", sub: { add: "＋ Subsection", title: "New subsection", ph: "Subsection name, e.g. “Main heroes”", item: "＋ Add", empty: "Empty yet.", start: "Start here:",
         type: "＋ Type", typeTitle: "Mini-subsection in “{g}”", typePh: "E.g. “Mages”, “Assassins”, “Warriors”", where: "Where", whereTop: "A subsection of its own on the page", whereIn: "A mini-subsection in “{g}”",
-        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Drag by the name to change the order",
+        typeDel: "Remove the mini-subsection", typeNone: "no mini-subsection", drag: "Drag by the name to change the order", fold: "Collapse the subsection", unfold: "Expand the subsection", foldAll: "▸ Collapse all", unfoldAll: "▾ Expand all",
         pick: "Select several", pickTip: "Select several cards and move or delete them together (also: Ctrl + click a card, Shift + click — all between two)", picked: "Selected: {n}",
         pickAll: "All on the page", pickNone: "Clear", pickBlk: "☑ all", pickBlkTip: "Select every card of this subsection", pickMove: "⇄ Move…", pickDel: "🗑 Delete", pickDone: "Done",
         moveTitle: "Move the selected: {n}", moveTo: "Where", moveHere: "This section", moveOk: "Move", movedN: "Moved: {n}",
@@ -1050,7 +1050,7 @@
   var section = "world", query = "", statusFilter = {}, planName = null, pendingFocus = null;
   // Two Bibles in one page: the World Bible (mode "world": the canon + «Повʼязані ігри» at the foot of its menu) and a game's
   // GDD (mode "game": its own menu, «Канон світу» on top leads back). The canon streams stay loaded in both.
-  var mode = "world", startGame = params.get("gameId") || "", lastSec = { world: "world" };
+  var mode = "world", startGame = params.get("gameId") || "", gamesIn = false, lastSec = { world: "world" };
   var editMode = false; // card field structure editing (names, types, deletion) — never survives closing the card
   var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
   var exIssues = [], exPlaytests = [], exExperiments = [], exMetrics = null, exTab = "overview", exBusy = "", exMsg = "", exKey = null, exHeat = { zone: "", layer: "move" }, exDays = 30, exBuild = ""; // «Досвід гравців»
@@ -1319,6 +1319,25 @@
     var patch = { subsections: {} }; patch.subsections[s.id] = list;
     return (inCanon(s) ? wref() : gref()).set(patch, { merge: true });
   }
+  // ▸ folded subsections (owner, v2.134.0): a subsection / mini-subsection hides its cards, only its heading stays — remembered per browser
+  // (localStorage ww-bible-fold), per world or game, section and subsection; a search shows everything
+  var subFold = {}; try { subFold = JSON.parse(localStorage.getItem("ww-bible-fold") || "{}") || {}; } catch (e) { subFold = {}; }
+  function foldKey(s, g, t) { return (inCanon(s) ? "w:" + worldId : "g:" + gameId) + "|" + s.id + "|" + g + (t ? "|" + t : ""); }
+  function saveFold() { try { localStorage.setItem("ww-bible-fold", JSON.stringify(subFold)); } catch (e) {} }
+  function foldBtn(on, g, t) { return query ? '' : '<button type="button" class="subfold" data-subfold="' + esc(g) + '"' + (t ? ' data-subtype="' + esc(t) + '"' : '') + ' aria-expanded="' + !on + '" title="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '" aria-label="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '">' + (on ? '▸' : '▾') + '</button>'; }
+  // a click on ▾/▸ — just that block, no re-render; «Згорнути всі» / «Розгорнути всі» — every subsection of the page
+  function foldToggle(b) {
+    var s = sec(section), box = b.closest(".subsec"), k = foldKey(s, b.dataset.subfold, b.dataset.subtype), on = !subFold[k];
+    if (on) subFold[k] = 1; else delete subFold[k]; saveFold();
+    box.classList.toggle("folded", on); b.textContent = on ? "▸" : "▾"; b.setAttribute("aria-expanded", String(!on));
+    b.title = on ? STR.sub.unfold : STR.sub.fold; b.setAttribute("aria-label", b.title);
+  }
+  function foldAll(on) {
+    var s = sec(section);
+    [].forEach.call($("view").querySelectorAll(".subsec:not(.subtype)"), function (x) { var k = foldKey(s, x.dataset.sub); if (on) subFold[k] = 1; else delete subFold[k]; });
+    if (!on) Object.keys(subFold).forEach(function (k) { if (k.indexOf(foldKey(s, "")) === 0) delete subFold[k]; }); // «Розгорнути всі» opens the mini-subsections too
+    saveFold(); render();
+  }
   // One block per subsection: heading with its count and «＋ Додати»; empty custom ones can be removed.
   function subsHtml(s, items, groupOf, body, labelOf) {
     var subs = subsOf(s), by = {}, extra = [], loose = [];
@@ -1333,16 +1352,17 @@
     // where cards are dragged too (not the chronicle, quests & dialogues, a «Прогресія» sub-item or a search)
     var sd = canWrite && !query && s.special !== "chronicle" && s.special !== "quests" && s.special !== "dialogues" && !(s.id === "progression" && progSub),
       sdAttr = ' data-sdrag="1" title="' + esc(STR.sub.drag) + '"';
+    var fold = function (g, t) { return !query && !!subFold[foldKey(s, g, t)]; };
     var html = "", head = function (g, label, n, canDrop) {
       var pal = g && game && PAL_SECS.indexOf(s.id) >= 0 && !inCanon(s);
-      return '<h2 class="group"' + (sd && g ? sdAttr : '') + '>' + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
+      return '<h2 class="group"' + (sd && g ? sdAttr : '') + '>' + foldBtn(fold(g), g) + esc(label) + ' <span>' + n + '</span>' + (pal ? swatches(groupPal(s.id, g)) + (canWrite ? '<button class="btn mini ghost" data-subpal="' + esc(g) + '" title="' + esc(STR.pal.edit) + '" aria-label="' + esc(STR.pal.edit + " " + label) + '">🎨</button>' : '') : '') +
         (s.id === "refs" && canWrite && game ? bulkPicker("refs", g, "btn mini", STR.sub.item) : canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '">' + STR.sub.item + '</button>' : '') + // 🔒 read-only: no «＋ Додати»
         (s.id === "audio" && canWrite && game ? bulkPicker("audio", g, "btn mini", STR.soundsAdd) : '') +
         (g && canWrite && (s.special === "chronicle" || s.dossier) ? '<button class="btn mini ghost" data-subren="' + esc(g) + '" title="' + esc(STR.sub.rename) + '" aria-label="' + esc(STR.sub.rename + " " + label) + '">✎</button>' : '') +
         (g && canWrite && typesOn(s) ? '<button class="btn mini ghost" data-addtype="' + esc(g) + '">' + STR.sub.type + '</button>' : '') +
         (canDrop && canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
-    var block = function (g, inner) { return '<div class="subsec" data-sub="' + esc(g) + '">' + inner + '</div>'; };
+    var block = function (g, inner) { return '<div class="subsec' + (fold(g) ? ' folded' : '') + '" data-sub="' + esc(g) + '">' + inner + '</div>'; };
     subs.concat(extra).forEach(function (g) { // every subsection is its own block on the page, empty ones too (owner, v2.123.1)
       var list = by[g] || [], ts = typesOn(s) ? typesOf(s, g) : [];
       if (ts.length || (typesOn(s) && list.some(function (x) { return x.fields && x.fields.subtype; }))) { // 🏷 its mini-subsections, each a block of its own
@@ -1350,7 +1370,7 @@
         var rest = list.filter(function (x) { return !(x.fields && x.fields.subtype); }), inner = rest.length ? body(rest) : '';
         ts.forEach(function (t) {
           var tl = list.filter(function (x) { return x.fields && x.fields.subtype === t; });
-          inner += '<div class="subsec subtype" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '"><h3 class="group subtype-h"' + (sd ? sdAttr : '') + '>' + esc(t) + ' <span>' + tl.length + '</span>' +
+          inner += '<div class="subsec subtype' + (fold(g, t) ? ' folded' : '') + '" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '"><h3 class="group subtype-h"' + (sd ? sdAttr : '') + '>' + foldBtn(fold(g, t), g, t) + esc(t) + ' <span>' + tl.length + '</span>' +
             (canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '" data-subtype="' + esc(t) + '">' + STR.sub.item + '</button>' : '') +
             (canWrite && !tl.length ? '<button class="btn mini ghost" data-typedel="' + esc(g) + '" data-subtype="' + esc(t) + '" title="' + esc(STR.sub.typeDel) + '" aria-label="' + esc(STR.sub.typeDel + " " + t) + '">✕</button>' : '') +
             '</h3>' + (tl.length ? body(tl) : '<p class="muted">' + STR.sub.empty + '</p>') + '</div>';
@@ -1363,6 +1383,8 @@
     if (loose.length || !(subs.length + extra.length)) {
       html += block("", head("", looseLabel(s, subs.length + extra.length), loose.length, false) + (loose.length ? body(loose) : '<p class="muted">' + STR.sub.empty + '</p>'));
     }
+    var nb = subs.length + extra.length + (loose.length ? 1 : 0);
+    if (nb > 1 && !query) html = '<div class="subfold-all"><button type="button" class="btn mini ghost" data-foldall="1">' + STR.sub.foldAll + '</button><button type="button" class="btn mini ghost" data-foldall="0">' + STR.sub.unfoldAll + '</button></div>' + html;
     return html;
   }
   // ---------- 🎧 Аудіотека: every sound of the game, where it plays, and which Sound factory slots still have none (mechanics.js audioLibrary) ----------
@@ -1997,6 +2019,7 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
+    if (mode === "game" && !game && startGame && startGame !== "__new" && !gamesIn) return; // a game asked for (the hub's «Відкрити GDD»): nothing until the games arrive — not a flash of the World Bible
     if (gmView3d && (section !== "gamemap" || mode !== "game")) gmTd(false); // 🧊 the relief's 3D view stops off its page
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
     if (mode === "game" && isCanon(section)) section = "overview";
@@ -11850,7 +11873,7 @@
   // the hub: «Відкрити Біблію світу» (gameId "") or a game card's «Відкрити GDD» / «Створити нову гру» ("__new")
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-open") return;
-    if (!games.length && ev.data.gameId && ev.data.gameId !== "__new") { startGame = ev.data.gameId; return; } // still loading: the games snapshot picks it up
+    if (!gamesIn && ev.data.gameId && ev.data.gameId !== "__new") { startGame = ev.data.gameId; mode = "game"; return; } // still loading: the games snapshot picks it up
     if (ev.data.gameId) enterGame(ev.data.gameId); else enterWorld();
   });
   // the shell brings the author back to an entity («Біблія світу» from the book)
@@ -11919,6 +11942,8 @@
     var so = e.target.closest("[data-story]"); if (so) { tellShell({ type: "ww-open-story", projectId: so.dataset.story }); return; }
     var se = e.target.closest("[data-sedit]"); if (se) { tellShell({ type: "ww-edit-story", projectId: se.dataset.sedit }); return; } // the shell's story form
     var sd = e.target.closest("[data-sdel]"); if (sd) { tellShell({ type: "ww-delete-story", projectId: sd.dataset.sdel }); return; } // the shell asks to confirm
+    var sfb = e.target.closest("[data-subfold]"); if (sfb) { foldToggle(sfb); return; }
+    var sfa = e.target.closest("[data-foldall]"); if (sfa) { foldAll(sfa.dataset.foldall === "1"); return; }
     var as = e.target.closest("[data-addsub]"); if (as) { addIn(as.dataset.addsub, as.dataset.subtype); return; }
     var at = e.target.closest("[data-addtype]"); if (at) { var ats = sec(section), atg = at.dataset.addtype; askName(STR.sub.typeTitle.replace("{g}", atg), STR.sub.typePh, function (n) { if (n) newType(ats, atg, n); }); return; }
     var td = e.target.closest("[data-typedel]"); if (td) { var tds = sec(section); saveTypes(tds, td.dataset.typedel, typesOf(tds, td.dataset.typedel).filter(function (x) { return x !== td.dataset.subtype; })).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); }); return; }
@@ -12622,6 +12647,7 @@
     }, function () {});
     var first = true;
     wref().collection("games").onSnapshot(function (snap) {
+      gamesIn = true;
       games = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
         .sort(function (a, b) { return ((a.createdAt && a.createdAt.toMillis && a.createdAt.toMillis()) || 0) - ((b.createdAt && b.createdAt.toMillis && b.createdAt.toMillis()) || 0); });
       if (first) {

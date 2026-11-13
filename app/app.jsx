@@ -220,7 +220,8 @@ function App() {
   }, [PROJECT_ID]);
 
   // How many worlds the author has: the hero CTA is "create" for none, "choose" otherwise.
-  const [worldsCount, setWorldsCount] = useAState(() => { try { return window.parent.__wwWorldsCount || 0; } catch (e) { return 0; } });
+  // until the shell knows the worlds (ww-worlds): the last known count, else «has worlds» when signed in last time — «Обери свій світ» first, not a flash of «Створи»
+  const [worldsCount, setWorldsCount] = useAState(() => { try { const n = window.parent.__wwWorldsCount; if (typeof n === "number") return n; const k = localStorage.getItem("ww-worlds-n"); if (k !== null) return +k || 0; return localStorage.getItem("ww_auth") === "1" ? 1 : 0; } catch (e) { return 0; } });
   function beginFromHero() {
     if (window.self !== window.top) window.parent.postMessage({ type: "ww-world-cta" }, window.location.origin);
     else setStage("worldform");
