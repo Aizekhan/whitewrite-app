@@ -1329,8 +1329,17 @@
   function foldToggle(b) {
     var s = sec(section), box = b.closest(".subsec"), k = foldKey(s, b.dataset.subfold, b.dataset.subtype), on = !subFold[k];
     if (on) subFold[k] = 1; else delete subFold[k]; saveFold();
-    box.classList.toggle("folded", on); b.setAttribute("aria-expanded", String(!on));
+    keepPlace(b, function () { box.classList.toggle("folded", on); }); b.setAttribute("aria-expanded", String(!on));
     b.title = on ? STR.sub.unfold : STR.sub.fold; b.setAttribute("aria-label", b.title);
+  }
+  // the heading stays under the cursor: a fold near the page's end made it shorter, the browser pulled the page down and the next click
+  // landed on another subsection's arrow (owner: «the arrows only fold») — the lost height is kept as padding below while on this section
+  var foldPad = null;
+  function keepPlace(el, fn) {
+    var m = $("main"), v = $("view"), y0 = el.getBoundingClientRect().top; fn();
+    var dy = el.getBoundingClientRect().top - y0;
+    if (dy > 0) { v.style.paddingBottom = (parseFloat(v.style.paddingBottom) || 0) + dy + "px"; foldPad = section; }
+    m.scrollTop += el.getBoundingClientRect().top - y0;
   }
   function foldAll(on) {
     var s = sec(section);
@@ -2019,6 +2028,7 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
+    if (foldPad && foldPad !== section) { foldPad = null; $("view").style.paddingBottom = ""; } // keepPlace's room below goes with its section
     if (mode === "game" && !game && startGame && startGame !== "__new" && !gamesIn) { $("view").innerHTML = ""; $("nav").innerHTML = ""; return; } // a game asked for (the hub's «Відкрити GDD»): nothing until the games arrive — not a flash of the World Bible
     if (gmView3d && (section !== "gamemap" || mode !== "game")) gmTd(false); // 🧊 the relief's 3D view stops off its page
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
