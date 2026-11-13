@@ -1295,7 +1295,10 @@ body.at-home .back-fab{ display:none; }
     if (f.getAttribute("src") !== target) { // another world: its first section is no step back
       if (open && open.gameId) try { sessionStorage.setItem("ww-bible-sec-" + CURRENT_WORLD, open.gameId + "/"); } catch (e) {}
       f.__loader && f.__loader.classList.add("is-on"); f.src = target; bibleSec = null;
-    } else if (open) try { f.contentWindow.postMessage({ type: "ww-bible-open", gameId: open.gameId || "" }, location.origin); } catch (e) {}
+    } else if (open) try { // the same world: switch it now, before the frame is shown (a message would come after a paint of the old view)
+      if (f.contentWindow.__wwBibleOpen) f.contentWindow.__wwBibleOpen(open.gameId || "");
+      else f.contentWindow.postMessage({ type: "ww-bible-open", gameId: open.gameId || "" }, location.origin);
+    } catch (e) {}
     loaded.bible = true;
     Object.keys(views).forEach(function (k) { views[k].classList.remove("is-on"); });
     Object.keys(frames).forEach(function (k) { frames[k].classList.toggle("is-on", k === "bible"); });

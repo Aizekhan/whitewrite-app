@@ -2019,7 +2019,7 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
-    if (mode === "game" && !game && startGame && startGame !== "__new" && !gamesIn) return; // a game asked for (the hub's «Відкрити GDD»): nothing until the games arrive — not a flash of the World Bible
+    if (mode === "game" && !game && startGame && startGame !== "__new" && !gamesIn) { $("view").innerHTML = ""; $("nav").innerHTML = ""; return; } // a game asked for (the hub's «Відкрити GDD»): nothing until the games arrive — not a flash of the World Bible
     if (gmView3d && (section !== "gamemap" || mode !== "game")) gmTd(false); // 🧊 the relief's 3D view stops off its page
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
     if (mode === "game" && isCanon(section)) section = "overview";
@@ -11871,10 +11871,14 @@
     if (pos() !== ev.data.section) goPos(ev.data.section);
   });
   // the hub: «Відкрити Біблію світу» (gameId "") or a game card's «Відкрити GDD» / «Створити нову гру» ("__new")
+  function bibleOpen(gid) {
+    if (!gamesIn && gid && gid !== "__new") { startGame = gid; mode = "game"; return render(); } // still loading: the games snapshot picks it up (the view stays empty, not the world)
+    if (gid) enterGame(gid); else enterWorld();
+  }
+  window.__wwBibleOpen = bibleOpen; // the shell calls it before it shows the frame — a message would land after a paint of the old view (owner: «the world shows first»)
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-open") return;
-    if (!gamesIn && ev.data.gameId && ev.data.gameId !== "__new") { startGame = ev.data.gameId; mode = "game"; return; } // still loading: the games snapshot picks it up
-    if (ev.data.gameId) enterGame(ev.data.gameId); else enterWorld();
+    bibleOpen(ev.data.gameId || "");
   });
   // the shell brings the author back to an entity («Біблія світу» from the book)
   window.addEventListener("message", function (ev) {

@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.134.2 (2026-11-14)
+**Version:** 2.134.3 (2026-11-14)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -777,6 +777,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.134.3** (owner: «a game from the hub still shows the world first») when the Bible frame of that world is already loaded, the shell's `showBible` switches it synchronously through `window.__wwBibleOpen` (`gamebible.js bibleOpen`, the `ww-bible-open` message stays as a fallback) before the frame is shown — a message landed after a paint of the old World Bible; while the games are still loading the view and menu are emptied, not left on the world
 - **v2.134.2** (owner: «the arrow can't expand back», «collapse expands») the fold toggle is the menu's chevron (`ARROW`, 28 px, rotated down when open via `aria-expanded`) instead of tiny ▸/▾ glyphs; a click on the subsection's / mini-subsection's name folds it too (`viewClick`, a drag by the name doesn't — `dragBlockClick`); «Згорнути всі» / «Розгорнути всі» are text only
 - **v2.134.1** (owner) no flashes on load: the start screen's CTA guesses «Обери свій світ» until the shell knows the worlds (`app.jsx` — `__wwWorldsCount`, else localStorage `ww-worlds-n`, else `ww_auth`), the shell's `announceWorlds` stays silent before sign-in is known and remembers the count; a game opened from the hub (`gameId` / `ww-bible-open` while loading) renders nothing until the games snapshot (`gamebible.js gamesIn`) — no World Bible first
 - **v2.134.0** (owner) ▸ folding subsections: every subsection / mini-subsection heading built by `subsHtml` (game card sections, dossiers, culture, quests & dialogues, the chronicle) gets ▾/▸ (`data-subfold` → `foldToggle`, class `.subsec.folded` hides all but the heading, no re-render); «▸ Згорнути всі» / «▾ Розгорнути всі» above the blocks when the page has 2+ (`data-foldall` → `foldAll`). Per browser only — localStorage `ww-bible-fold`, key `w:<world>|g:<game> · section · subsection [· type]`; a search ignores folding; no Firestore, MCP or rules change
@@ -1016,5 +1017,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-14 (v2.134.2)
+**Last updated:** 2026-11-14 (v2.134.3)
 **Maintained by:** WhiteWrite Team
