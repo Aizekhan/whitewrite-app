@@ -1327,7 +1327,7 @@
   function foldBtn(on, g, t) { return query ? '' : '<button type="button" class="subfold" data-subfold="' + esc(g) + '"' + (t ? ' data-subtype="' + esc(t) + '"' : '') + ' aria-expanded="' + !on + '" title="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '" aria-label="' + esc(on ? STR.sub.unfold : STR.sub.fold) + '">' + ARROW + '</button>'; } // the menu's chevron: › folded, turned down when open
   // a click on ▾/▸ — just that block, no re-render; «Згорнути всі» / «Розгорнути всі» — every subsection of the page
   function foldToggle(b) {
-    var s = sec(section), box = b.closest(".subsec"), k = foldKey(s, b.dataset.subfold, b.dataset.subtype), on = !subFold[k];
+    var box = b.closest(".subsec"), k = box.dataset.foldk, on = !subFold[k]; // the key the render wrote on the block — one source
     if (on) subFold[k] = 1; else delete subFold[k]; saveFold();
     keepPlace(b, function () { box.classList.toggle("folded", on); }); b.setAttribute("aria-expanded", String(!on));
     b.title = on ? STR.sub.unfold : STR.sub.fold; b.setAttribute("aria-label", b.title);
@@ -1336,15 +1336,13 @@
   // landed on another subsection's arrow (owner: «the arrows only fold») — the lost height is kept as padding below while on this section
   var foldPad = null;
   function keepPlace(el, fn) {
-    var m = $("main"), v = $("view"), y0 = el.getBoundingClientRect().top; fn();
-    var dy = el.getBoundingClientRect().top - y0;
-    if (dy > 0) { v.style.paddingBottom = (parseFloat(v.style.paddingBottom) || 0) + dy + "px"; foldPad = section; }
+    var m = $("main"), v = $("view"), y0 = el.getBoundingClientRect().top;
+    v.style.minHeight = Math.max(v.offsetHeight, parseFloat(v.style.minHeight) || 0) + "px"; foldPad = section; // the page can't get shorter, so the scroll can't be pulled
+    fn();
     m.scrollTop += el.getBoundingClientRect().top - y0;
   }
-  function foldAll(on) {
-    var s = sec(section);
-    [].forEach.call($("view").querySelectorAll(".subsec:not(.subtype)"), function (x) { var k = foldKey(s, x.dataset.sub); if (on) subFold[k] = 1; else delete subFold[k]; });
-    if (!on) Object.keys(subFold).forEach(function (k) { if (k.indexOf(foldKey(s, "")) === 0) delete subFold[k]; }); // «Розгорнути всі» opens the mini-subsections too
+  function foldAll(on) { // «Згорнути всі» — the subsections; «Розгорнути всі» — the mini-subsections too
+    [].forEach.call($("view").querySelectorAll(on ? ".subsec[data-foldk]:not(.subtype)" : ".subsec[data-foldk]"), function (x) { if (on) subFold[x.dataset.foldk] = 1; else delete subFold[x.dataset.foldk]; });
     saveFold(); render();
   }
   // One block per subsection: heading with its count and «＋ Додати»; empty custom ones can be removed.
@@ -1371,7 +1369,7 @@
         (g && canWrite && typesOn(s) ? '<button class="btn mini ghost" data-addtype="' + esc(g) + '">' + STR.sub.type + '</button>' : '') +
         (canDrop && canWrite ? '<button class="btn mini ghost" data-subdel="' + esc(g) + '" title="' + esc(STR.sub.del) + '" aria-label="' + esc(STR.sub.del + " " + label) + '">✕</button>' : '') + '</h2>';
     };
-    var block = function (g, inner) { return '<div class="subsec' + (fold(g) ? ' folded' : '') + '" data-sub="' + esc(g) + '">' + inner + '</div>'; };
+    var block = function (g, inner) { return '<div class="subsec' + (fold(g) ? ' folded' : '') + '" data-sub="' + esc(g) + '" data-foldk="' + esc(foldKey(s, g)) + '">' + inner + '</div>'; };
     subs.concat(extra).forEach(function (g) { // every subsection is its own block on the page, empty ones too (owner, v2.123.1)
       var list = by[g] || [], ts = typesOn(s) ? typesOf(s, g) : [];
       if (ts.length || (typesOn(s) && list.some(function (x) { return x.fields && x.fields.subtype; }))) { // 🏷 its mini-subsections, each a block of its own
@@ -1379,7 +1377,7 @@
         var rest = list.filter(function (x) { return !(x.fields && x.fields.subtype); }), inner = rest.length ? body(rest) : '';
         ts.forEach(function (t) {
           var tl = list.filter(function (x) { return x.fields && x.fields.subtype === t; });
-          inner += '<div class="subsec subtype' + (fold(g, t) ? ' folded' : '') + '" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '"><h3 class="group subtype-h"' + (sd ? sdAttr : '') + '>' + foldBtn(fold(g, t), g, t) + esc(t) + ' <span>' + tl.length + '</span>' +
+          inner += '<div class="subsec subtype' + (fold(g, t) ? ' folded' : '') + '" data-sub="' + esc(g) + '" data-subtype="' + esc(t) + '" data-foldk="' + esc(foldKey(s, g, t)) + '"><h3 class="group subtype-h"' + (sd ? sdAttr : '') + '>' + foldBtn(fold(g, t), g, t) + esc(t) + ' <span>' + tl.length + '</span>' +
             (canWrite ? '<button class="btn mini" data-addsub="' + esc(g) + '" data-subtype="' + esc(t) + '">' + STR.sub.item + '</button>' : '') +
             (canWrite && !tl.length ? '<button class="btn mini ghost" data-typedel="' + esc(g) + '" data-subtype="' + esc(t) + '" title="' + esc(STR.sub.typeDel) + '" aria-label="' + esc(STR.sub.typeDel + " " + t) + '">✕</button>' : '') +
             '</h3>' + (tl.length ? body(tl) : '<p class="muted">' + STR.sub.empty + '</p>') + '</div>';
@@ -2028,7 +2026,7 @@
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
   function render() {
     if (PANEL) return renderHubPanel();
-    if (foldPad && foldPad !== section) { foldPad = null; $("view").style.paddingBottom = ""; } // keepPlace's room below goes with its section
+    if (foldPad && foldPad !== section) { foldPad = null; $("view").style.minHeight = ""; } // keepPlace's height goes with its section
     if (mode === "game" && !game && startGame && startGame !== "__new" && !gamesIn) { $("view").innerHTML = ""; $("nav").innerHTML = ""; return; } // a game asked for (the hub's «Відкрити GDD»): nothing until the games arrive — not a flash of the World Bible
     if (gmView3d && (section !== "gamemap" || mode !== "game")) gmTd(false); // 🧊 the relief's 3D view stops off its page
     if (mode === "world" && !isCanon(section) && section !== "settings") section = lastSec.world || "world"; // each Bible shows only its own sections
@@ -12311,7 +12309,8 @@
     var l = ev.detail && ev.detail.lang; if (!l || (l === "en" ? "en" : "uk") === LANG) return;
     langNext = l; applyLang();
   });
-  try { var keep = sessionStorage.getItem("ww-bible-sec-" + worldId); if (keep) { sessionStorage.removeItem("ww-bible-sec-" + worldId); var ki = keep.indexOf("/"); if (ki > 0) { startGame = keep.slice(0, ki); section = keep.slice(ki + 1) || "overview"; } else section = keep; } } catch (e) {}
+  // the hub's panel copy (?panel=1) loads alongside — it must not take the main Bible's «open this game» (owner: «a game from the hub opens the world»)
+  if (params.get("panel") !== "1") try { var keep = sessionStorage.getItem("ww-bible-sec-" + worldId); if (keep) { sessionStorage.removeItem("ww-bible-sec-" + worldId); var ki = keep.indexOf("/"); if (ki > 0) { startGame = keep.slice(0, ki); section = keep.slice(ki + 1) || "overview"; } else section = keep; } } catch (e) {}
   if (startGame) mode = "game";
   $("spine").setAttribute("aria-label", STR.sectionsAria);
 
