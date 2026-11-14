@@ -985,16 +985,6 @@ h3.group.subtype-h .btn.mini.ghost{ border-color:transparent; background:none; c
 .pick-bar b{ color:var(--tx-hi); margin-right:6px; white-space:nowrap; }
 /* ⇅ a subsection / mini-subsection dragged by its heading (v2.129.0) */
 [data-sdrag]{ cursor:grab; }
-/* ▸ a folded subsection: only its heading stays (v2.134.0) */
-.subsec.folded > :not(.group){ display:none; }
-.subfold{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; flex:none; margin:0 2px 0 -6px; padding:0; background:none; border:1px solid transparent; border-radius:8px; color:var(--gold-lit); cursor:pointer; align-self:center; }
-.subfold:hover{ border-color:var(--line-2); background:var(--gold-soft); }
-.subfold .arr{ display:inline-flex; transition:transform .18s; }
-.subfold[aria-expanded="true"] .arr{ transform:rotate(90deg); }
-.subfold .arr svg{ width:16px; height:16px; }
-.subsec > h2.group, .subsec.subtype > h3.subtype-h{ cursor:pointer; } /* a click on the name folds the block (owner) */
-.subsec.folded{ margin-bottom:4px; }
-.subfold-all{ display:flex; gap:6px; justify-content:flex-end; margin:0 0 -6px; }
 .subsec.dragging{ opacity:.35; }
 .subsec.drop-above{ box-shadow:0 -4px 0 0 var(--gold-lit); } .subsec.drop-below{ box-shadow:0 4px 0 0 var(--gold-lit); }
 .drag-ghost.sub-ghost{ background:var(--bg-3); border:1px solid var(--line-2); border-radius:10px; padding:8px 14px; }
