@@ -930,7 +930,15 @@ function rowPrompt(m, secId, row, lang) {
   return out;
 }
 // an instance made before a template field existed gets the field (additive only: values, rows and the author's own fields stay)
+function treeUpgrade(m) { // v2.133: «Очок у гілці» joins the node columns of every tree, after «З рівня гравця»
+  ((m && m.sections) || []).forEach(function (s) {
+    if (!s.tree || s.kind !== 'table' || !s.fields || s.fields.some(function (f) { return f.k === 'branchPts'; })) return;
+    var nf = treeNodeFields(['', ''], s.id).filter(function (f) { return f.k === 'branchPts'; })[0], at = s.fields.map(function (f) { return f.k; }).indexOf('level');
+    s.fields.splice(at < 0 ? s.fields.length : at + 1, 0, nf);
+  });
+}
 function upgrade(m) {
+  treeUpgrade(m);
   var t = m && template(m.tpl); if (!t || (m.tplVersion || 0) >= t.version) return m;
   m.sections = m.sections || [];
   t.sections.forEach(function (ts, i) {
@@ -1079,7 +1087,7 @@ var ECONOMY = {
       values: { hours: 10, earnGrowth: 5, spendGrowth: 5 } },
     { id: 'loot', title: T('Таблиці луту', 'Loot tables'), kind: 'table', rowLabel: 'item', prefix: 'LT',
       hint: T('Рядки з однаковою назвою таблиці — одна таблиця. Шанс = вага ÷ сума ваг таблиці (порожній «Шанс» рахується сам). Гарантія (pity) — після скількох спроб без цього предмета він випаде точно.', 'Rows with the same table name are one table. Chance = weight ÷ the sum of the table’s weights (an empty “Chance” is computed). Pity — after how many tries without the item it surely drops.'),
-      fields: [F('table', 'Таблиця', 'Table', 'text', R), F('item', 'Предмет', 'Item', 'card', X(R, { secs: ['items', 'gear'] })), F('weight', 'Вага', 'Weight', 'num', X(R, { min: 0 })),
+      fields: [F('table', 'Таблиця', 'Table', 'text', R), F('item', 'Предмет', 'Item', 'card', X(R, { secs: ['items', 'gear', 'playcards'] })), F('weight', 'Вага', 'Weight', 'num', X(R, { min: 0 })),
         F('drop', 'Шанс', 'Chance', 'pct', { req: 'opt', min: 0, max: 100, h: T('порожньо — з ваги', 'empty — from the weight') }), F('pity', 'Гарантія після (спроб)', 'Pity after (tries)', 'num', { req: 'opt', min: 1 }),
         F('rarity', 'Рідкість', 'Rarity', 'sel', X(REC, { o: O([['common', 'Звичайний', 'Common'], ['uncommon', 'Незвичайний', 'Uncommon'], ['rare', 'Рідкісний', 'Rare'], ['epic', 'Епічний', 'Epic'], ['legendary', 'Легендарний', 'Legendary']]) }))],
       rows: [
@@ -1362,7 +1370,7 @@ var XP_CURVE = {
     { id: 'rewards', title: T('Що дає рівень', 'What a level gives'), kind: 'table', rowLabel: 'level', prefix: 'RW',
       hint: T('Нагороди на рівнях: очки, здібності, слоти, доступ. Довгі проміжки без нагород перевірка підсвітить.', 'Rewards at levels: points, abilities, slots, access. Long stretches without rewards are flagged.'),
       fields: [F('level', 'Рівень', 'Level', 'num', X(R, { min: 2 })), F('reward', 'Нагорода', 'Reward', 'text', R), F('points', 'Очок навичок', 'Skill points', 'num', { req: 'opt', min: 0 }),
-        F('unlock', 'Відкриває', 'Unlocks', 'card', { req: 'opt', adv: true, secs: ['mechanics', 'gear', 'items', 'levels'] })],
+        F('unlock', 'Відкриває', 'Unlocks', 'card', { req: 'opt', adv: true, secs: ['mechanics', 'gear', 'items', 'playcards', 'levels'] })],
       rows: [{ _id: 'RW1', level: 2, reward: '+1 очко навичок', points: 1 }, { _id: 'RW2', level: 5, reward: 'Другий слот зброї', points: 1 },
         { _id: 'RW3', level: 10, reward: 'Нова здібність', points: 2 }, { _id: 'RW4', level: 15, reward: 'Доступ до гільдії', points: 1 },
         { _id: 'RW5', level: 20, reward: 'Легендарний слот', points: 2 }, { _id: 'RW7', level: 25, reward: 'Друга спеціалізація', points: 2 }, { _id: 'RW6', level: 30, reward: 'Максимальний рівень · титул', points: 3 }] },
@@ -1413,7 +1421,7 @@ var PROG_SHOP = {
   sections: [WALLET, SHOPS,
     { id: 'goods', title: T('Товари', 'Goods'), kind: 'table', rowLabel: 'item', prefix: 'SH',
       hint: T('«З години» — коли товар зʼявляється (після першого міста, акту…). Ціна — у валюті гаманця.', '“From hour” — when the item appears (after the first town, act…). Price — in the wallet currency.'),
-      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items'] })), F('shop', 'Магазин', 'Shop', 'ref', { req: 'opt', ref: 'shops', since: 2 }), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
+      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items', 'playcards'] })), F('shop', 'Магазин', 'Shop', 'ref', { req: 'opt', ref: 'shops', since: 2 }), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
         F('from', 'З години', 'From hour', 'num', X(REC, { min: 0 })), F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: SHOP_KINDS })), F('stock', 'Ліміт', 'Stock', 'num', { req: 'opt', adv: true, min: 0 })],
       rows: [{ _id: 'SH1', item: 'Зілля здоровʼя', shop: 'SP1', price: 50, from: 0, kind: 'consumable' }, { _id: 'SH2', item: 'Сталевий меч', shop: 'SP2', price: 2500, from: 1, kind: 'gear' },
         { _id: 'SH3', item: 'Карта підземель', shop: 'SP1', price: 800, from: 2, kind: 'key' }, { _id: 'SH4', item: 'Кольчуга', shop: 'SP2', price: 6000, from: 3, kind: 'gear' },
@@ -1430,7 +1438,7 @@ var PROG_UPGRADES = {
       fields: [F('name', 'Що покращується', 'What improves', 'text', R), F('stat', 'Параметр', 'Stat', 'text', REC), F('tiers', 'Рівнів', 'Levels', 'num', X(R, { min: 1, max: 100 })),
         F('cost', 'Ціна 1-го рівня', 'First level price', 'num', X(R, { min: 0 })), F('costGrowth', 'Дорожчає за рівень', 'Dearer per level', 'pct', X(R, { min: 0, max: 300 })),
         F('base', 'Значення на старті', 'Value at the start', 'num', REC), F('step', 'Приріст за рівень', 'Step per level', 'num', R),
-        F('item', 'Предмет', 'Item', 'card', { req: 'opt', adv: true, secs: ['gear', 'items', 'mechanics'] })],
+        F('item', 'Предмет', 'Item', 'card', { req: 'opt', adv: true, secs: ['gear', 'items', 'playcards', 'mechanics'] })],
       rows: [{ _id: 'UP1', name: 'Меч', stat: 'Шкода', tiers: 10, cost: 200, costGrowth: 35, base: 12, step: 3 },
         { _id: 'UP2', name: 'Броня', stat: 'Захист', tiers: 8, cost: 300, costGrowth: 40, base: 20, step: 4 },
         { _id: 'UP3', name: 'Сумка', stat: 'Місткість', tiers: 5, cost: 500, costGrowth: 60, base: 20, step: 5 }] },
@@ -1460,7 +1468,8 @@ function treeNodeFields(costLabel, sid) {
     F('ranks', 'Рангів', 'Ranks', 'num', X(REC, { min: 1, max: 20, h: T('Скільки разів можна взяти вузол (ціна — за кожен ранг)', 'How many times the node can be taken (the price is per rank)') })),
     F('effect', 'Що дає', 'Effect', 'text', R), F('needs', 'Потребує', 'Requires', 'refs', { req: 'opt', ref: sid || 'nodes' }),
     F('needMode', 'Умова', 'Condition', 'sel', { req: 'opt', o: NEED_MODES }), F('level', 'З рівня гравця', 'From player level', 'num', { req: 'opt', min: 1 }),
-    F('branch', 'Гілка', 'Branch', 'text', { req: 'opt' }), F('card', 'Картка', 'Card', 'card', { req: 'opt', secs: ['mechanics', 'gear', 'items', 'characters', 'enemies'] }),
+    F('branchPts', 'Очок у гілці', 'Points in the branch', 'num', { req: 'opt', min: 0, h: T('Скільки очок треба вже вкласти в інші вузли цієї гілки, щоб відкрити цей (суперперк — після 6 очок у гілці)', 'How many points must already be spent on other nodes of this branch to open this one (a keystone after 6 points in the branch)') }),
+    F('branch', 'Гілка', 'Branch', 'text', { req: 'opt' }), F('card', 'Картка', 'Card', 'card', { req: 'opt', secs: ['mechanics', 'gear', 'items', 'playcards', 'characters', 'enemies'] }),
     F('col', 'Колонка', 'Column', 'num', { req: 'opt', adv: true, min: 0, max: 40 }), F('row', 'Ряд', 'Row', 'num', { req: 'opt', adv: true, min: 0, max: 40 })];
 }
 // «＋ Розділ ▾ → 🌳 Дерево» in any card (a class, a weapon, a base): an empty tree section of its own
@@ -1516,7 +1525,20 @@ function treeStats(m, sid) {
     state[id] = 1; var d = 0; par(byId[id]).forEach(function (p) { d = Math.max(d, dfs(p) + 1); }); state[id] = 2; depth[id] = d; return d;
   };
   rows.forEach(function (r) { dfs(r._id); });
-  var memo = {};
+  var memo = {}, brOf = function (r) { return String((r && r.branch) || '').trim(); };
+  // «Очок у гілці»: a node of the set that needs N points in its branch — the set's own nodes of that branch count, the rest is the extra to spend there
+  // (the cheapest guess: any other node of the branch can take the points; Infinity when the branch holds fewer points than asked)
+  var branchCap = function (r) { var b = brOf(r); return rows.reduce(function (a, x) { return x !== r && brOf(x) === b ? a + one(x) * ranks(x) : a; }, 0); };
+  var branchNeed = function (set) {
+    var need = {}, bad = false;
+    Object.keys(set).forEach(function (k) {
+      var r = byId[k], n = +(r && r.branchPts) || 0, b = brOf(r); if (k === '__x' || !(n > 0) || !b) return;
+      if (branchCap(r) < n) { bad = true; return; }
+      var have = Object.keys(set).reduce(function (a, j) { return j !== k && j !== '__x' && brOf(byId[j]) === b ? a + one(byId[j]) : a; }, 0);
+      need[b] = Math.max(need[b] || 0, n - have);
+    });
+    return bad ? Infinity : Object.keys(need).reduce(function (a, b) { return a + Math.max(0, need[b]); }, 0);
+  };
   var reach = function (id, path) { // the set of nodes to open first (rank 1 each): all parents, or the cheapest one for «any»
     if (memo[id]) return memo[id];
     if (path[id]) return { set: {}, pts: Infinity };
@@ -1525,7 +1547,7 @@ function treeStats(m, sid) {
     if (ps.length && r.needMode === 'any') { var best = null; ps.forEach(function (p) { var x = reach(p, Object.assign({}, path)); if (!best || x.pts < best.pts) best = x; }); set = Object.assign({}, best.set); if (best.pts === Infinity) set.__x = 1; }
     else ps.forEach(function (p) { var x = reach(p, Object.assign({}, path)); Object.assign(set, x.set); if (x.pts === Infinity) set.__x = 1; });
     set[id] = 1;
-    var pts = set.__x ? Infinity : Object.keys(set).reduce(function (a, k) { return a + one(byId[k]); }, 0), lv = Object.keys(set).reduce(function (a, k) { return k === '__x' ? a : Math.max(a, +byId[k].level || 1); }, 1);
+    var bx = branchNeed(set), pts = set.__x || bx === Infinity ? Infinity : Object.keys(set).reduce(function (a, k) { return a + one(byId[k]); }, 0) + bx, lv = Object.keys(set).reduce(function (a, k) { return k === '__x' ? a : Math.max(a, +byId[k].level || 1); }, 1);
     return (memo[id] = { set: set, pts: pts, lv: lv });
   };
   var start = +pv.start || 0, per = +pv.perLevel || 0, max = Math.max(1, Math.round(+pv.maxLevel || 1)), available = pts ? start + per * (max - 1) : null;
@@ -1551,7 +1573,12 @@ function treeChecks(m, add, sid) {
     var r = byId[n.id];
     if (t.mode === 'points' && +r.level > t.maxLevel) add('error', S, n.id, '«' + n.name + '» потребує рівня ' + r.level + ', а максимальний — ' + t.maxLevel + '.', '“' + n.name + '” needs level ' + r.level + ', the max is ' + t.maxLevel + '.', 'level');
     else if (t.mode === 'points' && n.reach != null && n.level == null) add('warn', S, n.id, '«' + n.name + '»: до максимального рівня гравцю не вистачить очок, щоб до нього дійти (треба ' + n.reach + ').', '“' + n.name + '”: by the max level the player lacks the points to reach it (needs ' + n.reach + ').', 'cost');
-    if (r.kind === 'keystone' && !(Array.isArray(r.needs) && r.needs.length) && !(+r.level > 1)) add('tip', S, n.id, '«' + n.name + '» — ключовий вузол без вимог: його візьмуть першим.', '“' + n.name + '” is a keystone with no requirements: it will be taken first.', 'needs');
+    if (+r.branchPts > 0) {
+      var b = String(r.branch || '').trim(), cap = rows.reduce(function (a, x) { return x !== r && b && String(x.branch || '').trim() === b ? a + Math.max(0, +x.cost || 0) * Math.max(1, Math.min(20, Math.round(+x.ranks || 1))) : a; }, 0);
+      if (!b) add('warn', S, n.id, '«' + n.name + '» потребує ' + r.branchPts + ' очок у гілці, але гілку не вказано.', '“' + n.name + '” needs ' + r.branchPts + ' points in its branch, yet no branch is set.', 'branch');
+      else if (cap < +r.branchPts) add('error', S, n.id, '«' + n.name + '» потребує ' + r.branchPts + ' очок у гілці «' + b + '», а решта гілки коштує лише ' + cap + '.', '“' + n.name + '” needs ' + r.branchPts + ' points in the branch “' + b + '”, yet the rest of the branch costs only ' + cap + '.', 'branchPts');
+    }
+    if (r.kind === 'keystone' && !(Array.isArray(r.needs) && r.needs.length) && !(+r.level > 1) && !(+r.branchPts > 0)) add('tip', S, n.id, '«' + n.name + '» — ключовий вузол без вимог: його візьмуть першим.', '“' + n.name + '” is a keystone with no requirements: it will be taken first.', 'needs');
     (Array.isArray(r.needs) ? r.needs : []).forEach(function (p) { if (byId[p] && +byId[p].level > +r.level && +r.level > 0) add('tip', S, n.id, '«' + n.name + '» відкривається з рівня ' + r.level + ', але потребує вузол з рівня ' + byId[p].level + '.', '“' + n.name + '” opens from level ' + r.level + ' yet needs a node from level ' + byId[p].level + '.', 'level'); });
   });
   if (t.share != null && rows.length >= 4) {

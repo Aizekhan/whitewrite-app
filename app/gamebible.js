@@ -823,6 +823,12 @@
       groups: { uk: ["Зброя", "Броня", "Розхідники", "Ключові предмети", "Косметика"], en: ["Weapons", "Armour", "Consumables", "Key items", "Cosmetics"] },
       about: { uk: "Зброя, броня, розхідники, ключі: що дає, скільки коштує, де взяти. Легендарні речі канону — в «Артефактах».", en: "Weapons, armour, consumables, keys: what it gives, cost, where to get it. Canon legends are in “Artifacts”." },
       defs: [F("group", "Тип", "Type"), F("effect", "Ефект", "Effect"), NUM(), F("source", "Як отримати", "How to get"), F("model", "Модель / іконка", "Model / icon", "file")] },
+    // 🃏 the game's own playing cards, decks and the rest that fits no other shelf (owner, v2.135.0) — beside «Предмети й спорядження» and «Артефакти»
+    { id: "playcards", uk: "Картки та інше", en: "Cards & more", group: "group",
+      groups: { uk: ["Ігрові картки", "Колоди", "Інше"], en: ["Game cards", "Decks", "Other"] },
+      about: { uk: "Картки гри (колекційні, бойові, стартова колода), колоди й усе інше, що не лягає в предмети чи артефакти: що робить, рідкість, ціна, де взяти.", en: "The game's cards (collectible, combat, the starter deck), decks and the rest that is neither an item nor an artifact: what it does, rarity, cost, where to get it." },
+      defs: [F("group", "Тип", "Type"), F("effect", "Що робить", "What it does"), F("rarity", "Рідкість", "Rarity"), F("cost", "Вартість", "Cost"),
+             F("source", "Як отримати", "How to get"), F("art", "Арт картки", "Card art", "image")] },
     { id: "assets", uk: "Ассети й префаби", en: "Assets & prefabs", group: "category",
       groups: { uk: ["Персонажі", "Вороги", "Оточення", "Пропси", "Зброя й предмети", "Ефекти", "UI"], en: ["Characters", "Enemies", "Environment", "Props", "Weapons & items", "Effects", "UI"] },
       about: { uk: "Моделі й префаби: що вже є і що треба зробити — функція, розмір, пріоритет, промпт. Моделі відкриваються в 3D.", en: "Models and prefabs: what exists and what to make — function, size, priority, prompt. Models open in 3D." },
@@ -1135,7 +1141,7 @@
     { uk: "G0–G1 · Задум, ядро і greybox", en: "G0–G1 · Concept, core & greybox", after: "", show: ["overview", "lore", "refs", "artstyle", "characters", "mechanics", "levels", "locations", "plan", "tech"],
       todo: { uk: "огляд і бачення, ігрові цикли, відчуття гри, керування, один рівень з метриками, greybox", en: "overview & vision, game loops, game feel, controls, one level with metrics, greybox" },
       need: [["overview"], ["mechanics"], ["levels", "locations"]] },
-    { uk: "G2 · Перший рівень і наповнення", en: "G2 · First level & content", after: "G1", show: ["enemies", "companions", "factions", "scenes", "worldgen", "quests", "dialogues", "forge", "gear", "items", "assets", "materials", "animation", "ui", "audio", "issues", "knowledge", "activity"],
+    { uk: "G2 · Перший рівень і наповнення", en: "G2 · First level & content", after: "G1", show: ["enemies", "companions", "factions", "scenes", "worldgen", "quests", "dialogues", "forge", "gear", "items", "playcards", "assets", "materials", "animation", "ui", "audio", "issues", "knowledge", "activity"],
       todo: { uk: "квести й діалоги, Кузня персонажів, вороги, арт і звук", en: "quests & dialogues, the Character forge, enemies, art & sound" }, need: [["enemies"], ["assets", "animation", "ui", "audio"]] },
     { uk: "G3 · Баланс і гравці", en: "G3 · Balance & players", after: "G2", show: ["progression", "experience", "telemetry"],
       todo: { uk: "економіка, крива складності, плейтести й телеметрія", en: "economy, the difficulty curve, playtests & telemetry" }, need: [["progression", "gear", "items"]] },
@@ -1190,7 +1196,7 @@
     { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
     { id: "g-mech", members: ["mechanics"] },
     { id: "g-prog", uk: "Прогресія", en: "Progression", members: ["progression"], subs: true }, // its own menu item (owner): the progression constructor lives there; its sub-items = the section's subsections (navProgSubs)
-    { id: "g-items", uk: "Предмети", en: "Items", members: ["gear", "items"] },
+    { id: "g-items", uk: "Предмети", en: "Items", members: ["gear", "items", "playcards"] },
     { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "pictures", "assets", "materials", "animation", "ui"] },
     { id: "g-audio", members: ["audio"] }, // «Звук і музика» — its own menu item (the Sound factory lives there)
     { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
@@ -9773,7 +9779,7 @@
   // The snapshot is built here from what the author sees; the server checks ownership, trims and stores it.
   var COMM_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/community", commPubs = {}; // pubId → community doc | null
   var COMM_CANON = ["laws", "w-characters", "w-locations", "w-factions", "w-items", "chronicle", "culture"];
-  var COMM_GAME = ["overview", "lore", "characters", "locations", "factions", "items", "mechanics", "levels", "enemies", "companions", "gear", "scenes", "refs"];
+  var COMM_GAME = ["overview", "lore", "characters", "locations", "factions", "items", "mechanics", "levels", "enemies", "companions", "gear", "playcards", "scenes", "refs"];
   // The author ticks what the Community sees: the world itself and / or each game. A ticked game is its own card; the world alone
   // is one world card; the world ticked WITH games has no card of its own — it opens inside every ticked game's card (withWorld).
   var commCards = {}, commSel = null, commDraft = {}, commMsg = ""; // gid → that game's cards (one read) · the ticks { w, g: {gid: true} } · typed, not yet published
@@ -10530,6 +10536,7 @@
     ["refs", /^(refs?|references?|референс\S*|moodboards?|inspiration|натхнення|concepts?|concept.?art|концепт\S*)$/],
     ["characters", /^(characters?|chars?|heroes|hero|npcs?|персонаж\S*|герої|герой)$/],
     ["companions", /^(pets?|companions?|mounts?|summons?|familiars?|супутник\S*|улюблен\S*|компаньйон\S*|їздов\S*)$/],
+    ["playcards", /^(cards?|decks?|playing ?cards?|картк\S*|карти|колод\S*)$/],
     ["enemies", /^(enemies|enemy|monsters?|mobs?|bosses|boss|creatures?|вороги|ворог|монстр\S*|боси?)$/],
     ["locations", /^(locations?|places?|локації|місця)$/],
     ["levels", /^(levels?|maps?|scenes?|environments?|env|рівн\S*|мапи|карти|сцени)$/],
@@ -10542,7 +10549,7 @@
   var IN_ASSETS = /^(models?|meshes|prefabs?|assets?|ассети|моделі|префаби)$/;
   var IN_ENTITY = ["characters", "enemies", "companions", "locations", "levels", "gear"]; // a subfolder there is one thing (Characters/Viktoria/… → «Viktoria»)
   var IN_FALLBACK = { image: "refs", video: "refs", model: "assets", source: "assets", prefab: "assets", archive: "assets", material: "materials", anim: "animation", font: "ui", audio: "audio" };
-  var IN_TARGETS = ["characters", "locations", "enemies", "companions", "levels", "gear", "assets", "materials", "animation", "audio", "ui", "scenes", "refs", "tech"];
+  var IN_TARGETS = ["characters", "locations", "enemies", "companions", "levels", "gear", "playcards", "assets", "materials", "animation", "audio", "ui", "scenes", "refs", "tech"];
   function inKind(name) { for (var k in IN_EXT) if (IN_EXT[k].test(name)) return k; return ""; }
   function inStem(n) { // «footstep_02.wav», «sword_albedo.png» → «footstep», «sword»: variations and texture maps share one card
     var s = baseName(n), t;
@@ -11122,7 +11129,7 @@
   var GDD_AREAS = [[/vision|pillar|бачен|задум|стовп|концеп|monetiz|монетиз|business|бізнес/, "overview"], [/econom|економ|loot|лут|progress|прогрес/, "progression"],
     [/loop|цикл|game feel|відчут|control|керуван|accessib|доступн|mechanic|механік|difficult|складн|balance|баланс|release|реліз|combat|бій|бойов|movement|рух/, "mechanics"],
     [/lore|лор|setting|сеттинг/, "lore"], [/hub|хаб|city|town|місто/, "locations"],
-    [/item|предмет|gear|спорядж|inventor|інвентар/, "gear"], [/\bpets?\b|companion|mount|summon|супутник|улюблен|компаньйон|їздов/, "companions"], [/character|персонаж/, "characters"], [/enem|ворог|boss|бос/, "enemies"], [/level|рівн|pacing|темп/, "levels"],
+    [/\bcards?\b|\bdecks?\b|картк|колод/, "playcards"], [/item|предмет|gear|спорядж|inventor|інвентар/, "gear"], [/\bpets?\b|companion|mount|summon|супутник|улюблен|компаньйон|їздов/, "companions"], [/character|персонаж/, "characters"], [/enem|ворог|boss|бос/, "enemies"], [/level|рівн|pacing|темп/, "levels"],
     [/\bui\b|\bux\b|інтерфейс/, "ui"], [/audio|sound|music|звук|музик/, "audio"], [/\bart\b|арт|visual|візуал/, "artstyle"], [/narrat|story|quest|сюжет|квест|наратив/, "quests"],
     [/tech|engine|технічн|рушій|multiplayer|мультипле/, "tech"], [/world|світ/, "locations"]];
   function gddSecFor(title, own) {

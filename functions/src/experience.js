@@ -92,7 +92,7 @@ function telemetrySchema(game, cards, entities, experiments, playtests) {
   const idOf = (c) => (c.canonRef ? c.canonRef : c.id);
   const titleOf = (c) => (c.canonRef ? ((entities.find((e) => e.id === c.canonRef) || {}).name || '') : (c.title || ''));
   const idMap = {};
-  ['locations', 'levels', 'worldgen', 'mechanics', 'enemies', 'gear', 'items'].forEach((s) => {
+  ['locations', 'levels', 'worldgen', 'mechanics', 'enemies', 'gear', 'items', 'playcards'].forEach((s) => {
     const l = cards.filter((c) => c.section === s && !c.hidden).map((c) => ({ id: idOf(c), title: titleOf(c), ...(c.intent ? { intent: c.intent } : {}) }));
     if (l.length) idMap[s] = l;
   });

@@ -1087,7 +1087,7 @@ var ECONOMY = {
       values: { hours: 10, earnGrowth: 5, spendGrowth: 5 } },
     { id: 'loot', title: T('Таблиці луту', 'Loot tables'), kind: 'table', rowLabel: 'item', prefix: 'LT',
       hint: T('Рядки з однаковою назвою таблиці — одна таблиця. Шанс = вага ÷ сума ваг таблиці (порожній «Шанс» рахується сам). Гарантія (pity) — після скількох спроб без цього предмета він випаде точно.', 'Rows with the same table name are one table. Chance = weight ÷ the sum of the table’s weights (an empty “Chance” is computed). Pity — after how many tries without the item it surely drops.'),
-      fields: [F('table', 'Таблиця', 'Table', 'text', R), F('item', 'Предмет', 'Item', 'card', X(R, { secs: ['items', 'gear'] })), F('weight', 'Вага', 'Weight', 'num', X(R, { min: 0 })),
+      fields: [F('table', 'Таблиця', 'Table', 'text', R), F('item', 'Предмет', 'Item', 'card', X(R, { secs: ['items', 'gear', 'playcards'] })), F('weight', 'Вага', 'Weight', 'num', X(R, { min: 0 })),
         F('drop', 'Шанс', 'Chance', 'pct', { req: 'opt', min: 0, max: 100, h: T('порожньо — з ваги', 'empty — from the weight') }), F('pity', 'Гарантія після (спроб)', 'Pity after (tries)', 'num', { req: 'opt', min: 1 }),
         F('rarity', 'Рідкість', 'Rarity', 'sel', X(REC, { o: O([['common', 'Звичайний', 'Common'], ['uncommon', 'Незвичайний', 'Uncommon'], ['rare', 'Рідкісний', 'Rare'], ['epic', 'Епічний', 'Epic'], ['legendary', 'Легендарний', 'Legendary']]) }))],
       rows: [
@@ -1370,7 +1370,7 @@ var XP_CURVE = {
     { id: 'rewards', title: T('Що дає рівень', 'What a level gives'), kind: 'table', rowLabel: 'level', prefix: 'RW',
       hint: T('Нагороди на рівнях: очки, здібності, слоти, доступ. Довгі проміжки без нагород перевірка підсвітить.', 'Rewards at levels: points, abilities, slots, access. Long stretches without rewards are flagged.'),
       fields: [F('level', 'Рівень', 'Level', 'num', X(R, { min: 2 })), F('reward', 'Нагорода', 'Reward', 'text', R), F('points', 'Очок навичок', 'Skill points', 'num', { req: 'opt', min: 0 }),
-        F('unlock', 'Відкриває', 'Unlocks', 'card', { req: 'opt', adv: true, secs: ['mechanics', 'gear', 'items', 'levels'] })],
+        F('unlock', 'Відкриває', 'Unlocks', 'card', { req: 'opt', adv: true, secs: ['mechanics', 'gear', 'items', 'playcards', 'levels'] })],
       rows: [{ _id: 'RW1', level: 2, reward: '+1 очко навичок', points: 1 }, { _id: 'RW2', level: 5, reward: 'Другий слот зброї', points: 1 },
         { _id: 'RW3', level: 10, reward: 'Нова здібність', points: 2 }, { _id: 'RW4', level: 15, reward: 'Доступ до гільдії', points: 1 },
         { _id: 'RW5', level: 20, reward: 'Легендарний слот', points: 2 }, { _id: 'RW7', level: 25, reward: 'Друга спеціалізація', points: 2 }, { _id: 'RW6', level: 30, reward: 'Максимальний рівень · титул', points: 3 }] },
@@ -1421,7 +1421,7 @@ var PROG_SHOP = {
   sections: [WALLET, SHOPS,
     { id: 'goods', title: T('Товари', 'Goods'), kind: 'table', rowLabel: 'item', prefix: 'SH',
       hint: T('«З години» — коли товар зʼявляється (після першого міста, акту…). Ціна — у валюті гаманця.', '“From hour” — when the item appears (after the first town, act…). Price — in the wallet currency.'),
-      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items'] })), F('shop', 'Магазин', 'Shop', 'ref', { req: 'opt', ref: 'shops', since: 2 }), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
+      fields: [F('item', 'Товар', 'Item', 'card', X(R, { secs: ['gear', 'items', 'playcards'] })), F('shop', 'Магазин', 'Shop', 'ref', { req: 'opt', ref: 'shops', since: 2 }), F('price', 'Ціна', 'Price', 'num', X(R, { min: 0 })),
         F('from', 'З години', 'From hour', 'num', X(REC, { min: 0 })), F('kind', 'Тип', 'Kind', 'sel', X(REC, { o: SHOP_KINDS })), F('stock', 'Ліміт', 'Stock', 'num', { req: 'opt', adv: true, min: 0 })],
       rows: [{ _id: 'SH1', item: 'Зілля здоровʼя', shop: 'SP1', price: 50, from: 0, kind: 'consumable' }, { _id: 'SH2', item: 'Сталевий меч', shop: 'SP2', price: 2500, from: 1, kind: 'gear' },
         { _id: 'SH3', item: 'Карта підземель', shop: 'SP1', price: 800, from: 2, kind: 'key' }, { _id: 'SH4', item: 'Кольчуга', shop: 'SP2', price: 6000, from: 3, kind: 'gear' },
@@ -1438,7 +1438,7 @@ var PROG_UPGRADES = {
       fields: [F('name', 'Що покращується', 'What improves', 'text', R), F('stat', 'Параметр', 'Stat', 'text', REC), F('tiers', 'Рівнів', 'Levels', 'num', X(R, { min: 1, max: 100 })),
         F('cost', 'Ціна 1-го рівня', 'First level price', 'num', X(R, { min: 0 })), F('costGrowth', 'Дорожчає за рівень', 'Dearer per level', 'pct', X(R, { min: 0, max: 300 })),
         F('base', 'Значення на старті', 'Value at the start', 'num', REC), F('step', 'Приріст за рівень', 'Step per level', 'num', R),
-        F('item', 'Предмет', 'Item', 'card', { req: 'opt', adv: true, secs: ['gear', 'items', 'mechanics'] })],
+        F('item', 'Предмет', 'Item', 'card', { req: 'opt', adv: true, secs: ['gear', 'items', 'playcards', 'mechanics'] })],
       rows: [{ _id: 'UP1', name: 'Меч', stat: 'Шкода', tiers: 10, cost: 200, costGrowth: 35, base: 12, step: 3 },
         { _id: 'UP2', name: 'Броня', stat: 'Захист', tiers: 8, cost: 300, costGrowth: 40, base: 20, step: 4 },
         { _id: 'UP3', name: 'Сумка', stat: 'Місткість', tiers: 5, cost: 500, costGrowth: 60, base: 20, step: 5 }] },
@@ -1469,7 +1469,7 @@ function treeNodeFields(costLabel, sid) {
     F('effect', 'Що дає', 'Effect', 'text', R), F('needs', 'Потребує', 'Requires', 'refs', { req: 'opt', ref: sid || 'nodes' }),
     F('needMode', 'Умова', 'Condition', 'sel', { req: 'opt', o: NEED_MODES }), F('level', 'З рівня гравця', 'From player level', 'num', { req: 'opt', min: 1 }),
     F('branchPts', 'Очок у гілці', 'Points in the branch', 'num', { req: 'opt', min: 0, h: T('Скільки очок треба вже вкласти в інші вузли цієї гілки, щоб відкрити цей (суперперк — після 6 очок у гілці)', 'How many points must already be spent on other nodes of this branch to open this one (a keystone after 6 points in the branch)') }),
-    F('branch', 'Гілка', 'Branch', 'text', { req: 'opt' }), F('card', 'Картка', 'Card', 'card', { req: 'opt', secs: ['mechanics', 'gear', 'items', 'characters', 'enemies'] }),
+    F('branch', 'Гілка', 'Branch', 'text', { req: 'opt' }), F('card', 'Картка', 'Card', 'card', { req: 'opt', secs: ['mechanics', 'gear', 'items', 'playcards', 'characters', 'enemies'] }),
     F('col', 'Колонка', 'Column', 'num', { req: 'opt', adv: true, min: 0, max: 40 }), F('row', 'Ряд', 'Row', 'num', { req: 'opt', adv: true, min: 0, max: 40 })];
 }
 // «＋ Розділ ▾ → 🌳 Дерево» in any card (a class, a weapon, a base): an empty tree section of its own

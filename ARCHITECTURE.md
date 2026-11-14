@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.134.5 (2026-11-14)
+**Version:** 2.135.0 (2026-11-14)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -777,6 +777,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.135.0** (owner) 🃏 game section `playcards` «Картки та інше» / «Cards & more» in the «Предмети» menu group beside `gear` and `items` (game-only, no canon kind; id not `cards` — that is the Firestore collection): subsections Ігрові картки · Колоди · Інше, fields type, what it does, rarity, cost, how to get, card art (image); wired into the G2 gate, Спільнота (`COMM_GAME`), folder upload (folder names Cards / Decks / Картки / Колоди, `IN_TARGETS`) and GDD heading mapping, quest/dialogue refs (`narrative-validate.js CARD_ROLES` → artifacts), MCP (`save_card` section, `WRITE_SECS`, subsections), player-experience id map (`experience.js`), constructor card fields (loot table, shop item, «Відкриває», tree node card — `mechanics.js` secs); rules unchanged (cards are checked by game, not by section)
 - **v2.134.5** (owner tech audit) (1) the hub's panel copy of the Bible (`?panel=1`), loading alongside, took the main Bible's `ww-bible-sec-<world>` «open this game» from sessionStorage, so a game picked in the hub opened the World Bible — the panel no longer reads it; (2) `keepPlace` froze too little on a short page (padding = the shift, while the scroll was clamped at 0) — now `#view` keeps its height (`min-height`) while on the section, so the clicked heading can't move; (3) one source for a fold key: the render writes it on the block (`data-foldk`), `foldToggle` / `foldAll` read it instead of recomputing from `sec(section)`
 - **v2.134.4** (owner: «the arrows only fold, never unfold») `keepPlace` in `foldToggle`: a fold near the end of a page made it shorter, `#main` clamped its scroll and pulled the page down, so the next click at the same spot hit another subsection's arrow; now the clicked heading stays under the cursor (`#main.scrollTop` corrected, the lost height kept as `#view` padding-bottom until the section changes — `foldPad`)
 - **v2.134.3** (owner: «a game from the hub still shows the world first») when the Bible frame of that world is already loaded, the shell's `showBible` switches it synchronously through `window.__wwBibleOpen` (`gamebible.js bibleOpen`, the `ww-bible-open` message stays as a fallback) before the frame is shown — a message landed after a paint of the old World Bible; while the games are still loading the view and menu are emptied, not left on the world
@@ -1019,5 +1020,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-14 (v2.134.5)
+**Last updated:** 2026-11-14 (v2.135.0)
 **Maintained by:** WhiteWrite Team
