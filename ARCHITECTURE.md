@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.136.0 (2026-11-14)
+**Version:** 2.136.1 (2026-11-14)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -777,6 +777,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.136.1** (owner) `SUB_DEFS.playcards`: a new «Картки та інше» card opens on its fields (what it does, rarity, cost, how to get; «Колоди» + deck list) under the picture frame, like items & gear — they were hidden behind «＋ Додати поле»
 - **v2.136.0** (owner) ▸ folding subsections removed entirely (v2.134.0–v2.134.5): the arrows, «Згорнути всі» / «Розгорнути всі», the name click, `ww-bible-fold` (localStorage; old values are just ignored), `keepPlace`, `data-foldk`, its CSS and the KB paragraphs. Kept from that work: the hub panel copy doesn't take «open this game», `__wwBibleOpen`, the empty view while the games load, the start screen's «Обери свій світ» guess
 - **v2.135.1** (owner: «the same frames with a picture, no stat dropdowns») `playcards` opens on the gold picture frame (`ART_FRAME` field `view`, like `gear` / `items`; the grid card shows it); the separate «Арт картки» image field dropped; MCP `card_image_upload` already lands in `view` by default
 - **v2.135.0** (owner) 🃏 game section `playcards` «Картки та інше» / «Cards & more» in the «Предмети» menu group beside `gear` and `items` (game-only, no canon kind; id not `cards` — that is the Firestore collection): subsections Ігрові картки · Колоди · Інше, fields type, what it does, rarity, cost, how to get; wired into the G2 gate, Спільнота (`COMM_GAME`), folder upload (folder names Cards / Decks / Картки / Колоди, `IN_TARGETS`) and GDD heading mapping, quest/dialogue refs (`narrative-validate.js CARD_ROLES` → artifacts), MCP (`save_card` section, `WRITE_SECS`, subsections), player-experience id map (`experience.js`), constructor card fields (loot table, shop item, «Відкриває», tree node card — `mechanics.js` secs); rules unchanged (cards are checked by game, not by section)
@@ -1022,5 +1023,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-14 (v2.136.0)
+**Last updated:** 2026-11-14 (v2.136.1)
 **Maintained by:** WhiteWrite Team

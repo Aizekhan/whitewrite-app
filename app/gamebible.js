@@ -941,6 +941,9 @@
         [F("unlocks", "Що відкриває (двері, квест, механіку)", "What it unlocks (door, quest, mechanic)"), F("quest", "Повʼязаний квест", "Related quest"), F("lose", "Чи можна втратити або продати", "Can it be lost or sold")],
         [F("slot", "На що одягається / де видно", "Where it is worn / shown"), F("rarity", "Рідкісність", "Rarity")]],
       drop: [null, null, null, ["numbers"], ["effect", "numbers"]] },
+    playcards: { // «Картки та інше» (owner, v2.136.1): a new card opens on these, like items & gear
+      all: [F("effect", "Що робить", "What it does"), F("rarity", "Рідкість", "Rarity"), F("cost", "Вартість", "Cost"), F("source", "Як отримати", "How to get")],
+      add: [null, [F("deck", "Склад колоди (які картки й скільки)", "Deck list (which cards, how many)")], null] },
     assets: {
       add: [[F("rig", "Риг і скелет", "Rig & skeleton"), F("anims", "Потрібні анімації", "Animations needed"), F("lod", "LOD і бюджет полігонів", "LOD & poly budget")],
         [F("rig", "Риг і скелет", "Rig & skeleton"), F("anims", "Потрібні анімації", "Animations needed"), F("lod", "LOD і бюджет полігонів", "LOD & poly budget")],
