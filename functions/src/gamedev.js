@@ -125,7 +125,8 @@ function bibleText(world, entities, cards, game, shelves, lore) {
     card(`e:${e.id}`, `canon ${e.kind}`, e.name || '', c.status, { description: e.desc || e.description || '',
       ...(d.story ? { 'world dossier: story': d.story } : {}), ...(d.look ? { 'world dossier: look': d.look } : {}), ...(d.outcome ? { 'world dossier: consequences': d.outcome } : {}), ...(life ? { 'life timeline': life } : {}), ...(lookText(e.appearance, 'en') ? { 'appearance': lookText(e.appearance, 'en') } : {}), ...(e.personality && personaText(e.personality, 'en') ? { 'personality': personaText(e.personality, 'en') } : {}), ...named(c) }, c.note, c.files, c.intent);
   }
-  for (const c of cards) {
+  const secAt = GDD.order([...new Set(cards.map((c) => c.section))]); // 🧭 the GDD in stage order: vision and core first (the text is cut at MAX_BIBLE_CHARS)
+  for (const c of cards.slice().sort((a, b) => secAt.indexOf(a.section) - secAt.indexOf(b.section) || (a.order || 0) - (b.order || 0))) {
     if (c.canonRef) continue;
     card(`c:${c.id}`, `${c.section} — ${(own.find((s) => s.id === c.section) || {}).name || ''}`, c.title || '', c.status, named(c), c.note, c.files, c.intent);
     if (c.mech && !c.hidden) lines.push(mechText(c.mech, cards));
@@ -308,6 +309,12 @@ function cleanImport(p, shelves, entities, world) {
 }
 
 // 🧭 the GDD schema's «what goes where» for the shelves the page sent (functions/gdd-schema.js) — the import, folder sort and draft read the same rules
+// the stages 1..upTo whose minimum is not met: [{ n, uk, en, need }] — the cards a stage counts are its sections' visible cards
+function gddMissing(cards, upTo) {
+  const count = (id) => cards.filter((c) => c.section === id && !c.hidden).length;
+  return GDD.STAGES.filter((st) => st.n <= upTo && st.need && GDD.stageState(st, count) !== 'done').map((st) => ({ n: st.n, uk: st.uk, en: st.en,
+    need: st.need.map((r) => r[1] + ' × ' + r[0].map((id) => (GDD.section(id) || {}).uk || id).join(' / ')).join(', ') }));
+}
 const whereText = (shelves) => GDD.promptRules('en', shelves.map((s) => s.id));
 
 // «📂 Тека гри» (op folderSort): the list of the folder's files — paths, sizes, never the contents — → which card of which shelf
@@ -815,6 +822,10 @@ exports.gamedevPlan = onRequest({
         .concat(decided(prev.contradictions, prev.resolved || {}));
       const audit = world.audit || {}, auditAnswers = world.auditAnswers || {};
       if (op === 'plan' && !prev.gdd) return res.status(400).json({ error: 'Спершу проаналізуй біблію', code: 'ANALYZE_FIRST' });
+      if (op === 'plan') { // 🧭 the plan is built on a GDD whose stages 1–6 have their minimum (gdd-schema need)
+        const missing = gddMissing(cards, 6);
+        if (missing.length) return res.status(400).json({ error: 'Спершу заповни мінімум етапів GDD: ' + missing.map((m) => m.n + ' «' + m.uk + '» — ' + m.need).join('; '), code: 'GDD_STAGES', missing });
+      }
       const shelves = cleanShelves(body.shelves);
       let repoData = null; // read before any token is reserved: a GitHub error costs nothing
       if (op === 'repoSync') {
@@ -969,3 +980,4 @@ exports.gamedevPlan = onRequest({
 });
 exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)
 exports._import = { halves, splitMarkdown }; // tests only (tests/gamedev-import.test.cjs)
+exports._gdd = { gddMissing, bibleText }; // tests only (tests/gdd-schema.test.cjs)

@@ -45,5 +45,16 @@ const rules = G.promptRules('en', ['overview', 'companions']);
 check(/overview — Game overview/.test(rules) && /companions/.test(rules) && !/^- mechanics/m.test(rules), true, 'promptRules lists only the asked sections');
 check(G.forAgent('uk').stages.length, 13, 'forAgent gives all stages');
 
+// the plan's threshold and the GDD text in stage order (functions/src/gamedev.js)
+const { gddMissing, bibleText } = require(path.join(__dirname, '../functions/src/gamedev.js'))._gdd;
+check(gddMissing([], 6).map((m) => m.n).join(), '1,2,3,4,5,6', 'an empty game misses stages 1–6');
+const C = (section, n, extra) => Array.from({ length: n }, (_, i) => Object.assign({ id: section + i, section, title: section + ' ' + i }, extra || {}));
+const full = [].concat(C('overview', 1), C('mechanics', 3), C('lore', 1), C('artstyle', 1), C('characters', 1), C('enemies', 1), C('levels', 1));
+check(gddMissing(full, 6).length, 0, 'stages 1–6 with their minimum pass');
+check(gddMissing(full.filter((c) => c.section !== 'mechanics').concat(C('mechanics', 2)), 6).map((m) => m.n + m.need).join(), '23 × Механіки', 'two mechanics are not the core minimum');
+check(gddMissing(full.filter((c) => c.section !== 'enemies').concat(C('enemies', 1, { hidden: true })), 6).map((m) => m.n).join(), '5', 'a hidden card does not count');
+const txt = bibleText({ title: 'W' }, [], [C('audio', 1)[0], C('mechanics', 1)[0], C('overview', 1)[0]], { title: 'G' }, [], []);
+check(txt.indexOf('overview 0') < txt.indexOf('mechanics 0') && txt.indexOf('mechanics 0') < txt.indexOf('audio 0'), true, 'the GDD text goes in stage order');
+
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
 process.exit(fails ? 1 : 0);
