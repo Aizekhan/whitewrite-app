@@ -6,11 +6,11 @@ const src = fs.readFileSync(path.join(__dirname, '../functions/src/mcp.js'), 'ut
 const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js');
 const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS' } } };
-const { saveCard, saveNarrative } = new Function('NV', 'admin',
+const { saveCard, saveNarrative } = new Function('NV', 'admin', 'GDD',
   pick('const str =', '// ---------- tools') + pick('async function narrative', '// 🎙') +
   pick('// ---------- ✎ writes on the user', 'async function callTool') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
-  ';return { saveCard, saveNarrative };')(NV, admin);
+  ';return { saveCard, saveNarrative };')(NV, admin, require('../functions/gdd-schema.js'));
 
 const writes = [];
 const gref = { collection: (col) => ({ doc: (id) => ({ set: async (body, opt) => { writes.push({ col, id, body, merge: !!(opt && opt.merge) }); } }),
@@ -51,6 +51,12 @@ const last = () => writes[writes.length - 1];
   check(w.body.defs.length + '|' + w.body.fields.hp + '|' + w.body.status + '|' + w.body.agentPrev._new, '3|15|idea|true', 'a new card takes the latest card\'s fields of the section');
   check(/section must be/.test(await err(() => saveCard(mk(), key, { section: 'plan', title: 'X' }))), true, 'no cards in the plan / unknown sections');
   check(/needs a title/.test(await err(() => saveCard(mk(), key, { section: 'enemies' }))), true, 'a new card needs a title');
+  // 🧭 duplicates (v2.138): Claude Code writes on its own — a second card for the same thing is refused with the existing ref
+  check(/already in this section: c:e1/.test(await err(() => saveCard(mk(), key, { section: 'enemies', title: '🐺 wolf' }))), true, 'the same name in the same section is refused (emoji, case)');
+  check(/already in section enemies.*c:e1/.test(await err(() => saveCard(mk(), key, { section: 'companions', title: 'Wolf' }))), true, 'the same name in another section names it');
+  check(/e:char_a/.test(await err(() => saveCard(mk(), key, { section: 'characters', title: 'Ada' }))), true, 'a canon entity → use its e: ref');
+  check((await saveCard(mk(), key, { section: 'companions', title: 'Wolf', allow_similar: true })).created, true, 'allow_similar creates it anyway');
+  check((await saveCard(mk(), key, { section: 'enemies', title: 'Wolf rider' })).created, true, 'a different thing with a shared word is created');
   check(/status must be/.test(await err(() => saveCard(mk(), key, { ref: 'c:e1', status: 'done' }))), true, 'only the Bible statuses');
 
   // canon entity through this game

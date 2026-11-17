@@ -6,11 +6,11 @@ const src = fs.readFileSync(path.join(__dirname, '../functions/src/mcp.js'), 'ut
 const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js'), MECH = require('../functions/mechanics.js');
 const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS', delete: () => 'DEL', arrayUnion: (v) => ['UNION', v] } } };
-const { saveMechanic } = new Function('NV', 'admin', 'MECH',
+const { saveMechanic } = new Function('NV', 'admin', 'MECH', 'GDD',
   pick('const str =', '// ---------- tools') + pick('async function narrative', '// 🎙') +
   pick('// ---------- ✎ writes on the user', 'async function callTool') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
-  ';return { saveMechanic };')(NV, admin, MECH);
+  ';return { saveMechanic };')(NV, admin, MECH, require('../functions/gdd-schema.js'));
 
 let fails = 0;
 const check = (got, want, msg) => { const ok = got === want; console.log((ok ? 'PASS ' : 'FAIL ') + msg + (ok ? '' : ` (got ${got}, want ${want})`)); if (!ok) fails++; };

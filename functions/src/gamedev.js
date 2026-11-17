@@ -30,6 +30,7 @@ const { featureCost, byOp, quoteChars } = require('../paid-features.js');
 const { personaText, lookText } = require('../persona.js');
 const { modelFor, withFallback } = require('./claude');
 const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
+const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages, what goes where
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
@@ -306,6 +307,9 @@ function cleanImport(p, shelves, entities, world) {
   };
 }
 
+// 🧭 the GDD schema's «what goes where» for the shelves the page sent (functions/gdd-schema.js) — the import, folder sort and draft read the same rules
+const whereText = (shelves) => GDD.promptRules('en', shelves.map((s) => s.id));
+
 // «📂 Тека гри» (op folderSort): the list of the folder's files — paths, sizes, never the contents — → which card of which shelf
 // each file goes to, and what to ignore with a reason. The page uploads the files by this plan; the texts go to the import as before.
 function folderSortPrompt(lines, shelves, entities, cards, languageName) {
@@ -316,6 +320,9 @@ function folderSortPrompt(lines, shelves, entities, cards, languageName) {
 
 SHELVES (sections of the game's design document):
 ${shelfText}
+
+WHAT GOES WHERE (the GDD schema — follow it; when two shelves could fit, pick by these rules):
+${whereText(shelves)}
 
 Rules:
 - Group the files that describe ONE thing into one card: a character with its model, textures and portraits; a sound with its numbered variations (footstep_01, footstep_02); a material with its maps (albedo, normal, roughness). Name the card by the thing; keep proper names as they are.
@@ -372,6 +379,9 @@ function importPrompt(markdown, shelves, entities, world, languageName, cards) {
 SHELVES:
 ${shelfText}
 
+WHAT GOES WHERE (the GDD schema — follow it; when two shelves could fit, pick by these rules):
+${whereText(shelves)}
+
 Rules:
 - CANON is the world shared by all stories and games: characters, locations, factions, artifacts. Put each canon entity in "canon" with kind (characters|locations|factions|artifacts), name, description (who/what it is in the world). If it is already in the canon list below, set "match" to its id. Game-only information about it (role in the game, numbers, abilities, model/prefab, level design) goes to gameFields as {"<field label>": "value"} — prefer the shelf's field labels.
 - New laws of the world (hard rules of magic/physics/society) go to "laws" — only ones not already listed.
@@ -404,6 +414,9 @@ function draftPrompt(idea, shelves, entities, world, languageName, cards) {
 
 SHELVES:
 ${shelfText}
+
+WHAT GOES WHERE (the GDD schema — follow it; when two shelves could fit, pick by these rules):
+${whereText(shelves)}
 
 Rules:
 - Build the game ON the world canon below. Use its characters, locations, factions and artifacts (put each one the game uses in "canon" with "match" = its id and the game's role / numbers / abilities in gameFields). Add a NEW canon entity only when the game truly needs one the canon lacks — few, clearly named.
@@ -631,6 +644,9 @@ If "Changed since the last check" is listed, look at those files first.
 
 SHELVES:
 ${shelfText}
+
+WHAT GOES WHERE (the GDD schema — follow it; when two shelves could fit, pick by these rules):
+${whereText(shelves)}
 Existing game cards:
 ${cards.filter((c) => !c.canonRef).map((c) => `- [${c.section}] ${c.title || ''}`).join('\n') || '(none)'}
 

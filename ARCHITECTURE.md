@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.137.0 (2026-11-17)
+**Version:** 2.138.0 (2026-11-17)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -42,7 +42,7 @@ E:\WhiteWrite/
 │  ├─ cosmograph/                # Космограф (the world's sky): cosmograph.js (scene, editor, inspector), orbit.js, astro.js (light, eclipses, sky at a point), calendar.js, events.js, presets.js
 │  ├─ firebase/                  # firebase-init / -auth / -projects / -scenes / -canon / -ai (generateScene client) / -lemon / -pricing,
 │  │                             # token-budget.js + COPIES made by build-app.mjs from functions/ (ai-models, paid-features, card-refs,
-│  │                             # forge, mechanics, narrative-validate, persona, setup-guides, style-guide, world-fill) — edit functions/, not these
+│  │                             # forge, gdd-schema, mechanics, narrative-validate, persona, setup-guides, style-guide, world-fill) — edit functions/, not these
 │  └─ assets/                    # Images, fonts, icons (LogoG.webp carries the name; LogoG-icon.png = favicon)
 │
 ├─ functions/
@@ -53,6 +53,7 @@ E:\WhiteWrite/
 │  ├─ ai-models.js               # AI_MODELS — single source of model ids and prices (front + back)
 │  ├─ canon-store.js             # loadCanon / ensureWorld (lazy migration), CANON_KINDS, slugify
 │  ├─ token-service.js           # reserve / charge / refund (transactions), real API cost ÷ USD_PER_TOKEN
+│  ├─ gdd-schema.js              # 🧭 the GDD schema — stages 1–13, sections, what goes where / not here → where, minimums, TWINS (front + back)
 │  ├─ asset-kit.js · card-refs.js · forge.js · game-map.js · mechanics.js · narrative-validate.js · persona.js · setup-guides.js · style-guide.js · world-fill.js  # shared front+back modules
 │  ├─ set-admin.js               # node set-admin.js <uid> — admin custom claim
 │  ├─ legal/                     # contract texts used by market.js
@@ -490,6 +491,8 @@ claude mcp add --transport http whitewrite https://us-central1-whitewrite-app.cl
 
 **Tools:** `get_project_overview`, `get_updates` (below), `list_tasks`, `get_next_task` (resumes in_progress/rework, else claims first ready todo — ready = all deps done),
 `get_task_details`, `get_design_section`, `get_card` (`c:id` / `e:id`), `report_task_progress`, `report_blocker`, `submit_task_result` (→ review, server `check`), `submit_change_request`.
+**🧭 GDD schema & Claude Code keeps the GDD (v2.138, owner — GDD refocus 2026-11-17):** `functions/gdd-schema.js` (copy `app/firebase/`, `window.__GDD`) is the one list of the game's GDD sections: `STAGES` 1–13 (Бачення · Ядро геймплею · Світ і лор · Стиль · Персонажі й вороги · Структура · Прогресія/предмети/економіка · Наратив · Виробництво контенту · Технічне · Продакшн-план · Досвід гравців · Реліз і маркетинг; `need` = the minimum, `ask` = the guide's questions), `SECTIONS` (id → stage, uk/en name, `here` what goes in, `not` [what → goTo section | canon], `write` = save_card may create there), `TWINS` (characters/enemies/companions · gear/items/playcards · refs/pictures — one thing lives in one of them), `order`, `stageState(stage, count)` → empty | partial | done, `promptRules(lang, ids)` (the «what goes where» text the notes import, folder sort, GDD draft and repo sync prompts now carry — `gamedev.js whereText`), `forAgent`. Section ids never change. MCP: `get_gdd_schema`, `find_cards` (game cards + canon entities by name, `titleSim` — normalised name, ≥ 60% containment = 0.9, else shared 5-letter stems), `get_gdd_status` (`gddStatus`: stages against cards by section + quests / dialogues / activity counts / the plan, cards with `agentAt` the author has not cleared, what is missing before a plan); `save_card` create → `dupCheck`: similarity ≥ 0.6 in the same or a twin section → refused with the existing ref (`allow_similar: true` overrides), elsewhere → `similar_elsewhere` in the answer (checked on Morra: an enemy, its references and its model are three cards on purpose); `get_project_overview.gdd` (rule, stages). The rule `WRITE_WHEN` (every write tool) / `setup-guides.js GDD_RULE` (both setups, the CLAUDE.md block) / `initialize`: Claude Code records every design change itself right after making it; `submit_change_request` is now the question to the author about concept decisions (pillars, genre, win condition, removing a mechanic, going against the author's card). No card history (owner decision). The `agentWrite` switch («Claude Code веде GDD сам») still turns writes off.
+
 **Writes on the user's word (v2.117, owner):** `save_card` (update `c:<id>` / `e:<entity>` — the game's view of a canon entity: its game card, doc id = entity id, created if missing; canon name/desc only in the World Bible — or create in a `WRITE_SECS` section; field names → keys via the card's defs, then the section's other cards, a new name → `f_<slug>` def; a card with no own defs is seeded with the section's; picture / file / sound / prefab fields are not written), `save_quest` / `save_dialogue` (create → `approval: draft`; update → only the sent fields, approval untouched; refs by `c:id`, canon id or exact name; a rewritten line keeps its `voice`; returns `NV` checks). Every write stores `agentPrev` (the touched fields before, `null` = absent, `{ _new: true }` for a created doc), `agentAt`, `agentKey`; the Bible shows «🤖 Змінив Claude Code» with «✓ Зрозуміло» (clears the mark); the author's own save clears it too. No undo button (v2.136.2, owner: it wiped what Claude Code did) — `agentPrev` is still written server-side, the Bible no longer reads it. `games/{g}.agentWrite === false` (settings → Claude Code, step 4, owner) refuses every save. Logged as `executions` type `agent_write`; the market freeze covers `save_`. The initialize instructions send a first run to `get_guide {topic:"setup"}` and allow saves only on the user's request in chat; `get_next_task` with no tasks tells the agent what to say (generate the plan in «Продакшн-план»).
 
 **Subsections and pictures from the agent (v2.125, owner):** a card's subsection is `fields.group` (assets / materials — `fields.category`); `save_card` takes it as `subsection` (or from a field the agent names group / Група / Підрозділ / category / subsection — never a field of its own; the stray `f_group`, `f_група`, `f_підрозділ`… of earlier attempts are cleared on the next write). Names match the section's standard ones (`SUB_STD` = gamebible.js GAME groups, kept equal by `tests/mcp-subsections.test.cjs`; mechanics / progression — `mechanics.js` CATEGORIES / PROG_CATEGORIES, old aliases), the author's own (`games/{g}.subsections`), uk or en, any case, a unique start («Економіка» → «Економіка й крафт»); an unknown one is kept as a new subsection and the answer lists the real ones. `get_design_section` returns `subsections` and each card's `subsection`. `card_image_upload {ref, file_name, field?}` → a one-time ticket `mcpUploads/{sha256}` (server only, 15 min, deleted on use) and a `curl` command: the agent's shell POSTs the bytes to `/mcp?upload=<ticket>` (`handleUpload`: type by the file's bytes, ≤ 10 MB image / 50 MB clip, the plan's `fileMB`, the owner's Storage quota) → Storage `worlds/{w}/games/{g}/files/{card}/…` + `card.files[]` with the frame field (`portrait` heroes / enemies, `view` locations and art, `refs` style, `clip` animation, `pics` pictures / references, or a named picture field), `byAgent: true`.
@@ -777,6 +780,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.138.0** (owner: GDD refocus P0 + P1) `functions/gdd-schema.js` — stages 1–13, what goes where, minimums, twins; the import / folder sort / draft / repo sync prompts carry its rules; MCP `get_gdd_schema`, `find_cards`, `get_gdd_status`, `save_card` duplicate check (same / twin section refused, `allow_similar`), `get_project_overview.gdd`; Claude Code keeps the GDD itself (`WRITE_WHEN`, `GDD_RULE` in setups and the CLAUDE.md block, `initialize`), `submit_change_request` = a question about concept decisions; settings label «Claude Code веде GDD сам»; tests `gdd-schema`, duplicates in `mcp-write`
 - **v2.137.0** (owner: the GDD refocus — Morra is a Roblox game, «щоб не збивати агента») engine profile `roblox` «Roblox (Studio · Luau)» in the Bible `ENGINES` (game settings and the new-game form; `createGame` already takes any id); `gamedev.js ENGINE_PROFILES.roblox` for analyze / plan (client–server, DataStore, no prefabs / ScriptableObjects); MCP `get_guide` passes the game's profile (Roblox setup, Unity checks marked not applicable), `initialize` says «the game repo»; settings → «Claude Code» → «Стан» hides «Середовище Unity готове» for a Roblox game
 - **v2.136.2** (owner) the «↶ Повернути як було» / «↶ Прибрати (створив агент)» button removed everywhere (card, quest / dialogue, mechanic editors; `agentUndo`, `qdAgent`/`mechAgent` undo paths); the «🤖 Змінив Claude Code» strip stays with «✓ Зрозуміло»; MCP tool texts and setup guides no longer tell the agent the author can undo; KB uk+en
 - **v2.136.1** (owner) `SUB_DEFS.playcards`: a new «Картки та інше» card opens on its fields (what it does, rarity, cost, how to get; «Колоди» + deck list) under the picture frame, like items & gear — they were hidden behind «＋ Додати поле»
@@ -1025,5 +1029,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-17 (v2.137.0)
+**Last updated:** 2026-11-17 (v2.138.0)
 **Maintained by:** WhiteWrite Team
