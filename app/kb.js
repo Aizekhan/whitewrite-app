@@ -37,6 +37,7 @@
         lead: "Один канон світу — багато історій і багато ігор.",
         min: 3,
         body: [
+          ["p", "<b>Головне зараз — GDD гри.</b> Геймдизайн-документ гри йде 13 етапами від бачення до релізу (меню гри — «🧭 Меню-етапи і гід по GDD»), а Claude Code, що будує гру, сам веде в ньому все, що робить. Книга, Космограф, Спільнота, Маркет і Маркетинг працюють як і раніше, але поки не розвиваються."],
           ["p", "WhiteWrite — сервіс для творців світів. У центрі — <b>світ</b> і його <b>канон</b>: персонажі, локації, події, фракції, артефакти, закони, культура, небо. З одного канону виростають історії (книги, серіали, казки) та ігри."],
           ["h", "Два простори"],
           ["ul", [
@@ -1666,6 +1667,7 @@
         lead: "One world canon — many stories and many games.",
         min: 3,
         body: [
+          ["p", "<b>The main thing now is the game's GDD.</b> The game design document goes in 13 stages from the vision to the release (the game menu — “🧭 Stage menu and the GDD guide”), and Claude Code, building the game, keeps in it everything it does. The Book, the Cosmograph, the Community, the Market and Marketing work as before but are not being developed for now."],
           ["p", "WhiteWrite is a service for world makers. At its heart is a <b>world</b> and its <b>canon</b>: characters, locations, events, factions, artifacts, laws, culture, the sky. Stories (books, series, tales) and games grow from one canon."],
           ["h", "Two spaces"],
           ["ul", [

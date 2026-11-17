@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.140.0 (2026-11-17)
+**Version:** 2.141.0 (2026-11-17)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -16,6 +16,9 @@ This document is the **canonical architecture map** of WhiteWrite. All code, fea
 - **Reconstruction Engine** — Canon changes cascade through narrative automatically
 - **World-first** — a World (canon) is the root; stories (projects) and games hang off it: **one canon → many stories, many games**
 - **Game production** — Game Bible + production plan → tasks → Claude Code executes them over **MCP**, the author reviews
+- **GDD first (owner, 2026-11-17)** — WhiteWrite is a game design document service: the game's GDD in 13 stages (`functions/gdd-schema.js`), kept by the author and by Claude Code itself
+
+> **Заморожено (2026-11-17, рішення власника):** працюють, але не розвиваються — **Книга** (історії, сцени, Genesis, Scene Intent, реконструкція, «Порадити»), **Космограф**, **Спільнота** (вітрини, фоловери, «Готові ігри»), **Маркет** (сертифікація, AI-юрист, Stripe Connect — і так «в розробці»), **Маркетинг** (автопостинг, етап 13). Нові функції — лише для GDD гри; правки в заморожених частинах — тільки виправлення помилок.
 
 > **Rule (CLAUDE.md):** this file is updated with every change to architecture, data model, functions, rules or integrations — big or small.
 
@@ -781,6 +784,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.141.0** (owner: GDD refocus P4) the frozen parts marked under «Purpose» (Book, Cosmograph, Community, Market, Marketing — bug fixes only); the home page lede and the game-makers card speak of the GDD (`hero.lede`, `hero.agentDesc`, uk + en)
 - **v2.140.0** (owner: GDD refocus P3) the production plan needs the GDD stages 1–6 at their minimum (`GDD_STAGES`, no tokens), the GDD goes to the AI in stage order; `chapters` not built — biome styles stay
 - **v2.139.0** (owner: GDD refocus P2) the game menu is the 13 GDD stages of `gdd-schema.js` (number + ○ ◐ ● on the rail and the narrow menu), the guide has three modes — from the idea (next stage, questions, minimum) / from the game (what Claude Code recorded, empty stages, a copyable request to fill a stage) / off; the old gate guide with dimmed sections removed; «Огляд гри» template without the references / style fields
 - **v2.138.0** (owner: GDD refocus P0 + P1) `functions/gdd-schema.js` — stages 1–13, what goes where, minimums, twins; the import / folder sort / draft / repo sync prompts carry its rules; MCP `get_gdd_schema`, `find_cards`, `get_gdd_status`, `save_card` duplicate check (same / twin section refused, `allow_similar`), `get_project_overview.gdd`; Claude Code keeps the GDD itself (`WRITE_WHEN`, `GDD_RULE` in setups and the CLAUDE.md block, `initialize`), `submit_change_request` = a question about concept decisions; settings label «Claude Code веде GDD сам»; tests `gdd-schema`, duplicates in `mcp-write`
@@ -1032,5 +1036,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-17 (v2.140.0)
+**Last updated:** 2026-11-17 (v2.141.0)
 **Maintained by:** WhiteWrite Team

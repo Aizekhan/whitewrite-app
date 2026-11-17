@@ -11,12 +11,12 @@ function StartScreen({ onBegin, langVersion, hasWorlds }) {
     'hero.mark': 'WhiteWrite',
     'hero.quote': '«Один світ — безліч історій і ігор.»',
     'hero.title': 'Твій світ\nчекає',
-    'hero.lede': 'Збери канон свого світу — і твори з нього книги та ігри, вірні цьому світу.',
+    'hero.lede': 'Геймдизайн-документ твоєї гри — етап за етапом, на каноні твого світу. Книги з того самого світу теж пишуться тут.',
     'hero.ctaCreate': 'Створи свій світ',
     'hero.ctaChoose': 'Обери свій світ',
     'hero.agentBeta': 'для творців ігор',
     'hero.agentTitle': 'Від задуму — до гри',
-    'hero.agentDesc': 'Біблія гри й продакшн-план — у WhiteWrite, гру за ними будує Claude Code. Ти лише приймаєш роботу.',
+    'hero.agentDesc': 'GDD гри — у WhiteWrite, етапами від бачення до релізу; Claude Code будує гру й сам веде GDD. Ти приймаєш рішення.',
     'hero.agentBtn': '🤖 Від чистого ПК до Гри',
     'hero.commTop': 'Вибір спільноти', 'hero.commNew': 'Відкрий нового автора', 'hero.commAll': 'Спільнота — усі світи й ігри', 'hero.commBy': 'автор', 'hero.commTeam': 'шукає команду'
   };
