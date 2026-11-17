@@ -523,7 +523,7 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
 
       const [cardsSnap, entSnap, expSnap, issuesSnap] = await Promise.all([gref.collection('cards').get(), wref.collection('entities').get(),
         gref.collection('experiments').get(), gref.collection('experienceIssues').get()]);
-      const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => !c.archived); // 🗄 archived cards are not the game's
       const entities = entSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const experiments = expSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const issues = issuesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));

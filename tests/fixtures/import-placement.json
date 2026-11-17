@@ -1,0 +1,29 @@
+{
+  "_about": "Regression set of the notes import (GDD refocus §3.5): sample notes with the section each thing must land in, and the schema rule (from → to) that decides the classic confusion. tests/import-placement.test.cjs checks the prompt carries the rule and the schema routes it; scripts/import-placement-live.mjs runs the real AI on them (the owner's key, costs tokens).",
+  "samples": [
+    { "id": "mechanic-combat", "md": "## Бій\nГравець бʼє на ЛКМ, комбо з 3 ударів, ухилення на Shift (0.4 с невразливості, витрачає 20 витривалості).",
+      "expect": [{ "title": "бій|комбо|ухил", "section": "mechanics" }], "rule": { "from": "overview", "to": "mechanics" } },
+    { "id": "xp-levels", "md": "## Досвід і рівні\nЗа вбивство ворога — 10 XP. Рівень = 100 × N XP. На кожному рівні +1 очко навичок.",
+      "expect": [{ "title": "досвід|рів", "section": "progression" }], "rule": { "from": "mechanics", "to": "progression" } },
+    { "id": "gold-currency", "md": "## Золото\nОсновна валюта. Падає з ворогів (1–5), витрачається в крамниці коваля.",
+      "expect": [{ "title": "золот", "section": "progression" }], "rule": { "from": "items", "to": "progression" } },
+    { "id": "mercenaries", "md": "## Найманці\nГравець наймає до двох магів-найманців, вони бʼються поруч і мають власні портрети рас.",
+      "expect": [{ "title": "найман", "section": "companions" }], "rule": { "from": "characters", "to": "companions" } },
+    { "id": "boss-enemy", "md": "## Бос Трент\nДерево-велетень, 5000 HP. Фаза 1 — удари гілками, фаза 2 — кличе корінців. Слабкість — вогонь.",
+      "expect": [{ "title": "трент", "section": "enemies" }], "rule": { "from": "characters", "to": "enemies" } },
+    { "id": "level-vs-location", "md": "## Рівень 1: Тихий ліс\nПродовжується 6 хвилин, 3 хвилі вовків, чекпоінт посередині, вихід — міст.",
+      "expect": [{ "title": "ліс|рівень", "section": "levels" }], "rule": { "from": "locations", "to": "levels" } },
+    { "id": "scene-vs-level", "md": "## Сцена: зустріч з наставником\nКамера наїжджає, наставник виходить з туману й простягає герою меч. Музика стихає.",
+      "expect": [{ "title": "наставн|зустріч", "section": "scenes" }], "rule": { "from": "levels", "to": "scenes" } },
+    { "id": "weapon-vs-artifact", "md": "## Залізний меч\nЗвичайна зброя, 12 шкоди, продається в коваля за 30 золота.\n\n## Корона Першого Короля\nУнікальна реліквія світу: хто її носить, не бачить снів.",
+      "expect": [{ "title": "меч", "section": "gear" }, { "title": "корон", "section": "items" }], "rule": { "from": "gear", "to": "items" } },
+    { "id": "asset-vs-ref", "md": "## Модель вовка\nwolf.glb, 4 200 трикутників, риг Mixamo.\n\n## Натхнення: вовки з Okami\nКартинки для настрою.",
+      "expect": [{ "title": "модель", "section": "assets" }, { "title": "натхн|okami", "section": "refs" }], "rule": { "from": "assets", "to": "refs" } },
+    { "id": "style-in-overview", "md": "# Морра\nЛоглайн: виживання в лісі духів.\n\n## Візуальний стиль\nМʼякі пастельні кольори, без чорного, лоу-полі.",
+      "expect": [{ "title": "морра|огляд", "section": "overview" }, { "title": "стиль", "section": "artstyle" }], "rule": { "from": "overview", "to": "artstyle" } },
+    { "id": "session-plan", "md": "## План наступної сесії\nРозглянути бойову систему, переробити ухилення, протестувати хвилі.",
+      "expect": [], "forbid": [{ "title": "план", "section": "overview" }], "rule": { "from": "overview", "to": "activity" } },
+    { "id": "enemy-ai-general", "md": "## AI ворогів\nУсі вороги патрулюють, бачать гравця на 15 м, тікають при 10% HP.",
+      "expect": [{ "title": "ai|штучн|поведін", "section": "mechanics" }], "rule": { "from": "enemies", "to": "mechanics" } }
+  ]
+}

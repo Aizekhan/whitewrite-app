@@ -35,8 +35,11 @@ const SESSION_RULE = 'At the start of every session call `get_updates` and tell 
 // 🧭 GDD refocus (owner, v2.138): Claude Code keeps the game's GDD itself — the same rule in both setups, the CLAUDE.md block and MCP initialize
 const GDD_RULE = 'You keep the GDD of this game in WhiteWrite yourself. Read `get_gdd_schema` once per session. Right after each change of the game that touches the design ' +
   '(a mechanic, a number, a character, an enemy, a level, an asset, a sound, a UI screen, a technical decision): `find_cards` → `save_card` into the section the schema names ' +
-  '(a constructor mechanic — `save_mechanic`; quests and dialogues — `save_quest` / `save_dialogue`; a screenshot or render the game uses — `card_image_upload`), and tell the user in one line what you recorded. ' +
-  'A card like it exists — update it, never a second one. Never put a canon biography or the history of a place into the game: that is the World Bible. ' +
+  '(a constructor mechanic — `save_mechanic`; quests and dialogues — `save_quest` / `save_dialogue`; a screenshot or render the game uses — `card_image_upload`; ' +
+  'a final GLB model, a package, textures or a sound file — `card_file_upload` → curl → `card_file_confirm`, a new version with replace: true; a prefab, scene or script of the project — `link_project_asset`, not an upload), and tell the user in one line what you recorded. ' +
+  'A card like it exists — update it, never a second one; the same thing in another section — `link_cards` (an enemy appears_in a level, a hero\'s prefab), not a copy of its text. ' +
+  'A card no longer true for the game (a cut mechanic, a replaced enemy, a duplicate you merged) — `archive_card` with the reason; you never delete. Never upload working files, caches or builds. ' +
+  'At the end of a session `submit_development_activity` names the cards each entry updated (entries[].cards). Never put a canon biography or the history of a place into the game: that is the World Bible. ' +
   'A decision that changes the concept of the game (pillars, genre, the win condition), removes a mechanic or goes against a decision the author wrote on a card — `submit_change_request`, as a question to the author.';
 
 // the closing rules of both setup guides (Unity and Roblox)

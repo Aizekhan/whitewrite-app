@@ -119,6 +119,20 @@
   // Elsewhere one thing has several cards on purpose: the enemy «Кабан», its reference pictures and its model in «Ассети» — linked, not copies.
   var TWINS = [['characters', 'enemies', 'companions'], ['gear', 'items', 'playcards'], ['refs', 'pictures']];
   function twins(a, b) { return a === b || TWINS.some(function (t) { return t.indexOf(a) >= 0 && t.indexOf(b) >= 0; }); }
+  // 🧭 the same thing by its name (MCP save_card / find_cards and the notes import, v2.142): case, quotes, emoji, punctuation ignored; the same
+  // name = 1, one name inside the other covering ≥ 60% of it = 0.9, else the share of common word stems (5 letters, words of 3+). SIMILAR and
+  // above = the same thing (checked on the real Morra game: 96 cross-section pairs, most of them legitimate — so only twins refuse)
+  var SIMILAR = 0.6;
+  function normT(s) { return String(s == null ? '' : s).slice(0, 200).trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim(); }
+  function stemsOf(s) { var o = {}; normT(s).split(' ').forEach(function (w) { if (w.length >= 3) o[w.slice(0, 5)] = 1; }); return Object.keys(o); }
+  function titleSim(a, b) {
+    var x = normT(a), y = normT(b); if (!x || !y) return 0; if (x === y) return 1;
+    var sh = x.length <= y.length ? x : y, lo = x.length <= y.length ? y : x;
+    if (sh.length >= 5 && sh.length >= lo.length * 0.6 && (' ' + lo + ' ').indexOf(' ' + sh + ' ') >= 0) return 0.9;
+    var A = stemsOf(a), B = stemsOf(b); if (!A.length || !B.length) return 0;
+    var n = A.filter(function (w) { return B.indexOf(w) >= 0; }).length;
+    return Math.round((n / (A.length + B.length - n)) * 100) / 100;
+  }
   var CANON_NAME = { uk: 'канон світу (Біблія світу)', en: 'the world canon (World Bible)' };
 
   function section(id) { return BY[id] || null; }
@@ -153,7 +167,7 @@
           return { id: s.id, name: nm(s, lang), claude_code_writes: s.write, goes_here: nm(s.here, lang), not_here: s.not.map(function (x) { return { what: nm(x, lang), go_to: x.goTo }; }) }; }) }; }) };
   }
   var VERSION = 'whitewrite.gdd/1';
-  var GDD = { VERSION: VERSION, STAGES: STAGES, SECTIONS: SECTIONS, TWINS: TWINS, twins: twins, section: section, stage: stage, stageOf: stageOf, order: order, stageState: stageState, promptRules: promptRules, forAgent: forAgent };
+  var GDD = { VERSION: VERSION, STAGES: STAGES, SECTIONS: SECTIONS, TWINS: TWINS, twins: twins, SIMILAR: SIMILAR, titleSim: titleSim, section: section, stage: stage, stageOf: stageOf, order: order, stageState: stageState, promptRules: promptRules, forAgent: forAgent };
   if (typeof module !== 'undefined' && module.exports) module.exports = GDD;
   if (typeof window !== 'undefined') window.__GDD = GDD;
 })();

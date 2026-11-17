@@ -18,7 +18,7 @@ function arr(v) { return Array.isArray(v) ? v : v ? [v] : []; }
 // quests / dialogues store a game card as "c:<id>" and a canon entity as its plain id
 function narrKey(v) { v = String(v || ''); return !v || v === 'player' || v === 'narrator' ? '' : v.indexOf('c:') === 0 ? v : 'e:' + v; }
 function cardKey(c) { return c.canonRef ? 'e:' + c.canonRef : 'c:' + c.id; }
-function live(G) { return arr(G.cards).filter(function (c) { return !c.hidden; }); }
+function live(G) { return arr(G.cards).filter(function (c) { return !c.hidden && !c.archived; }); } // 🗄 an archived card points at nothing
 // a plan task's card ref: "c:id" / "e:id" / "new:<title>" (a card the plan asked for, matched by title once it exists)
 function planKey(G, r) {
   r = String(r || '');
@@ -177,7 +177,26 @@ var KINDS = [
       });
       return out;
     } },
+  // 🔗 a link between two cards with a role (v2.142, GDD refocus — MCP link_cards, the author removes it with ✕ in «🔗 Що зачепить зміна»):
+  // card.links = [{ to: "c:<id>" | "e:<id>", role }]; the roles are LINK_ROLES (a hero's prefab and faction keep their own fields)
+  { id: 'link', uk: 'Повʼязано', en: 'Linked', out: { uk: 'Повʼязано', en: 'Linked' }, fields: ['card.links'],
+    edges: function (G, lang) {
+      var out = [];
+      live(G).forEach(function (c) { arr(c.links).forEach(function (l) { if (l && l.to) out.push({ from: from('card', c, { key: cardKey(c) }), to: l.to, extra: roleName(l.role, lang), role: l.role || '' }); }); });
+      return out;
+    } },
 ];
+// the roles of card.links: what the first card is to the second
+var LINK_ROLES = [
+  { id: 'appears_in', uk: 'зʼявляється в', en: 'appears in' },   // an enemy / NPC / item → a level, location, scene
+  { id: 'uses', uk: 'використовує', en: 'uses' },                // a level / mechanic / character → an asset, material, UI, sound
+  { id: 'sound_of', uk: 'звук для', en: 'sound of' },            // a sound / music card → a mechanic, character, level, UI
+  { id: 'introduces', uk: 'вводить', en: 'introduces' },         // a level / quest → a mechanic it teaches
+  { id: 'part_of', uk: 'частина', en: 'part of' },               // a level → its hub / act, a module → its system
+  { id: 'counter_to', uk: 'протидія', en: 'counter to' },        // an item / skill → an enemy, mechanic
+  { id: 'related', uk: 'повʼязано', en: 'related' },
+];
+function roleName(id, lang) { var r = LINK_ROLES.filter(function (x) { return x.id === id; })[0]; return r ? r[lang === 'en' ? 'en' : 'uk'] : String(id || ''); }
 
 // every edge of the game, each with its kind
 function edges(G, lang) {
@@ -204,6 +223,7 @@ function usedBy(G, key, lang, all) {
     if (e.to === key && (!e.from.key || e.from.key !== key)) row = { kind: e.kind, side: 'in', label: label(e.kind, 'in', lang), from: e.from, to: e.to, extra: e.extra || '' };
     else if (k.out && e.from.key === key && e.to !== key) row = { kind: e.kind, side: 'out', label: label(e.kind, 'out', lang), from: { type: 'card', key: e.to, title: title(e.to) }, to: key, extra: e.extra || '' };
     if (!row) return;
+    if (e.role) row.role = e.role; // a link's role id (the Bible removes that link)
     var id = row.kind + '|' + row.side + '|' + row.from.type + '|' + (row.from.key || row.from.id);
     if (seen[id]) return; seen[id] = 1;
     out.push(row);
@@ -211,7 +231,7 @@ function usedBy(G, key, lang, all) {
   return out;
 }
 
-var CARD_REFS = { KINDS: KINDS, edges: edges, usedBy: usedBy, label: label, narrKey: narrKey, cardKey: cardKey };
+var CARD_REFS = { KINDS: KINDS, LINK_ROLES: LINK_ROLES, roleName: roleName, edges: edges, usedBy: usedBy, label: label, narrKey: narrKey, cardKey: cardKey };
 if (typeof module !== 'undefined' && module.exports) module.exports = CARD_REFS;
 if (typeof window !== 'undefined') window.__CARD_REFS = CARD_REFS;
 })();

@@ -289,7 +289,21 @@ function withManual(plan, prevPlan) {
   return { ...plan, milestones: (plan.milestones || []).filter((m) => !MANUAL_MS.includes(m.id)).concat(keep) };
 }
 
-function cleanImport(p, shelves, entities, world) {
+// 🧭 the import passes the same duplicate check as MCP save_card (v2.142, gdd-schema.js titleSim / twins): a card that is the same thing as a
+// game card of the same or a twin section takes that card's exact title and section (the page then adds to it instead of a copy), and two
+// such cards of one import become one (their fields joined)
+function foldCards(list, cards) {
+  const have = (cards || []).filter((c) => !c.canonRef && !c.hidden && !c.archived && c.title), out = [];
+  list.forEach((c) => {
+    const old = have.map((h) => ({ h, s: GDD.titleSim(c.title, h.title) })).filter((x) => x.s >= GDD.SIMILAR && GDD.twins(x.h.section, c.section)).sort((a, b) => b.s - a.s)[0];
+    if (old) { c.title = old.h.title; c.section = old.h.section; }
+    const twin = out.find((o) => GDD.twins(o.section, c.section) && GDD.titleSim(o.title, c.title) >= GDD.SIMILAR);
+    if (!twin) { out.push(c); return; }
+    Object.entries(c.fields).forEach(([k, v]) => { twin.fields[k] = twin.fields[k] && twin.fields[k] !== v ? twin.fields[k] + '\n\n' + v : v; });
+  });
+  return out;
+}
+function cleanImport(p, shelves, entities, world, cards) {
   const gameShelves = shelves.filter((s) => s.kind === 'game').map((s) => s.id);
   const ids = new Set(entities.map((e) => e.id));
   const laws = new Set((world.rules || []).map((r) => String(r).trim().toLowerCase()));
@@ -300,9 +314,9 @@ function cleanImport(p, shelves, entities, world) {
       match: ids.has(str(e.match, 80)) ? str(e.match, 80) : '',
       gameFields: labelMap(e.gameFields, 12, 3000),
     } : null)),
-    cards: list(p && p.cards, 120, (c) => (c && str(c.title, 160) ? {
+    cards: foldCards(list(p && p.cards, 120, (c) => (c && str(c.title, 160) ? {
       section: gameShelves.includes(c.section) ? c.section : 'overview', title: str(c.title, 160), fields: labelMap(c.fields, 15, 4000),
-    } : null)),
+    } : null)), cards),
     contradictions: list(p && p.contradictions, 15, cleanContradiction),
     questions: list(p && p.questions, 20, cleanQuestion).map((q) => ({ ...q, target: null })), // their cards don't exist yet
   };
@@ -815,7 +829,7 @@ exports.gamedevPlan = onRequest({
       const world = worldSnap.data(), game = noGame ? {} : gameSnap.data(), prev = planSnap.exists ? planSnap.data() : {};
       const entities = entitiesSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => !(e.origin && e.origin.confirmed === false));
       const lore = loreSnap.docs.map((d) => d.data());
-      const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const cards = cardsSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => !c.archived); // 🗄 an archived card is no longer the game's
       const engine = (game.engine && game.engine.profile) || 'generic';
       const answers = prev.answers || {};
       const answered = (prev.asked || []).filter((q) => str(answers[q.id], 1)).map((q) => ({ q: q.question, a: str(answers[q.id], 2000) }))
@@ -936,9 +950,9 @@ exports.gamedevPlan = onRequest({
       } else if (op === 'folderSort') {
         proposal = cleanFolderSort(results, shelves, entities, sortFiles);
       } else if (op === 'import' || op === 'draft') {
-        proposal = cleanImport(mergeImports(results), shelves, entities, world);
+        proposal = cleanImport(mergeImports(results), shelves, entities, world, cards);
       } else if (op === 'repoSync') {
-        proposal = cleanImport(parsed, shelves, entities, world);
+        proposal = cleanImport(parsed, shelves, entities, world, cards);
         await gameRef.set({ repo: { syncedAt: admin.firestore.FieldValue.serverTimestamp(), sha: repoData.sha } }, { merge: true });
       } else {
         const update = { updatedAt: admin.firestore.FieldValue.serverTimestamp(), engine, running: admin.firestore.FieldValue.delete() };
@@ -980,4 +994,4 @@ exports.gamedevPlan = onRequest({
 });
 exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)
 exports._import = { halves, splitMarkdown }; // tests only (tests/gamedev-import.test.cjs)
-exports._gdd = { gddMissing, bibleText }; // tests only (tests/gdd-schema.test.cjs)
+exports._gdd = { gddMissing, bibleText, cleanImport, importPrompt }; // tests only (tests/gdd-schema.test.cjs)

@@ -1051,7 +1051,7 @@
   var worldId = params.get("worldId");
   var db = null, world = null, games = [], gameId = null, game = null;
   var lore = []; // culture entries: worlds/{w}/lore/{id} { group, name, desc, fields, files }
-  var cards = [], entities = [], planDoc = {}, canWrite = false, canGame = false, unsub = [];
+  var cards = [], archCards = [], entities = [], planDoc = {}, canWrite = false, canGame = false, unsub = [];
   // canGame — game design (allowGameDesign, every plan); canDev — what costs us: AI, MCP, plan, telemetry, marketing, repo (allowGameDev, Worldbuilder);
   // canonWrite — canon editing (allowWorldTree). The owner's canWrite follows what is open: the canon or a game
   var canDev = false, canonWrite = false, canFolder = false; // canFolder: «📂 Завантажити теку» of the world (allowFolderFill)
@@ -1789,7 +1789,7 @@
     var gk = groupKey(s), dflt = s.groups && !(c.fields && c.fields[gk]) ? canonShelf(e) : null;
     if (dflt && dflt.s.id === s.id && dflt.group) { c = Object.assign({}, c); c.fields = Object.assign({}, c.fields); c.fields[gk] = dflt.group; }
     return { key: "e:" + e.id, src: "canon", id: e.id, section: s.id, order: c.order, title: e.name || e.title || "", status: c.status || "idea", note: c.note || "",
-      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, banner: e.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
+      canonDesc: { key: descKey, value: e[descKey] || "" }, defs: c.defsFull ? (c.defs || []) : s.defs.concat(extra), extraDefs: extra, defsFull: !!c.defsFull, fields: c.fields || {}, files: c.files || [], hidden: !!c.hidden, intent: c.intent || null, place: c.place || null, banner: e.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, links: c.links || [], projectAssets: c.projectAssets || [], agent: agentOf(c) };
   }
   // v2.104.4 (owner): a canon character in a game is a hero / ally / NPC («Герої та NPC») or an enemy / boss («Вороги й боси») —
   // by its role and world group; the shelf stored on its game card wins (the author moved it, or it was sorted when taken)
@@ -1832,7 +1832,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, beast: c.beast || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, agent: agentOf(c) };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, beast: c.beast || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, links: c.links || [], projectAssets: c.projectAssets || [], agent: agentOf(c) };
   }
   function allCards() {
     var out = [];
@@ -2062,7 +2062,8 @@
     else if (!list.length && !s.special && !(s.id === "progression" && progSub)) html += subsOf(s).length && s.id !== "artstyle" ? subsHtml(s, [], function () { return ""; }, grid) // an empty section with subsections shows them as blocks (owner, v2.126.0)
       : emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
     else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
-    $("view").innerHTML = html;
+    if (!query) html += archHtml(s.id);
+    $("view").innerHTML = html; archWire();
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     pickCtx = canWrite ? dragCtx : null; pickUi();
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
@@ -5578,14 +5579,16 @@
     var G = { cards: cards, entities: entities, quests: quests, dialogues: dialogues, tasks: tasks, plan: planDoc.plan, names: styleNames };
     return window.__CARD_REFS.usedBy(G, c.key, LANG).map(function (r) {
       var f = r.from, extra = r.kind === "quest" ? (r.extra === "giver" ? QD.givesIt : r.extra === "source" ? QD.fromIt : "")
-        : r.kind === "task" ? (f.status ? STR.ts[f.status] || f.status : "") : r.kind === "slot" || r.kind === "loadout" ? r.extra : "";
+        : r.kind === "task" ? (f.status ? STR.ts[f.status] || f.status : "") : r.kind === "slot" || r.kind === "loadout" || r.kind === "link" ? r.extra : "";
       var attr = f.type === "quest" ? 'data-dqd="quests:' + esc(f.id) + '"' : f.type === "dialogue" ? 'data-dqd="dialogues:' + esc(f.id) + '"'
         : f.type === "task" ? 'data-imptask="' + esc(f.milestone) + '"' : 'data-openref="' + esc(f.key) + '"';
-      return { label: r.label, name: (f.type === "task" ? f.id + " · " : "") + (f.title || "…"), attr: attr, extra: extra };
+      return { label: r.label, name: (f.type === "task" ? f.id + " · " : "") + (f.title || "…"), attr: attr, extra: extra,
+        unlink: r.kind === "link" && r.role ? (r.side === "out" ? c.key + "|" + f.key : f.key + "|" + c.key) + "|" + r.role : "" };
     });
   }
   function impactChips(list) {
-    return list.map(function (i) { return '<button class="dlink" ' + i.attr + '><span class="k">' + esc(i.label) + '</span>' + esc(i.name) + (i.extra ? ' <i>' + esc(i.extra) + '</i>' : '') + '</button>'; }).join("");
+    return list.map(function (i) { return '<button class="dlink" ' + i.attr + '><span class="k">' + esc(i.label) + '</span>' + esc(i.name) + (i.extra ? ' <i>' + esc(i.extra) + '</i>' : '') + '</button>' +
+      GBL.unlinkBtn(i); }).join("");
   }
   function impactHtml(c) {
     var list = impactOf(c);
@@ -5607,12 +5610,23 @@
   }
   // a chip of the list → the quest / dialogue, the plan stage of a task, or the card (mechanics open in the constructor)
   function impactGo(b) {
+    if (b.dataset.unlink) { unlink(b.dataset.unlink, b); return true; }
+    if (b.dataset.unpa) { unPa(b.dataset.unpa, b); return true; }
     if (b.dataset.dqd) { var qp = b.dataset.dqd.split(":"); if (open) closeLeaf(); openQD(qp[0], qp.slice(1).join(":")); return true; }
     if (b.dataset.imptask) { var mid = b.dataset.imptask; if (open) closeLeaf(); goSection("plan"); setTimeout(function () { var m = $("ms-" + mid); if (m) m.scrollIntoView({ block: "start" }); }); return true; }
     if (b.dataset.openref) { var x = allCards().filter(function (y) { return y.key === b.dataset.openref; })[0]; if (!x) return true;
       if (x.src === "game" && (x.section === "mechanics" || mFactory(x.section) && x.mech)) { if (open) closeLeaf(); openMech(x); } else openCard(x); return true; }
     return false;
   }
+  // ---------- 🗄 Архів · 🔗 links · project assets — app/gb-links.js (v2.142): archived cards, card.links, card.projectAssets ----------
+  var GBL = window.__GB_LINKS({ LANG: LANG, STR: STR, esc: esc, stamp: stamp, allCards: allCards, gref: gref, pathShared: pathShared,
+    notify: function (m) { return notify(m); }, askConfirm: function (t, o) { return askConfirm(t, o); }, when: function (t) { return when(t); },
+    cards: function () { return cards; }, archCards: function () { return archCards; }, canWrite: function () { return canWrite; }, open: function () { return open; } });
+  function archHtml(sid) { return GBL.archHtml(sid); }
+  function archWire() { GBL.archWire(); }
+  function unlink(spec, btn) { GBL.unlink(spec, btn); }
+  function paHtml(c) { return GBL.paHtml(c); }
+  function unPa(i, btn) { GBL.unPa(i, btn); }
   // ---------- Космологія: the Космограф (app/cosmograph/), paid per world for 30 days (functions/src/cosmograph.js) ----------
   var COSMO_COST = window.__PAID_FEATURES ? window.__PAID_FEATURES.featureCost(window.__PAID_FEATURES.byOp("cosmograph")) : 2000, COSMO_FN = "https://us-central1-whitewrite-app.cloudfunctions.net/cosmographAccess", cosmo = null; // cosmo: { api, el }
   function cosmoState() {
@@ -6231,6 +6245,7 @@
     if (voOn) html += voCardHtml(voK);
     cornerSync(); // «💡 квест» in the foot's corner while reading, «Видалити» there in the edit mode
     if (!open.isNew && impactOf(open).length) html += impactHtml(open);
+    if (!open.isNew) html += paHtml(open);
     if (editMode || (!lean && (moreAll || moreKeys.__nf))) html += '<div class="field"><label for="nf">' + STR.addField + '</label><div class="newfield"><input id="nf" placeholder="' + esc(STR.addFieldPh) + '">' +
       typeSelect("nf-type", "text") + '<button class="btn" id="nf-add">' + STR.add + '</button></div></div>';
     $("e-body").innerHTML = html;
@@ -9291,6 +9306,7 @@
       }).catch(function () { actEntries[s.id] = { list: [] }; });
     });
   }
+  function actCards(e) { return GBL.actCards(e); } // 🔗 the GDD cards an entry updated (app/gb-links.js)
   function renderActivity(s) {
     loadEntries();
     var opt = function (map, cur, all) { return '<option value="">' + esc(all) + '</option>' + Object.keys(map).map(function (k) { return '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + esc(map[k]) + '</option>'; }).join(""); };
@@ -9308,7 +9324,7 @@
             t && t.ran != null ? KN.tests.replace("{p}", t.passed || 0).replace("{r}", t.ran) : ""].filter(Boolean).join(" · ");
           return '<div class="act-e"><span class="act-c">' + (KN.change[e.change] || "") + '</span><div><p><b>' + esc(e.text) + '</b></p>' +
             (e.playerImpact ? '<p>' + esc(e.playerImpact) + '</p>' : '') + '<p class="muted">' + esc(meta) + '</p>' +
-            (e.limits ? '<p class="muted">⚠ ' + esc(e.limits) + '</p>' : '') + '</div>' +
+            (e.limits ? '<p class="muted">⚠ ' + esc(e.limits) + '</p>' : '') + actCards(e) + '</div>' +
             (ME.owner && canGame ? '<select data-actpriv="' + esc(x.id) + ':' + esc(e.id) + '" aria-label="' + esc(KN.allPriv) + '">' + // firestore.rules: only the owner re-marks privacy
             Object.keys(KN.privacy).map(function (k) { return '<option value="' + k + '"' + (k === e.privacy ? ' selected' : '') + '>' + esc(KN.privacy[k]) + '</option>'; }).join("") + '</select>'
               : '<span class="pill" title="' + esc(KN.privOwner) + '">' + esc(KN.privacy[e.privacy] || e.privacy || "") + '</span>') + '</div>';
@@ -9319,6 +9335,7 @@
       (g ? '<pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>' : '') + '</section>';
     $("view").innerHTML = html;
     $("act-cat").onchange = function () { actCat = this.value; render(); };
+    [].forEach.call(document.querySelectorAll("#view .act-e [data-openref]"), function (b) { b.onclick = function () { impactGo(b); }; });
     $("act-priv").onchange = function () { actPriv = this.value; render(); };
     [].forEach.call(document.querySelectorAll("[data-actpriv]"), function (sel) {
       sel.onchange = function () {
@@ -12497,11 +12514,12 @@
   function selectGame(id) {
     unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; lazyDone = {};
     gameId = id; game =games.filter(function (g) { return g.id === id; })[0] || null;
-    cards = []; planDoc = {}; imp = null; closeLeaf();
+    cards = []; archCards = []; planDoc = {}; imp = null; closeLeaf();
     if (!gameSections().some(function (s) { return s.id === section; }) && section !== "settings") section = "overview";
     var bySec = {}, cardsIn = function (key) { return function (snap) {
       bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
-      cards = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      var got = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      cards = got.filter(function (c) { return !c.archived; }); archCards = got.filter(function (c) { return c.archived; }); // 🗄 an archived card (MCP archive_card) is out of the game until restored
       sync(snap.metadata.fromCache ? "" : "ok", STR.live); render(); if (ME.owner) { backfillPolys(); migrateCast(game).catch(function () {}); }
     }; };
     if (fullRead()) unsub.push(gref().collection("cards").onSnapshot(cardsIn("*"), function () { sync("bad", STR.offline); }));

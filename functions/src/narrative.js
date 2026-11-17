@@ -154,7 +154,7 @@ exports.narrativeDraft = onRequest({ region: 'us-central1', secrets: [claudeApiK
 
       const [entSnap, loreSnap, qSnap, cardSnap] = await Promise.all([wref.collection('entities').get(), wref.collection('lore').get(), gref.collection('quests').get(), gref.collection('cards').get()]);
       const canonEnts = entSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((e) => CANON_KINDS.includes(e.kind) && !(e.origin && e.origin.confirmed === false));
-      const ents = refPool(canonEnts, cardSnap.docs.map((d) => ({ id: d.id, ...d.data() }))); // canon + the game's own cards
+      const ents = refPool(canonEnts, cardSnap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => !c.archived)); // canon + the game's own cards
       const lore = loreSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const canon = emptyCanon(), world = w.data();
       ['tagline', 'summary', 'facts', 'rules'].forEach((f) => { if (world[f] !== undefined) canon.world[f] = world[f]; });

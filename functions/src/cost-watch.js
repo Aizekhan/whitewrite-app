@@ -61,5 +61,7 @@ exports.aiCostDaily = onSchedule({ schedule: 'every 24 hours', timeoutSeconds: 3
 exports.reservationSweep = onSchedule({ schedule: 'every 30 minutes', timeoutSeconds: 300 }, async () => {
   const n = await require('../token-service.js').sweepHeld(db);
   if (n) console.log('[reservationSweep] returned', n);
+  const f = await require('./mcp')._mcp.sweepFiles().catch((e) => { console.error('[reservationSweep] files', e); return 0; }); // unconfirmed card_file_upload sessions
+  if (f) console.log('[reservationSweep] dropped uploads', f);
 });
 exports._costWatch = { summarize, COST_ALERT_USD };

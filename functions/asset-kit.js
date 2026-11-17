@@ -28,7 +28,7 @@ var SLOTS = [
   { id: 'height', group: 'surface', ext: EXT.image, uk: 'Висота (Height / Displacement)', en: 'Height / Displacement', optional: true },
   { id: 'rig', group: 'motion', rig: true, ext: EXT.mesh.concat(['json']), uk: 'Скелет / риг', en: 'Skeleton / rig', hint: { uk: 'Якщо риг не всередині моделі', en: 'If the rig is not inside the model' } },
   { id: 'anims', group: 'motion', rig: true, ext: EXT.mesh.concat(['anim', 'controller']), uk: 'Анімації', en: 'Animations', hint: { uk: 'Кліпи GLB / .anim; бібліотека WhiteWrite — у Кузні персонажів', en: 'GLB / .anim clips; the WhiteWrite library is in the Character forge' } },
-  { id: 'prefab', group: 'ready', optional: true, ext: ['prefab', 'unitypackage', 'zip', 'rar', '7z', 'uasset'], uk: 'Unity-префаб / пакет', en: 'Unity prefab / package', hint: { uk: 'Готовий .prefab чи .unitypackage — вкладення для Unity, не модель для 3D', en: 'A ready .prefab or .unitypackage — an attachment for Unity, not a model for 3D' } },
+  { id: 'prefab', group: 'ready', optional: true, ext: ['prefab', 'unitypackage', 'zip', 'rar', '7z', 'uasset', 'rbxm', 'rbxmx'], uk: 'Префаб / пакет рушія', en: 'Engine prefab / package', hint: { uk: 'Готовий .prefab / .unitypackage (Unity) чи .rbxm (Roblox) — вкладення для рушія, не модель для 3D', en: 'A ready .prefab / .unitypackage (Unity) or .rbxm (Roblox) — an attachment for the engine, not a model for 3D' } },
   { id: 'preview', group: 'ready', optional: true, ext: EXT.image, uk: 'Превʼю / іконка', en: 'Preview / icon' },
   { id: 'license', group: 'ready', ext: ['txt', 'md', 'pdf', 'html'], uk: 'Ліцензія', en: 'Licence', hint: { uk: 'license.txt з джерела — колір ліцензії визначиться сам', en: 'license.txt from the source — the licence colour is detected' } },
 ];
@@ -60,7 +60,7 @@ function naOf(card) {
 function classify(name) {
   var x = extOf(name), b = String(name || '').split('/').pop().replace(/\.[^.]+$/, '').toLowerCase();
   if (['mat', 'sbsar', 'sbs', 'shadergraph', 'shader'].indexOf(x) >= 0) return 'material';
-  if (['prefab', 'unitypackage', 'uasset', 'zip', 'rar', '7z'].indexOf(x) >= 0) return 'prefab';
+  if (['prefab', 'unitypackage', 'uasset', 'zip', 'rar', '7z', 'rbxm', 'rbxmx'].indexOf(x) >= 0) return 'prefab'; // rbxm / rbxmx: a Roblox model
   if (['anim', 'controller'].indexOf(x) >= 0) return 'anims';
   if (['txt', 'md', 'pdf', 'html'].indexOf(x) >= 0) return /licen[cs]e|copyright|credits|terms/.test(b) ? 'license' : '';
   if (EXT.mesh.indexOf(x) >= 0) {

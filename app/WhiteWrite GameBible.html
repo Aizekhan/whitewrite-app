@@ -1062,6 +1062,14 @@ h2.group .btn.mini.ghost:hover{ color:var(--tx); }
 .dlinks{ display:flex; flex-wrap:wrap; gap:8px; }
 .dlink{ display:inline-flex; align-items:center; gap:7px; padding:6px 11px; border-radius:999px; border:1px solid var(--line-2); background:var(--bg-2); color:var(--tx-hi); font:13.5px "Inter"; }
 button.dlink{ cursor:pointer; } button.dlink:hover{ border-color:var(--gold); }
+.dlinks .btn.mini{ padding:2px 8px; font:500 12px "Inter"; margin-left:-4px; }
+/* 🗄 the section archive · 🔗 project assets of a card (v2.142) */
+.arch{ margin-top:28px; border-top:1px solid var(--line-2); padding-top:12px; }
+.arch summary{ cursor:pointer; color:var(--tx-mid); font:600 14px "Inter"; }
+.arch-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
+.arch-row p{ margin:2px 0; }
+.pa-list{ list-style:none; padding:0; margin:6px 0; display:grid; gap:6px; }
+.pa-list .btn.mini{ padding:1px 8px; font:500 12px "Inter"; }
 .impact .dlink i{ color:var(--tx-low); font-style:normal; font-size:12px; }
 .impnote{ position:fixed; right:18px; bottom:18px; z-index:60; max-width:min(460px, calc(100vw - 36px)); padding:14px 16px; border:1px solid var(--gold-lit); border-radius:14px; background:var(--bg-2); box-shadow:0 12px 40px #000a; display:grid; gap:10px; }
 .impnote[hidden]{ display:none; }
@@ -1575,6 +1583,7 @@ h3.track{ font-size:1.15rem; margin-top:26px; color:var(--tx-hi); display:inline
 <script src="firebase/card-refs.js"></script>
 <script src="firebase/token-budget.js"></script>
 <script src="frame-pick.js"></script>
+<script src="gb-links.js"></script>
 <script src="gamebible.js"></script>
 </body>
 </html>
