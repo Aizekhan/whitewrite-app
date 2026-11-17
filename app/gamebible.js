@@ -162,8 +162,7 @@
       zoom: { close: "Закрити (Esc)", prev: "Попередня", next: "Наступна", orig: "Відкрити оригінал" },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
-      agent: { by: "🤖 Змінив Claude Code на твоє прохання · {d}", undo: "↶ Повернути як було", undoNew: "↶ Прибрати (створив агент)", keep: "✓ Лишити",
-        undoNewQ: "Прибрати те, що створив Claude Code?", undone: "Повернуто як було до Claude Code." },
+      agent: { by: "🤖 Змінив Claude Code на твоє прохання · {d}", keep: "✓ Зрозуміло" },
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
       poly: { tip: "{n} полігонів — понад 100 000: важко для гри, варто спростити (LOD / ретопологія)", n: "полігонів" },
@@ -514,8 +513,7 @@
       zoom: { close: "Close (Esc)", prev: "Previous", next: "Next", orig: "Open the original" },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
-      agent: { by: "🤖 Changed by Claude Code at your request · {d}", undo: "↶ Undo", undoNew: "↶ Remove (made by the agent)", keep: "✓ Keep",
-        undoNewQ: "Remove what Claude Code made?", undone: "Back to how it was before Claude Code." },
+      agent: { by: "🤖 Changed by Claude Code at your request · {d}", keep: "✓ Got it" },
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
       poly: { tip: "{n} polygons — over 100,000: heavy for a game, worth simplifying (LOD / retopology)", n: "polygons" },
@@ -1786,17 +1784,9 @@
   function agentBar(a, can) {
     if (!a) return "";
     var at = new Date(a.at).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    return '<span>' + esc(STR.agent.by.replace("{d}", at)) + '</span>' + (can ? '<button type="button" class="btn mini" data-agundo>' + esc(a.prev._new ? STR.agent.undoNew : STR.agent.undo) + '</button>' +
-      '<button type="button" class="btn ghost mini" data-agkeep>' + esc(STR.agent.keep) + '</button>' : '');
+    return '<span>' + esc(STR.agent.by.replace("{d}", at)) + '</span>' + (can ? '<button type="button" class="btn ghost mini" data-agkeep>' + esc(STR.agent.keep) + '</button>' : '');
   }
   var AGENT_CLEAR = function () { var D = firebase.firestore.FieldValue.delete(); return { agentPrev: D, agentAt: D, agentKey: D }; };
-  // ↶ back to the version before the agent: a new card / quest / dialogue is removed, a changed one gets its old fields back (null = there was none)
-  async function agentUndo(ref, prev) {
-    if (prev._new) return ref.delete();
-    var D = firebase.firestore.FieldValue.delete(), body = Object.assign(AGENT_CLEAR(), { updatedAt: stamp() });
-    Object.keys(prev).forEach(function (k) { body[k] = prev[k] === null ? D : prev[k]; });
-    return ref.update(body); // update, not merge: the old fields map replaces the new one
-  }
 
   // Unified card view: a canon entity seen through this game, or a game-only card.
   function canonCard(e, s) {
@@ -3787,7 +3777,7 @@
     $("view").innerHTML = '<div class="qed" id="q-ed" data-id="' + esc(q.id) + '" tabindex="-1">' +
       edHead({ back: 'data-qact="back"', backLabel: isQ ? ED.backQ : ED.backD, title: d.title || (isQ ? QD.newQ : QD.newD), progId: "q-prog", prog: qdProgHtml(), state: canQuest ? "q-state" : "",
         actions: canQuest ? '<button class="btn primary" data-qact="save" id="q-save">' + QD.save + '</button>' : '' }) +
-      (qed.agent ? '<div class="agentbar" role="status">' + agentBar(qed.agent, canQuest).replace("data-agundo", 'data-qact="agUndo"').replace("data-agkeep", 'data-qact="agKeep"') + '</div>' : '') + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
+      (qed.agent ? '<div class="agentbar" role="status">' + agentBar(qed.agent, canQuest).replace("data-agkeep", 'data-qact="agKeep"') + '</div>' : '') + aiHtml() + propHtml() + ident + (isQ ? questBody(d) : dlgBody(d)) +
       '<div class="qbox" id="q-issues" aria-live="polite">' + qdIssuesHtml() + '</div>' +
       (canQuest ? (q.isNew ? '' : '<div class="row wsave"><button class="btn danger" data-qact="delete">' + QD.del + '</button></div>') : '<p class="qd-lock">🔒 ' + esc(QD.locked) + '</p>') + '</div>';
     if (!canQuest) [].forEach.call($("q-ed").querySelectorAll("input:not(.qpq),textarea,select,[data-qtog],[data-qact^=add],[data-qact^=rm]"), function (el) { el.disabled = true; });
@@ -4129,7 +4119,7 @@
     if (p[0] === "back") { unsavedOk(qdDirty(), function () { qed = null; render(); }); return; }
     if (p[0] === "save") return saveQD();
     if (p[0] === "delete") return deleteQD();
-    if (p[0] === "agUndo" || p[0] === "agKeep") return qdAgent(p[0] === "agUndo");
+    if (p[0] === "agKeep") return qdAgent();
     if (p[0] === "openSrc") return openSrc();
     if (p[0] === "ai") return confirmCost(qed.col === "quests" ? "questDraft" : "dialogueDraft", aiDraft);
     if (p[0] === "pAcc") { propAccept(p[1]); renderQEditor(); return; }
@@ -4160,13 +4150,11 @@
     if (k >= 0) l.splice(k, 1); else l.push(id);
     qed.d[field] = l; renderQEditor();
   }
-  async function qdAgent(undo) { // 🤖 «↶ Повернути як було» / «✓ Лишити» on a quest or dialogue Claude Code saved
+  async function qdAgent() { // 🤖 «✓ Зрозуміло» on a quest or dialogue Claude Code saved — the strip goes
     var q = qed, a = q && q.agent; if (!a) return;
     var ref = gref().collection(q.col).doc(q.id);
     try {
-      if (!undo) { await ref.set(AGENT_CLEAR(), { merge: true }); q.agent = null; renderQEditor(); return; }
-      if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
-      await agentUndo(ref, a.prev); qed = null; render(); notify(STR.agent.undone);
+      await ref.set(AGENT_CLEAR(), { merge: true }); q.agent = null; renderQEditor();
     } catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   async function saveQD() {
@@ -5236,7 +5224,7 @@
     $("view").innerHTML = '<div class="qed med" id="m-ed" data-id="' + esc(med.id) + '" tabindex="-1">' +
       edHead({ back: 'data-mact="back"', backLabel: MC.back, title: med.title || MC.newM, progId: "m-bar", prog: mProgHtml(r), state: canWrite ? "m-state" : "",
         actions: (med.isNew ? '' : '<button class="btn" data-mact="files">' + MC.files + '</button>') + (canWrite ? '<button class="btn primary" data-mact="save" id="m-save">' + MC.save + '</button>' : '') }) +
-      (med.agent ? '<div class="agentbar" role="status">' + agentBar(med.agent, canWrite).replace("data-agundo", 'data-mact="agUndo"').replace("data-agkeep", 'data-mact="agKeep"') + '</div>' : '') + // 🤖 save_mechanic (v2.132.0)
+      (med.agent ? '<div class="agentbar" role="status">' + agentBar(med.agent, canWrite).replace("data-agkeep", 'data-mact="agKeep"') + '</div>' : '') + // 🤖 save_mechanic (v2.132.0)
       '<div class="medgrid"><div class="mout" id="m-out">' + mOutlineHtml(r) + '</div><div class="medmain">' + body +
       '<div class="qbox" id="m-issues" aria-live="polite">' + mIssuesHtml(r) + '</div>' +
       (!med.isNew && !s ? impactHtml(allCards().filter(function (x) { return x.key === "c:" + med.id; })[0] || { isNew: true }) : '') +
@@ -5357,7 +5345,7 @@
     if (p[0] === "back") { medLeave(function () { render(); }); return; }
     if (/^t(View|Sim|Reset|Buy|Sell|Sel|Add|Child|Del|IconRm)$/.test(p[0])) return mTreeAct(p); // 🌳 the tree view
     if (p[0] === "save") return saveMech();
-    if (p[0] === "agUndo" || p[0] === "agKeep") return mechAgent(p[0] === "agUndo");
+    if (p[0] === "agKeep") return mechAgent();
     if (p[0] === "delete") return deleteMech();
     if (p[0] === "adv") { med.adv = !med.adv; renderMEditor(); return; }
     if (p[0] === "fwrm") { var fwr = m.fw || {}; fwr.caps = (fwr.caps || []).filter(function (x) { return x !== p[1]; }); renderMEditor(); return; }
@@ -5447,13 +5435,11 @@
       d.isNew = false; d.legacy = false; d.agent = null; d.first = JSON.stringify([d.title, d.status, d.m]); renderMEditor(); $("m-state").textContent = STR.saved;
     } catch (er) { if (med === d) { btn.disabled = false; $("m-state").textContent = STR.failed + ": " + (er.code || er.message); } }
   }
-  async function mechAgent(undo) { // 🤖 «↶ Повернути як було» / «✓ Лишити» on a mechanic Claude Code filled (MCP save_mechanic)
+  async function mechAgent() { // 🤖 «✓ Зрозуміло» on a mechanic Claude Code filled (MCP save_mechanic) — the strip goes
     var d = med, a = d && d.agent; if (!a) return;
     var ref = gref().collection("cards").doc(d.id);
     try {
-      if (!undo) { await ref.set(AGENT_CLEAR(), { merge: true }); d.agent = null; renderMEditor(); return; }
-      if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
-      await agentUndo(ref, a.prev); med = null; render(); notify(STR.agent.undone);
+      await ref.set(AGENT_CLEAR(), { merge: true }); d.agent = null; renderMEditor();
     } catch (er) { $("m-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   async function deleteMech() {
@@ -7345,15 +7331,7 @@
     var a = open && open.agent; if (!a) return;
     var ref = gref().collection("cards").doc(a.doc);
     try {
-      if (e.target.closest("[data-agundo]")) {
-        if (a.prev._new && !(await askConfirm(STR.agent.undoNewQ, { danger: true }))) return;
-        // the files the agent's version brought leave Storage too: all of a new card's, those not in the old version of a changed one
-        var keepP = a.prev._new || !("files" in a.prev) ? null : (a.prev.files || []).map(function (f) { return f.path; });
-        var gone = a.prev._new || keepP ? (open.files || []).filter(function (f) { return !f.linked && !pathShared(open, f.path) && (!keepP || keepP.indexOf(f.path) < 0); }) : [];
-        await agentUndo(ref, a.prev);
-        await Promise.all(gone.map(function (f) { return firebase.storage().ref(f.path).delete().catch(function () {}); }));
-        closeLeaf(); notify(STR.agent.undone);
-      } else if (e.target.closest("[data-agkeep]")) { await ref.set(AGENT_CLEAR(), { merge: true }); open.agent = null; $("e-agent").hidden = true; }
+      if (e.target.closest("[data-agkeep]")) { await ref.set(AGENT_CLEAR(), { merge: true }); open.agent = null; $("e-agent").hidden = true; }
     } catch (er) { msg(STR.failed + ": " + (er.code || er.message || er)); }
   });
   async function removeCard() {
@@ -7652,7 +7630,7 @@
         keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри (ключ ляже у змінну середовища, не в налаштування). Потім перезапусти Claude Code або перевір /mcp.",
         keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
         agentW: "Claude Code може створювати й змінювати картки, квести й діалоги — коли ти просиш його в чаті",
-        agentWHint: "Кожну зміну агента видно на картці («🤖 Змінив Claude Code») і її можна повернути одним кліком. Вимкнено — агент лише читає й пропонує зміни (запити на зміну).",
+        agentWHint: "Кожну зміну агента видно на картці («🤖 Змінив Claude Code») . Вимкнено — агент лише читає й пропонує зміни (запити на зміну).",
         allBtn: "⧉ Скопіювати все для PowerShell", allDir: "Спершу впиши теку гри.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).", folderBtn: "📂 Підготувати теку гри", folderHint: "📂 — без PowerShell: обери (або створи) теку гри, і браузер сам запише туди .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і рядок .mcp.json у .gitignore (ключ не потрапить у репо). Потім відкрий теку в Провіднику → правий клік → «Відкрити в терміналі» → запусти рядок, який зʼявиться тут. Claude Code один раз спитає, чи довіряти серверу whitewrite з проєкту, — відповідай «так».", folderDone: "Готово в теці «{dir}»: {files}. Запусти в ній:",
         toPlan: "До продакшн-плану →",
         envAgain: "Перевірити середовище ще раз",
@@ -7689,7 +7667,7 @@
         keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder (the key goes into an environment variable, not the settings). Then restart Claude Code or check /mcp.",
         keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
         agentW: "Claude Code may create and change cards, quests and dialogues — when you ask it in the chat",
-        agentWHint: "Every change by the agent shows on the card (“🤖 Changed by Claude Code”) and can be undone with one click. Off — the agent only reads and proposes changes (change requests).",
+        agentWHint: "Every change by the agent shows on the card (“🤖 Changed by Claude Code”). Off — the agent only reads and proposes changes (change requests).",
         allBtn: "⧉ Copy everything for PowerShell", allDir: "First type the game folder.", allDone: "Copied — paste it into PowerShell (a new key has been created).", folderBtn: "📂 Prepare the game folder", folderHint: "📂 — no PowerShell: pick (or create) the game folder and the browser writes .mcp.json with a new MCP key, the log block in CLAUDE.md and a .mcp.json line in .gitignore (the key never reaches the repo). Then open the folder in Explorer → right-click → «Open in Terminal» → run the line that appears here. Claude Code asks once whether to trust the project's whitewrite server — answer yes.", folderDone: "Done in «{dir}»: {files}. Run in it:",
         toPlan: "To the production plan →",
         envAgain: "Check the environment again",
