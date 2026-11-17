@@ -42,6 +42,13 @@ body.rail-shut{ grid-template-columns:72px 1fr; } body.rail-shut #spine{ display
 .rail-it[aria-current="true"]{ color:var(--gold-bright); background:linear-gradient(180deg,rgba(217,119,6,.2),rgba(217,119,6,.07)); box-shadow:inset 2px 0 0 var(--gold-lit); }
 .rail-it[data-later]{ opacity:.5; } .rail-it[data-later]:hover{ opacity:1; }
 .rail-lock{ position:absolute; top:3px; right:5px; font-size:9px; font-style:normal; }
+/* 🧭 GDD stages (v2.139): the number on the icon, the state ○ ◐ ● beside it */
+.rail-n{ position:absolute; top:3px; left:6px; font:600 9.5px/1 "Inter",sans-serif; font-style:normal; color:var(--tx-low); }
+.rail-it[aria-current="true"] .rail-n{ color:var(--gold-lit); }
+.rail-st{ position:absolute; top:2px; right:6px; font-size:10px; font-style:normal; line-height:1; color:var(--tx-low); }
+.rail-st.st-done{ color:var(--gold-lit); } .rail-st.st-partial{ color:var(--tx-mid); }
+.st-mark{ margin-left:6px; font-style:normal; font-size:11px; color:var(--tx-low); } .st-mark.st-done{ color:var(--gold-lit); } .st-mark.st-partial{ color:var(--tx-mid); }
+.nav-psubs{ margin-left:14px; } .rail-st + .rail-lock{ top:15px; }
 .rail-div{ height:1px; margin:6px 8px; background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:.4; }
 .rail-sp{ flex:1; min-height:10px; }
 .navh.panel-h{ margin:8px 6px 6px; font:600 15px/1.25 var(--serif); letter-spacing:0; text-transform:none; color:var(--gold-lit); }
@@ -170,6 +177,7 @@ main{ min-width:0; padding:0 30px 60px; height:100vh; overflow-y:auto; }
 .ww-embed .topline > .wwstats{ margin:0; flex:none; } .ww-embed .topline > .row{ margin-left:auto; }
 .guide-next{ margin:12px 4px 4px; padding:10px 12px; border:1px dashed rgba(240,169,59,.5); border-radius:10px; font-size:12.5px; color:var(--tx-mid); line-height:1.45; }
 .guide-next b{ color:var(--gold-lit); font-weight:600; } .guide-next small{ display:block; margin-top:4px; color:var(--tx-low); font-size:12px; }
+.guide-next .guide-ask{ display:block; width:100%; margin-top:8px; font-size:12.5px; white-space:normal; text-align:left; }
 .guide-row{ align-items:center; justify-content:space-between; gap:12px; margin:4px 0 10px; } .guide-row > span{ font-size:13.5px; color:var(--tx-mid); }
 .ico-btn{ display:inline-grid; place-items:center; width:36px; height:36px; padding:0; flex:none; color:var(--gold-lit); }
 .ico-btn svg{ width:19px; height:19px; }

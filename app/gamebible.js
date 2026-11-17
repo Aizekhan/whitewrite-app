@@ -353,12 +353,14 @@
         err: { json: "Це не JSON — попроси агента виправити файл: ", format: "Це файл іншого формату ({d}). Потрібен whitewrite.fill/1 — для резервних копій є «Відновити з JSON» у налаштуваннях.", shape: "Файл не схожий на шаблон WhiteWrite.", empty: "У файлі немає даних — перевір, що агент заповнив шаблон." },
         noformat: "У файлі немає «format: whitewrite.fill/1» — читаю як шаблон.",
         kinds: { characters: "персонажі", locations: "локації", factions: "фракції", artifacts: "артефакти", events: "події", peoples: "народи й раси", languages: "мови", beliefs: "віра й міфологія", customs: "звичаї" } },
-      guide: { btnOn: "Гід · етап {n}/{all}", btnOff: "Гід вимкнено", stage: "Етап {n} з {all}", or: "або", done: "Гід: шлях до релізу пройдено",
-        next: "Далі «{s}»: заповни {m} або прийми ворота {g}.", nextGate: "Далі «{s}» — після воріт {g}.", opened: "🧭 Етап «{s}»: його розділи в меню вже не приглушені", atStage: "етап {n} · {s}",
-        after: "після {g}", laterSr: " — розділ наступного етапу", about: "етапи йдуть за воротами продакшн-плану (G0…G4); розділи наступних етапів у меню приглушені, але відкриваються.", turnOff: "Вимкнути гід", resume: "Продовжити за гідом",
-        onT: "Увімкнути гід: етапи за воротами, наступні розділи приглушені", offT: "Вимкнути гід",
-        onQ: "Продовжити за гідом з етапу {n} «{s}»? Розділи наступних етапів у меню приглушаться (усе відкривається як і раніше), етап іде за воротами продакшн-плану.",
-        offQ: "Вимкнути гід? Меню стане рівним, без підказки етапу. Продовжити з того самого етапу можна кнопкою «🧭 Гід» на обкладинці «Огляду гри»." },
+      guide: { title: "🧭 Гід по GDD", modeQ: "Як має вести гід?", btnIdea: "Гід: від задуму", btnGame: "Гід: від гри", btnOff: "Гід вимкнено",
+        ideaT: "розробка починається з GDD: який етап заповнити далі, питання до нього й мінімум", gameT: "гру вже роблять, Claude Code веде GDD: що він заніс, які етапи порожні, готовий запит заповнити етап", offT: "лише позначки етапів у меню (○ порожньо · ◐ почато · ● мінімум є)",
+        about: "етапи GDD від 1 до 13 зі схеми; нічого не ховається й не приглушується, ворота лишаються в продакшн-плані.", change: "Змінити",
+        stage: "Етап {n} з {all}", or: "або", need: "Мінімум: {m}.", then: "Далі — {s}.", open: "Відкрити етап", done: "Усі етапи GDD мають мінімум",
+        fromGame: "Від гри", mine: "Claude Code заніс або змінив карток, які ти ще не переглянув: {n}", empty: "Порожні етапи: {s}", allStarted: "Усі етапи почато.",
+        askBtn: "Запит для Claude Code — заповнити етап {n}", copied: "Запит скопійовано — встав його в Claude Code",
+        ask: "Виклич get_gdd_schema і get_gdd_status. Заповни в WhiteWrite етап {n} «{s}»: переглянь проєкт гри і занеси в GDD усе, що вже є в грі для цього етапу, — кожну річ у розділ за схемою; перед новою карткою — find_cards, щоб не робити копій. Чого в грі ще немає — не вигадуй, а коротко запитай мене. Наприкінці скажи, що записав.",
+        atStage: "етап {n} · {s}", state: { empty: "порожньо", partial: "почато, мінімуму ще немає", done: "мінімум є" } },
       stRestore: "Відновити з копії (JSON)", stRestoreHint: "Файл гри відновлюється як нова гра в цьому світі, файл світу — як новий світ.",
       stRestored: "Відновлено", stBadJson: "Це не файл експорту WhiteWrite.",
       spent: "Списано токенів", writtenTo: "записано в картку",
@@ -704,12 +706,14 @@
         err: { json: "This is not JSON — ask the agent to fix the file: ", format: "This file has another format ({d}). whitewrite.fill/1 is needed — backups go through «Restore from JSON» in the settings.", shape: "The file does not look like the WhiteWrite template.", empty: "The file has no data — check that the agent filled the template." },
         noformat: "The file has no «format: whitewrite.fill/1» — reading it as the template.",
         kinds: { characters: "characters", locations: "locations", factions: "factions", artifacts: "artifacts", events: "events", peoples: "peoples & races", languages: "languages", beliefs: "faith & mythology", customs: "customs" } },
-      guide: { btnOn: "Guide · stage {n}/{all}", btnOff: "Guide off", stage: "Stage {n} of {all}", or: "or", done: "Guide: the road to release is walked",
-        next: "Next «{s}»: fill {m} or approve the gate {g}.", nextGate: "Next «{s}» — after the gate {g}.", opened: "🧭 Stage «{s}»: its sections are no longer dimmed", atStage: "stage {n} · {s}",
-        after: "after {g}", laterSr: " — a section of a later stage", about: "the stages follow the production plan's gates (G0…G4); later stages' sections are dimmed in the menu but open.", turnOff: "Turn the guide off", resume: "Resume the guide",
-        onT: "Turn the guide on: stages by the gates, later sections dimmed", offT: "Turn the guide off",
-        onQ: "Resume the guide from stage {n} «{s}»? The next stages' sections are dimmed in the menu (everything still opens), the stage follows the production plan's gates.",
-        offQ: "Turn the guide off? The menu goes flat, without the stage hint. Resume from the same stage with «🧭 Guide» on the «Game overview» cover." },
+      guide: { title: "🧭 GDD guide", modeQ: "How should the guide lead?", btnIdea: "Guide: from the idea", btnGame: "Guide: from the game", btnOff: "Guide off",
+        ideaT: "development starts with the GDD: which stage to fill next, its questions and minimum", gameT: "the game is already being made, Claude Code keeps the GDD: what it recorded, which stages are empty, a ready request to fill a stage", offT: "only the stage marks in the menu (○ empty · ◐ started · ● minimum met)",
+        about: "GDD stages 1 to 13 from the schema; nothing is hidden or dimmed, the gates stay in the production plan.", change: "Change",
+        stage: "Stage {n} of {all}", or: "or", need: "Minimum: {m}.", then: "Next — {s}.", open: "Open the stage", done: "Every GDD stage has its minimum",
+        fromGame: "From the game", mine: "Cards Claude Code recorded or changed that you have not looked at yet: {n}", empty: "Empty stages: {s}", allStarted: "Every stage is started.",
+        askBtn: "Request for Claude Code — fill stage {n}", copied: "Request copied — paste it into Claude Code",
+        ask: "Call get_gdd_schema and get_gdd_status. Fill stage {n} «{s}» in WhiteWrite: look through the game project and record in the GDD everything the game already has for this stage — each thing into its section by the schema; before a new card call find_cards so there are no copies. Do not invent what the game does not have yet — ask me briefly. At the end tell me what you recorded.",
+        atStage: "stage {n} · {s}", state: { empty: "empty", partial: "started, minimum not met yet", done: "minimum met" } },
       stRestore: "Restore from a copy (JSON)", stRestoreHint: "A game file is restored as a new game in this world, a world file as a new world.",
       stRestored: "Restored", stBadJson: "This is not a WhiteWrite export file.",
       spent: "Tokens spent", writtenTo: "written to card",
@@ -763,11 +767,11 @@
     en: ["Session", "Movement", "Combat", "Interaction", "Progression", "Exploration", "Economy", "UI / UX", "Co-op", "Playtest", "Custom events"] };
   var GAME = [
     { id: "overview", uk: "Огляд гри", en: "Game overview",
-      about: { uk: "Що це за гра: логлайн, жанр, стовпи, ігровий цикл, платформа, референси.", en: "What the game is: logline, genre, pillars, core loop, platform, references." },
+      about: { uk: "Що це за гра: логлайн, жанр, стовпи, ігровий цикл одним рядком, платформа, гравці. Ігри-зразки — у «Референсах», стиль — у «Візуальному стилі».", en: "What the game is: logline, genre, pillars, the core loop in one line, platform, players. Reference games are in “References”, the style in “Visual style”." },
+      // 🧭 v2.139 (GDD schema): «Референси» and «Візуальний стиль» left the template — they have their own sections; an older card keeps both fields with their text
       defs: [F("logline", "Логлайн", "Logline"), F("genre", "Жанр", "Genre"), F("pillars", "Стовпи гри (3–4)", "Game pillars (3–4)"),
              F("loop", "Ігровий цикл", "Core loop"), F("platform", "Платформа", "Platform"), F("session", "Тривалість сесії", "Session length"),
-             F("players", "Гравці (соло / кооп / PvP)", "Players (solo / co-op / PvP)"), F("refs", "Референси: гра → що саме беремо", "References: game → what we take"),
-             F("style", "Візуальний стиль", "Visual style")].concat(VISION()) },
+             F("players", "Гравці (соло / кооп / PvP)", "Players (solo / co-op / PvP)")].concat(VISION()) },
     { id: "lore", uk: "Лор гри", en: "Game lore",
       about: { uk: "Як ця гра подає світ: епоха, сюжет гри, тон, таємниці. Канон — в «Огляді світу» і «Законах».", en: "How this game presents the world: era, game plot, tone, secrets. Canon is in “World & laws”." },
       defs: [F("text", "Опис", "Description")] },
@@ -1132,85 +1136,73 @@
   }
   function gameSections() { // «Огляд гри» is never hidden: the game opens on it and the 🧭 Гід switch lives on its cover
     var hidden = (game && game.hiddenSections) || [];
-    return gameSectionsAll().filter(function (s) { return s.id === "overview" || hidden.indexOf(s.id) < 0; }); // the guide only dims (guideLater), it hides nothing
+    return gameSectionsAll().filter(function (s) { return s.id === "overview" || hidden.indexOf(s.id) < 0; }); // the guide hides nothing
   }
-  // 🧭 Гід (v2.80): the stages follow the Production plan's gates — G0–G1 the concept, the core and a greybox level, G2 the content,
-  // G3 balance and players, G4 the release. A stage is reached when its gate is approved (plan/current.gates: G1 → stage 2…) or when
-  // each «need» of the current stage has a filled card (games/{g}.guide { on, stage }; the reached stage only grows). Nothing is
-  // hidden: a later stage's sections are dimmed in the menu with «після G2». «🧭 Гід» on the «Огляд гри» cover turns it on / off.
-  // Navigation only — cards, MCP and exports see everything. after: the gate whose approval opens the stage.
-  var GUIDE = [
-    { uk: "G0–G1 · Задум, ядро і greybox", en: "G0–G1 · Concept, core & greybox", after: "", show: ["overview", "lore", "refs", "artstyle", "characters", "mechanics", "levels", "locations", "plan", "tech"],
-      todo: { uk: "огляд і бачення, ігрові цикли, відчуття гри, керування, один рівень з метриками, greybox", en: "overview & vision, game loops, game feel, controls, one level with metrics, greybox" },
-      need: [["overview"], ["mechanics"], ["levels", "locations"]] },
-    { uk: "G2 · Перший рівень і наповнення", en: "G2 · First level & content", after: "G1", show: ["enemies", "companions", "factions", "scenes", "worldgen", "quests", "dialogues", "forge", "gear", "items", "playcards", "assets", "materials", "animation", "ui", "audio", "issues", "knowledge", "activity"],
-      todo: { uk: "квести й діалоги, Кузня персонажів, вороги, арт і звук", en: "quests & dialogues, the Character forge, enemies, art & sound" }, need: [["enemies"], ["assets", "animation", "ui", "audio"]] },
-    { uk: "G3 · Баланс і гравці", en: "G3 · Balance & players", after: "G2", show: ["progression", "experience", "telemetry"],
-      todo: { uk: "економіка, крива складності, плейтести й телеметрія", en: "economy, the difficulty curve, playtests & telemetry" }, need: [["progression", "gear", "items"]] },
-    { uk: "G4 · Реліз", en: "G4 · Release", after: "G3", show: ["marketing"], todo: { uk: "чекліст релізу, маркетинг", en: "the release checklist, marketing" }, need: [] },
-  ];
-  function guideOn() { return !!(game && game.guide && game.guide.on); }
-  function shelfFilled(id) {
-    var g = GAME.filter(function (s) { return s.id === id; })[0];
-    if (g && g.canon && entities.some(function (e) { return e.kind === g.canon && inGame(e) && shelfFor(e) === id; })) return true;
-    return cards.some(function (c) { return c.section === id && !c.canonRef && (c.mech || Object.keys(c.fields || {}).some(function (k) { return String(c.fields[k] || "").trim(); })); });
+  // 🧭 Гід (v2.139, GDD refocus — replaces the G0–G4 guide of v2.80): the stages are the GDD schema's (functions/gdd-schema.js, 1–13);
+  // nothing is dimmed or hidden, the gates stay in the Production plan. games/{g}.guide.mode: "idea" (Від задуму — the next stage to fill,
+  // its questions and minimum), "game" (Від гри — what Claude Code recorded, empty stages, a ready request to fill one), "off" (only the
+  // stage marks in the menu). No mode stored (also the old { on, stage }) → "game" when Claude Code already writes here, else "idea".
+  var GDD = window.__GDD;
+  function guideMode() {
+    var g = game && game.guide;
+    if (g && g.mode) return g.mode;
+    return cards.some(function (c) { return c.agentKey; }) ? "game" : "idea";
   }
-  function guideNeedMet(i) { return GUIDE[i].need.every(function (any) { return any.some(shelfFilled); }); }
-  function guideGateStage() { // the furthest stage whose opening gate is approved
-    var g = planDoc.gates || {}, st = 0;
-    GUIDE.forEach(function (x, i) { if (x.after && (g[x.after] || {}).status === "approved") st = Math.max(st, i); });
-    return st;
+  function guideOn() { return mode === "game" && !!game && guideMode() !== "off"; }
+  // what a stage holds: the cards of its sections + quests, dialogues, map zones, the plan, the log (navCount), canon views included
+  function stageCount(id) {
+    if (id === "plan") return planDoc && planDoc.plan ? 1 : 0;
+    if (id === "activity") return actSessions.length || stageSeen.activity || 0; if (id === "knowledge") return kSnaps.length || stageSeen.knowledge || 0; // the log and the index are not cards
+    var s = sec(id); if (!s || s.id !== id) return 0;
+    var n = navCount(s, allCards()); return typeof n === "number" ? n : +n || 0;
   }
-  function guideStage() {
-    var i = 0; while (i < GUIDE.length - 1 && guideNeedMet(i)) i++;
-    return Math.min(GUIDE.length - 1, Math.max((game && game.guide && game.guide.stage) || 0, i, guideGateStage())); // a stage stored by the older 7-stage guide is clamped
+  function stageStateOf(st) { return GDD.stageState(st, stageCount); }
+  var STAGE_MARK = { empty: "○", partial: "◐", done: "●" }, stageSeen = {};
+  function stageFirstSec(st) { var g = NAV_GROUPS.filter(function (x) { return x.stage === st; })[0], mem = g ? groupMembers(g) : []; return mem[0] || ""; }
+  function guideNext() { return GDD.STAGES.filter(function (st) { return !st.optional && stageStateOf(st) !== "done"; })[0] || null; }
+  function guideAsk(st) { // a ready request for Claude Code: fill this stage from what is already in the game
+    return STR.guide.ask.replace("{n}", st.n).replace("{s}", L(st));
   }
-  function guideStageOf(id) { for (var i = 0; i < GUIDE.length; i++) if (GUIDE[i].show.indexOf(id) >= 0) return i; return -1; }
-  function guideLater(id) { return guideOn() && guideStageOf(id) > guideStage(); } // a later stage's section: dimmed in the menu, never hidden
-  function guideNextHtml() { // under the menu: where the guide stands and what opens the next stage
+  function guideNextHtml() { // under the menu: where the GDD stands and what comes next
     if (!guideOn()) return "";
-    var st = guideStage(), G = STR.guide;
-    if (st >= GUIDE.length - 1) return '<div class="guide-next">🧭 ' + esc(G.done) + '</div>';
-    var miss = GUIDE[st].need.filter(function (any) { return !any.some(shelfFilled); }).map(function (any) {
-      return any.map(function (id) { var s = gameSectionsAll().filter(function (x) { return x.id === id; })[0]; return "«" + (s ? L(s) : id) + "»"; }).join(" " + G.or + " "); });
-    var nx = GUIDE[st + 1], todo = GUIDE[st].todo ? L(GUIDE[st].todo) : "";
-    return '<div class="guide-next">🧭 ' + esc(G.stage.replace("{n}", st + 1).replace("{all}", GUIDE.length)) + ' · <b>' + esc(L(GUIDE[st])) + '</b>' + (todo ? '<small>' + esc(todo) + '</small>' : '') + '<small>' +
-      esc((miss.length ? G.next.replace("{m}", miss.join(", ")) : G.nextGate).replace("{s}", L(nx)).replace("{g}", nx.after)) + '</small></div>';
+    var G = STR.guide, m = guideMode(), nx = guideNext();
+    if (m === "game") {
+      var mine = cards.filter(function (c) { return c.agentAt && !c.hidden; }).length;
+      var empty = GDD.STAGES.filter(function (st) { return !st.optional && stageStateOf(st) === "empty"; }).map(function (st) { return st.n + " · " + L(st); });
+      return '<div class="guide-next">🧭 <b>' + esc(G.fromGame) + '</b>' + (mine ? '<small>' + esc(G.mine.replace("{n}", mine)) + '</small>' : '') +
+        '<small>' + esc(empty.length ? G.empty.replace("{s}", empty.join(", ")) : G.allStarted) + '</small>' +
+        (nx ? '<button type="button" class="btn guide-ask" data-guideask="' + nx.n + '">⧉ ' + esc(G.askBtn.replace("{n}", nx.n)) + '</button>' : '<small>' + esc(G.done) + '</small>') + '</div>';
+    }
+    if (!nx) return '<div class="guide-next">🧭 ' + esc(G.done) + '</div>';
+    var first = stageFirstSec(nx.n), after = GDD.STAGES.filter(function (st) { return st.n > nx.n && !st.optional; })[0];
+    return '<div class="guide-next">🧭 ' + esc(G.stage.replace("{n}", nx.n).replace("{all}", GDD.STAGES.length)) + ' · <b>' + esc(L(nx)) + '</b><small>' + esc(L(nx.ask)) + '</small>' +
+      (nx.need ? '<small>' + esc(G.need.replace("{m}", nx.need.map(function (r) { return r[1] + " × " + r[0].map(function (id) { var x = sec(id); return "«" + (x && x.id === id ? L(x) : id) + "»"; }).join(" " + G.or + " "); }).join(", "))) + '</small>' : '') +
+      (after ? '<small>' + esc(G.then.replace("{s}", after.n + " · " + L(after))) + '</small>' : '') +
+      (first && first !== section ? '<button type="button" class="btn guide-ask" data-sec="' + esc(first) + '">' + esc(G.open) + ' →</button>' : '') + '</div>';
   }
-  function guideSave(on) { var st = guideStage(); return gref().set({ guide: { on: on, stage: st }, updatedAt: stamp() }, { merge: true }); }
-  function guideToggle() {
-    var G = STR.guide, st = guideStage();
-    if (guideOn()) { askConfirm(G.offQ).then(function (ok) { if (ok) guideSave(false); }); return; }
-    askConfirm(G.onQ.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))).then(function (ok) { if (ok) guideSave(true); });
+  function guideLabel() { var G = STR.guide, m = guideMode(); return m === "game" ? G.btnGame : m === "idea" ? G.btnIdea : G.btnOff; }
+  function guideToggle() { // 🧭 one dialog with the three modes — no cycling through a button
+    var G = STR.guide;
+    askForm(G.title, [{ k: "mode", label: G.modeQ, type: "select", value: guideMode(), opts: [["idea", G.btnIdea + " — " + G.ideaT], ["game", G.btnGame + " — " + G.gameT], ["off", G.btnOff + " — " + G.offT]] }], { ok: STR.save })
+      .then(function (r) { if (r && r.mode) gref().set({ guide: { mode: r.mode }, updatedAt: stamp() }, { merge: true }); });
   }
   function guideCoverBtn() {
     if (!(mode === "game" && game && canWrite)) return "";
-    var on = guideOn(), G = STR.guide;
-    return '<button type="button" class="wcover__guide' + (on ? ' is-on' : '') + '" data-guide title="' + esc(on ? G.offT : G.onT) + '" aria-pressed="' + on + '">🧭 ' +
-      esc(on ? G.btnOn.replace("{n}", guideStage() + 1).replace("{all}", GUIDE.length) : G.btnOff) + '</button>';
+    var on = guideOn();
+    return '<button type="button" class="wcover__guide' + (on ? ' is-on' : '') + '" data-guide title="' + esc(STR.guide.title) + '" aria-pressed="' + on + '">🧭 ' + esc(guideLabel()) + '</button>';
   }
-  // The game menu: related shelves share one menu item and become its sub-tabs (the shelves and their ids stay as they are —
-  // cards, MCP tools and the experience pipeline read them). "custom" = the author's own sections and any ungrouped shelf.
-  var NAV_GROUPS = [
-    { id: "g-overview", uk: "Огляд і лор", en: "Overview & lore", members: ["overview", "lore", "gstories"] },
-    { id: "g-cast", uk: "Персонажі й вороги", en: "Characters & enemies", members: ["characters", "factions", "enemies", "companions", "forge"] },
-    { id: "g-world", uk: "Світ і рівні", en: "World & levels", members: ["gamemap", "locations", "levels", "worldgen", "scenes"] },
-    { id: "g-narr", uk: "Квести й діалоги", en: "Quests & dialogues", members: ["quests", "dialogues"] },
-    { id: "g-mech", members: ["mechanics"] },
-    { id: "g-prog", uk: "Прогресія", en: "Progression", members: ["progression"], subs: true }, // its own menu item (owner): the progression constructor lives there; its sub-items = the section's subsections (navProgSubs)
-    { id: "g-items", uk: "Предмети", en: "Items", members: ["gear", "items", "playcards"] },
-    { id: "g-art", uk: "Арт", en: "Art", members: ["artstyle", "refs", "pictures", "assets", "materials", "animation", "ui"] },
-    { id: "g-audio", members: ["audio"] }, // «Звук і музика» — its own menu item (the Sound factory lives there)
-    { id: "g-tech", uk: "Технічне і знання", en: "Tech & knowledge", members: ["tech", "knowledge"] },
-    "custom",
-    { id: "g-plan", uk: "Продакшн-план", en: "Production plan", members: ["plan", "issues", "activity"] },
-    { id: "g-exp", uk: "Досвід гравців", en: "Player experience", members: ["experience", "telemetry"] },
-    { id: "g-mkt", members: ["marketing"] },
-  ];
+  // The game menu (v2.139, GDD refocus): the development stages of the GDD schema, «N · Назва», each stage's sections as its sub-items
+  // (the shelves and their ids stay as they are — cards, MCP tools and the experience pipeline read them); "custom" = the author's own
+  // sections and any shelf the schema does not list, after the stages. «Прогресія» keeps its subsections as sub-items (navProgSubs, v2.122).
+  var NAV_GROUPS = GDD.STAGES.map(function (st) {
+    return { id: "st-" + st.n, stage: st.n, st: st, uk: st.n + " · " + st.uk, en: st.n + " · " + st.en,
+      members: GDD.SECTIONS.filter(function (x) { return x.stage === st.n; }).map(function (x) { return x.id; }) };
+  }).concat(["custom"]);
   var lastSub = {}; // the section last open in each group: opening the group returns to it
   // «Прогресія» (owner, v2.122): one section, its subsections (Досвід і рівні, Дерева розвитку, Валюти, Лут, Магазин, Апгрейди, Баланс, the author's own)
   // are its sub-items in the menu — a sub-item shows only that subsection (progSub); the cards stay in one section (team rights, MCP, Community)
   var progSub = "", navPSub = null;
+  function navPSubsUnder(id, all) { return id === "progression" && section === "progression" && !imp ? '<div class="nav-psubs">' + navProgSubs(all) + '</div>' : ""; }
   function navProgSubs(all) {
     var s = sec("progression"); if (!s) return "";
     var n = function (g) { return all.filter(function (c) { return c.section === "progression" && (!g || normGroup(s, (c.fields || {})[groupKey(s)] || "") === g); }).length; };
@@ -1895,9 +1887,7 @@
   function navItem(s, all, label) {
     if (!mayRead(s.id)) return "";
     var lock = devLocked(s) || s.special === "forge" && forgeSoon() ? ' 🔒' : ''; // a Worldbuilder section on a lower plan (or «в розробці»): seen before it is clicked
-    var st = mode === "game" && guideLater(s.id) ? guideStageOf(s.id) : -1, later = st > 0 ? STR.guide.after.replace("{g}", GUIDE[st].after) : ""; // 🧭 a later stage: dimmed, «після G2»
-    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '"' + (later ? ' data-later="' + esc(GUIDE[st].after) + '" title="🧭 ' + esc(later + " · " + L(GUIDE[st])) + '"' : '') + '>' + esc(label || L(s)) + lock +
-      (later ? '<span class="sr">' + esc(STR.guide.laterSr + " (" + later + ")") + '</span>' : '') + '<span class="n">' + navCount(s, all) + '</span></button>';
+    return '<button class="nav-item" data-sec="' + esc(s.id) + '" aria-current="' + (s.id === section && !imp) + '">' + esc(label || L(s)) + lock + '<span class="n">' + navCount(s, all) + '</span></button>';
   }
   // a section named like its group gets a short name inside it («Продакшн-план» → «План»)
   var NAV_SHORT = { plan: { uk: "План", en: "Plan" }, experience: { uk: "Метрики й проблеми", en: "Metrics & issues" } };
@@ -1909,13 +1899,12 @@
     NAV_GROUPS.forEach(function (g) {
       if (g === "custom") { gameSections().filter(function (s) { return !listed[s.id]; }).forEach(function (s) { out.push(navTop(navItem(s, all))); }); return; }
       var mem = groupMembers(g); if (!mem.length) return;
-      if (mem.length === 1 && !g.subs) { out.push(navTop(navItem(sec(mem[0]), all))); return; }
+      var stt = g.st ? stageStateOf(g.st) : "", mark = stt ? ' <i class="st-mark st-' + stt + '" title="' + esc(STR.guide.state[stt]) + '" aria-label="' + esc(STR.guide.state[stt]) + '">' + STAGE_MARK[stt] + '</i>' : '';
+      if (mem.length === 1 && mem[0] !== "progression") { out.push(navTop(navItem(sec(mem[0]), all, L(g))).replace('<span class="n">', mark + '<span class="n">')); return; }
       var here = mem.indexOf(section) >= 0 && !imp, open = navOpen[g.id] != null ? navOpen[g.id] : here;
       var n = mem.reduce(function (t, m) { var c = navCount(sec(m), all); return t + (typeof c === "number" ? c : +c || 0); }, 0);
-      var gLater = mem.every(function (m) { return guideLater(m); }) ? GUIDE[Math.min.apply(null, mem.map(guideStageOf))] : null; // the whole group is later: the group dims too
-      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '"' + (gLater && gLater.after ? ' data-later="' + esc(gLater.after) + '" title="🧭 ' + esc(STR.guide.after.replace("{g}", gLater.after) + " · " + L(gLater)) + '"' : '') + '>' + ARROW + esc(L(g)) + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
-      if (open && g.subs) out.push('<div class="nav-subs">' + navProgSubs(all) + '</div>');
-      else if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"'); }).join("") + '</div>'); // indented under its group, a gold guide line
+      out.push('<button class="nav-item nav-grp" data-group="' + g.id + '" aria-expanded="' + open + '" aria-current="' + (here && !open) + '">' + ARROW + esc(L(g)) + mark + (mem.some(function (m) { return devLocked(sec(m)); }) ? ' 🔒' : '') + '<span class="n">' + (n || "") + '</span></button>');
+      if (open) out.push('<div class="nav-subs">' + mem.map(function (m) { return navItem(sec(m), all, NAV_SHORT[m] && L(NAV_SHORT[m])).replace('class="nav-item"', 'class="nav-item nav-sub"') + navPSubsUnder(m, all); }).join("") + '</div>'); // indented under its group, a gold guide line
     });
     return out.join("");
   }
@@ -2005,9 +1994,6 @@
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     else canWrite = mode === "game" ? canGame : canonWrite;
     if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); } // after a member's move to a section they read
-    if (mode === "game" && game && guideOn() && canWrite && guideStage() > ((game.guide && game.guide.stage) || 0)) { // a stage reached: remembered, its sections stay
-      var gst = guideStage(); game.guide = { on: true, stage: gst }; gref().set({ guide: { on: true, stage: gst } }, { merge: true }); sync("ok", STR.guide.opened.replace("{s}", L(GUIDE[gst])));
-    }
     if (mode === "game" && game && section !== "settings" && !gameSections().some(function (s) { return s.id === section; })) section = "overview"; // a hidden section's link lands on the overview
     attachLazy();
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
@@ -9651,9 +9637,9 @@
     return out.filter(function (s) { return s.id !== "overview"; });
   }
   function guideSettingsHtml() {
-    var G = STR.guide, on = guideOn();
-    return '<div class="setrow guide-row"><span>🧭 ' + esc(on ? G.btnOn.replace("{n}", guideStage() + 1).replace("{all}", GUIDE.length) : G.btnOff) + ' — ' + esc(G.about) + '</span>' +
-      '<button class="btn" id="st-guide">' + esc(on ? G.turnOff : G.resume) + '</button></div>';
+    var G = STR.guide;
+    return '<div class="setrow guide-row"><span>🧭 ' + esc(guideLabel()) + ' — ' + esc(G.about) + '</span>' +
+      '<button class="btn" id="st-guide">' + esc(G.change) + '</button></div>';
   }
   function renderSettings() {
     var own = ((game && game.sections) || []);
@@ -9674,9 +9660,9 @@
         // the sections list folds into one line with its count (v2.89) — it is set once, rarely changed
         '<details class="setfold" id="st-shown"' + (shownOpen ? ' open' : '') + '><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2><span class="btn mini setfold-btn"><span class="sf-open">' + STR.stShownOpen + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary>' +
         '<p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
-          var gh = guideLater(s.id), st = guideStageOf(s.id);
+          var st = GDD.stage(GDD.stageOf(s.id)); // 🧭 the stage of the GDD it belongs to
           return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
-            (gh ? ' <small class="muted">🧭 ' + esc(STR.guide.atStage.replace("{n}", st + 1).replace("{s}", L(GUIDE[st]))) + '</small>' : '') + '</span></label>'; }).join("") + '</div></details>' +
+            (st ? ' <small class="muted">' + esc(STR.guide.atStage.replace("{n}", st.n).replace("{s}", L(st))) + '</small>' : '') + '</span></label>'; }).join("") + '</div></details>' +
         (own.length ? '<h2>' + STR.stSections + '</h2>' + own.map(function (s) { // own sections: only when there are any («＋ Свій розділ» is in the menu)
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("") : '') + '</section>';
     if (!inGame && mode === "world") html += '<section class="setbox"><h2>' + STR.stWorld + '</h2>' +
@@ -11640,6 +11626,8 @@
   function navClick(e) {
     if (e.target.closest("#to-world")) { enterWorld(); return; }
     var og = e.target.closest("[data-opengame]"); if (og) { enterGame(og.dataset.opengame); return; }
+    if (e.target.closest("[data-guideask]")) return viewClick(e); // 🧭 the guide box under the menu: copy the request for Claude Code
+    var go = e.target.closest(".guide-ask[data-sec]"); if (go) return goSection(go.dataset.sec);
     var gb = e.target.closest(".nav-grp");
     if (gb) { // a group folds / unfolds; unfolding a group you are not in opens its last (or first) section
       var g = NAV_GROUPS.filter(function (x) { return x.id === gb.dataset.group; })[0], mem = groupMembers(g), open = gb.getAttribute("aria-expanded") !== "true";
@@ -11682,10 +11670,10 @@
     gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/>',
     search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'
   };
-  var RAIL_G = { // the game groups' icons and short labels (NAV_GROUPS ids)
-    "g-overview": ["compass", "Огляд", "Overview"], "g-cast": ["users", "Персонажі", "Cast"], "g-world": ["map", "Світ", "World"], "g-narr": ["scroll", "Квести", "Quests"],
-    "g-mech": ["puzzle", "Механіки", "Mechanics"], "g-prog": ["chart", "Прогресія", "Progress"], "g-items": ["sword", "Предмети", "Items"], "g-art": ["palette", "Арт", "Art"],
-    "g-audio": ["note", "Звук", "Sound"], "g-tech": ["chip", "Технічне", "Tech"], "g-plan": ["list", "План", "Plan"], "g-exp": ["pulse", "Гравці", "Players"], "g-mkt": ["horn", "Маркетинг", "Marketing"]
+  var RAIL_G = { // the stages' icons and short labels (NAV_GROUPS ids st-1 … st-13, functions/gdd-schema.js); the number sits on the icon
+    "st-1": ["compass", "Бачення", "Vision"], "st-2": ["puzzle", "Ядро", "Core"], "st-3": ["globe", "Світ", "World"], "st-4": ["palette", "Стиль", "Style"],
+    "st-5": ["users", "Персонажі", "Cast"], "st-6": ["map", "Структура", "Structure"], "st-7": ["chart", "Прогресія", "Economy"], "st-8": ["scroll", "Наратив", "Story"],
+    "st-9": ["sword", "Контент", "Content"], "st-10": ["chip", "Технічне", "Tech"], "st-11": ["list", "План", "Plan"], "st-12": ["pulse", "Гравці", "Players"], "st-13": ["horn", "Реліз", "Release"]
   };
   var WORLD_RAIL = [
     { id: "w-over", ico: "globe", uk: "Світ", en: "World", full: { uk: "Світ і закони", en: "World & laws" }, secs: ["world", "laws", "worldmap", "canonIssues"] },
@@ -11711,7 +11699,7 @@
         var mem = groupMembers(g); if (!mem.length) return;
         var r = RAIL_G[g.id] || ["folder", L(g), L(g)];
         out.push({ id: g.id, ico: r[0], label: LANG === "en" ? r[2] : r[1], full: g.uk ? L(g) : L(sec(mem[0])), secs: mem, grp: g,
-          lock: mem.some(function (m) { return devLocked(sec(m)); }), later: mem.every(function (m) { return guideLater(m); }) });
+          lock: mem.some(function (m) { return devLocked(sec(m)); }), stage: g.stage || 0, state: g.st ? stageStateOf(g.st) : "" });
       });
     } else {
       WORLD_RAIL.forEach(function (g) {
@@ -11736,18 +11724,19 @@
     var gs = railGroups(), cur = railCur(gs), html = railBtn("search", "search", LANG === "en" ? "Search" : "Пошук", STR.search, false);
     if (mode === "game") html += railBtn("to-world", "back", LANG === "en" ? "Canon" : "Канон", STR.canonGroup, false);
     html += '<span class="rail-div"></span>' + gs.map(function (g) {
-      return railBtn(g.id, g.ico, g.label, g.full, cur && cur.id === g.id, g.later ? ' data-later="1"' : '').replace('</span></button>', '</span>' + (g.lock ? '<i class="rail-lock" aria-hidden="true">🔒</i>' : '') + '</button>');
+      var stt = g.state ? STR.guide.state[g.state] : ""; // 🧭 the stage's number and state (○ ◐ ●) on the icon
+      return railBtn(g.id, g.ico, g.label, g.full + (stt ? " · " + stt : ""), cur && cur.id === g.id, g.state ? ' data-st="' + g.state + '"' : '').replace('</span></button>', '</span>' +
+        (g.stage ? '<i class="rail-n" aria-hidden="true">' + g.stage + '</i>' : '') + (g.state ? '<i class="rail-st st-' + g.state + '" aria-hidden="true">' + STAGE_MARK[g.state] + '</i>' : '') + (g.lock ? '<i class="rail-lock" aria-hidden="true">🔒</i>' : '') + '</button>');
     }).join("") + '<span class="rail-sp"></span>' + railBtn("settings", "gear", LANG === "en" ? "Settings" : "Налашт.", mode === "game" ? STR.settingsGame : STR.settingsWorld, section === "settings");
     $("rail").innerHTML = html; $("t-brand").textContent = mode === "game" ? STR.brandGame : STR.brand;
     if (cur && cur.grp && cur.secs.indexOf(section) >= 0) lastSub[cur.id] = section;
-    var panel = !!cur && (cur.secs.length > 1 || cur.games || cur.custom || !!(cur.grp && cur.grp.subs)), body = "";
+    var panel = !!cur && (cur.secs.length > 1 || cur.games || cur.custom || cur.secs[0] === "progression"), body = "";
     if (panel) {
       if (mode === "game") body += '<div class="navh gamehead">🎮 ' + esc(game.title || "…") + '</div>';
       body += '<div class="navh panel-h">' + esc(cur.full) + '</div>';
       if (cur.games) body += games.map(function (g) { return '<button class="nav-item nav-game" data-opengame="' + esc(g.id) + '">🎮 ' + esc(g.title || "…") + '</button>'; }).join("") +
         (canGame && ME.owner ? '<button class="nav-item nav-game" data-opengame="__new">' + esc(STR.newGame) + '</button>' : '');
-      else if (cur.grp && cur.grp.subs) body += navProgSubs(all);
-      else body += cur.secs.map(function (id) { return navItem(sec(id), all, NAV_SHORT[id] && L(NAV_SHORT[id])); }).join("");
+      else body += cur.secs.map(function (id) { return navItem(sec(id), all, NAV_SHORT[id] && L(NAV_SHORT[id])) + navPSubsUnder(id, all); }).join("");
       if (mode === "game") body += guideNextHtml();
     }
     $("nav").innerHTML = body;
@@ -11867,6 +11856,8 @@
     if (e.target.closest("[data-gcover]")) return editGameCover();
     var bfb = e.target.closest("[data-bframe]"); if (bfb) return bannerFrame(bfb.closest(".wcover"));
     if (e.target.closest("[data-guide]")) return guideToggle();
+    var gask = e.target.closest("[data-guideask]");
+    if (gask) { var gst = GDD.stage(+gask.dataset.guideask); if (gst) { var gtx = guideAsk(gst); (navigator.clipboard ? navigator.clipboard.writeText(gtx) : Promise.reject()).then(function () { sync("ok", STR.guide.copied); }, function () { download("whitewrite-gdd-request.md", gtx, "text/markdown"); }); } return; }
     var ka = e.target.closest("[data-kasset]"); if (ka) { kOpen = kOpen === ka.dataset.kasset ? null : ka.dataset.kasset; $("kn-list").innerHTML = knList(); return; }
     if (mechClick(e)) return;
     if (forgeClick(e)) return;
@@ -12534,6 +12525,8 @@
     unsub.push(gref().collection("experienceIssues").onSnapshot(function (snap) { exIssues = rows(snap).sort(function (a, b) { return ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]; }); exRender(); }, function () {}));
     // Lazy streams: opened the first time a section that shows them is open (attachLazy in render), kept until the game changes
     kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null; mkState = null; mkChannels = []; mkPosts = []; mkTg = null; mkMsg = "";
+    stageSeen = {}; // 🧭 the log and the index stream lazily: one cheap read tells the stage marks whether they hold anything
+    ["activity", "knowledge"].forEach(function (c) { may(c, function () { gref().collection(c).limit(1).get().then(function (q) { if (gameId === id) { stageSeen[c] = q.size; renderNav(); } }, function () {}); }); });
     lazyStreams = [
       [["experience", "plan"], function () { // the plan: experiment outcomes in the decision log
         unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
