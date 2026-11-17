@@ -50,6 +50,10 @@ const ENGINE_PROFILES = {
     'content is ScriptableObject assets; multiplayer is host-authoritative co-op. The framework capabilities catalog is NOT connected yet: ' +
     'never state that a module exists for certain — mark every framework dependency "verify in catalog", and list likely framework gaps ' +
     '(need, what is missing, desired API, workaround). Game repo docs: GAME.md, FRAMEWORK-GAPS.md, Docs/GDD.md, Docs/ASSETS.md, Docs/TASKS.md.',
+  roblox: 'Roblox experience built in Roblox Studio with Luau (often synced from disk with Rojo). Client / server split: server scripts ' +
+    '(ServerScriptService) own the game state, the client (StarterPlayerScripts) shows it, RemoteEvents between them — never trust the client. ' +
+    'Data saves via DataStoreService, monetisation via game passes / developer products, assets by rbxassetid. Live-service rhythm: ' +
+    'short sessions, frequent updates, social / multiplayer play by default. Not Unity: no prefabs, ScriptableObjects or RPG Framework — never plan them.',
 };
 
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);

@@ -260,6 +260,7 @@
           ["h", "Без фреймворку"],
           ["ul", [
             "Будь-який рушій чи свій Unity-проєкт: у Біблії гри → ⚙ Налаштування → «Рушій гри» обери загальний профіль.",
+            "Гра на Roblox: обери «Roblox (Studio · Luau)» — агент отримає інструкції під Roblox Studio й Rojo, без кроків Unity і RPG Framework, а план робитиметься під Roblox.",
             "Біблія гри, продакшн-план, MCP, звірка з GitHub і «Досвід гравців» працюють так само.",
             "Структуру проєкту й тести агент будує з тобою з нуля — закладай на це більше часу.",
           ]],
@@ -1878,6 +1879,7 @@
           ["h", "Without the framework"],
           ["ul", [
             "Any engine or your own Unity project: in the Game Bible → ⚙ Settings → “Game engine” pick the generic profile.",
+            "A Roblox game: pick “Roblox (Studio · Luau)” — the agent gets instructions for Roblox Studio and Rojo, without the Unity and RPG Framework steps, and the plan is made for Roblox.",
             "The Game Bible, production plan, MCP, the GitHub check and “Player experience” work the same.",
             "The agent builds the project structure and tests with you from scratch — allow more time for that.",
           ]],

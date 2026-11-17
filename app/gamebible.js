@@ -731,6 +731,7 @@
   var ENGINES = [
     { id: "generic", uk: "Загальний (будь-який рушій)", en: "Generic (any engine)" },
     { id: "rpg-framework", uk: "RPG Framework · Unity", en: "RPG Framework · Unity" },
+    { id: "roblox", uk: "Roblox (Studio · Luau)", en: "Roblox (Studio · Luau)" },
   ];
 
   // Field templates: a new card starts with the structure of its section.
@@ -9541,6 +9542,7 @@
       [actSessions.length > 0, R.stLog, actSessions.length ? R.logs.replace("{n}", actSessions.length) : ""],
       [!!planDoc.plan, R.stPlan, ""],
       [!!(game.repo && game.repo.full), R.stRepo, game.repo && game.repo.full ? game.repo.full : R.opt, true]];
+    if ((game.engine && game.engine.profile) === "roblox") st.splice(1, 1); // a Roblox game has no Unity environment (setup-guides.js setupRoblox)
     var need = st.filter(function (x) { return !x[3]; }), ok = need.filter(function (x) { return x[0]; }).length;
     var stHtml = '<h3>' + R.stTitle + '</h3><ul class="cc-state">' + st.map(function (x) {
       return '<li class="' + (x[0] ? 'is-ok' : '') + '"><span aria-hidden="true">' + (x[0] ? '✓' : '○') + '</span> ' + esc(x[1]) + (x[2] ? ' <span class="muted">· ' + esc(x[2]) + '</span>' : '') + '</li>'; }).join("") + '</ul>';

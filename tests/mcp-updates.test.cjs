@@ -101,6 +101,11 @@ check(/\/loop, ScheduleWakeup, CronCreate/.test(W) && W.indexOf(G.WATCH_LOOP) >=
 check(W.indexOf(G.WATCH_LINE + 'always') >= 0 && W.indexOf(G.WATCH_LINE + 'never') >= 0 && /CLAUDE\.md/.test(W), true, 'always / never are remembered in the project CLAUDE.md');
 check(/never take a new task on your own/.test(W), true, 'a task found while watching is offered, not taken');
 check(G.guide('setup').markdown.indexOf(W) >= 0 && G.guide('activity_log').markdown.indexOf(W) >= 0, true, 'the whole rule is in the setup guide and the CLAUDE.md block');
+// a Roblox game (v2.137): its own setup, the same session rule and rules, no Unity install steps; Unity checks marked not applicable
+const RB = G.guide('setup', 'roblox').markdown;
+check(/Roblox Studio/.test(RB) && RB.indexOf(W) >= 0 && /submit_change_request/.test(RB) && !/winget install Unity\.CLI/.test(RB), true, 'a Roblox game gets the Roblox setup with the same session rule and rules');
+check(/winget install Unity\.CLI/.test(G.guide('setup', 'rpg-framework').markdown), true, 'a Unity game keeps the Unity setup');
+check(/do not apply/.test(G.guide('unity_env', 'roblox').markdown) && G.guide('setupRoblox') === null, true, 'unity_env does not apply to Roblox; setupRoblox is not a topic of its own');
 const init = src.slice(src.indexOf("if (method === 'initialize')"), src.indexOf("else if (method === 'ping')"));
 check(/instructions: [^]*GUIDES\.SESSION_RULE/.test(init) && /«Підготуй усе для роботи з WhiteWrite»[^]*get_guide \{topic:"setup"\}/.test(init), true, 'the whole rule and «Підготуй усе…» are in the MCP initialize instructions');
 
