@@ -261,5 +261,18 @@ st(otree, 'perks').rows = [{ _id: 'N1', name: 'A', cost: 1, effect: 'x' }, { _id
 check(M.calc(otree).trees.perks.nodes[1].depth, 1, 'a tree section in any card is computed');
 check(M.exportMech({ id: 't', mech: otree }, 'en').sections.find((x) => x.id === 'perks').tree, true, 'the agent sees a tree section as a tree');
 
+// v2.143 FTUE and reasons to come back: targets, walls of text, safe places, dark patterns, the business model from «Огляд гри»
+const ft = M.instantiate('ftue'); check(warnsOf(ft).length, 0, 'the FTUE sample is clean');
+st(ft, 'marks').rows[0].sec = 30; st(ft, 'marks').rows[1].sec = 25; st(ft, 'marks').rows[2].words = 80; st(ft, 'marks').rows[3].safe = false;
+check(M.ftueStatus(ft).firstAction.sec + '|' + M.ftueStatus(ft).walls.join() + '|' + M.ftueStatus(ft).unsafe.join(), '25|FT3|FT4', 'the first action is the earliest row; a wall of text; a mechanic outside a safe place');
+check(warnsOf(ft, 'marks').length, 3, 'late first action, wall of text, unsafe — three warnings');
+st(ft, 'marks').rows = st(ft, 'marks').rows.filter((r) => r.mark !== 'h2');
+check(codes(ft, 'tip').some((i) => /2 години/.test(i.uk)), true, 'a premium game without the 2-hour mark is reminded of Steam refunds');
+const rt = M.instantiate('retention'), ovr = (b) => [{ id: 'ov', section: 'overview', fields: { business: b } }];
+check(M.withCards(ovr('Преміум, $15'), () => M.retentionStatus(rt).model) + '|' + M.withCards(ovr('Free-to-play, косметика'), () => M.retentionStatus(rt).model) + '|' + M.withCards([], () => M.retentionStatus(rt).from), 'premium|f2p|default', 'the business model from the overview card');
+st(rt, 'reasons').rows = st(rt, 'reasons').rows.filter((r) => r.horizon !== 'd30'); st(rt, 'reasons').rows[0].punish = true;
+check(M.withCards(ovr('Преміум'), () => warnsOf(rt, 'reasons').length) + '|' + M.withCards(ovr('f2p'), () => warnsOf(rt, 'reasons').length), '1|2', 'premium does not need D30; f2p does; punishing absence is a dark pattern');
+st(rt, 'model').values.model = 'live'; check(M.withCards(ovr('Преміум'), () => M.retentionStatus(rt).model + ':' + M.retentionStatus(rt).from), 'live:card', 'a model picked on the card wins');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

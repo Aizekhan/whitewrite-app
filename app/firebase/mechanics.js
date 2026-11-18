@@ -47,6 +47,9 @@ var CATEGORIES = [
   { id: 'leveldesign', uk: 'Метрики рівнів і темп', en: 'Level metrics & pacing', subs: [] },
   { id: 'balance', uk: 'Складність і баланс', en: 'Difficulty & balance', subs: [] },
   { id: 'release', uk: 'Реліз', en: 'Release', subs: [] },
+  // v2.143 — the first minutes and the reasons to come back
+  { id: 'onboarding', uk: 'Перші хвилини (FTUE)', en: 'First minutes (FTUE)', subs: [] },
+  { id: 'retention', uk: 'Утримання й повернення', en: 'Retention & return', subs: [] },
 ];
 // the Mechanics groups before v2.48 that were renamed (cards keep their old group text; it shows under the new one)
 var GROUP_ALIAS = { 'Здібності': 'Навички й здібності', 'Abilities': 'Skills & abilities', 'Взаємодія': 'Взаємодія зі світом', 'Interaction': 'World interaction' };
@@ -1321,6 +1324,138 @@ function releaseChecks(m, add) {
   var r = releaseStatus(m);
   if (r.left.length) add('tip', 'items', '', 'До реліз-кандидата лишилось ' + r.left.length + ' з ' + r.total + ' пунктів.', r.left.length + ' of ' + r.total + ' items left before the release candidate.');
 }
+// ============================== v2.143 FTUE · reasons to come back ==============================
+// The business model is read from the «Огляд гри» card (field «Бізнес-модель і ціна») unless the card picks one: a premium game lives
+// on the share of players who finish it and on reviews, a free-to-play or a live game on D1 / D7 / D30.
+var BIZ = O([['auto', 'З «Огляду гри»', 'From “Game overview”'], ['premium', 'Преміум (купують раз)', 'Premium (bought once)'], ['f2p', 'Free-to-play', 'Free-to-play'],
+  ['sub', 'Підписка', 'Subscription'], ['live', 'Live-сервіс / сезони', 'Live service / seasons']]);
+function bizOf(text) {
+  var t = String(text || '').toLowerCase();
+  if (!t.trim()) return '';
+  if (/f2p|free.?to.?play|безкошт|умовно.?безкошт|мікротранз|microtrans|внутрішньоігр|in.?app|iap/.test(t)) return 'f2p';
+  if (/підписк|subscri/.test(t)) return 'sub';
+  if (/сезон|season|live.?serv|battle.?pass|бойов\S* перепустк/.test(t)) return 'live';
+  if (/преміум|premium|\$|₴|€|грн|купу|buy|one.?time|одноразов/.test(t)) return 'premium';
+  return '';
+}
+// → { model, from: 'card' | 'overview' | 'default' } — the overview card is read from the game's cards (withCards / setCardNamer)
+function bizModel(m) {
+  var own = valsOf(m, 'model').model;
+  if (own && own !== 'auto') return { model: own, from: 'card' };
+  var ov = (namer.cards ? namer.cards() : []).filter(function (c) { return c.section === 'overview' && !c.hidden && !c.archived; })[0];
+  var b = ov ? bizOf((ov.fields || {}).business) : '';
+  return b ? { model: b, from: 'overview' } : { model: 'premium', from: 'default' };
+}
+var MARKS = [['s10', '0–10 с', '0–10 s', 10], ['m1', '1 хв', '1 min', 60], ['m5', '5 хв', '5 min', 300], ['m15', '15 хв', '15 min', 900], ['end', 'Кінець першої сесії', 'End of the first session', 2400], ['h2', '2 години (поріг повернення грошей у Steam)', '2 hours (the Steam refund line)', 7200]];
+var MARK_SEC = {}; MARKS.forEach(function (x) { MARK_SEC[x[0]] = x[3]; });
+var FTUE = {
+  id: 'ftue', version: 1, cat: 'onboarding', sub: '', complexity: 1, name: T('Перші секунди й перші хвилини (FTUE)', 'First seconds & first minutes (FTUE)'),
+  desc: T('Таймлайн першої сесії за позначками 0–10 с, 1 хв, 5 хв, 15 хв, кінець першої сесії, 2 години: що гравець бачить і робить, чого гра вчить, емоція, нагорода, ризик, що він піде, і подія телеметрії, яка це виміряє. У Steam гроші повертають, якщо гравець грав менше 2 годин, — перші дві години вирішують, чи лишаться в тебе гроші.',
+    'The first session as a timeline: 0–10 s, 1 min, 5 min, 15 min, the end of the first session, 2 hours — what the player sees and does, what the game teaches, the emotion, the reward, the risk they leave and the telemetry event that measures it. Steam refunds a game played under 2 hours — the first two hours decide whether you keep the money.'),
+  purpose: T('Гравець діє з перших секунд, отримує нагороду до хвилини і вчиться без стіни тексту — і не просить повернути гроші.', 'The player acts within seconds, gets a reward within a minute and learns without a wall of text — and does not ask for a refund.'),
+  sections: [
+    { id: 'goals', title: T('Цілі', 'Targets'), kind: 'fields',
+      hint: T('У Steam гроші повертають, якщо гравець грав менше 2 годин (і купив менше 14 днів тому). Тож перші дві години вирішують, чи лишаться в тебе гроші. Інші магазини — свої правила, але перші хвилини так само вирішують, чи гратимуть далі.', 'Steam refunds a game played under 2 hours (bought within 14 days). So the first two hours decide whether you keep the money. Other stores have their own rules, but the first minutes still decide whether people play on.'),
+      fields: [F('firstAction', 'Перша дія гравця не пізніше', 'The player’s first action no later than', 'num', X(R, { u: 's', min: 1, max: 120 })),
+        F('firstReward', 'Перша нагорода не пізніше', 'The first reward no later than', 'num', X(R, { u: 's', min: 5, max: 600 })),
+        F('maxWords', 'Найбільше слів тексту за раз', 'The most words of text at once', 'num', X(REC, { min: 5, max: 200, h: T('більше — стіна тексту', 'more is a wall of text') })),
+        F('skip', 'Навчання можна пропустити', 'The tutorial can be skipped', 'bool', { req: 'opt', adv: true })],
+      values: { firstAction: 10, firstReward: 60, maxWords: 30, skip: true } },
+    { id: 'marks', title: T('Таймлайн', 'Timeline'), kind: 'table', rowLabel: 'does', prefix: 'FT',
+      hint: T('Рядок — момент першої сесії. «Секунда» — коли саме (порожньо — межа позначки). Механіку, якої гра вчить, гравець уперше пробує там, де помилка нічого не коштує.', 'A row is a moment of the first session. “Second” — exactly when (empty — the mark’s limit). A mechanic the game teaches is first tried where a mistake costs nothing.'),
+      fields: [F('mark', 'Позначка', 'Mark', 'sel', X(R, { o: MARKS.map(function (x) { return { v: x[0], l: T(x[1], x[2]) }; }) })),
+        F('sec', 'Секунда', 'Second', 'num', X(REC, { u: 's', min: 0, max: 7200 })),
+        F('does', 'Що бачить і робить', 'What they see and do', 'text', R), F('teaches', 'Чого вчить', 'What it teaches', 'card', { req: 'opt', secs: ['mechanics'] }),
+        F('emotion', 'Емоція', 'Emotion', 'text', REC), F('reward', 'Нагорода', 'Reward', 'text', REC),
+        F('risk', 'Ризик, що гравець піде', 'Risk the player leaves', 'text', REC), F('event', 'Подія телеметрії', 'Telemetry event', 'text', X(REC, { h: T('напр. TutorialShown, MechanicUsed, RewardReceived', 'e.g. TutorialShown, MechanicUsed, RewardReceived') })),
+        F('safe', 'Пробує в безпечному місці', 'Tried in a safe place', 'bool', { req: 'opt' }), F('words', 'Слів тексту на екрані', 'Words of text on screen', 'num', { req: 'opt', min: 0, max: 2000 }),
+        F('notes', 'Нотатки', 'Notes', 'text', { req: 'opt', adv: true })],
+      rows: [
+        { _id: 'FT1', mark: 's10', sec: 4, does: 'Прокидається на березі, одразу може бігти', emotion: 'цікавість', risk: 'довга заставка без керування', event: 'SessionStarted', words: 0 },
+        { _id: 'FT2', mark: 's10', sec: 8, does: 'Стрибає через перший уламок', teaches: 'Стрибок', emotion: 'контроль', event: 'MechanicUsed', safe: true, words: 2 },
+        { _id: 'FT3', mark: 'm1', sec: 45, does: 'Знаходить першу монету за каменем', emotion: 'радість відкриття', reward: 'монета, звук і спалах', event: 'RewardReceived', safe: true, words: 0 },
+        { _id: 'FT4', mark: 'm5', sec: 240, does: 'Перший ворог — повільний, удар у спину не болить', teaches: 'Атака', emotion: 'сила', reward: 'досвід', risk: 'смерть від першого ворога', event: 'EnemyKilled', safe: true, words: 6 },
+        { _id: 'FT5', mark: 'm15', does: 'Перша головоломка поєднує стрибок і атаку', emotion: 'кмітливість', reward: 'відкриті ворота, нова зона', risk: 'не розуміє, що робити', event: 'LevelCompleted', words: 12 },
+        { _id: 'FT6', mark: 'end', does: 'Перший бос і табір: видно мапу наступних земель', emotion: 'передчуття', reward: 'нова здібність', risk: 'нема причини грати далі', event: 'CheckpointReached', words: 25 },
+        { _id: 'FT7', mark: 'h2', does: 'Відкрито друге місто й перший апгрейд', emotion: 'прихильність', reward: 'перший апгрейд спорядження', risk: 'повернення грошей у Steam', event: 'ItemAcquired' }] },
+  ],
+};
+// → { firstAction: { sec, row, ok }, firstReward: { sec, row, ok }, walls: [row ids], unsafe: [row ids], noEvent: [row ids], marks: { mark: n }, firstAt, rewardAt } (seconds; null — none)
+function ftueStatus(m) {
+  var g = valsOf(m, 'goals'), rows = rowsOfM(m, 'marks').slice();
+  var at = function (r) { return num(r.sec) ? +r.sec : MARK_SEC[r.mark] != null ? MARK_SEC[r.mark] : null; };
+  rows.sort(function (a, b) { var x = at(a), y = at(b); return (x == null ? 1e9 : x) - (y == null ? 1e9 : y); });
+  var first = function (pred, lim) { var r = rows.filter(pred)[0], s = r ? at(r) : null; return { sec: s, row: r ? r._id : '', ok: s != null && (!num(lim) || s <= +lim) }; };
+  var marks = {}; rows.forEach(function (r) { if (r.mark) marks[r.mark] = (marks[r.mark] || 0) + 1; });
+  var maxW = num(g.maxWords) ? +g.maxWords : null;
+  return { firstAction: first(function (r) { return String(r.does || '').trim(); }, g.firstAction), firstReward: first(function (r) { return String(r.reward || '').trim(); }, g.firstReward),
+    walls: maxW == null ? [] : rows.filter(function (r) { return num(r.words) && +r.words > maxW; }).map(function (r) { return r._id; }),
+    unsafe: rows.filter(function (r) { return cardTokens(r.teaches).length && !r.safe; }).map(function (r) { return r._id; }),
+    noEvent: rows.filter(function (r) { return !String(r.event || '').trim(); }).map(function (r) { return r._id; }), marks: marks };
+}
+function ftueChecks(m, add, rowsOf, nameOf, val) {
+  var s = ftueStatus(m), by = {}; rowsOf('marks').forEach(function (r) { by[r._id] = r; });
+  if (s.firstAction.sec == null) add('warn', 'marks', '', 'Не видно першої дії гравця.', 'No first player action yet.', 'does');
+  else if (!s.firstAction.ok) add('warn', 'marks', s.firstAction.row, 'Перша дія гравця — на ' + s.firstAction.sec + '-й секунді, а ціль — до ' + val('goals', 'firstAction') + ' с.', 'The first player action is at second ' + s.firstAction.sec + ', the target is by ' + val('goals', 'firstAction') + ' s.', 'sec');
+  if (s.firstReward.sec == null) add('warn', 'marks', '', 'Немає жодної нагороди в першій сесії.', 'No reward at all in the first session.', 'reward');
+  else if (!s.firstReward.ok) add('warn', 'marks', s.firstReward.row, 'Перша нагорода — на ' + s.firstReward.sec + '-й секунді, а ціль — до ' + val('goals', 'firstReward') + ' с.', 'The first reward is at second ' + s.firstReward.sec + ', the target is by ' + val('goals', 'firstReward') + ' s.', 'sec');
+  s.walls.forEach(function (id) { add('warn', 'marks', id, '«' + nameOf(by[id]) + '»: ' + by[id].words + ' слів за раз — стіна тексту. Покажи дією.', '“' + nameOf(by[id]) + '”: ' + by[id].words + ' words at once — a wall of text. Show it by doing.', 'words'); });
+  s.unsafe.forEach(function (id) { add('warn', 'marks', id, '«' + nameOf(by[id]) + '»: механіку вперше дають не в безпечному місці — помилка тут має нічого не коштувати.', '“' + nameOf(by[id]) + '”: the mechanic is first given outside a safe place — a mistake here should cost nothing.', 'safe'); });
+  s.noEvent.forEach(function (id) { add('tip', 'marks', id, '«' + nameOf(by[id]) + '»: немає події телеметрії — не видно, чи гравці сюди доходять.', '“' + nameOf(by[id]) + '”: no telemetry event — you will not see whether players get here.', 'event'); });
+  if (!s.marks.s10) add('warn', 'marks', '', 'Немає позначки «0–10 с» — що відбувається в перші секунди?', 'No “0–10 s” mark — what happens in the first seconds?', 'mark');
+  var bm = bizModel(m).model;
+  if (bm === 'premium' && !s.marks.h2) add('tip', 'marks', '', 'Преміум-гра: додай позначку «2 години» — у Steam гроші повертають тим, хто грав менше.', 'A premium game: add the “2 hours” mark — Steam refunds those who played less.', 'mark');
+}
+var DRIVE = O([['intrinsic', 'Внутрішня (хочеться)', 'Intrinsic (wants to)'], ['extrinsic', 'Зовнішня (нагорода, тиск)', 'Extrinsic (reward, pressure)']]);
+var RET_TYPES = O([['zeigarnik', 'Незакрита мета (ефект Зейгарнік)', 'An open goal (Zeigarnik effect)'], ['cliff', 'Клифгенгер', 'Cliffhanger'], ['collection', 'Колекція', 'Collection'],
+  ['daily', 'Щоденне завдання / серія', 'Daily task / streak'], ['social', 'Соціальне', 'Social'], ['season', 'Сезон, оновлення', 'Season, update']]);
+var HORIZONS = [['next', 'Наступна сесія', 'Next session'], ['d1', 'Завтра (D1)', 'Tomorrow (D1)'], ['d7', 'За тиждень (D7)', 'In a week (D7)'], ['d30', 'За місяць (D30)', 'In a month (D30)']];
+// the metrics that matter for a business model (Досвід гравців shows them first)
+var BIZ_METRICS = { premium: ['completion', 'under2h', 'session'], f2p: ['d1', 'd7', 'd30', 'perDay'], sub: ['d7', 'd30', 'perDay'], live: ['d1', 'd7', 'd30', 'perDay'] };
+var RETENTION = {
+  id: 'retention', version: 1, cat: 'retention', sub: '', complexity: 1, name: T('Причини повернутися', 'Reasons to come back'),
+  desc: T('Чому гравець повернеться — за горизонтами: наступна сесія, D1, D7, D30. Для кожної причини — тип (незакрита мета, клифгенгер, колекція, щоденне завдання, соціальне, сезон), внутрішня вона чи зовнішня, і перевірка на темні патерни: таймери, що карають за відсутність, FOMO. Бізнес-модель береться з «Огляду гри»: преміум-гра живе часткою тих, хто пройшов гру, і відгуками, free-to-play — D1/D7/D30.',
+    'Why the player comes back — by horizon: the next session, D1, D7, D30. For each reason — its type (an open goal, a cliffhanger, a collection, a daily task, social, a season), intrinsic or extrinsic, and a dark-pattern check: timers that punish absence, FOMO. The business model comes from “Game overview”: a premium game lives on the share of players who finish it and on reviews, free-to-play on D1/D7/D30.'),
+  purpose: T('Гравець повертається, бо хоче, а не бо його карають за відсутність.', 'The player comes back because they want to, not because absence is punished.'),
+  sections: [
+    { id: 'model', title: T('Бізнес-модель', 'Business model'), kind: 'fields', hint: T('«З «Огляду гри»» — читає поле «Бізнес-модель і ціна». Від моделі залежить, які горизонти обовʼязкові і що показує «Досвід гравців».', '“From Game overview” reads the “Business model & price” field. The model decides which horizons are required and what “Player experience” shows first.'),
+      fields: [F('model', 'Модель', 'Model', 'sel', X(R, { o: BIZ }))], values: { model: 'auto' } },
+    { id: 'reasons', title: T('Причини', 'Reasons'), kind: 'table', rowLabel: 'reason', prefix: 'RT',
+      hint: T('Внутрішня причина — гравцю цікаво (недограний бій, таємниця). Зовнішня — нагорода чи тиск ззовні. Таймер, що забирає щось за пропуск, і «встигни, бо зникне» — темні патерни: вони тримають, але псують відгуки.', 'An intrinsic reason — the player is curious (an unfinished fight, a secret). Extrinsic — a reward or outside pressure. A timer that takes something for missing a day and “get it before it is gone” are dark patterns: they hold players but spoil the reviews.'),
+      fields: [F('horizon', 'Горизонт', 'Horizon', 'sel', X(R, { o: HORIZONS.map(function (x) { return { v: x[0], l: T(x[1], x[2]) }; }) })),
+        F('reason', 'Причина', 'Reason', 'text', R), F('type', 'Тип', 'Type', 'sel', X(R, { o: RET_TYPES })), F('drive', 'Мотивація', 'Motivation', 'sel', X(REC, { o: DRIVE })),
+        F('punish', 'Карає за відсутність', 'Punishes absence', 'bool', { req: 'opt' }), F('fomo', 'FOMO: «встигни, бо зникне»', 'FOMO: “get it before it is gone”', 'bool', { req: 'opt' }),
+        F('cards', 'Механіки, квести, прогресія', 'Mechanics, quests, progression', 'card', { req: 'opt', secs: ['mechanics', 'progression', 'levels'] }),
+        F('metric', 'Чим виміряти', 'How to measure', 'text', { req: 'opt', adv: true, h: T('подія телеметрії чи метрика', 'a telemetry event or a metric') })],
+      rows: [
+        { _id: 'RT1', horizon: 'next', reason: 'Сесія закінчується біля замкнених воріт, ключ уже видно', type: 'zeigarnik', drive: 'intrinsic' },
+        { _id: 'RT2', horizon: 'd1', reason: 'Бос, якого майже переміг', type: 'cliff', drive: 'intrinsic' },
+        { _id: 'RT3', horizon: 'd7', reason: 'Колекція реліквій регіону: 7 із 12', type: 'collection', drive: 'intrinsic' },
+        { _id: 'RT4', horizon: 'd30', reason: 'Безкоштовне оновлення з новим регіоном', type: 'season', drive: 'extrinsic' }] },
+  ],
+};
+// → { model, from, horizons: { next|d1|d7|d30: n }, missing: [horizon], dark: [row ids], metrics: [metric ids for the model] }
+function retentionStatus(m) {
+  var b = bizModel(m), rows = rowsOfM(m, 'reasons'), hz = { next: 0, d1: 0, d7: 0, d30: 0 };
+  rows.forEach(function (r) { if (hz[r.horizon] != null && String(r.reason || '').trim()) hz[r.horizon]++; });
+  var need = b.model === 'premium' ? ['next', 'd1'] : ['next', 'd1', 'd7', 'd30'];
+  return { model: b.model, from: b.from, horizons: hz, missing: need.filter(function (h) { return !hz[h]; }),
+    dark: rows.filter(function (r) { return r.punish || r.fomo; }).map(function (r) { return r._id; }), metrics: BIZ_METRICS[b.model] || BIZ_METRICS.premium };
+}
+function retentionChecks(m, add, rowsOf, nameOf) {
+  var s = retentionStatus(m), HN = {}; HORIZONS.forEach(function (x) { HN[x[0]] = x; });
+  s.missing.forEach(function (h) { add('warn', 'reasons', '', 'Немає причини повернутися: «' + HN[h][1] + '».', 'No reason to come back: “' + HN[h][2] + '”.', 'horizon'); });
+  rowsOf('reasons').forEach(function (r) {
+    if (r.punish) add('warn', 'reasons', r._id, '«' + nameOf(r) + '»: карає за відсутність — темний патерн. Краще нагорода за повернення, ніж втрата за пропуск.', '“' + nameOf(r) + '”: punishes absence — a dark pattern. Reward the return rather than take for the miss.', 'punish');
+    if (r.fomo) add('warn', 'reasons', r._id, '«' + nameOf(r) + '»: FOMO — «встигни, бо зникне» тримає, але псує відгуки.', '“' + nameOf(r) + '”: FOMO — “get it before it is gone” holds players but spoils reviews.', 'fomo');
+    if (s.model === 'premium' && r.type === 'daily') add('tip', 'reasons', r._id, '«' + nameOf(r) + '»: щоденні завдання в преміум-грі часто стають обовʼязком, а не причиною.', '“' + nameOf(r) + '”: daily tasks in a premium game often feel like a chore, not a reason.', 'type');
+  });
+  var rows = rowsOf('reasons').filter(function (r) { return r.drive; });
+  if (rows.length >= 3 && rows.every(function (r) { return r.drive === 'extrinsic'; })) add('tip', 'reasons', '', 'Усі причини зовнішні — гравець повертається за нагородою, а не тому, що цікаво. Додай незакриту мету чи таємницю.', 'Every reason is extrinsic — the player returns for a reward, not out of interest. Add an open goal or a secret.', 'drive');
+  if (s.model === 'premium') add('tip', 'model', '', 'Преміум-гра: головне — частка тих, хто пройшов гру, і відгуки; D30 тут не мета.', 'A premium game: what matters is the share of players who finish it and the reviews; D30 is not the goal here.', 'model');
+}
+FRAMEWORK.ftue = { marks: ['missing', 'Дизайн першої сесії: навчання, підказки й події телеметрії — код гри (телеметрія фреймворку — події сесії й механік).', 'The first-session design: tutorial, hints and telemetry events are game code (the framework’s telemetry covers session and mechanic events).'] };
+FRAMEWORK.retention = { reasons: ['missing', 'Дизайн-документ: причини повернутися збираються в коді гри з модулів (квести, прогресія, колекції).', 'A design document: the reasons to come back are assembled in game code from modules (quests, progression, collections).'] };
 // RPG Framework for the new templates — only what this file already knows (FRAMEWORK / FW_BUILTIN); the rest is the game's code
 FRAMEWORK.game_feel = { actions: ['partial', 'Реакції на влучання (рівні влучання, оглушення) і звукові сигнали є; hitstop, тремтіння камери, вібрація, буфер вводу й coyote time — код гри.', 'Hit reactions (hit tiers, stagger) and audio cues exist; hitstop, camera shake, rumble, the input buffer and coyote time are game code.'] };
 FRAMEWORK.controls = { map: ['missing', 'Розкладки вводу у фреймворку немає — Unity Input System і код гри.', 'The framework has no input map — Unity Input System and game code.'] };
@@ -1742,7 +1877,7 @@ function balanceChecks(m, add) {
   });
 }
 var CALCS = { economy: function (m) { return { simulation: econSim(m), loot: lootChances(m) }; }, loops: function (m) { return { loops: loopClosure(m) }; },
-  level_metrics: function (m) { return { pacing: pacing(m) }; }, difficulty: function (m) { return { zones: difficultyCurve(m) }; }, release: function (m) { return releaseStatus(m); },
+  level_metrics: function (m) { return { pacing: pacing(m) }; }, difficulty: function (m) { return { zones: difficultyCurve(m) }; }, release: function (m) { return releaseStatus(m); }, ftue: function (m) { return ftueStatus(m); }, retention: function (m) { return retentionStatus(m); },
   xp_curve: function (m) { return { curve: xpCurve(m) }; }, prog_currencies: function (m) { return { simulation: econSim(m) }; }, prog_loot: function (m) { return { loot: lootFlow(m) }; },
   prog_shop: function (m) { return { shop: shopAfford(m) }; }, prog_upgrades: function (m) { return { tracks: upgradeTracks(m) }; }, prog_balance: function (m) { return { stages: balanceStages(m) }; },
   prog_skilltree: function (m) { return { tree: treeStats(m) }; }, prog_upgradetree: function (m) { return { tree: treeStats(m) }; } };
@@ -1754,12 +1889,12 @@ function calc(m) {
   return r;
 }
 
-var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, FEEL, CONTROLS, ACCESS, ECONOMY, LOOPS, LEVEL_METRICS, DIFFICULTY, RELEASE,
+var TEMPLATES = [UMCF, DODGE, BLOCK, ATTRS, LEVELS, STATUS, INVENTORY, ENEMY_AI, FEEL, CONTROLS, ACCESS, ECONOMY, LOOPS, LEVEL_METRICS, DIFFICULTY, RELEASE, FTUE, RETENTION,
   MUSIC, AMBIENCE, UISOUND, PROMPTS, // sec: 'audio' — Фабрика звуку
   XP_CURVE, PROG_SKILLTREE, PROG_CURRENCIES, PROG_LOOT, PROG_SHOP, PROG_UPGRADES, PROG_UPGRADETREE, PROG_BALANCE]; // sec: 'progression' — Конструктор прогресії; the rest — Mechanics
 var TEMPLATE_CHECKS = { umcf: umcfChecks, dodge: dodgeChecks, blockparry: blockChecks, attributes: attrChecks, leveling: levelChecks, status: statusChecks,
   game_feel: feelChecks, controls: controlsChecks, accessibility: accessChecks, economy: economyChecks, loops: loopChecks, level_metrics: levelMetricChecks,
-  difficulty: difficultyChecks, release: releaseChecks, adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks,
+  difficulty: difficultyChecks, release: releaseChecks, ftue: ftueChecks, retention: retentionChecks, adaptive_music: musicChecks, ambience: ambienceChecks, ui_sounds: uiChecks,
   xp_curve: xpChecks, prog_currencies: economyChecks, prog_loot: progLootChecks, prog_shop: shopChecks, prog_upgrades: upgradeChecks, prog_balance: balanceChecks };
 
 // ---- helpers ----
@@ -1873,12 +2008,12 @@ function cardTokens(v) {
 }
 // card links shown by name in computed results and check messages: the Bible sets a namer over its live cards,
 // the server wraps one synchronous call in withCards(cards, fn)
-var namer = { fn: null };
+var namer = { fn: null, cards: null }; // cards: () → the game's cards (the business model of «Огляд гри» — FTUE / retention)
 function cardLabel(v) { return cardTokens(v).map(function (t) { return (namer.fn && namer.fn(t)) || t; }).join(', '); }
-function setCardNamer(f) { namer.fn = f; }
+function setCardNamer(f, cardsFn) { namer.fn = f; if (cardsFn) namer.cards = cardsFn; }
 function withCards(cards, fn) {
-  var prev = namer.fn; namer.fn = function (t) { var c = resolveCard(t, cards); return c ? c.title : ''; };
-  try { return fn(); } finally { namer.fn = prev; }
+  var prev = namer.fn, prevC = namer.cards; namer.fn = function (t) { var c = resolveCard(t, cards); return c ? c.title : ''; }; namer.cards = function () { return cards || []; };
+  try { return fn(); } finally { namer.fn = prev; namer.cards = prevC; }
 }
 // one token → the game card it names (by id, else by title, case-insensitive), or null
 function resolveCard(tok, cards) {
@@ -1945,7 +2080,7 @@ var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: C
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
   isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN,
   cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
-  difficultyCurve: difficultyCurve, releaseStatus: releaseStatus, setCardNamer: setCardNamer, withCards: withCards };
+  difficultyCurve: difficultyCurve, releaseStatus: releaseStatus, ftueStatus: ftueStatus, retentionStatus: retentionStatus, bizModel: bizModel, bizOf: bizOf, BIZ_METRICS: BIZ_METRICS, setCardNamer: setCardNamer, withCards: withCards };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;
 })();

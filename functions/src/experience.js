@@ -62,7 +62,7 @@ const STANDARD_EVENTS = {
   Movement: ['ZoneEntered', 'ZoneExited', 'RouteSegmentEntered', 'CheckpointReached', 'PositionSample'],
   Combat: ['CombatStarted', 'EnemyEngaged', 'EnemyKilled', 'PlayerDamaged', 'PlayerDied', 'EncounterCompleted'],
   Interaction: ['ObjectViewed', 'ObjectInteracted', 'MechanicUsed', 'MechanicFailed'],
-  Progression: ['QuestStarted', 'QuestStepCompleted', 'QuestCompleted', 'QuestAbandoned', 'LevelCompleted'],
+  Progression: ['QuestStarted', 'QuestStepCompleted', 'QuestCompleted', 'QuestAbandoned', 'LevelCompleted', 'GameCompleted'],
   Exploration: ['LocationDiscovered', 'SecretFound', 'OptionalAreaEntered', 'CollectibleFound'],
   Economy: ['ItemAcquired', 'ItemSpent', 'RewardReceived', 'ResourceDepleted'],
   'UI/UX': ['MenuOpened', 'MenuClosed', 'TutorialShown', 'TutorialSkipped', 'HintRequested'],
@@ -341,10 +341,26 @@ function computeMetrics(evs, opt) {
     return out;
   });
   const t0 = evs.length ? evs[0].t : null, t1 = evs.length ? evs[evs.length - 1].t : null;
+  // 🔁 retention (v2.143): Dn = of the players first seen at least n days before the last day, the share active exactly n days later;
+  // the raw events live 30 days, so D30 needs the whole window. Completion = GameCompleted; under2h — the Steam refund line.
+  const DAY = 86400000, lastDay = t1 == null ? 0 : Math.floor(t1 / DAY), PL = new Map();
+  for (const [, l] of sessions) {
+    const p = l[0].p, x = PL.get(p) || { first: l[0].t, days: new Set(), play: 0, sessions: 0, done: false, firstSess: null };
+    if (l[0].t <= x.first) { x.first = l[0].t; x.firstSess = l; }
+    x.sessions++; x.play += (l[l.length - 1].t - l[0].t) / 1000; l.forEach((e) => { x.days.add(Math.floor(e.t / DAY)); if (e.n === 'GameCompleted') x.done = true; });
+    PL.set(p, x);
+  }
+  const dn = (n) => { let el = 0, back = 0; for (const x of PL.values()) { const d = Math.floor(x.first / DAY); if (d + n > lastDay) continue; el++; if (x.days.has(d + n)) back++; } return { rate: share(back, el), players: el }; };
+  const ACT = new Set(['MechanicUsed', 'ObjectInteracted', 'EnemyKilled', 'CombatStarted', 'CheckpointReached']), REW = new Set(['RewardReceived', 'ItemAcquired', 'CollectibleFound']);
+  const firstOf = (l, set) => { const e = l.find((y) => set.has(y.n)); return e ? (e.t - l[0].t) / 1000 : null; };
+  const pls = [...PL.values()], fa = pls.map((x) => firstOf(x.firstSess, ACT)).filter((v) => v != null), fr = pls.map((x) => firstOf(x.firstSess, REW)).filter((v) => v != null);
+  const retention = { d1: dn(1), d7: dn(7), d30: dn(30), sessionsPerDayMedian: r1(median(pls.map((x) => x.sessions / (x.days.size || 1)))),
+    completionShare: share(pls.filter((x) => x.done).length, P), under2hShare: share(pls.filter((x) => x.play < 7200).length, P), oneSessionShare: share(pls.filter((x) => x.sessions === 1).length, P),
+    firstActionMedianSec: r1(median(fa)), firstRewardMedianSec: r1(median(fr)), firstSessionMedianSec: r1(median(pls.map((x) => (x.firstSess[x.firstSess.length - 1].t - x.firstSess[0].t) / 1000))) };
   return {
     sample: { events: evs.length, players: P, sessions: sessions.size, from: t0, to: t1, builds, truncated: !!opt.truncated },
     session: { count: sessions.size, medianSec: r1(median(durs)), p90Sec: r1(pct(durs, 0.9)), perPlayer: r1(P ? sessions.size / P : 0), menusPerSessionMedian: median(menusPerSession) },
-    zones, quests, levels, mechanics,
+    retention, zones, quests, levels, mechanics,
     variety: { mechanicsUsed: Object.keys(mechanics).length, dominant: dominant ? { mechanic: dominant[0], useShare: dominant[1].useShare } : null },
     exploration: { secretShare: share(explore.secret.size, P), optionalShare: share(explore.optional.size, P), discoveredShare: share(explore.discovered.size, P) },
     surveys, experiments, heatmaps,

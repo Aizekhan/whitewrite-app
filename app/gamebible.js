@@ -288,6 +288,10 @@
         noData: "Подій ще немає. Підключи гру у вкладці «Підключення» — або попроси Claude Code реалізувати телеметрію за get_telemetry_schema.",
         noMetrics: "Метрики ще не пораховано.", sample: "Вибірка: {e} подій · {p} гравців · {s} сесій · {from} — {to}", truncated: "прочитано найновіші події — вибірку обрізано",
         caution: "Метрики описують поведінку. Тиха ділянка може бути задуманою паузою, коротка сесія — не провалом. Дивись на задум і розмір вибірки.",
+        ret: { title: "Утримання й перші хвилини", completion: "пройшли гру (GameCompleted)", under2h: "грали менше 2 годин", firstSession: "перша сесія (медіана)", perDay: "сесій на день (медіана)",
+          oneSession: "не повернулись після першої сесії", firstAction: "перша дія (медіана)", firstReward: "перша нагорода (медіана)", notYet: "ще мало днів",
+          model: { premium: "Преміум-гра (з «Огляду гри»): головне — частка тих, хто пройшов гру, і відгуки. У Steam гроші повертають тим, хто грав менше 2 годин.", live: "Free-to-play / сервіс (з «Огляду гри»): головне — утримання D1 / D7 / D30." },
+          how: "Dn — частка гравців, що повернулись рівно через n днів, серед тих, кого вперше бачили щонайменше n днів тому (у дужках — скільки таких). Сирі події живуть 30 днів, тож D30 зʼявляється лише за повний місяць. Перша дія — MechanicUsed, ObjectInteracted, EnemyKilled…; нагорода — RewardReceived, ItemAcquired." },
         session: "Сесії", sessMedian: "медіана тривалості", sessP90: "90-й перцентиль", perPlayer: "сесій на гравця", menus: "меню за сесію (медіана)",
         zones: "Зони й рівні", zone: "Зона", players: "Гравці", gap: "Між значущими подіями (медіана / p90)", downtime: "Сесії з «порожнечею»", stay: "Час у зоні", deaths: "Смертей на гравця", stuck: "Застрягли (3+ смерті)", exits: "Виходять тут", hints: "Підказки", intent: "Задум",
         quests: "Квести", started: "Почали", completion: "Завершили", abandon: "Покинули", levels: "Рівні",
@@ -641,6 +645,10 @@
         noData: "No events yet. Connect the game in “Connect” — or ask Claude Code to implement telemetry from get_telemetry_schema.",
         noMetrics: "Metrics not computed yet.", sample: "Sample: {e} events · {p} players · {s} sessions · {from} — {to}", truncated: "the newest events were read — the sample is cut",
         caution: "Metrics describe behaviour. A quiet stretch can be an intended pause, a short session is not a failure. Look at the intent and the sample size.",
+        ret: { title: "Retention & the first minutes", completion: "finished the game (GameCompleted)", under2h: "played under 2 hours", firstSession: "first session (median)", perDay: "sessions a day (median)",
+          oneSession: "did not return after the first session", firstAction: "first action (median)", firstReward: "first reward (median)", notYet: "too few days yet",
+          model: { premium: "A premium game (from “Game overview”): what matters is the share who finish it and the reviews. Steam refunds those who played under 2 hours.", live: "Free-to-play / a service (from “Game overview”): what matters is D1 / D7 / D30 retention." },
+          how: "Dn — the share of players back exactly n days later, among those first seen at least n days ago (their count in brackets). Raw events live 30 days, so D30 needs a full month. First action — MechanicUsed, ObjectInteracted, EnemyKilled…; reward — RewardReceived, ItemAcquired." },
         session: "Sessions", sessMedian: "median length", sessP90: "90th percentile", perPlayer: "sessions per player", menus: "menus per session (median)",
         zones: "Zones & levels", zone: "Zone", players: "Players", gap: "Between meaningful events (median / p90)", downtime: "Sessions with a lull", stay: "Time in zone", deaths: "Deaths per player", stuck: "Stuck (3+ deaths)", exits: "Leave here", hints: "Hints", intent: "Intent",
         quests: "Quests", started: "Started", completion: "Completed", abandon: "Abandoned", levels: "Levels",
@@ -4225,7 +4233,7 @@
   var mxNamed = false; // card links in computed results / check messages read as card names (the live cards of this game)
   var MX = function () {
     var M = window.__MECH;
-    if (M && !mxNamed) { mxNamed = true; M.setCardNamer(function (t) { var c = M.resolveCard(t, cards); return c ? c.title : ""; }); }
+    if (M && !mxNamed) { mxNamed = true; M.setCardNamer(function (t) { var c = M.resolveCard(t, cards); return c ? c.title : ""; }, function () { return cards; }); }
     return M;
   };
   function ml(x) { return MX().lbl(x, LANG); }
@@ -4351,7 +4359,11 @@
       layer: "Цикл", closed: "замикається", open: "розрив", breakAt: "з «{a}» немає шляху назад до «{b}»", layers: { session: "Сесія", meta: "Мета", long: "Довгий" },
       level: "Рівень", pace: "Інтенсивність по тактах", mins: "Хвилин", notes: "Ознаки", flat: "рівний темп", peak: "{n} такти поспіль на 4–5", noValley: "немає спаду", paceOk: "напруга й відпочинок чергуються",
       zone: "Зона · ворог", ttk: "TTK, с", ttd: "TTD, с", band: "ціль {b}", inBand: "у межах", outBand: "поза межами", boss: "бос",
-      ready: "{d} з {n} готово", lacks: "бракує: {l}", allReady: "усе готово", noPlat: "Обери платформи — тоді видно, чого бракує." },
+      ready: "{d} з {n} готово", lacks: "бракує: {l}", allReady: "усе готово", noPlat: "Обери платформи — тоді видно, чого бракує.",
+      ftWhat: "Що", ftWhen: "Коли", ftAction: "Перша дія гравця", ftReward: "Перша нагорода", ftWalls: "Стіна тексту", ftUnsafe: "Механіка вперше не в безпечному місці", ftAt: "{s}-та секунда", ftLim: "ціль до {s} с", ftNone: "немає", ftNo: "немає",
+      rtModel: "Бізнес-модель", rtModels: { premium: "преміум", f2p: "free-to-play", sub: "підписка", live: "live-сервіс" }, rtFrom: { overview: "з «Огляду гри»", card: "вибрано тут", default: "типово — «Огляд гри» її не називає" },
+      rtMetric: { premium: "головне — частка тих, хто пройшов гру, і відгуки", live: "головне — утримання D1 / D7 / D30" }, rtHz: "Горизонт", rtN: "Причин",
+      rtHzs: { next: "Наступна сесія", d1: "Завтра (D1)", d7: "За тиждень (D7)", d30: "За місяць (D30)" }, rtNone: "немає — потрібна", rtDark: "темні патерни: {l}" },
     en: { cardFind: "Find a card…", cardAdd: "Add a card", cardNone: "No cards in these sections yet.", cardMissing: "no card with this name",
       sysCats: "Game systems", designCats: "Game design", must: "must-have", mustT: "A basic accessibility must-have: without it some players cannot play",
       calc: "Computed", calcHint: "The same formulas Claude Code sees (MCP get_mechanic → computed).",
@@ -4361,7 +4373,11 @@
       layer: "Loop", closed: "closes", open: "broken", breakAt: "“{a}” has no way back to “{b}”", layers: { session: "Session", meta: "Meta", long: "Long-term" },
       level: "Level", pace: "Intensity by beat", mins: "Minutes", notes: "Signs", flat: "flat pace", peak: "{n} beats in a row at 4–5", noValley: "no dip", paceOk: "tension and rest alternate",
       zone: "Zone · enemy", ttk: "TTK, s", ttd: "TTD, s", band: "target {b}", inBand: "in band", outBand: "out of band", boss: "boss",
-      ready: "{d} of {n} ready", lacks: "missing: {l}", allReady: "all ready", noPlat: "Pick the platforms — then you see what is missing." } }[LANG];
+      ready: "{d} of {n} ready", lacks: "missing: {l}", allReady: "all ready", noPlat: "Pick the platforms — then you see what is missing.",
+      ftWhat: "What", ftWhen: "When", ftAction: "The player's first action", ftReward: "The first reward", ftWalls: "Wall of text", ftUnsafe: "A mechanic first given outside a safe place", ftAt: "second {s}", ftLim: "target by {s} s", ftNone: "none", ftNo: "none",
+      rtModel: "Business model", rtModels: { premium: "premium", f2p: "free-to-play", sub: "subscription", live: "live service" }, rtFrom: { overview: "from “Game overview”", card: "chosen here", default: "default — “Game overview” does not name it" },
+      rtMetric: { premium: "what matters is the share who finish the game and the reviews", live: "what matters is D1 / D7 / D30 retention" }, rtHz: "Horizon", rtN: "Reasons",
+      rtHzs: { next: "Next session", d1: "Tomorrow (D1)", d7: "In a week (D7)", d30: "In a month (D30)" }, rtNone: "none — needed", rtDark: "dark patterns: {l}" } }[LANG];
   var DESIGN_CATS = ["feel", "loops", "leveldesign", "balance", "release"]; // mechanics.js v2.78: artefacts of the design, not systems
   function mCatOpts(sid, cur) { // the category options; Mechanics: «Системи гри» and «Дизайн гри» as two groups
     var o = function (c) { return '<option value="' + c.id + '"' + (c.id === cur ? ' selected' : '') + '>' + esc(ml(c)) + '</option>'; }, cs = MX().categoriesFor(sid);
@@ -4450,6 +4466,16 @@
         var r = M.releaseStatus(one), name = pf ? (mopts(pf).filter(function (o) { return o[0] === p; })[0] || [p, p])[1] : p;
         return '<li><b>' + esc(name) + '</b> · ' + esc(K.ready.replace("{d}", r.done).replace("{n}", r.total)) + ' · ' + (r.green ? tag(true, K.allReady) :
           '<span class="muted">' + esc(K.lacks.replace("{l}", r.left.slice(0, 6).map(function (x) { return x.item; }).join(", ") + (r.left.length > 6 ? " … +" + (r.left.length - 6) : ""))) + '</span>') + '</li>'; }).join("") + '</ul>';
+    } else if (m.tpl === "ftue" && s.id === "marks") { // ⏱ v2.143: the first action and the first reward against the targets
+      var ft = M.ftueStatus(m), g = (msec("goals") || {}).values || {}, at = function (x, lim) { return x.sec == null ? tag(false, K.ftNone) : tag(x.ok, K.ftAt.replace("{s}", x.sec) + (lim ? " · " + K.ftLim.replace("{s}", lim) : "")); };
+      html = mCalcTable([K.ftWhat, K.ftWhen], [[esc(K.ftAction), at(ft.firstAction, g.firstAction)], [esc(K.ftReward), at(ft.firstReward, g.firstReward)],
+        [esc(K.ftWalls), ft.walls.length ? tag(false, ft.walls.map(function (id) { return rn("marks", id); }).join(", ")) : tag(true, K.ftNo)],
+        [esc(K.ftUnsafe), ft.unsafe.length ? tag(false, ft.unsafe.map(function (id) { return rn("marks", id); }).join(", ")) : tag(true, K.ftNo)]]);
+    } else if (m.tpl === "retention" && (s.id === "reasons" || s.id === "model")) { // 🔁 v2.143: the model (from «Огляд гри») and the horizons it needs
+      var rt = M.retentionStatus(m);
+      html = '<p class="mcalc-sub"><b>' + esc(K.rtModel) + ':</b> ' + esc(K.rtModels[rt.model] || rt.model) + ' <span class="muted">' + esc(K.rtFrom[rt.from] || "") + '</span> · ' + esc(K.rtMetric[rt.model === "premium" ? "premium" : "live"]) + '</p>' +
+        mCalcTable([K.rtHz, K.rtN], ["next", "d1", "d7", "d30"].map(function (h) { return [esc(K.rtHzs[h]), rt.horizons[h] ? '<span class="mono">' + rt.horizons[h] + '</span>' : rt.missing.indexOf(h) >= 0 ? tag(false, K.rtNone) : '<span class="muted">—</span>']; })) +
+        (rt.dark.length ? '<p>' + tag(false, K.rtDark.replace("{l}", rt.dark.map(function (id) { return rn("reasons", id); }).join(", "))) + '</p>' : '');
     } else html = mProgCalc(m, s, tag);
     return html ? '<div class="mcalc" aria-live="polite"><h5>' + esc(K.calc) + ' <span class="muted" title="' + esc(K.calcHint) + '">ⓘ</span></h5>' + html + '</div>' : '';
   }
@@ -10279,6 +10305,19 @@
     bindExperience();
   }
 
+  // 🔁 v2.143: retention and the first minutes — the business model of «Огляд гри» (mechanics.js bizModel) decides what comes first
+  function exRetention(rt) {
+    if (!rt) return "";
+    var R = STR.ex.ret, M = window.__MECH, bm = M ? M.withCards(cards, function () { return M.bizModel({ sections: [] }).model; }) : "premium", main = (M && M.BIZ_METRICS[bm]) || [];
+    var dn = function (d) { return d && d.players ? pctTxt(d.rate) + ' <span class="muted">(' + d.players + ')</span>' : '<span class="muted">' + R.notYet + '</span>'; };
+    var items = { completion: [R.completion, pctTxt(rt.completionShare)], under2h: [R.under2h, pctTxt(rt.under2hShare)], session: [R.firstSession, secTxt(rt.firstSessionMedianSec)],
+      d1: ["D1", dn(rt.d1)], d7: ["D7", dn(rt.d7)], d30: ["D30", dn(rt.d30)], perDay: [R.perDay, rt.sessionsPerDayMedian == null ? "—" : rt.sessionsPerDayMedian],
+      one: [R.oneSession, pctTxt(rt.oneSessionShare)], action: [R.firstAction, secTxt(rt.firstActionMedianSec)], reward: [R.firstReward, secTxt(rt.firstRewardMedianSec)] };
+    var order = main.concat(Object.keys(items).filter(function (k) { return main.indexOf(k) < 0; }));
+    return '<h2 class="group">' + R.title + '</h2><p class="hint">' + esc(R.model[bm === "premium" ? "premium" : "live"]) + '</p><ul class="ex-ret">' + order.map(function (k) {
+      return '<li' + (main.indexOf(k) >= 0 ? ' class="main"' : '') + '>' + esc(items[k][0]) + ': <b>' + items[k][1] + '</b></li>'; }).join("") + '</ul>' +
+      '<p class="hint">' + esc(R.how) + '</p>';
+  }
   function exOverview() {
     var X = STR.ex, m = exMetrics;
     var html = '<div class="setrow ex-ctl"><label>' + X.days + ' <select id="ex-days">' + [7, 14, 30].map(function (d) { return '<option value="' + d + '"' + (d === exDays ? ' selected' : '') + '>' + d + (LANG === "en" ? " days" : " днів") + '</option>'; }).join("") + '</select></label>' +
@@ -10292,6 +10331,7 @@
       (s.truncated ? ' · ' + X.truncated : '') + (m.build ? ' · ' + esc(m.build) : '') + '</p><p class="hint">' + X.caution + '</p>';
     var se = m.session || {};
     html += '<h2 class="group">' + X.session + '</h2><p>' + X.sessMedian + ': <b>' + secTxt(se.medianSec) + '</b> · ' + X.sessP90 + ': ' + secTxt(se.p90Sec) + ' · ' + X.perPlayer + ': ' + (se.perPlayer || 0) + ' · ' + X.menus + ': ' + (se.menusPerSessionMedian || 0) + '</p>';
+    html += exRetention(m.retention);
     var zones = Object.keys(m.zones || {});
     if (zones.length) html += '<h2 class="group">' + X.zones + '</h2>' + exTable([X.zone, X.players, X.gap, X.downtime, X.stay, X.deaths, X.stuck, X.exits, X.hints, X.intent], zones.map(function (z) {
       var v = m.zones[z], it = exIntent(z);
