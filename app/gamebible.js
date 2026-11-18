@@ -206,6 +206,7 @@
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до {mb} МБ; моделі — лише .glb (відкриваються в 3D)", filesAdd: "＋ Додати файли",
       glb: { refuse: "Сервіс приймає моделі лише у форматі GLB — {f} не завантажено. Як перетворити: Blender → File → Export → glTF 2.0 → формат glTF Binary (.glb).", how: "Як перетворити в GLB →",
         old: "⚠ формат більше не відкривається в 3D — перетвори в GLB", skipped: "Моделі не у форматі GLB — не завантажуються ({n}). Перетвори їх у GLB (Blender → Export → glTF Binary) і обери теку ще раз:" },
+      gx: { pitch: "⤓ Питч (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "Питч на одну сторінку (логлайн, фантазія, стовпи, цикл, схожі ігри, ключові картинки) і повний GDD за етапами — з карток гри, без ШІ й токенів. PDF — сторінка для друку: у вікні друку обери «Зберегти як PDF»." },
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
       alib: { btn: "🎧 Аудіотека", cards: "▦ Картки", title: "Аудіотека гри", intro: "Усі звуки й треки гри в одному місці. Фабрика звуку бере їх звідси: у кожному стані, шарі, стінгері, амбієнті й звуку UI — «＋ З Аудіотеки» або «⤒ Новий» (новий файл теж лягає сюди).",
@@ -568,6 +569,7 @@
       files: "Files", filesHint: "prefabs, models, images, audio — up to {mb} MB; models — .glb only (they open in 3D)", filesAdd: "＋ Add files",
       glb: { refuse: "The service takes models in GLB format only — {f} was not uploaded. To convert: Blender → File → Export → glTF 2.0 → format glTF Binary (.glb).", how: "How to convert to GLB →",
         old: "⚠ this format no longer opens in 3D — convert it to GLB", skipped: "Models not in GLB format — not uploaded ({n}). Convert them to GLB (Blender → Export → glTF Binary) and pick the folder again:" },
+      gx: { pitch: "⤓ Pitch (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "A one-page pitch (logline, fantasy, pillars, loop, comparable games, key pictures) and the full GDD by stage — from the game's cards, no AI, no tokens. PDF is a print page: pick “Save as PDF” in the print dialog." },
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
       alib: { btn: "🎧 Audio library", cards: "▦ Cards", title: "The game's Audio library", intro: "Every sound and track of the game in one place. The Sound factory takes them from here: in every state, layer, stinger, ambience and UI sound — “＋ From the library” or “⤒ New” (a new file lands here too).",
@@ -2071,6 +2073,7 @@
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
+        (s.id === "overview" && list.length ? '<button class="btn" data-gx="pitch" title="' + esc(STR.gx.hint) + '">' + STR.gx.pitch + '</button><button class="btn" data-gx="pdf" title="' + esc(STR.gx.hint) + '">' + STR.gx.pdf + '</button>' : '') +
         ((s.id === "mechanics" || mFactory(s.id)) && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : s.id === "progression" ? MCP : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
@@ -5673,6 +5676,11 @@
   var GBL = window.__GB_LINKS({ LANG: LANG, STR: STR, esc: esc, stamp: stamp, allCards: allCards, gref: gref, pathShared: pathShared,
     notify: function (m) { return notify(m); }, askConfirm: function (t, o) { return askConfirm(t, o); }, when: function (t) { return when(t); },
     cards: function () { return cards; }, archCards: function () { return archCards; }, canWrite: function () { return canWrite; }, open: function () { return open; } });
+  // ---------- ⤓ the pitch and the GDD outside WhiteWrite — app/gb-export.js (v2.145): Markdown / print-ready PDF from the cards, no AI ----------
+  var GBE = window.__GB_EXPORT({ LANG: LANG, esc: esc, md: function (t) { return md(t); }, allCards: allCards, cards: function () { return cards; }, game: function () { return game; },
+    gameSections: function () { return gameSections(); }, secName: function (id) { var s = sec(id); return s ? L(s) : ""; }, quests: function () { return quests; }, dialogues: function () { return dialogues; },
+    download: function (n, t, ty) { download(n, t, ty); }, slugify: function (t) { return slugify(t); }, notify: function (m) { return notify(m); } });
+  document.addEventListener("click", function (e) { var gx = e.target.closest && e.target.closest("[data-gx]"); if (!gx) return; if (gx.dataset.gx === "pitch") GBE.pitch(); else GBE.gdd(gx.dataset.gx); });
   function archHtml(sid) { return GBL.archHtml(sid); }
   function archWire() { GBL.archWire(); }
   function unlink(spec, btn) { GBL.unlink(spec, btn); }
@@ -9765,6 +9773,7 @@
         '<label class="field"><span>' + STR.engine + '</span><div class="setrow"><select id="engine">' + ENGINES.map(function (x) {
           return '<option value="' + x.id + '"' + (x.id === ((game.engine && game.engine.profile) || "generic") ? " selected" : "") + '>' + esc(L(x)) + '</option>'; }).join("") + '</select></div></label>' +
         '<div class="setrow"><button class="btn" id="st-gexp">' + STR.stExportGame + '</button></div>' +
+        '<div class="setrow"><button class="btn" data-gx="pitch">' + STR.gx.pitch + '</button><button class="btn" data-gx="pdf">' + STR.gx.pdf + '</button><button class="btn" data-gx="md">' + STR.gx.md + '</button></div><p class="hint">' + STR.gx.hint + '</p>' +
         '<p class="hint">' + STR.stExportHint + '</p>' +
         // the sections list folds into one line with its count (v2.89) — it is set once, rarely changed
         '<details class="setfold" id="st-shown"' + (shownOpen ? ' open' : '') + '><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2><span class="btn mini setfold-btn"><span class="sf-open">' + STR.stShownOpen + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary>' +
