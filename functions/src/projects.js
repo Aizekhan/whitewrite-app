@@ -5,6 +5,19 @@ const ledger = require('./ledger'); // users/{uid}/ledger — «Історія �
 const { byOp, featureCost } = require('../paid-features.js');
 
 const SLOT_COST = featureCost(byOp('projectSlot')); // tokens per extra project slot
+const DEMO = require('../demo-game.js'); // 🎓 the demo game «Ліхтарник» (createGame { demo } / { template: 'demo' })
+
+// the demo's content into a new game: cards, quests, dialogues, the plan and its tasks (admin SDK — a Free author gets the plan too)
+async function writeDemo(gref, lang) {
+  const d = DEMO.build(lang), now = admin.firestore.FieldValue.serverTimestamp(), ops = [];
+  d.cards.forEach((c) => ops.push([gref.collection('cards').doc(c.id), { ...c.data, createdAt: now, updatedAt: now }]));
+  d.quests.forEach((q) => ops.push([gref.collection('quests').doc(q.id), { ...q.data, createdAt: now, updatedAt: now }]));
+  d.dialogues.forEach((q) => ops.push([gref.collection('dialogues').doc(q.id), { ...q.data, createdAt: now, updatedAt: now }]));
+  d.tasks.forEach((t) => ops.push([gref.collection('tasks').doc(t.id.replace(/[\/\s]/g, '_')), { ...t, createdAt: now, updatedAt: now }]));
+  ops.push([gref.collection('plan').doc('current'), { plan: d.plan, plannedAt: now, updatedAt: now }]);
+  const b = db.batch(); ops.forEach(([ref, data]) => b.set(ref, data)); await b.commit(); // < 500 writes
+  return d;
+}
 
 // The fields a story may be created with (the rest are set here)
 const str = (v, max, d) => (typeof v === 'string' ? v.slice(0, max) : d);
@@ -130,19 +143,29 @@ exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, r
       if (!budget.allowGameDesign) return res.status(403).json({ error: 'Ігри недоступні на цьому тарифі', code: 'PLAN_REQUIRED' });
       const worlds = await db.collection('worlds').where('owner', '==', uid).get();
       const counts = await Promise.all(worlds.docs.map((d) => d.ref.collection('games').count().get()));
-      const count = counts.reduce((n, c) => n + c.data().count, 0);
-      const limit = budget.maxGames || 1;
-      if (count >= limit) return res.status(403).json({ code: 'GAME_LIMIT', error: 'Ліміт ігор тарифу', limit, count, plan: user.plan || 'free' });
+      // 🎓 the demo game (games/{g}.demo, server-only) is outside the plan's limit — one per author over all worlds
+      const demos = await Promise.all(worlds.docs.map((d) => d.ref.collection('games').where('demo', '==', true).count().get()));
+      const demoN = demos.reduce((n, c) => n + c.data().count, 0);
+      const count = counts.reduce((n, c) => n + c.data().count, 0) - demoN;
+      const limit = budget.maxGames || 1, demo = b.demo === true, lang = b.lang === 'en' ? 'en' : 'uk';
+      if (demo && demoN) return res.status(409).json({ code: 'DEMO_EXISTS', error: 'Демо-гра вже є' });
+      if (!demo && count >= limit) return res.status(403).json({ code: 'GAME_LIMIT', error: 'Ліміт ігор тарифу', limit, count, plan: user.plan || 'free' });
+      const fromDemo = demo || b.template === 'demo';
       const gameId = 'game_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
       await wref.collection('games').doc(gameId).set({
-        title: str(b.title, 200, '') || 'Без назви',
+        ...(demo ? { demo: true } : {}),
+        title: fromDemo ? (str(b.title, 200, '') || DEMO.TITLE[lang === 'en' ? 1 : 0]) : (str(b.title, 200, '') || 'Без назви'),
         engine: { profile: /^[a-z0-9-]{1,40}$/.test(b.engine || '') ? b.engine : 'generic' }, // the Bible's ENGINES ids
         sections: [], canonOptIn: true,
         guide: { on: true, stage: 0 }, // 🧭 Гід: the menu opens stage by stage (the Bible's GUIDE)
         hiddenSections: ['experience', 'telemetry', 'tech', 'knowledge', 'marketing'], // owner: off until the author turns them on (⚙ → «Розділи гри в меню»)
         createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
-      res.json({ gameId, limit, count: count + 1 });
+      if (fromDemo) {
+        try { await writeDemo(wref.collection('games').doc(gameId), lang); }
+        catch (e) { await db.recursiveDelete(wref.collection('games').doc(gameId)).catch(() => {}); throw e; } // no half-built demo left behind
+      }
+      res.json({ gameId, limit, count: demo ? count : count + 1, demo });
     } catch (error) {
       console.error('[createGame]', error);
       res.status(500).json({ error: publicMessage(error) });

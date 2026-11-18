@@ -206,6 +206,9 @@
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до {mb} МБ; моделі — лише .glb (відкриваються в 3D)", filesAdd: "＋ Додати файли",
       glb: { refuse: "Сервіс приймає моделі лише у форматі GLB — {f} не завантажено. Як перетворити: Blender → File → Export → glTF 2.0 → формат glTF Binary (.glb).", how: "Як перетворити в GLB →",
         old: "⚠ формат більше не відкривається в 3D — перетвори в GLB", skipped: "Моделі не у форматі GLB — не завантажуються ({n}). Перетвори їх у GLB (Blender → Export → glTF Binary) і обери теку ще раз:" },
+      demo: { open: "🎓 Відкрити демо-гру", openHint: "Невеликий платформер «Ліхтарник», де заповнено кожен етап GDD: подивись, як виглядає готовий документ, і скопіюй як шаблон. Не займає місце гри в тарифі.",
+        title: "Це демо-гра.", hint: "Тут заповнено кожен етап GDD — від огляду й стовпів до рівнів із драбиною навчання, квесту, діалогу й плану. Гортай меню, відкривай картки, експортуй питч. Щоб зробити з неї свою гру, скопіюй її: копія — звичайна гра, яку можна змінювати як завгодно.",
+        copy: "⧉ Скопіювати як мою гру", copyName: "(копія)", busy: "Створюю…", exists: "Демо-гра вже є в одному з твоїх світів.", limit: "Видали демо або іншу гру, чи перейди на Worldbuilder." },
       gx: { pitch: "⤓ Питч (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "Питч на одну сторінку (логлайн, фантазія, стовпи, цикл, схожі ігри, ключові картинки) і повний GDD за етапами — з карток гри, без ШІ й токенів. PDF — сторінка для друку: у вікні друку обери «Зберегти як PDF»." },
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
@@ -569,6 +572,9 @@
       files: "Files", filesHint: "prefabs, models, images, audio — up to {mb} MB; models — .glb only (they open in 3D)", filesAdd: "＋ Add files",
       glb: { refuse: "The service takes models in GLB format only — {f} was not uploaded. To convert: Blender → File → Export → glTF 2.0 → format glTF Binary (.glb).", how: "How to convert to GLB →",
         old: "⚠ this format no longer opens in 3D — convert it to GLB", skipped: "Models not in GLB format — not uploaded ({n}). Convert them to GLB (Blender → Export → glTF Binary) and pick the folder again:" },
+      demo: { open: "🎓 Open the demo game", openHint: "A small platformer «Lamplighter» with every GDD stage filled in: see what a finished document looks like and copy it as a template. It does not use a game slot of your plan.",
+        title: "This is the demo game.", hint: "Every GDD stage is filled in here — from the overview and pillars to levels with the learning ladder, a quest, a dialogue and the plan. Browse the menu, open the cards, export the pitch. To make it your own game, copy it: the copy is an ordinary game you can change any way you like.",
+        copy: "⧉ Copy as my game", copyName: "(copy)", busy: "Creating…", exists: "You already have the demo game in one of your worlds.", limit: "Delete the demo or another game, or move to Worldbuilder." },
       gx: { pitch: "⤓ Pitch (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "A one-page pitch (logline, fantasy, pillars, loop, comparable games, key pictures) and the full GDD by stage — from the game's cards, no AI, no tokens. PDF is a print page: pick “Save as PDF” in the print dialog." },
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
@@ -2069,7 +2075,7 @@
     var list = query ? all.filter(matches) : all.filter(function (c) { return c.section === section && matches(c); }).sort(byOrder(function (c) { return c.title; }));
     dragCtx = query || s.special ? null : s;
     var gov = s.id === "overview" && game && !query; // «Огляд гри»: the game's cover and name, as on «Огляд світу»
-    var html = (gov ? worldCoverHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? wstatsRow() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s)) + (s.id === "progression" && progSub ? " · " + esc(progSub) : "")) + '</h1>') +
+    var html = (gov ? worldCoverHtml() : '') + (gov && game.demo ? demoBanHtml() : '') + '<header class="sec' + (gov ? ' wsec' : '') + '"><div>' + (gov ? wstatsRow() : '<h1>' + (query ? STR.found + ": " + list.length : esc(L(s)) + (s.id === "progression" && progSub ? " · " + esc(progSub) : "")) + '</h1>') +
       (query ? '' : '<p>' + esc(L(s.about)) + '</p>') + '</div>' +
       (query ? '' : '<div class="row">' + (s.custom ? '<button class="btn danger" id="sec-del">' + STR.deleteSection + '</button>' : '') +
         (s.id === "telemetry" && canWrite ? '<button class="btn" id="tl-seed">' + STR.tlSeed + '</button>' : '') +
@@ -2087,7 +2093,7 @@
       : emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
     else { if (s.id === "mechanics") html += fwGapsHtml() + designPanel("pillars"); if (s.id === "overview") html += designPanel("pillars"); if (s.id === "levels") html += designPanel("ladder"); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     if (!query) html += archHtml(s.id);
-    $("view").innerHTML = html; archWire();
+    $("view").innerHTML = html; archWire(); demoWire();
     var at = $("add-top"); if (at) at.onclick = newSubsection;
     pickCtx = canWrite ? dragCtx : null; pickUi();
     var sd = $("sec-del"); if (sd) sd.onclick = function () { confirmDeleteSection(sec(section)); };
@@ -5973,12 +5979,12 @@
     bindDevLock();
   }
   // a game is created by the createGame function (the plan's maxGames, functions/src/projects.js)
-  async function createGameDoc(title, engine) {
+  async function createGameDoc(title, engine, extra) { // extra: { demo: true } — 🎓 the demo game outside the limit; { template: "demo" } — a copy of it (functions/demo-game.js)
     var token = await firebase.auth().currentUser.getIdToken();
     var r = await fetch("https://us-central1-whitewrite-app.cloudfunctions.net/createGame", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-      body: JSON.stringify({ worldId: worldId, title: title, engine: engine }) });
+      body: JSON.stringify(Object.assign({ worldId: worldId, title: title, engine: engine, lang: LANG }, extra || {})) });
     var data = await r.json().catch(function () { return { error: "HTTP " + r.status }; });
-    if (!r.ok) { var e = new Error(data.code === "GAME_LIMIT" ? STR.gameLimit.replace("{n}", data.limit) : data.error || "HTTP " + r.status); e.code = data.code; throw e; }
+    if (!r.ok) { var e = new Error(data.code === "GAME_LIMIT" ? STR.gameLimit.replace("{n}", data.limit) : data.code === "DEMO_EXISTS" ? STR.demo.exists : data.error || "HTTP " + r.status); e.code = data.code; throw e; }
     return data.gameId;
   }
   function renderNewGame() {
@@ -5995,7 +6001,8 @@
         '<div class="setrow" id="ng-minrow" hidden><button class="btn" id="ng-min">' + STR.ngMin + '</button><span class="hint">' + esc(STR.ngMinHint) + '</span></div></div>' : '') +
       (canonN ? '<label class="imp"><input type="checkbox" id="ng-canon" checked><span>' + esc(STR.allCanon.replace("{n}", canonN)) + '</span></label><p class="hint">' + esc(STR.allCanonHint) + '</p>' : '') +
       '<div class="row"><button class="btn" id="ng-x">' + STR.cancel + '</button><button class="btn primary" id="ng-ok">' + STR.createGame + '</button>' +
-      '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p></div>';
+      '<button class="btn" id="ng-up" hidden>' + STR.upgrade + '</button></div><p class="hint" id="ng-msg" role="status"></p>' +
+      (games.some(function (g) { return g.demo; }) ? '' : '<div class="demo-ban"><p><b>' + STR.demo.open + '</b> ' + esc(STR.demo.openHint) + '</p><button class="btn" id="ng-demo">' + STR.demo.open + '</button></div>') + '</div>';
     $("ng-title").focus();
     var concepts = [], picked = null, mdText = "", mdName = ""; // «✦ 3 концепти»: gamedevPlan {op:'concepts'} → three cards; the picked one names the game and fills «Огляд гри»
     if ($("ng-md")) $("ng-md").onchange = async function () {
@@ -6069,6 +6076,23 @@
       else if (mdText) runImportText(mdText, mdName); // the game file → the import proposal (the author ticks what to take); a big one — in packs
     };
     $("ng-x").onclick = function () { enterWorld(); };
+    if ($("ng-demo")) $("ng-demo").onclick = async function () {
+      var b = this; b.disabled = true; $("ng-msg").textContent = STR.demo.busy;
+      try { var id = await createGameDoc("", "generic", { demo: true }); $("ng-msg").textContent = ""; selectGame(id); }
+      catch (e) { b.disabled = false; $("ng-msg").textContent = e.message; }
+    };
+  }
+  // 🎓 the demo game (games/{g}.demo): a banner atop «Огляд гри» — what it is, «⧉ Скопіювати як мою гру» (createGame { template: "demo" } — counts in the plan's limit)
+  function demoBanHtml() {
+    return '<div class="demo-ban"><p><b>🎓 ' + esc(STR.demo.title) + '</b> ' + esc(STR.demo.hint) + '</p><div class="row"><button class="btn primary" id="demo-copy">' + STR.demo.copy + '</button></div><p class="hint" id="demo-msg" role="status"></p></div>';
+  }
+  function demoWire() {
+    var b = $("demo-copy"); if (!b) return;
+    b.onclick = async function () {
+      b.disabled = true; $("demo-msg").textContent = STR.demo.busy;
+      try { var id = await createGameDoc((game.title || "") + " " + STR.demo.copyName, (game.engine && game.engine.profile) || "generic", { template: "demo" }); selectGame(id); }
+      catch (e) { b.disabled = false; $("demo-msg").textContent = e.message; if (e.code === "GAME_LIMIT") $("demo-msg").textContent += " " + STR.demo.limit; }
+    };
   }
 
   function renderStatuses() {
@@ -10051,7 +10075,7 @@
   async function docsOf(ref) { var s = await ref.get(); return s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); }
   // fields only the server writes (firestore.rules: worlds create / games update) — never in a copy, never restored (v2.118.0)
   var W_SERVER = ["cosmograph", "freeze", "team", "teamUids", "backup", "licence", "boughtFrom", "boughtAt", "integrations", "audit", "auditRunning"];
-  var G_SERVER = ["repo", "ingestKeys", "integrations", "framework", "telemetryStats", "knowledge", "audit", "auditRunning"];
+  var G_SERVER = ["repo", "ingestKeys", "integrations", "framework", "telemetryStats", "knowledge", "audit", "auditRunning", "demo"];
   function strip(o, keys) { keys.forEach(function (k) { delete o[k]; }); return o; }
   async function exportWorld() {
     var ents = await docsOf(wref().collection("entities")), cult = await docsOf(wref().collection("lore"));
