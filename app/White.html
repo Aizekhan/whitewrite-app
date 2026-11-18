@@ -1012,7 +1012,7 @@ body.at-home .back-fab{ display:none; }
   var inWork = false;      // are we inside a narrative?
   var suppressWorkUntil = 0; // ignore stale "work" pings right after going home
   var frames = {}, loaded = {};
-  var hist = [], _back = false, storyFormWorld = null, shown = null, bibleSec = null, bibleExpect = null; // bibleSec: the Bible's open section (its own steps for «Назад»)
+  var hist = [], _back = false, storyFormWorld = null, shown = null, bibleSec = null, bibleExpect = null, bibleOv = false; // bibleOv: a card / dossier is open in the Bible (Back closes it first) // bibleSec: the Bible's open section (its own steps for «Назад»)
   // «Назад» (the round ↶ bottom-left, off the home page): a screen is remembered as it was SHOWN (with its world), so
   // changing the world before the switch never rewrites it; clicking the screen you are on records nothing new, and going
   // back skips every entry equal to the current screen — the step back is the first DIFFERENT screen behind it.
@@ -1030,9 +1030,11 @@ body.at-home .back-fab{ display:none; }
   function updateBack() {
     var b = document.getElementById("backbtn"); if (b) b.style.display = "none"; // the rail's old Back stays retired
     var f = document.getElementById("back-fab"), cur = here().key;
-    if (f) f.disabled = !hist.some(function (h) { return h.key !== cur; });
+    if (f) f.disabled = !(mode === "bible" && !inWork && bibleOv) && !hist.some(function (h) { return h.key !== cur; });
   }
   function goBack() {
+    // a card, dossier or dialog open in the Bible: Back closes it first (the card returns to the page it was opened from)
+    if (mode === "bible" && !inWork && frames.bible) try { var bb = frames.bible.contentWindow.__wwBibleBack; if (bb && bb()) return; } catch (e) {}
     var cur = here().key, s;
     do { s = hist.pop(); } while (s && s.key === cur); // the screen we are on is never a step back
     _back = true;
@@ -1294,7 +1296,7 @@ body.at-home .back-fab{ display:none; }
     var target = PILLARS.bible.src + "?embed=1&worldId=" + encodeURIComponent(CURRENT_WORLD);
     if (f.getAttribute("src") !== target) { // another world: its first section is no step back
       if (open && open.gameId) try { sessionStorage.setItem("ww-bible-sec-" + CURRENT_WORLD, open.gameId + "/"); } catch (e) {}
-      f.__loader && f.__loader.classList.add("is-on"); f.src = target; bibleSec = null;
+      f.__loader && f.__loader.classList.add("is-on"); f.src = target; bibleSec = null; bibleOv = false;
     } else if (open) try { // the same world: switch it now, before the frame is shown (a message would come after a paint of the old view)
       if (f.contentWindow.__wwBibleOpen) f.contentWindow.__wwBibleOpen(open.gameId || "");
       else f.contentWindow.postMessage({ type: "ww-bible-open", gameId: open.gameId || "" }, location.origin);
@@ -1514,10 +1516,12 @@ body.at-home .back-fab{ display:none; }
       showView("narr"); return;
     }
     // the Bible switched its section: the section left becomes a step of «Назад» (a freshly loaded Bible's first section is not)
+    if (d.type === "ww-bible-overlay") { bibleOv = !!d.on; updateBack(); return; }
     if (d.type === "ww-bible-at" && d.section) {
       if (mode !== "bible" || inWork || d.worldId !== CURRENT_WORLD) return;
       if (bibleExpect) { var ex = bibleExpect; bibleExpect = null; if (ex === d.section) return; }
-      if (bibleSec && bibleSec !== d.section) histPush();
+      if (d.ret) { bibleSec = d.section; var rk = here().key; if (hist.length && hist[hist.length - 1].key === rk) hist.pop(); } // a closed card came back where it was opened: its detour is no step
+      else if (bibleSec && bibleSec !== d.section) histPush();
       bibleSec = d.section; shown = here(); updateBack();
       return;
     }

@@ -1269,6 +1269,13 @@
   // where the page stands: "<gameId>/<section>" in a game ("__new" — the new-game form), "<section>" in the world (the shell's «Назад» keeps it)
   function pos() { return (mode === "game" ? (gameId || "__new") + "/" : "") + section; }
   function goPos(p) { var i = String(p || "").indexOf("/"); if (i > 0) enterGame(p.slice(0, i), p.slice(i + 1)); else enterWorld(p); }
+  // a card / dossier remembers the page it was opened from (ovFrom): closing it (✕, Esc, the scrim, the shell's «Назад») comes back
+  // there — a dossier's «В грі» opens a game card in the game, closing returns to the dossier's section. A switch card → card or
+  // dossier → card keeps where it all began; the shell hears when one is open (its «Назад» closes it first) and that the return is no step
+  var ovFrom = null, ovRet = false, ovPending = null; // ovPending: a card asked for before its game's cards arrived ({ key, from })
+  function ovOpened() { if (!ovFrom) ovFrom = pos(); tellShell({ type: "ww-bible-overlay", on: true }); }
+  function ovClosed() { setTimeout(function () { if (open || dos) return; ovFrom = null; tellShell({ type: "ww-bible-overlay", on: false }); }); }
+  function ovReturn() { var f = ovFrom; ovFrom = null; if (!f || f === pos()) return; ovRet = true; try { goPos(f); } finally { ovRet = false; } }
   // leaving what is open: unsaved world overview / quest / mechanic drafts ask first; go() runs once the author agrees
   // (at once when nothing is unsaved); an agreed leave drops the drafts, so the next step does not ask again
   function leaveOk(id, go) {
@@ -2022,7 +2029,7 @@
     lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     else canWrite = mode === "game" ? canGame : canonWrite;
-    if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec }); } // after a member's move to a section they read
+    if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec, ret: ovRet || undefined }); } // after a member's move to a section they read
     if (mode === "game" && game && section !== "settings" && !gameSections().some(function (s) { return s.id === section; })) section = "overview"; // a hidden section's link lands on the overview
     attachLazy();
     var gg = game && navGroupOf(section); if (gg) lastSub[gg.id] = section;
@@ -2884,7 +2891,7 @@
     $("d-title").value = ddraft.name;
     $("d-mic").style.display = canWrite ? "" : "none";
     renderDossier(); dosSubs(); dmsg("");
-    $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
+    $("dos").classList.add("open"); $("dos").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open"); ovOpened();
     (e.isNew && !ddraft.name ? $("d-title") : $("dos")).focus({ preventScroll: true });
   }
   function dcollect() {
@@ -2914,7 +2921,7 @@
   }
   function closeDossier() {
     stopListen(); dos = null; ddraft = null; setTimeout(applyLang);
-    $("dos").classList.remove("open"); $("dos").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
+    $("dos").classList.remove("open"); $("dos").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open"); ovClosed();
   }
   function lifeOrder(n) { var m = String(n.at || "").match(/-?\d+(?:[.,]\d+)?/); return m ? parseFloat(m[0].replace(",", ".")) : Infinity; }
   function lifeHtml() {
@@ -5818,11 +5825,11 @@
     }
     var ig = e.target.closest("[data-ingame]");
     if (ig) {
-      var ent = dos;
+      var ent = dos, from = ovFrom || pos();
       closeDossier();
       enterGame(ig.dataset.ingame, shelfFor(ent) || "overview");
       var c = allCards().filter(function (x) { return x.key === "e:" + ent.id; })[0];
-      if (c && cards.length) openCard(c);
+      if (c && cards.length) openCard(c); else ovPending = { key: "e:" + ent.id, from: from }; // a game not loaded yet: the card opens once its cards arrive
     }
   });
   $("d-body").addEventListener("keydown", function (e) { if (e.key === "Enter" && (e.target.id === "ln-at" || e.target.id === "ln-text")) { e.preventDefault(); $("ln-add").click(); } });
@@ -6141,7 +6148,7 @@
     $("e-pic-w").hidden = !canWrite || STATS_SECS.indexOf(c.section) >= 0; picMenu(false);
     $("e-agent").innerHTML = agentBar(c.agent, canWrite); $("e-agent").hidden = !c.agent;
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
-    $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open");
+    $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open"); ovOpened();
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
   }
 
@@ -7378,11 +7385,11 @@
   // the card as the author sees it now — compared with the snapshot taken on opening, so closing never drops edits silently
   var leafFirst = "";
   function leafSnap() { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); return JSON.stringify([$("e-title").value.trim(), $("e-status").value, draft]); }
-  function leafClose() { if (!open || !canWrite) return closeLeaf(); unsavedOk(leafSnap() !== leafFirst, closeLeaf); }
+  function leafClose() { var go = function () { closeLeaf(); ovReturn(); }; if (!open || !canWrite) return go(); unsavedOk(leafSnap() !== leafFirst, go); } // back where the card was opened from
   function closeLeaf() {
     flushLabels(); setEditMode(false);
     open = null; draft = null; setTimeout(applyLang);
-    $("leaf").classList.remove("open"); $("leaf").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open");
+    $("leaf").classList.remove("open"); $("leaf").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("open"); ovClosed();
   }
 
   // stay: write the card but keep it open (a new card is saved before its first upload)
@@ -11988,7 +11995,15 @@
     if (!gamesIn && gid && gid !== "__new") { startGame = gid; mode = "game"; return render(); } // still loading: the games snapshot picks it up (the view stays empty, not the world)
     if (gid) enterGame(gid); else enterWorld();
   }
-  window.__wwBibleOpen = bibleOpen; // the shell calls it before it shows the frame — a message would land after a paint of the old view (owner: «the world shows first»)
+  window.__wwBibleOpen = bibleOpen;
+  // the shell's «Назад»: the top dialog closes first (as Esc does), then the card / dossier (back where it was opened); false — nothing open
+  window.__wwBibleBack = function () {
+    var tops = document.querySelectorAll(".ask, .refv, .zoom, .v3d, .lk-menu, .pic-ch"), top = tops[tops.length - 1];
+    if (top) { top.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", cancelable: true })); return true; } // not bubbling: only the dialog's own Esc
+    if (open) { leafClose(); return true; }
+    if (dos) { dosClose(); return true; }
+    return false;
+  }; // the shell calls it before it shows the frame — a message would land after a paint of the old view (owner: «the world shows first»)
   window.addEventListener("message", function (ev) {
     if (ev.origin !== location.origin || !ev.data || ev.data.type !== "ww-bible-open") return;
     bibleOpen(ev.data.gameId || "");
@@ -12393,7 +12408,7 @@
   $("e-x").onclick = leafClose;
   $("scrim").onclick = function () { if (dos) dosClose(); else leafClose(); };
   $("d-save").onclick = saveDossier;
-  function dosClose() { if (!dos || !canWrite) return closeDossier(); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, closeDossier); } // like the card: closing never drops edits silently
+  function dosClose() { var go = function () { closeDossier(); ovReturn(); }; if (!dos || !canWrite) return go(); dcollect(); unsavedOk(JSON.stringify(ddraft) !== dfirst, go); } // like the card: closing never drops edits silently
   $("d-x").onclick = dosClose;
   $("d-delete").onclick = deleteDossier;
   $("e-delete").onclick = removeCard;
@@ -12665,13 +12680,15 @@
   function selectGame(id) {
     unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; lazyDone = {};
     gameId = id; game =games.filter(function (g) { return g.id === id; })[0] || null;
-    cards = []; archCards = []; planDoc = {}; imp = null; closeLeaf();
+    cards = []; archCards = []; planDoc = {}; imp = null; closeLeaf(); ovPending = null;
     if (!gameSections().some(function (s) { return s.id === section; }) && section !== "settings") section = "overview";
     var bySec = {}, cardsIn = function (key) { return function (snap) {
       bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       var got = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
       cards = got.filter(function (c) { return !c.archived; }); archCards = got.filter(function (c) { return c.archived; }); // 🗄 an archived card (MCP archive_card) is out of the game until restored
-      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render(); if (ME.owner) { backfillPolys(); migrateCast(game).catch(function () {}); }
+      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render();
+      if (ovPending && !open && !dos) { var op = ovPending, oc = allCards().filter(function (x) { return x.key === op.key; })[0]; ovPending = null; if (oc) { ovFrom = op.from; openCard(oc); } } // the dossier's «В грі»: closing returns to the dossier's page
+      if (ME.owner) { backfillPolys(); migrateCast(game).catch(function () {}); }
     }; };
     if (fullRead()) unsub.push(gref().collection("cards").onSnapshot(cardsIn("*"), function () { sync("bad", STR.offline); }));
     else ME.view.filter(function (v) { return !CANON.some(function (c) { return c.id === v; }); }).forEach(function (v) { // rules: one section per query
