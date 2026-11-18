@@ -6,11 +6,11 @@ const src = fs.readFileSync(path.join(__dirname, '../functions/src/mcp.js'), 'ut
 const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js');
 const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS' } } };
-const { saveCard, saveNarrative } = new Function('NV', 'admin', 'GDD',
+const { saveCard, saveNarrative } = new Function('NV', 'admin', 'GDD', 'DESIGN', 'MECH',
   pick('const str =', '// ---------- tools') + pick('async function narrative', '// 🎙') +
   pick('// ---------- ✎ writes on the user', 'async function callTool') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
-  ';return { saveCard, saveNarrative };')(NV, admin, require('../functions/gdd-schema.js'));
+  ';return { saveCard, saveNarrative };')(NV, admin, require('../functions/gdd-schema.js'), require('../functions/design-checks.js'), require('../functions/mechanics.js'));
 
 const writes = [];
 const gref = { collection: (col) => ({ doc: (id) => ({ set: async (body, opt) => { writes.push({ col, id, body, merge: !!(opt && opt.merge) }); } }),
@@ -83,6 +83,18 @@ const last = () => writes[writes.length - 1];
   await saveNarrative(mk(), key, 'dialogues', { id: 'd1', nodes: [{ id: 'n1', speaker: 'Ada', text: 'Hello', end: true }] });
   w = last();
   check(w.body.nodes[0].speaker + '|' + w.body.nodes[0].voice.join() + '|' + w.body.nodes[0].vstatus, 'char_a|snd1|rec', 'a rewritten line keeps its recorded voice');
+
+  // 🏛 🪜 v2.144: pillars / aesthetics on a feature, teaches on a level → the card's intent (the rest of it kept)
+  const dctx = () => { const c = mk(); c.cards.push({ id: 'm1', section: 'mechanics', title: 'Jump' }, { id: 'lv', section: 'levels', title: 'Shore', intent: { tags: ['learning'] } }); return c; };
+  await saveCard(dctx(), key, { ref: 'c:m1', pillars: ['Weighty combat'], aesthetics: ['challenge', 'bogus'] });
+  check(JSON.stringify(last().body.intent), '{"pillars":["Weighty combat"],"aesthetics":["challenge"]}', 'pillars and known aesthetics land in the intent');
+  await saveCard(dctx(), key, { ref: 'c:lv', teaches: [{ mechanic: 'Jump', step: 'intro' }] });
+  check(JSON.stringify(last().body.intent), '{"tags":["learning"],"ladder":[{"m":"m1","step":"intro"}]}', 'teaches resolves the mechanic by title; the design intent tags stay');
+  const nW = writes.length;
+  check(/teaches is for a level/.test(await err(() => saveCard(dctx(), key, { ref: 'c:m1', teaches: [] }))), true, 'teaches only on a level');
+  check(/no «Механіки» card/.test(await err(() => saveCard(dctx(), key, { ref: 'c:lv', teaches: [{ mechanic: 'Fly', step: 'intro' }] }))), true, 'an unknown mechanic is refused');
+  check(/pillars \/ against/.test(await err(() => saveCard(dctx(), key, { ref: 'c:e1', pillars: ['x'] }))), true, 'pillars only on features');
+  check(writes.length, nW, 'nothing written on a refused call');
 
   console.log(fails ? `\n${fails} FAILED` : '\nall passed');
   process.exit(fails ? 1 : 0);

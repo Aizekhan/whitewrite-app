@@ -185,6 +185,13 @@ var KINDS = [
       live(G).forEach(function (c) { arr(c.links).forEach(function (l) { if (l && l.to) out.push({ from: from('card', c, { key: cardKey(c) }), to: l.to, extra: roleName(l.role, lang), role: l.role || '' }); }); });
       return out;
     } },
+  // 🪜 the learning ladder (v2.144, design-checks.js): a level introduces / tests / twists / combines a mechanic — card.intent.ladder [{ m, step }]
+  { id: 'ladder', uk: 'Драбина навчання', en: 'Learning ladder', out: { uk: 'Вчить на рівні', en: 'Taught on the level' }, fields: ['card.intent.ladder'],
+    edges: function (G, lang) {
+      var out = [], ST = { intro: ['вводить', 'introduces'], test: ['перевіряє', 'tests'], twist: ['ускладнює', 'twists'], combine: ['поєднує', 'combines'] };
+      live(G).forEach(function (c) { arr((c.intent || {}).ladder).forEach(function (x) { if (x && x.m) out.push({ from: from('card', c, { key: cardKey(c) }), to: 'c:' + x.m, extra: (ST[x.step] || ['', ''])[lang === 'en' ? 1 : 0] }); }); });
+      return out;
+    } },
 ];
 // the roles of card.links: what the first card is to the second
 var LINK_ROLES = [

@@ -20,6 +20,7 @@ const { personaText, lookText, beastText } = require('../persona.js');
 const KIT = require('../asset-kit.js'); // 🧩 a prefab's kit (asset cards) and the prefab a hero card links (card.prefab) // 🧠 a canon character's personality and 👤 appearance (World Bible) → get_card
 const GUIDES = require('../setup-guides.js');
 const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages 1–13, what goes where (get_gdd_schema, get_gdd_status, save_card hints)
+const DESIGN = require('../design-checks.js'); // 🏛 🪜 ⚠ pillars & aesthetics, the learning ladder, the riskiest assumption (v2.144)
 const STYLE = require('./style')._style;
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
@@ -157,10 +158,15 @@ const TOOLS = [
       'mini_subsection: a type inside the subsection (e.g. "Бойові супутники" → "Маги" / "Вбивці") — a new name is added to that subsection; "" takes the card out of it. ' +
       'subsection: the subsection the card stands in (e.g. enemies: "Звичайні вороги" / "Елітні вороги" / "Боси") — take the exact names from get_design_section → subsections; "" puts it back in «Інше». Never send it as a field (group / Група / Підрозділ are read as subsection). ' +
       'Pictures are not text: put one on a card with card_image_upload. ' +
+      'pillars / against / aesthetics (a mechanic, level or progression card — every feature serves a pillar of «Огляд гри»; get_gdd_status → design lists what serves nothing) and teaches (a level: which mechanics it introduces → tests → twists → combines). ' +
       'status: idea | agreed | work | ingame | redo. The author sees that you changed it. Tell the user what you changed.',
     inputSchema: { type: 'object', properties: {
       ref: { type: 'string' }, section: { type: 'string' }, title: { type: 'string' }, subsection: { type: 'string' }, mini_subsection: { type: 'string' }, fields: { type: 'object', additionalProperties: { type: 'string' } },
-      note: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] }, allow_similar: { type: 'boolean', description: 'Create even though a similar card exists (it is really another thing)' } } } },
+      note: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] }, allow_similar: { type: 'boolean', description: 'Create even though a similar card exists (it is really another thing)' },
+      pillars: { type: 'array', items: { type: 'string' }, description: 'mechanics / levels / progression: the pillars of «Огляд гри» this feature serves (their names as get_gdd_status → design.pillars shows them); [] clears' },
+      against: { type: 'array', items: { type: 'string' }, description: 'the anti-pillars this feature goes against (an honest flag — the author decides)' },
+      aesthetics: { type: 'array', items: { type: 'string', enum: ['sensation', 'fantasy', 'narrative', 'challenge', 'fellowship', 'discovery', 'expression', 'submission'] }, description: 'the MDA aesthetics it supports' },
+      teaches: { type: 'array', items: { type: 'object', properties: { mechanic: { type: 'string', description: '"c:<id>" or the title of a «Механіки» card' }, step: { type: 'string', enum: ['intro', 'test', 'twist', 'combine'] } } }, description: 'levels only — the learning ladder: which mechanics this level introduces (in safety), tests, twists or combines; the whole list, [] clears' } } } },
   { name: 'save_mechanic', description: 'Fill or change a constructor mechanic (mechanics, the Sound factory, the Progression builder: XP curve, skill / upgrade trees, shops…). ' + WRITE_WHEN + ' save_card cannot reach the constructor; this does. ' +
       'ref: "c:<cardId>" or the title (get_mechanics). purpose, rules, status — as on a card. sections: [{ id: the section id or title from get_mechanic, ' +
       'values: { "<field key or label>": value } for a fields section; rows: [ { id?, "<column key or label>": value } ] for a table — the rows you send ARE the table now (rows left out are removed; each row is exactly what you send — columns you leave out are empty; a row matched by its id or name keeps only its emblem and its cell); ' +
@@ -270,7 +276,17 @@ function cardView(ctx, ref) {
   if (!c) return null;
   const gp = groupPalette(ctx, c);
   return { ref: 'c:' + c.id, title: c.title || '', status: c.status || 'idea', section: c.section, ...(subOf(c) ? { subsection: subOf(c) } : {}), ...(c.fields && c.fields.subtype ? { mini_subsection: c.fields.subtype } : {}), fields: named(c), note: c.note || '', files: files(c), planTask: c.planTask || '',
-    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c), ...linksOf(ctx, c) };
+    ...(gp ? { group_palette: gp } : {}), ...(c.section === 'assets' ? { kit: KIT.kitSummary(c) } : {}), ...placeOf(c), ...sheetOf(ctx, c), ...prefabOf(ctx, c), ...linksOf(ctx, c), ...designOf(ctx, c) };
+}
+// 🏛 🪜 the card's pillars / anti-pillars / aesthetics and, on a level, the mechanics it teaches (v2.144, save_card pillars / teaches)
+function designOf(ctx, c) {
+  const it = (c && c.intent) || {}, o = {};
+  if ((it.pillars || []).length) o.pillars = it.pillars;
+  if ((it.against || []).length) o.against_anti_pillars = it.against;
+  if ((it.aesthetics || []).length) o.aesthetics = it.aesthetics;
+  const lad = (it.ladder || []).filter((x) => x && x.m);
+  if (lad.length) o.teaches = lad.map((x) => ({ mechanic: 'c:' + x.m, title: (ctx.cards.find((y) => y.id === x.m) || {}).title || '(removed)', step: x.step }));
+  return o;
 }
 // 🔗 the card's own links (link_cards) and the project assets it points at (link_project_asset)
 function linksOf(ctx, c) {
@@ -822,7 +838,12 @@ function gddStatus(ctx, extra) {
     ...(st.need ? { minimum: st.need.map((r) => `at least ${r[1]} in ${r[0].join(' / ')}`).join('; ') } : {}) }));
   const unseen = ctx.cards.filter((c) => c.agentAt && !c.hidden).map((c) => ({ ref: 'c:' + c.id, section: c.section, title: c.title || '' }));
   const before = stages.filter((s) => s.stage <= 6 && s.state !== 'done').map((s) => `${s.stage}. ${s.name} — ${s.state}`);
-  return { schema: GDD.VERSION, stages, changed_by_you_not_seen_by_author: unseen.length, changed_cards: unseen.slice(0, 30),
+  const ds = DESIGN.status(ctx.cards.filter((c) => !c.hidden), 'en'); // 🏛 🪜 ⚠ v2.144
+  const design = { pillars: ds.pillars.pillars.map((p) => ({ pillar: p.name, supported_by: p.cards.map((id) => 'c:' + id) })), target_aesthetics: ds.pillars.target,
+    riskiest_assumption: ds.risk.risk || null, prototype_test: ds.risk.test || null, ladder_used: ds.ladder.used,
+    issues: ds.issues.slice(0, 40).map((i) => ({ level: i.level, kind: i.kind, ...(i.ref && i.ref.length > 2 ? { ref: i.ref } : {}), message: i.en })),
+    how: 'Fix with save_card: pillars / against / aesthetics on a mechanic, level or progression card; teaches on a level; the overview fields «Найризикованіше припущення» / «Як прототип перевірить» / «Цільові естетики».' };
+  return { schema: GDD.VERSION, stages, design, changed_by_you_not_seen_by_author: unseen.length, changed_cards: unseen.slice(0, 30),
     before_plan: before.length ? 'Fill these before a production plan makes sense: ' + before.join(' · ') : 'Stages 1–6 are filled: a production plan makes sense.' };
 }
 const WRITE_SECS = ['overview', 'lore', 'characters', 'enemies', 'companions', 'locations', 'levels', 'factions', 'items', 'gear', 'playcards', 'mechanics', 'progression', 'worldgen',
@@ -945,13 +966,31 @@ function sectionOfRef(ctx, ref) {
   if (ref.startsWith('e:')) { const c = ctx.cards.find((x) => x.canonRef === ref.slice(2)), e = ctx.entities.find((x) => x.id === ref.slice(2)); return (c && c.section) || (e && CANON_SEC[e.kind]) || ''; }
   const c = ctx.cards.find((x) => x.id === ref.replace(/^c:/, '')); return c ? c.section : '';
 }
+// 🏛 🪜 save_card pillars / against / aesthetics / teaches → the card's intent (the rest of the intent stays); null — nothing sent
+function designPatch(ctx, section, cur, args) {
+  const want = ['pillars', 'against', 'aesthetics', 'teaches'].filter((k) => args[k] !== undefined);
+  if (!want.length) return null;
+  if (args.teaches !== undefined && section !== 'levels') throw rpcError(-32602, 'teaches is for a level card (section levels)');
+  if (['pillars', 'against', 'aesthetics'].some((k) => args[k] !== undefined) && !DESIGN.FEATURE_SECS.includes(section)) throw rpcError(-32602, 'pillars / against / aesthetics are for ' + DESIGN.FEATURE_SECS.join(', ') + ' cards');
+  const x = {}; ['pillars', 'against', 'aesthetics'].forEach((k) => { if (args[k] !== undefined) { if (!Array.isArray(args[k])) throw rpcError(-32602, k + ' is an array'); x[k] = args[k]; } });
+  if (args.teaches !== undefined) {
+    if (!Array.isArray(args.teaches)) throw rpcError(-32602, 'teaches is an array of { mechanic, step }');
+    x.ladder = args.teaches.map((t) => {
+      const tok = str(t && t.mechanic, 200).replace(/^c:/, ''), m = MECH.resolveCard(tok, ctx.cards.filter((c) => c.section === 'mechanics'));
+      if (!m) throw rpcError(-32602, `teaches: no «Механіки» card "${tok}" — save_mechanic / save_card it first`);
+      if (!DESIGN.STEP_IDS.includes(t.step)) throw rpcError(-32602, 'teaches step must be ' + DESIGN.STEP_IDS.join(' | '));
+      return { m: m.id, step: t.step };
+    });
+  }
+  return Object.assign({}, cur || {}, DESIGN.cleanIntent(x));
+}
 async function saveCard(ctx, key, args0) {
   agentGate(ctx);
   const ts0 = takeSub(args0.ref ? sectionOfRef(ctx, str(args0.ref, 160)) : str(args0.section, 40), args0), args = ts0.args;
   const ref = str(args.ref, 160), now = admin.firestore.FieldValue.serverTimestamp();
   const status = args.status === undefined ? null : str(args.status, 12);
   if (status && !CARD_STATUS.includes(status)) throw rpcError(-32602, 'status must be ' + CARD_STATUS.join(' | '));
-  const KEEP = ['title', 'status', 'note', 'fields', 'defs', 'hidden'];
+  const KEEP = ['title', 'status', 'note', 'fields', 'defs', 'hidden', 'intent'];
   if (ref.startsWith('e:')) { // a canon entity through this game: the game card with canonRef (doc id = the entity id, as the Bible makes it)
     const e = ctx.entities.find((x) => x.id === ref.slice(2));
     if (!e) throw rpcError(-32602, `No canon entity ${ref}. Call get_design_section.`);
@@ -977,6 +1016,7 @@ async function saveCard(ctx, key, args0) {
     if (args.title !== undefined) { if (!str(args.title, 200)) throw rpcError(-32602, 'title cannot be empty'); body.title = str(args.title, 200); }
     if (args.note !== undefined) body.note = str(args.note, 8000);
     if (status) body.status = status;
+    const dz = designPatch(ctx, c.section, c.intent, args); if (dz) body.intent = dz;
     const so = {}; subWrite(ctx, c.section, ts0.sub, c, body, so, args.mini_subsection);
     await ctx.gref.collection('cards').doc(c.id).set(body, { merge: true }); await typeWrite(ctx, c.section, so);
     return { ok: true, ref: 'c:' + c.id, title: body.title || c.title || '', changed: Object.keys(body).filter((k) => ['title', 'note', 'status'].includes(k)).concat(Object.keys(fp.set)).length + (ts0.sub !== undefined ? 1 : 0), new_fields: fp.added, ...so, ...(fp.skipped.length ? { not_changed_file_fields: fp.skipped } : {}) };
@@ -990,6 +1030,7 @@ async function saveCard(ctx, key, args0) {
   const fp = fieldPlan(ctx, tpl ? { defs: tpl.defs, fields: {} } : null, section, args.fields, true);
   const id = newDocId('card'), nb = { section, title, status: status || 'idea', note: str(args.note, 8000), defs: fp.defs, fields: fp.set, files: [],
     order: Date.now(), createdAt: now, updatedAt: now, ...agentMark(key, { _new: true }) }, so = {};
+  const dz = designPatch(ctx, section, null, args); if (dz) nb.intent = dz;
   subWrite(ctx, section, ts0.sub, null, nb, so, args.mini_subsection);
   await ctx.gref.collection('cards').doc(id).set(nb); await typeWrite(ctx, section, so);
   return { ok: true, ref: 'c:' + id, created: true, section, title, new_fields: fp.added, ...so,

@@ -37,6 +37,7 @@ const GDD_RULE = 'You keep the GDD of this game in WhiteWrite yourself. At the s
   '(a mechanic, a number, a character, an enemy, a level, an asset, a sound, a UI screen, a technical decision): `find_cards` → `save_card` into the section the schema names ' +
   '(a constructor mechanic — `save_mechanic`; quests and dialogues — `save_quest` / `save_dialogue`; a screenshot or render the game uses — `card_image_upload`; ' +
   'a final GLB model, a package, textures or a sound file — `card_file_upload` → curl → `card_file_confirm`, a new version with replace: true; a prefab, scene or script of the project — `link_project_asset`, not an upload), and tell the user in one line what you recorded. ' +
+  'A mechanic, level or progression card you save names the pillars of «Огляд гри» it serves (save_card pillars; none fits — ask the author, never invent one), a level what it teaches (teaches: intro → test → twist → combine). ' +
   'A card like it exists — update it, never a second one; the same thing in another section — `link_cards` (an enemy appears_in a level, a hero\'s prefab), not a copy of its text. ' +
   'A card no longer true for the game (a cut mechanic, a replaced enemy, a duplicate you merged) — `archive_card` with the reason; you never delete. Never upload working files, caches or builds. ' +
   'At the end of a session `submit_development_activity` names the cards each entry updated (entries[].cards). Never put a canon biography or the history of a place into the game: that is the World Bible. ' +

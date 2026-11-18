@@ -59,8 +59,12 @@ check(REFS.usedBy(G3, 'c:hero', 'uk').some((r) => r.kind === 'task'), false, 'a 
 const covered = [].concat(...REFS.KINDS.map((k) => k.fields));
 const KNOWN = NV.REF_FIELDS.map((k) => 'quest.' + k).concat(['quest.source', 'dialogue.participants', 'dialogue.location', 'dialogue.nodes.speaker', 'dialogue.nodes.voice',
   'plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)', 'card.mech.links', 'card.mech.sections[sound field]', 'card.mech.sections[card field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)', 'card.prefab', 'card.sheet.faction', 'card.files.pic',
-  'card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref']);
+  'card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref', 'card.intent.ladder']);
 KNOWN.forEach((f) => check(covered.indexOf(f) >= 0, true, 'covered: ' + f));
+// 🪜 the learning ladder: a level → the mechanic it teaches, both ways (v2.144)
+const LG = { cards: [{ id: 'jump', section: 'mechanics', title: 'Стрибок' }, { id: 'lv1', section: 'levels', title: 'Берег', intent: { ladder: [{ m: 'jump', step: 'intro' }] } }] };
+check(REFS.usedBy(LG, 'c:jump', 'uk').map((r) => r.kind + ':' + r.side + ':' + r.extra).join(), 'ladder:in:вводить', 'a mechanic shows the level that introduces it');
+check(REFS.usedBy(LG, 'c:lv1', 'uk').some((r) => r.kind === 'ladder' && r.side === 'out'), true, 'the level shows the mechanic it teaches');
 check(MECH.TYPES.filter((t) => ['sound', 'card'].indexOf(t) < 0 && /ref|card|sound|audio/i.test(t)).filter((t) => t !== 'ref' && t !== 'refs').join(), '',
   'mechanics field types pointing at cards are all known (ref / refs point at rows of the same mechanic)');
 check(REFS.KINDS.every((k) => k.uk && k.en && typeof k.edges === 'function' && k.fields.length), true, 'every kind has labels, fields and edges');

@@ -24,6 +24,7 @@ check(tk[1].text.includes('"G1.1"') && tk[1].text.includes('"scaffold"') && tk[1
 check(!tk[1].text.includes(bible), true, 'the bible is not repeated outside the cached prefix');
 // v2.78: the gates name the design artefacts — G1 the controls / game feel / loops / level metrics, G4 the release checklist
 check(/G1[^\n]*«controls»[^\n]*«game_feel»[^\n]*«loops»[^\n]*«level_metrics»/.test(sk[0].text), true, 'G1 greybox builds on controls, game feel, loops and level metrics');
+check(/G1[^\n]*FIRST task[^\n]*riskiest assumption[^\n]*Gate: the riskiest assumption holds/.test(sk[0].text), true, 'G1 opens with a prototype of the riskiest assumption and its gate checks it (v2.144)');
 check(/G4[^\n]*release checklist is green[^\n]*«release» card[^\n]*green = true/.test(sk[0].text), true, 'G4 waits for the release checklist card to be green');
 // the bible text carries a constructor mechanic with its computed numbers and open problems
 const MECH = require('../functions/mechanics.js');

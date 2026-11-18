@@ -316,6 +316,11 @@
         howTitle: "Як підключити гру", how: "Попроси Claude Code у репозиторії гри: «Виклич get_telemetry_schema і реалізуй телеметрію за нею: черга, пакети, згода гравця». Ключ — у Project Settings гри, не в коді репозиторію, якщо репо публічне.",
         privacy: "Згода: аналітика лише за згодою гравця (opt-in) і з можливістю вимкнути. Лише псевдонімні id, без імен і пошти. Висновки — про дизайн, не про людей.",
         sampleJson: "Приклад пакета" },
+      design: { pilT: "🏛 Стовпи й естетики", pilHint: "— якому стовпу гри служить ця фіча і що гравець має відчути (з «Огляду гри»)", pillars: "Служить стовпам", noPillars: "У «Огляді гри» ще немає стовпів — запиши їх у поле «Стовпи гри», тоді тут зʼявляться галочки.",
+        against: "Суперечить анти-стовпу", aes: "Естетики MDA", ladT: "🪜 Драбина навчання", ladHint: "— які механіки цей рівень вводить, перевіряє, ускладнює чи поєднує (ввести → перевірити → ускладнити → поєднати)",
+        ladAdd: "＋ Механіка", rm: "Прибрати", noMechs: "У «Механіках» ще немає карток.", step: { intro: "ввести", test: "перевірити", twist: "ускладнити", combine: "поєднати" },
+        panelP: "🏛 Стовпи, естетики й ризик", panelL: "🪜 Драбина навчання", pillar: "Стовп", supports: "Підкріплюють", aesthetic: "Естетика", goal: "ціль гри", none: "нічого", riskT: "Найризикованіше припущення", riskTest: "Як перевіряє прототип",
+        mech: "Механіка", ok: "Перевірок без зауважень.", noLadder: "Відкрий рівень і в блоці «🪜 Драбина навчання» познач механіки, яких він вчить, — тут зʼявиться матриця механіки × рівні.", noLevels: "Ще немає рівнів." },
       intent: { title: "Задум досвіду", hint: "— для аналітики досвіду: що гравець має відчути й зробити тут", tags: { tension: "напруга", exploration: "дослідження", rest: "відпочинок", learning: "навчання", reward: "винагорода", social: "соціальне" },
         expected: "Очікувані значущі події (по черзі)", expectedPh: "Напр.: огляд поселення → сліди → засідка → головоломка", pacing: "Задуманий темп, хв", from: "від", to: "до",
         critical: "Ключові механіки (гравець має побачити й застосувати)", success: "Критерії успіху й допустимі відхилення" },
@@ -673,6 +678,11 @@
         howTitle: "How to connect the game", how: "Ask Claude Code in the game repository: “Call get_telemetry_schema and implement telemetry from it: queue, batches, player consent.” Keep the key in the game's settings, not in the code of a public repo.",
         privacy: "Consent: analytics only with the player's agreement (opt-in) and a way to turn it off. Pseudonymous ids only, no names or emails. Conclusions are about the design, not people.",
         sampleJson: "Batch example" },
+      design: { pilT: "🏛 Pillars & aesthetics", pilHint: "— which pillar of the game this feature serves and what the player should feel (from “Game overview”)", pillars: "Serves the pillars", noPillars: "“Game overview” has no pillars yet — write them in the “Game pillars” field, then the boxes appear here.",
+        against: "Goes against the anti-pillar", aes: "MDA aesthetics", ladT: "🪜 Learning ladder", ladHint: "— which mechanics this level introduces, tests, twists or combines (introduce → test → twist → combine)",
+        ladAdd: "＋ Mechanic", rm: "Remove", noMechs: "“Mechanics” has no cards yet.", step: { intro: "introduce", test: "test", twist: "twist", combine: "combine" },
+        panelP: "🏛 Pillars, aesthetics & risk", panelL: "🪜 Learning ladder", pillar: "Pillar", supports: "Supported by", aesthetic: "Aesthetic", goal: "a goal of the game", none: "nothing", riskT: "The riskiest assumption", riskTest: "How the prototype tests it",
+        mech: "Mechanic", ok: "No remarks.", noLadder: "Open a level and in its “🪜 Learning ladder” block mark the mechanics it teaches — the mechanics × levels matrix appears here.", noLevels: "No levels yet." },
       intent: { title: "Design intent", hint: "— for experience analytics: what the player should feel and do here", tags: { tension: "tension", exploration: "exploration", rest: "rest", learning: "learning", reward: "reward", social: "social" },
         expected: "Expected meaningful events (in order)", expectedPh: "E.g.: look around the village → tracks → ambush → puzzle", pacing: "Intended pace, min", from: "from", to: "to",
         critical: "Critical mechanics (the player must see and use)", success: "Success criteria and allowed variance" },
@@ -752,7 +762,10 @@
   // the vision of the game (v2.80): who it is for, what it is like and unlike, why it sells — the «Огляд гри» card, read by analyze / plan as any field
   var VISION = function () { return [F("fantasy", "Фантазія гравця: ким він себе відчуває", "Player fantasy: who the player gets to be"), F("audience", "Аудиторія", "Audience"),
     Object.assign(F("comparables", "Схожі ігри (ціна й чому)", "Comparable games (price and why)", "table"), { cols: LANG === "en" ? ["Game", "Price", "Why it is comparable"] : ["Гра", "Ціна", "Чому схожа"] }),
-    F("usp", "Чим вона інша (USP)", "What sets it apart (USP)"), F("anti", "Анти-стовпи: чим гра НЕ є", "Anti-pillars: what the game is NOT"), F("business", "Бізнес-модель і ціна", "Business model & price")]; };
+    F("usp", "Чим вона інша (USP)", "What sets it apart (USP)"), F("anti", "Анти-стовпи: чим гра НЕ є", "Anti-pillars: what the game is NOT"), F("business", "Бізнес-модель і ціна", "Business model & price"),
+    F("aesthetics", "Цільові естетики (MDA): виклик, відкриття, фантазія, наратив, спільність, самовираження, відчуття, відпочинок", "Target aesthetics (MDA): challenge, discovery, fantasy, narrative, fellowship, expression, sensation, submission"),
+    F("risk", "Найризикованіше припущення: що має бути правдою, щоб гра була цікавою", "The riskiest assumption: what must be true for the game to be fun"),
+    F("riskTest", "Як прототип перевірить припущення", "How the prototype tests the assumption")]; }; // v2.144 (design-checks.js): aesthetics, the risk G1 tests
   var NUM = function (stats) { return Object.assign(stats ? F("numbers", "Х-ки", "Stats", "table") : F("numbers", "Числа", "Numbers", "table"), { cols: LANG === "en" ? ["Parameter", "Value"] : ["Параметр", "Значення"] }); };
   // hero cards link a prefab card of «Ассети й префаби» (card.prefab; card-refs KIND «prefab») — model files are not uploaded onto them (v2.88)
   var PREFAB = function () { return F("model", "Префаб", "Prefab", "prefab"); };
@@ -1003,7 +1016,7 @@
     ((i >= 0 && sp.drop && sp.drop[i]) || []).forEach(function (k) { if (!String(draft.fields[k] || "").trim()) draft.defs = draft.defs.filter(function (x) { return x.key !== k; }); });
     return keys;
   }
-  var INTENT_SECS = ["levels", "locations", "mechanics", "worldgen"], INTENT_TAGS = ["tension", "exploration", "rest", "learning", "reward", "social"];
+  var INTENT_SECS = ["levels", "locations", "mechanics", "worldgen", "progression"], INTENT_TAGS = ["tension", "exploration", "rest", "learning", "reward", "social"];
   var EXPERIENCE = { id: "experience", special: "experience", uk: "Досвід гравців", en: "Player experience",
     about: { uk: "Телеметрія, метрики, теплові карти, проблеми досвіду, плейтести й A/B-тести.", en: "Telemetry, metrics, heatmaps, experience issues, playtests and A/B tests." } };
   var PLAN = { id: "plan", special: "plan", uk: "Продакшн-план", en: "Production plan",
@@ -2069,7 +2082,7 @@
     else if (s.id === "audio" && audioLib) { dragCtx = null; html += audioLibHtml(); }
     else if (!list.length && !s.special && !(s.id === "progression" && progSub)) html += subsOf(s).length && s.id !== "artstyle" ? subsHtml(s, [], function () { return ""; }, grid) // an empty section with subsections shows them as blocks (owner, v2.126.0)
       : emptySecHtml(s) + (ownSubs(s) ? subsHtml(s, [], function () { return ""; }, grid) : ''); // the author's own subsections stay visible
-    else { if (s.id === "mechanics") html += fwGapsHtml(); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
+    else { if (s.id === "mechanics") html += fwGapsHtml() + designPanel("pillars"); if (s.id === "overview") html += designPanel("pillars"); if (s.id === "levels") html += designPanel("ladder"); html += subsHtml(s, list, function (c) { return c.fields[groupKey(s)] && normGroup(s, c.fields[groupKey(s)]); }, grid); }
     if (!query) html += archHtml(s.id);
     $("view").innerHTML = html; archWire();
     var at = $("add-top"); if (at) at.onclick = newSubsection;
@@ -4259,6 +4272,7 @@
       sec: (raw && raw.section) || secId || (preset && MX().template(preset.tpl) && MX().template(preset.tpl).sec) || "mechanics" };
     mcFor(med.sec);
     delete med.m.legacy; med.legacy = !!(raw && !raw.mech);
+    var ri = (raw && raw.intent) || {}; med.m._intent = { pillars: (ri.pillars || []).slice(), against: (ri.against || []).slice(), aesthetics: (ri.aesthetics || []).slice() }; // 🏛 v2.144
     med.first = JSON.stringify([med.title, med.status, med.m]);
     mode = "game"; if (section !== med.sec) { section = med.sec; query = ""; imp = null; $("q").value = ""; }
     render(); $("main").scrollTop = 0;
@@ -5171,7 +5185,17 @@
       qfld(MC.rules, '<textarea data-mf="g.rules" rows="5" placeholder="' + esc(MC.rulesPh) + '">' + esc(m.rules || "") + '</textarea>') +
       qfld(MC.tags, '<input data-mf="g.tags" value="' + esc((m.tags || []).join(", ")) + '" placeholder="' + esc(MC.tagsPh) + '">') +
       qblk(MC.links, others.length ? mchips("g.links", others.map(function (x) { return [x.id, x.title || "…"]; }), m.links, MC.links) : '<p class="muted">' + MC.noLinks + '</p>') +
+      mDesignHtml(m) +
       (med.sec === "mechanics" ? mFwHtml() : ''));
+  }
+  // 🏛 v2.144: the pillars / anti-pillars / MDA aesthetics of a constructor feature (not of the design documents: release, FTUE…)
+  function mDesignHtml(m) {
+    var D = window.__DESIGN, G = STR.design;
+    if (!D || D.FEATURE_SECS.indexOf(med.sec) < 0 || D.DOC_TPLS.indexOf(m.tpl) >= 0) return "";
+    var P = D.pillarsOf(cards), A = D.antiOf(cards), it = m._intent || {}, nm = function (l) { return l.map(function (p) { return [p.name, p.name]; }); };
+    return qblk(G.pillars, P.length ? mchips("i.pillars", nm(P), it.pillars, G.pillars) : '<p class="hint">' + esc(G.noPillars) + '</p>') +
+      (A.length ? qblk(G.against, mchips("i.against", nm(A), it.against, G.against)) : '') +
+      qblk(G.aes, mchips("i.aesthetics", D.AESTHETICS.map(function (a) { return [a.id, L(a)]; }), it.aesthetics, G.aes));
   }
   // a section's state for the outline: questions (errors / warnings of the checks) · empty · done
   function mSecState(s, r) {
@@ -5344,7 +5368,7 @@
   }
   function mChip(path, v) {
     var k = path.split("."), m = med.m, o, key;
-    if (k[0] === "w") { if (!med.wiz) return; o = med.wiz.row; key = k[2]; } else if (k[0] === "g") { o = m; key = k[1]; } else { var s = m.sections[+k[0]]; o = k[1] === "-" ? s.values : s.rows[+k[1]]; key = k[2]; }
+    if (k[0] === "w") { if (!med.wiz) return; o = med.wiz.row; key = k[2]; } else if (k[0] === "g") { o = m; key = k[1]; } else if (k[0] === "i") { o = m._intent = m._intent || {}; key = k[1]; } else { var s = m.sections[+k[0]]; o = k[1] === "-" ? s.values : s.rows[+k[1]]; key = k[2]; }
     var l = Array.isArray(o[key]) ? o[key].slice() : [], i = l.indexOf(v);
     if (i >= 0) l.splice(i, 1); else l.push(v);
     o[key] = l; renderMEditor();
@@ -5438,6 +5462,7 @@
     d.title = String(d.title || "").trim() || (MX().template(d.m.tpl) ? ml(MX().template(d.m.tpl).name) : MC.newM);
     var fields = Object.assign({}, (raw && raw.fields) || {}, { group: catLabel(d.m.cat) || ((raw && raw.fields) || {}).group || "", text: d.m.purpose || "" });
     var body = { section: d.sec, title: d.title, status: d.status, fields: JSON.parse(JSON.stringify(fields)), mech: JSON.parse(JSON.stringify(d.m)), updatedAt: stamp() };
+    if (body.mech._intent) { body.intent = Object.assign({}, (raw && raw.intent) || {}, body.mech._intent); delete body.mech._intent; } // 🏛 v2.144: card.intent, as on every feature card
     if (d.sec === "audio") body.fields.mood = d.m.purpose || ""; // the audio cards' description field
     if (d.sec === "progression") body.fields.numbers = mProgSummary(d.m); // the plain card field: what the builder computed, in one line (search, MCP get_card)
     if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec(d.sec).defs.slice(); }
@@ -6260,7 +6285,7 @@
     if (hasEmpty) chips.push(moreChip("__all", STR.more.all, "☰").replace('class="addf-it"', 'class="addf-it is-sub"'));
     $("e-addf-m").innerHTML = '<div class="addf-h">' + esc(STR.more.menu) + '</div>' + chips.join("");
     $("e-addf-w").hidden = !chips.length || all; addfMenu(false);
-    if (draft.intent) html += intentHtml(draft.intent);
+    if (draft.intent) html += intentHtml(draft.intent) + designHtml(draft.intent, open.section);
     if (open.section === "assets") html = kitHtml() + html; // the model first: it is what an asset card is for
     if (ART_FRAME[open.section]) html = artFrameHtml() + html; // 🖼 the picture (an animation's clip) above everything
     if (STATS_SECS.indexOf(open.section) >= 0 && canWrite) html = quickAddHtml() + html;
@@ -7271,6 +7296,47 @@
         I.to + ' <input type="number" min="0" step="0.5" data-intent="pacingMax" value="' + esc(it.pacingMax || "") + '"></div>' +
       '<span class="muted">' + I.critical + '</span>' + inp("critical") + '<span class="muted">' + I.success + '</span>' + inp("success") + '</div>';
   }
+  // 🏛 🪜 v2.144 (functions/design-checks.js): the pillars / anti-pillars / MDA aesthetics a feature serves, and on a level — the mechanics it teaches
+  function designMechs() { var D = window.__DESIGN; return cards.filter(function (c) { return c.section === "mechanics" && !c.hidden && !c.archived && !(c.mech && D.DOC_TPLS.indexOf(c.mech.tpl) >= 0); }); }
+  function designHtml(it, secId) {
+    var D = window.__DESIGN, G = STR.design, html = "";
+    if (!D) return "";
+    if (D.FEATURE_SECS.indexOf(secId) >= 0) {
+      var P = D.pillarsOf(cards), A = D.antiOf(cards);
+      var box = function (attr, list, cur) { return list.map(function (p) { return '<label class="itag" title="' + esc(p.text) + '"><input type="checkbox" data-' + attr + '="' + esc(p.name) + '"' + ((cur || []).indexOf(p.name) >= 0 ? ' checked' : '') + '>' + esc(p.name) + '</label>'; }).join(""); };
+      html += '<div class="field intent"><label>' + G.pilT + ' <span class="hint">' + G.pilHint + '</span></label><span class="muted">' + G.pillars + '</span>' +
+        (P.length ? '<div class="itags">' + box("dpil", P, it.pillars) + '</div>' : '<p class="hint">' + G.noPillars + '</p>') +
+        (A.length ? '<span class="muted">' + G.against + '</span><div class="itags">' + box("danti", A, it.against) + '</div>' : '') +
+        '<span class="muted">' + G.aes + '</span><div class="itags">' + D.AESTHETICS.map(function (a) { return '<label class="itag" title="' + esc(L(a.h)) + '"><input type="checkbox" data-daes="' + a.id + '"' + ((it.aesthetics || []).indexOf(a.id) >= 0 ? ' checked' : '') + '>' + esc(L(a)) + '</label>'; }).join("") + '</div></div>';
+    }
+    if (secId === "levels") {
+      var ms = designMechs(), opt = function (cur) { return '<option value="">—</option>' + ms.map(function (c) { return '<option value="' + esc(c.id) + '"' + (c.id === cur ? ' selected' : '') + '>' + esc(c.title || "…") + '</option>'; }).join(""); };
+      html += '<div class="field intent"><label>' + G.ladT + ' <span class="hint">' + G.ladHint + '</span></label>' + (it.ladder || []).map(function (x, i) {
+        return '<div class="ipace"><select data-lad="' + i + '" data-lk="m" aria-label="' + esc(G.mech) + '">' + opt(x.m) + '</select> <select data-lad="' + i + '" data-lk="step" aria-label="' + esc(G.ladT) + '">' +
+          D.STEPS.map(function (st) { return '<option value="' + st.id + '"' + (st.id === x.step ? ' selected' : '') + '>' + esc(G.step[st.id]) + '</option>'; }).join("") + '</select> <button type="button" class="btn" data-ladrm="' + i + '" aria-label="' + esc(G.rm) + '">✕</button></div>'; }).join("") +
+        (ms.length ? (canWrite ? '<button type="button" class="btn" data-ladadd="1">' + G.ladAdd + '</button>' : '') : '<p class="hint">' + G.noMechs + '</p>') + '</div>';
+    }
+    return html;
+  }
+  function designClean(it) { var o = Object.assign({}, it); if (o.ladder) o.ladder = o.ladder.filter(function (x) { return x.m; }); return o; }
+  function designIssues(list) { return list.length ? '<ul class="dissues">' + list.map(function (i) { return '<li class="' + (i.level === "warn" ? "warn" : "muted") + '">' + (i.level === "warn" ? "⚠ " : "💡 ") + esc(LANG === "en" ? i.en : i.uk) + (i.ref && i.ref.length > 2 ? ' <button class="cchip" data-openref="' + esc(i.ref) + '" aria-label="' + esc(STR.open || "→") + '">→</button>' : '') + '</li>'; }).join("") + '</ul>' : '<p class="muted">' + STR.design.ok + '</p>'; }
+  function cardChip(id) { var c = cards.filter(function (x) { return x.id === id; })[0]; return c ? '<button class="cchip" data-openref="c:' + esc(id) + '">' + esc(c.title || "…") + '</button>' : ''; }
+  function designPanel(kind) { // «Огляд гри» / «Механіки» — pillars, aesthetics, risk; «Рівні й контент» — the ladder matrix
+    var D = window.__DESIGN, G = STR.design; if (!D || !game) return "";
+    if (kind === "ladder") {
+      var lad = D.ladder(cards, LANG), warnL = lad.issues.filter(function (i) { return i.level === "warn"; }).length;
+      var body = !lad.levels.length ? '<p class="muted">' + G.noLevels + '</p>' : !lad.used ? '<p class="hint">' + G.noLadder + '</p>' :
+        '<div class="matrix"><table><tr><th>' + G.mech + '</th>' + lad.levels.map(function (l) { return '<th>' + cardChip(l.id) + '</th>'; }).join("") + '</tr>' + lad.mechanics.map(function (m) {
+          return '<tr><td>' + cardChip(m.id) + '</td>' + lad.levels.map(function (l) { return '<td>' + esc((m.cells[l.id] || []).map(function (st) { return G.step[st]; }).join(", ")) + '</td>'; }).join("") + '</tr>'; }).join("") + '</table></div>' + designIssues(lad.issues);
+      return '<details class="fwgaps"' + (warnL ? ' open' : '') + '><summary><h2 class="group" style="display:inline-flex">' + G.panelL + (warnL ? ' <span>' + warnL + '</span>' : '') + '</h2></summary>' + body + '</details>';
+    }
+    var pm = D.pillarMap(cards, LANG), rk = D.riskOf(cards), iss = rk.issues.concat(pm.issues), warn = iss.filter(function (i) { return i.level === "warn"; }).length;
+    var html = (rk.risk ? '<p><b>' + G.riskT + ':</b> ' + esc(rk.risk) + (rk.test ? '<br><b>' + G.riskTest + ':</b> ' + esc(rk.test) : '') + '</p>' : '') +
+      (pm.pillars.length ? '<div class="matrix"><table><tr><th>' + G.pillar + '</th><th>' + G.supports + '</th></tr>' + pm.pillars.map(function (p) { return '<tr><td title="' + esc(p.text) + '">' + esc(p.name) + '</td><td>' + (p.cards.length ? p.cards.map(cardChip).join(" ") : '<span class="muted">⚠ ' + G.none + '</span>') + '</td></tr>'; }).join("") + '</table></div>' : '') +
+      '<div class="matrix"><table><tr><th>' + G.aesthetic + '</th><th>' + G.supports + '</th></tr>' + pm.aesthetics.filter(function (a) { return a.target || a.cards.length; }).map(function (a) {
+        return '<tr><td>' + esc(a.name) + (a.target ? ' <span class="pill s-agreed">' + G.goal + '</span>' : '') + '</td><td>' + (a.cards.length ? a.cards.map(cardChip).join(" ") : '<span class="muted">' + (a.target ? '⚠ ' : '') + G.none + '</span>') + '</td></tr>'; }).join("") + '</table></div>' + designIssues(iss);
+    return '<details class="fwgaps"' + (warn ? ' open' : '') + '><summary><h2 class="group" style="display:inline-flex">' + G.panelP + (warn ? ' <span>' + warn + '</span>' : '') + '</h2></summary>' + html + '</details>';
+  }
   function collect(ta) {
     var k = ta.dataset.key;
     if (!k || !draft) return; // a field's blur can land after the card closed
@@ -7315,14 +7381,14 @@
         var view = { section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
           fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() };
         if (open.agent) Object.assign(view, AGENT_CLEAR()); // the author's own save: the agent's version is the author's now
-        if (draft.intent) view.intent = draft.intent;
+        if (draft.intent) view.intent = designClean(draft.intent);
         if (draft.place) view.place = placeBody();
         if (draft.beast) view.beast = beastBody();
         await gref().collection("cards").doc(open.id).set(view, { merge: true });
       } else {
         var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
         if (open.agent) Object.assign(body, AGENT_CLEAR());
-        if (draft.intent) body.intent = draft.intent;
+        if (draft.intent) body.intent = designClean(draft.intent);
         if (draft.place) body.place = placeBody();
         if (draft.beast) body.beast = beastBody();
         if (draft.banner) body.banner = draft.banner;
@@ -12084,6 +12150,12 @@
     if (sh) { sh.scrollIntoView({ block: "nearest" }); editField(mk); } else if (mk === "__note" && $("f-note")) $("f-note").focus(); else if (mk === "__nf" && $("nf")) $("nf").focus();
   });
   $("e-body").addEventListener("click", function (e) {
+    var la = e.target.closest("[data-ladadd],[data-ladrm]"); if (la && draft && draft.intent && canWrite) { // 🪜 v2.144: a ladder row in / out
+      [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
+      var ll = (draft.intent.ladder || []).map(function (x) { return Object.assign({}, x); });
+      if (la.dataset.ladadd) ll.push({ m: "", step: ll.length ? "test" : "intro" }); else ll.splice(+la.dataset.ladrm, 1);
+      draft.intent.ladder = ll; renderFields(); return;
+    }
     var bp = e.target.closest("[data-bnpick]"); if (bp && draft && canWrite) { [].forEach.call(document.querySelectorAll("#e-body textarea"), collect); draft.banner = bp.dataset.bnpick; renderFields(); return; }
     var pz = e.target.closest("[data-plzone]"); if (pz) { var zid = pz.dataset.plzone; unsavedOk(leafSnap() !== leafFirst, function () { closeLeaf(); gm.sel = zid; gm.mode = ""; gm.ed = null; goSection("gamemap"); }); return; }
     var mo = e.target.closest("[data-more]"); if (mo) {
@@ -12141,6 +12213,12 @@
   });
   $("e-body").addEventListener("input", function (e) {
     if (e.target.dataset.intent && draft && draft.intent) { var iv = e.target.value; draft.intent[e.target.dataset.intent] = e.target.type === "number" ? (iv === "" ? null : Number(iv)) : iv; return; }
+    var dd = e.target.dataset; // 🏛 🪜 v2.144: pillars / anti-pillars / aesthetics and the ladder rows (new arrays: draft.intent never shares the card's)
+    if ((dd.dpil != null || dd.danti != null || dd.daes != null) && draft && draft.intent) {
+      var dk = dd.dpil != null ? "pillars" : dd.danti != null ? "against" : "aesthetics", dv = dd.dpil != null ? dd.dpil : dd.danti != null ? dd.danti : dd.daes;
+      draft.intent[dk] = (draft.intent[dk] || []).filter(function (x) { return x !== dv; }); if (e.target.checked) draft.intent[dk].push(dv); return;
+    }
+    if (dd.lad != null && draft && draft.intent) { draft.intent.ladder = (draft.intent.ladder || []).map(function (x) { return Object.assign({}, x); }); var lr = draft.intent.ladder[+dd.lad]; if (lr) lr[dd.lk] = e.target.value; return; }
     if (e.target.dataset.itag && draft && draft.intent) {
       var tg = e.target.dataset.itag; draft.intent.tags = draft.intent.tags.filter(function (x) { return x !== tg; }); if (e.target.checked) draft.intent.tags.push(tg); return;
     }

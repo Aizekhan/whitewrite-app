@@ -31,6 +31,7 @@ const { personaText, lookText } = require('../persona.js');
 const { modelFor, withFallback } = require('./claude');
 const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
 const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages, what goes where
+const DESIGN = require('../design-checks.js'); // 🏛 🪜 ⚠ pillars, the learning ladder, the riskiest assumption (v2.144)
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
 
@@ -106,6 +107,9 @@ function bibleText(world, entities, cards, game, shelves, lore) {
     }
   }
   if (game.title) lines.push(`\n# Game: ${game.title}`);
+  const ds = DESIGN.status(cards.filter((c) => !c.hidden), 'en'), rk = ds.risk; // before the cards: a big bible is cut at the end
+  if (rk.risk) lines.push(`Riskiest assumption (G1 tests it first): ${str(rk.risk, 600)}${rk.test ? ` — how the prototype tests it: ${str(rk.test, 600)}` : ''}`);
+  if (ds.issues.length) lines.push('Design checks (pillars, aesthetics, learning ladder, risk):', ...ds.issues.slice(0, 25).map((i) => `- ${i.level}: ${i.en}${i.ref && i.ref.length > 2 ? ` [${i.ref}]` : ''}`));
   const card = (ref, section, title, status, fields, note, files, intent) => {
     lines.push(`\n## [${ref}] ${title} (section: ${section}, status: ${status || 'idea'})`);
     for (const [k, v] of Object.entries(fields)) if (str(v, 1)) lines.push(`${k}: ${str(v, 800)}`);
@@ -488,7 +492,7 @@ Your job: turn it into an interactive game design document. Read everything, the
 2. gdd.readiness — 0-100: how ready the design is to start production.
 3. gdd.sections — for each area of a GDD (vision & pillars, core & meta loops, mechanics, game feel, controls & accessibility, progression, characters, enemies, levels (metrics & pacing), difficulty curve, economy/items & loot, UI/UX, audio, art direction, multiplayer, tech/engine, monetization if relevant, release readiness): status solid|partial|missing + one-line notes.
    Cards with a "Constructor:" block are structured design artefacts (templates game_feel, controls, accessibility, economy, loops, level_metrics, difficulty, release…) with "Computed:" numbers and "Open problems" from the constructor's own checks — trust those numbers and problems, don't recompute them. An area the game needs but no artefact covers (no controls map, no game feel, no loops, no release checklist) is a gap: say which template would fill it in the section notes.
-   Vision & pillars and monetization read the overview card's vision fields — player fantasy, audience, comparable games (with price and why), USP, anti-pillars, business model & price; an empty one is a gap, and a question targeted at that field of the overview card.
+   Vision & pillars and monetization read the overview card's vision fields — player fantasy, audience, comparable games (with price and why), USP, anti-pillars, business model & price, target aesthetics (MDA), the riskiest assumption and how the prototype tests it; an empty one is a gap, and a question targeted at that field of the overview card. The bible's «Design checks» lines (features serving no pillar, an unsupported pillar or target aesthetic, a mechanic used before it is taught) are gaps too.
 4. questions — the UNRESOLVED decisions that block or weaken production, most important first (max 15). Concrete, answerable questions. For each: topic, question, why (what in production depends on it), 2-4 options when sensible, priority blocker|important|nice, and target — the card ref it belongs to ("c:..." / "e:..." from the bible, or "") and the field it would fill (an existing field name, or a short new field label).
 5. contradictions — places where cards contradict each other or the world laws: what, where, 2-4 options how to resolve it, target (the card ref and field the resolution belongs in). Do NOT repeat contradictions the author already resolved.
 Do NOT ask what the bible already answers. Do NOT re-ask what the author already decided.
@@ -520,7 +524,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
 const PLAN_PIPELINE = `Pipeline (keep this structure, adapt the content to the game):
 - Track "mvp" — five milestones with GATES, ids G0…G4, in this order:
   G0 Setup — repository, engine project, folder & naming conventions (SM_/M_/T_/A_ prefixes…), MCP connection, a headless build that succeeds. Gate: the empty project builds and runs.
-  G1 Core loop in greybox — the 3Cs (character, camera, controls — from the «controls» input map), game feel (hitstop, shake, input buffer, coyote time — from the «game_feel» card), the core mechanic, the session loop (from the «loops» card), win/lose, ONE greybox level from primitives built to the «level_metrics» character metrics — no final art. Where a game lacks one of these artefacts, G1's scaffold asks for it (section mechanics). Gate: the author plays 5 minutes and it is fun; the session loop closes in play; tests pass.
+  G1 Core loop in greybox — its FIRST task is a throwaway prototype that tests the riskiest assumption of the game (the overview card's «Найризикованіше припущення» / «Як прототип перевірить»; the bible line «Riskiest assumption»): the smallest build in which the author can feel whether it holds; when the overview has none, that first task asks the author to write it (section overview). Then the 3Cs (character, camera, controls — from the «controls» input map), game feel (hitstop, shake, input buffer, coyote time — from the «game_feel» card), the core mechanic, the session loop (from the «loops» card), win/lose, ONE greybox level from primitives built to the «level_metrics» character metrics — no final art. Where a game lacks one of these artefacts, G1's scaffold asks for it (section mechanics). Gate: the riskiest assumption holds in play (the author's verdict after the prototype — if it fails, the plan is revised before G2); the author plays 5 minutes and it is fun; the session loop closes in play; tests pass.
   G2 First playable (vertical slice) — that same level styled: prefabs/models unified to the art direction, materials, light & post, UI skin, key SFX & music, performance budgets met. Gate: screenshot-quality, frame rate on the minimum spec, every used asset has a commercial-OK or with-conditions licence.
   G3 MVP feature-complete — every MUST system, progression, save/load, menus, all MVP levels; the economy, difficulty and pacing artefacts (where present) have no open problems. Gate: a stranger plays from start to finish without help.
   G4 Release candidate — bug fixing, credits & attribution, store page assets, the release build, the accessibility must-haves. Gate: the release checklist is green — the «release» card (template release) has every item of the chosen platforms done or N/A (its Computed green = true); without that card, G4's scaffold creates it.

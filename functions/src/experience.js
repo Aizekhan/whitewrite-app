@@ -82,6 +82,10 @@ function intentText(it) {
   if (it.pacingMin || it.pacingMax) p.push(`pacing intent: ${it.pacingMin || '?'}–${it.pacingMax || '?'} min in this segment`);
   if (it.critical) p.push('critical mechanics: ' + str(it.critical, 400));
   if (it.success) p.push('success criteria / allowed variance: ' + str(it.success, 600));
+  if ((it.pillars || []).length) p.push('serves the pillars: ' + it.pillars.map((x) => str(x, 80)).join(', ')); // 🏛 v2.144 (design-checks.js)
+  if ((it.against || []).length) p.push('goes against the anti-pillars: ' + it.against.map((x) => str(x, 80)).join(', '));
+  if ((it.aesthetics || []).length) p.push('MDA aesthetics: ' + it.aesthetics.join(', '));
+  if ((it.ladder || []).length) p.push('learning ladder: ' + it.ladder.filter((x) => x && x.m).map((x) => `${x.step} c:${x.m}`).join(', '));
   return p.join('; ');
 }
 
