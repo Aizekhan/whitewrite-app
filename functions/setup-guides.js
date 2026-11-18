@@ -33,7 +33,7 @@ const SESSION_RULE = 'At the start of every session call `get_updates` and tell 
   'While watching, never take a new task on your own: tell the user what arrived and offer to take it (`get_next_task`); start only after their yes.';
 
 // 🧭 GDD refocus (owner, v2.138): Claude Code keeps the game's GDD itself — the same rule in both setups, the CLAUDE.md block and MCP initialize
-const GDD_RULE = 'You keep the GDD of this game in WhiteWrite yourself. Read `get_gdd_schema` once per session. Right after each change of the game that touches the design ' +
+const GDD_RULE = 'You keep the GDD of this game in WhiteWrite yourself. At the start of a session read `get_gdd_schema` and `get_gdd_status` (which stages are empty or below their minimum), before writing into a section — `get_design_section` (what goes there and what does not). Right after each change of the game that touches the design ' +
   '(a mechanic, a number, a character, an enemy, a level, an asset, a sound, a UI screen, a technical decision): `find_cards` → `save_card` into the section the schema names ' +
   '(a constructor mechanic — `save_mechanic`; quests and dialogues — `save_quest` / `save_dialogue`; a screenshot or render the game uses — `card_image_upload`; ' +
   'a final GLB model, a package, textures or a sound file — `card_file_upload` → curl → `card_file_confirm`, a new version with replace: true; a prefab, scene or script of the project — `link_project_asset`, not an upload), and tell the user in one line what you recorded. ' +

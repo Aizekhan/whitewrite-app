@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.142.0 (2026-11-18)
+**Version:** 2.142.1 (2026-11-18)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -787,6 +787,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.142.1** the GDD rule (setup-guides.js GDD_RULE → both setup guides and the CLAUDE.md block; MCP initialize) tells Claude Code to read get_gdd_status at the start of a session and get_design_section before writing into a section
 - **v2.142.0** (owner: «доробити сервіс» — the rest of the GDD refocus plan) MCP `link_cards` (card.links, KIND «link»), `archive_card` (card.archived, the section «🗄 Архів»), `link_project_asset` (card.projectAssets), `card_file_upload` / `card_file_confirm` (GLB, packages, textures, sound via a Storage resumable session, kit slots, md5 dedupe, replace, `sweepFiles`); `get_design_section` with the schema rules; activity entries `cards[]`; world-generation tools only when the section is shown; the import folds duplicates like `save_card` (`titleSim` moved into `gdd-schema.js`), the regression set + live script; `app/gb-links.js` — the first module out of `gamebible.js`; `.rbxm` in the kit; setup guides / initialize name the new tools; KB uk+en
 - **v2.141.0** (owner: GDD refocus P4) the frozen parts marked under «Purpose» (Book, Cosmograph, Community, Market, Marketing — bug fixes only); the home page lede and the game-makers card speak of the GDD (`hero.lede`, `hero.agentDesc`, uk + en)
 - **v2.140.0** (owner: GDD refocus P3) the production plan needs the GDD stages 1–6 at their minimum (`GDD_STAGES`, no tokens), the GDD goes to the AI in stage order; `chapters` not built — biome styles stay
@@ -1040,5 +1041,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-18 (v2.142.0)
+**Last updated:** 2026-11-18 (v2.142.1)
 **Maintained by:** WhiteWrite Team
