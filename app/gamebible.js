@@ -208,7 +208,7 @@
         old: "⚠ формат більше не відкривається в 3D — перетвори в GLB", skipped: "Моделі не у форматі GLB — не завантажуються ({n}). Перетвори їх у GLB (Blender → Export → glTF Binary) і обери теку ще раз:" },
       demo: { open: "🎓 Відкрити демо-гру", openHint: "Невеликий платформер «Ліхтарник», де заповнено кожен етап GDD: подивись, як виглядає готовий документ, і скопіюй як шаблон. Не займає місце гри в тарифі.",
         title: "Це демо-гра.", hint: "Тут заповнено кожен етап GDD — від огляду й стовпів до рівнів із драбиною навчання, квесту, діалогу й плану. Гортай меню, відкривай картки, експортуй питч. Щоб зробити з неї свою гру, скопіюй її: копія — звичайна гра, яку можна змінювати як завгодно.",
-        copy: "⧉ Скопіювати як мою гру", copyName: "(копія)", busy: "Створюю…", exists: "Демо-гра вже є в одному з твоїх світів.", limit: "Видали демо або іншу гру, чи перейди на Worldbuilder." },
+        copy: "⧉ Скопіювати як мою гру", copyName: "(копія)", slotWarn: "На твоєму тарифі — одна гра. Копія займе це місце: щоб потім створити іншу гру, доведеться видалити копію (або перейти на Worldbuilder). Демо лишиться. Скопіювати?", busy: "Створюю…", exists: "Демо-гра вже є в одному з твоїх світів.", limit: "Видали демо або іншу гру, чи перейди на Worldbuilder." },
       gx: { pitch: "⤓ Питч (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "Питч на одну сторінку (логлайн, фантазія, стовпи, цикл, схожі ігри, ключові картинки) і повний GDD за етапами — з карток гри, без ШІ й токенів. PDF — сторінка для друку: у вікні друку обери «Зберегти як PDF»." },
       refsAdd: "＋ Картинки", refsTip: "Обери одразу кілька картинок — кожна стане окремою карткою з назвою файлу", refsDone: "Додано референсів",
       soundsAdd: "⤒ Звуки", soundsTip: "Обери одразу кілька звуків чи треків — кожен стане окремою карткою Аудіотеки з назвою файлу", soundsDone: "Додано звуків",
@@ -574,7 +574,7 @@
         old: "⚠ this format no longer opens in 3D — convert it to GLB", skipped: "Models not in GLB format — not uploaded ({n}). Convert them to GLB (Blender → Export → glTF Binary) and pick the folder again:" },
       demo: { open: "🎓 Open the demo game", openHint: "A small platformer «Lamplighter» with every GDD stage filled in: see what a finished document looks like and copy it as a template. It does not use a game slot of your plan.",
         title: "This is the demo game.", hint: "Every GDD stage is filled in here — from the overview and pillars to levels with the learning ladder, a quest, a dialogue and the plan. Browse the menu, open the cards, export the pitch. To make it your own game, copy it: the copy is an ordinary game you can change any way you like.",
-        copy: "⧉ Copy as my game", copyName: "(copy)", busy: "Creating…", exists: "You already have the demo game in one of your worlds.", limit: "Delete the demo or another game, or move to Worldbuilder." },
+        copy: "⧉ Copy as my game", copyName: "(copy)", slotWarn: "Your plan holds one game. The copy takes that slot: to create another game later you will have to delete the copy (or move to Worldbuilder). The demo stays. Copy it?", busy: "Creating…", exists: "You already have the demo game in one of your worlds.", limit: "Delete the demo or another game, or move to Worldbuilder." },
       gx: { pitch: "⤓ Pitch (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "A one-page pitch (logline, fantasy, pillars, loop, comparable games, key pictures) and the full GDD by stage — from the game's cards, no AI, no tokens. PDF is a print page: pick “Save as PDF” in the print dialog." },
       refsAdd: "＋ Pictures", refsTip: "Pick several pictures at once — each becomes its own card named after the file", refsDone: "References added",
       soundsAdd: "⤒ Sounds", soundsTip: "Pick several sounds or tracks at once — each becomes its own Audio library card named after the file", soundsDone: "Sounds added",
@@ -6089,6 +6089,7 @@
   function demoWire() {
     var b = $("demo-copy"); if (!b) return;
     b.onclick = async function () {
+      if (!canDev && !(await askConfirm(STR.demo.slotWarn))) return; // below Worldbuilder the plan holds one game: the copy takes it
       b.disabled = true; $("demo-msg").textContent = STR.demo.busy;
       try { var id = await createGameDoc((game.title || "") + " " + STR.demo.copyName, (game.engine && game.engine.profile) || "generic", { template: "demo" }); selectGame(id); }
       catch (e) { b.disabled = false; $("demo-msg").textContent = e.message; if (e.code === "GAME_LIMIT") $("demo-msg").textContent += " " + STR.demo.limit; }
@@ -7352,14 +7353,13 @@
   }
   function designClean(it) { var o = Object.assign({}, it); if (o.ladder) o.ladder = o.ladder.filter(function (x) { return x.m; }); return o; }
   function designIssues(list) { return list.length ? '<ul class="dissues">' + list.map(function (i) { return '<li class="' + (i.level === "warn" ? "warn" : "muted") + '">' + (i.level === "warn" ? "⚠ " : "💡 ") + esc(LANG === "en" ? i.en : i.uk) + (i.ref && i.ref.length > 2 ? ' <button class="cchip" data-openref="' + esc(i.ref) + '" aria-label="' + esc(STR.open || "→") + '">→</button>' : '') + '</li>'; }).join("") + '</ul>' : '<p class="muted">' + STR.design.ok + '</p>'; }
-  function cardChip(id) { var c = cards.filter(function (x) { return x.id === id; })[0]; return c ? '<button class="cchip" data-openref="c:' + esc(id) + '">' + esc(c.title || "…") + '</button>' : ''; }
   function designPanel(kind) { // «Огляд гри» / «Механіки» — pillars, aesthetics, risk; «Рівні й контент» — the ladder matrix
     var D = window.__DESIGN, G = STR.design; if (!D || !game) return "";
     if (kind === "ladder") {
       var lad = D.ladder(cards, LANG), warnL = lad.issues.filter(function (i) { return i.level === "warn"; }).length;
       var body = !lad.levels.length ? '<p class="muted">' + G.noLevels + '</p>' : !lad.used ? '<p class="hint">' + G.noLadder + '</p>' :
-        '<div class="matrix"><table><tr><th>' + G.mech + '</th>' + lad.levels.map(function (l) { return '<th>' + cardChip(l.id) + '</th>'; }).join("") + '</tr>' + lad.mechanics.map(function (m) {
-          return '<tr><td>' + cardChip(m.id) + '</td>' + lad.levels.map(function (l) { return '<td>' + esc((m.cells[l.id] || []).map(function (st) { return G.step[st]; }).join(", ")) + '</td>'; }).join("") + '</tr>'; }).join("") + '</table></div>' + designIssues(lad.issues);
+        '<div class="matrix"><table><tr><th>' + G.mech + '</th>' + lad.levels.map(function (l) { return '<th>' + cardChip("c:" + l.id) + '</th>'; }).join("") + '</tr>' + lad.mechanics.map(function (m) {
+          return '<tr><td>' + cardChip("c:" + m.id) + '</td>' + lad.levels.map(function (l) { return '<td>' + esc((m.cells[l.id] || []).map(function (st) { return G.step[st]; }).join(", ")) + '</td>'; }).join("") + '</tr>'; }).join("") + '</table></div>' + designIssues(lad.issues);
       return '<details class="fwgaps"' + (warnL ? ' open' : '') + '><summary><h2 class="group" style="display:inline-flex">' + G.panelL + (warnL ? ' <span>' + warnL + '</span>' : '') + '</h2></summary>' + body + '</details>';
     }
     var pm = D.pillarMap(cards, LANG), rk = D.riskOf(cards), iss = rk.issues.concat(pm.issues), warn = iss.filter(function (i) { return i.level === "warn"; }).length;

@@ -233,6 +233,7 @@ Canon → Сцена 1 → Scene Intent → Сцена 2 → Scene Intent → �
 - **Firebase Hosting:** віддає `dist/` — збірку з `app/` (`npm run build:app`, запускається автоматично як predeploy). Вихідники — `app/`, `dist/` не редагувати й не комітити.
 - **Деплой:** `firebase deploy --only hosting` (або `--only functions` для Cloud Functions)
 - **Тести:** `npm test` (усі), `npm run test:rules` (правила Firestore)
+- **Після кожного деплою — `git push`** (рішення власника 2026-11-18: сайт не має працювати на коді без копії на GitHub). Потім `git status -sb` — гілка не повинна бути попереду `origin` (`[ahead N]` = не запушено). Коміт без push не вважається завершеним.
 
 ## Структура файлів (ВАЖЛИВО!)
 - **Робоча директорія:** `app/` — вихідники продакшну (локально працюють як є, з in-browser Babel); на whitewrite.com іде їх збірка `dist/`

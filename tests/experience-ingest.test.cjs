@@ -79,6 +79,10 @@ const call = async (fn, req) => { let out = {}; const res = { set() {}, status(c
   check(bad.code + '|' + settled.length + '|' + (settled[0] && settled[0].uid) + '|' + !!(settled[0] && settled[0].paid && settled[0].paid.usage), '500|1|u1|true',
     'an admin ✦ runs on the owner tokens; an unparsable answer after the paid call → settle with its usage (charged, not refunded)');
 
+  // ---- get_telemetry_schema names the events the retention metrics need (v2.146.1) ----
+  const req = EX._experience.telemetrySchema({}, [], [], [], []).required_events || '';
+  check(['SessionStarted', 'SessionEnded', 'player_id', 'GameCompleted', 'RewardReceived'].every((x) => req.includes(x)), true, 'the schema REQUIRES session start / end, a stable player_id, GameCompleted and the first action / reward');
+
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
   process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

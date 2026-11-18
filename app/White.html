@@ -1628,9 +1628,20 @@ body.at-home .back-fab{ display:none; }
         return '<article class="gcard" data-game="' + escapeHtml(g.id) + '"><div class="gcard__mark" aria-hidden="true">' + escapeHtml(Array.from(name.trim())[0] || "?") + '</div>' +
           '<div class="gcard__b"><div class="gcard__k">GDD' + (eng ? ' · ' + eng : '') + '</div><div class="gcard__t">' + escapeHtml(name) + '</div>' +
           '<button class="gcard__open">' + svg("open") + cmT("Відкрити GDD «", "Open the GDD “") + escapeHtml(name) + cmT("»", "”") + '</button></div></article>';
-      }).join("") + (world.shared ? '' : '<button class="gcard gcard--new" id="w-newgame">' + svg("plus") + '<span>' + cmT("Створити нову гру", "Create a new game") + '</span><small>' + cmT("на каноні цього світу", "on this world's canon") + '</small></button>');
+      }).join("") + (world.shared ? '' : '<button class="gcard gcard--new" id="w-newgame">' + svg("plus") + '<span>' + cmT("Створити нову гру", "Create a new game") + '</span><small>' + cmT("на каноні цього світу", "on this world's canon") + '</small></button>') +
+        // 🎓 the demo game (functions/demo-game.js): created by createGame { demo } — outside the plan's game limit, one per author; gone once it exists here
+        (world.shared || list.some(function (g) { return g.demo; }) ? '' : '<button class="gcard gcard--new" id="w-demogame"><span>🎓 ' + cmT("Демо-гра «Ліхтарник»", "The demo game “Lamplighter”") + '</span><small>' + cmT("готовий GDD: подивитись і скопіювати як шаблон · не займає місце гри", "a finished GDD: look and copy it as a template · uses no game slot") + '</small></button>');
       [].forEach.call(row.querySelectorAll("[data-game]"), function (c) { c.addEventListener("click", function () { showBible({ gameId: c.dataset.game }); }); });
       var ng = row.querySelector("#w-newgame"); if (ng) ng.addEventListener("click", function () { showBible({ gameId: "__new" }); });
+      var dg = row.querySelector("#w-demogame"); if (dg) dg.addEventListener("click", function () {
+        var fb = window.__firebase, user = fb && fb.auth && fb.auth.currentUser; if (!user) return openAuth(returnHere());
+        dg.disabled = true; dg.querySelector("small").textContent = cmT("Створюю…", "Creating…");
+        user.getIdToken().then(function (token) {
+          return fetch("https://us-central1-whitewrite-app.cloudfunctions.net/createGame", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+            body: JSON.stringify({ worldId: world.id, demo: true, engine: "generic", lang: cmT("uk", "en") }) });
+        }).then(function (r) { return r.json().catch(function () { return {}; }).then(function (d) { if (!r.ok) throw new Error(d.code === "DEMO_EXISTS" ? cmT("Демо-гра вже є в одному з твоїх світів.", "You already have the demo game in one of your worlds.") : d.error || "HTTP " + r.status); return d; }); })
+          .then(function (d) { showBible({ gameId: d.gameId }); }, function (e) { dg.disabled = false; dg.querySelector("small").textContent = ""; wwNotice(e.message); });
+      });
     };
     if (hubGamesOf === world.id && hubGamesOff) { paint(hubGamesList); return; }
     if (hubGamesOff) hubGamesOff();

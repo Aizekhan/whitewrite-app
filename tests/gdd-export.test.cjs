@@ -29,5 +29,10 @@ check(p.startsWith('# Лис\n\n> Лис рятує ліс від туману')
 check(p.includes('https://x/shore.png'), false, 'the pitch takes pictures from the style / references / scenes / cast, not levels');
 check(window.__GB_EXPORT({ LANG: 'en', esc: String, md: String, allCards: () => [], cards: () => [], game: () => ({}), gameSections: () => [], secName: String, quests: () => [], dialogues: () => [], download() {}, slugify: String, notify() {} }).pitchMd(), null, 'no overview — no pitch');
 
+// the print page signs once (its own footer with the link), not twice
+let html = ''; const win = { document: { write: (h) => { html += h; }, close() {}, images: [] }, focus() {}, print() {} };
+window.open = () => win; global.setTimeout = (f) => f();
+E.pitch();
+check((html.match(/Зроблено у WhiteWrite/g) || []).length, 1, 'the PDF page carries «Зроблено у WhiteWrite» once');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

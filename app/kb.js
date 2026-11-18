@@ -1324,11 +1324,11 @@
         lead: "Невеликий платформер, де заповнено кожен етап — подивитись і скопіювати як шаблон.",
         min: 2,
         body: [
-          ["p", "У формі нової гри (⚙ «＋ Створити нову гру») унизу є кнопка <b>«🎓 Відкрити демо-гру»</b>. Вона створює в цьому світі гру «Ліхтарник»: дух-ліхтарник стрибає туманним болотом і запалює ліхтарі."],
+          ["p", "У хабі світу (🏠 Головна → «🎮 Ігри цього світу») поруч зі «＋ Створити нову гру» стоїть картка <b>«🎓 Демо-гра «Ліхтарник»»</b>; та сама кнопка — унизу форми нової гри в Біблії. Вона створює в цьому світі гру «Ліхтарник»: дух-ліхтарник стрибає туманним болотом і запалює ліхтарі. Коли демо вже є, картка зникає."],
           ["ul", [
             "Заповнено всі обовʼязкові етапи 1–11: огляд гри (логлайн, стовпи, анти-стовпи, цільові естетики, найризикованіше припущення), механіки (власні картки й шаблони конструктора: відчуття гри, керування, перші хвилини, причини повернутися, цикли), лор, локація, візуальний стиль, герой, NPC, ворог і бос, чотири рівні з драбиною навчання, прогресія, предмет, квест і діалог, сцена, ассет, анімація, музика, HUD, технічне й продакшн-план.",
             "Демо не займає місце гри у твоєму тарифі. На автора — одна демо-гра на всі світи.",
-            "Угорі «Огляду гри» демо стоїть банер і кнопка <b>«⧉ Скопіювати як мою гру»</b>. Копія — звичайна гра з тим самим вмістом, яку можна змінювати як завгодно, і вона вже рахується в ліміті ігор тарифу.",
+            "Угорі «Огляду гри» демо стоїть банер і кнопка <b>«⧉ Скопіювати як мою гру»</b>. Копія — звичайна гра з тим самим вмістом, яку можна змінювати як завгодно, і вона вже рахується в ліміті ігор тарифу. До Worldbuilder гра одна — перед копіюванням зʼявиться попередження, що копія займе це місце.",
             "Демо можна видалити, як будь-яку гру (⚙ Налаштування гри), і відкрити знову.",
             "Без ШІ й токенів. Текст демо — мовою інтерфейсу (українська або англійська)."]],
         ] },
@@ -1361,7 +1361,7 @@
           ["h", "Від метрик до зміни"],
           ["ul", [
             "«Перерахувати метрики» (безкоштовно): сесії, зони (час між значущими подіями, «порожнеча», смерті, застрягання, виходи), квести, механіки, різноманітність, дослідження, опитування — завжди з розміром вибірки.",
-            "<b>Утримання й перші хвилини</b> (в «Огляді»): D1 / D7 / D30 (частка гравців, що повернулись рівно через 1, 7, 30 днів, серед тих, кого вперше бачили щонайменше стільки днів тому; сирі події живуть 30 днів, тож D30 — лише за повний місяць), сесій на день, частка тих, хто пройшов гру (подія GameCompleted), хто грав менше 2 годин, хто не повернувся після першої сесії, перша дія й перша нагорода першої сесії (медіана). Що показується першим, залежить від бізнес-моделі з «Огляду гри»: преміум — пройшли гру, менше 2 годин, перша сесія; free-to-play і сервіси — D1 / D7 / D30.",
+            "<b>Утримання й перші хвилини</b> (в «Огляді»): D1 / D7 / D30 (частка гравців, що повернулись рівно через 1, 7, 30 днів, серед тих, кого вперше бачили щонайменше стільки днів тому; сирі події живуть 30 днів, тож D30 — лише за повний місяць), сесій на день, частка тих, хто пройшов гру (подія GameCompleted), хто грав менше 2 годин, хто не повернувся після першої сесії, перша дія й перша нагорода першої сесії (медіана). Що показується першим, залежить від бізнес-моделі з «Огляду гри»: преміум — пройшли гру, менше 2 годин, перша сесія; free-to-play і сервіси — D1 / D7 / D30. Це працює, лише якщо гра надсилає <code>SessionStarted</code> на кожному запуску й <code>SessionEnded</code> при виході зі сталим player_id, а наприкінці — <code>GameCompleted</code>; Claude Code бачить це як обовʼязкове в <code>get_telemetry_schema</code>.",
             "«✦ Звіт AI» (платно, ціна перед запуском): можливі проблеми — Boredom Risk, а не «гравцям нудно».",
             "«В план для Claude Code»: обрана зміна стає задачею EX.n у Продакшн-плані (номер — наступний після найбільшого; ↻ перегенерація плану її не видаляє). «Подій сьогодні» — з денного підсумку телеметрії; фільтр за білдом береться в самому запиті. Повторно надіслану подію (той самий event_id) сервер не рахує вдруге й повертає duplicates.",
             "Після задачі — новий плейтест і «Перевірити зміну»: метрики порівнюються з базовими. Успіх — це результат перевірки, а не виконана задача.",
@@ -3011,11 +3011,11 @@
         lead: "A small platformer with every stage filled in — look at it and copy it as a template.",
         min: 2,
         body: [
-          ["p", "At the bottom of the new game form (⚙ “＋ Create a new game”) is the <b>“🎓 Open the demo game”</b> button. It creates the game “Lamplighter” in this world: a lamplighter spirit jumps across a foggy marsh, lighting lanterns."],
+          ["p", "In the world hub (🏠 Home → “🎮 Games of this world”), next to “＋ Create a new game”, is the <b>“🎓 The demo game “Lamplighter””</b> card; the same button is at the bottom of the new game form in the Bible. It creates the game “Lamplighter” in this world: a lamplighter spirit jumps across a foggy marsh, lighting lanterns. Once the demo exists, the card is gone."],
           ["ul", [
             "All required stages 1–11 are filled in: the game overview (logline, pillars, anti-pillars, target aesthetics, the riskiest assumption), mechanics (own cards and constructor templates: game feel, controls, the first minutes, reasons to come back, loops), lore, a location, the visual style, a hero, an NPC, an enemy and a boss, four levels with the learning ladder, progression, an item, a quest and a dialogue, a scene, an asset, an animation, music, the HUD, tech and the production plan.",
             "The demo does not use a game slot of your plan. One demo game per author across all worlds.",
-            "At the top of the demo's “Game overview” is a banner and the <b>“⧉ Copy as my game”</b> button. The copy is an ordinary game with the same content that you can change any way you like, and it counts in the plan's game limit.",
+            "At the top of the demo's “Game overview” is a banner and the <b>“⧉ Copy as my game”</b> button. The copy is an ordinary game with the same content that you can change any way you like, and it counts in the plan's game limit. Below Worldbuilder the plan holds one game — a warning says the copy will take that slot.",
             "You can delete the demo like any game (⚙ Game settings) and open it again.",
             "No AI, no tokens. The demo text is in the interface language (Ukrainian or English)."]],
         ] },
@@ -3048,7 +3048,7 @@
           ["h", "From metrics to a change"],
           ["ul", [
             "“Recompute metrics” (free): sessions, zones (time between meaningful events, lulls, deaths, getting stuck, exits), quests, mechanics, variety, exploration, surveys — always with the sample size.",
-            "<b>Retention & the first minutes</b> (in “Overview”): D1 / D7 / D30 (the share of players back exactly 1, 7, 30 days later, among those first seen at least that many days ago; raw events live 30 days, so D30 needs a full month), sessions a day, the share who finished the game (the GameCompleted event), who played under 2 hours, who did not return after the first session, the first action and the first reward of the first session (median). What comes first depends on the business model of “Game overview”: premium — finished, under 2 hours, first session; free-to-play and services — D1 / D7 / D30.",
+            "<b>Retention & the first minutes</b> (in “Overview”): D1 / D7 / D30 (the share of players back exactly 1, 7, 30 days later, among those first seen at least that many days ago; raw events live 30 days, so D30 needs a full month), sessions a day, the share who finished the game (the GameCompleted event), who played under 2 hours, who did not return after the first session, the first action and the first reward of the first session (median). What comes first depends on the business model of “Game overview”: premium — finished, under 2 hours, first session; free-to-play and services — D1 / D7 / D30. It only works when the game sends <code>SessionStarted</code> on every launch and <code>SessionEnded</code> on quit with a stable player_id, and <code>GameCompleted</code> at the end; Claude Code sees this as required in <code>get_telemetry_schema</code>.",
             "“✦ AI report” (paid, price shown first): potential issues — Boredom Risk, never “players are bored”.",
             "“Plan it for Claude Code”: the chosen change becomes task EX.n in the Production plan (the number follows the highest; a ↻ plan regeneration does not remove it). “Events today” comes from the daily telemetry total; the build filter is applied in the query itself. A re-sent event (same event_id) is not counted again — the server answers with duplicates.",
             "After the task — a new playtest and “Check the change”: metrics are compared with the baseline. Success is the check, not the finished task.",

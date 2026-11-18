@@ -12,5 +12,9 @@ files.forEach((f) => {
   check(r.status === 0, name + ' parses' + (r.status ? ': ' + (r.stderr || '').split('\n').slice(0, 4).join(' ') : ''));
   check(!/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(fs.readFileSync(f, 'utf8')), name + ' has no control characters');
 });
+// a second function declaration with the same name in the Bible's one big scope silently replaces the first (v2.146.1: a design-panel
+// cardChip(id) took the place of the plan's cardChip(ref) — the ladder matrix showed raw ids)
+const dupes = (fs.readFileSync(path.join(app, 'gamebible.js'), 'utf8').match(/^  function [A-Za-z0-9_$]+/gm) || []).map((x) => x.trim()).filter((x, i, a) => a.indexOf(x) !== i);
+check(!dupes.length, 'gamebible.js declares each top-level function once' + (dupes.length ? ': ' + dupes.join(', ') : ''));
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);

@@ -107,6 +107,7 @@ function telemetrySchema(game, cards, entities, experiments, playtests) {
     batch: `POST JSON { "events": [ …up to ${MAX_BATCH} envelopes… ] }. Queue locally, send every 30–60 s and on SessionEnded/pause, retry with backoff; the answer is { accepted, duplicates?, rejected:[{ i, reason }] }. Never block the game thread.`,
     envelope: ENVELOPE,
     standard_events: STANDARD_EVENTS,
+    required_events: 'REQUIRED, or «Досвід гравців» stays empty: SessionStarted as the very first event of every launch and SessionEnded on quit / pause-to-menu (the same session_id in between, a player_id stable across launches — D1 / D7 / D30, session length and sessions a day are counted from them); GameCompleted once when the player finishes the game (completion share); the first MechanicUsed / ObjectInteracted / EnemyKilled / CombatStarted / CheckpointReached and RewardReceived / ItemAcquired / CollectibleFound of the first session (time to the first action / reward — FTUE). Send them before any custom event.',
     meaningful_events: (custom.some((c) => /так|yes|true/i.test(Object.values(c).join(' '))) ? 'standard defaults + the custom events marked meaningful: ' : 'standard defaults: ') + DEFAULT_MEANINGFUL.join(', '),
     custom_events: custom,
     id_map: idMap,

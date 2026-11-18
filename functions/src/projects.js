@@ -158,7 +158,7 @@ exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, r
         engine: { profile: /^[a-z0-9-]{1,40}$/.test(b.engine || '') ? b.engine : 'generic' }, // the Bible's ENGINES ids
         sections: [], canonOptIn: true,
         guide: { on: true, stage: 0 }, // 🧭 Гід: the menu opens stage by stage (the Bible's GUIDE)
-        hiddenSections: ['experience', 'telemetry', 'tech', 'knowledge', 'marketing'], // owner: off until the author turns them on (⚙ → «Розділи гри в меню»)
+        hiddenSections: ['experience', 'telemetry', ...(fromDemo ? [] : ['tech']), 'knowledge', 'marketing'], // owner: off until the author turns them on (⚙ → «Розділи гри в меню»); the demo shows «Технічне» (stage 10 is filled)
         createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
       if (fromDemo) {

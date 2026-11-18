@@ -129,7 +129,7 @@ window.__GB_EXPORT = function (B) {
     return mdText.split(/\n\n/).map(function (blk) {
       var h = blk.match(/^(#{1,4}) (.*)$/); if (h && blk.indexOf("\n") < 0) return "<h" + h[1].length + ">" + esc(h[2]) + "</h" + h[1].length + ">";
       if (/^> /.test(blk)) return "<blockquote>" + esc(blk.slice(2)) + "</blockquote>";
-      if (/^---/.test(blk)) return "";
+      if (/^---/.test(blk) || blk.trim() === X.made + " · " + X.site) return ""; // the page has its own signature with a link
       var imgs = blk.split("\n").filter(function (l) { return /^!\[[^\]]*\]\([^)]+\)$/.test(l); });
       if (imgs.length && imgs.length === blk.split("\n").length) return (imgs.length > 1 ? '<div class="pics">' : '') + imgs.map(function (l) { var u = l.match(/\(([^)]+)\)$/)[1]; return /^https:\/\//.test(u) ? '<img src="' + esc(u) + '" alt="">' : ''; }).join("") + (imgs.length > 1 ? '</div>' : '');
       if (/^\*[^*].*\*$/.test(blk)) return '<p class="facts"><i>' + esc(blk.slice(1, -1)) + '</i></p>';
