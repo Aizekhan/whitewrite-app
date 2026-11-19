@@ -391,8 +391,8 @@
           ["p", "Схвалюєш <b>лише ти</b>. Жоден ключ агента не може сам схвалити запит. Три способи:"],
           ["ul", [
             "кнопка <b>✔ Схвалити / ✖ Відхилити</b> в «💬 Агенти»;",
-            "кнопка в Telegram (одноразова, діє 24 год, лише з твого Telegram);",
-            "через Claude: у Telegram-повідомленні є 6-значний код — скажи Claude «так, код 123456». Без коду Claude схвалити не може (<b>resolve_approval</b>).",
+            "кнопка ✔ / ✖ у Telegram — натиснув, і все: агент сам побачить рішення, код писати не треба (кнопка одноразова, діє 24 год, лише з твого Telegram);",
+            "<i>або</i> словами в чаті з Claude, замість кнопки: у Telegram-повідомленні є 6-значний код — скажи Claude «так, код 123456». Код потрібен лише тут: так сервіс знає, що «так» сказав саме ти, а не агент сам собі (<b>resolve_approval</b>). Після рішення код зникає з повідомлення.",
           ]],
           ["p", "У стрічці видно, як схвалено: «у WhiteWrite», «у Telegram» чи «автор через Claude»."],
           ["h", "Telegram для агентів"],
@@ -2145,8 +2145,8 @@
           ["p", "<b>Only you</b> approve. No agent key can approve a request by itself. Three ways:"],
           ["ul", [
             "the <b>✔ Approve / ✖ Reject</b> buttons in «💬 Agents»;",
-            "the button in Telegram (one use, valid 24 h, only from your Telegram);",
-            "through Claude: the Telegram message holds a 6-digit code — tell Claude «yes, code 123456». Without the code Claude cannot approve (<b>resolve_approval</b>).",
+            "the ✔ / ✖ button in Telegram — press it and you are done: the agent sees the decision itself, no code to type (one use, valid 24 h, only from your Telegram);",
+            "<i>or</i> in words in a chat with Claude, instead of the button: the Telegram message holds a 6-digit code — tell Claude «yes, code 123456». The code is needed only here: it proves the «yes» came from you, not from the agent itself (<b>resolve_approval</b>). After the decision the code disappears from the message.",
           ]],
           ["p", "The feed shows how it was approved: «in WhiteWrite», «in Telegram» or «the author through Claude»."],
           ["h", "Telegram for the agents"],

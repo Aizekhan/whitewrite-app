@@ -67,18 +67,20 @@ async function notify(gref, world, game, m) {
   const who = `${m.from.label || 'Агент'} (${ROLE_UK[m.from.role] || m.from.role || ''})`;
   let text = `🎮 ${clip(game.title, 60)}\n💬 ${who} ${TYPE_UK[m.type] || m.type}:\n«${clip(m.text, 300)}»`;
   const kb = [[{ text: '💬 Відповісти в WhiteWrite', url: bibleUrl(worldId, gameId) }]];
-  let aid = '';
+  let aid = '', base = '';
   if (m.type === 'approval_request') {
     if (!d.ownerTg) return false; // nobody could press: the author approves in the Bible
     const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
     aid = approvalId(worldId, gameId, m.id);
     await db.collection('agentApprovals').doc(aid).set({ worldId, gameId, msgId: m.id, uid: owner, codeHash: sha(aid + ':' + code), exp: Date.now() + AC.CODE_TTL, used: false, tries: 0, createdAt: ts(),
       expireAt: new Date(Date.now() + 7 * 24 * 3600 * 1000) });
-    text += `\n\nКод для Claude: ${code} (діє 24 год) — скажи «так, код ${code}», якщо схвалюєш через Claude.`;
+    // the button is the way; the code is only for approving in words in a chat with Claude (owner: «що це означає, якщо мені ще й приходиться код писати»)
+    base = text;
+    text += `\n\nСхвали кнопкою — або скажи цей код Claude у чаті. Досить одного.\nКод: ${code} (діє 24 год)`;
     kb.unshift([{ text: '✔ Схвалити', callback_data: `ap:${aid}:y` }, { text: '✖ Відхилити', callback_data: `ap:${aid}:n` }]);
   }
   const sent = await tg('sendMessage', { chat_id: d.chatId, text, reply_markup: { inline_keyboard: kb }, disable_web_page_preview: true });
-  if (aid) await db.collection('agentApprovals').doc(aid).set({ tg: { chat: d.chatId, mid: sent.message_id } }, { merge: true });
+  if (aid) await db.collection('agentApprovals').doc(aid).set({ tg: { chat: d.chatId, mid: sent.message_id, text: base } }, { merge: true });
   return true;
 }
 
@@ -109,9 +111,11 @@ async function applyApproval(gref, msgId, o) {
   const aref = db.collection('agentApprovals').doc(approvalId(gref.parent.parent.id, gref.id, msgId)), a = await aref.get().catch(() => null);
   if (a && a.exists) {
     await aref.set({ used: true }, { merge: true });
-    const t = a.data().tg; // the buttons go: the request is decided wherever it was
-    if (t && botToken()) await tg('editMessageReplyMarkup', { chat_id: t.chat, message_id: t.mid, reply_markup: { inline_keyboard: [] } }).catch(() => {});
-    if (t && botToken() && o.via !== 'telegram') await tg('sendMessage', { chat_id: t.chat, reply_to_message_id: t.mid, text: (o.approve ? '✔ Схвалено' : '✖ Відхилено') + (o.via === 'claude' ? ' через Claude' : ' у WhiteWrite') }).catch(() => {});
+    const t = a.data().tg; // the buttons and the code go: the request is decided wherever it was, the message says how
+    const verdict = (o.approve ? '✅ Схвалено' : '❌ Відхилено') + (o.via === 'claude' ? ' через Claude' : o.via === 'telegram' ? '' : ' у WhiteWrite');
+    if (t && botToken()) await (t.text ? tg('editMessageText', { chat_id: t.chat, message_id: t.mid, text: t.text + '\n\n' + verdict, reply_markup: { inline_keyboard: [] }, disable_web_page_preview: true })
+      : tg('editMessageReplyMarkup', { chat_id: t.chat, message_id: t.mid, reply_markup: { inline_keyboard: [] } })).catch(() => {});
+    if (t && !t.text && botToken() && o.via !== 'telegram') await tg('sendMessage', { chat_id: t.chat, reply_to_message_id: t.mid, text: verdict }).catch(() => {});
   }
   return true;
 }
@@ -229,8 +233,8 @@ async function onButton(cq) {
   if (ad.used || ad.exp < Date.now()) return answer('Кнопка вже не діє (одноразова, 24 год) — запит чекає в WhiteWrite');
   const gref = db.collection('worlds').doc(ad.worldId).collection('games').doc(ad.gameId), yes = m[2] === 'y';
   try { await applyApproval(gref, ad.msgId, { approve: yes, via: 'telegram', by: str(cq.from.username || cq.from.first_name, 80) }); } catch (e) { return answer(e.status ? e.message : 'Не вдалося'); }
-  if (cq.message) await tg('sendMessage', { chat_id: cq.message.chat.id, reply_to_message_id: cq.message.message_id, text: yes ? '✔ Схвалено' : '✖ Відхилено' }).catch(() => {});
-  return answer(yes ? '✔ Схвалено' : '✖ Відхилено');
+  // applyApproval already rewrote the message (no code, no buttons, «✔ Схвалено у Telegram»); the agent sees the decision in get_agent_inbox
+  return answer((yes ? '✅ Схвалено' : '❌ Відхилено') + '. Агент побачить це сам — більше нічого робити не треба.');
 }
 exports.agentTelegram = onRequest({ region: 'us-central1', secrets: [telegramBotToken], invoker: 'public', timeoutSeconds: 30 }, async (req, res) => {
   if (req.method !== 'POST' || !botToken() || req.get('X-Telegram-Bot-Api-Secret-Token') !== hookSecret()) return res.status(403).send('');
