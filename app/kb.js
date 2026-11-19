@@ -161,6 +161,7 @@
             "<a class=\"art__link\" data-art=\"agent-loop\">Задачі, звіти й Change Request</a> — як агент бере роботу і як ти її приймаєш.",
             "<a class=\"art__link\" data-art=\"agent-updates\">Як Claude Code дізнається про зміни</a> — повернута задача, нова картка, відкриті ворота.",
             "<a class=\"art__link\" data-art=\"agent-github\">Звірка репозиторію з Біблією</a> — коли код і дизайн могли розійтися.",
+            "<b>Нове:</b> <a class=\"art__link\" data-art=\"agents-two\">💬 Два агенти</a> — Claude у браузері чи на телефоні веде GDD як геймдизайнер, Claude Code пише гру, а ти бачиш їхню розмову й схвалюєш важливе (навіть кнопкою в Telegram).",
           ]],
           ["h", "Поради"],
           ["ul", [
@@ -1914,6 +1915,7 @@
             "<a class=\"art__link\" data-art=\"agent-loop\">Tasks, reports and Change Requests</a> — how the agent takes work and how you accept it.",
             "<a class=\"art__link\" data-art=\"agent-updates\">How Claude Code learns about changes</a> — a returned task, a new card, an opened gate.",
             "<a class=\"art__link\" data-art=\"agent-github\">Check the repository against the Bible</a> — when code and design may have drifted.",
+            "<b>New:</b> <a class=\"art__link\" data-art=\"agents-two\">💬 Two agents</a> — Claude in the browser or on the phone keeps the GDD as the game designer, Claude Code writes the game, and you see their talk and approve what matters (even with a Telegram button).",
           ]],
           ["h", "Tips"],
           ["ul", [

@@ -9761,9 +9761,9 @@
       reissue: "Перевипустити", reQ: "Створити новий ключ із тією ж назвою й роллю і відкликати цей? Агент зі старим ключем більше не підключиться.",
       webOnce: "Ключ показано один раз — скопіюй текст нижче для Claude у браузері чи на телефоні", webHow: "Claude у браузері чи на телефоні: Налаштування → Можливості → дозволь домен us-central1-whitewrite-app.cloudfunctions.net, а цей текст встав у чат (або в інструкції проєкту Claude). Ключ не показуй нікому.",
       tgTitle: "✈ Telegram для агентів", tgHint: "Питання й запити на схвалення приходять у Telegram одразу: ✔ / ✖ кнопками або «так, код …» у чаті з Claude. Нотатки, передачі роботи й відгуки — раз на день коротким зведенням. Кнопки діють лише для тебе.",
-      tgOff: "Бот платформи ще не налаштований.", tgS1: "1. Твій Telegram", tgS1Hint: "Без нього ніхто не зможе схвалити кнопкою: бот запам'ятає лише тебе.", tgMe: "Підключити мій Telegram",
+      tgOff: "Бот платформи ще не налаштований.", tgS1: "1. Твій Telegram", tgS1Hint: "Без нього ніхто не зможе схвалити кнопкою: бот запам'ятає лише тебе.", tgMe: "Підключити мій Telegram", tgWait: "Відкриваю Telegram…",
       tgS2: "2. Свій чат чи канал гри", opt: "за бажанням", tgS2Hint: "Повідомлення йтимуть у групу чи канал гри, а не в особистий чат. Схвалювати там теж можеш лише ти.", tgChat: "Підключити групу чи канал",
-      tgOpenMe: "Відкрий посилання й натисни «Start» у боті:", tgOpenChat: "Група: відкрий посилання й обери групу. Канал: додай {bot} адміністратором каналу й опублікуй там цей код (діє 15 хв):",
+      tgOpenMe: "Telegram відкрито в новій вкладці — натисни там «Start» (або «Запустити»), потім «Готово — оновити». Не відкрилось — ось посилання:", tgOpenChat: "Група: відкрий посилання й обери групу. Канал: додай {bot} адміністратором каналу й опублікуй там цей код (діє 15 хв):",
       tgDone: "Готово — оновити", unlink: "Відʼєднати", unlinkQ: "Відʼєднати Telegram? Повідомлення агентів туди більше не йтимуть." },
     en: { hint: "The game designer (Claude in the browser or on the phone) and the programmer (Claude Code on the PC) each work with their own key and leave messages here for each other and for you. One agent's message to another is a request, not an order; anything important the agent asks you first («asks for approval»).",
       kb: "How the two agents work →", type: { note: "FYI", question: "Question", feedback: "Feedback", approval_request: "Asks for approval", handoff: "Handoff", decision: "Author's decision" },
@@ -9780,9 +9780,9 @@
       reissue: "Reissue", reQ: "Make a new key with the same name and role and revoke this one? An agent with the old key will no longer connect.",
       webOnce: "The key is shown once — copy the text below for Claude in the browser or on the phone", webHow: "Claude in the browser or on the phone: Settings → Capabilities → allow the domain us-central1-whitewrite-app.cloudfunctions.net, then paste this text into the chat (or into the Claude project's instructions). Show the key to no one.",
       tgTitle: "✈ Telegram for the agents", tgHint: "Questions and approval requests come to Telegram at once: ✔ / ✖ buttons, or «yes, code …» in the chat with Claude. Notes, handoffs and feedback — once a day in a short digest. The buttons work only for you.",
-      tgOff: "The platform bot is not set up yet.", tgS1: "1. Your Telegram", tgS1Hint: "Without it nobody can approve with a button: the bot remembers only you.", tgMe: "Connect my Telegram",
+      tgOff: "The platform bot is not set up yet.", tgS1: "1. Your Telegram", tgS1Hint: "Without it nobody can approve with a button: the bot remembers only you.", tgMe: "Connect my Telegram", tgWait: "Opening Telegram…",
       tgS2: "2. The game's own chat or channel", opt: "optional", tgS2Hint: "Messages go to the game's group or channel instead of your private chat. Only you can approve there too.", tgChat: "Connect a group or channel",
-      tgOpenMe: "Open the link and press «Start» in the bot:", tgOpenChat: "Group: open the link and pick the group. Channel: add {bot} as an admin of the channel and post this code there (valid 15 min):",
+      tgOpenMe: "Telegram opened in a new tab — press «Start» there, then «Done — refresh». Did not open — here is the link:", tgOpenChat: "Group: open the link and pick the group. Channel: add {bot} as an admin of the channel and post this code there (valid 15 min):",
       tgDone: "Done — refresh", unlink: "Disconnect", unlinkQ: "Disconnect Telegram? The agents' messages will no longer go there." }
   }[LANG];
   var agMsgs = [], agMsg = "", agTg = null, agTgMsg = "", agTgLink = null, newKeyRole = "programmer";
@@ -9893,9 +9893,16 @@
     if ((t = e.target.closest("[data-agclose]"))) { fnCall("agents", { op: t.dataset.agop || "close", worldId: worldId, gameId: gameId, id: t.dataset.agclose }).catch(function (er) { notify(STR.failed + ": " + er.message); }); return true; }
     if (e.target.closest("[data-agkeys]")) { setTab = "integ"; goSection("settings"); return true; }
     if ((t = e.target.closest("[data-agtglink]"))) {
-      var lb = t, mode0 = t.dataset.agtglink; lb.disabled = true;
-      fnCall("agents", { op: "tgLink", mode: mode0, worldId: worldId, gameId: gameId }).then(function (r) { agTgLink = { mode: mode0, url: r.url, code: r.code, bot: r.bot }; agTgMsg = ""; render(); },
-        function (er) { lb.disabled = false; agTgMsg = er.message; render(); });
+      // the tab opens on the click itself (a tab opened after the server's answer is blocked), the button says it is working, and after
+      // the re-render the Telegram block is scrolled into view (owner: «кнопка нічого не робить» — the link appeared out of sight)
+      var lb = t, mode0 = t.dataset.agtglink, win = null; lb.disabled = true; lb.textContent = A.tgWait;
+      try { win = window.open("", "_blank"); } catch (e0) {}
+      var show = function () { render(); var bx = [].filter.call(document.querySelectorAll("#view section.setbox"), function (x) { return x.querySelector("[data-agtgref], [data-agtglink], [data-agtgun]"); })[0]; if (bx) bx.scrollIntoView({ block: "center" }); };
+      fnCall("agents", { op: "tgLink", mode: mode0, worldId: worldId, gameId: gameId }).then(function (r) {
+        agTgLink = { mode: mode0, url: r.url, code: r.code, bot: r.bot }; agTgMsg = "";
+        if (win) try { win.location.href = r.url; } catch (e1) {}
+        show();
+      }, function (er) { if (win) try { win.close(); } catch (e2) {} agTgMsg = er.message; show(); });
       return true;
     }
     if ((t = e.target.closest("[data-agtgun]"))) {
