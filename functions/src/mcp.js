@@ -94,8 +94,8 @@ const TOOLS = [
   { name: 'get_content_export', description: 'The approved quests and dialogues of this game in the RPG Framework (≥ 0.32.1) import format "rpgframework.content/1", plus how to import them. Write `content` to a JSON file in the project and run the importer; refs (c:<card> / canon ids) are opaque strings.',
     inputSchema: { type: 'object', properties: {} } },
   // Setup, Unity environment, Project Knowledge, development activity log (functions/setup-guides.js holds the instructions)
-  { name: 'get_guide', description: 'Instructions from WhiteWrite for this game\'s engine: setup (set everything up: the PC, the project, the log, and where to stop for the user; connection rules — the steps follow the game\'s engine profile: a Unity / RPG Framework game gets Git, Unity Hub, Unity CLI, Unity 6 and the framework; a Roblox game gets Studio and Rojo), unity_env (Unity only: environment checks with confirmed Unity CLI / Editor commands), knowledge (Unity only for now: how to index the project read-only and send it), activity_log (any engine: how and when to report development sessions).',
-    inputSchema: { type: 'object', required: ['topic'], properties: { topic: { type: 'string', enum: ['setup', 'unity_env', 'knowledge', 'activity_log'] } } } },
+  { name: 'get_guide', description: 'Instructions from WhiteWrite for this game\'s engine: setup (set everything up: the PC, the project, the log, and where to stop for the user; connection rules — the steps follow the game\'s engine profile: a Unity / RPG Framework game gets Git, Unity Hub, Unity CLI, Unity 6 and the framework; a Roblox game gets Studio and Rojo), unity_env (Unity only: environment checks with confirmed Unity CLI / Editor commands), knowledge (Unity only for now: how to index the project read-only and send it), activity_log (any engine: how and when to report development sessions), agents (any engine: the CLAUDE.md block on the agents of the game — roles, when to read get_agent_inbox, what to write, approvals).',
+    inputSchema: { type: 'object', required: ['topic'], properties: { topic: { type: 'string', enum: ['setup', 'unity_env', 'knowledge', 'activity_log', 'agents'] } } } },
   { name: 'report_unity_environment', description: 'Unity only. Send the result of the Unity environment check (get_guide unity_env): OS, Editor and CLI versions, project discovery and each check with its exit code. Replaces the previous report.',
     inputSchema: { type: 'object', required: ['checks'], properties: {
       os: { type: 'string' }, editor: { type: 'object', properties: { version: { type: 'string' }, path_hint: { type: 'string' } } },
@@ -1630,7 +1630,7 @@ async function callTool(name, args, key) {
     }
     case 'get_guide': {
       const g = GUIDES.guide(str(args.topic, 20), (ctx.game.engine && ctx.game.engine.profile) || 'generic'); // a Roblox game gets the Roblox setup
-      if (!g) throw rpcError(-32602, 'topic must be setup, unity_env, knowledge or activity_log');
+      if (!g) throw rpcError(-32602, 'topic must be setup, unity_env, knowledge, activity_log or agents');
       return g;
     }
     case 'report_unity_environment': {

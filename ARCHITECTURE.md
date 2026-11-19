@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.148.2 (2026-11-20)
+**Version:** 2.148.3 (2026-11-20)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -821,6 +821,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.148.3** The agents block for CLAUDE.md (owner: «чому б там не добавити інфу про агентів»): `functions/setup-guides.js` topic `agents` (marker `whitewrite.agents/1`, `AGENTS_SCHEMA`) — roles, when to read `get_agent_inbox`, what to post, approvals and the code, no keys, the thread limit; MCP `get_guide {topic:"agents"}`; `AGENTS_RULE` (the session rule) and every setup guide ask to append it when missing; «⧉ Скопіювати все для PowerShell» and «📂 Підготувати теку гри» append it by its own marker (also where the log block already is); «💬 Агенти» → «📄 Блок агентів для CLAUDE.md»; KB `agents-two` uk + en.
 - **v2.148.2** Telegram approvals (owner: «нажимаю “Так, схвалити” — що це означає, якщо мені ще й приходиться код писати»): the message says «Схвали кнопкою — або скажи цей код Claude у чаті. Досить одного.»; after a decision the bot edits the same message — no code, no buttons, «✅ Схвалено» / «❌ Відхилено» (button), «… через Claude» (code), «… у WhiteWrite» (`agentApprovals.tg.text` = the message without the code); no extra reply after a button; KB `agents-two` uk + en.
 - **v2.148.1** «Підключити мій Telegram» (owner: «кнопка нічого не робить»): the link came back below the fold — now the Telegram tab opens on the click itself (a blank tab that gets the bot link when the server answers; a tab opened after an async answer is blocked), the button says «Відкриваю Telegram…», the block scrolls into view and keeps the link as a fallback; KB «Шлях з агентом» points to «💬 Два агенти» (owner: the KB is enough to tell users).
 - **v2.148.0** 💬 Агенти (owner, §5c): keys with a name and a role (Геймдизайнер / Програміст / Лише читання) in one place — Settings → Інтеграції → «🔑 Ключі агентів» (the plan and «Для досвідчених» link there; «Перевипустити»); roles filter MCP tools, only the programmer claims tasks, `get_updates` shows another agent's card changes, cards say which agent changed them; the server-written channel `agentMessages` (note / question / feedback / approval_request / handoff / the author's decision → the decision log), MCP `get_agent_inbox` / `post_agent_message` / `reply_agent_message` / `resolve_approval` (Telegram code only), no keys in messages, a thread waits for the author after 3 agent messages; Cloud Functions `agents` (the author; approvals — the owner alone), `agentTelegram` (the bot's webhook: link the author's Telegram and the game's group / channel, ✔ / ✖ buttons from the owner's Telegram only, once, 24 h), `agentDigest` (daily digest); the Bible section «💬 Агенти» (stage 11); `AGENTS_RULE` in the session rule (stage 2: Claude Code reads the inbox at the start, before each task, after each commit); registry `agentChat`; KB `agents-two` uk + en; `tests/agent-chat.test.cjs`.

@@ -9753,7 +9753,7 @@
       write: "Написати агентам", ph: "Напиши агентам: питання, відгук або рішення…", send: "Надіслати", reply: "Відповісти", replyPh: "Відповідь…", close: "Закрити гілку", reopen: "Відкрити знову",
       approve: "✔ Схвалити", reject: "✖ Відхилити", pending: "чекає твого рішення", pendingN: "Чекають твого рішення: {n}", closed: "гілку закрито",
       ok: "✔ Схвалено", no: "✖ Відхилено", via: { whitewrite: "у WhiteWrite", telegram: "у Telegram", claude: "автор через Claude" },
-      waits: "Гілка чекає тебе: агенти написали 3 повідомлення поспіль.", tgLine: "Telegram для агентів:", tgOn: "підключено", tgSet: "Налаштувати →",
+      waits: "Гілка чекає тебе: агенти написали 3 повідомлення поспіль.", mdTitle: "📄 Блок агентів для CLAUDE.md", mdHint: "Щоб Claude Code у кожній сесії знав правила каналу: ролі, коли читати повідомлення, що писати, схвалення. «⧉ Скопіювати все для PowerShell» і «📂 Підготувати теку гри» додають його самі; в уже наявний проєкт — встав у кінець CLAUDE.md у теці гри або скажи Claude Code: «Додай у CLAUDE.md блок агентів з WhiteWrite».", tgLine: "Telegram для агентів:", tgOn: "підключено", tgSet: "Налаштувати →",
       keysTitle: "🔑 Ключі агентів", keysHint: "Окремий ключ для кожного агента: так сервіс знає, хто що написав, а «що нового» в кожного своє. Ключ показується один раз.",
       keysN: "Ключів агентів: {n}", keysGo: "🔑 Ключі агентів →", label: "Назва ключа", labelPh: "напр. Claude у браузері", newKey: "＋ Новий ключ",
       roleHint: { designer: "читає все, пише картки GDD і повідомлення; задачі не бере", programmer: "бере й здає задачі, журнал, баги, картки «що зроблено», повідомлення", readonly: "лише читає — для перевірок і запланованих задач" },
@@ -9772,7 +9772,7 @@
       write: "Write to the agents", ph: "Write to the agents: a question, feedback or a decision…", send: "Send", reply: "Reply", replyPh: "Reply…", close: "Close the thread", reopen: "Reopen",
       approve: "✔ Approve", reject: "✖ Reject", pending: "waits for your decision", pendingN: "Waiting for your decision: {n}", closed: "thread closed",
       ok: "✔ Approved", no: "✖ Rejected", via: { whitewrite: "in WhiteWrite", telegram: "in Telegram", claude: "the author through Claude" },
-      waits: "The thread waits for you: the agents wrote 3 messages in a row.", tgLine: "Telegram for the agents:", tgOn: "connected", tgSet: "Set up →",
+      waits: "The thread waits for you: the agents wrote 3 messages in a row.", mdTitle: "📄 The agents block for CLAUDE.md", mdHint: "So Claude Code knows the rules of the channel in every session: roles, when to read the messages, what to write, approvals. «⧉ Copy everything for PowerShell» and «📂 Prepare the game folder» add it themselves; in an existing project — paste it at the end of CLAUDE.md in the game folder, or tell Claude Code: «Add the agents block from WhiteWrite to CLAUDE.md».", tgLine: "Telegram for the agents:", tgOn: "connected", tgSet: "Set up →",
       keysTitle: "🔑 Agent keys", keysHint: "A key for each agent: the service knows who wrote what, and each has its own «what's new». A key is shown once.",
       keysN: "Agent keys: {n}", keysGo: "🔑 Agent keys →", label: "Key name", labelPh: "e.g. Claude in the browser", newKey: "＋ New key",
       roleHint: { designer: "reads everything, writes GDD cards and messages; takes no tasks", programmer: "takes and hands in tasks, the log, bugs, «what was built» cards, messages", readonly: "only reads — for checks and scheduled jobs" },
@@ -9814,6 +9814,8 @@
     var opts = function (cur) { return types.map(function (t) { return '<option value="' + t + '"' + (t === cur ? ' selected' : '') + '>' + esc(A.type[t]) + '</option>'; }).join(""); };
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header><p class="hint">' + A.hint + ' <a href="#" class="kblink" data-kb="agents-two">' + A.kb + '</a></p>' +
       (ME.owner ? '<p class="muted">' + A.tgLine + ' ' + (agTg && agTg.me ? A.tgOn + (agTg.chat ? ' · ' + esc(agTg.chat.title || "") : '') : '—') + ' <button class="btn mini" data-agkeys="tg">' + A.tgSet + '</button></p>' : '') +
+      // 💬 v2.148.3: the block for the project's CLAUDE.md (its own marker; «⧉ Скопіювати все для PowerShell» and «📂» add it themselves)
+      (function () { var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide('agents', engProf()); return g ? '<details class="psec"><summary>' + A.mdTitle + '</summary><p class="hint">' + A.mdHint + '</p><pre class="ln-cmd ag-pre">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : ''; })() +
       (pending ? '<p class="warn">⚠ ' + esc(A.pendingN.replace("{n}", pending)) + '</p>' : '') +
       (can ? '<section class="psec ag-box"><h2 class="group">' + A.write + '</h2><div class="setrow"><select id="ag-type" aria-label="' + esc(A.write) + '">' + opts("note") + '</select></div>' +
         '<textarea id="ag-text" rows="3" placeholder="' + esc(A.ph) + '"></textarea><div class="setrow"><button class="btn primary" id="ag-send">' + A.send + '</button><span class="hint" role="status">' + esc(agMsg) + '</span></div></section>' : '');
@@ -11566,13 +11568,16 @@
   // its scope is the folder), the activity-log block appended to CLAUDE.md unless it is there, then the launch lines
   var lnAllMsg = "";
   function allInOne(l, key) {
-    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log", engProf()), dir = psDir(l.dir);
+    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log", engProf()), ag = G && G.guide("agents", engProf()), dir = psDir(l.dir);
     return "# WhiteWrite · " + String(game.title || "").replace(/[\r\n]+/g, " ") + "\n" +
       'New-Item -ItemType Directory -Force "' + dir + '" | Out-Null\n' +
       'cd "' + dir + '"\n' +
       mcpAddCmd(key) + "\n" +
       (md ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.activity/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
         "@'\n" + md.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
+      // 💬 the agents' block has its own marker: added also where the log block already is (v2.148.3)
+      (ag ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.agents/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
+        "@'\n\n" + ag.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
       launchText(l);
   }
   // «📂 Підготувати теку гри»: the browser's folder picker (Chrome / Edge) writes what the PowerShell paste does, minus installing:
@@ -11593,7 +11598,12 @@
     await writeText(dir, ".mcp.json", JSON.stringify(cfg, null, 2) + "\n"); done.push(".mcp.json");
     var cl = await readText(dir, "CLAUDE.md");
     if (md && (cl || "").indexOf("whitewrite.activity/1") < 0) {
-      await writeText(dir, "CLAUDE.md", (cl ? cl.replace(/\s*$/, "\n\n") : "") + md.markdown + "\n"); done.push("CLAUDE.md");
+      cl = (cl ? cl.replace(/\s*$/, "\n\n") : "") + md.markdown + "\n";
+      await writeText(dir, "CLAUDE.md", cl); done.push("CLAUDE.md");
+    }
+    var ag = G && G.guide("agents", engProf()); // 💬 its own marker: added also where the log block already is (v2.148.3)
+    if (ag && (cl || "").indexOf("whitewrite.agents/1") < 0) {
+      await writeText(dir, "CLAUDE.md", (cl ? cl.replace(/\s*$/, "\n\n") : "") + ag.markdown + "\n"); if (done.indexOf("CLAUDE.md") < 0) done.push("CLAUDE.md");
     }
     var gi = await readText(dir, ".gitignore");
     if (!/^\/?\.mcp\.json\s*$/m.test(gi || "")) {

@@ -380,6 +380,7 @@
           ]],
           ["h", "Як підʼєднати Claude Code"],
           ["p", "Як завжди — «⧉ Скопіювати все для PowerShell» у кроці 2 (ключ «Claude Code на ПК», роль «Програміст») або ключ із роллю «Програміст» і команда <b>claude mcp add</b>, яку WhiteWrite показує поруч (<a class=\"art__link\" data-art=\"agent-connect\">Крок 2</a>)."],
+          ["p", "<b>Блок агентів у CLAUDE.md.</b> Щоб Claude Code у кожній сесії знав правила каналу (ролі, коли читати повідомлення, що писати, коли просити дозволу, як схвалюють кодом), у CLAUDE.md гри є окремий блок «the game's agents» (позначка <b>whitewrite.agents/1</b>). «⧉ Скопіювати все для PowerShell» і «📂 Підготувати теку гри» додають його самі — і в проєкт, де блок журналу вже є. Блок для ручного копіювання — у «💬 Агенти» → «📄 Блок агентів для CLAUDE.md»; а Claude Code, побачивши, що блоку немає, сам запропонує його додати (<b>get_guide agents</b>)."],
           ["h", "Хто що пише в «💬 Агенти»"],
           ["ul", [
             "Агенти: <b>до відома</b>, <b>питання</b>, <b>відгук</b>, <b>просить дозволу</b> (approval_request), <b>передає роботу</b> (handoff: «змінив GDD / код — ось картки й коміти»). Інструменти — <b>post_agent_message</b>, <b>reply_agent_message</b>, <b>get_agent_inbox</b>.",
@@ -409,6 +410,7 @@
           ["prompt", "Перевір get_agent_inbox у WhiteWrite. Якщо Claude Code щось питав про дизайн — відповідай у його гілці; зміни в GDD зроби через save_card і залиш handoff з картками."],
           ["prompt", "Передай Claude Code через WhiteWrite: я змінив швидкість ривка в картці «Ривок» — нехай онови код і напише, коли готово."],
           ["p", "Програмісту (Claude Code):"],
+          ["prompt", "Додай у CLAUDE.md блок агентів з WhiteWrite (get_guide agents), якщо його там ще немає — лише дописати в кінець."],
           ["prompt", "Перевір «Агентів» у WhiteWrite (get_agent_inbox) і розкажи, що там. На питання дизайну відповідай у гілці, а перш ніж щось видаляти чи переписувати систему — попроси в мене дозволу через approval_request."],
           ["prompt", "Після цього коміту залиш у WhiteWrite handoff для геймдизайнера: що змінено, які картки й коміт."],
           ["p", "Тобі в чаті з Claude на телефоні:"],
@@ -2134,6 +2136,7 @@
           ]],
           ["h", "Connecting Claude Code"],
           ["p", "As always — «⧉ Copy everything for PowerShell» in step 2 (the key «Claude Code on the PC», role «Programmer»), or a key with the role «Programmer» and the <b>claude mcp add</b> command WhiteWrite shows beside it (<a class=\"art__link\" data-art=\"agent-connect\">Step 2</a>)."],
+          ["p", "<b>The agents block in CLAUDE.md.</b> So that Claude Code knows the rules of the channel in every session (roles, when to read the messages, what to write, when to ask for permission, how a code approves), the game's CLAUDE.md has its own block «the game's agents» (marker <b>whitewrite.agents/1</b>). «⧉ Copy everything for PowerShell» and «📂 Prepare the game folder» add it themselves — also to a project that already has the log block. The block to copy by hand is in «💬 Agents» → «📄 The agents block for CLAUDE.md»; and Claude Code, seeing the block is missing, offers to add it itself (<b>get_guide agents</b>)."],
           ["h", "Who writes what in «💬 Agents»"],
           ["ul", [
             "The agents: <b>FYI</b>, <b>question</b>, <b>feedback</b>, <b>asks for approval</b> (approval_request), <b>handoff</b> («I changed the GDD / the code — here are the cards and commits»). The tools — <b>post_agent_message</b>, <b>reply_agent_message</b>, <b>get_agent_inbox</b>.",
@@ -2163,6 +2166,7 @@
           ["prompt", "Check get_agent_inbox in WhiteWrite. If Claude Code asked something about the design — answer in its thread; make the GDD changes with save_card and leave a handoff with the cards."],
           ["prompt", "Pass to Claude Code through WhiteWrite: I changed the dash speed on the «Dash» card — let it update the code and say when it is done."],
           ["p", "To the programmer (Claude Code):"],
+          ["prompt", "Add the agents block from WhiteWrite (get_guide agents) to CLAUDE.md if it is not there yet — append only."],
           ["prompt", "Check «Agents» in WhiteWrite (get_agent_inbox) and tell me what is there. Answer design questions in the thread, and before deleting anything or rewriting a system ask my permission with an approval_request."],
           ["prompt", "After this commit leave a handoff in WhiteWrite for the game designer: what changed, which cards and the commit."],
           ["p", "To you, in the chat with Claude on the phone:"],
