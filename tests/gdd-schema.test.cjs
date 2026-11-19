@@ -12,7 +12,7 @@ const check = (got, want, msg) => { const ok = got === want; console.log((ok ? '
 // the Bible's game sections: GAME[] ids + the special ones gameSectionsAll() adds
 const gameArr = bible.slice(bible.indexOf('var GAME = ['), bible.indexOf('var TL_STD'));
 const ids = [...gameArr.matchAll(/^ {4}\{ id: "([a-z]+)"/gm)].map((m) => m[1]);
-const specials = { GSTORIES: 'gstories', GAMEMAP_SEC: 'gamemap', FORGE_SEC: 'forge', ISSUES: 'issues', PLAN: 'plan', QUESTS: 'quests', DIALOGUES: 'dialogues', EXPERIENCE: 'experience', KNOWLEDGE: 'knowledge', ACTIVITY: 'activity', MARKETING: 'marketing' };
+const specials = { GSTORIES: 'gstories', GAMEMAP_SEC: 'gamemap', FORGE_SEC: 'forge', ISSUES: 'issues', PLAN: 'plan', QUESTS: 'quests', DIALOGUES: 'dialogues', EXPERIENCE: 'experience', KNOWLEDGE: 'knowledge', ACTIVITY: 'activity', AGENTS: 'agents', MARKETING: 'marketing' };
 const allLine = /return GAME\.concat\(own, \[([^\]]+)\]\)/.exec(bible);
 check(!!allLine, true, 'gameSectionsAll lists the special sections');
 (allLine ? allLine[1].split(',').map((x) => x.trim()) : []).forEach((v) => { if (specials[v]) ids.push(specials[v]); else check(v, 'a known special', 'special section ' + v + ' is mapped in this test'); });

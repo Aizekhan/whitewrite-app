@@ -89,7 +89,7 @@ check(/Open tasks are waiting — offer get_next_task/.test(r.message), true, 'n
 check(/name: 'get_updates'/.test(src) && /case 'get_updates':/.test(src), true, 'get_updates is a tool');
 check(/collection\('mcpKeys'\)\.doc\(key\.id\)\.set\(\{ lastUpdatesAt:/.test(src), true, 'the mark lastUpdatesAt goes on the key doc (server)');
 const rules = fs.readFileSync(path.join(__dirname, '../firestore.rules'), 'utf8');
-check(/match \/mcpKeys\/\{keyHash\} \{[^}]*hasOnly\(\['uid', 'worldId', 'gameId', 'label', 'prefix', 'createdAt'\]\)[^]*?allow update: if false;/.test(rules), true, 'a client can neither create nor update lastUpdatesAt');
+check(/match \/mcpKeys\/\{keyHash\} \{[^}]*hasOnly\(\['uid', 'worldId', 'gameId', 'label', 'prefix', 'createdAt', 'role'\]\)[^]*?allow update: if false;/.test(rules), true, 'a client can neither create nor update lastUpdatesAt (a key may carry its agent role, v2.148)');
 const G = require('../functions/setup-guides.js');
 check(/get_updates/.test(G.SESSION_RULE) && /SESSION_RULE/.test(src), true, 'the initialize instructions carry the session rule');
 check(/get_updates/.test(G.guide('setup').markdown) && /get_updates/.test(G.guide('activity_log').markdown), true, 'the setup guide and the CLAUDE.md block ask for get_updates');

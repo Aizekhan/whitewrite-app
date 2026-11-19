@@ -116,7 +116,8 @@ service cloud.firestore {
         : sub in ['experienceIssues', 'experiments', 'playtests', 'telemetry', 'telemetryDaily', 'experience'] ? 'experience'
         : sub in ['knowledge', 'kAssets', 'kRelations'] ? 'knowledge'
         : sub in ['marketing', 'channels', 'posts'] ? 'marketing'
-        : sub == 'env' ? 'settings' : sub;
+        : sub == 'env' ? 'settings'
+        : sub == 'agentMessages' ? 'agents' : sub; // 💬 Агенти (v2.148): written by the server only (functions/src/agents.js, mcp.js)
     }
     // optional fields the Game Bible writes on a game doc of `sub` (v2.78.1): a bug task (kind, severity, repro…) and an A/B decision;
     // absent fields pass, so the older task / experiment writes are unchanged
@@ -299,7 +300,7 @@ service cloud.firestore {
                         (sub != 'tasks' || request.method == 'delete' || isWorldOwner(worldId) || request.resource.data.get('memberEdit', null) == request.auth.uid);
         // the author deleting the game (server-written records: executor log, Project Knowledge, activity log, environment)
         allow delete: if isAuthenticated() && isWorldOwner(worldId) && worldOpen(worldId) &&
-                         sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing'];
+                         sub in ['executions', 'knowledge', 'kAssets', 'kRelations', 'activity', 'env', 'posts', 'channels', 'marketing', 'agentMessages'];
       }
       match /games/{gameId}/{sub}/{docId}/{rest=**} {
         allow read: if isAuthenticated() && readSec(worldId, subSec(sub));
@@ -372,11 +373,19 @@ service cloud.firestore {
     match /repoTokens/{id} {
       allow read, write: if false;
     }
+    // 💬 Агенти (v2.148) — Telegram links, link codes, the game's chat, approval codes, the daily digest: only functions/src/agents.js
+    match /tgLinks/{id} { allow read, write: if false; }
+    match /tgLinkTokens/{id} { allow read, write: if false; }
+    match /agentTg/{id} { allow read, write: if false; }
+    match /agentApprovals/{id} { allow read, write: if false; }
+    match /agentDigestQueue/{id} { allow read, write: if false; }
 
     match /mcpKeys/{keyHash} {
       allow read, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
       allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid &&
-                       request.resource.data.keys().hasOnly(['uid', 'worldId', 'gameId', 'label', 'prefix', 'createdAt']) &&
+                       request.resource.data.keys().hasOnly(['uid', 'worldId', 'gameId', 'label', 'prefix', 'createdAt', 'role']) &&
+                       // 💬 the agent's role (v2.148): what its MCP tools may do (functions/agent-chat.js); none = «Програміст»
+                       request.resource.data.get('role', 'programmer') in ['designer', 'programmer', 'readonly'] &&
                        isWorldOwner(request.resource.data.worldId) && hasGameDev();
       allow update: if false;
     }

@@ -12,6 +12,7 @@ Object.assign(exports, endpoints(require('./src/lemon')));
 Object.assign(exports, endpoints(require('./src/genesis')));
 Object.assign(exports, endpoints(require('./src/gamedev')));
 Object.assign(exports, endpoints(require('./src/mcp')));
+Object.assign(exports, endpoints(require('./src/agents'))); // 💬 Агенти: the author's posts and approvals, the Telegram webhook, the daily digest (v2.148)
 Object.assign(exports, endpoints(require('./src/cosmograph')));
 const narrative = require('./src/narrative'); // quests & dialogues: AI drafts (helpers stay internal)
 exports.narrativeDraft = narrative.narrativeDraft;

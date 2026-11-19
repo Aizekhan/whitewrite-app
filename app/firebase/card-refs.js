@@ -57,6 +57,16 @@ var KINDS = [
       return out;
     } },
   // plan tasks, and task docs outside the plan — bugs (kind 'bug': MCP report_bug / the Bible's bug form) carry kind + severity on `from`
+  // 💬 Агенти (v2.148): a message of the agents' channel names the cards it is about (agentMessages.refs: "c:<id>" / "e:<id>"; tasks / commits are not cards)
+  { id: 'agentMessage', uk: 'Повідомлення агентів', en: 'Agents\' message', fields: ['agentMessages.refs'],
+    edges: function (G) {
+      var out = [];
+      arr(G.agentMessages).forEach(function (m) {
+        if (m.status === 'closed') return;
+        arr(m.refs).forEach(function (r) { r = String(r || ''); if (/^[ce]:/.test(r)) out.push({ from: { type: 'agentMessage', id: m.id, title: String(m.text || '').slice(0, 80) }, to: r, extra: m.type || '' }); });
+      });
+      return out;
+    } },
   { id: 'task', uk: 'Задача', en: 'Task', fields: ['plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)'],
     edges: function (G) {
       var out = [], status = {}, inPlan = {};

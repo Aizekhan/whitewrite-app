@@ -110,6 +110,7 @@
     S('plan', 11, 'Продакшн-план', 'Production plan', { uk: 'Етапи, ворота, задачі для Claude Code.', en: 'Milestones, gates, tasks for Claude Code.' }),
     S('issues', 11, 'Неузгоджене', 'Inconsistencies', { uk: 'Суперечності між GDD, кодом і каноном.', en: 'Conflicts between the GDD, the code and the canon.' }),
     S('activity', 11, 'Журнал розробки', 'Development log', { uk: 'Що зроблено за кожну сесію розробки.', en: 'What each development session did.' }),
+    S('agents', 11, 'Агенти', 'Agents', { uk: 'Розмова агентів гри (геймдизайнер у браузері, програміст на ПК) з автором: питання, відгуки, передача роботи, запити на схвалення, рішення автора.', en: 'The talk of the game agents (the game designer in the browser, the programmer on the PC) with the author: questions, feedback, handoffs, approval requests, the decisions of the author.' }),
     S('experience', 12, 'Досвід гравців', 'Player experience', { uk: 'Метрики, теплові карти, плейтести, проблеми.', en: 'Metrics, heatmaps, playtests, issues.' }),
     S('telemetry', 12, 'Телеметрія', 'Telemetry', { uk: 'Каталог подій, які гра надсилає для аналітики.', en: 'The catalogue of events the game sends for analytics.' }),
     S('marketing', 13, 'Маркетинг', 'Marketing', { uk: 'Пости про гру з журналу розробки.', en: 'Posts about the game from the development log.' }),

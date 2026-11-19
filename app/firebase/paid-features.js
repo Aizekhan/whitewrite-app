@@ -213,6 +213,10 @@ const FEATURES = [
     uk: { name: 'MCP для Claude Code', desc: 'Claude Code бере задачі плану з каноном і Біблією та здає результат на приймання.' },
     en: { name: 'MCP for Claude Code', desc: 'Claude Code takes plan tasks with the canon and Bible and hands results in for review.' },
     where: 'Продакшн-план → Підключити Claude Code', server: 'mcp' },
+  { id: 'agentChat', kind: 'gate', flag: 'allowAPI', minPlan: 'worldbuilder',
+    uk: { name: '💬 Агенти й ключі агентів', desc: 'Кілька ключів MCP на гру з ролями (Геймдизайнер, Програміст, Лише читання); агенти пишуть одне одному й автору, автор схвалює — у Біблії, кнопкою в Telegram або через Claude з кодом.' },
+    en: { name: '💬 Agents & agent keys', desc: 'Several MCP keys per game with roles (game designer, programmer, read only); the agents write to each other and to the author, the author approves — in the Bible, with a Telegram button or through Claude with a code.' },
+    where: 'Біблія гри → 💬 Агенти · Налаштування → Інтеграції → Ключі агентів', server: 'agents · agentTelegram · agentDigest · mcp' },
   { id: 'mdImport', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 4, quote: { partChars: 20000, outPerPart: 8000, overhead: 6000 } }, op: 'import', // the file known → «не більше N» (quoteChars)
     uk: { name: '✦ Імпорт .md', desc: 'Нотатки й GDD → пропозиція карток, ти відмічаєш, що взяти.' },
     en: { name: '✦ .md import', desc: 'Notes and GDD → proposed cards, you tick what to take.' },

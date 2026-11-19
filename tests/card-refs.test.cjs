@@ -59,8 +59,11 @@ check(REFS.usedBy(G3, 'c:hero', 'uk').some((r) => r.kind === 'task'), false, 'a 
 const covered = [].concat(...REFS.KINDS.map((k) => k.fields));
 const KNOWN = NV.REF_FIELDS.map((k) => 'quest.' + k).concat(['quest.source', 'dialogue.participants', 'dialogue.location', 'dialogue.nodes.speaker', 'dialogue.nodes.voice',
   'plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)', 'card.mech.links', 'card.mech.sections[sound field]', 'card.mech.sections[card field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)', 'card.prefab', 'card.sheet.faction', 'card.files.pic',
-  'card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref', 'card.intent.ladder']);
+  'card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref', 'card.intent.ladder', 'agentMessages.refs']);
 KNOWN.forEach((f) => check(covered.indexOf(f) >= 0, true, 'covered: ' + f));
+// 💬 an agents' message points at its cards (not at tasks / commits); a closed thread points at nothing (v2.148)
+const AG = { cards: [{ id: 'jump', section: 'mechanics', title: 'Стрибок' }], agentMessages: [{ id: 'm1', type: 'handoff', text: 'Changed the jump', refs: ['c:jump', 't:G1.2', 'commit:abc1234'] }, { id: 'm2', type: 'note', status: 'closed', text: 'old', refs: ['c:jump'] }] };
+check(REFS.usedBy(AG, 'c:jump', 'uk').map((r) => r.kind + ':' + r.from.id + ':' + r.extra).join(), 'agentMessage:m1:handoff', 'a card shows the open agents message about it');
 // 🪜 the learning ladder: a level → the mechanic it teaches, both ways (v2.144)
 const LG = { cards: [{ id: 'jump', section: 'mechanics', title: 'Стрибок' }, { id: 'lv1', section: 'levels', title: 'Берег', intent: { ladder: [{ m: 'jump', step: 'intro' }] } }] };
 check(REFS.usedBy(LG, 'c:jump', 'uk').map((r) => r.kind + ':' + r.side + ':' + r.extra).join(), 'ladder:in:вводить', 'a mechanic shows the level that introduces it');

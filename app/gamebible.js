@@ -161,7 +161,7 @@
       zoom: { close: "Закрити (Esc)", prev: "Попередня", next: "Наступна", orig: "Відкрити оригінал" },
       more: { title: "Ще поля", hint: "порожні — натисни, щоб заповнити", all: "Показати всі поля", btn: "＋ Додати поле", menu: "Порожні поля цієї картки — обери, щоб заповнити", newF: "Нове поле…" },
       blank: "порожньо — натисни, щоб заповнити", addField: "Додати поле", addFieldPh: "Назва поля, напр. «Звук» або «Референс»", add: "Додати",
-      agent: { by: "🤖 Змінив Claude Code на твоє прохання · {d}", keep: "✓ Зрозуміло" },
+      agent: { by: "🤖 Змінив Claude Code на твоє прохання · {d}", byName: "🤖 Змінив агент «{n}» · {d}", keep: "✓ Зрозуміло" },
       canonTag: "канон", canonField: "канон — спільне для всіх історій та ігор", worldCanon: "Канон світу", laws: "Закони світу", facts: "Факти",
       worldReadonly: "Спільне для всіх історій та ігор світу — ШІ спирається на це в кожній сцені.",
       poly: { tip: "{n} полігонів — понад 100 000: важко для гри, варто спростити (LOD / ретопологія)", n: "полігонів" },
@@ -223,8 +223,8 @@
       busyPlan: "AI складає план розробки… Для великої біблії це 5–15 хвилин; можна піти зі сторінки — план зʼявиться тут сам.",
       scTitle: "Чого бракує в біблії", scIntro: "План знайшов, чого не вистачає для розробки. Відмічене зʼявиться порожніми картками зі статусом «В роботі» — заповнюй їх сам або згодом через Claude Code.",
       exTitle: "Claude Code — виконавець", exIntro: "Claude Code у репозиторії гри підключається до WhiteWrite по MCP: бере наступну готову задачу з усім контекстом (картки, файли, критерії), працює в Unity і здає звіт сюди на перевірку. Ключ діє лише для цієї гри.",
-      exConnect: "Підключити Claude Code", exOwnerOnly: "Ключ MCP для Claude Code створює лише власник світу — попроси його підключити агента", exAnother: "Ще один ключ", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
-      exThen: "Ключ ляже у змінну середовища Windows, а в налаштуваннях Claude Code буде лише її назва. Claude Code, уже відкритий, нових інструментів не бачить: закрий його й запусти знову з цієї теки (або перевір /mcp — whitewrite має бути з галочкою). Потім: «Візьми наступну задачу з WhiteWrite і виконай її».", exUsed: "останній виклик", exNever: "ще не було", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
+      exOwnerOnly: "Ключ MCP для Claude Code створює лише власник світу — попроси його підключити агента", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
+      exThen: "Ключ ляже у змінну середовища Windows, а в налаштуваннях Claude Code буде лише її назва. Claude Code, уже відкритий, нових інструментів не бачить: закрий його й запусти знову з цієї теки (або перевір /mcp — whitewrite має бути з галочкою). Потім: «Візьми наступну задачу з WhiteWrite і виконай її».", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
       exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну", framework: "надіслав маніфест фреймворку" },
       ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
       progress: "Прогрес", acceptTitle: "Критерії приймання", tests: "Тести", testsNone: "не запускались", report: "Звіт", changes: "Змінені файли",
@@ -275,7 +275,7 @@
         fromWorld: "Діє ключ світу: {p} ••••{t}", provider: "Сервіс", name: "Назва сервісу", key: "API-ключ", keyPh: "Встав ключ повністю",
         save: "Зберегти ключ", replace: "Замінити ключ", remove: "Прибрати ключ", checking: "Перевіряю ключ…", saved: "Ключ збережено", removed: "Ключ прибрано",
         ok: "✓ перевірено", unverified: "⚠ не перевірено (сервіс не відповів або перевірки немає)", none: "Не підключено", ownerOnly: "Ключі додає лише власник світу.",
-        other: "Інший сервіс", repo: "GitHub-репозиторій гри", mcp: "Claude Code · ключі MCP", mcpHint: "Ключ дає агенту Claude Code доступ до цієї гри через MCP. Показується один раз — збережи його.",
+        other: "Інший сервіс", repo: "GitHub-репозиторій гри", 
         tele: "Телеметрія · ключі прийому подій", teleHint: "Ключі, якими збірка гри надсилає події гравців у «Досвід гравців».", teleKeys: "Ключів: {n}", teleGo: "Керувати ключами →",
         mk: "Маркетинг · канали", mkHint: "Telegram, Discord, Mastodon, Bluesky — куди публікуються пости гри.", mkNone: "Каналів ще немає.", mkGo: "Керувати каналами →",
         voice: "Озвучка", voiceHint: "Google Text-to-Speech працює через WhiteWrite — свого ключа не треба (оплата токенами). ElevenLabs — скоро.",
@@ -528,7 +528,7 @@
       zoom: { close: "Close (Esc)", prev: "Previous", next: "Next", orig: "Open the original" },
       more: { title: "More fields", hint: "empty ones — click to fill in", all: "Show all fields", btn: "＋ Add a field", menu: "This card's empty fields — pick one to fill in", newF: "New field…" },
       blank: "empty — click to fill in", addField: "Add field", addFieldPh: "Field name, e.g. “Sound” or “Reference”", add: "Add",
-      agent: { by: "🤖 Changed by Claude Code at your request · {d}", keep: "✓ Got it" },
+      agent: { by: "🤖 Changed by Claude Code at your request · {d}", byName: "🤖 Changed by the agent «{n}» · {d}", keep: "✓ Got it" },
       canonTag: "canon", canonField: "canon — shared by every story and game", worldCanon: "World canon", laws: "Laws of the world", facts: "Facts",
       worldReadonly: "Shared by every story and game of the world — the AI stands on it in every scene.",
       poly: { tip: "{n} polygons — over 100,000: heavy for a game, worth simplifying (LOD / retopology)", n: "polygons" },
@@ -590,8 +590,8 @@
       busyPlan: "AI is building the development plan… For a big bible this takes 5–15 minutes; you can leave — the plan appears here by itself.",
       scTitle: "Missing from the bible", scIntro: "The plan found what development still lacks. Ticked items become empty cards with the “In progress” status — fill them yourself or later through Claude Code.",
       exTitle: "Claude Code — executor", exIntro: "Claude Code in the game repository connects to WhiteWrite over MCP: it takes the next ready task with its full context (cards, files, criteria), works in Unity and hands a report in here for review. The key works for this game only.",
-      exConnect: "Connect Claude Code", exOwnerOnly: "Only the world's owner creates the MCP key for Claude Code — ask them to connect the agent", exAnother: "Another key", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
-      exThen: "The key goes into a Windows environment variable; Claude Code’s settings keep only its name. A Claude Code that is already open does not see the new tools: close it and start it again from this folder (or check /mcp — whitewrite should have a tick). Then: “Take the next task from WhiteWrite and do it”.", exUsed: "last call", exNever: "never", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
+      exOwnerOnly: "Only the world's owner creates the MCP key for Claude Code — ask them to connect the agent", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
+      exThen: "The key goes into a Windows environment variable; Claude Code’s settings keep only its name. A Claude Code that is already open does not see the new tools: close it and start it again from this folder (or check /mcp — whitewrite should have a tick). Then: “Take the next task from WhiteWrite and do it”.", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
       exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request", framework: "sent the framework manifest" },
       ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
       progress: "Progress", acceptTitle: "Acceptance criteria", tests: "Tests", testsNone: "not run", report: "Report", changes: "Changed files",
@@ -642,7 +642,7 @@
         fromWorld: "The world key is in use: {p} ••••{t}", provider: "Service", name: "Service name", key: "API key", keyPh: "Paste the whole key",
         save: "Save the key", replace: "Replace the key", remove: "Remove the key", checking: "Checking the key…", saved: "Key saved", removed: "Key removed",
         ok: "✓ checked", unverified: "⚠ not checked (the service did not answer or has no check)", none: "Not connected", ownerOnly: "Only the world owner adds keys.",
-        other: "Another service", repo: "The game's GitHub repository", mcp: "Claude Code · MCP keys", mcpHint: "A key gives the Claude Code agent access to this game over MCP. It is shown once — save it.",
+        other: "Another service", repo: "The game's GitHub repository", 
         tele: "Telemetry · ingest keys", teleHint: "Keys the game build uses to send player events into “Player experience”.", teleKeys: "Keys: {n}", teleGo: "Manage the keys →",
         mk: "Marketing · channels", mkHint: "Telegram, Discord, Mastodon, Bluesky — where the game's posts go.", mkNone: "No channels yet.", mkGo: "Manage the channels →",
         voice: "Voice-over", voiceHint: "Google Text-to-Speech runs through WhiteWrite — no key of your own (paid in tokens). ElevenLabs — soon.",
@@ -1171,7 +1171,7 @@
 
   function gameSectionsAll() { // every section of the open game — the menu (gameSections) leaves out the hidden ones
     var own = ((game && game.sections) || []).map(function (s) { return { id: cls(s.id), uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
-    return GAME.concat(own, [GSTORIES, GAMEMAP_SEC, FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
+    return GAME.concat(own, [GSTORIES, GAMEMAP_SEC, FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, AGENTS, MARKETING]);
   }
   function gameSections() { // «Огляд гри» is never hidden: the game opens on it and the 🧭 Гід switch lives on its cover
     var hidden = (game && game.hiddenSections) || [];
@@ -1192,6 +1192,7 @@
   function stageCount(id) {
     if (id === "plan") return planDoc && planDoc.plan ? 1 : 0;
     if (id === "activity") return actSessions.length || stageSeen.activity || 0; if (id === "knowledge") return kSnaps.length || stageSeen.knowledge || 0; // the log and the index are not cards
+    if (id === "agents") return agMsgs.length || stageSeen.agents || 0;
     var s = sec(id); if (!s || s.id !== id) return 0;
     var n = navCount(s, allCards()); return typeof n === "number" ? n : +n || 0;
   }
@@ -1829,13 +1830,13 @@
   function sec(id) { return CANON.concat(gameSectionsAll(), [SETTINGS]).filter(function (s) { return s.id === id; })[0] || GAME[0]; } // hidden sections too: their cards keep their fields
 
   // 🤖 a change Claude Code made on the user's word (MCP save_card / save_quest / save_dialogue, v2.117): agentPrev = the version before it
-  function agentOf(c) { return c && c.agentAt ? { at: c.agentAt, prev: c.agentPrev || {}, doc: c.id } : null; }
+  function agentOf(c) { return c && c.agentAt ? { at: c.agentAt, prev: c.agentPrev || {}, doc: c.id, by: c.agentBy || "" } : null; } // by: the key's name (💬 v2.148)
   function agentBar(a, can) {
     if (!a) return "";
     var at = new Date(a.at).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    return '<span>' + esc(STR.agent.by.replace("{d}", at)) + '</span>' + (can ? '<button type="button" class="btn ghost mini" data-agkeep>' + esc(STR.agent.keep) + '</button>' : '');
+    return '<span>' + esc((a.by ? STR.agent.byName.replace("{n}", a.by) : STR.agent.by).replace("{d}", at)) + '</span>' + (can ? '<button type="button" class="btn ghost mini" data-agkeep>' + esc(STR.agent.keep) + '</button>' : '');
   }
-  var AGENT_CLEAR = function () { var D = firebase.firestore.FieldValue.delete(); return { agentPrev: D, agentAt: D, agentKey: D }; };
+  var AGENT_CLEAR = function () { var D = firebase.firestore.FieldValue.delete(); return { agentPrev: D, agentAt: D, agentKey: D, agentBy: D, agentRole: D }; };
 
   // Unified card view: a canon entity seen through this game, or a game-only card.
   function canonCard(e, s) {
@@ -2122,6 +2123,7 @@
     if (s.special === "gstories" && !query) return renderGameStories(s);
     if (s.special === "knowledge" && !query) return renderKnowledge(s);
     if (s.special === "activity" && !query) return renderActivity(s);
+    if (s.special === "agents" && !query) return renderAgents(s);
     if (s.special === "marketing" && !query) return renderMarketing(s);
     if ((s.special === "quests" || s.special === "dialogues") && !query) return renderQD(s);
     if (s.special === "gamemap" && !query) { // a live snapshot must not wipe a field being typed in the passport / editor
@@ -3714,7 +3716,7 @@
   function openQD(col, id, preset) {
     if (qdDirty()) return unsavedOk(true, function () { qed = null; openQD(col, id, preset); });
     var x = id && qdList(col).filter(function (q) { return q.id === id; })[0], own = {};
-    if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order", "agentPrev", "agentAt", "agentKey"].indexOf(k) < 0) own[k] = x[k]; });
+    if (x) Object.keys(x).forEach(function (k) { if (["id", "createdAt", "updatedAt", "order", "agentPrev", "agentAt", "agentKey", "agentBy", "agentRole"].indexOf(k) < 0) own[k] = x[k]; });
     var d = JSON.parse(JSON.stringify(Object.assign(qdDefaults(col), own, preset || {})));
     qed = { col: col, id: x ? x.id : newId(col === "quests" ? "quest" : "dlg"), isNew: !x, d: d, sel: 0, detail: false, open: {}, pq: "", agent: agentOf(x) }; qed.first = JSON.stringify(d); qprop = null; qbusy = ""; mode = "game"; // sel: the open line / stage; open: the author's disclosures
     if (section !== col) { section = col; query = ""; imp = null; $("q").value = ""; }
@@ -6053,7 +6055,7 @@
   function bindDevLock() {
     [].forEach.call(document.querySelectorAll("#view [data-upgrade]"), function (b) { b.onclick = function () { try { window.parent.document.getElementById("userdock").click(); } catch (e) {} }; });
   }
-  function devLocked(s) { return mode === "game" && !canDev && ["plan", "experience", "knowledge", "activity", "marketing"].indexOf(s.special) >= 0; }
+  function devLocked(s) { return mode === "game" && !canDev && ["plan", "experience", "knowledge", "activity", "agents", "marketing"].indexOf(s.special) >= 0; }
   function renderDevLocked(s) {
     $("view").innerHTML = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1></div></header>' + devLockHtml();
     bindDevLock();
@@ -7844,7 +7846,7 @@
         done: "Готово {n} з {t}", ok: "готово", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
         launch: "Тека гри й запуск", key: "Ключ MCP", first: "Перша сесія агента", log: "Журнал розробки (CLAUDE.md)", repo: "GitHub-репозиторій",
         keyHint: "Ключ підключає Claude Code саме до цієї гри. Він показується один раз — разом із командою: виконай її в PowerShell у теці гри (ключ ляже у змінну середовища, не в налаштування). Потім перезапусти Claude Code або перевір /mcp.",
-        keys: "Активних ключів: {n}", keyNew: "Створити ключ", keyMore: "Ще один ключ",
+        
         agentW: "Claude Code веде GDD сам — записує в картки, механіки, квести й діалоги все, що робить у грі",
         agentWHint: "Кожну зміну агента видно на картці («🤖 Змінив Claude Code»). Вимкнено — агент лише читає й пропонує зміни (запити на зміну).",
         allBtn: "⧉ Скопіювати все для PowerShell", allDir: "Спершу впиши теку гри.", allDone: "Скопійовано — встав у PowerShell (новий ключ уже створено).", folderBtn: "📂 Підготувати теку гри", folderHint: "📂 — без PowerShell: обери (або створи) теку гри, і браузер сам запише туди .mcp.json з новим ключем MCP, блок журналу в CLAUDE.md і рядок .mcp.json у .gitignore (ключ не потрапить у репо). Потім відкрий теку в Провіднику → правий клік → «Відкрити в терміналі» → запусти рядок, який зʼявиться тут. Claude Code один раз спитає, чи довіряти серверу whitewrite з проєкту, — відповідай «так».", folderDone: "Готово в теці «{dir}»: {files}. Запусти в ній:",
@@ -7881,7 +7883,7 @@
         done: "Done {n} of {t}", ok: "done", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
         launch: "Game folder and launch", key: "MCP key", first: "The agent's first session", log: "Development log (CLAUDE.md)", repo: "GitHub repository",
         keyHint: "The key connects Claude Code to this game only. It is shown once — together with the command: run it in PowerShell in the game's folder (the key goes into an environment variable, not the settings). Then restart Claude Code or check /mcp.",
-        keys: "Active keys: {n}", keyNew: "Create a key", keyMore: "Another key",
+        
         agentW: "Claude Code keeps the GDD itself — records in cards, mechanics, quests and dialogues everything it does in the game",
         agentWHint: "Every change by the agent shows on the card (“🤖 Changed by Claude Code”). Off — the agent only reads and proposes changes (change requests).",
         allBtn: "⧉ Copy everything for PowerShell", allDir: "First type the game folder.", allDone: "Copied — paste it into PowerShell (a new key has been created).", folderBtn: "📂 Prepare the game folder", folderHint: "📂 — no PowerShell: pick (or create) the game folder and the browser writes .mcp.json with a new MCP key, the log block in CLAUDE.md and a .mcp.json line in .gitignore (the key never reaches the repo). Then open the folder in Explorer → right-click → «Open in Terminal» → run the line that appears here. Claude Code asks once whether to trust the project's whitewrite server — answer yes.", folderDone: "Done in «{dir}»: {files}. Run in it:",
@@ -9739,6 +9741,176 @@
     else h += '<p class="muted">' + KN.envNone + '</p>';
     return h + '<details class="kn-guide"><summary>' + KN.road.envAgain + '</summary>' + guideHtml("unity_env") + '</details>';
   }
+  // ---------- 💬 Агенти (owner, v2.148): the game's agents (Claude in the browser — «Геймдизайнер», Claude Code — «Програміст») talk here with
+  // the author; agentMessages are written by the server only (functions/src/agents.js for the author, mcp.js for the agents) ----------
+  var AGENTS = { id: "agents", special: "agents", uk: "💬 Агенти", en: "💬 Agents",
+    about: { uk: "Розмова агентів гри з тобою: питання, відгуки, передача роботи, запити на схвалення. Схвалюєш лише ти.", en: "Your game's agents talk with you here: questions, feedback, handoffs, approval requests. Only you approve." } };
+  var AGS = {
+    uk: { hint: "Геймдизайнер (Claude у браузері чи на телефоні) і програміст (Claude Code на ПК) працюють кожен зі своїм ключем і лишають тут одне одному й тобі повідомлення. Повідомлення одного агента для іншого — прохання, не наказ; важливе агент спершу питає в тебе («просить дозволу»).",
+      kb: "Як працюють два агенти →", type: { note: "До відома", question: "Питання", feedback: "Відгук", approval_request: "Просить дозволу", handoff: "Передає роботу", decision: "Рішення автора" },
+      role: { designer: "Геймдизайнер", programmer: "Програміст", readonly: "Лише читання", owner: "автор", member: "команда" },
+      none: "Повідомлень ще немає. Підключи агентів у «Налаштування → Інтеграції → Ключі агентів» — і попроси одного з них щось передати іншому.",
+      write: "Написати агентам", ph: "Напиши агентам: питання, відгук або рішення…", send: "Надіслати", reply: "Відповісти", replyPh: "Відповідь…", close: "Закрити гілку", reopen: "Відкрити знову",
+      approve: "✔ Схвалити", reject: "✖ Відхилити", pending: "чекає твого рішення", pendingN: "Чекають твого рішення: {n}", closed: "гілку закрито",
+      ok: "✔ Схвалено", no: "✖ Відхилено", via: { whitewrite: "у WhiteWrite", telegram: "у Telegram", claude: "автор через Claude" },
+      waits: "Гілка чекає тебе: агенти написали 3 повідомлення поспіль.", tgLine: "Telegram для агентів:", tgOn: "підключено", tgSet: "Налаштувати →",
+      keysTitle: "🔑 Ключі агентів", keysHint: "Окремий ключ для кожного агента: так сервіс знає, хто що написав, а «що нового» в кожного своє. Ключ показується один раз.",
+      keysN: "Ключів агентів: {n}", keysGo: "🔑 Ключі агентів →", label: "Назва ключа", labelPh: "напр. Claude у браузері", newKey: "＋ Новий ключ",
+      roleHint: { designer: "читає все, пише картки GDD і повідомлення; задачі не бере", programmer: "бере й здає задачі, журнал, баги, картки «що зроблено», повідомлення", readonly: "лише читає — для перевірок і запланованих задач" },
+      defLabel: { designer: "Claude у браузері", programmer: "Claude Code на ПК", readonly: "Перевірки" }, used: "востаннє", never: "ще не використовувався",
+      reissue: "Перевипустити", reQ: "Створити новий ключ із тією ж назвою й роллю і відкликати цей? Агент зі старим ключем більше не підключиться.",
+      webOnce: "Ключ показано один раз — скопіюй текст нижче для Claude у браузері чи на телефоні", webHow: "Claude у браузері чи на телефоні: Налаштування → Можливості → дозволь домен us-central1-whitewrite-app.cloudfunctions.net, а цей текст встав у чат (або в інструкції проєкту Claude). Ключ не показуй нікому.",
+      tgTitle: "✈ Telegram для агентів", tgHint: "Питання й запити на схвалення приходять у Telegram одразу: ✔ / ✖ кнопками або «так, код …» у чаті з Claude. Нотатки, передачі роботи й відгуки — раз на день коротким зведенням. Кнопки діють лише для тебе.",
+      tgOff: "Бот платформи ще не налаштований.", tgS1: "1. Твій Telegram", tgS1Hint: "Без нього ніхто не зможе схвалити кнопкою: бот запам'ятає лише тебе.", tgMe: "Підключити мій Telegram",
+      tgS2: "2. Свій чат чи канал гри", opt: "за бажанням", tgS2Hint: "Повідомлення йтимуть у групу чи канал гри, а не в особистий чат. Схвалювати там теж можеш лише ти.", tgChat: "Підключити групу чи канал",
+      tgOpenMe: "Відкрий посилання й натисни «Start» у боті:", tgOpenChat: "Група: відкрий посилання й обери групу. Канал: додай {bot} адміністратором каналу й опублікуй там цей код (діє 15 хв):",
+      tgDone: "Готово — оновити", unlink: "Відʼєднати", unlinkQ: "Відʼєднати Telegram? Повідомлення агентів туди більше не йтимуть." },
+    en: { hint: "The game designer (Claude in the browser or on the phone) and the programmer (Claude Code on the PC) each work with their own key and leave messages here for each other and for you. One agent's message to another is a request, not an order; anything important the agent asks you first («asks for approval»).",
+      kb: "How the two agents work →", type: { note: "FYI", question: "Question", feedback: "Feedback", approval_request: "Asks for approval", handoff: "Handoff", decision: "Author's decision" },
+      role: { designer: "Game designer", programmer: "Programmer", readonly: "Read only", owner: "author", member: "team" },
+      none: "No messages yet. Connect the agents in «Settings → Integrations → Agent keys» — and ask one of them to pass something to the other.",
+      write: "Write to the agents", ph: "Write to the agents: a question, feedback or a decision…", send: "Send", reply: "Reply", replyPh: "Reply…", close: "Close the thread", reopen: "Reopen",
+      approve: "✔ Approve", reject: "✖ Reject", pending: "waits for your decision", pendingN: "Waiting for your decision: {n}", closed: "thread closed",
+      ok: "✔ Approved", no: "✖ Rejected", via: { whitewrite: "in WhiteWrite", telegram: "in Telegram", claude: "the author through Claude" },
+      waits: "The thread waits for you: the agents wrote 3 messages in a row.", tgLine: "Telegram for the agents:", tgOn: "connected", tgSet: "Set up →",
+      keysTitle: "🔑 Agent keys", keysHint: "A key for each agent: the service knows who wrote what, and each has its own «what's new». A key is shown once.",
+      keysN: "Agent keys: {n}", keysGo: "🔑 Agent keys →", label: "Key name", labelPh: "e.g. Claude in the browser", newKey: "＋ New key",
+      roleHint: { designer: "reads everything, writes GDD cards and messages; takes no tasks", programmer: "takes and hands in tasks, the log, bugs, «what was built» cards, messages", readonly: "only reads — for checks and scheduled jobs" },
+      defLabel: { designer: "Claude in the browser", programmer: "Claude Code on the PC", readonly: "Checks" }, used: "last used", never: "not used yet",
+      reissue: "Reissue", reQ: "Make a new key with the same name and role and revoke this one? An agent with the old key will no longer connect.",
+      webOnce: "The key is shown once — copy the text below for Claude in the browser or on the phone", webHow: "Claude in the browser or on the phone: Settings → Capabilities → allow the domain us-central1-whitewrite-app.cloudfunctions.net, then paste this text into the chat (or into the Claude project's instructions). Show the key to no one.",
+      tgTitle: "✈ Telegram for the agents", tgHint: "Questions and approval requests come to Telegram at once: ✔ / ✖ buttons, or «yes, code …» in the chat with Claude. Notes, handoffs and feedback — once a day in a short digest. The buttons work only for you.",
+      tgOff: "The platform bot is not set up yet.", tgS1: "1. Your Telegram", tgS1Hint: "Without it nobody can approve with a button: the bot remembers only you.", tgMe: "Connect my Telegram",
+      tgS2: "2. The game's own chat or channel", opt: "optional", tgS2Hint: "Messages go to the game's group or channel instead of your private chat. Only you can approve there too.", tgChat: "Connect a group or channel",
+      tgOpenMe: "Open the link and press «Start» in the bot:", tgOpenChat: "Group: open the link and pick the group. Channel: add {bot} as an admin of the channel and post this code there (valid 15 min):",
+      tgDone: "Done — refresh", unlink: "Disconnect", unlinkQ: "Disconnect Telegram? The agents' messages will no longer go there." }
+  }[LANG];
+  var agMsgs = [], agMsg = "", agTg = null, agTgMsg = "", agTgLink = null, newKeyRole = "programmer";
+  var AG_ROLES = ["designer", "programmer", "readonly"];
+  function agTime(m) { return m.at ? new Date(m.at).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""; }
+  function agRefs(m) {
+    return (m.refs || []).map(function (r) {
+      var c = /^[ce]:/.test(r) && allCards().filter(function (x) { return x.key === r; })[0];
+      return c ? '<button class="dlink" data-openref="' + esc(r) + '">' + esc(c.title || r) + '</button>' : '<span class="chip mono">' + esc(r) + '</span>';
+    }).join(" ");
+  }
+  function agMsgHtml(m) {
+    var A = AGS, f = m.from || {}, who = (f.kind === "agent" ? "🤖 " : "✍ ") + esc(f.label || (f.kind === "agent" ? "Agent" : "")) + ' <span class="muted">· ' + esc(A.role[f.role] || f.role || "") + '</span>';
+    var ap = m.approval, apHtml = "";
+    if (m.type === "approval_request") apHtml = !ap || ap.status === "pending"
+      ? '<div class="setrow">' + (ME.owner && canWrite && m.status !== "closed" ? '<button class="btn primary" data-agok="' + esc(m.id) + '">' + A.approve + '</button><button class="btn danger" data-agno="' + esc(m.id) + '">' + A.reject + '</button>' : '') + '<span class="warn">⚠ ' + A.pending + '</span></div>'
+      : '<p class="' + (ap.status === "approved" ? "ok" : "warn") + '">' + (ap.status === "approved" ? A.ok : A.no) + ' · ' + esc(A.via[ap.via] || ap.via || "") + (ap.words ? ' · «' + esc(ap.words) + '»' : '') + (ap.comment ? ' — ' + esc(ap.comment) : '') + '</p>';
+    return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span></div>' +
+      '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
+  }
+  function agTyping() { var a = document.activeElement; return !!(a && a.closest && a.closest("#view .ag-box") && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
+  function renderAgents(s) {
+    var A = AGS, can = mayEdit("agents") && canWrite, decide = ME.owner || ME.role === "admin";
+    var byThread = {}; agMsgs.forEach(function (m) { var t = m.thread || m.id; (byThread[t] = byThread[t] || []).push(m); });
+    var roots = Object.keys(byThread).map(function (t) { var l = byThread[t].sort(function (a, b) { return (a.at || 0) - (b.at || 0); }); return { id: t, list: l, last: l[l.length - 1].at || 0 }; })
+      .sort(function (a, b) { return b.last - a.last; });
+    var pending = agMsgs.filter(function (m) { return m.type === "approval_request" && m.status !== "closed" && (!m.approval || m.approval.status === "pending"); }).length;
+    var types = ["note", "question", "feedback"].concat(decide ? ["decision"] : []);
+    var opts = function (cur) { return types.map(function (t) { return '<option value="' + t + '"' + (t === cur ? ' selected' : '') + '>' + esc(A.type[t]) + '</option>'; }).join(""); };
+    var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div></header><p class="hint">' + A.hint + ' <a href="#" class="kblink" data-kb="agents-two">' + A.kb + '</a></p>' +
+      (ME.owner ? '<p class="muted">' + A.tgLine + ' ' + (agTg && agTg.me ? A.tgOn + (agTg.chat ? ' · ' + esc(agTg.chat.title || "") : '') : '—') + ' <button class="btn mini" data-agkeys="tg">' + A.tgSet + '</button></p>' : '') +
+      (pending ? '<p class="warn">⚠ ' + esc(A.pendingN.replace("{n}", pending)) + '</p>' : '') +
+      (can ? '<section class="psec ag-box"><h2 class="group">' + A.write + '</h2><div class="setrow"><select id="ag-type" aria-label="' + esc(A.write) + '">' + opts("note") + '</select></div>' +
+        '<textarea id="ag-text" rows="3" placeholder="' + esc(A.ph) + '"></textarea><div class="setrow"><button class="btn primary" id="ag-send">' + A.send + '</button><span class="hint" role="status">' + esc(agMsg) + '</span></div></section>' : '');
+    if (!roots.length) html += '<p class="muted">' + A.none + '</p>';
+    roots.forEach(function (r) {
+      var root = r.list[0], closed = root.status === "closed", agentRun = 0;
+      r.list.forEach(function (m) { agentRun = m.from && m.from.kind === "author" ? 0 : agentRun + 1; });
+      html += '<section class="psec ag-th' + (closed ? ' is-closed' : '') + '">' + r.list.map(agMsgHtml).join("") +
+        (closed ? '<p class="muted">' + A.closed + (can ? ' <button class="btn mini" data-agclose="' + esc(root.id) + '" data-agop="reopen">' + A.reopen + '</button>' : '') + '</p>'
+          : (agentRun >= 3 ? '<p class="warn">⚠ ' + A.waits + '</p>' : '') + (can ? '<div class="ag-box"><textarea rows="2" data-agrt="' + esc(root.id) + '" placeholder="' + esc(A.replyPh) + '"></textarea><div class="setrow"><select data-agrtype="' + esc(root.id) + '" aria-label="' + esc(A.reply) + '">' + opts("note") + '</select>' +
+            '<button class="btn" data-agreply="' + esc(r.list[r.list.length - 1].id) + '" data-agroot="' + esc(root.id) + '">' + A.reply + '</button><button class="btn ghost mini" data-agclose="' + esc(root.id) + '">' + A.close + '</button></div></div>' : '')) + '</section>';
+    });
+    $("view").innerHTML = html;
+    if (ME.owner && !agTg) agTgLoad();
+  }
+  function agSend(replyTo, root) {
+    var ta = replyTo ? document.querySelector('[data-agrt="' + root + '"]') : $("ag-text"), text = ta && ta.value.trim();
+    if (!text) { if (ta) ta.focus(); return; }
+    var sel = replyTo ? document.querySelector('[data-agrtype="' + root + '"]') : $("ag-type");
+    ta.disabled = true;
+    fnCall("agents", { op: "post", worldId: worldId, gameId: gameId, type: (sel && sel.value) || "note", text: text, replyTo: replyTo || "" }).then(function () {
+      agMsg = ""; ta.value = ""; ta.disabled = false; ta.blur(); if (section === "agents") render();
+    }, function (er) { ta.disabled = false; agMsg = er.message; if (!replyTo) render(); else notify(STR.failed + ": " + er.message); });
+  }
+  function agTgLoad() {
+    agTg = { loading: true };
+    fnCall("agents", { op: "tgStatus", worldId: worldId, gameId: gameId }).then(function (r) { agTg = r; if (section === "agents" ? !agTyping() : settingsIdle()) render(); },
+      function (e) { agTg = { error: e.message }; if (section === "settings" && settingsIdle()) render(); });
+  }
+  function agKeysLink(live) { // the plan page and «Для досвідчених»: keys live in one place — Settings → Integrations (owner, v2.148)
+    return '<div class="setrow"><span class="muted">' + esc(AGS.keysN.replace("{n}", live.length)) + '</span>' + (ME.owner ? '<button class="btn" data-agkeys>' + AGS.keysGo + '</button>' : '') + '</div>' + (ME.owner ? '' : '<p class="hint">' + STR.exOwnerOnly + '</p>');
+  }
+  function webPrompt(key) { // «Геймдизайнер»: Claude in the browser / on the phone calls MCP over plain HTTP (its code tool, the domain allowed)
+    return (LANG === "en" ? "Connect to WhiteWrite — the game «" + (game.title || "") + "» (MCP, JSON-RPC 2.0 over HTTP POST).\nURL: " + MCP_URL + "\nHeaders: Authorization: Bearer " + key + " · Content-Type: application/json\nFirst initialize, then tools/list, then tools/call — get_project_overview and get_agent_inbox. Your role: game designer. Never show this key to anyone or write it into a message."
+      : "Підключись до WhiteWrite — гра «" + (game.title || "") + "» (MCP, JSON-RPC 2.0 через HTTP POST).\nURL: " + MCP_URL + "\nЗаголовки: Authorization: Bearer " + key + " · Content-Type: application/json\nСпершу initialize, потім tools/list, далі tools/call — get_project_overview і get_agent_inbox. Твоя роль — геймдизайнер. Ключ нікому не показуй і не пиши в повідомлення.");
+  }
+  function agentKeysHtml() {
+    var A = AGS, live = keys.filter(function (k) { return !k.revoked; }), loc = LANG === "en" ? "en-GB" : "uk-UA";
+    var box = newKey ? '<div class="nbox"><h4>' + (newKeyRole === "programmer" ? STR.exKeyOnce : A.webOnce) + '</h4>' + (newKeyRole === "programmer"
+      ? '<pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p>'
+      : '<p class="hint">' + A.webHow + '</p><pre class="ag-pre">' + esc(webPrompt(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>') + '</div>' : '';
+    return '<p class="hint">' + A.keysHint + ' <a href="#" class="kblink" data-kb="agents-two">' + A.kb + '</a></p>' + box +
+      live.map(function (k) {
+        var r = AG_ROLES.indexOf(k.role) >= 0 ? k.role : "programmer", used = k.lastUsedAt && k.lastUsedAt.toDate ? A.used + ' ' + k.lastUsedAt.toDate().toLocaleString(loc) : A.never;
+        return '<div class="file"><span class="ico">🔑</span><span class="fname"><b>' + esc(k.label || "—") + '</b> <span class="chip">' + esc(A.role[r]) + '</span> <span class="mono">' + esc(k.prefix) + '…</span> <span class="muted">· ' + esc(used) + '</span></span>' +
+          '<button class="btn" data-akre="' + esc(k.id) + '">' + A.reissue + '</button><button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button></div>';
+      }).join("") +
+      '<div class="setrow"><input id="ak-label" autocomplete="off" aria-label="' + esc(A.label) + '" placeholder="' + esc(A.labelPh) + '"><select id="ak-role" aria-label="' + esc(A.label) + '">' + AG_ROLES.map(function (r) {
+        return '<option value="' + r + '"' + (r === (live.length ? "designer" : "programmer") ? ' selected' : '') + '>' + esc(A.role[r] + " — " + A.roleHint[r]) + '</option>'; }).join("") + '</select>' +
+      '<button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + A.newKey + '</button></div>';
+  }
+  function agTgHtml() {
+    var A = AGS;
+    if (!agTg) agTgLoad();
+    if (agTg.loading) return '<p class="muted">…</p>';
+    if (agTg.error) return '<p class="warn">' + esc(agTg.error) + '</p>';
+    if (!agTg.configured) return '<p class="hint">' + A.tgOff + '</p>';
+    var me = agTg.me, ch = agTg.chat, L0 = agTgLink;
+    return '<p class="hint">' + A.tgHint + '</p>' +
+      '<h3>' + A.tgS1 + '</h3>' + (me ? '<p class="ok">✔ ' + esc(me.username ? "@" + me.username : me.name || "Telegram") + ' <button class="btn mini" data-agtgun="me">' + A.unlink + '</button></p>'
+        : '<p class="hint">' + A.tgS1Hint + '</p><div class="setrow"><button class="btn primary" data-agtglink="me">' + A.tgMe + '</button></div>') +
+      '<h3>' + A.tgS2 + ' <span class="muted">· ' + A.opt + '</span></h3>' + (ch ? '<p class="ok">✔ ' + esc(ch.title || ch.kind || "") + ' <button class="btn mini" data-agtgun="chat">' + A.unlink + '</button></p>'
+        : '<p class="hint">' + A.tgS2Hint + '</p><div class="setrow"><button class="btn" data-agtglink="chat"' + (me ? '' : ' disabled') + '>' + A.tgChat + '</button></div>') +
+      (L0 ? '<div class="nbox"><p>' + esc(L0.mode === "me" ? A.tgOpenMe : A.tgOpenChat.replace("{bot}", "@" + L0.bot)) + '</p><p><a href="' + esc(L0.url) + '" target="_blank" rel="noopener">' + esc(L0.url) + '</a></p>' +
+        (L0.mode === "chat" ? '<pre>' + esc(L0.code) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>' : '') + '<div class="setrow"><button class="btn" data-agtgref>' + A.tgDone + '</button></div></div>' : '') +
+      (agTgMsg ? '<p class="pmsg" role="status">' + esc(agTgMsg) + '</p>' : '');
+  }
+  function agClick(e) { // 💬 the agents' page, the keys and Telegram in Integrations
+    var A = AGS, t;
+    if (e.target.closest("#ag-send")) { agSend(null); return true; }
+    if ((t = e.target.closest("[data-agreply]"))) { agSend(t.dataset.agreply, t.dataset.agroot); return true; }
+    if ((t = e.target.closest("[data-agok],[data-agno]"))) {
+      var yes = t.hasAttribute("data-agok"), b = t; b.disabled = true;
+      fnCall("agents", { op: "resolve", worldId: worldId, gameId: gameId, id: yes ? b.dataset.agok : b.dataset.agno, approve: yes }).catch(function (er) { b.disabled = false; notify(STR.failed + ": " + er.message); });
+      return true;
+    }
+    if ((t = e.target.closest("[data-agclose]"))) { fnCall("agents", { op: t.dataset.agop || "close", worldId: worldId, gameId: gameId, id: t.dataset.agclose }).catch(function (er) { notify(STR.failed + ": " + er.message); }); return true; }
+    if (e.target.closest("[data-agkeys]")) { setTab = "integ"; goSection("settings"); return true; }
+    if ((t = e.target.closest("[data-agtglink]"))) {
+      var lb = t, mode0 = t.dataset.agtglink; lb.disabled = true;
+      fnCall("agents", { op: "tgLink", mode: mode0, worldId: worldId, gameId: gameId }).then(function (r) { agTgLink = { mode: mode0, url: r.url, code: r.code, bot: r.bot }; agTgMsg = ""; render(); },
+        function (er) { lb.disabled = false; agTgMsg = er.message; render(); });
+      return true;
+    }
+    if ((t = e.target.closest("[data-agtgun]"))) {
+      var what = t.dataset.agtgun;
+      askConfirm(A.unlinkQ, { danger: true }).then(function (ok) { if (!ok) return; fnCall("agents", { op: "tgUnlink", what: what, worldId: worldId, gameId: gameId }).then(function () { agTg = null; agTgLink = null; render(); }, function (er) { agTgMsg = er.message; render(); }); });
+      return true;
+    }
+    if (e.target.closest("[data-agtgref]")) { agTg = null; agTgLink = null; render(); return true; }
+    if ((t = e.target.closest("[data-akre]"))) {
+      var old = keys.filter(function (k) { return k.id === t.dataset.akre; })[0];
+      askConfirm(A.reQ, { danger: true }).then(function (ok) { if (!ok || !old) return; createKey(old.label, old.role).then(function () { return db.collection("mcpKeys").doc(old.id).delete(); }).catch(function (er) { notify(STR.failed + ": " + er.message); }); });
+      return true;
+    }
+    return false;
+  }
   // ⚙ Налаштування → «Claude Code» (v2.120, owner: «забагато інформації»): two steps for the person — install Claude Code, connect the game
   // (allInOne) and ask «Підготуй усе…» — the agent does the rest from get_guide setup; below, only the state the agent leaves in live data
   // (a key used, env/current, activity sessions, the plan, the repo). The manual tools fold into «Для досвідчених» (kb.js agent-*).
@@ -9773,9 +9945,7 @@
       '<h4>' + R.launch + '</h4>' + (owner ? '' : launchHtml()) + launchHtml("cmd") +
       (owner && window.showDirectoryPicker ? '<div class="setrow"><button class="btn" id="ln-folder">' + R.folderBtn + '</button></div><p class="hint">' + R.folderHint + '</p>' : '') +
       '<h4>' + R.key + '</h4><p class="hint">' + R.keyHint + '</p>' +
-      (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
-      '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
-      (owner ? '<button class="btn" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>' +
+      agKeysLink(live) +
       (ME.owner ? '<label class="imp"><input type="checkbox" id="st-agentw"' + (game.agentWrite === false ? '' : ' checked') + '><span>' + esc(R.agentW) + '</span></label><p class="hint">' + esc(R.agentWHint) + '</p>' : '') +
       '<h4>' + R.first + '</h4>' + guideHtml("setup") + (isUnityGame() ? envHtml() : '') +
       '<h4>' + R.log + '</h4><p class="hint">' + R.logHint + '</p>' +
@@ -9824,10 +9994,7 @@
     if (!canDev) return html + devLockHtml() + box(I.voice, '<p class="hint">' + I.voiceHint + '</p>');
     var live = keys.filter(function (k) { return !k.revoked; });
     html += box(I.repo, repoHtml());
-    if (ME.owner) html += box(I.mcp, '<p class="hint">' + I.mcpHint + '</p>' +
-      (newKey ? '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>' : '') +
-      live.map(function (k) { return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span>' + (k.label ? ' · ' + esc(k.label) : '') + '</span><button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button></div>'; }).join("") +
-      '<div class="setrow"><button class="btn' + (live.length ? '' : ' primary') + '" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>');
+    if (ME.owner) html += box(AGS.keysTitle, agentKeysHtml()) + box(AGS.tgTitle, agTgHtml()); // 💬 v2.148: the only place for MCP keys
     html += box(I.tele, '<p class="hint">' + I.teleHint + '</p><p>' + esc(I.teleKeys.replace("{n}", (game.ingestKeys || []).length)) + '</p>' + go("data-iggo", "experience", I.teleGo));
     html += box(I.mk, '<p class="hint">' + I.mkHint + '</p>' + (mkChannels.length ? mkChannels.map(function (c) {
       return '<div class="row mk-ch"><span class="chip">' + esc(MK_PLAT[c.platform] || c.platform) + '</span><b>' + esc(c.title || "") + '</b></div>'; }).join("") : '<p class="muted">' + I.mkNone + '</p>') + go("data-iggo", "marketing", I.mkGo));
@@ -10320,7 +10487,7 @@
     await Promise.all([].concat.apply([], cs.map(function (d) { return (d.data().files || []).map(function (f) {
       return dropOwn(f.path, gpre).catch(function () {}); }); })));
     for (var s of (await g.collection("activity").get()).docs) await deleteDocs(s.ref.collection("entries"));
-    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "quests", "dialogues", "knowledge", "kAssets", "kRelations", "activity", "env", "posts", "channels", "marketing"]) await deleteDocs(g.collection(sub));
+    for (var sub of ["cards", "plan", "tasks", "executions", "changeRequests", "quests", "dialogues", "knowledge", "kAssets", "kRelations", "activity", "env", "posts", "channels", "marketing", "agentMessages"]) await deleteDocs(g.collection(sub));
     await callEx({ op: "purge", gameId: id }).catch(function () {}); // telemetry, metrics, issues, playtests, experiments, ingest keys
     await mkCall({ op: "purge", gameId: id }).catch(function () {}); // marketing posts, channels, their secrets and the queue
     var ks = await db.collection("mcpKeys").where("uid", "==", firebase.auth().currentUser.uid).where("gameId", "==", id).get();
@@ -11369,15 +11536,7 @@
   function execHtml() {
     var live = keys.filter(function (k) { return !k.revoked; });
     var html = '<section class="psec"><h2 class="group">' + STR.exTitle + '</h2><p class="muted">' + STR.exIntro + '</p>';
-    if (newKey) html += '<div class="nbox"><h4>' + STR.exKeyOnce + '</h4><pre>' + esc(mcpAddCmd(newKey)) + '</pre>' +
-      '<button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p></div>';
-    html += live.map(function (k) {
-      var used = k.lastUsedAt && k.lastUsedAt.toDate ? k.lastUsedAt.toDate().toLocaleString(LANG === "en" ? "en-GB" : "uk-UA") : STR.exNever;
-      return '<div class="file"><span class="ico">🔑</span><span class="fname"><span class="mono">' + esc(k.prefix) + '…</span> · ' + STR.exUsed + ': ' + esc(used) + '</span>' +
-        (canWrite ? '<button class="btn danger" data-revoke="' + esc(k.id) + '">' + STR.exRevoke + '</button>' : '') + '</div>';
-    }).join("");
-    if (ME.owner && canWrite) html += '<div class="row"><button class="btn" id="ex-new">' + (live.length ? STR.exAnother : STR.exConnect) + '</button></div>';
-    else if (!ME.owner) html += '<p class="hint">' + STR.exOwnerOnly + '</p>';
+    html += agKeysLink(live); // 🔑 the keys live in Settings → Integrations (owner, v2.148: one place, not three)
     if (execs.length) html += '<h3 class="sub">' + STR.exLog + '</h3><ul class="exlog">' + execs.slice(0, 8).map(function (x) {
       var at = x.at && x.at.toDate ? x.at.toDate().toLocaleTimeString(LANG === "en" ? "en-GB" : "uk-UA") : "";
       var what = (x.data && (x.data.message || x.data.summary || x.data.problem || x.data.what)) || "";
@@ -11385,14 +11544,15 @@
     }).join("") + '</ul>';
     return html + '</section>';
   }
-  async function createKey() {
+  async function createKey(label, role) { // 💬 a name and a role per key (v2.148): designer | programmer | readonly (functions/agent-chat.js)
+    role = AG_ROLES.indexOf(role) >= 0 ? role : "programmer";
     var bytes = crypto.getRandomValues(new Uint8Array(32));
     var key = "wwk_" + btoa(String.fromCharCode.apply(null, bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     var digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
     var hash = Array.from(new Uint8Array(digest), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
-    await db.collection("mcpKeys").doc(hash).set({ uid: firebase.auth().currentUser.uid, worldId: worldId, gameId: gameId, label: game.title || "",
+    await db.collection("mcpKeys").doc(hash).set({ uid: firebase.auth().currentUser.uid, worldId: worldId, gameId: gameId, label: String(label || AGS.defLabel[role]).slice(0, 80), role: role,
       prefix: key.slice(0, 12), createdAt: stamp() });
-    newKey = key; render(); // shown once: only the hash is stored
+    newKey = key; newKeyRole = role; render(); // shown once: only the hash is stored
     return key;
   }
   // «Скопіювати все для PowerShell»: steps 3 + 4 + 7 as one paste — the folder, `claude mcp add` with a fresh key (in the folder:
@@ -12164,7 +12324,8 @@
     var ans = e.target.closest("[data-answer]");
     if (ans) { var q = ans.closest(".q"), at = q.querySelector("textarea"); if (!at.value.trim()) { at.focus(); return; } // empty: nothing to send, the button stays usable
       ans.disabled = true; answerQuestion(q.dataset.q, at.value.trim()).catch(function (er) { ans.disabled = false; planMsg = er.message; render(); }); return; }
-    var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { ex.disabled = false; notify(STR.failed + ": " + er.message); }); return; } // planMsg shows only on the plan page
+    if (agClick(e)) return;
+    var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey($("ak-label") ? $("ak-label").value.trim() : "", $("ak-role") ? $("ak-role").value : "").catch(function (er) { ex.disabled = false; notify(STR.failed + ": " + er.message); }); return; } // planMsg shows only on the plan page
     var rv = e.target.closest("[data-revoke]");
     if (rv) { askConfirm(STR.exRevokeQ, { danger: true }).then(function (ok) { if (ok) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); }); return; }
     var orf = e.target.closest("[data-openref]"); if (orf) { var oc = allCards().filter(function (x) { return x.key === orf.dataset.openref; })[0]; if (oc) openCard(oc); return; }
@@ -12550,6 +12711,7 @@
   });
   // the hub's panel copy (?panel=1) loads alongside — it must not take the main Bible's «open this game» (owner: «a game from the hub opens the world»)
   if (params.get("panel") !== "1") try { var keep = sessionStorage.getItem("ww-bible-sec-" + worldId); if (keep) { sessionStorage.removeItem("ww-bible-sec-" + worldId); var ki = keep.indexOf("/"); if (ki > 0) { startGame = keep.slice(0, ki); section = keep.slice(ki + 1) || "overview"; } else section = keep; } } catch (e) {}
+  if (params.get("sec") && startGame) section = String(params.get("sec")).replace(/[^a-z0-9_-]/gi, ""); // a link from Telegram (💬 agents.js bibleUrl): the game's section
   if (startGame) mode = "game";
   $("spine").setAttribute("aria-label", STR.sectionsAria);
 
@@ -12815,6 +12977,8 @@
     kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null; mkState = null; mkChannels = []; mkPosts = []; mkTg = null; mkMsg = "";
     stageSeen = {}; // 🧭 the log and the index stream lazily: one cheap read tells the stage marks whether they hold anything
     ["activity", "knowledge"].forEach(function (c) { may(c, function () { gref().collection(c).limit(1).get().then(function (q) { if (gameId === id) { stageSeen[c] = q.size; renderNav(); } }, function () {}); }); });
+    agMsgs = []; agMsg = ""; agTg = null; agTgMsg = ""; agTgLink = null;
+    may("agents", function () { gref().collection("agentMessages").limit(1).get().then(function (q) { if (gameId === id) { stageSeen.agents = q.size; renderNav(); } }, function () {}); });
     lazyStreams = [
       [["experience", "plan"], function () { // the plan: experiment outcomes in the decision log
         unsub.push(gref().collection("playtests").onSnapshot(function (snap) { exPlaytests = rows(snap); exRender(); }, function () {}));
@@ -12827,6 +12991,9 @@
       }],
       [["marketing", "settings"], function () { // the channels: the Marketing page and Settings → 🔌 Інтеграції
         unsub.push(gref().collection("channels").onSnapshot(function (snap) { mkChannels = rows(snap); if (section === "settings") { if (settingsIdle()) render(); } else mkRender(); }, function () {}));
+      }],
+      [["agents"], function () { // 💬 the agents' talk (server-written)
+        unsub.push(gref().collection("agentMessages").orderBy("at", "desc").limit(200).onSnapshot(function (snap) { agMsgs = rows(snap); if (section === "agents" && !agTyping()) render(); else renderNav(); }, function () {}));
       }],
       [["knowledge"], function () {
         unsub.push(gref().collection("knowledge").orderBy("startedAt", "desc").limit(10).onSnapshot(function (snap) { kSnaps = rows(snap); kAssets = null; if (section === "knowledge") render(); }, function () {}));
