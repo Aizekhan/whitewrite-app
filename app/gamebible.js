@@ -7838,7 +7838,7 @@
       road: { title: "Claude Code — підключення гри", hint: "Тобі — лише два кроки. Решту Claude Code встановить і перевірить сам, а галочки нижче поставить, коли зробить.",
         s1: "Крок 1. Встанови Claude Code", s1Hint: "Відкрий PowerShell (Пуск → «PowerShell»), встав цей рядок і натисни Enter:", s1Login: "Потім напиши <b>claude</b> і увійди у свій акаунт Claude (підписка Pro / Max або API-ключ). Уже встановлено — пропусти.",
         s2: "Крок 2. Підключи гру", s2Hint: "Впиши теку гри на ПК і натисни кнопку — одна вставка в PowerShell створить теку, підключить WhiteWrite новим ключем, додасть блок у CLAUDE.md і запустить Claude Code. Ключ — лише в скопійованому блоці, тож копіюй, коли готовий вставити.",
-        askHint: "Далі в Claude Code напиши:", ask: "Підготуй усе для роботи з WhiteWrite", askAfter: "Агент сам встановить і перевірить решту (Git, Unity, фреймворк, журнал), а тебе попросить лише увійти в акаунти (Unity Hub, GitHub) чи підтвердити встановлення.",
+        askHint: "Далі в Claude Code напиши:", ask: "Підготуй усе для роботи з WhiteWrite", askAfter: "Агент сам встановить і перевірить решту (Git, Unity, фреймворк, журнал), а тебе попросить лише увійти в акаунти (Unity Hub, GitHub) чи підтвердити встановлення.", askAfterOther: "Агент сам встановить і перевірить решту (Git, інструменти рушія, журнал), а тебе попросить лише увійти в акаунти (GitHub, акаунт рушія) чи підтвердити встановлення.",
         stTitle: "Стан", stClaude: "Claude Code підключено", stClaudeWait: "ключ є — Claude Code ще не звертався", stEnv: "Середовище Unity готове", stEnvBad: "агент знайшов проблеми — він скаже, що зробити", stLog: "Журнал розробки підключено", stPlan: "Продакшн-план є", stRepo: "GitHub-репозиторій",
         next: "Далі: опиши гру —", adv: "Для досвідчених", advShow: "▾ Показати", advHint: "Те саме вручну: окремий ключ, тека без PowerShell, запуск, перевірка середовища, журнал, GitHub. Зазвичай не потрібно — Claude Code робить це сам.",
         done: "Готово {n} з {t}", ok: "готово", opt: "необовʼязково", more: "Докладніше", kbAll: "Увесь шлях у Базі знань",
@@ -7875,7 +7875,7 @@
       road: { title: "Claude Code — connecting the game", hint: "Only two steps are yours. Claude Code installs and checks the rest itself and sets the ticks below when it is done.",
         s1: "Step 1. Install Claude Code", s1Hint: "Open PowerShell (Start → “PowerShell”), paste this line and press Enter:", s1Login: "Then type <b>claude</b> and sign in to your Claude account (a Pro / Max plan or an API key). Already installed — skip it.",
         s2: "Step 2. Connect the game", s2Hint: "Type the game's folder on your PC and press the button — one paste into PowerShell creates the folder, connects WhiteWrite with a new key, adds a block to CLAUDE.md and starts Claude Code. The key is only in the copied block, so copy it when you are ready to paste.",
-        askHint: "Then write in Claude Code:", ask: "Set everything up for WhiteWrite", askAfter: "The agent installs and checks the rest itself (Git, Unity, the framework, the log) and asks you only to sign in to accounts (Unity Hub, GitHub) or to confirm an install.",
+        askHint: "Then write in Claude Code:", ask: "Set everything up for WhiteWrite", askAfter: "The agent installs and checks the rest itself (Git, Unity, the framework, the log) and asks you only to sign in to accounts (Unity Hub, GitHub) or to confirm an install.", askAfterOther: "The agent installs and checks the rest itself (Git, the engine's tools, the log) and asks you only to sign in to accounts (GitHub, the engine account) or to confirm an install.",
         stTitle: "Status", stClaude: "Claude Code connected", stClaudeWait: "a key exists — Claude Code has not called yet", stEnv: "Unity environment ready", stEnvBad: "the agent found problems — it will tell you what to do", stLog: "Development log connected", stPlan: "Production plan exists", stRepo: "GitHub repository",
         next: "Next: describe the game —", adv: "For advanced users", advShow: "▾ Show", advHint: "The same by hand: a separate key, the folder without PowerShell, the launch, the environment check, the log, GitHub. Usually not needed — Claude Code does it itself.",
         done: "Done {n} of {t}", ok: "done", opt: "optional", more: "More", kbAll: "The whole path in the Knowledge base",
@@ -9753,7 +9753,7 @@
     };
     var s2 = owner ? '<p class="hint">' + R.s2Hint + '</p>' + launchHtml() +
         '<div class="setrow"><button class="btn' + (used ? '' : ' primary') + '" id="ln-all">' + R.allBtn + '</button><span class="hint" id="ln-allmsg" role="status">' + esc(lnAllMsg) + '</span></div>' +
-        '<p class="hint">' + R.askHint + '</p><pre class="ln-cmd">' + esc(R.ask) + '</pre><button class="btn" data-copy>⧉ ' + STR.copy + '</button><p class="hint">' + R.askAfter + '</p>'
+        '<p class="hint">' + R.askHint + '</p><pre class="ln-cmd">' + esc(R.ask) + '</pre><button class="btn" data-copy>⧉ ' + STR.copy + '</button><p class="hint">' + (isUnityGame() ? R.askAfter : R.askAfterOther) + '</p>'
       : '<p class="hint">' + STR.exOwnerOnly + '</p>'; // an MCP key is the owner's (firestore.rules mcpKeys)
     // the state: ✓ / ○ from live data, no instructions — the agent sets them (MCP calls)
     var st = [
