@@ -264,7 +264,7 @@
       aiBusy: "«{op}» ще працює — результат зʼявиться сам, навіть якщо перейти в інший розділ.",
       ops: { styleCheck: "Перевірка стилю", cardFill: "Заповнення картки", reconstructScene: "Узгодження сцен", synthesize: "Озвучка реплік", cosmograph: "Космограф", marketing: "Маркетинг", worldFolderScout: "Тека світу: що читати", worldFolder: "Тека світу", folderSort: "Розбір теки гри", concepts: "3 концепти гри", styleFromRefs: "Стиль із референсів", draft: "Чернетка GDD з опису", questDraft: "Чернетка квесту", dialogueDraft: "Чернетка діалогу", analyze: "Аналіз і аудит гри", plan: "Продакшн-план", import: "Імпорт нотаток", canonAudit: "Аудит канону", repoSync: "Звірка з репозиторієм", expReport: "Звіт про досвід гравців", playtest: "План плейтесту", marketingDraft: "Пост для маркетингу" },
       launch: { hint: "Тека цієї гри на твоєму ПК — сервіс складе команди запуску. Копіюй їх у PowerShell перед кожною сесією.",
-        dir: "Тека гри", dirPh: "D:\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
+        dir: "Тека гри на ПК (повний шлях)", dirPh: "напр. D:\\Ігри\\Моя гра", dirEx: "D:\\Ігри\\Моя гра", model: "Модель", opus: "Opus (рекомендовано)", dflt: "Типова", skip: "Без запитів дозволу (--dangerously-skip-permissions)", skipWarn: "⚠ Агент виконуватиме команди без підтвердження — запускай лише в окремій теці гри, якій довіряєш. Зніми галочку, щоб він питав дозволу.",
         copy: "Копіювати команди", copied: "Скопійовано", saved: "Збережено" },
       integ: { tabMain: "⚙ Загальне", tabInteg: "🔌 Інтеграції",
         about: "Усі сторонні сервіси в одному місці: ключі, токени, посилання. Ключі зберігаються лише на сервері — тут видно сервіс і останні 4 символи.",
@@ -631,7 +631,7 @@
       aiBusy: "“{op}” is still working — the result will appear by itself, even if you go to another section.",
       ops: { styleCheck: "Style check", cardFill: "Card fill", reconstructScene: "Reconciling scenes", synthesize: "Voicing lines", cosmograph: "Cosmograph", marketing: "Marketing", worldFolderScout: "World folder: what to read", worldFolder: "World folder", folderSort: "Game folder sorting", concepts: "3 game concepts", styleFromRefs: "Style from references", draft: "GDD draft from a description", questDraft: "Quest draft", dialogueDraft: "Dialogue draft", analyze: "Game analysis & audit", plan: "Production plan", import: "Notes import", canonAudit: "Canon audit", repoSync: "Repository check", expReport: "Player experience report", playtest: "Playtest plan", marketingDraft: "Marketing post" },
       launch: { hint: "This game's folder on your PC — the service writes the launch commands. Copy them into PowerShell before every session.",
-        dir: "Game folder", dirPh: "D:\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
+        dir: "Game folder on your PC (full path)", dirPh: "e.g. D:\\Games\\My Game", dirEx: "D:\\Games\\My Game", model: "Model", opus: "Opus (recommended)", dflt: "Default", skip: "No permission prompts (--dangerously-skip-permissions)", skipWarn: "⚠ The agent will run commands without asking — use it only in a separate game folder you trust. Untick to have it ask for permission.",
         copy: "Copy the commands", copied: "Copied", saved: "Saved" },
       integ: { tabMain: "⚙ General", tabInteg: "🔌 Integrations",
         about: "Every outside service in one place: keys, tokens, links. Keys stay on the server — here you see the service and the last 4 characters.",
@@ -9808,7 +9808,7 @@
       '<div class="setrow"><select data-igp="' + kind + '" aria-label="' + esc(I.provider) + '">' + IG_PROV[kind].map(function (p) {
         return '<option value="' + p[0] + '"' + (cur && cur.provider === p[0] ? ' selected' : '') + '>' + esc(p[1] || I.other) + '</option>'; }).join("") + '</select>' +
       '<input data-ign="' + kind + '" aria-label="' + esc(I.name) + '" placeholder="' + esc(I.name) + '" value="' + esc((cur && cur.name) || "") + '"' + (cur && cur.provider === "other" ? '' : ' hidden') + '></div>' +
-      '<div class="setrow"><input data-igk="' + kind + '" type="password" autocomplete="off" aria-label="' + esc(I.key) + '" placeholder="' + esc(I.keyPh) + '">' +
+      '<div class="setrow"><input data-igk="' + kind + '" type="password" autocomplete="new-password" aria-label="' + esc(I.key) + '" placeholder="' + esc(I.keyPh) + '">' +
       '<button class="btn primary" data-igsave="' + kind + '">' + (cur ? I.replace : I.save) + '</button>' + (cur ? '<button class="btn danger" data-igdel="' + kind + '">' + I.remove + '</button>' : '') + '</div>';
     return '<h3>' + (kind === "model3d" ? I.m3d : I.img) + '</h3><p class="hint">' + (kind === "model3d" ? I.m3dHint : I.imgHint) + '</p><p>' + state + '</p>' + form +
       '<p class="hint" role="status" id="ig-msg-' + kind + '">' + esc(igMsg[kind] || "") + '</p>';
@@ -10382,15 +10382,18 @@
   var psDir = function (d) { return String(d || "").replace(/["$`\r\n]/g, ""); };
   var psModel = function (m) { return ["opus", "sonnet"].indexOf(m) >= 0 ? m : ""; };
   function launchText(l) {
-    return 'cd "' + (psDir(l.dir) || STR.launch.dirPh) + '"\nclaude' + (psModel(l.model) ? ' --model ' + psModel(l.model) : '') + (l.skip === false ? '' : ' --dangerously-skip-permissions');
+    return 'cd "' + (psDir(l.dir) || STR.launch.dirEx) + '"\nclaude' + (psModel(l.model) ? ' --model ' + psModel(l.model) : '') + (l.skip === false ? '' : ' --dangerously-skip-permissions');
   }
-  function launchNow() { return { dir: $("ln-dir").value.trim(), model: $("ln-model").value, skip: $("ln-skip").checked }; }
+  // the browser takes the folder field for a login (the page has token fields) and fills in an e-mail — an e-mail is never a folder
+  var notMail = function (d) { d = String(d || "").trim(); return /^[^\\\/\s@]+@[^\\\/\s@]+\.[^\\\/\s@]+$/.test(d) ? "" : d; };
+  function launchNow() { return { dir: notMail($("ln-dir").value), model: $("ln-model").value, skip: $("ln-skip").checked }; }
   // two parts (v2.120): the folder / model / permissions sit in step 2 «Підключи гру», the launch lines alone under «Для досвідчених»
   function launchHtml(part) {
     var l = Object.assign({ model: "opus" }, game.launch), R = STR.launch;
     if (part === "cmd") return '<p class="hint">' + R.hint + '</p><pre class="ln-cmd" id="ln-cmd">' + esc(launchText(l)) + '</pre>' +
       '<div class="setrow"><button class="btn" id="ln-copy">' + R.copy + '</button><span class="hint" id="ln-msg"></span></div>';
-    return '<div class="setrow"><input id="ln-dir" aria-label="' + esc(R.dir) + '" placeholder="' + esc(R.dirPh) + '" value="' + esc(l.dir || "") + '">' +
+    return '<label class="hint" for="ln-dir">' + esc(R.dir) + '</label>' +
+      '<div class="setrow"><input id="ln-dir" name="ww-game-folder" autocomplete="off" autocapitalize="off" spellcheck="false" readonly data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" aria-label="' + esc(R.dir) + '" placeholder="' + esc(R.dirPh) + '" value="' + esc(notMail(l.dir)) + '">' +
       '<select id="ln-model" aria-label="' + esc(R.model) + '">' + [["opus", R.opus], ["sonnet", "Sonnet"], ["", R.dflt]].map(function (m) {
         return '<option value="' + m[0] + '"' + (m[0] === (l.model || "") ? " selected" : "") + '>' + esc(m[1]) + '</option>'; }).join("") + '</select></div>' +
       '<label class="imp"><input type="checkbox" id="ln-skip"' + (l.skip === false ? '' : ' checked') + '><span>' + esc(R.skip) + '</span></label>' +
@@ -10400,7 +10403,8 @@
     if (!$("ln-dir")) return; // a team member: no folder of their own here
     var show = function () { if ($("ln-cmd")) $("ln-cmd").textContent = launchText(launchNow()); $("ln-warn").hidden = !$("ln-skip").checked; };
     var save = function () { show(); gref().set({ launch: launchNow(), updatedAt: stamp() }, { merge: true }).then(function () { var m = $("ln-msg") || $("ln-allmsg"); if (m) m.textContent = STR.launch.saved; }); };
-    $("ln-dir").oninput = show; $("ln-dir").onchange = save; $("ln-model").onchange = save; $("ln-skip").onchange = save;
+    $("ln-dir").onfocus = function () { this.removeAttribute("readonly"); }; // readonly until focus: the browser does not autofill it on load
+    $("ln-dir").oninput = function () { if (notMail(this.value) !== this.value.trim()) this.value = ""; show(); }; $("ln-dir").onchange = save; $("ln-model").onchange = save; $("ln-skip").onchange = save;
     if ($("ln-all")) $("ln-all").onclick = async function () {
       var l = launchNow(), b = this, R = KN.road;
       var say = function (t) { lnAllMsg = t; if ($("ln-allmsg")) $("ln-allmsg").textContent = t; }; // the key's listener re-renders the page: the note survives it
@@ -10439,7 +10443,7 @@
         '<p class="hint">' + (d ? esc(R.synced.replace("{d}", d.toLocaleString(LANG === "en" ? "en-GB" : "uk-UA"))) : R.never) + '</p>' +
         '<div class="setrow"><button class="btn" id="rp-sync">' + R.sync + costMark("repoSync") + '</button><button class="btn danger" id="rp-off">' + R.disconnect + '</button></div>'
       : '<div class="setrow"><input id="rp-repo" aria-label="' + esc(R.repo) + '" placeholder="' + esc(R.repoPh) + '"><input id="rp-branch" aria-label="' + esc(R.branch) + '" placeholder="' + esc(R.branchPh) + '"></div>' +
-        '<div class="setrow"><input id="rp-token" type="password" autocomplete="off" aria-label="' + esc(R.token) + '" placeholder="' + esc(ghLogin ? R.tokenSaved.replace("{l}", ghLogin) : R.tokenPh) + '"><button class="btn" id="rp-on">' + R.connect + '</button></div>') +
+        '<div class="setrow"><input id="rp-token" type="password" autocomplete="new-password" aria-label="' + esc(R.token) + '" placeholder="' + esc(ghLogin ? R.tokenSaved.replace("{l}", ghLogin) : R.tokenPh) + '"><button class="btn" id="rp-on">' + R.connect + '</button></div>') +
       '<p class="hint" id="rp-msg"></p>';
   }
   function bindRepo() {
@@ -12746,7 +12750,7 @@
     var B = STR.hub.backup, b = world.backup, PF = window.__PAID_FEATURES, cost = PF ? PF.featureCost(PF.byOp("githubBackup")) : 300;
     var head = '<h2>' + B.title + '</h2><p class="hint">' + B.hint.replace("{n}", cost) + '</p>';
     if (!b || !b.repo) return head + (ghLogin ? '<p class="pmsg">' + esc(B.saved.replace("{l}", ghLogin)) + '</p>' : '<ol class="hint">' + B.steps.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>') +
-      '<label class="field"><span>' + B.token + '</span><input id="bk-token" type="password" autocomplete="off" placeholder="github_pat_…"></label>' +
+      '<label class="field"><span>' + B.token + '</span><input id="bk-token" type="password" autocomplete="new-password" placeholder="github_pat_…"></label>' +
       '<div class="setrow"><button class="btn primary" id="bk-connect">' + B.connect + '</button></div>';
     var until = b.paidUntil && b.paidUntil.toMillis ? b.paidUntil.toMillis() : 0, last = b.lastAt && b.lastAt.toMillis ? new Date(b.lastAt.toMillis()).toLocaleString() : "—";
     return head + '<p>' + B.repo + ' <a href="https://github.com/' + esc(b.repo) + '" target="_blank" rel="noopener">' + esc(b.repo) + '</a> 🔒</p>' +

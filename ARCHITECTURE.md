@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.147.1 (2026-11-19)
+**Version:** 2.147.2 (2026-11-19)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -811,6 +811,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.147.2** Біблія → Claude Code, крок 2: браузер вставляв пошту в поле теки (сторінка має поля-паролі токенів → поле теки вважалось логіном). Поле `ln-dir` — `autocomplete="off"`, власне `name`, атрибути ігнору менеджерів паролів, `readonly` до фокусу; адреса пошти ніколи не приймається як тека (`notMail`, і вже збережена теж); поля токенів (`rp-token`, ключі інтеграцій, `bk-token`) — `autocomplete="new-password"`; над полем видимий підпис «Тека гри на ПК (повний шлях)», підказка «напр. D:\Ігри\Моя гра».
 - **v2.147.1** Біблія → Claude Code, крок 2: підказка «Агент сам встановить…» для не-Unity рушіїв без Unity / Unity Hub (`R.askAfterOther`, як `stEnv`; знайдено живою перевіркою після v2.147.0).
 - **v2.147.0** «Аудит 2026-11-19» (owner: «виправ усе»): *security* — rules enums (tasks, experienceIssues, experiments / playtests / changeRequests, quest / dialogue approval), `secsOk`, what a team member may change in the plan / changeRequests / experienceIssues / playtests / approval, world `createdAt` fixed at create, `freshWorld` with no future time, the demo game read-only, `storageLocks` server-only; storage — avatar / cover names, `safeType`; MCP — `team_note` / `authored_by_member`, `get_next_task` in a transaction, `HISTORY_MAX` 50, executions TTL 180 d, indexed knowledge search, `card_image_upload` ≤ 30 MB, engine-neutral tools; `resolveKey` checks the world owner; Community daily limits (`communityRate`); team invite answers `pending` for an unknown e-mail; Mastodon DNS check. *Money* — debt = negative `bonusTokens`; `reserve {hold, cap, upTo}` + `worstCase`; `notePaid` → the sweep charges what the API already took (`HOLD_MS` 2 h, `beforeTimeout`, longer timeouts); upgrade tokens after `subscription_payment_success`, failed → previous plan; no new period while `past_due`; `effectivePlan` / `subscriptionEndsAt`; LS `test_mode` ignored; `quoteChars` + `quoteCtx`, `settle` honours `cap`; `lockCreate`; Storage quota in a transaction (+ avatars, story covers); activation `payingAt` (409 `BUSY`); `improve`, `allowSonnet` / `allowOpus` / `allowFramework` removed. *Backend* — `titleSim` number tokens, `setupGeneric` + `UNITY_PROFILES`, engine-aware game map, `frameworkProfile` 0.41.0, server-numbered milestones / tasks (`carried`), import caps × parts + `truncated`, telemetry (single bad ids, `safeKey`, capped maps, metrics cache 10 min, partial retention, BulkWriter, field indexes off, TTLs), `communityRotate` by score, cleanup `retry`, backup back-off. *Frontend* — `cls` / `hexc`, profile «Unity (без фреймворку)», unsaved-changes guard + `beforeunload`, lazy hub panel, `planBusyOf`, render error boundary, batched snapshots, co-author warning, owner-only controls hidden for members, minified plain JS, `.woff2` cache, book i18n. **Stripe removed** (owner: «лише через Lemon Squeezy») — Connect, `marketWebhook`, secrets, dependency; the Market keeps certification and stays «в розробці», the buyout provider is not chosen
 - **v2.146.2** shell «Назад» closes the Bible's overlay first: `White.html goBack` asks `frames.bible.contentWindow.__wwBibleBack()` — the top dialog (`.ask` · `.refv` · `.zoom` · `.v3d` · `.lk-menu` · `.pic-ch`, its own Esc), then the card (`leafClose`) / dossier (`dosClose`); a card / dossier remembers the page it was opened from (`gamebible.js ovFrom`, kept across card → card / dossier → card switches) and ✕ / Esc / scrim / «Назад» return there (`ovReturn` → `goPos`, its `ww-bible-at { ret }` drops the detour from the shell's history); `ww-bible-overlay { on }` keeps `#back-fab` enabled while one is open; the dossier's «Відкрити в грі» opens the card once the game's cards arrive (`ovPending`, it did not open before)
@@ -1074,5 +1075,5 @@ One line per version, newest first; the details live in the sections above. Befo
 
 ---
 
-**Last updated:** 2026-11-19 (v2.147.1)
+**Last updated:** 2026-11-19 (v2.147.2)
 **Maintained by:** WhiteWrite Team
