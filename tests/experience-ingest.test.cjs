@@ -25,11 +25,14 @@ function doc(p) {
 }
 function col(p) {
   const q = (filters) => ({ where: (f, op, v) => q(filters.concat([[f, v]])), orderBy: () => q(filters), limit: () => q(filters),
-    get: async () => ({ docs: [...store.keys()].filter((k) => k.startsWith(p + '/') && !k.slice(p.length + 1).includes('/') && filters.every(([f, v]) => store.get(k)[f] === v)).map(snap) }) });
+    get: async () => (p.endsWith('/telemetry') && telemetryReads++, { docs: [...store.keys()].filter((k) => k.startsWith(p + '/') && !k.slice(p.length + 1).includes('/') && filters.every(([f, v]) => store.get(k)[f] === v)).map(snap) }) });
   return Object.assign(q([]), { doc: (id) => doc(p + '/' + (id || crypto.randomBytes(6).toString('hex'))), add: async (d) => { const r = doc(p + '/' + crypto.randomBytes(6).toString('hex')); await r.set(d); return r; } });
 }
 const batch = () => { const ops = []; return { set: (r, d, o) => ops.push(() => r.set(d, o)), commit: async () => { for (const f of ops) await f(); } }; };
-const db = { collection: (c) => col(c), batch, getAll: async (...refs) => refs.map((r) => snap(r.path)), recursiveDelete: async () => {} };
+// BulkWriter.create: ALREADY_EXISTS (code 6) on a stored doc, as Firestore does
+const bulkWriter = () => ({ create: async (r, d) => { if (store.has(r.path)) throw Object.assign(new Error('ALREADY_EXISTS'), { code: 6 }); await r.set(d); }, close: async () => {} });
+let telemetryReads = 0;
+const db = { collection: (c) => col(c), batch, bulkWriter, getAll: async (...refs) => refs.map((r) => snap(r.path)), recursiveDelete: async () => {} };
 const admin = { firestore: { FieldValue: { increment: INC, delete: () => DEL, serverTimestamp: () => TS, arrayUnion: (...a) => a }, Timestamp: { fromMillis: (n) => ({ ms: n }) } },
   auth: () => ({ verifyIdToken: async (t) => ({ uid: t }) }) };
 const settled = [];
@@ -78,6 +81,32 @@ const call = async (fn, req) => { let out = {}; const res = { set() {}, status(c
   const bad = await ex('a', { op: 'playtest' });
   check(bad.code + '|' + settled.length + '|' + (settled[0] && settled[0].uid) + '|' + !!(settled[0] && settled[0].paid && settled[0].paid.usage), '500|1|u1|true',
     'an admin ✦ runs on the owner tokens; an unparsable answer after the paid call → settle with its usage (charged, not refunded)');
+
+  // ---- a reserved event_id is one rejected event, not a failed batch (v2.147) ----
+  const a3 = await ingest([Object.assign(ev(9), { event_id: '__abcd__' }), Object.assign(ev(10), { event_id: '__ab.c__' }), ev(11)]);
+  check(a3.code + '|' + a3.body.accepted + '|' + a3.body.rejected.map((x) => x.reason).join(), '200|1|event_id,event_id', 'event_id «__…__» is rejected, the rest of the batch is stored');
+
+  // ---- metrics: reused for 10 minutes unless forced ----
+  telemetryReads = 0;
+  const m1 = await ex('u1', { op: 'metrics', days: 30, force: true }), m2 = await ex('u1', { op: 'metrics', days: 30 }), m3 = await ex('u1', { op: 'metrics', days: 30, force: true });
+  check([m1.body.cached, m2.body.cached, m3.body.cached, telemetryReads].join('|'), 'false|true|false|2', 'the second run within 10 minutes reuses the stored metrics (no events read), force recomputes');
+  check((await ex('u1', { op: 'metrics', days: 7 })).body.cached, false, 'another period is computed, not taken from the cache');
+
+  // ---- computeMetrics: client ids as safe map keys, capped maps, truncation said ----
+  const { computeMetrics } = EX._experience, T0 = Date.UTC(2026, 10, 1);
+  const E = (i, extra) => Object.assign({ n: i % 2 ? 'QuestStarted' : 'MechanicUsed', p: 'p' + (i % 50), s: 's' + i, t: T0 + i * 1000, b: '1.0' }, extra);
+  const evs = Array.from({ length: 600 }, (_, i) => E(i, { m: 'mech_' + i, z: i === 0 ? '__name__' : i === 1 ? 'a.b' : 'zone' + i, q: 'q' + i, l: 'l' + i }))
+    .concat([E(700, { n: 'SurveyAnswered', pr: { question: '__q__', answer: 'Дуже цікаво!' } })]);
+  const M = computeMetrics(evs, {});
+  check(['zones', 'quests', 'levels', 'mechanics'].map((k) => Object.keys(M[k]).length).join(), '200,200,200,200', 'each map of client ids keeps at most 200 entries');
+  const allKeys = [].concat(...['zones', 'quests', 'levels', 'mechanics', 'surveys'].map((k) => Object.keys(M[k])), Object.keys(M.sample.builds));
+  check(allKeys.some((k) => /^__.*__$/.test(k) || k.includes('.')), false, 'no «__…__» or dotted keys reach the metrics doc');
+  check(JSON.stringify(Object.keys(M.surveys)) + JSON.stringify(Object.keys(M.surveys.k__q__.answers)), '["k__q__"]["Дуже_цікаво_"]', 'survey question and answer keys are safe, Cyrillic kept');
+  check(M.sample.truncated + '|' + M.retention.partial, 'false|false', 'a full read is not marked partial');
+  const days = (d, p) => [0, d].map((k, j) => ({ n: 'SessionStarted', p, s: p + j, t: T0 + k * 86400000 }));
+  const R = computeMetrics([].concat(days(1, 'old'), days(1, 'x'), [{ n: 'SessionStarted', p: 'new', s: 'n0', t: T0 + 86400000 }, { n: 'SessionStarted', p: 'new', s: 'n1', t: T0 + 2 * 86400000 }]), { truncated: true });
+  check(R.sample.truncated + '|' + R.retention.partial + '|' + R.retention.windowDays + '|' + R.retention.d1.players + '|' + R.retention.d1.rate, 'true|true|2|1|1',
+    'a truncated read says so, and players first seen on its first day (maybe older) are not counted as new in D1/D7/D30');
 
   // ---- get_telemetry_schema names the events the retention metrics need (v2.146.1) ----
   const req = EX._experience.telemetrySchema({}, [], [], [], []).required_events || '';

@@ -14,8 +14,6 @@ const quoted = (word) => server.indexOf("'" + word + "'") >= 0 || server.indexOf
 // gates the browser enforces on purpose: no AI cost, the author's own data
 const CLIENT_ONLY = {
   allowExport: 'DOCX / PDF are built in the browser from the story the author already reads (app/book-export.js)',
-  allowSonnet: 'the model choice — the server picks the tier by MODEL_TIERS (claude.js modelTier), checked below',
-  allowOpus: 'the model choice — the server picks the tier by MODEL_TIERS (claude.js modelTier), checked below',
 };
 // priced ops whose server code passes the op through a variable (gamedev / narrative / experience)
 const VIA_VARIABLE = { import: 'gamedev.js', draft: 'gamedev.js', concepts: 'gamedev.js', analyze: 'gamedev.js', plan: 'gamedev.js', repoSync: 'gamedev.js',

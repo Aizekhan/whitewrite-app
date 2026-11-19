@@ -53,6 +53,7 @@ async function runCheck({ uid, userData, game, style, image, refs, lang, what, l
     if (e.code !== 'OUT_OF_TOKENS') throw e;
     throw new CheckError(403, { error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
   }
+  let paid = null; // the Claude call reached the API: a later error (bad JSON, no score) is charged for it, not refunded (settle)
   try {
     const system = `You are the art director of the game "${str(game.title, 160)}". You judge whether a picture fits the game's visual style:
 palette and colour balance, light and mood, materials and textures, shapes and silhouette, the do / don't rules. Be concrete and fair:
@@ -68,6 +69,7 @@ ${brief}`;
   "issues": ["<what breaks the style, most important first; empty if none>"], "fixes": ["<concrete changes that bring it into the style>"] }
 At most 4 issues and 4 fixes, short. Write in ${lang}.` });
     const msg = await claudeText(claudeApiKey.value(), { model, system, prompt: content, maxTokens: 3000, effort: 'low' });
+    paid = { model: msg.model, usage: msg.usage };
     if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
     const result = S.cleanVerdict(parseJson(msg.text));
     if (result.score == null) throw new Error('AI не дав оцінку');
@@ -77,6 +79,7 @@ At most 4 issues and 4 fixes, short. Write in ${lang}.` });
     reservation = null;
     return { result, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) };
   } catch (error) {
+    if (paid && !error.paid) error.paid = paid;
     if (reservation) { const r = reservation; reservation = null; await settle(db, uid, r, error, logAs || 'style_check').catch((e) => console.error('[style] Refund failed:', e)); }
     throw error;
   }
@@ -128,7 +131,7 @@ exports.styleCheck = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
 const PROPOSAL_FIELDS = ['manifesto', 'palette', 'avoid', 'light', 'materials', 'shapes', 'rules'];
 exports.styleFromRefs = onRequest({ region: 'us-central1', secrets: [claudeApiKey], timeoutSeconds: 180 }, async (req, res) => {
   return cors(req, res, async () => {
-    let uid, reservation = null;
+    let uid, reservation = null, paid = null; // paid: the Claude call reached the API — a later error is charged for it (settle)
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const auth = req.headers.authorization || '';
@@ -169,6 +172,7 @@ what the pictures share, stated so an artist and an AI can check any new picture
   "rules": "<4-8 lines 'Так: …' / 'Ні: …' (in English 'Do: …' / 'Don't: …')>" }
 Short, concrete, no invented lore. Write in ${lang}.` }]);
       const msg = await claudeText(claudeApiKey.value(), { model, system, prompt: content, maxTokens: 4000, effort: 'low' });
+      paid = { model: msg.model, usage: msg.usage };
       if (msg.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', msg.model, msg.usage);
       const p = parseJson(msg.text), proposal = {};
       PROPOSAL_FIELDS.forEach((k) => { const v = str(p && p[k], 3000); if (v) proposal[k] = v; });
@@ -180,9 +184,10 @@ Short, concrete, no invented lore. Write in ${lang}.` }]);
       return res.status(200).json({ success: true, proposal, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('styleFromRefs error:', error);
-      return res.status(500).json({ error: `Помилка стилю з референсів: ${publicMessage(error)}` });
-    } finally {
+      if (paid && !error.paid) error.paid = paid;
+      // settled here, not in a finally: `error` exists only in this catch (in the finally it was a ReferenceError — nothing settled)
       if (reservation) await settle(db, uid, reservation, error, 'styleFromRefs').catch((e) => console.error('[styleFromRefs] Refund failed:', e));
+      return res.status(500).json({ error: `Помилка стилю з референсів: ${publicMessage(error)}` });
     }
   });
 });

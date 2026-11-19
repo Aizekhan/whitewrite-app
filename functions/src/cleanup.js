@@ -1,7 +1,8 @@
 // Server-side cleanup after the author deletes a game, a world or a story. The page deletes the content itself (gamebible.js
 // removeGame / deleteWorld, the rules check ownership), but what it can't reach — or leaves behind when the tab closes
 // halfway — goes here, once the doc is gone: GitHub tokens, MCP / ingest / integration keys, marketing secrets and the
-// queue, Community showcases, every file under the path in Storage, and any subcollection still left.
+// queue, Community showcases and their reports, every file under the path in Storage, and any subcollection still left.
+// Every step is idempotent (deletes), so the triggers retry on a failure (retry: true) instead of leaving the rest behind.
 const { onDocumentDeleted } = require('firebase-functions/v2/firestore');
 const { admin, db } = require('./common');
 
@@ -15,7 +16,8 @@ async function removeAll(snaps) {
 async function removeShowcases(ids) {
   for (const id of ids) {
     const ref = db.collection('community').doc(id);
-    if ((await ref.get()).exists) await db.recursiveDelete(ref); // + its likes and reports
+    if ((await ref.get()).exists) await db.recursiveDelete(ref); // + its items, likes and followers
+    await removeAll([await db.collection('community_reports').where('pubId', '==', id).get()]); // reports are top-level: {pubId}__{uid}
   }
 }
 const removeFiles = (prefix) => admin.storage().bucket().deleteFiles({ prefix }).catch((e) => console.warn('[cleanup] files:', prefix, e.message));
@@ -45,9 +47,9 @@ async function cleanWorld(w) {
   await db.recursiveDelete(db.collection('worlds').doc(w));
 }
 
-exports.gameDeleted = onDocumentDeleted({ document: 'worlds/{worldId}/games/{gameId}', region: 'us-central1', timeoutSeconds: 540 },
+exports.gameDeleted = onDocumentDeleted({ document: 'worlds/{worldId}/games/{gameId}', region: 'us-central1', timeoutSeconds: 540, retry: true },
   (event) => cleanGame(event.params.worldId, event.params.gameId));
-exports.worldDeleted = onDocumentDeleted({ document: 'worlds/{worldId}', region: 'us-central1', timeoutSeconds: 540 },
+exports.worldDeleted = onDocumentDeleted({ document: 'worlds/{worldId}', region: 'us-central1', timeoutSeconds: 540, retry: true },
   (event) => cleanWorld(event.params.worldId));
 // A story (projects/{p}): the client deletes only the project document — its scenes subcollection and its cover
 // in Storage (projects/{p}/cover/) are removed here, so a deleted story leaves nothing behind.
@@ -55,6 +57,6 @@ async function cleanProject(p) {
   await removeFiles(`projects/${p}/`);
   await db.recursiveDelete(db.collection('projects').doc(p));
 }
-exports.projectDeleted = onDocumentDeleted({ document: 'projects/{projectId}', region: 'us-central1', timeoutSeconds: 540 },
+exports.projectDeleted = onDocumentDeleted({ document: 'projects/{projectId}', region: 'us-central1', timeoutSeconds: 540, retry: true },
   (event) => cleanProject(event.params.projectId));
 exports._cleanup = { cleanGame, cleanWorld, cleanProject }; // tests only

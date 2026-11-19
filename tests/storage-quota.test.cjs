@@ -10,7 +10,9 @@ const apply = (cur, d) => { const o = Object.assign({}, cur); for (const [k, v] 
 const doc = (p) => ({ get: async () => ({ exists: !!store[p], data: () => store[p], get: (k) => (store[p] || {})[k] }),
   set: async (d) => { store[p] = apply(store[p], d); }, update: async (d) => { if (!store[p]) throw new Error('NOT_FOUND'); store[p] = apply(store[p], d); } });
 const db = { collection: (c) => ({ doc: (id) => doc(c + '/' + id),
-  where: (f, op, v) => ({ get: async () => ({ docs: Object.keys(store).filter((k) => k.startsWith(c + '/') && store[k][f] === v).map((k) => ({ get: (x) => store[k][x] })) }) }) }) };
+  where: (f, op, v) => ({ get: async () => ({ docs: Object.keys(store).filter((k) => k.startsWith(c + '/') && store[k][f] === v).map((k) => ({ get: (x) => store[k][x] })) }) }) }),
+  // a transaction: reads first, writes applied at commit (two parallel uploads below race on the same reads)
+  runTransaction: async (fn) => { const ops = []; const out = await fn({ get: (r) => r.get(), set: (r, d) => ops.push(() => r.set(d)) }); for (const o of ops) await o(); return out; } };
 const admin = { firestore: { FieldValue: { increment: INC, serverTimestamp: () => 'TS' } },
   storage: () => ({ bucket: () => ({ file: (name) => ({ setMetadata: async () => {}, delete: async () => { deleted.push(name); } }) }) }) };
 require.cache[F('src/common.js')] = { loaded: true, exports: { admin, db, getPlanBudget: require(F('plans.js')).getPlanBudget } };
@@ -33,6 +35,15 @@ const GB = Q.GB, MB = 1024 * 1024;
   store['users/u1'].plan = 'worldbuilder';
   check((await Q.onUpload({ name: 'worlds/w1/files/e/big.mp4', size: 5 * GB })).counted, 'Worldbuilder (50 GB) takes what Free could not');
   check(!(await Q.onUpload({ name: 'worlds/gone/files/x.png', size: 1 })).counted, 'a file of a deleted world is not counted (cleanup removes it)');
+  // avatars and story covers count too (their number is not capped by the rules)
+  store['users/u2'] = { plan: 'free' }; store['projects/p1'] = { owner: 'u2' };
+  check((await Q.onUpload({ name: 'users/u2/avatar/1700000000000_a.png', size: 2 * MB })).counted && store['storageUsage/u_u2'].bytes === 2 * MB && store['storageUsage/u_u2'].owner === 'u2', 'an avatar counts toward its user');
+  check((await Q.onUpload({ name: 'projects/p1/cover/1700000000000_c.png', size: 5 * MB })).counted && store['storageUsage/p_p1'].owner === 'u2', "a story cover counts toward the story's owner");
+  await Q.onRemove({ name: 'users/u2/avatar/1700000000000_a.png', size: 2 * MB });
+  check(store['storageUsage/u_u2'].bytes === 0, 'a removed avatar takes its bytes off');
+  store['storageUsage/wX'] = { owner: 'u2', bytes: GB - 6 * MB };
+  check((await Q.onUpload({ name: 'users/u2/avatar/1700000000001_b.png', size: 2 * MB })).deleted, 'an avatar past the quota is deleted');
+  check(!(await Q.onUpload({ name: 'projects/nope/cover/1700000000000_c.png', size: 1 })).counted, 'a cover of a missing story is not counted');
   const P = require(F('paid-features.js'));
   check(['free', 'storyteller', 'novelist', 'worldbuilder'].map((p) => P.planBudget(p).storageGB).join() === '1,2,5,50', 'the quotas live in the registry: 1 · 2 · 5 · 50 GB');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exitCode = fails ? 1 : 0;

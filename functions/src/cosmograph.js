@@ -12,7 +12,7 @@ const PERIOD_MS = 30 * 24 * 3600 * 1000;
 
 exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res) => {
   return cors(req, res, async () => {
-    let uid, reservation = null;
+    let uid, reservation = null, claimed = false; // claimed: this request holds cosmograph.payingAt (released in the finally)
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const auth = req.headers.authorization || '';
@@ -39,11 +39,19 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
       }
       if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
       const now = Date.now();
-      const paidUntil = cur.paidUntil && cur.paidUntil.toMillis ? cur.paidUntil.toMillis() : 0;
-      if (paidUntil > now) { // this month is paid: just turn it on
-        await worldRef.set({ cosmograph: { ...cur, enabled: true } }, { merge: true });
-        return res.status(200).json({ success: true, enabled: true, paidUntil, tokensConsumed: 0 });
-      }
+      // one month at a time: two clicks / tabs may «Увімкнути» together — a claim in a transaction (cosmograph.payingAt, 2 min)
+      // lets one of them pay, the other sees the month paid or busy (like backup.js pay)
+      const at = (x) => (x && x.toMillis ? x.toMillis() : 0);
+      const claim = await db.runTransaction(async (tx) => {
+        const c = ((await tx.get(worldRef)).data() || {}).cosmograph || {};
+        if (at(c.paidUntil) > now) { tx.set(worldRef, { cosmograph: { enabled: true } }, { merge: true }); return { paidUntil: at(c.paidUntil) }; } // this month is paid: just turn it on
+        if (now - at(c.payingAt) < 2 * 60 * 1000) return { busy: true };
+        tx.set(worldRef, { cosmograph: { payingAt: admin.firestore.Timestamp.now() } }, { merge: true });
+        return {};
+      });
+      if (claim.paidUntil) return res.status(200).json({ success: true, enabled: true, paidUntil: claim.paidUntil, tokensConsumed: 0 });
+      if (claim.busy) return res.status(409).json({ error: 'Місяць Космографа вже оплачується — спробуй за хвилину', code: 'BUSY' });
+      claimed = true;
 
       const balance = getBalance(userData);
       if (balance.available < COSMOGRAPH_COST) {
@@ -56,7 +64,8 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: COSMOGRAPH_COST, code: 'OUT_OF_TOKENS' });
       }
       const until = admin.firestore.Timestamp.fromMillis(now + PERIOD_MS);
-      await worldRef.set({ cosmograph: { enabled: true, paidUntil: until, paidAt: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
+      await worldRef.set({ cosmograph: { enabled: true, paidUntil: until, paidAt: admin.firestore.FieldValue.serverTimestamp(), payingAt: admin.firestore.FieldValue.delete() } }, { merge: true });
+      claimed = false;
       ledger.record(db, uid, { type: 'spend', op: 'cosmograph_month', amount: -COSMOGRAPH_COST, balance: reservation.available, ref: { worldId } });
       reservation = null;
       await db.collection('usage_logs').add({ uid, operation: 'cosmograph_month', worldId, userTokensCharged: COSMOGRAPH_COST,
@@ -67,6 +76,8 @@ exports.cosmographAccess = onRequest({ region: 'us-central1' }, async (req, res)
       console.error('cosmographAccess error:', error);
       if (reservation) await refund(db, uid, reservation).catch((e) => console.error('[cosmograph] refund failed:', e));
       return res.status(500).json({ error: `Помилка Космографа: ${publicMessage(error)}` });
+    } finally {
+      if (claimed) await db.collection('worlds').doc(String((req.body || {}).worldId || '-').slice(0, 120)).set({ cosmograph: { payingAt: admin.firestore.FieldValue.delete() } }, { merge: true }).catch(() => {});
     }
   });
 });

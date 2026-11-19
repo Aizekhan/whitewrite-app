@@ -75,6 +75,16 @@ check(JSON.stringify(pl.points_of_interest[0]), JSON.stringify({ title: 'Кри�
 check(Array.isArray(ex.framework) && ex.framework.length === 3, true, 'export: the framework note');
 check(/get_game_map \{"zone":"c:z1"\}/.test(GM.prompt(cards, 'z1', 'en')), true, 'a zone prompt names the MCP call');
 check(/3 zones/.test(GM.prompt(cards, '', 'en')), true, 'the whole-map prompt');
+// by the engine profile: Unity words only for a Unity profile; none / generic = engine-neutral; Roblox its own
+const UNITY = /Unity|GameObject|TerrainData/;
+const opt = (engine) => ({ engine, man: MECH.FW_BUILTIN, capStatus: MECH.capStatus });
+[undefined, 'generic', 'godot'].forEach((e) => {
+  check(UNITY.test(GM.exportMap(cards, opt(e)).how_to_build.join(' ') + GM.prompt(cards, 'z1', 'en', e) + GM.prompt(cards, '', 'en', e) + GM.prompt(cards, 'z1', 'uk', e) + GM.prompt(cards, '', 'uk', e)), false, `${e || 'no engine'}: how_to_build and the prompts are engine-neutral`);
+});
+['rpg-framework', 'unity'].forEach((e) => check(UNITY.test(GM.exportMap(cards, opt(e)).how_to_build.join(' ')) && /Unity/.test(GM.prompt(cards, 'z1', 'en', e)) && /Unity/.test(GM.prompt(cards, 'z1', 'uk', e)), true, `${e}: the Unity way`));
+check(/Roblox Studio/.test(GM.prompt(cards, 'z1', 'en', 'roblox')) && /TeleportService/.test(GM.exportMap(cards, opt('roblox')).how_to_build.join(' ')) && !UNITY.test(GM.prompt(cards, '', 'en', 'roblox')), true, 'roblox: the Roblox way, no Unity');
+check(GM.exportMap(cards, opt('roblox')).framework === null && GM.exportMap(cards, opt('generic')).framework === null && GM.exportMap(cards, opt('rpg-framework')).framework.length === 3, true, 'the RPG Framework note only for a framework game');
+check(/get_game_map \{"zone":"c:z1"\}/.test(GM.prompt(cards, 'z1', 'uk', 'roblox')), true, 'every engine\'s zone prompt names the MCP call');
 
 // relief
 const R = 65, a = GM.generate({ seed: 7, mountains: 40, hills: 50, water: 20, river: true }, R), b = GM.generate({ seed: 7, mountains: 40, hills: 50, water: 20, river: true }, R);

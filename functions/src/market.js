@@ -5,38 +5,33 @@
 // Flow:  quote → apply (Worldbuilder, the fee in tokens, the world FROZEN, a text snapshot in Storage + sha256)
 //        → licenceReview (Firestore trigger: metrics + AI review + AI lawyer → status `moderation`)
 //        → admin decide (approve: a public lot `marketLots/{id}` with the buyout contract; reject: unfreeze)
-//        → checkout (Stripe Connect, the seller's Standard account, DIRECT charge, application_fee 12%)
-//        → marketWebhook checkout.session.completed → marketDeals/{id} + transferWorld(): owner → buyer.
-// The seller is the seller of record (refunds, chargebacks, taxes — on their Stripe account); WhiteWrite is the venue.
+//        → buyout: NOT built — the payment provider for the Market is not chosen (Stripe was removed on the owner's word:
+//          payments go through Lemon Squeezy only, and LS forbids marketplaces); op 'checkout' answers 410.
 //
 // Server-only (firestore.rules): licenceApplications/{id} (the applicant reads), marketLots/{id} (public when listed,
-// the seller reads always), marketDeals/{id} (seller / buyer read), sellers/{uid} (owner reads). worlds/{w}.freeze —
+// the seller reads always), marketDeals/{id} (seller / buyer read). worlds/{w}.freeze —
 // only here; while it is set nothing in the world, its games and stories changes (rules + every server writer).
 const fs = require('fs');
 const path = require('path');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
-const { defineSecret } = require('firebase-functions/params');
-const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, claudeApiKey, stripeSecretKey, MODEL_PRICING, publicMessage } = require('./common');
+const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, claudeApiKey, MODEL_PRICING, publicMessage } = require('./common');
 const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { activeModels, claudeText } = require('./claude');
 const ledger = require('./ledger');
 const { LICENCE, licenceFee, USD_PER_TOKEN, byOp } = require('../paid-features.js');
-// The Market is announced but not launched (paid-features `licenceReview.soon`): applying, Stripe onboarding and buying are admin-only until then
+// The Market is announced but not launched (paid-features `licenceReview.soon`): applying is admin-only until then
 const MARKET_SOON = () => !!(byOp('licenceReview') || {}).soon;
 
-const stripeConnectWebhookSecret = defineSecret('STRIPE_CONNECT_WEBHOOK_SECRET');
-const SITE = 'https://whitewrite.com';
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
 const del = () => admin.firestore.FieldValue.delete();
 const str = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const fail = (status, error, extra) => Object.assign(new Error(error), { status, body: Object.assign({ error }, extra || {}) });
 const LEVELS = ['concept', 'gdd', 'prototype', 'slice', 'live']; // Концепт → Готовий ГДД → Прототип → Vertical slice → Гра з гравцями
 const ACTIVE = ['review', 'moderation', 'approved']; // an application that keeps the world frozen
-const RESERVE_MS = 31 * 60 * 1000; // a lot is held for the buyer while their Stripe Checkout is open (Stripe's minimum expiry is 30 min)
 const legal = (f) => fs.readFileSync(path.join(__dirname, '..', 'legal', f), 'utf8');
 
 // ── The snapshot (src/snapshot.js): what is checked, shown and handed over. Media and secrets never go in. ──
-const { buildSnapshot: snapshotOf, clean, GAME_SUBS: SOLD_GAME_SUBS, WORLD_SUBS: SOLD_WORLD_SUBS } = require('./snapshot');
+const { buildSnapshot: snapshotOf, clean } = require('./snapshot');
 async function buildSnapshot(worldId, uid) {
   const s = await snapshotOf(worldId, uid, 'whitewrite.licence/1');
   if (!s) throw fail(403, 'Світ не знайдено або немає доступу');
@@ -132,41 +127,6 @@ function contentsLine(m) {
     .concat(m.stories.map((s) => `історія «${s.title}»: сцен ${s.scenes}, слів ≈ ${s.words}`)).join('; ');
 }
 
-// ── The transfer after payment: the buyer owns the world, its games and its stories; files, keys and showcases are gone ──
-async function recursiveDeleteExcept(ref, keep) {
-  for (const c of await ref.listCollections()) if (!keep.includes(c.id)) await db.recursiveDelete(c);
-}
-async function transferWorld(worldId, seller, buyer, licence) {
-  const wref = db.collection('worlds').doc(worldId);
-  await admin.storage().bucket().deleteFiles({ prefix: `worlds/${worldId}/` }).catch((e) => console.warn('[market] files:', e.message));
-  const bw = db.bulkWriter();
-  (await wref.collection('entities').get()).docs.forEach((d) => { if (d.data().files) bw.update(d.ref, { files: del() }); });
-  await recursiveDeleteExcept(wref, SOLD_WORLD_SUBS);
-  for (const g of (await wref.collection('games').get()).docs) {
-    bw.update(g.ref, { repo: del(), launch: del(), integrations: del(), canonOptIn: g.data().canonOptIn || null });
-    (await g.ref.collection('cards').get()).docs.forEach((c) => { if (c.data().files || c.data().styleAi) bw.update(c.ref, { files: del(), styleAi: del() }); });
-    await recursiveDeleteExcept(g.ref, SOLD_GAME_SUBS);
-  }
-  (await db.collection('projects').where('worldId', '==', worldId).get()).docs.forEach((p) => {
-    if (p.data().owner === seller) bw.update(p.ref, { owner: buyer, cover: del(), boughtAt: ts() });
-  });
-  const byWorld = async (col) => (await db.collection(col).where('worldId', '==', worldId).get()).docs.forEach((d) => bw.delete(d.ref));
-  const byPrefix = async (col) => (await db.collection(col).where(admin.firestore.FieldPath.documentId(), '>=', worldId + '__')
-    .where(admin.firestore.FieldPath.documentId(), '<', worldId + '__~').get()).docs.forEach((d) => bw.delete(d.ref));
-  await Promise.all([byWorld('mcpKeys'), byWorld('ingestKeys'), byWorld('integrationKeys'), byPrefix('repoTokens'), byPrefix('marketingSecrets'), byPrefix('marketingQueue')]);
-  await bw.close();
-  for (const c of (await db.collection('community').where('worldId', '==', worldId).get()).docs) await db.recursiveDelete(c.ref);
-  await db.collection('backupTokens').doc(worldId).delete().catch(() => {});
-  await wref.update({ team: del(), teamUids: [], backup: del(), integrations: del(), owner: buyer, freeze: del(), cover: del(), titleArt: del(), cosmograph: del(), boughtAt: ts(), boughtFrom: seller, licence });
-}
-
-// ── Stripe Connect (Standard accounts; the seller owns the account and its obligations) ──
-const stripeClient = () => require('stripe')(stripeSecretKey.value());
-async function sellerState(uid) {
-  const s = await db.collection('sellers').doc(uid).get();
-  return s.exists ? s.data() : null;
-}
-
 async function authed(req) {
   const h = req.headers.authorization || '';
   if (!h.startsWith('Bearer ')) throw fail(401, 'Потрібна автентифікація');
@@ -177,7 +137,7 @@ const appView = (d) => { const a = d.data(); return Object.assign({ id: d.id }, 
 
 async function handle(op, b, tok) {
   const uid = tok.uid, isAdmin = tok.admin === true;
-  if (MARKET_SOON() && !isAdmin && ['apply', 'connect', 'checkout'].indexOf(op) >= 0) throw fail(503, 'Маркет ще в розробці — продаж і купівля відкриються після запуску', { code: 'SOON' });
+  if (MARKET_SOON() && !isAdmin && op === 'apply') throw fail(503, 'Маркет ще в розробці — продаж і купівля відкриються після запуску', { code: 'SOON' });
 
   if (op === 'quote') { // the fee for this world, before anything is frozen
     const worldId = str(b.worldId, 120);
@@ -232,13 +192,13 @@ async function handle(op, b, tok) {
     }
   }
 
-  if (op === 'status') { // this world's latest application + lot + the seller's Stripe state
+  if (op === 'status') { // this world's latest application + lot
     const worldId = str(b.worldId, 120);
     const q = await db.collection('licenceApplications').where('uid', '==', uid).where('worldId', '==', worldId).get();
     const apps = q.docs.map(appView).sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0));
     const last = apps[0] || null;
     const lot = last && last.status === 'approved' ? (await db.collection('marketLots').doc(last.id).get()).data() || null : null;
-    return { application: last, lot, seller: await sellerState(uid), history: apps.slice(1, 6).map((a) => ({ id: a.id, status: a.status, createdAt: a.createdAt })) };
+    return { application: last, lot, history: apps.slice(1, 6).map((a) => ({ id: a.id, status: a.status, createdAt: a.createdAt })) };
   }
 
   if (op === 'withdraw') { // the author unfreezes: the licence is void, the fee is not returned (the work is done)
@@ -248,61 +208,14 @@ async function handle(op, b, tok) {
     const a = d.data();
     if (!ACTIVE.includes(a.status)) throw fail(409, 'Заявка вже закрита');
     const lotRef = db.collection('marketLots').doc(d.id), lot = await lotRef.get();
-    if (lot.exists && lot.data().reservedUntil && lot.data().reservedUntil.toMillis() > Date.now()) throw fail(409, 'Саме зараз покупець оплачує — спробуй за пів години');
     if (lot.exists) await lotRef.update({ status: 'withdrawn', updatedAt: ts() });
     await ref.update({ status: 'withdrawn', decidedAt: ts() });
     await db.collection('worlds').doc(a.worldId).update({ freeze: del() });
     return { withdrawn: true };
   }
 
-  if (op === 'connect') { // Stripe Connect onboarding (Standard): the seller's own Stripe account
-    const stripe = stripeClient(), sref = db.collection('sellers').doc(uid);
-    let s = await sellerState(uid);
-    if (!s || !s.stripeAccountId) {
-      const acct = await stripe.accounts.create({ type: 'standard', email: tok.email || undefined, metadata: { uid } });
-      s = { stripeAccountId: acct.id, chargesEnabled: false, payoutsEnabled: false, createdAt: ts() };
-      await sref.set(s, { merge: true });
-    }
-    const back = SITE + '/White.html?market=' + encodeURIComponent(str(b.worldId, 120) || 'connected');
-    const link = await stripe.accountLinks.create({ account: s.stripeAccountId, refresh_url: back, return_url: back, type: 'account_onboarding' });
-    return { url: link.url };
-  }
-
-  if (op === 'connectStatus') {
-    const s = await sellerState(uid);
-    if (!s || !s.stripeAccountId) return { seller: null };
-    const acct = await stripeClient().accounts.retrieve(s.stripeAccountId);
-    const upd = { chargesEnabled: !!acct.charges_enabled, payoutsEnabled: !!acct.payouts_enabled, detailsSubmitted: !!acct.details_submitted, updatedAt: ts() };
-    await db.collection('sellers').doc(uid).set(upd, { merge: true });
-    return { seller: Object.assign({}, s, upd) };
-  }
-
-  if (op === 'checkout') { // the buyer pays the seller directly; Stripe keeps 12% for WhiteWrite
-    const lotRef = db.collection('marketLots').doc(str(b.lotId, 60));
-    if (b.agree !== true) throw fail(400, 'Потрібна згода з договором викупу');
-    const held = await db.runTransaction(async (tx) => {
-      const l = await tx.get(lotRef);
-      if (!l.exists || l.data().status !== 'listed') throw fail(404, 'Лот не знайдено або вже продано');
-      const lot = l.data();
-      if (lot.seller === uid) throw fail(400, 'Свій лот не купити');
-      if (lot.reservedUntil && lot.reservedUntil.toMillis() > Date.now() && lot.reservedBy !== uid) throw fail(409, 'Хтось саме оплачує цей лот — спробуй за пів години');
-      tx.update(lotRef, { reservedBy: uid, reservedUntil: admin.firestore.Timestamp.fromMillis(Date.now() + RESERVE_MS) });
-      return lot;
-    });
-    const s = await sellerState(held.seller);
-    if (!s || !s.stripeAccountId || !s.chargesEnabled) { await lotRef.update({ reservedBy: del(), reservedUntil: del() }); throw fail(409, 'Продавець ще не підключив виплати Stripe'); }
-    const fee = Math.round(held.priceCents * LICENCE.platformFee);
-    const session = await stripeClient().checkout.sessions.create({
-      mode: 'payment', customer_email: tok.email || undefined, client_reference_id: uid,
-      line_items: [{ quantity: 1, price_data: { currency: held.currency, unit_amount: held.priceCents,
-        product_data: { name: `Викуп світу «${held.title}» (WhiteWrite Market)`, description: `Сертифікація ${lotRef.id} · знімок sha256 ${held.snapshotHash.slice(0, 16)}…` } } }],
-      payment_intent_data: { application_fee_amount: fee, metadata: { lotId: lotRef.id, buyer: uid, seller: held.seller } },
-      metadata: { lotId: lotRef.id, buyer: uid, seller: held.seller, kind: 'ww_market' },
-      expires_at: Math.floor((Date.now() + RESERVE_MS - 60000) / 1000),
-      success_url: SITE + '/White.html?market=bought&lot=' + lotRef.id, cancel_url: SITE + '/White.html?market=lot&lot=' + lotRef.id,
-    }, { stripeAccount: s.stripeAccountId });
-    return { url: session.url };
-  }
+  // the buyout needs a payment provider with a marketplace mode — not chosen yet (the Lot page's «Купити» still calls this)
+  if (op === 'checkout') throw fail(410, 'Викуп світу ще в розробці: платіжного провайдера для Маркету не обрано', { code: 'SOON' });
 
   if (op === 'deals') { // my purchases and sales (the contract text is in each)
     const [a, c] = await Promise.all([db.collection('marketDeals').where('buyer', '==', uid).get(), db.collection('marketDeals').where('seller', '==', uid).get()]);
@@ -348,7 +261,7 @@ async function handle(op, b, tok) {
   throw fail(400, 'Unknown op');
 }
 
-exports.market = onRequest({ region: 'us-central1', secrets: [stripeSecretKey], timeoutSeconds: 300, memory: '1GiB' }, async (req, res) => {
+exports.market = onRequest({ region: 'us-central1', timeoutSeconds: 300, memory: '1GiB' }, async (req, res) => {
   return cors(req, res, async () => {
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -361,64 +274,6 @@ exports.market = onRequest({ region: 'us-central1', secrets: [stripeSecretKey], 
       return res.status(500).json({ error: `Помилка Маркету: ${publicMessage(e)}` });
     }
   });
-});
-
-// ── Stripe Connect webhook (events from the sellers' accounts: event.account) ──
-async function completeDeal(session, account) {
-  const lotId = session.metadata && session.metadata.lotId, buyer = session.metadata && session.metadata.buyer;
-  if (!lotId || !buyer) return;
-  const dealRef = db.collection('marketDeals').doc(session.id), lotRef = db.collection('marketLots').doc(lotId);
-  const outcome = await db.runTransaction(async (tx) => {
-    const [deal, l] = await Promise.all([tx.get(dealRef), tx.get(lotRef)]);
-    // a retried delivery: done — unless the transfer failed half-way (the buyer paid; transferWorld is safe to run again)
-    if (deal.exists) return deal.data().status === 'transferring' ? 'transfer' : 'done';
-    const lot = l.exists ? l.data() : null;
-    const sel = lot && (await tx.get(db.collection('sellers').doc(lot.seller))).data();
-    const ok = lot && lot.status === 'listed' && sel && sel.stripeAccountId === account && session.amount_total === lot.priceCents && session.payment_status === 'paid';
-    if (!ok) { tx.set(dealRef, { lotId, buyer, status: 'refund', reason: 'lot not available or amount mismatch', stripe: { account, session: session.id, paymentIntent: session.payment_intent }, at: ts() }); return 'refund'; }
-    tx.update(lotRef, { status: 'sold', buyer, soldAt: ts(), reservedBy: del(), reservedUntil: del() });
-    tx.update(db.collection('licenceApplications').doc(lotId), { status: 'sold' });
-    tx.set(dealRef, { lotId, worldId: lot.worldId, title: lot.title, seller: lot.seller, buyer, amount: session.amount_total, currency: session.currency,
-      fee: Math.round(lot.priceCents * LICENCE.platformFee), snapshotHash: lot.snapshotHash, snapshotPath: `licences/${lotId}/snapshot.json`,
-      stripe: { account, session: session.id, paymentIntent: session.payment_intent }, status: 'transferring', at: ts() });
-    return 'transfer';
-  });
-  if (outcome === 'refund') { // paid for a lot that is no longer for sale: the seller's account refunds, our fee goes back too
-    await stripeClient().refunds.create({ payment_intent: session.payment_intent, refund_application_fee: true }, { stripeAccount: account }).catch((e) => console.error('[market] refund', e));
-    return;
-  }
-  if (outcome !== 'transfer') return;
-  const lot = (await lotRef.get()).data();
-  const buyerUser = await admin.auth().getUser(buyer).catch(() => null);
-  const date = new Date().toISOString().slice(0, 10);
-  const contract = lot.contract.replace('[імʼя покупця — заповнюється при оплаті]', (buyerUser && (buyerUser.displayName || buyerUser.email)) || buyer).replace('[дата оплати]', date);
-  await transferWorld(lot.worldId, lot.seller, buyer, { id: lotId, hash: lot.snapshotHash, level: lot.level, boughtAt: date });
-  await dealRef.update({ status: 'completed', contract, completedAt: ts() });
-}
-
-exports.marketWebhook = onRequest({ region: 'us-central1', secrets: [stripeSecretKey, stripeConnectWebhookSecret], timeoutSeconds: 540, memory: '1GiB' }, async (req, res) => {
-  let event;
-  try { event = stripeClient().webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], stripeConnectWebhookSecret.value().trim()); }
-  catch (e) { console.error('[market] webhook signature', e.message); return res.status(400).send('Invalid signature'); }
-  try {
-    const o = event.data.object;
-    if (event.type === 'checkout.session.completed' && o.metadata && o.metadata.kind === 'ww_market') await completeDeal(o, event.account);
-    else if (event.type === 'checkout.session.expired' && o.metadata && o.metadata.lotId) {
-      await db.collection('marketLots').doc(o.metadata.lotId).update({ reservedBy: del(), reservedUntil: del() }).catch(() => {});
-    } else if (event.type === 'account.updated') {
-      const uid = o.metadata && o.metadata.uid;
-      if (uid) await db.collection('sellers').doc(uid).set({ chargesEnabled: !!o.charges_enabled, payoutsEnabled: !!o.payouts_enabled, detailsSubmitted: !!o.details_submitted, updatedAt: ts() }, { merge: true });
-    } else if (/^charge\.dispute\./.test(event.type)) {
-      const q = await db.collection('marketDeals').where('stripe.paymentIntent', '==', o.payment_intent).get();
-      for (const d of q.docs) await d.ref.update({ dispute: { status: o.status, reason: o.reason, at: Date.now() } });
-      await require('./admin-notice').notify({ kind: 'market', severity: 'critical', tier: 'market', title: `Суперечка з банком за угодою Маркету (${o.reason || '—'})`,
-        body: `Акаунт продавця ${event.account}, PaymentIntent ${o.payment_intent}, статус ${o.status}. Відповідає продавець (продавець у чеку); модератор порівнює зі знімком за запитом.` }).catch(() => {});
-    }
-    return res.status(200).json({ received: true });
-  } catch (e) {
-    console.error('[market] webhook', event.type, e);
-    return res.status(500).send('Webhook handler failed'); // Stripe retries
-  }
 });
 
 exports._market = { clean, metrics, contractFor, contentsLine, LEVELS }; // tests only

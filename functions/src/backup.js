@@ -3,7 +3,7 @@
 // Paid like the Космограф: BACKUP_COST tokens per world per 30 days (paid-features.js `githubBackup`), renewed by the
 // daily run from the owner's balance; no tokens → the backup pauses (lastError) until the owner turns it on again.
 //   backupTokens/{worldId}  { token, login } — server only (firestore.rules)
-//   worlds/{w}.backup       { repo, login, enabled, paidUntil, lastAt, lastStatus, lastError, lastCommit } — written only here
+//   worlds/{w}.backup       { repo, login, enabled, paidUntil, lastAt, lastStatus, lastError, lastCommit, errors, lastErrorAt } — written only here
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { onRequest, admin, db, cors, getBalance, reserve, refund, getPlanBudget, publicMessage } = require('./common');
 const ledger = require('./ledger');
@@ -48,7 +48,7 @@ async function runBackup(worldId) {
   const { token } = t.data(), repo = w.data().backup.repo;
   await putFile(token, repo, 'world.json', JSON.stringify(snap, null, 2), `Backup ${date}`);
   const commit = await putFile(token, repo, 'README.md', readme, `Backup ${date} (readme)`);
-  await wref.update({ 'backup.lastAt': ts(), 'backup.lastStatus': 'ok', 'backup.lastError': admin.firestore.FieldValue.delete(), 'backup.lastCommit': commit || null });
+  await wref.update({ 'backup.lastAt': ts(), 'backup.lastStatus': 'ok', 'backup.lastError': admin.firestore.FieldValue.delete(), 'backup.errors': admin.firestore.FieldValue.delete(), 'backup.lastErrorAt': admin.firestore.FieldValue.delete(), 'backup.lastCommit': commit || null });
 }
 
 // Pay the next 30 days from the owner's balance (enable, or the daily run's renewal)
@@ -150,11 +150,22 @@ exports.backup = onRequest({ region: 'us-central1', timeoutSeconds: 300, memory:
 
 // Daily: every enabled backup; an unpaid month renews from the owner's tokens, or the backup pauses
 // Runs every 6 hours, but each world is backed up once a day: worlds backed up in the last 20 h are skipped, 5 run at a time,
-// and no new world starts in the last minutes of the run — the rest go next run, before they are charged again
+// and no new world starts in the last minutes of the run — the rest go next run, before they are charged again.
+// A failing backup must not starve the healthy ones: it waits ERR_WAIT × 2^(errors − 1) (at most a day) after its last failure,
+// and the due ones run healthy first, then the longest without a backup
+const DAY_GAP = 20 * 3600 * 1000, ERR_WAIT = 6 * 3600 * 1000;
+const msOf = (x) => (x && x.toMillis ? x.toMillis() : 0);
+function dueOrder(docs, now) {
+  return docs.map((d) => ({ d, b: d.data().backup || {} })).filter(({ b }) => {
+    if (now - msOf(b.lastAt) < DAY_GAP) return false;
+    const n = +b.errors || 0;
+    return !n || now - msOf(b.lastErrorAt) >= Math.min(24 * 3600 * 1000, ERR_WAIT * Math.pow(2, n - 1));
+  }).sort((x, y) => (+x.b.errors || 0) - (+y.b.errors || 0) || msOf(x.b.lastAt) - msOf(y.b.lastAt)).map((x) => x.d);
+}
 exports.backupDaily = onSchedule({ schedule: 'every 6 hours', timeoutSeconds: 540, memory: '1GiB' }, async () => {
-  const started = Date.now(), DAY_GAP = 20 * 3600 * 1000, STOP_AFTER = 420 * 1000;
+  const started = Date.now(), STOP_AFTER = 420 * 1000;
   const q = await db.collection('worlds').where('backup.enabled', '==', true).get();
-  const due = q.docs.filter((d) => { const l = (d.data().backup || {}).lastAt; return !(l && l.toMillis && Date.now() - l.toMillis() < DAY_GAP); });
+  const due = dueOrder(q.docs, Date.now());
   for (let i = 0; i < due.length && Date.now() - started < STOP_AFTER; i += 5) await Promise.all(due.slice(i, i + 5).map(backupOne));
 });
 async function backupOne(d) {
@@ -164,8 +175,9 @@ async function backupOne(d) {
     await runBackup(d.id);
   } catch (e) {
     console.warn('[backup]', d.id, e.message);
-    await d.ref.update({ 'backup.lastStatus': 'error', 'backup.lastError': str(e.message, 300), ...(e.body && e.body.code ? { 'backup.enabled': false } : {}) }).catch(() => {});
+    await d.ref.update({ 'backup.lastStatus': 'error', 'backup.lastError': str(e.message, 300), 'backup.errors': admin.firestore.FieldValue.increment(1), 'backup.lastErrorAt': ts(),
+      ...(e.body && e.body.code ? { 'backup.enabled': false } : {}) }).catch(() => {});
   }
 }
 
-exports._backup = { slug, runBackup };
+exports._backup = { slug, runBackup, dueOrder };

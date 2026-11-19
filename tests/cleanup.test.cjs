@@ -28,6 +28,7 @@ const put = (p, d) => { store.add(p); if (d) data[p] = d; };
     put(`mcpKeys/m_${g}`, { worldId: 'w', gameId: g }); put(`ingestKeys/i_${g}`, { worldId: 'w', gameId: g });
     put(`repoTokens/w__${g}`); put(`integrationKeys/w__${g}`); put(`marketingSecrets/w__${g}__tg`); put(`marketingQueue/w__${g}__p1`);
     put(`community/w__${g}`); put(`community/w__${g}/likes/u1`); put(`worlds/w/games/${g}/cards/c1`);
+    put(`community_reports/w__${g}__u9`, { pubId: `w__${g}` });
   }
   put('mcpKeys/m_x', { worldId: 'x', gameId: 'g' }); put('repoTokens/x__g'); put('backupTokens/w'); put('backupTokens/x');
   put('community/w'); put('community/x'); put('worlds/w/entities/e1'); put('worlds/x/entities/e1'); put('integrationKeys/w', { worldId: 'w' });
@@ -38,6 +39,7 @@ const put = (p, d) => { store.add(p); if (d) data[p] = d; };
   check(!left('marketingSecrets/w__g__tg') && !left('marketingQueue/w__g__p1'), 'its marketing secrets and queue are gone');
   check(!left('community/w__g') && !left('community/w__g/likes/u1') && !left('worlds/w/games/g/cards/c1'), 'its showcase (with likes) and leftover subcollections are gone');
   check(deletedFiles.includes('worlds/w/games/g/'), 'its Storage files are deleted by prefix');
+  check(!left('community_reports/w__g__u9') && left('community_reports/w__g2__u9'), 'the reports on its showcase go, a neighbour game’s stay');
   check(left('mcpKeys/m_g2') && left('marketingSecrets/w__g2__tg') && left('repoTokens/w__g2') && left('community/w__g2') && left('worlds/w/games/g2/cards/c1'),
     'the neighbour game g2 keeps everything (g is a prefix of g2)');
   check(left('mcpKeys/m_x') && left('repoTokens/x__g'), 'the same game id in another world is untouched');

@@ -45,3 +45,6 @@ Thumbs.db
 
 # Exported user data (never commit)
 users.json
+
+# local Claude Code permissions (per machine)
+.claude/settings.local.json

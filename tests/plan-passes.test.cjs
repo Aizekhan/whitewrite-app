@@ -4,8 +4,8 @@
 const fs = require('fs'), path = require('path');
 const src = fs.readFileSync(path.join(__dirname, '../functions/src/gamedev.js'), 'utf8');
 const cut = (a, b) => src.slice(src.indexOf(a), src.indexOf(b, src.indexOf(a)));
-const { planPrompt, planTasksPrompt } = new Function(cut('const ENGINE_PROFILES', 'const str =') + cut('const answeredText', '\n', 0) + '\n' +
-  cut('const PLAN_PIPELINE', '// ---------- GitHub:') + ';return { planPrompt, planTasksPrompt };')();
+const { planPrompt, planTasksPrompt } = new Function('MECH', cut('function frameworkProfile', 'const str =') + cut('const answeredText', '\n', 0) + '\n' +
+  cut('const PLAN_PIPELINE', '// ---------- GitHub:') + ';return { planPrompt, planTasksPrompt };')(require('../functions/mechanics.js'));
 
 let fails = 0;
 const check = (got, want, msg) => { const ok = got === want; console.log((ok ? 'PASS ' : 'FAIL ') + msg + (ok ? '' : ` (got ${got}, want ${want})`)); if (!ok) fails++; };

@@ -2,15 +2,17 @@
 // A ceiling on instances for every function (before any module defines one): a flood on the public endpoints
 // (mcp, telemetryIngest, webhooks) or a runaway client can't scale the bill without bound. ~80 requests per instance.
 require('firebase-functions/v2').setGlobalOptions({ maxInstances: 20 });
-Object.assign(exports, require('./src/scenes'));
-Object.assign(exports, require('./src/users'));
-Object.assign(exports, require('./src/projects'));
-Object.assign(exports, require('./src/canon-sync'));
-Object.assign(exports, require('./src/lemon'));
-Object.assign(exports, require('./src/genesis'));
-Object.assign(exports, require('./src/gamedev'));
-Object.assign(exports, require('./src/mcp'));
-Object.assign(exports, require('./src/cosmograph'));
+// a module's endpoints only: helpers its tests use (exports._gdd, _mcp, … — tests require the module itself) never become exports of the deploy
+const endpoints = (m) => Object.fromEntries(Object.entries(m).filter(([k]) => !k.startsWith('_')));
+Object.assign(exports, endpoints(require('./src/scenes')));
+Object.assign(exports, endpoints(require('./src/users')));
+Object.assign(exports, endpoints(require('./src/projects')));
+Object.assign(exports, endpoints(require('./src/canon-sync')));
+Object.assign(exports, endpoints(require('./src/lemon')));
+Object.assign(exports, endpoints(require('./src/genesis')));
+Object.assign(exports, endpoints(require('./src/gamedev')));
+Object.assign(exports, endpoints(require('./src/mcp')));
+Object.assign(exports, endpoints(require('./src/cosmograph')));
 const narrative = require('./src/narrative'); // quests & dialogues: AI drafts (helpers stay internal)
 exports.narrativeDraft = narrative.narrativeDraft;
 exports.worldFolder = require('./src/world-folder').worldFolder; // «📂 Завантажити теку» of a world: AI sorts the notes into whitewrite.fill/1, the author applies
@@ -31,9 +33,8 @@ exports.cardFill = require('./src/card-fill').cardFill; // 🎙 dictation → th
 const modelWatch = require('./src/model-watch'); // Claude versions: daily check + safe auto-switch (helpers stay internal)
 exports.modelWatch = modelWatch.modelWatch;
 exports.modelWatchRun = modelWatch.modelWatchRun;
-const market = require('./src/market'); // Маркет: licence review (frozen world, AI review + AI lawyer), Stripe Connect buyout, transfer
+const market = require('./src/market'); // Маркет: licence review (frozen world, AI review + AI lawyer), moderation; the buyout — in development (no payment provider)
 exports.market = market.market;
-exports.marketWebhook = market.marketWebhook;
 exports.licenceReview = market.licenceReview;
 exports.team = require('./src/team').team; // Друзі й команда світу (roles; firestore.rules enforce them)
 const backup = require('./src/backup'); // daily GitHub backup of the world's text (paid per 30 days)

@@ -40,8 +40,18 @@ service firebase.storage {
     function ownerPlan(worldId) {
       return firestore.get(/databases/(default)/documents/users/$(firestore.get(/databases/(default)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free');
     }
+    // the plans with allowGameDev (functions/paid-features.js) — tests/canon-plans.test.cjs checks the list against the registry
     function ownerGameDev(worldId) {
       return ownerPlan(worldId) in ['worldbuilder', 'worldforge'];
+    }
+    // a file a page or the storage domain could run as a document (audit 2026-11-19): never on a card, a dossier or a cover
+    function safeType() {
+      return request.resource.contentType == null ||
+             !request.resource.contentType.lower().matches('.*(html|javascript|ecmascript|svg).*');
+    }
+    // the shell names an avatar / a story cover «<Date.now()>_<file name>» (White.html): only such names, raster pictures only
+    function shellPic(file) {
+      return file.matches('[0-9]{13}_[A-Za-z0-9_.-]{1,80}') && request.resource.contentType.matches('image/(png|jpeg|webp|gif|avif)');
     }
     // the plans that edit the canon — functions/paid-features.js 'bible' (allowWorldTree), the same list as firestore.rules canonPlans()
     // (tests/canon-plans.test.cjs checks both against the registry)
@@ -54,7 +64,7 @@ service firebase.storage {
     match /worlds/{worldId}/files/{entityId}/{rest=**} {
       allow read: if request.auth != null && readEntityFiles(worldId, entityId);
       allow delete: if request.auth != null && editEntityFiles(worldId, entityId) && ownerCanon(worldId) && worldOpen(worldId);
-      allow create, update: if request.auth != null && editEntityFiles(worldId, entityId) && ownerCanon(worldId) && worldOpen(worldId) &&
+      allow create, update: if request.auth != null && editEntityFiles(worldId, entityId) && ownerCanon(worldId) && worldOpen(worldId) && safeType() &&
                                request.resource.size < (ownerGameDev(worldId) ? 200 : 20) * 1024 * 1024;
     }
 
@@ -63,16 +73,19 @@ service firebase.storage {
       allow read: if request.auth != null && canRead(worldId);
       allow delete: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId);
       allow create, update: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId) &&
-                               ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
+                               ((request.resource.contentType.matches('image/(png|jpeg|webp|gif|avif)') && request.resource.size < 10 * 1024 * 1024) ||
                                 (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
     }
 
-    // A game's cover and title image («Огляд гри»): the same limits as the world's, any plan.
+    // A game's cover and title image («Огляд гри»): the same limits as the world's, any plan. Not on the 🎓 demo game (games/{g}.demo —
+    // read-only, firestore.rules notDemo): the world doc + the game doc are the two documents a Storage rule may read. Card files below
+    // cannot check it (world + the owner's plan are already two) — a demo card's files[] is a Firestore write the rules refuse anyway.
     match /worlds/{worldId}/games/{gameId}/cover/{file} {
       allow read: if request.auth != null && canRead(worldId);
       allow delete: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId);
       allow create, update: if request.auth != null && isWorldOwner(worldId) && worldOpen(worldId) &&
-                               ((request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024) ||
+                               firestore.get(/databases/(default)/documents/worlds/$(worldId)/games/$(gameId)).data.get('demo', false) != true &&
+                               ((request.resource.contentType.matches('image/(png|jpeg|webp|gif|avif)') && request.resource.size < 10 * 1024 * 1024) ||
                                 (request.resource.contentType.matches('video/(mp4|webm)') && request.resource.size < 50 * 1024 * 1024));
     }
     // A story's cover (Біблія → «Історії і хроніка» → ✎, the shell's story form): the story's owner, an image ≤ 10 MB.
@@ -81,14 +94,14 @@ service firebase.storage {
       allow read: if request.auth != null && firestore.get(/databases/(default)/documents/projects/$(projectId)).data.owner == request.auth.uid;
       allow delete: if request.auth != null && firestore.get(/databases/(default)/documents/projects/$(projectId)).data.owner == request.auth.uid;
       allow create, update: if request.auth != null && firestore.get(/databases/(default)/documents/projects/$(projectId)).data.owner == request.auth.uid &&
-                               request.resource.contentType.matches('image/.*') && request.resource.size < 10 * 1024 * 1024;
+                               shellPic(file) && request.resource.size < 10 * 1024 * 1024;
     }
     // The author's avatar (Акаунт → profile): only its owner writes, an image ≤ 2 MB; the URL goes to Auth photoURL and users/{uid}.avatar
     match /users/{userId}/avatar/{file} {
       allow read: if request.auth != null;
       allow delete: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null && request.auth.uid == userId &&
-                               request.resource.contentType.matches('image/.*') && request.resource.size < 2 * 1024 * 1024;
+                               shellPic(file) && request.resource.size < 2 * 1024 * 1024;
     }
     // 🎞 the WhiteWrite animation library (functions/forge.js ANIM_STORE): per-body-type GLBs for the Forge's 3D preview, ours to give out.
     // Any signed-in user reads; nobody writes from a client (uploaded with the admin SDK).
@@ -99,7 +112,7 @@ service firebase.storage {
     match /worlds/{worldId}/games/{gameId}/files/{cardId}/{rest=**} {
       allow read: if request.auth != null && readCardFiles(worldId, gameId, cardId);
       allow delete: if request.auth != null && canWrite(worldId) && worldOpen(worldId);
-      allow create, update: if request.auth != null && canWrite(worldId) && worldOpen(worldId) &&
+      allow create, update: if request.auth != null && canWrite(worldId) && worldOpen(worldId) && safeType() &&
                                request.resource.size < (ownerGameDev(worldId) ? 200 : 20) * 1024 * 1024;
     }
   }

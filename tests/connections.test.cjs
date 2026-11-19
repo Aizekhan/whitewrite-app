@@ -30,7 +30,7 @@ tools.forEach((t) => check(kb.indexOf(t) >= 0, `MCP tool ${t} is in app/kb.js`, 
 // 3. Every Cloud Function is in ARCHITECTURE.md
 const arch = read('ARCHITECTURE.md'), idx = read('functions/index.js');
 let fns = [...idx.matchAll(/^exports\.(\w+)/gm)].map((m) => m[1]);
-for (const m of idx.matchAll(/Object\.assign\(exports, require\('(.+?)'\)\)/g)) fns = fns.concat([...read('functions/' + m[1].replace('./', '') + '.js').matchAll(/^exports\.(\w+) =/gm)].map((x) => x[1]).filter((x) => x[0] !== '_'));
+for (const m of idx.matchAll(/Object\.assign\(exports, (?:endpoints\()?require\('(.+?)'\)\)/g)) fns = fns.concat([...read('functions/' + m[1].replace('./', '') + '.js').matchAll(/^exports\.(\w+) =/gm)].map((x) => x[1]).filter((x) => x[0] !== '_'));
 check(fns.length > 30, `Cloud Functions found: ${fns.length}`);
 fns.forEach((f) => check(arch.indexOf(f) >= 0, `function ${f} is in ARCHITECTURE.md`, 'describe it in ARCHITECTURE.md (the module tree or its section)'));
 

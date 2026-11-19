@@ -3,7 +3,7 @@
   "counts": {
     "app/gamebible.js": 42,
     "functions/forge.js": 4,
-    "functions/game-map.js": 11,
+    "functions/game-map.js": 10,
     "functions/mechanics.js": 6,
     "functions/narrative-validate.js": 2,
     "functions/src/experience.js": 2,

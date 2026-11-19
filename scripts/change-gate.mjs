@@ -19,7 +19,11 @@ const has = (f) => staged.includes(f);
 const problems = [];
 
 // service code: what the CLAUDE.md rules are about (built copies, tests and docs are not)
-const service = staged.filter((f) => (/^app\//.test(f) && !/^app\/firebase\/(ai-models|paid-features|narrative-validate|setup-guides|style-guide|mechanics|forge|world-fill|card-refs)\.js$/.test(f) && f !== 'app/kb.js')
+// the copies build-app.mjs makes in app/firebase/ — read from its own list, so the two never drift
+const COPIES = new Set((readFileSync(new URL('./build-app.mjs', import.meta.url), 'utf8').match(/for \(const f of \[([^\]]+)\]\)/) || ['', ''])[1]
+  .split(',').map((x) => x.trim().replace(/^'|'$/g, '')).filter(Boolean).map((f) => 'app/firebase/' + f));
+if (!COPIES.size) { console.error('change-gate: the copy list in scripts/build-app.mjs was not found'); process.exit(1); }
+const service = staged.filter((f) => (/^app\//.test(f) && !COPIES.has(f) && f !== 'app/kb.js')
   || (/^functions\//.test(f) && !/^functions\/(package(-lock)?\.json|legal\/)/.test(f)) || /^(firestore|storage)\.rules$/.test(f));
 const userFacing = service.filter((f) => !/^functions\/src\/(common|cost-watch|model-watch|token-service)\.js$/.test(f));
 

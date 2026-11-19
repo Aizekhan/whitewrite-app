@@ -281,8 +281,10 @@ exports.generateScene = onRequest({
         lastError = error;
       }
 
+      // an empty answer or a refusal is paid to the API (apiUsage / lastError.paid): settle() charges it, only a call that never ran is refunded
+      const paid = apiUsage ? { model: actualModel || providerModel, usage: apiUsage } : (lastError && lastError.paid) || null;
       if (!sceneText) {
-        throw new Error(`Claude API недоступна. Остання помилка: ${lastError?.message}`);
+        throw Object.assign(new Error(`Claude API недоступна. Остання помилка: ${lastError?.message}`), paid ? { paid } : {});
       }
 
       // Parse scene (extract title from first line if present)
@@ -659,7 +661,8 @@ ${sceneText}
       let model;
 
       const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: 12000, effort: 'low' });
-      if (out.stopReason === 'max_tokens') throw new Error('Відповідь обрізана — сцена задовга');
+      const paid = { paid: { model: out.model, usage: out.usage } }; // the answer is paid to the API: a rejection below is charged (settle), not refunded
+      if (out.stopReason === 'max_tokens') throw Object.assign(new Error('Відповідь обрізана — сцена задовга'), paid);
       outText = out.text;
       apiUsage = out.usage;
       model = out.model;
@@ -667,7 +670,7 @@ ${sceneText}
       outText = outText.trim().replace(/^<scene>\s*/, '').replace(/\s*<\/scene>$/, '');
       const unchanged = outText === RECON_UNCHANGED || outText === sceneText.trim();
       if (!unchanged && outText.length < Math.min(200, sceneText.length / 4)) {
-        throw new Error('AI повернув підозріло короткий текст — пропозицію відхилено');
+        throw Object.assign(new Error('AI повернув підозріло короткий текст — пропозицію відхилено'), paid);
       }
 
       const { userCost } = await charge(db, uid, 'generateScene', model, apiUsage, projectId, {

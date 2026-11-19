@@ -26,7 +26,9 @@ const { savedGithub, rememberGithub, loginOf } = require('./github-token');
 const { payerFor } = require('./team')._team; // Команда: an admin's ✦ is paid by the world's owner
 const { intentText } = require('./experience')._experience;
 const { subscriptionActive } = require('../plans.js'); // past_due still counts as active (plans.js)
-const { featureCost, byOp, quoteChars } = require('../paid-features.js');
+const { featureCost, byOp, quoteChars, quoteCtx, worstCase } = require('../paid-features.js');
+const { notePaid, beforeTimeout } = require('../token-service.js'); // billing of long runs: paid calls noted on the hold, an own deadline before the platform's
+const GAMEDEV_TIMEOUT_S = 3600; // gen2 maximum: the plan's skeleton (64k) + the milestones' tasks (32k each, parallel) on Opus did not fit 1800 s
 const { personaText, lookText } = require('../persona.js');
 const { modelFor, withFallback } = require('./claude');
 const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
@@ -43,15 +45,27 @@ const MAX_SORT_FILES = 3000; // «📂 Тека гри»: files per folderSort c
 const PREFAB_RE = /\.(prefab|unitypackage|uasset)$/i; // prefabs always go to «Ассети й префаби» → «Префаби» (the owner's rule)
 const CANON_KINDS = ['characters', 'locations', 'factions', 'artifacts'];
 
+// the RPG Framework profile from the framework's capabilities manifest (functions/mechanics.js FW_BUILTIN — the same snapshot the gaps use),
+// so the prompt never goes stale against the framework version WhiteWrite knows
+function frameworkProfile(fw) {
+  const mods = {}, part = [];
+  Object.entries(fw.caps).forEach(([id, c]) => { (mods[c.m] = mods[c.m] || []).push(c.t); if (c.s === 'partial') part.push(id); });
+  return `Unity game built on RPG Framework (UPM package com.aizekhan.rpg-framework, v${fw.version}). The developer builds the game ` +
+    'together with Claude Code in the game repository; this service does not run Unity. The framework is organised around genre kits ' +
+    '(e.g. ActionRpg, TurnBased, or a Custom host) and runtime modules; designer content is ScriptableObject assets; multiplayer is ' +
+    'host-authoritative co-op and PvP (duel, team deathmatch, free-for-all) for up to 8 players over LAN or Unity Relay — no MMO, no dedicated servers. ' +
+    `Its capabilities manifest (v${fw.version}) — modules: ${Object.entries(mods).map(([m, l]) => `${m} (${l.join(', ')})`).join('; ')}. ` +
+    `Partial: ${part.join(', ') || 'none'}. Missing: ${Object.keys(fw.missing).join(', ') || 'none'}. ` +
+    'Plan on what the manifest lists; a need it marks partial or missing, or does not list at all, is a framework gap ' +
+    '(need, what is missing, desired API, workaround) — game code or a request to the framework, the author decides. ' +
+    'Game repo docs: GAME.md, FRAMEWORK-GAPS.md, Docs/GDD.md, Docs/ASSETS.md, Docs/TASKS.md.';
+}
 const ENGINE_PROFILES = {
   generic: 'Engine-agnostic. Use standard game production practice (prototype → vertical slice → content → polish). ' +
     'Where the engine matters, name the choice as a decision for the developer instead of assuming one.',
-  'rpg-framework': 'Unity game built on RPG Framework (UPM package com.aizekhan.rpg-framework, v0.22.0). The developer builds the game ' +
-    'together with Claude Code in the game repository; this service does not run Unity. The framework is organised around genre kits ' +
-    '(e.g. ActionRpg, TurnBased, or a Custom host) and runtime modules (e.g. combat, progression, quests, items, loot, dialogue); designer ' +
-    'content is ScriptableObject assets; multiplayer is host-authoritative co-op. The framework capabilities catalog is NOT connected yet: ' +
-    'never state that a module exists for certain — mark every framework dependency "verify in catalog", and list likely framework gaps ' +
-    '(need, what is missing, desired API, workaround). Game repo docs: GAME.md, FRAMEWORK-GAPS.md, Docs/GDD.md, Docs/ASSETS.md, Docs/TASKS.md.',
+  'rpg-framework': frameworkProfile(MECH.FW_BUILTIN),
+  unity: 'Unity (no WhiteWrite RPG Framework): scenes, prefabs, ScriptableObjects, C# scripts, the Package Manager; build systems from scratch or ' +
+    'with Asset Store / Fab assets the developer picks. Do not assume RPG Framework modules exist.',
   roblox: 'Roblox experience built in Roblox Studio with Luau (often synced from disk with Rojo). Client / server split: server scripts ' +
     '(ServerScriptService) own the game state, the client (StarterPlayerScripts) shows it, RemoteEvents between them — never trust the client. ' +
     'Data saves via DataStoreService, monetisation via game passes / developer products, assets by rbxassetid. Live-service rhythm: ' +
@@ -183,9 +197,31 @@ function cleanAnalysis(p) {
 const TRACKS = ['mvp', 'expansion', 'extra'];
 const CARD_ROLES = ['implements', 'uses-asset', 'in-level', 'follows-style', 'constrained-by'];
 const ASSET_STATES = ['greybox', 'standin', 'styled', 'final'];
+// Ids are the server's, never the AI's raw ones (a missing or repeated id made «undefined.1» or two tasks overwriting one doc): milestones
+// by track in order — mvp G0, G1…, expansion X1…, extra F1… (the gate ids the prompt asks for); tasks «<milestone>.<n>» in order. The
+// handler numbers the skeleton before pass 2, so the tasks prompt already names the final milestone ids.
+const MS_PREFIX = { mvp: ['G', 0], expansion: ['X', 1], extra: ['F', 1] };
+function numberMilestones(ms) {
+  const n = {};
+  ms.forEach((m) => { const t = oneOf(m.track, TRACKS, 'mvp'), [p, s] = MS_PREFIX[t]; m.track = t; n[t] = n[t] == null ? s : n[t] + 1; m.id = p + n[t]; });
+  return ms;
+}
+// raw task ids → «<milestone>.<n>»; deps follow the renaming (a dep of another milestone: its raw id there, or its number), unknown deps dropped
+function numberTasks(ms) {
+  const maps = ms.map((m) => { const o = {}; (m.tasks || []).forEach((t, k) => { const r = t.id; if (r && !(r in o)) o[r] = m.id + '.' + (k + 1); t.id = m.id + '.' + (k + 1); }); return o; });
+  ms.forEach((m, i) => (m.tasks || []).forEach((t) => {
+    t.deps = [...new Set(t.deps.map((d) => {
+      if (maps[i][d]) return maps[i][d];
+      const dot = d.lastIndexOf('.'), j = ms.findIndex((x) => x.id === d.slice(0, dot)), k = +d.slice(dot + 1);
+      if (j < 0) return null;
+      return maps[j][d] || (Number.isInteger(k) && k >= 1 && k <= (ms[j].tasks || []).length ? ms[j].id + '.' + k : null);
+    }).filter((d) => d && d !== t.id))];
+  }));
+  return ms;
+}
 function cleanPlan(p) {
   const plan = p && p.plan ? p.plan : {};
-  return {
+  const out = {
     gated: true,
     overview: str(plan.overview, 2000),
     dod: list(plan.dod, 8, (d) => str(d, 300) || null),
@@ -226,6 +262,8 @@ function cleanPlan(p) {
     risks: list(plan.risks, 10, (r) => (r && str(r.risk, 300) ? { risk: str(r.risk, 300), mitigation: str(r.mitigation, 400) } : null)),
     gaps: list(plan.gaps, 15, (g) => (g && str(g.need, 300) ? { need: str(g.need, 300), missing: str(g.missing, 300), desiredApi: str(g.desiredApi, 500), workaround: str(g.workaround, 300) } : null)),
   };
+  numberTasks(numberMilestones(out.milestones));
+  return out;
 }
 
 // What the plan needs but the bible lacks: new sections + empty cards ("in progress") for the author to fill
@@ -261,31 +299,65 @@ async function inBatches(ops) { // ops: (batch) => void, each one write
     const b = db.batch(); ops.slice(i, i + BATCH_MAX).forEach((f) => f(b)); await b.commit();
   }
 }
-// The AI plan's tasks: the new ones first (in batches), then the plan doc itself (writePlan), then the old open tasks it replaced —
-// so a failure midway never leaves a plan whose tasks are missing. Kept: started / done tasks, bugs, the manual EX.n / MAP.n.
-async function writeTasks(gameRef, plan, writePlan) {
-  const old = await gameRef.collection('tasks').get();
-  const kept = new Set(), who = {}, stale = []; // who: the person a replaced task was given to — the same task id keeps them
-  old.docs.forEach((d) => {
-    const x = d.data();
-    if (x.kind !== 'bug' && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(d); if (x.assignee) who[d.id] = x.assignee; } else kept.add(d.id);
+// The new plan against the tasks already there (pure — tests/plan-tasks.test.cjs). old: [{ id, ...task }]. A started / handed-in / done task
+// keeps its id: a new task with that id that is the same task (titleSim ≥ SIMILAR) is shown as the kept one in the plan, a different task
+// gets the next free number of its milestone; a kept task the new plan does not list is added to its milestone, or — its milestone gone —
+// to a carried milestone (no track: no gate locks it). Changes plan.milestones in place; → { writes: [{ id, data }], drop: [ids] }.
+const TASK_KEYS = ['title', 'detail', 'deps', 'size', 'owner', 'priority', 'assetState', 'estimate', 'prompt', 'cards', 'roles', 'accept', 'tests'];
+function reconcileTasks(plan, old, prevPlan) {
+  const kept = new Map(), who = {}, stale = []; // who: the person a replaced task was given to — the same task id keeps them
+  old.forEach((x) => {
+    if (x.kind !== 'bug' && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(x.id); if (x.assignee) who[x.id] = x.assignee; } else kept.set(x.id, x);
   });
-  const sets = [], fresh = new Set();
+  const asListed = (x) => Object.fromEntries([['id', x.id]].concat(TASK_KEYS.filter((k) => x[k] != null).map((k) => [k, x[k]])));
+  const used = new Set(kept.keys()), listed = new Set(), writes = [];
   let order = 0;
   for (const m of plan.milestones) {
     if (MANUAL_MS.includes(m.id)) continue; // carried over as they are
-    for (const t of m.tasks) {
+    const rename = {};
+    m.tasks = m.tasks.map((t) => {
       order++;
-      const id = t.id.replace(/[\/\s]/g, '_');
-      if (!id || kept.has(id)) continue;
-      fresh.add(id);
-      sets.push((b) => b.set(gameRef.collection('tasks').doc(id), { ...t, id, milestone: m.id, track: m.track, status: 'todo', order, history: [], ...(who[id] ? { assignee: who[id] } : {}),
-        createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() }));
-    }
+      let id = t.id.replace(/[\/\s]/g, '_');
+      const k = kept.get(id);
+      if (k && k.kind !== 'bug' && GDD.titleSim(k.title, t.title) >= GDD.SIMILAR) { listed.add(id); return asListed(k); }
+      if (!id || used.has(id)) { let n = m.tasks.length; do n++; while (used.has(m.id + '.' + n)); rename[id] = m.id + '.' + n; id = rename[id]; }
+      used.add(id);
+      const o = order;
+      writes.push({ id, t: { ...t, id }, m, order: o });
+      return { ...t, id };
+    });
+    m.tasks.forEach((t) => { if (t.deps) t.deps = t.deps.map((d) => rename[d] || d); });
   }
-  await inBatches(sets);
+  writes.forEach((w) => { w.t.deps = (w.m.tasks.find((t) => t.id === w.id) || w.t).deps; });
+  // kept plan tasks the new plan does not list
+  const prevMs = (prevPlan && prevPlan.milestones) || [], carried = {};
+  kept.forEach((x) => {
+    if (listed.has(x.id) || x.kind === 'bug' || MANUAL_MS.includes(x.milestone) || !x.milestone) return;
+    const m = plan.milestones.find((y) => y.id === x.milestone);
+    if (m) { m.tasks.push(asListed(x)); return; }
+    if (!carried[x.milestone]) {
+      const pm = prevMs.find((y) => y.id === x.milestone) || {};
+      carried[x.milestone] = { id: x.milestone, track: '', carried: true, name: str(pm.name, 120) || x.milestone, goal: str(pm.goal, 600), gate: '', entry: '', deliverables: [], accept: [], budgets: '', estimateDays: 0, tasks: [] };
+    }
+    carried[x.milestone].tasks.push(asListed(x));
+  });
+  const fresh = new Set(writes.map((w) => w.id));
+  const manualAt = plan.milestones.findIndex((m) => MANUAL_MS.includes(m.id));
+  plan.milestones.splice(manualAt < 0 ? plan.milestones.length : manualAt, 0, ...Object.values(carried));
+  return {
+    writes: writes.map((w) => ({ id: w.id, data: { ...w.t, milestone: w.m.id, track: w.m.track, status: 'todo', order: w.order, history: [], ...(who[w.id] ? { assignee: who[w.id] } : {}) } })),
+    drop: stale.filter((id) => !fresh.has(id)),
+  };
+}
+// The AI plan's tasks: the new ones first (in batches), then the plan doc itself (writePlan), then the old open tasks it replaced —
+// so a failure midway never leaves a plan whose tasks are missing. Kept: started / done tasks, bugs, the manual EX.n / MAP.n.
+async function writeTasks(gameRef, plan, writePlan, prevPlan) {
+  const old = await gameRef.collection('tasks').get();
+  const r = reconcileTasks(plan, old.docs.map((d) => ({ ...d.data(), id: d.id })), prevPlan), col = gameRef.collection('tasks');
+  await inBatches(r.writes.map((w) => (b) => b.set(col.doc(w.id), { ...w.data,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() })));
   if (writePlan) await writePlan();
-  await inBatches(stale.filter((d) => !fresh.has(d.id)).map((d) => (b) => b.delete(d.ref)));
+  await inBatches(r.drop.map((id) => (b) => b.delete(col.doc(id))));
 }
 // the manual milestones of the plan being replaced, appended to the new one
 function withManual(plan, prevPlan) {
@@ -307,22 +379,29 @@ function foldCards(list, cards) {
   });
   return out;
 }
-function cleanImport(p, shelves, entities, world, cards) {
+// parts: how many AI answers were merged — the caps grow with them (a long .md is not cut to one part's worth); what the caps still cut is
+// counted in truncated { cards, canon } so the page can say so (never silent)
+function cleanImport(p, shelves, entities, world, cards, parts) {
   const gameShelves = shelves.filter((s) => s.kind === 'game').map((s) => s.id);
   const ids = new Set(entities.map((e) => e.id));
   const laws = new Set((world.rules || []).map((r) => String(r).trim().toLowerCase()));
+  const k = Math.max(1, Math.min(5, Math.round(+parts || 1))), cardCap = 120 * k, canonCap = 60 * k;
+  const allCanon = list(p && p.canon, Infinity, (e) => (e && CANON_KINDS.includes(e.kind) && str(e.name, 80) ? {
+    kind: e.kind, name: str(e.name, 80), description: str(e.description, 1500),
+    match: ids.has(str(e.match, 80)) ? str(e.match, 80) : '',
+    gameFields: labelMap(e.gameFields, 12, 3000),
+  } : null));
+  const allCards = list(p && p.cards, Infinity, (c) => (c && str(c.title, 160) ? {
+    section: gameShelves.includes(c.section) ? c.section : 'overview', title: str(c.title, 160), fields: labelMap(c.fields, 15, 4000),
+  } : null));
+  const folded = foldCards(allCards.slice(0, cardCap * 2), cards); // the duplicate check first (its joins free room), bounded
   return {
     laws: list(p && p.laws, 10, (l) => { const v = str(l, 240); return v && !laws.has(v.toLowerCase()) ? v : null; }),
-    canon: list(p && p.canon, 60, (e) => (e && CANON_KINDS.includes(e.kind) && str(e.name, 80) ? {
-      kind: e.kind, name: str(e.name, 80), description: str(e.description, 1500),
-      match: ids.has(str(e.match, 80)) ? str(e.match, 80) : '',
-      gameFields: labelMap(e.gameFields, 12, 3000),
-    } : null)),
-    cards: foldCards(list(p && p.cards, 120, (c) => (c && str(c.title, 160) ? {
-      section: gameShelves.includes(c.section) ? c.section : 'overview', title: str(c.title, 160), fields: labelMap(c.fields, 15, 4000),
-    } : null)), cards),
+    canon: allCanon.slice(0, canonCap),
+    cards: folded.slice(0, cardCap),
     contradictions: list(p && p.contradictions, 15, cleanContradiction),
     questions: list(p && p.questions, 20, cleanQuestion).map((q) => ({ ...q, target: null })), // their cards don't exist yet
+    truncated: { cards: Math.max(0, allCards.length - cardCap * 2) + Math.max(0, folded.length - cardCap), canon: Math.max(0, allCanon.length - canonCap) },
   };
 }
 
@@ -768,7 +847,7 @@ function cleanShelves(a) {
 exports.gamedevPlan = onRequest({
   region: 'us-central1',
   secrets: [claudeApiKey],
-  timeoutSeconds: 1800, // a plan for a big bible is a long generation
+  timeoutSeconds: GAMEDEV_TIMEOUT_S, // a plan for a big bible is a long generation
   memory: '512MiB'
 }, async (req, res) => {
   return cors(req, res, async () => {
@@ -776,6 +855,8 @@ exports.gamedevPlan = onRequest({
     let reservation = null;
     let gameRefForError = null;
     let paidSoFar = null; // usage of every call that reached the API: any later error is charged for it, not refunded (settle)
+    let cap = 0; // «не більше N» of an import / folder sort: a failure is never charged above it either
+    const t0 = Date.now();
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const authHeader = req.headers.authorization;
@@ -857,19 +938,14 @@ exports.gamedevPlan = onRequest({
       const economyDoc = await db.collection('economy_operations').doc('generateScene').get();
       const providerEconomy = economyDoc.exists ? (economyDoc.data().providers || {}).claude : null;
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free'); // the author's Claude model (Account)
-      // an import is quoted by its size — «не більше N»: reserved now, never charged above (the page showed the same N)
-      const cap = op === 'import' ? quoteChars(byOp('import'), markdown, tier)
-        : op === 'folderSort' ? quoteChars(byOp('folderSort'), sortLines.join('\n'), tier) : 0;
+      // an import is quoted by its size — «не більше N»: reserved now, never charged above (the page showed the same N).
+      // Every part repeats the canon entities and the card titles: quoteCtx (the page must pass the same — paid-features quoteChars)
+      cap = op === 'import' ? quoteChars(byOp('import'), markdown, tier, quoteCtx(entities.length, cards.length))
+        : op === 'folderSort' ? quoteChars(byOp('folderSort'), sortLines.join('\n'), tier, quoteCtx(Math.min(400, entities.length), Math.min(400, cards.length))) : 0;
       const reserveCost = cap || featureCost(byOp(isCanon ? 'canonAudit' : op), providerEconomy && providerEconomy.cost, tier); // paid-features.js — gamebible.js costOf reads the same
       const balance = getBalance(userData);
       if (balance.available < reserveCost) {
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
-      }
-      try {
-        reservation = await reserve(db, uid, reserveCost, { hold: true });
-      } catch (error) {
-        if (error.code !== 'OUT_OF_TOKENS') throw error;
-        return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }
 
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
@@ -882,6 +958,17 @@ exports.gamedevPlan = onRequest({
         : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
       const prompt = prompts.map((c) => (Array.isArray(c) ? c.map((b) => b.text).join('') : c)).join('');
+      // An uncapped long run (plan, analyze…) costs far above its registry price on Opus (a plan: 64k + 14 × 32k output): the reserve
+      // rises toward the worst case — every call at its max_tokens — as far as the balance holds; the registry price stays the minimum
+      // (the run is never refused above what the page shows) and what goes beyond the balance becomes debt (token-service getBalance)
+      const inTok = Math.ceil(prompt.length / 2.5);
+      const upTo = cap ? 0 : op === 'plan' ? worstCase(tier, inTok * 15, 64000 + 14 * 32000) : worstCase(tier, inTok, prompts.length * (op === 'analyze' ? 64000 : 24000));
+      try {
+        reservation = await reserve(db, uid, reserveCost, { hold: true, cap, upTo });
+      } catch (error) {
+        if (error.code !== 'OUT_OF_TOKENS') throw error;
+        return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: error.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
+      }
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
       const usage = { input_tokens: 0, output_tokens: 0 };
       let usedModel = model;
@@ -894,6 +981,7 @@ exports.gamedevPlan = onRequest({
         for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) usage[k] = (usage[k] || 0) + (m.usage[k] || 0);
         usedModel = m.model || usedModel;
         paidSoFar = { model: usedModel, usage };
+        await notePaid(db, uid, reservation, usedModel, m.usage); // killed by the platform before charge()? the sweep bills this call
         if (m.stop_reason === 'refusal') throw new Error('Claude відмовився виконати запит');
         if (m.stop_reason === 'max_tokens') throw Object.assign(cutOff('Відповідь AI обірвалась — забагато матеріалу для одного проходу', usedModel, usage), { cut: true });
         try { return parseJson(m.content.filter((b) => b.type === 'text').map((b) => b.text).join('')); }
@@ -909,6 +997,8 @@ exports.gamedevPlan = onRequest({
       if (isCanon) await worldRef.set({ auditRunning: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       else if (op !== 'import' && op !== 'folderSort' && op !== 'draft' && op !== 'concepts' && op !== 'repoSync') await gameRef.collection('plan').doc('current').set({ running: { op, at: admin.firestore.FieldValue.serverTimestamp() } }, { merge: true });
       let results, lostParts = 0;
+      // the AI part ends 3 min before the function timeout: a stopped run is settled (paid calls charged), not killed unbilled
+      await beforeTimeout((async () => {
       if (op === 'import') { // a part the AI answered past max_tokens → its two halves (twice at most); a part that still fails is skipped, the rest kept
         const part = async (text, depth) => {
           try { return [await ask(importPrompt(text, shelves, entities, world, languageName, cards), 24000)]; }
@@ -930,6 +1020,7 @@ exports.gamedevPlan = onRequest({
         const bible = bibleText(world, entities, cards, game, shelves, lore), sk = (skel && skel.plan) || {};
         const ms = (Array.isArray(sk.milestones) ? sk.milestones : []).filter((m) => m && str(m.name, 1)).slice(0, 14);
         if (!ms.length) throw Object.assign(new Error('AI не дав етапів плану'), { paid: { model: usedModel, usage } });
+        numberMilestones(ms); // the final ids before pass 2 (cleanPlan numbers the same way)
         const parts = await all(ms.map((m) => () => ask(planTasksPrompt(bible, engine, answered, prev.gdd, languageName, shelves, sk, m), 32000)));
         const scaffold = { sections: [], cards: [] }, seen = {};
         ms.forEach((m, i) => {
@@ -941,6 +1032,7 @@ exports.gamedevPlan = onRequest({
         sk.milestones = ms;
         results = [{ plan: sk, scaffold }];
       } else results = await all(prompts.map((content) => () => ask(content, op === 'analyze' ? 64000 : 24000)));
+      })(), GAMEDEV_TIMEOUT_S * 1000 - 180000 - (Date.now() - t0));
       const parsed = results[0];
 
       let proposal = null;
@@ -954,7 +1046,7 @@ exports.gamedevPlan = onRequest({
       } else if (op === 'folderSort') {
         proposal = cleanFolderSort(results, shelves, entities, sortFiles);
       } else if (op === 'import' || op === 'draft') {
-        proposal = cleanImport(mergeImports(results), shelves, entities, world, cards);
+        proposal = cleanImport(mergeImports(results), shelves, entities, world, cards, results.length);
       } else if (op === 'repoSync') {
         proposal = cleanImport(parsed, shelves, entities, world, cards);
         await gameRef.set({ repo: { syncedAt: admin.firestore.FieldValue.serverTimestamp(), sha: repoData.sha } }, { merge: true });
@@ -970,7 +1062,7 @@ exports.gamedevPlan = onRequest({
           Object.assign(update, { plan: withManual(cleanPlan(parsed), prev.plan), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
         }
         const writePlan = () => gameRef.collection('plan').doc('current').set(update, { merge: true });
-        if (op === 'plan') await writeTasks(gameRef, update.plan, writePlan); // the tasks first, then the plan
+        if (op === 'plan') await writeTasks(gameRef, update.plan, writePlan, prev.plan); // the tasks first, then the plan
         else await writePlan();
       }
 
@@ -991,11 +1083,11 @@ exports.gamedevPlan = onRequest({
         await db.collection('worlds').doc(String(req.body.worldId)).set({ auditRunning: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
       }
       if (paidSoFar && !error.paid) error.paid = paidSoFar; // a refusal, an empty answer, a failed write after paid calls
-      if (reservation) await settle(db, uid, reservation, error, 'gamedev').catch((e) => console.error('[gamedevPlan] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'gamedev', { cap }).catch((e) => console.error('[gamedevPlan] Refund failed:', e));
       res.status(500).json({ error: `Помилка біблії гри: ${publicMessage(error)}` });
     }
   });
 });
 exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)
-exports._import = { halves, splitMarkdown }; // tests only (tests/gamedev-import.test.cjs)
-exports._gdd = { gddMissing, bibleText, cleanImport, importPrompt }; // tests only (tests/gdd-schema.test.cjs)
+exports._import = { halves, splitMarkdown }; // tests only (tests/folder-sort.test.cjs)
+exports._gdd = { gddMissing, bibleText, cleanImport, importPrompt, cleanPlan, numberMilestones, reconcileTasks }; // tests only (tests/gdd-schema, import-placement, plan-tasks)

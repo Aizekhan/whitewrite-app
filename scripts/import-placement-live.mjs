@@ -12,7 +12,7 @@ const { samples } = require('../tests/fixtures/import-placement.json');
 
 const key = process.env.ANTHROPIC_API_KEY;
 if (!key) { console.error('Set ANTHROPIC_API_KEY first (see the top of this file).'); process.exit(2); }
-const model = AI_MODELS.sonnet; // the import's paid default
+const model = AI_MODELS.claude.sonnet; // the import's paid default
 const shelves = GDD.SECTIONS.filter((s) => s.write).map((s) => ({ id: s.id, kind: 'game', name: s.en, fields: [], groups: [] }));
 
 async function ask(prompt) {

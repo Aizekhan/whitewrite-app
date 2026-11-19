@@ -87,9 +87,8 @@
           noFriends: "Немає друзів, яких можна додати.", toFriends: "Акаунт → Друзі" },
         forgeSoon: { badge: "Кузня персонажів зараз у розробці", idea: "Кузня — виробництво персонажа по етапах: бриф, концепт, модель з ригом, екіпірування, анімації й експорт у Unity, з версіями й затвердженням. Ми доводимо її до ладу й відкриємо, щойно вона буде готова.", now: "Що можна зараз: описувати персонажів і ворогів у їхніх картках, додавати концепти й моделі у файли картки — Кузня потім візьме їх звідти." },
         market: { soonTitle: "Маркет світів", soonBadge: "Планується — зараз у розробці", soonIdea: "Маркет світів — місце, де автори зможуть продати свій світ іншим творцям чи студіям: канон, культуру, ігровий дизайн (картки, план, квести, діалоги) та історії. Продаж — повний викуп прав: світ переходить покупцю. Перед продажем світ отримує Сертифікацію WhiteWrite — перевірку, щоб покупець знав, що купує, а продавець продавав законно: метрики, ШІ-рецензія, ШІ-юрист і модератор-людина. Покупець платить продавцю напряму, WhiteWrite утримує комісію. Зараз Маркет у розробці: запустимо після перевірки договорів юристом і налаштування виплат продавцям.", soonNow: "Що вже можна зробити зараз: наповнювати світ і гру, публікувати вітрину в «Спільноті» й збирати фоловерів — це стане основою лоту.", soonTest: "Тестовий режим (лише адмін)",
-          title: "Маркет: продаж світу", hint: "Продається весь світ (канон, культура, ігри, історії) — лише текст, з повним викупом прав: після оплати світ переходить покупцю, а ти втрачаєш до нього доступ. Спершу — сертифікація: перевірка до 1–2 тижнів (метрики, ШІ-рецензія, ШІ-юрист, модератор), світ на цей час заморожено. Ціна перевірки — за обсягом тексту: {tiers} токенів, лише Worldbuilder. Продавати сертифікований світ можна на будь-якому тарифі; 12% утримує Stripe на користь WhiteWrite.",
-          rules: "Як це працює", payouts: "Виплати Stripe:", payoutsOn: "підключено", payoutsPending: "не завершено", payoutsOff: "не підключено", connect: "Підключити Stripe",
-          connectOpened: "Stripe відкрито в новій вкладці. Після завершення повернись сюди.",
+          title: "Маркет: продаж світу", hint: "Продається весь світ (канон, культура, ігри, історії) — лише текст, з повним викупом прав: після оплати світ переходить покупцю, а ти втрачаєш до нього доступ. Спершу — сертифікація: перевірка до 1–2 тижнів (метрики, ШІ-рецензія, ШІ-юрист, модератор), світ на цей час заморожено. Ціна перевірки — за обсягом тексту: {tiers} токенів, лише Worldbuilder. Продавати сертифікований світ можна на будь-якому тарифі; 12% утримується на користь WhiteWrite (платіжного провайдера для Маркету ще не обрано).",
+          rules: "Як це працює",
           status: { review: "На перевірці", moderation: "У модератора", approved: "Сертифіковано й виставлено" }, since: "з", frozen: "Світ заморожено: його можна читати, але не змінювати, доки заявку не відкликано або світ не продано.",
           listed: "У Маркеті за {price} · рівень «{level}».", openLot: "Відкрити лот", aiReview: "ШІ-рецензія", aiLawyer: "ШІ-юрист",
           levels: { concept: "Концепт", gdd: "Готовий ГДД", prototype: "Прототип", slice: "Vertical slice", live: "Гра з гравцями" },
@@ -180,7 +179,7 @@
           ccbynd: "Комерційно можна з автором, але без змін — ні ретопології, ні перефарбування.", ccbync: "Лише некомерційне використання — у платній грі чи з рекламою не можна.",
           editorial: "Лише для редакційних матеріалів — у грі не можна.", personal: "Лише особисте використання — у грі для інших не можна.",
           unknown: "Права не з'ясовано. Не використовуй комерційно, доки не знайдеш ліцензію." } },
-      wt: { tagline: "Гасло світу", taglinePh: "Одним рядком — про що цей світ", summary: "Про світ", summaryPh: "Що це за світ, яка в ньому напруга, чим він живе…",
+      wt: { changedUnder: "Хтось із команди щойно зберіг огляд світу, поки ти його редагуєш. Якщо збережеш — твоя версія замінить їхню; щоб побачити їхню, вийди з розділу без збереження.", tagline: "Гасло світу", taglinePh: "Одним рядком — про що цей світ", summary: "Про світ", summaryPh: "Що це за світ, яка в ньому напруга, чим він живе…",
         factK: "Що", factV: "Як є", addFact: "＋ Факт", addLaw: "＋ Закон", lawPh: "Закон світу…", noLaws: "Законів ще немає — додай перший: те, чого в цьому світі не можна порушити.",
         save: "Зберегти", dirty: "Є незбережені зміни", mainMap: "Головна карта", mapAdd: "＋ Ще карта", mapQ: "Назва карти", mapPh: "Напр. Підземний світ", mapRen: "✎ Перейменувати", mapDel: "🗑 Видалити карту",
         mapDelQ: "Видалити карту «{t}»? Її локації повернуться на головну карту.", mapEmpty: "На цій карті ще немає локацій — додай їх зі списку під картою.", locAdd: "＋ Локація на цю карту…", locOff: "Прибрати з цієї карти",
@@ -195,18 +194,19 @@
         accepted: "прийнято ✓", rejected: "відхилено", stop: "Зупинено: {e}", plan: "Узгодження сцен доступне з плану Novelist з активною підпискою.",
         gameLocked: "Ігри світу", gameLockedText: "Біблія гри, продакшн-план і звʼязок із Claude Code — з тарифу Worldbuilder. Канон світу й історії — тут, на твоєму тарифі." },
       saved: "Збережено", saving: "Зберігаю…", failed: "Не вдалося зберегти", confirmDel: "Прибрати цю картку назавжди?",
-      live: "Зміни зберігаються в світі.", offline: "Немає звʼязку з базою.",
+      live: "Зміни зберігаються в світі.", offline: "Немає звʼязку з базою.", onlyOwner: "Це може змінити лише власник світу.",
+      renderFail: "Не вдалося показати цей розділ. Відкрий інший розділ або онови сторінку.", jsError: "Щось пішло не так на сторінці", saveFail: "Не збережено",
       lockedTitle: "Біблія гри — для геймдеву", lockedText: "Біблія гри та Продакшн-план доступні на тарифі Worldbuilder. Канон світу й історії лишаються з тобою на будь-якому тарифі.",
       upgrade: "Переглянути тарифи", noWorld: "Світ не знайдено.", login: "Увійди, щоб відкрити Біблію.", signIn: "Увійти",
       importTitle: "Імпорт нотаток", importBusy: "AI розбирає файл по полицях… (до кількох хвилин)",
       importIntro: "Перевір, що AI знайшов у файлі. У канон і картки потрапить лише відмічене.",
       importApply: "Додати відмічене", importNext: "Далі ШІ перевірить GDD гри й поставить питання; відповіси на них — і він складе продакшн-план.", importDone: "Додано", importNew: "нове в каноні", importMatch: "вже є в каноні — додати ігрові поля",
       importLaws: "Нові закони світу", importCards: "Картки гри", importCanon: "Сутності канону", importQs: "Відкриті питання → у Продакшн-план",
-      importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}", importLost: "Частину тексту ({n} шм.) ШІ не зміг розібрати навіть дрібнішими шматками — її немає в пропозиції. Решту — відміть і перенеси; той шматок можна імпортувати окремим файлом.",
+      importContra: "Суперечності → у Продакшн-план", importPart: "частина {d} з {n}", importTrunc: "Не вмістилось: {c} карток, {e} сутностей — розбий файл на менші.", importLost: "Частину тексту ({n} шм.) ШІ не зміг розібрати навіть дрібнішими шматками — її немає в пропозиції. Решту — відміть і перенеси; той шматок можна імпортувати окремим файлом.",
       files: "Файли", filesHint: "префаби, моделі, картинки, звук — до {mb} МБ; моделі — лише .glb (відкриваються в 3D)", filesAdd: "＋ Додати файли",
       glb: { refuse: "Сервіс приймає моделі лише у форматі GLB — {f} не завантажено. Як перетворити: Blender → File → Export → glTF 2.0 → формат glTF Binary (.glb).", how: "Як перетворити в GLB →",
         old: "⚠ формат більше не відкривається в 3D — перетвори в GLB", skipped: "Моделі не у форматі GLB — не завантажуються ({n}). Перетвори їх у GLB (Blender → Export → glTF Binary) і обери теку ще раз:" },
-      demo: { open: "🎓 Відкрити демо-гру", openHint: "Невеликий платформер «Ліхтарник», де заповнено кожен етап GDD: подивись, як виглядає готовий документ, і скопіюй як шаблон. Не займає місце гри в тарифі.",
+      demo: { ro: "Демо-гра лише для перегляду — скопіюй її, щоб редагувати.", open: "🎓 Відкрити демо-гру", openHint: "Невеликий платформер «Ліхтарник», де заповнено кожен етап GDD: подивись, як виглядає готовий документ, і скопіюй як шаблон. Не займає місце гри в тарифі.",
         title: "Це демо-гра.", hint: "Тут заповнено кожен етап GDD — від огляду й стовпів до рівнів із драбиною навчання, квесту, діалогу й плану. Гортай меню, відкривай картки, експортуй питч. Щоб зробити з неї свою гру, скопіюй її: копія — звичайна гра, яку можна змінювати як завгодно.",
         copy: "⧉ Скопіювати як мою гру", copyName: "(копія)", slotWarn: "На твоєму тарифі — одна гра. Копія займе це місце: щоб потім створити іншу гру, доведеться видалити копію (або перейти на Worldbuilder). Демо лишиться. Скопіювати?", busy: "Створюю…", exists: "Демо-гра вже є в одному з твоїх світів.", limit: "Видали демо або іншу гру, чи перейди на Worldbuilder." },
       gx: { pitch: "⤓ Питч (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "Питч на одну сторінку (логлайн, фантазія, стовпи, цикл, схожі ігри, ключові картинки) і повний GDD за етапами — з карток гри, без ШІ й токенів. PDF — сторінка для друку: у вікні друку обери «Зберегти як PDF»." },
@@ -236,7 +236,7 @@
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
       answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
-      pp: { dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
+      pp: { carried: "Етап зі старого плану", carriedTip: "Новий план зберіг цей етап і його задачі з попереднього", dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
         who: "Виконавець", nobody: "— не призначено —", memberEdit: "✎ змінив {n} — Claude Code не бере, доки ти не схвалиш", memberWait: "⏳ чекає схвалення власника: доти Claude Code її не бере", approve: "✓ Схвалити для агента", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
         trackAbout: { mvp: "П'ять воріт від порожнього проєкту до релізу. Наступний етап відкривається, коли ти приймеш ворота попереднього.",
@@ -279,7 +279,7 @@
         tele: "Телеметрія · ключі прийому подій", teleHint: "Ключі, якими збірка гри надсилає події гравців у «Досвід гравців».", teleKeys: "Ключів: {n}", teleGo: "Керувати ключами →",
         mk: "Маркетинг · канали", mkHint: "Telegram, Discord, Mastodon, Bluesky — куди публікуються пости гри.", mkNone: "Каналів ще немає.", mkGo: "Керувати каналами →",
         voice: "Озвучка", voiceHint: "Google Text-to-Speech працює через WhiteWrite — свого ключа не треба (оплата токенами). ElevenLabs — скоро.",
-        backup: "Бекап у GitHub", comm: "Спільнота · Discord", commHint: "Запрошення в Discord і посилання на релізи — на вітрині світу чи гри.", market: "Маркет · виплати Stripe", marketHint: "Рахунок Stripe для виплат за продаж світу.", open: "Відкрити →" },
+        backup: "Бекап у GitHub", comm: "Спільнота · Discord", commHint: "Запрошення в Discord і посилання на релізи — на вітрині світу чи гри.", market: "Маркет", marketHint: "Сертифікація WhiteWrite і продаж світу (в розробці).", open: "Відкрити →" },
       repo: { hint: "Підключи репозиторій — і за кнопкою AI звірить його з Біблією: що є в коді й документах репо, але немає тут, і де вони розходяться (розбіжності йдуть у «Неузгоджене»). Для приватного репо потрібен токен лише на читання (fine-grained, Contents: Read-only).",
         repo: "Репозиторій", repoPh: "owner/назва або посилання на GitHub", branch: "Гілка", branchPh: "Гілка (типово — основна)", tokenSaved: "Збережений токен GitHub ({l}) — можна лишити порожнім", token: "Токен", tokenPh: "Токен GitHub — лише для приватного репо",
         connect: "Підключити", connecting: "Перевіряю доступ до репозиторію…", connected: "Підключено: {r} · гілка {b}", synced: "Востаннє звірено: {d}", never: "Ще не звірялось.",
@@ -288,7 +288,8 @@
       ex: { title: "Досвід гравців", about: "Що гравці справді роблять у грі — і чи збігається це із задумом. Телеметрія показує поведінку, не почуття: AI формує гіпотези з доказами, плейтести й експерименти їх перевіряють.",
         tabs: { overview: "Огляд", heat: "Теплові карти", issues: "Проблеми", playtests: "Плейтести", experiments: "Експерименти", connect: "Підключення" },
         scale: "Подій уже понад {n} на день. Сирі події в Firestore — для плейтестів і раннього запуску; час переносити їх у BigQuery (див. ARCHITECTURE.md → Experience → Scale).",
-        days: "Період", build: "Збірка", buildPh: "усі збірки", recompute: "Перерахувати метрики", computing: "Рахую метрики…", report: "✦ Звіт AI", reporting: "AI шукає можливі проблеми досвіду… (до кількох хвилин)",
+        days: "Період", build: "Збірка", buildPh: "усі збірки", recompute: "↻ Перерахувати метрики", computing: "Рахую метрики…", computedAgo: "пораховано {n} хв тому", computedNow: "пораховано щойно",
+        retPartial: "Утримання пораховано за неповними даними (охоплено {d} дн.): подій забагато для одного читання, тож D7 / D30 можуть бути неточні — звузь період або обери збірку.", report: "✦ Звіт AI", reporting: "AI шукає можливі проблеми досвіду… (до кількох хвилин)",
         noData: "Подій ще немає. Підключи гру у вкладці «Підключення» — або попроси Claude Code реалізувати телеметрію за get_telemetry_schema.",
         noMetrics: "Метрики ще не пораховано.", sample: "Вибірка: {e} подій · {p} гравців · {s} сесій · {from} — {to}", truncated: "прочитано найновіші події — вибірку обрізано",
         caution: "Метрики описують поведінку. Тиха ділянка може бути задуманою паузою, коротка сесія — не провалом. Дивись на задум і розмір вибірки.",
@@ -453,9 +454,8 @@
           noFriends: "No friends to add.", toFriends: "Account → Friends" },
         forgeSoon: { badge: "The Character forge is in development", idea: "The forge is a character's production in stages: brief, concept, a rigged model, equipment, animations and export to Unity, with versions and approvals. We are finishing it and will open it as soon as it is ready.", now: "What you can do now: describe characters and enemies in their cards, add concepts and models to the card files — the forge will pick them up from there later." },
         market: { soonTitle: "World Market", soonBadge: "Planned — in development now", soonIdea: "The World Market is where authors will be able to sell their world to other creators or studios: the canon, culture, game design (cards, plan, quests, dialogues) and stories. A sale is a full buyout of the rights: the world passes to the buyer. Before a sale the world gets the WhiteWrite Certification — a review so the buyer knows what they buy and the seller sells lawfully: metrics, an AI review, an AI lawyer and a human moderator. The buyer pays the seller directly; WhiteWrite keeps a fee. The Market is in development now: it launches after a lawyer reviews the contracts and seller payouts are set up.", soonNow: "What you can do now: fill your world and game, publish a showcase in the “Community” and gather followers — this becomes the base of a lot.", soonTest: "Test mode (admin only)",
-          title: "Market: selling the world", hint: "The whole world sells (canon, culture, games, stories) — text only, as a full buyout: after payment the world passes to the buyer and you lose access to it. First the WhiteWrite Certification: a review of up to 1–2 weeks (metrics, AI review, AI lawyer, moderator), the world frozen meanwhile. The review costs by the text size: {tiers} tokens, Worldbuilder only. A certified world sells on any plan; Stripe keeps 12% for WhiteWrite.",
-          rules: "How it works", payouts: "Stripe payouts:", payoutsOn: "connected", payoutsPending: "not finished", payoutsOff: "not connected", connect: "Connect Stripe",
-          connectOpened: "Stripe opened in a new tab. Come back here when you finish.",
+          title: "Market: selling the world", hint: "The whole world sells (canon, culture, games, stories) — text only, as a full buyout: after payment the world passes to the buyer and you lose access to it. First the WhiteWrite Certification: a review of up to 1–2 weeks (metrics, AI review, AI lawyer, moderator), the world frozen meanwhile. The review costs by the text size: {tiers} tokens, Worldbuilder only. A certified world sells on any plan; 12% goes to WhiteWrite (the payment provider for the Market is not chosen yet).",
+          rules: "How it works",
           status: { review: "Under review", moderation: "With the moderator", approved: "Certified and listed" }, since: "since", frozen: "The world is frozen: readable but not changeable until the application is withdrawn or the world is sold.",
           listed: "In the Market for {price} · level “{level}”.", openLot: "Open the lot", aiReview: "AI review", aiLawyer: "AI lawyer",
           levels: { concept: "Concept", gdd: "Ready GDD", prototype: "Prototype", slice: "Vertical slice", live: "Game with players" },
@@ -546,7 +546,7 @@
           ccbynd: "Commercial use OK with credit, but unchanged — no retopology, no repaint.", ccbync: "Non-commercial use only — not in a paid or ad-supported game.",
           editorial: "Editorial use only — not in a game.", personal: "Personal use only — not in a game for others.",
           unknown: "Rights unknown. Don't use commercially until you find the licence." } },
-      wt: { tagline: "Tagline", taglinePh: "One line — what this world is about", summary: "About the world", summaryPh: "What world this is, its tension, what it lives by…",
+      wt: { changedUnder: "A team member has just saved the world overview while you were editing it. Saving replaces their version with yours; to see theirs, leave the section without saving.", tagline: "Tagline", taglinePh: "One line — what this world is about", summary: "About the world", summaryPh: "What world this is, its tension, what it lives by…",
         factK: "What", factV: "How it is", addFact: "＋ Fact", addLaw: "＋ Law", lawPh: "A law of the world…", noLaws: "No laws yet — add the first: what can never be broken in this world.",
         save: "Save", dirty: "Unsaved changes", mainMap: "Main map", mapAdd: "＋ Another map", mapQ: "Map name", mapPh: "E.g. The Underworld", mapRen: "✎ Rename", mapDel: "🗑 Delete the map",
         mapDelQ: "Delete the map “{t}”? Its locations go back to the main map.", mapEmpty: "No locations on this map yet — add them from the list under the map.", locAdd: "＋ A location on this map…", locOff: "Remove from this map",
@@ -561,18 +561,19 @@
         accepted: "accepted ✓", rejected: "rejected", stop: "Stopped: {e}", plan: "Aligning scenes is available from the Novelist plan with an active subscription.",
         gameLocked: "Games of the world", gameLockedText: "The Game Bible, production plan and the Claude Code link come with the Worldbuilder plan. The world canon and stories are here on your plan." },
       saved: "Saved", saving: "Saving…", failed: "Could not save", confirmDel: "Remove this card for good?",
-      live: "Changes are saved in the world.", offline: "No connection to the database.",
+      live: "Changes are saved in the world.", offline: "No connection to the database.", onlyOwner: "Only the world owner can change this.",
+      renderFail: "This section could not be shown. Open another section or reload the page.", jsError: "Something went wrong on the page", saveFail: "Not saved",
       lockedTitle: "Game Bible — for game dev", lockedText: "The Game Bible and Production Plan are available on the Worldbuilder plan. Your world canon and stories stay with you on any plan.",
       upgrade: "See plans", noWorld: "World not found.", login: "Sign in to open the Bible.", signIn: "Sign in",
       importTitle: "Import notes", importBusy: "AI is sorting the file onto the shelves… (up to a few minutes)",
       importIntro: "Check what AI found in the file. Only the ticked items go into the canon and the cards.",
       importApply: "Add ticked items", importNext: "Next, AI checks the game's GDD and asks questions; answer them and it builds the production plan.", importDone: "Added", importNew: "new in canon", importMatch: "already in canon — add game fields",
       importLaws: "New laws of the world", importCards: "Game cards", importCanon: "Canon entities", importQs: "Open questions → Production plan",
-      importContra: "Contradictions → Production plan", importPart: "part {d} of {n}", importLost: "The AI could not sort part of the text ({n} piece(s)) even in smaller bits — it is not in the proposal. Tick and take the rest; that piece can be imported as a separate file.",
+      importContra: "Contradictions → Production plan", importPart: "part {d} of {n}", importTrunc: "Did not fit: {c} cards, {e} entities — split the file into smaller ones.", importLost: "The AI could not sort part of the text ({n} piece(s)) even in smaller bits — it is not in the proposal. Tick and take the rest; that piece can be imported as a separate file.",
       files: "Files", filesHint: "prefabs, models, images, audio — up to {mb} MB; models — .glb only (they open in 3D)", filesAdd: "＋ Add files",
       glb: { refuse: "The service takes models in GLB format only — {f} was not uploaded. To convert: Blender → File → Export → glTF 2.0 → format glTF Binary (.glb).", how: "How to convert to GLB →",
         old: "⚠ this format no longer opens in 3D — convert it to GLB", skipped: "Models not in GLB format — not uploaded ({n}). Convert them to GLB (Blender → Export → glTF Binary) and pick the folder again:" },
-      demo: { open: "🎓 Open the demo game", openHint: "A small platformer «Lamplighter» with every GDD stage filled in: see what a finished document looks like and copy it as a template. It does not use a game slot of your plan.",
+      demo: { ro: "The demo is read-only — copy it to edit.", open: "🎓 Open the demo game", openHint: "A small platformer «Lamplighter» with every GDD stage filled in: see what a finished document looks like and copy it as a template. It does not use a game slot of your plan.",
         title: "This is the demo game.", hint: "Every GDD stage is filled in here — from the overview and pillars to levels with the learning ladder, a quest, a dialogue and the plan. Browse the menu, open the cards, export the pitch. To make it your own game, copy it: the copy is an ordinary game you can change any way you like.",
         copy: "⧉ Copy as my game", copyName: "(copy)", slotWarn: "Your plan holds one game. The copy takes that slot: to create another game later you will have to delete the copy (or move to Worldbuilder). The demo stays. Copy it?", busy: "Creating…", exists: "You already have the demo game in one of your worlds.", limit: "Delete the demo or another game, or move to Worldbuilder." },
       gx: { pitch: "⤓ Pitch (PDF)", pdf: "⤓ GDD (PDF)", md: "⤓ GDD (.md)", hint: "A one-page pitch (logline, fantasy, pillars, loop, comparable games, key pictures) and the full GDD by stage — from the game's cards, no AI, no tokens. PDF is a print page: pick “Save as PDF” in the print dialog." },
@@ -602,7 +603,7 @@
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
       answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
-      pp: { dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
+      pp: { carried: "Milestone from the previous plan", carriedTip: "The new plan kept this milestone and its tasks from the previous one", dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
         who: "Assignee", nobody: "— not assigned —", memberEdit: "✎ edited by {n} — Claude Code won’t take it until you approve", memberWait: "⏳ waits for the owner’s approval: Claude Code won’t take it until then", approve: "✓ Approve for the agent", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
         trackAbout: { mvp: "Five gates from an empty project to a release. The next stage opens once you approve the gate of the one before.",
@@ -645,7 +646,7 @@
         tele: "Telemetry · ingest keys", teleHint: "Keys the game build uses to send player events into “Player experience”.", teleKeys: "Keys: {n}", teleGo: "Manage the keys →",
         mk: "Marketing · channels", mkHint: "Telegram, Discord, Mastodon, Bluesky — where the game's posts go.", mkNone: "No channels yet.", mkGo: "Manage the channels →",
         voice: "Voice-over", voiceHint: "Google Text-to-Speech runs through WhiteWrite — no key of your own (paid in tokens). ElevenLabs — soon.",
-        backup: "GitHub backup", comm: "Community · Discord", commHint: "The Discord invite and release links — on the world or game showcase.", market: "Market · Stripe payouts", marketHint: "The Stripe account for payouts from selling the world.", open: "Open →" },
+        backup: "GitHub backup", comm: "Community · Discord", commHint: "The Discord invite and release links — on the world or game showcase.", market: "Market", marketHint: "The WhiteWrite Certification and selling the world (in development).", open: "Open →" },
       repo: { hint: "Connect the repository — and on a button AI compares it with the Bible: what the repo's code and docs have that the Bible lacks, and where they disagree (differences go to “Inconsistencies”). A private repo needs a read-only token (fine-grained, Contents: Read-only).",
         repo: "Repository", repoPh: "owner/name or a GitHub link", branch: "Branch", branchPh: "Branch (default — the main one)", token: "Token", tokenSaved: "The saved GitHub token ({l}) — you can leave it empty", tokenPh: "GitHub token — only for a private repo",
         connect: "Connect", connecting: "Checking access to the repository…", connected: "Connected: {r} · branch {b}", synced: "Last checked: {d}", never: "Not checked yet.",
@@ -654,7 +655,8 @@
       ex: { title: "Player experience", about: "What players really do in the game — and whether it matches the intent. Telemetry shows behaviour, not feelings: AI forms hypotheses with evidence; playtests and experiments check them.",
         tabs: { overview: "Overview", heat: "Heatmaps", issues: "Issues", playtests: "Playtests", experiments: "Experiments", connect: "Connect" },
         scale: "Over {n} events a day already. Raw events in Firestore suit playtests and an early launch; time to move them to BigQuery (see ARCHITECTURE.md → Experience → Scale).",
-        days: "Period", build: "Build", buildPh: "all builds", recompute: "Recompute metrics", computing: "Computing metrics…", report: "✦ AI report", reporting: "AI is looking for potential experience issues… (up to a few minutes)",
+        days: "Period", build: "Build", buildPh: "all builds", recompute: "↻ Recompute metrics", computing: "Computing metrics…", computedAgo: "computed {n} min ago", computedNow: "computed just now",
+        retPartial: "Retention is computed from partial data ({d} days covered): too many events for one read, so D7 / D30 may be off — narrow the period or pick a build.", report: "✦ AI report", reporting: "AI is looking for potential experience issues… (up to a few minutes)",
         noData: "No events yet. Connect the game in “Connect” — or ask Claude Code to implement telemetry from get_telemetry_schema.",
         noMetrics: "Metrics not computed yet.", sample: "Sample: {e} events · {p} players · {s} sessions · {from} — {to}", truncated: "the newest events were read — the sample is cut",
         caution: "Metrics describe behaviour. A quiet stretch can be an intended pause, a short session is not a failure. Look at the intent and the sample size.",
@@ -760,6 +762,7 @@
 
   var ENGINES = [
     { id: "generic", uk: "Загальний (будь-який рушій)", en: "Generic (any engine)" },
+    { id: "unity", uk: "Unity (без фреймворку)", en: "Unity (no framework)" },
     { id: "rpg-framework", uk: "RPG Framework · Unity", en: "RPG Framework · Unity" },
     { id: "roblox", uk: "Roblox (Studio · Luau)", en: "Roblox (Studio · Luau)" },
   ];
@@ -1093,7 +1096,8 @@
   // GDD (mode "game": its own menu, «Канон світу» on top leads back). The canon streams stay loaded in both.
   var mode = "world", startGame = params.get("gameId") || "", gamesIn = false, lastSec = { world: "world" };
   var editMode = false; // card field structure editing (names, types, deletion) — never survives closing the card
-  var open = null, draft = null, planBusy = null, planMsg = "", imp = null; // imp: { busy, proposal, error, done }
+  var open = null, draft = null, planBusyOf = {}, planMsg = "", imp = null; // imp: { busy, proposal, error, done }; planBusyOf: { gameId: op } — a run belongs to its game
+  function pBusy() { return planBusyOf[gameId] || null; }
   var exIssues = [], exPlaytests = [], exExperiments = [], exMetrics = null, exTab = "overview", exBusy = "", exMsg = "", exKey = null, exHeat = { zone: "", layer: "move" }, exDays = 30, exBuild = ""; // «Досвід гравців»
   var EXFN = "https://us-central1-whitewrite-app.cloudfunctions.net/experience";
 
@@ -1101,6 +1105,10 @@
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   // href from data a team member can write: only http(s) / blob — never javascript:
   var escUrl = function (u) { u = String(u == null ? "" : u).trim(); return esc(/^(https?:|blob:)/i.test(u) ? u : "#"); };
+  // a class-name / id / data-* piece from data a team member can write (status, priority, section id…): only [\w-]
+  var cls = function (v) { return String(v == null ? "" : v).replace(/[^\w-]/g, ""); };
+  // a CSS colour from data: only #rgb / #rrggbb(aa), else the fallback
+  var hexc = function (v, fb) { v = String(v == null ? "" : v).trim(); return /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v) ? v : (fb || "transparent"); };
   var newId = function (p) { return p + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
   var stamp = function () { return firebase.firestore.FieldValue.serverTimestamp(); };
   // a task a team member writes is stamped memberEdit (firestore.rules): the owner's Claude Code holds it until the owner
@@ -1152,6 +1160,8 @@
       });
     };
   })();
+  // who wrote it (mcp.js byMember: a member's text is marked for the owner's Claude Code as data, never instructions)
+  var byMe = function () { var me = firebase.auth().currentUser; return me ? me.uid : ""; };
   var memberMark = function (create) { var me = firebase.auth().currentUser; return me && world && world.owner !== me.uid ? me.uid : (create ? null : firebase.firestore.FieldValue.delete()); };
   var wref = function () { return db.collection("worlds").doc(worldId); };
   var gref = function () { return wref().collection("games").doc(gameId); };
@@ -1160,7 +1170,7 @@
   var fieldKey = function (label) { return "x_" + String(label).toLowerCase().replace(/[^a-zа-яіїєґ0-9]+/gi, "_").slice(0, 40); };
 
   function gameSectionsAll() { // every section of the open game — the menu (gameSections) leaves out the hidden ones
-    var own = ((game && game.sections) || []).map(function (s) { return { id: s.id, uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
+    var own = ((game && game.sections) || []).map(function (s) { return { id: cls(s.id), uk: s.name, en: s.name, about: s.about || "", custom: true, defs: CUSTOM_DEFS, group: s.group || "" }; });
     return GAME.concat(own, [GSTORIES, GAMEMAP_SEC, FORGE_SEC, ISSUES, PLAN, QUESTS, DIALOGUES, EXPERIENCE, KNOWLEDGE, ACTIVITY, MARKETING]);
   }
   function gameSections() { // «Огляд гри» is never hidden: the game opens on it and the 🧭 Гід switch lives on its cover
@@ -1279,11 +1289,20 @@
   // leaving what is open: unsaved world overview / quest / mechanic drafts ask first; go() runs once the author agrees
   // (at once when nothing is unsaved); an agreed leave drops the drafts, so the next step does not ask again
   function leaveOk(id, go) {
-    var w = !!wdraft && id !== section && wdirty();
-    var done = function () { if (w) wdraft = null; med = null; qed = null; go(); };
-    if (!w && !qdDirty() && !medDirty()) return done();
+    var w = !!wdraft && id !== section && wdirty(), c = leafDirty(), d = dosDirty(), ret = ovRet; // ret: a return from a card (ovReturn) stays one after the confirm
+    var done = function () { if (w) wdraft = null; med = null; qed = null; if (c) closeLeaf(); if (d) closeDossier(); var o = ovRet; ovRet = ret; try { go(); } finally { ovRet = o; } }; // an agreed leave drops an edited card / dossier too
+    if (!w && !c && !d && !qdDirty() && !medDirty()) return done();
     askConfirm(STR.dos.unsaved).then(function (ok) { if (ok) done(); });
   }
+  // an open card / dossier with edits not saved yet (the same check as their ✕)
+  function leafDirty() { return !!(open && canWrite && $("e-title") && leafSnap() !== leafFirst); }
+  function dosDirty() { if (!dos || !canWrite || !ddraft) return false; dcollect(); return JSON.stringify(ddraft) !== dfirst; }
+  // anything unsaved on the page — the shell asks before it reloads the frame (another world, another account), the tab asks on close
+  window.__wwBibleDirty = function () { try { return !!((wdraft && wdirty()) || qdDirty() || medDirty() || leafDirty() || dosDirty()); } catch (e) { return false; } };
+  window.addEventListener("beforeunload", function (e) {
+    if (window.__wwBibleForce || !window.__wwBibleDirty()) return; // __wwBibleForce: the shell already asked (wwConfirm)
+    e.preventDefault(); e.returnValue = "";
+  });
   // a step that would drop an unsaved draft asks first (cancel = nothing happens)
   function unsavedOk(dirty, go) { if (!dirty) return go(); askConfirm(STR.dos.unsaved).then(function (ok) { if (ok) go(); }); }
   function enterWorld(sec) {
@@ -1346,12 +1365,13 @@
   // the mechanics / factory constructors or «Референси» with their own add buttons).
   function typesOn(s) { return !!(game && s && !inCanon(s) && groupKey(s) && !s.special && s.id !== "mechanics" && s.id !== "refs" && !mFactory(s.id)); }
   function typesOf(s, g) { var m = ((game || {}).subtypes || {})[s.id] || {}; return Array.isArray(m[g]) ? m[g].slice() : []; }
-  function saveTypes(s, g, list) { var p = { subtypes: {} }; p.subtypes[s.id] = {}; p.subtypes[s.id][g] = list; return gref().set(p, { merge: true }); }
+  function saveTypes(s, g, list) { if (demoRO()) return Promise.resolve(); var p = { subtypes: {} }; p.subtypes[s.id] = {}; p.subtypes[s.id][g] = list; return gref().set(p, { merge: true }); }
   function newType(s, g, name) {
     var list = typesOf(s, g); if (list.indexOf(name) >= 0) return;
     saveTypes(s, g, list.concat(name)).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
   }
   function saveSubs(s, list) {
+    if (!inCanon(s) && demoRO()) return Promise.resolve();
     var patch = { subsections: {} }; patch.subsections[s.id] = list;
     return (inCanon(s) ? wref() : gref()).set(patch, { merge: true });
   }
@@ -2020,7 +2040,45 @@
   }
 
   var toldSec = null; // the shell's «Назад» steps through the Bible's sections: it hears every change
+  // one broken section never blanks the whole Bible: its error shows in place of the view, the menu keeps working
   function render() {
+    if (snapRaf) { cancelAnimationFrame(snapRaf); snapRaf = 0; } snapHeld = false; // a direct render covers the pending snapshot one
+    try { return renderNow(); }
+    catch (e) {
+      console.error("render", e);
+      var v = $("view"); if (v) v.innerHTML = '<div class="empty" role="alert"><p>⚠ ' + esc(STR.renderFail) + '</p><p class="muted mono">' + esc(e && e.message || e) + '</p></div>';
+    }
+  }
+  // an uncaught error / rejected promise: in the console always, to the author at most once in 30 s (a failed save must not pass in silence)
+  var lastErrAt = 0;
+  // Live snapshots repaint through snapRender: many in one frame (an agent writing 233 cards) → one render; while the author types
+  // in the view (world overview, laws, chronicle, culture, any field) the repaint waits until the field is left — no lost caret.
+  // Direct renders after the author's own steps stay synchronous (render()).
+  var snapRaf = 0, snapHeld = false, ptrDown = false;
+  function typingInView() {
+    var a = document.activeElement, v = $("view");
+    if (!a || !v || !v.contains(a) || a === v) return false;
+    if (a.isContentEditable || a.tagName === "TEXTAREA" || a.tagName === "SELECT") return true;
+    return a.tagName === "INPUT" && !/^(checkbox|radio|file|range|button|submit|reset|color|image)$/.test(a.type);
+  }
+  function snapRender() {
+    if (snapRaf) return;
+    snapRaf = requestAnimationFrame(function () { snapRaf = 0; if (typingInView() || ptrDown) { snapHeld = true; return; } render(); });
+  }
+  function snapFlush() { if (snapHeld) setTimeout(function () { if (snapHeld && !typingInView() && !ptrDown) snapRender(); }, 250); } // after the click that left the field has landed
+  document.addEventListener("pointerdown", function () { ptrDown = true; }, true);
+  document.addEventListener("pointerup", function () { ptrDown = false; snapFlush(); }, true);
+  document.addEventListener("pointercancel", function () { ptrDown = false; snapFlush(); }, true);
+  document.addEventListener("focusout", snapFlush, true);
+  function pageError(m) {
+    if (!m || /ResizeObserver loop|^Script error\.?$/.test(m)) return;
+    var now = Date.now(); if (now - lastErrAt < 30000) return; lastErrAt = now;
+    try { notify(STR.jsError + ": " + String(m).slice(0, 300)); } catch (e) {}
+  }
+  window.addEventListener("error", function (e) { pageError(e && (e.message || (e.error && e.error.message))); });
+  window.addEventListener("unhandledrejection", function (e) { var r = e && e.reason; pageError(r && (r.code || r.message) ? (r.code || r.message) : String(r || "")); });
+  var saveFail = function (er) { notify(STR.saveFail + ": " + ((er && (er.code || er.message)) || er)); };
+  function renderNow() {
     if (PANEL) return renderHubPanel();
     if (mode === "game" && !game && startGame && startGame !== "__new" && !gamesIn) { $("view").innerHTML = ""; $("nav").innerHTML = ""; return; } // a game asked for (the hub's «Відкрити GDD»): nothing until the games arrive — not a flash of the World Bible
     if (gmView3d && (section !== "gamemap" || mode !== "game")) gmTd(false); // 🧊 the relief's 3D view stops off its page
@@ -2029,6 +2087,7 @@
     lastSec[mode === "game" ? "g:" + (gameId || "__new") : "world"] = section;
     if (!ME.owner) { if (!mayRead(section)) section = firstReadable(); canWrite = baseWrite && mayEdit(section); }
     else canWrite = mode === "game" ? canGame : canonWrite;
+    if (mode === "game" && game && game.demo) canWrite = false; // 🎓 the demo is read-only (firestore.rules notDemo)
     if (pos() !== toldSec) { toldSec = pos(); tellShell({ type: "ww-bible-at", worldId: worldId, section: toldSec, ret: ovRet || undefined }); } // after a member's move to a section they read
     if (mode === "game" && game && section !== "settings" && !gameSections().some(function (s) { return s.id === section; })) section = "overview"; // a hidden section's link lands on the overview
     attachLazy();
@@ -2090,7 +2149,7 @@
         ((s.id === "mechanics" || mFactory(s.id)) && canWrite ? '<button class="btn" id="mech-new">' + (s.id === "audio" ? MCA : s.id === "progression" ? MCP : MC0).add + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-refs">' + STR.sfr.btn + costMark("styleFromRefs") + '</button>' : '') +
         (s.id === "artstyle" && canWrite && canDev && list.length ? '<button class="btn" id="st-all" title="' + esc(STR.sm.allTip) + '">' + STR.sm.all + ' · ≈ ' + costOf("styleCheck") + '</button>' : '') +
-        ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" data-sid="' + s.id + '" role="status">' + esc(bulkProg.sid === s.id ? bulkProg.t : "") + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
+        ((s.id === "refs" || s.id === "audio") && canWrite ? '<span class="hint" id="bulk-prog" data-sid="' + esc(s.id) + '" role="status">' + esc(bulkProg.sid === s.id ? bulkProg.t : "") + '</span>' + bulkPicker(s.id, "", "btn", s.id === "audio" ? STR.soundsAdd : STR.refsAdd) : '') +
         (s.id === "audio" ? '<button class="btn" id="alib-tog" aria-pressed="' + audioLib + '">' + (audioLib ? STR.alib.cards : STR.alib.btn) + '</button>' : '') +
         (canWrite ? '<button class="btn primary" id="add-top">' + STR.sub.add + '</button>' : '') + '</div>') + '</header>';
     var grid = function (l) { return '<div class="grid">' + l.map(cardHtml).join("") + '</div>'; };
@@ -2145,13 +2204,21 @@
 
   // ---------- world overview & laws — edited here; worlds/{w} { tagline, summary, facts, rules } ----------
   // The draft survives live re-renders (any snapshot repaints the view) until it is saved or the author leaves the section.
-  var wdraft = null, wdraftSec = null;
+  var wdraft = null, wdraftSec = null, wdraftBase = "", wSaving = false;
+  function wForm(w) {
+    return { tagline: w.tagline || "", summary: w.summary || "", rules: (w.rules || []).slice(),
+      facts: (w.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }) };
+  }
+  // a co-author saved the overview / laws while this draft is being edited: say so (saving would replace their change), once per change
+  function wUnder() {
+    if (!wdraft || wSaving) return;
+    var b = JSON.stringify(wForm(world || {})); if (b === wdraftBase) return;
+    wdraftBase = b; if (wdirty()) notify(STR.wt.changedUnder);
+  }
   function wd(sid) {
     if (wdraft && wdraftSec === sid) return wdraft;
-    var w = world || {};
-    wdraftSec = sid; wdraft = { tagline: w.tagline || "", summary: w.summary || "", rules: (w.rules || []).slice(),
-      facts: (w.facts || []).map(function (f) { return typeof f === "string" ? { k: "", v: f } : { k: f.k || "", v: f.v || "" }; }) };
-    wdraft.first = JSON.stringify(wdraft);
+    wdraftSec = sid; wdraft = wForm(world || {});
+    wdraft.first = wdraftBase = JSON.stringify(wdraft);
     return wdraft;
   }
   function wdirty() { var d = wdraft, f = d.first; delete d.first; var x = JSON.stringify(d); d.first = f; return x !== f; }
@@ -2180,9 +2247,9 @@
     var d = wdraft, up = { tagline: d.tagline.trim(), summary: d.summary.trim(),
       facts: d.facts.filter(function (f) { return f.v.trim() || f.k.trim(); }).map(function (f) { return f.k.trim() ? { k: f.k.trim(), v: f.v.trim() } : f.v.trim(); }),
       rules: d.rules.map(function (r) { return r.trim(); }).filter(Boolean) };
-    btn.disabled = true; $("w-state").textContent = STR.saving;
-    try { await wref().update(Object.assign(up, { updatedAt: stamp() })); wdraft = null; render(); var w = $("w-state"); if (w) w.textContent = STR.saved; }
-    catch (er) { btn.disabled = false; $("w-state").textContent = STR.failed + ": " + (er.code || er.message); }
+    btn.disabled = true; $("w-state").textContent = STR.saving; wSaving = true;
+    try { await wref().update(Object.assign(up, { updatedAt: stamp() })); wSaving = false; wdraft = null; render(); var w = $("w-state"); if (w) w.textContent = STR.saved; }
+    catch (er) { wSaving = false; btn.disabled = false; $("w-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   // the world's cover — the same as on its card in «Світи» (worlds/{w}.cover, ✎ there; default ph-world.jpg), framed with ⌖
   // a video cover: ⏸ stops it on its first frame, ▶ plays it again; remembered per world (localStorage ww-vstop-<worldId>, shared with the shell (White.html))
@@ -3462,7 +3529,7 @@
   });
   document.addEventListener("input", function (e) { var t = e.target; if (t.dataset && t.dataset.fzbld && t.previousElementSibling) t.previousElementSibling.textContent = fzBldTxt(t.dataset.fzbld, t.value); });
   document.addEventListener("mousedown", function (e) { if (!e.target.closest || !e.target.closest(".lk-f")) lookMenuClose(); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.querySelector(".lk-menu")) { e.stopPropagation(); lookMenuClose(); } }, true); // Esc closes the menu, not the dossier
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.querySelector(".lk-menu") && (!e.wwBack || e.wwBack.classList.contains("lk-menu"))) { e.stopPropagation(); lookMenuClose(); } }, true); // Esc closes the menu, not the dossier
 
   // 🧠 the constructor tab of a world character's dossier
   var pst = { mode: "step", i: 0 };
@@ -3689,7 +3756,7 @@
   function pairsOf(o) { return Object.keys(o).map(function (k) { return [k, o[k]]; }); }
   function qsel(path, pairs, cur, aria) {
     if (cur && !pairs.some(function (p) { return p[0] === cur; })) pairs = pairs.concat([[cur, cur]]); // a link to something removed stays visible
-    return '<select data-qf="' + path + '" aria-label="' + esc(aria) + '">' + pairs.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (p[0] === (cur || "") ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>';
+    return '<select data-qf="' + esc(path) + '" aria-label="' + esc(aria) + '">' + pairs.map(function (p) { return '<option value="' + esc(p[0]) + '"' + (p[0] === (cur || "") ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") + '</select>';
   }
   function qfld(label, inner) { return '<label class="field"><span class="qh">' + esc(label) + '</span>' + inner + '</label>'; }
   function qblk(label, inner) { return '<div class="field"><span class="qh">' + esc(label) + '</span>' + inner + '</div>'; }
@@ -3711,13 +3778,13 @@
   function edState(id, dirty, isNew) { var st = $(id); if (st) { st.textContent = dirty ? ED.dirty : isNew ? ED.fresh : ED.saved; st.classList.toggle("is-dirty", !!dirty); } }
   function kbLink(id) { return id ? '<a href="#" class="kblink" data-kbart="' + esc(id) + '">' + ED.kb + '</a>' : ''; }
   function edFlash(el) { if (!el) return; el.scrollIntoView({ block: "center", behavior: "smooth" }); el.classList.remove("mflash"); void el.offsetWidth; el.classList.add("mflash"); }
-  function qinp(path, v, ph) { return '<input data-qf="' + path + '" value="' + esc(v) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; }
-  function qtxt(path, v, ph, rows) { return '<textarea data-qf="' + path + '" rows="' + (rows || 3) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>' + esc(v) + '</textarea>'; }
-  function qchk(path, on, label) { return '<label class="qchk"><input type="checkbox" data-qf="' + path + '"' + (on ? " checked" : "") + '> ' + esc(label) + '</label>'; }
+  function qinp(path, v, ph) { return '<input data-qf="' + esc(path) + '" value="' + esc(v) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; }
+  function qtxt(path, v, ph, rows) { return '<textarea data-qf="' + esc(path) + '" rows="' + (rows || 3) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>' + esc(v) + '</textarea>'; }
+  function qchk(path, on, label) { return '<label class="qchk"><input type="checkbox" data-qf="' + esc(path) + '"' + (on ? " checked" : "") + '> ' + esc(label) + '</label>'; }
   function qtogs(field, list, sel, name) {
     if (!list.length) return '<p class="muted">' + QD.noneYet + '</p>';
     return '<div class="dlinks">' + list.map(function (x) {
-      return '<button class="dlink who" data-qtog="' + field + '" data-id="' + esc(x.id) + '" aria-pressed="' + ((sel || []).indexOf(x.id) >= 0) + '">' +
+      return '<button class="dlink who" data-qtog="' + esc(field) + '" data-id="' + esc(x.id) + '" aria-pressed="' + ((sel || []).indexOf(x.id) >= 0) + '">' +
         (x.card ? '<span class="k">' + QD.gameMark + '</span>' : x.kind === "characters" ? avatar(x) : '') + esc(name ? name(x) : x.name || x.title || "…") + '</button>';
     }).join("") + '</div>';
   }
@@ -3773,12 +3840,12 @@
   function qPickHtml(id, label) {
     var d = qed.d, groups = qPickGroups(id), n = 0, chosen = "";
     var chip = function (f, x, on) {
-      return '<button type="button" class="mchip" data-qtog="' + f + '" data-id="' + esc(x.id) + '" aria-pressed="' + on + '">' + (x.card ? '<span class="k">' + QD.gameMark + '</span> ' : '') + esc(x.name || x.title || "…") + '</button>'; };
+      return '<button type="button" class="mchip" data-qtog="' + esc(f) + '" data-id="' + esc(x.id) + '" aria-pressed="' + on + '">' + (x.card ? '<span class="k">' + QD.gameMark + '</span> ' : '') + esc(x.name || x.title || "…") + '</button>'; };
     groups.forEach(function (g) {
       (d[g[0]] || []).forEach(function (sid) { n++; var x = g[2].filter(function (y) { return y.id === sid; })[0] || { id: sid, name: entName(sid) + " ⚠" }; chosen += chip(g[0], x, true); });
     });
     var key = "pick:" + id, on = !!qed.open[key];
-    var pop = '<details class="mpop qpick-d" data-qopen="' + key + '"' + (on ? ' open' : '') + '><summary class="btn ghost mini" aria-haspopup="dialog">' + esc(label) + ': ' + esc(QD.picked.replace("{n}", n)) + ' ＋</summary>' +
+    var pop = '<details class="mpop qpick-d" data-qopen="' + esc(key) + '"' + (on ? ' open' : '') + '><summary class="btn ghost mini" aria-haspopup="dialog">' + esc(label) + ': ' + esc(QD.picked.replace("{n}", n)) + ' ＋</summary>' +
       '<div class="mpop-b qpick" role="dialog" aria-label="' + esc(label) + '"><input type="search" class="qpq" data-qpq="1" value="' + esc(qed.pq) + '" placeholder="' + esc(QD.find) + '" aria-label="' + esc(QD.find) + '">' +
       (groups.length ? groups.map(function (g) { var sel = d[g[0]] || [];
         return '<div class="qpg"><span class="qh">' + esc(g[1]) + ' <span class="mol-n">' + g[2].length + '</span></span><span class="mchips">' + g[2].map(function (x) { return chip(g[0], x, sel.indexOf(x.id) >= 0); }).join("") + '</span></div>'; }).join("")
@@ -3795,7 +3862,8 @@
     var list = isQ ? d.stages : d.nodes; q.sel = Math.max(0, Math.min(q.sel || 0, list.length - 1)); // an AI proposal or a removal may change the list
     var ident = '<div class="qbox" id="q-ident"><h4>' + esc(isQ ? QD.quest : QD.dialogue) + '</h4><div class="qgrid">' + qfld(QD.title, qinp("title", d.title)) +
       qfld(QD.type, qsel("type", subsOf(s).map(function (g) { return [g, types[g] || g]; }), d.type, QD.type)) +
-      qfld(QD.approval, qsel("approval", pairsOf(QD.appr), d.approval, QD.approval)) +
+      qfld(QD.approval, qsel("approval", pairsOf(QD.appr).filter(function (p) { return ME.owner || p[0] !== "approved" || d.approval === "approved"; }), d.approval, QD.approval) +
+        (ME.owner ? '' : '<span class="hint">' + esc(STR.onlyOwner) + '</span>')) +
       qfld(QD.status, qsel("status", STATUSES.map(function (x) { return [x.id, L(x)]; }), d.status, QD.status)) + '</div></div>';
     var pf = document.activeElement && document.activeElement.closest && document.activeElement.closest(".qpick") ? document.activeElement : null; // a chip / the search of the open picker keeps the focus
     var pfSel = pf ? (pf.dataset.qpq ? "[data-qpq]" : '[data-qtog="' + pf.dataset.qtog + '"][data-id="' + (window.CSS && CSS.escape ? CSS.escape(pf.dataset.id || "") : pf.dataset.id) + '"]') : "";
@@ -4183,9 +4251,12 @@
     } catch (er) { $("q-state").textContent = STR.failed + ": " + (er.code || er.message); }
   }
   async function saveQD() {
+    if (demoRO()) return;
     var q = qed, btn = $("q-save");
     q.d.title = String(q.d.title || "").trim() || (q.col === "quests" ? QD.newQ : QD.newD);
-    var body = Object.assign(JSON.parse(JSON.stringify(q.d)), { updatedAt: stamp() }, q.agent ? AGENT_CLEAR() : {}); if (q.isNew) body.createdAt = stamp();
+    var body = Object.assign(JSON.parse(JSON.stringify(q.d)), { updatedAt: stamp(), updatedBy: byMe() }, q.agent ? AGENT_CLEAR() : {}); if (q.isNew) body.createdAt = stamp();
+    var mm = memberMark(q.isNew); if (mm) body.memberEdit = mm; // a member's quest / dialogue waits for the owner (mcp.js held_for_author); the owner's save approves it
+    if (!ME.owner && body.approval === "approved" && (function () { try { return JSON.parse(q.first).approval; } catch (e) { return ""; } }()) !== "approved") body.approval = "review"; // firestore.rules: only the owner approves
     btn.disabled = true; $("q-state").textContent = STR.saving;
     try {
       await gref().collection(q.col).doc(q.id).set(body, { merge: true });
@@ -4338,7 +4409,7 @@
   function mrowOpts(f) { var rs = msec(f.ref); return rs ? (rs.rows || []).map(function (r) { return [r._id, MX().rowName(rs, r)]; }) : []; }
   function mselect(path, pairs, cur, aria, newRef) {
     if (cur && !pairs.some(function (p) { return p[0] === cur; })) pairs = pairs.concat([[cur, cur + " ⚠"]]); // a link to a removed row stays visible
-    return '<select data-mf="' + path + '" aria-label="' + esc(aria) + '"><option value="">' + MC.none + '</option>' + pairs.map(function (p) {
+    return '<select data-mf="' + esc(path) + '" aria-label="' + esc(aria) + '"><option value="">' + MC.none + '</option>' + pairs.map(function (p) {
       return '<option value="' + esc(p[0]) + '"' + (p[0] === cur ? " selected" : "") + '>' + esc(p[1]) + '</option>'; }).join("") +
       (newRef ? '<option value="__newref">' + esc(MC.newRef) + '</option>' : '') + '</select>'; // a new row of the linked table right here (its tab may be in the advanced view only)
   }
@@ -4346,17 +4417,17 @@
   function mchips(path, pairs, cur, aria, inTable) {
     cur = Array.isArray(cur) ? cur : [];
     pairs = pairs.concat(cur.filter(function (v) { return !pairs.some(function (p) { return p[0] === v; }); }).map(function (v) { return [v, v + " ⚠"]; }));
-    var chip = function (p) { return '<button type="button" class="mchip" data-mchip="' + path + '" data-v="' + esc(p[0]) + '" aria-pressed="' + (cur.indexOf(p[0]) >= 0) + '">' + esc(p[1]) + '</button>'; };
+    var chip = function (p) { return '<button type="button" class="mchip" data-mchip="' + esc(path) + '" data-v="' + esc(p[0]) + '" aria-pressed="' + (cur.indexOf(p[0]) >= 0) + '">' + esc(p[1]) + '</button>'; };
     if (inTable && pairs.length) { // in a table cell: only the chosen chips, the rest behind a compact «＋» (same data)
       var on = pairs.filter(function (p) { return cur.indexOf(p[0]) >= 0; }), off = pairs.filter(function (p) { return cur.indexOf(p[0]) < 0; });
       return '<span class="mchips" role="group" aria-label="' + esc(aria) + '">' + on.map(chip).join("") +
-        (off.length ? '<details class="mcpick mpop" data-mpick="' + path + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-label="' + esc(aria) + ' ＋">＋</summary><span class="mchips">' + off.map(chip).join("") + '</span></details>' : '') + '</span>';
+        (off.length ? '<details class="mcpick mpop" data-mpick="' + esc(path) + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-label="' + esc(aria) + ' ＋">＋</summary><span class="mchips">' + off.map(chip).join("") + '</span></details>' : '') + '</span>';
     }
     return '<span class="mchips" role="group" aria-label="' + esc(aria) + '">' + (pairs.length ? pairs.map(chip).join("") : '<span class="muted">' + MC.none + '</span>') + '</span>';
   }
   function minput(path, f, v, inTable) {
     var aria = ml(f.l), ph = f.u ? f.u : "";
-    if (f.t === "bool") return '<input type="checkbox" data-mf="' + path + '"' + (v ? " checked" : "") + ' aria-label="' + esc(aria) + '">';
+    if (f.t === "bool") return '<input type="checkbox" data-mf="' + esc(path) + '"' + (v ? " checked" : "") + ' aria-label="' + esc(aria) + '">';
     if (f.t === "sel") return mselect(path, mopts(f), v || "", aria);
     if (f.t === "multi") return mchips(path, mopts(f), v, aria, inTable);
     if (f.t === "ref") return mselect(path, mrowOpts(f), v || "", aria, canWrite && msec(f.ref) && msec(f.ref).kind === "table");
@@ -4364,9 +4435,9 @@
     if (f.t === "sound") return msound(path, f, v, inTable);
     if (f.t === "card") return mcardPick(path, f, v);
     if (f.t === "num" || f.t === "pct" || f.t === "time")
-      return '<input type="number" step="any" inputmode="decimal" data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + ' aria-label="' + esc(aria) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
-    if (f.t === "long" || f.t === "json") return '<textarea data-mf="' + path + '" rows="' + (inTable ? 2 : 3) + '"' + (f.t === "json" ? ' class="mono"' : '') + ' aria-label="' + esc(aria) + '">' + esc(v == null ? "" : v) + '</textarea>';
-    return '<input data-mf="' + path + '" value="' + esc(v == null ? "" : v) + '"' + (f.t === "formula" ? ' class="mono"' : '') + (f.t === "range" ? ' placeholder="0.5–1.2"' : ph ? ' placeholder="' + esc(ph) + '"' : '') + ' aria-label="' + esc(aria) + '">';
+      return '<input type="number" step="any" inputmode="decimal" data-mf="' + esc(path) + '" value="' + esc(v == null ? "" : v) + '"' + (f.min != null ? ' min="' + f.min + '"' : '') + (f.max != null ? ' max="' + f.max + '"' : '') + ' aria-label="' + esc(aria) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
+    if (f.t === "long" || f.t === "json") return '<textarea data-mf="' + esc(path) + '" rows="' + (inTable ? 2 : 3) + '"' + (f.t === "json" ? ' class="mono"' : '') + ' aria-label="' + esc(aria) + '">' + esc(v == null ? "" : v) + '</textarea>';
+    return '<input data-mf="' + esc(path) + '" value="' + esc(v == null ? "" : v) + '"' + (f.t === "formula" ? ' class="mono"' : '') + (f.t === "range" ? ' placeholder="0.5–1.2"' : ph ? ' placeholder="' + esc(ph) + '"' : '') + ' aria-label="' + esc(aria) + '">';
   }
   // a Sound factory slot: sounds of the Audio library (card ids); ▶ plays, ✕ takes it out of the slot (the sound stays in the library)
   function msound(path, f, v, inTable) {
@@ -4374,9 +4445,9 @@
     return '<span class="msnd" role="group" aria-label="' + esc(ml(f.l)) + '">' + ids.map(function (id) {
       var c = cards.filter(function (x) { return x.id === id; })[0], nm = c ? c.title || "…" : id + " ⚠";
       return '<span class="msnd-i"><button type="button" class="btn ghost mini" data-sndplay="' + esc(id) + '" title="' + esc(A.play) + '" aria-label="' + esc(A.play + " " + nm) + '">▶</button>' + esc(nm) +
-        (canWrite ? '<button type="button" class="btn ghost mini" data-sndrm="' + path + '" data-v="' + esc(id) + '" title="' + esc(A.rm) + '" aria-label="' + esc(A.rm + " " + nm) + '">✕</button>' : '') + '</span>';
-    }).join("") + (canWrite ? '<button type="button" class="btn mini" data-sndpick="' + path + '" title="' + esc(A.pick) + '">' + (inTable ? '＋' : A.pick) + '</button>' +
-      '<label class="btn mini" title="' + esc(A.up) + '">' + (inTable ? '⤒' : A.up) + '<input type="file" multiple hidden accept="audio/*" data-sndup="' + path + '"></label>' : '') + '</span>';
+        (canWrite ? '<button type="button" class="btn ghost mini" data-sndrm="' + esc(path) + '" data-v="' + esc(id) + '" title="' + esc(A.rm) + '" aria-label="' + esc(A.rm + " " + nm) + '">✕</button>' : '') + '</span>';
+    }).join("") + (canWrite ? '<button type="button" class="btn mini" data-sndpick="' + esc(path) + '" title="' + esc(A.pick) + '">' + (inTable ? '＋' : A.pick) + '</button>' +
+      '<label class="btn mini" title="' + esc(A.up) + '">' + (inTable ? '⤒' : A.up) + '<input type="file" multiple hidden accept="audio/*" data-sndup="' + esc(path) + '"></label>' : '') + '</span>';
   }
   // ---------- a «Картки гри» field (mechanics.js type card): the chosen cards as chips (a click takes one out), the rest in a searchable
   // popover grouped by the sections in f.secs; card ids are stored (titles typed by hand earlier still resolve, as on the server: resolveCard) ----------
@@ -4425,12 +4496,12 @@
     var toks = MX().cardTokens(v), list = mCardList(), have = toks.map(function (t) { var c = mCardRes(t); return c ? c.id : ""; });
     var ids = (f.secs || []).filter(function (id) { return list.some(function (c) { return c.section === id; }); });
     if (!ids.length) list.forEach(function (c) { if (ids.indexOf(c.section) < 0) ids.push(c.section); }); // no cards in its sections: every section with cards
-    var chip = function (c, on) { return '<button type="button" class="mchip" data-mcard="' + path + '" data-v="' + esc(c.id) + '" aria-pressed="' + on + '">' + esc(c.title || "…") + '</button>'; };
+    var chip = function (c, on) { return '<button type="button" class="mchip" data-mcard="' + esc(path) + '" data-v="' + esc(c.id) + '" aria-pressed="' + on + '">' + esc(c.title || "…") + '</button>'; };
     var chosen = toks.map(function (t) { var c = mCardRes(t);
-      return c ? chip(c, true) : '<button type="button" class="mchip" data-mcard="' + path + '" data-v="' + esc(t) + '" aria-pressed="true" title="' + esc(MCX.cardMissing) + '">' + esc(t) + ' ⚠</button>'; }).join("");
+      return c ? chip(c, true) : '<button type="button" class="mchip" data-mcard="' + esc(path) + '" data-v="' + esc(t) + '" aria-pressed="true" title="' + esc(MCX.cardMissing) + '">' + esc(t) + ' ⚠</button>'; }).join("");
     var groups = ids.map(function (id) { var cs = list.filter(function (c) { return c.section === id; });
       return '<div class="qpg"><span class="qh">' + esc(L(sec(id))) + ' <span class="mol-n">' + cs.length + '</span></span><span class="mchips">' + cs.map(function (c) { return chip(c, have.indexOf(c.id) >= 0); }).join("") + '</span></div>'; }).join("");
-    var pop = canWrite ? '<details class="mpop mcpick" data-mpick="' + path + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-haspopup="dialog" aria-label="' + esc(MCX.cardAdd + ": " + ml(f.l)) + '" title="' + esc(MCX.cardAdd) + '">' + (toks.length ? '＋' : '＋ ' + esc(MCX.cardAdd)) + '</summary>' + // an empty slot says what the ＋ does (owner, v2.130.3)
+    var pop = canWrite ? '<details class="mpop mcpick" data-mpick="' + esc(path) + '"' + (mPickOpen === path ? ' open' : '') + '><summary aria-haspopup="dialog" aria-label="' + esc(MCX.cardAdd + ": " + ml(f.l)) + '" title="' + esc(MCX.cardAdd) + '">' + (toks.length ? '＋' : '＋ ' + esc(MCX.cardAdd)) + '</summary>' + // an empty slot says what the ＋ does (owner, v2.130.3)
       '<div class="mpop-b qpick" role="dialog" aria-label="' + esc(ml(f.l)) + '"><input type="search" class="qpq" data-mcq="1" value="' + esc(med.cq || "") + '" placeholder="' + esc(MCX.cardFind) + '" aria-label="' + esc(MCX.cardFind) + '">' +
       (groups || '<p class="muted">' + esc(MCX.cardNone) + '</p>') + '</div></details>' : '';
     return '<span class="mchips mcards" role="group" aria-label="' + esc(ml(f.l)) + '">' + chosen + pop + '</span>';
@@ -4445,7 +4516,7 @@
     if (out.length === toks.length) out.push(id);
     sl.o[sl.key] = out.map(function (t) { var c = mCardRes(t); return c ? c.id : t; }); // resolved titles become ids
     renderMEditor();
-    var sq = mPickOpen === path && document.querySelector('#m-ed [data-mpick="' + path + '"] [data-mcq]'); if (sq) sq.focus();
+    var sq = mPickOpen === path && document.querySelector('#m-ed [data-mpick="' + esc(path) + '"] [data-mcq]'); if (sq) sq.focus();
   }
   // ---------- what the template's numbers mean (mechanics.js calc — the same functions MCP get_mechanic uses): under its section ----------
   function mSpark(vals, w, h, hiFrom) { // a tiny line, no axes: the shape is the message, the numbers are in the table and the label
@@ -4644,11 +4715,11 @@
     o = o || {};
     if (f.t === "sound") return msound(path, f, v, true);
     if (f.t === "bool") return minput(path, f, v, true); // one click — no editor to open
-    if (med.cell === path && canWrite) return '<div class="mced" data-mced="' + path + '">' + (o.ed != null ? o.ed : minput(path, f, v, true)) + '</div>'; // chips: the chosen ones + the «＋» picker
+    if (med.cell === path && canWrite) return '<div class="mced" data-mced="' + esc(path) + '">' + (o.ed != null ? o.ed : minput(path, f, v, true)) + '</div>'; // chips: the chosen ones + the «＋» picker
     var t = o.txt != null ? o.txt : mtxt(f, v), req = f.req === "r" && mEmpty(v), pr = req ? ["error", (o.prob && o.prob[1]) || MC.reqEmpty] : o.prob; // a required empty cell — always the red dot
     var tip = (t && t.length > 24 ? t : "") + (pr ? (t && t.length > 24 ? " · " : "") + pr[1] : "");
     var inner = (t ? '<span class="mtx">' + esc(t) + '</span>' : '<span class="mnone">' + esc(o.ph || MC.none) + '</span>') + (pr ? '<i class="mpdot mp-' + pr[0] + '" aria-hidden="true"></i><span class="sr">' + esc(pr[1]) + '</span>' : '');
-    return canWrite ? '<button type="button" class="mcell" data-mcell="' + path + '"' + (tip ? ' title="' + esc(tip) + '"' : '') + ' aria-label="' + esc(ml(f.l) + ": " + (t || MC.empty) + (pr ? " — " + pr[1] : "") + ". " + MC.editCell) + '">' + inner + '</button>'
+    return canWrite ? '<button type="button" class="mcell" data-mcell="' + esc(path) + '"' + (tip ? ' title="' + esc(tip) + '"' : '') + ' aria-label="' + esc(ml(f.l) + ": " + (t || MC.empty) + (pr ? " — " + pr[1] : "") + ". " + MC.editCell) + '">' + inner + '</button>'
       : '<span class="mcell ro"' + (tip ? ' title="' + esc(tip) + '"' : '') + '>' + inner + '</span>';
   }
   function mtd(s, si, x, f, probs, extra) { // a generic table cell with its number alignment, label (phones) and check marks
@@ -4674,7 +4745,7 @@
   function mCommit(focus) {
     var p = med && med.cell; if (!p) return;
     med.cell = ""; renderMEditor();
-    if (focus) { var b = document.querySelector('[data-mcell="' + p + '"]'); if (b) b.focus(); }
+    if (focus) { var b = document.querySelector('[data-mcell="' + esc(p) + '"]'); if (b) b.focus(); }
   }
   function mCancel() {
     var ae = document.activeElement; if (ae && ae.closest && ae.closest("[data-mced]")) ae.blur(); // its pending «change» lands first, then the old value comes back
@@ -4811,7 +4882,7 @@
   }
   function cbWho(path, v) {
     var l = cbFighters(); if (v && l.indexOf(v) < 0) l.push(v);
-    return '<select data-mf="' + path + '" data-mwho="1" aria-label="' + esc(CB.fighter) + '">' + l.map(function (n) { return '<option' + (n === v ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") +
+    return '<select data-mf="' + esc(path) + '" data-mwho="1" aria-label="' + esc(CB.fighter) + '">' + l.map(function (n) { return '<option' + (n === v ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") +
       '<option value="__other">' + esc(CB.other) + '</option></select>';
   }
   function cbField(s, k) { return (s.fields || []).filter(function (f) { return f.k === k; })[0]; }
@@ -4890,7 +4961,7 @@
   }
   function mReactHtml(s, si, probs) {
     var F = function (k) { return cbField(s, k) || { k: k, l: k, t: "text" }; }, ct = msec("ctable"), wf = med.cwho || "";
-    var wsel = function (p, v) { return '<select data-mf="' + p + '" aria-label="' + esc(ml(F("weight").l)) + '"><option value=""></option>' + [1, 2, 3, 4].map(function (n) {
+    var wsel = function (p, v) { return '<select data-mf="' + esc(p) + '" aria-label="' + esc(ml(F("weight").l)) + '"><option value=""></option>' + [1, 2, 3, 4].map(function (n) {
       return '<option value="' + n + '"' + (+v === n ? " selected" : "") + '>' + "●●●●".slice(0, n) + "○○○○".slice(n) + " " + CB.weight[n] + '</option>'; }).join("") + '</select>'; };
     var bar = '<div class="row mtbar"><select class="cbwho" data-mcwho="1" aria-label="' + esc(CB.fighter) + '"><option value="">' + esc(CB.whoAll) + '</option>' + cbFighters().map(function (n) { return '<option' + (n === wf ? " selected" : "") + '>' + esc(n) + '</option>'; }).join("") + '</select>' +
       '<span style="flex:1"></span>' + mAllFields(s) + (canWrite ? '<button type="button" class="btn mini" data-mact="cbAddR:' + si + '">' + CB.addR + '</button>' : '') + '</div>';
@@ -5474,6 +5545,7 @@
     renderMEditor();
   }
   async function saveMech() {
+    if (demoRO()) return;
     var d = med, btn = $("m-save"), raw = cards.filter(function (x) { return x.id === d.id; })[0];
     d.title = String(d.title || "").trim() || (MX().template(d.m.tpl) ? ml(MX().template(d.m.tpl).name) : MC.newM);
     var fields = Object.assign({}, (raw && raw.fields) || {}, { group: catLabel(d.m.cat) || ((raw && raw.fields) || {}).group || "", text: d.m.purpose || "" });
@@ -5483,6 +5555,7 @@
     if (d.sec === "progression") body.fields.numbers = mProgSummary(d.m); // the plain card field: what the builder computed, in one line (search, MCP get_card)
     if (d.isNew) { body.createdAt = stamp(); body.order = Date.now(); body.note = ""; body.defs = sec(d.sec).defs.slice(); }
     if (d.agent) Object.assign(body, AGENT_CLEAR()); // the author's own save: the agent's version is the author's now
+    body.updatedBy = byMe();
     btn.disabled = true; $("m-state").textContent = STR.saving;
     try {
       await gref().collection("cards").doc(d.id).set(body, { merge: true });
@@ -6016,7 +6089,7 @@
       var f = this.files && this.files[0]; this.value = ""; if (!f) return;
       if (f.size > 2 * 1024 * 1024) { $("ng-mdname").textContent = STR.fileTooBig; return; }
       mdText = (await f.text()).replace(/^\uFEFF/, "").trim(); mdName = f.name; folder = null;
-      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText).toLocaleString()) : "";
+      $("ng-mdname").textContent = mdText ? f.name + " · " + mdText.length.toLocaleString() + " · " + STR.capShort.replace("{n}", quoteOf("import", mdText, $("ng-canon") && $("ng-canon").checked ? canonN : 0).toLocaleString()) : "";
       if (!$("ng-title").value.trim() && mdText) $("ng-title").value = baseName(f.name);
       if ($("ng-cbox")) $("ng-cbox").hidden = !!mdText; // the author's file: no variants to pick
       picked = mdText ? null : picked;
@@ -6091,8 +6164,10 @@
   }
   // 🎓 the demo game (games/{g}.demo): a banner atop «Огляд гри» — what it is, «⧉ Скопіювати як мою гру» (createGame { template: "demo" } — counts in the plan's limit)
   function demoBanHtml() {
-    return '<div class="demo-ban"><p><b>🎓 ' + esc(STR.demo.title) + '</b> ' + esc(STR.demo.hint) + '</p><div class="row"><button class="btn primary" id="demo-copy">' + STR.demo.copy + '</button></div><p class="hint" id="demo-msg" role="status"></p></div>';
+    return '<div class="demo-ban"><p><b>🎓 ' + esc(STR.demo.title) + '</b> ' + esc(STR.demo.hint) + '</p><p><b>' + esc(STR.demo.ro) + '</b></p><div class="row"><button class="btn primary" id="demo-copy">' + STR.demo.copy + '</button></div><p class="hint" id="demo-msg" role="status"></p></div>';
   }
+  // the demo is read-only (firestore.rules notDemo): a save path stops here with the notice instead of a permission error
+  function demoRO() { if (!(mode === "game" && game && game.demo)) return false; notify(STR.demo.ro); return true; }
   function demoWire() {
     var b = $("demo-copy"); if (!b) return;
     b.onclick = async function () {
@@ -6112,6 +6187,7 @@
   // ---------- editor ----------
   function openCard(c) {
     if (!ME.owner) canWrite = baseWrite && mayEdit(c.section); else canWrite = canGame;
+    if (mode === "game" && game && game.demo) canWrite = false; // 🎓 the demo is read-only
     open = c;
     draft = { title: c.title, status: c.status, note: c.note, fields: Object.assign({}, c.fields), defs: c.defs.map(function (d) { return Object.assign({}, d); }),
       canonDesc: c.canonDesc ? c.canonDesc.value : null, defsFull: !!c.defsFull,
@@ -6218,7 +6294,7 @@
   }
   function artFrameHtml() {
     var field = ART_FRAME[open.section], clip = field === "clip", m = artMedia(open, field), A = STR.artFrame;
-    var up = canWrite ? '<button type="button" class="' + (m ? 'cs-chg' : 'cs-ph') + '" title="' + esc(m ? A.change : clip ? A.clipTip : A.tip) + '" aria-label="' + esc(m ? A.change : clip ? A.clipTip : A.tip) + '" data-picch="' + field + '" data-picid="' + esc(m ? m.id : "") + '">' + (m ? '✎' : esc(clip ? A.clip : A.pic)) + '</button>' : '';
+    var up = canWrite ? '<button type="button" class="' + (m ? 'cs-chg' : 'cs-ph') + '" title="' + esc(m ? A.change : clip ? A.clipTip : A.tip) + '" aria-label="' + esc(m ? A.change : clip ? A.clipTip : A.tip) + '" data-picch="' + esc(field) + '" data-picid="' + esc(m ? m.id : "") + '">' + (m ? '✎' : esc(clip ? A.clip : A.pic)) + '</button>' : '';
     var media = !m ? up || '<div class="cs-ph">' + (clip ? '🎞' : '🖼') + '</div>'
       : (isVideo(m) ? '<video src="' + esc(m.url) + '" muted loop autoplay playsinline></video>' : '<img alt="' + esc(m.name || "") + '" src="' + esc(m.url) + '"' + frameAttr(m) + '>') + up;
     return '<div class="field cs-wrap"><div class="cs-frame cs-frame--art">' + media + '</div></div>';
@@ -6245,6 +6321,7 @@
     var step = function (d) { i = (i + d + items.length) % items.length; draw(); };
     var close = function () { document.removeEventListener("keydown", key, true); box.remove(); if (back && back.focus) back.focus(); };
     var key = function (e) {
+      if (e.wwBack && e.wwBack !== box) return; // the shell's «Назад» closes only the top layer
       if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(); }
       else if (items.length > 1 && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); e.stopPropagation(); step(e.key === "ArrowLeft" ? -1 : 1); }
       else if (e.key === "Tab") { var f = [].slice.call(box.querySelectorAll("a, button")); if (f.length) { var k = f.indexOf(document.activeElement); e.preventDefault(); f[(k + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus(); } }
@@ -6520,7 +6597,7 @@
   function hexesIn(t) { var out = [], re = /(?:^|[^0-9a-z])#?([0-9a-f]{6})(?![0-9a-z])/gi, m; while ((m = re.exec(String(t || "")))) out.push("#" + m[1].toLowerCase()); return out; }
   function swatches(v) {
     var l = parsePal(v);
-    return l.length ? '<span class="sw">' + l.map(function (c) { return '<i style="background:' + c.hex + '" title="' + esc(c.hex + (c.name ? " — " + c.name : "")) + '"></i>'; }).join("") + '</span>' : '';
+    return l.length ? '<span class="sw">' + l.map(function (c) { return '<i style="background:' + hexc(c.hex) + '" title="' + esc(c.hex + (c.name ? " — " + c.name : "")) + '"></i>'; }).join("") + '</span>' : '';
   }
   // the dominant colours of images (a coarse histogram; near colours merge) — Storage serves images with CORS
   function extractColors(urls, n) {
@@ -6743,7 +6820,7 @@
   function palEditor(el, v, change, imgs) {
     var list = parsePal(v), P = STR.pal;
     var draw = function (note) {
-      el.innerHTML = (list.length ? '<div class="sw big">' + list.map(function (c) { return '<i style="background:' + c.hex + '"></i>'; }).join("") + '</div>' : '') +
+      el.innerHTML = (list.length ? '<div class="sw big">' + list.map(function (c) { return '<i style="background:' + hexc(c.hex) + '"></i>'; }).join("") + '</div>' : '') +
         list.map(function (c, i) {
           return '<div class="pal-i"><input type="color" data-pi="' + i + '" value="' + c.hex + '" aria-label="' + esc(P.color + " " + (i + 1)) + '"' + (canWrite ? '' : ' disabled') + '>' +
             '<input data-pn="' + i + '" value="' + esc(c.name) + '" placeholder="' + esc(P.namePh) + '"' + (canWrite ? '' : ' disabled') + '><code>' + c.hex + '</code>' +
@@ -6793,8 +6870,8 @@
   }
   function sbH(it) { return it.h || Math.min(100, it.w * 16 / 9); } // the height in % of the stage height (a square on the 16:9 stage)
   function sceneStage(sc, sel) {
-    return '<div class="sb-stage" style="background:' + sc.bg + '">' + sc.items.map(function (it, i) {
-      return '<div class="sb-it' + (i === sel ? ' is-sel' : '') + '" data-si="' + i + '" tabindex="0" style="' + sbBox(it) + 'background:' + it.hex + ';color:' + ink(it.hex) + '">' + esc(it.label) +
+    return '<div class="sb-stage" style="background:' + hexc(sc.bg) + '">' + sc.items.map(function (it, i) {
+      return '<div class="sb-it' + (i === sel ? ' is-sel' : '') + '" data-si="' + i + '" tabindex="0" style="' + sbBox(it) + 'background:' + hexc(it.hex) + ';color:' + ink(hexc(it.hex, "#808080")) + '">' + esc(it.label) +
         (i === sel ? '<span class="sb-h sb-hx" data-sbh="x"></span><span class="sb-h sb-hy" data-sbh="y"></span><span class="sb-h sb-hxy" data-sbh="xy"></span>' : '') + '</div>'; // drag handles: stretch X / Y / both
     }).join("") + '</div>';
   }
@@ -6854,13 +6931,13 @@
           if (ax !== "x") it.h = Math.max(2, Math.min(100, Math.abs((ev.clientY - r.top) / r.height * 100 - it.y) * 2));
           sbApply(it);
         };
-        var done = function () { document.removeEventListener("pointermove", rs); document.removeEventListener("pointerup", done); if (moved) { set(); draw(); } };
-        document.addEventListener("pointermove", rs); document.addEventListener("pointerup", done);
+        var done = function () { document.removeEventListener("pointermove", rs); document.removeEventListener("pointerup", done); document.removeEventListener("pointercancel", done); if (moved) { set(); draw(); } };
+        document.addEventListener("pointermove", rs); document.addEventListener("pointerup", done); document.addEventListener("pointercancel", done); // a phone's scroll takes the pointer: pointercancel, no pointerup
         return;
       }
       var mv = function (ev) { moved = true; it.x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)); it.y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100)); node.style.left = it.x + "%"; node.style.top = it.y + "%"; };
-      var up = function () { document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); if (moved) set(); };
-      document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up);
+      var up = function () { document.removeEventListener("pointermove", mv); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", up); if (moved) set(); };
+      document.addEventListener("pointermove", mv); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
     };
   }
   function mountFieldEditors() {
@@ -6964,7 +7041,7 @@
   }
   // Structure changes (names, types, deleted fields) are written at once, so closing the card or reloading keeps them.
   async function saveStructure(removed) {
-    if (!open || open.isNew) return;
+    if (!open || open.isNew || (game && game.demo && mode === "game")) return; // the demo: save() shows the notice
     var body = { defs: draft.defs, updatedAt: stamp() };
     if (open.src === "canon") { draft.defsFull = true; Object.assign(body, { section: open.section, canonRef: open.id, defsFull: true }); }
     if (removed && removed.length) { body.fields = {}; removed.forEach(function (k) { body.fields[k] = firebase.firestore.FieldValue.delete(); }); }
@@ -7241,7 +7318,7 @@
     m.style.left = Math.max(8, Math.min(innerWidth - mw - 8, r.left)) + "px"; m.style.top = (r.bottom + mh + 8 > innerHeight ? Math.max(8, r.top - mh - 6) : r.bottom + 6) + "px";
     var close = m._close = function () { m.remove(); document.removeEventListener("pointerdown", out, true); document.removeEventListener("keydown", key, true); };
     var out = function (ev) { if (!m.contains(ev.target) && !btn.contains(ev.target)) close(); };
-    var key = function (ev) { if (ev.key === "Escape") { ev.stopPropagation(); close(); btn.focus(); } };
+    var key = function (ev) { if (ev.key === "Escape" && (!ev.wwBack || ev.wwBack === m)) { ev.stopPropagation(); close(); btn.focus(); } };
     document.addEventListener("pointerdown", out, true); document.addEventListener("keydown", key, true);
     m.addEventListener("click", function (ev) { var b = ev.target.closest("[data-pi]"); if (!b || b.disabled) return; close(); items[+b.dataset.pi].run(); });
     var f = m.querySelector("button:not([disabled])"); if (f) f.focus();
@@ -7394,7 +7471,7 @@
 
   // stay: write the card but keep it open (a new card is saved before its first upload)
   async function save(stay) {
-    if (!open) return;
+    if (!open || demoRO()) return;
     [].forEach.call(document.querySelectorAll("#e-body textarea"), collect);
     draft.title = $("e-title").value.trim() || open.title || STR.newCard;
     draft.status = $("e-status").value;
@@ -7418,14 +7495,14 @@
         // this game's view of the entity
         var extra = draft.defs.filter(function (d) { return !s.defs.some(function (x) { return x.key === d.key; }); });
         var view = { section: open.section, canonRef: open.id, status: draft.status, note: draft.note,
-          fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp() };
+          fields: draft.fields, defs: draft.defsFull ? draft.defs : extra, defsFull: draft.defsFull, hidden: false, updatedAt: stamp(), updatedBy: byMe() };
         if (open.agent) Object.assign(view, AGENT_CLEAR()); // the author's own save: the agent's version is the author's now
         if (draft.intent) view.intent = designClean(draft.intent);
         if (draft.place) view.place = placeBody();
         if (draft.beast) view.beast = beastBody();
         await gref().collection("cards").doc(open.id).set(view, { merge: true });
       } else {
-        var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp() };
+        var body = { section: open.section, title: draft.title, status: draft.status, note: draft.note, defs: draft.defs, fields: draft.fields, updatedAt: stamp(), updatedBy: byMe() };
         if (open.agent) Object.assign(body, AGENT_CLEAR());
         if (draft.intent) body.intent = designClean(draft.intent);
         if (draft.place) body.place = placeBody();
@@ -7625,7 +7702,7 @@
   }
   function renderIssues() {
     var run = planDoc.running && planDoc.running.at && planDoc.running.at.toMillis && Date.now() - planDoc.running.at.toMillis() < 35 * 60000 ? planDoc.running.op : null;
-    var busy = planBusy === "analyze" || run === "analyze", open1 = gameIssues(), oq = openQs(), r = planDoc.resolved || {};
+    var busy = pBusy() === "analyze" || run === "analyze", open1 = gameIssues(), oq = openQs(), r = planDoc.resolved || {};
     var html = issuesHead(STR.issues, STR.issuesAbout, "i-audit", busy, !!planDoc.gdd);
     html += '<p class="pmsg">' + esc(busy ? STR.auditBusy : planMsg || (!planDoc.gdd && !open1.length && !oq.length ? STR.auditIntro : !open1.length && !oq.length ? STR.auditClean : "")) + '</p>';
     if (open1.length) html += '<section class="psec"><h2 class="group">' + STR.contraOpen + ' <span>' + open1.length + '</span></h2>' + open1.map(function (c) { return contraHtml(c, "game"); }).join("") + '</section>';
@@ -7675,7 +7752,13 @@
   function costOf(op) { var PF = window.__PAID_FEATURES; return PF ? PF.featureCost(PF.byOp(op), COST_BASE, wwUser().aiModel) : COST_BASE * 4; } // the paid-features registry (functions/paid-features.js) — the server reserves the same
   function costMark(op) { var t = STR.costTip.replace("{n}", costOf(op)); return ' <span class="aicost" title="' + esc(t) + '" aria-label="' + esc(t) + '">✦ ' + costOf(op) + '</span>'; } // the price on the button, the confirm repeats it
   // «не більше N» for an AI action on a known input (paid-features quoteChars) — the server reserves the same N and never charges more
-  function quoteOf(op, chars) { var PF = window.__PAID_FEATURES; return PF && PF.quoteChars ? PF.quoteChars(PF.byOp(op), chars, wwUser().aiModel) : 0; }
+  // nCards: the game's cards (gamedev.js import / folderSort repeat the canon entities and the card titles in every part — quoteCtx;
+  // folderSort caps both at 400); undefined = no context (the world folder)
+  function quoteOf(op, chars, nCards) {
+    var PF = window.__PAID_FEATURES; if (!(PF && PF.quoteChars)) return 0;
+    var cap = op === "folderSort" ? 400 : Infinity, ne = entities.filter(function (e) { return !(e.origin && e.origin.confirmed === false); }).length; // as the server: no unconfirmed inferred canon
+    return PF.quoteChars(PF.byOp(op), chars, wwUser().aiModel, nCards === undefined ? undefined : PF.quoteCtx(Math.min(cap, ne), Math.min(cap, nCards)));
+  }
   // ✦ AI work in the background (v2.113): a call to an AI endpoint is tracked until its answer is read through; the shell shows
   // «✦ ШІ думає…» beside «?» while one runs and «✓ Готово» after (a click brings the Bible back). Switching sections, games or the
   // shell's screens never stopped the call — but the redrawn button forgot it; now the same op can't be started twice meanwhile.
@@ -7813,8 +7896,8 @@
   // `zone` (kind, outline, size, levels, biome, canon location, level card, Unity scene, transitions, points) and a heightmap file
   // (field "height"). The relief is painted / generated in the browser (no tokens) and saved as a PNG; MCP get_game_map hands it all to Claude Code.
   var GAMEMAP_SEC = { id: "gamemap", special: "gamemap", uk: "Карта гри", en: "Game map",
-    about: { uk: "Концепт-карта світу, поділена на зони: кожна — окрема сцена з розміром, рельєфом, точками й переходами. Claude Code будує з неї рівні в Unity чи Blender.",
-      en: "The concept map of the world split into zones: each a separate scene with its size, relief, points and transitions. Claude Code builds the levels in Unity or Blender from it." } };
+    about: { uk: "Концепт-карта світу, поділена на зони: кожна — окрема сцена з розміром, рельєфом, точками й переходами. Claude Code будує з неї рівні у рушії гри.",
+      en: "The concept map of the world split into zones: each a separate scene with its size, relief, points and transitions. Claude Code builds the levels in the game's engine from it." } };
   var GMAP = window.__GAMEMAP;
   var gm = { sel: "", psel: "", plan: "", poi: "", pmode: "", mode: "", draft: [], linkFrom: "", ed: null, msg: "", hide: localStorage.getItem("ww-gm-hide") === "1" }; // hide: zones off the concept map (owner, v2.115.4), per browser
   var GM = {
@@ -7866,7 +7949,7 @@
   }
   function gmMan() { return (game && game.framework) || window.__MECH.FW_BUILTIN; }
   function gmExport() {
-    return GMAP.exportMap(cards, { lang: LANG, refTitle: function (id) { return gmName(cards.filter(function (c) { return c.id === id; })[0]); },
+    return GMAP.exportMap(cards, { lang: LANG, engine: engProf(), refTitle: function (id) { return gmName(cards.filter(function (c) { return c.id === id; })[0]); },
       entName: function (id) { var e = entities.filter(function (x) { return x.id === id; })[0]; return e ? e.name || e.title || "" : ""; }, man: gmMan(), capStatus: window.__MECH.capStatus });
   }
   function gmCopy(txt, el) {
@@ -8066,7 +8149,7 @@
     var make = function (id, n) {
     var task = { id: id, milestone: "MAP", title: GM.taskT.replace("{t}", c.title || "?"), detail: (c.fields || {}).text || "", deps: [], size: "M", owner: "dev", cards: ["c:" + c.id],
       accept: [GM.acc1.replace("{s}", GMAP.sceneName(c)).replace("{w}", z.w || "?").replace("{h}", z.h || "?"), GM.acc2.replace("{n}", (z.points || []).length), links.length ? GM.acc3.replace("{l}", links.join(", ")) : GM.acc4], tests: [],
-      prompt: GMAP.prompt(cards, c.id, "en") };
+      prompt: GMAP.prompt(cards, c.id, "en", engProf()) };
     var plan = (planDoc.plan || {}), ms = (plan.milestones || []).filter(function (m) { return m.id !== "MAP"; }), mp = (plan.milestones || []).filter(function (m) { return m.id === "MAP"; })[0];
     mp = mp ? Object.assign({}, mp, { tasks: (mp.tasks || []).concat([task]) }) : { id: "MAP", name: GM.ms, goal: GM.msGoal, gate: "", tasks: [task] };
     return { plan: { plan: { milestones: ms.concat([mp]) } }, task: Object.assign({}, task, { status: "todo", order: 8000 + n, history: [], createdAt: stamp(), updatedAt: stamp(), memberEdit: memberMark(true) }) };
@@ -8083,7 +8166,7 @@
     on("gm-cancel", function () { gm.mode = ""; gm.draft = []; gm.linkFrom = ""; render(); });
     on("gm-close", gmCloseDraft);
     on("gm-add", function () { askName(GM.nameQ, GM.zonePh, function (name) { if (name) gmNewZone(name, []); }, "", { ok: STR.create }); });
-    on("gm-copy", function () { gmCopy(GMAP.prompt(cards, "", LANG)); });
+    on("gm-copy", function () { gmCopy(GMAP.prompt(cards, "", LANG, engProf())); });
     on("gm-hide", function () { gm.hide = !gm.hide; try { localStorage.setItem("ww-gm-hide", gm.hide ? "1" : "0"); } catch (er) {} render(); });
     on("gm-json", function () { download("gamemap-" + (slugify(game && game.title) || "game") + ".json", JSON.stringify(gmExport(), null, 2)); });
     var up = $("gm-up"); if (up) up.onchange = function () { var f = up.files[0]; up.value = ""; gmUploadBase(f); };
@@ -8130,7 +8213,7 @@
     on("gm-ladd", function () { gmAddLink(c, $("gm-lto").value, $("gm-lkind").value, $("gm-l1").checked); });
     on("gm-relief", function () { gmOpenEd(c); });
     on("gm-redraw", function () { gm.mode = "redraw"; gm.draft = []; render(); });
-    on("gm-zcopy", function () { gmCopy(GMAP.prompt(cards, c.id, LANG)); });
+    on("gm-zcopy", function () { gmCopy(GMAP.prompt(cards, c.id, LANG, engProf())); });
     on("gm-task", function () { gmTask(c); });
     on("gm-del", function () { gmDelete(c); });
   }
@@ -9373,8 +9456,11 @@
     about: { uk: "Що Claude Code зробив за кожну сесію: зміни, вплив на гравця, докази, приватність.", en: "What Claude Code did in each session: changes, player impact, evidence, privacy." } };
   var kSnaps = [], kAssets = null, kRels = [], kQ = "", kOpen = null, actSessions = [], actEntries = {}, actCat = "", actPriv = "", envDoc = null;
   var when = function (t) { var d = t && t.toDate ? t.toDate() : t ? new Date(t) : null; return d && !isNaN(d) ? d.toLocaleString(LANG === "en" ? "en-GB" : "uk-UA") : ""; };
+  // the open game's engine profile (games/{g}.engine.profile; none = generic) — setup-guides.js gives Unity steps only to a Unity profile
+  function engProf() { return (game && game.engine && game.engine.profile) || "generic"; }
+  function isUnityGame() { var G = window.__SETUP_GUIDES; return ((G && G.UNITY_PROFILES) || ["rpg-framework", "unity"]).indexOf(engProf()) >= 0; }
   function guideHtml(topic) { // the short ask + the full text the agent gets from get_guide
-    var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide(topic); if (!g) return "";
+    var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide(topic, engProf()); if (!g) return "";
     return '<p class="hint">' + KN.ask + '</p><pre class="ln-cmd">Call get_guide {topic:"' + topic + '"} on the whitewrite MCP server and follow it step by step.</pre><button class="btn" data-copy>' + STR.copy + '</button>' +
       '<details class="kn-guide"><summary>' + KN.show + '</summary><pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>';
   }
@@ -9461,7 +9547,7 @@
               : '<span class="pill" title="' + esc(KN.privOwner) + '">' + esc(KN.privacy[e.privacy] || e.privacy || "") + '</span>') + '</div>';
         }).join("") + '</section>';
     });
-    var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log");
+    var g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log", engProf());
     html += '<section class="psec"><h2 class="group">' + KN.actSetup + '</h2><p class="hint">' + KN.actSetupHint + '</p>' +
       (g ? '<pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>' : '') + '</section>';
     $("view").innerHTML = html;
@@ -9549,7 +9635,7 @@
   function postHtml(p) {
     var ed = ["draft", "approved", "rejected", "failed"].indexOf(p.status) >= 0, chs = mkChannels.filter(function (c) { return c.platform === p.platform; });
     var stuck = p.status === "publishing" && p.leaseAt && Date.now() - p.leaseAt > 10 * 60000;
-    var h = '<div class="mk-post" data-post="' + esc(p.id) + '"><div class="row"><span class="chip">' + esc(MK_PLAT[p.platform] || p.platform) + '</span><span class="pill mk-' + p.status + '">' + esc(MK.st[p.status] || p.status) + '</span>' +
+    var h = '<div class="mk-post" data-post="' + esc(p.id) + '"><div class="row"><span class="chip">' + esc(MK_PLAT[p.platform] || p.platform) + '</span><span class="pill mk-' + cls(p.status) + '">' + esc(MK.st[p.status] || p.status) + '</span>' +
       '<span class="muted">' + esc([when(p.createdAt), (p.sources || []).length ? MK.from.replace("{n}", p.sources.length) : "", p.status === "scheduled" && p.at ? MK.at.replace("{d}", when(p.at)) : "", p.status === "published" ? when(p.publishedAt) : ""].filter(Boolean).join(" · ")) + '</span></div>';
     if (p.platform === "reddit") h += '<input data-mktitle value="' + esc(p.title || "") + '" placeholder="' + esc(MK.title) + '"' + (ed ? '' : ' disabled') + '>';
     h += '<textarea data-mktext rows="' + Math.min(14, Math.max(3, String(p.text || "").split("\n").length + 1)) + '"' + (ed ? '' : ' readonly') + '>' + esc(p.text || "") + '</textarea>';
@@ -9586,7 +9672,7 @@
       $("mk-on").onclick = function () { confirmCost("marketing", function () { mkRun("…", function () { return mkCall({ op: "activate" }).then(function (d) { return d.tokensConsumed ? STR.spent + ": " + d.tokensConsumed : ""; }); }); }); };
       return;
     }
-    var st = mkState.settings || {}, g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log");
+    var st = mkState.settings || {}, g = window.__SETUP_GUIDES && window.__SETUP_GUIDES.guide("activity_log", engProf());
     html += '<div class="row"><span class="muted">' + esc(MK.until.replace("{d}", when(mkState.paidUntil))) + '</span><button class="btn" id="mk-off">' + MK.disable + '</button></div>';
     html += '<section class="psec"><h2 class="group">' + MK.prep + '</h2><p class="hint">' + MK.prepHint + '</p>' +
       (g ? '<details' + (mkState.claudeMdConfirmedAt ? '' : ' open') + '><summary>CLAUDE.md</summary><pre class="ln-cmd">' + esc(g.markdown) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') +
@@ -9659,7 +9745,7 @@
   var CC_INSTALL = "irm https://claude.ai/install.ps1 | iex"; // Claude Code's official Windows installer (kb.js agent-install, setup-guides.js)
   var advOpen = false;
   function agentRoadHtml() {
-    var R = KN.road, live = keys.filter(function (k) { return !k.revoked; }), G = window.__SETUP_GUIDES, logMd = G && G.guide("activity_log");
+    var R = KN.road, live = keys.filter(function (k) { return !k.revoked; }), G = window.__SETUP_GUIDES, logMd = G && G.guide("activity_log", engProf());
     var owner = ME.owner && canWrite, used = live.some(function (k) { return !!k.lastUsedAt; });
     var step = function (n, title, done, kb, body) {
       return '<li class="sroad__s' + (done ? ' is-done' : '') + '"><span class="sroad__n">' + n + '</span><div class="sroad__b"><h3>' + title + (done ? ' <span class="sroad__ok">' + R.ok + '</span>' : '') + '</h3>' + body +
@@ -9676,7 +9762,7 @@
       [actSessions.length > 0, R.stLog, actSessions.length ? R.logs.replace("{n}", actSessions.length) : ""],
       [!!planDoc.plan, R.stPlan, ""],
       [!!(game.repo && game.repo.full), R.stRepo, game.repo && game.repo.full ? game.repo.full : R.opt, true]];
-    if ((game.engine && game.engine.profile) === "roblox") st.splice(1, 1); // a Roblox game has no Unity environment (setup-guides.js setupRoblox)
+    if (!isUnityGame()) st.splice(1, 1); // only a Unity profile has a Unity environment (setup-guides.js UNITY_PROFILES)
     var need = st.filter(function (x) { return !x[3]; }), ok = need.filter(function (x) { return x[0]; }).length;
     var stHtml = '<h3>' + R.stTitle + '</h3><ul class="cc-state">' + st.map(function (x) {
       return '<li class="' + (x[0] ? 'is-ok' : '') + '"><span aria-hidden="true">' + (x[0] ? '✓' : '○') + '</span> ' + esc(x[1]) + (x[2] ? ' <span class="muted">· ' + esc(x[2]) + '</span>' : '') + '</li>'; }).join("") + '</ul>';
@@ -9691,7 +9777,7 @@
       '<div class="setrow">' + (live.length ? '<span class="muted">' + R.keys.replace("{n}", live.length) + '</span>' : '') +
       (owner ? '<button class="btn" id="ex-new">' + (live.length ? R.keyMore : R.keyNew) + '</button>' : '') + '</div>' +
       (ME.owner ? '<label class="imp"><input type="checkbox" id="st-agentw"' + (game.agentWrite === false ? '' : ' checked') + '><span>' + esc(R.agentW) + '</span></label><p class="hint">' + esc(R.agentWHint) + '</p>' : '') +
-      '<h4>' + R.first + '</h4>' + guideHtml("setup") + envHtml() +
+      '<h4>' + R.first + '</h4>' + guideHtml("setup") + (isUnityGame() ? envHtml() : '') +
       '<h4>' + R.log + '</h4><p class="hint">' + R.logHint + '</p>' +
       (logMd ? '<pre hidden>' + esc(logMd.markdown) + '</pre><button class="btn" data-copy>' + R.logCopy + '</button>' +
         '<details class="kn-guide"><summary>' + R.logBlock + '</summary><pre class="ln-cmd">' + esc(logMd.markdown) + '</pre></details>' : '') +
@@ -9810,7 +9896,7 @@
         '<details class="setfold" id="st-shown"' + (shownOpen ? ' open' : '') + '><summary><h2>' + STR.stShown + ' <span class="muted">' + esc(STR.stShownN.replace("{n}", shownList().filter(function (s) { return (game.hiddenSections || []).indexOf(s.id) < 0; }).length).replace("{t}", shownList().length)) + '</span></h2><span class="btn mini setfold-btn"><span class="sf-open">' + STR.stShownOpen + '</span><span class="sf-close">' + STR.stShownClose + '</span></span></summary>' +
         '<p class="hint">' + STR.stShownHint + '</p>' + guideSettingsHtml() + '<div class="shownsecs">' + shownList().map(function (s) {
           var st = GDD.stage(GDD.stageOf(s.id)); // 🧭 the stage of the GDD it belongs to
-          return '<label class="imp"><input type="checkbox" data-showsec="' + s.id + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
+          return '<label class="imp"><input type="checkbox" data-showsec="' + esc(s.id) + '"' + ((game.hiddenSections || []).indexOf(s.id) < 0 ? ' checked' : '') + '><span>' + esc(L(s)) + (devLocked(s) ? ' 🔒' : '') +
             (st ? ' <small class="muted">' + esc(STR.guide.atStage.replace("{n}", st.n).replace("{s}", L(st))) + '</small>' : '') + '</span></label>'; }).join("") + '</div></details>' +
         (own.length ? '<h2>' + STR.stSections + '</h2>' + own.map(function (s) { // own sections: only when there are any («＋ Свій розділ» is in the menu)
           return '<div class="secrow"><span>' + esc(s.name) + '</span><button class="btn danger" data-delsec="' + esc(s.id) + '">' + STR.deleteSection + '</button></div>'; }).join("") : '') + '</section>';
@@ -9886,6 +9972,12 @@
     var g0 = game, id0 = gameId, c0 = cards;
     game = games.filter(function (g) { return g.id === gid; })[0] || null; gameId = gid; cards = commCards[gid] || [];
     try { return fn(); } finally { game = g0; gameId = id0; cards = c0; }
+  }
+  // the hub panel's canon for a showcase — read once at publish time (the panel has no live entities / lore listeners)
+  async function panelCanon() {
+    var ents = await docsOf(wref().collection("entities")), cult = mayRead("culture") ? await docsOf(wref().collection("lore")) : [];
+    entities = ents.filter(function (e) { return !(e.origin && e.origin.confirmed === false); });
+    lore = cult.map(function (e) { return Object.assign({ col: "lore" }, e); });
   }
   function commItems(t, secIds) {
     var items = [], has = function (id) { return secIds.indexOf(id) >= 0; }, text = function (v) { return typeof v === "string" ? v : ""; };
@@ -9982,7 +10074,7 @@
         (own && t.gameId ? '<label class="field"><span>' + C.rel + '</span><textarea data-cf="rel" rows="2" maxlength="3000" placeholder="' + C.relPh + '">' +
           esc(val("rel", ((p && p.releases) || []).map(function (r) { return r.url; }).join("\n"))) + '</textarea><span class="hint">' + C.relHint + '</span></label>' : '') +
         '<div class="field"><span>' + C.secs + '</span>' + (!t.gameId ? '<p class="hint">✓ ' + C.overview + '</p>' : '') + '<div class="shownsecs">' + t.secs.map(function (s) {
-          return '<label class="imp"><input type="checkbox" data-cs="' + s.id + '"' + (picked.indexOf(s.id) >= 0 ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div></div>' +
+          return '<label class="imp"><input type="checkbox" data-cs="' + esc(s.id) + '"' + (picked.indexOf(s.id) >= 0 ? ' checked' : '') + '><span>' + esc(L(s)) + '</span></label>'; }).join("") + '</div></div>' +
         (!own ? '' : covers.length ? '<div class="field"><span>' + C.cover + '</span><div class="commcov">' + covers.map(function (u, i) {
           return '<label><input type="radio" name="cov-' + esc(t.key) + '" value="' + esc(u) + '"' + (u === cover ? ' checked' : '') + '><img loading="lazy" alt="' + esc(C.cover + " " + (i + 1)) + '" src="' + esc(u) + '"></label>'; }).join("") + '</div></div>'
           : '<p class="hint">' + C.noCover + '</p>') +
@@ -10059,6 +10151,7 @@
       if (up.some(function (t) { return t.gameId && commCards[t.gameId] === null; })) { say(C.loading); return; } // a game's cards still loading
       var lose = drop.filter(function (t) { var p = commPubs[t.pubId]; return (p.likes || 0) + (p.followers || 0) > 0; });
       if (lose.length && !(await askConfirm(C.confirmDrop.replace("{list}", lose.map(function (t) { return "«" + (t.title || "…") + "»"; }).join(", ")), { danger: true }))) return;
+      if (PANEL) try { await panelCanon(); } catch (er) { say(er.message); return; } // the panel keeps no live canon
       var bodies; try { bodies = up.map(function (t) { return commBody(t, t.gameId && commSel.w ? wT : null); }); } catch (er) { say(er.message); return; }
       ap.disabled = true; say(C.working);
       var n = 0, m = 0;
@@ -10420,7 +10513,8 @@
       d1: ["D1", dn(rt.d1)], d7: ["D7", dn(rt.d7)], d30: ["D30", dn(rt.d30)], perDay: [R.perDay, rt.sessionsPerDayMedian == null ? "—" : rt.sessionsPerDayMedian],
       one: [R.oneSession, pctTxt(rt.oneSessionShare)], action: [R.firstAction, secTxt(rt.firstActionMedianSec)], reward: [R.firstReward, secTxt(rt.firstRewardMedianSec)] };
     var order = main.concat(Object.keys(items).filter(function (k) { return main.indexOf(k) < 0; }));
-    return '<h2 class="group">' + R.title + '</h2><p class="hint">' + esc(R.model[bm === "premium" ? "premium" : "live"]) + '</p><ul class="ex-ret">' + order.map(function (k) {
+    return '<h2 class="group">' + R.title + '</h2><p class="hint">' + esc(R.model[bm === "premium" ? "premium" : "live"]) + '</p>' +
+      (rt.partial ? '<p class="pmsg warn">⚠ ' + esc(STR.ex.retPartial.replace("{d}", rt.windowDays || 0)) + '</p>' : '') + '<ul class="ex-ret">' + order.map(function (k) {
       return '<li' + (main.indexOf(k) >= 0 ? ' class="main"' : '') + '>' + esc(items[k][0]) + ': <b>' + items[k][1] + '</b></li>'; }).join("") + '</ul>' +
       '<p class="hint">' + esc(R.how) + '</p>';
   }
@@ -10434,7 +10528,8 @@
     var s = m.sample || {};
     if (!s.events) return html + '<p class="empty">' + X.noData + '</p>';
     html += '<p class="muted">' + esc(X.sample.replace("{e}", s.events).replace("{p}", s.players).replace("{s}", s.sessions).replace("{from}", dateTxt(s.from)).replace("{to}", dateTxt(s.to))) +
-      (s.truncated ? ' · ' + X.truncated : '') + (m.build ? ' · ' + esc(m.build) : '') + '</p><p class="hint">' + X.caution + '</p>';
+      (s.truncated ? ' · ' + X.truncated : '') + (m.build ? ' · ' + esc(m.build) : '') +
+      (m.computedAt ? ' · ' + esc((Date.now() - m.computedAt < 60000 ? X.computedNow : X.computedAgo).replace("{n}", Math.round((Date.now() - m.computedAt) / 60000))) : '') + '</p><p class="hint">' + X.caution + '</p>'; // experience.js keeps the metrics a while (cached); ↻ recomputes (force)
     var se = m.session || {};
     html += '<h2 class="group">' + X.session + '</h2><p>' + X.sessMedian + ': <b>' + secTxt(se.medianSec) + '</b> · ' + X.sessP90 + ': ' + secTxt(se.p90Sec) + ' · ' + X.perPlayer + ': ' + (se.perPlayer || 0) + ' · ' + X.menus + ': ' + (se.menusPerSessionMedian || 0) + '</p>';
     html += exRetention(m.retention);
@@ -10479,9 +10574,9 @@
     return exIssues.map(function (x) {
       var st = issueStatus(x), sc = x.scope || {};
       var scope = [sc.zone && exName(sc.zone), sc.quest && exName(sc.quest), sc.mechanic && exName(sc.mechanic), sc.ref && cardName(sc.ref), sc.build].filter(Boolean).join(" · ");
-      return '<article class="ex-issue ex-' + st + '" data-issue="' + esc(x.id) + '"><div class="task__h"><b>' + esc(x.title) + '</b> <span class="pill s-idea">' + esc(x.category) + '</span>' +
+      return '<article class="ex-issue ex-' + cls(st) + '" data-issue="' + esc(x.id) + '"><div class="task__h"><b>' + esc(x.title) + '</b> <span class="pill s-idea">' + esc(x.category) + '</span>' +
         ' <span class="pill s-' + (x.priority === "high" ? "redo" : "agreed") + '">' + esc(X.prio[x.priority] || x.priority) + '</span> <span class="pill s-work">' + esc(X.confidence[x.confidence] || x.confidence) + '</span>' +
-        ' <span class="pill tst-' + st + '">' + esc(X.status[st] || st) + '</span></div>' + (scope ? '<div class="muted">' + esc(scope) + '</div>' : '') +
+        ' <span class="pill tst-' + cls(st) + '">' + esc(X.status[st] || st) + '</span></div>' + (scope ? '<div class="muted">' + esc(scope) + '</div>' : '') +
         '<p><b>' + X.hypothesis + ':</b> ' + esc(x.hypothesis) + '</p>' +
         ((x.evidence || []).length ? '<div><b>' + X.evidence + ':</b><ul class="crit">' + x.evidence.map(function (e) { return '<li><code>' + esc(e.metric) + '</code> = ' + (e.value == null ? '—' : esc(e.value)) + (e.note ? ' — ' + esc(e.note) : '') + '</li>'; }).join("") + '</ul></div>' : '') +
         ((x.alternatives || []).length ? '<div><b>' + X.alternatives + ':</b><ul class="crit">' + x.alternatives.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul></div>' : '') +
@@ -10591,7 +10686,7 @@
     [].forEach.call(document.querySelectorAll("[data-extab]"), function (b) { b.onclick = function () { exTab = b.dataset.extab; exMsg = ""; render(); }; });
     var dd = $("ex-days"); if (dd) dd.onchange = function () { exDays = +dd.value; };
     var bb = $("ex-build"); if (bb) bb.oninput = function () { exBuild = bb.value.trim(); };
-    on("ex-run", function () { exRun(X.computing, function () { return callEx({ op: "metrics", days: exDays, build: exBuild }).then(function () { return ""; }); }); });
+    on("ex-run", function () { exRun(X.computing, function () { return callEx({ op: "metrics", days: exDays, build: exBuild, force: true }).then(function () { return ""; }); }); });
     on("ex-report", function () { confirmCost("expReport", function () { exRun(X.reporting, function () { return callEx({ op: "report" }).then(function (d) { exTab = "issues"; return STR.spent + ": " + d.tokensConsumed; }); }); }); });
     var hz = $("ex-hz"); if (hz) hz.onchange = function () { exHeat.zone = hz.value; render(); };
     var hl = $("ex-hl"); if (hl) hl.onchange = function () { exHeat.layer = hl.value; render(); };
@@ -10784,7 +10879,7 @@
     return out;
   }
   function inSortCost(I) {
-    return inSortChunks(I).reduce(function (n, ch) { return n + quoteOf("folderSort", ch.map(function (x) { return x.i + "|" + x.p + "|" + Math.max(1, Math.round(x.s / 1024)); }).join("\n")); }, 0);
+    return inSortChunks(I).reduce(function (n, ch) { return n + quoteOf("folderSort", ch.map(function (x) { return x.i + "|" + x.p + "|" + Math.max(1, Math.round(x.s / 1024)); }).join("\n"), cards.length); }, 0);
   }
   function inSortAsk(I) { confirmCost("folderSort", function () { inSortRun(I); }, inSortCost(I)); }
   async function inSortRun(I) {
@@ -10817,7 +10912,7 @@
     } else t = t.replace(/^\s*(using|import|#include|#pragma)\b.*$/gm, "").replace(/\n{3,}/g, "\n\n");
     return t.trim().slice(0, IN_READ_CHARS);
   }
-  function inTextCost(I) { return I.text.packs.reduce(function (n, p) { return n + quoteOf("import", p); }, 0); }
+  function inTextCost(I) { return I.text.packs.reduce(function (n, p) { return n + quoteOf("import", p, cards.length); }, 0); }
   function inOn(I) { return I.groups.filter(function (g) { return g.on; }); }
   function inBar(label, pct, tail) { return '<div class="ready"><span>' + esc(label) + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + pct + '%</b>' + (tail ? '<span class="muted">' + esc(tail) + '</span>' : '') + '</div>'; }
   function inProgHtml() {
@@ -10874,7 +10969,7 @@
             var i = I.groups.indexOf(g), tag = (g.canonId ? X.tagCanon : g.onCard ? X.tagHave : g.note === "noCanon" ? X.tagNoCanon : X.tagNew) + (g.by === "rules" ? " · " + X.tagRules : "");
             return '<div class="inrow"><label class="imp"><input type="checkbox" data-ing="' + i + '"' + (g.on ? ' checked' : '') + '><span><b>' + esc(g.name) + '</b>' + (g.group ? ' <span class="muted">· ' + esc(g.group) + '</span>' : '') +
               '<span class="muted"> — ' + esc(X.nFiles.replace("{n}", g.files.length)) + ' · ' + fileSize(g.bytes) + ' · ' + esc(tag) + '</span></span></label>' +
-              '<select data-insec="' + i + '" aria-label="' + esc(X.moveTo) + '">' + opts.concat(opts.indexOf(g.sec) < 0 ? [g.sec] : []).map(function (t) { return '<option value="' + t + '"' + (t === g.sec ? ' selected' : '') + '>' + esc(L(sec(t))) + '</option>'; }).join("") + '</select></div>';
+              '<select data-insec="' + i + '" aria-label="' + esc(X.moveTo) + '">' + opts.concat(opts.indexOf(g.sec) < 0 ? [g.sec] : []).map(function (t) { return '<option value="' + esc(t) + '"' + (t === g.sec ? ' selected' : '') + '>' + esc(L(sec(t))) + '</option>'; }).join("") + '</select></div>';
           }).join("") + (gs.length > 200 ? '<p class="muted">' + esc(X.more.replace("{n}", gs.length - 200)) + '</p>' : '') + '</details></section>';
       });
       if (I.ignored.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + esc(X.ignTitle) + ' <span>' + I.ignored.reduce(function (n, x) { return n + x.ents.length; }, 0) + '</span></h2></summary><p class="hint">' + esc(X.ignHint) + '</p>' +
@@ -11005,7 +11100,7 @@
     rd.onload = async function () {
       var text = String(rd.result || "");
       closeLeaf();
-      confirmCost("import", function () { runImportText(text, file.name); }, quoteOf("import", text)); // the file known: «не більше N»
+      confirmCost("import", function () { runImportText(text, file.name); }, quoteOf("import", text, cards.length)); // the file known: «не більше N»
     };
     rd.readAsText(file);
   }
@@ -11028,6 +11123,7 @@
       catch (e) { bad.push(i + 1); err = e.message; if (/OUT_OF_TOKENS|Недостатньо токенів|PLAN_REQUIRED/.test(e.message)) { imp = { error: e.message }; return render(); } }
     }
     imp = got.length ? { proposal: inMerge(got), spent: spent, off: {} } : { error: err }; // nothing came back: the server's own reason, not a bare «не вдалося»
+    if (got.length) imp.proposal.truncated = got.reduce(function (a, p) { var t = (p && p.truncated) || {}; return { cards: a.cards + (+t.cards || 0), canon: a.canon + (+t.canon || 0) }; }, { cards: 0, canon: 0 });
     render();
     if (got.length && bad.length) notify(STR.folder.bad.replace("{p}", bad.join(", ")));
   }
@@ -11049,6 +11145,8 @@
     var p = imp.proposal;
     if (p && !imp.done) {
       if (imp.spent) html += '<p class="muted">' + STR.spent + ': ' + imp.spent + '</p>';
+      var tr = p.truncated || {}; // gamedev.js caps a proposal (cards / canon entities) — what did not fit is said, never dropped in silence
+      if ((+tr.cards || 0) + (+tr.canon || 0) > 0) html += '<p class="pmsg warn" role="status">⚠ ' + esc(STR.importTrunc.replace("{c}", +tr.cards || 0).replace("{e}", +tr.canon || 0)) + '</p>';
       var box = function (kind, i, label, detail) { return '<label class="imp"><input type="checkbox"' + (imp.off[kind + ':' + i] ? '' : ' checked') + ' data-imp="' + kind + ':' + i + '"><span><b>' + esc(label) + '</b>' + (detail ? '<span class="muted"> — ' + esc(detail) + '</span>' : '') + '</span></label>'; };
       if (p.laws.length) html += '<h2 class="group">' + STR.importLaws + '</h2>' + p.laws.map(function (l, i) { return box("law", i, l); }).join("");
       if (p.canon.length) html += '<h2 class="group">' + STR.importCanon + '</h2>' + p.canon.map(function (e, i) {
@@ -11128,7 +11226,7 @@
     var gdd = planDoc.gdd, plan = planDoc.plan, oq = openQs();
     var blockers = oq.filter(function (q) { return q.priority === "blocker"; }).length;
     var run = planDoc.running && planDoc.running.at && planDoc.running.at.toMillis && Date.now() - planDoc.running.at.toMillis() < 35 * 60000 ? planDoc.running.op : null;
-    var busy = !!(planBusy || run), busyOp = planBusy || run;
+    var busy = !!(pBusy() || run), busyOp = pBusy() || run;
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (plan ? '<button class="btn" id="p-md">' + STR.exportMd + '</button>' : '') +
       '<button class="btn' + (gdd ? ' ghost' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + costMark("analyze") + '</button>' +
@@ -11251,7 +11349,7 @@
           '<td>' + (to ? '<button type="button" class="btn ghost mini" data-gosec="' + esc(to) + '">' + STR.gdOpen + '</button>' : '') + '</td></tr>'; }).join("") + '</tbody></table></div>';
   }
   function qHtml(q, primary) {
-    return '<div class="q" data-q="' + esc(q.id) + '"><div class="q__top"><span class="pill p-' + q.priority + '">' + esc(STR.prio[q.priority]) + '</span>' +
+    return '<div class="q" data-q="' + esc(q.id) + '"><div class="q__top"><span class="pill p-' + cls(q.priority) + '">' + esc(STR.prio[q.priority]) + '</span>' +
       (q.topic ? ' <span class="muted">' + esc(q.topic) + '</span>' : '') + '</div>' +
       '<div class="q__q">' + esc(q.question) + '</div>' + (q.why ? '<div class="muted">' + esc(q.why) + '</div>' : '') +
       (q.options && q.options.length ? '<div class="row q__opts">' + q.options.map(function (o) { return '<button class="chip" data-opt="' + esc(o) + '">' + esc(o) + '</button>'; }).join("") + '</div>' : '') +
@@ -11297,7 +11395,7 @@
   // its scope is the folder), the activity-log block appended to CLAUDE.md unless it is there, then the launch lines
   var lnAllMsg = "";
   function allInOne(l, key) {
-    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log"), dir = psDir(l.dir);
+    var G = window.__SETUP_GUIDES, md = G && G.guide("activity_log", engProf()), dir = psDir(l.dir);
     return "# WhiteWrite · " + String(game.title || "").replace(/[\r\n]+/g, " ") + "\n" +
       'New-Item -ItemType Directory -Force "' + dir + '" | Out-Null\n' +
       'cd "' + dir + '"\n' +
@@ -11317,7 +11415,7 @@
     await w.write(text); await w.close();
   }
   async function prepareFolder(dir, key) {
-    var done = [], G = window.__SETUP_GUIDES, md = G && G.guide("activity_log");
+    var done = [], G = window.__SETUP_GUIDES, md = G && G.guide("activity_log", engProf());
     var cfg = {}, raw = await readText(dir, ".mcp.json");
     if (raw) try { cfg = JSON.parse(raw) || {}; } catch (e) { cfg = {}; }
     cfg.mcpServers = Object.assign({}, cfg.mcpServers, { whitewrite: { type: "http", url: MCP_URL, headers: { Authorization: "Bearer " + key } } });
@@ -11449,11 +11547,11 @@
   function taskHtml(t) {
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
     var bt = isBugT(lt) ? lt : isBugT(t) ? t : null;
-    return '<div class="task' + (lt ? ' t-' + lt.status : '') + (bt ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
-      (lt ? ' <span class="pill tst-' + lt.status + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
-      (t.priority ? ' <span class="pill pr-' + t.priority + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
+    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
+      (lt ? ' <span class="pill tst-' + cls(lt.status) + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
+      (t.priority ? ' <span class="pill pr-' + cls(t.priority) + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
-      (t.assetState ? ' <span class="pill st-' + t.assetState + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
+      (t.assetState ? ' <span class="pill st-' + cls(t.assetState) + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
       (lt ? whoHtml(lt) : '') +
       (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
       (bt ? bugBody(bt) : t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
@@ -11487,14 +11585,15 @@
     var head = '<h3>' + esc(m.id) + ' · ' + esc(m.name) + (m.estimateDays ? ' <span class="muted">' + P.days.replace("{n}", m.estimateDays) + '</span>' : '') +
       (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
       (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') +
-      (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + '</h3>';
+      (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + (m.carried ? ' <span class="pill s-idea" title="' + esc(P.carriedTip) + '">' + esc(P.carried) + '</span>' : '') + '</h3>'; // carried: gamedev.js kept it from the previous plan
     var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') +
       list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + shown.map(taskHtml).join("");
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
       ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
       (s1.length && g.status !== "approved" ? '<p class="warn gate-s1">⚠ ' + esc(BG.s1Gate.replace("{ids}", s1.join(", "))) + '</p>' : '') +
-      (plan.gated && m.track && canWrite && !lock ? '<div class="row">' + (g.status === "approved" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>'
+      (plan.gated && m.track && canWrite && !lock && !ME.owner ? '<p class="hint">🔒 ' + esc(STR.onlyOwner) + '</p>' : '') + // firestore.rules memberPlanOk: gates are the owner's
+      (plan.gated && m.track && canWrite && !lock && ME.owner ? '<div class="row">' + (g.status === "approved" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>'
         : '<button class="btn' + (now && !openQs().length ? ' primary' : '') + '" data-gate="' + esc(m.id) + '" data-to="approved"' + (done < ts.length ? ' data-early="1"' : '') + '>' + P.approve + '</button>' +
           (g.status !== "returned" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>' : '')) + '</div>' : '') + '</div>' : '';
     if (lock) return '<div class="ms ms-locked" id="ms-' + esc(m.id) + '">' + head + '<p class="muted">' + P.locked.replace("{g}", esc(lock)) + '</p>' +
@@ -11671,7 +11770,7 @@
       var link = c ? '<button type="button" class="btn ghost mini" data-openref="' + esc(c.key) + '">' + esc(BG.openCard) + ' →</button>'
         : x.ms ? '<button type="button" class="btn ghost mini" data-ptab="plan" data-msgo="' + esc(x.ms) + '">' + esc(BG.toPlan) + ' →</button>'
         : x.sec ? '<button type="button" class="btn ghost mini" data-gosec="' + esc(x.sec) + '">' + esc(BG.toExp) + ' →</button>' : x.task ? '<span class="mono muted">' + esc(x.task) + '</span>' : '';
-      return '<li class="dl dl-' + x.type + '"><div class="dl-h"><span class="pill dl-t">' + esc(BG.type[x.type] || x.type) + '</span> <time class="muted">' + esc(day(x.at)) + '</time> <b>' + esc(x.title) + '</b><span style="flex:1"></span>' + link + '</div>' +
+      return '<li class="dl dl-' + cls(x.type) + '"><div class="dl-h"><span class="pill dl-t">' + esc(BG.type[x.type] || x.type) + '</span> <time class="muted">' + esc(day(x.at)) + '</time> <b>' + esc(x.title) + '</b><span style="flex:1"></span>' + link + '</div>' +
         '<div class="dl-d">→ ' + esc(x.decision) + '</div>' + (x.note ? '<div class="muted">' + esc(x.note) + '</div>' : '') +
         (r.kept || r.cut || r.learned ? '<ul class="dl-retro">' + [[BG.kept, r.kept], [BG.cut, r.cut], [BG.learned, r.learned]].filter(function (p) { return p[1]; }).map(function (p) { return '<li><b>' + esc(p[0]) + ':</b> ' + esc(p[1]) + '</li>'; }).join("") + '</ul>' : '') + '</li>';
     }).join("") + '</ol>';
@@ -11722,11 +11821,12 @@
   }
 
   async function runPlan(op) {
-    if (planBusy) return;
-    planBusy = op; planMsg = ""; render();
-    try { var data = await callFn({ op: op, shelves: shelves() }); planMsg = STR.spent + ": " + data.tokensConsumed; }
-    catch (e) { planMsg = e.message; }
-    planBusy = null; render();
+    var gid = gameId, msg; // the author may switch games while it runs: its result is shown only in its own game
+    if (planBusyOf[gid]) return;
+    planBusyOf[gid] = op; planMsg = ""; render();
+    try { var data = await callFn({ op: op, shelves: shelves() }); msg = STR.spent + ": " + data.tokensConsumed; }
+    catch (e) { msg = e.message; }
+    delete planBusyOf[gid]; if (gameId === gid) planMsg = msg; render();
   }
 
   // An answer is a decision: it is kept with the plan AND written into the card it belongs to.
@@ -11940,6 +12040,9 @@
       if (sa || sp) { var sr = document.createElement("div"); sr.className = "subadd-row"; if (sp) sr.appendChild(sp); if (sa) sr.appendChild(sa); head.appendChild(sr); }
       if (actions && actions.children.length) top.appendChild(actions);
     }).observe($("view"), { childList: true });
+    // crossing the phone width (rotation, a resized window): the header goes back to its place — a fresh render moves it again
+    var mqPhone = window.matchMedia("(max-width:820px)"), mqRe = function () { if (!typingInView()) render(); };
+    if (mqPhone.addEventListener) mqPhone.addEventListener("change", mqRe); else if (mqPhone.addListener) mqPhone.addListener(mqRe);
   }
   $("topline").addEventListener("click", function (e) { viewClick(e); });
   function bulkChange(e) {
@@ -11979,11 +12082,11 @@
   $("view").addEventListener("change", forgeInput);
   $("view").addEventListener("change", function (e) {
     var rv = e.target.closest("[data-reveal]");
-    if (rv) db.collection("projects").doc(rv.dataset.reveal).update({ reveal: rv.value, updatedAt: stamp() });
+    if (rv) db.collection("projects").doc(rv.dataset.reveal).update({ reveal: rv.value, updatedAt: stamp() }).catch(saveFail);
     var sc = e.target.closest("[data-scope]");
-    if (sc) db.collection("projects").doc(sc.dataset.scope).update({ scope: sc.value, updatedAt: stamp() });
+    if (sc) db.collection("projects").doc(sc.dataset.scope).update({ scope: sc.value, updatedAt: stamp() }).catch(saveFail);
     var sg = e.target.closest("[data-sgame]");
-    if (sg) db.collection("projects").doc(sg.dataset.sgame).update({ updatedAt: stamp(), games: [].filter.call(document.querySelectorAll('[data-sgame="' + sg.dataset.sgame + '"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) });
+    if (sg) db.collection("projects").doc(sg.dataset.sgame).update({ updatedAt: stamp(), games: [].filter.call(document.querySelectorAll('[data-sgame="' + CSS.escape(sg.dataset.sgame) + '"]'), function (c) { return c.checked; }).map(function (c) { return c.value; }) }).catch(saveFail);
   });
   // the shell after «Зберегти історію»: open «Історії світу»
   window.addEventListener("message", function (ev) {
@@ -11999,7 +12102,8 @@
   // the shell's «Назад»: the top dialog closes first (as Esc does), then the card / dossier (back where it was opened); false — nothing open
   window.__wwBibleBack = function () {
     var tops = document.querySelectorAll(".ask, .refv, .zoom, .v3d, .lk-menu, .pic-ch"), top = tops[tops.length - 1];
-    if (top) { top.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", cancelable: true })); return true; } // not bubbling: only the dialog's own Esc
+    if (top) { // not bubbling: only the dialog's own Esc; wwBack — the document's capture listeners (zoom, menus) act only when it is theirs
+      var ev = new KeyboardEvent("keydown", { key: "Escape", cancelable: true }); ev.wwBack = top; top.dispatchEvent(ev); return true; }
     if (open) { leafClose(); return true; }
     if (dos) { dosClose(); return true; }
     return false;
@@ -12054,7 +12158,8 @@
     if (e.target.closest("[data-qskip]")) { qqIdx++; render(); return; }
     if (e.target.closest("[data-qall]")) { qqAll = !qqAll; render(); var pq = $("p-queue"); if (pq) pq.scrollIntoView({ block: "start" }); return; }
     var ans = e.target.closest("[data-answer]");
-    if (ans) { var q = ans.closest(".q"); ans.disabled = true; answerQuestion(q.dataset.q, q.querySelector("textarea").value.trim()).catch(function (er) { planMsg = er.message; render(); }); return; }
+    if (ans) { var q = ans.closest(".q"), at = q.querySelector("textarea"); if (!at.value.trim()) { at.focus(); return; } // empty: nothing to send, the button stays usable
+      ans.disabled = true; answerQuestion(q.dataset.q, at.value.trim()).catch(function (er) { ans.disabled = false; planMsg = er.message; render(); }); return; }
     var ex = e.target.closest("#ex-new"); if (ex) { ex.disabled = true; createKey().catch(function (er) { ex.disabled = false; notify(STR.failed + ": " + er.message); }); return; } // planMsg shows only on the plan page
     var rv = e.target.closest("[data-revoke]");
     if (rv) { askConfirm(STR.exRevokeQ, { danger: true }).then(function (ok) { if (ok) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); }); return; }
@@ -12565,7 +12670,6 @@
     mkt = { loading: true };
     fnCall("market", { op: "status", worldId: worldId }).then(function (r) {
       mkt = r;
-      if (r.seller && r.seller.stripeAccountId && !r.seller.chargesEnabled) fnCall("market", { op: "connectStatus" }).then(function (x) { mkt.seller = x.seller; if (hubIdle()) render(); }, function () {});
       if (hubIdle()) render();
     }, function (e) { mkt = { error: e.message }; if (hubIdle()) render(); });
   }
@@ -12586,9 +12690,7 @@
     var head = '<h2>' + K.title + '</h2><p class="hint">' + K.hint.replace("{tiers}", tiers) + ' <a href="#" data-kb="market">' + K.rules + '</a></p>';
     if (mkt.loading) return head + '<p class="muted">' + STR.comm.loading + '</p>';
     if (mkt.error) return head + '<p class="warn">' + esc(mkt.error) + '</p>';
-    var a = mkt.application, sel = mkt.seller, lot = mkt.lot, out = head;
-    var stripe = '<div class="mk-stripe"><b>' + K.payouts + '</b> ' + (sel && sel.chargesEnabled ? '<span class="ok">✓ ' + K.payoutsOn + '</span>'
-      : '<span class="muted">' + (sel && sel.stripeAccountId ? K.payoutsPending : K.payoutsOff) + '</span> <button class="btn mini" id="mk-connect">' + K.connect + '</button>') + '</div>';
+    var a = mkt.application, lot = mkt.lot, out = head;
     if (a && ["review", "moderation", "approved"].indexOf(a.status) >= 0) {
       var r = a.aiReview || {}, lg = a.legal || {};
       out += '<div class="mk-state"><p><b>' + esc(K.status[a.status]) + '</b> · ' + K.since + ' ' + esc(a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "") + '</p>' +
@@ -12597,7 +12699,7 @@
         (r.summary ? '<p class="hint"><b>' + K.aiReview + ':</b> ' + esc(r.summary) + (r.level ? ' · ' + esc(K.levels[r.level] || r.level) : '') + '</p>' : '') +
         (lg.risk ? '<p class="hint"><b>' + K.aiLawyer + ':</b> ' + esc(K.risk[lg.risk] || lg.risk) + ((lg.issues || []).length ? ' — ' + esc(lg.issues.slice(0, 3).map(function (x) { return x.what; }).join("; ")) : '') + '</p>' : '') +
         '<div class="setrow"><button class="btn danger" id="mk-withdraw">' + K.withdraw + '</button></div></div>';
-      return out + stripe;
+      return out;
     }
     if (a && a.status === "rejected") out += '<p class="warn">' + K.rejected + (a.moderator && a.moderator.note ? ': ' + esc(a.moderator.note) : '') + '</p>';
     var q = mktQuote;
@@ -12611,7 +12713,7 @@
       '<label class="imp"><input type="checkbox" id="mk-agree"><span>' + K.agree + '</span></label>' +
       '<div class="setrow"><button class="btn primary" id="mk-apply"' + (q && !q.tooLarge ? '' : ' disabled') + '>' + K.apply + (q && !q.tooLarge ? ' <span class="aicost">✦ ' + q.fee.toLocaleString() + '</span>' : '') + '</button></div>' +
       (q ? '' : '<p class="hint">' + K.quoteFirst + '</p>') + '</div>';
-    return out + stripe;
+    return out;
   }
   var mktAdmin = false;
   try { firebase.auth().onAuthStateChanged(function (u) { if (u) u.getIdTokenResult().then(function (r) { mktAdmin = !!(r.claims && r.claims.admin); if (hubIdle() || section === "forge") render(); }, function () {}); }); } catch (e) {}
@@ -12619,11 +12721,6 @@
     var K = STR.hub.market;
     var t = $("mk-test"); if (t) t.onclick = function () { mktTest = true; render(); };
     var kb = document.querySelector("[data-kb]"); if (kb) kb.onclick = function (e) { e.preventDefault(); tellShell({ type: "ww-kb-article", id: "market" }); };
-    var c = $("mk-connect"); if (c) c.onclick = async function () {
-      c.disabled = true;
-      try { var r = await fnCall("market", { op: "connect", worldId: worldId }); window.open(r.url, "_blank", "noopener"); say(K.connectOpened); mkt = null; }
-      catch (e) { c.disabled = false; say(STR.failed + ": " + e.message); }
-    };
     var o = $("mk-open"); if (o) o.onclick = function () { tellShell({ type: "ww-market", lotId: mkt.application.id }); };
     var w = $("mk-withdraw"); if (w) w.onclick = function () {
       askYes(K.withdraw, K.withdrawText, K.withdraw, async function () {
@@ -12679,6 +12776,7 @@
   // Switch the open game: its cards and plan stream in; the canon stream is shared.
   function selectGame(id) {
     unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; lazyDone = {};
+    if (gameId !== id) planMsg = ""; // the plan's message was the other game's
     gameId = id; game =games.filter(function (g) { return g.id === id; })[0] || null;
     cards = []; archCards = []; planDoc = {}; imp = null; closeLeaf(); ovPending = null;
     if (!gameSections().some(function (s) { return s.id === section; }) && section !== "settings") section = "overview";
@@ -12686,7 +12784,7 @@
       bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       var got = [].concat.apply([], Object.keys(bySec).map(function (k) { return bySec[k]; })).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
       cards = got.filter(function (c) { return !c.archived; }); archCards = got.filter(function (c) { return c.archived; }); // 🗄 an archived card (MCP archive_card) is out of the game until restored
-      sync(snap.metadata.fromCache ? "" : "ok", STR.live); render();
+      sync(snap.metadata.fromCache ? "" : "ok", STR.live); snapRender();
       if (ovPending && !open && !dos) { var op = ovPending, oc = allCards().filter(function (x) { return x.key === op.key; })[0]; ovPending = null; if (oc) { ovFrom = op.from; openCard(oc); } } // the dossier's «В грі»: closing returns to the dossier's page
       if (ME.owner) { backfillPolys(); migrateCast(game).catch(function () {}); }
     }; };
@@ -12696,18 +12794,18 @@
     });
     migrateCanonOptIn(game).then(function () { return migrateCast(game); }).catch(function () {});
     var may = function (id, on) { if (mayRead(id)) on(); }; // a member's streams: only the sections they may read
-    may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; render(); }, function () {})); });
+    may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; snapRender(); }, function () {})); });
     tasks = []; changeReqs = []; execs = []; keys = []; newKey = null; lnAllMsg = "";
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
     may("plan", function () {
-      unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); render(); }, function () {}));
-      unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); render(); }, function () {}));
+      unsub.push(gref().collection("tasks").onSnapshot(function (snap) { tasks = rows(snap).sort(function (a, b) { return (a.order || 0) - (b.order || 0); }); snapRender(); }, function () {}));
+      unsub.push(gref().collection("changeRequests").onSnapshot(function (snap) { changeReqs = rows(snap); snapRender(); }, function () {}));
     });
     quests = []; dialogues = []; qed = null; qprop = null; med = null; // the open game's quests & dialogues
-    may("quests", function () { unsub.push(gref().collection("quests").onSnapshot(function (snap) { quests = rows(snap); render(); }, function () {})); });
-    may("dialogues", function () { unsub.push(gref().collection("dialogues").onSnapshot(function (snap) { dialogues = rows(snap); render(); }, function () {})); });
+    may("quests", function () { unsub.push(gref().collection("quests").onSnapshot(function (snap) { quests = rows(snap); snapRender(); }, function () {})); });
+    may("dialogues", function () { unsub.push(gref().collection("dialogues").onSnapshot(function (snap) { dialogues = rows(snap); snapRender(); }, function () {})); });
     exIssues = []; exPlaytests = []; exExperiments = []; exMetrics = null; exKey = null;
-    var exRender = function () { if (section === "experience" || section === "plan") render(); else renderNav(); };
+    var exRender = function () { if (section === "experience" || section === "plan") snapRender(); else renderNav(); };
     unsub.push(gref().collection("experienceIssues").onSnapshot(function (snap) { exIssues = rows(snap).sort(function (a, b) { return ({ high: 0, medium: 1, low: 2 })[a.priority] - ({ high: 0, medium: 1, low: 2 })[b.priority]; }); exRender(); }, function () {}));
     // Lazy streams: opened the first time a section that shows them is open (attachLazy in render), kept until the game changes
     kSnaps = []; kAssets = null; kOpen = null; actSessions = []; actEntries = {}; envDoc = null; mkState = null; mkChannels = []; mkPosts = []; mkTg = null; mkMsg = "";
@@ -12744,7 +12842,11 @@
     render();
   }
 
+  var authUid; // the account this page was built for: another one (sign-out, sign-in) reloads the page — no listeners of the old one stay
   firebase.auth().onAuthStateChanged(async function (user) {
+    var uid = user ? user.uid : null;
+    if (authUid !== undefined && authUid !== uid) { window.__wwBibleForce = true; location.reload(); return; }
+    authUid = uid;
     if (!user) return locked(STR.brand, STR.login, false, true);
     db = window.__firebase.db;
     db.collection("economy_operations").doc("generateScene").get().then(function (d) {
@@ -12774,26 +12876,29 @@
       loadCommStats();
     } catch (e) { return locked(STR.brand, STR.noWorld, false); }
 
-    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; render(); takePendingFill(); }, function () { sync("bad", STR.offline); }); // no access any more (left the team) or offline
+    wref().onSnapshot(function (d) { world = d.data() || {}; $("w-title").textContent = world.title || "…"; document.title = (world.title || "") + " — " + STR.brand; wUnder(); snapRender(); takePendingFill(); }, function () { sync("bad", STR.offline); }); // no access any more (left the team) or offline
     var byKind = {}, entsIn = function (key) { return function (snap) {
       byKind[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       entities = [].concat.apply([], Object.keys(byKind).map(function (k) { return byKind[k]; }))
         .filter(function (e) { return !(e.origin && e.origin.confirmed === false); }); // inferred canon is not fact yet
-      render(); if (mode === "game" && game) migrateCast(game).catch(function () {});
+      snapRender(); if (mode === "game" && game) migrateCast(game).catch(function () {});
       if (pendingFocus) { var pf = pendingFocus; pendingFocus = null; window.postMessage({ type: "ww-bible-focus", ent: pf }, location.origin); }
     }; };
-    if (fullRead()) wref().collection("entities").onSnapshot(entsIn("*"), function () { sync("bad", STR.offline); });
+    // the hub panel (Спільнота · Команда · Маркет · Бекап) shows no canon and no stories: no live entities / lore / projects —
+    // «Спільнота» reads the canon once when it publishes (panelCanon), the backup reads its own copy (exportWorld)
+    if (PANEL) entities = [];
+    else if (fullRead()) wref().collection("entities").onSnapshot(entsIn("*"), function () { sync("bad", STR.offline); });
     else ME.viewKinds.forEach(function (k) { wref().collection("entities").where("kind", "==", k).onSnapshot(entsIn(k), function () {}); }); // rules: one kind per query
-    db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
+    if (!PANEL) db.collection("projects").where("owner", "==", user.uid).where("worldId", "==", worldId).onSnapshot(function (snap) {
       stories = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
         .sort(function (a, b) { return String(a.title || "").localeCompare(String(b.title || "")); });
       if (section === "wstories" || section === "gstories") render();
       var ds = $("d-stories"); if (ds && dos && !dos.isNew && dos.col !== "lore") ds.innerHTML = storiesHtml(dos);
     }, function () {});
-    if (mayRead("culture")) wref().collection("lore").onSnapshot(function (snap) {
+    if (mayRead("culture") && !PANEL) wref().collection("lore").onSnapshot(function (snap) {
       lore = snap.docs.map(function (d) { return Object.assign({ id: d.id, col: "lore" }, d.data()); })
         .sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
-      render();
+      snapRender();
     }, function () {});
     var first = true;
     wref().collection("games").onSnapshot(function (snap) {
@@ -12807,7 +12912,7 @@
         if (startGame && startGame !== "__new") mode = "world"; // a game that is gone
       }
       if (gameId) game = games.filter(function (g) { return g.id === gameId; })[0] || null;
-      render();
+      snapRender();
     }, function () { sync("bad", STR.offline); });
   });
 })();

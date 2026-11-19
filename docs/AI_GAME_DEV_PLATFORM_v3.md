@@ -1,5 +1,7 @@
 # AI GAME DEVELOPMENT PLATFORM
 
+> **Концепт-документ (не опис коду).** Частину описаного не збудовано — зокрема MCP-інструментів `search_framework_modules`, `get_framework_module`, `report_asset_status` немає; актуальне — `ARCHITECTURE.md`.
+
 **Архітектура платформи управління повним циклом розробки ігор — на базі WhiteWrite**
 
 | Параметр | Значення |

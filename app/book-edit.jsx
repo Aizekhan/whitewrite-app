@@ -121,10 +121,11 @@
     // what the box shows: a frozen string while editing (stable caret), else current leaf / text
     const shown = editMode ? editStart.current : (pages ? (pages[pgIdx] || "") : text);
 
+    const tt = (k) => (window.__i18n ? window.__i18n.t(k) : k);
     return (
       <div className="page-inner">
-        <PageHeader kicker="Розділ перший · чернетка" title="Жертва Оракула" />
-        <p className="se-hint"><span className="se-hint__pen">✎</span> {editMode ? "Режим редагування увімкнено — перепиши будь-що." : "Натисни «Редагувати» внизу, щоб змінювати текст."}</p>
+        <PageHeader kicker={tt('book.ed.kicker')} title={tt('book.ed.title')} />
+        <p className="se-hint"><span className="se-hint__pen">✎</span> {editMode ? tt('book.ed.on') : tt('book.ed.off')}</p>
         <div
           className={`se-prose ${editMode ? "is-editing" : ""}`}
           ref={ref}
@@ -135,7 +136,7 @@
         {pages && !editMode && pages.length > 1 && (
           <div className="se-pages">
             <button className="se-pages__b" disabled={pgIdx === 0} onClick={() => setPgIdx((i) => Math.max(0, i - 1))}>‹</button>
-            <span className="se-pages__n">аркуш {pgIdx + 1} / {pages.length}</span>
+            <span className="se-pages__n">{tt('book.ed.leaf')} {pgIdx + 1} / {pages.length}</span>
             <button className="se-pages__b" disabled={pgIdx === pages.length - 1} onClick={() => setPgIdx((i) => Math.min(pages.length - 1, i + 1))}>›</button>
           </div>
         )}

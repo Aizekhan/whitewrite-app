@@ -31,7 +31,12 @@ const ts = require('fs').readFileSync(require('path').join(__dirname, '../functi
 check(/options\.cap > 0 && userCost > options\.cap\) userCost = options\.cap/.test(ts), 'the charge is capped at the quoted N');
 check(/setPriceIndex\(conf\.priceIndex\)/.test(ts), 'the server reads the published index');
 const gd = require('fs').readFileSync(require('path').join(__dirname, '../functions/src/gamedev.js'), 'utf8');
-check(/quoteChars\(byOp\('import'\), markdown, tier\)/.test(gd) && /reserved: reservation, cap,/.test(gd), 'the import reserves the quote and charges with its cap');
+check(/quoteChars\(byOp\('import'\), markdown, tier, quoteCtx\(/.test(gd) && /reserved: reservation, cap,/.test(gd) && /settle\(db, uid, reservation, error, 'gamedev', \{ cap \}\)/.test(gd),
+  'the import reserves the quote (with its per-part context) and charges with its cap — a failure too');
+// the quote counts what every part repeats (the canon and the card titles) and the re-asks; the worst case of an uncapped run
+check(P.quoteChars(imp, 20000, 'sonnet', P.quoteCtx(200, 300)) > P.quoteChars(imp, 20000, 'sonnet') * 1.2, 'the per-part context (200 entities, 300 cards) raises the quote');
+check(P.quoteChars(imp, 20000, 'sonnet') > P.quoteChars({ price: { quote: Object.assign({}, imp.price.quote, { retry: 0 }) } }, 20000, 'sonnet') * 1.4, 'the quote holds room for re-asks (× 1.5)');
+check(P.worstCase('opus', 40000 * 15, 64000 + 14 * 32000) > 50000 && P.worstCase('haiku', 1000, 1000) < P.worstCase('opus', 1000, 1000), 'worstCase: a plan on Opus is tens of thousands of tokens; Haiku costs less');
 
 // the quote weighs the text: CJK / emoji (1–2 tokens a char) cost more than Cyrillic or Latin of the same length
 const lat = 'a'.repeat(20000), cyr = 'ж'.repeat(20000), cjk = '漢'.repeat(20000);

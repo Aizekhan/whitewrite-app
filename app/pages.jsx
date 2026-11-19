@@ -394,8 +394,8 @@ function SceneIntentRight({ projectId: propProjectId, actions }) {
               console.warn('[SceneIntent] window.__reloadBook not found, trying fallback...');
               // Fallback: force page reload to show new scene
               if (window.parent && window.parent !== window) {
-                // We're in iframe — ask parent to reload book
-                window.parent.postMessage({ type: 'reloadBook', jumpToLast: true }, window.location.origin);
+                // We're in iframe — the book (book.jsx) listens in this same window, not in the parent
+                window.postMessage({ type: 'reloadBook', jumpToLast: true }, window.location.origin);
               } else {
                 // Standalone — the scene is saved: reload to show it
                 window.location.reload();

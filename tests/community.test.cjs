@@ -32,5 +32,14 @@ check(Math.abs(H.scoreAt(H.heatOf(now - 30 * DAY), now) - 0.5) < 1e-12, 'a like 
 check(Math.abs(H.scoreAt(heat - H.heatOf(likesAt[2]), now) - (sum - Math.pow(0.5, 2 / 30))) < 1e-9, 'an unlike takes off exactly its own weight');
 check(isFinite(H.heatOf(Date.UTC(2036, 0, 1))), 'heat stays finite for years (2^(t/30 d))');
 
-console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
-process.exitCode = fails ? 1 : 0;
+// the home rebuild: hourly, a stale home at most every 30 minutes; showcases ranked at most 10 at a time, order kept
+const { rebuildDue, inPool } = require('../functions/src/community.js')._community, MIN = 60000, T = Date.now(), at = (m) => ({ toMillis: () => T - m * MIN });
+check([rebuildDue({ at: at(10) }, T), rebuildDue({ at: at(56) }, T), rebuildDue({ stale: true, at: at(10) }, T), rebuildDue({ stale: true, at: at(31) }, T), rebuildDue({}, T)].join() === 'false,true,false,true,true',
+  'rebuild: every hour, a stale home only 30 minutes after the last build, no home yet → now');
+(async () => {
+  let live = 0, peak = 0;
+  const out = await inPool(Array.from({ length: 35 }, (_, i) => i), 10, async (x) => { live++; peak = Math.max(peak, live); await new Promise((r) => setTimeout(r, 1)); live--; return x * 2; });
+  check(peak <= 10 && out.join() === Array.from({ length: 35 }, (_, i) => i * 2).join(), 'inPool: at most 10 at once, results in order');
+  console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
+  process.exitCode = fails ? 1 : 0;
+})();

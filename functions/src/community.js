@@ -81,16 +81,27 @@ const scoreAt = (heat, now) => (heat || 0) / heatOf(now);
 const homeCard = (id, d) => ({ id, kind: d.kind, title: d.title || '', tagline: d.tagline || '', cover: d.cover || '', author: d.author || '', likes: d.likes || 0, followers: d.followers || 0, worldTitle: d.worldTitle || '', team: !!d.lookingForTeam });
 
 // rank the showcases and rebuild the home page cards
+// the best-scored showcases first (index community hidden ↑ score ↓, firestore.indexes.json), so the 2000 read are the ones that can rank;
+// while the index builds — unsorted, as before
+async function rankedShowcases(n) {
+  const q = db.collection('community').where('hidden', '==', false);
+  try { return await q.orderBy('score', 'desc').limit(n).get(); } catch (e) { if (e.code !== 9 && !/index/i.test(e.message || '')) throw e; return q.limit(n).get(); }
+}
+// at most `n` at a time (each showcase may read its world, game, cards and likes)
+async function inPool(list, n, fn) {
+  const out = new Array(list.length); let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, list.length) }, async () => { while (i < list.length) { const k = i++; out[k] = await fn(list[k]); } }));
+  return out;
+}
 async function rebuildHome() {
   const now = Date.now();
-  const snap = await db.collection('community').where('hidden', '==', false).limit(2000).get();
-  const rows = [];
-  for (const doc of snap.docs) {
+  const snap = await rankedShowcases(2000);
+  const rows = (await inPool(snap.docs, 10, async (doc) => {
     const d = doc.data(), upd = {}, ms = (x) => (x && x.toMillis ? x.toMillis() : 0);
     let activeAt = ms(d.activeAt);
     if (now - ms(d.activeCheckedAt) > ACT_EVERY) {
       const act = await lastActivity(d);
-      if (act === null) { await deleteSub(doc.ref, 'items'); await deleteSub(doc.ref, 'likes'); await deleteSub(doc.ref, 'followers'); await doc.ref.delete(); continue; } // world or game deleted
+      if (act === null) { await deleteSub(doc.ref, 'items'); await deleteSub(doc.ref, 'likes'); await deleteSub(doc.ref, 'followers'); await doc.ref.delete(); return null; } // world or game deleted
       if (act > activeAt) { activeAt = act; upd.activeAt = admin.firestore.Timestamp.fromMillis(act); }
       upd.activeCheckedAt = admin.firestore.Timestamp.fromMillis(now);
     }
@@ -104,8 +115,8 @@ async function rebuildHome() {
     // the stored score (the page sorts the Community list by it) is rewritten when it moved > 2% — not every hour
     if (Math.abs((d.score || 0) - score) > 0.02 * Math.max(score, 1e-9) || ((d.score || 0) > 0) !== (score > 1e-9)) upd.score = score;
     if (Object.keys(upd).length) await doc.ref.update(upd);
-    rows.push({ id: doc.id, d, score, activeAt });
-  }
+    return { id: doc.id, d, score, activeAt };
+  })).filter(Boolean);
   rows.sort((a, b) => b.score - a.score || (b.d.likes || 0) - (a.d.likes || 0) || b.activeAt - a.activeAt);
   const promoted = rows.filter((r) => r.d.promotedUntil && r.d.promotedUntil.toMillis() > now);
   const authors = {}, top = [];
@@ -195,6 +206,10 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
         await markStale();
         return res.status(200).json({ success: true });
       }
+      if (RATE[action] && !(await rateOk(uid, action))) {
+        res.set('Retry-After', '3600');
+        return res.status(429).json({ error: 'Забагато дій за добу — спробуй завтра', code: 'RATE_LIMIT' });
+      }
       if (action === 'like') {
         if (d.hidden) return res.status(404).json({ error: 'Публікацію не знайдено' });
         if (d.owner === uid) return res.status(400).json({ error: 'Своє не вподобати', code: 'OWN' });
@@ -252,14 +267,35 @@ exports.community = onRequest({ region: 'us-central1', timeoutSeconds: 120, memo
   });
 });
 
+// ♥ / «стежити» / скарга per user per day (audit 2026-11-19: each one is a transaction on the showcase): communityRate/{uid}_{day}
+// { like, follow, report } — server only (no rule matches it); expireAt for a TTL policy on the collection
+const RATE = { like: 300, follow: 200, report: 20 };
+async function rateOk(uid, action) {
+  const day = new Date().toISOString().slice(0, 10), ref = db.collection('communityRate').doc(uid + '_' + day);
+  return db.runTransaction(async (t) => {
+    const d = await t.get(ref), n = (d.exists && d.get(action)) || 0;
+    if (n >= RATE[action]) return false;
+    t.set(ref, { [action]: n + 1, expireAt: new Date(Date.now() + 2 * DAY) }, { merge: true });
+    return true;
+  });
+}
+
 // publish / unpublish / hide no longer rebuild the home inline (it walks every showcase — anyone could make it run again and
-// again): they mark it stale; communityRotate rebuilds a stale home within 10 minutes, and every hour anyway (♥ ageing)
-const markStale = () => db.collection('community_home').doc('current').set({ stale: true }, { merge: true }).catch((e) => console.error('[community] mark stale failed:', e));
+// again): they mark it stale (one write a minute per instance at most); communityRotate rebuilds a stale home at most every
+// STALE_EVERY (a stream of publishes cannot make it walk every showcase every 10 minutes), and every hour anyway (♥ ageing)
+const STALE_EVERY = 30 * 60 * 1000, HOURLY = 55 * 60 * 1000;
+let staleAt = 0;
+const markStale = () => {
+  if (Date.now() - staleAt < 60000) return Promise.resolve();
+  staleAt = Date.now();
+  return db.collection('community_home').doc('current').set({ stale: true }, { merge: true }).catch((e) => console.error('[community] mark stale failed:', e));
+};
+const rebuildDue = (cur, now) => { const age = cur.at && cur.at.toMillis ? now - cur.at.toMillis() : Infinity; return age >= HOURLY || (!!cur.stale && age >= STALE_EVERY); };
 exports.communityRotate = onSchedule({ schedule: 'every 10 minutes', timeoutSeconds: 300 }, async () => {
   const cur = (await db.collection('community_home').doc('current').get()).data() || {};
-  if (!cur.stale && cur.at && cur.at.toMillis && Date.now() - cur.at.toMillis() < 55 * 60 * 1000) return;
+  if (!rebuildDue(cur, Date.now())) return;
   const r = await rebuildHome();
   console.log('[community] home rebuilt', r);
 });
 
-exports._community = { cleanItem, okImg, okDiscord, okRelease, rebuildHome };
+exports._community = { cleanItem, okImg, okDiscord, okRelease, rebuildHome, rateOk, RATE, rebuildDue, inPool };

@@ -143,16 +143,17 @@ function fadeNav(href) {
 }
 
 function WritingPage() {
+  const t = (k) => (window.__i18n ? window.__i18n.t(k) : k);
   return (
     <div className="page-inner">
-      <PageHeader kicker="Твій хід" title="Чистий аркуш" />
+      <PageHeader kicker={t('book.write.kicker')} title={t('book.write.title')} />
       <div
         className="writing"
         contentEditable
         suppressContentEditableWarning
-        data-placeholder="Тут історія затримує подих… напиши перше речення."
+        data-placeholder={t('book.write.ph')}
       />
-      <div className="writing__caret-hint">світ слухає</div>
+      <div className="writing__caret-hint">{t('book.write.listens')}</div>
       <Folio n="vii" />
     </div>
   );
@@ -452,7 +453,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         setTimeout(() => {
           const el = document.querySelector(".writing");
           if (el) el.focus();
-          setWhisper((p) => ({ text: "Жодне речення не буває хибним. Просто почни.", sig: p.sig + 1 }));
+          setWhisper((p) => ({ text: window.__i18n ? window.__i18n.t('book.write.whisper') : "Жодне речення не буває хибним. Просто почни.", sig: p.sig + 1 }));
         }, 120);
       }
     }
@@ -469,7 +470,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
   if (!scene || !spread) {
     return (
       <div className="book-loading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0a0908', color: '#d4af70', fontSize: '18px' }}>
-        <div>Завантаження книги...</div>
+        <div>{window.__i18n ? window.__i18n.t('book.loading') : 'Завантаження книги...'}</div>
       </div>
     );
   }
@@ -503,7 +504,7 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
 
       {/* Stage 3 — full-bleed photographed book; text tracks its two pages */}
       <div className={`photobook ${flow && !ritualClosing ? "" : "is-revealed"} ${justRevealed ? "is-revealing" : ""}`}>
-        <img className="photobook__img" src={atLast ? "assets/BookNextEpisode.jpg" : "assets/OpenedBook.jpg"} alt="Відкрита книга" />
+        <img className="photobook__img" src={atLast ? "assets/BookNextEpisode.jpg" : "assets/OpenedBook.jpg"} alt={window.__i18n ? window.__i18n.t('book.openAlt') : 'Відкрита книга'} />
         <div className="photobook__pages" style={pageBox ? { width: pageBox.w, height: pageBox.h } : undefined}>
           <div className="opage opage--left">
             <div className="opage__fade" key={"L" + sc + "-" + pg + (showingNewScene ? "-new" : "")}>{spread.left}</div>
@@ -514,10 +515,10 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
         </div>
 
         {!generating && (
-          <button className={`pturn pturn--prev ${atFirst ? "is-disabled" : ""}`} onClick={() => !atFirst && go("prev")} aria-label="Назад" type="button" disabled={atFirst}>‹</button>
+          <button className={`pturn pturn--prev ${atFirst ? "is-disabled" : ""}`} onClick={() => !atFirst && go("prev")} aria-label={window.__i18n ? window.__i18n.t('book.prev') : 'Назад'} type="button" disabled={atFirst}>‹</button>
         )}
         {!generating && !atLast && (
-          <button className={`pturn pturn--next ${atLast ? "is-disabled" : ""}`} onClick={() => !atLast && go("next")} aria-label="Далі" type="button" disabled={atLast}>›</button>
+          <button className={`pturn pturn--next ${atLast ? "is-disabled" : ""}`} onClick={() => !atLast && go("next")} aria-label={window.__i18n ? window.__i18n.t('book.next') : 'Далі'} type="button" disabled={atLast}>›</button>
         )}
         {!generating && atLast && (
           <button
@@ -600,8 +601,9 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
           <div className="pager">
             {(function () {
               const n = scene.pages.length;
+              const pageT = (i) => (window.__i18n ? window.__i18n.t('book.page') : 'Сторінка') + " " + (i + 1);
               if (n <= 7) return scene.pages.map((_, i) => (
-                <button key={i} className={`pager__dot ${i === pg ? "is-on" : ""}`} onClick={() => { setPg(i); announce(sc, i); }} title={"Сторінка " + (i + 1)}>{i + 1}</button>
+                <button key={i} className={`pager__dot ${i === pg ? "is-on" : ""}`} onClick={() => { setPg(i); announce(sc, i); }} title={pageT(i)}>{i + 1}</button>
               ));
               // windowed: first · current±1 · last, gaps shown as «…»
               const want = new Set([0, n - 1, pg - 1, pg, pg + 1]);
@@ -609,12 +611,12 @@ function Book({ flow = false, premise = "", title = "Попіл Орелії", p
               const out = [];
               idxs.forEach((i, k) => {
                 if (k > 0 && i - idxs[k - 1] > 1) out.push(<span key={"g" + i} className="pager__gap">…</span>);
-                out.push(<button key={i} className={`pager__dot ${i === pg ? "is-on" : ""}`} onClick={() => { setPg(i); announce(sc, i); }} title={"Сторінка " + (i + 1)}>{i + 1}</button>);
+                out.push(<button key={i} className={`pager__dot ${i === pg ? "is-on" : ""}`} onClick={() => { setPg(i); announce(sc, i); }} title={pageT(i)}>{i + 1}</button>);
               });
               return out;
             }())}
           </div>
-          <button className="scenebar__nav" type="button" disabled={atLast} onClick={() => go("next")} aria-label="Наступна">›</button>
+          <button className="scenebar__nav" type="button" disabled={atLast} onClick={() => go("next")} aria-label={window.__i18n ? window.__i18n.t('book.nextScene') : 'Наступна'}>›</button>
           <span className="scenebar__div" />
           {projectId && raw && raw[sc] && (
             <button className="bookbar__edit" type="button" title={window.__i18n ? window.__i18n.t('book.editScene') : 'Редагувати сцену'} onClick={() => openSheet(raw[sc])}>✎</button>

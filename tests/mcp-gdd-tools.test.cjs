@@ -13,7 +13,7 @@ let plan = { fileMB: 200 }, quota = { bytes: 0, quota: 10 * 1073741824 };
 const db = { collection: (c) => ({ doc: () => ({ get: async () => ({ exists: true, data: () => ({ plan: 'worldbuilder' }) }) }) }) };
 const req = (m) => (m === './storage-quota' ? { _quota: { usage: async () => quota } } : require(m));
 const T = new Function('NV', 'admin', 'GDD', 'REFS', 'KIT', 'db', 'getPlanBudget', 'require', 'crypto',
-  pick('const str =', '// ---------- tools') + pick('async function narrative', '// 🎙') +
+  pick('const str =', '// ---------- tools') + 'const sigOf = async () => String(Math.random()), GAME_TTL = 0;' + pick('// Kept on the instance like readGame', '// 🎙') +
   pick('// ---------- ✎ writes on the user', 'async function callTool') + pick('// 📦 card_file_upload', 'async function authKey') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
   ';return { linkCards, archiveCard, linkAsset, fileTicket, fileSlotFor, refCard };')(require('../functions/narrative-validate.js'), admin,

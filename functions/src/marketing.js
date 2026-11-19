@@ -35,6 +35,21 @@ const millis = (t) => (t && t.toMillis ? t.toMillis() : typeof t === 'number' ? 
 // every outbound call has a timeout: a channel's server that hangs must not stall the publisher for everyone
 // redirect 'error': a Mastodon host is the author's — it may not bounce the server (with the token) to an internal address
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(15000), redirect: 'error', ...o });
+// a Mastodon host must resolve to public addresses only (audit 2026-11-19: the name check alone let a public name point at
+// 127.0.0.1 / 10.x / 169.254.169.254) — checked on connect and before every post (the DNS may change in between)
+function privateIp(ip) {
+  const v = String(ip).toLowerCase().replace(/^::ffff:/, '');
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(v)) {
+    const [a, b] = v.split('.').map(Number);
+    return a === 0 || a === 10 || a === 127 || (a === 100 && b >= 64 && b <= 127) || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) || (a === 192 && b === 0) || (a === 198 && (b === 18 || b === 19)) || a >= 224;
+  }
+  return v === '::' || v === '::1' || /^f[cd]/.test(v) || /^fe[89ab]/.test(v) || /^ff/.test(v) || /^64:ff9b:/.test(v) || /^2001:db8:/.test(v);
+}
+async function publicHost(host) {
+  const addrs = await require('dns').promises.lookup(host, { all: true }).catch(() => []);
+  if (!addrs.length || addrs.some((a) => privateIp(a.address))) throw fail(400, 'Сервер Mastodon має бути публічним (його адреса — внутрішня або не знаходиться)');
+}
 const LEASE_MS = 10 * 60 * 1000; // a post stuck in «publishing» longer than this (a crash mid-send) may be retried or deleted
 const fail = (status, error, extra) => Object.assign(new Error(error), { status, extra });
 
@@ -71,6 +86,7 @@ async function publishTo(ch, secret, post) {
     return { messageId: String(j.id || ''), url: '' };
   }
   if (ch.platform === 'mastodon') {
+    await publicHost(ch.instance);
     const r = await fetch(`https://${ch.instance}/api/v1/statuses`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + secret.token, 'Idempotency-Key': post.id },
       body: JSON.stringify({ status: text.slice(0, 500) }) });
     const j = await r.json().catch(() => ({})); if (!r.ok) throw fail(400, 'Mastodon: ' + (j.error || 'HTTP ' + r.status));
@@ -124,6 +140,7 @@ async function connect(gref, key, b) {
     const instance = str(b.instance, 120).replace(/^https?:\/\//, '').replace(/\/.*$/, '').toLowerCase(), token = str(b.token, 200);
     // a public host only (the server fetches it): no internal / local names; an IP literal fails the TLD check
     if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(instance) || /\.(internal|local|localhost|lan|home|corp)$/.test(instance) || !token) throw fail(400, 'Потрібні сервер Mastodon і токен доступу (Налаштування → Розробка → Новий застосунок, право write:statuses)');
+    await publicHost(instance);
     const r = await fetch(`https://${instance}/api/v1/accounts/verify_credentials`, { headers: { Authorization: 'Bearer ' + token } }); const j = await r.json().catch(() => ({}));
     if (!r.ok) throw fail(400, 'Mastodon не прийняв токен');
     await db.collection('marketingSecrets').doc(key + '__' + id).set({ token });
@@ -214,12 +231,23 @@ exports.marketing = onRequest({ region: 'us-central1', secrets: [claudeApiKey, t
       if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
 
       if (op === 'activate') {
-        if (millis(state.paidUntil) > now()) { await sref.set({ enabled: true }, { merge: true }); return res.status(200).json({ success: true, tokensConsumed: 0, paidUntil: millis(state.paidUntil) }); }
+        // one month at a time: parallel «Увімкнути» — a claim in a transaction (payingAt, 2 min) lets one pay (like backup.js pay)
+        const claim = await db.runTransaction(async (tx) => {
+          const s = (await tx.get(sref)).data() || {};
+          if (millis(s.paidUntil) > now()) { tx.set(sref, { enabled: true }, { merge: true }); return { paidUntil: millis(s.paidUntil) }; }
+          if (now() - millis(s.payingAt) < 2 * 60 * 1000) return { busy: true };
+          tx.set(sref, { payingAt: admin.firestore.Timestamp.now() }, { merge: true });
+          return {};
+        });
+        if (claim.paidUntil) return res.status(200).json({ success: true, tokensConsumed: 0, paidUntil: claim.paidUntil });
+        if (claim.busy) return res.status(409).json({ error: 'Місяць маркетингу вже оплачується — спробуй за хвилину', code: 'BUSY' });
+        const unclaim = () => sref.set({ payingAt: admin.firestore.FieldValue.delete() }, { merge: true }).catch(() => {});
         const balance = getBalance(userData);
-        if (balance.available < MARKETING_COST) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: MARKETING_COST, code: 'OUT_OF_TOKENS' });
-        try { reservation = await reserve(db, uid, MARKETING_COST); } catch (e) { if (e.code !== 'OUT_OF_TOKENS') throw e; return res.status(403).json({ error: 'Недостатньо токенів', code: 'OUT_OF_TOKENS' }); }
+        if (balance.available < MARKETING_COST) { await unclaim(); return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: MARKETING_COST, code: 'OUT_OF_TOKENS' }); }
+        try { reservation = await reserve(db, uid, MARKETING_COST); } catch (e) { await unclaim(); if (e.code !== 'OUT_OF_TOKENS') throw e; return res.status(403).json({ error: 'Недостатньо токенів', code: 'OUT_OF_TOKENS' }); }
         const until = admin.firestore.Timestamp.fromMillis(now() + PERIOD_MS);
-        await sref.set({ enabled: true, paidUntil: until, paidAt: ts() }, { merge: true });
+        try { await sref.set({ enabled: true, paidUntil: until, paidAt: ts(), payingAt: admin.firestore.FieldValue.delete() }, { merge: true }); }
+        catch (e) { await unclaim(); throw e; } // the catch below refunds the reservation
         ledger.record(db, uid, { type: 'spend', op: 'marketing_month', amount: -MARKETING_COST, balance: reservation.available, ref: { worldId, gameId } });
         reservation = null;
         await db.collection('usage_logs').add({ uid, operation: 'marketing_month', worldId, gameId, userTokensCharged: MARKETING_COST, realApiCostUSD: 0, timestamp: ts() }).catch(() => {});
@@ -357,4 +385,4 @@ async function publishDue(q) {
   }
 }
 
-exports._marketing = { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken, connect, tgCode }; // tests only
+exports._marketing = { cleanDraft, draftPrompt, approvedEntries, PLATFORMS, botToken, connect, tgCode, privateIp, publicHost }; // tests only

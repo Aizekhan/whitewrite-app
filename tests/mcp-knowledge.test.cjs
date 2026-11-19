@@ -23,12 +23,13 @@ function doc(p) {
 function query(p, filters = [], ord = null, lim = 0) {
   const run = () => {
     let ids = [...store.keys()].filter((k) => k.startsWith(p + '/') && !k.slice(p.length + 1).includes('/'));
-    ids = ids.filter((k) => filters.every(([f, v]) => store.get(k)[f] === v));
+    const ok = (x, op, v) => (op === '>=' ? x !== undefined && String(x) >= v : op === '<' ? x !== undefined && String(x) < v : op === 'array-contains' ? Array.isArray(x) && x.includes(v) : x === v);
+    ids = ids.filter((k) => filters.every(([f, v, op]) => ok(store.get(k)[f], op, v)));
     if (ord) ids.sort((a, b) => String(store.get(b)[ord]).localeCompare(String(store.get(a)[ord])));
     if (lim) ids = ids.slice(0, lim);
     return { docs: ids.map(snap) };
   };
-  return { get: async () => run(), where: (f, op, v) => query(p, filters.concat([[f, v]]), ord, lim), orderBy: (f) => query(p, filters, f, lim),
+  return { get: async () => run(), where: (f, op, v) => query(p, filters.concat([[f, v, op]]), ord, lim), orderBy: (f) => query(p, filters, f, lim),
     limit: (n) => query(p, filters, ord, n), select: () => query(p, filters, ord, lim) };
 }
 function col(p) { return Object.assign(query(p), { doc: (id) => doc(p + '/' + id) }); }
@@ -88,6 +89,14 @@ const recs = [
   check((await knowledgeSearch(ctx, { guid: GUID(3) })).assets[0].missing, true, 'search by guid shows the missing mark');
   const rel = await knowledgeSearch(ctx, { related_to: GUID(1) });
   check(rel.relations.length + '|' + rel.total, '1|3', 'related_to: the relation, the dependency and the script');
+  // audit 2026-11-19: a full scan writes the search fields and marks the game — then searches are indexed queries, not a 3000-doc scan
+  check(store.get(G + '/kAssets/' + GUID(2)).nameLower + '|' + store.get(G).knowledge.lower, 'hero.mat|1', 'assets carry nameLower / pathLower / typeLower; a full scan marks games/{g}.knowledge.lower');
+  const ix = { gref: ctx.gref, game: { knowledge: { lower: 1 } } };
+  check((await knowledgeSearch(ix, { path_prefix: 'Assets/Scripts/' })).assets.map((a) => a.name).join(), 'HeroController.cs', 'path_prefix by a range query');
+  check((await knowledgeSearch(ix, { type: 'material' })).assets[0].path, 'Assets/Materials/Hero.mat', 'type by typeLower');
+  check((await knowledgeSearch(ix, { q: 'herocon', limit: 1 })).assets[0].name, 'HeroController.cs', 'a name prefix by nameLower');
+  const rel2 = await knowledgeSearch(ix, { related_to: GUID(1) });
+  check(rel2.relations.length + '|' + rel2.total, '1|3', 'related_to without a scan: the asset, its deps by id, the related script by the relation');
   // activity log
   const act = { session_id: 'sess-1', commit: 'abc1234', summary: 'Added a double jump.', entries: [
     { entry_id: 'e1', change: 'added', category: 'mechanic', text: 'Double jump', player_impact: 'Reach higher ledges', privacy: 'marketing_approved' },

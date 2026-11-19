@@ -30,6 +30,8 @@ const wmocks = (plan) => [get('/worlds/w1', { owner: 'u1', team: TEAM2 }), get('
 const MB = 1024 * 1024;
 const W = (name, expectation, uid, path, plan, size) => ({ name, tc: { expectation, functionMocks: wmocks(plan),
   request: { auth: { uid }, path: O + path, method: 'create', resource: { size, contentType: 'image/png' } } } });
+const U = (name, expectation, uid, path, contentType, size) => ({ name, tc: { expectation, functionMocks: wmocks('worldbuilder').concat([get('/worlds/w1/games/g1/cards/mech1', { section: 'mechanics' })]),
+  request: { auth: { uid }, path: O + path, method: 'create', resource: { size, contentType } } } });
 
 const cases = [
   R('the owner reads any card file', 'ALLOW', 'u1', 'worlds/w1/games/g1/files/lvl1/a.png'),
@@ -53,6 +55,22 @@ const cases = [
   W('a custom member uploads a culture file with «Культура»', 'ALLOW', 'u4', 'worlds/w1/files/lore_abc/p.png', 'novelist', MB),
   W('a custom member CANNOT upload a file of another kind', 'DENY', 'u4', 'worlds/w1/files/city/p.png', 'novelist', MB),
   W('a viewer CANNOT upload a dossier file', 'DENY', 'u3', 'worlds/w1/files/hero/p.png', 'worldbuilder', MB),
+  // audit 2026-11-19: avatars / story covers only under the shell's «<ms>_<name>» and raster; nothing a browser runs as a document
+  U('the owner uploads an avatar', 'ALLOW', 'u1', 'users/u1/avatar/1763500000000_me.png', 'image/png', MB),
+  U('an avatar CANNOT take any name', 'DENY', 'u1', 'users/u1/avatar/../../x.png', 'image/png', MB),
+  U('an avatar CANNOT be an SVG', 'DENY', 'u1', 'users/u1/avatar/1763500000000_me.svg', 'image/svg+xml', 1000),
+  U('an avatar CANNOT be over 2 MB', 'DENY', 'u1', 'users/u1/avatar/1763500000000_me.png', 'image/png', 3 * MB),
+  U('a stranger CANNOT upload my avatar', 'DENY', 'u2', 'users/u1/avatar/1763500000000_me.png', 'image/png', MB),
+  U('a card file CANNOT be HTML', 'DENY', 'u1', 'worlds/w1/games/g1/files/mech1/x.html', 'text/html', 1000),
+  U('a card file CANNOT be SVG', 'DENY', 'u1', 'worlds/w1/games/g1/files/mech1/x.svg', 'image/svg+xml', 1000),
+  U('a card takes a GLB model', 'ALLOW', 'u1', 'worlds/w1/games/g1/files/mech1/hero.glb', 'model/gltf-binary', 5 * MB),
+  U('a dossier file CANNOT be JavaScript', 'DENY', 'u1', 'worlds/w1/files/hero/x.js', 'text/javascript', 1000),
+  // 🎓 the demo game (games/{g}.demo) is read-only: no cover / title image; an ordinary game takes one
+  { name: 'the demo game CANNOT take a cover', tc: { expectation: 'DENY', functionMocks: wmocks('worldbuilder').concat([get('/worlds/w1/games/demo1', { demo: true })]),
+    request: { auth: { uid: 'u1' }, path: O + 'worlds/w1/games/demo1/cover/c.png', method: 'create', resource: { size: MB, contentType: 'image/png' } } } },
+  { name: 'an ordinary game takes a cover', tc: { expectation: 'ALLOW', functionMocks: wmocks('worldbuilder').concat([get('/worlds/w1/games/g1', { title: 'G' })]),
+    request: { auth: { uid: 'u1' }, path: O + 'worlds/w1/games/g1/cover/c.png', method: 'create', resource: { size: MB, contentType: 'image/png' } } } },
+  U('the world cover CANNOT be an SVG', 'DENY', 'u1', 'worlds/w1/cover/1763500000000_c.svg', 'image/svg+xml', 1000),
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

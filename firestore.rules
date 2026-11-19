@@ -51,6 +51,12 @@ service cloud.firestore {
     function gameExists(worldId, gameId) {
       return exists(/databases/$(database)/documents/worlds/$(worldId)/games/$(gameId));
     }
+    // 🎓 the demo game (games/{g}.demo, set only by projects.js createGame { demo }) is read-only for every client: nothing under it is
+    // created or changed — the author copies it («⧉ Скопіювати як мою гру»); only the world owner deletes it (gamebible.js removeGame)
+    function notDemo(worldId, gameId) {
+      return !exists(/databases/$(database)/documents/worlds/$(worldId)/games/$(gameId)) ||
+             get(/databases/$(database)/documents/worlds/$(worldId)/games/$(gameId)).data.get('demo', false) != true;
+    }
     // Команда (functions/src/team.js): worlds/{w}.team.{uid} = { role: admin|editor|viewer|custom, view[], edit[], viewKinds[], editKinds[] },
     // written only by the server. admin / editor read and write everything (admin's ✦ is paid by the owner on the server),
     // viewer reads everything, custom reads `view` and writes `edit` (Bible menu ids; entity kinds for the canon dossiers).
@@ -78,7 +84,8 @@ service cloud.firestore {
     function anyAccess(worldId) {
       return isWorldOwner(worldId) || mem(worldId) != null;
     }
-    // game writes need Game Dev on the OWNER's plan (members work in the owner's world)
+    // game writes need Game Dev on the OWNER's plan (members work in the owner's world). The list = the plans whose planBudget has
+    // allowGameDev (functions/paid-features.js); tests/canon-plans.test.cjs keeps it (and hasGameDev, storage.rules ownerGameDev) equal to the registry
     function ownerGameDev(worldId) {
       return get(/databases/$(database)/documents/users/$(get(/databases/$(database)/documents/worlds/$(worldId)).data.owner)).data.get('plan', 'free') in ['worldbuilder', 'worldforge'];
     }
@@ -89,8 +96,11 @@ service cloud.firestore {
     function canonPlans() {
       return ['storyteller', 'novelist', 'worldbuilder', 'worldforge'];
     }
+    // createdAt is the server's clock: the create must write request.time (serverTimestamp) and no update changes it (audit 2026-11-19 —
+    // a client-written future createdAt kept a Free world «fresh» forever); a value from the future is never fresh
     function freshWorld(w) {
-      return request.time < w.get('createdAt', timestamp.value(0)) + duration.value(30, 'm');
+      let c = w.get('createdAt', timestamp.value(0));
+      return c is timestamp && c <= request.time && request.time < c + duration.value(30, 'm');
     }
     function canonOpen(worldId) {
       let w = get(/databases/$(database)/documents/worlds/$(worldId)).data;
@@ -113,14 +123,77 @@ service cloud.firestore {
     function optStr(d, k, max) {
       return !(k in d) || (d[k] is string && d[k].size() <= max);
     }
+    // an optional field from a fixed list (audit 2026-11-19: status / priority / assetState went into class attributes of the owner's page —
+    // the page escapes them now, the rules keep them to the values the Bible and the functions write)
+    function optIn(d, k, vals) {
+      return !(k in d) || d[k] in vals;
+    }
     function gameDocOk(sub, d) {
       return (sub != 'tasks' || (
                 (!('kind' in d) || d.kind in ['task', 'bug']) &&
                 (!('severity' in d) || d.severity in ['s1', 's2', 's3', 's4']) &&
+                optIn(d, 'status', ['todo', 'in_progress', 'review', 'rework', 'blocked', 'done']) &&
+                optIn(d, 'priority', ['', 'must', 'should', 'could']) &&
+                optIn(d, 'assetState', ['', 'greybox', 'standin', 'styled', 'final']) &&
                 optStr(d, 'repro', 4000) && optStr(d, 'expected', 2000) && optStr(d, 'actual', 2000) &&
                 optStr(d, 'build', 80) && optStr(d, 'foundIn', 120))) &&
              (sub != 'experiments' || (
-                (!('decision' in d) || d.decision in ['ship', 'kill', 'iterate']) && optStr(d, 'decisionNote', 2000)));
+                optIn(d, 'status', ['running', 'done']) &&
+                (!('decision' in d) || d.decision in ['ship', 'kill', 'iterate']) && optStr(d, 'decisionNote', 2000))) &&
+             (sub != 'experienceIssues' || (
+                optIn(d, 'status', ['open', 'planned', 'validating', 'awaiting', 'resolved', 'dismissed']) &&
+                optIn(d, 'priority', ['high', 'medium', 'low']) && optIn(d, 'confidence', ['low', 'medium', 'high']) &&
+                optStr(d, 'category', 40) && optStr(d, 'chosenAction', 2000))) &&
+             (sub != 'playtests' || optIn(d, 'status', ['draft', 'active', 'done'])) &&
+             (sub != 'changeRequests' || optIn(d, 'status', ['open', 'accepted', 'rejected', 'declined'])) &&
+             (!(sub in ['quests', 'dialogues']) || optIn(d, 'approval', ['draft', 'review', 'approved', 'archived']));
+    }
+    // A team member's writes the owner's Claude Code would read as the author's word (audit 2026-11-19): only the owner approves a gate,
+    // changes the gating or a milestone, deletes the plan, approves a quest / dialogue; on a change request a member only decides it,
+    // on an experience issue / playtest only moves its status. Owners write as before.
+    function memberSubOk(worldId, sub, docId) {
+      return isWorldOwner(worldId) || (
+        (sub != 'plan' || (request.method != 'delete' && docId == 'current' && memberPlanOk())) &&
+        (sub != 'changeRequests' || (request.method == 'update' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt']) && request.resource.data.status in ['accepted', 'rejected'])) &&
+        (sub != 'experienceIssues' || (request.method == 'update' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'taskId', 'chosenAction', 'updatedAt']))) &&
+        (sub != 'playtests' || (request.method == 'update' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))) &&
+        (!(sub in ['quests', 'dialogues']) || request.method == 'delete' ||
+          request.resource.data.get('approval', 'draft') != 'approved' || (resource != null && resource.data.get('approval', 'draft') == 'approved')));
+    }
+    // plan/current from a member: the answers, resolved contradictions, imported questions, the scaffold mark — and the plan itself only
+    // by one hand-made milestone EXP / MAP (gamebible.js addManualTask: «Досвід гравців» / «Карта гри» tasks), never gates or the gating
+    function memberPlanOk() {
+      let old = resource == null ? {} : resource.data;
+      let keys = request.resource.data.diff(old).affectedKeys();
+      return keys.hasOnly(['answers', 'answeredAt', 'resolved', 'asked', 'contradictions', 'scaffold', 'plan', 'updatedAt']) &&
+             (!keys.hasAny(['plan']) || memberMilestoneOk(old.get('plan', {}), request.resource.data.plan));
+    }
+    function memberMilestoneOk(o, n) {
+      let om = o.get('milestones', []);
+      let nm = n.get('milestones', []);
+      let added = nm.removeAll(om);
+      let gone = om.removeAll(nm);
+      return n.diff(o).affectedKeys().hasOnly(['milestones']) && nm.size() <= om.size() + 1 && added.size() <= 1 && gone.size() <= 1 &&
+             (added.size() == 0 || (added[0].get('id', '') in ['EXP', 'MAP'] && !added[0].keys().hasAny(['track', 'accept', 'budgets']) && added[0].get('gate', '') == '')) &&
+             (gone.size() == 0 || (added.size() == 1 && gone[0].get('id', '') == added[0].get('id', '')));
+    }
+    // the game's own sections (games/{g}.sections [{ id, name, about, group }], gamebible.js «＋ Свій розділ»): ids go into attributes and
+    // menu ids — letters, digits, _ . : - only (rules cannot loop, so each of the at most 60 is checked by its index)
+    function secOk(l, i) {
+      return i >= l.size() || (l[i] is map && l[i].get('id', '') is string && l[i].get('id', '').matches('[\\p{L}\\p{N}_.:-]{1,80}') &&
+                               l[i].get('name', '') is string && l[i].get('name', '').size() <= 200 && l[i].get('about', '') is string && l[i].get('about', '').size() <= 2000);
+    }
+    function secsOk(l) {
+      return l is list && l.size() <= 60 &&
+             secOk(l, 0) && secOk(l, 1) && secOk(l, 2) && secOk(l, 3) && secOk(l, 4) && secOk(l, 5) && secOk(l, 6) && secOk(l, 7) && secOk(l, 8) && secOk(l, 9) &&
+             secOk(l, 10) && secOk(l, 11) && secOk(l, 12) && secOk(l, 13) && secOk(l, 14) && secOk(l, 15) && secOk(l, 16) && secOk(l, 17) && secOk(l, 18) && secOk(l, 19) &&
+             secOk(l, 20) && secOk(l, 21) && secOk(l, 22) && secOk(l, 23) && secOk(l, 24) && secOk(l, 25) && secOk(l, 26) && secOk(l, 27) && secOk(l, 28) && secOk(l, 29) &&
+             secOk(l, 30) && secOk(l, 31) && secOk(l, 32) && secOk(l, 33) && secOk(l, 34) && secOk(l, 35) && secOk(l, 36) && secOk(l, 37) && secOk(l, 38) && secOk(l, 39) &&
+             secOk(l, 40) && secOk(l, 41) && secOk(l, 42) && secOk(l, 43) && secOk(l, 44) && secOk(l, 45) && secOk(l, 46) && secOk(l, 47) && secOk(l, 48) && secOk(l, 49) &&
+             secOk(l, 50) && secOk(l, 51) && secOk(l, 52) && secOk(l, 53) && secOk(l, 54) && secOk(l, 55) && secOk(l, 56) && secOk(l, 57) && secOk(l, 58) && secOk(l, 59);
     }
     function storyOpen(projectId) {
       let w = get(/databases/$(database)/documents/projects/$(projectId)).data.get('worldId', null);
@@ -133,9 +206,10 @@ service cloud.firestore {
       // worlds/{w}.cosmograph (Космограф access, paid monthly) is written only by functions/src/cosmograph.js; .freeze — by market.js
       // .team / .teamUids — team.js; .backup — backup.js; .integrations — integrations.js
       allow create: if isAuthenticated() && request.resource.data.owner == request.auth.uid &&
-                       !request.resource.data.keys().hasAny(['cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']);
+                       !request.resource.data.keys().hasAny(['cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']) &&
+                       (!('createdAt' in request.resource.data) || request.resource.data.createdAt == request.time); // serverTimestamp() — freshWorld trusts it
       allow update: if isAuthenticated() && resource.data.get('freeze', null) == null &&
-                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner', 'cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']) &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['owner', 'createdAt', 'cosmograph', 'freeze', 'team', 'teamUids', 'backup', 'licence', 'boughtFrom', 'boughtAt', 'integrations']) &&
                        (resource.data.owner == request.auth.uid || memberWorldEdit()) &&
                        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(canonWorldKeys()) || worldCanonOpen());
       function worldCanonOpen() {
@@ -185,9 +259,10 @@ service cloud.firestore {
         // .telemetryStats (experience.js telemetryIngest), .knowledge (mcp.js submit_project_knowledge), .audit / .auditRunning (gamedev.js), .demo (projects.js createGame — the
         // 🎓 demo game outside the plan's game limit) — server only too; .launch builds the PowerShell lines
         // the OWNER pastes on their PC (gamebible.js «Запуск Claude Code») — so only the owner changes it
-        allow update: if isAuthenticated() && worldOpen(worldId) && ((fullEdit(worldId) &&
+        allow update: if isAuthenticated() && worldOpen(worldId) && resource.data.get('demo', false) != true && ((fullEdit(worldId) &&
                          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['repo', 'ingestKeys', 'integrations', 'framework', 'telemetryStats', 'knowledge', 'audit', 'auditRunning', 'demo']) &&
-                         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId))) || memberGameEdit());
+                         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['launch']) || isWorldOwner(worldId)) &&
+                         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['sections']) || secsOk(request.resource.data.sections))) || memberGameEdit());
         // a «вибрані розділи» member writes on the game doc only what belongs to their sections: the subsections and the 🎨 group
         // palettes of a section they edit, and the 🎙 voices (games/{g}.voices) with «Діалоги» or a character / enemy section
         function memberGameEdit() {
@@ -206,10 +281,10 @@ service cloud.firestore {
       // cards: by their own section (a member with chosen sections queries one section at a time)
       match /games/{gameId}/cards/{cardId} {
         allow read: if isAuthenticated() && readSec(worldId, resource.data.section);
-        allow create: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId) && gameExists(worldId, gameId);
+        allow create: if isAuthenticated() && editSec(worldId, request.resource.data.section) && worldOpen(worldId) && gameExists(worldId, gameId) && notDemo(worldId, gameId);
         // the section it is in now too: a member may not pull another section's card into theirs
-        allow update: if isAuthenticated() && editSec(worldId, resource.data.section) && editSec(worldId, request.resource.data.section) && worldOpen(worldId);
-        allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && worldOpen(worldId);
+        allow update: if isAuthenticated() && editSec(worldId, resource.data.section) && editSec(worldId, request.resource.data.section) && worldOpen(worldId) && notDemo(worldId, gameId);
+        allow delete: if isAuthenticated() && editSec(worldId, resource.data.section) && worldOpen(worldId) && (isWorldOwner(worldId) || notDemo(worldId, gameId));
       }
       match /games/{gameId}/{sub}/{docId} {
         allow read: if isAuthenticated() && sub != 'cards' && readSec(worldId, subSec(sub));
@@ -217,6 +292,8 @@ service cloud.firestore {
                         (sub in ['quests', 'dialogues'] ||
                          (sub in ['plan', 'tasks', 'changeRequests', 'experienceIssues', 'experiments', 'playtests'] && ownerGameDev(worldId))) &&
                         (request.method == 'delete' || (gameDocOk(sub, request.resource.data) && gameExists(worldId, gameId))) &&
+                        ((request.method == 'delete' && isWorldOwner(worldId)) || notDemo(worldId, gameId)) &&
+                        memberSubOk(worldId, sub, docId) &&
                         // a task a member writes carries memberEdit = their uid: the owner's Claude Code (MCP) holds it until the owner
                         // approves (clears it) — a member's text never runs as the owner's instruction on the owner's PC
                         (sub != 'tasks' || request.method == 'delete' || isWorldOwner(worldId) || request.resource.data.get('memberEdit', null) == request.auth.uid);
@@ -229,7 +306,7 @@ service cloud.firestore {
       }
       // Development activity log: Claude Code writes entries (MCP); the author only re-marks privacy, or deletes with the game
       match /games/{gameId}/activity/{sessionId}/entries/{entryId} {
-        allow update: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() && worldOpen(worldId) &&
+        allow update: if isAuthenticated() && isWorldOwner(worldId) && hasGameDev() && worldOpen(worldId) && notDemo(worldId, gameId) &&
                          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['privacy', 'reviewedAt']) &&
                          request.resource.data.privacy in ['internal', 'confidential', 'spoiler', 'excluded', 'marketing_approved'];
         allow delete: if isAuthenticated() && isWorldOwner(worldId);
@@ -243,6 +320,10 @@ service cloud.firestore {
     }
     // The author's one saved GitHub token (github-token.js) — reused by the repo and backup connections, server only
     match /githubTokens/{uid} {
+      allow read, write: if false;
+    }
+    // Storage upload locks (functions/src/storage-quota.js, per uid) — server only
+    match /storageLocks/{uid} {
       allow read, write: if false;
     }
     // Storage quota (functions/src/storage-quota.js): bytes per world, the owner reads their own (the page checks before an upload)
@@ -259,7 +340,7 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Маркет: licensed lots are public; applications, deals and seller accounts — the owner / buyer reads, only the server writes
+    // Маркет: licensed lots are public; applications and deals — the owner / buyer reads, only the server writes
     match /marketLots/{lotId} {
       allow read: if resource == null || resource.data.status == 'listed' || (isAuthenticated() && resource.data.seller == request.auth.uid);
       allow write: if false;
@@ -270,10 +351,6 @@ service cloud.firestore {
     }
     match /marketDeals/{id} {
       allow read: if isAuthenticated() && (resource.data.seller == request.auth.uid || resource.data.buyer == request.auth.uid);
-      allow write: if false;
-    }
-    match /sellers/{uid} {
-      allow read: if isAuthenticated() && isOwner(uid);
       allow write: if false;
     }
 

@@ -19,6 +19,7 @@ const fail = (status, error) => Object.assign(new Error(error), { status });
 const SEC = /^[\w-]{1,40}$/;
 const KIND_OF = { 'w-characters': 'characters', 'w-locations': 'locations', 'w-factions': 'factions', 'w-items': 'artifacts', chronicle: 'events' }; // canon menu → entity kind
 const fref = (a, b) => db.collection('users').doc(a).collection('friends').doc(b);
+const mailId = (email) => 'e_' + require('crypto').createHash('sha1').update(email).digest('hex'); // an invite to an email without an account
 
 // The uid whose tokens an AI action spends: the owner when an admin of the team acts, else the caller
 async function payerFor(uid, worldId) {
@@ -56,8 +57,10 @@ function member(body, prev) {
   return { role, view, edit, viewKinds: kinds(view), editKinds: kinds(edit), name: prev.name || '', at: Date.now() };
 }
 
-// «Користувача з такою поштою немає» tells whether an email has an account — so one account asks about at most
-// INVITES_A_DAY emails a day (inviteLimits/{uid}, server only), not a mailing list
+// One account invites at most INVITES_A_DAY emails a day (inviteLimits/{uid}, server only), not a mailing list.
+// The answer never tells whether an email has an account (audit 2026-11-19): an unknown email gets the same «pending» —
+// a doc e_<sha1(email)> in the inviter's list (shows the email, «Скасувати» removes it) — and the inviter sees the friend's
+// name only after they accept
 const INVITES_A_DAY = 30;
 async function inviteQuota(uid) {
   const ref = db.collection('inviteLimits').doc(uid), day = new Date().toISOString().slice(0, 10);
@@ -76,15 +79,17 @@ async function handle(op, b, uid) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw fail(400, 'Потрібна пошта друга');
     await inviteQuota(uid);
     const other = await admin.auth().getUserByEmail(email).catch(() => null);
-    if (!other) throw fail(404, 'Користувача з такою поштою в WhiteWrite немає — запроси його зареєструватись');
+    const byMail = fref(uid, mailId(email));
+    if (!other) { await byMail.set({ name: '', email, status: 'pending', at: ts() }); return { status: 'pending' }; } // no account: the same answer
     if (other.uid === uid) throw fail(400, 'Це твоя пошта');
     const [mine, theirs] = await Promise.all([fref(uid, other.uid).get(), fref(other.uid, uid).get()]);
+    await byMail.delete().catch(() => {}); // an earlier invite to the email before it had an account
     if (mine.exists && mine.data().status === 'accepted') return { status: 'accepted' };
     const [me, them] = await Promise.all([who(uid), who(other.uid)]);
     const accept = mine.exists && mine.data().status === 'incoming'; // they asked first: we are friends now
     const status = accept ? 'accepted' : 'pending';
     await Promise.all([
-      fref(uid, other.uid).set({ uid: other.uid, name: them.name, email: them.email, status, at: ts() }),
+      fref(uid, other.uid).set({ uid: other.uid, name: accept ? them.name : '', email, status, at: ts() }), // the name — once they accept
       fref(other.uid, uid).set({ uid, name: me.name, email: me.email, status: accept ? 'accepted' : 'incoming', at: theirs.exists ? theirs.data().at || ts() : ts() }),
     ]);
     return { status };
@@ -92,7 +97,8 @@ async function handle(op, b, uid) {
   if (op === 'accept') {
     const f = str(b.uid, 128), mine = await fref(uid, f).get();
     if (!mine.exists || mine.data().status !== 'incoming') throw fail(404, 'Запрошення не знайдено');
-    await Promise.all([fref(uid, f).update({ status: 'accepted', at: ts() }), fref(f, uid).set({ status: 'accepted', at: ts() }, { merge: true })]);
+    const me = await who(uid); // the inviter learns the name now
+    await Promise.all([fref(uid, f).update({ status: 'accepted', at: ts() }), fref(f, uid).set({ status: 'accepted', name: me.name, at: ts() }, { merge: true })]);
     return { status: 'accepted' };
   }
   if (op === 'unfriend') { // also leaves each other's teams

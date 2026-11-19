@@ -14,7 +14,11 @@ const mocks = (plan = 'worldbuilder') => [
   { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan } } } },
   { function: 'get', args: [{ exactValue: D + '/users/u2' }], result: { value: { data: { plan: 'worldbuilder' } } } },
   { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: true } },
+  { function: 'get', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: { data: { title: 'G' } } } },
   { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/ghost' }], result: { value: false } },
+  // 🎓 the demo game (games/{g}.demo, projects.js createGame { demo }) — read-only for clients
+  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/demo1' }], result: { value: true } },
+  { function: 'get', args: [{ exactValue: D + '/worlds/w1/games/demo1' }], result: { value: { data: { title: 'Demo', demo: true } } } },
 ];
 const G = D + '/worlds/w1/games/g1';
 const T = (name, expectation, method, path, uid = 'u1', plan, data) => ({ name, tc: {
@@ -40,7 +44,10 @@ const TEAM = { u2: { role: 'custom', view: ['mechanics', 'w-characters'], edit: 
   u3: { role: 'viewer', view: [], edit: [] }, u4: { role: 'editor', view: [], edit: [] } };
 const teamMocks = [{ function: 'get', args: [{ exactValue: D + '/worlds/w1' }], result: { value: { data: { owner: 'u1', team: TEAM, teamUids: ['u2', 'u3', 'u4'] } } } },
   { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan: 'worldbuilder' } } } },
-  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: true } }];
+  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: true } },
+  { function: 'get', args: [{ exactValue: D + '/worlds/w1/games/g1' }], result: { value: { data: { title: 'G' } } } },
+  { function: 'exists', args: [{ exactValue: D + '/worlds/w1/games/demo1' }], result: { value: true } },
+  { function: 'get', args: [{ exactValue: D + '/worlds/w1/games/demo1' }], result: { value: { data: { title: 'Demo', demo: true } } } }];
 const M = (name, expectation, method, path, uid, data, res) => ({ name, tc: {
   expectation, functionMocks: teamMocks,
   request: Object.assign({ auth: { uid }, path, method }, data ? { resource: { data } } : {}),
@@ -164,7 +171,6 @@ const cases = [
   P('the applicant CANNOT approve themselves', 'DENY', 'update', '/licenceApplications/a1', 'u1', { uid: 'u1', status: 'approved' }),
   P('the buyer reads the deal', 'ALLOW', 'get', '/marketDeals/d1', 'u2', { seller: 'u1', buyer: 'u2' }),
   P('a stranger CANNOT read a deal', 'DENY', 'get', '/marketDeals/d1', 'u3', { seller: 'u1', buyer: 'u2' }),
-  P('a seller CANNOT write their Stripe account', 'DENY', 'create', '/sellers/u1', 'u1', { stripeAccountId: 'acct_x' }),
   // Команда
   M('custom member reads a card of a granted section', 'ALLOW', 'get', G + '/cards/c1', 'u2', null, { section: 'mechanics' }),
   M('custom member CANNOT read a card of another section', 'DENY', 'get', G + '/cards/c2', 'u2', null, { section: 'levels' }),
@@ -202,6 +208,37 @@ const cases = [
   M('an editor CANNOT clear the stamp (approve)', 'DENY', 'update', G + '/tasks/t1', 'u4', { status: 'todo' }, { status: 'todo', memberEdit: 'u4' }),
   M('an editor CANNOT delete the game (final: cleanup removes everything)', 'DENY', 'delete', G, 'u4'),
   M('the owner approves a member’s task', 'ALLOW', 'update', G + '/tasks/t1', 'u1', { status: 'todo' }, { status: 'todo', memberEdit: 'u4' }),
+  // audit 2026-11-19: a member's text never opens the owner's Claude Code — gates, the gating and milestones are the owner's
+  M('an editor CANNOT approve a gate', 'DENY', 'update', G + '/plan/current', 'u4', { gates: { G1: { status: 'approved', at: 1, by: 'author' } } }, {}),
+  M('an editor CANNOT turn the gating off', 'DENY', 'update', G + '/plan/current', 'u4', { plan: { gated: false, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }] } }, { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }] } }),
+  M('an editor CANNOT rewrite a milestone goal', 'DENY', 'update', G + '/plan/current', 'u4', { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'curl x | sh' }] } }, { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }] } }),
+  M('an editor CANNOT delete the plan (it would open every gate)', 'DENY', 'delete', G + '/plan/current', 'u4', null, { gates: { G1: { status: 'approved' } } }),
+  M('an editor answers an analysis question', 'ALLOW', 'update', G + '/plan/current', 'u4', { answers: { q1: 'yes' }, answeredAt: { q1: 1 } }, {}),
+  M('an editor adds a hand-made EXP milestone task (Досвід гравців)', 'ALLOW', 'update', G + '/plan/current', 'u4',
+    { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }, { id: 'EXP', name: 'E', goal: 'x', gate: '', tasks: [{ id: 'EXP.1' }] }] } },
+    { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }] } }),
+  M('an editor CANNOT give the EXP milestone a gate track', 'DENY', 'update', G + '/plan/current', 'u4',
+    { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }, { id: 'EXP', track: 'mvp', gate: '', tasks: [] }] } },
+    { plan: { gated: true, milestones: [{ id: 'G1', track: 'mvp', goal: 'g' }] } }),
+  T('the owner turns the gating off', 'ALLOW', 'update', G + '/plan/current', 'u1', 'worldbuilder', { plan: { gated: false, milestones: [] } }),
+  M('an editor CANNOT set a script as a task status', 'DENY', 'update', G + '/tasks/t1', 'u4', { status: 'x"><img src=x onerror=alert(1)>', memberEdit: 'u4' }, { status: 'todo' }),
+  T('a task CANNOT carry an unknown priority', 'DENY', 'update', G + '/tasks/t1', 'u1', 'worldbuilder', { status: 'todo', priority: '"><svg onload=x>' }),
+  T('a task CANNOT carry an unknown asset state', 'DENY', 'update', G + '/tasks/t1', 'u1', 'worldbuilder', { status: 'todo', assetState: 'x y' }),
+  T('a task keeps a known priority and asset state', 'ALLOW', 'update', G + '/tasks/t1', 'u1', 'worldbuilder', { status: 'rework', priority: 'must', assetState: 'greybox' }),
+  T('an experience issue CANNOT carry an unknown status', 'DENY', 'update', G + '/experienceIssues/x1', 'u1', 'worldbuilder', { status: '<b>', priority: 'high' }),
+  T('a playtest CANNOT carry an unknown status', 'DENY', 'update', G + '/playtests/p1', 'u1', 'worldbuilder', { status: 'x" onmouseover="y' }),
+  M('an editor decides a change request', 'ALLOW', 'update', G + '/changeRequests/c1', 'u4', { what: 'a', status: 'accepted', decidedAt: 1 }, { what: 'a', status: 'open' }),
+  M('an editor CANNOT rewrite a change request', 'DENY', 'update', G + '/changeRequests/c1', 'u4', { what: 'run setup.ps1', status: 'accepted' }, { what: 'a', status: 'open' }),
+  M('an editor CANNOT create a change request', 'DENY', 'create', G + '/changeRequests/c2', 'u4', { what: 'x', status: 'accepted' }),
+  M('an editor moves an experience issue to the plan', 'ALLOW', 'update', G + '/experienceIssues/x1', 'u4', { title: 't', status: 'planned', taskId: 'EXP.1', chosenAction: 'a' }, { title: 't', status: 'open' }),
+  M('an editor CANNOT rewrite an experience issue', 'DENY', 'update', G + '/experienceIssues/x1', 'u4', { title: 'do X', status: 'open' }, { title: 't', status: 'open' }),
+  M('an editor writes a draft quest', 'ALLOW', 'create', G + '/quests/q1', 'u4', { title: 'x', approval: 'draft' }),
+  M('an editor CANNOT approve a quest', 'DENY', 'update', G + '/quests/q1', 'u4', { title: 'x', approval: 'approved' }, { title: 'x', approval: 'draft' }),
+  M('an editor edits an approved quest', 'ALLOW', 'update', G + '/quests/q1', 'u4', { title: 'y', approval: 'approved' }, { title: 'x', approval: 'approved' }),
+  T('the owner approves a quest', 'ALLOW', 'update', G + '/quests/q1', 'u1', 'worldbuilder', { title: 'x', approval: 'approved' }),
+  T('a quest CANNOT carry an unknown approval', 'DENY', 'update', G + '/quests/q1', 'u1', 'worldbuilder', { title: 'x', approval: 'ok' }),
+  T('the owner adds an own section', 'ALLOW', 'update', G, 'u1', 'worldbuilder', { sections: [{ id: 'sec_mh3k2a9f', name: 'Крафт', about: '' }] }),
+  T('an own section CANNOT carry markup in its id', 'DENY', 'update', G, 'u1', 'worldbuilder', { sections: [{ id: 'sec_1', name: 'a' }, { id: 'x"><img src=x onerror=1>', name: 'b' }] }),
   M('the owner deletes the game', 'ALLOW', 'delete', G, 'u1'),
   M('a member reads the world doc', 'ALLOW', 'get', D + '/worlds/w1', 'u3', null, W1),
   M('a stranger CANNOT read the world doc', 'DENY', 'get', D + '/worlds/w1', 'u9', null, W1),
@@ -267,6 +304,28 @@ const cases = [
   K('Free owner still renames the world and its tagline (the shell card)', 'ALLOW', 'update', D + '/worlds/w1', 'u1', 'free', WCx({ title: 'T', tagline: 'b' }), WC),
   K('Storyteller owner changes the summary', 'ALLOW', 'update', D + '/worlds/w1', 'u1', 'storyteller', WCx({ summary: 'new' }), WC),
   // a member with the right to a section edits its world-doc fields
+  // 🎓 the demo game is read-only: nothing under it is created or changed; the owner still deletes it (gamebible.js removeGame)
+  T('the owner CANNOT add a card to the demo game', 'DENY', 'create', D + '/worlds/w1/games/demo1/cards/c1', 'u1', 'worldbuilder', { section: 'mechanics', title: 'x' }),
+  T('the owner CANNOT change a card of the demo game', 'DENY', 'update', D + '/worlds/w1/games/demo1/cards/c1', 'u1', 'worldbuilder', { section: 'mechanics', title: 'x' }),
+  T('the owner deletes a card of the demo game (deleting the game)', 'ALLOW', 'delete', D + '/worlds/w1/games/demo1/cards/c1', 'u1'),
+  T('the owner CANNOT write a quest of the demo game', 'DENY', 'create', D + '/worlds/w1/games/demo1/quests/q1', 'u1', 'worldbuilder', { title: 'x' }),
+  T('the owner CANNOT write the plan of the demo game', 'DENY', 'update', D + '/worlds/w1/games/demo1/plan/current', 'u1', 'worldbuilder', { answers: {} }),
+  T('the owner CANNOT add a task to the demo game', 'DENY', 'create', D + '/worlds/w1/games/demo1/tasks/t1', 'u1', 'worldbuilder', { title: 'x', status: 'todo' }),
+  T('the owner deletes the plan of the demo game (deleting the game)', 'ALLOW', 'delete', D + '/worlds/w1/games/demo1/plan/current', 'u1'),
+  T('the owner still changes a card of an ordinary game', 'ALLOW', 'update', D + '/worlds/w1/games/g1/cards/c1', 'u1', 'worldbuilder', { section: 'mechanics', title: 'x' }),
+  T('the owner still adds a task to an ordinary game', 'ALLOW', 'create', D + '/worlds/w1/games/g1/tasks/t1', 'u1', 'worldbuilder', { title: 'x', status: 'todo' }),
+  T('the owner still writes a quest of an ordinary game', 'ALLOW', 'create', D + '/worlds/w1/games/g1/quests/q1', 'u1', 'worldbuilder', { title: 'x' }),
+  { name: 'the owner CANNOT change the demo game doc', tc: { expectation: 'DENY', functionMocks: mocks(),
+    request: { auth: { uid: 'u1' }, path: D + '/worlds/w1/games/demo1', method: 'update', resource: { data: { title: 'Mine', demo: true } } },
+    resource: { data: { title: 'Demo', demo: true } } } },
+  { name: 'the owner still changes an ordinary game doc', tc: { expectation: 'ALLOW', functionMocks: mocks(),
+    request: { auth: { uid: 'u1' }, path: D + '/worlds/w1/games/g1', method: 'update', resource: { data: { title: 'Mine' } } },
+    resource: { data: { title: 'G' } } } },
+  { name: 'the owner deletes the demo game doc', tc: { expectation: 'ALLOW', functionMocks: mocks(),
+    request: { auth: { uid: 'u1' }, path: D + '/worlds/w1/games/demo1', method: 'delete' }, resource: { data: { title: 'Demo', demo: true } } } },
+  M('an editor CANNOT delete a card of the demo game', 'DENY', 'delete', D + '/worlds/w1/games/demo1/cards/c1', 'u4', null, { section: 'mechanics' }),
+  T('storage upload locks are server only', 'DENY', 'get', D + '/storageLocks/u1', 'u1'),
+  T('storage upload locks CANNOT be written', 'DENY', 'create', D + '/storageLocks/u1', 'u1', 'worldbuilder', { at: 1 }),
   K('an editor adds a subsection', 'ALLOW', 'update', D + '/worlds/w1', 'u4', 'storyteller', WCx({ subsections: { 'w-characters': ['A', 'B'] } }), WC),
   K('an editor sets the chronicle time unit', 'ALLOW', 'update', D + '/worlds/w1', 'u4', 'storyteller', WCx({ timeUnit: 'year' }), WC),
   K('an editor answers an inconsistency', 'ALLOW', 'update', D + '/worlds/w1', 'u4', 'worldbuilder', WCx({ auditAnswers: { t1: 'ok' } }), WC),
@@ -278,6 +337,14 @@ const cases = [
   K('a custom member with «Неузгоджене» answers an inconsistency', 'ALLOW', 'update', D + '/worlds/w1', 'u5', 'worldbuilder', WCx({ auditAnswers: { t1: 'ok' } }), WC),
   K('a custom member without «Огляд світу» CANNOT change the summary', 'DENY', 'update', D + '/worlds/w1', 'u5', 'storyteller', WCx({ summary: 'x' }), WC),
   K('a custom member with «Огляд світу» CANNOT change it on a Free owner', 'DENY', 'update', D + '/worlds/w1', 'u6', 'free', WCx({ summary: 'x' }), WC),
+  // audit 2026-11-19: createdAt is the server's — not forged on create, never changed after
+  K('the owner CANNOT change createdAt (keeping a Free world fresh)', 'DENY', 'update', D + '/worlds/w1', 'u1', 'free', WCx({ createdAt: '2099-01-01T00:00:00Z' }), WC),
+  P('a world CANNOT be created with a forged createdAt', 'DENY', 'create', '/worlds/w2', 'u1', { owner: 'u1', title: 'W', createdAt: '2099-01-01T00:00:00Z' }),
+  P('a world is created without a client clock', 'ALLOW', 'create', '/worlds/w2', 'u1', { owner: 'u1', title: 'W' }),
+  { name: 'a Free world with a far-future createdAt is NOT fresh (canon closed)', tc: { expectation: 'DENY',
+    functionMocks: [{ function: 'get', args: [{ exactValue: D + '/worlds/w1' }], result: { value: { data: Object.assign({}, WC, { createdAt: '2099-01-01T00:00:00Z' }) } } },
+      { function: 'get', args: [{ exactValue: D + '/users/u1' }], result: { value: { data: { plan: 'free' } } } }],
+    request: { auth: { uid: 'u1' }, path: D + '/worlds/w1/entities/e9', method: 'create', resource: { data: { kind: 'characters', name: 'x' } } } } },
 ];
 
 const r = await fetch(`https://firebaserules.googleapis.com/v1/projects/${PROJECT}:test`, {

@@ -145,6 +145,45 @@ If the project is on GitHub, ask the author to connect the same repository in Wh
 ${SETUP_RULES}`,
   },
 
+  // any other engine (engine profile generic — the default): the same connection, log and rules, no engine-specific install steps
+  setupGeneric: {
+    title: 'Set everything up: prepare this PC and connect this project to WhiteWrite',
+    markdown: `# Set everything up — PC and project (Windows first)
+
+This game's engine profile in WhiteWrite is **generic** (any engine). The engine is the developer's choice: use what the project already uses; never assume Unity, the Unity CLI or RPG Framework.
+
+**If the user wrote «Підготуй усе для роботи з WhiteWrite» (or "set everything up")** — go through ALL the steps below, in order, by yourself. Before each one check what is already there and never reinstall what works. Only a person can sign in, accept a licence or confirm a Windows prompt: there, stop, tell the user in one plain sentence exactly what to do, wait for "done", then go on. Speak the user's language, in plain words. At the end tell them in 2–3 lines that everything is ready, and what (if anything) is left for them.
+
+${SESSION_RULE}
+
+## 1. Connection
+Call \`get_project_overview\` and tell the user the game title you see — they confirm it is the right game. (If the WhiteWrite tools were missing, the server was added after Claude Code started: restart Claude Code or check \`/mcp\`.)
+
+## 2. The PC — check, install only what is missing (PowerShell)
+- Check: \`git --version\`, \`gh --version\` (an error = missing). Git: \`winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements\`; refresh PATH after installing: \`$env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')\`.
+- **Person:** winget may show a Windows "allow changes" (UAC) window — ask the user to press "Yes".
+- The engine and its tools: find out what the project uses (its project files, README, build scripts); install only what it needs and what is missing, with the engine's official installer — ask the user first. **Person:** engine sign-in or licence — ask the user to do it. Large binary assets — Git LFS only if the project uses it (\`git lfs version\`).
+- GitHub (optional — only if the user wants the repo on GitHub): \`winget install --id GitHub.cli -e\`; **person:** \`gh auth login\` is interactive — ask the user to run it in their own PowerShell window and follow the browser. Never ask for or store tokens.
+
+## 3. The project
+- A project already exists: go on.
+- No project yet: ask the user which engine they want (it is their decision), then propose the project structure, tests and STATUS.md / GAME.md / DEVLOG.md, wait for their "yes", then create it.
+- If it is a Unity project on RPG Framework, tell the author to switch the engine profile in WhiteWrite (Game Bible → ⚙ Project settings → engine) — the Unity steps come with that profile.
+- Not in Git yet: \`git init\`, a .gitignore for the engine (build output, caches), a first commit (ask before pushing anywhere).
+- The Unity environment check, RPG Framework capabilities and Project Knowledge (\`report_unity_environment\`, \`report_framework_capabilities\`, \`submit_project_knowledge\`) are for Unity games — do not call them.
+
+## 4. Development log
+CLAUDE.md in the project root must contain the block of \`get_guide {topic:"activity_log"}\` (it carries the marker ${ACTIVITY_SCHEMA}). Missing — append it (append only, never rewrite the file) and add \`.whitewrite/\` to .gitignore. If .mcp.json holds a WhiteWrite key, make sure .gitignore lists .mcp.json.
+
+## 5. Repository
+If the project is on GitHub, ask the author to connect the same repository in WhiteWrite (Game Bible → ⚙ Project settings → Integrations → GitHub). Do not ask for or store tokens.
+
+## 6. First task
+\`get_next_task\` → make the smallest safe change it asks for → run its tests (the project's tests, or a manual check the user confirms) → \`submit_task_result\` with every acceptance criterion and evidence. No roadmap yet — tell the author the next step is to describe the game in the Game Bible (⚙ Project settings → «Claude Code» → «Далі: опиши гру», then «Продакшн-план»); meanwhile help with what they ask.
+
+${SETUP_RULES}`,
+  },
+
   unity_env: {
     title: 'Unity / developer environment check',
     markdown: `# Unity environment check (Unity CLI ${UNITY_CLI_CHECKED}, experimental — classic Editor command line as fallback)
@@ -239,15 +278,20 @@ ${SESSION_RULE}
   },
 };
 
-// engine = the game's engine profile (games/{g}.engine.profile): a Roblox game gets its own setup and no Unity checks
+// engine = the game's engine profile (games/{g}.engine.profile; none = generic): the Unity setup and the Unity checks only for a Unity
+// profile, Roblox and any other engine get their own setup and no Unity checks
+const UNITY_PROFILES = ['rpg-framework', 'unity'];
+const SETUP_OF = { roblox: 'setupRoblox', 'rpg-framework': 'setup', unity: 'setup' };
 function guide(topic, engine) {
-  if (engine === 'roblox' && (topic === 'unity_env' || topic === 'knowledge'))
-    return { topic, title: 'Not for this game', schema_version: '', markdown: 'This game is made on Roblox: the Unity environment check and the Unity Project Knowledge index do not apply. Skip them.' };
-  const g = GUIDES[engine === 'roblox' && topic === 'setup' ? 'setupRoblox' : topic];
-  if (!g || topic === 'setupRoblox') return null;
+  const eng = engine || 'generic', unity = UNITY_PROFILES.includes(eng);
+  if (!unity && (topic === 'unity_env' || topic === 'knowledge'))
+    return { topic, title: 'Not for this game', schema_version: '', markdown: `This game's engine profile is ${eng === 'roblox' ? 'Roblox' : eng}: the Unity environment check and the Unity Project Knowledge index do not apply. Skip them.` };
+  if (topic === 'setupRoblox' || topic === 'setupGeneric') return null;
+  const g = GUIDES[topic === 'setup' ? SETUP_OF[eng] || 'setupGeneric' : topic];
+  if (!g) return null;
   return { topic, title: g.title, schema_version: topic === 'knowledge' ? KNOWLEDGE_SCHEMA : topic === 'activity_log' ? ACTIVITY_SCHEMA : '', markdown: g.markdown };
 }
 
-const SETUP_GUIDES = { GUIDES, guide, GDD_RULE, KNOWLEDGE_SCHEMA, ACTIVITY_SCHEMA, UNITY_CLI_CHECKED, GATE_RULE, SESSION_RULE, WATCH_LINE, WATCH_LOOP, SOURCES };
+const SETUP_GUIDES = { GUIDES, guide, UNITY_PROFILES, GDD_RULE, KNOWLEDGE_SCHEMA, ACTIVITY_SCHEMA, UNITY_CLI_CHECKED, GATE_RULE, SESSION_RULE, WATCH_LINE, WATCH_LOOP, SOURCES };
 if (typeof module !== 'undefined' && module.exports) module.exports = SETUP_GUIDES;
 if (typeof window !== 'undefined') window.__SETUP_GUIDES = SETUP_GUIDES;

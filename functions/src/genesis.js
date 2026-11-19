@@ -14,6 +14,8 @@ const {
 const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
+const { notePaid, beforeTimeout } = require('../token-service.js');
+const GENESIS_TIMEOUT_S = 900; // the author mode streams up to 24k tokens — did not fit 300 s
 
 const GENESIS_LANGUAGES = {
   uk: 'Ukrainian', en: 'English', pl: 'Polish', ru: 'Russian', de: 'German', es: 'Spanish',
@@ -80,12 +82,14 @@ Write in ${languageName} (keep names as the author wrote them). Return ONLY vali
 exports.genesisWorld = onRequest({
   region: 'us-central1',
   secrets: [claudeApiKey],
-  timeoutSeconds: 300,
+  timeoutSeconds: GENESIS_TIMEOUT_S,
   memory: '512MiB'
 }, async (req, res) => {
   return cors(req, res, async () => {
     let uid;
     let reservation = null;
+    let paid = null; // the Claude call reached the API: a later error (not JSON, no seed) is charged for it (settle), not refunded
+    const t0 = Date.now();
     try {
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Method not allowed' });
@@ -167,7 +171,11 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       let outText;
       let apiUsage = { input_tokens: 0, output_tokens: 0 };
       let model;
-      const out = await claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: author ? 24000 : 12000, effort: 'low', stream: true }); // stream: the SDK refuses non-streaming calls that may run > 10 min (24k tokens)
+      // stream: the SDK refuses non-streaming calls that may run > 10 min (24k tokens); an own deadline 60 s before the platform's
+      const out = await beforeTimeout(claudeText(claudeApiKey.value(), { model: claudeModel, prompt, maxTokens: author ? 24000 : 12000, effort: 'low', stream: true }),
+        GENESIS_TIMEOUT_S * 1000 - 60000 - (Date.now() - t0));
+      paid = { model: out.model, usage: out.usage };
+      await notePaid(db, uid, reservation, out.model, out.usage);
       if (out.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', out.model, out.usage);
       outText = out.text;
       apiUsage = out.usage;
@@ -201,6 +209,7 @@ Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
       });
     } catch (error) {
       console.error('genesisWorld error:', error);
+      if (paid && !error.paid) error.paid = paid;
       if (reservation) {
         await settle(db, uid, reservation, error, 'genesisWorld').catch(e => console.error('[genesisWorld] Refund failed:', e));
       }

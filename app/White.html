@@ -692,7 +692,7 @@ body.at-home .back-fab{ display:none; }
   <div class="proj-edit" id="proj-edit">
     <div class="pe-scrim" onclick="window.__peClose&&window.__peClose()"></div>
     <div class="pe-card" role="dialog" aria-modal="true" aria-label="Редагувати історію">
-      <button class="pe-x" onclick="window.__peClose&&window.__peClose()" aria-label="Close">✕</button>
+      <button class="pe-x" onclick="window.__peClose&&window.__peClose()" aria-label="Закрити" data-i18n-aria="account.close">✕</button>
       <div class="pe-kicker" data-i18n="editor.kicker">Світ</div>
       <h2 class="pe-title-h" data-i18n="editor.title">Редагувати історію</h2>
       <label class="pe-field"><span class="pe-lbl" data-i18n="editor.cover">Обкладинка</span>
@@ -746,8 +746,8 @@ body.at-home .back-fab{ display:none; }
 
   <div class="proj-edit" id="auth-modal">
     <div class="pe-scrim" onclick="window.__wwCloseAuth&&window.__wwCloseAuth()"></div>
-    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Sign in" style="width:min(420px,92vw)">
-      <button class="pe-x" onclick="window.__wwCloseAuth&&window.__wwCloseAuth()" aria-label="Close">✕</button>
+    <div class="pe-card" role="dialog" aria-modal="true" aria-label="Увійти" data-i18n-aria="auth.signInTab" style="width:min(420px,92vw)">
+      <button class="pe-x" onclick="window.__wwCloseAuth&&window.__wwCloseAuth()" aria-label="Закрити" data-i18n-aria="account.close">✕</button>
       <div class="pe-kicker" data-i18n="auth.kicker">WhiteWrite</div>
       <h2 class="pe-title-h" id="auth-title" data-i18n="auth.signIn">Увійти у свій світ</h2>
       <div class="auth-tabs">
@@ -954,7 +954,7 @@ body.at-home .back-fab{ display:none; }
     fileInp.value = "";
     fileInp.onchange = function (ev) {
       var f = ev.target.files && ev.target.files[0]; if (!f) return;
-      if (!/^image\//.test(f.type) || f.size > 10 * 1024 * 1024) { wwNotice(peT("editor.coverBad", "Обкладинка — картинка до 10 МБ.")); return; }
+      if (!/^image\/(png|jpeg|webp|gif|avif)$/.test(f.type) || f.size > 10 * 1024 * 1024) { wwNotice(peT("editor.coverBad", "Обкладинка — картинка до 10 МБ.")); return; }
       _peCoverFile = f; _peCover = URL.createObjectURL(f); var cv = ov.querySelector("#pe-cover");
       cv.style.backgroundImage = "url(" + _peCover + ")"; cv.querySelector(".pe-cover__ph").style.display = "none";
       ov.querySelector("#pe-cover-del").style.display = "inline-block"; ov.querySelector("#pe-cover-btn").firstChild.textContent = repl;
@@ -1118,6 +1118,9 @@ body.at-home .back-fab{ display:none; }
     frames[p] = f; frames[p].__loader = ld;
     return f;
   }
+  // the Bible frame has edits not saved yet (gamebible.js __wwBibleDirty); forceFrame — the author agreed to drop them: its own beforeunload stays quiet
+  function bibleDirty(f) { try { return !!(f && f.contentWindow && f.contentWindow.__wwBibleDirty && f.contentWindow.__wwBibleDirty()); } catch (e) { return false; } }
+  function forceFrame(f) { try { if (f && f.contentWindow) f.contentWindow.__wwBibleForce = true; } catch (e) {} }
   function sep(s) { return s.indexOf("?") >= 0 ? "&" : "?"; }
   function showPillar(p, query) {
     if (p === "canon" || p === "universe") return openCanon(query); // "universe": the retired Universe tree (old states, deep links)
@@ -1289,7 +1292,12 @@ body.at-home .back-fab{ display:none; }
   }
   // The Bible of the current world (an iframe, world-scoped: the rail stays on Світи). open { gameId }: "" — the World Bible,
   // a game id — its GDD, "__new" — the new-game form; without it the Bible stays where it was.
-  function showBible(open) {
+  function showBible(open, sure) {
+    var f0 = frames.bible, t0 = PILLARS.bible.src + "?embed=1&worldId=" + encodeURIComponent(CURRENT_WORLD);
+    if (!sure && f0 && f0.getAttribute("src") && f0.getAttribute("src") !== t0 && bibleDirty(f0)) { // another world reloads the frame: unsaved edits ask first
+      wwConfirm(window.__i18n ? window.__i18n.t("bible.unsavedLeave") : "").then(function (ok) { if (ok) { forceFrame(f0); showBible(open, true); } });
+      return;
+    }
     histPush();
     inWork = false; mode = "bible";
     var f = ensureFrame("bible");
@@ -1320,8 +1328,9 @@ body.at-home .back-fab{ display:none; }
   // next: what the visitor was doing when sign-in was asked for — it goes on after the sign-in (not back to the home page)
   var authNext = null;
   function openAuth(next) {
-    authNext = typeof next === "function" ? next : null;
+    if (typeof next === "function") authNext = next; else if (next !== undefined) authNext = null; // openAuth() (the automatic one) keeps a pending next
     var m = document.getElementById("auth-modal");
+    authFocusBack = m.classList.contains("is-on") ? authFocusBack : document.activeElement;
     authMsg("");
     m.classList.add("is-on");
     setTimeout(function () { var e = m.querySelector("#auth-email"); if (e && m.classList.contains("is-on")) e.focus(); }, 30);
@@ -1344,6 +1353,27 @@ body.at-home .back-fab{ display:none; }
     else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
+  // the feedback and story-edit windows: like the sign-in — Esc closes, Tab stays inside, the focus goes back where it was
+  [["feedback-modal", function () { window.__fbClose && window.__fbClose(); }], ["proj-edit", function () { window.__peClose && window.__peClose(); }]].forEach(function (x) {
+    var m = document.getElementById(x[0]); if (!m) return;
+    var back = null, on = false;
+    new MutationObserver(function () {
+      var now = m.classList.contains("is-on"); if (now === on) return; on = now;
+      if (now) { back = document.activeElement; setTimeout(function () { var f = m.querySelector("textarea, input:not([type=file]), select, button.pe-x"); if (f && on) f.focus(); }, 30); }
+      else if (back && back.focus && document.contains(back)) { try { back.focus(); } catch (e) {} back = null; }
+    }).observe(m, { attributes: true, attributeFilter: ["class"] });
+    document.addEventListener("keydown", function (e) {
+      if (!m.classList.contains("is-on")) return;
+      if (e.key === "Escape") { e.preventDefault(); x[1](); return; }
+      if (e.key !== "Tab") return;
+      var f = [].filter.call(m.querySelectorAll("button, input, select, textarea, [tabindex]:not([tabindex='-1'])"), function (y) { return !y.disabled && y.offsetParent !== null; });
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (!m.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  });
   // the screen the visitor is on (Спільнота, KB, the hub's Маркет…): after the sign-in they are back on it, not on the home page
   function returnHere() {
     var s = here();
@@ -1357,7 +1387,13 @@ body.at-home .back-fab{ display:none; }
     if (!next) { showHome(); return; }
     var tries = 0, go = function () { if (window.__wwAuth || tries++ > 50) Promise.resolve(loadProjects()).then(next); else setTimeout(go, 100); }; go();
   }
-  function closeAuth() { document.getElementById("auth-modal").classList.remove("is-on"); }
+  var authFocusBack = null;
+  function closeAuth() {
+    var m = document.getElementById("auth-modal"), was = m.classList.contains("is-on");
+    m.classList.remove("is-on");
+    if (was && authFocusBack && authFocusBack.focus && document.contains(authFocusBack)) try { authFocusBack.focus(); } catch (e) {}
+    authFocusBack = null;
+  }
   window.__wwAuthDo = async function () {
     var m = document.getElementById("auth-modal");
     var email = (m.querySelector("#auth-email") || {}).value || "";
@@ -1425,7 +1461,9 @@ body.at-home .back-fab{ display:none; }
       authMsg(result.error);
     }
   };
+  var loggedOut = false; // an explicit «Вийти»: no automatic sign-in window after it
   window.__wwLogout = async function () {
+    loggedOut = true;
     await window.__firebaseAuth.signOut();
     showHome();
   };
@@ -1475,7 +1513,22 @@ body.at-home .back-fab{ display:none; }
     document.getElementById("auth-tlogin").classList.toggle("is-on", !reg);
     document.getElementById("auth-treg").classList.toggle("is-on", reg);
   };
+  // another account (or none) since the frames were loaded: the Bible / the book hold the old account's data and listeners — reload them
+  var authUid; // undefined until the first auth state
+  function authFrames() {
+    var uid = (window.__wwAuth && window.__wwUser && window.__wwUser.uid) || null;
+    if (authUid === undefined || authUid === uid) { authUid = uid; return; }
+    authUid = uid;
+    if (uid) loggedOut = false;
+    ["bible", "book"].forEach(function (p) {
+      var f = frames[p]; if (!f || !f.getAttribute("src")) return;
+      forceFrame(f); f.__loader && f.__loader.classList.add("is-on");
+      try { f.contentWindow.location.reload(); } catch (e) { f.src = f.getAttribute("src"); }
+    });
+    var pf = document.getElementById("w-panel"); if (pf) pf.remove(); // the hub's panel: made again on its next tab
+  }
   function syncDockAuth() {
+    authFrames();
     var dock = document.getElementById("userdock");
     if (!window.__wwAuth) { dock.classList.add("is-guest"); }
     else { dock.classList.remove("is-guest"); }
@@ -1496,7 +1549,6 @@ body.at-home .back-fab{ display:none; }
   window.addEventListener("message", function (e) {
     if (e.origin !== window.location.origin) return;
     var d = e.data || {};
-    if (d.type === "ww-news") { showView("news"); return; }
     if (d.type === "ww-ai-tasks") { aiTasks(e.source, d); return; }
     if (d.type === "ww-panel-h") { var pf = document.getElementById("w-panel"); if (pf) pf.style.height = Math.max(320, Math.min(4000, +d.h || 0)) + "px"; return; }
     if (d.type === "ww-account") { ACC_TAB = d.tab === "friends" ? "friends" : "profile"; fillAccount(); showView("account"); return; }
@@ -1554,16 +1606,6 @@ body.at-home .back-fab{ display:none; }
       showPillar(d.pillar, query);
       return;
     }
-    // Iframe ready — send current projectId
-    if (d.type === "ww-iframe-ready" && d.pillar) {
-      if (window.__currentProjectId && frames[d.pillar] && frames[d.pillar].contentWindow) {
-        frames[d.pillar].contentWindow.postMessage({
-          type: 'ww-project',
-          projectId: window.__currentProjectId
-        }, window.location.origin);
-      }
-      return;
-    }
     // the book tells the shell whether the reader is on the cover (home) or inside a story (work)
     if (d.type === "ww-mode") {
       if (d.mode === "work") { if (Date.now() < suppressWorkUntil) return; inWork = true; mode = "book"; renderRail();
@@ -1582,8 +1624,10 @@ body.at-home .back-fab{ display:none; }
     try { tab = (own && sessionStorage.getItem("ww-hubtab-" + world.id)) || "home"; } catch (e) {}
     if (!HUB_TABS.some(function (x) { return x[0] === tab; })) tab = "home";
 
-    views.narr.innerHTML =
-      '<div class="vwrap">' +
+    // the panel iframe (#w-panel) lives beside #hub-c and survives these re-renders; it is made on the first non-home tab (hubPanel)
+    var hc = views.narr.querySelector("#hub-c");
+    if (!hc) { views.narr.innerHTML = '<div class="vwrap"><div id="hub-c"></div></div>'; hc = views.narr.querySelector("#hub-c"); }
+    hc.innerHTML =
         '<button id="to-worlds" style="background:none;border:0;color:var(--tx-mid);cursor:pointer;padding:0;margin-bottom:14px;font:inherit">' + t('worlds.all') + '</button>' +
         '<div class="vhead__k">' + t('worlds.hubKicker') + '</div>' +
         '<h1 class="vhead__t">' + escapeHtml(world ? (world.title || t('worlds.untitled')) : '…') + (world && world.stats ? ' ' + wwStats(world.stats.f, world.stats.l) : '') + '</h1>' +
@@ -1602,9 +1646,10 @@ body.at-home .back-fab{ display:none; }
         (world ? '<section class="wgames" aria-labelledby="wg-h"><h2 class="wgames__h" id="wg-h">🎮 ' + cmT("Ігри цього світу", "Games of this world") + ' <span id="wg-n"></span></h2>' +
           '<p class="wgames__s">' + cmT("Кожна гра — свій GDD на спільному каноні: механіки, рівні, ассети, план. Канон світу лишається один.", "Each game is its own GDD on the shared canon: mechanics, levels, assets, plan. The world canon stays one.") + '</p>' +
           '<div class="wgames__row" id="w-games"></div></section>' : '') +
-        '</div>' +
-        (own ? '<iframe class="whub__panel" id="w-panel"' + (tab === "home" ? ' hidden' : '') + ' title="' + escapeHtml(cmT("Спільнота, команда, маркет і бекап світу", "The world's community, team, market and backup")) + '" src="WhiteWrite GameBible.html?embed=1&panel=1&tab=' + (tab === "home" ? "community" : tab) + '&worldId=' + encodeURIComponent(world.id) + '"></iframe>' : '') +
-      '</div>';
+        '</div>';
+    var pf = views.narr.querySelector("#w-panel");
+    if (pf && (!own || pf.dataset.world !== world.id)) { pf.remove(); pf = null; } // another world / a team member's hub: no panel of the old one
+    if (pf) pf.hidden = tab === "home"; else if (own && tab !== "home") hubPanel(tab);
     [].forEach.call(views.narr.querySelectorAll("[data-wtab]"), function (b) { b.addEventListener("click", function () { hubTab(b.dataset.wtab); }); });
     views.narr.querySelector("#to-worlds").addEventListener("click", function () { showView("worlds"); });
     views.narr.querySelector("#w-bible").addEventListener("click", function () { showBible({ gameId: "" }); });
@@ -1613,12 +1658,23 @@ body.at-home .back-fab{ display:none; }
   }
   // The hub's tabs: «Головна» lives in the shell; the other four are the Bible's panel (?panel=1&tab=…), one at a time, full width
   var HUB_TABS = [["home", "🏠", "Головна", "Home"], ["community", "🌍", "Спільнота", "Community"], ["team", "🤝", "Команда", "Team"], ["market", "⚖", "Маркет", "Market"], ["backup", "⛁", "Бекап", "Backup"]];
+  // the Bible's panel for the hub's other tabs — one full Bible in a frame, so only once a tab asks for it
+  function hubPanel(tab) {
+    var wrap = views.narr.querySelector("#hub-c"), world = WORLDS.filter(function (w) { return w.id === CURRENT_WORLD; })[0];
+    if (!wrap || !world || world.shared) return null;
+    var f = document.createElement("iframe"); f.className = "whub__panel"; f.id = "w-panel"; f.dataset.world = world.id;
+    f.title = cmT("Спільнота, команда, маркет і бекап світу", "The world's community, team, market and backup");
+    f.src = "WhiteWrite GameBible.html?embed=1&panel=1&tab=" + encodeURIComponent(tab) + "&worldId=" + encodeURIComponent(world.id);
+    wrap.parentNode.appendChild(f);
+    return f;
+  }
   function hubTab(id) {
     try { sessionStorage.setItem("ww-hubtab-" + CURRENT_WORLD, id); } catch (e) {}
     [].forEach.call(views.narr.querySelectorAll("[data-wtab]"), function (b) { b.setAttribute("aria-selected", String(b.dataset.wtab === id)); });
     var home = views.narr.querySelector("#wt-home"), pf = views.narr.querySelector("#w-panel");
     if (home) home.hidden = id !== "home";
-    if (pf) { pf.hidden = id === "home"; if (id !== "home") try { pf.contentWindow.postMessage({ type: "ww-hub-tab", tab: id }, location.origin); } catch (e) {} }
+    if (!pf && id !== "home") pf = hubPanel(id); // the first non-home tab: the frame opens on it (its src), no message needed
+    else if (pf) { pf.hidden = id === "home"; if (id !== "home") try { pf.contentWindow.postMessage({ type: "ww-hub-tab", tab: id }, location.origin); } catch (e) {} }
   }
   // The hub's games: worlds/{w}/games live; a game card opens its GDD (the Bible in game mode), «＋» opens the new-game form there
   var hubGamesOff = null, hubGamesOf = null, hubGamesList = [];
@@ -2243,19 +2299,6 @@ body.at-home .back-fab{ display:none; }
       box.querySelector("[data-mkok]").onclick = decide(true); box.querySelector("[data-mkno]").onclick = decide(false);
     });
   }
-  // back from Stripe: ?market=bought|lot (a buyer) or ?market=<worldId> (a seller finishing Connect)
-  (function () {
-    var q = new URLSearchParams(location.search), m = q.get("market"); if (!m) return;
-    history.replaceState(null, "", location.pathname);
-    var go = function () {
-      if (m === "bought" || m === "lot") {
-        CM.tab = "mkt"; CM.lot = m === "lot" ? q.get("lot") : null; CM.mview = m === "bought" ? "deals" : "lots";
-        CM.mmsg = m === "bought" ? cmT("Оплату отримано. Світ переходить у твій акаунт — за хвилину він зʼявиться у «Світах».", "Payment received. The world is moving to your account — it shows in “Worlds” in a minute.") : "";
-        showView("market"); fillMarket(); loadLots();
-      } else if (m !== "connected") { CURRENT_WORLD = m; showView("narr"); }
-    };
-    var tries = 0, wait = setInterval(function () { if (window.__wwUser || ++tries > 40) { clearInterval(wait); setTimeout(go, 600); } }, 250);
-  })();
 
   function bindMarket() {
     var v = views.market;
@@ -2345,7 +2388,7 @@ body.at-home .back-fab{ display:none; }
         '<p class="vhead__s">' + t('kb.subtitle') + '</p>' + kbAskHtml() +
         '<div class="kb-search"><span class="kb-search__ic">' + svg("compass") + '</span>' +
           '<input id="kb-q" placeholder="' + t('kb.search') + '" value="' + (KB.__q || "").replace(/"/g, "&quot;") + '" />' +
-          (KB.__q ? '<button class="kb-search__x" id="kb-x">✕</button>' : '') + '</div>' +
+          (KB.__q ? '<button class="kb-search__x" id="kb-x" aria-label="' + t('kb.clear') + '" title="' + t('kb.clear') + '">✕</button>' : '') + '</div>' +
         '<div class="kb-cats">' + cats + '</div>' +
         (road ? '<div class="kb-road" style="margin-top:8px">' + cards + '</div>' : '<div class="grid grid--kb" style="margin-top:8px">' + cards + '</div>') +
       '</div>';
@@ -2498,7 +2541,7 @@ body.at-home .back-fab{ display:none; }
     }
     var u = window.__wwUser || (window.__wwUser = { name: "Майстер світів", plan: "free", avatar: null });
     var initial = u.name.trim().charAt(0) || "М";
-    var avInner = u.avatar ? ('<img src="' + escapeHtml(u.avatar) + '" alt="" />') : initial;
+    var avInner = u.avatar ? ('<img src="' + escapeHtml(u.avatar) + '" alt="" />') : escapeHtml(initial);
     var currentLang = window.__i18n ? window.__i18n.getLanguage() : 'uk';
 
     views.account.innerHTML =
@@ -2525,7 +2568,7 @@ body.at-home .back-fab{ display:none; }
           '<button class="acc__av" id="acc-av" title="' + t('account.changeAvatar') + '">' + avInner + '<span class="acc__avcam">' + svg("image") + '</span></button>' +
           '<input type="file" id="acc-avfile" accept="image/*" style="display:none" />' +
           '<div class="acc__id">' +
-            '<div class="acc__name" id="acc-name">' + u.name + '</div>' +
+            '<div class="acc__name" id="acc-name">' + escapeHtml(u.name) + '</div>' +
             '<span class="acc__plan">' + svg("sparkle") + t('plan.' + u.plan) + (u.subscriptionStatus && u.subscriptionStatus !== 'active' && u.plan !== 'free' ? ' <span style="opacity:0.6">' + t(u.subscriptionStatus === 'past_due' ? 'plan.pastDue' : 'plan.cancelled') + '</span>' : '') + (u.paidPlan && u.plan === 'free' ? ' <span style="opacity:0.6">' + t('plan.paused').replace('{plan}', t('plan.' + u.paidPlan)) + '</span>' : '') + '</span>' +
             '<button class="acc__editbtn" id="acc-edit">' + svg("edit") + ' ' + t('account.editProfile') + '</button>' +
           '</div>' +
@@ -2571,19 +2614,19 @@ body.at-home .back-fab{ display:none; }
       var group = function (st, title, btns) {
         var l = rows.filter(function (f) { return f.status === st; });
         return l.length ? '<div class="vsec-h">' + title + '</div><div class="fr-list">' + l.map(function (f) {
-          return '<div class="fr"><div><b>' + escapeHtml(f.name || f.email) + '</b><span>' + escapeHtml(f.email || "") + '</span></div>' + btns(f) + '</div>'; }).join("") + '</div>' : '';
+          return '<div class="fr"><div><b>' + escapeHtml(f.name || f.email || cmT("запрошення очікує", "invitation pending")) + '</b><span>' + escapeHtml(f.email || "") + '</span></div>' + btns(f) + '</div>'; }).join("") + '</div>' : ''; // e_<sha1>: an invite to an e-mail with no account yet (team.js)
       };
       box.innerHTML = '<p class="vhead__s">' + cmT("Друзі можуть працювати у твоїх світах: у хабі світу → «Команда» дай кожному роль — адмін, редактор, перегляд або вибрані розділи. Безкоштовно на будь-якому тарифі.",
           "Friends can work in your worlds: in the world hub → “Team” give each a role — admin, editor, viewer or chosen sections. Free on any plan.") + '</p>' +
         '<form class="fr-add" id="fr-add"><input class="pe-input" id="fr-email" type="email" required placeholder="' + cmT("Пошта друга в WhiteWrite", "Your friend's WhiteWrite e-mail") + '">' +
         '<button class="pe-btn pe-btn--save">' + cmT("＋ Додати в друзі", "＋ Add a friend") + '</button></form>' + (frMsg ? '<p class="vhead__s" role="status">' + escapeHtml(frMsg) + '</p>' : '') +
-        group("incoming", cmT("Запрошення тобі", "Invitations to you"), function (f) { return '<span class="fr__b"><button class="pe-btn pe-btn--save" data-fracc="' + f.uid + '">' + cmT("Прийняти", "Accept") + '</button><button class="pe-btn" data-frdel="' + f.uid + '">' + cmT("Відхилити", "Decline") + '</button></span>'; }) +
-        group("accepted", cmT("Друзі", "Friends"), function (f) { return '<span class="fr__b"><button class="pe-btn" data-frdel="' + f.uid + '">' + cmT("Прибрати", "Remove") + '</button></span>'; }) +
-        group("pending", cmT("Чекають відповіді", "Waiting for an answer"), function (f) { return '<span class="fr__b"><button class="pe-btn" data-frdel="' + f.uid + '">' + cmT("Скасувати", "Cancel") + '</button></span>'; }) +
+        group("incoming", cmT("Запрошення тобі", "Invitations to you"), function (f) { return '<span class="fr__b"><button class="pe-btn pe-btn--save" data-fracc="' + escapeHtml(f.uid) + '">' + cmT("Прийняти", "Accept") + '</button><button class="pe-btn" data-frdel="' + escapeHtml(f.uid) + '">' + cmT("Відхилити", "Decline") + '</button></span>'; }) +
+        group("accepted", cmT("Друзі", "Friends"), function (f) { return '<span class="fr__b"><button class="pe-btn" data-frdel="' + escapeHtml(f.uid) + '">' + cmT("Прибрати", "Remove") + '</button></span>'; }) +
+        group("pending", cmT("Чекають відповіді", "Waiting for an answer"), function (f) { return '<span class="fr__b"><button class="pe-btn" data-frdel="' + escapeHtml(f.uid) + '">' + cmT("Скасувати", "Cancel") + '</button></span>'; }) +
         (rows.length ? '' : '<p class="vhead__s">' + cmT("Ще немає друзів.", "No friends yet.") + '</p>');
       var done = function (m) { frMsg = m; loadFriends(); }, fail = function (e) { frMsg = e.message; loadFriends(); };
       box.querySelector("#fr-add").onsubmit = function (ev) { ev.preventDefault();
-        teamCall({ op: "invite", email: box.querySelector("#fr-email").value }).then(function (r) { done(r.status === "accepted" ? cmT("Ви тепер друзі.", "You are friends now.") : cmT("Запрошення надіслано — друг побачить його у своєму Акаунті → Друзі.", "Invitation sent — your friend sees it in their Account → Friends.")); }, fail); };
+        teamCall({ op: "invite", email: box.querySelector("#fr-email").value }).then(function (r) { done(r.status === "accepted" ? cmT("Ви тепер друзі.", "You are friends now.") : cmT("Якщо в WhiteWrite є акаунт із цією поштою, людина побачить запрошення в Акаунті → Друзі. Якщо акаунта ще немає — попроси зареєструватися на цю пошту й надішли запрошення ще раз.", "If this e-mail has a WhiteWrite account, they will see the invitation in Account → Friends. If not, ask them to sign up with it and send the invitation again.")); }, fail); };
       [].forEach.call(box.querySelectorAll("[data-fracc]"), function (b) { b.onclick = function () { teamCall({ op: "accept", uid: b.dataset.fracc }).then(function () { done(cmT("Ви тепер друзі.", "You are friends now.")); }, fail); }; });
       [].forEach.call(box.querySelectorAll("[data-frdel]"), function (b) { b.onclick = function () {
         wwConfirm(cmT("Прибрати з друзів? Людина також вийде з команд твоїх світів.", "Remove from friends? They also leave the teams of your worlds.")).then(function (ok) { if (!ok) return;
@@ -2890,7 +2933,7 @@ body.at-home .back-fab{ display:none; }
     if (file) file.onchange = async function (e) {
       var f = e.target.files && e.target.files[0]; if (!f) return;
       var au = fbu(); if (!au) return;
-      if (!/^image\//.test(f.type) || f.size > 2 * 1024 * 1024) { wwNotice(t('account.avatarBad')); file.value = ""; return; }
+      if (!/^image\/(png|jpeg|webp|gif|avif)$/.test(f.type) || f.size > 2 * 1024 * 1024) { wwNotice(t('account.avatarBad')); file.value = ""; return; }
       try {
         var oldRef = null; try { oldRef = u.avatar && u.avatar.indexOf("firebasestorage") >= 0 ? firebase.storage().refFromURL(u.avatar) : null; } catch (x) {}
         if (oldRef && oldRef.fullPath.indexOf("users/" + au.uid + "/avatar/") !== 0) oldRef = null; // only our own previous avatar
@@ -2944,8 +2987,8 @@ body.at-home .back-fab{ display:none; }
                 ? fill('plan.upAsk', { from: names(q.from), to: names(q.to), usd: q.quote.usd.toFixed(2), tokens: q.quote.tokens.toLocaleString(), fee: q.quote.fee.toLocaleString(), date: day(q.renewsAt) })
                 : fill(targetPlan === 'free' ? 'plan.freeAsk' : 'plan.downAsk', { from: names(q.from), to: names(q.to), date: day(q.renewsAt) });
               if (!(await wwConfirm(msg))) return;
-              await LS.changePlan('change', targetPlan);
-              await wwNotice(q.kind === 'up' ? fill('plan.upDone', { to: names(q.to) }) : fill('plan.downDone', { to: names(q.to), date: day(q.renewsAt) }));
+              var done = await LS.changePlan('change', targetPlan);
+              await wwNotice(q.kind === 'up' ? fill('plan.upDone', { to: names(q.to) }) + (done && done.tokens === 'pending' ? ' ' + t('plan.upPending') : '') : fill('plan.downDone', { to: names(q.to), date: day(q.renewsAt) }));
               reload();
               return;
             }
@@ -3076,7 +3119,7 @@ body.at-home .back-fab{ display:none; }
 
     // If logged in, show user data
     if (window.__wwAuth && u.name) {
-      if (av) av.innerHTML = u.avatar ? ('<img src="' + escapeHtml(u.avatar) + '" alt="" />') : (u.name || "М").charAt(0);
+      if (av) av.innerHTML = u.avatar ? ('<img src="' + escapeHtml(u.avatar) + '" alt="" />') : escapeHtml((u.name || "М").charAt(0));
       if (nm) nm.textContent = u.name || (lang === 'uk' ? "Майстер світів" : "World Master");
     } else {
       // If guest, show translated "Guest"
@@ -3185,8 +3228,11 @@ body.at-home .back-fab{ display:none; }
   // Auth state will be set by Firebase Auth (firebase-auth.js init)
   // Auto-open auth modal will be triggered after Firebase auth check
   window.__checkAuthModal = function() {
-    if (!window.__wwAuth) {
-      setTimeout(openAuth, 300);
+    if (!window.__wwAuth && !loggedOut) {
+      setTimeout(function () { // not over a sign-in already open, not after an explicit sign-out; a pending next stays (openAuth())
+        var m = document.getElementById("auth-modal");
+        if (!window.__wwAuth && !loggedOut && !(m && m.classList.contains("is-on"))) openAuth();
+      }, 300);
     }
   };
 }());

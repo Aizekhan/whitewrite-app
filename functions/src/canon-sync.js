@@ -17,6 +17,8 @@ const {
 const { subscriptionActive } = require('../plans.js'); // active or past_due (the LS grace period)
 const { modelFor, claudeText } = require('./claude');
 const { featureCost, byOp } = require('../paid-features.js');
+const { beforeTimeout } = require('../token-service.js');
+const ADVISE_TIMEOUT_S = 300; // 8k tokens of a non-streamed Opus answer did not fit 120 s
 
 
 /**
@@ -31,10 +33,11 @@ const { featureCost, byOp } = require('../paid-features.js');
 exports.analyzeScene = onRequest({
   secrets: [claudeApiKey],
   cors: true,
-  timeoutSeconds: 120
+  timeoutSeconds: ADVISE_TIMEOUT_S
 }, async (req, res) => {
   return cors(req, res, async () => {
     let reservation = null, uid = null;
+    const t0 = Date.now();
     try {
       // Auth check
       // uid ONLY from verified ID token (never from body)
@@ -135,7 +138,9 @@ At most 5 items per list.`;
 
       // the author's Claude model (Account); analysis → effort medium, headroom for thinking
       const { model: claudeModel } = await modelFor(db, userData, userPlan);
-      const message = await claudeText(claudeApiKey.value(), { model: claudeModel, system: systemInstruction, prompt, maxTokens: 8000, effort: 'medium' });
+      // an own deadline 60 s before the platform's: a run that ran out of time is settled (the reservation kept), never killed unbilled
+      const message = await beforeTimeout(claudeText(claudeApiKey.value(), { model: claudeModel, system: systemInstruction, prompt, maxTokens: 8000, effort: 'medium' }),
+        ADVISE_TIMEOUT_S * 1000 - 60000 - (Date.now() - t0));
       if (message.stopReason === 'max_tokens') throw cutOff('Відповідь AI обірвалась', message.model, message.usage);
       const responseText = message.text;
 

@@ -62,7 +62,9 @@ async function lockCreate(uid, kind) {
   const ref = db.collection('users').doc(uid);
   return db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
-    if (!snap.exists) return true;
+    // no user doc yet (the page creates it after sign-in): create it here with the lock — returning true without one let
+    // parallel creates all pass the limit. The same default the page writes (firebase-auth.js): plan free.
+    if (!snap.exists) { tx.set(ref, { plan: 'free', createdAt: admin.firestore.Timestamp.now(), creating: { [kind]: admin.firestore.Timestamp.now() } }); return true; }
     const t = (snap.data().creating || {})[kind], at = t && t.toMillis ? t.toMillis() : 0;
     if (Date.now() - at < 10000) return false;
     tx.update(ref, { ['creating.' + kind]: admin.firestore.Timestamp.now() });
@@ -174,3 +176,4 @@ exports.createGame = onRequest({ cors: true, timeoutSeconds: 30 }, async (req, r
     }
   });
 });
+exports._projects = { lockCreate }; // tests only (tests/billing.test.cjs)

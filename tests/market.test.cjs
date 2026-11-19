@@ -4,7 +4,7 @@ const path = require('path');
 const stub = (rel, exp) => { const f = require.resolve(path.join(__dirname, '../functions/src', rel)); require.cache[f] = { id: f, filename: f, loaded: true, exports: exp }; };
 const fakeAdmin = { firestore: { FieldValue: { serverTimestamp: () => 'TS', delete: () => 'DEL' } } };
 stub('common.js', { onRequest: () => () => {}, admin: fakeAdmin, db: {}, cors: () => {}, getBalance: () => ({}), reserve: () => {}, refund: () => {},
-  getPlanBudget: () => ({}), claudeApiKey: {}, stripeSecretKey: {}, MODEL_PRICING: {} });
+  getPlanBudget: () => ({}), claudeApiKey: {}, MODEL_PRICING: {} });
 stub('claude.js', { activeModels: async () => ({}), claudeText: async () => ({}) });
 const M = require('../functions/src/market.js')._market;
 const PF = require('../functions/paid-features.js');

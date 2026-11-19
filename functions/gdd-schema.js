@@ -125,13 +125,18 @@
   var SIMILAR = 0.6;
   function normT(s) { return String(s == null ? '' : s).slice(0, 200).trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim(); }
   function stemsOf(s) { var o = {}; normT(s).split(' ').forEach(function (w) { if (w.length >= 3) o[w.slice(0, 5)] = 1; }); return Object.keys(o); }
+  // number tokens — digits, roman numerals I–XX, single letters: «Рівень 1» / «Рівень 2», «Act I» / «Act II», «Boss A» / «Boss B» are
+  // different things of one series, so names whose number tokens differ stay below SIMILAR
+  var ROMAN = 'i ii iii iv v vi vii viii ix x xi xii xiii xiv xv xvi xvii xviii xix xx'.split(' ');
+  function numsOf(x) { return x.split(' ').filter(function (w) { return /^\p{N}+$/u.test(w) || w.length === 1 || ROMAN.indexOf(w) >= 0; }).sort().join(' '); }
   function titleSim(a, b) {
     var x = normT(a), y = normT(b); if (!x || !y) return 0; if (x === y) return 1;
+    var nx = numsOf(x), ny = numsOf(y), cap = nx && ny && nx !== ny ? SIMILAR - 0.1 : 1;
     var sh = x.length <= y.length ? x : y, lo = x.length <= y.length ? y : x;
-    if (sh.length >= 5 && sh.length >= lo.length * 0.6 && (' ' + lo + ' ').indexOf(' ' + sh + ' ') >= 0) return 0.9;
+    if (sh.length >= 5 && sh.length >= lo.length * 0.6 && (' ' + lo + ' ').indexOf(' ' + sh + ' ') >= 0) return Math.min(0.9, cap);
     var A = stemsOf(a), B = stemsOf(b); if (!A.length || !B.length) return 0;
     var n = A.filter(function (w) { return B.indexOf(w) >= 0; }).length;
-    return Math.round((n / (A.length + B.length - n)) * 100) / 100;
+    return Math.min(cap, Math.round((n / (A.length + B.length - n)) * 100) / 100);
   }
   var CANON_NAME = { uk: 'канон світу (Біблія світу)', en: 'the world canon (World Bible)' };
 

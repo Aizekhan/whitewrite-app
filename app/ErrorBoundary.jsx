@@ -28,6 +28,7 @@ class ErrorBoundary extends React.Component {
   }
 
   render() {
+    const t = (k) => (window.__i18n ? window.__i18n.t(k) : k);
     if (this.state.hasError) {
       // Fallback UI
       return (
@@ -50,7 +51,7 @@ class ErrorBoundary extends React.Component {
             marginBottom: '12px',
             color: '#f5d278'
           }}>
-            Щось пішло не так
+            {t('err.title')}
           </h1>
           <p style={{
             fontSize: '16px',
@@ -58,7 +59,7 @@ class ErrorBoundary extends React.Component {
             opacity: 0.8,
             maxWidth: '500px'
           }}>
-            Виникла несподівана помилка. Спробуйте перезавантажити сторінку.
+            {t('err.text')}
           </p>
           <button
             onClick={() => window.location.reload()}
@@ -78,7 +79,7 @@ class ErrorBoundary extends React.Component {
             onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
             onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
           >
-            Перезавантажити
+            {t('err.reload')}
           </button>
 
           {/* Show error details in development */}
@@ -94,7 +95,7 @@ class ErrorBoundary extends React.Component {
               fontFamily: 'monospace'
             }}>
               <summary style={{ cursor: 'pointer', marginBottom: '12px', fontWeight: 700 }}>
-                Технічні деталі (тільки в dev)
+                {t('err.details')}
               </summary>
               <pre style={{
                 overflow: 'auto',

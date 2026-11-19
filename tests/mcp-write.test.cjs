@@ -7,7 +7,7 @@ const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js');
 const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS' } } };
 const { saveCard, saveNarrative } = new Function('NV', 'admin', 'GDD', 'DESIGN', 'MECH',
-  pick('const str =', '// ---------- tools') + pick('async function narrative', '// 🎙') +
+  pick('const str =', '// ---------- tools') + 'const sigOf = async () => String(Math.random()), GAME_TTL = 0;' + pick('// Kept on the instance like readGame', '// 🎙') +
   pick('// ---------- ✎ writes on the user', 'async function callTool') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
   ';return { saveCard, saveNarrative };')(NV, admin, require('../functions/gdd-schema.js'), require('../functions/design-checks.js'), require('../functions/mechanics.js'));

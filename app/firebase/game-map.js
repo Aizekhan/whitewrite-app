@@ -131,7 +131,8 @@ function frameworkNote(man, capStatus) {
   return st.map(function (c) { return { id: c.id, status: c.status, notes: c.notes || '' }; });
 }
 
-// the whole map for Claude Code (whitewrite.gamemap/1); opts { lang, speed, refTitle(card id) → title, entName(entity id) → name, man, capStatus }
+// the whole map for Claude Code (whitewrite.gamemap/1); opts { lang, speed, refTitle(card id) → title, entName(entity id) → name, man, capStatus,
+// engine — the game's engine profile (none = engine-neutral how_to_build) }
 function exportMap(cards, opts) {
   opts = opts || {};
   var lang = opts.lang || 'en', speed = opts.speed || speedOf(cards), list = zones(cards), b = base(cards), img = baseImage(b), G = graph(list);
@@ -166,16 +167,36 @@ function exportMap(cards, opts) {
     zones: list.map(zoneOut),
     places: pins(cards).map(function (c) { return placeOut(c, opts); }),
     checks: checks(cards, speed).map(function (x) { return { level: x.level, zone: x.zone ? 'c:' + x.zone : null, text: lbl(x, lang) }; }),
-    framework: frameworkNote(opts.man, opts.capStatus),
-    how_to_build: [
-      'Every zone is its own Unity scene (scene name given); a dungeon is an instance scene. Transitions: a portal or a map edge loads the target scene with a short loading screen; an entrance loads its dungeon. Keep one persistent bootstrap scene for the player, UI and save.',
-      'Terrain: size_m.x × size_m.z metres, height range height_m; import the heightmap PNG (an editor script: read the pixels → TerrainData.SetHeights, or convert to 16-bit RAW for the Terrain importer). Origin (0,0) = the south-west corner, +X east, +Z north; points are in these metres.',
-      'Ground textures, trees and rocks follow the zone biome (get_style_guide with the biome title); buildings and props come from the asset cards.',
-      'Place points as empty GameObjects (spawn, portal, waypoint, camp, boss…) named after them, then build on them; a portal point connects to the link of the same zone.',
-      'Start with greybox: the terrain, the points and working transitions; art comes after the author approves the greybox.',
-    ],
+    // the RPG Framework note only for a framework game (no engine given = an older caller: kept as before)
+    framework: !opts.engine || opts.engine === 'rpg-framework' ? frameworkNote(opts.man, opts.capStatus) : null,
+    how_to_build: HOW[engKey(opts.engine)].slice(),
   };
 }
+// how to build the map — by the game's engine profile (games/{g}.engine.profile): Unity only for a Unity profile, Roblox, any other engine
+function engKey(engine) { return engine === 'rpg-framework' || engine === 'unity' ? 'unity' : engine === 'roblox' ? 'roblox' : 'generic'; }
+var HOW_COMMON = [
+  'Ground textures, trees and rocks follow the zone biome (get_style_guide with the biome title); buildings and props come from the asset cards.',
+  'Start with greybox: the terrain, the points and working transitions; art comes after the author approves the greybox.'];
+var HOW = {
+  unity: [
+    'Every zone is its own Unity scene (scene name given); a dungeon is an instance scene. Transitions: a portal or a map edge loads the target scene with a short loading screen; an entrance loads its dungeon. Keep one persistent bootstrap scene for the player, UI and save.',
+    'Terrain: size_m.x × size_m.z metres, height range height_m; import the heightmap PNG (an editor script: read the pixels → TerrainData.SetHeights, or convert to 16-bit RAW for the Terrain importer). Origin (0,0) = the south-west corner, +X east, +Z north; points are in these metres.',
+    HOW_COMMON[0],
+    'Place points as empty GameObjects (spawn, portal, waypoint, camp, boss…) named after them, then build on them; a portal point connects to the link of the same zone.',
+    HOW_COMMON[1]],
+  roblox: [
+    'Every zone is its own area of the place (a Folder in Workspace named after the scene name); a dungeon or a very large zone can be its own place of the experience, reached with TeleportService. Transitions: a portal or a map edge moves the player (or teleports to the other place) with a short loading screen; an entrance leads into its dungeon. The server owns player state and saves (DataStoreService).',
+    'Terrain: size_m.x × size_m.z metres (1 stud ≈ 0.28 m — convert), height range height_m; import the heightmap PNG with the Terrain Editor (Import) or generate it from the pixels in a plugin / command-bar script. Origin (0,0) = the south-west corner, +X east, +Z north; points are in these metres.',
+    HOW_COMMON[0],
+    'Place points as anchored, invisible Parts or Attachments (spawn → SpawnLocation, portal, waypoint, camp, boss…) named after them, then build on them; a portal point connects to the link of the same zone.',
+    HOW_COMMON[1]],
+  generic: [
+    'Every zone is its own scene / level of the game\'s engine (scene name given); a dungeon is an instance. Transitions: a portal or a map edge loads the target zone with a short loading screen; an entrance loads its dungeon. Keep the player, UI and save in one persistent part that outlives a zone change.',
+    'Terrain: size_m.x × size_m.z metres, height range height_m; import the heightmap PNG with the engine\'s terrain tool (or a small importer script: pixels → heights; some importers want 16-bit RAW). Origin (0,0) = the south-west corner, +X east, +Z north (convert to the engine\'s axes); points are in these metres.',
+    HOW_COMMON[0],
+    'Place points as empty markers / nodes (spawn, portal, waypoint, camp, boss…) named after them, then build on them; a portal point connects to the link of the same zone.',
+    HOW_COMMON[1]],
+};
 // a place for the export: where it is on the concept, its card, its picture and points of interest with their cards, scenes and pictures
 function placeOut(c, opts) {
   var g = c.gpin || {}, files = arr(c.files);
@@ -196,15 +217,27 @@ function placeOut(c, opts) {
     }),
   };
 }
-// a ready request for Claude Code: one zone (zoneId) or the whole map
-function prompt(cards, zoneId, lang) {
-  var list = zones(cards), c = zoneId ? byId(list, zoneId) : null, en = lang === 'en';
-  if (c) return en
-    ? 'Build the zone “' + c.title + '” of the game map as a greybox in Unity. Call get_game_map {"zone":"c:' + c.id + '"} (WhiteWrite MCP): the scene ' + sceneName(c) + ', its size, heightmap, points and transitions. Make the scene, the Terrain from the heightmap, empty GameObjects for every point, and the working transitions to the linked zones (a short loading screen). Then report with submit_task_result if this is a plan task, and tell me what to check.'
-    : 'Збудуй зону «' + c.title + '» з карти гри як greybox в Unity. Виклич get_game_map {"zone":"c:' + c.id + '"} (MCP WhiteWrite): сцена ' + sceneName(c) + ', розмір, карта висот, точки й переходи. Зроби сцену, Terrain з карти висот, порожні GameObject на кожну точку й робочі переходи в сусідні зони (з короткою загрузкою). Потім звітуй submit_task_result, якщо це задача плану, і скажи, що мені перевірити.';
+// a ready request for Claude Code: one zone (zoneId) or the whole map; engine = the game's engine profile (none = engine-neutral)
+function prompt(cards, zoneId, lang, engine) {
+  var list = zones(cards), c = zoneId ? byId(list, zoneId) : null, en = lang === 'en', k = engKey(engine);
+  if (c) {
+    var call = 'get_game_map {"zone":"c:' + c.id + '"}';
+    if (k === 'unity') return en
+      ? 'Build the zone “' + c.title + '” of the game map as a greybox in Unity. Call ' + call + ' (WhiteWrite MCP): the scene ' + sceneName(c) + ', its size, heightmap, points and transitions. Make the scene, the Terrain from the heightmap, empty GameObjects for every point, and the working transitions to the linked zones (a short loading screen). Then report with submit_task_result if this is a plan task, and tell me what to check.'
+      : 'Збудуй зону «' + c.title + '» з карти гри як greybox в Unity. Виклич ' + call + ' (MCP WhiteWrite): сцена ' + sceneName(c) + ', розмір, карта висот, точки й переходи. Зроби сцену, Terrain з карти висот, порожні GameObject на кожну точку й робочі переходи в сусідні зони (з короткою загрузкою). Потім звітуй submit_task_result, якщо це задача плану, і скажи, що мені перевірити.';
+    if (k === 'roblox') return en
+      ? 'Build the zone “' + c.title + '” of the game map as a greybox in Roblox Studio. Call ' + call + ' (WhiteWrite MCP): the area ' + sceneName(c) + ', its size, heightmap, points and transitions. Make the area (a Folder in Workspace), the Terrain from the heightmap, anchored invisible Parts for every point, and the working transitions to the linked zones (a short loading screen; TeleportService if the zone is its own place). Then report with submit_task_result if this is a plan task, and tell me what to check.'
+      : 'Збудуй зону «' + c.title + '» з карти гри як greybox у Roblox Studio. Виклич ' + call + ' (MCP WhiteWrite): область ' + sceneName(c) + ', розмір, карта висот, точки й переходи. Зроби область (Folder у Workspace), Terrain з карти висот, закріплені невидимі Part на кожну точку й робочі переходи в сусідні зони (з короткою загрузкою; TeleportService, якщо зона — окремий place). Потім звітуй submit_task_result, якщо це задача плану, і скажи, що мені перевірити.';
+    return en
+      ? 'Build the zone “' + c.title + '” of the game map as a greybox in the game’s engine. Call ' + call + ' (WhiteWrite MCP): the scene ' + sceneName(c) + ', its size, heightmap, points and transitions. Make the scene / level, the terrain from the heightmap, empty markers for every point, and the working transitions to the linked zones (a short loading screen). Then report with submit_task_result if this is a plan task, and tell me what to check.'
+      : 'Збудуй зону «' + c.title + '» з карти гри як greybox у рушії гри. Виклич ' + call + ' (MCP WhiteWrite): сцена ' + sceneName(c) + ', розмір, карта висот, точки й переходи. Зроби сцену / рівень, рельєф з карти висот, порожні маркери на кожну точку й робочі переходи в сусідні зони (з короткою загрузкою). Потім звітуй submit_task_result, якщо це задача плану, і скажи, що мені перевірити.';
+  }
+  var scene = { unity: [' each its own scene', 'a bootstrap scene and a scene per zone', 'the scene-loading service', 'кожна — окрема сцена', 'bootstrap-сцену і сцену на кожну зону', 'сервіс завантаження сцен'],
+    roblox: [' each its own area of the place (or its own place)', 'an area per zone in Workspace', 'the zone transitions (TeleportService between places)', 'кожна — окрема область place (або окремий place)', 'область на кожну зону у Workspace', 'переходи між зонами (TeleportService між place)'],
+    generic: [' each its own scene / level', 'a persistent bootstrap part and a scene per zone', 'the zone-loading service', 'кожна — окрема сцена / рівень', 'постійну основу (гравець, UI, збереження) і сцену на кожну зону', 'сервіс завантаження зон'] }[k];
   return en
-    ? 'Set up the world of the game from the WhiteWrite game map. Call get_game_map (MCP): ' + list.length + ' zones, each its own scene, with sizes, heightmaps, points and transitions; fix nothing in the design — if something is impossible, submit_change_request. Make a bootstrap scene and a scene per zone (greybox: terrain + points + transitions), the scene-loading service, and the UI world map from the concept map. Tell me what to check.'
-    : 'Налаштуй світ гри за картою гри з WhiteWrite. Виклич get_game_map (MCP): ' + list.length + ' зон, кожна — окрема сцена, з розмірами, картами висот, точками й переходами; дизайн не змінюй — якщо щось неможливо, submit_change_request. Зроби bootstrap-сцену і сцену на кожну зону (greybox: рельєф + точки + переходи), сервіс завантаження сцен і UI-карту світу з концепт-карти. Скажи, що мені перевірити.';
+    ? 'Set up the world of the game from the WhiteWrite game map. Call get_game_map (MCP): ' + list.length + ' zones,' + scene[0] + ', with sizes, heightmaps, points and transitions; fix nothing in the design — if something is impossible, submit_change_request. Make ' + scene[1] + ' (greybox: terrain + points + transitions), ' + scene[2] + ', and the UI world map from the concept map. Tell me what to check.'
+    : 'Налаштуй світ гри за картою гри з WhiteWrite. Виклич get_game_map (MCP): ' + list.length + ' зон, ' + scene[3] + ', з розмірами, картами висот, точками й переходами; дизайн не змінюй — якщо щось неможливо, submit_change_request. Зроби ' + scene[4] + ' (greybox: рельєф + точки + переходи), ' + scene[5] + ' і UI-карту світу з концепт-карти. Скажи, що мені перевірити.';
 }
 
 // ---- the relief: a heightmap generator (no tokens, the same in the browser and the tests) ----

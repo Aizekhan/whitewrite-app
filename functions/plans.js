@@ -13,10 +13,15 @@ function getPlanBudget(plan) {
 }
 
 // A paid subscription that opens the ✦ gates: active, or past_due — Lemon Squeezy is still retrying the card (its grace
-// period; the plan is kept, lemon.js). paused / unpaid already moved the plan to free; cancelled-but-paid stays 'active'.
+// period; the plan is kept, lemon.js — but no new monthly allowance opens until it is paid, token-service getBalance).
+// paused / unpaid already moved the plan to free; cancelled-but-paid stays 'active' only until subscriptionEndsAt
+// (a missed / late subscription_expired must not keep the ✦ gates open).
 const LIVE_SUBSCRIPTION = ['active', 'past_due'];
-function subscriptionActive(user) {
-  return LIVE_SUBSCRIPTION.includes((user || {}).subscriptionStatus);
+function subscriptionActive(user, now = Date.now()) {
+  const u = user || {};
+  if (!LIVE_SUBSCRIPTION.includes(u.subscriptionStatus)) return false;
+  const end = u.cancelAtPeriodEnd && u.subscriptionEndsAt && u.subscriptionEndsAt.toMillis ? u.subscriptionEndsAt.toMillis() : 0;
+  return !(end && end <= now);
 }
 
 module.exports = { PLAN_BUDGETS, getPlanBudget, subscriptionActive, LIVE_SUBSCRIPTION };

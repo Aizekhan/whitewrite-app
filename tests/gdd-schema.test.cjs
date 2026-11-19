@@ -45,6 +45,20 @@ const rules = G.promptRules('en', ['overview', 'companions']);
 check(/overview — Game overview/.test(rules) && /companions/.test(rules) && !/^- mechanics/m.test(rules), true, 'promptRules lists only the asked sections');
 check(G.forAgent('uk').stages.length, 13, 'forAgent gives all stages');
 
+// 🧭 titleSim: one series with different numbers is not one thing; case / punctuation still is
+[['Рівень 1', 'Рівень 2'], ['Boss 1', 'Boss 2'], ['Act I', 'Act II'], ['Level 1', 'Level 2'], ['Level 1: Forest', 'Level 2: Forest'], ['Boss A', 'Boss B'], ['Глава IX', 'Глава X']]
+  .forEach(([a, b]) => check(G.titleSim(a, b) < G.SIMILAR, true, `«${a}» / «${b}» are different things`));
+[['Рівень 1', 'рівень 1'], ['«Boss 1»', 'boss 1'], ['Act II', 'act ii!'], ['Кабан', 'КАБАН!'], ['Лісовий рівень 2', 'Лісовий рівень 2 (нічний)']]
+  .forEach(([a, b]) => check(G.titleSim(a, b) >= G.SIMILAR, true, `«${a}» / «${b}» are the same thing`));
+const { cleanImport: ci } = require(path.join(__dirname, '../functions/src/gamedev.js'))._gdd;
+const imp = ci({ cards: [{ section: 'levels', title: 'Рівень 1', fields: { a: 'x' } }, { section: 'levels', title: 'Рівень 2', fields: { a: 'y' } }, { section: 'levels', title: 'рівень 1', fields: { b: 'z' } }] },
+  [{ id: 'levels', kind: 'game' }], [], {}, [{ id: 'l3', section: 'levels', title: 'Рівень 3' }]);
+check(imp.cards.map((c) => c.title).join(' | '), 'Рівень 1 | Рівень 2', 'import: «Рівень 1» and «Рівень 2» stay two cards, «рівень 1» joins the first, «Рівень 3» of the game is not taken');
+
+const many = { cards: Array.from({ length: 300 }, (_, i) => ({ section: 'items', title: 'Item ' + i + ' ' + 'x'.repeat(i % 7), fields: {} })) };
+const one = ci(many, [{ id: 'items', kind: 'game' }], [], {}, []), three = ci(many, [{ id: 'items', kind: 'game' }], [], {}, [], 3);
+check(one.cards.length + ' ' + one.truncated.cards + ' / ' + three.cards.length + ' ' + three.truncated.cards, '120 180 / 300 0', 'import: the card cap grows with the parts, what it cuts is counted');
+
 // the plan's threshold and the GDD text in stage order (functions/src/gamedev.js)
 const { gddMissing, bibleText } = require(path.join(__dirname, '../functions/src/gamedev.js'))._gdd;
 check(gddMissing([], 6).map((m) => m.n).join(), '1,2,3,4,5,6', 'an empty game misses stages 1–6');

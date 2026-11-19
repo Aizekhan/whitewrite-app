@@ -5,7 +5,7 @@ const src = fs.readFileSync(path.join(__dirname, '../functions/src/mcp.js'), 'ut
 const pick = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
 const NV = require('../functions/narrative-validate.js');
 const { findApproved, questView, dialogueView } = new Function('NV',
-  pick('const str =', '// ---------- tools') + pick('const pool', '// ---------- writes') +
+  pick('const str =', '// ---------- tools') + pick('// 👥 Bible text a team member wrote', 'function cardView') + pick('const pool', '// ---------- writes') +
   'function rpcError(code, message) { const e = new Error(message); e.rpcCode = code; return e; }' +
   ';return { findApproved, questView, dialogueView };')(NV);
 
@@ -40,5 +40,9 @@ check(dv.quest.title + '/' + dv.quest.stage, 'The Lost Hammer/s1', 'the dialogue
 check(dv.nodes.map((x) => x.speaker_name).join(), 'Ada,player', 'speakers resolved to names');
 check(dv.nodes[0].choices[0].to, 'n2', 'choices keep their targets');
 check(dv.checks.length, 0, 'a clean dialogue has no issues');
+// audit 2026-11-19: a team member's text is marked for the owner's agent
+check(questView(ctx, n, q1).authored_by_member, undefined, 'the author own quest carries no member mark');
+check(questView(Object.assign({ world: { owner: 'u1' } }, ctx), n, Object.assign({}, q1, { updatedBy: 'u4' })).authored_by_member, true, 'a quest last changed by a team member is marked authored_by_member');
+check(dialogueView(ctx, n, Object.assign({}, d1, { memberEdit: 'u4' })).authored_by_member, true, 'a dialogue stamped memberEdit is marked');
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;

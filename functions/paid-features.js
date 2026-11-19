@@ -80,7 +80,7 @@ const FEATURES = [
     uk: { name: 'Експорт книги DOCX / PDF', desc: 'Уся історія одним файлом: Word або друк у PDF.' },
     en: { name: 'Book export DOCX / PDF', desc: 'The whole story in one file: Word or print to PDF.' },
     where: 'Книга → ⤓ Експорт', server: '— (у браузері)' },
-  { id: 'framework', kind: 'gate', flag: 'allowFramework', minPlan: 'storyteller', soon: true,
+  { id: 'framework', kind: 'gate', minPlan: 'storyteller', soon: true, // the flag (allowFramework) comes with the feature: nothing checks it yet
     uk: { name: 'Доступ до RPG Framework', desc: 'Особистий токен до фреймворку для Unity: привʼязаний до акаунта, блокується при чужому використанні, оновлюється, поки підписка активна.' },
     en: { name: 'RPG Framework access', desc: 'A personal token for the Unity framework: tied to the account, blocked if used by someone else, renewed while the subscription is active.' },
     where: 'База знань → RPG Framework → Доступ', server: '— (готується)' },
@@ -118,11 +118,11 @@ const FEATURES = [
     en: { name: '✦ Dialogue draft', desc: 'AI proposes lines and choices in the voices of the game and canon characters.' },
     where: 'Біблія гри → Діалоги', server: 'narrativeDraft {op:dialogueDraft}' },
   // ── Claude models (MODEL_TIERS) ──
-  { id: 'modelSonnet', kind: 'gate', flag: 'allowSonnet', minPlan: 'storyteller',
+  { id: 'modelSonnet', kind: 'gate', minPlan: 'storyteller', // no flag: the tier is MODEL_TIERS[sonnet].minPlan (modelTier, claude.js)
     uk: { name: 'Модель Claude Sonnet', desc: 'Вибір моделі в Акаунті: Haiku або Sonnet.' },
     en: { name: 'Claude Sonnet model', desc: 'Model choice in the Account: Haiku or Sonnet.' },
     where: 'Акаунт → Модель Claude', server: 'усі AI-функції (functions/src/claude.js)' },
-  { id: 'modelOpus', kind: 'gate', flag: 'allowOpus', minPlan: 'novelist',
+  { id: 'modelOpus', kind: 'gate', minPlan: 'novelist', // no flag: MODEL_TIERS[opus].minPlan
     uk: { name: 'Модель Claude Opus', desc: 'Найсильніша модель — Haiku, Sonnet або Opus на вибір.' },
     en: { name: 'Claude Opus model', desc: 'The strongest model — Haiku, Sonnet or Opus to choose from.' },
     where: 'Акаунт → Модель Claude', server: 'усі AI-функції (functions/src/claude.js)' },
@@ -134,9 +134,6 @@ const FEATURES = [
     uk: { name: '✦ Узгодити сцени', desc: 'Канон змінився — AI переписує зачеплені сцени, ти приймаєш diff.' },
     en: { name: '✦ Reconcile scenes', desc: 'The canon changed — AI rewrites the affected scenes, you accept the diff.' },
     where: 'Біблія → досьє', server: 'reconstructScene' },
-  { id: 'improve', kind: 'gate', flag: 'allowImprove', minPlan: 'novelist', planned: true,
-    uk: { name: 'Режим «Покращити»', desc: 'Готується.' }, en: { name: 'Improve mode', desc: 'In the works.' },
-    where: '—', server: '—' },
   // ── Game Bible ──
   // Game design is open on every plan (owner's decision 2026-11-02): one game below Worldbuilder; what costs us — AI, MCP,
   // telemetry, marketing, a repo, big files — stays Worldbuilder (allowGameDev)
@@ -216,11 +213,11 @@ const FEATURES = [
     uk: { name: 'MCP для Claude Code', desc: 'Claude Code бере задачі плану з каноном і Біблією та здає результат на приймання.' },
     en: { name: 'MCP for Claude Code', desc: 'Claude Code takes plan tasks with the canon and Bible and hands results in for review.' },
     where: 'Продакшн-план → Підключити Claude Code', server: 'mcp' },
-  { id: 'mdImport', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 4, quote: { partChars: 20000, outPerPart: 8000 } }, op: 'import', // the file known → «не більше N» (quoteChars)
+  { id: 'mdImport', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 4, quote: { partChars: 20000, outPerPart: 8000, overhead: 6000 } }, op: 'import', // the file known → «не більше N» (quoteChars)
     uk: { name: '✦ Імпорт .md', desc: 'Нотатки й GDD → пропозиція карток, ти відмічаєш, що взяти.' },
     en: { name: '✦ .md import', desc: 'Notes and GDD → proposed cards, you tick what to take.' },
     where: 'Біблія гри', server: 'gamedevPlan {op:import}' },
-  { id: 'folderSort', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 2, quote: { partChars: 20000, outPerPart: 6000 } }, op: 'folderSort', // the file list known → «не більше N»
+  { id: 'folderSort', kind: 'ai', flag: 'allowGameDev', minPlan: 'worldbuilder', price: { factor: 2, quote: { partChars: 20000, outPerPart: 6000, overhead: 6000 } }, op: 'folderSort', // the file list known → «не більше N»
     uk: { name: '✦ ШІ розбирає теку гри', desc: 'ШІ переглядає список усіх файлів теки (шляхи, розміри, типи) і сам вирішує, що на яку картку й у який розділ лягає, що ігнорувати і чому, і які файли прочитати — нотатки, дані гри (.asset, JSON), її власні скрипти з цифрами (читаються на кроці «Тексти», за ціною імпорту, у картки — лише зміст, не код); префаби — окремо в «Префаби». Ти бачиш план і можеш змінити будь-що. Ціна — за довжиною списку, не більше показаної.' },
     en: { name: '✦ AI sorts the game folder', desc: 'AI looks through the list of every file in the folder (paths, sizes, types) and decides itself which card and section each goes to, what to ignore and why, and which files to read — notes, the game data (.asset, JSON), its own scripts with numbers (read at the «Texts» step at the import price; only the content reaches the cards, never code); prefabs separately into «Prefabs». You see the plan and can change anything. Priced by the list length, never above the shown price.' },
     where: 'Форма нової гри → 📂 Тека гри', server: 'gamedevPlan {op:folderSort}' },
@@ -315,9 +312,9 @@ const FEATURES = [
     en: { name: 'WhiteWrite Certification for sale', desc: 'The review of a world before sale (1–2 weeks): metrics, AI review, AI lawyer and a moderator. The world is frozen meanwhile. Priced by the text size: 60,000 / 90,000 / 120,000 tokens.' },
     where: 'Хаб світу → Маркет', server: 'market {op:apply}' },
   { id: 'marketSell', kind: 'free', minPlan: 'free', soon: true,
-    uk: { name: 'Продаж сертифікованого світу', desc: 'Сертифікований світ продається на будь-якому тарифі. Покупець платить продавцю через Stripe; 12% утримується на користь WhiteWrite.' },
-    en: { name: 'Selling a certified world', desc: 'A certified world sells on any plan. The buyer pays the seller through Stripe; 12% goes to WhiteWrite.' },
-    where: 'Спільнота → Маркет', server: 'market {op:checkout} · marketWebhook' }
+    uk: { name: 'Продаж сертифікованого світу', desc: 'Сертифікований світ продається на будь-якому тарифі. Покупець платить продавцю; 12% утримується на користь WhiteWrite. Платіжного провайдера для Маркету ще не обрано — в розробці.' },
+    en: { name: 'Selling a certified world', desc: 'A certified world sells on any plan. The buyer pays the seller; 12% goes to WhiteWrite. The payment provider for the Market is not chosen yet — in development.' },
+    where: 'Спільнота → Маркет', server: 'market {op:checkout} — 410 for now' }
 ];
 
 // Маркет: the licence review fee by the size of the text snapshot (chars), the platform fee on a sale and the price range.
@@ -387,8 +384,11 @@ function featureCost(feature, claudeCost, tier) {
 function byOp(op) { return FEATURES.find((f) => f.op === op || f.id === op) || null; }
 
 // «Не більше N токенів» for an AI action on a big input (price.quote): an upper bound — the input's tokens (chars ÷ 2.5:
-// Cyrillic takes more tokens than Latin), a prompt overhead per part, the output a part may give — at the tier's live price,
-// + 15%. The page shows N before the run, the server reserves N and never charges more (token-service charge cap).
+// Cyrillic takes more tokens than Latin), per part: the fixed prompt (q.overhead: instructions, shelves, the GDD schema rules
+// — ~6k tokens for the import / folder sort) + the context every part repeats (ctxChars: the canon entities and card titles,
+// quoteCtx), the output a part may give; × (1 + q.retry, default 0.5) for the re-asks (a broken JSON is asked again, a cut
+// part is split in halves) — at the tier's live price, + 15%. The page shows N before the run, the server reserves N and never
+// charges more, a failure included (token-service charge / settle cap). Both must pass the same ctxChars.
 // The input may be given as its text: chars from U+0800 up (CJK, emoji, rare scripts) take 1–2 tokens each, not 0.4,
 // so each counts as 4 — otherwise such a file would cost the platform 3–5× the quoted cap. Cyrillic and Latin stay 1.
 function quoteSize(x) {
@@ -397,12 +397,20 @@ function quoteSize(x) {
   for (let i = 0; i < x.length; i++) if (x.charCodeAt(i) >= 0x800) n += 3;
   return n;
 }
-function quoteChars(feature, chars, tier) {
+function quoteChars(feature, chars, tier, ctxChars) {
   chars = quoteSize(chars);
   const q = feature && feature.price && feature.price.quote; if (!q || !(chars > 0)) return 0;
-  const parts = Math.max(1, Math.ceil(chars / q.partChars)), b = tierInfo(tier).base;
-  const usd = ((Math.ceil(chars / 2.5) + parts * (q.overhead || 4000)) * b.input + parts * q.outPerPart * b.output) / 1e6 * priceIndex(tier);
+  const parts = Math.max(1, Math.ceil(chars / q.partChars)), b = tierInfo(tier).base, retry = 1 + (q.retry != null ? q.retry : 0.5);
+  const perPart = (q.overhead || 4000) + Math.ceil((ctxChars > 0 ? ctxChars : 0) / 2.5);
+  const usd = ((Math.ceil(chars / 2.5) + parts * perPart) * b.input + parts * q.outPerPart * b.output) * retry / 1e6 * priceIndex(tier);
   return tokensForUsd(usd * 1.15);
+}
+// The context chars every part of an import / folder sort repeats: one line per canon entity and per game card («- id [kind] name»)
+function quoteCtx(entities, cards) { return 60 * (Math.max(0, entities || 0) + Math.max(0, cards || 0)); }
+// The worst case of an uncapped AI run in tokens: every call at its max_tokens, at the tier's live price (token-service reserve upTo)
+function worstCase(tier, inputTokens, outputTokens) {
+  const b = tierInfo(tier).base;
+  return tokensForUsd(((inputTokens || 0) * b.input + (outputTokens || 0) * b.output) / 1e6 * priceIndex(tier));
 }
 
 // Tokens for a call that cost `usd` in API (the charge; never 0 for a paid call)
@@ -416,7 +424,7 @@ function upgradeQuote(from, to, left) {
 }
 
 const PAID_FEATURES = { PLAN_ORDER, PLANS, FEATURES, MODEL_TIERS, SCENE_COST, USD_PER_TOKEN, UPGRADE_FEE, LICENCE, licenceFee, upgradeQuote, planRank, unlocked, planBudget,
-  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd, TTS, ttsClass, ttsCost, ttsUsd, PRICE_MIX, priceIndex, setPriceIndex, priceIndexFor, quoteChars };
+  modelTiers, modelTier, tierInfo, featureCost, byOp, tokensForUsd, TTS, ttsClass, ttsCost, ttsUsd, PRICE_MIX, priceIndex, setPriceIndex, priceIndexFor, quoteChars, quoteCtx, worstCase };
 
 if (typeof module !== 'undefined' && module.exports) module.exports = PAID_FEATURES;
 if (typeof window !== 'undefined') {

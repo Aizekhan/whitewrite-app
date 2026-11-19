@@ -12,7 +12,8 @@ window.__TOKEN_COSTS = {
 };
 
 // ============================================================================
-// PLAN BUDGETS — Monthly token allocation per tier
+// PLAN BUDGETS — FALLBACK ONLY: overwritten below from window.__PAID_FEATURES (functions/paid-features.js planBudget),
+// which is always loaded first on the pages; edit plans and flags there, never here
 // ============================================================================
 
 window.__PLAN_BUDGETS = {
@@ -27,7 +28,6 @@ window.__PLAN_BUDGETS = {
     allowAPI: false,
     allowWorldTree: false,          // ❌ NO WorldTree access
     allowAnalyze: false,            // ❌ NO ANALYZE mode
-    allowImprove: false,            // ❌ NO IMPROVE mode
     allowGameDev: false,
 
     // Soft limits (UI guidance, not hard blocks)
@@ -46,7 +46,6 @@ window.__PLAN_BUDGETS = {
     allowAPI: false,
     allowWorldTree: true,           // ✅ WorldTree access
     allowAnalyze: false,            // ❌ ANALYZE mode (too expensive for this tier)
-    allowImprove: false,            // ❌ IMPROVE mode (too expensive for this tier)
     allowGameDev: false,
 
     maxProjects: 5,
@@ -63,8 +62,7 @@ window.__PLAN_BUDGETS = {
     allowExport: true,
     allowAPI: false,
     allowWorldTree: true,           // ✅ WorldTree access
-    allowAnalyze: true,             // ✅ ANALYZE mode (50 tokens)
-    allowImprove: true,             // ✅ IMPROVE mode (80 tokens)
+    allowAnalyze: true,             // ✅ ANALYZE mode
     allowGameDev: false,
 
     maxProjects: Infinity,
@@ -83,7 +81,6 @@ window.__PLAN_BUDGETS = {
     priority: true,            // Priority queue for generation
     allowWorldTree: true,
     allowAnalyze: true,
-    allowImprove: true,
     allowGameDev: true,           // ✅ Game Bible + Production Plan
 
     maxProjects: Infinity,
@@ -103,7 +100,6 @@ window.__PLAN_BUDGETS = {
     priority: true,
     allowWorldTree: true,
     allowAnalyze: true,
-    allowImprove: true,
     allowGameDev: true,           // ✅ Game Bible + Production Plan
 
     maxProjects: Infinity,

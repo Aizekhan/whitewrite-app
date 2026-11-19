@@ -27,6 +27,20 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "community",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "hidden",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "score",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -48,6 +62,37 @@
       "ttl": true,
       "indexes": []
     },
+    {
+      "collectionGroup": "executions",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "mcpUploads",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "communityRate",
+      "fieldPath": "expireAt",
+      "ttl": true,
+      "indexes": []
+    },
+    { "collectionGroup": "telemetry", "fieldPath": "n", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "v", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "s", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "p", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "gt", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "l", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "z", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "en", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "m", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "q", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "pos", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "ctx", "indexes": [] },
+    { "collectionGroup": "telemetry", "fieldPath": "pr", "indexes": [] },
     {
       "collectionGroup": "reservations",
       "fieldPath": "at",

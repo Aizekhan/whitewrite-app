@@ -38,7 +38,12 @@ const oneOf = (v, opts, d) => (opts.includes(v) ? v : d);
 const ts = () => admin.firestore.FieldValue.serverTimestamp();
 const expire = (days) => admin.firestore.Timestamp.fromMillis(Date.now() + days * DAY);
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
-const safeKey = (s) => str(s, 60).replace(/[^\w-]/g, '_') || '_';
+// a client string as a Firestore map key: word characters only, and never the reserved «__…__» form (it fails the whole write)
+const safeKey = (s) => { const k = str(s, 60).replace(/[^\p{L}\p{N}_-]/gu, '_') || '_'; return /^__.*__$/.test(k) ? 'k' + k : k; };
+// a map built from client strings keeps only its n biggest entries (weight → number) — a flood of distinct ids cannot grow the metrics doc past 1 MiB
+const MAP_CAP = { zones: 200, levels: 200, quests: 200, mechanics: 200, surveys: 50, answers: 30, builds: 50 };
+const topN = (o, n, weight) => Object.fromEntries(Object.entries(o).sort((a, b) => weight(b[1]) - weight(a[1])).slice(0, n));
+const METRICS_FRESH_MS = 10 * 60000; // metrics / validate reuse the stored metrics this long (each run reads up to MAX_READ events)
 
 // ---------- the event standard (§12) ----------
 const ENVELOPE = {
@@ -127,8 +132,10 @@ async function resolveKey(token) {
   const d = await db.collection('ingestKeys').doc(h).get();
   let key = null;
   if (d.exists && !d.data().revoked) {
-    const k = d.data(), u = await db.collection('users').doc(k.uid).get();
-    if (getPlanBudget((u.exists && u.data().plan) || 'free').allowGameDev) key = { ...k, hash: h };
+    const k = d.data();
+    // the key's maker must still own the world (as mcp.js readGame): after transferWorld / a market buyout the old owner's key stops
+    const [u, w] = await Promise.all([db.collection('users').doc(k.uid).get(), db.collection('worlds').doc(String(k.worldId || '-')).get()]);
+    if (w.exists && w.data().owner === k.uid && getPlanBudget((u.exists && u.data().plan) || 'free').allowGameDev) key = { ...k, hash: h };
   }
   // only real keys are cached (random wwi_ tokens must not grow the cache), for a minute (a revoked key stops soon:
   // revoke runs in another function instance), and the cache stays bounded
@@ -161,7 +168,9 @@ function cleanEvent(e, now) {
     if (typeof v === 'number' && isFinite(v)) pr[kk] = v; else if (typeof v === 'boolean') pr[kk] = v; else if (typeof v === 'string') pr[kk] = v.slice(0, 200);
   });
   if (Object.keys(pr).length) out.pr = pr;
-  return { id: id.replace(/[/.]/g, '_'), ev: out };
+  const docId = id.replace(/[/.]/g, '_');
+  if (/^__.*__$/.test(docId)) return 'event_id'; // a reserved Firestore id would fail the whole batch (and the SDK retries forever)
+  return { id: docId, ev: out };
 }
 
 const STATS_EVERY_MS = 10 * 60000;
@@ -195,13 +204,12 @@ exports.telemetryIngest = onRequest({ region: 'us-central1', memory: '256MiB', t
     const exp = expire(RAW_DAYS);
     // same event_id → same doc: a retried event is not stored or counted again (the answer says how many were duplicates)
     const seen = new Set(), uniq = ok.filter((x) => (seen.has(x.id) ? false : seen.add(x.id)));
-    const fresh = [];
-    for (let i = 0; i < uniq.length; i += 450) {
-      const part = uniq.slice(i, i + 450), got = await db.getAll(...part.map((x) => gref.collection('telemetry').doc(x.id)));
-      const b = db.batch();
-      part.forEach((x, j) => { if (got[j].exists) return; fresh.push(x); b.set(gref.collection('telemetry').doc(x.id), { ...x.ev, expireAt: exp }); });
-      await b.commit();
-    }
+    // create() fails with ALREADY_EXISTS on a stored event_id: one write per event, no read before it
+    const fresh = [], bw = db.bulkWriter(), errs = [];
+    const writes = uniq.map((x) => bw.create(gref.collection('telemetry').doc(x.id), { ...x.ev, expireAt: exp })
+      .then(() => { fresh.push(x); }, (e) => { if (e.code !== 6) errs.push(e); }));
+    await bw.close(); await Promise.all(writes);
+    if (errs.length) throw errs[0];
     const duplicates = ok.length - fresh.length;
     if (fresh.length) {
       const day = new Date(now).toISOString().slice(0, 10), inc = admin.firestore.FieldValue.increment;
@@ -239,9 +247,11 @@ function computeMetrics(evs, opt) {
   opt = opt || {};
   const meaningful = new Set([...DEFAULT_MEANINGFUL, ...(opt.meaningful || [])]);
   const thresholdOf = (z) => ((opt.pacing || {})[z] || 3) * 60; // a gap longer than the segment's pacing intent (default 3 min) is downtime
+  // the client's ids become map keys below: safe keys only (no dots, no reserved «__…__»)
+  evs = evs.map((e) => (e.z || e.l || e.q || e.m ? { ...e, z: e.z && safeKey(e.z), l: e.l && safeKey(e.l), q: e.q && safeKey(e.q), m: e.m && safeKey(e.m) } : e));
   evs.sort((a, b) => a.t - b.t);
   const players = new Set(), sessions = new Map(), builds = {};
-  evs.forEach((e) => { players.add(e.p); builds[e.b || '-'] = (builds[e.b || '-'] || 0) + 1; if (!sessions.has(e.s)) sessions.set(e.s, []); sessions.get(e.s).push(e); });
+  evs.forEach((e) => { players.add(e.p); const bk = safeKey(e.b || '-'); builds[bk] = (builds[bk] || 0) + 1; if (!sessions.has(e.s)) sessions.set(e.s, []); sessions.get(e.s).push(e); });
   const P = players.size;
   const durs = [...sessions.values()].map((l) => (l[l.length - 1].t - l[0].t) / 1000);
   const zoneOf = (e) => e.z || e.l || '';
@@ -273,7 +283,7 @@ function computeMetrics(evs, opt) {
         case 'OptionalAreaEntered': explore.optional.add(e.p); break;
         case 'LocationDiscovered': explore.discovered.add(e.p); break;
         case 'SurveyAnswered': {
-          const pr = e.pr || {}, q = str(pr.question, 80) || '?', a = str(pr.answer, 60);
+          const pr = e.pr || {}, q = safeKey(str(pr.question, 80) || '?'), a = str(pr.answer, 60) && safeKey(pr.answer);
           const s = (surveys[q] = surveys[q] || { playtest: str(pr.playtest, 60), n: 0, answers: {} });
           s.n++; if (a) s.answers[a] = (s.answers[a] || 0) + 1;
           break;
@@ -355,20 +365,27 @@ function computeMetrics(evs, opt) {
     x.sessions++; x.play += (l[l.length - 1].t - l[0].t) / 1000; l.forEach((e) => { x.days.add(Math.floor(e.t / DAY)); if (e.n === 'GameCompleted') x.done = true; });
     PL.set(p, x);
   }
-  const dn = (n) => { let el = 0, back = 0; for (const x of PL.values()) { const d = Math.floor(x.first / DAY); if (d + n > lastDay) continue; el++; if (x.days.has(d + n)) back++; } return { rate: share(back, el), players: el }; };
+  // a truncated read (only the newest MAX_READ events) starts mid-history: a player first seen on its first day may be older — not counted as new;
+  // windowDays says how many days the read really covers (D7 / D30 need that many)
+  const firstDay = t0 == null ? 0 : Math.floor(t0 / DAY), windowDays = t0 == null ? 0 : r1((t1 - t0) / DAY);
+  const dn = (n) => { let el = 0, back = 0; for (const x of PL.values()) { const d = Math.floor(x.first / DAY); if (d + n > lastDay || (opt.truncated && d === firstDay)) continue; el++; if (x.days.has(d + n)) back++; } return { rate: share(back, el), players: el }; };
   const ACT = new Set(['MechanicUsed', 'ObjectInteracted', 'EnemyKilled', 'CombatStarted', 'CheckpointReached']), REW = new Set(['RewardReceived', 'ItemAcquired', 'CollectibleFound']);
   const firstOf = (l, set) => { const e = l.find((y) => set.has(y.n)); return e ? (e.t - l[0].t) / 1000 : null; };
   const pls = [...PL.values()], fa = pls.map((x) => firstOf(x.firstSess, ACT)).filter((v) => v != null), fr = pls.map((x) => firstOf(x.firstSess, REW)).filter((v) => v != null);
-  const retention = { d1: dn(1), d7: dn(7), d30: dn(30), sessionsPerDayMedian: r1(median(pls.map((x) => x.sessions / (x.days.size || 1)))),
+  const retention = { windowDays, partial: !!opt.truncated, d1: dn(1), d7: dn(7), d30: dn(30), sessionsPerDayMedian: r1(median(pls.map((x) => x.sessions / (x.days.size || 1)))),
     completionShare: share(pls.filter((x) => x.done).length, P), under2hShare: share(pls.filter((x) => x.play < 7200).length, P), oneSessionShare: share(pls.filter((x) => x.sessions === 1).length, P),
     firstActionMedianSec: r1(median(fa)), firstRewardMedianSec: r1(median(fr)), firstSessionMedianSec: r1(median(pls.map((x) => (x.firstSess[x.firstSess.length - 1].t - x.firstSess[0].t) / 1000))) };
+  // the maps keyed by client ids keep their biggest entries only (MAP_CAP) — the metrics doc stays far below 1 MiB
+  const cap = (o, k, w) => topN(o, MAP_CAP[k], w);
+  Object.values(surveys).forEach((x) => { x.answers = cap(x.answers, 'answers', (v) => v); });
   return {
-    sample: { events: evs.length, players: P, sessions: sessions.size, from: t0, to: t1, builds, truncated: !!opt.truncated },
+    sample: { events: evs.length, players: P, sessions: sessions.size, from: t0, to: t1, builds: cap(builds, 'builds', (v) => v), truncated: !!opt.truncated, windowDays },
     session: { count: sessions.size, medianSec: r1(median(durs)), p90Sec: r1(pct(durs, 0.9)), perPlayer: r1(P ? sessions.size / P : 0), menusPerSessionMedian: median(menusPerSession) },
-    retention, zones, quests, levels, mechanics,
+    retention, zones: cap(zones, 'zones', (v) => v.sessions), quests: cap(quests, 'quests', (v) => v.started + v.completed), levels: cap(levels, 'levels', (v) => v.players),
+    mechanics: cap(mechanics, 'mechanics', (v) => v.uses + v.fails),
     variety: { mechanicsUsed: Object.keys(mechanics).length, dominant: dominant ? { mechanic: dominant[0], useShare: dominant[1].useShare } : null },
     exploration: { secretShare: share(explore.secret.size, P), optionalShare: share(explore.optional.size, P), discoveredShare: share(explore.discovered.size, P) },
-    surveys, experiments, heatmaps,
+    surveys: cap(surveys, 'surveys', (v) => v.n), experiments, heatmaps,
   };
 }
 
@@ -552,12 +569,19 @@ exports.experience = onRequest({ region: 'us-central1', secrets: [claudeApiKey],
       if (op === 'metrics' || op === 'validate') {
         const days = Math.max(1, Math.min(RAW_DAYS, parseInt(body.days, 10) || RAW_DAYS));
         const build = str(body.build, 40);
-        const { evs, truncated } = await loadEvents(gref, days, build);
-        const m = computeMetrics(evs, { ...optsFrom(cards, experiments), truncated });
-        if (op === 'metrics') {
-          await gref.collection('experience').doc('metrics').set({ ...m, days, build, at: ts() });
-          return res.status(200).json({ success: true, sample: m.sample });
+        // the stored metrics of the same period and build, computed less than METRICS_FRESH_MS ago, are reused (a run reads up to
+        // MAX_READ events); body.force recomputes
+        const mref = gref.collection('experience').doc('metrics'), stored = body.force ? null : await mref.get();
+        const sm = stored && stored.exists ? stored.data() : null;
+        const fresh = sm && sm.sample && sm.days === days && (sm.build || '') === build && sm.computedAt > Date.now() - METRICS_FRESH_MS;
+        let m;
+        if (fresh) m = sm;
+        else {
+          const { evs, truncated } = await loadEvents(gref, days, build);
+          m = computeMetrics(evs, { ...optsFrom(cards, experiments), truncated });
+          if (op === 'metrics') await mref.set({ ...m, days, build, at: ts(), computedAt: Date.now() });
         }
+        if (op === 'metrics') return res.status(200).json({ success: true, sample: m.sample, cached: !!fresh, computedAt: fresh ? sm.computedAt : Date.now() });
         const issue = issues.find((x) => x.id === str(body.issueId, 80));
         if (!issue) return res.status(404).json({ error: 'Проблему не знайдено' });
         const flat = flatten(m), base = issue.baseline || {};

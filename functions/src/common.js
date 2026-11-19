@@ -24,11 +24,10 @@ const db = admin.firestore();
 
 // Define secrets
 const claudeApiKey = defineSecret('CLAUDE_API_KEY');
-const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const lemonSqueezyApiKey = defineSecret('LEMON_SQUEEZY_API_KEY');
 const lemonSqueezyWebhookSecret = defineSecret('LEMON_SQUEEZY_WEBHOOK_SECRET');
 // A secret pasted on Windows can end with \r\n — that broke every webhook signature (LS 401). Trim on read.
-for (const s of [claudeApiKey, stripeSecretKey, lemonSqueezyApiKey, lemonSqueezyWebhookSecret]) {
+for (const s of [claudeApiKey, lemonSqueezyApiKey, lemonSqueezyWebhookSecret]) {
   const read = s.value.bind(s);
   s.value = () => (read() || '').trim();
 }
@@ -166,7 +165,6 @@ module.exports = {
   getPlanBudget,
   loadCanon,
   claudeApiKey,
-  stripeSecretKey,
   lemonSqueezyApiKey,
   lemonSqueezyWebhookSecret,
   verifyAuth,

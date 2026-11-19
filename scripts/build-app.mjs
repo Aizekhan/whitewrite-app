@@ -86,6 +86,30 @@ let compiled = 0;
   }
 })(OUT);
 
+// 1b) Plain .js: comments and whitespace out (Babel, no presets, no renaming — window globals and the
+//     script-vs-module semantics stay exactly as written; the vendored three.js is already minified)
+let minified = 0, saved = 0;
+(function walk(dir) {
+  for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, ent.name);
+    if (ent.isDirectory()) { if (ent.name !== 'vendor' && ent.name !== 'assets') walk(p); continue; }
+    if (!ent.name.endsWith('.js') || ent.name.endsWith('.min.js')) continue;
+    const rel = path.relative(OUT, p).split(path.sep).join('/');
+    if (Object.values(versions).some((x) => x.outRel === rel)) continue; // compiled .jsx — compact already
+    const src = fs.readFileSync(p, 'utf8');
+    let code;
+    try {
+      code = Babel.transform(src, { filename: rel, babelrc: false, configFile: false, presets: [], plugins: [], comments: false, compact: true, sourceType: 'unambiguous' }).code;
+    } catch (e) {
+      console.error(`✗ minify ${rel}: ${e.message}`);
+      process.exit(1);
+    }
+    saved += src.length - code.length;
+    fs.writeFileSync(p, code);
+    minified++;
+  }
+})(OUT);
+
 // 2) Rewrite HTML entry points
 let swapped = 0;
 for (const name of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
@@ -125,4 +149,4 @@ for (const name of fs.readdirSync(OUT).filter((f) => f.endsWith('.html'))) {
   fs.writeFileSync(file, html);
 }
 
-console.log(`✓ dist/ built: ${compiled} jsx compiled, ${swapped} script tags rewritten`);
+console.log(`✓ dist/ built: ${compiled} jsx compiled, ${minified} js compacted (−${Math.round(saved / 1024)} KB), ${swapped} script tags rewritten`);

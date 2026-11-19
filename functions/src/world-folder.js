@@ -78,7 +78,7 @@ ${names || '(nothing yet)'}`;
 
 exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey], timeoutSeconds: 540, memory: '1GiB' }, async (req, res) => {
   return cors(req, res, async () => {
-    let uid, reservation = null;
+    let uid, reservation = null, cap = 0; // cap: the quoted «не більше N» — a failure is never charged above it either (settle)
     try {
       if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
       const auth = req.headers.authorization || '';
@@ -107,10 +107,10 @@ exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey]
       if (!subscriptionActive(userData)) return res.status(403).json({ error: 'Активна підписка необхідна', requiresSubscription: true });
 
       const { tier, model } = await modelFor(db, userData, userData.plan || 'free');
-      const cap = quoteChars(scout ? byOp('worldFolderScout') : byOp('worldFolder'), scout ? lines.join('\n') : files.map((f) => f.text).join(''), tier); // «не більше N» — the page showed the same number
+      cap = quoteChars(scout ? byOp('worldFolderScout') : byOp('worldFolder'), scout ? lines.join('\n') : files.map((f) => f.text).join(''), tier); // «не більше N» — the page showed the same number
       const balance = getBalance(userData);
       if (balance.available < cap) return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: cap, code: 'OUT_OF_TOKENS' });
-      try { reservation = await reserve(db, uid, cap, { hold: true }); } catch (e) {
+      try { reservation = await reserve(db, uid, cap, { hold: true, cap }); } catch (e) {
         if (e.code !== 'OUT_OF_TOKENS') throw e;
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: e.available, tokensNeeded: cap, code: 'OUT_OF_TOKENS' });
       }
@@ -143,7 +143,7 @@ exports.worldFolder = onRequest({ region: 'us-central1', secrets: [claudeApiKey]
       return res.status(200).json({ success: true, fill, parts: out.length, badParts: bad, files: files.length, tokensConsumed: userCost, tokensRemaining: Math.max(0, balance.available - userCost) });
     } catch (error) {
       console.error('worldFolder error:', error);
-      if (reservation) await settle(db, uid, reservation, error, 'world_folder').catch((e) => console.error('[world-folder] Refund failed:', e));
+      if (reservation) await settle(db, uid, reservation, error, 'world_folder', { cap }).catch((e) => console.error('[world-folder] Refund failed:', e));
       return res.status(500).json({ error: `Помилка: ${publicMessage(error)}` });
     }
   });

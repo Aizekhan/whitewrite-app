@@ -39,8 +39,9 @@ window.__firebaseAuth = {
             const periodExpired = !renewAt || renewAt <= new Date();
             window.__wwUser.tokensBudget = planConfig.monthly;
             window.__wwUser.tokensUsed = periodExpired ? 0 : (userData.tokensUsed || 0);
-            window.__wwUser.bonusTokens = Math.max(0, userData.bonusTokens || 0);
-            window.__wwUser.tokensRemaining = Math.max(0, window.__wwUser.tokensBudget - window.__wwUser.tokensUsed) + window.__wwUser.bonusTokens;
+            window.__wwUser.bonusTokens = userData.bonusTokens || 0; // negative = a debt (a post-paid AI charge past the balance)
+            // = getBalance().available: the debt is paid from the allowance first
+            window.__wwUser.tokensRemaining = Math.max(0, window.__wwUser.tokensBudget - Math.min(window.__wwUser.tokensBudget, window.__wwUser.tokensUsed) + window.__wwUser.bonusTokens);
             window.__wwUser.resetDate = userData.resetDate?.toDate() || new Date();
 
             // Feature gates (from plan config)

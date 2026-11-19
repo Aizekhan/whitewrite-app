@@ -16,5 +16,17 @@ check(JSON.stringify(fsPlans) === JSON.stringify(want), `firestore.rules canonPl
 check(JSON.stringify(stPlans) === JSON.stringify(want), `storage.rules ownerCanon() = registry (${stPlans} / ${want})`);
 check(!P.planBudget('free').allowWorldTree, 'Free does not edit the canon (owner decision v2.50)');
 
+// Game Dev (production plan, tasks, experience, 200 MB files): firestore.rules ownerGameDev() / hasGameDev() and storage.rules ownerGameDev()
+// repeat the plans whose budget opens allowGameDev (audit 2026-11-19: three hard-coded copies without a test)
+const wantDev = P.PLAN_ORDER.concat(['worldforge']).filter((p) => P.planBudget(p).allowGameDev).sort();
+const fsr = read('firestore.rules');
+const fsOwnerDev = list(fsr, /function ownerGameDev\(worldId\) \{[^}]*?\.get\('plan', 'free'\) in \[([^\]]*)\]/);
+const fsHasDev = list(fsr, /function hasGameDev\(\) \{[^}]*?\.get\('plan', 'free'\) in \[([^\]]*)\]/);
+const stOwnerDev = list(read('storage.rules'), /function ownerGameDev\(worldId\) \{\s*return ownerPlan\(worldId\) in \[([^\]]*)\]/);
+check(wantDev.length > 0 && !wantDev.includes('free'), `the registry opens Game Dev on paid plans only (${wantDev})`);
+check(JSON.stringify(fsOwnerDev) === JSON.stringify(wantDev), `firestore.rules ownerGameDev() = registry allowGameDev (${fsOwnerDev} / ${wantDev})`);
+check(JSON.stringify(fsHasDev) === JSON.stringify(wantDev), `firestore.rules hasGameDev() = registry allowGameDev (${fsHasDev} / ${wantDev})`);
+check(JSON.stringify(stOwnerDev) === JSON.stringify(wantDev), `storage.rules ownerGameDev() = registry allowGameDev (${stOwnerDev} / ${wantDev})`);
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exitCode = fails ? 1 : 0;
