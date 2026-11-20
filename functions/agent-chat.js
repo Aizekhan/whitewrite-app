@@ -66,4 +66,27 @@ function view(m) {
     at: m.at ? new Date(m.at).toISOString() : null };
 }
 
-module.exports = { ROLES, roleOf, toolAllowed, claimFor, AGENT_TYPES, AUTHOR_TYPES, URGENT, TEXT_MAX, REFS_MAX, THREAD_AGENT_MAX, CODE_TTL, hasSecret, cleanRefs, threadWaits, urgentFree, view };
+// v2.150 the silent-stop watch (owner: «зупинки агентів без питання до автора ловив сам WhiteWrite, а не лише інструкція»):
+// a key's tool call arms it; a report to the author disarms it; agentSilenceWatch (agents.js) tells the author after N quiet minutes.
+const SILENCE = { DEF: 10, MIN: 2, MAX: 120, STALE: 60 }; // minutes; past N + STALE the session is too old to report (the watch was down)
+const REPORT_TYPES = ['question', 'approval_request', 'handoff'];
+// 'report' — the author was told (disarms) · 'quiet' — reading the answers / deciding, it neither arms nor disarms · 'arm' — work
+function watchOp(name, args) {
+  args = args || {};
+  if (name === 'report_blocker' || name === 'submit_development_activity' || name === 'submit_task_result') return 'report';
+  if (name === 'post_agent_message') return REPORT_TYPES.includes(args.type) ? 'report' : 'quiet';
+  if (name === 'get_agent_inbox' || name === 'resolve_approval') return 'quiet';
+  return 'arm';
+}
+// games/{g}.agentSilence = { on, min }: on by default, N clamped
+function silenceCfg(game) {
+  const c = (game && game.agentSilence) || {}, n = Math.round(Number(c.min));
+  return { on: c.on !== false, min: Number.isFinite(n) && n > 0 ? Math.min(SILENCE.MAX, Math.max(SILENCE.MIN, n)) : SILENCE.DEF };
+}
+// due = quiet long enough and not too old; stale = clear without a word
+function silenceDue(lastMs, min, now) {
+  const quiet = now - (lastMs || 0);
+  return quiet >= (min + SILENCE.STALE) * 60000 ? 'stale' : quiet >= min * 60000 ? 'due' : '';
+}
+
+module.exports = { SILENCE, watchOp, silenceCfg, silenceDue, ROLES, roleOf, toolAllowed, claimFor, AGENT_TYPES, AUTHOR_TYPES, URGENT, TEXT_MAX, REFS_MAX, THREAD_AGENT_MAX, CODE_TTL, hasSecret, cleanRefs, threadWaits, urgentFree, view };

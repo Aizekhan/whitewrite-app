@@ -96,7 +96,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: {} } },
   // Setup, Unity environment, Project Knowledge, development activity log (functions/setup-guides.js holds the instructions)
   { name: 'get_guide', description: 'Instructions from WhiteWrite for this game\'s engine: setup (set everything up: the PC, the project, the log, and where to stop for the user; connection rules — the steps follow the game\'s engine profile: a Unity / RPG Framework game gets Git, Unity Hub, Unity CLI, Unity 6 and the framework; a Roblox game gets Studio and Rojo), unity_env (Unity only: environment checks with confirmed Unity CLI / Editor commands), knowledge (Unity only for now: how to index the project read-only and send it), activity_log (any engine: how and when to report development sessions), agents (any engine: the CLAUDE.md block on the agents of the game — roles, when to read get_agent_inbox, what to write, approvals).',
-    inputSchema: { type: 'object', required: ['topic'], properties: { topic: { type: 'string', enum: ['setup', 'unity_env', 'knowledge', 'activity_log', 'agents'] } } } },
+    inputSchema: { type: 'object', required: ['topic'], properties: { topic: { type: 'string', enum: ['setup', 'unity_env', 'knowledge', 'activity_log', 'agents', 'stop_hook'] } } } },
   { name: 'report_unity_environment', description: 'Unity only. Send the result of the Unity environment check (get_guide unity_env): OS, Editor and CLI versions, project discovery and each check with its exit code. Replaces the previous report.',
     inputSchema: { type: 'object', required: ['checks'], properties: {
       os: { type: 'string' }, editor: { type: 'object', properties: { version: { type: 'string' }, path_hint: { type: 'string' } } },
@@ -1811,6 +1811,15 @@ async function toolsFor(key) {
   const role = AC.roleOf(key); // 💬 a key's role (v2.148): «Геймдизайнер» / «Лише читання» see only their tools
   return TOOLS.filter((t) => AC.toolAllowed(role, t.name) && !(Array.isArray(hidden) && hidden.includes('worldgen') && WORLDGEN_TOOLS.includes(t.name)));
 }
+// v2.150 🛎 the silent-stop watch: a terminal agent's call arms it, a report to the author disarms it (agent-chat.js watchOp); agents.js
+// agentSilenceWatch tells the author when an armed key has been quiet N minutes. A claude.ai chat (OAuth / the path key) and a read-only key
+// are not watched — the author is right there / it writes nothing.
+function watchKey(key, name, args) {
+  if (key.via === 'oauth' || key.inPath || AC.roleOf(key) === 'readonly') return;
+  const op = AC.watchOp(name, args);
+  if (op === 'quiet') return;
+  db.collection('mcpKeys').doc(key.id).set(op === 'report' ? { watchPending: false, watchLast: Date.now(), watchReportAt: Date.now() } : { watchPending: true, watchLast: Date.now() }, { merge: true }).catch(() => {});
+}
 async function handle(msg, key) {
   const { id, method, params = {} } = msg || {};
   const isNote = id === undefined || id === null;
@@ -1834,6 +1843,7 @@ async function handle(msg, key) {
         // Маркет: a world under licence review / on sale is frozen — reads go on, nothing is written (market.js)
         if (/^(report_|submit_|save_|get_next_task|check_style|link_|archive_|card_)/.test(params.name || '') &&
             ((await db.collection('worlds').doc(key.worldId).get()).data() || {}).freeze) throw new Error('The world is frozen: it is under licence review or on sale in the WhiteWrite Market — nothing can be changed or claimed until the author withdraws it.');
+        watchKey(key, params.name || '', params.arguments || {});
         let out;
         try { out = await callTool(params.name, params.arguments || {}, key); }
         finally { if (!/^(get_|search_|list_)/.test(params.name || '') || params.name === 'get_next_task') dropGame(key); } // it may have written: re-read next time
@@ -2021,6 +2031,7 @@ async function authKey(req) {
   const user = await db.collection('users').doc(key.uid).get();
   if (!getPlanBudget((user.exists && user.data().plan) || 'free').allowAPI) return null; // paid-features `mcp`
   db.collection('mcpKeys').doc(hash).set({ lastUsedAt: ts() }, { merge: true }).catch(() => {});
+  if (inPath) key.inPath = true; // a claude.ai connector by the path key — a chat, not a terminal session (no silent-stop watch)
   return key;
 }
 

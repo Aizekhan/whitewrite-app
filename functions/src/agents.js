@@ -283,4 +283,44 @@ exports.agentDigest = onSchedule({ schedule: '0 19 * * *', timeZone: 'Europe/Kyi
   }
 });
 
-exports._agents = { notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };
+// ---------- 🛎 v2.150 the silent-stop watch (owner: «щоб зупинки агентів без питання до автора ловив сам WhiteWrite») ----------
+// mcp.js watchKey arms mcpKeys.{watchPending, watchLast} on a terminal agent's call and clears it on a report to the author (question,
+// approval_request, handoff, report_blocker, submit_task_result, submit_development_activity). Every 2 min: a key armed and quiet for the
+// game's N minutes (games/{g}.agentSilence, on, 10 by default) → one «зупинився без звіту» in «💬 Агенти» + Telegram; the next call re-arms.
+async function silenceSweep(now) {
+  now = now || Date.now();
+  const q = await db.collection('mcpKeys').where('watchPending', '==', true).limit(300).get();
+  const games = {}, out = [];
+  for (const d of q.docs) {
+    const k = d.data();
+    const gk = gameKey(k.worldId, k.gameId);
+    if (!(gk in games)) {
+      const [w, g] = await Promise.all([db.collection('worlds').doc(k.worldId).get(), db.collection('worlds').doc(k.worldId).collection('games').doc(k.gameId).get()]);
+      games[gk] = w.exists && g.exists ? { world: w.data(), game: g.data(), gref: g.ref } : null;
+    }
+    const G = games[gk], cfg = AC.silenceCfg(G && G.game);
+    const due = !G || k.revoked || !cfg.on ? 'stale' : AC.silenceDue(k.watchLast, cfg.min, now);
+    if (!due) continue;
+    // claim: once per session, and only if the agent did not move meanwhile
+    const won = await db.runTransaction(async (tx) => {
+      const x = (await tx.get(d.ref)).data() || {};
+      if (!x.watchPending || x.watchLast !== k.watchLast) return false;
+      tx.update(d.ref, { watchPending: false, ...(due === 'due' ? { watchNotifiedAt: now } : {}) });
+      return true;
+    });
+    if (!won || due !== 'due') continue;
+    const label = str(k.label, 80) || 'Агент', ref = G.gref.collection('agentMessages').doc();
+    const text = `Агент «${label}» зупинився без звіту: ${cfg.min} хв тиші після роботи, а питання, запиту на дозвіл чи передачі роботи немає. Можливо, він чекає твого рішення в терміналі.`;
+    await ref.set({ type: 'silent_stop', text, refs: [], thread: ref.id, parent: '', from: { kind: 'system', key: k.prefix || '', label: 'WhiteWrite', role: '' },
+      status: 'new', readBy: [], at: now, createdAt: ts(), updatedAt: ts() });
+    let sent = false, err = '';
+    try { sent = await tellAuthor(G.gref, G.world, G.game, `🛎 Агент «${label}» зупинився без звіту (${cfg.min} хв тиші, питання немає). Можливо, він чекає твого рішення в терміналі.`, 'agents'); }
+    catch (e) { err = str(e.message, 200); }
+    await ref.set({ tg: { status: sent ? 'sent' : err ? 'failed' : 'off', ...(err ? { error: err } : {}), at: Date.now() } }, { merge: true });
+    out.push({ key: k.prefix, game: gk, sent });
+  }
+  return out;
+}
+exports.agentSilenceWatch = onSchedule({ schedule: 'every 2 minutes', secrets: [telegramBotToken], timeoutSeconds: 120 }, async () => { await silenceSweep(); });
+
+exports._agents = { silenceSweep, notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };

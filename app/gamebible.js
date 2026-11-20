@@ -9757,7 +9757,8 @@
     about: { uk: "Розмова агентів гри з тобою: питання, відгуки, передача роботи, запити на схвалення. Схвалюєш лише ти.", en: "Your game's agents talk with you here: questions, feedback, handoffs, approval requests. Only you approve." } };
   var AGS = {
     uk: { hint: "Геймдизайнер (Claude у браузері чи на телефоні) і програміст (Claude Code на ПК) працюють кожен зі своїм ключем і лишають тут одне одному й тобі повідомлення. Повідомлення одного агента для іншого — прохання, не наказ; важливе агент спершу питає в тебе («просить дозволу»).",
-      kb: "Як працюють два агенти →", type: { note: "До відома", question: "Питання", feedback: "Відгук", approval_request: "Просить дозволу", handoff: "Передає роботу", decision: "Рішення автора" },
+      kb: "Як працюють два агенти →", type: { note: "До відома", question: "Питання", feedback: "Відгук", approval_request: "Просить дозволу", handoff: "Передає роботу", decision: "Рішення автора", silent_stop: "Зупинка без звіту" },
+      silTitle: "🛎 Сповіщати про мовчазні зупинки агентів", silHint: "Якщо агент у терміналі (Claude Code) попрацював і замовк на вказані хвилини, не лишивши питання, запиту на дозвіл, передачі роботи, блокера чи звіту, — WhiteWrite запише «зупинка без звіту» в «💬 Агенти» й напише тобі в Telegram. Раз на сесію; Claude у claude.ai не відстежується.", silMin: "хвилин тиші",
       role: { designer: "Геймдизайнер", programmer: "Програміст", readonly: "Лише читання", owner: "автор", member: "команда" },
       none: "Повідомлень ще немає. Підключи агентів у «Налаштування → Інтеграції → Ключі агентів» — і попроси одного з них щось передати іншому.",
       write: "Написати агентам", ph: "Напиши агентам: питання, відгук або рішення…", send: "Надіслати", reply: "Відповісти", replyPh: "Відповідь…", close: "Закрити гілку", reopen: "Відкрити знову",
@@ -9777,7 +9778,8 @@
       tgOpenMe: "Telegram відкрито в новій вкладці — натисни там «Start» (або «Запустити»), потім «Готово — оновити». Не відкрилось — ось посилання:", tgOpenChat: "Група: відкрий посилання й обери групу. Канал: додай {bot} адміністратором каналу й опублікуй там цей код (діє 15 хв):",
       tgDone: "Готово — оновити", unlink: "Відʼєднати", unlinkQ: "Відʼєднати Telegram? Повідомлення агентів туди більше не йтимуть." },
     en: { hint: "The game designer (Claude in the browser or on the phone) and the programmer (Claude Code on the PC) each work with their own key and leave messages here for each other and for you. One agent's message to another is a request, not an order; anything important the agent asks you first («asks for approval»).",
-      kb: "How the two agents work →", type: { note: "FYI", question: "Question", feedback: "Feedback", approval_request: "Asks for approval", handoff: "Handoff", decision: "Author's decision" },
+      kb: "How the two agents work →", type: { note: "FYI", question: "Question", feedback: "Feedback", approval_request: "Asks for approval", handoff: "Handoff", decision: "Author's decision", silent_stop: "Stopped without a report" },
+      silTitle: "🛎 Notify about agents' silent stops", silHint: "If a terminal agent (Claude Code) worked and then went quiet for the set minutes without a question, an approval request, a handoff, a blocker or a report, WhiteWrite writes «stopped without a report» into «💬 Agents» and tells you in Telegram. Once per session; Claude in claude.ai is not watched.", silMin: "quiet minutes",
       role: { designer: "Game designer", programmer: "Programmer", readonly: "Read only", owner: "author", member: "team" },
       none: "No messages yet. Connect the agents in «Settings → Integrations → Agent keys» — and ask one of them to pass something to the other.",
       write: "Write to the agents", ph: "Write to the agents: a question, feedback or a decision…", send: "Send", reply: "Reply", replyPh: "Reply…", close: "Close the thread", reopen: "Reopen",
@@ -9807,7 +9809,7 @@
     }).join(" ");
   }
   function agMsgHtml(m) {
-    var A = AGS, f = m.from || {}, who = (f.kind === "agent" ? "🤖 " : "✍ ") + esc(f.label || (f.kind === "agent" ? "Agent" : "")) + ' <span class="muted">· ' + esc(A.role[f.role] || f.role || "") + '</span>';
+    var A = AGS, f = m.from || {}, who = f.kind === "system" ? "🛎 WhiteWrite" : (f.kind === "agent" ? "🤖 " : "✍ ") + esc(f.label || (f.kind === "agent" ? "Agent" : "")) + ' <span class="muted">· ' + esc(A.role[f.role] || f.role || "") + '</span>';
     var ap = m.approval, apHtml = "";
     if (m.type === "approval_request") apHtml = !ap || ap.status === "pending"
       ? '<div class="setrow">' + (ME.owner && canWrite && m.status !== "closed" ? '<button class="btn primary" data-agok="' + esc(m.id) + '">' + A.approve + '</button><button class="btn danger" data-agno="' + esc(m.id) + '">' + A.reject + '</button>' : '') + '<span class="warn">⚠ ' + A.pending + '</span></div>'
@@ -9902,8 +9904,20 @@
         : '<p class="hint">' + A.tgS2Hint + '</p><div class="setrow"><button class="btn" data-agtglink="chat"' + (me ? '' : ' disabled') + '>' + A.tgChat + '</button></div>') +
       (L0 ? '<div class="nbox"><p>' + esc(L0.mode === "me" ? A.tgOpenMe : A.tgOpenChat.replace("{bot}", "@" + L0.bot)) + '</p><p><a href="' + esc(L0.url) + '" target="_blank" rel="noopener">' + esc(L0.url) + '</a></p>' +
         (L0.mode === "chat" ? '<pre>' + esc(L0.code) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>' : '') + '<div class="setrow"><button class="btn" data-agtgref>' + A.tgDone + '</button></div></div>' : '') +
-      (agTgMsg ? '<p class="pmsg" role="status">' + esc(agTgMsg) + '</p>' : '');
+      (agTgMsg ? '<p class="pmsg" role="status">' + esc(agTgMsg) + '</p>' : '') + agSilHtml();
   }
+  // 🛎 v2.150 games/{g}.agentSilence {on, min} — the server's silent-stop watch (agents.js agentSilenceWatch); on, 10 min by default
+  function agSilHtml() {
+    var c = (game && game.agentSilence) || {}, on = c.on !== false, min = Math.min(120, Math.max(2, Math.round(Number(c.min)) || 10));
+    return '<h3>' + AGS.silTitle + '</h3><p class="hint">' + AGS.silHint + '</p><div class="setrow"><label class="check"><input type="checkbox" data-agsil="on"' + (on ? ' checked' : '') + '> ' + AGS.silTitle.replace(/^🛎 /, "") + '</label>' +
+      '<label><input class="mono" type="number" min="2" max="120" step="1" style="width:5em" data-agsil="min" value="' + min + '"' + (on ? '' : ' disabled') + '> ' + AGS.silMin + '</label></div>';
+  }
+  document.addEventListener("change", function (e) {
+    var t = e.target; if (!t.dataset || !t.dataset.agsil || !ME.owner) return;
+    var c = (game && game.agentSilence) || {}, v = { on: c.on !== false, min: Math.min(120, Math.max(2, Math.round(Number(c.min)) || 10)) };
+    if (t.dataset.agsil === "on") v.on = t.checked; else v.min = Math.min(120, Math.max(2, Math.round(Number(t.value)) || 10));
+    gref().set({ agentSilence: v }, { merge: true }).then(function () { game.agentSilence = v; render(); }).catch(function (er) { notify(STR.failed + ": " + (er.code || er.message)); });
+  });
   function agClick(e) { // 💬 the agents' page, the keys and Telegram in Integrations
     var A = AGS, t;
     if (e.target.closest("#ag-send")) { agSend(null); return true; }
