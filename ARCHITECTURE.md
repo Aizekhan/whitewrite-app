@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.149.1 (2026-11-20)
+**Version:** 2.149.2 (2026-11-20)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -822,6 +822,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.149.2** Pillars from the author's own fields (owner: «get_gdd_status.design.pillars = [] … на картці є поле «Стовпи»», KrumaTD: 34 cards «no such pillar»): the overview design fields lived only in the Bible's SECTIONS, so `save_card` made `f_стовпи`, `f_найризикованіше_припущення`… that `design-checks.js` did not read. Now `DESIGN.fieldOf(o, std)` reads the standard key, else the first non-empty field whose key / label means it (`designKeyOf`: anti → riskTest → risk → aesthetics → pillars), for pillars, anti, aesthetics, risk, riskTest (Bible, MCP `get_gdd_status`, pitch export); `save_card` on «Огляд гри» writes those names to the standard keys (`OVERVIEW_DESIGN` labels = the Bible's). «Бачення» shows one line (pillars, unsupported, notes → «Ядро»), the full table stays in «Ядро». Data untouched.
 - **v2.149.1** «🏛 Стовпи, естетики й ризик» (owner: «назви … не така як її назвав автор», «нажимаючи на назву картки вона б відкривалась»): `pillarMap` gives bare card ids, `designPanel` passed them to `cardChip` (needs `c:<id>`) — the chips showed the id, disabled; now `chipId` makes the ref, the chips show the title and open the card; the aesthetics table explains MDA (intro + each aesthetic's meaning).
 - **v2.149.0** 🔌 WhiteWrite MCP as a claude.ai custom connector (owner): OAuth 2.1 (authorization code + PKCE S256, DCR) — `functions/src/oauth.js` (`oauth`), the consent page `app/connect.html` (game + role → a new agent key), `mcp` 401 → `WWW-Authenticate`; the key in the path `/mcp/k/<key>`; Hosting rewrites on whitewrite.com; «🔌 Додати в Claude» in «🔑 Ключі агентів»; rules `oauthClients` / `oauthCodes` server only; KB `agents-two` uk + en; `tests/oauth.test.cjs` (§5c).
 - **v2.148.3** The agents block for CLAUDE.md (owner: «чому б там не добавити інфу про агентів»): `functions/setup-guides.js` topic `agents` (marker `whitewrite.agents/1`, `AGENTS_SCHEMA`) — roles, when to read `get_agent_inbox`, what to post, approvals and the code, no keys, the thread limit; MCP `get_guide {topic:"agents"}`; `AGENTS_RULE` (the session rule) and every setup guide ask to append it when missing; «⧉ Скопіювати все для PowerShell» and «📂 Підготувати теку гри» append it by its own marker (also where the log block already is); «💬 Агенти» → «📄 Блок агентів для CLAUDE.md»; KB `agents-two` uk + en.

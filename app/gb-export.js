@@ -104,7 +104,7 @@ window.__GB_EXPORT = function (B) {
     ["artstyle", "refs", "scenes", "characters", "enemies", "locations", "pictures"].forEach(function (sid) {
       all.filter(function (c) { return c.section === sid; }).sort(byOrder).forEach(function (c) { (c.files || []).filter(isImg).slice(0, 1).forEach(function (f) { if (pics.length < 5 && pics.indexOf(f.url) < 0) pics.push(f.url); }); });
     });
-    var D = window.__DESIGN, pillars = D ? D.listOf(val(ov, "pillars")) : [];
+    var D = window.__DESIGN, pillars = D ? D.listOf(D.fieldOf ? D.fieldOf(ov, "pillars") : val(ov, "pillars")) : []; // the author's own «Стовпи» field too (v2.149.2)
     return { ov: ov, pics: pics, pillars: pillars, facts: [[X.genre, "genre"], [X.platform, "platform"], [X.players, "players"], [X.audience, "audience"], [X.business, "business"]].map(function (x) { return [x[0], val(ov, x[1])]; }).filter(function (x) { return x[1]; }) };
   }
   function pitchMd() {

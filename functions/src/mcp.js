@@ -980,6 +980,9 @@ const agentMark = (key, prev) => {
   const n = Buffer.byteLength(JSON.stringify(prev || {}));
   return { agentPrev: n > AGENT_PREV_MAX ? { _skipped: 'too large', bytes: n } : prev, agentAt: Date.now(), agentKey: key.prefix || '', agentBy: str(key.label, 80), agentRole: key.role || 'programmer' }; // who wrote (the role is one of three — firestore.rules mcpKeys): the key's name (v2.148)
 };
+// the standard design fields of «Огляд гри» (the same keys and labels as the Bible's SECTIONS overview defs, app/gamebible.js)
+const OVERVIEW_DESIGN = { pillars: 'Стовпи гри (3–4)', anti: 'Анти-стовпи: чим гра НЕ є', aesthetics: 'Цільові естетики (MDA): виклик, відкриття, фантазія, наратив, спільність, самовираження, відчуття, відпочинок',
+  risk: 'Найризикованіше припущення: що має бути правдою, щоб гра була цікавою', riskTest: 'Як прототип перевірить припущення' };
 // field names → keys: the card's own fields, then the same section's other cards, then a key as given; a new name → a new field
 // seed: a game card with no own field list shows the section's — keep those when adding one (a canon card's defs are only its extras)
 function fieldPlan(ctx, card, section, input, seed) {
@@ -992,7 +995,10 @@ function fieldPlan(ctx, card, section, input, seed) {
   Object.entries(input && typeof input === 'object' ? input : {}).slice(0, 60).forEach(([name, v]) => {
     const n = str(name, 80); if (!n) return;
     const low = n.toLowerCase();
-    let d = known.find((x) => str(x.label, 80).toLowerCase() === low || x.key === n);
+    // v2.149.2: on «Огляд гри» the design fields (pillars, anti, aesthetics, risk, riskTest) go to their standard key whatever the name —
+    // «Стовпи», «pillars», «Найризикованіше припущення»… (they made f_стовпи etc. that the checks did not read: 34 cards said «no such pillar»)
+    const std = section === 'overview' ? DESIGN.designKeyOf(n) : '';
+    let d = std ? { key: std, label: OVERVIEW_DESIGN[std] } : known.find((x) => str(x.label, 80).toLowerCase() === low || x.key === n);
     let k = d ? d.key : have.indexOf(n) >= 0 ? n : '';
     if (d && FILE_TYPES.includes(d.type)) { skipped.push(n); return; } // pictures, files, sounds, prefabs are uploaded by the author
     if (!k) { k = keyOf(n); d = { key: k, label: n }; known.push(d); added.push(n); }

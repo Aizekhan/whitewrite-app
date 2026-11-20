@@ -41,5 +41,19 @@ check(JSON.stringify(D.cleanIntent({ pillars: [' Бій ', ''], aesthetics: ['ch
   '{"pillars":["Бій"],"aesthetics":["challenge"],"ladder":[{"m":"a","step":"intro"}]}', 'the agent\'s input is cleaned');
 check(D.status([], 'en').issues.length, 2, 'an empty game: no pillars, no risk');
 
+// v2.149.2: the author's / an agent's own fields (save_card made f_стовпи …) are read when the standard one is empty (KrumaTD: pillars = [])
+const own = [{ id: 'ov', section: 'overview', fields: { f_пілари: '', f_стовпи: 'Трикутник — три шляхи\nТуман війни', f_найризикованіше_припущення: 'Дітям цікаво щоночі вирішувати',
+  f_як_прототип_перевірить: '10 хв гри', f_цільові_естетики: 'виклик, фантазія', f_анти_стовпи: 'Не про гринд' }, defs: [{ key: 'f_стовпи', label: 'Стовпи' }] },
+  { id: 'm1', section: 'mechanics', title: 'Шляхи', intent: { pillars: ['Трикутник'] } }];
+check(D.pillarsOf(own).map((p) => p.name).join('|'), 'Трикутник|Туман війни', 'pillars from the own «Стовпи» field (an empty «Пілари» is skipped)');
+check(D.riskOf(own).risk + '|' + D.riskOf(own).test, 'Дітям цікаво щоночі вирішувати|10 хв гри', 'the risk and the prototype test from own fields');
+check(D.targetAesthetics(own).join(','), 'fantasy,challenge', 'target aesthetics from an own field');
+check(D.antiOf(own).map((p) => p.name).join(), 'Не про гринд', 'anti-pillars are not taken as pillars');
+check(D.status(own, 'uk').pillars.features[0].stale.length, 0, 'a card naming the pillar is not «stale»');
+check(D.pillarsOf([{ id: 'ov', section: 'overview', fields: { pillars: 'Стандарт', f_стовпи: 'Своє' } }])[0].name, 'Стандарт', 'the standard field wins');
+check(['Стовпи', 'pillars', 'Принципи', 'Анти-стовпи: чим гра НЕ є', 'Як прототип перевірить припущення', 'riskiest_assumption', 'Логлайн'].map(D.designKeyOf).join(), 'pillars,pillars,pillars,anti,riskTest,risk,', 'field names → the standard design keys (save_card routes them)');
+const mcpSrc = require('fs').readFileSync(require('path').join(__dirname, '../functions/src/mcp.js'), 'utf8');
+check(/section === 'overview' \? DESIGN\.designKeyOf\(n\)/.test(mcpSrc) && /const OVERVIEW_DESIGN = \{ pillars:/.test(mcpSrc), true, 'save_card on «Огляд гри» writes the design fields to their standard keys');
+
 console.log(fails ? fails + ' FAILED' : 'ALL PASSED');
 process.exit(fails ? 1 : 0);
