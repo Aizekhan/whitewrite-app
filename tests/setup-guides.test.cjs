@@ -22,8 +22,8 @@ check(G.guide('knowledge', 'rpg-framework').schema_version, G.KNOWLEDGE_SCHEMA, 
 check(!!G.guide('activity_log') && !!G.guide('activity_log', 'roblox'), true, 'the activity log is for every engine');
 // 💬 v2.148.3: the agents' CLAUDE.md block — every engine, its own marker, asked for by the session rule and the setups
 const agb = G.guide('agents', 'roblox');
-check(!!agb && agb.schema_version === 'whitewrite.agents/1' && agb.markdown.indexOf('whitewrite.agents/1') > 0 && /get_agent_inbox/.test(agb.markdown) && /approval_request/.test(agb.markdown) && /resolve_approval/.test(agb.markdown), true, 'the agents block: every engine, marker, inbox, approvals');
-check(G.SESSION_RULE.indexOf('whitewrite.agents/1') >= 0 && ['rpg-framework', 'roblox', 'generic'].every((e) => G.guide('setup', e).markdown.indexOf('topic:"agents"') >= 0), true, 'the session rule and every setup ask for the agents block');
+check(!!agb && agb.schema_version === 'whitewrite.agents/2' && agb.markdown.indexOf('whitewrite.agents/2') > 0 && /get_agent_inbox/.test(agb.markdown) && /approval_request/.test(agb.markdown) && /resolve_approval/.test(agb.markdown), true, 'the agents block: every engine, marker, inbox, approvals');
+check(G.SESSION_RULE.indexOf('whitewrite.agents/2') >= 0 && ['rpg-framework', 'roblox', 'generic'].every((e) => G.guide('setup', e).markdown.indexOf('topic:"agents"') >= 0), true, 'the session rule and every setup ask for the agents block');
 check(G.guide('setupGeneric') === null && G.guide('setupRoblox') === null && G.guide('nope') === null, true, 'the per-engine setups are not topics of their own');
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');

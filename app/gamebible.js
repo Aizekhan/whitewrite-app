@@ -11588,8 +11588,9 @@
       mcpAddCmd(key) + "\n" +
       (md ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.activity/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
         "@'\n" + md.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
-      // 💬 the agents' block has its own marker: added also where the log block already is (v2.148.3)
-      (ag ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.agents/1' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
+      // 💬 the agents' block has its own marker: added also where the log block already is (v2.148.3); an older version is left for Claude Code
+      // to replace (the session rule says so) — PowerShell does not cut a block out of a file
+      (ag ? "if (-not (Select-String -Quiet -SimpleMatch -Pattern 'whitewrite.agents/' -Path CLAUDE.md -ErrorAction SilentlyContinue)) {\n" +
         "@'\n\n" + ag.markdown.replace(/^'@/gm, "' @") + "\n'@ | Add-Content -Encoding utf8 CLAUDE.md\n}\n" : "") +
       launchText(l);
   }
@@ -11615,8 +11616,11 @@
       await writeText(dir, "CLAUDE.md", cl); done.push("CLAUDE.md");
     }
     var ag = G && G.guide("agents", engProf()); // 💬 its own marker: added also where the log block already is (v2.148.3)
-    if (ag && (cl || "").indexOf("whitewrite.agents/1") < 0) {
-      await writeText(dir, "CLAUDE.md", (cl ? cl.replace(/\s*$/, "\n\n") : "") + ag.markdown + "\n"); if (done.indexOf("CLAUDE.md") < 0) done.push("CLAUDE.md");
+    if (ag && (cl || "").indexOf(ag.schema_version) < 0) {
+      // an older agents block (whitewrite.agents/1) is replaced in place: from its heading to the next «## » heading or the end (v2.149.3)
+      var oldAg = /## WhiteWrite — the game's agents \(schema whitewrite\.agents\/\d+\)[\s\S]*?(?=\n## |$)/;
+      cl = oldAg.test(cl || "") ? cl.replace(oldAg, ag.markdown) : (cl ? cl.replace(/\s*$/, "\n\n") : "") + ag.markdown + "\n";
+      await writeText(dir, "CLAUDE.md", cl); if (done.indexOf("CLAUDE.md") < 0) done.push("CLAUDE.md");
     }
     var gi = await readText(dir, ".gitignore");
     if (!/^\/?\.mcp\.json\s*$/m.test(gi || "")) {

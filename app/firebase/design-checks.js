@@ -44,10 +44,38 @@ function listOf(text) {
   return parts.map(function (p) { p = p.replace(/^(\d+[.)]|[-*–—]|#+)\s*/, '').replace(/\*\*/g, '').trim(); var name = p.split(/\s[—–-]\s|:\s/)[0].trim(); return { name: name.slice(0, 80), text: p.slice(0, 300) }; })
     .filter(function (x) { return x.name; }).slice(0, 12);
 }
-function pillarsOf(cards) { var o = overviewOf(cards); return o ? listOf((o.fields || {}).pillars) : []; }
-function antiOf(cards) { var o = overviewOf(cards); return o ? listOf((o.fields || {}).anti) : []; }
+// v2.149.2 (owner: «get_gdd_status.design.pillars = [] … на картці є поле «Стовпи»»): the design fields of «Огляд гри» under their standard key,
+// else under the author's / an agent's own field (save_card made f_стовпи, f_найризикованіше_припущення…) — matched by key or label, the first
+// non-empty one. Anti-pillars are told apart from pillars by «анти / anti / не є».
+var DESIGN_FIELDS = {
+  anti: /анти|anti|не\s*є|is\s*not/i,
+  riskTest: /прототип|prototype|risk.?test|як.*перевір/i,
+  risk: /ризик|risk|припущ|assumption/i,
+  aesthetics: /естетик|aesthetic/i,
+  pillars: /стовп|пілар|pillar|опор|принцип/i,
+};
+var DF_ORDER = ['anti', 'riskTest', 'risk', 'aesthetics', 'pillars']; // the most specific first: «Анти-стовпи» is anti, «Як прототип перевірить припущення» is riskTest
+function designKeyOf(name) { // a field key or label → the standard design key, or ''
+  var n = String(name || '').replace(/^f_/, '').replace(/_/g, ' ');
+  if (DESIGN_FIELDS[n] !== undefined) return n;
+  for (var i = 0; i < DF_ORDER.length; i++) if (DESIGN_FIELDS[DF_ORDER[i]].test(n)) return DF_ORDER[i];
+  return '';
+}
+function fieldOf(o, std) {
+  var f = (o && o.fields) || {}, has = function (v) { return String(v == null ? '' : v).trim() !== ''; };
+  if (has(f[std])) return String(f[std]);
+  var labels = {}; arr(o && o.defs).forEach(function (d) { if (d && d.key) labels[d.key] = d.label; });
+  var keys = Object.keys(f);
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    if (k !== std && has(f[k]) && (designKeyOf(k) === std || designKeyOf(labels[k]) === std)) return String(f[k]);
+  }
+  return '';
+}
+function pillarsOf(cards) { var o = overviewOf(cards); return o ? listOf(fieldOf(o, 'pillars')) : []; }
+function antiOf(cards) { var o = overviewOf(cards); return o ? listOf(fieldOf(o, 'anti')) : []; }
 function targetAesthetics(cards) {
-  var o = overviewOf(cards), t = String(((o && o.fields) || {}).aesthetics || '').toLowerCase();
+  var o = overviewOf(cards), t = fieldOf(o, 'aesthetics').toLowerCase();
   return AESTHETICS.filter(function (a) { return a.kw.test(t); }).map(function (a) { return a.id; });
 }
 // a stored pillar name → the current pillar it means (renamed a bit still matches), or null
@@ -120,7 +148,7 @@ function ladder(cards, lang) {
 
 // ⚠ → { risk, test, issues }
 function riskOf(cards) {
-  var o = overviewOf(cards), f = (o && o.fields) || {}, risk = String(f.risk || '').trim(), test = String(f.riskTest || '').trim(), issues = [], ref = o ? 'c:' + o.id : '';
+  var o = overviewOf(cards), risk = fieldOf(o, 'risk').trim(), test = fieldOf(o, 'riskTest').trim(), issues = [], ref = o ? 'c:' + o.id : '';
   if (!risk) issues.push({ level: 'warn', kind: 'risk', ref: ref, uk: '«Огляд гри»: не записане найризикованіше припущення — що має бути правдою, щоб гра була цікавою. Прототип (G1) перевіряє саме його.', en: '“Game overview”: the riskiest assumption is not written — what must be true for the game to be fun. The prototype (G1) tests exactly that.' });
   else if (!test) issues.push({ level: 'tip', kind: 'risk', ref: ref, uk: '«Огляд гри»: напиши, як прототип перевірить припущення (що гравець робить і скільки хвилин, що вважаємо успіхом).', en: '“Game overview”: write how the prototype tests the assumption (what the player does and for how long, what counts as success).' });
   return { risk: risk, test: test, issues: issues };
@@ -140,7 +168,7 @@ function cleanIntent(x) {
   if (Array.isArray(x.ladder)) o.ladder = x.ladder.filter(function (y) { return y && y.m && STEP_IDS.indexOf(y.step) >= 0; }).map(function (y) { return { m: s(y.m), step: y.step }; }).slice(0, 60);
   return o;
 }
-var DESIGN = { AESTHETICS: AESTHETICS, STEPS: STEPS, STEP_IDS: STEP_IDS, FEATURE_SECS: FEATURE_SECS, DOC_TPLS: DOC_TPLS, INTENT_KEYS: INTENT_KEYS, listOf: listOf, pillarsOf: pillarsOf, antiOf: antiOf,
+var DESIGN = { AESTHETICS: AESTHETICS, STEPS: STEPS, STEP_IDS: STEP_IDS, FEATURE_SECS: FEATURE_SECS, DOC_TPLS: DOC_TPLS, INTENT_KEYS: INTENT_KEYS, listOf: listOf, fieldOf: fieldOf, designKeyOf: designKeyOf, pillarsOf: pillarsOf, antiOf: antiOf,
   targetAesthetics: targetAesthetics, isFeature: isFeature, pillarMap: pillarMap, ladder: ladder, riskOf: riskOf, status: status, cleanIntent: cleanIntent };
 if (typeof module !== 'undefined' && module.exports) module.exports = DESIGN;
 if (typeof window !== 'undefined') window.__DESIGN = DESIGN;

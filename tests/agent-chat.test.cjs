@@ -68,6 +68,13 @@ const designer = { prefix: 'wwk_designer', label: 'Claude у браузері', 
   err = '';
   try { await M.agentPost(ctx, coder, { type: 'note', text: 'one more' }, q.id); } catch (e) { err = e.message; }
   check(/waits for the author/.test(err), true, 'the 4th agent message in a row is refused — the thread waits for a person');
+  // v2.149.3: a blocking question still reaches the author through a waiting thread — one per agent until the author answers
+  const qThrough = await M.agentPost(ctx, coder, { type: 'question', text: 'Which spawn rule?' }, q.id);
+  check(!!qThrough.id && qThrough.delivered, 'bible', 'a question gets through a waiting thread; delivered says where (no Telegram here → bible)');
+  err = '';
+  try { await M.agentPost(ctx, coder, { type: 'approval_request', text: 'And delete X?' }, q.id); } catch (e) { err = e.message; }
+  check(/waits for the author/.test(err), true, 'a second urgent message of the same agent waits for the author (no flood)');
+  check(q.delivered + '|' + (await M.agentPost(ctx, designer, { type: 'note', text: 'fyi' })).delivered, 'bible|digest', 'delivered: an urgent one without Telegram → bible, a note → digest');
   store['a1'] = { type: 'note', text: 'Go with 0.3', thread: q.id, parent: '', from: { kind: 'author', label: 'Автор', role: 'owner' }, status: 'new', readBy: [], at: Date.now() + 10 };
   await M.agentPost(ctx, coder, { type: 'note', text: 'done' }, q.id);
   check(true, true, 'after the author\'s message the agents may write again');
@@ -100,6 +107,14 @@ const designer = { prefix: 'wwk_designer', label: 'Claude у браузері', 
   ['tgLinks', 'tgLinkTokens', 'agentTg', 'agentApprovals', 'agentDigestQueue'].forEach((c) => check(new RegExp('match /' + c + '/\\{id\\} \\{ allow read, write: if false; \\}').test(rules), true, `${c} is server only`));
   check(/'role'\]\) &&\s*\/\/[^\n]*\n\s*request\.resource\.data\.get\('role', 'programmer'\) in \['designer', 'programmer', 'readonly'\]/.test(rules), true, 'a key\'s role is one of three');
 
+  // v2.149.3 the stop rule and the paths that must reach the author's Telegram (owner audit)
+  const AC2 = require('../functions/agent-chat.js'), G2 = require('../functions/setup-guides.js');
+  check(AC2.urgentFree([{ at: 1, from: { kind: 'agent', key: 'k' }, type: 'question' }], 'k') + '|' + AC2.urgentFree([{ at: 1, from: { kind: 'agent', key: 'k' }, type: 'question' }, { at: 2, from: { kind: 'author' } }], 'k'), 'false|true', 'urgentFree: one urgent per agent until the author answers');
+  check(/STOP RULE/.test(G2.SESSION_RULE) && /delivered/.test(G2.SESSION_RULE) && /never approve anything yourself/.test(G2.SESSION_RULE), true, 'the session rule: create in WhiteWrite, check delivered, only then the terminal; never approve');
+  check(/When the work stops for the author/.test(G2.guide('agents').markdown) && /Config, mechanics, balance numbers or game rules/.test(G2.guide('agents').markdown) && /ordinary report/.test(G2.guide('agents').markdown), true, 'the CLAUDE.md block carries the stop rule and what needs an approval');
+  check(/case 'report_blocker'[\s\S]{0,800}askAuthor\(/.test(src), true, 'report_blocker asks the author (a question → Telegram)');
+  check(/open_questions/.test(src) && src.indexOf('for (const q of openQs) asked.push(await askAuthor') > 0, true, 'submit_task_result open_questions → questions');
+  check(/case 'submit_change_request'[\s\S]{0,900}AGENTS\.tellAuthor\(/.test(src) && /async function tellAuthor/.test(agents), true, 'a Change Request is told in Telegram');
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
   process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

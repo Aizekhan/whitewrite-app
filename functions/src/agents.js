@@ -96,6 +96,16 @@ async function checkCode(gref, msgId, code) {
   });
 }
 
+// v2.149.3: a plain notice to the author at once (a Change Request — decided in the Bible, not by buttons); true = sent
+async function tellAuthor(gref, world, game, text, sec) {
+  if (!botToken()) return false;
+  const worldId = gref.parent.parent.id, gameId = gref.id, d = await dest(worldId, gameId, world.owner);
+  if (!d.chatId) return false;
+  const url = bibleUrl(worldId, gameId).replace('sec=agents', 'sec=' + encodeURIComponent(sec || 'agents'));
+  await tg('sendMessage', { chat_id: d.chatId, text: `🎮 ${clip(game.title, 60)}\n${clip(text, 600)}`, reply_markup: { inline_keyboard: [[{ text: 'Відкрити в WhiteWrite', url }]] }, disable_web_page_preview: true });
+  return true;
+}
+
 // the decision on an approval_request: once (pending → approved / rejected); the asking agent sees it again in get_agent_inbox (readBy reset)
 async function applyApproval(gref, msgId, o) {
   const ref = gref.collection('agentMessages').doc(msgId);
@@ -266,4 +276,4 @@ exports.agentDigest = onSchedule({ schedule: '0 19 * * *', timeZone: 'Europe/Kyi
   }
 });
 
-exports._agents = { notify, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };
+exports._agents = { notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };

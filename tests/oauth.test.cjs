@@ -44,6 +44,8 @@ const rw = hosting.rewrites.map((r) => r.source + '>' + (r.function ? r.function
   .forEach((x) => check(rw.includes(x), true, 'rewrite ' + x));
 check(rw.indexOf('/oauth/authorize>/connect.html') < rw.indexOf('/oauth/**>oauth'), true, 'the consent page comes before the /oauth/** function');
 check(/match \/oauthClients\/\{id\} \{ allow read, write: if false; \}/.test(rules) && /match \/oauthCodes\/\{id\} \{ allow read, write: if false; \}/.test(rules), true, 'OAuth collections are server-only');
+// the page lives at /oauth/authorize: a relative src / href resolves under /oauth/ — the oauth function, 404 (owner: no game list, a broken logo)
+check((page.match(/(?:src|href)="(?!\/|https:)[^"]+"/g) || []).join(), '', 'connect.html: every asset path is absolute');
 check(/\/oauth\/approve/.test(page) && /code_challenge/.test(page) && /error: "access_denied"/.test(page) && /getIdToken/.test(page), true, 'the consent page: approve with the ID token, PKCE passed on, cancel = access_denied');
 check(/require\('\.\/src\/oauth'\)/.test(R('functions/index.js')), true, 'the oauth function is exported');
 

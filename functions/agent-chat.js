@@ -47,6 +47,16 @@ function threadWaits(msgs) {
   (msgs || []).slice().sort((a, b) => (a.at || 0) - (b.at || 0)).forEach((m) => { n = m.from && m.from.kind === 'author' ? 0 : n + 1; });
   return n >= THREAD_AGENT_MAX;
 }
+// v2.149.3 (owner audit: «Чи не губляться повідомлення через ліміт трьох»): a question / approval_request still gets through a waiting thread —
+// it is what the author must see — but one per agent key until the author answers in the thread (no flood)
+function urgentFree(msgs, keyPrefix) {
+  let free = true;
+  (msgs || []).slice().sort((a, b) => (a.at || 0) - (b.at || 0)).forEach((m) => {
+    if (m.from && m.from.kind === 'author') free = true;
+    else if (m.from && m.from.key === keyPrefix && URGENT.includes(m.type)) free = false;
+  });
+  return free;
+}
 
 // one message as an agent sees it (no codes, no uids)
 function view(m) {
@@ -56,4 +66,4 @@ function view(m) {
     at: m.at ? new Date(m.at).toISOString() : null };
 }
 
-module.exports = { ROLES, roleOf, toolAllowed, claimFor, AGENT_TYPES, AUTHOR_TYPES, URGENT, TEXT_MAX, REFS_MAX, THREAD_AGENT_MAX, CODE_TTL, hasSecret, cleanRefs, threadWaits, view };
+module.exports = { ROLES, roleOf, toolAllowed, claimFor, AGENT_TYPES, AUTHOR_TYPES, URGENT, TEXT_MAX, REFS_MAX, THREAD_AGENT_MAX, CODE_TTL, hasSecret, cleanRefs, threadWaits, urgentFree, view };

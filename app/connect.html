@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
 <title>WhiteWrite · Підключити Claude</title>
-<link rel="icon" href="assets/LogoG-icon.png" />
+<link rel="icon" href="/assets/LogoG-icon.png" />
 <!-- 🔌 claude.ai custom connector (v2.149): the OAuth consent page — /oauth/authorize (firebase.json) → functions/src/oauth.js /oauth/approve -->
 <style>
   :root{ --bg:#0d0d0f; --panel:#151518; --line:#2a2a30; --text:#e8e4dc; --muted:#9a958c; --gold:#f2b84b; --gold2:#ffd27a; --warn:#ff8a65; }
@@ -32,7 +32,7 @@
 </head>
 <body>
 <main>
-  <img class="logo" src="assets/LogoG.webp" alt="WhiteWrite" />
+  <img class="logo" src="/assets/LogoG.webp" alt="WhiteWrite" />
   <h1 id="title">Підключити Claude до гри</h1>
   <p class="who muted" id="client"></p>
   <p class="warn" id="err" role="alert" hidden></p>
@@ -59,7 +59,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" integrity="sha384-ViccRjS0k/lvYsrtaKXk+ES61/4PAZlFI/mPHmLC1YWzK0AIbXbI5ZXDzcm3F8gH" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" integrity="sha384-+/4lqMnmLqwbdHXshvGDmBTeWlNoPRdjXi4ZsiBj10EhQXaTBe3RF5JZktdSjug6" crossorigin="anonymous"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" integrity="sha384-7TetnPNdXXu6qURzIEXWCwpXedGGBJSXIR5Cv0gOWTB34UD5TxPHx33PhjA6wFQ3" crossorigin="anonymous"></script>
-<script src="firebase/firebase-init.js"></script>
+<script src="/firebase/firebase-init.js"></script>
 <script>
 (function () {
   var EN = !/^uk|^ru/i.test(navigator.language || "uk");

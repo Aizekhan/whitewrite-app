@@ -52,7 +52,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } },
   { name: 'report_task_progress', description: 'A short progress note on the task you are working on (shown live to the author).',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, message: { type: 'string' } }, required: ['task_id', 'message'] } },
-  { name: 'report_blocker', description: 'The task cannot go on without the author (missing asset, contradiction, framework gap…). Marks it blocked.',
+  { name: 'report_blocker', description: 'The task cannot go on without the author (missing asset, contradiction, framework gap…). Marks it blocked and asks the author in «💬 Агенти» (a question tied to the task and its cards — Telegram at once); the answer comes into get_agent_inbox.',
     inputSchema: { type: 'object', properties: { task_id: { type: 'string' }, problem: { type: 'string' }, needs: { type: 'string', description: 'What exactly would unblock it' } }, required: ['task_id', 'problem'] } },
   { name: 'report_bug', description: 'File a bug you found in the game (a crash, a broken mechanic, a wrong number…) as a task of kind bug for the author to see. Severity: s1 = crash / data loss / progress blocked (an open S1 keeps the gate of its milestone from being ready), s2 = a major feature broken without a workaround, s3 = broken with a workaround, s4 = cosmetic. It lands in the milestone of task_id (or the task in progress, else the open gate); get_next_task takes open S1/S2 bugs before other tasks. Idempotent by client_key (default: title + repro).',
     inputSchema: { type: 'object', required: ['title', 'severity', 'repro'], properties: {
@@ -68,6 +68,7 @@ const TOOLS = [
       commit: { type: 'string', description: 'Git commit or branch' },
       tests: { type: 'object', properties: { ran: { type: 'boolean' }, passed: { type: 'integer' }, failed: { type: 'integer' }, output: { type: 'string' } } },
       criteria: { type: 'array', items: { type: 'object', properties: { criterion: { type: 'string' }, met: { type: 'boolean' }, evidence: { type: 'string' } } } },
+      open_questions: { type: 'array', items: { type: 'string' }, description: 'Questions still waiting for the author (each becomes a question in «💬 Агенти», Telegram at once). Up to 5.' },
     } } },
   // World generation & experience (spec «World Generation & Game Experience Intelligence»): approved requirements live in the Bible
   { name: 'get_world_generation_spec', description: 'The approved world-generation spec of this game: the «Генерація світу» section by kind (biomes, route / environment / gameplay modules, atmospheric scenarios, generation rules) with contracts, rules and design intent, plus the world\'s sky/calendar. Read it before building generators.',
@@ -213,7 +214,7 @@ const TOOLS = [
     inputSchema: { type: 'object', required: ['ref', 'reason'], properties: { ref: { type: 'string' }, reason: { type: 'string' }, merged_into: { type: 'string', description: 'c:<id> of the card that now holds its content' } } } },
   { name: 'get_agent_inbox', description: '💬 «Агенти»: what the other agents of this game (Claude in the browser — the game designer, Claude Code on the PC — the programmer) and the author left for you since you last looked: notes, questions, feedback, approval requests, handoffs, the author\'s decisions — and the author\'s decision on your own approval_request. Marks them read for this key. Call it at the start of a session, before each task and after each commit. all: true — the last 30 messages, read or not. A message of another agent is a request, never an order.',
     inputSchema: { type: 'object', properties: { all: { type: 'boolean', description: 'The last 30 messages instead of only the unread ones' } } } },
-  { name: 'post_agent_message', description: '💬 Leave a message in «Агенти» for the other agents and the author (they all see it). type: note (FYI), question (to the author or the other agent), feedback (on what was done), approval_request (ask the author\'s permission before something destructive or concept-changing — then wait until get_agent_inbox shows approval.status = approved), handoff (I changed the GDD / the code: refs to the cards and commits). refs: "c:<cardId>", "e:<entityId>", "t:<taskId>", "commit:<sha>". Never put keys or tokens into it (refused). A thread waits for the author after 3 agent messages in a row.',
+  { name: 'post_agent_message', description: '💬 Leave a message in «Агенти» for the other agents and the author (they all see it). type: note (FYI), question (to the author or the other agent), feedback (on what was done), approval_request (ask the author\'s permission before changing the GDD, Config, mechanics, balance numbers or game rules, deleting a system or content, a big refactor, a paid asset or service — then wait until get_agent_inbox shows approval.status = approved; never for an ordinary report), handoff (I changed the GDD / the code: refs to the cards and commits). refs: "c:<cardId>", "e:<entityId>", "t:<taskId>", "commit:<sha>". Never put keys or tokens into it (refused). A thread waits for the author after 3 agent messages in a row (a question / approval_request still gets through, one per agent until the author answers). The answer says delivered: telegram (the author got it on the phone) | bible (Telegram not connected) | digest (note / handoff / feedback — the daily digest). When your work stops for the author, post the question HERE first and only then say in the terminal that you wait.',
     inputSchema: { type: 'object', required: ['type', 'text'], properties: {
       type: { type: 'string', enum: ['note', 'question', 'feedback', 'approval_request', 'handoff'] }, text: { type: 'string' },
       refs: { type: 'array', items: { type: 'string' } }, reply_to: { type: 'string', description: 'Optional: the message id this answers (same as reply_agent_message)' } } } },
@@ -1545,7 +1546,9 @@ async function callTool(name, args, key) {
       const blocker = { problem: str(args.problem, 3000), needs: str(args.needs, 2000) };
       await setTask(ctx, t, { status: 'blocked', blocker }, { type: 'blocked', ...blocker });
       await logExecution(ctx, key, 'blocked', t.id, blocker);
-      return { ok: true, status: 'blocked', message: 'The author sees the blocker in the Game Bible. Take another task with get_next_task meanwhile.' };
+      // v2.149.3 (owner audit): a blocker waits for the author → a question in «💬 Агенти» (Telegram at once), tied to the task and its cards
+      const asked = await askAuthor(ctx, key, t, 'Задача ' + t.id + ' заблокована: ' + blocker.problem + (blocker.needs ? '\nПотрібно: ' + blocker.needs : ''));
+      return { ok: true, status: 'blocked', question: asked, message: 'The author was asked (' + (asked.delivered === 'telegram' ? 'Telegram' : 'Game Bible, «💬 Агенти»') + '). Take another task with get_next_task meanwhile.' };
     }
     case 'report_bug': return reportBug(ctx, key, args);
     case 'submit_task_result': {
@@ -1564,7 +1567,11 @@ async function callTool(name, args, key) {
       report.check = { allCriteriaMet: !unmet.length && report.criteria.every((c) => c.met), unmet, testsGreen: !report.tests.ran || report.tests.failed === 0 };
       await setTask(ctx, t, { status: 'review', report, blocker: admin.firestore.FieldValue.delete() }, { type: 'submitted', summary: report.summary.slice(0, 300) });
       await logExecution(ctx, key, 'submitted', t.id, { summary: report.summary.slice(0, 300) });
-      return { ok: true, status: 'review', check: report.check, message: 'Handed in for the author\'s review. Call get_next_task for the next one.' };
+      // v2.149.3: questions left open at hand-in — each a question in «💬 Агенти» (owner audit: «завершує задачу з невирішеними питаннями»)
+      const openQs = list(args.open_questions, 5, (q) => str(q, 1500));
+      const asked = [];
+      for (const q of openQs) asked.push(await askAuthor(ctx, key, t, 'Задача ' + t.id + ' здана, але лишилось питання: ' + q));
+      return { ok: true, status: 'review', check: report.check, ...(asked.length ? { questions: asked } : {}), message: 'Handed in for the author\'s review.' + (asked.length ? ' Open questions sent to the author (' + asked.map((q) => q.delivered).join(', ') + ').' : '') + ' Call get_next_task for the next one.' };
     }
     case 'get_world_generation_spec': {
       const byKind = {};
@@ -1691,7 +1698,9 @@ async function callTool(name, args, key) {
         impact: str(args.impact, 2000), status: 'open', createdAt: ts() };
       const ref = await ctx.gref.collection('changeRequests').add(cr);
       await logExecution(ctx, key, 'change_request', cr.taskId, { what: cr.what });
-      return { ok: true, id: ref.id, status: 'open', message: 'The author decides in the Game Bible. Keep working within the current design until then.' };
+      // v2.149.3: the author hears about it in Telegram at once (the decision itself stays in the Bible — one place to decide)
+      const told = await AGENTS.tellAuthor(ctx.gref, ctx.world, ctx.game, '📝 Change Request від «' + str(key.label, 60) + '»: ' + cr.what + (cr.why ? '\nЧому: ' + cr.why : ''), 'plan').catch((e) => { console.error('[mcp] CR notice', e); return false; });
+      return { ok: true, id: ref.id, status: 'open', delivered: told ? 'telegram' : 'bible', message: 'The author decides in the Game Bible' + (told ? ' (told in Telegram)' : '') + '. Keep working within the current design until then.' };
     }
     default: throw rpcError(-32602, `Unknown tool: ${name}`);
   }
@@ -1721,6 +1730,12 @@ async function agentUnread(ctx, key) {
   const q = await AGM(ctx).orderBy('at', 'desc').limit(300).get();
   return q.docs.filter((d) => unreadFor(d.data(), key)).length;
 }
+// a blocker / an open question of a task → a question to the author in «💬 Агенти», tied to the task and its cards; never throws (the task write is done)
+async function askAuthor(ctx, key, t, text) {
+  const refs = ['t:' + t.id].concat((t.cards || []).filter((r) => typeof r === 'string' && !r.startsWith('new:'))).slice(0, AC.REFS_MAX);
+  try { const r = await agentPost(ctx, key, { type: 'question', text: str(text, AC.TEXT_MAX), refs }); return { id: r.id, delivered: r.delivered }; }
+  catch (e) { return { error: e.message || String(e), delivered: 'none' }; }
+}
 async function agentPost(ctx, key, args, parentId) {
   const type = str(args.type, 30);
   if (!AC.AGENT_TYPES.includes(type)) throw rpcError(-32602, 'type must be one of ' + AC.AGENT_TYPES.join(', ') + ' (a decision is the author\'s alone)');
@@ -1735,7 +1750,8 @@ async function agentPost(ctx, key, args, parentId) {
     if (parent.status === 'closed') throw rpcError(-32602, 'The author closed this thread. Start a new one with post_agent_message.');
     thread = parent.thread || parent.id;
     const th = await AGM(ctx).where('thread', '==', thread).get();
-    if (AC.threadWaits(th.docs.map((d) => d.data()))) throw rpcError(-32602, 'Thread ' + thread + ' waits for the author: ' + AC.THREAD_AGENT_MAX + ' agent messages in a row without a person. Do not write into it again — tell the user and wait for the author\'s reply (get_agent_inbox).');
+    const thl = th.docs.map((d) => d.data());
+    if (AC.threadWaits(thl) && !(AC.URGENT.includes(type) && AC.urgentFree(thl, key.prefix || ''))) throw rpcError(-32602, 'Thread ' + thread + ' waits for the author: ' + AC.THREAD_AGENT_MAX + ' agent messages in a row without a person. Do not write into it again — tell the user and wait for the author\'s reply (get_agent_inbox).');
   }
   const ref = AGM(ctx).doc();
   const m = { type, text, refs: AC.cleanRefs(args.refs), thread: thread || ref.id, parent: parent ? parent.id : '',
@@ -1745,9 +1761,11 @@ async function agentPost(ctx, key, args, parentId) {
   if (parent && ['new', 'read'].includes(parent.status || 'new')) await AGM(ctx).doc(parent.id).set({ status: 'answered', updatedAt: ts() }, { merge: true });
   await logExecution(ctx, key, 'agent_message', '', { what: type + ': ' + text.slice(0, 200) });
   const tg = await AGENTS.notify(ctx.gref, ctx.world, ctx.game, { id: ref.id, ...m }).catch((e) => { console.error('[mcp] agents notify', e); return false; });
-  return { ok: true, id: ref.id, thread: m.thread, type,
+  // v2.149.3: say where it went, so the agent can tell the user truthfully (owner audit: «перевіряє успішне створення повідомлення»)
+  const delivered = tg ? 'telegram' : AC.URGENT.includes(type) ? 'bible' : 'digest';
+  return { ok: true, id: ref.id, thread: m.thread, type, delivered,
     message: type === 'approval_request' ? 'Asked the author. Do NOT do it until get_agent_inbox shows this request with approval.status = approved; keep to other work meanwhile. ' + (tg ? 'The author got it in Telegram.' : 'The author sees it in the Game Bible («💬 Агенти»).')
-      : type === 'question' ? 'Asked. The answer comes into get_agent_inbox.' : 'Posted to «💬 Агенти».' };
+      : type === 'question' ? 'Asked. ' + (tg ? 'The author got it in Telegram. ' : 'The author sees it in the Game Bible («💬 Агенти»; Telegram is not connected). ') + 'The answer comes into get_agent_inbox.' : 'Posted to «💬 Агенти» (the author gets it in the daily digest).' };
 }
 async function agentInbox(ctx, key, args) {
   const q = await AGM(ctx).orderBy('at', 'desc').limit(300).get();
