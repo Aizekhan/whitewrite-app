@@ -373,6 +373,9 @@
             "<b>Лише читання</b> — для перевірок і запланованих задач: читає, нічого не пише.",
           ]],
           ["h", "Як підʼєднати Claude у браузері чи на телефоні"],
+          ["p", "<b>Найкраще — як конектор (OAuth):</b> claude.ai → Налаштування → Конектори → «Додати власний конектор» → назва <b>WhiteWrite</b>, адреса <b>https://whitewrite.com/mcp</b> → «Підключити». Відкриється сторінка WhiteWrite: увійди, обери гру й роль (Геймдизайнер / Програміст / Лише читання) → «Дозволити». Ключ створиться сам і зʼявиться в «🔑 Ключах агентів» як «Claude · Геймдизайнер» — відкличеш там, і конектор відключиться. Працює й у Claude на телефоні."],
+          ["p", "<b>Простіше — адреса з ключем:</b> створи ключ із роллю «Геймдизайнер» → «🔌 Додати в Claude» → «Копіювати адресу для Claude» (<b>https://whitewrite.com/mcp/k/wwk_…</b>) і встав її як адресу конектора — без входу. Адреса і є ключем: нікому її не показуй."],
+          ["p", "<b>Без конектора</b> (старий спосіб):"],
           ["ul", [
             "Створи ключ із роллю «Геймдизайнер» — WhiteWrite покаже готовий текст із адресою й ключем.",
             "У Claude: Налаштування → Можливості → дозволь домен <b>us-central1-whitewrite-app.cloudfunctions.net</b>.",
@@ -2129,6 +2132,9 @@
             "<b>Read only</b> — for checks and scheduled jobs: reads, writes nothing.",
           ]],
           ["h", "Connecting Claude in the browser or on the phone"],
+          ["p", "<b>Best — as a connector (OAuth):</b> claude.ai → Settings → Connectors → «Add custom connector» → name <b>WhiteWrite</b>, address <b>https://whitewrite.com/mcp</b> → «Connect». A WhiteWrite page opens: sign in, pick the game and the role (Game designer / Programmer / Read only) → «Allow». The key is made by itself and shows in «🔑 Agent keys» as «Claude · Game designer» — revoke it there and the connector is cut off. Works in Claude on the phone too."],
+          ["p", "<b>Simpler — the address with a key:</b> create a key with the role «Game designer» → «🔌 Add to Claude» → «Copy the address for Claude» (<b>https://whitewrite.com/mcp/k/wwk_…</b>) and paste it as the connector address — no sign-in. The address IS the key: never share it."],
+          ["p", "<b>Without a connector</b> (the old way):"],
           ["ul", [
             "Make a key with the role «Game designer» — WhiteWrite shows a ready text with the address and the key.",
             "In Claude: Settings → Capabilities → allow the domain <b>us-central1-whitewrite-app.cloudfunctions.net</b>.",

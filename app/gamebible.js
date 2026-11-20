@@ -1069,6 +1069,7 @@
   var PREFIX = { characters: "char", locations: "loc", factions: "fac", artifacts: "art", events: "evt" };
   var FN = "https://us-central1-whitewrite-app.cloudfunctions.net/gamedevPlan";
   var MCP_URL = "https://us-central1-whitewrite-app.cloudfunctions.net/mcp";
+  var CONN_URL = "https://whitewrite.com/mcp"; // 🔌 the claude.ai connector address (Hosting → mcp; OAuth — functions/src/oauth.js)
   // 🔑 the MCP key lives in a Windows environment variable (setx + this window), Claude Code's config keeps only ${NAME} (v2.117, MCP feedback):
   // the key is not written in the command's config, nor seen by the agent; one variable per game (several games on one PC)
   function keyVar() { return "WHITEWRITE_KEY_" + String(gameId || "").replace(/[^A-Za-z0-9]/g, "_").toUpperCase(); }
@@ -9759,7 +9760,7 @@
       roleHint: { designer: "читає все, пише картки GDD і повідомлення; задачі не бере", programmer: "бере й здає задачі, журнал, баги, картки «що зроблено», повідомлення", readonly: "лише читає — для перевірок і запланованих задач" },
       defLabel: { designer: "Claude у браузері", programmer: "Claude Code на ПК", readonly: "Перевірки" }, used: "востаннє", never: "ще не використовувався",
       reissue: "Перевипустити", reQ: "Створити новий ключ із тією ж назвою й роллю і відкликати цей? Агент зі старим ключем більше не підключиться.",
-      webOnce: "Ключ показано один раз — скопіюй текст нижче для Claude у браузері чи на телефоні", webHow: "Claude у браузері чи на телефоні: Налаштування → Можливості → дозволь домен us-central1-whitewrite-app.cloudfunctions.net, а цей текст встав у чат (або в інструкції проєкту Claude). Ключ не показуй нікому.",
+      connTitle: "🔌 Додати в Claude (claude.ai, телефон)", connHow: "claude.ai → Налаштування → Конектори → «Додати власний конектор» → назва WhiteWrite, а в поле адреси встав рядок нижче. Адреса містить ключ — нікому її не показуй.", connCopy: "Копіювати адресу для Claude", webAlt: "Або без конектора — текст у чат Claude", connOauth: "Найпростіше для Claude у браузері чи на телефоні: claude.ai → Налаштування → Конектори → «Додати власний конектор» → адреса {u}. Claude відкриє вхід у WhiteWrite — обереш гру й роль, і ключ створиться сам (зʼявиться в цьому списку).", webOnce: "Ключ показано один раз — скопіюй текст нижче для Claude у браузері чи на телефоні", webHow: "Claude у браузері чи на телефоні: Налаштування → Можливості → дозволь домен us-central1-whitewrite-app.cloudfunctions.net, а цей текст встав у чат (або в інструкції проєкту Claude). Ключ не показуй нікому.",
       tgTitle: "✈ Telegram для агентів", tgHint: "Питання й запити на схвалення приходять у Telegram одразу: ✔ / ✖ кнопками або «так, код …» у чаті з Claude. Нотатки, передачі роботи й відгуки — раз на день коротким зведенням. Кнопки діють лише для тебе.",
       tgOff: "Бот платформи ще не налаштований.", tgS1: "1. Твій Telegram", tgS1Hint: "Без нього ніхто не зможе схвалити кнопкою: бот запам'ятає лише тебе.", tgMe: "Підключити мій Telegram", tgWait: "Відкриваю Telegram…",
       tgS2: "2. Свій чат чи канал гри", opt: "за бажанням", tgS2Hint: "Повідомлення йтимуть у групу чи канал гри, а не в особистий чат. Схвалювати там теж можеш лише ти.", tgChat: "Підключити групу чи канал",
@@ -9778,7 +9779,7 @@
       roleHint: { designer: "reads everything, writes GDD cards and messages; takes no tasks", programmer: "takes and hands in tasks, the log, bugs, «what was built» cards, messages", readonly: "only reads — for checks and scheduled jobs" },
       defLabel: { designer: "Claude in the browser", programmer: "Claude Code on the PC", readonly: "Checks" }, used: "last used", never: "not used yet",
       reissue: "Reissue", reQ: "Make a new key with the same name and role and revoke this one? An agent with the old key will no longer connect.",
-      webOnce: "The key is shown once — copy the text below for Claude in the browser or on the phone", webHow: "Claude in the browser or on the phone: Settings → Capabilities → allow the domain us-central1-whitewrite-app.cloudfunctions.net, then paste this text into the chat (or into the Claude project's instructions). Show the key to no one.",
+      connTitle: "🔌 Add to Claude (claude.ai, phone)", connHow: "claude.ai → Settings → Connectors → «Add custom connector» → name WhiteWrite, and paste the line below as the address. The address holds the key — never show it to anyone.", connCopy: "Copy the address for Claude", webAlt: "Or without a connector — the text for the Claude chat", connOauth: "Easiest for Claude in the browser or on the phone: claude.ai → Settings → Connectors → «Add custom connector» → address {u}. Claude opens a WhiteWrite sign-in — pick the game and the role, and the key is made by itself (it appears in this list).", webOnce: "The key is shown once — copy the text below for Claude in the browser or on the phone", webHow: "Claude in the browser or on the phone: Settings → Capabilities → allow the domain us-central1-whitewrite-app.cloudfunctions.net, then paste this text into the chat (or into the Claude project's instructions). Show the key to no one.",
       tgTitle: "✈ Telegram for the agents", tgHint: "Questions and approval requests come to Telegram at once: ✔ / ✖ buttons, or «yes, code …» in the chat with Claude. Notes, handoffs and feedback — once a day in a short digest. The buttons work only for you.",
       tgOff: "The platform bot is not set up yet.", tgS1: "1. Your Telegram", tgS1Hint: "Without it nobody can approve with a button: the bot remembers only you.", tgMe: "Connect my Telegram", tgWait: "Opening Telegram…",
       tgS2: "2. The game's own chat or channel", opt: "optional", tgS2Hint: "Messages go to the game's group or channel instead of your private chat. Only you can approve there too.", tgChat: "Connect a group or channel",
@@ -9856,8 +9857,11 @@
     var A = AGS, live = keys.filter(function (k) { return !k.revoked; }), loc = LANG === "en" ? "en-GB" : "uk-UA";
     var box = newKey ? '<div class="nbox"><h4>' + (newKeyRole === "programmer" ? STR.exKeyOnce : A.webOnce) + '</h4>' + (newKeyRole === "programmer"
       ? '<pre>' + esc(mcpAddCmd(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button><p class="muted">' + STR.exThen + '</p>'
-      : '<p class="hint">' + A.webHow + '</p><pre class="ag-pre">' + esc(webPrompt(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button>') + '</div>' : '';
-    return '<p class="hint">' + A.keysHint + ' <a href="#" class="kblink" data-kb="agents-two">' + A.kb + '</a></p>' + box +
+      // 🔌 v2.149: «Додати в Claude» — the key in the address, for claude.ai → Settings → Connectors → Add custom connector
+      : '<h4>' + A.connTitle + '</h4><p class="hint">' + A.connHow + '</p><pre class="ag-pre">' + esc(CONN_URL + '/k/' + newKey) + '</pre><button class="btn primary" data-copy>' + A.connCopy + '</button>' +
+        '<details><summary>' + A.webAlt + '</summary><p class="hint">' + A.webHow + '</p><pre class="ag-pre">' + esc(webPrompt(newKey)) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>') + '</div>' : '';
+    return '<p class="hint">' + A.keysHint + ' <a href="#" class="kblink" data-kb="agents-two">' + A.kb + '</a></p>' +
+      '<p class="hint">🔌 ' + A.connOauth.replace('{u}', '<code>' + CONN_URL + '</code>') + '</p>' + box +
       live.map(function (k) {
         var r = AG_ROLES.indexOf(k.role) >= 0 ? k.role : "programmer", used = k.lastUsedAt && k.lastUsedAt.toDate ? A.used + ' ' + k.lastUsedAt.toDate().toLocaleString(loc) : A.never;
         return '<div class="file"><span class="ico">🔑</span><span class="fname"><b>' + esc(k.label || "—") + '</b> <span class="chip">' + esc(A.role[r]) + '</span> <span class="mono">' + esc(k.prefix) + '…</span> <span class="muted">· ' + esc(used) + '</span></span>' +

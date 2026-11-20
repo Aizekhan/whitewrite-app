@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>WhiteWrite · Підключити Claude</title>
+<link rel="icon" href="assets/LogoG-icon.png" />
+<!-- 🔌 claude.ai custom connector (v2.149): the OAuth consent page — /oauth/authorize (firebase.json) → functions/src/oauth.js /oauth/approve -->
+<style>
+  :root{ --bg:#0d0d0f; --panel:#151518; --line:#2a2a30; --text:#e8e4dc; --muted:#9a958c; --gold:#f2b84b; --gold2:#ffd27a; --warn:#ff8a65; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; display:flex; align-items:center; justify-content:center; padding:24px; }
+  main{ width:100%; max-width:520px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:28px; }
+  .logo{ display:block; width:150px; margin:0 auto 18px; }
+  h1{ font-size:20px; margin:0 0 6px; text-align:center; }
+  p{ margin:8px 0; }
+  .muted{ color:var(--muted); font-size:13px; }
+  .warn{ color:var(--warn); }
+  label{ display:block; margin:14px 0 6px; font-weight:600; }
+  select, input{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f12; color:var(--text); font:inherit; }
+  .roles label{ font-weight:400; display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--line); border-radius:8px; margin:8px 0; cursor:pointer; }
+  .roles input{ width:auto; margin-top:4px; }
+  .roles b{ display:block; }
+  .row{ display:flex; gap:10px; margin-top:20px; }
+  button{ flex:1; padding:12px 14px; border-radius:9px; border:1px solid var(--line); background:#1d1d22; color:var(--text); font:inherit; font-weight:600; cursor:pointer; }
+  button.primary{ background:linear-gradient(180deg,var(--gold2),var(--gold)); color:#1a1408; border:0; }
+  button:disabled{ opacity:.55; cursor:default; }
+  .who{ text-align:center; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="assets/LogoG.webp" alt="WhiteWrite" />
+  <h1 id="title">Підключити Claude до гри</h1>
+  <p class="who muted" id="client"></p>
+  <p class="warn" id="err" role="alert" hidden></p>
+
+  <section id="login" hidden>
+    <p id="loginHint">Увійди у WhiteWrite, щоб обрати гру.</p>
+    <div class="row"><button class="primary" id="google">Увійти через Google</button></div>
+    <label for="em" id="emL">Або пошта й пароль</label>
+    <input id="em" type="email" autocomplete="username" placeholder="email" />
+    <input id="pw" type="password" autocomplete="current-password" placeholder="пароль" style="margin-top:8px" />
+    <div class="row"><button id="emailBtn">Увійти</button></div>
+  </section>
+
+  <section id="pick" hidden>
+    <p class="muted" id="as"></p>
+    <label for="game" id="gameL">Гра</label>
+    <select id="game"></select>
+    <label id="roleL">Роль цього агента</label>
+    <div class="roles" id="roles"></div>
+    <p class="muted" id="note"></p>
+    <div class="row"><button id="deny">Скасувати</button><button class="primary" id="allow">Дозволити</button></div>
+  </section>
+</main>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js" integrity="sha384-ViccRjS0k/lvYsrtaKXk+ES61/4PAZlFI/mPHmLC1YWzK0AIbXbI5ZXDzcm3F8gH" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js" integrity="sha384-+/4lqMnmLqwbdHXshvGDmBTeWlNoPRdjXi4ZsiBj10EhQXaTBe3RF5JZktdSjug6" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js" integrity="sha384-7TetnPNdXXu6qURzIEXWCwpXedGGBJSXIR5Cv0gOWTB34UD5TxPHx33PhjA6wFQ3" crossorigin="anonymous"></script>
+<script src="firebase/firebase-init.js"></script>
+<script>
+(function () {
+  var EN = !/^uk|^ru/i.test(navigator.language || "uk");
+  var T = EN ? {
+    title: "Connect Claude to a game", asks: "«{c}» ({h}) asks for access to one of your WhiteWrite games.", login: "Sign in to WhiteWrite to pick a game.",
+    google: "Sign in with Google", emL: "Or e-mail and password", emailBtn: "Sign in", as: "Signed in as {e}", gameL: "Game", roleL: "Role of this agent",
+    note: "WhiteWrite makes a separate agent key for this connection — you will see it in Game Bible → Settings → Integrations → «🔑 Agent keys» and can revoke it there any time. Only you approve.",
+    deny: "Cancel", allow: "Allow", none: "You have no games yet — create one in WhiteWrite first.", bad: "The link from Claude is incomplete. Add the connector again.",
+    roles: { designer: ["Game designer", "reads everything, writes GDD cards and messages; takes no tasks"], programmer: ["Programmer", "takes and submits tasks, the development log, bugs"], readonly: ["Read only", "reads, writes nothing"] }
+  } : {
+    title: "Підключити Claude до гри", asks: "«{c}» ({h}) просить доступ до однієї з твоїх ігор у WhiteWrite.", login: "Увійди у WhiteWrite, щоб обрати гру.",
+    google: "Увійти через Google", emL: "Або пошта й пароль", emailBtn: "Увійти", as: "Ти ввійшов як {e}", gameL: "Гра", roleL: "Роль цього агента",
+    note: "WhiteWrite створить для цього підключення окремий ключ агента — він зʼявиться в Біблії гри → Налаштування → Інтеграції → «🔑 Ключі агентів», там його можна відкликати будь-коли. Схвалюєш лише ти.",
+    deny: "Скасувати", allow: "Дозволити", none: "У тебе ще немає ігор — спершу створи гру у WhiteWrite.", bad: "Посилання від Claude неповне. Додай конектор ще раз.",
+    roles: { designer: ["Геймдизайнер", "читає все, пише картки GDD і повідомлення; задач не бере"], programmer: ["Програміст", "бере й здає задачі, журнал розробки, баги"], readonly: ["Лише читання", "читає, нічого не пише"] }
+  };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var q = new URLSearchParams(location.search), P = {};
+  ["client_id", "redirect_uri", "state", "code_challenge", "code_challenge_method", "scope", "response_type"].forEach(function (k) { P[k] = q.get(k) || ""; });
+  var err = function (m) { $("err").textContent = m; $("err").hidden = !m; };
+  ["title", "google", "emL", "emailBtn", "gameL", "roleL", "note", "deny", "allow"].forEach(function (k) { $(k).textContent = T[k]; });
+  $("loginHint").textContent = T.login;
+  document.title = "WhiteWrite · " + T.title;
+  if (!P.client_id || !P.redirect_uri || !P.code_challenge || P.response_type !== "code") { err(T.bad); return; }
+
+  var pre = ["designer", "programmer", "readonly"].indexOf(P.scope) >= 0 ? P.scope : "designer";
+  $("roles").innerHTML = ["designer", "programmer", "readonly"].map(function (r) {
+    return '<label><input type="radio" name="role" value="' + r + '"' + (r === pre ? " checked" : "") + '><span><b>' + esc(T.roles[r][0]) + '</b><span class="muted">' + esc(T.roles[r][1]) + '</span></span></label>';
+  }).join("");
+
+  fetch("/oauth/client?id=" + encodeURIComponent(P.client_id)).then(function (r) { return r.json(); }).then(function (c) {
+    if (!c.name) { err(T.bad); return; }
+    $("client").textContent = T.asks.replace("{c}", c.name).replace("{h}", (c.hosts || []).join(", "));
+  }).catch(function () { err(T.bad); });
+
+  function back(params) { var u = new URL(P.redirect_uri); Object.keys(params).forEach(function (k) { u.searchParams.set(k, params[k]); }); if (P.state) u.searchParams.set("state", P.state); location.href = u.toString(); }
+
+  firebase.auth().onAuthStateChanged(function (user) {
+    $("login").hidden = !!user; $("pick").hidden = !user;
+    if (!user) return;
+    $("as").textContent = T.as.replace("{e}", user.email || user.displayName || "");
+    var db = firebase.firestore();
+    db.collection("worlds").where("owner", "==", user.uid).get().then(function (ws) {
+      return Promise.all(ws.docs.map(function (w) {
+        return w.ref.collection("games").get().then(function (gs) {
+          return gs.docs.filter(function (g) { return !g.data().demo; }).map(function (g) { return { w: w.id, g: g.id, label: (w.data().title || w.id) + " · " + (g.data().title || g.id) }; });
+        }).catch(function () { return []; });
+      }));
+    }).then(function (lists) {
+      var all = [].concat.apply([], lists).sort(function (a, b) { return a.label.localeCompare(b.label); });
+      $("game").innerHTML = all.map(function (x) { return '<option value="' + esc(x.w + "|" + x.g) + '">' + esc(x.label) + '</option>'; }).join("");
+      if (!all.length) { err(T.none); $("allow").disabled = true; }
+    }).catch(function (e) { err(e.message); });
+  });
+
+  $("google").onclick = function () { err(""); firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function (e) { err(e.message); }); };
+  $("emailBtn").onclick = function () { err(""); firebase.auth().signInWithEmailAndPassword($("em").value.trim(), $("pw").value).catch(function (e) { err(e.message); }); };
+  $("deny").onclick = function () { back({ error: "access_denied" }); };
+  $("allow").onclick = function () {
+    var v = ($("game").value || "").split("|"), role = (document.querySelector('input[name="role"]:checked') || {}).value;
+    if (v.length !== 2 || !role) return;
+    $("allow").disabled = true; err("");
+    firebase.auth().currentUser.getIdToken().then(function (tok) {
+      return fetch("/oauth/approve", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok },
+        body: JSON.stringify({ worldId: v[0], gameId: v[1], role: role, client_id: P.client_id, redirect_uri: P.redirect_uri, code_challenge: P.code_challenge, code_challenge_method: P.code_challenge_method, state: P.state }) });
+    }).then(function (r) { return r.json(); }).then(function (j) {
+      if (j.redirect) location.href = j.redirect; else { err(j.error || "Error"); $("allow").disabled = false; }
+    }).catch(function (e) { err(e.message); $("allow").disabled = false; });
+  };
+})();
+</script>
+</body>
+</html>

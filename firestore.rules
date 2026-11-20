@@ -379,6 +379,9 @@ service cloud.firestore {
     match /agentTg/{id} { allow read, write: if false; }
     match /agentApprovals/{id} { allow read, write: if false; }
     match /agentDigestQueue/{id} { allow read, write: if false; }
+    // 🔌 claude.ai connector (v2.149): OAuth clients and one-time codes — functions/src/oauth.js only
+    match /oauthClients/{id} { allow read, write: if false; }
+    match /oauthCodes/{id} { allow read, write: if false; }
 
     match /mcpKeys/{keyHash} {
       allow read, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;

@@ -1986,7 +1986,9 @@ async function sweepFiles(now = Date.now()) { // unconfirmed upload sessions an 
 }
 async function authKey(req) {
   const h = req.headers.authorization || '';
-  const raw = h.startsWith('Bearer ') ? h.slice(7).trim() : '';
+  // 🔌 v2.149: or the key in the path — https://whitewrite.com/mcp/k/<key> for a claude.ai connector added without OAuth
+  const inPath = /\/k\/(wwk_[\w-]{20,})\/?$/.exec(String(req.path || ''));
+  const raw = h.startsWith('Bearer ') ? h.slice(7).trim() : inPath ? inPath[1] : '';
   if (!raw.startsWith('wwk_')) return null;
   const hash = crypto.createHash('sha256').update(raw).digest('hex');
   const snap = await db.collection('mcpKeys').doc(hash).get();
@@ -2005,7 +2007,9 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   if (req.query && req.query.upload) return handleUpload(req, res).catch((e) => { console.error('[mcp] upload', e); res.status(500).json({ error: 'Upload failed' }); });
   const key = await authKey(req).catch((e) => { console.error('[mcp] auth', e); return null; });
   if (!key) {
-    return res.status(401).json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Invalid or revoked WhiteWrite key (Game Bible → Production plan → Claude Code), or the plan has no Game Dev access' } });
+    // 🔌 v2.149: tells an MCP client (claude.ai «Add custom connector») where to log in — functions/src/oauth.js
+    res.set('WWW-Authenticate', 'Bearer resource_metadata="https://whitewrite.com/.well-known/oauth-protected-resource"');
+    return res.status(401).json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Invalid or revoked WhiteWrite key (Game Bible → Settings → Integrations → Agent keys), or the plan has no Game Dev access' } });
   }
   const body = req.body;
   if (Array.isArray(body)) {
