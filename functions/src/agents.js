@@ -311,12 +311,12 @@ async function silenceSweep(now) {
     if (!won || due !== 'due') continue;
     const label = str(k.label, 80) || 'Агент', ref = G.gref.collection('agentMessages').doc();
     const text = `Агент «${label}» зупинився без звіту: ${cfg.min} хв тиші після роботи, а питання, запиту на дозвіл чи передачі роботи немає. Можливо, він чекає твого рішення в терміналі.`;
-    await ref.set({ type: 'silent_stop', text, refs: [], thread: ref.id, parent: '', from: { kind: 'system', key: k.prefix || '', label: 'WhiteWrite', role: '' },
-      status: 'new', readBy: [], at: now, createdAt: ts(), updatedAt: ts() });
     let sent = false, err = '';
     try { sent = await tellAuthor(G.gref, G.world, G.game, `🛎 Агент «${label}» зупинився без звіту (${cfg.min} хв тиші, питання немає). Можливо, він чекає твого рішення в терміналі.`, 'agents'); }
     catch (e) { err = str(e.message, 200); }
-    await ref.set({ tg: { status: sent ? 'sent' : err ? 'failed' : 'off', ...(err ? { error: err } : {}), at: Date.now() } }, { merge: true });
+    // one write with its delivery mark (Telegram first): the feed never shows it without «✈ …»
+    await ref.set({ type: 'silent_stop', text, refs: [], thread: ref.id, parent: '', from: { kind: 'system', key: k.prefix || '', label: 'WhiteWrite', role: '' },
+      status: 'new', readBy: [], at: now, createdAt: ts(), updatedAt: ts(), tg: { status: sent ? 'sent' : err ? 'failed' : 'off', ...(err ? { error: err } : {}), at: Date.now() } });
     out.push({ key: k.prefix, game: gk, sent });
   }
   return out;
