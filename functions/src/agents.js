@@ -57,19 +57,23 @@ const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return
 // an agent's message → Telegram at once (question / approval_request) or the daily digest (note / handoff / feedback). true = sent now.
 async function notify(gref, world, game, m) {
   const worldId = gref.parent.parent.id, gameId = gref.id, owner = world.owner;
+  // v2.149.5: where it went, on the message itself — «✈ надіслано в Telegram» in «💬 Агенти» (owner: «не знаю, чи дійшло»)
+  const mark = (v) => gref.collection('agentMessages').doc(m.id).set({ tg: { ...v, at: Date.now() } }, { merge: true }).catch(() => {});
   if (!AC.URGENT.includes(m.type)) {
+    await mark({ status: 'digest' });
     await db.collection('agentDigestQueue').doc(owner).set({ games: { [gameKey(worldId, gameId)]: { title: str(game.title, 80), n: admin.firestore.FieldValue.increment(1) } }, updatedAt: ts() }, { merge: true });
     return false;
   }
-  if (!botToken()) return false;
+  if (!botToken()) { await mark({ status: 'off' }); return false; }
   const d = await dest(worldId, gameId, owner);
-  if (!d.chatId) return false;
+  if (!d.chatId) { await mark({ status: 'off' }); return false; }
+  const where = d.chat && d.chat.chatId ? { kind: str(d.chat.kind, 20) || 'group', chat: str(d.chat.title, 80) } : { kind: 'private', chat: '' };
   const who = `${m.from.label || 'Агент'} (${ROLE_UK[m.from.role] || m.from.role || ''})`;
   let text = `🎮 ${clip(game.title, 60)}\n💬 ${who} ${TYPE_UK[m.type] || m.type}:\n«${clip(m.text, 300)}»`;
   const kb = [[{ text: '💬 Відповісти в WhiteWrite', url: bibleUrl(worldId, gameId) }]];
   let aid = '', base = '';
   if (m.type === 'approval_request') {
-    if (!d.ownerTg) return false; // nobody could press: the author approves in the Bible
+    if (!d.ownerTg) { await mark({ status: 'off' }); return false; } // nobody could press: the author approves in the Bible
     const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
     aid = approvalId(worldId, gameId, m.id);
     await db.collection('agentApprovals').doc(aid).set({ worldId, gameId, msgId: m.id, uid: owner, codeHash: sha(aid + ':' + code), exp: Date.now() + AC.CODE_TTL, used: false, tries: 0, createdAt: ts(),
@@ -79,7 +83,10 @@ async function notify(gref, world, game, m) {
     text += `\n\nСхвали кнопкою — або скажи цей код Claude у чаті. Досить одного.\nКод: ${code} (діє 24 год)`;
     kb.unshift([{ text: '✔ Схвалити', callback_data: `ap:${aid}:y` }, { text: '✖ Відхилити', callback_data: `ap:${aid}:n` }]);
   }
-  const sent = await tg('sendMessage', { chat_id: d.chatId, text, reply_markup: { inline_keyboard: kb }, disable_web_page_preview: true });
+  let sent;
+  try { sent = await tg('sendMessage', { chat_id: d.chatId, text, reply_markup: { inline_keyboard: kb }, disable_web_page_preview: true }); }
+  catch (e) { await mark({ status: 'failed', ...where, error: str(e.message, 200) }); throw e; }
+  await mark({ status: 'sent', ...where });
   if (aid) await db.collection('agentApprovals').doc(aid).set({ tg: { chat: d.chatId, mid: sent.message_id, text: base } }, { merge: true });
   return true;
 }

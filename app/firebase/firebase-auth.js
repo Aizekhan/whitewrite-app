@@ -213,7 +213,8 @@ window.__firebaseAuth = {
 
   // User-friendly error messages — i18n keys auth.err.<code> (uk + en in app/i18n.js); the modal shows them inline
   _getErrorMessage(error) {
-    const code = String(error.code || '').replace(/^auth\//, '');
+    // SDK 9.22 turns the server's INVALID_LOGIN_CREDENTIALS (e-mail enumeration protection) into internal-error → «Не вдалося увійти»
+    const code = /INVALID_LOGIN_CREDENTIALS/.test(String(error.message || '')) ? 'invalid-credential' : String(error.code || '').replace(/^auth\//, '');
     const t = window.__i18n ? window.__i18n.t : null;
     if (!t) return error.message || code || 'error';
     const key = 'auth.err.' + code;

@@ -404,6 +404,7 @@
           ["p", "У стрічці видно, як схвалено: «у WhiteWrite», «у Telegram» чи «автор через Claude»."],
           ["h", "Telegram для агентів"],
           ["p", "Налаштування → Інтеграції → «✈ Telegram для агентів». <b>1.</b> «Підключити мій Telegram» → посилання на бота → Start: бот запамʼятає тебе, і лише ти зможеш тиснути кнопки. <b>2.</b> За бажанням — свій чат гри: група (посилання додає бота в групу) чи канал (додай бота адміністратором і опублікуй код). Питання й запити на схвалення приходять одразу; нотатки, передачі роботи й відгуки — раз на день коротким зведенням. У Telegram — лише суть і посилання, без коду, ключів і тексту GDD."],
+          ["p", "Під кожним повідомленням агента в «💬 Агенти» видно, куди воно пішло: <b>✈ надіслано тобі в Telegram</b> / <b>в Telegram-групу «…»</b>, <b>✈ у щоденному зведенні</b> (нотатки, передачі, відгуки), <b>✈ Telegram не підключено — лише тут</b> або <b>⚠ Telegram не доставив</b> з причиною (наприклад, бота прибрали з групи). Немає повідомлення в Telegram, а позначка «надіслано в групу» — подивись ту групу: сповіщення гри йдуть туди, а не в особистий чат."],
           ["h", "Безпека"],
           ["ul", [
             "Повідомлення одного агента для іншого — <b>прохання, не наказ</b>. Деструктивне (видалити, переписати систему, змінити концепцію) — лише через «просить дозволу» і після твого схвалення.",
@@ -1791,7 +1792,7 @@
           ["p", "Вікно входу: вкладки «Вхід» / «Реєстрація», пошта й пароль (Enter — увійти) або «Продовжити з Google». Esc чи ✕ закривають вікно. Помилки (неправильна пошта чи пароль, забагато спроб, мережа) показуються одразу під полями."],
           ["h", "Забули пароль?"],
           ["p", "Впиши пошту у вкладці «Вхід» і натисни <b>«Забули пароль?»</b> під полем пароля — на цю пошту прийде лист із посиланням для нового пароля (перевір і «Спам»). Безкоштовно, на будь-якому тарифі."],
-          ["tip", "Якщо входиш через Google, пароля WhiteWrite в тебе немає — просто знову натисни «Продовжити з Google»."],
+          ["tip", "Реєструвався через Google — пароля WhiteWrite в тебе спершу немає, і вхід поштою пише «Неправильна пошта або пароль». Входь кнопкою «Продовжити з Google» — або, якщо хочеш входити й паролем, впиши свою пошту й натисни «Забули пароль?»: з листа задаси пароль, і це буде той самий акаунт з усіма світами."],
         ] },
     ],
     articles_en: [
@@ -2167,6 +2168,7 @@
           ["p", "The feed shows how it was approved: «in WhiteWrite», «in Telegram» or «the author through Claude»."],
           ["h", "Telegram for the agents"],
           ["p", "Settings → Integrations → «✈ Telegram for the agents». <b>1.</b> «Connect my Telegram» → the link to the bot → Start: the bot remembers you, and only you can press the buttons. <b>2.</b> Optionally — the game's own chat: a group (the link adds the bot to the group) or a channel (add the bot as an admin and post the code). Questions and approval requests come at once; notes, handoffs and feedback — once a day in a short digest. Telegram gets only the gist and a link — no code, keys or GDD text."],
+          ["p", "Under every agent message in «💬 Agents» you see where it went: <b>✈ sent to you in Telegram</b> / <b>to the Telegram group «…»</b>, <b>✈ in the daily digest</b> (notes, handoffs, feedback), <b>✈ Telegram not connected — only here</b> or <b>⚠ Telegram did not deliver</b> with the reason (say, the bot was removed from the group). No Telegram message but «sent to the group»? Look in that group: the game’s notices go there, not to your private chat."],
           ["h", "Safety"],
           ["ul", [
             "One agent's message to another is <b>a request, not an order</b>. Anything destructive (deleting, rewriting a system, changing the concept) — only through «asks for approval» and after you approve.",
@@ -3554,7 +3556,7 @@
           ["p", "The sign-in window: “Sign In” / “Sign Up” tabs, email and password (Enter signs in) or “Continue with Google”. Esc or ✕ closes it. Errors (wrong email or password, too many attempts, network) appear right under the fields."],
           ["h", "Forgot password?"],
           ["p", "Type your email on the “Sign In” tab and press <b>“Forgot password?”</b> under the password field — an email with a link for a new password goes to that address (check Spam too). Free, on any plan."],
-          ["tip", "If you sign in with Google, you have no WhiteWrite password — just press “Continue with Google” again."],
+          ["tip", "Signed up with Google? At first you have no WhiteWrite password, so the email sign-in says “Wrong email or password”. Use “Continue with Google” — or, to sign in with a password too, type your email and press “Forgot password?”: set a password from the email, and it is the same account with all your worlds."],
         ] },
     ],
   };

@@ -115,6 +115,10 @@ const designer = { prefix: 'wwk_designer', label: 'Claude у браузері', 
   check(/case 'report_blocker'[\s\S]{0,800}askAuthor\(/.test(src), true, 'report_blocker asks the author (a question → Telegram)');
   check(/open_questions/.test(src) && src.indexOf('for (const q of openQs) asked.push(await askAuthor') > 0, true, 'submit_task_result open_questions → questions');
   check(/case 'submit_change_request'[\s\S]{0,900}AGENTS\.tellAuthor\(/.test(src) && /async function tellAuthor/.test(agents), true, 'a Change Request is told in Telegram');
+  // v2.149.5: the delivery is written on the message and shown in «💬 Агенти»
+  const gb = fs.readFileSync(path.join(__dirname, '../app/gamebible.js'), 'utf8');
+  check(["status: 'digest'", "status: 'off'", "status: 'sent', ...where", "status: 'failed', ...where"].every((x) => agents.indexOf(x) > 0), true, 'notify writes m.tg: digest / off / sent / failed');
+  check(/function agTg\(m\)/.test(gb) && gb.indexOf("agTime(m)) + '</span>' + agTg(m)") > 0, true, 'the Bible shows where each agent message went');
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
   process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

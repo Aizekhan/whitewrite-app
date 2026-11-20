@@ -9761,6 +9761,7 @@
       role: { designer: "Геймдизайнер", programmer: "Програміст", readonly: "Лише читання", owner: "автор", member: "команда" },
       none: "Повідомлень ще немає. Підключи агентів у «Налаштування → Інтеграції → Ключі агентів» — і попроси одного з них щось передати іншому.",
       write: "Написати агентам", ph: "Напиши агентам: питання, відгук або рішення…", send: "Надіслати", reply: "Відповісти", replyPh: "Відповідь…", close: "Закрити гілку", reopen: "Відкрити знову",
+      tg: { sent: "✈ надіслано в Telegram", group: "✈ надіслано в Telegram-групу «{c}»", private: "✈ надіслано тобі в Telegram", failed: "⚠ Telegram не доставив: {e}", off: "✈ Telegram не підключено — лише тут", digest: "✈ у щоденному зведенні" },
       approve: "✔ Схвалити", reject: "✖ Відхилити", pending: "чекає твого рішення", pendingN: "Чекають твого рішення: {n}", closed: "гілку закрито",
       ok: "✔ Схвалено", no: "✖ Відхилено", via: { whitewrite: "у WhiteWrite", telegram: "у Telegram", claude: "автор через Claude" },
       waits: "Гілка чекає тебе: агенти написали 3 повідомлення поспіль.", mdTitle: "📄 Блок агентів для CLAUDE.md", mdHint: "Щоб Claude Code у кожній сесії знав правила каналу: ролі, коли читати повідомлення, що писати, схвалення. «⧉ Скопіювати все для PowerShell» і «📂 Підготувати теку гри» додають його самі; в уже наявний проєкт — встав у кінець CLAUDE.md у теці гри або скажи Claude Code: «Додай у CLAUDE.md блок агентів з WhiteWrite».", tgLine: "Telegram для агентів:", tgOn: "підключено", tgSet: "Налаштувати →",
@@ -9780,6 +9781,7 @@
       role: { designer: "Game designer", programmer: "Programmer", readonly: "Read only", owner: "author", member: "team" },
       none: "No messages yet. Connect the agents in «Settings → Integrations → Agent keys» — and ask one of them to pass something to the other.",
       write: "Write to the agents", ph: "Write to the agents: a question, feedback or a decision…", send: "Send", reply: "Reply", replyPh: "Reply…", close: "Close the thread", reopen: "Reopen",
+      tg: { sent: "✈ sent to Telegram", group: "✈ sent to the Telegram group «{c}»", private: "✈ sent to you in Telegram", failed: "⚠ Telegram did not deliver: {e}", off: "✈ Telegram not connected — only here", digest: "✈ in the daily digest" },
       approve: "✔ Approve", reject: "✖ Reject", pending: "waits for your decision", pendingN: "Waiting for your decision: {n}", closed: "thread closed",
       ok: "✔ Approved", no: "✖ Rejected", via: { whitewrite: "in WhiteWrite", telegram: "in Telegram", claude: "the author through Claude" },
       waits: "The thread waits for you: the agents wrote 3 messages in a row.", mdTitle: "📄 The agents block for CLAUDE.md", mdHint: "So Claude Code knows the rules of the channel in every session: roles, when to read the messages, what to write, approvals. «⧉ Copy everything for PowerShell» and «📂 Prepare the game folder» add it themselves; in an existing project — paste it at the end of CLAUDE.md in the game folder, or tell Claude Code: «Add the agents block from WhiteWrite to CLAUDE.md».", tgLine: "Telegram for the agents:", tgOn: "connected", tgSet: "Set up →",
@@ -9810,8 +9812,14 @@
     if (m.type === "approval_request") apHtml = !ap || ap.status === "pending"
       ? '<div class="setrow">' + (ME.owner && canWrite && m.status !== "closed" ? '<button class="btn primary" data-agok="' + esc(m.id) + '">' + A.approve + '</button><button class="btn danger" data-agno="' + esc(m.id) + '">' + A.reject + '</button>' : '') + '<span class="warn">⚠ ' + A.pending + '</span></div>'
       : '<p class="' + (ap.status === "approved" ? "ok" : "warn") + '">' + (ap.status === "approved" ? A.ok : A.no) + ' · ' + esc(A.via[ap.via] || ap.via || "") + (ap.words ? ' · «' + esc(ap.words) + '»' : '') + (ap.comment ? ' — ' + esc(ap.comment) : '') + '</p>';
-    return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span></div>' +
+    return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span>' + agTg(m) + '</div>' +
       '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
+  }
+  // v2.149.5: where the server sent it (m.tg, written by agents.js notify) — older messages have none
+  function agTg(m) {
+    var t = m.tg, T = AGS.tg; if (!t || !t.status) return "";
+    var txt = t.status === "sent" ? (t.kind === "private" ? T.private : t.chat ? T.group.replace("{c}", t.chat) : T.sent) : t.status === "failed" ? T.failed.replace("{e}", t.error || "") : T[t.status] || "";
+    return txt ? ' <span class="' + (t.status === "failed" ? "warn" : "muted") + ' ag-tg">' + esc(txt) + '</span>' : "";
   }
   function agTyping() { var a = document.activeElement; return !!(a && a.closest && a.closest("#view .ag-box") && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); }
   function renderAgents(s) {
