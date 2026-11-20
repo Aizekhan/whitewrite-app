@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.149.0 (2026-11-20)
+**Version:** 2.149.1 (2026-11-20)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -822,6 +822,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.149.1** «🏛 Стовпи, естетики й ризик» (owner: «назви … не така як її назвав автор», «нажимаючи на назву картки вона б відкривалась»): `pillarMap` gives bare card ids, `designPanel` passed them to `cardChip` (needs `c:<id>`) — the chips showed the id, disabled; now `chipId` makes the ref, the chips show the title and open the card; the aesthetics table explains MDA (intro + each aesthetic's meaning).
 - **v2.149.0** 🔌 WhiteWrite MCP as a claude.ai custom connector (owner): OAuth 2.1 (authorization code + PKCE S256, DCR) — `functions/src/oauth.js` (`oauth`), the consent page `app/connect.html` (game + role → a new agent key), `mcp` 401 → `WWW-Authenticate`; the key in the path `/mcp/k/<key>`; Hosting rewrites on whitewrite.com; «🔌 Додати в Claude» in «🔑 Ключі агентів»; rules `oauthClients` / `oauthCodes` server only; KB `agents-two` uk + en; `tests/oauth.test.cjs` (§5c).
 - **v2.148.3** The agents block for CLAUDE.md (owner: «чому б там не добавити інфу про агентів»): `functions/setup-guides.js` topic `agents` (marker `whitewrite.agents/1`, `AGENTS_SCHEMA`) — roles, when to read `get_agent_inbox`, what to post, approvals and the code, no keys, the thread limit; MCP `get_guide {topic:"agents"}`; `AGENTS_RULE` (the session rule) and every setup guide ask to append it when missing; «⧉ Скопіювати все для PowerShell» and «📂 Підготувати теку гри» append it by its own marker (also where the log block already is); «💬 Агенти» → «📄 Блок агентів для CLAUDE.md»; KB `agents-two` uk + en.
 - **v2.148.2** Telegram approvals (owner: «нажимаю “Так, схвалити” — що це означає, якщо мені ще й приходиться код писати»): the message says «Схвали кнопкою — або скажи цей код Claude у чаті. Досить одного.»; after a decision the bot edits the same message — no code, no buttons, «✅ Схвалено» / «❌ Відхилено» (button), «… через Claude» (code), «… у WhiteWrite» (`agentApprovals.tg.text` = the message without the code); no extra reply after a button; KB `agents-two` uk + en.
