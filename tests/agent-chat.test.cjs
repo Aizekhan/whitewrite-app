@@ -118,7 +118,8 @@ const designer = { prefix: 'wwk_designer', label: 'Claude у браузері', 
   // v2.149.5: the delivery is written on the message and shown in «💬 Агенти»
   const gb = fs.readFileSync(path.join(__dirname, '../app/gamebible.js'), 'utf8');
   check(["status: 'digest'", "status: 'off'", "status: 'sent', ...where", "status: 'failed', ...where"].every((x) => agents.indexOf(x) > 0), true, 'notify writes m.tg: digest / off / sent / failed');
-  check(/function agTg\(m\)/.test(gb) && gb.indexOf("agTime(m)) + '</span>' + agTg(m)") > 0, true, 'the Bible shows where each agent message went');
+  // agTg is the Telegram status object: a function of the same name broke the section (owner, iPhone: «agTg is not a function»)
+  check(/function agTgMark\(m\)/.test(gb) && !/function agTg\(/.test(gb) && gb.indexOf("agTime(m)) + '</span>' + agTgMark(m)") > 0, true, 'the Bible shows where each agent message went');
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
   process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

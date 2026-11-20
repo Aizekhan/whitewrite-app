@@ -9814,11 +9814,11 @@
     if (m.type === "approval_request") apHtml = !ap || ap.status === "pending"
       ? '<div class="setrow">' + (ME.owner && canWrite && m.status !== "closed" ? '<button class="btn primary" data-agok="' + esc(m.id) + '">' + A.approve + '</button><button class="btn danger" data-agno="' + esc(m.id) + '">' + A.reject + '</button>' : '') + '<span class="warn">⚠ ' + A.pending + '</span></div>'
       : '<p class="' + (ap.status === "approved" ? "ok" : "warn") + '">' + (ap.status === "approved" ? A.ok : A.no) + ' · ' + esc(A.via[ap.via] || ap.via || "") + (ap.words ? ' · «' + esc(ap.words) + '»' : '') + (ap.comment ? ' — ' + esc(ap.comment) : '') + '</p>';
-    return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span>' + agTg(m) + '</div>' +
+    return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span>' + agTgMark(m) + '</div>' +
       '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
   }
   // v2.149.5: where the server sent it (m.tg, written by agents.js notify) — older messages have none
-  function agTg(m) {
+  function agTgMark(m) { // not agTg: that is the Telegram status object (agTgLoad) — the same name broke «💬 Агенти» (owner, iPhone)
     var t = m.tg, T = AGS.tg; if (!t || !t.status) return "";
     var txt = t.status === "sent" ? (t.kind === "private" ? T.private : t.chat ? T.group.replace("{c}", t.chat) : T.sent) : t.status === "failed" ? T.failed.replace("{e}", t.error || "") : T[t.status] || "";
     return txt ? ' <span class="' + (t.status === "failed" ? "warn" : "muted") + ' ag-tg">' + esc(txt) + '</span>' : "";
