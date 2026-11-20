@@ -22,7 +22,7 @@ check(meta.token_endpoint_auth_methods_supported.join() + '|' + !!meta.registrat
 check(H.protectedResource().resource + '|' + H.protectedResource().authorization_servers[0], 'https://whitewrite.com/mcp|https://whitewrite.com', 'the protected resource points at the issuer');
 check(H.protectedResource(true).resource + '|' + H.protectedResource().resource + '|' + (oauthSrc.indexOf('oauth-protected-resource(\\/mcp(\\/claude)?)?$') > 0), 'https://whitewrite.com/mcp/claude|https://whitewrite.com/mcp|true', 'the second address /mcp/claude has its own metadata (the resource matches)');
 check(mcp.indexOf("oauth-protected-resource' + (alt ? '/mcp/claude' : '')") > 0, true, 'mcp 401 on /mcp/claude points at that metadata');
-check(/INVALID_LOGIN_CREDENTIALS[\s\S]{0,40}'invalid-credential'/.test(fs.readFileSync(path.join(__dirname, '../app/firebase/firebase-auth.js'), 'utf8')), true, 'sign-in: INVALID_LOGIN_CREDENTIALS → «Неправильна пошта або пароль»');
+check(/invalid-login-credentials\/i[\s\S]{0,100}'invalid-credential'/.test(fs.readFileSync(path.join(__dirname, '../app/firebase/firebase-auth.js'), 'utf8')), true, 'sign-in: INVALID_LOGIN_CREDENTIALS → «Неправильна пошта або пароль»');
 check(H.okRedirect('https://claude.ai/api/mcp/auth_callback') && H.okRedirect('http://localhost:6274/cb') && !H.okRedirect('http://evil.example/cb') && !H.okRedirect('javascript:alert(1)'), true, 'redirects: https or localhost only');
 // PKCE: the RFC 7636 example
 const v = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
