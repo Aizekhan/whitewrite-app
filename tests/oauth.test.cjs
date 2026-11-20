@@ -20,6 +20,8 @@ check(meta.issuer, 'https://whitewrite.com', 'the issuer is the site');
 check(meta.code_challenge_methods_supported.join(), 'S256', 'PKCE S256 only');
 check(meta.token_endpoint_auth_methods_supported.join() + '|' + !!meta.registration_endpoint, 'none|true', 'public clients with dynamic registration (claude.ai)');
 check(H.protectedResource().resource + '|' + H.protectedResource().authorization_servers[0], 'https://whitewrite.com/mcp|https://whitewrite.com', 'the protected resource points at the issuer');
+check(H.protectedResource(true).resource + '|' + H.protectedResource().resource + '|' + (oauthSrc.indexOf('oauth-protected-resource(\\/mcp(\\/claude)?)?$') > 0), 'https://whitewrite.com/mcp/claude|https://whitewrite.com/mcp|true', 'the second address /mcp/claude has its own metadata (the resource matches)');
+check(mcp.indexOf("oauth-protected-resource' + (alt ? '/mcp/claude' : '')") > 0, true, 'mcp 401 on /mcp/claude points at that metadata');
 check(H.okRedirect('https://claude.ai/api/mcp/auth_callback') && H.okRedirect('http://localhost:6274/cb') && !H.okRedirect('http://evil.example/cb') && !H.okRedirect('javascript:alert(1)'), true, 'redirects: https or localhost only');
 // PKCE: the RFC 7636 example
 const v = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
@@ -36,7 +38,7 @@ check(/collection\('mcpKeys'\)\.doc\(sha\(raw\)\)/.test(oauthSrc) && !/raw[^\n]*
 const re = /\/k\/(wwk_[\w-]{20,})\/?$/;
 check(mcp.indexOf("/\\/k\\/(wwk_[\\w-]{20,})\\/?$/") > 0, true, 'mcp.js reads the key from /k/<key>');
 check(re.exec('/mcp/k/wwk_abcdefghijklmnopqrstuvwxyz012')[1] + '|' + !!re.exec('/k/wwk_short'), 'wwk_abcdefghijklmnopqrstuvwxyz012|false', 'both /mcp/k/… (Hosting) and /k/… (direct), no short junk');
-check(/WWW-Authenticate', 'Bearer resource_metadata="https:\/\/whitewrite\.com\/\.well-known\/oauth-protected-resource"/.test(mcp), true, '401 tells the client where to log in');
+check(/WWW-Authenticate', 'Bearer resource_metadata="https:\/\/whitewrite\.com\/\.well-known\/oauth-protected-resource' \+/.test(mcp), true, '401 tells the client where to log in');
 
 // Hosting, rules, page
 const rw = hosting.rewrites.map((r) => r.source + '>' + (r.function ? r.function.functionId : r.destination));

@@ -1,6 +1,6 @@
 // 🔌 WhiteWrite MCP as a custom connector in claude.ai (owner, v2.149): Settings → Connectors → Add custom connector → https://whitewrite.com/mcp
 // OAuth 2.1 the way MCP clients expect it (authorization code + PKCE S256, dynamic client registration, no client secret):
-//   GET  /.well-known/oauth-protected-resource[/mcp]  → where to log in (mcp.js answers 401 with WWW-Authenticate pointing here)
+//   GET  /.well-known/oauth-protected-resource[/mcp[/claude]]→ where to log in (mcp.js answers 401 with WWW-Authenticate pointing here)
 //   GET  /.well-known/oauth-authorization-server      → the endpoints
 //   POST /oauth/register                              → a client (claude.ai registers itself; oauthClients/{id})
 //   GET  /oauth/authorize                             → the page app/connect.html (firebase.json): the author logs in, picks a game and a role
@@ -24,7 +24,9 @@ const b64url = (buf) => buf.toString('base64').replace(/\+/g, '-').replace(/\//g
 const ROLE_UK = { designer: 'Геймдизайнер', programmer: 'Програміст', readonly: 'Лише читання' };
 const okRedirect = (u) => { try { const x = new URL(u); return x.protocol === 'https:' || (x.protocol === 'http:' && /^(localhost|127\.0\.0\.1)$/.test(x.hostname)); } catch (e) { return false; } };
 
-const protectedResource = () => ({ resource: RESOURCE, authorization_servers: [ISSUER], bearer_methods_supported: ['header'], resource_name: 'WhiteWrite' });
+// v2.149.4: a second address of the same server — https://whitewrite.com/mcp/claude (owner: a connector stuck in claude.ai on /mcp, «already exists»);
+// the metadata names the address the client added, so claude.ai sees the resource match
+const protectedResource = (alt) => ({ resource: alt ? ISSUER + '/mcp/claude' : RESOURCE, authorization_servers: [ISSUER], bearer_methods_supported: ['header'], resource_name: 'WhiteWrite' });
 const serverMeta = () => ({
   issuer: ISSUER, authorization_endpoint: ISSUER + '/oauth/authorize', token_endpoint: ISSUER + '/oauth/token', registration_endpoint: ISSUER + '/oauth/register',
   response_types_supported: ['code'], grant_types_supported: ['authorization_code'], code_challenge_methods_supported: ['S256'],
@@ -98,7 +100,7 @@ exports.oauth = onRequest({ region: 'us-central1', invoker: 'public', timeoutSec
   if (req.method === 'OPTIONS') return res.status(204).send('');
   const p = String(req.path || '').replace(/\/+$/, '');
   try {
-    if (/\/\.well-known\/oauth-protected-resource(\/mcp)?$/.test(p)) return res.json(protectedResource());
+    if (/\/\.well-known\/oauth-protected-resource(\/mcp(\/claude)?)?$/.test(p)) return res.json(protectedResource(/\/mcp\/claude$/.test(p)));
     if (/\/\.well-known\/(oauth-authorization-server|openid-configuration)(\/.*)?$/.test(p)) return res.json(serverMeta());
     if (p.endsWith('/oauth/register') && req.method === 'POST') return await register(req, res);
     if (p.endsWith('/oauth/client') && req.method === 'GET') return await clientInfo(req, res);

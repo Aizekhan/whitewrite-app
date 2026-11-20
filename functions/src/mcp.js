@@ -2032,7 +2032,9 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   const key = await authKey(req).catch((e) => { console.error('[mcp] auth', e); return null; });
   if (!key) {
     // 🔌 v2.149: tells an MCP client (claude.ai «Add custom connector») where to log in — functions/src/oauth.js
-    res.set('WWW-Authenticate', 'Bearer resource_metadata="https://whitewrite.com/.well-known/oauth-protected-resource"');
+    // /mcp/claude — the second address (v2.149.4): its own metadata, so the resource matches what the client added
+    const alt = /\/claude\/?$/.test(String(req.path || ''));
+    res.set('WWW-Authenticate', 'Bearer resource_metadata="https://whitewrite.com/.well-known/oauth-protected-resource' + (alt ? '/mcp/claude' : '') + '"');
     return res.status(401).json({ jsonrpc: '2.0', id: null, error: { code: -32001, message: 'Invalid or revoked WhiteWrite key (Game Bible → Settings → Integrations → Agent keys), or the plan has no Game Dev access' } });
   }
   const body = req.body;
