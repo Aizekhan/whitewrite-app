@@ -37,7 +37,7 @@ const store = {}; let seq = 0;
 const merge = (a, b) => { const o = { ...a }; for (const [k, v] of Object.entries(b)) o[k] = v && v.__union ? Array.from(new Set((o[k] || []).concat(v.__union))) : v; return o; };
 const docRef = (id) => ({ id, get: async () => ({ exists: !!store[id], id, data: () => store[id] }), set: async (d, o) => { store[id] = o && o.merge ? merge(store[id] || {}, d) : { ...d }; } });
 const all = () => Object.keys(store).map((id) => ({ id, data: () => store[id] }));
-const col = { doc: (id) => docRef(id || 'm' + (++seq)), where: (f, op, v) => ({ get: async () => ({ docs: all().filter((d) => d.data()[f] === v) }) }),
+const col = { doc: (id) => docRef(id || 'm' + (++seq)), where: (f, op, v) => { const q = { get: async () => ({ docs: all().filter((d) => d.data()[f] === v) }) }; q.limit = () => q; return q; },
   orderBy: () => ({ limit: () => ({ get: async () => ({ docs: all().sort((a, b) => b.data().at - a.data().at) }) }) }) };
 const admin = { firestore: { FieldValue: { serverTimestamp: () => 'TS', arrayUnion: (...x) => ({ __union: x }) } } };
 const db = { batch: () => { const ops = []; return { set: (r, d, o) => ops.push(() => r.set(d, o)), commit: async () => { for (const f of ops) await f(); } }; } };
@@ -118,6 +118,20 @@ const designer = { prefix: 'wwk_designer', label: 'Claude у браузері', 
   // v2.149.5: the delivery is written on the message and shown in «💬 Агенти»
   const gb = fs.readFileSync(path.join(__dirname, '../app/gamebible.js'), 'utf8');
   check(["status: 'digest'", "status: 'off'", "status: 'sent', ...where", "status: 'failed', ...where"].every((x) => agents.indexOf(x) > 0), true, 'notify writes m.tg: digest / off / sent / failed');
+  // v2.151 Telegram answers (owner, iPhone): a reply, option buttons, «🤖 Відповісти через Claude» with a code, a duplicate question refused
+  check(AC.cleanOptions([' M5   зараз ', '', null, 'Спершу плейтест', 'c', 'd', 'e']).join('|'), 'M5 зараз|Спершу плейтест|c|d', 'options: trimmed, at most 4');
+  const q1 = 'M4 «Герой» закомічено (M4a 0193951 … M4d 7e09198). Починати M5 «Команда» (2+ героїв, Скарбник, голосування/запити, Темний вершник) чи спершу плейтест M4 автором? Очима не перевірено: панель Кузні, бойові ефекти більшості нових умінь і професій';
+  const q2 = 'M4 «Герой» закомічено повністю (M4a–M4d, останній 7e09198). Питання до автора: починати M5 «Команда» (2+ героїв, скарбник/голосування/запити, Темний Вершник) зараз — чи спершу ваш плейтест M4 у Studio? Ще не перевірено очима: панель Кузні, бойові ефекти більшості нових вмінь і професій';
+  check([AC.similar(q1, q2) >= AC.DUP_MIN, AC.similar(q1, 'Мороз на башті ріже урон пострілів, чи так задумано?') < AC.DUP_MIN].join(), 'true,true', 'similar: the KrumaTD pair 04:05 / 04:13 is a duplicate, another topic is not');
+  const now = Date.now(), mine = { type: 'question', text: q1, from: { key: 'wwk_a' }, status: 'new', at: now - 8 * 60000, id: 'q1' };
+  check([AC.duplicateOf([mine], 'question', q2, 'wwk_a', now) && AC.duplicateOf([mine], 'question', q2, 'wwk_a', now).id,
+    AC.duplicateOf([{ ...mine, status: 'answered' }], 'question', q2, 'wwk_a', now), AC.duplicateOf([mine], 'question', q2, 'wwk_b', now),
+    AC.duplicateOf([{ ...mine, at: now - 25 * 3600000 }], 'question', q2, 'wwk_a', now)].map(String).join(), 'q1,null,null,null', 'duplicateOf: own, unanswered, within 24 h only');
+  check(/args\.force !== true[\s\S]{0,300}AC\.duplicateOf\(/.test(src) && /duplicate: true, id: dup\.id/.test(src), true, 'post_agent_message refuses a near-duplicate unless force');
+  check(/claude\.ai\/new\?q=/.test(agents) && /qa:\$\{aid\}:\$\{i\}/.test(agents) && /Код для Claude/.test(agents), true, 'a question in Telegram: option buttons, «🤖 Відповісти через Claude», a code');
+  check(/msg\.reply_to_message\.from\.is_bot[\s\S]{0,80}await onReply\(msg\)/.test(agents) && /where\('tg\.chat', '==', msg\.chat\.id\)\.where\('tg\.mid', '==', r\.message_id\)/.test(agents) && /l\.data\(\)\.tgId !== msg\.from\.id/.test(agents), true, 'a reply to the bot → the author\'s answer (only the author\'s Telegram)');
+  check(/closeTgQuestion\(gref, parent\.id, text, 'whitewrite'\)/.test(agents) && /editMessageText[\s\S]{0,120}✅ Відповідь/.test(agents), true, 'an answer anywhere edits the same Telegram message (no code, no buttons)');
+  check(/if \(args\.author_words \|\| args\.code\) return agentAuthorReply/.test(src) && /AGENTS\.checkCode\(ctx\.gref, to, code\)/.test(src) && /via: 'claude', by: str\(key\.label, 80\), words/.test(src), true, 'reply_agent_message author_words + code → the author\'s answer «через Claude»');
   // agTg is the Telegram status object: a function of the same name broke the section (owner, iPhone: «agTg is not a function»)
   check(/function agTgMark\(m\)/.test(gb) && !/function agTg\(/.test(gb) && gb.indexOf("agTime(m)) + '</span>' + agTgMark(m)") > 0, true, 'the Bible shows where each agent message went');
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');

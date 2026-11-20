@@ -72,16 +72,26 @@ async function notify(gref, world, game, m) {
   let text = `🎮 ${clip(game.title, 60)}\n💬 ${who} ${TYPE_UK[m.type] || m.type}:\n«${clip(m.text, 300)}»`;
   const kb = [[{ text: '💬 Відповісти в WhiteWrite', url: bibleUrl(worldId, gameId) }]];
   let aid = '', base = '';
-  if (m.type === 'approval_request') {
-    if (!d.ownerTg) { await mark({ status: 'off' }); return false; } // nobody could press: the author approves in the Bible
+  if (m.type === 'approval_request' && !d.ownerTg) { await mark({ status: 'off' }); return false; } // nobody could press: the author approves in the Bible
+  if (d.ownerTg) { // a code for Claude on every question and approval request (v2.151: the author may answer a question through Claude too)
     const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
     aid = approvalId(worldId, gameId, m.id);
-    await db.collection('agentApprovals').doc(aid).set({ worldId, gameId, msgId: m.id, uid: owner, codeHash: sha(aid + ':' + code), exp: Date.now() + AC.CODE_TTL, used: false, tries: 0, createdAt: ts(),
+    await db.collection('agentApprovals').doc(aid).set({ worldId, gameId, msgId: m.id, kind: m.type === 'question' ? 'question' : 'approval', uid: owner, codeHash: sha(aid + ':' + code), exp: Date.now() + AC.CODE_TTL, used: false, tries: 0, createdAt: ts(),
       expireAt: new Date(Date.now() + 7 * 24 * 3600 * 1000) });
-    // the button is the way; the code is only for approving in words in a chat with Claude (owner: «що це означає, якщо мені ще й приходиться код писати»)
     base = text;
-    text += `\n\nСхвали кнопкою — або скажи цей код Claude у чаті. Досить одного.\nКод: ${code} (діє 24 год)`;
-    kb.unshift([{ text: '✔ Схвалити', callback_data: `ap:${aid}:y` }, { text: '✖ Відхилити', callback_data: `ap:${aid}:n` }]);
+    // 🤖 v2.151 (owner): Claude opens with the question prefilled (claude.ai/new?q=…); the code makes the answer the author's
+    const ask = `Перевір «💬 Агенти» у WhiteWrite (гра «${clip(game.title, 60)}»): ${m.type === 'question' ? 'питання' : 'запит на дозвіл'} #${m.id} від ${m.from.label || 'агента'}. Код: ${code}. Моя відповідь: `;
+    kb[0].push({ text: '🤖 Відповісти через Claude', url: 'https://claude.ai/new?q=' + encodeURIComponent(ask) });
+    if (m.type === 'approval_request') {
+      // the button is the way; the code is only for approving in words in a chat with Claude (owner: «що це означає, якщо мені ще й приходиться код писати»)
+      text += `\n\nСхвали кнопкою — або скажи цей код Claude у чаті. Досить одного.\nКод: ${code} (діє 24 год)`;
+      kb.unshift([{ text: '✔ Схвалити', callback_data: `ap:${aid}:y` }, { text: '✖ Відхилити', callback_data: `ap:${aid}:n` }]);
+    } else {
+      // v2.151 (owner: «відповідь реплаєм … кнопки варіантів»): a reply to this message, an option button or Claude with the code
+      const opts = AC.cleanOptions(m.options);
+      kb.unshift(...opts.map((o, i) => [{ text: o, callback_data: `qa:${aid}:${i}` }])); // the options in their order, the links last
+      text += `\n\nВідповідь: реплаєм на це повідомлення${opts.length ? ', кнопкою варіанту' : ''} або через Claude.\nКод для Claude: ${code} (діє 24 год)`;
+    }
   }
   let sent;
   try { sent = await tg('sendMessage', { chat_id: d.chatId, text, reply_markup: { inline_keyboard: kb }, disable_web_page_preview: true }); }
@@ -137,6 +147,29 @@ async function applyApproval(gref, msgId, o) {
   return true;
 }
 
+// v2.151 a question answered (a reply / an option in Telegram, Claude with the code, the Bible): its Telegram message loses the code and the
+// buttons and shows the answer — the same message, no new one (like an approval)
+async function closeTgQuestion(gref, msgId, answer, via) {
+  const aref = db.collection('agentApprovals').doc(approvalId(gref.parent.parent.id, gref.id, msgId)), a = await aref.get().catch(() => null);
+  if (!a || !a.exists || a.data().kind !== 'question') return;
+  const first = !a.data().used;
+  await aref.set({ used: true }, { merge: true });
+  const t = a.data().tg;
+  if (first && t && t.text && botToken()) await tg('editMessageText', { chat_id: t.chat, message_id: t.mid, text: t.text + `\n\n✅ Відповідь${via === 'claude' ? ' через Claude' : via === 'whitewrite' ? ' у WhiteWrite' : ''}: «${clip(answer, 300)}»`, reply_markup: { inline_keyboard: [] }, disable_web_page_preview: true }).catch(() => {});
+}
+// the author's answer from outside the Bible (Telegram, Claude with the code): a reply in the thread, from the author, with how it came
+async function authorAnswer(gref, msgId, o) {
+  const msgs = gref.collection('agentMessages'), pd = await msgs.doc(msgId).get();
+  if (!pd.exists) throw fail(404, 'Повідомлення не знайдено');
+  const p = pd.data(), world = (await gref.parent.parent.get()).data() || {}, u = await db.collection('users').doc(world.owner).get(), ref = msgs.doc();
+  await ref.set({ type: 'note', text: str(o.text, AC.TEXT_MAX), refs: [], thread: p.thread || pd.id, parent: pd.id,
+    from: { kind: 'author', uid: world.owner, label: str((u.exists && u.data().name) || 'Автор', 80), role: 'owner', via: o.via, ...(o.by ? { by: str(o.by, 80) } : {}) },
+    ...(o.words ? { words: str(o.words, 300) } : {}), status: 'new', readBy: [], at: Date.now(), createdAt: ts(), updatedAt: ts() });
+  if (p.status !== 'closed') await msgs.doc(pd.id).set({ status: 'answered', updatedAt: ts() }, { merge: true });
+  if (p.type === 'question') await closeTgQuestion(gref, pd.id, o.text, o.via);
+  return ref.id;
+}
+
 // ---------- the Bible: the author's posts and decisions ----------
 exports.agents = onRequest({ region: 'us-central1', secrets: [telegramBotToken], timeoutSeconds: 60 }, async (req, res) => {
   return cors(req, res, async () => {
@@ -175,6 +208,7 @@ exports.agents = onRequest({ region: 'us-central1', secrets: [telegramBotToken],
           from: { kind: 'author', uid, label: str((u.exists && u.data().name) || (acc.owner ? 'Автор' : 'Учасник команди'), 80), role: acc.owner ? 'owner' : 'member' },
           status: 'new', readBy: [], at: Date.now(), createdAt: ts(), updatedAt: ts() });
         if (parent && parent.status !== 'closed') await msgs.doc(parent.id).set({ status: 'answered', updatedAt: ts() }, { merge: true });
+        if (parent && parent.type === 'question' && acc.owner) await closeTgQuestion(gref, parent.id, text, 'whitewrite');
         return res.status(200).json({ success: true, id: ref.id });
       }
       if (op === 'resolve') {
@@ -239,16 +273,34 @@ async function onLink(msg, token) {
   await db.collection('agentTg').doc(gameKey(t.worldId, t.gameId)).set({ chatId: msg.chat.id, title: str(msg.chat.title, 120), kind: msg.chat.type, uid: t.uid, at: ts() });
   return say(msg.chat.id, '✔ Цей чат підключено до «💬 Агенти» гри: сюди йтимуть питання й запити агентів. Кнопки ✔ / ✖ діють лише для автора гри.');
 }
+// v2.151 (owner: «відповідь реплаєм на повідомлення бота») — the author's reply to an agent's Telegram message → the author's answer in the thread
+async function onReply(msg) {
+  const r = msg.reply_to_message, back = (text) => tg('sendMessage', { chat_id: msg.chat.id, reply_to_message_id: msg.message_id, text }).catch(() => {});
+  const q = await db.collection('agentApprovals').where('tg.chat', '==', msg.chat.id).where('tg.mid', '==', r.message_id).limit(1).get();
+  if (q.empty) return msg.chat.type === 'private' ? back('Реплаєм можна відповісти на питання агента — на це повідомлення відповісти не вийде.') : null;
+  const ad = q.docs[0].data(), l = await db.collection('tgLinks').doc(ad.uid).get();
+  if (!l.exists || l.data().tgId !== msg.from.id) return back('Відповідати агентам може лише автор гри.');
+  if (AC.hasSecret(msg.text)) return back('Схоже, у відповіді ключ або токен — її побачать агенти. Не надіслано.');
+  const gref = db.collection('worlds').doc(ad.worldId).collection('games').doc(ad.gameId);
+  try { await authorAnswer(gref, ad.msgId, { text: msg.text, via: 'telegram', by: str(msg.from.username || msg.from.first_name, 80) }); } catch (e) { return back(e.status ? e.message : 'Не вдалося передати відповідь.'); }
+  return back('✔ Передано агенту' + (ad.kind === 'approval' ? ' як коментар (схвалити чи відхилити — кнопками ✔ / ✖)' : '') + '.');
+}
 async function onButton(cq) {
-  const m = /^ap:([a-f0-9]{16}):([yn])$/.exec(String(cq.data || ''));
+  const m = /^(ap|qa):([a-f0-9]{16}):([yn]|\d)$/.exec(String(cq.data || ''));
   const answer = (text) => tg('answerCallbackQuery', { callback_query_id: cq.id, text, show_alert: true }).catch(() => {});
   if (!m) return answer('Невідома кнопка');
-  const a = await db.collection('agentApprovals').doc(m[1]).get(), ad = a.exists ? a.data() : null;
+  const a = await db.collection('agentApprovals').doc(m[2]).get(), ad = a.exists ? a.data() : null;
   if (!ad) return answer('Запит не знайдено — відкрий WhiteWrite');
   const l = await db.collection('tgLinks').doc(ad.uid).get();
-  if (!l.exists || l.data().tgId !== cq.from.id) return answer('Схвалювати може лише автор гри');
+  if (!l.exists || l.data().tgId !== cq.from.id) return answer(m[1] === 'qa' ? 'Відповідати може лише автор гри' : 'Схвалювати може лише автор гри');
   if (ad.used || ad.exp < Date.now()) return answer('Кнопка вже не діє (одноразова, 24 год) — запит чекає в WhiteWrite');
-  const gref = db.collection('worlds').doc(ad.worldId).collection('games').doc(ad.gameId), yes = m[2] === 'y';
+  const gref = db.collection('worlds').doc(ad.worldId).collection('games').doc(ad.gameId), yes = m[3] === 'y';
+  if (m[1] === 'qa') { // an option the agent offered → the author's answer
+    const q = await gref.collection('agentMessages').doc(ad.msgId).get(), opt = q.exists ? AC.cleanOptions(q.data().options)[Number(m[3])] : '';
+    if (!opt) return answer('Варіант не знайдено — відповідай у WhiteWrite');
+    try { await authorAnswer(gref, ad.msgId, { text: opt, via: 'telegram', by: str(cq.from.username || cq.from.first_name, 80) }); } catch (e) { return answer(e.status ? e.message : 'Не вдалося'); }
+    return answer(`✔ Передано агенту: «${opt}»`);
+  }
   try { await applyApproval(gref, ad.msgId, { approve: yes, via: 'telegram', by: str(cq.from.username || cq.from.first_name, 80) }); } catch (e) { return answer(e.status ? e.message : 'Не вдалося'); }
   // applyApproval already rewrote the message (no code, no buttons, «✔ Схвалено у Telegram»); the agent sees the decision in get_agent_inbox
   return answer((yes ? '✅ Схвалено' : '❌ Відхилено') + '. Агент побачить це сам — більше нічого робити не треба.');
@@ -258,7 +310,8 @@ exports.agentTelegram = onRequest({ region: 'us-central1', secrets: [telegramBot
   const u = req.body || {};
   try {
     const msg = u.message || u.channel_post;
-    if (msg && typeof msg.text === 'string' && msg.chat) {
+    if (msg && typeof msg.text === 'string' && msg.chat && msg.from && msg.reply_to_message && msg.reply_to_message.from && msg.reply_to_message.from.is_bot && msg.text[0] !== '/') await onReply(msg);
+    else if (msg && typeof msg.text === 'string' && msg.chat) {
       const t = /^\/start(?:@\w+)?\s+([a-f0-9]{24})\s*$/.exec(msg.text.trim()) || /\bwwa-([a-f0-9]{24})\b/.exec(msg.text);
       if (t) await onLink(msg, t[1]);
       else if (msg.chat.type === 'private') await say(msg.chat.id, 'Це бот WhiteWrite. Підключити його до своєї гри: Біблія гри → Налаштування → Інтеграції → Telegram для агентів.');
@@ -323,4 +376,4 @@ async function silenceSweep(now) {
 }
 exports.agentSilenceWatch = onSchedule({ schedule: 'every 2 minutes', secrets: [telegramBotToken], timeoutSeconds: 120 }, async () => { await silenceSweep(); });
 
-exports._agents = { silenceSweep, notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };
+exports._agents = { silenceSweep, authorAnswer, closeTgQuestion, notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };

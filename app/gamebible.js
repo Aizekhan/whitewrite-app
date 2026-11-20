@@ -9809,13 +9809,13 @@
     }).join(" ");
   }
   function agMsgHtml(m) {
-    var A = AGS, f = m.from || {}, who = f.kind === "system" ? "🛎 WhiteWrite" : (f.kind === "agent" ? "🤖 " : "✍ ") + esc(f.label || (f.kind === "agent" ? "Agent" : "")) + ' <span class="muted">· ' + esc(A.role[f.role] || f.role || "") + '</span>';
+    var A = AGS, f = m.from || {}, who = f.kind === "system" ? "🛎 WhiteWrite" : (f.kind === "agent" ? "🤖 " : "✍ ") + esc(f.label || (f.kind === "agent" ? "Agent" : "")) + ' <span class="muted">· ' + esc(A.role[f.role] || f.role || "") + (f.via ? ' · ' + esc(A.via[f.via] || f.via) : '') + '</span>';
     var ap = m.approval, apHtml = "";
     if (m.type === "approval_request") apHtml = !ap || ap.status === "pending"
       ? '<div class="setrow">' + (ME.owner && canWrite && m.status !== "closed" ? '<button class="btn primary" data-agok="' + esc(m.id) + '">' + A.approve + '</button><button class="btn danger" data-agno="' + esc(m.id) + '">' + A.reject + '</button>' : '') + '<span class="warn">⚠ ' + A.pending + '</span></div>'
       : '<p class="' + (ap.status === "approved" ? "ok" : "warn") + '">' + (ap.status === "approved" ? A.ok : A.no) + ' · ' + esc(A.via[ap.via] || ap.via || "") + (ap.words ? ' · «' + esc(ap.words) + '»' : '') + (ap.comment ? ' — ' + esc(ap.comment) : '') + '</p>';
     return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span>' + agTgMark(m) + '</div>' +
-      '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
+      '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.options || []).length ? '<div class="ag-refs">' + m.options.map(function (o) { return '<span class="chip">' + esc(o) + '</span>'; }).join(" ") + '</div>' : '') + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
   }
   // v2.149.5: where the server sent it (m.tg, written by agents.js notify) — older messages have none
   function agTgMark(m) { // not agTg: that is the Telegram status object (agTgLoad) — the same name broke «💬 Агенти» (owner, iPhone)

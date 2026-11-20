@@ -342,7 +342,7 @@ The author approves; no agent key can.
 
 **What to write** (\`post_agent_message\`):
 - \`handoff\` — after a commit that implements or changes the design: what was done, \`refs\` = the cards (\`c:<id>\`) and \`commit:<sha>\`;
-- \`question\` — when a card is unclear or two cards disagree (the author gets it in Telegram at once);
+- \`question\` — when a card is unclear or two cards disagree (the author gets it in Telegram at once); a choice — add \`options\` (up to 4 short answers, the author taps one). Do not ask the same again while it waits: a near-duplicate is refused ("duplicate": true, the id of the waiting one);
 - \`feedback\` — the design does not work in the game (numbers, feel, performance), with what you saw;
 - \`approval_request\` — before changing the GDD, Config, mechanics, balance numbers or game rules; deleting a system or content; a big refactor; a new paid asset or service;
 - \`note\` — anything else worth knowing.
@@ -360,6 +360,7 @@ Two safety nets: the Stop hook \`.claude/hooks/whitewrite-stop-check.js\` (\`get
 - After an \`approval_request\` wait: do it only when \`get_agent_inbox\` shows it approved. Rejected — do not do it.
 - No \`approval_request\` for an ordinary report (that is a \`note\` or a \`handoff\`). Never approve anything yourself. Never change the game rules without the author's decision.
 - The author can also approve in words in this chat: only with the 6-digit code from the Telegram message — pass it to \`resolve_approval\` with the author's exact words. Never invent a code; without one, the author approves in WhiteWrite or Telegram.
+- The author may answer a question here in the chat with Claude, with the 6-digit code from its Telegram message: record it with \`reply_agent_message\` + \`author_words\` + \`code\` (an approval request — \`resolve_approval\`). Never invent a code.
 - Never put keys, tokens or passwords in messages (the service refuses them).
 - Three agent messages in a row in one thread — the thread waits for the author; do not go around it with a new thread.
 - The author's «Рішення» (decision) in the channel is binding, like an approved card.`,

@@ -60,7 +60,8 @@ function urgentFree(msgs, keyPrefix) {
 
 // one message as an agent sees it (no codes, no uids)
 function view(m) {
-  return { id: m.id, type: m.type, text: m.text || '', from: m.from ? { kind: m.from.kind, name: m.from.label || '', role: m.from.role || '' } : null,
+  return { id: m.id, type: m.type, text: m.text || '', from: m.from ? { kind: m.from.kind, name: m.from.label || '', role: m.from.role || '', ...(m.from.via ? { via: m.from.via } : {}) } : null,
+    ...(m.options && m.options.length ? { options: m.options } : {}),
     thread: m.thread || m.id, reply_to: m.parent || null, refs: m.refs || [], status: m.status || 'new',
     ...(m.type === 'approval_request' ? { approval: m.approval ? { status: m.approval.status, via: m.approval.via || '', comment: m.approval.comment || '' } : { status: 'pending' } } : {}),
     at: m.at ? new Date(m.at).toISOString() : null };
@@ -89,4 +90,17 @@ function silenceDue(lastMs, min, now) {
   return quiet >= (min + SILENCE.STALE) * 60000 ? 'stale' : quiet >= min * 60000 ? 'due' : '';
 }
 
-module.exports = { SILENCE, watchOp, silenceCfg, silenceDue, ROLES, roleOf, toolAllowed, claimFor, AGENT_TYPES, AUTHOR_TYPES, URGENT, TEXT_MAX, REFS_MAX, THREAD_AGENT_MAX, CODE_TTL, hasSecret, cleanRefs, threadWaits, urgentFree, view };
+// v2.151 (owner): answer options a question may carry → Telegram buttons (callback_data stays short, the text is read from the message)
+const OPT_MAX = 4, OPT_LEN = 40;
+function cleanOptions(a) { return (Array.isArray(a) ? a : []).map((x) => String(x == null ? '' : x).replace(/\s+/g, ' ').trim().slice(0, OPT_LEN)).filter(Boolean).slice(0, OPT_MAX); }
+// a repeated question (owner: «те саме питання прийшло двічі»): the words of 4+ letters, Jaccard; the KrumaTD pair 04:05 / 04:13 = 0.53
+const DUP_MIN = 0.45, DUP_HOURS = 24;
+const words = (t) => new Set(String(t || '').toLowerCase().match(/[\p{L}\p{N}]{4,}/gu) || []);
+function similar(a, b) { const A = words(a), B = words(b); if (!A.size || !B.size) return 0; let i = 0; A.forEach((x) => { if (B.has(x)) i++; }); return i / (A.size + B.size - i); }
+// the agent's own unanswered question / approval request of the same type, asked within DUP_HOURS, that says nearly the same
+function duplicateOf(msgs, type, text, keyPrefix, now) {
+  return (msgs || []).filter((m) => m.type === type && m.from && m.from.key === keyPrefix && ['new', 'read'].includes(m.status || 'new') && (now - (m.at || 0)) < DUP_HOURS * 3600000 &&
+    (type !== 'approval_request' || !m.approval || m.approval.status === 'pending') && similar(m.text, text) >= DUP_MIN).sort((x, y) => (y.at || 0) - (x.at || 0))[0] || null;
+}
+
+module.exports = { OPT_MAX, OPT_LEN, cleanOptions, DUP_MIN, similar, duplicateOf, SILENCE, watchOp, silenceCfg, silenceDue, ROLES, roleOf, toolAllowed, claimFor, AGENT_TYPES, AUTHOR_TYPES, URGENT, TEXT_MAX, REFS_MAX, THREAD_AGENT_MAX, CODE_TTL, hasSecret, cleanRefs, threadWaits, urgentFree, view };
