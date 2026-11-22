@@ -233,7 +233,7 @@
       blocked: "Блокер", needs: "Потрібно", unblock: "Розблоковано", unblockPh: "Що змінилось / відповідь для Claude Code",
       crTitle: "Запити на зміну від виконавця", crWhy: "Чому", crProposal: "Пропозиція", crImpact: "Вплив", crAccept: "Погодити", crReject: "Відхилити",
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
-      planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
+      planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Щойно відповіси на останній блокер — план розробки складеться сам (≈ ціна «✦ План»).",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
       answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", planReady: "Блокерів немає — можна складати план. Після генерації тут зʼявиться дерево: етапи → епіки → задачі.", planReadyRest: "Решта питань ({n}) план не блокує — на них можна відповісти потім",
       pp: { carried: "Етап зі старого плану", carriedTip: "Новий план зберіг цей етап і його задачі з попереднього", dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
@@ -600,7 +600,7 @@
       blocked: "Blocker", needs: "Needs", unblock: "Unblocked", unblockPh: "What changed / answer for Claude Code",
       crTitle: "Change requests from the executor", crWhy: "Why", crProposal: "Proposal", crImpact: "Impact", crAccept: "Approve", crReject: "Reject",
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
-      planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
+      planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. As soon as you answer the last blocker the development plan makes itself (≈ the «✦ Plan» price).",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
       answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", planReady: "No blockers — the plan can be made. After generating, the tree shows here: milestones → epics → tasks.", planReadyRest: "The other questions ({n}) do not block the plan — answer them later",
       pp: { carried: "Milestone from the previous plan", carriedTip: "The new plan kept this milestone and its tasks from the previous one", dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
@@ -12338,6 +12338,10 @@
     var upd = {}, at = {}; upd[qid] = text; at[qid] = Date.now(); // answeredAt: the decision log's date (mcp.js decisionLog)
     await gref().collection("plan").doc("current").set({ answers: upd, answeredAt: at }, { merge: true });
     await writeIntoCard(q.target, q.target && (q.target.field || q.topic), text);
+    // v2.157.2 (owner: «я відповів на критичні і логічно мав відразу сформуватись план, а не ще раз генерувати»): the last blocker answered and
+    // no plan yet → the plan starts by itself (the owner; the price was announced with the analysis and in the plan intro)
+    var leftB = (planDoc.asked || []).filter(function (x) { return x.priority === "blocker" && x.id !== qid && !answers()[x.id]; }).length;
+    if (q.priority === "blocker" && !leftB && !(planDoc.plan && (planDoc.plan.milestones || []).length) && ME.owner && canWrite && !planBusyOf[gameId]) runPlan("plan");
   }
   async function writeIntoCard(target, label, text) {
     var c = target && allCards().filter(function (x) { return x.key === target.card; })[0];

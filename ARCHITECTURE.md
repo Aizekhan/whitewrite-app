@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.157.1 (2026-11-22)
+**Version:** 2.157.2 (2026-11-22)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -822,6 +822,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.157.2** UX (owner: «я відповів на критичні і логічно мав відразу сформуватись план, а не ще раз генерувати»): the Bible's `answerQuestion` — the owner's answer to the last open blocker on a game with no plan starts `runPlan('plan')` by itself (the plan intro says so with the price); answers through MCP still leave the big «✦ Згенерувати план розробки» block. KB plan uk + en.
 - **v2.157.1** UX (owner: «а як його створити? цей план, якщо я пройшов всі питання»): with the analysis done, no plan and no open blocker the Production plan shows `.pready` «Блокерів немає — можна складати план» with a big «✦ Згенерувати план розробки» (`data-mkplan` → the header's `#p-plan`), and the header button is primary when no blocker is open (before: only with every question answered). KB plan uk + en.
 - **v2.157.0** ❓ The plan's questions through MCP (owner: «а агент може відповісти на ці питання через мсп?»). MCP `get_plan_questions` (every role): `plan/current.asked` without an answer + `contradictions` not in `resolved` (id = the Bible's `cid`, djb2 fallback), priority, options with `recommended` / `recommend_why` (`q.rec`), `target`, `draft_waits_for_author`; `blockers_open`, `plan_ready` (analysed and no open blocker). MCP `answer_plan_question` (designer + programmer, `DESIGNER_WRITE`; `id`, `answer`, `author_words`): the designer key → `planAnswerApply` — the same as the Bible's answerQuestion / resolveIssue: `answers.{id}` + `answeredAt` + `answeredBy` (or `resolved.{id}`), the text appended to the target card field (`fieldPlan`, as save_card names fields; a new field gets its def; no game card — the plan only); idempotent; the programmer key → `plan/current.answerDrafts.{id} { answer, words, by, at }` + an `approval_request { planAnswer }` (Telegram ✔ / ✖) → `agents.js applyApproval` → `settlePlanAnswer` (✔ applies, ✖ drops). The Bible shows a draft under its question («⏳ Claude Code записав твою відповідь…», → «💬 Агенти»). «✦ План» stays the author's (paid). Agents rule: the plan's questions. Tests `plan-questions.test.cjs`. KB plan (+ a prompt) + mcp uk + en.
 - **v2.156.1** Fix (owner, ✦ Аналіз: «Expected ',' or '}' after property value in JSON at position 15533»): the model's long JSON answer broke (an unescaped «"» inside Ukrainian text) twice in a row and both paid calls were lost; `gamedev.js parseJson` now repairs a broken answer with `jsonrepair` (new dependency of `functions/`, ISC) before the retry. Test in `task-proof.test.cjs`.
