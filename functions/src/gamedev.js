@@ -33,6 +33,7 @@ const { personaText, lookText } = require('../persona.js');
 const { modelFor, withFallback, wellFormed } = require('./claude');
 const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
 const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages, what goes where
+const { jsonrepair } = require('jsonrepair'); // v2.156.1 a broken AI JSON is repaired, not paid for again
 const TT = require('../task-types.js'); // ✅ v2.155 a task's type → the proof it closes with
 const DESIGN = require('../design-checks.js'); // 🏛 🪜 ⚠ pillars, the learning ladder, the riskiest assumption (v2.144)
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
@@ -902,11 +903,19 @@ function mergeImports(results) {
   return out;
 }
 
-function parseJson(text) { // throws «AI повернув не JSON» / SyntaxError — ask() retries the call once
+// v2.156.1 (owner: «Expected ',' or '}' after property value in JSON at position 15533» on ✦ Аналіз): the model's long answers sometimes break
+// JSON — an unescaped «"» inside Ukrainian text, a trailing comma. Before paying for a retry the answer is repaired (jsonrepair), the parsed
+// result is the same; only a text with no JSON at all throws — ask() retries the call once
+function parseJson(text) {
   try { return JSON.parse(text); } catch (e) {
     const m = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/\{[\s\S]*\}/);
     if (!m) throw new Error('AI повернув не JSON');
-    return JSON.parse(m[1] || m[0]);
+    const body = m[1] || m[0];
+    try { return JSON.parse(body); } catch (e2) {
+      const out = JSON.parse(jsonrepair(body)); // throws when it cannot be repaired
+      console.warn('[gamedevPlan] repaired a broken JSON answer:', e2.message);
+      return out;
+    }
   }
 }
 
@@ -1178,5 +1187,5 @@ exports.gamedevPlan = onRequest({
   });
 });
 exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)
-exports._import = { halves, splitMarkdown }; // tests only (tests/folder-sort.test.cjs)
+exports._import = { halves, splitMarkdown, parseJson }; // tests only (tests/folder-sort.test.cjs)
 exports._gdd = { gddMissing, bibleText, cleanImport, importPrompt, cleanPlan, numberMilestones, reconcileTasks, hasPlanWork, planDiff }; // tests only (tests/gdd-schema, import-placement, plan-tasks)

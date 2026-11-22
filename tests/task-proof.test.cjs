@@ -75,4 +75,7 @@ const AC = require(F + 'agent-chat.js'), M = 60000, T0 = 1e12;
 check([AC.silenceDue(T0, 10, T0 + 11 * M, T0 - 5 * M), AC.silenceDue(T0, 10, T0 + 11 * M, T0 - 40 * M), AC.silenceDue(T0, 10, T0 + 5 * M, T0 - 5 * M)], ['stale', 'due', ''],
   'quiet after a report within 30 min → no alarm; an older report → the alarm; not quiet yet → nothing');
 check(['reply_agent_message', 'record_author_instruction', 'record_author_decision', 'verify_task', 'save_card'].map((n) => AC.watchOp(n, {})), ['report', 'report', 'report', 'report', 'arm'], 'an answer, the author\'s word recorded, a checked task are reports');
+// v2.156.1 a broken AI JSON (an unescaped quote in Ukrainian text, a trailing comma) is repaired, not paid for again
+const { parseJson } = require(F + 'src/gamedev.js')._import;
+check(parseJson('{"gdd":{"summary":"Гра про "Круму" і вежі","readiness":40},"questions":[{"q":"a"},],}').gdd.summary, 'Гра про "Круму" і вежі', 'a broken JSON answer is repaired');
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED'); process.exitCode = fails ? 1 : 0;
