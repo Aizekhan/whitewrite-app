@@ -235,7 +235,7 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Щойно відповіси на останній блокер — план розробки складеться сам (≈ ціна «✦ План»).",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { dcHead: "Чекає твого рішення", dcSub: "Одна черга. Кожна картка — одне рішення в один дотик.", dcFilter: "Фільтр", dcAll: "Усі", dcFReview: "Перевірка", dcFQuestion: "Питання", dcFDiv: "Розбіжності", dcReview: "Перевірка задачі", dcQuestion: "Питання", dcBlocked: "Блокер", dcDiv: "Розбіжність GDD ↔ гра", dcChange: "Запит на зміну", dcAnalysis: "Аналіз GDD", dcProven: "є доказ", dcLook: "подивись у грі — доказу немає", dcFailed: "не виконано", dcCommit: "коміт", dcTests: "тести", dcFiles: "{n} файлів", dcShot: "знімок", dcFold: "Згорнути", dcFull: "Повний звіт", dcDetails: "Деталі", dcPrompt: "Промпт для Claude Code", dcInPlan: "Задача в плані", dcOwn: "Своя відповідь", dcOwnShort: "Своя відповідь", dcAnswer: "Відповісти", dcWas: "Було в GDD", dcNow: "Стало в грі", dcDivHint: "Код змінив правило без твоєї вказівки. Прийняти — лишається як у грі; повернути — картка повертається до GDD.", dcKeep: "Прийняти", dcBack: "Повернути як було", needsLook: "потребує твого погляду — критерій без доказу (коміт, тест чи знімок)", nowLbl: "Claude Code зараз", nowIdle: "Бере наступну готову задачу сам", open: "Відкрити", rvWait: "чекають твоєї перевірки", launch: "Запуск", help: "Що означають значки", fullReport: "Повний звіт: зміни, тести, перевірки", gateCrit: "Критерії воріт", epicMore: "Дії з епіком", agChanged: "Агенти змінили правила гри", agChangedHint: "Тут картки, де агент змінив правила поза погодженими епіками. Відкрий картку — угорі видно, що саме змінено.", msMore: "Деталі етапу: результат, старт, бюджети", rmap: "Дерево розробки", rmapHint: "Натисни ворота або епік — нижче відкриються його задачі.", more: "ще {n} →", otherMs: "Інше", about: "Про план", risksT: "Ризики, паралельна робота й прогалини фреймворку", tToday: "Сьогодні", tPlan: "План", tGdd: "Готовність GDD", tLog: "Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { dcHead: "Чекає твого рішення", dcSub: "Одна черга. Кожна картка — одне рішення в один дотик.", dcFilter: "Фільтр", dcAll: "Усі", dcFReview: "Перевірка", dcFQuestion: "Питання", dcFDiv: "Розбіжності", dcReview: "Перевірка задачі", dcQuestion: "Питання", dcBlocked: "Блокер", dcDiv: "Розбіжність GDD ↔ гра", dcChange: "Запит на зміну", dcAnalysis: "Аналіз GDD", dcProven: "є доказ", dcLook: "подивись у грі — доказу немає", dcFailed: "не виконано", dcCommit: "коміт", dcTests: "тести", dcFiles: "{n} файлів", dcShot: "знімок", dcFold: "Згорнути", dcReturn: "Повернути", dcCrit: "Критерії задачі (повністю)", dcGate: "Ворота", dcGateSum: "Усі задачі етапу виконано — переглянь умови й відкрий наступний етап.", dcAgentQ: "Агент питає", dcApprove: "Запит на погодження", dcContra: "Суперечність", dcChanged: "Агенти змінили правила", dcAllCards: "Усі картки", trBtn: "Перекласти", trDone: "перекладено в браузері", trNone: "Переклад у браузері недоступний — потрібен Chrome 138 або новіший", dcFull: "Повний звіт", dcDetails: "Деталі", dcPrompt: "Промпт для Claude Code", dcInPlan: "Задача в плані", dcOwn: "Своя відповідь", dcOwnShort: "Своя відповідь", dcAnswer: "Відповісти", dcWas: "Було в GDD", dcNow: "Стало в грі", dcDivHint: "Код змінив правило без твоєї вказівки. Прийняти — лишається як у грі; повернути — картка повертається до GDD.", dcKeep: "Прийняти", dcBack: "Повернути як було", needsLook: "потребує твого погляду — критерій без доказу (коміт, тест чи знімок)", nowLbl: "Claude Code зараз", nowIdle: "Бере наступну готову задачу сам", open: "Відкрити", rvWait: "чекають твоєї перевірки", launch: "Запуск", help: "Що означають значки", fullReport: "Повний звіт: зміни, тести, перевірки", gateCrit: "Критерії воріт", epicMore: "Дії з епіком", agChanged: "Агенти змінили правила гри", agChangedHint: "Тут картки, де агент змінив правила поза погодженими епіками. Відкрий картку — угорі видно, що саме змінено.", msMore: "Деталі етапу: результат, старт, бюджети", rmap: "Дерево розробки", rmapHint: "Натисни ворота або епік — нижче відкриються його задачі.", more: "ще {n} →", otherMs: "Інше", about: "Про план", risksT: "Ризики, паралельна робота й прогалини фреймворку", tToday: "Сьогодні", tPlan: "План", tGdd: "Готовність GDD", tLog: "Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
       noGdd: "Спершу ШІ прочитає всю біблію гри: складе гейм-диздок і питання, без яких план не скласти.", needBlockers: "Щоб скласти план, дай відповідь на блокери ({n}).", toToday: "До «Сьогодні»",
       review: "Чекають твого рішення — задачі на ревʼю", blocked: "Агент зупинився — задачі з блокером", gates: "Етап готовий — прийми ворота", toGate: "До воріт",
       agents: "Агенти питають або просять погодження", toIssues: "Розібрати суперечності", allDone: "Усе вирішено — нічого не чекає на тебе",
@@ -608,7 +608,7 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. As soon as you answer the last blocker the development plan makes itself (≈ the «✦ Plan» price).",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { dcHead: "Waiting for your decision", dcSub: "One queue. Each card is one decision in one tap.", dcFilter: "Filter", dcAll: "All", dcFReview: "Review", dcFQuestion: "Questions", dcFDiv: "Divergences", dcReview: "Task review", dcQuestion: "Question", dcBlocked: "Blocker", dcDiv: "GDD ↔ game divergence", dcChange: "Change request", dcAnalysis: "GDD analysis", dcProven: "has proof", dcLook: "look in the game — no proof", dcFailed: "not met", dcCommit: "commit", dcTests: "tests", dcFiles: "{n} files", dcShot: "screenshot", dcFold: "Fold", dcFull: "Full report", dcDetails: "Details", dcPrompt: "Prompt for Claude Code", dcInPlan: "The task in the plan", dcOwn: "Your own answer", dcOwnShort: "Own answer", dcAnswer: "Answer", dcWas: "In the GDD", dcNow: "In the game", dcDivHint: "The code changed a rule without your word. Accept — it stays as in the game; revert — the card goes back to the GDD.", dcKeep: "Accept", dcBack: "Revert", needsLook: "needs your look — a criterion without proof (a commit, a test or a screenshot)", nowLbl: "Claude Code now", nowIdle: "Takes the next ready task itself", open: "Open", rvWait: "wait for your review", launch: "Launch", help: "What the marks mean", fullReport: "Full report: changes, tests, checks", gateCrit: "Gate criteria", epicMore: "Epic actions", agChanged: "Agents changed game rules", agChangedHint: "Cards where an agent changed the rules outside the agreed epics. Open a card — the top shows what was changed.", msMore: "Milestone details: deliverables, start, budgets", rmap: "Development tree", rmapHint: "Click a gate or an epic — its tasks open below.", more: "{n} more →", otherMs: "Other", about: "About the plan", risksT: "Risks, parallel work and framework gaps", tToday: "Today", tPlan: "Plan", tGdd: "GDD readiness", tLog: "Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { dcHead: "Waiting for your decision", dcSub: "One queue. Each card is one decision in one tap.", dcFilter: "Filter", dcAll: "All", dcFReview: "Review", dcFQuestion: "Questions", dcFDiv: "Divergences", dcReview: "Task review", dcQuestion: "Question", dcBlocked: "Blocker", dcDiv: "GDD ↔ game divergence", dcChange: "Change request", dcAnalysis: "GDD analysis", dcProven: "has proof", dcLook: "look in the game — no proof", dcFailed: "not met", dcCommit: "commit", dcTests: "tests", dcFiles: "{n} files", dcShot: "screenshot", dcFold: "Fold", dcReturn: "Return", dcCrit: "Task criteria (in full)", dcGate: "Gate", dcGateSum: "Every task of the milestone is done — look at the conditions and open the next milestone.", dcAgentQ: "An agent asks", dcApprove: "Approval request", dcContra: "Contradiction", dcChanged: "Agents changed rules", dcAllCards: "All cards", trBtn: "Translate", trDone: "translated in the browser", trNone: "Translation in the browser is unavailable — needs Chrome 138 or newer", dcFull: "Full report", dcDetails: "Details", dcPrompt: "Prompt for Claude Code", dcInPlan: "The task in the plan", dcOwn: "Your own answer", dcOwnShort: "Own answer", dcAnswer: "Answer", dcWas: "In the GDD", dcNow: "In the game", dcDivHint: "The code changed a rule without your word. Accept — it stays as in the game; revert — the card goes back to the GDD.", dcKeep: "Accept", dcBack: "Revert", needsLook: "needs your look — a criterion without proof (a commit, a test or a screenshot)", nowLbl: "Claude Code now", nowIdle: "Takes the next ready task itself", open: "Open", rvWait: "wait for your review", launch: "Launch", help: "What the marks mean", fullReport: "Full report: changes, tests, checks", gateCrit: "Gate criteria", epicMore: "Epic actions", agChanged: "Agents changed game rules", agChangedHint: "Cards where an agent changed the rules outside the agreed epics. Open a card — the top shows what was changed.", msMore: "Milestone details: deliverables, start, budgets", rmap: "Development tree", rmapHint: "Click a gate or an epic — its tasks open below.", more: "{n} more →", otherMs: "Other", about: "About the plan", risksT: "Risks, parallel work and framework gaps", tToday: "Today", tPlan: "Plan", tGdd: "GDD readiness", tLog: "Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
       noGdd: "First the AI reads the whole game bible: it drafts the design doc and the questions a plan needs.", needBlockers: "To make the plan, answer the blockers ({n}).", toToday: "To «Today»",
       review: "Waiting for your decision — tasks in review", blocked: "The agent stopped — blocked tasks", gates: "A milestone is done — accept the gate", toGate: "To the gate",
       agents: "The agents ask or want an approval", toIssues: "Sort out the contradictions", allDone: "All decided — nothing waits for you",
@@ -9856,8 +9856,9 @@
     $("view").innerHTML = html;
     if (ME.owner && !agTg) agTgLoad();
   }
-  function agSend(replyTo, root) {
-    var ta = replyTo ? document.querySelector('[data-agrt="' + root + '"]') : $("ag-text"), text = ta && ta.value.trim();
+  function agSend(replyTo, root, preset) {
+    var ta = replyTo ? document.querySelector('[data-agrt="' + root + '"]') : $("ag-text"), text = preset || (ta && ta.value.trim());
+    if (preset) { fnCall("agents", { op: "post", worldId: worldId, gameId: gameId, type: "note", text: preset, replyTo: replyTo }).catch(function (er) { notify(STR.failed + ": " + er.message); }); return; }
     if (!text) { if (ta) ta.focus(); return; }
     var sel = replyTo ? document.querySelector('[data-agrtype="' + root + '"]') : $("ag-type");
     ta.disabled = true;
@@ -9927,6 +9928,7 @@
     var A = AGS, t;
     if (e.target.closest("#ag-send")) { agSend(null); return true; }
     if ((t = e.target.closest("[data-agreply]"))) { agSend(t.dataset.agreply, t.dataset.agroot); return true; }
+    if ((t = e.target.closest("[data-agpick]"))) { t.disabled = true; agSend(t.dataset.agpick, t.dataset.agroot, t.dataset.agopt); return true; } // v2.161.1 «Сьогодні»: an option answers in one tap
     if ((t = e.target.closest("[data-agok],[data-agno]"))) {
       var yes = t.hasAttribute("data-agok"), b = t; b.disabled = true;
       fnCall("agents", { op: "resolve", worldId: worldId, gameId: gameId, id: yes ? b.dataset.agok : b.dataset.agno, approve: yes }).catch(function (er) { b.disabled = false; notify(STR.failed + ": " + er.message); });
@@ -11461,7 +11463,7 @@
     var gates = plan && plan.gated ? (plan.milestones || []).filter(function (m) { if (!m.track || msLock(plan, m) || gateOf(m).status === "approved") return false;
       var mt = tasks.filter(function (t) { return t.milestone === m.id && t.status !== "deferred" && t.status !== "dropped"; }); return mt.length && mt.every(function (t) { return t.status === "done"; }); }) : [];
     loadAgWait();
-    var todayN = oq.length + drift.length + gi.length + crs.length + rv.length + bl.length + gates.length + agWait.list.length + (planDraft ? 1 : 0) + (agentChanged().length ? 1 : 0);
+    var todayN = todayCounts(oq, drift, gi, crs, rv, bl, gates).all; // v2.161.1 the tab's badge = «Усі» in the filter
     var doneT = tasks.filter(function (t) { return t.status === "done"; }).length;
     var stale = gddStale();
     if (!planTabPicked) planTab = todayN ? "today" : "plan"; // what waits for the author first; nothing waits — the plan
@@ -11570,18 +11572,40 @@
     review: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6aa8ff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>',
     question: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e2b45a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.7-2.5 2-2.5 3.5"/><circle cx="12" cy="17" r="0.6" fill="#e2b45a"/></svg>',
     divergence: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0a050" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 3v12"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="6" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>',
+    gate: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6aa8ff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg>',
+    agent: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e2b45a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 10h.01M12 10h.01M15 10h.01"/></svg>',
+    changed: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f0a050" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6M9 13h4"/><circle cx="17" cy="17" r="3" fill="#15131b"/></svg>',
     blocked: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef7b6b" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z"/><path d="M12 8v5"/><circle cx="12" cy="16.5" r="0.6" fill="#ef7b6b"/></svg>'
   };
   function dcWhen(v) {
     var ms = v && v.toMillis ? v.toMillis() : +v || 0; if (!ms) return "";
     return new Date(ms).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   }
-  // o: { id, type, kind, who, when, title, summary, body, main: [label, attrs], second: [label, attrs], full, more, attrs }
+  // 🌐 v2.161.1 (the author reads Ukrainian): text mostly in Latin letters gets a mark and «Перекласти» — the browser's own on-device Translator
+  // (Chrome 138+, nothing leaves the PC, no tokens); the agents are told to write in the author's language (mcp.js instructions)
+  var trCache = {}, dcTexts = {};
+  function foreign(t) { if (LANG === "en" || !t) return false; var lat = (String(t).match(/[a-z]/gi) || []).length, cyr = (String(t).match(/[а-яіїєґ]/gi) || []).length; return lat > 24 && lat > cyr * 2; }
+  function trT(t) { return trCache[t] || t; }
+  async function dcTranslate(id) {
+    var list = (dcTexts[id] || []).filter(function (t) { return !trCache[t]; }); if (!list.length) return;
+    if (!("Translator" in self)) { notify(STR.pl.trNone); return; }
+    try {
+      var tr = await self.Translator.create({ sourceLanguage: "en", targetLanguage: "uk" });
+      for (var i = 0; i < list.length; i++) trCache[list[i]] = await tr.translate(list[i]);
+      render();
+    } catch (er) { notify(STR.pl.trNone + " (" + er.message + ")"); }
+  }
+  // o: { id, type, kind, who, when, title, summary, body, main: [label, attrs], second: [label, attrs], full, more, attrs, tr: [texts to translate] }
   function dcHtml(o) {
     var PL = STR.pl, open = !!dcOpen[o.id], btn = function (b, cls) { return b ? '<button type="button" class="btn ' + cls + '" ' + b[1] + '>' + esc(b[0]) + '</button>' : ''; };
+    var fr = (o.tr || [o.title, o.summary]).filter(foreign);
+    if (fr.length) dcTexts[o.id] = fr;
+    var done = fr.length && fr.every(function (t) { return trCache[t]; });
+    o.title = trT(o.title); o.summary = trT(o.summary);
     return '<article class="dc dc-' + o.type + '"' + (o.attrs || '') + '><div class="dc__row">' +
       '<div class="dc__ic">' + DC_ICON[o.type] + '</div>' +
-      '<div class="dc__main"><div class="dc__meta"><b>' + esc(o.kind) + '</b>' + (o.who ? '<span>' + esc(o.who) + '</span>' : '') + (o.when ? '<span>·</span><span>' + esc(o.when) + '</span>' : '') + '</div>' +
+      '<div class="dc__main"><div class="dc__meta"><b>' + esc(o.kind) + '</b>' + (o.who ? '<span>' + esc(o.who) + '</span>' : '') + (o.when ? '<span>·</span><span>' + esc(o.when) + '</span>' : '') +
+        (fr.length ? (done ? '<span class="dc__lang">' + esc(PL.trDone) + '</span>' : '<span class="dc__lang">EN</span><button type="button" class="dc__tr" data-dctr="' + esc(o.id) + '">' + esc(PL.trBtn) + '</button>') : '') + '</div>' +
         '<h3 class="dc__t">' + esc(o.title) + '</h3>' + (o.summary ? '<p class="dc__sum">' + esc(o.summary) + '</p>' : '') + (o.body || '') + '</div>' +
       '<div class="dc__act">' + (canWrite ? btn(o.main, 'primary') + btn(o.second, '') : '') +
         (o.full ? '<button type="button" class="dc__more" data-dcopen="' + esc(o.id) + '" aria-expanded="' + open + '">' + esc(open ? PL.dcFold : o.more || PL.dcFull) + ' <span aria-hidden="true">' + (open ? '▴' : '▾') + '</span></button>' : '') + '</div>' +
@@ -11598,10 +11622,11 @@
     if ((r.changes || []).length) ev.push(PL.dcFiles.replace("{n}", r.changes.length));
     if (/^https?:\/\//.test(((r.evidence || {}).screenshot) || "")) ev.push(PL.dcShot);
     var hard = lag.length || (tests.ran && tests.failed > 0) || cc.failed.length;
-    var body = (crit.length ? '<ul class="dc__crit">' + crit.map(function (c) { return '<li class="dcc-' + c[0] + '"><i aria-hidden="true"></i><span>' + esc(critPlain(c[1])) + ' <span class="muted">— ' + esc(c[2]) + '</span></span></li>'; }).join("") + '</ul>' : '') +
+    var body = (crit.length ? '<ul class="dc__crit">' + crit.map(function (c) { return '<li class="dcc-' + c[0] + '"><i aria-hidden="true"></i><span class="dcc-b"><span class="dcc-txt">' + esc(trT(critPlain(c[1]))) + '</span><span class="muted dcc-st">' + esc(c[2]) + '</span></span></li>'; }).join("") + '</ul>' : '') +
       (lag.length ? '<div class="dc__warn">' + esc(AU.lag) + '<div class="cchips">' + lag.map(function (x) { return cardChip(x); }).join("") + '</div></div>' : '') +
       (ev.length ? '<div class="dc__ev">' + ev.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join("") + '</div>' : '');
-    var full = '<div class="dc__lbl">' + esc(PL.fullReport) + '</div><p>' + esc(r.summary || "") + '</p>' +
+    var full = '<div class="dc__lbl">' + esc(PL.fullReport) + '</div><p>' + esc(trT(r.summary || "")) + '</p>' +
+      ((lt.accept || []).length ? '<div class="dc__lbl">' + esc(PL.dcCrit) + '</div><ul class="crit">' + lt.accept.map(function (a) { return '<li>' + esc(critPlain(a)) + '</li>'; }).join("") + '</ul>' : '') +
       (r.commit ? '<div class="muted">commit: <span class="mono">' + esc(r.commit) + '</span></div>' : '') +
       ((r.changes || []).length ? '<details><summary>' + STR.changes + ' (' + r.changes.length + ')</summary><pre>' + esc(r.changes.join("\n")) + '</pre></details>' : '') +
       '<div>' + STR.tests + ': ' + (tests.ran ? '✓ ' + tests.passed + ' · ✗ ' + tests.failed : STR.testsNone) + '</div>' +
@@ -11609,9 +11634,53 @@
       proofHtml(lt) + (lt.prompt ? '<details><summary>' + esc(PL.dcPrompt) + '</summary><pre>' + esc(lt.prompt) + '</pre></details>' : '') +
       (lt.milestone ? '<div><button type="button" class="btn ghost mini" data-ptab="plan" data-msgo="' + esc(lt.milestone) + '">' + esc(PL.dcInPlan) + ' →</button></div>' : '');
     return dcHtml({ id: "t:" + lt.id, type: "review", kind: PL.dcReview, who: lt.doneBy || "Claude Code", when: dcWhen(r.at || lt.updatedAt), title: lt.title || lt.id,
-      summary: r.summary, body: body, full: full,
+      summary: r.summary, body: body, full: full, tr: [lt.title, r.summary].concat(crit.map(function (c) { return critPlain(c[1]); })),
       main: [STR.accept, 'data-accept="' + esc(lt.id) + '"' + (hard ? ' data-unchecked="' + (lag.length ? 'lag' : '1') + '"' : cc.look.length ? ' data-unchecked="1"' : '')],
-      second: [STR.giveBack, 'data-return="' + esc(lt.id) + '"'] });
+      second: [PL.dcReturn, 'data-return="' + esc(lt.id) + '"'] });
+  }
+  function dcGate(m) {
+    var PL = STR.pl;
+    return dcHtml({ id: "g:" + m.id, type: "gate", kind: PL.dcGate, who: m.id, title: m.name || m.id, summary: PL.dcGateSum,
+      main: [PL.toGate + ' →', 'data-ptab="plan" data-msgo="' + esc(m.id) + '"'] });
+  }
+  function dcAgent(m) { // an agent's question or approval request from «💬 Агенти», answered here
+    var PL = STR.pl, A = AGS, f = m.from || {}, root = m.thread || m.id, can = mayEdit("agents") && canWrite, ap = m.type === "approval_request";
+    var opts = (m.options || []).map(function (o, i) { var r = m.recommend === i;
+      return '<button type="button" class="btn' + (r ? ' primary' : '') + '" data-agpick="' + esc(m.id) + '" data-agroot="' + esc(root) + '" data-agopt="' + esc(o) + '">' + (r ? '★ ' : '') + esc(o) + '</button>'; });
+    if (m.recommend > 0 && opts[m.recommend]) opts.unshift(opts.splice(m.recommend, 1)[0]); // ★ advice first
+    var refs = (m.refs || []).filter(function (r) { return /^(c|e):/.test(r); });
+    return dcHtml({ id: "a:" + m.id, type: "agent", kind: ap ? PL.dcApprove : PL.dcAgentQ, who: f.label || (A.role[f.role] || f.role || ""), when: agTime(m),
+      title: agHead(m.text)[0], summary: agHead(m.text)[1],
+      body: (!ap && opts.length && can ? '<div class="dc__opts">' + opts.join("") + '</div>' : '') + (refs.length ? '<div class="cchips">' + refs.slice(0, 6).map(function (r) { return cardChip(r); }).join("") + '</div>' : ''),
+      full: '<div class="ag-text">' + esc(m.text || "") + '</div>' + (m.recWhy ? '<p class="muted">★ ' + esc(m.recWhy) + '</p>' : '') +
+        (!ap && can ? '<div class="dc__lbl">' + esc(PL.dcOwn) + '</div><textarea rows="2" data-agrt="' + esc(root) + '" placeholder="' + esc(A.replyPh) + '"></textarea><div class="row"><button type="button" class="btn" data-agreply="' + esc(m.id) + '" data-agroot="' + esc(root) + '">' + A.reply + '</button></div>' : ''),
+      more: ap ? PL.dcDetails : opts.length ? PL.dcOwnShort : PL.dcAnswer, tr: [m.text],
+      main: ap && ME.owner ? [A.approve, 'data-agok="' + esc(m.id) + '"'] : null, second: ap && ME.owner ? [A.reject, 'data-agno="' + esc(m.id) + '"'] : null });
+  }
+  function agHead(t) { // a message → its first sentence as the title, the rest as the 2-line summary (no cut mid-word)
+    t = String(t || "").replace(/\s+/g, " ").trim(); var m = /^(.{12,200}?[.?!:])\s/.exec(t);
+    if (m) return [m[1], t.slice(m[0].length)];
+    var cut = t.lastIndexOf(" ", 180);
+    cut = cut > 60 ? cut : 180; return t.length > 200 ? [t.slice(0, cut) + "…", "…" + t.slice(cut).trim()] : [t, ""];
+  }
+  function dcContra(c) {
+    var PL = STR.pl, opts = (c.options || []).map(function (o) { return '<button type="button" class="btn" data-cres="' + esc(o) + '">' + esc(o) + '</button>'; }).join("");
+    return dcHtml({ id: "x:" + cid(c), type: "divergence", kind: PL.dcContra, who: c.where || "", title: c.what, attrs: ' data-ck="game" data-c="' + esc(cid(c)) + '"',
+      body: opts && canWrite ? '<div class="dc__opts">' + opts + '</div>' : '',
+      full: canWrite ? '<div class="dc__lbl">' + esc(PL.dcOwn) + '</div><textarea rows="2" placeholder="' + esc(STR.resolvePh) + '"></textarea><div class="row"><button type="button" class="btn" data-resolve>' + STR.resolve + '</button></div>' : '',
+      more: opts ? PL.dcOwnShort : PL.dcAnswer });
+  }
+  function dcChanged(ac) {
+    var PL = STR.pl;
+    return dcHtml({ id: "ac", type: "changed", kind: PL.dcChanged, who: "Claude Code", title: PL.agChanged + ': ' + ac.length, summary: PL.agChangedHint,
+      body: '<div class="cchips">' + ac.slice(0, 8).map(function (c) { return cardChip("c:" + c.id); }).join("") + '</div>',
+      full: ac.length > 8 ? '<div class="cchips">' + ac.slice(8, 120).map(function (c) { return cardChip("c:" + c.id); }).join("") + '</div>' + (ac.length > 120 ? '<p class="muted">' + esc(PL.more.replace("{n}", ac.length - 120)) + '</p>' : '') : '',
+      more: PL.dcAllCards });
+  }
+  function todayCounts(oq, drift, gi, crs, rv, bl, gates) {
+    var n = { review: rv.length + gates.length + (planDraft ? 1 : 0), question: bl.length + oq.length + agWait.list.length,
+      divergence: drift.reduce(function (k, c) { return k + (c.devDrift || []).length; }, 0) + crs.length + gi.length + (agentChanged().length ? 1 : 0) };
+    n.all = n.review + n.question + n.divergence; return n;
   }
   function dcQuestion(q) {
     var PL = STR.pl, opts = (q.options || []).map(function (o, i) { var r = q.rec && !i;
@@ -11651,25 +11720,16 @@
   }
   function todayHtml(oq, blockers, drift, gi, crs, sc, rv, bl, gates) {
     var PL = STR.pl, html = '';
-    var items = { review: rv.map(function (t) { return dcReview(liveTask(t.id) || t); }), question: bl.map(dcBlocked).concat(oq.map(dcQuestion)), divergence: drift.map(dcDrift).concat(crs.map(dcChange)) };
-    var n = { review: rv.length, question: bl.length + oq.length, divergence: drift.reduce(function (k, c) { return k + (c.devDrift || []).length; }, 0) + crs.length };
-    n.all = n.review + n.question + n.divergence;
+    dcTexts = {}; var ac = agentChanged();
+    var items = { review: (planDraft ? [draftHtml()] : []).concat(rv.map(function (t) { return dcReview(liveTask(t.id) || t); }), gates.map(dcGate)),
+      question: bl.map(dcBlocked).concat(agWait.list.map(dcAgent), oq.map(dcQuestion)),
+      divergence: drift.map(dcDrift).concat(crs.map(dcChange), gi.map(dcContra), ac.length ? [dcChanged(ac)] : []) };
+    var n = todayCounts(oq, drift, gi, crs, rv, bl, gates);
     if (todayF !== "all" && !n[todayF]) todayF = "all";
     if (n.all) html += '<div class="dc-head"><div><h2 class="dc-h">' + esc(PL.dcHead) + '</h2><p class="muted">' + esc(PL.dcSub) + '</p></div><div class="dc-filter" role="group" aria-label="' + esc(PL.dcFilter) + '">' +
       [["all", PL.dcAll], ["review", PL.dcFReview], ["question", PL.dcFQuestion], ["divergence", PL.dcFDiv]].map(function (f) {
         return '<button type="button" data-todayf="' + f[0] + '" aria-pressed="' + (todayF === f[0]) + '"' + (n[f[0]] ? '' : ' disabled') + '>' + esc(f[1]) + ' <span>' + n[f[0]] + '</span></button>'; }).join("") + '</div></div>' +
       '<div class="dc-list">' + ["review", "question", "divergence"].filter(function (k) { return todayF === "all" || todayF === k; }).map(function (k) { return items[k].join(""); }).join("") + '</div>';
-    if (todayF !== "all") return html;
-    if (planDraft) html = draftHtml() + html;
-    if (gates.length) html += '<section class="psec"><h2 class="group">' + esc(PL.gates) + '</h2>' + gates.map(function (m) { return '<div class="q"><b>' + esc(m.id + ' · ' + (m.name || '')) + '</b> <button type="button" class="btn primary mini" data-ptab="plan" data-msgo="' + esc(m.id) + '">' + esc(PL.toGate) + ' →</button></div>'; }).join("") + '</section>';
-    if (agWait.list.length) html += '<section class="psec"><h2 class="group">' + esc(PL.agents) + ' <span>' + agWait.list.length + '</span></h2>' + agWait.list.map(function (m) {
-      var root = m.thread || m.id, can = mayEdit("agents") && canWrite;
-      return '<div class="ag-th">' + agMsgHtml(m) + (m.type === "question" && can ? '<div class="ag-box"><textarea rows="2" data-agrt="' + esc(root) + '" placeholder="' + esc(AGS.replyPh) + '"></textarea><div class="setrow"><button class="btn primary" data-agreply="' + esc(m.id) + '" data-agroot="' + esc(root) + '">' + AGS.reply + '</button></div></div>' : '') + '</div>'; }).join("") + '</section>';
-    var ac = agentChanged(); // v2.160.1 the sidebar's «агенти змінили правила» lands here: the cards, each opens with what the agent changed
-    if (ac.length) html += '<section class="psec"><h2 class="group">🤖 ' + esc(PL.agChanged) + ' <span>' + ac.length + '</span></h2><p class="hint">' + esc(PL.agChangedHint) + '</p><div class="cchips">' +
-      ac.slice(0, 40).map(function (c) { return cardChip("c:" + c.id); }).join("") + '</div>' + (ac.length > 40 ? '<p class="muted">' + esc(PL.more.replace("{n}", ac.length - 40)) + '</p>' : '') + '</section>';
-    if (gi.length) html += '<section class="psec"><h2 class="group">' + STR.contradictions + ' <span>' + gi.length + '</span></h2><ul class="contra">' + gi.map(function (c) {
-      return '<li>' + esc(c.what) + (c.where ? ' <span class="muted">— ' + esc(c.where) + '</span>' : '') + '</li>'; }).join("") + '</ul><button type="button" class="btn mini" data-gosec="issues">' + esc(PL.toIssues) + ' →</button></section>';
     if (!html) html = '<div class="pempty">✓ ' + esc(PL.allDone) + '</div>';
     var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
     if (done.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + STR.answeredTitle + ' <span>' + done.length + '</span></h2></summary>' +
@@ -12849,7 +12909,7 @@
       opt.closest(".q").querySelector("textarea").value = opt.dataset.opt; return;
     }
     var rs = e.target.closest("[data-resolve]");
-    if (rs) { var rq = rs.closest(".q"), rt = rq.querySelector("textarea").value.trim(); if (!rt) { rq.querySelector("textarea").focus(); return; }
+    if (rs) { var rq = rs.closest("[data-c]"), rt = rq.querySelector("textarea").value.trim(); if (!rt) { rq.querySelector("textarea").focus(); return; }
       rs.disabled = true; resolveIssue(rq.dataset.ck, rq.dataset.c, rt).catch(function (er) { var m = STR.failed + ": " + (er.code || er.message); if (rq.dataset.ck === "canon") canonMsg = m; else planMsg = m; render(); }); return; }
     var au = e.target.closest("#i-audit");
     if (au) { confirmCost("analyze", function () { runPlan("analyze"); }); return; }
@@ -12858,6 +12918,8 @@
     if (e.target.closest("[data-qskip]")) { qqIdx++; render(); return; }
     if (e.target.closest("[data-qall]")) { qqAll = !qqAll; render(); var pq = $("p-queue"); if (pq) pq.scrollIntoView({ block: "start" }); return; }
     var tdf = e.target.closest("[data-todayf]"); if (tdf) { todayF = tdf.dataset.todayf; render(); return; } // v2.161 the «Сьогодні» filter
+    var dtr = e.target.closest("[data-dctr]"); if (dtr) { dtr.disabled = true; dcTranslate(dtr.dataset.dctr); return; } // 🌐 v2.161.1
+    var cre = e.target.closest("[data-cres]"); if (cre) { var crq = cre.closest("[data-c]"); cre.disabled = true; resolveIssue(crq.dataset.ck, crq.dataset.c, cre.dataset.cres).catch(function (er) { cre.disabled = false; planMsg = STR.failed + ": " + (er.code || er.message); render(); }); return; }
     var dco = e.target.closest("[data-dcopen]"); if (dco) { dcOpen[dco.dataset.dcopen] = !dcOpen[dco.dataset.dcopen]; render(); return; } // «Повний звіт» / «Деталі»
     var rcy = e.target.closest("[data-recyes]");
     if (rcy) { rcy.disabled = true; answerQuestion(rcy.closest("[data-q]").dataset.q, rcy.dataset.recyes).catch(function (er) { rcy.disabled = false; planMsg = er.message; render(); }); return; }
@@ -12887,7 +12949,7 @@
     var msel = e.target.closest("[data-msel]"); if (msel) { planMs = msel.dataset.msel; planEpic = msel.dataset.epicgo || null; if (planEpic) epicOpen[planEpic] = true; render();
       var mel = $("ms-" + planMs), eel = msel.dataset.epicgo && document.querySelector('[data-epic="' + msel.dataset.epicgo + '"]'); if (eel || mel) (eel || mel).scrollIntoView({ block: "start", behavior: "smooth" }); return; }
     if (e.target.closest("[data-mkan]")) { var ab = $("p-analyze"); if (ab && !ab.disabled) ab.click(); return; }
-    if (section === "plan" && e.target.closest("[data-agok],[data-agno],[data-agreply]")) setTimeout(function () { agWait.at = 0; agWait.sig = null; loadAgWait(); }, 1500); // Today: the answered one leaves the queue
+    if (section === "plan" && e.target.closest("[data-agok],[data-agno],[data-agreply],[data-agpick]")) setTimeout(function () { agWait.at = 0; agWait.sig = null; loadAgWait(); }, 1500); // Today: the answered one leaves the queue
     var dlg = e.target.closest("[data-delegate]"); if (dlg) { dlg.disabled = true; // 📋 a gap → a note to the game designer in «💬 Агенти» (the server writes it, agents.js post)
       fnCall("agents", { op: "post", worldId: worldId, gameId: gameId, type: "note", text: STR.pl.delegateText.replace("{g}", dlg.dataset.delegate) }).then(function () { dlg.textContent = "✓ " + STR.pl.delegated; }, function (er) { dlg.disabled = false; notify(STR.failed + ": " + er.message); }); return; }
     var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; planTabPicked = true; if (ptb.dataset.msgo) planMs = ptb.dataset.msgo; render();

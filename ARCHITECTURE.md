@@ -1,6 +1,6 @@
 # WhiteWrite Architecture Map
 
-**Version:** 2.161.0 (2026-11-22)
+**Version:** 2.161.1 (2026-11-22)
 **Status:** Canonical Reference (Single Source of Truth)
 
 ---
@@ -822,6 +822,7 @@ firebase deploy                   # Deploy everything
 
 One line per version, newest first; the details live in the sections above. Before v2.27 — `git log`.
 
+- **v2.161.1** 🗂 «Сьогодні» — the whole queue as cards (the game designer: badge 52 vs «Усі» 22): `dcGate`, `dcAgent` (agents' questions / approval requests — options answer in one tap via `agSend(…, preset)` / `data-agpick`, approve / reject for the owner), `dcContra` (options resolve in one tap `data-cres`), `dcChanged` (one card, the cards as chips), the plan draft in the review group; `todayCounts` is shared by the tab badge and the filter. 🌐 Text mostly in Latin letters gets «EN» + «Перекласти» — the browser's on-device `Translator` API (Chrome 138+, no tokens, nothing sent), `trCache`; MCP `initialize` instructions now tell agents to write everything the author reads in the author's language. The author criterion is clamped to 2 lines (`.dcc-txt`), in full under «Повний звіт» (`dcCrit`); «Повернути» short label. KB uk + en.
 - **v2.161.0** 🗂 «Сьогодні» as decision cards (the game designer's mock-up, 10 card rules): `gamebible.js` `dcHtml` — type icon (review / question / divergence / blocker), «type · who · when», one title, 2-line summary, actions on the right (gold main + second), «Повний звіт» / «Деталі» folded (`dcOpen`); `dcReview` — criteria via the shared `critCheck` (✓ proof / ◉ look / ✕ failed), proof chips (commit, tests, files, screenshot), full report + prompt + «Задача в плані»; `dcQuestion` — options answer in one tap (`data-recyes`, ★ advice first), own answer folded; `dcDrift` — one card per `devDrift` entry, «Було в GDD» / «Стало в грі»; `dcChange`, `dcBlocked`; filter All · Review · Questions · Divergences (`todayF`). Gates, agents' messages, agent-changed cards and contradictions stay below in «All». Handlers find the question by `[data-q]`. Same data, no new fields — MCP already has it all (`list_tasks`, `get_plan_questions`, `get_card` devDrift). KB uk + en.
 - **v2.160.4** 🚑 The Production plan page fell over («Не вдалося показати цей розділ — qqAll is not defined», the game designer): v2.159.0 dropped `var qqIdx, qqAll` and `applyScaffold` with the old crown / scaffold block; it showed only once the analysis had open questions. Restored; new guard `tests/app-undeclared.test.cjs` — every app script walked with Babel's scope, every referenced or assigned bare name must be declared or a browser global (it fails on the broken version).
 - **v2.160.3** 🌳 The tree's picked leaf (owner: «вибране «Інше» і більше нічого обрати не можна… рамка, що означає обрано, не міняється»): the gold frame marked the epic with work going, not a pick, and hover looked the same. Now `planEpic` — the clicked leaf is framed gold (`.rl-sel`, solid, `aria-pressed`) and its epic below too (`.epic-sel`); an epic with work going has only a blue edge (`.rl-act`); hover is a neutral border. KB uk + en.
