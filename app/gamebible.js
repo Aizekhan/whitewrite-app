@@ -11499,6 +11499,37 @@
   // ---------- what the plan needs but the bible lacks: the author ticks, empty cards appear "in progress" ----------
   var scOff = {};
   function scaffoldName(id) { return id.indexOf("new:") === 0 ? id.slice(4) : L(sec(id)); }
+  // v2.160.4 restored with qqAll: v2.159.0 dropped it with the old scaffold block, «Застосувати» in GDD readiness threw
+  async function applyScaffold() {
+    var sc = planDoc.scaffold, batch = db.batch(), n = 0;
+    var own = (game.sections || []).slice(), made = {};
+    (sc.sections || []).forEach(function (x, i) {
+      if (scOff["s:" + i]) return;
+      var id = newId("sec"); made[x.name] = id;
+      own.push({ id: id, name: x.name, about: x.about || "" }); n++;
+    });
+    if (own.length !== (game.sections || []).length) batch.set(gref(), { sections: own, updatedAt: stamp() }, { merge: true });
+    var all = allCards();
+    (sc.cards || []).forEach(function (c, i) {
+      if (scOff["c:" + i]) return;
+      var target = c.section.indexOf("new:") === 0 ? made[c.section.slice(4)] : c.section;
+      if (!target) return; // its new section was unticked
+      var exists = all.some(function (x) { return x.section === target && x.title.trim().toLowerCase() === c.title.trim().toLowerCase(); });
+      if (exists) return;
+      var s = sec(target), defs = (s.defs || CUSTOM_DEFS).slice(), fields = {}, gk = groupKey(s);
+      if (gk && c.group) { fields[gk] = c.group; if (!defs.some(function (d) { return d.key === gk; })) defs.unshift({ key: gk, label: STR.group }); }
+      defs.push({ key: "need", label: STR.scNeed }, { key: "task", label: STR.scTask });
+      fields.need = c.need; fields.task = c.task;
+      batch.set(gref().collection("cards").doc(newId("card")), { section: target, title: c.title, status: "work", note: "", defs: defs, fields: fields,
+        planTask: c.task || "", order: Date.now() + i, createdAt: stamp(), updatedAt: stamp() });
+      n++;
+    });
+    batch.set(gref().collection("plan").doc("current"), { scaffold: { appliedAt: stamp() } }, { merge: true });
+    await batch.commit();
+    planMsg = STR.scDone + ": " + n; render();
+  }
+
+  var qqIdx = 0, qqAll = false; // v2.160.4 restored: v2.159.0 dropped the declaration with the old crown block, and the queue threw «qqAll is not defined»
   function qQueueHtml(oq) {
     var head = '<section class="psec" id="p-queue"><h2 class="group">' + STR.questionsTitle + ' <span>' + oq.length + '</span></h2>';
     if (qqAll) return head + '<div class="row qq-bar"><span style="flex:1"></span><button class="btn ghost mini" data-qall>' + STR.qOne + '</button></div>' + oq.map(function (q) { return qHtml(q, false); }).join("") + '</section>';
