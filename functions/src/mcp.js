@@ -23,6 +23,7 @@ const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages 1–13, 
 const DESIGN = require('../design-checks.js'); // 🏛 🪜 ⚠ pillars & aesthetics, the learning ladder, the riskiest assumption (v2.144)
 const STYLE = require('./style')._style;
 const AC = require('../agent-chat.js'); // 💬 Агенти: key roles and the agents' messages (v2.148)
+const TT = require('../task-types.js'); // ✅ v2.155 a task's type and the proof it closes with
 const AGENTS = require('./agents')._agents; // the author's Telegram: urgent messages, approval codes, the approval itself
 
 const PROTOCOLS = ['2025-06-18', '2025-03-26', '2024-11-05'];
@@ -69,6 +70,8 @@ const TOOLS = [
       accept: { type: 'array', items: { type: 'string' }, description: 'Optional: how to tell it is done' },
       source: { type: 'string', enum: ['chat', 'approval', 'answer'] }, message_id: { type: 'string', description: 'The «💬 Агенти» message the decision came from (approval / answer)' },
       client_key: { type: 'string' } } } },
+  { name: 'review_task', description: '✅ The game designer reviews a task in review (the programmer\'s hand-in did not close itself — get_task_details shows report.auto.why). accept: it closes if the proof of its type is complete, its cards are synced, the tests are green, no design divergence waits on its cards, and — for a mechanic / balance task — its epic is agreed by the author; otherwise your accept stays as a recommendation the author sees and decides with one click. return: back to the programmer with your comment (rework). Never accept to save time — accept what matches the GDD. Only a game-designer key.',
+    inputSchema: { type: 'object', required: ['task_id', 'action'], properties: { task_id: { type: 'string' }, action: { type: 'string', enum: ['accept', 'return'] }, comment: { type: 'string', description: 'Why; required for return' } } } },
   { name: 'resolve_divergence', description: '⚠ The game designer settles a divergence: a programmer key changed a design value of a card (a number, a rule) without the author\'s instruction — get_project_overview → design_divergences, the card\'s devDrift. accept: the new value stays (it fits the GDD and the author\'s decisions); revert: the card gets its old value back and a «↻» task brings the game back to it. When it changes the game\'s design in a way the author has not decided, do not settle it — ask the author (post_agent_message question with options, your recommendation first). Entries marked author (made on the author\'s instruction) are only to tidy the card text — accept them once done. Only a game-designer key.',
     inputSchema: { type: 'object', required: ['ref', 'field', 'action'], properties: { ref: { type: 'string', description: '"c:<id>"' }, field: { type: 'string', description: 'The changed field (devDrift key)' },
       action: { type: 'string', enum: ['accept', 'revert'] }, why: { type: 'string' } } } },
@@ -79,7 +82,7 @@ const TOOLS = [
     inputSchema: { type: 'object', required: ['kind', 'text', 'words'], properties: { kind: { type: 'string', enum: ['deferred', 'never', 'removed'] },
       text: { type: 'string', description: 'The ban, short: «Мінікарта — не робимо»' }, words: { type: 'string', description: 'The author\'s own words' },
       task_ids: { type: 'array', items: { type: 'string' }, description: 'Open tasks it parks / drops' } } } },
-  { name: 'submit_task_result', description: 'Hand in a finished task for the author\'s review: what was done, files changed, tests run, and each acceptance criterion with evidence. The task goes to review; the author accepts it or returns it with comments. Cards: every game card of the task must show what the game now does — update them with save_card BEFORE handing in and list them in cards_updated; a card that needs no change goes to cards_unchanged with why. A card of the task not updated since the task started is reported as lagging, and the author cannot close the task without overriding it.',
+  { name: 'submit_task_result', description: 'Hand in a finished task: what was done, files changed, tests run, each acceptance criterion with evidence, and the proof of the task\'s type (evidence). With the full proof, every criterion met, green tests, synced cards, no open questions and no unsettled design divergence the task CLOSES ITSELF (for a mechanic / balance task — only inside an epic the author agreed); else it goes to review: the game designer or the author accepts it or returns it with comments. Cards: every game card of the task must show what the game now does — update them with save_card BEFORE handing in and list them in cards_updated; a card that needs no change goes to cards_unchanged with why. A card of the task not updated since the task started is reported as lagging, and the author cannot close the task without overriding it.',
     inputSchema: { type: 'object', required: ['task_id', 'summary'], properties: {
       task_id: { type: 'string' }, summary: { type: 'string' },
       changes: { type: 'array', items: { type: 'string' }, description: 'Changed files / assets' },
@@ -88,6 +91,10 @@ const TOOLS = [
       criteria: { type: 'array', items: { type: 'object', properties: { criterion: { type: 'string' }, met: { type: 'boolean' }, evidence: { type: 'string' } } } },
       open_questions: { type: 'array', items: { type: 'string' }, description: 'Questions still waiting for the author (each becomes a question in «💬 Агенти», Telegram at once). Up to 5.' },
       cards_updated: { type: 'array', items: { type: 'string' }, description: 'Game cards you updated for this task ("c:<id>")' },
+      evidence: { type: 'object', description: 'The proof the task\'s type needs (get_task_details → proof_needed): mechanic — playtest + console_errors 0; balance — numbers (a bot run); ui — screenshot (a URL, e.g. card_image_upload) + ui_check; content — licence own | cc0 (cc-by / store / other wait for the author); tech — tests ran, 0 failed. With the full proof and the safeguards the task closes itself; else it waits for review.',
+        properties: { playtest: { type: 'string', description: 'What you played through and saw' }, console_errors: { type: 'integer', description: 'Errors in the console during the playtest' },
+          numbers: { type: 'string', description: 'The bot run: what was simulated and the numbers' }, screenshot: { type: 'string', description: 'A URL of the screenshot' }, ui_check: { type: 'string', description: 'The interface check, e.g. «playable without reading»' },
+          licence: { type: 'string', enum: TT.LICENCES }, licence_note: { type: 'string', description: 'The author / source of a cc-by / store asset' } } },
       cards_unchanged: { type: 'array', items: { type: 'object', properties: { ref: { type: 'string' }, why: { type: 'string' } } }, description: 'Cards of the task that need no change, each with why' },
     } } },
   // World generation & experience (spec «World Generation & Game Experience Intelligence»): approved requirements live in the Bible
@@ -239,7 +246,9 @@ const TOOLS = [
     inputSchema: { type: 'object', required: ['type', 'text'], properties: {
       type: { type: 'string', enum: ['note', 'question', 'feedback', 'approval_request', 'handoff'] }, text: { type: 'string' },
       refs: { type: 'array', items: { type: 'string' } }, reply_to: { type: 'string', description: 'Optional: the message id this answers (same as reply_agent_message)' },
-      options: { type: 'array', items: { type: 'string' }, maxItems: 4, description: 'A question only: up to 4 short answers (≤ 40 characters each), e.g. ["M5 зараз", "Спершу плейтест"] — the author taps one in Telegram' },
+      options: { type: 'array', items: { type: 'string' }, maxItems: 4, description: 'A question only: up to 4 short answers (≤ 40 characters each), e.g. ["M5 зараз", "Спершу плейтест"] — the author taps one in Telegram. Put YOUR RECOMMENDATION FIRST: it is shown with ⭐ so the author can just say yes' },
+      recommended: { type: 'boolean', description: 'A question with options: the first option is your recommendation (default true). false only when you truly have none.' },
+      recommend_why: { type: 'string', description: 'One line: why you recommend the first option' },
       force: { type: 'boolean', description: 'Send a question / approval_request even though your own nearly identical one still waits (it is refused as a duplicate otherwise)' } } } },
   { name: 'reply_agent_message', description: '💬 Answer a message of «Агенти» in its thread (message_id from get_agent_inbox). type defaults to note; refs as in post_agent_message. The AUTHOR answering a question of an agent here in this chat (they came by «🤖 Відповісти через Claude» in Telegram): pass author_words — the own words of the author — and code — the 6 digits from the Telegram message of that question; then it is recorded as the answer of the author «через Claude». Never guess the code; without both it is your own reply.',
     inputSchema: { type: 'object', required: ['message_id', 'text'], properties: { message_id: { type: 'string' }, text: { type: 'string' },
@@ -508,6 +517,53 @@ async function recordAuthorInstruction(ctx, key, args) {
   await logExecution(ctx, key, 'author_instruction', id, { what: title });
   return { ok: true, id, status: 'in_progress', milestone: task.milestone, message: 'Recorded as task ' + id + ' «від автора», in progress and yours. Do it now; update the cards with save_card, then submit_task_result ' + id + ' with cards_updated.' };
 }
+// ✅ v2.155 the three safeguards of a task closing without the author (the game-designer agent): (1) only with the proof its type needs (+ the
+// server check: criteria, tests, cards); (2) a rule / concept change outside an epic the author agreed still waits — a mechanic / balance task
+// closes itself only in an agreed epic (plan/current.epicsOk), and never with an unsettled design divergence on its cards; (3) the weekly
+// summary shows «закрито без тебе: N» (plan-weekly.js). The author can turn it off (plan/current.autoClose: false).
+const AUTO_WHY = { off: 'the author turned automatic closing off', proof: 'the proof of the task type is incomplete', check: 'acceptance criteria not all met or tests not green',
+  cards: 'cards lag behind the game', questions: 'open questions for the author', divergence: 'a design divergence waits on its cards', epic: 'a rule change outside an epic the author agreed' };
+function autoBlock(ctx, t, report, openQs, by) {
+  const why = [], ck = report.check || {}, type = TT.typeOf(t);
+  if (by !== 'designer' && ctx.plan.autoClose === false) why.push('off');
+  if (!(report.proof || {}).ok) why.push('proof');
+  if (by !== 'designer' && !ck.allCriteriaMet) why.push('check'); // the criteria match by words — the designer may judge them
+  if (!ck.testsGreen) why.push('check');
+  if (!ck.cardsSynced) why.push('cards');
+  if (openQs) why.push('questions');
+  const refs = taskCardRefs(ctx, t);
+  if (ctx.cards.some((c) => refs.includes('c:' + c.id) && (c.devDrift || []).some((x) => !x.author))) why.push('divergence');
+  if (['mechanic', 'balance'].includes(type) && !['sync', 'bug', 'author'].includes(t.kind) && !(t.epic && (ctx.plan.epicsOk || {})[t.epic])) why.push('epic');
+  return [...new Set(why)];
+}
+// done without the author: the task and what it built is in the game (the cards «ingame», as the Bible's accept does)
+async function closeTask(ctx, t, patch, event) {
+  await setTask(ctx, t, { status: 'done', ...patch, blocker: admin.firestore.FieldValue.delete(), cardChanged: admin.firestore.FieldValue.delete() }, event);
+  const refs = taskCardRefs(ctx, t);
+  for (const c of ctx.cards.filter((x) => refs.includes('c:' + x.id) || (x.canonRef && refs.includes('e:' + x.canonRef)))) {
+    await ctx.gref.collection('cards').doc(c.id).set({ status: 'ingame', updatedAt: ts() }, { merge: true });
+  }
+}
+async function designerReview(ctx, key, args) {
+  if (AC.roleOf(key) !== 'designer') throw rpcError(-32602, 'Only a game-designer key reviews a task — the programmer never accepts its own work.');
+  const t = findTask(ctx, args.task_id), comment = str(args.comment, 1500), by = str(key.label, 80) || 'game designer';
+  if (t.status !== 'review') throw rpcError(-32602, `Task ${t.id} is ${t.status}; only a task in review can be reviewed.`);
+  if (args.action === 'return') {
+    if (!comment) throw rpcError(-32602, 'Say what to fix (comment).');
+    await setTask(ctx, t, { status: 'rework', reviewComment: comment, designerReview: admin.firestore.FieldValue.delete() }, { type: 'returned', by: 'designer', who: by, comment });
+    await logExecution(ctx, key, 'review', t.id, { what: 'returned: ' + comment.slice(0, 200) });
+    return { ok: true, status: 'rework', message: 'Returned to the programmer with your comment.' };
+  }
+  const report = t.report || {}, why = autoBlock(ctx, t, { ...report, proof: TT.check(TT.typeOf(t), report.evidence, report) }, 0, 'designer');
+  if (why.length) {
+    await setTask(ctx, t, { designerReview: { verdict: 'accept', comment, by, at: Date.now(), why } }, { type: 'designer_recommends', who: by, comment });
+    await logExecution(ctx, key, 'review', t.id, { what: 'recommends accepting — waits for the author: ' + why.join(', ') });
+    return { ok: true, status: 'review', recommended: true, waits_for_author_because: why.map((w) => AUTO_WHY[w] || w), message: 'Not closed: your recommendation is on the task; the author accepts it with one click.' };
+  }
+  await closeTask(ctx, t, { closedBy: 'designer', reviewComment: comment, designerReview: { verdict: 'accept', comment, by, at: Date.now() } }, { type: 'accepted', by: 'designer', who: by, comment });
+  await logExecution(ctx, key, 'review', t.id, { what: 'accepted' + (comment ? ': ' + comment.slice(0, 200) : '') });
+  return { ok: true, status: 'done', closed_by: 'designer', message: 'Accepted and closed (counted in the author\'s weekly summary «закрито без тебе»).' };
+}
 // ⚠ v2.154 a programmer's design change (card-drift.js devDrift) is settled by the game designer first — never by the programmer itself
 async function resolveDivergence(ctx, key, args) {
   if (AC.roleOf(key) !== 'designer') throw rpcError(-32602, 'Only a game-designer key settles a divergence — the programmer cannot approve its own design change. The author settles it in the Game Bible.');
@@ -619,6 +675,8 @@ function taskView(ctx, t) {
     ...(t.epic ? { epic: epicOf(ctx, t) } : {}),
     ...(t.verify ? { verify: true, verify_rule: 'The plan is not sure this is NOT built yet. First check the game (code, scenes, commits): call verify_task with state done (it is there — with the evidence), partial (say what is missing) or todo (not there). Build it only after that, if it is todo / partial.' } : {}),
     ...(t.partial ? { partial: true } : {}),
+    type: TT.typeOf(t), proof_needed: TT.TYPES[TT.typeOf(t)].needs.map((k) => TT.EVIDENCE[k].arg),
+    ...(t.closedBy ? { closed_by: t.closedBy } : {}), ...(t.designerReview ? { designer_review: t.designerReview } : {}),
     ...((t.cardChanged || []).length ? { card_changed: t.cardChanged.map((x) => ({ ref: x.ref, fields: x.keys })), card_changed_rule: 'The author or the game designer changed these cards while this task is open: get_card them again and build what they say NOW before submit_task_result.' } : {}),
     ...(t.kind === 'author' ? { kind: 'author', author: { words: t.words || '', numbers: t.numbers || '', source: t.source || 'chat', message_id: (t.decision || {}).message || '' } } : {}),
     ...(isBug(t) ? { kind: 'bug', bug: { severity: t.severity || 's3', repro: t.repro || '', expected: t.expected || '', actual: t.actual || '', build: t.build || '', found_in: t.foundIn || '' } } : {}),
@@ -1697,6 +1755,7 @@ async function callTool(name, args, key) {
     case 'record_author_instruction': return recordAuthorInstruction(ctx, key, args);
     case 'verify_task': return verifyTask(ctx, key, args);
     case 'resolve_divergence': return resolveDivergence(ctx, key, args);
+    case 'review_task': return designerReview(ctx, key, args);
     case 'record_author_decision': return recordAuthorDecision(ctx, key, args);
     case 'submit_task_result': {
       const t = findTask(ctx, args.task_id);
@@ -1713,14 +1772,21 @@ async function callTool(name, args, key) {
       const unmet = (t.accept || []).filter((a) => !report.criteria.some((c) => c.met && c.criterion.toLowerCase().includes(a.toLowerCase().slice(0, 40))));
       report.cards = cardsLag(ctx, t, args); // ✋ v2.153: the cards must show what the game does
       report.check = { allCriteriaMet: !unmet.length && report.criteria.every((c) => c.met), unmet, testsGreen: !report.tests.ran || report.tests.failed === 0, cardsSynced: !report.cards.stale.length };
-      await setTask(ctx, t, { status: 'review', report, blocker: admin.firestore.FieldValue.delete(), cardChanged: admin.firestore.FieldValue.delete() }, { type: 'submitted', summary: report.summary.slice(0, 300) });
+      // ✅ v2.155 (the game-designer agent: «сама, з трьома запобіжниками»): the proof of the type; a task closes itself only with it
+      const openQs = list(args.open_questions, 5, (q) => str(q, 1500));
+      report.evidence = TT.clean(args.evidence);
+      report.proof = TT.check(TT.typeOf(t), report.evidence, report);
+      const why = autoBlock(ctx, t, report, openQs.length);
+      report.auto = { closed: !why.length, why };
+      if (!why.length) await closeTask(ctx, t, { closedBy: 'auto', report }, { type: 'auto_closed', by: 'auto', proof: report.proof.have.join(', '), summary: report.summary.slice(0, 300) });
+      else await setTask(ctx, t, { status: 'review', report, blocker: admin.firestore.FieldValue.delete(), cardChanged: admin.firestore.FieldValue.delete() }, { type: 'submitted', summary: report.summary.slice(0, 300) });
       await logExecution(ctx, key, 'submitted', t.id, { summary: report.summary.slice(0, 300) });
       // v2.149.3: questions left open at hand-in — each a question in «💬 Агенти» (owner audit: «завершує задачу з невирішеними питаннями»)
-      const openQs = list(args.open_questions, 5, (q) => str(q, 1500));
       const asked = [];
       for (const q of openQs) asked.push(await askAuthor(ctx, key, t, 'Задача ' + t.id + ' здана, але лишилось питання: ' + q));
       const lag = report.cards.stale.length ? ' Cards lagging behind the game: ' + report.cards.stale.join(', ') + ' — update them with save_card now (the author cannot close the task while they lag), or hand in again with cards_unchanged + why.' : '';
-      return { ok: true, status: 'review', check: report.check, ...(report.cards.stale.length ? { cards_lagging: report.cards.stale } : {}), ...(asked.length ? { questions: asked } : {}), message: 'Handed in for the author\'s review.' + lag + (asked.length ? ' Open questions sent to the author (' + asked.map((q) => q.delivered).join(', ') + ').' : '') + ' Call get_next_task for the next one.' };
+      if (!why.length) return { ok: true, status: 'done', closed_by: 'auto', proof: report.proof, message: 'Closed: the proof of a ' + report.proof.type + ' task is complete and every safeguard passed. Take the next task (get_next_task).' };
+      return { ok: true, status: 'review', check: report.check, proof: report.proof, not_closed_because: why.map((w) => AUTO_WHY[w] || w), ...(report.cards.stale.length ? { cards_lagging: report.cards.stale } : {}), ...(asked.length ? { questions: asked } : {}), message: 'Handed in for the author\'s review.' + lag + (asked.length ? ' Open questions sent to the author (' + asked.map((q) => q.delivered).join(', ') + ').' : '') + ' Call get_next_task for the next one.' };
     }
     case 'get_world_generation_spec': {
       const byKind = {};
@@ -1912,6 +1978,7 @@ async function agentPost(ctx, key, args, parentId) {
   const ref = AGM(ctx).doc();
   const opts = type === 'question' ? AC.cleanOptions(args.options) : [];
   const m = { type, text, refs: AC.cleanRefs(args.refs), thread: thread || ref.id, parent: parent ? parent.id : '', ...(opts.length ? { options: opts } : {}),
+    ...(opts.length && args.recommended !== false ? { recommend: 0, ...(str(args.recommend_why, 1) ? { recWhy: str(args.recommend_why, 300) } : {}) } : {}),
     from: { kind: 'agent', key: key.prefix || '', label: str(key.label, 80), role: AC.roleOf(key) },
     status: 'new', readBy: [key.prefix || ''], at: Date.now(), createdAt: ts(), updatedAt: ts(), ...(type === 'approval_request' ? { approval: { status: 'pending' } } : {}) };
   await ref.set(m);
@@ -2233,4 +2300,4 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   return out ? res.status(200).json(out) : res.status(202).send('');
 });
 
-exports._mcp = { cardsLag, sweepFiles, knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame, handle, HISTORY_MAX, AGENT_PREV_MAX }; // tests only (tests/mcp-knowledge.test.cjs)
+exports._mcp = { cardsLag, autoBlock, sweepFiles, knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame, handle, HISTORY_MAX, AGENT_PREV_MAX }; // tests only (tests/mcp-knowledge.test.cjs)

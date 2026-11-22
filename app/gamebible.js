@@ -9815,7 +9815,7 @@
       ? '<div class="setrow">' + (ME.owner && canWrite && m.status !== "closed" ? '<button class="btn primary" data-agok="' + esc(m.id) + '">' + A.approve + '</button><button class="btn danger" data-agno="' + esc(m.id) + '">' + A.reject + '</button>' : '') + '<span class="warn">⚠ ' + A.pending + '</span></div>'
       : '<p class="' + (ap.status === "approved" ? "ok" : "warn") + '">' + (ap.status === "approved" ? A.ok : A.no) + ' · ' + esc(A.via[ap.via] || ap.via || "") + (ap.words ? ' · «' + esc(ap.words) + '»' : '') + (ap.comment ? ' — ' + esc(ap.comment) : '') + '</p>';
     return '<div class="ag-msg ag-' + esc(m.type) + (f.kind === "author" ? ' ag-author' : '') + '"><div class="ag-head"><b>' + who + '</b> <span class="chip">' + esc(A.type[m.type] || m.type) + '</span> <span class="muted">' + esc(agTime(m)) + '</span>' + agTgMark(m) + '</div>' +
-      '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.options || []).length ? '<div class="ag-refs">' + m.options.map(function (o) { return '<span class="chip">' + esc(o) + '</span>'; }).join(" ") + '</div>' : '') + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
+      '<div class="ag-text">' + esc(m.text || "") + '</div>' + ((m.options || []).length ? '<div class="ag-refs">' + m.options.map(function (o, i) { return '<span class="chip' + (m.recommend === i ? ' chip-rec' : '') + '">' + (m.recommend === i ? '⭐ ' : '') + esc(o) + '</span>'; }).join(" ") + (m.recWhy ? ' <span class="muted">' + esc(m.recWhy) + '</span>' : '') + '</div>' : '') + ((m.refs || []).length ? '<div class="ag-refs">' + agRefs(m) + '</div>' : '') + apHtml + '</div>';
   }
   // v2.149.5: where the server sent it (m.tg, written by agents.js notify) — older messages have none
   function agTgMark(m) { // not agTg: that is the Telegram status object (agTgLoad) — the same name broke «💬 Агенти» (owner, iPhone)
@@ -11449,7 +11449,7 @@
       '</div></header>';
     html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
       (busy ? '' : ' <span class="muted">' + STR.costNote + '</span>') + '</p>';
-    if (plan) { loadAgWait(); html += crownHtml(plan); } // 👑 v2.154
+    if (plan) { loadAgWait(); html += weekHtml() + draftHtml() + crownHtml(plan); } // 👑 v2.154 · 📅 ✦ v2.155
     if (oq.length) html += qQueueHtml(oq); // the decisions first: they are what the author does here
 
     if (gdd) {
@@ -11570,8 +11570,10 @@
     return '<div class="q" data-q="' + esc(q.id) + '"><div class="q__top"><span class="pill p-' + cls(q.priority) + '">' + esc(STR.prio[q.priority]) + '</span>' +
       (q.topic ? ' <span class="muted">' + esc(q.topic) + '</span>' : '') + '</div>' +
       '<div class="q__q">' + esc(q.question) + '</div>' + (q.why ? '<div class="muted">' + esc(q.why) + '</div>' : '') +
-      (q.options && q.options.length ? '<div class="row q__opts">' + q.options.map(function (o) { return '<button class="chip" data-opt="' + esc(o) + '">' + esc(o) + '</button>'; }).join("") + '</div>' : '') +
-      '<textarea rows="2" placeholder="' + esc(STR.answerPh) + '"></textarea><div class="row"><button class="btn' + (primary ? ' primary' : '') + '" data-answer>' + STR.answer + '</button></div></div>';
+      (q.options && q.options.length ? '<div class="row q__opts">' + q.options.map(function (o, i) { var r = q.rec && !i; return '<button class="chip' + (r ? ' chip-rec' : '') + '" data-opt="' + esc(o) + '">' + (r ? '⭐ ' : '') + esc(o) + '</button>'; }).join("") + '</div>' : '') +
+      (q.rec && q.options && q.options[0] ? '<div class="muted">' + esc(TB.recStar) + (q.recWhy ? ': ' + esc(q.recWhy) : '') + '</div>' : '') +
+      '<textarea rows="2" placeholder="' + esc(STR.answerPh) + '"></textarea><div class="row">' + (q.rec && q.options && q.options[0] && canWrite ? '<button class="btn primary" data-recyes="' + esc(q.options[0]) + '">' + esc(TB.recYes.replace("{o}", q.options[0])) + '</button>' : '') +
+      '<button class="btn' + (primary && !q.rec ? ' primary' : '') + '" data-answer>' + STR.answer + '</button></div></div>';
   }
 
   function cardName(ref) {
@@ -11668,9 +11670,10 @@
         '<div>' + STR.tests + ': ' + (r.tests && r.tests.ran ? '✓ ' + r.tests.passed + ' · ✗ ' + r.tests.failed : STR.testsNone) + '</div>' +
         ((r.criteria || []).length ? '<ul class="crit">' + r.criteria.map(function (c) { return '<li>' + (c.met ? '✅' : '❌') + ' ' + esc(c.criterion) + (c.evidence ? ' <span class="muted">— ' + esc(c.evidence) + '</span>' : '') + '</li>'; }).join("") + '</ul>' : '') +
         '<div class="muted">' + STR.serverCheck + ': ' + (ck.allCriteriaMet && ck.testsGreen ? '✅ ' + STR.checkOk : '⚠ ' + STR.checkWarn + ((ck.unmet || []).length ? ' (' + esc(ck.unmet.join("; ")) + ')' : '')) + '</div>' +
+        proofHtml(lt) +
         (lag.length ? '<div class="tblock"><b>' + esc(AU.lag) + '</b><div class="cchips">' + lag.map(function (x) { return cardChip(x); }).join("") + '</div><div class="muted">' + esc(AU.lagHint) + '</div></div>' : '') +
         (((r.cards || {}).unchanged || []).length ? '<div class="muted">' + esc(AU.unchanged) + ': ' + r.cards.unchanged.map(function (u) { return esc(u.ref) + ' — ' + esc(u.why); }).join("; ") + '</div>' : '') +
-        (canWrite ? (ck.allCriteriaMet && ck.testsGreen && !lag.length // failed checks or lagging cards: «return» is the primary action, accepting asks once more
+        (canWrite ? ((ck.allCriteriaMet || (lt.designerReview || {}).verdict === "accept") && ck.testsGreen && !lag.length // failed checks or lagging cards: «return» is the primary action, accepting asks once more
           ? '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '">' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>'
           : '<div class="row"><button class="btn primary" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button><button class="btn" data-accept="' + esc(lt.id) + '" data-unchecked="' + (lag.length ? 'lag' : '1') + '">' + STR.accept + '</button></div>') : '') + '</div>';
     }
@@ -11775,7 +11778,7 @@
     var at = isAuthT(lt) ? lt : isAuthT(t) ? t : null, x = lt || t, met = ((x.report || {}).criteria || []).filter(function (c) { return c.met; }).map(function (c) { return String(c.criterion || "").toLowerCase(); });
     var own = ME.owner && canWrite, parkable = lt && ["todo", "rework", "blocked"].indexOf(lt.status) >= 0, parked = lt && (lt.status === "deferred" || lt.status === "dropped");
     return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt || at ? ' t-bug' : '') + '" id="task-' + esc(t.id) + '"><div class="task__h"><b class="sti" title="' + esc(lt ? STR.ts[lt.status] || lt.status : "") + '">' + stIcon(lt) + '</b><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') +
-      (at ? ' <span class="pill s-agreed">' + esc(at.kind === "sync" ? EP.sync : AU.chip) + '</span>' : '') + (x.verify && x.status === "todo" ? ' <span class="pill s-idea" title="' + esc(EP.verifyT) + '">' + esc(EP.verify) + '</span>' : '') + (x.partial ? ' <span class="pill s-idea">' + esc(EP.partial) + '</span>' : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
+      typeChip(x) + (at ? ' <span class="pill s-agreed">' + esc(at.kind === "sync" ? EP.sync : AU.chip) + '</span>' : '') + (x.verify && x.status === "todo" ? ' <span class="pill s-idea" title="' + esc(EP.verifyT) + '">' + esc(EP.verify) + '</span>' : '') + (x.partial ? ' <span class="pill s-idea">' + esc(EP.partial) + '</span>' : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
       (lt ? ' <span class="pill tst-' + cls(lt.status) + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
       (t.priority ? ' <span class="pill pr-' + cls(t.priority) + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
@@ -11939,7 +11942,81 @@
       cReview: "in review: {n}", cBlocked: "blocked: {n}", cGate: "gate {g} is ready to approve", cQs: "plan questions: {n}", cCr: "change requests: {n}", cAgents: "agents' questions: {n}",
       bans: "The plan's bans", bansHint: "Your decisions «postponed / not doing / removed». The planner never writes a task against them; Claude Code sees them in get_project_overview.", banAdd: "＋ Ban", banKind: "What it is",
       kind: { deferred: "‖ postponed", never: "✕ not doing", removed: "🗑 removed from the game" }, banRm: "Lift", via: { chat: "in the chat with the agent", bible: "in the Bible" } } }[LANG === "en" ? "en" : "uk"];
-  var epicOpen = {}, agWait = { n: 0, at: 0 };
+  var epicOpen = {}, agWait = { n: 0, at: 0 }, planDraft = null, draftBusy = false;
+  // ✅ v2.155 tasks close themselves with proof (functions/task-types.js, mcp.js autoBlock), ✓ an agreed epic, ✦ a replan as a proposal, 📅 the week, ⭐ the recommendation
+  var TB = { uk: { proof: "Доказ · {t}", needs: "Закривається з доказом", closedAuto: "🤖 закрилась сама з доказом", closedDes: "🎲 прийняв геймдизайнер",
+      notAuto: "Не закрилась сама: {w}", desRec: "🎲 Геймдизайнер радить прийняти", desWhy: "чекає тебе: {w}", evAll: "Доказ повністю", evPlay: "Плейтест", evCons: "Помилок у консолі", evLic: "Ліцензія",
+      why: { off: "автозакриття вимкнено", proof: "доказ неповний", check: "не всі критерії чи тести", cards: "картки відстають від гри", questions: "лишились питання до тебе", divergence: "розбіжність на картці", epic: "правило поза погодженим епіком" },
+      epicOk: "✓ Погодити епік", epicAgreed: "✓ погоджено", epicUnOk: "Зняти погодження", epicOkT: "Погоджений епік: його задачі-механіки й баланс закриваються самі, коли Claude Code дає повний доказ. Без погодження такі задачі чекають геймдизайнера або тебе.",
+      auto: "🤖 Закриваються самі з доказом", autoOn: "так", autoOff: "ні — усе через тебе", autoT: "Задача закривається без тебе лише з доказом свого типу (механіка — плейтест без помилок у консолі; баланс — прогін ботів із цифрами; інтерфейс — знімок екрана й перевірка; контент — ліцензія власна чи CC0; технічне — тести), коли всі критерії й тести пройдено, картки оновлено, розбіжностей немає, а правила гри — лише в погодженому епіку. Скільки закрилось без тебе — у тижневому підсумку.",
+      draftT: "✦ Новий план — пропозиція", draftHint: "Поточний план не змінено. Скажи «так» — і задачі оновляться; почате, зроблене, баги, твої вказівки й ↻ не чіпаються.",
+      draftAdd: "＋ нових задач: {n}", draftDone: "уже зроблено: {n}", draftVerify: "звірити з грою: {n}", draftDrop: "− прибираються незапочатковані: {n}", draftKeep: "лишаються як є: {n}",
+      draftMs: "нові етапи: {l}", draftGone: "зникають етапи: {l}", draftYes: "✓ Так, застосувати", draftNo: "✕ Відхилити", draftBusy: "Застосовую…", draftDone2: "Новий план застосовано", draftDropped: "Пропозицію відхилено",
+      week: "📅 Тиждень: закрито {c}", weekAuto: " (без тебе: {n})", weekNew: " · нових задач: {n}", weekMs: " · {m} — {p}%",
+      recYes: "✓ Так, як радить: «{o}»", recStar: "⭐ радить ШІ" },
+    en: { proof: "Proof · {t}", needs: "Closes with the proof", closedAuto: "🤖 closed itself with proof", closedDes: "🎲 accepted by the game designer",
+      notAuto: "Did not close itself: {w}", desRec: "🎲 The game designer recommends accepting", desWhy: "waits for you: {w}", evAll: "The whole proof", evPlay: "Playtest", evCons: "Console errors", evLic: "Licence",
+      why: { off: "automatic closing is off", proof: "the proof is incomplete", check: "not every criterion or test", cards: "cards lag behind the game", questions: "questions for you are open", divergence: "a divergence on a card", epic: "a rule outside an agreed epic" },
+      epicOk: "✓ Agree the epic", epicAgreed: "✓ agreed", epicUnOk: "Withdraw the agreement", epicOkT: "An agreed epic: its mechanic and balance tasks close themselves when Claude Code gives the full proof. Without the agreement such tasks wait for the game designer or you.",
+      auto: "🤖 Close themselves with proof", autoOn: "yes", autoOff: "no — everything through you", autoT: "A task closes without you only with the proof of its type (mechanic — a playtest with no console errors; balance — a bot run with the numbers; interface — a screenshot and the check; content — own or CC0 licence; technical — tests), when every criterion and test passed, the cards are updated, no divergence waits, and game rules only in an agreed epic. How many closed without you — in the weekly summary.",
+      draftT: "✦ A new plan — a proposal", draftHint: "The current plan is unchanged. Say «yes» and the tasks update; what is started or done, bugs, your instructions and ↻ are not touched.",
+      draftAdd: "＋ new tasks: {n}", draftDone: "already done: {n}", draftVerify: "to check against the game: {n}", draftDrop: "− unstarted tasks removed: {n}", draftKeep: "kept as they are: {n}",
+      draftMs: "new milestones: {l}", draftGone: "milestones gone: {l}", draftYes: "✓ Yes, apply", draftNo: "✕ Reject", draftBusy: "Applying…", draftDone2: "The new plan is applied", draftDropped: "The proposal is rejected",
+      week: "📅 The week: closed {c}", weekAuto: " (without you: {n})", weekNew: " · new tasks: {n}", weekMs: " · {m} — {p}%",
+      recYes: "✓ Yes, as recommended: «{o}»", recStar: "⭐ the AI recommends" } }[LANG === "en" ? "en" : "uk"];
+  function TTp() { return window.__TASK_TYPES; }
+  function typeChip(x) {
+    var T = TTp(); if (!T || !x || isBugT(x)) return "";
+    var k = T.typeOf(x), d = T.TYPES[k];
+    return ' <span class="pill s-idea" title="' + esc(TB.needs + ": " + d.needs.map(function (n) { return T.label(n, LANG); }).join(" + ")) + '">' + d.icon + ' ' + esc(T.label(k, LANG)) + '</span>' +
+      (x.status === "done" && x.closedBy ? ' <span class="pill s-agreed">' + esc(x.closedBy === "auto" ? TB.closedAuto : TB.closedDes) + '</span>' : '');
+  }
+  function whyText(list) { return (list || []).map(function (w) { return TB.why[w] || w; }).join(", "); }
+  function proofHtml(lt) {
+    var T = TTp(), r = lt.report || {}, ev = r.evidence || {}; if (!T) return "";
+    var pr = T.check(T.typeOf(lt), ev, r), bits = [];
+    var h = '<div><b>' + esc(TB.proof.replace("{t}", T.label(pr.type, LANG))) + ':</b> ' + pr.have.map(function (k) { return '✅ ' + esc(T.label(k, LANG)); }).concat(pr.missing.map(function (k) { return '❌ ' + esc(T.label(k, LANG)); })).join(" · ") + '</div>';
+    if (ev.playtest) bits.push(esc(TB.evPlay) + ': ' + esc(ev.playtest));
+    if (ev.console_errors != null) bits.push(esc(TB.evCons) + ': ' + ev.console_errors);
+    if (ev.numbers) bits.push('<pre>' + esc(ev.numbers) + '</pre>');
+    if (ev.ui_check) bits.push(esc(ev.ui_check));
+    if (ev.licence) bits.push(esc(TB.evLic) + ': ' + esc(ev.licence) + (ev.licence_note ? ' — ' + esc(ev.licence_note) : ''));
+    if (/^https?:\/\//.test(ev.screenshot || "")) bits.push('<a href="' + esc(ev.screenshot) + '" target="_blank" rel="noopener"><img class="proofimg" src="' + esc(ev.screenshot) + '" alt=""></a>');
+    if (bits.length) h += '<details><summary>' + esc(TB.evAll) + '</summary><div class="muted">' + bits.join("<br>") + '</div></details>';
+    if (((r.auto || {}).why || []).length) h += '<div class="muted">' + esc(TB.notAuto.replace("{w}", whyText(r.auto.why))) + '</div>';
+    var dr = lt.designerReview;
+    if (dr && dr.verdict === "accept") h += '<div class="tblock"><b>' + esc(TB.desRec) + '</b>' + (dr.comment ? ': ' + esc(dr.comment) : '') + ((dr.why || []).length ? ' <span class="muted">(' + esc(TB.desWhy.replace("{w}", whyText(dr.why))) + ')</span>' : '') + '</div>';
+    return h;
+  }
+  function epicOkHtml(g) {
+    if (g.derived) return "";
+    var own = ME.owner && canWrite;
+    if ((planDoc.epicsOk || {})[g.id]) return ' <span class="pill s-agreed" title="' + esc(TB.epicOkT) + '">' + esc(TB.epicAgreed) + '</span>' + (own ? '<button type="button" class="btn ghost mini" data-epicok="' + esc(g.id) + '" data-off="1" title="' + esc(TB.epicUnOk) + '">↺</button>' : '');
+    return own ? ' <button type="button" class="btn ghost mini" data-epicok="' + esc(g.id) + '" title="' + esc(TB.epicOkT) + '">' + esc(TB.epicOk) + '</button>' : '';
+  }
+  function weekHtml() {
+    var w = planDoc.weekly; if (!w || Date.now() - (w.at || 0) > 8 * 864e5) return "";
+    return '<p class="pweek">' + esc(TB.week.replace("{c}", w.closed) + (w.auto + w.designer ? TB.weekAuto.replace("{n}", w.auto + w.designer) : "") + (w.created ? TB.weekNew.replace("{n}", w.created) : "") + (w.ms ? TB.weekMs.replace("{m}", w.ms.id).replace("{p}", w.ms.pct) : "")) + '</p>';
+  }
+  function draftHtml() {
+    var d = planDraft && planDraft.diff; if (!d) return "";
+    var add = d.add || [], dn = add.filter(function (x) { return x.st === "done"; }).length, vf = add.filter(function (x) { return x.st === "verify"; }).length;
+    var li = function (x) { return '<li><b>' + esc(x.id) + '</b> ' + esc(x.title) + (x.st === "done" ? ' ✓' : x.st === "verify" ? ' ?' : x.st === "partial" ? ' ◐' : '') + '</li>'; };
+    var own = ME.owner && canWrite;
+    return '<section class="pdraft" id="p-draft"><h3>' + esc(TB.draftT) + '</h3><p class="muted">' + esc(TB.draftHint) + '</p><ul class="pdraft__sum">' +
+      '<li>' + esc(TB.draftAdd.replace("{n}", add.length)) + (dn || vf ? ' <span class="muted">(' + esc([dn ? TB.draftDone.replace("{n}", dn) : "", vf ? TB.draftVerify.replace("{n}", vf) : ""].filter(Boolean).join(", ")) + ')</span>' : '') + '</li>' +
+      ((d.drop || []).length ? '<li>' + esc(TB.draftDrop.replace("{n}", d.drop.length)) + '</li>' : '') + '<li>' + esc(TB.draftKeep.replace("{n}", d.keep || 0)) + '</li>' +
+      ((d.msAdd || []).length ? '<li>' + esc(TB.draftMs.replace("{l}", d.msAdd.join(", "))) + '</li>' : '') + ((d.msGone || []).length ? '<li>' + esc(TB.draftGone.replace("{l}", d.msGone.join(", "))) + '</li>' : '') + '</ul>' +
+      (add.length ? '<details><summary>' + esc(TB.draftAdd.replace("{n}", add.length)) + '</summary><ul>' + add.map(li).join("") + '</ul></details>' : '') +
+      ((d.drop || []).length ? '<details><summary>' + esc(TB.draftDrop.replace("{n}", d.drop.length)) + '</summary><ul>' + d.drop.map(li).join("") + '</ul></details>' : '') +
+      (own ? '<div class="row"><button type="button" class="btn primary" data-draft="apply"' + (draftBusy ? ' disabled' : '') + '>' + esc(draftBusy ? TB.draftBusy : TB.draftYes) + '</button><button type="button" class="btn" data-draft="drop"' + (draftBusy ? ' disabled' : '') + '>' + esc(TB.draftNo) + '</button></div>' : '') + '</section>';
+  }
+  async function draftAct(apply) {
+    draftBusy = true; render();
+    try { await callFn({ op: apply ? "applyDraft" : "dropDraft" }); planMsg = apply ? TB.draftDone2 : TB.draftDropped; }
+    catch (er) { planMsg = STR.failed + ": " + er.message; }
+    draftBusy = false; render();
+  }
   // ⚠ v2.154 a design change made by the programmer key on its own (functions/src/card-drift.js devDrift): the author accepts it or puts the card back
   var DD = { uk: { t: "⚠ Розбіжність GDD ↔ гра", row: "{by} змінив «{k}»: {f} → {to}", task: "під час {t}", ok: "Прийняти", back: "Повернути як було", list: "Розбіжності GDD ↔ гра", hint: "Claude Code-програміст змінив у картках дизайн (числа, правила) сам, без твоєї вказівки. Спершу їх розбирає геймдизайнер (resolve_divergence) і питає тебе лише про те, що змінює дизайн. «Прийняти» — так і лишається; «Повернути» — картка знову як була, а гру приведе до неї задача «↻».", crown: "розбіжності: {n}", changed: "⚠ Картку змінено, поки задача в роботі: {k} — Claude Code звірить перед здачею", byAuthor: "за твоєю вказівкою {t} — геймдизайнер доведе текст картки" },
     en: { t: "⚠ GDD ↔ game divergence", row: "{by} changed «{k}»: {f} → {to}", task: "during {t}", ok: "Accept", back: "Put it back", list: "GDD ↔ game divergences", hint: "The Claude Code programmer changed the design in cards (numbers, rules) on its own, without your instruction. The game designer goes through them first (resolve_divergence) and asks you only about what changes the design. «Accept» — it stays; «Put it back» — the card is as it was, and a «↻» task brings the game back to it.", crown: "divergences: {n}", changed: "⚠ The card changed while the task is in work: {k} — Claude Code checks it before handing in", byAuthor: "on your instruction {t} — the game designer tidies the card text" } }[LANG === "en" ? "en" : "uk"];
@@ -11967,7 +12044,11 @@
     var s = lt.status;
     return s === "done" ? "✓" : s === "deferred" ? "‖" : s === "dropped" ? "✕" : s === "in_progress" || s === "review" ? "●" : (s === "todo" || s === "rework") && depsWait(lt).length ? "!" : s === "blocked" ? "!" : "○";
   }
-  function legendHtml() { return '<p class="plegend muted">' + EP.legend.map(function (x) { return '<span><b class="sti">' + x[0] + '</b> ' + esc(x[1]) + '</span>'; }).join("") + '</p>'; }
+  function legendHtml() {
+    var off = planDoc.autoClose === false, sw = esc(TB.auto) + ': ' + esc(off ? TB.autoOff : TB.autoOn);
+    return '<p class="plegend muted">' + EP.legend.map(function (x) { return '<span><b class="sti">' + x[0] + '</b> ' + esc(x[1]) + '</span>'; }).join("") +
+      (ME.owner && canWrite ? '<button type="button" class="btn ghost mini" data-autoclose title="' + esc(TB.autoT) + '">' + sw + '</button>' : '<span title="' + esc(TB.autoT) + '">' + sw + '</span>') + '</p>';
+  }
   // the epic of a task: its own (the plan's), else the feature card it implements, else «Інше»
   function epicKey(m, t) {
     var lt = liveTask(t.id) || t, e = lt.epic || t.epic, ids = (m.epics || []).map(function (x) { return x.id; });
@@ -11999,7 +12080,7 @@
     var open = epicOpen[g.id] != null ? epicOpen[g.id] : active || (!!next && done < counted.length && !parked);
     var ownOpen = live.filter(function (x) { return ["todo", "rework", "blocked"].indexOf(x.status) >= 0; }).map(function (x) { return x.id; });
     return '<details class="epic' + (parked ? ' epic-parked' : done === counted.length && counted.length ? ' epic-done' : '') + '" data-epic="' + esc(g.id) + '"' + (open ? ' open' : '') + '><summary class="epic__h">' +
-      '<b class="epic__t">' + esc(g.title) + '</b><span class="epic__bar"><i style="width:' + pct + '%"></i></span><span class="muted">' + done + '/' + counted.length + '</span>' +
+      '<b class="epic__t">' + esc(g.title) + '</b><span class="epic__bar"><i style="width:' + pct + '%"></i></span><span class="muted">' + done + '/' + counted.length + '</span>' + epicOkHtml(g) +
       (next ? ' <span class="epic__next">▶ ' + esc(EP.next) + ': <a href="#task-' + esc(next.id) + '" data-goto="' + esc(next.id) + '">' + esc(next.id) + '</a></span>' : '') +
       outer.map(function (d) { return ' <a class="epic__wait" href="#task-' + esc(d) + '" data-goto="' + esc(d) + '" title="' + esc(EP.goto) + '">⛓ ' + esc(EP.waits) + ' ' + esc(d) + '</a>'; }).join("") + '</summary>' +
       '<div class="epic__b">' + (g.goal ? '<p class="muted">' + esc(g.goal) + '</p>' : '') + (g.card ? '<div class="cchips">' + cardChip(g.card) + '</div>' : '') +
@@ -12015,7 +12096,7 @@
     if (bl.length) items.push('<a href="#task-' + esc(bl[0].id) + '" data-goto="' + esc(bl[0].id) + '">' + esc(EP.cBlocked.replace("{n}", bl.length)) + '</a>');
     var oq = openQs(); if (oq.length) items.push('<span>' + esc(EP.cQs.replace("{n}", oq.length)) + '</span>');
     var crs = changeReqs.filter(function (c) { return c.status === "open"; }); if (crs.length) items.push('<span>' + esc(EP.cCr.replace("{n}", crs.length)) + '</span>');
-    var dc = driftCards().reduce(function (n, c) { return n + c.devDrift.filter(function (x) { return !x.author && Date.now() - (x.at || 0) > 864e5; }).length; }, 0); // the designer settles first: the crown shows only what waited over a day if (dc) items.push('<a href="#p-drift">' + esc(DD.crown.replace("{n}", dc)) + '</a>');
+    var dc = driftCards().reduce(function (n, c) { return n + c.devDrift.filter(function (x) { return !x.author && Date.now() - (x.at || 0) > 864e5; }).length; }, 0); if (dc) items.push('<a href="#p-drift">' + esc(DD.crown.replace("{n}", dc)) + '</a>'); // the designer settles first: the crown shows only what waited over a day
     if (agWait.n) items.push('<button type="button" class="btn ghost mini" data-gosec="agents">' + esc(EP.cAgents.replace("{n}", agWait.n)) + ' →</button>');
     if (plan && plan.gated) (plan.milestones || []).forEach(function (m) {
       if (!m.track || msLock(plan, m) || gateOf(m).status === "approved") return;
@@ -12573,6 +12654,8 @@
     if (cau) { confirmCost("canonAudit", runCanonAudit); return; }
     if (e.target.closest("[data-qskip]")) { qqIdx++; render(); return; }
     if (e.target.closest("[data-qall]")) { qqAll = !qqAll; render(); var pq = $("p-queue"); if (pq) pq.scrollIntoView({ block: "start" }); return; }
+    var rcy = e.target.closest("[data-recyes]");
+    if (rcy) { rcy.disabled = true; answerQuestion(rcy.closest(".q").dataset.q, rcy.dataset.recyes).catch(function (er) { rcy.disabled = false; planMsg = er.message; render(); }); return; }
     var ans = e.target.closest("[data-answer]");
     if (ans) { var q = ans.closest(".q"), at = q.querySelector("textarea"); if (!at.value.trim()) { at.focus(); return; } // empty: nothing to send, the button stays usable
       ans.disabled = true; answerQuestion(q.dataset.q, at.value.trim()).catch(function (er) { ans.disabled = false; planMsg = er.message; render(); }); return; }
@@ -12585,6 +12668,10 @@
     // 🌳 v2.154 the plan tree: ⛓ / ▶ jump to a task (its epic opens), ‖ ✕ park, ↺ back, the bans
     var gto = e.target.closest("[data-goto]"); if (gto) { e.preventDefault(); var tid = gto.dataset.goto, tl = liveTask(tid), tm = tl && ((planDoc.plan || {}).milestones || []).filter(function (m) { return m.id === tl.milestone; })[0];
       if (tm) epicOpen[epicKey(tm, tl)] = true; if (planTab !== "plan") planTab = "plan"; render(); var tel = $("task-" + tid); if (tel) { tel.scrollIntoView({ block: "center" }); edFlash(tel); } return; }
+    var eo = e.target.closest("[data-epicok]"); if (eo) { e.preventDefault(); var eu = {}; eu[eo.dataset.epicok] = eo.dataset.off ? firebase.firestore.FieldValue.delete() : { at: Date.now(), by: myUid() };
+      gref().collection("plan").doc("current").set({ epicsOk: eu }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    if (e.target.closest("[data-autoclose]")) { gref().collection("plan").doc("current").set({ autoClose: planDoc.autoClose === false }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    var dra = e.target.closest("[data-draft]"); if (dra) { if (!draftBusy) draftAct(dra.dataset.draft === "apply"); return; }
     var epc = e.target.closest("summary.epic__h"); if (epc && !e.target.closest("a")) { var ed = epc.parentNode; epicOpen[ed.dataset.epic] = !ed.open; return; }
     var ddo = e.target.closest("[data-ddok],[data-ddback]"); if (ddo) { ddo.disabled = true; settleDrift(ddo.dataset.ddok || ddo.dataset.ddback, !!ddo.dataset.ddback); return; }
     var pk = e.target.closest("[data-park]"); if (pk) { parkTasks(pk.dataset.park.split(","), pk.dataset.kind, pk.dataset.title); return; }
@@ -13205,7 +13292,7 @@
     unsub.forEach(function (u) { u(); }); unsub = []; lazyStreams = []; lazyDone = {};
     if (gameId !== id) planMsg = ""; // the plan's message was the other game's
     gameId = id; game =games.filter(function (g) { return g.id === id; })[0] || null;
-    cards = []; archCards = []; planDoc = {}; imp = null; closeLeaf(); ovPending = null;
+    cards = []; archCards = []; planDoc = {}; planDraft = null; imp = null; closeLeaf(); ovPending = null;
     if (!gameSections().some(function (s) { return s.id === section; }) && section !== "settings") section = "overview";
     var bySec = {}, cardsIn = function (key) { return function (snap) {
       bySec[key] = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
@@ -13221,7 +13308,8 @@
     });
     migrateCanonOptIn(game).then(function () { return migrateCast(game); }).catch(function () {});
     var may = function (id, on) { if (mayRead(id)) on(); }; // a member's streams: only the sections they may read
-    may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; snapRender(); }, function () {})); });
+    may("plan", function () { unsub.push(gref().collection("plan").doc("current").onSnapshot(function (d) { planDoc = d.data() || {}; snapRender(); }, function () {}));
+      unsub.push(gref().collection("plan").doc("draft").onSnapshot(function (d) { planDraft = d.exists ? d.data() : null; snapRender(); }, function () {})); }); // ✦ v2.155 a replan as a proposal
     tasks = []; changeReqs = []; execs = []; keys = []; newKey = null; lnAllMsg = "";
     var rows = function (snap) { return snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); };
     may("plan", function () {

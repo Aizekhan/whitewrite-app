@@ -33,6 +33,7 @@ const { personaText, lookText } = require('../persona.js');
 const { modelFor, withFallback, wellFormed } = require('./claude');
 const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
 const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages, what goes where
+const TT = require('../task-types.js'); // ✅ v2.155 a task's type → the proof it closes with
 const DESIGN = require('../design-checks.js'); // 🏛 🪜 ⚠ pillars, the learning ladder, the riskiest assumption (v2.144)
 // outbound calls time out: a hanging remote must not hold the function until its own timeout
 const fetch = (url, o = {}) => globalThis.fetch(url, { signal: AbortSignal.timeout(20000), ...o });
@@ -152,12 +153,19 @@ function bibleText(world, entities, cards, game, shelves, lore) {
   return lines.join('\n').slice(0, MAX_BIBLE_CHARS);
 }
 
+// ⭐ v2.155 (the game-designer agent: «варіанти з рекомендацією першою»): the option the AI recommends goes first → rec: true; the author can
+// answer with one «так» (the Bible's «✓ Так, як радить»)
+function recFirst(options, rec, why) {
+  const low = rec.toLowerCase(), i = rec ? options.findIndex((o) => o.toLowerCase() === low || o.toLowerCase().includes(low) || low.includes(o.toLowerCase())) : -1;
+  if (i < 0) return { options };
+  return { options: [options[i]].concat(options.filter((_, k) => k !== i)), rec: true, ...(why ? { recWhy: why } : {}) };
+}
 const cleanQuestion = (q, i) => (q && str(q.question, 600) ? {
   id: 'q_' + Date.now().toString(36) + '_' + i,
   topic: str(q.topic, 80),
   question: str(q.question, 600),
   why: str(q.why, 400),
-  options: list(q.options, 5, (o) => str(o, 200) || null),
+  ...recFirst(list(q.options, 5, (o) => str(o, 200) || null), str(q.recommend, 200), str(q.recommend_why, 300)), // ⭐ v2.155 the recommended option first
   priority: oneOf(q.priority, ['blocker', 'important', 'nice'], 'important'),
   target: q.target && str(q.target.card, 80) ? { card: str(q.target.card, 80), field: str(q.target.field, 80) } : null,
 } : null);
@@ -265,6 +273,7 @@ function cleanPlan(p) {
           accept: list(t.accept, 8, (a) => str(a, 300) || null),
           tests: list(t.tests, 6, (a) => str(a, 300) || null),
           epic: str(t.epic, 16), state: oneOf(t.state, TASK_STATES, 'todo'), // 🌳 v2.154: the epic; the inventory state on a game with history
+          type: TT.TYPES[t.type] ? t.type : TT.typeOf({ owner: t.owner }), // ✅ v2.155 the proof it closes with
         };
       }),
     } : null)),
@@ -314,7 +323,7 @@ async function inBatches(ops) { // ops: (batch) => void, each one write
 // keeps its id: a new task with that id that is the same task (titleSim ≥ SIMILAR) is shown as the kept one in the plan, a different task
 // gets the next free number of its milestone; a kept task the new plan does not list is added to its milestone, or — its milestone gone —
 // to a carried milestone (no track: no gate locks it). Changes plan.milestones in place; → { writes: [{ id, data }], drop: [ids] }.
-const TASK_KEYS = ['title', 'detail', 'deps', 'size', 'owner', 'priority', 'assetState', 'estimate', 'prompt', 'cards', 'roles', 'accept', 'tests', 'epic'];
+const TASK_KEYS = ['title', 'detail', 'deps', 'size', 'owner', 'priority', 'assetState', 'estimate', 'prompt', 'cards', 'roles', 'accept', 'tests', 'epic', 'type'];
 // 🌳 v2.154 the inventory (owner: «без інвентаризації дерево заповниться неправдивими статусами»): on a game with history the plan marks
 // every new task — done (the evidence shows it built) → status done; partial → todo, partial; verify (unclear) → todo, verify: Claude Code checks it
 const TASK_STATES = ['todo', 'partial', 'done', 'verify'];
@@ -399,6 +408,33 @@ async function writeTasks(gameRef, plan, writePlan, prevPlan) {
   await inBatches(r.patches.map((p) => (b) => b.set(col.doc(p.id), p.data, { merge: true })));
   if (writePlan) await writePlan();
   await inBatches(r.drop.map((id) => (b) => b.delete(col.doc(id))));
+}
+// ✓ v2.155 (the game-designer agent: «перегенерація — як diff, автор каже одне «так»»): once a plan has tasks the author or Claude Code worked
+// on, ✦ План writes plan/draft { plan, scaffold, at, diff } and changes nothing; applyDraft runs the same writeTasks then (on the tasks as they
+// are at that moment — what started meanwhile is kept by reconcileTasks), dropDraft forgets it
+const hasPlanWork = (prevPlan, old) => !!(prevPlan && (prevPlan.milestones || []).length) && old.some((t) => !KEEP_KINDS.includes(t.kind) && t.status !== 'todo');
+function planDiff(plan, old, prevPlan) {
+  const r = reconcileTasks(JSON.parse(JSON.stringify(plan)), old, prevPlan), byId = new Map(old.map((t) => [t.id, t]));
+  const msOld = ((prevPlan && prevPlan.milestones) || []).map((m) => m.name || m.id), msNew = (plan.milestones || []).map((m) => m.name || m.id);
+  return {
+    add: r.writes.slice(0, 200).map((w) => ({ id: w.id, title: str(w.data.title, 160), ms: w.data.milestone, st: w.data.status === 'done' ? 'done' : w.data.verify ? 'verify' : w.data.partial ? 'partial' : 'todo' })),
+    drop: r.drop.slice(0, 200).map((id) => ({ id, title: str((byId.get(id) || {}).title, 160) })),
+    keep: old.length - r.drop.length, msAdd: msNew.filter((n) => !msOld.includes(n)).slice(0, 20), msGone: msOld.filter((n) => !msNew.includes(n)).slice(0, 20),
+  };
+}
+async function applyDraft(uid, worldId, gameId, drop) {
+  const fail = (s, m) => Object.assign(new Error(m), { httpStatus: s });
+  const worldRef = db.collection('worlds').doc(worldId), gameRef = worldRef.collection('games').doc(gameId);
+  const [w, g, d, cur] = await Promise.all([worldRef.get(), gameRef.get(), gameRef.collection('plan').doc('draft').get(), gameRef.collection('plan').doc('current').get()]);
+  if (!w.exists || w.data().owner !== uid || !g.exists) throw fail(403, 'Гру не знайдено або немає доступу');
+  if (w.data().freeze) throw fail(423, 'Світ заморожено (Маркет): зміни недоступні');
+  if (!d.exists) throw fail(404, 'Нової пропозиції плану немає');
+  if (drop) { await d.ref.delete(); return { success: true, dropped: true }; }
+  const x = d.data(), prev = cur.exists ? cur.data() : {};
+  await writeTasks(gameRef, x.plan, () => gameRef.collection('plan').doc('current').set({ plan: x.plan, scaffold: x.scaffold || null, plannedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true }), prev.plan);
+  await d.ref.delete();
+  return { success: true, applied: true };
 }
 // the manual milestones of the plan being replaced, appended to the new one
 function withManual(plan, prevPlan) {
@@ -613,7 +649,7 @@ Your job: turn it into an interactive game design document. Read everything, the
 3. gdd.sections — for each area of a GDD (vision & pillars, core & meta loops, mechanics, game feel, controls & accessibility, progression, characters, enemies, levels (metrics & pacing), difficulty curve, economy/items & loot, UI/UX, audio, art direction, multiplayer, tech/engine, monetization if relevant, release readiness): status solid|partial|missing + one-line notes.
    Cards with a "Constructor:" block are structured design artefacts (templates game_feel, controls, accessibility, economy, loops, level_metrics, difficulty, release…) with "Computed:" numbers and "Open problems" from the constructor's own checks — trust those numbers and problems, don't recompute them. An area the game needs but no artefact covers (no controls map, no game feel, no loops, no release checklist) is a gap: say which template would fill it in the section notes.
    Vision & pillars and monetization read the overview card's vision fields — player fantasy, audience, comparable games (with price and why), USP, anti-pillars, business model & price, target aesthetics (MDA), the riskiest assumption and how the prototype tests it; an empty one is a gap, and a question targeted at that field of the overview card. The bible's «Design checks» lines (features serving no pillar, an unsupported pillar or target aesthetic, a mechanic used before it is taught) are gaps too.
-4. questions — the UNRESOLVED decisions that block or weaken production, most important first (max 15). Concrete, answerable questions. For each: topic, question, why (what in production depends on it), 2-4 options when sensible, priority blocker|important|nice, and target — the card ref it belongs to ("c:..." / "e:..." from the bible, or "") and the field it would fill (an existing field name, or a short new field label).
+4. questions — the UNRESOLVED decisions that block or weaken production, most important first (max 15). Concrete, answerable questions. For each: topic, question, why (what in production depends on it), 2-4 options when sensible, recommend (the option you recommend — its exact text; the author mostly just agrees, so make it the sound game-design choice) and recommend_why (one line), priority blocker|important|nice, and target — the card ref it belongs to ("c:..." / "e:..." from the bible, or "") and the field it would fill (an existing field name, or a short new field label).
 5. contradictions — places where cards contradict each other or the world laws: what, where, 2-4 options how to resolve it, target (the card ref and field the resolution belongs in). Do NOT repeat contradictions the author already resolved.
 Do NOT ask what the bible already answers. Do NOT re-ask what the author already decided.
 
@@ -623,7 +659,7 @@ BIBLE:
 ${bible}
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"gdd":{"summary":"","readiness":0,"sections":[{"title":"","status":"partial","notes":""}]},"questions":[{"topic":"","question":"","why":"","options":[""],"priority":"blocker","target":{"card":"","field":""}}],"contradictions":[{"what":"","where":"","options":[""],"target":{"card":"","field":""}}]}`;
+{"gdd":{"summary":"","readiness":0,"sections":[{"title":"","status":"partial","notes":""}]},"questions":[{"topic":"","question":"","why":"","options":[""],"recommend":"","recommend_why":"","priority":"blocker","target":{"card":"","field":""}}],"contradictions":[{"what":"","where":"","options":[""],"target":{"card":"","field":""}}]}`;
 }
 
 function canonAuditPrompt(canon, answered, languageName) {
@@ -696,12 +732,13 @@ ${JSON.stringify({ id: m.id, track: m.track, name: m.name, goal: m.goal, epics: 
 
 - 3-8 tasks: id "${m.id}.1", "${m.id}.2"…, title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids — of this milestone, or of earlier milestones as "<id>.<n>"), size S|M|L, estimate (days), owner design|dev|art|audio|qa, priority must|should|could, assetState — for art/asset tasks the state the assets must reach in this milestone (greybox | standin = a ready prefab placed as is | styled = unified to the art direction | final), accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task touches, each {"ref": "c:..." | "e:..." | "new:<title>", "role": implements | uses-asset | in-level | follows-style | constrained-by} (follows-style = the art-direction / style card it must match, constrained-by = a law, budget or technical card it must respect), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation or sourcing brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card.
 - epic — the id of the milestone's epic the task belongs to (every task has one).
+- type — what proves it done: mechanic (a game rule or system — a playtest with no console errors), balance (numbers — a bot run), ui (a screen — a screenshot and the UI check), content (art / audio / text assets — the licence), tech (code, tools, pipeline — tests).
 - state — what the game already has of it, from ALREADY BUILT in the bible (if there is no such block: todo): done (the evidence — a done task, a handoff with a commit, the development log, a card «in the game» — shows it built), partial (part is built: say which in detail), verify (signs of it, but not enough to be sure — Claude Code checks it in the game), todo (not started). A card only «agreed» is NOT built. Never a task against THE AUTHOR'S DECISIONS.
 - scaffold — what THESE tasks need but the bible does NOT have yet, so the author can fill it in: cards (section = one of the game sections below by id, title, group = a subheading inside the section when it fits, need = what exactly must be made or decided, task = the task id that needs it) for missing prefabs, models, textures, animations, sounds, UI screens, references, mechanics, levels, items… Never duplicate a card that already exists (check titles; a card whose files include a model is already made). Add a new section only when no game section fits (name, about, why); then use its name as the card's section. Max 15 cards.
 - Ground everything in the bible; where the bible is silent, choose the simplest option and say so in the task detail.
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"tasks":[{"id":"${m.id}.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":"","epic":"${(m.epics && m.epics[0] && m.epics[0].id) || ''}","state":"todo"}],"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"${m.id}.1"}]}}` }];
+{"tasks":[{"id":"${m.id}.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":"","epic":"${(m.epics && m.epics[0] && m.epics[0].id) || ''}","state":"todo","type":"mechanic"}],"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"${m.id}.1"}]}}` }];
 }
 
 // ---------- GitHub: the game's repository, read only on the author's button ----------
@@ -913,7 +950,7 @@ exports.gamedevPlan = onRequest({
       const body = req.body || {};
       const caller = uid; // GitHub connect / disconnect: always the real caller — never the owner's saved token through payerFor
       uid = await payerFor(uid, body.worldId); // a team admin acts on the owner's tokens (team.js)
-      const op = oneOf(body.op, ['import', 'folderSort', 'draft', 'concepts', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync'], 'analyze');
+      const op = oneOf(body.op, ['import', 'folderSort', 'draft', 'concepts', 'analyze', 'plan', 'canonAudit', 'repoConnect', 'repoDisconnect', 'repoSync', 'applyDraft', 'dropDraft'], 'analyze');
       const isCanon = op === 'canonAudit'; // the world alone: no game
       const noGame = isCanon || op === 'concepts'; // «✦ 3 концепти» — before the game exists
       const worldId = str(body.worldId, 120);
@@ -938,6 +975,10 @@ exports.gamedevPlan = onRequest({
       }
       if (op === 'repoConnect' || op === 'repoDisconnect') {
         try { return res.status(200).json(await repoLink(op, caller, worldId, gameId, body)); }
+        catch (e) { if (!e.httpStatus) throw e; return res.status(e.httpStatus).json({ error: e.message }); }
+      }
+      if (op === 'applyDraft' || op === 'dropDraft') { // ✓ v2.155 the author's one «так» on a regenerated plan — no AI, no tokens
+        try { return res.status(200).json(await applyDraft(uid, worldId, gameId, op === 'dropDraft')); }
         catch (e) { if (!e.httpStatus) throw e; return res.status(e.httpStatus).json({ error: e.message }); }
       }
       if (!subscriptionActive(userData)) {
@@ -1106,7 +1147,11 @@ exports.gamedevPlan = onRequest({
           Object.assign(update, { plan: withManual(cleanPlan(parsed), prev.plan), scaffold: cleanScaffold(parsed, shelves), plannedAt: admin.firestore.FieldValue.serverTimestamp() });
         }
         const writePlan = () => gameRef.collection('plan').doc('current').set(update, { merge: true });
-        if (op === 'plan') await writeTasks(gameRef, update.plan, writePlan, prev.plan); // the tasks first, then the plan
+        const old = op === 'plan' ? (await gameRef.collection('tasks').get()).docs.map((d) => ({ ...d.data(), id: d.id })) : [];
+        if (op === 'plan' && hasPlanWork(prev.plan, old)) { // ✓ v2.155 a plan already worked on: the new one is a proposal with its diff — the author says «так» once
+          await gameRef.collection('plan').doc('draft').set({ plan: update.plan, scaffold: update.scaffold, at: Date.now(), diff: planDiff(update.plan, old, prev.plan) });
+          await gameRef.collection('plan').doc('current').set({ running: admin.firestore.FieldValue.delete(), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        } else if (op === 'plan') await writeTasks(gameRef, update.plan, writePlan, prev.plan); // the tasks first, then the plan
         else await writePlan();
       }
 
@@ -1134,4 +1179,4 @@ exports.gamedevPlan = onRequest({
 });
 exports._folderSort = { cleanFolderSort, sortParts, folderSortPrompt }; // tests only (tests/folder-sort.test.cjs)
 exports._import = { halves, splitMarkdown }; // tests only (tests/folder-sort.test.cjs)
-exports._gdd = { gddMissing, bibleText, cleanImport, importPrompt, cleanPlan, numberMilestones, reconcileTasks }; // tests only (tests/gdd-schema, import-placement, plan-tasks)
+exports._gdd = { gddMissing, bibleText, cleanImport, importPrompt, cleanPlan, numberMilestones, reconcileTasks, hasPlanWork, planDiff }; // tests only (tests/gdd-schema, import-placement, plan-tasks)

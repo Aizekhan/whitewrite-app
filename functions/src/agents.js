@@ -89,7 +89,8 @@ async function notify(gref, world, game, m) {
     } else {
       // v2.151 (owner: «відповідь реплаєм … кнопки варіантів»): a reply to this message, an option button or Claude with the code
       const opts = AC.cleanOptions(m.options);
-      kb.unshift(...opts.map((o, i) => [{ text: o, callback_data: `qa:${aid}:${i}` }])); // the options in their order, the links last
+      kb.unshift(...opts.map((o, i) => [{ text: (m.recommend === i ? '⭐ ' : '') + o, callback_data: `qa:${aid}:${i}` }])); // the options in their order, the links last
+      if (opts.length && m.recommend === 0) text += `\n\n⭐ Агент радить: ${opts[0]}${m.recWhy ? ' — ' + clip(m.recWhy, 200) : ''}`;
       text += `\n\nВідповідь: реплаєм на це повідомлення${opts.length ? ', кнопкою варіанту' : ''} або через Claude.\nКод для Claude: ${code} (діє 24 год)`;
     }
   }
