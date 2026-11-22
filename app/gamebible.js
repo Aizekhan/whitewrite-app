@@ -12117,7 +12117,7 @@
   }
   // 🌳 v2.160 the development tree: the MVP gates on a trunk (a ring of progress each) to the launch, the epics as leaves under them;
   // Expansion and Extra as a muted branch under the trunk (v2.160.1, the game designer's mock-up); a click picks the milestone
-  var planMs = null;
+  var planMs = null, planEpic = null; // the picked milestone and epic leaf (v2.160.3: the leaf you click is the one marked, not the one with work going)
   function msProg(m) {
     var l = (m.tasks || []).map(function (t) { return liveTask(t.id) || t; }).filter(function (x) { return x.status !== "dropped"; });
     var d = l.filter(function (x) { return x.status === "done"; }).length; return { d: d, n: l.length, pct: l.length ? Math.round(100 * d / l.length) : 0 };
@@ -12138,7 +12138,7 @@
       var leaf = function (g) {
         var l = g.list.map(function (t) { return liveTask(t.id) || t; }).filter(function (x) { return x.status !== "dropped"; }), d = l.filter(function (x) { return x.status === "done"; }).length;
         var act = l.some(function (x) { return ["in_progress", "review", "rework", "blocked"].indexOf(x.status) >= 0; });
-        return '<button type="button" class="rleaf' + (l.length && d === l.length ? ' rl-done' : act ? ' rl-act' : '') + '" data-msel="' + esc(m.id) + '" data-epicgo="' + esc(g.id) + '" title="' + esc(g.goal || g.title) + '"><b>' + esc(g.title) + '</b>' +
+        return '<button type="button" class="rleaf' + (l.length && d === l.length ? ' rl-done' : act ? ' rl-act' : '') + (on(m) && planEpic === g.id ? ' rl-sel' : '') + '" aria-pressed="' + (on(m) && planEpic === g.id) + '" data-msel="' + esc(m.id) + '" data-epicgo="' + esc(g.id) + '" title="' + esc(g.goal || g.title) + '"><b>' + esc(g.title) + '</b>' +
           '<span class="rbar"><i style="width:' + (l.length ? Math.round(100 * d / l.length) : 0) + '%"></i></span><small>' + d + '/' + l.length + '</small></button>';
       };
       var shown = gs.slice(0, 6);
@@ -12185,7 +12185,7 @@
     var active = live.some(function (x) { return ["in_progress", "review", "rework", "blocked"].indexOf(x.status) >= 0 || (x.verify && x.status === "todo"); });
     var open = epicOpen[g.id] != null ? epicOpen[g.id] : active || (!!next && done < counted.length && !parked);
     var ownOpen = live.filter(function (x) { return ["todo", "rework", "blocked"].indexOf(x.status) >= 0; }).map(function (x) { return x.id; });
-    return '<details class="epic' + (parked ? ' epic-parked' : done === counted.length && counted.length ? ' epic-done' : '') + '" data-epic="' + esc(g.id) + '"' + (open ? ' open' : '') + '><summary class="epic__h">' +
+    return '<details class="epic' + (parked ? ' epic-parked' : done === counted.length && counted.length ? ' epic-done' : '') + (planEpic === g.id ? ' epic-sel' : '') + '" data-epic="' + esc(g.id) + '"' + (open ? ' open' : '') + '><summary class="epic__h">' +
       '<b class="epic__t">' + esc(g.title) + '</b><span class="epic__bar"><i style="width:' + pct + '%"></i></span><span class="muted">' + done + '/' + counted.length + '</span>' + epicOkHtml(g) +
       (next ? ' <a class="epic__next" href="#task-' + esc(next.id) + '" data-goto="' + esc(next.id) + '">▶ ' + esc(EP.next) + ': ' + esc(next.id) + '</a>' : '') +
       outer.map(function (d) { return ' <a class="epic__wait" href="#task-' + esc(d) + '" data-goto="' + esc(d) + '" title="' + esc(EP.goto) + '">⛓ ' + esc(EP.waits) + ' ' + esc(d) + '</a>'; }).join("") + '</summary>' +
@@ -12767,7 +12767,7 @@
     var upk = e.target.closest("[data-unpark]"); if (upk) { upk.disabled = true; unparkTask(upk.dataset.unpark); return; }
     if (e.target.closest("[data-banadd]")) { addBan(); return; }
     var brm = e.target.closest("[data-banrm]"); if (brm) { brm.disabled = true; rmBan(brm.dataset.banrm); return; }
-    var msel = e.target.closest("[data-msel]"); if (msel) { planMs = msel.dataset.msel; if (msel.dataset.epicgo) epicOpen[msel.dataset.epicgo] = true; render();
+    var msel = e.target.closest("[data-msel]"); if (msel) { planMs = msel.dataset.msel; planEpic = msel.dataset.epicgo || null; if (planEpic) epicOpen[planEpic] = true; render();
       var mel = $("ms-" + planMs), eel = msel.dataset.epicgo && document.querySelector('[data-epic="' + msel.dataset.epicgo + '"]'); if (eel || mel) (eel || mel).scrollIntoView({ block: "start", behavior: "smooth" }); return; }
     if (e.target.closest("[data-mkan]")) { var ab = $("p-analyze"); if (ab && !ab.disabled) ab.click(); return; }
     if (section === "plan" && e.target.closest("[data-agok],[data-agno],[data-agreply]")) setTimeout(function () { agWait.at = 0; agWait.sig = null; loadAgWait(); }, 1500); // Today: the answered one leaves the queue
