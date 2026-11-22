@@ -5067,11 +5067,7 @@
     return false;
   }
   // the simulation: what the player has at level (or hour) lv, what they took
-  function mSimBudget(s, st, lv) {
-    if (st.mode === "points") { var pv = (msec("points") || {}).values || {}; return (+pv.start || 0) + (+pv.perLevel || 0) * (lv - 1); }
-    if (st.mode === "money") { var w = (msec("wallet") || {}).values || {}, acc = 0; for (var h = 0; h < lv; h++) acc += Math.max(0, +w.income || 0) * Math.pow(1 + (+w.growth || 0) / 100, h); return Math.round(acc); }
-    return Infinity;
-  }
+  function mSimBudget(s, st, lv) { return window.__MECH.treeBudget(med.m, st.mode, lv); } // v2.159.1 one formula with MCP (functions/mechanics.js)
   function mSimBranch(s, sim, r) { // «Очок у гілці»: points already spent on the other nodes of its branch reach the node's ask
     var n = +r.branchPts || 0, b = String(r.branch || "").trim(); if (!(n > 0) || !b) return true;
     return (s.rows || []).reduce(function (a, x) { return x !== r && String(x.branch || "").trim() === b ? a + (sim.got[x._id] || 0) * Math.max(0, +x.cost || 0) : a; }, 0) >= n;

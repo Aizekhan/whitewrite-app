@@ -44,5 +44,9 @@ function game(pd, cards) {
   check([dr.readiness, dr.areas[0].missing, dr.stale.answers_since, dr.stale.cards_changed_since, dr.templates.some((t) => t.id === 'game_feel')], [40, 'немає hitstop', 1, 1, true], 'readiness, what is missing, how stale, the templates');
   const tf = mechTemplate('game_feel');
   check([tf.sections[0].fields[0].key, tf.sections[0].fields[1].unit, tf.sections[0].fields[0].required], ['action', 'ms', 'required'], 'a template\'s fields with units and requirement');
+  // v2.159.1 the tree budget at level N — one formula for the Bible's simulator and MCP at_level
+  const MECH = require(path.join(__dirname, '../functions/mechanics.js'));
+  const pm = { sections: [{ id: 'points', kind: 'fields', values: { start: 2, perLevel: 1 } }] }, wm = { sections: [{ id: 'wallet', kind: 'fields', values: { income: 100, growth: 10 } }] };
+  check([MECH.treeBudget(pm, 'points', 5), MECH.treeBudget(wm, 'money', 2), MECH.treeBudget(pm, 'plain', 3)], [6, 210, Infinity], 'tree budget: points, money with growth, plain');
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED'); process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });

@@ -1881,6 +1881,20 @@ var CALCS = { economy: function (m) { return { simulation: econSim(m), loot: loo
   xp_curve: function (m) { return { curve: xpCurve(m) }; }, prog_currencies: function (m) { return { simulation: econSim(m) }; }, prog_loot: function (m) { return { loot: lootFlow(m) }; },
   prog_shop: function (m) { return { shop: shopAfford(m) }; }, prog_upgrades: function (m) { return { tracks: upgradeTracks(m) }; }, prog_balance: function (m) { return { stages: balanceStages(m) }; },
   prog_skilltree: function (m) { return { tree: treeStats(m) }; }, prog_upgradetree: function (m) { return { tree: treeStats(m) }; } };
+// 🌳 v2.159.1 the budget at level N and what a player can have by then — one formula for the Bible's simulator (gamebible.js mSimBudget) and
+// MCP get_mechanic {at_level} (owner: «MCP бачить усе, що бачить автор»)
+function treeBudget(m, mode, lv) {
+  lv = Math.max(1, Math.round(+lv || 1));
+  if (mode === 'points') { var pv = valsOf(m, 'points'); return (+pv.start || 0) + (+pv.perLevel || 0) * (lv - 1); }
+  if (mode === 'money') { var w = valsOf(m, 'wallet'), acc = 0; for (var h = 0; h < lv; h++) acc += Math.max(0, +w.income || 0) * Math.pow(1 + (+w.growth || 0) / 100, h); return Math.round(acc); }
+  return Infinity;
+}
+function treeAt(m, sid, lv) {
+  var t = treeStats(m, sid), b = treeBudget(m, t.mode, lv);
+  return { level: lv, budget: b === Infinity ? null : b, unit: t.unit,
+    reachable: t.nodes.filter(function (n) { return n.level != null && n.level <= lv; }).map(function (n) { return { id: n.id, name: n.name, cost_to_reach: n.reach }; }),
+    not_yet: t.nodes.filter(function (n) { return n.level == null || n.level > lv; }).map(function (n) { return { id: n.id, name: n.name, from_level: n.level }; }) };
+}
 // 🌳 a tree section in any card is computed too (MCP get_mechanic → computed.trees)
 function treeCalcs(m) { var out = {}; ((m && m.sections) || []).forEach(function (s) { if (s.tree && s.kind === 'table') out[s.id] = treeStats(m, s.id); }); return out; }
 function calc(m) {
@@ -2079,7 +2093,7 @@ var MECH = { TYPES: TYPES, TYPE_NAMES: TYPE_NAMES, STAGES: STAGES, CATEGORIES: C
   AUDIO_CATEGORIES: AUDIO_CATEGORIES, PROG_CATEGORIES: PROG_CATEGORIES, xpCurve: xpCurve, lootFlow: lootFlow, shopAfford: shopAfford, upgradeTracks: upgradeTracks, balanceStages: balanceStages, treeStats: treeStats, treeSection: treeSection, NODE_KINDS: NODE_KINDS, fmtH: fmtH, templatesFor: templatesFor, categoriesFor: categoriesFor, rowPrompt: rowPrompt,
   FRAMEWORK: FRAMEWORK, frameworkNote: frameworkNote, CAPS_FORMAT: CAPS_FORMAT, FW_BUILTIN: FW_BUILTIN, FW_CAPS: FW_CAPS, CAT_MODULES: CAT_MODULES, parseCaps: parseCaps, capStatus: capStatus, mechCaps: mechCaps, frameworkGaps: frameworkGaps, DIRECTIONS: DIRECTIONS, upgrade: upgrade, lbl: lbl, category: category, template: template, instantiate: instantiate, newRowId: newRowId, rowName: rowName, range: range, check: check, worst: worst, exportMech: exportMech,
   isAudio: isAudio, LIB_GROUPS: LIB_GROUPS, soundSlots: soundSlots, audioLibrary: audioLibrary, comboStart: comboStart, STRIKE_DEF: STRIKE_DEF, MOVE_GAIN: MOVE_GAIN,
-  cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
+  cardTokens: cardTokens, resolveCard: resolveCard, cardSlots: cardSlots, calc: calc, treeBudget: treeBudget, treeAt: treeAt, econSim: econSim, lootChances: lootChances, loopClosure: loopClosure, pacing: pacing,
   difficultyCurve: difficultyCurve, releaseStatus: releaseStatus, ftueStatus: ftueStatus, retentionStatus: retentionStatus, bizModel: bizModel, bizOf: bizOf, BIZ_METRICS: BIZ_METRICS, setCardNamer: setCardNamer, withCards: withCards };
 if (typeof module !== 'undefined' && module.exports) module.exports = MECH;
 if (typeof window !== 'undefined') window.__MECH = MECH;

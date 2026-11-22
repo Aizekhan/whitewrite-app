@@ -80,6 +80,8 @@ const TOOLS = [
       evidence: { type: 'string', description: 'What you found: files, commit, what works / what is missing' }, commit: { type: 'string' } } } },
   { name: 'get_experience_metrics', description: '📈 The «Досвід гравців» numbers the author sees: sample, retention D1/D7/D30, sessions, funnels per zone / quest / level, builds, A/B results as they come in, survey answers, playtests (status, focus), today\'s event count and the ingest status (is the SDK sending?). heatmaps:true adds the 24×24 heatmaps per zone (move / death / interact / explore). Issues found from them — get_experience_issue.',
     inputSchema: { type: 'object', properties: { heatmaps: { type: 'boolean' } } } },
+  { name: 'get_development_log', description: '📓 The «Журнал розробки» as the author sees it: the last sessions (summary, branch, commit) with their entries and the author\'s marks on each (privacy internal / confidential / spoiler / excluded, for marketing or not). Write new entries with submit_development_activity.',
+    inputSchema: { type: 'object', properties: { limit: { type: 'integer', description: 'Sessions, newest first (default 10, max 30)' } } } },
   { name: 'get_culture', description: '🏛 The world\'s culture entries (Біблія світу → «Культура»: customs, religions, languages, holidays…) the author sees. No id — the list; with id — the whole entry.',
     inputSchema: { type: 'object', properties: { id: { type: 'string' } } } },
   { name: 'get_marketing_status', description: '📣 Mini-marketing as the author sees it (frozen feature, read only): connected channels (no secrets) and the posts with status, channel, time and text.',
@@ -174,7 +176,7 @@ const TOOLS = [
     inputSchema: { type: 'object', properties: { section: { type: 'string', enum: ['mechanics', 'audio', 'progression'], description: 'mechanics (default), audio — the Sound factory, or progression — the Progression builder' },
       category: { type: 'string', description: 'A category id — mechanics: movement, combat, stats, progression, abilities, gear, status, ai, world, narrative, economy, camera, death, winlose, feel, loops, leveldesign, balance, release; audio: music, sfx, voice, ambience, uisound; progression: xp, tree, currency, loot, shop, upgrade, pbalance; empty = all' } } } },
   { name: 'get_mechanic', description: 'One mechanic (or a Sound factory card) in full: purpose, rules, every section with typed fields (unit, required) and table rows (links between rows resolved to { id, name }), what RPG Framework already has for each part (framework: exists | partial | missing + the classes), and the constructor checks. Adaptive-music state rows carry generator_prompt; transitions say from → to, the game event, when to switch (beat / bar / loop end / stinger), crossfade and hold — build the music system from them. Design artefacts carry computed: economy — the hour-by-hour currency simulation (status ok | inflation | dead | nosink | starved) and drop % from the loot weights; loops — whether each layer closes; level_metrics — pacing per level; difficulty — TTK / TTD per zone against the target bands; release — what is left for the chosen platforms (green = release candidate). Links to other game cards come as { ref, title } (or { name, missing } when no card has that title). Numbers are the author design — implement them; a change goes through submit_change_request (or save_mechanic when the user asks you in this chat to fill / change the mechanic).',
-    inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string', description: '"c:<cardId>" or the title' } } } },
+    inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string', description: '"c:<cardId>" or the title' }, at_level: { type: 'integer', description: 'Development trees: the budget at this player level and which nodes are reachable by then (the Bible\'s tree simulator)' } } } },
   { name: 'get_audio_library', description: 'The game\'s Audio library (Аудіотека, «Звук і музика»): every sound / track card with its files (name, url to download, type, duration s; several files = variations, play one at random), where each plays (Sound factory card · section · row · slot), the slots that still have no sound, and the unused sounds. Sound slots in get_mechanic carry the same files.',
     inputSchema: { type: 'object', properties: { query: { type: 'string', description: 'Filter by title / subsection / file name; empty = all' } } } },
   { name: 'get_character_forge', description: 'The Character Forge (Кузня персонажів): every character / enemy with its type (hero, npc, enemy, boss), production stages (brief → concept → base mesh → rig → equipment → integration → animation → export) and which are approved. With ref — one character\'s manifest (schema whitewrite.character/1): the brief, rig and body profiles, each stage with its APPROVED version\'s files (download URLs — use these, not newer unapproved uploads), animation clips (a WhiteWrite library clip carries library: its id, state, RPG Framework Animator parameters, transitions, loop, hit window, duration and its FBX in the pack animation_library.pack), the bound equipment with its technical passport (slot, skinned | rigid, rig / body profile, body mask, attachment points, format, units, maps, LOD, polygon target, validation status and issues) and loadouts.',
@@ -668,6 +670,13 @@ function mechTemplate(id) {
       ...(s.rows ? { example_rows: s.rows.slice(0, 6) } : {}), ...(s.values ? { example_values: s.values } : {}) })),
     how: 'Fill it with save_mechanic (template_id = this id); a card of this area already made with save_card can be turned into the template the same way.' };
 }
+// the stories (Book projects of this world) whose scenes name the entity — as the dossier shows it (gamebible.js loadAppearance)
+async function storiesOf(ctx, id, kind) {
+  const ps = await db.collection('projects').where('owner', '==', ctx.world.owner).where('worldId', '==', ctx.wref.id).get();
+  const out = await Promise.all(ps.docs.map((p) => p.ref.collection('scenes').where('canonRefs.' + kind, 'array-contains', id).get()
+    .then((sn) => ({ story: p.get('title') || p.get('name') || '', scenes: sn.docs.map((d) => d.get('n')).filter((n) => n != null).sort((a, b) => a - b) }))));
+  return out.filter((x) => x.scenes.length);
+}
 // ---------- ❓ v2.157 the plan's questions through MCP (owner: «а агент може відповісти на ці питання через мсп?») ----------
 // The same data as the Bible's queue (plan/current.asked + answers, contradictions + resolved). An answer = the Bible's answerQuestion /
 // resolveIssue: into the plan and appended to the target card field (fieldPlan, as save_card names fields). The designer key (the author's chat)
@@ -823,7 +832,7 @@ function overview(ctx) {
       maps: (Array.isArray(ctx.world.maps) ? ctx.world.maps : []).map((m) => ({ id: m.id, name: m.name || '', image: m.url || m.image || '',
         locations: ctx.entities.filter((e) => e.mapAt && e.mapAt[m.id]).map((e) => ({ ref: 'e:' + e.id, name: e.name || '', at: e.mapAt[m.id] })) })),
       ...(ctx.world.mapImage ? { main_map: { image: ctx.world.mapImage.url || ctx.world.mapImage, locations: ctx.entities.filter((e) => e.mapPos).map((e) => ({ ref: 'e:' + e.id, name: e.name || '', at: e.mapPos })) } } : {}),
-      sky: sky(ctx.world), cosmograph: !!(ctx.world.cosmograph && msOf(ctx.world.cosmograph.paidUntil) > Date.now()),
+      sky: sky(ctx.world), ...(ctx.world.cosmos ? { cosmos: ctx.world.cosmos } : {}), cosmograph: !!(ctx.world.cosmograph && msOf(ctx.world.cosmograph.paidUntil) > Date.now()),
       canon_issues: canonIssues(ctx.world), ...(ctx.world.auditRunning ? { canon_audit_running: true } : {}),
       backup: ctx.world.backup ? { repo: ctx.world.backup.repo || '', last: msOf(ctx.world.backup.lastAt) ? new Date(msOf(ctx.world.backup.lastAt)).toISOString() : null, on: msOf(ctx.world.backup.paidUntil) > Date.now() } : null,
       frozen: !!ctx.world.freeze },
@@ -1828,8 +1837,9 @@ async function callTool(name, args, key) {
       if (!c) throw rpcError(-32602, `Mechanic ${r} not found`);
       if (!c.mech) return { ref: 'c:' + c.id, title: c.title || '', constructor: false, fields: named(c), message: 'An older card, not yet opened in the constructor: only its text fields.' };
       const man = ctx.game.framework || null; // the game's own capabilities.json (report_framework_capabilities), else the built-in snapshot
+      const lv = Number.isInteger(args.at_level) ? args.at_level : 0, trees = lv ? (c.mech.sections || []).filter((s) => s.tree && s.kind === 'table').map((s) => ({ section: s.id, ...MECH.treeAt(c.mech, s.id, lv) })) : [];
       return { ref: 'c:' + c.id, status: c.status || 'idea', ...MECH.exportMech(c, 'en', MECH.audioLibrary(ctx.cards, 'en').assets, man || MECH.FW_BUILTIN, ctx.cards),
-        framework_version: (man || MECH.FW_BUILTIN).version, framework_source: man ? 'project' : 'builtin' };
+        framework_version: (man || MECH.FW_BUILTIN).version, framework_source: man ? 'project' : 'builtin', ...(trees.length ? { at_level: trees } : {}) };
     }
     case 'get_audio_library': {
       const lib = MECH.audioLibrary(ctx.cards, 'en'), q = str(args.query, 200).toLowerCase();
@@ -1896,6 +1906,8 @@ async function callTool(name, args, key) {
       if (!c) throw rpcError(-32602, `Card ${args.ref} not found`);
       const [n, agentMessages] = await Promise.all([narrative(ctx), AGM(ctx).orderBy('at', 'desc').limit(200).get().then((s) => s.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => [])]); // what points at it (functions/card-refs.js) — check these before changing the card
       const used = REFS.usedBy({ cards: ctx.cards, entities: ctx.entities, quests: n.quests, dialogues: n.dialogues, tasks: ctx.tasks, plan: ctx.plan.plan, agentMessages }, c.ref, 'en');
+      if (/^e:/.test(c.ref)) c.appears_in_stories = await storiesOf(ctx, c.ref.slice(2), c.canon).catch(() => []); // the dossier's «у яких історіях» (v2.159.1)
+      const gc = ctx.cards.find((x) => 'c:' + x.id === c.ref); if (gc && gc.assetState) c.asset_state = gc.assetState; // the asset matrix: greybox → stand-in → styled → final
       return { ...c, used_by: used.map((r) => ({ kind: r.kind, what: r.label, ...(r.from.type === 'card' ? { ref: r.from.key } : { [r.from.type]: r.from.id }), title: r.from.title || '',
         ...(r.from.status ? { status: r.from.status } : {}), ...(r.extra ? { detail: r.extra } : {}) })) };
     }
@@ -1940,6 +1952,12 @@ async function callTool(name, args, key) {
       return { metrics: v, ...(v ? {} : { message: 'No metrics yet: the game sends no telemetry (get_telemetry_schema) or the daily count has not run.' }),
         today_events: today && today.exists ? today.get('total') || 0 : 0, ingest: ctx.game.telemetryStats || null,
         playtests: pt ? pt.docs.map((d) => ({ id: d.id, status: d.get('status') || 'draft', title: d.get('title') || '', focus: d.get('focus') || '' })) : [] };
+    }
+    case 'get_development_log': {
+      const n = Math.max(1, Math.min(30, Number.isInteger(args.limit) ? args.limit : 10));
+      const ss = (await ctx.gref.collection('activity').get()).docs.map((d) => ({ ref: d.ref, id: d.id, ...d.data() })).sort((a, b) => msOf(b.updatedAt || b.at) - msOf(a.updatedAt || a.at)).slice(0, n);
+      return { sessions: await Promise.all(ss.map(async (s) => ({ session: s.id, summary: s.summary || '', branch: s.branch || '', commit: s.commit || '',
+        entries: (await s.ref.collection('entries').get()).docs.map((d) => { const { at, ...e } = d.data(); return { id: d.id, ...e, at: msOf(at) ? new Date(msOf(at)).toISOString() : null }; }) }))) };
     }
     case 'get_culture': {
       const all = (await ctx.wref.collection('lore').get()).docs.map((d) => ({ id: d.id, ...d.data() }));
