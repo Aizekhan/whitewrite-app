@@ -7096,7 +7096,7 @@
     return list.filter(function (f) { return bad.indexOf(f) < 0; });
   }
   // ---------- polygon budget: a model over 100 000 polygons (triangles) carries a small red mark (file.tris, counted once) ----------
-  var POLY_MAX = 100000, polyTried = {}, polyBusy = false;
+  var POLY_MAX = window.__ASSET_KIT.POLY_MAX, polyTried = {}, polyBusy = false;
   function heavy(f) { return is3D(f) && f.tris > POLY_MAX; }
   function polyMark(f) { var t = STR.poly.tip.replace("{n}", f.tris.toLocaleString()); return '<span class="poly-warn" title="' + esc(t) + '" aria-label="' + esc(t) + '">!</span>'; }
   function polyInfo(f) { return is3D(f) && f.tris != null ? '<span class="muted">' + f.tris.toLocaleString() + ' ' + STR.poly.n + '</span>' + (heavy(f) ? polyMark(f) : '') : ''; }
@@ -7137,10 +7137,8 @@
 
   // ---------- licence & rights of prefabs and models: green (full) · yellow (with conditions: credit, revenue cap…) · red (strict / not commercial) · blue (unknown or own work) ----------
   // file.license { id, source: file|author, text, by, url } on the file itself; a licence/readme text on the same card carries licenseFound { id, text }.
-  var LIC_COLOR = { cc0: "green", royalty: "green", unity: "green", ccby: "yellow", ccbysa: "yellow", ccbynd: "yellow", revcap: "yellow",
-    ccbync: "red", editorial: "red", personal: "red", own: "blue", unknown: "blue" };
-  var ASSET_EXT = /\.(glb|gltf|fbx|obj|stl|prefab|unitypackage|uasset|blend|max|ma|mb|c4d|3ds|dae|usdz?|zip|rar|7z)$/i;
-  function isAsset(f) { return ASSET_EXT.test(f.name || ""); }
+  var LIC_COLOR = window.__ASSET_KIT.LIC_COLOR; // v2.158.1 one source with MCP (functions/asset-kit.js)
+  function isAsset(f) { return window.__ASSET_KIT.isAsset(f); }
   function isLicText(f) { return /(licen[cs]e|copyright|attribution|readme|credits?)[^\/]*\.(txt|md)$/i.test(f.name || "") && (f.size || 0) < 200000; }
   function licenseIn(text) { // the licence a text names, most restrictive first
     var t = String(text || "").toLowerCase(), id = null;
@@ -7157,12 +7155,7 @@
     return id ? { id: id, text: String(text).trim().slice(0, 600) } : null;
   }
   function rightsLicense(rights) { var l = licenseIn(rights); return { id: l ? l.id : "", source: "file", text: rights }; }
-  function licOf(f, files) {
-    if (f.license && f.license.id) return f.license;
-    var t = (files || []).filter(function (x) { return x.licenseFound && x.licenseFound.id; })[0];
-    if (t) return { id: t.licenseFound.id, source: "text", from: t.name, text: t.licenseFound.text };
-    return { id: "unknown", source: f.license && f.license.text ? "file" : "none", text: f.license && f.license.text };
-  }
+  function licOf(f, files) { return window.__ASSET_KIT.licOf(f, files); }
   function licChip(f, files, attr) {
     var l = licOf(f, files), c = LIC_COLOR[l.id] || "blue", t = STR.lic[c] + " · " + STR.lic.names[l.id];
     return '<' + (attr ? 'button type="button" ' + attr + '="' + esc(f.id) + '"' : 'span') + ' class="lic lic-' + c + '" title="' + esc(attr ? STR.lic.info + " — " + t : t) + '" aria-label="' + esc(t) + '">© ' +
@@ -11852,18 +11845,8 @@
   }
   // what blocks or weakens the MVP in the Bible itself: licences, heavy models, levels without a greybox + the planner's own notes
   function healthHtml(plan) {
-    var P = STR.pp, all = allCards(), red = [], blue = [], hv = [], old = [], items = [];
-    all.forEach(function (c) {
-      (c.files || []).forEach(function (f) {
-        if (heavy(f) && hv.indexOf(c) < 0) hv.push(c);
-        if (notGlb(f) && old.indexOf(c) < 0) old.push(c); // an FBX / OBJ… uploaded before GLB only (v2.119.0)
-        if (!isAsset(f)) return;
-        var col = LIC_COLOR[licOf(f, c.files).id] || "blue";
-        if (col === "red" && red.indexOf(c) < 0) red.push(c);
-        if (col === "blue" && licOf(f, c.files).id !== "own" && blue.indexOf(c) < 0) blue.push(c);
-      });
-    });
-    var noGrey = all.filter(function (c) { return c.section === "levels" && !c.assetState; });
+    var P = STR.pp, items = [], h = window.__ASSET_KIT.health(allCards()); // v2.158.1 the same count MCP gives (get_project_overview.production_health)
+    var red = h.red, blue = h.blue, hv = h.heavy, old = h.notGlb, noGrey = h.noGreybox;
     var chips = function (a) { return '<div class="cchips">' + a.slice(0, 12).map(function (c) { return cardChip(c.key); }).join("") + '</div>'; };
     if (red.length) items.push('<li class="h-red">' + P.red.replace("{n}", red.length) + chips(red) + '</li>');
     if (blue.length) items.push('<li class="h-warn">' + P.blue.replace("{n}", blue.length) + chips(blue) + '</li>');

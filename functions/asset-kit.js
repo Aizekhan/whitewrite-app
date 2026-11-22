@@ -111,6 +111,37 @@ function kitSummary(card, lang) {
     not_glb: st.legacy.map(function (f) { return f.name; }) }; // old FBX / OBJ… files: convert to GLB
 }
 
-var KIT = { SLOTS: SLOTS, GROUPS: GROUPS, EXT: EXT, LIVING: LIVING, slot: slot, extOf: extOf, fileSlot: fileSlot, classify: classify, isGlb: isGlb, notGlb: notGlb, NOT_GLB: NOT_GLB, isModelFile: isModelFile, naOf: naOf, kitState: kitState, kitSummary: kitSummary };
+// ---------- licence & production health (v2.158.1, moved from gamebible.js so MCP counts the same: the owner's rule «MCP бачить усе») ----------
+// green (full) · yellow (with conditions) · red (strict / not commercial) · blue (unknown or own work); file.license on the file, licenseFound on a licence text
+var LIC_COLOR = { cc0: 'green', royalty: 'green', unity: 'green', ccby: 'yellow', ccbysa: 'yellow', ccbynd: 'yellow', revcap: 'yellow',
+  ccbync: 'red', editorial: 'red', personal: 'red', own: 'blue', unknown: 'blue' };
+var ASSET_EXT = /\.(glb|gltf|fbx|obj|stl|prefab|unitypackage|uasset|blend|max|ma|mb|c4d|3ds|dae|usdz?|zip|rar|7z)$/i;
+var POLY_MAX = 100000;
+function isAsset(f) { return ASSET_EXT.test((f && f.name) || ''); }
+function licOf(f, files) {
+  if (f.license && f.license.id) return f.license;
+  var t = (files || []).filter(function (x) { return x.licenseFound && x.licenseFound.id; })[0];
+  if (t) return { id: t.licenseFound.id, source: 'text', from: t.name, text: t.licenseFound.text };
+  return { id: 'unknown', source: f.license && f.license.text ? 'file' : 'none', text: f.license && f.license.text };
+}
+function heavy(f) { return isGlb(f && f.name) && f.tris > POLY_MAX; }
+// the «Здоровʼя виробництва» block of the plan: cards with a red / unknown licence, heavy models, non-GLB models, levels without greybox
+function health(cards) {
+  var out = { red: [], blue: [], heavy: [], notGlb: [], noGreybox: [] }, add = function (k, c) { if (out[k].indexOf(c) < 0) out[k].push(c); };
+  (cards || []).forEach(function (c) {
+    (c.files || []).forEach(function (f) {
+      if (heavy(f)) add('heavy', c);
+      if (notGlb(f && f.name)) add('notGlb', c);
+      if (!isAsset(f)) return;
+      var l = licOf(f, c.files), col = LIC_COLOR[l.id] || 'blue';
+      if (col === 'red') add('red', c);
+      if (col === 'blue' && l.id !== 'own') add('blue', c);
+    });
+    if (c.section === 'levels' && !c.assetState) add('noGreybox', c);
+  });
+  return out;
+}
+
+var KIT = { LIC_COLOR: LIC_COLOR, ASSET_EXT: ASSET_EXT, POLY_MAX: POLY_MAX, isAsset: isAsset, licOf: licOf, heavy: heavy, health: health, SLOTS: SLOTS, GROUPS: GROUPS, EXT: EXT, LIVING: LIVING, slot: slot, extOf: extOf, fileSlot: fileSlot, classify: classify, isGlb: isGlb, notGlb: notGlb, NOT_GLB: NOT_GLB, isModelFile: isModelFile, naOf: naOf, kitState: kitState, kitSummary: kitSummary };
 if (typeof module !== 'undefined' && module.exports) module.exports = KIT;
 if (typeof window !== 'undefined') window.__ASSET_KIT = KIT;

@@ -78,6 +78,12 @@ const TOOLS = [
   { name: 'verify_task', description: '🌳 A task marked verify («? звірити з грою»): the plan is not sure whether the game already has it. Check the game (code, scenes, commits) and report what is there: state done (it is built — evidence: files, commit), partial (part is built — what is missing goes into the task) or todo (not built). done closes the task; partial / todo leave it in the queue without the mark. get_next_task gives these first.',
     inputSchema: { type: 'object', required: ['task_id', 'state', 'evidence'], properties: { task_id: { type: 'string' }, state: { type: 'string', enum: ['done', 'partial', 'todo'] },
       evidence: { type: 'string', description: 'What you found: files, commit, what works / what is missing' }, commit: { type: 'string' } } } },
+  { name: 'get_experience_metrics', description: '📈 The «Досвід гравців» numbers the author sees: sample, retention D1/D7/D30, sessions, funnels per zone / quest / level, builds, A/B results as they come in, survey answers, playtests (status, focus), today\'s event count and the ingest status (is the SDK sending?). heatmaps:true adds the 24×24 heatmaps per zone (move / death / interact / explore). Issues found from them — get_experience_issue.',
+    inputSchema: { type: 'object', properties: { heatmaps: { type: 'boolean' } } } },
+  { name: 'get_culture', description: '🏛 The world\'s culture entries (Біблія світу → «Культура»: customs, religions, languages, holidays…) the author sees. No id — the list; with id — the whole entry.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' } } } },
+  { name: 'get_marketing_status', description: '📣 Mini-marketing as the author sees it (frozen feature, read only): connected channels (no secrets) and the posts with status, channel, time and text.',
+    inputSchema: { type: 'object', properties: {} } },
   { name: 'get_design_readiness', description: '📋 The «Гейм-диздок» block of the Production plan exactly as the author sees it: design readiness %, the summary, every area (vision & pillars, loops, mechanics, game feel, controls & accessibility, progression, monetization, release readiness…) with its state (missing / partial / solid) and «what is missing», the date of the last ✦ analysis and how stale it is (answers given and cards changed after it — the table is not recomputed until the author presses «↻ Оновити аналіз»), plus the constructor templates that structure these areas (read their fields with get_mechanic_template).',
     inputSchema: { type: 'object', properties: {} } },
   { name: 'get_mechanic_template', description: '🧩 The fields of a constructor template (game_feel, controls, accessibility, economy, loops, level_metrics, difficulty, release, ftue, retention, UMCF combat, attributes, levels, statuses, inventory, enemy AI, the Sound factory…): its sections (table / fields), every field with type, unit, range, options and whether it is required / recommended, the example rows. No id — the list of templates. Fill a template with save_mechanic.',
@@ -125,9 +131,9 @@ const TOOLS = [
       outcome: { type: 'string', enum: ['improved', 'no_change', 'worse', 'inconclusive'] }, evidence: { type: 'string' } } } },
   // Quests & dialogues of the game (Game Bible «Квести й діалоги»): only the ones the author approved
   { name: 'get_quest_context', description: 'A quest of this game, approved by the author: type, giver, characters / locations / factions / artifacts (game cards "c:…" and canon entities "e:…", with descriptions), canon events it builds on, objectives, stages with branches and conditions (the first stage is the start; end / fail stages finish it), rewards, prerequisites, repetition, its dialogues and the graph check. Without an id — the list of approved quests.',
-    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Quest id or title' } } } },
+    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Quest id or title' }, include_drafts: { type: 'boolean', description: 'Also the quests the author has not approved yet (read and discuss only)' } } } },
   { name: 'get_dialogue_context', description: 'A dialogue of this game, approved by the author: type, participants, location, quest + stage, trigger, lines (speaker, text, localisation key, condition, effects, next) and player choices (text, target line, condition); the first line is the start. Without an id — the list of approved dialogues.',
-    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Dialogue id or title' } } } },
+    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'Dialogue id or title' }, include_drafts: { type: 'boolean', description: 'Also the dialogues the author has not approved yet (read and discuss only)' } } } },
   { name: 'get_content_export', description: 'The approved quests and dialogues of this game in the RPG Framework (≥ 0.32.1) import format "rpgframework.content/1", plus how to import them. Write `content` to a JSON file in the project and run the importer; refs (c:<card> / canon ids) are opaque strings.',
     inputSchema: { type: 'object', properties: {} } },
   // Setup, Unity environment, Project Knowledge, development activity log (functions/setup-guides.js holds the instructions)
@@ -319,6 +325,8 @@ const files = (c) => {
   const labels = Object.fromEntries((c.defs || []).map((d) => [d.key, d.label]));
   const ai = c.styleAi || {};
   return (c.files || []).map((f) => ({ name: f.name, url: f.url, size: f.size, type: f.type, ...(f.field ? { field: labels[f.field] || f.field } : {}),
+    ...(KIT.isAsset(f) ? { licence: ((l) => ({ id: l.id, colour: KIT.LIC_COLOR[l.id] || 'blue', source: l.source || '', ...(l.by ? { by: l.by } : {}), ...(l.url ? { url: l.url } : {}) }))(KIT.licOf(f, c.files)) } : {}),
+    ...(f.tris ? { polygons: f.tris, ...(KIT.heavy(f) ? { too_heavy: 'over ' + KIT.POLY_MAX + ' polygons' } : {}) } : {}), ...(KIT.notGlb(f.name) ? { not_glb: 'convert to GLB' } : {}),
     ...(ai[f.id] ? { style_check: { score: ai[f.id].score, verdict: ai[f.id].verdict, issues: ai[f.id].issues || [], fixes: ai[f.id].fixes || [], style: ai[f.id].style || '' } } : {}) }));
 };
 
@@ -784,7 +792,7 @@ function taskView(ctx, t) {
     id: t.id, title: t.title, status: t.status, owner: t.owner, size: t.size, assignee: (t.assignee && t.assignee.name) || null,
     milestone: { id: t.milestone, track: ms.track || '', name: ms.name || '', goal: ms.goal || '', gate: ms.gate || '', gate_checks: ms.accept || [], budgets: ms.budgets || '' },
     priority: t.priority || '', asset_state: t.assetState || '', card_roles: t.roles || {},
-    ...(t.epic ? { epic: epicOf(ctx, t) } : {}),
+    ...(t.epic ? { epic: epicOf(ctx, t), epic_agreed: !!(ctx.plan.epicsOk || {})[t.epic] } : {}),
     ...(t.verify ? { verify: true, verify_rule: 'The plan is not sure this is NOT built yet. First check the game (code, scenes, commits): call verify_task with state done (it is there — with the evidence), partial (say what is missing) or todo (not there). Build it only after that, if it is todo / partial.' } : {}),
     ...(t.partial ? { partial: true } : {}),
     type: TT.typeOf(t), proof_needed: TT.TYPES[TT.typeOf(t)].needs.map((k) => TT.EVIDENCE[k].arg),
@@ -809,16 +817,47 @@ function overview(ctx) {
   ctx.cards.forEach((c) => { sections[c.section] = (sections[c.section] || 0) + 1; });
   return {
     game: ctx.game.title || '', engine: (ctx.game.engine && ctx.game.engine.profile) || 'generic',
-    world: { title: ctx.world.title || '', tagline: ctx.world.tagline || '', summary: ctx.world.summary || '', laws: ctx.world.rules || [] },
+    world: { title: ctx.world.title || '', tagline: ctx.world.tagline || '', summary: ctx.world.summary || '', laws: ctx.world.rules || [],
+      facts: (ctx.world.facts || []).map((f) => (f && f.k ? f.k + ': ' + (f.v || '') : f)), time_unit: ctx.world.timeUnit || '',
+      ...(ctx.world.cover ? { cover: ctx.world.cover.url || ctx.world.cover } : {}), ...(ctx.world.titleArt ? { title_art: ctx.world.titleArt.url || ctx.world.titleArt } : {}),
+      maps: (Array.isArray(ctx.world.maps) ? ctx.world.maps : []).map((m) => ({ id: m.id, name: m.name || '', image: m.url || m.image || '',
+        locations: ctx.entities.filter((e) => e.mapAt && e.mapAt[m.id]).map((e) => ({ ref: 'e:' + e.id, name: e.name || '', at: e.mapAt[m.id] })) })),
+      ...(ctx.world.mapImage ? { main_map: { image: ctx.world.mapImage.url || ctx.world.mapImage, locations: ctx.entities.filter((e) => e.mapPos).map((e) => ({ ref: 'e:' + e.id, name: e.name || '', at: e.mapPos })) } } : {}),
+      sky: sky(ctx.world), cosmograph: !!(ctx.world.cosmograph && msOf(ctx.world.cosmograph.paidUntil) > Date.now()),
+      canon_issues: canonIssues(ctx.world), ...(ctx.world.auditRunning ? { canon_audit_running: true } : {}),
+      backup: ctx.world.backup ? { repo: ctx.world.backup.repo || '', last: msOf(ctx.world.backup.lastAt) ? new Date(msOf(ctx.world.backup.lastAt)).toISOString() : null, on: msOf(ctx.world.backup.paidUntil) > Date.now() } : null,
+      frozen: !!ctx.world.freeze },
     gdd: ctx.plan.gdd || null,
     canon: ctx.entities.map((e) => ({ ref: 'e:' + e.id, kind: e.kind, name: e.name || '' })),
     framework: ctx.game.framework ? { version: ctx.game.framework.version, source: 'project' } : { version: MECH.FW_BUILTIN.version, source: 'builtin — send capabilities.json with report_framework_capabilities' },
     sections,
     roadmap: { overview: (ctx.plan.plan || {}).overview || '', total: ctx.tasks.length, byStatus: count,
-      inProgress: ctx.tasks.filter((t) => t.status === 'in_progress').map((t) => t.id) },
+      inProgress: ctx.tasks.filter((t) => t.status === 'in_progress').map((t) => t.id), ...planExtras(ctx.plan) },
+    production_health: productionHealth(ctx),
   };
 }
 
+// v2.158.1 the rest of the Production plan the author sees (definition of done, estimate, cut line, engine notes, parallel work, risks,
+// framework gaps, the weekly summary, auto-close, agreed epics, a running ✦)
+function planExtras(pd) {
+  const p = pd.plan || {}, run = pd.running && msOf(pd.running.at) > Date.now() - 35 * 60000 ? pd.running.op : null;
+  return { definition_of_done: p.dod || [], estimate_weeks: p.estimateWeeks || null, cut_line: p.cutLine || null, engine_notes: p.engineNotes || '',
+    parallel: p.parallel || [], risks: (p.risks || []).map((r) => ({ risk: r.risk, mitigation: r.mitigation })),
+    framework_gaps: (p.gaps || []).map((g) => ({ need: g.need, missing: g.missing, desired_api: g.desiredApi || '', workaround: g.workaround || '' })),
+    weekly: pd.weekly || null, auto_close: pd.autoClose !== false, epics_agreed: Object.keys(pd.epicsOk || {}).filter((k) => pd.epicsOk[k]),
+    ...(run ? { running: run + ' — an AI ' + run + ' is being made right now; do not answer its questions or replan meanwhile' } : {}) };
+}
+function productionHealth(ctx) {
+  const h = KIT.health(ctx.cards.filter((c) => !c.hidden)), refs = (l) => l.slice(0, 30).map((c) => ({ ref: 'c:' + c.id, title: c.title || '' }));
+  return { red_licence: refs(h.red), unknown_licence: refs(h.blue), over_polygons: refs(h.heavy), not_glb: refs(h.notGlb), levels_without_greybox: refs(h.noGreybox),
+    notes: ((ctx.plan.plan || {}).health || []).map((x) => ({ issue: x.issue, fix: x.fix || '', cards: x.cards || [] })) };
+}
+// the canon audit's open contradictions (world.audit minus world.auditAnswers; the id as the Bible's cid)
+function canonIssues(world) {
+  const a = (world && world.auditAnswers) || {};
+  return ((world && world.audit && world.audit.contradictions) || []).map((c) => ({ id: c.id || 't_' + djb2c(c.what || ''), what: c.what, where: c.where || '', options: c.options || [] }))
+    .filter((c) => !a[c.id]);
+}
 // What is switched on for this game: the agent keeps the development log when Mini-Marketing is on (get_guide activity_log)
 async function integrations(ctx) {
   const m = await ctx.gref.collection('marketing').doc('state').get().catch(() => null);
@@ -829,6 +868,9 @@ async function integrations(ctx) {
       ...(on ? { instruction: 'Report every working session with submit_development_activity (get_guide {topic:"activity_log"}); only entries the author approves are used for posts.' } : {}) },
     repo: ctx.game.repo && ctx.game.repo.full ? { full: ctx.game.repo.full, branch: ctx.game.repo.branch || '' } : null,
     knowledge: ctx.game.knowledge ? { last_snapshot: ctx.game.knowledge.lastSnap || '' } : null,
+    agent_silence: ctx.game.agentSilence || null, launch: ctx.game.launch || null, // the settings the author sees (no keys: ingestKeys are only counted)
+    telemetry: { ingest_keys: (ctx.game.ingestKeys || []).length, ...(ctx.game.telemetryStats ? { stats: ctx.game.telemetryStats } : {}) },
+    world_integrations: Object.keys(ctx.world.integrations || {}).map((k) => ({ kind: k, name: (ctx.world.integrations[k] || {}).name || '' })),
   };
 }
 
@@ -887,10 +929,11 @@ const entRef = (ctx, id) => {
   return e ? { ref, kind: e.kind, name: e.name, description: str(e.desc, 600) } : { ref, missing: true };
 };
 const refs = (ctx, ids) => list(ids, 50, (id) => entRef(ctx, id));
-function findApproved(items, id, what) {
+function findApproved(items, id, what, drafts) {
   const n = str(id, 160).toLowerCase();
   const x = items.find((y) => y.id.toLowerCase() === n) || items.find((y) => str(y.title, 160).toLowerCase() === n);
   if (!x) throw rpcError(-32602, `${what} not found: ${id}. Call without an id for the approved list.`);
+  if (drafts) return x; // v2.158.1 include_drafts: read what the author sees in the Bible — never build it until approved
   if (x.approval !== 'approved') throw rpcError(-32602, `${what} «${x.title || x.id}» is not approved yet (${x.approval || 'draft'}). Ask the author to approve it in the Game Bible.`);
   return x;
 }
@@ -1713,7 +1756,12 @@ async function callTool(name, args, key) {
       }
       return { task: taskView(ctx, t) };
     }
-    case 'get_task_details': return taskView(ctx, findTask(ctx, args.task_id));
+    case 'get_task_details': { // + the executor log of this task (the Bible's plan shows the last runs)
+      const v = taskView(ctx, findTask(ctx, args.task_id));
+      if (!v.unapproved) v.executions = (await ctx.gref.collection('executions').where('taskId', '==', v.id).get().catch(() => ({ docs: [] }))).docs.map((d) => d.data())
+        .sort((a, b) => msOf(b.at) - msOf(a.at)).slice(0, 12).map((x) => ({ type: x.type, at: msOf(x.at) ? new Date(msOf(x.at)).toISOString() : null, key: x.keyPrefix || '' }));
+      return v;
+    }
     case 'get_design_section': {
       const s = str(args.section, 60);
       const out = ctx.cards.filter((c) => c.section === s && !c.hidden).map((c) => cardView(ctx, c.canonRef ? 'e:' + c.canonRef : 'c:' + c.id)).filter(Boolean);
@@ -1873,8 +1921,38 @@ async function callTool(name, args, key) {
     case 'resolve_divergence': return resolveDivergence(ctx, key, args);
     case 'review_task': return designerReview(ctx, key, args);
     case 'record_author_decision': return recordAuthorDecision(ctx, key, args);
-    case 'get_plan_questions': return planQuestions(ctx.plan, args.all === true);
+    case 'get_plan_questions': {
+      const out = planQuestions(ctx.plan, args.all === true), sc = ctx.plan.scaffold, ex = planExtras(ctx.plan);
+      if (ex.running) out.running = ex.running;
+      if (sc && !sc.appliedAt && ((sc.sections || []).length || (sc.cards || []).length)) out.pending_scaffold = { sections: (sc.sections || []).map((x) => ({ name: x.name, why: x.why || x.about || '' })),
+        cards: (sc.cards || []).map((x) => ({ section: x.section, title: x.title, group: x.group || '', need: x.need || '', task: x.task || '' })), rule: 'Proposed by the plan; the author applies it in the Bible («Створити відмічене»).' };
+      const d = await ctx.gref.collection('plan').doc('draft').get().catch(() => null);
+      if (d && d.exists) { const v = d.data(); out.plan_draft = { at: msOf(v.at) ? new Date(msOf(v.at)).toISOString() : null, diff: v.diff || null, milestones: ((v.plan || {}).milestones || []).map((m) => m.id + ' ' + (m.name || '')),
+        rule: 'A proposed replan waits for the author\'s one «так» in the Bible; until then the current plan and tasks hold.' }; }
+      return out;
+    }
     case 'get_design_readiness': return designReadiness(ctx);
+    case 'get_experience_metrics': {
+      const day = new Date().toISOString().slice(0, 10);
+      const [m, today, pt] = await Promise.all([ctx.gref.collection('experience').doc('metrics').get(), ctx.gref.collection('telemetryDaily').doc(day).get(), ctx.gref.collection('playtests').get()].map((p) => p.catch(() => null)));
+      const v = m && m.exists ? m.data() : null;
+      if (v && args.heatmaps !== true) v.heatmaps = (v.heatmaps || []).map((h) => ({ zone: h.zone, events: h.n, note: 'heatmaps:true for the cells' }));
+      return { metrics: v, ...(v ? {} : { message: 'No metrics yet: the game sends no telemetry (get_telemetry_schema) or the daily count has not run.' }),
+        today_events: today && today.exists ? today.get('total') || 0 : 0, ingest: ctx.game.telemetryStats || null,
+        playtests: pt ? pt.docs.map((d) => ({ id: d.id, status: d.get('status') || 'draft', title: d.get('title') || '', focus: d.get('focus') || '' })) : [] };
+    }
+    case 'get_culture': {
+      const all = (await ctx.wref.collection('lore').get()).docs.map((d) => ({ id: d.id, ...d.data() }));
+      if (!args.id) return { culture: all.map((x) => ({ id: x.id, kind: x.kind || x.type || '', name: x.name || x.title || '' })) };
+      const x = all.find((y) => y.id === str(args.id, 80)) || all.find((y) => str(y.name || y.title, 160).toLowerCase() === str(args.id, 160).toLowerCase());
+      if (!x) throw rpcError(-32602, `No culture entry ${args.id}. Call get_culture without id.`);
+      return x;
+    }
+    case 'get_marketing_status': {
+      const [ch, ps] = await Promise.all(['channels', 'posts'].map((c) => ctx.gref.collection(c).get().then((s) => s.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => [])));
+      return { channels: ch.map((c) => ({ id: c.id, platform: c.platform || '', name: c.name || c.title || '' })),
+        posts: ps.map((p) => ({ id: p.id, status: p.status || '', channel: p.channelId || p.platform || '', at: msOf(p.scheduledAt || p.publishedAt || p.createdAt) ? new Date(msOf(p.scheduledAt || p.publishedAt || p.createdAt)).toISOString() : null, text: str(p.text, 2000) })) };
+    }
     case 'get_mechanic_template': return mechTemplate(str(args.id, 60));
     case 'answer_plan_question': return answerPlanQuestion(ctx, key, args);
     case 'submit_task_result': {
@@ -1956,15 +2034,19 @@ async function callTool(name, args, key) {
     }
     case 'get_quest_context': {
       const n = await narrative(ctx);
-      if (!args.id) return { quests: n.quests.filter((q) => q.approval === 'approved').map((q) => ({ id: q.id, title: q.title || '', type: q.type || '', status: q.status || 'idea' })),
+      const dr = args.include_drafts === true;
+      if (!args.id) return { quests: n.quests.filter((q) => dr || q.approval === 'approved').map((q) => ({ id: q.id, title: q.title || '', type: q.type || '', status: q.status || 'idea', ...(dr ? { approval: q.approval || 'draft' } : {}) })),
         drafts: n.quests.filter((q) => q.approval !== 'approved').length };
-      return questView(ctx, n, findApproved(n.quests, args.id, 'Quest'));
+      const q = findApproved(n.quests, args.id, 'Quest', dr);
+      return { ...questView(ctx, n, q), ...(q.approval !== 'approved' ? { approval: q.approval || 'draft', draft_rule: 'Not approved: read it, discuss it, do not build it.' } : {}) };
     }
     case 'get_dialogue_context': {
       const n = await narrative(ctx);
-      if (!args.id) return { dialogues: n.dialogues.filter((d) => d.approval === 'approved').map((d) => ({ id: d.id, title: d.title || '', type: d.type || '', quest: d.questId || '' })),
+      const dr = args.include_drafts === true;
+      if (!args.id) return { dialogues: n.dialogues.filter((d) => dr || d.approval === 'approved').map((d) => ({ id: d.id, title: d.title || '', type: d.type || '', quest: d.questId || '', ...(dr ? { approval: d.approval || 'draft' } : {}) })),
         drafts: n.dialogues.filter((d) => d.approval !== 'approved').length };
-      return dialogueView(ctx, n, findApproved(n.dialogues, args.id, 'Dialogue'));
+      const d = findApproved(n.dialogues, args.id, 'Dialogue', dr);
+      return { ...dialogueView(ctx, n, d), voices: ctx.game.voices || {}, ...(d.approval !== 'approved' ? { approval: d.approval || 'draft', draft_rule: 'Not approved: read it, discuss it, do not build it.' } : {}) };
     }
     case 'get_content_export': {
       const n = await narrative(ctx);
@@ -1979,6 +2061,7 @@ async function callTool(name, args, key) {
     case 'get_guide': {
       const g = GUIDES.guide(str(args.topic, 20), (ctx.game.engine && ctx.game.engine.profile) || 'generic'); // a Roblox game gets the Roblox setup
       if (!g) throw rpcError(-32602, 'topic must be setup, unity_env, knowledge, activity_log or agents');
+      if (str(args.topic, 20) === 'unity_env') { const e = await ctx.gref.collection('env').doc('current').get().catch(() => null); if (e && e.exists) return { ...g, last_report: e.data() }; }
       return g;
     }
     case 'report_unity_environment': {
