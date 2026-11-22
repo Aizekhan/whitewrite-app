@@ -235,7 +235,7 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Щойно відповіси на останній блокер — план розробки складеться сам (≈ ціна «✦ План»).",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { msMore: "Деталі етапу: результат, старт, бюджети", rmap: "Дерево розробки", rmapHint: "Натисни ворота або епік — нижче відкриються його задачі.", more: "ще {n} →", otherMs: "Інше", about: "Про план", risksT: "Ризики, паралельна робота й прогалини фреймворку", tToday: "☀ Сьогодні", tPlan: "🌳 План", tGdd: "📋 Готовність GDD", tLog: "📜 Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { nowLbl: "Claude Code зараз", nowIdle: "Бере наступну готову задачу сам", open: "Відкрити", rvWait: "чекають твоєї перевірки", launch: "Запуск", help: "Що означають значки", fullReport: "Повний звіт: зміни, тести, перевірки", gateCrit: "Критерії воріт", epicMore: "Дії з епіком", agChanged: "Агенти змінили правила гри", agChangedHint: "Тут картки, де агент змінив правила поза погодженими епіками. Відкрий картку — угорі видно, що саме змінено.", msMore: "Деталі етапу: результат, старт, бюджети", rmap: "Дерево розробки", rmapHint: "Натисни ворота або епік — нижче відкриються його задачі.", more: "ще {n} →", otherMs: "Інше", about: "Про план", risksT: "Ризики, паралельна робота й прогалини фреймворку", tToday: "☀ Сьогодні", tPlan: "🌳 План", tGdd: "📋 Готовність GDD", tLog: "📜 Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
       noGdd: "Спершу ШІ прочитає всю біблію гри: складе гейм-диздок і питання, без яких план не скласти.", needBlockers: "Щоб скласти план, дай відповідь на блокери ({n}).", toToday: "До «Сьогодні»",
       review: "Чекають твого рішення — задачі на ревʼю", blocked: "Агент зупинився — задачі з блокером", gates: "Етап готовий — прийми ворота", toGate: "До воріт",
       agents: "Агенти питають або просять погодження", toIssues: "Розібрати суперечності", allDone: "Усе вирішено — нічого не чекає на тебе",
@@ -377,7 +377,7 @@
         ideaT: "розробка починається з GDD: який етап заповнити далі, питання до нього й мінімум", gameT: "гру вже роблять, Claude Code веде GDD: що він заніс, які етапи порожні, готовий запит заповнити етап", offT: "лише позначки етапів у меню (○ порожньо · ◐ почато · ● мінімум є)",
         about: "етапи GDD від 1 до 13 зі схеми; нічого не ховається й не приглушується, ворота лишаються в продакшн-плані.", change: "Змінити",
         stage: "Етап {n} з {all}", or: "або", need: "Мінімум: {m}.", then: "Далі — {s}.", open: "Відкрити етап", done: "Усі етапи GDD мають мінімум",
-        fromGame: "Від гри", mine: "Агенти змінили правила гри поза погодженими епіками — переглянь: {n}", empty: "Порожні етапи: {s}", allStarted: "Усі етапи почато.",
+        fromGame: "Від гри", mine: "Агенти змінили правила гри в {n} картках — переглянь у «Сьогодні»", empty: "Порожні етапи: {s}", allStarted: "Усі етапи почато.",
         askBtn: "Запит для Claude Code — заповнити етап {n}", copied: "Запит скопійовано — встав його в Claude Code",
         ask: "Виклич get_gdd_schema і get_gdd_status. Заповни в WhiteWrite етап {n} «{s}»: переглянь проєкт гри і занеси в GDD усе, що вже є в грі для цього етапу, — кожну річ у розділ за схемою; перед новою карткою — find_cards, щоб не робити копій. Чого в грі ще немає — не вигадуй, а коротко запитай мене. Наприкінці скажи, що записав.",
         atStage: "етап {n} · {s}", state: { empty: "порожньо", partial: "почато, мінімуму ще немає", done: "мінімум є" } },
@@ -608,7 +608,7 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. As soon as you answer the last blocker the development plan makes itself (≈ the «✦ Plan» price).",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { msMore: "Milestone details: deliverables, start, budgets", rmap: "Development tree", rmapHint: "Click a gate or an epic — its tasks open below.", more: "{n} more →", otherMs: "Other", about: "About the plan", risksT: "Risks, parallel work and framework gaps", tToday: "☀ Today", tPlan: "🌳 Plan", tGdd: "📋 GDD readiness", tLog: "📜 Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { nowLbl: "Claude Code now", nowIdle: "Takes the next ready task itself", open: "Open", rvWait: "wait for your review", launch: "Launch", help: "What the marks mean", fullReport: "Full report: changes, tests, checks", gateCrit: "Gate criteria", epicMore: "Epic actions", agChanged: "Agents changed game rules", agChangedHint: "Cards where an agent changed the rules outside the agreed epics. Open a card — the top shows what was changed.", msMore: "Milestone details: deliverables, start, budgets", rmap: "Development tree", rmapHint: "Click a gate or an epic — its tasks open below.", more: "{n} more →", otherMs: "Other", about: "About the plan", risksT: "Risks, parallel work and framework gaps", tToday: "☀ Today", tPlan: "🌳 Plan", tGdd: "📋 GDD readiness", tLog: "📜 Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
       noGdd: "First the AI reads the whole game bible: it drafts the design doc and the questions a plan needs.", needBlockers: "To make the plan, answer the blockers ({n}).", toToday: "To «Today»",
       review: "Waiting for your decision — tasks in review", blocked: "The agent stopped — blocked tasks", gates: "A milestone is done — accept the gate", toGate: "To the gate",
       agents: "The agents ask or want an approval", toIssues: "Sort out the contradictions", allDone: "All decided — nothing waits for you",
@@ -750,7 +750,7 @@
         ideaT: "development starts with the GDD: which stage to fill next, its questions and minimum", gameT: "the game is already being made, Claude Code keeps the GDD: what it recorded, which stages are empty, a ready request to fill a stage", offT: "only the stage marks in the menu (○ empty · ◐ started · ● minimum met)",
         about: "GDD stages 1 to 13 from the schema; nothing is hidden or dimmed, the gates stay in the production plan.", change: "Change",
         stage: "Stage {n} of {all}", or: "or", need: "Minimum: {m}.", then: "Next — {s}.", open: "Open the stage", done: "Every GDD stage has its minimum",
-        fromGame: "From the game", mine: "Agents changed game rules outside agreed epics — have a look: {n}", empty: "Empty stages: {s}", allStarted: "Every stage is started.",
+        fromGame: "From the game", mine: "Agents changed game rules in {n} cards — review them in «Today»", empty: "Empty stages: {s}", allStarted: "Every stage is started.",
         askBtn: "Request for Claude Code — fill stage {n}", copied: "Request copied — paste it into Claude Code",
         ask: "Call get_gdd_schema and get_gdd_status. Fill stage {n} «{s}» in WhiteWrite: look through the game project and record in the GDD everything the game already has for this stage — each thing into its section by the schema; before a new card call find_cards so there are no copies. Do not invent what the game does not have yet — ask me briefly. At the end tell me what you recorded.",
         atStage: "stage {n} · {s}", state: { empty: "empty", partial: "started, minimum not met yet", done: "minimum met" } },
@@ -1216,14 +1216,17 @@
   function guideAsk(st) { // a ready request for Claude Code: fill this stage from what is already in the game
     return STR.guide.ask.replace("{n}", st.n).replace("{s}", L(st));
   }
+  function agentChanged() { // the cards whose rules an agent changed outside the agreed epics, not seen yet (the sidebar and ☀ Today)
+    var agr = window.__TASK_TYPES ? __TASK_TYPES.agreedRefs(planDoc, tasks) : {};
+    return cards.filter(function (c) { return c.agentAt && !c.hidden && !(window.__TASK_TYPES && __TASK_TYPES.autoSeen(c, agr)); });
+  }
   function guideNextHtml() { // under the menu: where the GDD stands and what comes next
     if (!guideOn()) return "";
     var G = STR.guide, m = guideMode(), nx = guideNext();
     if (m === "game") {
-      var agr = window.__TASK_TYPES ? __TASK_TYPES.agreedRefs(planDoc, tasks) : {}; // 👁 v2.156 only rule changes outside agreed epics
-      var mine = cards.filter(function (c) { return c.agentAt && !c.hidden && !(window.__TASK_TYPES && __TASK_TYPES.autoSeen(c, agr)); }).length;
+      var mine = agentChanged().length; // 👁 v2.156 only rule changes outside agreed epics
       var empty = GDD.STAGES.filter(function (st) { return !st.optional && stageStateOf(st) === "empty"; }).map(function (st) { return st.n + " · " + L(st); });
-      return '<div class="guide-next">🧭 <b>' + esc(G.fromGame) + '</b>' + (mine ? '<small>' + esc(G.mine.replace("{n}", mine)) + '</small>' : '') +
+      return '<div class="guide-next">🧭 <b>' + esc(G.fromGame) + '</b>' + (mine ? '<button type="button" class="btn guide-ask guide-mine" data-sec="plan" data-today="1">🤖 ' + esc(G.mine.replace("{n}", mine)) + ' →</button>' : '') +
         '<small>' + esc(empty.length ? G.empty.replace("{s}", empty.join(", ")) : G.allStarted) + '</small>' +
         (nx ? '<button type="button" class="btn guide-ask" data-guideask="' + nx.n + '">⧉ ' + esc(G.askBtn.replace("{n}", nx.n)) + '</button>' : '<small>' + esc(G.done) + '</small>') + '</div>';
     }
@@ -11448,7 +11451,7 @@
       '<div class="row">' + (gdd ? '<details class="pmore"><summary class="btn ghost" aria-label="' + esc(STR.pl.more) + '">⋯</summary><div class="pmore__m">' : '') +
       '<button class="btn' + (gdd ? ' ghost' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + costMark("analyze") + '</button>' +
       (gdd ? '<button class="btn' + (!plan && !blockers ? ' primary' : '') + '" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + costMark("plan") + '</button>' : '') +
-      (gdd ? '<p class="muted">' + esc(STR.pl.moreNote) + '</p></div></details>' : '') + '</div></header>';
+      (gdd ? '<p class="muted">' + esc(STR.pl.moreNote) + '</p>' + planDocsHtml(plan) + '</div></details>' : '') + '</div></header>';
     // v2.159 (owner: «на сторінці плану перемішано все на кучу… це шо за ужас?»; the game designer's walk-through: «це не план, а склад — задачі після
     // 15 екранів, прогалини тричі, усе, що чекає автора, у 4 місцях»): four tabs, one question each — ☀ Today (what waits for me, one queue, one tap) ·
     // 🌳 Plan (where we are, what is next) · 📋 GDD readiness (one list of gaps by stage) · 📜 Log (what happened). One thing — one place, one number.
@@ -11458,7 +11461,7 @@
     var gates = plan && plan.gated ? (plan.milestones || []).filter(function (m) { if (!m.track || msLock(plan, m) || gateOf(m).status === "approved") return false;
       var mt = tasks.filter(function (t) { return t.milestone === m.id && t.status !== "deferred" && t.status !== "dropped"; }); return mt.length && mt.every(function (t) { return t.status === "done"; }); }) : [];
     loadAgWait();
-    var todayN = oq.length + drift.length + gi.length + crs.length + rv.length + bl.length + gates.length + agWait.list.length + (planDraft ? 1 : 0);
+    var todayN = oq.length + drift.length + gi.length + crs.length + rv.length + bl.length + gates.length + agWait.list.length + (planDraft ? 1 : 0) + (agentChanged().length ? 1 : 0);
     var doneT = tasks.filter(function (t) { return t.status === "done"; }).length;
     var stale = gddStale();
     if (!planTabPicked) planTab = todayN ? "today" : "plan"; // what waits for the author first; nothing waits — the plan
@@ -11469,7 +11472,7 @@
     if (planTab === "today") html += todayHtml(oq, blockers, drift, gi, crs, sc, rv, bl, gates);
     else if (planTab === "plan") {
       if (plan) { var nowT = tasks.filter(function (t) { return t.status === "in_progress"; })[0]; // 📅 v2.155 · the asset ladder folded under the tree
-        html += weekHtml() + '<p class="muted">' + esc(nowT ? EP.crownNext.replace("{t}", nowT.id + " · " + (nowT.title || "")) : EP.crownIdle) + '</p>' + planHtml(plan) +
+        html += nowCardHtml(nowT || rv[0], rv.length) + planHtml(plan) + weekHtml() +
           '<details class="psec"><summary><h2 class="group" style="display:inline-flex">🧱 ' + STR.pp.tabMatrix + '</h2></summary>' + matrixHtml() + '</details>'; }
       else {
         if (!gdd) html += '<div class="pready"><b>' + esc(PL.noGdd) + '</b><button type="button" class="btn primary" data-mkan>' + STR.analyze + costMark("analyze") + '</button></div>';
@@ -11537,6 +11540,9 @@
     if (agWait.list.length) html += '<section class="psec"><h2 class="group">' + esc(PL.agents) + ' <span>' + agWait.list.length + '</span></h2>' + agWait.list.map(function (m) {
       var root = m.thread || m.id, can = mayEdit("agents") && canWrite;
       return '<div class="ag-th">' + agMsgHtml(m) + (m.type === "question" && can ? '<div class="ag-box"><textarea rows="2" data-agrt="' + esc(root) + '" placeholder="' + esc(AGS.replyPh) + '"></textarea><div class="setrow"><button class="btn primary" data-agreply="' + esc(m.id) + '" data-agroot="' + esc(root) + '">' + AGS.reply + '</button></div></div>' : '') + '</div>'; }).join("") + '</section>';
+    var ac = agentChanged(); // v2.160.1 the sidebar's «агенти змінили правила» lands here: the cards, each opens with what the agent changed
+    if (ac.length) html += '<section class="psec"><h2 class="group">🤖 ' + esc(PL.agChanged) + ' <span>' + ac.length + '</span></h2><p class="hint">' + esc(PL.agChangedHint) + '</p><div class="cchips">' +
+      ac.slice(0, 40).map(function (c) { return cardChip("c:" + c.id); }).join("") + '</div>' + (ac.length > 40 ? '<p class="muted">' + esc(PL.more.replace("{n}", ac.length - 40)) + '</p>' : '') + '</section>';
     if (drift.length) html += '<section class="psec" id="p-drift"><h2 class="group">' + esc(DD.list) + '</h2><p class="hint">' + esc(DD.hint) + '</p>' + drift.map(function (c) {
       return '<div class="q"><div class="cchips">' + cardChip("c:" + c.id) + '</div>' + driftHtml(c.id, c.devDrift) + '</div>'; }).join("") + '</section>';
     if (crs.length) dec += '<section class="psec"><h2 class="group">' + STR.crTitle + ' <span>' + crs.length + '</span></h2>' + crs.map(function (c) {
@@ -11704,18 +11710,23 @@
       (canWrite ? '<div class="row"><button class="btn" data-unblock="' + esc(lt.id) + '">' + STR.unblock + '</button></div>' : '') + '</div>';
     if (lt.status === "review" && lt.report) {
       var r = lt.report, ck = r.check || {}, lag = lagCards(lt);
-      html += '<div class="treview"><div><b>' + STR.report + ':</b> ' + esc(r.summary) + '</div>' +
+      // the author's default criterion («Done as the author said: «…»») is the author's own words, which the agent restates — not a failed check by itself
+      var unmet = (ck.unmet || []).filter(function (u) { return !/^(Done as the author said|Зроблено, як сказав автор)/.test(u); }), critOk = ck.allCriteriaMet || !unmet.length || (lt.designerReview || {}).verdict === "accept";
+      var hard = lag.length || (r.tests && r.tests.ran && r.tests.failed > 0) || !critOk; // a real failure, not «no tests ran»
+      var good = critOk && ck.testsGreen && !lag.length;
+      html += '<div class="treview"><div class="trsum"><b>' + STR.report + ':</b> ' + esc(r.summary) + '</div>' +
+        (lag.length ? '<div class="tblock"><b>' + esc(AU.lag) + '</b><div class="cchips">' + lag.map(function (x) { return cardChip(x); }).join("") + '</div><div class="muted">' + esc(AU.lagHint) + '</div></div>' : '') +
+        '<details class="trfull"><summary>' + esc(STR.pl.fullReport) + '</summary>' +
         (r.commit ? '<div class="muted">commit: <span class="mono">' + esc(r.commit) + '</span></div>' : '') +
         ((r.changes || []).length ? '<details><summary>' + STR.changes + ' (' + r.changes.length + ')</summary><pre>' + esc(r.changes.join("\n")) + '</pre></details>' : '') +
         '<div>' + STR.tests + ': ' + (r.tests && r.tests.ran ? '✓ ' + r.tests.passed + ' · ✗ ' + r.tests.failed : STR.testsNone) + '</div>' +
         ((r.criteria || []).length ? '<ul class="crit">' + r.criteria.map(function (c) { return '<li>' + (c.met ? '✅' : '❌') + ' ' + esc(c.criterion) + (c.evidence ? ' <span class="muted">— ' + esc(c.evidence) + '</span>' : '') + '</li>'; }).join("") + '</ul>' : '') +
         '<div class="muted">' + STR.serverCheck + ': ' + (ck.allCriteriaMet && ck.testsGreen ? '✅ ' + STR.checkOk : '⚠ ' + STR.checkWarn + ((ck.unmet || []).length ? ' (' + esc(ck.unmet.join("; ")) + ')' : '')) + '</div>' +
         proofHtml(lt) +
-        (lag.length ? '<div class="tblock"><b>' + esc(AU.lag) + '</b><div class="cchips">' + lag.map(function (x) { return cardChip(x); }).join("") + '</div><div class="muted">' + esc(AU.lagHint) + '</div></div>' : '') +
-        (((r.cards || {}).unchanged || []).length ? '<div class="muted">' + esc(AU.unchanged) + ': ' + r.cards.unchanged.map(function (u) { return esc(u.ref) + ' — ' + esc(u.why); }).join("; ") + '</div>' : '') +
-        (canWrite ? ((ck.allCriteriaMet || (lt.designerReview || {}).verdict === "accept") && ck.testsGreen && !lag.length // failed checks or lagging cards: «return» is the primary action, accepting asks once more
-          ? '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '">' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>'
-          : '<div class="row"><button class="btn primary" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button><button class="btn" data-accept="' + esc(lt.id) + '" data-unchecked="' + (lag.length ? 'lag' : '1') + '">' + STR.accept + '</button></div>') : '') + '</div>';
+        (((r.cards || {}).unchanged || []).length ? '<div class="muted">' + esc(AU.unchanged) + ': ' + r.cards.unchanged.map(function (u) { return esc(u.ref) + ' — ' + esc(u.why); }).join("; ") + '</div>' : '') + '</details>' +
+        (canWrite ? (hard // a failed check or lagging cards: «return» is the primary action, accepting asks once more
+          ? '<div class="row"><button class="btn primary" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button><button class="btn" data-accept="' + esc(lt.id) + '" data-unchecked="' + (lag.length ? 'lag' : '1') + '">' + STR.accept + '</button></div>'
+          : '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '"' + (good ? '' : ' data-unchecked="1"') + '>' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>') : '') + '</div>';
     }
     return html;
   }
@@ -11812,14 +11823,15 @@
     await gref().collection("tasks").doc(lt.id).set({ assignee: x ? { uid: x.uid, name: x.name } : firebase.firestore.FieldValue.delete(), updatedAt: stamp(), memberEdit: memberMark(),
       history: firebase.firestore.FieldValue.arrayUnion({ type: "assigned", to: x ? x.name : "", by: "author", at: Date.now() }) }, { merge: true });
   }
-  function taskHtml(t) {
+  function taskHtml(t, row) { // row: inside its row (taskRowHtml) — the row already shows the status, id and title
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
     var bt = isBugT(lt) ? lt : isBugT(t) ? t : null;
     var at = isAuthT(lt) ? lt : isAuthT(t) ? t : null, x = lt || t, met = ((x.report || {}).criteria || []).filter(function (c) { return c.met; }).map(function (c) { return String(c.criterion || "").toLowerCase(); });
     var own = ME.owner && canWrite, parkable = lt && ["todo", "rework", "blocked"].indexOf(lt.status) >= 0, parked = lt && (lt.status === "deferred" || lt.status === "dropped");
-    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt || at ? ' t-bug' : '') + '" id="task-' + esc(t.id) + '"><div class="task__h"><b class="sti" title="' + esc(lt ? STR.ts[lt.status] || lt.status : "") + '">' + stIcon(lt) + '</b><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') +
+    if (at) acc = acc.filter(function (a) { return !/^(Done as the author said|Зроблено, як сказав автор)/.test(a); }); // the author's words are shown once, in authBody
+    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt || at ? ' t-bug' : '') + '"' + (row ? '' : ' id="task-' + esc(t.id) + '"') + '><div class="task__h">' + (row ? memberHtml(lt) : '<b class="sti" title="' + esc(lt ? STR.ts[lt.status] || lt.status : "") + '">' + stIcon(lt) + '</b><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') +
       typeChip(x) + (at ? ' <span class="pill s-agreed">' + esc(at.kind === "sync" ? EP.sync : AU.chip) + '</span>' : '') + (x.verify && x.status === "todo" ? ' <span class="pill s-idea" title="' + esc(EP.verifyT) + '">' + esc(EP.verify) + '</span>' : '') + (x.partial ? ' <span class="pill s-idea">' + esc(EP.partial) + '</span>' : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
-      (lt ? ' <span class="pill tst-' + cls(lt.status) + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
+      (lt ? ' <span class="pill tst-' + cls(lt.status) + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '')) +
       (t.priority ? ' <span class="pill pr-' + cls(t.priority) + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
       (t.assetState ? ' <span class="pill st-' + cls(t.assetState) + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
@@ -11853,7 +11865,7 @@
   function looseBugsHtml(list) {
     return '<div class="ms ms-bugs" id="ms-BUGS"><h3>' + esc(BG.loose) + ' <span class="muted">' + list.length + '</span></h3><p class="muted">' + esc(BG.looseHint) + '</p>' + list.map(taskHtml).join("") + '</div>';
   }
-  function msHtml(plan, m) {
+  function msHtml(plan, m, bar) {
     var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [], shown = msShown(m), s1 = openS1(m.id);
     var now = !!(plan.gated && m.track && !lock && g.status !== "approved"); // the gate the author decides now — the plan's one primary (unless questions wait)
     var done = ts.filter(function (t) { var lt = liveTask(t.id); return lt && lt.status === "done"; }).length;
@@ -11862,20 +11874,22 @@
     var head = '<h3>' + esc(m.id) + ' · ' + esc(m.name) + (m.estimateDays ? ' <span class="muted">' + P.days.replace("{n}", m.estimateDays) + '</span>' : '') +
       (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
       (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') +
-      (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + (m.carried ? ' <span class="pill s-idea" title="' + esc(P.carriedTip) + '">' + esc(P.carried) + '</span>' : '') + '</h3>'; // carried: gamedev.js kept it from the previous plan
+      (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + (m.carried ? ' <span class="pill s-idea" title="' + esc(P.carriedTip) + '">' + esc(P.carried) + '</span>' : '') + '</h3>' +
+      (bar != null ? bugBarHtml(bar) : ''); // carried: gamedev.js kept it from the previous plan
     var more = (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') + list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '');
     var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (more ? '<details class="msmore"><summary>' + esc(STR.pl.msMore) + '</summary>' + more + '</details>' : '') + epicTree(m, shown); // v2.160 the epics first
+    var gpct = ts.length ? Math.round(100 * done / ts.length) : 0;
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
-      ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
+      '<div class="gbar"><span class="gbar__b"><i style="width:' + gpct + '%"></i></span><b>' + done + ' / ' + ts.length + '</b></div>' +
+      ((m.accept || []).length ? '<details><summary>' + esc(STR.pl.gateCrit) + ' (' + m.accept.length + ')</summary><ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul></details>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
       (s1.length && g.status !== "approved" ? '<p class="warn gate-s1">⚠ ' + esc(BG.s1Gate.replace("{ids}", s1.join(", "))) + '</p>' : '') +
       (plan.gated && m.track && canWrite && !lock && !ME.owner ? '<p class="hint">🔒 ' + esc(STR.onlyOwner) + '</p>' : '') + // firestore.rules memberPlanOk: gates are the owner's
       (plan.gated && m.track && canWrite && !lock && ME.owner ? '<div class="row">' + (g.status === "approved" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>'
         : '<button class="btn' + (now && !openQs().length ? ' primary' : '') + '" data-gate="' + esc(m.id) + '" data-to="approved"' + (done < ts.length ? ' data-early="1"' : '') + '>' + P.approve + '</button>' +
           (g.status !== "returned" ? '<button class="btn" data-gate="' + esc(m.id) + '" data-to="returned">' + P.giveBack + '</button>' : '')) + '</div>' : '') + '</div>' : '';
-    if (lock) return '<div class="ms ms-locked" id="ms-' + esc(m.id) + '">' + head + '<p class="muted">' + P.locked.replace("{g}", esc(lock)) + '</p>' +
-      '<details><summary>' + esc(m.goal || m.name) + '</summary>' + body + gate + '</details></div>';
-    return '<div class="ms' + (g.status === "approved" ? ' ms-ok' : now ? ' ms-now' : '') + '" id="ms-' + esc(m.id) + '">' + head + body + gate + '</div>';
+    if (lock) return '<div class="ms ms-locked" id="ms-' + esc(m.id) + '">' + head + '<p class="muted">🔒 ' + P.locked.replace("{g}", esc(lock)) + '</p>' + gate + body + '</div>';
+    return '<div class="ms' + (g.status === "approved" ? ' ms-ok' : now ? ' ms-now' : '') + '" id="ms-' + esc(m.id) + '">' + head + gate + body + '</div>';
   }
   // what blocks or weakens the MVP in the Bible itself: licences, heavy models, levels without a greybox + the planner's own notes
   function matrixHtml() {
@@ -11942,19 +11956,19 @@
       acceptLag: "The GDD cards still lag behind the game — after accepting they will show the old design. Accept anyway?" } }[LANG];
   function isAuthT(t) { return !!t && (t.kind === "author" || t.kind === "sync"); } // ✋ the author's instructions and ↻ card syncs: tasks outside the AI plan
   // ---------- 🌳 v2.154 the plan as a tree: milestone → epics (features) → tasks → checklist; 👑 what waits for the author; ‖ ✕ the author's bans ----------
-  var EP = { uk: { legend: [["✓", "зроблено"], ["●", "в роботі"], ["○", "черга"], ["!", "чекає іншу задачу"], ["?", "звірити з грою — Claude Code сам"], ["‖", "відкладено автором"], ["✕", "не робимо"]],
+  var EP = { uk: { legend: [["○", "черга"], ["◉", "в роботі"], ["◐", "на перевірці"], ["✓", "зроблено"], ["!", "чекає іншу задачу"], ["?", "звірити з грою — Claude Code сам"], ["‖", "відкладено автором"], ["✕", "не робимо"]],
       other: "Інше", next: "далі", waits: "чекає", goto: "Перейти до задачі", verify: "? звірити з грою", verifyT: "План не певен, чи це вже є в грі — Claude Code перевірить сам", partial: "◐ частково", sync: "↻ з картки",
       park: "‖ Відкласти", drop: "✕ Не робимо", unpark: "↺ Повернути в чергу", parkEpic: "‖ Відкласти епік", dropEpic: "✕ Не робимо епік",
       parkT: "Відкласти — план не братиме це, доки не повернеш", dropT: "Не робимо — план ніколи не поверне це", banPh: "Що саме (так побачить планувальник)",
-      crownOk: "Від тебе зараз нічого не потрібно", crownNow: "Чекає тебе", crownNext: "Claude Code зараз: {t}", crownIdle: "Claude Code бере наступну готову задачу сам.",
+      crownOk: "Від тебе зараз нічого не потрібно", crownNow: "Чекає тебе",
       cReview: "на рев'ю: {n}", cBlocked: "заблоковано: {n}", cGate: "ворота {g} готові до приймання", cQs: "питання плану: {n}", cCr: "запити на зміну: {n}", cAgents: "питання агентів: {n}",
       bans: "Заборони плану", bansHint: "Твої рішення «відкладено / не робимо / прибрано». Планувальник ніколи не ставить задач проти них; Claude Code бачить їх теж.", banAdd: "＋ Заборона", banKind: "Що це",
       kind: { deferred: "‖ відкладено", never: "✕ не робимо", removed: "🗑 прибрано з гри" }, banRm: "Зняти", pending: "⏳ чекає твого ✔ →", via: { terminal: "у терміналі з Claude Code", chat: "у чаті з агентом", bible: "у Біблії" } },
-    en: { legend: [["✓", "done"], ["●", "in progress"], ["○", "queued"], ["!", "waits for another task"], ["?", "check against the game — Claude Code does it"], ["‖", "postponed by the author"], ["✕", "not doing"]],
+    en: { legend: [["○", "queued"], ["◉", "in progress"], ["◐", "in review"], ["✓", "done"], ["!", "waits for another task"], ["?", "check against the game — Claude Code does it"], ["‖", "postponed by the author"], ["✕", "not doing"]],
       other: "Other", next: "next", waits: "waits for", goto: "Go to the task", verify: "? check against the game", verifyT: "The plan is not sure whether the game already has it — Claude Code checks it itself (verify_task)", partial: "◐ partly", sync: "↻ from a card",
       park: "‖ Postpone", drop: "✕ Not doing", unpark: "↺ Back to the queue", parkEpic: "‖ Postpone the epic", dropEpic: "✕ Not doing the epic",
       parkT: "Postpone — the plan will not take it until you bring it back", dropT: "Not doing — the plan never brings it back", banPh: "What exactly (the planner reads this)",
-      crownOk: "Nothing is needed from you right now", crownNow: "Waiting for you", crownNext: "Claude Code now: {t}", crownIdle: "Claude Code takes the next ready task itself.",
+      crownOk: "Nothing is needed from you right now", crownNow: "Waiting for you",
       cReview: "in review: {n}", cBlocked: "blocked: {n}", cGate: "gate {g} is ready to approve", cQs: "plan questions: {n}", cCr: "change requests: {n}", cAgents: "agents' questions: {n}",
       bans: "The plan's bans", bansHint: "Your decisions «postponed / not doing / removed». The planner never writes a task against them; Claude Code sees them in get_project_overview.", banAdd: "＋ Ban", banKind: "What it is",
       kind: { deferred: "‖ postponed", never: "✕ not doing", removed: "🗑 removed from the game" }, banRm: "Lift", pending: "⏳ waits for your ✔ →", via: { terminal: "in the terminal with Claude Code", chat: "in the chat with the agent", bible: "in the Bible" } } }[LANG === "en" ? "en" : "uk"];
@@ -12058,7 +12072,7 @@
     if (!lt) return "○";
     if (lt.verify && lt.status === "todo") return "?";
     var s = lt.status;
-    return s === "done" ? "✓" : s === "deferred" ? "‖" : s === "dropped" ? "✕" : s === "in_progress" || s === "review" ? "●" : (s === "todo" || s === "rework") && depsWait(lt).length ? "!" : s === "blocked" ? "!" : "○";
+    return s === "done" ? "✓" : s === "deferred" ? "‖" : s === "dropped" ? "✕" : s === "in_progress" ? "◉" : s === "review" ? "◐" : (s === "todo" || s === "rework") && depsWait(lt).length ? "!" : s === "blocked" ? "!" : "○";
   }
   function legendHtml() {
     var off = planDoc.autoClose === false, sw = esc(TB.auto) + ': ' + esc(off ? TB.autoOff : TB.autoOn);
@@ -12089,15 +12103,19 @@
     if (gs.length === 1 && gs[0].id === "other") return shown.map(taskRowHtml).join("");
     return gs.map(function (g) { return epicHtml(m, g); }).join("");
   }
-  // a task as one row (status, id, title, type, who); the whole card opens under it
+  // a task as one row: its status by shape (○ ◉ ◐ ✓ !), id, title and only what is unusual (in review, blocked, from the author, check against the game, who); the card opens under it
   var trOpen = {};
   function taskRowHtml(t) {
-    var lt = liveTask(t.id), x = lt || t, st = x.status || "todo";
-    var open = trOpen[t.id] || ["review", "rework", "blocked"].indexOf(st) >= 0;
-    return '<details class="trow tr-' + cls(st) + '"' + (open ? ' open' : '') + ' data-trow="' + esc(t.id) + '"><summary><i class="tdot" aria-hidden="true"></i><span class="mono">' + esc(t.id) + '</span><b>' + esc(x.title || t.title || '') + '</b>' +
-      typeChip(x) + '<span class="pill tst-' + cls(st) + '">' + esc(STR.ts[st] || st) + '</span>' + (lt ? whoHtml(lt) : '') + '</summary>' + taskHtml(t) + '</details>';
+    var lt = liveTask(t.id), x = lt || t, st = x.status || "todo", odd = ["review", "rework", "blocked"].indexOf(st) >= 0;
+    var flags = (odd ? '<span class="pill tst-' + cls(st) + '">' + esc(STR.ts[st] || st) + '</span>' : '') + (isBugT(x) ? sevChip(x) : '') +
+      (isAuthT(x) ? '<span class="pill s-agreed">' + esc(x.kind === "sync" ? EP.sync : AU.chip) + '</span>' : '') +
+      (x.verify && st === "todo" ? '<span class="pill s-idea" title="' + esc(EP.verifyT) + '">' + esc(EP.verify) + '</span>' : '') +
+      (lt && lt.assignee ? '<span class="pill s-idea">👤 ' + esc(lt.assignee.uid === myUid() ? STR.pp.meLbl : lt.assignee.name) + '</span>' : '');
+    return '<details class="trow tr-' + cls(st) + '"' + (trOpen[t.id] || odd ? ' open' : '') + ' data-trow="' + esc(t.id) + '" id="task-' + esc(t.id) + '"><summary><b class="tsh" title="' + esc(STR.ts[st] || st) + '">' + stIcon(lt) + '</b>' +
+      '<span class="mono">' + esc(t.id) + '</span><b class="trow__t">' + esc(x.title || t.title || '') + '</b>' + flags + '</summary>' + taskHtml(t, true) + '</details>';
   }
-  // 🌳 v2.160 the development tree: the gates on a trunk (a ring of progress each), the epics as leaves under them; a click picks the milestone
+  // 🌳 v2.160 the development tree: the MVP gates on a trunk (a ring of progress each) to the launch, the epics as leaves under them;
+  // Expansion and Extra as a muted branch under the trunk (v2.160.1, the game designer's mock-up); a click picks the milestone
   var planMs = null;
   function msProg(m) {
     var l = (m.tasks || []).map(function (t) { return liveTask(t.id) || t; }).filter(function (x) { return x.status !== "dropped"; });
@@ -12105,16 +12123,17 @@
   }
   function msState(plan, m) {
     var g = gateOf(m); if (g.status === "approved") return "ok"; if (msLock(plan, m)) return "lock"; if (g.status === "returned") return "back";
-    return msProg(m).n && msProg(m).d === msProg(m).n ? "ready" : "now";
+    var p = msProg(m); return p.n && p.d === p.n ? "ready" : "now";
   }
   function selMs(plan, ms) {
     var f = function (p) { return ms.filter(p)[0]; };
     return f(function (m) { return m.id === planMs; }) || f(function (m) { var s = msState(plan, m); return s === "now" || s === "back" || s === "ready"; }) || f(function (m) { return msState(plan, m) !== "ok"; }) || ms[ms.length - 1] || null;
   }
   function roadmapHtml(plan, ms, sel) {
-    var P = STR.pp, PL = STR.pl, tracks = [["mvp", P.track.mvp], ["expansion", P.track.expansion], ["extra", P.track.extra], ["", ""]];
+    var P = STR.pp, PL = STR.pl, mvp = ms.filter(function (m) { return m.track === "mvp"; });
+    var on = function (m) { return sel && sel.id === m.id; };
     var col = function (m) {
-      var st = msState(plan, m), pr = msProg(m), gs = epicGroups(m, msShown(m)).filter(function (g) { return g.id !== "other" || gs0(m) === 1; });
+      var st = msState(plan, m), pr = msProg(m), gs = epicGroups(m, msShown(m));
       var leaf = function (g) {
         var l = g.list.map(function (t) { return liveTask(t.id) || t; }).filter(function (x) { return x.status !== "dropped"; }), d = l.filter(function (x) { return x.status === "done"; }).length;
         var act = l.some(function (x) { return ["in_progress", "review", "rework", "blocked"].indexOf(x.status) >= 0; });
@@ -12122,18 +12141,39 @@
           '<span class="rbar"><i style="width:' + (l.length ? Math.round(100 * d / l.length) : 0) + '%"></i></span><small>' + d + '/' + l.length + '</small></button>';
       };
       var shown = gs.slice(0, 6);
-      return '<div class="rcol rs-' + st + (sel && sel.id === m.id ? ' rsel' : '') + '"><button type="button" class="rnode" data-msel="' + esc(m.id) + '" style="--p:' + pr.pct + '" aria-pressed="' + !!(sel && sel.id === m.id) + '" aria-label="' + esc(m.id + ' · ' + m.name + ' · ' + pr.d + '/' + pr.n) + '">' +
-        '<span>' + (st === "ok" ? "✓" : st === "lock" ? "🔒" : esc(m.id)) + '</span></button>' +
-        '<div class="rname"><b>' + esc(m.id) + '</b> ' + esc(m.name || '') + '</div><div class="rmeta">' + (pr.n ? pr.d + ' / ' + pr.n + ' · ' + pr.pct + '%' : '—') + '</div>' +
+      return '<div class="rcol rs-' + st + (on(m) ? ' rsel' : '') + '"><button type="button" class="rnode" data-msel="' + esc(m.id) + '" style="--p:' + pr.pct + '" aria-pressed="' + on(m) + '" aria-label="' + esc(m.id + ' · ' + m.name + ' · ' + pr.d + '/' + pr.n) + '">' +
+        '<span>' + (st === "ok" ? "✓" : esc(m.id)) + '</span></button>' +
+        '<div class="rname"><b>' + esc(m.id) + '</b> ' + esc(m.name || '') + '</div><div class="rmeta">' + (st === "lock" ? '🔒 ' : '') + (pr.n ? pr.d + ' / ' + pr.n : '—') + '</div>' +
         (shown.length ? '<div class="rleafs">' + shown.map(leaf).join("") + (gs.length > shown.length ? '<button type="button" class="rleaf rl-more" data-msel="' + esc(m.id) + '">' + esc(PL.more.replace("{n}", gs.length - shown.length)) + '</button>' : '') + '</div>' : '') + '</div>';
     };
-    var gs0 = function (m) { return epicGroups(m, msShown(m)).length; };
-    var html = '<div class="rmap" role="group" aria-label="' + esc(PL.rmap) + '"><div class="rtrack">';
-    tracks.forEach(function (tr) {
-      var group = ms.filter(function (m) { return (m.track || "") === tr[0]; }); if (!group.length) return;
-      html += '<div class="rgroup rg-' + (tr[0] || "other") + '"><div class="rglabel">' + esc(tr[1] || PL.otherMs) + '</div><div class="rcols">' + group.map(col).join("") + '</div></div>';
-    });
-    return html + '</div></div><p class="hint rhint">' + esc(PL.rmapHint) + '</p>';
+    var chip = function (m) {
+      var st = msState(plan, m), pr = msProg(m);
+      return '<button type="button" class="rchip rs-' + st + (on(m) ? ' rsel' : '') + '" data-msel="' + esc(m.id) + '" aria-pressed="' + on(m) + '"><span class="rchip__id">' + (st === "lock" ? '🔒 ' : st === "ok" ? '✓ ' : '') + esc(m.id) + ' · ' + pr.d + '/' + pr.n + '</span><b>' + esc(m.name || '') + '</b></button>';
+    };
+    var html = '<div class="rmap" role="group" aria-label="' + esc(PL.rmap) + '"><div class="rhead"><span class="rglabel">' + esc(mvp.length ? P.track.mvp : PL.rmap) + '</span>' +
+      '<details class="pmore phelp"><summary class="btn ghost mini" aria-label="' + esc(PL.help) + '">?</summary><div class="pmore__m">' + legendHtml() + '<p class="muted">' + esc(PL.rmapHint) + '</p></div></details></div>';
+    if (mvp.length) html += '<div class="rtrunkw"><div class="rtrunk">' + mvp.map(col).join("") + '<div class="rlaunch"><span class="rlaunch__s" aria-hidden="true">★</span><b>' + esc(PL.launch) + '</b></div></div></div>';
+    var br = [["expansion", P.track.expansion], ["extra", P.track.extra], ["", PL.otherMs]].map(function (tr) {
+      var group = ms.filter(function (m) { return (m.track || "") === tr[0] || (tr[0] === "" && m.track && m.track !== "mvp" && m.track !== "expansion" && m.track !== "extra"); });
+      return group.length ? '<div class="rbranch rb-' + (tr[0] || "other") + '"><div class="rglabel">' + esc(tr[1]) + '</div><div class="rchips">' + group.map(chip).join("") + '</div></div>' : '';
+    }).join("");
+    if (br) html += '<div class="rbranches">' + br + '</div>';
+    return html + '</div>';
+  }
+  // ☀ what Claude Code does now — a card with its title, status and «Відкрити»
+  function nowCardHtml(t, rvN) {
+    var PL = STR.pl, x = t ? liveTask(t.id) || t : null;
+    return '<div class="pnow"><div class="pnow__c"><span class="pnow__i" aria-hidden="true">&lt;/&gt;</span><div class="pnow__t"><small>' + esc(PL.nowLbl) + '</small><b>' + esc(x ? x.title || x.id : PL.nowIdle) + '</b></div>' +
+      (x ? '<span class="pill tst-' + cls(x.status) + '">' + stIcon(x) + ' ' + esc(STR.ts[x.status] || x.status) + '</span><button type="button" class="btn mini" data-goto="' + esc(x.id) + '">' + esc(PL.open) + '</button>' : '') + '</div>' +
+      (rvN ? '<button type="button" class="pnow__rv" data-ptab="today"><b>' + rvN + '</b><span>' + esc(PL.rvWait) + '</span></button>' : '') + '</div>';
+  }
+  // «⋯» in the page head: the plan's own texts — what it is about, when the MVP is done, the engine notes
+  function planDocsHtml(plan) {
+    if (!plan) return '';
+    var P = STR.pp;
+    return (plan.overview ? '<details class="nbox"><summary><b>' + esc(STR.pl.about) + '</b></summary><p>' + esc(plan.overview) + '</p></details>' : '') +
+      ((plan.dod || []).length ? '<details class="nbox"><summary><b>' + P.dod + '</b>' + (plan.estimateWeeks ? ' <span class="muted">' + P.weeks.replace("{n}", plan.estimateWeeks) + '</span>' : '') + '</summary><ul>' + plan.dod.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></details>' : '') +
+      (plan.engineNotes ? '<details class="nbox"><summary><b>' + STR.engineNotes + '</b></summary><div>' + esc(plan.engineNotes) + '</div></details>' : '');
   }
   function epicHtml(m, g) {
     var live = g.list.map(function (t) { return liveTask(t.id) || t; }), counted = live.filter(function (x) { return x.status !== "dropped"; });
@@ -12146,12 +12186,13 @@
     var ownOpen = live.filter(function (x) { return ["todo", "rework", "blocked"].indexOf(x.status) >= 0; }).map(function (x) { return x.id; });
     return '<details class="epic' + (parked ? ' epic-parked' : done === counted.length && counted.length ? ' epic-done' : '') + '" data-epic="' + esc(g.id) + '"' + (open ? ' open' : '') + '><summary class="epic__h">' +
       '<b class="epic__t">' + esc(g.title) + '</b><span class="epic__bar"><i style="width:' + pct + '%"></i></span><span class="muted">' + done + '/' + counted.length + '</span>' + epicOkHtml(g) +
-      (next ? ' <span class="epic__next">▶ ' + esc(EP.next) + ': <a href="#task-' + esc(next.id) + '" data-goto="' + esc(next.id) + '">' + esc(next.id) + '</a></span>' : '') +
+      (next ? ' <a class="epic__next" href="#task-' + esc(next.id) + '" data-goto="' + esc(next.id) + '">▶ ' + esc(EP.next) + ': ' + esc(next.id) + '</a>' : '') +
       outer.map(function (d) { return ' <a class="epic__wait" href="#task-' + esc(d) + '" data-goto="' + esc(d) + '" title="' + esc(EP.goto) + '">⛓ ' + esc(EP.waits) + ' ' + esc(d) + '</a>'; }).join("") + '</summary>' +
       '<div class="epic__b">' + (g.goal ? '<p class="muted">' + esc(g.goal) + '</p>' : '') + (g.card ? '<div class="cchips">' + cardChip(g.card) + '</div>' : '') +
       g.list.map(taskRowHtml).join("") +
-      (ME.owner && canWrite && ownOpen.length ? '<div class="row"><button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="deferred" data-title="' + esc(g.title) + '">' + esc(EP.parkEpic) + '</button>' +
-        '<button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="never" data-title="' + esc(g.title) + '">' + esc(EP.dropEpic) + '</button></div>' : '') + '</div></details>';
+      (ME.owner && canWrite && ownOpen.length ? '<details class="pmore emore"><summary class="btn ghost mini" aria-label="' + esc(STR.pl.epicMore) + '">⋯ ' + esc(STR.pl.epicMore) + '</summary><div class="pmore__m">' +
+        '<button type="button" class="btn ghost" data-park="' + esc(ownOpen.join(",")) + '" data-kind="deferred" data-title="' + esc(g.title) + '">' + esc(EP.parkEpic) + '</button>' +
+        '<button type="button" class="btn ghost" data-park="' + esc(ownOpen.join(",")) + '" data-kind="never" data-title="' + esc(g.title) + '">' + esc(EP.dropEpic) + '</button></div></details>' : '') + '</div></details>';
   }
   // 👑 what waits for the author — or «nothing», and what Claude Code does now
   function loadAgWait() { // the agents' questions and approval requests still waiting — one read per minute for the crown
@@ -12217,7 +12258,7 @@
     return c.stale.filter(function (r) { var x = cards.filter(function (k) { return "c:" + k.id === r; })[0]; return x && tMs(x.updatedAt) < c.since; });
   }
   function looseAuthHtml(list) {
-    return '<div class="ms ms-bugs" id="ms-AUTHOR"><h3>' + esc(AU.loose) + ' <span class="muted">' + list.length + '</span></h3><p class="muted">' + esc(AU.looseHint) + '</p>' + list.map(taskHtml).join("") + '</div>';
+    return '<div class="ms ms-bugs" id="ms-AUTHOR"><h3>' + esc(AU.loose) + ' <span class="muted">' + list.length + '</span></h3><p class="muted">' + esc(AU.looseHint) + '</p>' + list.map(taskRowHtml).join("") + '</div>';
   }
   var bugsOnly = false;
   function isBugT(t) { return !!t && t.kind === "bug"; }
@@ -12325,19 +12366,11 @@
   }
   function planHtml(plan) {
     var P = STR.pp, ms = plan.milestones || [];
-    var html = '<section class="psec">' + (plan.overview ? '<details class="nbox"><summary><b>' + esc(STR.pl.about) + '</b></summary><p>' + esc(plan.overview) + '</p></details>' : '');
-    if ((plan.dod || []).length) html += '<details class="dod"><summary><b>' + P.dod + '</b>' + (plan.estimateWeeks ? ' <span class="muted">' + P.weeks.replace("{n}", plan.estimateWeeks) + '</span>' : '') +
-      '</summary><ul>' + plan.dod.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></details>';
-    if (tasks.length) {
-      var done = tasks.filter(function (t) { return t.status === "done"; }).length, pct = Math.round(100 * done / tasks.length);
-      html += '<div class="ready"><span>' + STR.progress + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + done + ' / ' + tasks.length + '</b></div>';
-    }
-    if (plan.engineNotes) html += '<details class="nbox"><summary><b>' + STR.engineNotes + '</b></summary><div>' + esc(plan.engineNotes) + '</div></details>';
-    html += legendHtml();
+    var html = '<section class="psec">'; // v2.160.1 (the game designer: «дерево першим»): about / MVP-done-when / engine notes in «⋯», the legend under «?», the bug filters in the milestone's head
     var mineN = tasks.filter(function (t) { return t.assignee && t.assignee.uid === myUid(); }).length;
-    html += bugBarHtml(mineN);
     var msIds = ms.map(function (m) { return m.id; }), loose = tasks.filter(function (t) { return isBugT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); }).sort(bySev);
     if (mineOnly || bugsOnly) ms = ms.filter(function (m) { return msShown(m).length; });
+    if (mineOnly || bugsOnly) html += bugBarHtml(mineN); // a filtered view keeps the filters on top — to turn them off
     if ((mineOnly || bugsOnly) && !ms.length && !loose.length) return html + '<p class="muted">' + (bugsOnly ? BG.none : P.mineNone) + '</p></section>';
     if (mineOnly || bugsOnly) { // a filtered view: every milestone that has a matching task, as a list
       var mvp = ms.filter(function (m) { return m.track === "mvp"; });
@@ -12353,7 +12386,7 @@
       ms.filter(function (m) { return !m.track; }).forEach(function (m) { html += msHtml(plan, m); }); // older plans and the experience fixes (EXP)
     } else { // 🌳 v2.160 (owner: «замість гарного сучасного дерева розробки — просто куча тексту»): the tree on top, the chosen milestone under it
       var selM = selMs(plan, ms);
-      html += roadmapHtml(plan, ms, selM) + (selM ? msHtml(plan, selM) : '');
+      html += roadmapHtml(plan, ms, selM) + (selM ? msHtml(plan, selM, mineN) : '');
     }
     var looseA = bugsOnly ? [] : tasks.filter(function (t) { return isAuthT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); });
     if (looseA.length) html += looseAuthHtml(looseA);
@@ -12441,7 +12474,7 @@
     if (e.target.closest("#to-world")) { enterWorld(); return; }
     var og = e.target.closest("[data-opengame]"); if (og) { enterGame(og.dataset.opengame); return; }
     if (e.target.closest("[data-guideask]")) return viewClick(e); // 🧭 the guide box under the menu: copy the request for Claude Code
-    var go = e.target.closest(".guide-ask[data-sec]"); if (go) return goSection(go.dataset.sec);
+    var go = e.target.closest(".guide-ask[data-sec]"); if (go) { if (go.dataset.today) { planTab = "today"; planTabPicked = true; } return goSection(go.dataset.sec); }
     var gb = e.target.closest(".nav-grp");
     if (gb) { // a group folds / unfolds; unfolding a group you are not in opens its last (or first) section
       var g = NAV_GROUPS.filter(function (x) { return x.id === gb.dataset.group; })[0], mem = groupMembers(g), open = gb.getAttribute("aria-expanded") !== "true";
