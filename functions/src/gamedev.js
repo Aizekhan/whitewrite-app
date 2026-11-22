@@ -204,6 +204,14 @@ const MS_PREFIX = { mvp: ['G', 0], expansion: ['X', 1], extra: ['F', 1] };
 function numberMilestones(ms) {
   const n = {};
   ms.forEach((m) => { const t = oneOf(m.track, TRACKS, 'mvp'), [p, s] = MS_PREFIX[t]; m.track = t; n[t] = n[t] == null ? s : n[t] + 1; m.id = p + n[t]; });
+  // 🌳 v2.154: a milestone's epics (features of the game) — «<milestone>.E<n>»; a task names its epic by the raw or the final id
+  ms.forEach((m) => {
+    const map = {};
+    m.epics = (Array.isArray(m.epics) ? m.epics : []).filter((e) => e && str(e.title, 1)).slice(0, 8).map((e, k) => {
+      const id = m.id + '.E' + (k + 1); if (e.id != null) map[String(e.id)] = id; map[id] = id; return { ...e, id };
+    });
+    (m.tasks || []).forEach((t) => { if (t && t.epic != null) t.epic = map[String(t.epic)] || ''; });
+  });
   return ms;
 }
 // raw task ids → «<milestone>.<n>»; deps follow the renaming (a dep of another milestone: its raw id there, or its number), unknown deps dropped
@@ -234,6 +242,7 @@ function cleanPlan(p) {
       entry: str(m.entry, 400), deliverables: list(m.deliverables, 10, (d) => str(d, 300) || null),
       accept: list(m.accept, 10, (a) => str(a, 300) || null), budgets: str(m.budgets, 600),
       estimateDays: Math.max(0, Math.min(120, Math.round(+m.estimateDays || 0))),
+      epics: list(m.epics, 8, (e) => (e && str(e.title, 120) ? { id: str(e.id, 16), title: str(e.title, 120), goal: str(e.goal, 400), card: /^[ce]:[\w-]{1,128}$/.test(str(e.card, 140)) ? str(e.card, 140) : '' } : null)),
       tasks: list(m.tasks, 30, (t) => {
         if (!t || !str(t.title, 160)) return null;
         // cards come as "c:…" or {ref, role}; kept as plain refs (MCP, older plans) + a role per ref
@@ -255,6 +264,7 @@ function cleanPlan(p) {
           cards, roles,
           accept: list(t.accept, 8, (a) => str(a, 300) || null),
           tests: list(t.tests, 6, (a) => str(a, 300) || null),
+          epic: str(t.epic, 16), state: oneOf(t.state, TASK_STATES, 'todo'), // 🌳 v2.154: the epic; the inventory state on a game with history
         };
       }),
     } : null)),
@@ -263,6 +273,7 @@ function cleanPlan(p) {
     gaps: list(plan.gaps, 15, (g) => (g && str(g.need, 300) ? { need: str(g.need, 300), missing: str(g.missing, 300), desiredApi: str(g.desiredApi, 500), workaround: str(g.workaround, 300) } : null)),
   };
   numberTasks(numberMilestones(out.milestones));
+  out.milestones.forEach((m) => { const ids = m.epics.map((e) => e.id); m.tasks.forEach((t) => { if (!ids.includes(t.epic)) t.epic = ''; }); });
   return out;
 }
 
@@ -303,14 +314,20 @@ async function inBatches(ops) { // ops: (batch) => void, each one write
 // keeps its id: a new task with that id that is the same task (titleSim ≥ SIMILAR) is shown as the kept one in the plan, a different task
 // gets the next free number of its milestone; a kept task the new plan does not list is added to its milestone, or — its milestone gone —
 // to a carried milestone (no track: no gate locks it). Changes plan.milestones in place; → { writes: [{ id, data }], drop: [ids] }.
-const TASK_KEYS = ['title', 'detail', 'deps', 'size', 'owner', 'priority', 'assetState', 'estimate', 'prompt', 'cards', 'roles', 'accept', 'tests'];
+const TASK_KEYS = ['title', 'detail', 'deps', 'size', 'owner', 'priority', 'assetState', 'estimate', 'prompt', 'cards', 'roles', 'accept', 'tests', 'epic'];
+// 🌳 v2.154 the inventory (owner: «без інвентаризації дерево заповниться неправдивими статусами»): on a game with history the plan marks
+// every new task — done (the evidence shows it built) → status done; partial → todo, partial; verify (unclear) → todo, verify: Claude Code checks it
+const TASK_STATES = ['todo', 'partial', 'done', 'verify'];
+const KEEP_KINDS = ['bug', 'author', 'sync']; // never replaced by a replan, never listed among the plan's tasks
+const stateFields = (st) => (st === 'done' ? { status: 'done', history: [{ type: 'inventory', state: 'done', by: 'planner', at: Date.now() }] }
+  : { status: 'todo', history: [], ...(st === 'partial' ? { partial: true } : {}), ...(st === 'verify' ? { verify: true } : {}) });
 function reconcileTasks(plan, old, prevPlan) {
   const kept = new Map(), who = {}, stale = []; // who: the person a replaced task was given to — the same task id keeps them
   old.forEach((x) => {
-    if (x.kind !== 'bug' && x.kind !== 'author' && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(x.id); if (x.assignee) who[x.id] = x.assignee; } else kept.set(x.id, x);
+    if (!KEEP_KINDS.includes(x.kind) && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(x.id); if (x.assignee) who[x.id] = x.assignee; } else kept.set(x.id, x);
   });
   const asListed = (x) => Object.fromEntries([['id', x.id]].concat(TASK_KEYS.filter((k) => x[k] != null).map((k) => [k, x[k]])));
-  const used = new Set(kept.keys()), listed = new Set(), writes = [];
+  const used = new Set(kept.keys()), listed = new Set(), writes = [], patches = [];
   let order = 0;
   for (const m of plan.milestones) {
     if (MANUAL_MS.includes(m.id)) continue; // carried over as they are
@@ -319,7 +336,7 @@ function reconcileTasks(plan, old, prevPlan) {
       order++;
       let id = t.id.replace(/[\/\s]/g, '_');
       const k = kept.get(id);
-      if (k && k.kind !== 'bug' && GDD.titleSim(k.title, t.title) >= GDD.SIMILAR) { listed.add(id); return asListed(k); }
+      if (k && k.kind !== 'bug' && GDD.titleSim(k.title, t.title) >= GDD.SIMILAR) { listed.add(id); if (t.epic && t.epic !== k.epic) patches.push({ id, data: { epic: t.epic } }); return { ...asListed(k), ...(t.epic ? { epic: t.epic } : {}) }; }
       if (!id || used.has(id)) { let n = m.tasks.length; do n++; while (used.has(m.id + '.' + n)); rename[id] = m.id + '.' + n; id = rename[id]; }
       used.add(id);
       const o = order;
@@ -332,7 +349,7 @@ function reconcileTasks(plan, old, prevPlan) {
   // kept plan tasks the new plan does not list
   const prevMs = (prevPlan && prevPlan.milestones) || [], carried = {};
   kept.forEach((x) => {
-    if (listed.has(x.id) || x.kind === 'bug' || x.kind === 'author' || MANUAL_MS.includes(x.milestone) || !x.milestone) return;
+    if (listed.has(x.id) || KEEP_KINDS.includes(x.kind) || MANUAL_MS.includes(x.milestone) || !x.milestone) return;
     const m = plan.milestones.find((y) => y.id === x.milestone);
     if (m) { m.tasks.push(asListed(x)); return; }
     if (!carried[x.milestone]) {
@@ -345,13 +362,14 @@ function reconcileTasks(plan, old, prevPlan) {
   const manualAt = plan.milestones.findIndex((m) => MANUAL_MS.includes(m.id));
   plan.milestones.splice(manualAt < 0 ? plan.milestones.length : manualAt, 0, ...Object.values(carried));
   return {
-    writes: writes.map((w) => ({ id: w.id, data: { ...w.t, milestone: w.m.id, track: w.m.track, status: 'todo', order: w.order, history: [], ...(who[w.id] ? { assignee: who[w.id] } : {}) } })),
-    drop: stale.filter((id) => !fresh.has(id)),
+    writes: writes.map((w) => { const { state, ...t } = w.t; return { id: w.id, data: { ...t, milestone: w.m.id, track: w.m.track, order: w.order, ...stateFields(state), ...(who[w.id] ? { assignee: who[w.id] } : {}) } }; }),
+    drop: stale.filter((id) => !fresh.has(id)), patches,
   };
 }
+const BAN_WORD = { deferred: 'POSTPONED by the author (no task now): ', never: 'NOT DOING (never plan it): ', removed: 'REMOVED from the game (never bring it back): ' };
 // ✋ v2.153 (owner: «плану не прописано, але вже багато зроблено — і ми нажмемо згенерувати план»): the plan is written on what is
 // already built — done / started tasks (the author's instructions too), cards in the game, the last development-log sessions
-async function builtText(gameRef, cards) {
+async function builtText(gameRef, cards, bans) {
   const none = () => ({ docs: [] });
   const [tq, aq, mq] = await Promise.all([gameRef.collection('tasks').get(), gameRef.collection('activity').orderBy('receivedAt', 'desc').limit(15).get().catch(none),
     gameRef.collection('agentMessages').orderBy('at', 'desc').limit(300).get().catch(none)]);
@@ -363,7 +381,8 @@ async function builtText(gameRef, cards) {
   const handoffs = msgs.filter((m) => m.type === 'handoff').slice(0, 30); // Claude Code's reports: commits and cards
   // the author's decisions the plan must not contradict: «Рішення» in «💬 Агенти», the author's instructions, approved requests
   const decisions = msgs.filter((m) => m.type === 'decision' || (m.type === 'approval_request' && m.approval && m.approval.status === 'approved')).slice(0, 40).map((m) => str(m.text, 300))
-    .concat(all.filter((t) => t.kind === 'author').map((t) => str(t.words || t.title, 300) + (t.numbers ? ' (' + str(t.numbers, 200) + ')' : '')));
+    .concat(all.filter((t) => t.kind === 'author').map((t) => str(t.words || t.title, 300) + (t.numbers ? ' (' + str(t.numbers, 200) + ')' : '')))
+    .concat((Array.isArray(bans) ? bans : []).map((b) => (BAN_WORD[b.kind] || '') + str(b.text, 300))); // 🌳 v2.154 the author's bans (plan/current.bans)
   if (!tasks.length && !ingame.length && !log.length && !handoffs.length && !decisions.length) return '';
   const line = (t) => `- [${t.status}] ${t.id}${t.kind === 'author' ? ' (the author\'s instruction)' : t.kind === 'bug' ? ' (bug)' : ''}: ${str(t.title, 160)}${(t.cards || []).length ? ' — ' + t.cards.slice(0, 8).join(', ') : ''}`;
   return `\n\nALREADY BUILT OR UNDER WAY (the game is not starting from zero — plan only what is left):
@@ -377,6 +396,7 @@ async function writeTasks(gameRef, plan, writePlan, prevPlan) {
   const r = reconcileTasks(plan, old.docs.map((d) => ({ ...d.data(), id: d.id })), prevPlan), col = gameRef.collection('tasks');
   await inBatches(r.writes.map((w) => (b) => b.set(col.doc(w.id), { ...w.data,
     createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() })));
+  await inBatches(r.patches.map((p) => (b) => b.set(col.doc(p.id), p.data, { merge: true })));
   if (writePlan) await writePlan();
   await inBatches(r.drop.map((id) => (b) => b.delete(col.doc(id))));
 }
@@ -651,7 +671,7 @@ ${bible}`;
 
 function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
   return [planPrefix(bible, engine, answered, gdd, shelves), { type: 'text', text: `Using the Game Bible, the GDD analysis and the author's decisions above, write the SKELETON of the PRODUCTION PLAN. The tasks of each milestone are written in a separate pass — here write NO tasks, only what that pass needs to write them.
-- Every milestone: id, track, name, goal, entry (what must be true to start), deliverables (concrete list), scope (3-8 lines: what its tasks must cover, with the bible card refs "c:…" / "e:…" they touch — the next pass writes the tasks from this), gate (one sentence), accept (2-6 pass/fail checks with the kind of evidence: test, screenshot, video, build, playtest), budgets (performance / polygon / texture / memory budgets that apply, from the bible or sensible for the engine and platform), estimateDays (solo + AI + bought assets).
+- Every milestone: id, track, name, goal, epics (2-6 FEATURES of the game this milestone builds — e.g. «Бій з хвилями», «Крамниця»: id "E1"…, title, goal in one sentence, card = the main bible card of the feature "c:…" / "e:…" or ""), entry (what must be true to start), deliverables (concrete list), scope (3-8 lines: what its tasks must cover, with the bible card refs "c:…" / "e:…" they touch — the next pass writes the tasks from this), gate (one sentence), accept (2-6 pass/fail checks with the kind of evidence: test, screenshot, video, build, playtest), budgets (performance / polygon / texture / memory budgets that apply, from the bible or sensible for the engine and platform), estimateDays (solo + AI + bought assets).
 - The bible must reach down to the details the art needs: art direction (palette, proportions, silhouettes, character style), texel density, materials, lighting mood, audio mood. health — what the bible still lacks for the MVP (issue, fix = what the author should add, cards = related refs).
 - dod — the MVP definition of done in 3-6 checkable lines; estimateWeeks — the whole MVP (G0…G4).
 - parallel: which streams can run at the same time.
@@ -660,7 +680,7 @@ function planPrompt(bible, engine, answered, gdd, languageName, shelves) {
 - Ground everything in the bible; where the bible is silent, choose the simplest option and say so.
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"plan":{"overview":"","dod":[""],"estimateWeeks":10,"engineNotes":"","cutLine":2,"health":[{"issue":"","fix":"","cards":["c:..."]}],"milestones":[{"id":"G0","track":"mvp","name":"","goal":"","entry":"","deliverables":[""],"scope":"","gate":"","accept":[""],"budgets":"","estimateDays":2}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]}}` }];
+{"plan":{"overview":"","dod":[""],"estimateWeeks":10,"engineNotes":"","cutLine":2,"health":[{"issue":"","fix":"","cards":["c:..."]}],"milestones":[{"id":"G0","track":"mvp","name":"","goal":"","epics":[{"id":"E1","title":"","goal":"","card":"c:..."}],"entry":"","deliverables":[""],"scope":"","gate":"","accept":[""],"budgets":"","estimateDays":2}],"parallel":[""],"risks":[{"risk":"","mitigation":""}],"gaps":[{"need":"","missing":"","desiredApi":"","workaround":""}]}}` }];
 }
 
 // Pass 2: one milestone of the skeleton → its tasks and the scaffold cards those tasks need
@@ -672,14 +692,16 @@ THE PLAN (all milestones, for context and dependencies):
 ${others}
 
 THE MILESTONE TO WRITE TASKS FOR:
-${JSON.stringify({ id: m.id, track: m.track, name: m.name, goal: m.goal, entry: m.entry, deliverables: m.deliverables, scope: m.scope, gate: m.gate, accept: m.accept, budgets: m.budgets })}
+${JSON.stringify({ id: m.id, track: m.track, name: m.name, goal: m.goal, epics: (m.epics || []).map((e) => ({ id: e.id, title: e.title, goal: e.goal })), entry: m.entry, deliverables: m.deliverables, scope: m.scope, gate: m.gate, accept: m.accept, budgets: m.budgets })}
 
 - 3-8 tasks: id "${m.id}.1", "${m.id}.2"…, title, detail (what exactly, with the numbers/content from the bible — max 4 sentences), deps (task ids — of this milestone, or of earlier milestones as "<id>.<n>"), size S|M|L, estimate (days), owner design|dev|art|audio|qa, priority must|should|could, assetState — for art/asset tasks the state the assets must reach in this milestone (greybox | standin = a ready prefab placed as is | styled = unified to the art direction | final), accept — 2-5 acceptance criteria the author can check (concrete and observable: "the wolf prefab spawns on track 2 with HP 60"), tests — how to verify (EditMode/PlayMode test or a manual check), cards — the bible cards this task touches, each {"ref": "c:..." | "e:..." | "new:<title>", "role": implements | uses-asset | in-level | follows-style | constrained-by} (follows-style = the art-direction / style card it must match, constrained-by = a law, budget or technical card it must respect), and prompt — a short ready-to-paste instruction for Claude Code working in the game repo (for dev tasks; for art/audio tasks — the generation or sourcing brief), max 6 lines. Group similar content into one task (e.g. "the 12 forest props" with their refs) instead of one task per card.
+- epic — the id of the milestone's epic the task belongs to (every task has one).
+- state — what the game already has of it, from ALREADY BUILT in the bible (if there is no such block: todo): done (the evidence — a done task, a handoff with a commit, the development log, a card «in the game» — shows it built), partial (part is built: say which in detail), verify (signs of it, but not enough to be sure — Claude Code checks it in the game), todo (not started). A card only «agreed» is NOT built. Never a task against THE AUTHOR'S DECISIONS.
 - scaffold — what THESE tasks need but the bible does NOT have yet, so the author can fill it in: cards (section = one of the game sections below by id, title, group = a subheading inside the section when it fits, need = what exactly must be made or decided, task = the task id that needs it) for missing prefabs, models, textures, animations, sounds, UI screens, references, mechanics, levels, items… Never duplicate a card that already exists (check titles; a card whose files include a model is already made). Add a new section only when no game section fits (name, about, why); then use its name as the card's section. Max 15 cards.
 - Ground everything in the bible; where the bible is silent, choose the simplest option and say so in the task detail.
 
 Write ALL text in ${languageName}. Return ONLY valid JSON, no markdown:
-{"tasks":[{"id":"${m.id}.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":""}],"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"${m.id}.1"}]}}` }];
+{"tasks":[{"id":"${m.id}.1","title":"","detail":"","deps":[],"size":"M","estimate":1,"owner":"dev","priority":"must","assetState":"","accept":[""],"tests":[""],"cards":[{"ref":"c:...","role":"implements"}],"prompt":"","epic":"${(m.epics && m.epics[0] && m.epics[0].id) || ''}","state":"todo"}],"scaffold":{"sections":[{"name":"","about":"","why":""}],"cards":[{"section":"assets","title":"","group":"","need":"","task":"${m.id}.1"}]}}` }];
 }
 
 // ---------- GitHub: the game's repository, read only on the author's button ----------
@@ -969,7 +991,7 @@ exports.gamedevPlan = onRequest({
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }
 
-      const built = op === 'plan' ? await builtText(gameRef, cards) : ''; // ✋ v2.153: what the game already has
+      const built = op === 'plan' ? await builtText(gameRef, cards, prev.bans) : ''; // ✋ v2.153: what the game already has
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))

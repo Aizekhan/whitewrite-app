@@ -69,6 +69,16 @@ const TOOLS = [
       accept: { type: 'array', items: { type: 'string' }, description: 'Optional: how to tell it is done' },
       source: { type: 'string', enum: ['chat', 'approval', 'answer'] }, message_id: { type: 'string', description: 'The «💬 Агенти» message the decision came from (approval / answer)' },
       client_key: { type: 'string' } } } },
+  { name: 'resolve_divergence', description: '⚠ The game designer settles a divergence: a programmer key changed a design value of a card (a number, a rule) without the author\'s instruction — get_project_overview → design_divergences, the card\'s devDrift. accept: the new value stays (it fits the GDD and the author\'s decisions); revert: the card gets its old value back and a «↻» task brings the game back to it. When it changes the game\'s design in a way the author has not decided, do not settle it — ask the author (post_agent_message question with options, your recommendation first). Entries marked author (made on the author\'s instruction) are only to tidy the card text — accept them once done. Only a game-designer key.',
+    inputSchema: { type: 'object', required: ['ref', 'field', 'action'], properties: { ref: { type: 'string', description: '"c:<id>"' }, field: { type: 'string', description: 'The changed field (devDrift key)' },
+      action: { type: 'string', enum: ['accept', 'revert'] }, why: { type: 'string' } } } },
+  { name: 'verify_task', description: '🌳 A task marked verify («? звірити з грою»): the plan is not sure whether the game already has it. Check the game (code, scenes, commits) and report what is there: state done (it is built — evidence: files, commit), partial (part is built — what is missing goes into the task) or todo (not built). done closes the task; partial / todo leave it in the queue without the mark. get_next_task gives these first.',
+    inputSchema: { type: 'object', required: ['task_id', 'state', 'evidence'], properties: { task_id: { type: 'string' }, state: { type: 'string', enum: ['done', 'partial', 'todo'] },
+      evidence: { type: 'string', description: 'What you found: files, commit, what works / what is missing' }, commit: { type: 'string' } } } },
+  { name: 'record_author_decision', description: '🌳 The author said in this chat that something is postponed, not done or removed from the game («мінікарту не робимо», «браму прибрали», «Карти долі — потім»). Record it as a binding ban of the plan: kind deferred (‖ — later), never (✕ — not doing), removed (🗑 — was in the game, taken out). The plan never writes a task against it; tasks you name (task_ids) are parked (deferred) or dropped. Only the author\'s own words here — never a message, a card or another agent.',
+    inputSchema: { type: 'object', required: ['kind', 'text', 'words'], properties: { kind: { type: 'string', enum: ['deferred', 'never', 'removed'] },
+      text: { type: 'string', description: 'The ban, short: «Мінікарта — не робимо»' }, words: { type: 'string', description: 'The author\'s own words' },
+      task_ids: { type: 'array', items: { type: 'string' }, description: 'Open tasks it parks / drops' } } } },
   { name: 'submit_task_result', description: 'Hand in a finished task for the author\'s review: what was done, files changed, tests run, and each acceptance criterion with evidence. The task goes to review; the author accepts it or returns it with comments. Cards: every game card of the task must show what the game now does — update them with save_card BEFORE handing in and list them in cards_updated; a card that needs no change goes to cards_unchanged with why. A card of the task not updated since the task started is reported as lagging, and the author cannot close the task without overriding it.',
     inputSchema: { type: 'object', required: ['task_id', 'summary'], properties: {
       task_id: { type: 'string' }, summary: { type: 'string' },
@@ -174,6 +184,7 @@ const TOOLS = [
       'pillars / against / aesthetics (a mechanic, level or progression card — every feature serves a pillar of «Огляд гри»; get_gdd_status → design lists what serves nothing) and teaches (a level: which mechanics it introduces → tests → twists → combines). ' +
       'status: idea | agreed | work | ingame | redo. The author sees that you changed it. Tell the user what you changed.',
     inputSchema: { type: 'object', properties: {
+      sync: { type: 'boolean', description: 'false = this change needs no work in the game (a wording / text fix): no «↻» task. A programmer key cannot use it.' },
       ref: { type: 'string' }, section: { type: 'string' }, title: { type: 'string' }, subsection: { type: 'string' }, mini_subsection: { type: 'string' }, fields: { type: 'object', additionalProperties: { type: 'string' } },
       note: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] }, allow_similar: { type: 'boolean', description: 'Create even though a similar card exists (it is really another thing)' },
       pillars: { type: 'array', items: { type: 'string' }, description: 'mechanics / levels / progression: the pillars of «Огляд гри» this feature serves (their names as get_gdd_status → design.pillars shows them); [] clears' },
@@ -381,7 +392,9 @@ function lockedBy(ctx, t) {
   const open = before.find((x) => !ok(x));
   return open ? open.id : null;
 }
-const isReady = (ctx, t) => !lockedBy(ctx, t) && (t.deps || []).every((d) => { const x = ctx.tasks.find((y) => y.id === d); return !x || x.status === 'done'; });
+// 🌳 v2.154: ‖ deferred (the author postponed it) and ✕ dropped (not doing) are parked — never taken, never hold a gate; a dropped dep waits for nothing
+const PARKED = ['deferred', 'dropped'];
+const isReady = (ctx, t) => !lockedBy(ctx, t) && (t.deps || []).every((d) => { const x = ctx.tasks.find((y) => y.id === d); return !x || x.status === 'done' || x.status === 'dropped'; });
 
 // Bugs are tasks with kind 'bug' (v2.78.1): severity s1 (crash / data loss / progress blocked) … s4 (cosmetic). Open S1/S2 bugs go
 // before the normal tasks of the open milestone; an open S1 bug keeps its milestone's gate from being ready (the author may still approve).
@@ -392,7 +405,7 @@ function pickNext(ctx, ours) {
   if (inProgress) return inProgress;
   const urgent = ctx.tasks.filter((t) => isBug(t) && ['s1', 's2'].includes(t.severity) && OPEN.includes(t.status) && ours(t) && isReady(ctx, t))
     .sort((a, b) => SEVERITY.indexOf(a.severity) - SEVERITY.indexOf(b.severity));
-  return urgent[0] || ctx.tasks.find((t) => t.status === 'rework' && ours(t) && isReady(ctx, t)) || ctx.tasks.find((t) => t.status === 'todo' && ours(t) && isReady(ctx, t)) || null;
+  return urgent[0] || ctx.tasks.find((t) => t.verify && t.status === 'todo' && ours(t) && !lockedBy(ctx, t)) || ctx.tasks.find((t) => t.status === 'rework' && ours(t) && isReady(ctx, t)) || ctx.tasks.find((t) => t.status === 'todo' && ours(t) && isReady(ctx, t)) || null;
 }
 // the gates as the agent sees them: tasks done, open bugs, and whether the gate may be handed to the author as ready
 function gatesView(ctx) {
@@ -402,7 +415,7 @@ function gatesView(ctx) {
     const mt = ctx.tasks.filter((t) => t.milestone === m.id), g = gates[m.id] || {};
     const s1 = mt.filter((t) => isBug(t) && t.severity === 's1' && t.status !== 'done').map((t) => t.id);
     const s2 = mt.filter((t) => isBug(t) && t.severity === 's2' && t.status !== 'done').map((t) => t.id);
-    const allDone = mt.length > 0 && mt.every((t) => t.status === 'done');
+    const live = mt.filter((t) => !PARKED.includes(t.status)), allDone = live.length > 0 && live.every((t) => t.status === 'done');
     return { id: m.id, name: m.name || '', track: m.track, status: g.status || 'open', locked_by: lockedBy(ctx, { milestone: m.id }),
       tasks_done: mt.filter((t) => t.status === 'done').length, tasks_total: mt.length, open_bugs: { s1, s2 },
       ready: allDone && !s1.length,
@@ -495,6 +508,53 @@ async function recordAuthorInstruction(ctx, key, args) {
   await logExecution(ctx, key, 'author_instruction', id, { what: title });
   return { ok: true, id, status: 'in_progress', milestone: task.milestone, message: 'Recorded as task ' + id + ' «від автора», in progress and yours. Do it now; update the cards with save_card, then submit_task_result ' + id + ' with cards_updated.' };
 }
+// ⚠ v2.154 a programmer's design change (card-drift.js devDrift) is settled by the game designer first — never by the programmer itself
+async function resolveDivergence(ctx, key, args) {
+  if (AC.roleOf(key) !== 'designer') throw rpcError(-32602, 'Only a game-designer key settles a divergence — the programmer cannot approve its own design change. The author settles it in the Game Bible.');
+  const ref = str(args.ref, 140), field = str(args.field, 80), c = /^c:/.test(ref) ? ctx.cards.find((x) => x.id === ref.slice(2)) : null;
+  if (!c) throw rpcError(-32602, `Card ${ref} not found.`);
+  const dd = c.devDrift || [], i = dd.findIndex((x) => x.key === field);
+  if (i < 0) throw rpcError(-32602, `No divergence on «${field}» of ${ref}.`);
+  const x = dd[i], revert = args.action === 'revert';
+  if (revert && (x.full === undefined || ['mech', 'intent', 'place', 'creature', 'sheet'].includes(x.key))) throw rpcError(-32602, 'This block cannot be put back automatically — ask the author.');
+  const body = { devDrift: dd.filter((_, k) => k !== i), ...(revert ? { fields: { [x.key]: x.full == null ? '' : x.full }, updatedAt: ts() } : {}) };
+  await ctx.gref.collection('cards').doc(c.id).set(body, { merge: true }); // a revert is a design change of the card → cardDrift makes the «↻» task
+  await logExecution(ctx, key, 'divergence', ref, { what: (revert ? 'reverted ' : 'accepted ') + x.key + ': ' + x.from + ' → ' + x.to + (args.why ? ' — ' + str(args.why, 200) : '') });
+  return { ok: true, ref, field: x.key, action: revert ? 'revert' : 'accept', message: revert ? 'The card has its old value back; a «↻» task brings the game to it.' : 'Accepted: the new value stays in the GDD.' };
+}
+// 🌳 v2.154 the inventory: Claude Code settles a «? звірити» task against the game
+async function verifyTask(ctx, key, args) {
+  const t = findTask(ctx, args.task_id), state = ['done', 'partial', 'todo'].includes(args.state) ? args.state : '', ev = str(args.evidence, 2000);
+  if (!t.verify) throw rpcError(-32602, `Task ${t.id} is not marked «? звірити» — work on it as usual.`);
+  if (!state || !ev) throw rpcError(-32602, 'Pass state (done | partial | todo) and evidence — what you found in the game.');
+  if (!['todo', 'in_progress'].includes(t.status)) throw rpcError(-32602, `Task ${t.id} is ${t.status}.`);
+  const patch = { verify: admin.firestore.FieldValue.delete(), status: state === 'done' ? 'done' : 'todo', verified: { state, evidence: ev, commit: str(args.commit, 60), at: Date.now() },
+    ...(state === 'partial' ? { partial: true, detail: str((t.detail || '') + '\nЗвірено: ' + ev, 1600) } : {}) };
+  await setTask(ctx, t, patch, { type: 'verified', state, by: 'claude-code' });
+  Object.assign(t, { status: patch.status, verify: false });
+  await logExecution(ctx, key, 'verified', t.id, { state });
+  return { ok: true, id: t.id, status: patch.status, message: state === 'done' ? 'Marked done from the game. Call get_next_task.' : 'Left in the queue as ' + state + '. Call get_next_task — it may give you this task to build.' };
+}
+// 🌳 v2.154 the author's bans (owner: «браму прибрано, мінікарту не робимо, Карти долі відкладено — інакше генерація поверне їх у план»):
+// plan/current.bans [{ id, kind deferred | never | removed, text, words, via chat | bible, at }]; the parked tasks change status
+const BAN_KINDS = ['deferred', 'never', 'removed'];
+async function recordAuthorDecision(ctx, key, args) {
+  const kind = BAN_KINDS.includes(args.kind) ? args.kind : '', text = str(args.text, 300), words = str(args.words, 1000);
+  if (!kind || !text || !words) throw rpcError(-32602, 'Pass kind (deferred | never | removed), text and words — the author\'s own words.');
+  const ids = list(args.task_ids, 30, (x) => str(x, 32) || null), bad = ids.filter((x) => !ctx.tasks.some((t) => t.id === x));
+  if (bad.length) throw rpcError(-32602, 'Unknown tasks: ' + bad.join(', ') + '. Call list_tasks.');
+  const ban = { id: 'b' + Date.now().toString(36), kind, text, words, via: 'chat', by: str(key.label, 80), at: Date.now() };
+  await ctx.gref.collection('plan').doc('current').set({ bans: admin.firestore.FieldValue.arrayUnion(ban), updatedAt: ts() }, { merge: true });
+  const st = kind === 'deferred' ? 'deferred' : 'dropped', parked = [];
+  for (const id of ids) {
+    const t = ctx.tasks.find((x) => x.id === id);
+    if (['done', 'review'].includes(t.status)) continue; // a built or handed-in task is the author's to return
+    await setTask(ctx, t, { status: st, parkedBy: ban.id }, { type: st, by: 'author', via: 'chat', comment: text });
+    t.status = st; parked.push(id);
+  }
+  await logExecution(ctx, key, 'author_decision', parked.join(','), { what: kind + ': ' + text });
+  return { ok: true, id: ban.id, kind, parked, message: 'Recorded as the author\'s ban (' + kind + '). The plan will not bring it back' + (parked.length ? '; tasks ' + parked.join(', ') + ' are ' + st : '') + '.' };
+}
 // the game cards a task points at (its refs, a «new:<title>» resolved, cards made for it)
 function taskCardRefs(ctx, t) {
   const refs = new Set();
@@ -524,6 +584,7 @@ const msOf = (v) => (!v ? 0 : typeof v === 'number' ? v : v.toMillis ? v.toMilli
 function decisionLog(ctx, changeRequests, experiments, cap = 50, agentDecisions) {
   const out = [];
   (agentDecisions || []).forEach((m) => out.push({ type: 'agent_decision', at: m.at || 0, title: str(m.text, 200), decision: str(m.text, 2000), id: m.id })); // 💬 Агенти → «Рішення» (v2.148)
+  (ctx.plan.bans || []).forEach((b) => out.push({ type: 'ban', at: b.at || 0, title: str(b.text, 200), decision: b.kind, id: b.id })); // 🌳 v2.154 ‖ / ✕ / 🗑
   const answers = ctx.plan.answers || {}, answeredAt = ctx.plan.answeredAt || {}, analyzed = msOf(ctx.plan.analyzedAt);
   (ctx.plan.asked || []).filter((q) => answers[q.id]).forEach((q) => out.push({ type: 'question', at: msOf(answeredAt[q.id]) || analyzed, title: q.question || q.topic || '', decision: str(answers[q.id], 2000) }));
   (changeRequests || []).filter((c) => ['accepted', 'rejected', 'declined'].includes(c.status)).forEach((c) =>
@@ -543,6 +604,10 @@ function decisionLog(ctx, changeRequests, experiments, cap = 50, agentDecisions)
 // A task a team member wrote or edited (firestore.rules stamp memberEdit = their uid) is not the author's word: the
 // owner's agent runs with full rights on the owner's PC, so its text stays out until the author approves it (Bible ✓)
 const unapproved = (t) => !!t.memberEdit;
+function epicOf(ctx, t) {
+  const m = ((ctx.plan.plan || {}).milestones || []).find((x) => x.id === t.milestone) || {}, e = (m.epics || []).find((x) => x.id === t.epic);
+  return e ? { id: e.id, title: e.title || '', goal: e.goal || '', card: e.card || '' } : { id: t.epic };
+}
 function taskView(ctx, t) {
   const ms = ((ctx.plan.plan || {}).milestones || []).find((m) => m.id === t.milestone) || {};
   if (unapproved(t)) return { id: t.id, title: t.title, status: t.status, unapproved: true,
@@ -551,6 +616,10 @@ function taskView(ctx, t) {
     id: t.id, title: t.title, status: t.status, owner: t.owner, size: t.size, assignee: (t.assignee && t.assignee.name) || null,
     milestone: { id: t.milestone, track: ms.track || '', name: ms.name || '', goal: ms.goal || '', gate: ms.gate || '', gate_checks: ms.accept || [], budgets: ms.budgets || '' },
     priority: t.priority || '', asset_state: t.assetState || '', card_roles: t.roles || {},
+    ...(t.epic ? { epic: epicOf(ctx, t) } : {}),
+    ...(t.verify ? { verify: true, verify_rule: 'The plan is not sure this is NOT built yet. First check the game (code, scenes, commits): call verify_task with state done (it is there — with the evidence), partial (say what is missing) or todo (not there). Build it only after that, if it is todo / partial.' } : {}),
+    ...(t.partial ? { partial: true } : {}),
+    ...((t.cardChanged || []).length ? { card_changed: t.cardChanged.map((x) => ({ ref: x.ref, fields: x.keys })), card_changed_rule: 'The author or the game designer changed these cards while this task is open: get_card them again and build what they say NOW before submit_task_result.' } : {}),
     ...(t.kind === 'author' ? { kind: 'author', author: { words: t.words || '', numbers: t.numbers || '', source: t.source || 'chat', message_id: (t.decision || {}).message || '' } } : {}),
     ...(isBug(t) ? { kind: 'bug', bug: { severity: t.severity || 's3', repro: t.repro || '', expected: t.expected || '', actual: t.actual || '', build: t.build || '', found_in: t.foundIn || '' } } : {}),
     detail: t.detail || '', instructions: t.prompt || '',
@@ -1050,7 +1119,7 @@ const prevOf = (x, keys) => { const o = {}; keys.forEach((k) => { o[k] = x[k] ==
 const AGENT_PREV_MAX = 200 * 1024;
 const agentMark = (key, prev) => {
   const n = Buffer.byteLength(JSON.stringify(prev || {}));
-  return { agentPrev: n > AGENT_PREV_MAX ? { _skipped: 'too large', bytes: n } : prev, agentAt: Date.now(), agentKey: key.prefix || '', agentBy: str(key.label, 80), agentRole: key.role || 'programmer' }; // who wrote (the role is one of three — firestore.rules mcpKeys): the key's name (v2.148)
+  return { agentPrev: n > AGENT_PREV_MAX ? { _skipped: 'too large', bytes: n } : prev, agentAt: Date.now(), agentKey: key.prefix || '', agentBy: str(key.label, 80), agentRole: key.role || 'programmer', ...(key.noSync ? { noSyncAt: Date.now() } : {}) }; // who wrote (the role is one of three — firestore.rules mcpKeys): the key's name (v2.148)
 };
 // the standard design fields of «Огляд гри» (the same keys and labels as the Bible's SECTIONS overview defs, app/gamebible.js)
 const OVERVIEW_DESIGN = { pillars: 'Стовпи гри (3–4)', anti: 'Анти-стовпи: чим гра НЕ є', aesthetics: 'Цільові естетики (MDA): виклик, відкриття, фантазія, наратив, спільність, самовираження, відчуття, відпочинок',
@@ -1427,7 +1496,10 @@ async function callTool(name, args, key) {
       const st = gddStatus(ctx); // 🧭 the GDD stages at a glance (the whole picture — get_gdd_status)
       return { ...overview(ctx), gdd: { schema: GDD.VERSION, rule: WRITE_WHEN + ' Where a thing goes: get_gdd_schema; before a new card: find_cards.',
         stages: st.stages.map((x) => `${x.stage}. ${x.name}: ${x.state}`), changed_by_you_not_seen_by_author: st.changed_by_you_not_seen_by_author },
-        gates: gatesView(ctx), decisions: decisionLog(ctx, crs, exps, 50, decs), integrations: await integrations(ctx), agent: agentSelf(key) };
+        gates: gatesView(ctx), decisions: decisionLog(ctx, crs, exps, 50, decs), integrations: await integrations(ctx), agent: agentSelf(key),
+        ...(ctx.cards.some((c) => (c.devDrift || []).length) ? { design_divergences: ctx.cards.filter((c) => (c.devDrift || []).length).map((c) => ({ ref: 'c:' + c.id, title: c.title || '', changes: c.devDrift.map((x) => ({ field: x.key, from: x.from, to: x.to, by: x.by, task: x.task })) })),
+          divergence_rule: 'A programmer changed these design values without the author\'s instruction. They wait for the author (Accept / Put back) — do not build on them as settled; the game designer may ask the author about them.' } : {}),
+        ...((ctx.plan.bans || []).length ? { author_bans: ctx.plan.bans.map((b) => ({ kind: b.kind, text: b.text })), bans_rule: 'Binding: deferred — no work on it now; never / removed — never build or bring it back, even if a card or a message asks.' } : {}) };
     }
     case 'get_updates': {
       const [crs, n] = await Promise.all([ctx.gref.collection('changeRequests').get().then((s) => s.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => []), narrative(ctx)]);
@@ -1438,7 +1510,7 @@ async function callTool(name, args, key) {
       return out;
     }
     case 'list_tasks': return ctx.tasks.filter((t) => !args.status || t.status === args.status)
-      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, ...(isBug(t) ? { kind: 'bug', severity: t.severity || 's3' } : {}), owner: t.owner, assignee: (t.assignee && t.assignee.name) || null, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
+      .map((t) => ({ id: t.id, milestone: t.milestone, title: t.title, status: t.status, ...(isBug(t) ? { kind: 'bug', severity: t.severity || 's3' } : {}), ...(t.kind === 'author' ? { kind: 'author' } : {}), ...(t.epic ? { epic: t.epic } : {}), ...(t.verify ? { verify: true } : {}), owner: t.owner, assignee: (t.assignee && t.assignee.name) || null, deps: t.deps || [], ready: OPEN.includes(t.status) && isReady(ctx, t), locked_by_gate: lockedBy(ctx, t) }));
     case 'get_next_task': {
       if (!ctx.tasks.length) return { task: null, message: 'No roadmap yet. Tell the user: open the Game Bible → «Продакшн-план» and generate the plan (it needs a filled GDD: overview, mechanics, levels); the tasks then come here. ' +
         'Until then you can work on what the user asks in this chat — read the design (get_project_overview, get_design_section) and, when they ask, fill or change cards with save_card / save_quest / save_dialogue.' };
@@ -1623,6 +1695,9 @@ async function callTool(name, args, key) {
     }
     case 'report_bug': return reportBug(ctx, key, args);
     case 'record_author_instruction': return recordAuthorInstruction(ctx, key, args);
+    case 'verify_task': return verifyTask(ctx, key, args);
+    case 'resolve_divergence': return resolveDivergence(ctx, key, args);
+    case 'record_author_decision': return recordAuthorDecision(ctx, key, args);
     case 'submit_task_result': {
       const t = findTask(ctx, args.task_id);
       if (!['in_progress', 'rework', 'blocked'].includes(t.status)) throw rpcError(-32602, `Task ${t.id} is ${t.status}; only a task in progress can be submitted`);
@@ -1638,7 +1713,7 @@ async function callTool(name, args, key) {
       const unmet = (t.accept || []).filter((a) => !report.criteria.some((c) => c.met && c.criterion.toLowerCase().includes(a.toLowerCase().slice(0, 40))));
       report.cards = cardsLag(ctx, t, args); // ✋ v2.153: the cards must show what the game does
       report.check = { allCriteriaMet: !unmet.length && report.criteria.every((c) => c.met), unmet, testsGreen: !report.tests.ran || report.tests.failed === 0, cardsSynced: !report.cards.stale.length };
-      await setTask(ctx, t, { status: 'review', report, blocker: admin.firestore.FieldValue.delete() }, { type: 'submitted', summary: report.summary.slice(0, 300) });
+      await setTask(ctx, t, { status: 'review', report, blocker: admin.firestore.FieldValue.delete(), cardChanged: admin.firestore.FieldValue.delete() }, { type: 'submitted', summary: report.summary.slice(0, 300) });
       await logExecution(ctx, key, 'submitted', t.id, { summary: report.summary.slice(0, 300) });
       // v2.149.3: questions left open at hand-in — each a question in «💬 Агенти» (owner audit: «завершує задачу з невирішеними питаннями»)
       const openQs = list(args.open_questions, 5, (q) => str(q, 1500));
@@ -1757,7 +1832,7 @@ async function callTool(name, args, key) {
       const [quests, dialogues, activity] = await Promise.all(['quests', 'dialogues', 'activity'].map(cnt));
       return gddStatus(ctx, { quests, dialogues, activity, plan: ctx.plan && ctx.plan.plan ? 1 : 0 });
     }
-    case 'save_card': { const out = await saveCard(ctx, key, args); await logExecution(ctx, key, 'agent_write', '', { kind: 'card', ref: out.ref, created: !!out.created }); return out; }
+    case 'save_card': { const out = await saveCard(ctx, args.sync === false && AC.roleOf(key) !== 'programmer' ? { ...key, noSync: true } : key, args); await logExecution(ctx, key, 'agent_write', '', { kind: 'card', ref: out.ref, created: !!out.created }); return out; }
     case 'save_quest': case 'save_dialogue': {
       const out = await saveNarrative(ctx, key, name === 'save_quest' ? 'quests' : 'dialogues', args);
       await logExecution(ctx, key, 'agent_write', '', { kind: name === 'save_quest' ? 'quest' : 'dialogue', id: out.id, created: out.created });

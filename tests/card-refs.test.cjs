@@ -59,7 +59,7 @@ check(REFS.usedBy(G3, 'c:hero', 'uk').some((r) => r.kind === 'task'), false, 'a 
 const covered = [].concat(...REFS.KINDS.map((k) => k.fields));
 const KNOWN = NV.REF_FIELDS.map((k) => 'quest.' + k).concat(['quest.source', 'dialogue.participants', 'dialogue.location', 'dialogue.nodes.speaker', 'dialogue.nodes.voice',
   'plan.milestones.tasks.cards', 'card.planTask', 'tasks.cards (bug)', 'card.mech.links', 'card.mech.sections[sound field]', 'card.mech.sections[card field]', 'card.forge.owners', 'card.forge.loadouts.items', 'card.fields.places (artstyle)', 'card.prefab', 'card.sheet.faction', 'card.files.pic',
-  'card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref', 'card.intent.ladder', 'agentMessages.refs']);
+  'card.zone.biome', 'card.zone.location', 'card.zone.level', 'card.zone.links.to', 'card.zone.points.ref', 'card.intent.ladder', 'agentMessages.refs', 'plan.milestones.epics.card']);
 KNOWN.forEach((f) => check(covered.indexOf(f) >= 0, true, 'covered: ' + f));
 // 💬 an agents' message points at its cards (not at tasks / commits); a closed thread points at nothing (v2.148)
 const AG = { cards: [{ id: 'jump', section: 'mechanics', title: 'Стрибок' }], agentMessages: [{ id: 'm1', type: 'handoff', text: 'Changed the jump', refs: ['c:jump', 't:G1.2', 'commit:abc1234'] }, { id: 'm2', type: 'note', status: 'closed', text: 'old', refs: ['c:jump'] }] };
@@ -70,6 +70,9 @@ check(REFS.usedBy(LG, 'c:jump', 'uk').map((r) => r.kind + ':' + r.side + ':' + r
 check(REFS.usedBy(LG, 'c:lv1', 'uk').some((r) => r.kind === 'ladder' && r.side === 'out'), true, 'the level shows the mechanic it teaches');
 check(MECH.TYPES.filter((t) => ['sound', 'card'].indexOf(t) < 0 && /ref|card|sound|audio/i.test(t)).filter((t) => t !== 'ref' && t !== 'refs').join(), '',
   'mechanics field types pointing at cards are all known (ref / refs point at rows of the same mechanic)');
+// 🌳 an epic points at the main card of its feature (v2.154)
+const EG = { cards: [{ id: 'shop', section: 'mechanics', title: 'Крамниця' }], plan: { milestones: [{ id: 'G1', epics: [{ id: 'G1.E2', title: 'Крамниця', card: 'c:shop' }], tasks: [] }] } };
+check(REFS.usedBy(EG, 'c:shop', 'uk').map((r) => r.kind + ':' + r.from.id).join(), 'epic:G1.E2', 'a card shows the plan epic built on it');
 check(REFS.KINDS.every((k) => k.uk && k.en && typeof k.edges === 'function' && k.fields.length), true, 'every kind has labels, fields and edges');
 
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');

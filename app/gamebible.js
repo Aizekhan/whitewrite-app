@@ -226,7 +226,7 @@
       exOwnerOnly: "Ключ MCP для Claude Code створює лише власник світу — попроси його підключити агента", exKeyOnce: "Ключ показано один раз — виконай цю команду в терміналі, у папці Unity-проєкту:",
       exThen: "Ключ ляже у змінну середовища Windows, а в налаштуваннях Claude Code буде лише її назва. Claude Code, уже відкритий, нових інструментів не бачить: закрий його й запусти знову з цієї теки (або перевір /mcp — whitewrite має бути з галочкою). Потім: «Візьми наступну задачу з WhiteWrite і виконай її».", exRevoke: "Відкликати", exRevokeQ: "Відкликати ключ? Claude Code з ним більше не підключиться.",
       exLog: "Активність виконавця", exType: { claimed: "взяв задачу", progress: "прогрес", blocked: "блокер", submitted: "здав на перевірку", change_request: "запит на зміну", framework: "надіслав маніфест фреймворку" },
-      ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово" },
+      ts: { todo: "до виконання", in_progress: "виконується", review: "на перевірці", rework: "на доопрацюванні", blocked: "заблоковано", done: "готово", deferred: "відкладено автором", dropped: "не робимо" },
       progress: "Прогрес", acceptTitle: "Критерії приймання", tests: "Тести", testsNone: "не запускались", report: "Звіт", changes: "Змінені файли",
       serverCheck: "Перевірка сервера", checkOk: "усі критерії виконано, тести зелені", checkWarn: "не все підтверджено",
       accept: "Прийняти", acceptUnchecked: "Не всі критерії чи тести підтверджено. Прийняти все одно?", giveBack: "Повернути на доопрацювання", returnPh: "Що виправити? (побачить Claude Code)",
@@ -593,7 +593,7 @@
       exOwnerOnly: "Only the world's owner creates the MCP key for Claude Code — ask them to connect the agent", exKeyOnce: "The key is shown once — run this command in a terminal, in the Unity project folder:",
       exThen: "The key goes into a Windows environment variable; Claude Code’s settings keep only its name. A Claude Code that is already open does not see the new tools: close it and start it again from this folder (or check /mcp — whitewrite should have a tick). Then: “Take the next task from WhiteWrite and do it”.", exRevoke: "Revoke", exRevokeQ: "Revoke the key? Claude Code will no longer connect with it.",
       exLog: "Executor activity", exType: { claimed: "took a task", progress: "progress", blocked: "blocker", submitted: "handed in", change_request: "change request", framework: "sent the framework manifest" },
-      ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done" },
+      ts: { todo: "to do", in_progress: "in progress", review: "in review", rework: "rework", blocked: "blocked", done: "done", deferred: "postponed by the author", dropped: "not doing" },
       progress: "Progress", acceptTitle: "Acceptance criteria", tests: "Tests", testsNone: "not run", report: "Report", changes: "Changed files",
       serverCheck: "Server check", checkOk: "all criteria met, tests green", checkWarn: "not everything confirmed",
       accept: "Accept", acceptUnchecked: "Not every criterion or test is confirmed. Accept anyway?", giveBack: "Return for rework", returnPh: "What to fix? (Claude Code will see it)",
@@ -1890,7 +1890,7 @@
   function gameCard(c) {
     var s = sec(c.section);
     return { key: "c:" + c.id, src: "game", id: c.id, section: c.section, order: c.order, title: c.title || "", status: c.status || "idea", note: c.note || "",
-      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, beast: c.beast || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, links: c.links || [], projectAssets: c.projectAssets || [], agent: agentOf(c) };
+      defs: (c.defs && c.defs.length) ? c.defs : (s.defs || CUSTOM_DEFS), fields: c.fields || {}, files: c.files || [], intent: c.intent || null, place: c.place || null, sheet: c.sheet || null, beast: c.beast || null, banner: c.banner || "", assetState: c.assetState || "", styleAi: c.styleAi || {}, mech: c.mech || null, forge: c.forge || null, prefab: c.prefab || "", kit: c.kit || null, links: c.links || [], projectAssets: c.projectAssets || [], agent: agentOf(c), devDrift: c.devDrift || [] };
   }
   function allCards() {
     var out = [];
@@ -6225,7 +6225,7 @@
     $("e-delete").textContent = c.src === "canon" ? STR.hide : STR.remove;
     $("e-mic").style.display = canWrite && dictOk(c) ? "" : "none";
     $("e-pic-w").hidden = !canWrite || STATS_SECS.indexOf(c.section) >= 0; picMenu(false);
-    $("e-agent").innerHTML = agentBar(c.agent, canWrite); $("e-agent").hidden = !c.agent;
+    $("e-agent").innerHTML = agentBar(c.agent, canWrite) + driftHtml(c.id, c.devDrift); $("e-agent").hidden = !c.agent && !(c.devDrift || []).length; // ⚠ v2.154 the programmer's design change
     renderFields(); cardSubs(); msg(""); leafFirst = leafSnap();
     $("leaf").classList.add("open"); $("leaf").setAttribute("aria-hidden", "false"); $("scrim").classList.add("open"); ovOpened();
     (c.isNew && !c.title ? $("e-title") : $("leaf")).focus({ preventScroll: true }); // an opened card is read first, not renamed
@@ -11449,6 +11449,7 @@
       '</div></header>';
     html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
       (busy ? '' : ' <span class="muted">' + STR.costNote + '</span>') + '</p>';
+    if (plan) { loadAgWait(); html += crownHtml(plan); } // 👑 v2.154
     if (oq.length) html += qQueueHtml(oq); // the decisions first: they are what the author does here
 
     if (gdd) {
@@ -11456,6 +11457,8 @@
         '<div class="ready"><span>' + STR.readiness + '</span><div class="ready__bar"><i style="width:' + (gdd.readiness || 0) + '%"></i></div><b>' + (gdd.readiness || 0) + '%</b></div>' +
         '<p>' + esc(gdd.summary) + '</p>' + gddTableHtml(gdd.sections || []) + '</section>';
     }
+    if (driftCards().length) html += '<section class="psec" id="p-drift"><h2 class="group">' + esc(DD.list) + '</h2><p class="hint">' + esc(DD.hint) + '</p>' + driftCards().map(function (c) {
+      return '<div class="q"><div class="cchips">' + cardChip("c:" + c.id) + '</div>' + driftHtml(c.id, c.devDrift) + '</div>'; }).join("") + '</section>';
     if (gameIssues().length) html += '<section class="psec"><h2 class="group">' + STR.contradictions + '</h2><ul class="contra">' + gameIssues().map(function (c) {
       return '<li>' + esc(c.what) + (c.where ? ' <span class="muted">— ' + esc(c.where) + '</span>' : '') + '</li>'; }).join("") + '</ul></section>';
     var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
@@ -11769,17 +11772,23 @@
   function taskHtml(t) {
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
     var bt = isBugT(lt) ? lt : isBugT(t) ? t : null;
-    var at = isAuthT(lt) ? lt : isAuthT(t) ? t : null;
-    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt || at ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + (at ? ' <span class="pill s-agreed">' + esc(AU.chip) + '</span>' : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
+    var at = isAuthT(lt) ? lt : isAuthT(t) ? t : null, x = lt || t, met = ((x.report || {}).criteria || []).filter(function (c) { return c.met; }).map(function (c) { return String(c.criterion || "").toLowerCase(); });
+    var own = ME.owner && canWrite, parkable = lt && ["todo", "rework", "blocked"].indexOf(lt.status) >= 0, parked = lt && (lt.status === "deferred" || lt.status === "dropped");
+    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt || at ? ' t-bug' : '') + '" id="task-' + esc(t.id) + '"><div class="task__h"><b class="sti" title="' + esc(lt ? STR.ts[lt.status] || lt.status : "") + '">' + stIcon(lt) + '</b><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') +
+      (at ? ' <span class="pill s-agreed">' + esc(at.kind === "sync" ? EP.sync : AU.chip) + '</span>' : '') + (x.verify && x.status === "todo" ? ' <span class="pill s-idea" title="' + esc(EP.verifyT) + '">' + esc(EP.verify) + '</span>' : '') + (x.partial ? ' <span class="pill s-idea">' + esc(EP.partial) + '</span>' : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
       (lt ? ' <span class="pill tst-' + cls(lt.status) + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
       (t.priority ? ' <span class="pill pr-' + cls(t.priority) + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
       (t.assetState ? ' <span class="pill st-' + cls(t.assetState) + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
       (lt ? whoHtml(lt) : '') +
-      (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
+      ((t.deps || []).length ? ' <span class="muted">' + STR.deps + ' ' + t.deps.map(function (d) { var dx = liveTask(d); return '<a href="#task-' + esc(d) + '" data-goto="' + esc(d) + '" class="dep' + (dx && dx.status !== "done" && dx.status !== "dropped" ? ' dep-wait' : '') + '">' + esc(d) + '</a>'; }).join(", ") + '</span>' : '') +
+      (own && parkable ? ' <button type="button" class="btn ghost mini" data-park="' + esc(t.id) + '" data-kind="deferred" data-title="' + esc(t.title) + '" title="' + esc(EP.parkT) + '">‖</button><button type="button" class="btn ghost mini" data-park="' + esc(t.id) + '" data-kind="never" data-title="' + esc(t.title) + '" title="' + esc(EP.dropT) + '">✕</button>' : '') +
+      (own && parked ? ' <button type="button" class="btn ghost mini" data-unpark="' + esc(t.id) + '">' + esc(EP.unpark) + '</button>' : '') + '</div>' +
+      (x.cardChanged && x.cardChanged.length && x.status !== "done" ? '<div class="tblock">' + esc(DD.changed.replace("{k}", x.cardChanged.map(function (q) { return q.keys; }).join("; "))) + '</div>' : '') +
       (bt ? bugBody(bt) : at ? authBody(at) : t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
       ((t.cards || []).length ? '<div class="cchips">' + t.cards.map(function (r) { return cardChip(r, (t.roles || {})[r]); }).join("") + '</div>' : '') +
-      (acc.length ? '<details><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit">' + acc.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul>' +
+      (acc.length ? '<details' + (lt && ["in_progress", "review", "rework"].indexOf(lt.status) >= 0 ? ' open' : '') + '><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit ckl">' + acc.map(function (a) {
+        var ok = x.status === "done" || met.some(function (c) { return c.indexOf(String(a).toLowerCase().slice(0, 40)) >= 0; }); return '<li>' + (ok ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' +
         (tst.length ? '<div class="muted">' + STR.tests + ': ' + esc(tst.join("; ")) + '</div>' : '') + '</details>' : '') +
       taskState(t) +
       (t.prompt ? '<details><summary>' + STR.prompt + '</summary><pre>' + esc(t.prompt) + '</pre><button class="btn" data-copy>' + STR.copy + '</button></details>' : '') + '</div>';
@@ -11805,13 +11814,14 @@
     var P = STR.pp, lock = msLock(plan, m), g = gateOf(m), ts = m.tasks || [], shown = msShown(m), s1 = openS1(m.id);
     var now = !!(plan.gated && m.track && !lock && g.status !== "approved"); // the gate the author decides now — the plan's one primary (unless questions wait)
     var done = ts.filter(function (t) { var lt = liveTask(t.id); return lt && lt.status === "done"; }).length;
+    ts = ts.filter(function (t) { var lt = liveTask(t.id); return !lt || lt.status !== "dropped"; }); // ✕ «не робимо» does not count
     var list = function (title, a) { return a && a.length ? '<div class="ms__l"><b>' + title + ':</b><ul>' + a.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></div>' : ''; };
     var head = '<h3>' + esc(m.id) + ' · ' + esc(m.name) + (m.estimateDays ? ' <span class="muted">' + P.days.replace("{n}", m.estimateDays) + '</span>' : '') +
       (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
       (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') +
       (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + (m.carried ? ' <span class="pill s-idea" title="' + esc(P.carriedTip) + '">' + esc(P.carried) + '</span>' : '') + '</h3>'; // carried: gamedev.js kept it from the previous plan
     var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') +
-      list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + shown.map(taskHtml).join("");
+      list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + epicTree(m, shown);
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
       ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
@@ -11886,7 +11896,7 @@
       s1Warn: "Етап має відкриті баги S1 ({n}: {ids}). Прийняти ворота все одно можна.",
       expT: "Чим завершити експеримент?", dec: { ship: "✓ Впроваджуємо", kill: "✕ Відмовляємось", iterate: "↻ Ще ітерація" }, decL: "Рішення", note: "Чому (коротко)", notePh: "Що показали дані",
       log: "Журнал рішень", logHint: "Усі рішення гри в одному місці — те саме бачить Claude Code (get_project_overview → decisions).", logNone: "Рішень ще немає: відповіді на питання аналізу, прийняті ворота, запити на зміну, експерименти й прогалини фреймворку зʼявляться тут.",
-      type: { question: "Питання", change_request: "Запит на зміну", framework_gap: "Фреймворк", experiment: "Експеримент", gate: "Ворота" },
+      type: { ban: "Заборона", question: "Питання", change_request: "Запит на зміну", framework_gap: "Фреймворк", experiment: "Експеримент", gate: "Ворота" },
       accepted: "прийнято", declined: "відхилено", ended: "завершено", open: "Відкрити", openCard: "Картка", toPlan: "До етапу", toExp: "Досвід гравців", noDate: "без дати" },
     en: { bugs: "🐞 Bugs", add: "＋ Bug", formT: "New bug", title: "What is broken", titlePh: "E.g.: the player falls through the forest bridge", sevL: "Severity",
       sev: { s1: "critical", s2: "major", s3: "moderate", s4: "cosmetic" },
@@ -11900,7 +11910,7 @@
       s1Warn: "The milestone has open S1 bugs ({n}: {ids}). You can still approve the gate.",
       expT: "How does the experiment end?", dec: { ship: "✓ Ship it", kill: "✕ Kill it", iterate: "↻ Iterate" }, decL: "Decision", note: "Why (briefly)", notePh: "What the data showed",
       log: "Decision log", logHint: "Every decision of the game in one place — Claude Code sees the same (get_project_overview → decisions).", logNone: "No decisions yet: answers to the analysis questions, approved gates, change requests, experiments and framework gaps will appear here.",
-      type: { question: "Question", change_request: "Change request", framework_gap: "Framework", experiment: "Experiment", gate: "Gate" },
+      type: { ban: "Ban", question: "Question", change_request: "Change request", framework_gap: "Framework", experiment: "Experiment", gate: "Gate" },
       accepted: "accepted", declined: "declined", ended: "ended", open: "Open", openCard: "Card", toPlan: "To the milestone", toExp: "Player experience", noDate: "no date" } }[LANG];
   // ✋ v2.153: the author's instructions from the chat (MCP record_author_instruction) and the cards lagging behind the game at hand-in
   var AU = { uk: { chip: "✋ від автора", src: { chat: "словом у чаті з агентом", approval: "погоджено в «💬 Агенти»", answer: "відповідь у «💬 Агенти»" }, words: "Вказівка", numbers: "Числа", decision: "Рішення",
@@ -11911,7 +11921,161 @@
       loose: "The author's instructions outside milestones", looseHint: "Claude Code recorded your words from the chat as tasks — so nothing gets lost and the GDD cards are updated.",
       lag: "⚠ Cards lag behind the game", lagHint: "The task changed the game, but these GDD cards still show the old design. Update them (or ask Claude Code) — then the task can be closed.", unchanged: "No change",
       acceptLag: "The GDD cards still lag behind the game — after accepting they will show the old design. Accept anyway?" } }[LANG];
-  function isAuthT(t) { return !!t && t.kind === "author"; }
+  function isAuthT(t) { return !!t && (t.kind === "author" || t.kind === "sync"); } // ✋ the author's instructions and ↻ card syncs: tasks outside the AI plan
+  // ---------- 🌳 v2.154 the plan as a tree: milestone → epics (features) → tasks → checklist; 👑 what waits for the author; ‖ ✕ the author's bans ----------
+  var EP = { uk: { legend: [["✓", "зроблено"], ["●", "в роботі"], ["○", "черга"], ["!", "чекає іншу задачу"], ["?", "звірити з грою — Claude Code сам"], ["‖", "відкладено автором"], ["✕", "не робимо"]],
+      other: "Інше", next: "далі", waits: "чекає", goto: "Перейти до задачі", verify: "? звірити з грою", verifyT: "План не певен, чи це вже є в грі — Claude Code перевірить сам (verify_task)", partial: "◐ частково", sync: "↻ з картки",
+      park: "‖ Відкласти", drop: "✕ Не робимо", unpark: "↺ Повернути в чергу", parkEpic: "‖ Відкласти епік", dropEpic: "✕ Не робимо епік",
+      parkT: "Відкласти — план не братиме це, доки не повернеш", dropT: "Не робимо — план ніколи не поверне це", banPh: "Що саме (так побачить планувальник)",
+      crownOk: "Від тебе зараз нічого не потрібно", crownNow: "Чекає тебе", crownNext: "Claude Code зараз: {t}", crownIdle: "Claude Code бере наступну готову задачу сам.",
+      cReview: "на рев'ю: {n}", cBlocked: "заблоковано: {n}", cGate: "ворота {g} готові до приймання", cQs: "питання плану: {n}", cCr: "запити на зміну: {n}", cAgents: "питання агентів: {n}",
+      bans: "Заборони плану", bansHint: "Твої рішення «відкладено / не робимо / прибрано». Планувальник ніколи не ставить задач проти них; Claude Code бачить їх у get_project_overview.", banAdd: "＋ Заборона", banKind: "Що це",
+      kind: { deferred: "‖ відкладено", never: "✕ не робимо", removed: "🗑 прибрано з гри" }, banRm: "Зняти", via: { chat: "у чаті з агентом", bible: "у Біблії" } },
+    en: { legend: [["✓", "done"], ["●", "in progress"], ["○", "queued"], ["!", "waits for another task"], ["?", "check against the game — Claude Code does it"], ["‖", "postponed by the author"], ["✕", "not doing"]],
+      other: "Other", next: "next", waits: "waits for", goto: "Go to the task", verify: "? check against the game", verifyT: "The plan is not sure whether the game already has it — Claude Code checks it itself (verify_task)", partial: "◐ partly", sync: "↻ from a card",
+      park: "‖ Postpone", drop: "✕ Not doing", unpark: "↺ Back to the queue", parkEpic: "‖ Postpone the epic", dropEpic: "✕ Not doing the epic",
+      parkT: "Postpone — the plan will not take it until you bring it back", dropT: "Not doing — the plan never brings it back", banPh: "What exactly (the planner reads this)",
+      crownOk: "Nothing is needed from you right now", crownNow: "Waiting for you", crownNext: "Claude Code now: {t}", crownIdle: "Claude Code takes the next ready task itself.",
+      cReview: "in review: {n}", cBlocked: "blocked: {n}", cGate: "gate {g} is ready to approve", cQs: "plan questions: {n}", cCr: "change requests: {n}", cAgents: "agents' questions: {n}",
+      bans: "The plan's bans", bansHint: "Your decisions «postponed / not doing / removed». The planner never writes a task against them; Claude Code sees them in get_project_overview.", banAdd: "＋ Ban", banKind: "What it is",
+      kind: { deferred: "‖ postponed", never: "✕ not doing", removed: "🗑 removed from the game" }, banRm: "Lift", via: { chat: "in the chat with the agent", bible: "in the Bible" } } }[LANG === "en" ? "en" : "uk"];
+  var epicOpen = {}, agWait = { n: 0, at: 0 };
+  // ⚠ v2.154 a design change made by the programmer key on its own (functions/src/card-drift.js devDrift): the author accepts it or puts the card back
+  var DD = { uk: { t: "⚠ Розбіжність GDD ↔ гра", row: "{by} змінив «{k}»: {f} → {to}", task: "під час {t}", ok: "Прийняти", back: "Повернути як було", list: "Розбіжності GDD ↔ гра", hint: "Claude Code-програміст змінив у картках дизайн (числа, правила) сам, без твоєї вказівки. Спершу їх розбирає геймдизайнер (resolve_divergence) і питає тебе лише про те, що змінює дизайн. «Прийняти» — так і лишається; «Повернути» — картка знову як була, а гру приведе до неї задача «↻».", crown: "розбіжності: {n}", changed: "⚠ Картку змінено, поки задача в роботі: {k} — Claude Code звірить перед здачею", byAuthor: "за твоєю вказівкою {t} — геймдизайнер доведе текст картки" },
+    en: { t: "⚠ GDD ↔ game divergence", row: "{by} changed «{k}»: {f} → {to}", task: "during {t}", ok: "Accept", back: "Put it back", list: "GDD ↔ game divergences", hint: "The Claude Code programmer changed the design in cards (numbers, rules) on its own, without your instruction. The game designer goes through them first (resolve_divergence) and asks you only about what changes the design. «Accept» — it stays; «Put it back» — the card is as it was, and a «↻» task brings the game back to it.", crown: "divergences: {n}", changed: "⚠ The card changed while the task is in work: {k} — Claude Code checks it before handing in", byAuthor: "on your instruction {t} — the game designer tidies the card text" } }[LANG === "en" ? "en" : "uk"];
+  function driftHtml(cid, dd) {
+    if (!(dd || []).length) return "";
+    return '<div class="ddrift"><b>' + esc(DD.t) + '</b>' + dd.map(function (x, i) {
+      if (x.author) return '<div class="muted">' + esc(DD.row.replace("{by}", x.by || "Claude Code").replace("{k}", x.key).replace("{f}", x.from || "—").replace("{to}", x.to || "—")) + ' · ' + esc(DD.byAuthor.replace("{t}", x.author)) +
+        (canWrite ? ' <button type="button" class="btn ghost mini" data-ddok="' + esc(cid) + ':' + i + '">✓</button>' : '') + '</div>';
+      return '<div>' + esc(DD.row.replace("{by}", x.by || "Claude Code").replace("{k}", x.key).replace("{f}", x.from || "—").replace("{to}", x.to || "—")) + (x.task ? ' <span class="muted">' + esc(DD.task.replace("{t}", x.task)) + '</span>' : '') +
+        (canWrite ? ' <button type="button" class="btn ghost mini" data-ddok="' + esc(cid) + ':' + i + '">' + esc(DD.ok) + '</button>' + (x.full !== undefined && x.key !== "mech" && x.key !== "intent" ? '<button type="button" class="btn mini" data-ddback="' + esc(cid) + ':' + i + '">' + esc(DD.back) + '</button>' : '') : '') + '</div>';
+    }).join("") + '</div>';
+  }
+  function driftCards() { return cards.filter(function (c) { return (c.devDrift || []).length && !c.hidden; }); }
+  async function settleDrift(v, back) {
+    var p = v.split(":"), c = cards.filter(function (x) { return x.id === p[0]; })[0]; if (!c) return;
+    var i = +p[1], x = (c.devDrift || [])[i]; if (!x) return;
+    var body = { devDrift: c.devDrift.filter(function (_, k) { return k !== i; }) };
+    if (back) { body.fields = {}; body.fields[x.key] = x.full == null ? "" : x.full; body.updatedAt = stamp(); }
+    await gref().collection("cards").doc(c.id).set(body, { merge: true });
+  }
+  function depsWait(lt) { return (lt.deps || []).filter(function (d) { var x = liveTask(d); return x && x.status !== "done" && x.status !== "dropped"; }); }
+  function stIcon(lt) {
+    if (!lt) return "○";
+    if (lt.verify && lt.status === "todo") return "?";
+    var s = lt.status;
+    return s === "done" ? "✓" : s === "deferred" ? "‖" : s === "dropped" ? "✕" : s === "in_progress" || s === "review" ? "●" : (s === "todo" || s === "rework") && depsWait(lt).length ? "!" : s === "blocked" ? "!" : "○";
+  }
+  function legendHtml() { return '<p class="plegend muted">' + EP.legend.map(function (x) { return '<span><b class="sti">' + x[0] + '</b> ' + esc(x[1]) + '</span>'; }).join("") + '</p>'; }
+  // the epic of a task: its own (the plan's), else the feature card it implements, else «Інше»
+  function epicKey(m, t) {
+    var lt = liveTask(t.id) || t, e = lt.epic || t.epic, ids = (m.epics || []).map(function (x) { return x.id; });
+    if (e && ids.indexOf(e) >= 0) return e;
+    var roles = lt.roles || t.roles || {}, cs = lt.cards || t.cards || [];
+    var r = cs.filter(function (x) { return roles[x] === "implements"; })[0] || cs.filter(function (x) { return x.indexOf("c:") === 0; })[0];
+    return r ? "card:" + r : "other";
+  }
+  function epicTree(m, shown) {
+    var groups = {}, order = [];
+    (m.epics || []).forEach(function (e) { groups[e.id] = { id: e.id, title: e.title, goal: e.goal, card: e.card, list: [] }; order.push(e.id); });
+    shown.forEach(function (t) {
+      var k = epicKey(m, t);
+      if (!groups[k]) { var c = k.indexOf("card:") === 0 ? refCard(k.slice(5)) : null; groups[k] = { id: k, title: c ? c.title : EP.other, card: c ? k.slice(5) : "", list: [], derived: true }; order.push(k); }
+      groups[k].list.push(t);
+    });
+    order = order.filter(function (k) { return groups[k].list.length; });
+    if (!order.length) return "";
+    if (order.length === 1 && order[0] === "other") return shown.map(taskHtml).join("");
+    return order.map(function (k) { return epicHtml(m, groups[k]); }).join("");
+  }
+  function epicHtml(m, g) {
+    var live = g.list.map(function (t) { return liveTask(t.id) || t; }), counted = live.filter(function (x) { return x.status !== "dropped"; });
+    var done = counted.filter(function (x) { return x.status === "done"; }).length, pct = counted.length ? Math.round(100 * done / counted.length) : 0;
+    var parked = live.length && live.every(function (x) { return x.status === "deferred" || x.status === "dropped"; });
+    var next = live.filter(function (x) { return (x.status === "todo" || x.status === "rework") && !depsWait(x).length; })[0];
+    var outer = []; live.forEach(function (x) { if (x.status !== "done") depsWait(x).forEach(function (d) { if (!live.some(function (y) { return y.id === d; }) && outer.indexOf(d) < 0) outer.push(d); }); });
+    var active = live.some(function (x) { return ["in_progress", "review", "rework", "blocked"].indexOf(x.status) >= 0 || (x.verify && x.status === "todo"); });
+    var open = epicOpen[g.id] != null ? epicOpen[g.id] : active || (!!next && done < counted.length && !parked);
+    var ownOpen = live.filter(function (x) { return ["todo", "rework", "blocked"].indexOf(x.status) >= 0; }).map(function (x) { return x.id; });
+    return '<details class="epic' + (parked ? ' epic-parked' : done === counted.length && counted.length ? ' epic-done' : '') + '" data-epic="' + esc(g.id) + '"' + (open ? ' open' : '') + '><summary class="epic__h">' +
+      '<b class="epic__t">' + esc(g.title) + '</b><span class="epic__bar"><i style="width:' + pct + '%"></i></span><span class="muted">' + done + '/' + counted.length + '</span>' +
+      (next ? ' <span class="epic__next">▶ ' + esc(EP.next) + ': <a href="#task-' + esc(next.id) + '" data-goto="' + esc(next.id) + '">' + esc(next.id) + '</a></span>' : '') +
+      outer.map(function (d) { return ' <a class="epic__wait" href="#task-' + esc(d) + '" data-goto="' + esc(d) + '" title="' + esc(EP.goto) + '">⛓ ' + esc(EP.waits) + ' ' + esc(d) + '</a>'; }).join("") + '</summary>' +
+      '<div class="epic__b">' + (g.goal ? '<p class="muted">' + esc(g.goal) + '</p>' : '') + (g.card ? '<div class="cchips">' + cardChip(g.card) + '</div>' : '') +
+      g.list.map(taskHtml).join("") +
+      (ME.owner && canWrite && ownOpen.length ? '<div class="row"><button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="deferred" data-title="' + esc(g.title) + '">' + esc(EP.parkEpic) + '</button>' +
+        '<button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="never" data-title="' + esc(g.title) + '">' + esc(EP.dropEpic) + '</button></div>' : '') + '</div></details>';
+  }
+  // 👑 what waits for the author — or «nothing», and what Claude Code does now
+  function crownHtml(plan) {
+    var items = [], P = STR.pp;
+    var rv = tasks.filter(function (t) { return t.status === "review"; }), bl = tasks.filter(function (t) { return t.status === "blocked"; });
+    if (rv.length) items.push('<a href="#task-' + esc(rv[0].id) + '" data-goto="' + esc(rv[0].id) + '">' + esc(EP.cReview.replace("{n}", rv.length)) + '</a>');
+    if (bl.length) items.push('<a href="#task-' + esc(bl[0].id) + '" data-goto="' + esc(bl[0].id) + '">' + esc(EP.cBlocked.replace("{n}", bl.length)) + '</a>');
+    var oq = openQs(); if (oq.length) items.push('<span>' + esc(EP.cQs.replace("{n}", oq.length)) + '</span>');
+    var crs = changeReqs.filter(function (c) { return c.status === "open"; }); if (crs.length) items.push('<span>' + esc(EP.cCr.replace("{n}", crs.length)) + '</span>');
+    var dc = driftCards().reduce(function (n, c) { return n + c.devDrift.filter(function (x) { return !x.author && Date.now() - (x.at || 0) > 864e5; }).length; }, 0); // the designer settles first: the crown shows only what waited over a day if (dc) items.push('<a href="#p-drift">' + esc(DD.crown.replace("{n}", dc)) + '</a>');
+    if (agWait.n) items.push('<button type="button" class="btn ghost mini" data-gosec="agents">' + esc(EP.cAgents.replace("{n}", agWait.n)) + ' →</button>');
+    if (plan && plan.gated) (plan.milestones || []).forEach(function (m) {
+      if (!m.track || msLock(plan, m) || gateOf(m).status === "approved") return;
+      var mt = tasks.filter(function (t) { return t.milestone === m.id && t.status !== "deferred" && t.status !== "dropped"; });
+      if (mt.length && mt.every(function (t) { return t.status === "done"; })) items.push('<a href="#ms-' + esc(m.id) + '">' + esc(EP.cGate.replace("{g}", m.id)) + '</a>');
+    });
+    var now = tasks.filter(function (t) { return t.status === "in_progress"; })[0];
+    var sub = now ? EP.crownNext.replace("{t}", now.id + " · " + (now.title || "")) : EP.crownIdle;
+    return '<div class="crown' + (items.length ? ' crown-wait' : '') + '"><b>👑 ' + esc(items.length ? EP.crownNow : EP.crownOk) + '</b>' + (items.length ? ' <span class="crown__i">' + items.join(" · ") + '</span>' : '') +
+      '<div class="muted">' + esc(sub) + '</div></div>';
+  }
+  function loadAgWait() { // the agents' questions and approval requests still waiting — one read per minute for the crown
+    if (Date.now() - agWait.at < 60000 || !gref()) return;
+    agWait.at = Date.now();
+    gref().collection("agentMessages").orderBy("at", "desc").limit(150).get().then(function (q) {
+      var n = q.docs.map(function (d) { return d.data(); }).filter(function (m) { return m.from && m.from.kind === "agent" && m.status !== "closed" &&
+        ((m.type === "approval_request" && (!m.approval || m.approval.status === "pending")) || (m.type === "question" && (m.status || "new") !== "answered")); }).length;
+      if (n !== agWait.n) { agWait.n = n; if (section === "plan") render(); }
+    }, function () {});
+  }
+  // ‖ / ✕ from the Bible: the tasks are parked and the plan gets a ban (plan/current.bans — firestore.rules: the owner only)
+  async function parkTasks(ids, kind, title) {
+    var text = await new Promise(function (r) { askName(kind === "deferred" ? EP.parkT : EP.dropT, EP.banPh, r, title || ""); });
+    if (!text) return;
+    var ban = { id: "b" + Date.now().toString(36), kind: kind, text: String(text).slice(0, 300), via: "bible", at: Date.now() }, st = kind === "deferred" ? "deferred" : "dropped";
+    var batch = db.batch();
+    ids.forEach(function (id) { var lt = liveTask(id); if (!lt || ["done", "review", "in_progress"].indexOf(lt.status) >= 0) return;
+      batch.set(gref().collection("tasks").doc(id), { status: st, parkedBy: ban.id, updatedAt: stamp(), history: firebase.firestore.FieldValue.arrayUnion({ type: st, by: "author", at: Date.now(), comment: ban.text }) }, { merge: true }); });
+    batch.set(gref().collection("plan").doc("current"), { bans: firebase.firestore.FieldValue.arrayUnion(ban), updatedAt: stamp() }, { merge: true });
+    await batch.commit();
+  }
+  async function unparkTask(id) {
+    var lt = liveTask(id); if (!lt) return;
+    var batch = db.batch(), left = tasks.filter(function (t) { return t.id !== id && t.parkedBy && t.parkedBy === lt.parkedBy && (t.status === "deferred" || t.status === "dropped"); }).length;
+    batch.set(gref().collection("tasks").doc(id), { status: "todo", parkedBy: firebase.firestore.FieldValue.delete(), updatedAt: stamp(), history: firebase.firestore.FieldValue.arrayUnion({ type: "unparked", by: "author", at: Date.now() }) }, { merge: true });
+    if (lt.parkedBy && !left) batch.set(gref().collection("plan").doc("current"), { bans: (planDoc.bans || []).filter(function (b) { return b.id !== lt.parkedBy; }), updatedAt: stamp() }, { merge: true });
+    await batch.commit();
+  }
+  function bansHtml() {
+    var bans = planDoc.bans || [], own = ME.owner && canWrite;
+    if (!bans.length && !own) return "";
+    return '<div class="nbox bans"><h4>' + esc(EP.bans) + ' <span class="muted">' + bans.length + '</span></h4><p class="hint">' + esc(EP.bansHint) + '</p>' +
+      (bans.length ? '<ul class="crit">' + bans.slice().reverse().map(function (b) {
+        return '<li><span class="pill s-idea">' + esc(EP.kind[b.kind] || b.kind) + '</span> ' + esc(b.text) + ' <span class="muted">· ' + esc(EP.via[b.via] || "") + '</span>' +
+          (own ? ' <button type="button" class="btn ghost mini" data-banrm="' + esc(b.id) + '">' + esc(EP.banRm) + '</button>' : '') + '</li>'; }).join("") + '</ul>' : '') +
+      (own ? '<button type="button" class="btn ghost mini" data-banadd>' + esc(EP.banAdd) + '</button>' : '') + '</div>';
+  }
+  async function addBan() {
+    var r = await askForm(EP.banAdd, [{ k: "kind", label: EP.banKind, type: "select", value: "never", opts: ["deferred", "never", "removed"].map(function (k) { return [k, EP.kind[k]]; }) },
+      { k: "text", label: EP.bans, ph: EP.banPh }], { ok: EP.banAdd.replace("＋ ", "") });
+    if (!r || !String(r.text || "").trim()) return;
+    await gref().collection("plan").doc("current").set({ bans: firebase.firestore.FieldValue.arrayUnion({ id: "b" + Date.now().toString(36), kind: r.kind, text: String(r.text).slice(0, 300), via: "bible", at: Date.now() }), updatedAt: stamp() }, { merge: true });
+  }
+  async function rmBan(id) {
+    var bans = (planDoc.bans || []).filter(function (b) { return b.id !== id; }), batch = db.batch();
+    tasks.filter(function (t) { return t.parkedBy === id && (t.status === "deferred" || t.status === "dropped"); }).forEach(function (t) {
+      batch.set(gref().collection("tasks").doc(t.id), { status: "todo", parkedBy: firebase.firestore.FieldValue.delete(), updatedAt: stamp() }, { merge: true }); });
+    batch.set(gref().collection("plan").doc("current"), { bans: bans, updatedAt: stamp() }, { merge: true });
+    await batch.commit();
+  }
   function tMs(v) { return !v ? 0 : typeof v === "number" ? v : v.toMillis ? v.toMillis() : v.seconds ? v.seconds * 1000 : 0; }
   function authBody(t) {
     var d = t.decision || {};
@@ -11997,7 +12161,7 @@
   // decisions on mechanics, experiment outcomes, approved gates with their retro; newest first ----------
   function msAt(v) { return !v ? 0 : typeof v === "number" ? v : v.toMillis ? v.toMillis() : v.seconds ? v.seconds * 1000 : 0; }
   function decisionRows() {
-    var out = [], ans = planDoc.answers || {}, at = planDoc.answeredAt || {}, an = msAt(planDoc.analyzedAt), ms = (planDoc.plan || {}).milestones || [];
+    var out = (planDoc.bans || []).map(function (b) { return { type: "ban", at: b.at || 0, title: b.text || "", decision: EP.kind[b.kind] || b.kind }; }), ans = planDoc.answers || {}, at = planDoc.answeredAt || {}, an = msAt(planDoc.analyzedAt), ms = (planDoc.plan || {}).milestones || [];
     (planDoc.asked || []).filter(function (q) { return ans[q.id]; }).forEach(function (q) { out.push({ type: "question", at: msAt(at[q.id]) || an, title: q.question || q.topic || "", decision: ans[q.id], ref: q.target && q.target.card }); });
     changeReqs.filter(function (c) { return ["accepted", "rejected", "declined"].indexOf(c.status) >= 0; }).forEach(function (c) {
       out.push({ type: "change_request", at: msAt(c.decidedAt) || msAt(c.createdAt), title: c.what || "", decision: c.status === "accepted" ? BG.accepted : BG.declined, note: c.why || "", task: c.taskId || "" }); });
@@ -12043,7 +12207,8 @@
     if (plan.engineNotes) html += '<div class="nbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
     html += '<div class="ptabs" role="tablist">' + ["plan", "matrix", "log"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : k === "matrix" ? P.tabMatrix : BG.log) + '</button>'; }).join("") + '</div>';
     if (planTab === "matrix") return html + matrixHtml() + '</section>';
-    if (planTab === "log") return html + decisionLogHtml() + '</section>';
+    if (planTab === "log") return html + bansHtml() + decisionLogHtml() + '</section>';
+    html += legendHtml();
     var mineN = tasks.filter(function (t) { return t.assignee && t.assignee.uid === myUid(); }).length;
     html += bugBarHtml(mineN);
     var msIds = ms.map(function (m) { return m.id; }), loose = tasks.filter(function (t) { return isBugT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); }).sort(bySev);
@@ -12417,6 +12582,15 @@
     if (rv) { askConfirm(STR.exRevokeQ, { danger: true }).then(function (ok) { if (ok) db.collection("mcpKeys").doc(rv.dataset.revoke).delete(); }); return; }
     var orf = e.target.closest("[data-openref]"); if (orf) { var oc = allCards().filter(function (x) { return x.key === orf.dataset.openref; })[0]; if (oc) openCard(oc); return; }
     var gt = e.target.closest("[data-gate]"); if (gt) { setGate(gt.dataset.gate, gt.dataset.to, gt.dataset.early).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    // 🌳 v2.154 the plan tree: ⛓ / ▶ jump to a task (its epic opens), ‖ ✕ park, ↺ back, the bans
+    var gto = e.target.closest("[data-goto]"); if (gto) { e.preventDefault(); var tid = gto.dataset.goto, tl = liveTask(tid), tm = tl && ((planDoc.plan || {}).milestones || []).filter(function (m) { return m.id === tl.milestone; })[0];
+      if (tm) epicOpen[epicKey(tm, tl)] = true; if (planTab !== "plan") planTab = "plan"; render(); var tel = $("task-" + tid); if (tel) { tel.scrollIntoView({ block: "center" }); edFlash(tel); } return; }
+    var epc = e.target.closest("summary.epic__h"); if (epc && !e.target.closest("a")) { var ed = epc.parentNode; epicOpen[ed.dataset.epic] = !ed.open; return; }
+    var ddo = e.target.closest("[data-ddok],[data-ddback]"); if (ddo) { ddo.disabled = true; settleDrift(ddo.dataset.ddok || ddo.dataset.ddback, !!ddo.dataset.ddback); return; }
+    var pk = e.target.closest("[data-park]"); if (pk) { parkTasks(pk.dataset.park.split(","), pk.dataset.kind, pk.dataset.title); return; }
+    var upk = e.target.closest("[data-unpark]"); if (upk) { upk.disabled = true; unparkTask(upk.dataset.unpark); return; }
+    if (e.target.closest("[data-banadd]")) { addBan(); return; }
+    var brm = e.target.closest("[data-banrm]"); if (brm) { brm.disabled = true; rmBan(brm.dataset.banrm); return; }
     var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
     if (e.target.closest("[data-bugs]")) { bugsOnly = !bugsOnly; render(); var bb = document.querySelector("[data-bugs]"); if (bb) bb.focus(); return; }
     if (e.target.closest("[data-addbug]")) { addBug().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }

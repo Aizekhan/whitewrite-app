@@ -12,6 +12,7 @@ Object.assign(exports, endpoints(require('./src/lemon')));
 Object.assign(exports, endpoints(require('./src/genesis')));
 Object.assign(exports, endpoints(require('./src/gamedev')));
 Object.assign(exports, endpoints(require('./src/mcp')));
+Object.assign(exports, endpoints(require('./src/card-drift'))); // ↻ a changed card of a built task → a sync task in the plan (v2.154)
 Object.assign(exports, endpoints(require('./src/agents'))); // 💬 Агенти: the author's posts and approvals, the Telegram webhook, the daily digest (v2.148)
 Object.assign(exports, endpoints(require('./src/oauth'))); // 🔌 claude.ai custom connector: OAuth (authorization code + PKCE, DCR) → an agent key of the chosen role (v2.149)
 Object.assign(exports, endpoints(require('./src/cosmograph')));

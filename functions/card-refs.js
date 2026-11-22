@@ -86,6 +86,15 @@ var KINDS = [
       });
       return out;
     } },
+  // 🌳 v2.154: an epic of the plan (a feature of the game) points at its main card
+  { id: 'epic', uk: 'Епік плану', en: 'Plan epic', fields: ['plan.milestones.epics.card'],
+    edges: function (G) {
+      var out = [];
+      ((G.plan || {}).milestones || []).forEach(function (m) {
+        arr(m.epics).forEach(function (e) { var to = e && e.card ? planKey(G, e.card) : null; if (to) out.push({ from: from('epic', { id: e.id, title: e.title }, { milestone: m.id }), to: to }); });
+      });
+      return out;
+    } },
   { id: 'mech', uk: 'Повʼязана механіка', en: 'Linked mechanic', out: { uk: 'Повʼязана механіка', en: 'Linked mechanic' }, fields: ['card.mech.links'],
     edges: function (G) {
       var out = [];

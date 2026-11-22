@@ -131,9 +131,9 @@ service cloud.firestore {
     }
     function gameDocOk(sub, d) {
       return (sub != 'tasks' || (
-                (!('kind' in d) || d.kind in ['task', 'bug']) &&
+                (!('kind' in d) || d.kind in ['task', 'bug', 'author', 'sync']) &&
                 (!('severity' in d) || d.severity in ['s1', 's2', 's3', 's4']) &&
-                optIn(d, 'status', ['todo', 'in_progress', 'review', 'rework', 'blocked', 'done']) &&
+                optIn(d, 'status', ['todo', 'in_progress', 'review', 'rework', 'blocked', 'done', 'deferred', 'dropped']) &&
                 optIn(d, 'priority', ['', 'must', 'should', 'could']) &&
                 optIn(d, 'assetState', ['', 'greybox', 'standin', 'styled', 'final']) &&
                 optStr(d, 'repro', 4000) && optStr(d, 'expected', 2000) && optStr(d, 'actual', 2000) &&
