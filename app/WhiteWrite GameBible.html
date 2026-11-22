@@ -1265,6 +1265,23 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .crown{ margin:8px 0 12px; padding:10px 14px; border-radius:12px; border:1px solid rgba(240,169,59,.35); background:rgba(240,169,59,.06); }
 .crown-wait{ border-color:var(--gold); }
 .crown__i a, .crown__i span{ margin-right:2px; }
+/* v2.159 the plan page: four tabs, one question each */
+.pmore{ position:relative; } .pmore > summary{ list-style:none; cursor:pointer; font-size:18px; padding:4px 14px; } .pmore > summary::-webkit-details-marker{ display:none; }
+.pmore__m{ position:absolute; right:0; top:calc(100% + 6px); z-index:30; display:grid; gap:8px; min-width:280px; padding:12px; border-radius:12px; border:1px solid var(--line-2); background:#121014; box-shadow:0 12px 30px rgba(0,0,0,.5); }
+.pmore__m p{ margin:0; font-size:12px; }
+@media (max-width:700px){ .pmore__m{ right:auto; left:0; min-width:240px; } }
+.pstale{ padding:10px 12px; border-radius:10px; border:1px solid var(--warn, #d9a441); color:var(--warn, #d9a441); background:rgba(217,164,65,.08); }
+.gstage h2.group{ display:flex; align-items:center; gap:8px; } .gst{ font-size:16px; } .gst-done{ color:var(--s-game); } .gst-partial{ color:var(--gold-lit); } .gst-empty{ color:var(--tx-low); }
+.glist{ list-style:none; padding:0; margin:6px 0 0; display:grid; gap:8px; } .glist li{ padding:8px 10px; border:1px solid var(--line); border-radius:10px; }
+.glist li:has(> label.imp){ border:0; padding:0; }
+.gacts{ display:inline-flex; gap:6px; margin-left:8px; vertical-align:middle; }
+.dod > summary, .nbox > summary{ cursor:pointer; }
+.ptabbar{ display:flex; flex-wrap:wrap; gap:4px; margin:8px 0 16px; border-bottom:1px solid var(--line-2); }
+.ptab{ background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; padding:10px 14px; color:var(--tx-mid); font:inherit; font-size:15px; cursor:pointer; }
+.ptab[aria-selected="true"]{ color:var(--tx-hi); border-bottom-color:var(--gold-lit); }
+.pbadge{ display:inline-block; min-width:20px; padding:1px 7px; border-radius:999px; background:var(--line-2); color:var(--tx-hi); font-size:12px; text-align:center; }
+.pb-hot{ background:var(--warn, #d9a441); color:#1b1408; }
+.pempty{ padding:18px; border:1px dashed var(--line-2); border-radius:10px; color:var(--s-game); text-align:center; }
 .pready{ margin:10px 0 14px; padding:14px 16px; border-radius:10px; border:1px solid var(--gold-lit); background:var(--gold-soft); display:grid; gap:8px; justify-items:start; }
 .pready .btn{ font-size:16px; padding:10px 18px; }
 .pdraft{ margin:10px 0 14px; padding:12px 14px; border-radius:10px; border:1px solid var(--gold, #c9a24a); background:rgba(201,162,74,.07); }

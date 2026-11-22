@@ -235,7 +235,13 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Щойно відповіси на останній блокер — план розробки складеться сам (≈ ціна «✦ План»).",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", gddAge: "Аналіз від {d}.", gddStale: "Після нього: відповідей {a}, змінених карток {c} — таблиця цього ще не враховує; «↻ Оновити аналіз», щоб перерахувати.", planReady: "Блокерів немає — можна складати план. Після генерації тут зʼявиться дерево: етапи → епіки → задачі.", planReadyRest: "Решта питань ({n}) план не блокує — на них можна відповісти потім",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { tToday: "☀ Сьогодні", tPlan: "🌳 План", tGdd: "📋 Готовність GDD", tLog: "📜 Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
+      noGdd: "Спершу ШІ прочитає всю біблію гри: складе гейм-диздок і питання, без яких план не скласти.", needBlockers: "Щоб скласти план, дай відповідь на блокери ({n}).", toToday: "До «Сьогодні»",
+      review: "Чекають твого рішення — задачі на ревʼю", blocked: "Агент зупинився — задачі з блокером", gates: "Етап готовий — прийми ворота", toGate: "До воріт",
+      agents: "Агенти питають або просять погодження", toIssues: "Розібрати суперечності", allDone: "Усе вирішено — нічого не чекає на тебе",
+      stale: "Аналіз застарів: після нього {n} змін і відповідей — оцінки нижче можуть бути неточні.", minimum: "Мінімум етапу:", newCard: "Нова картка:", newSec: "Новий розділ:",
+      otherGaps: "Інше", gddDone: "У дизайні нічого не бракує", fill: "Заповнити", delegate: "Доручити геймдизайнеру", delegated: "доручено",
+      delegateText: "Геймдизайнере, заповни в GDD прогалину: {g}. Не вигадуй того, чого в грі ще немає, — спитай мене." }, gddAge: "Аналіз від {d}.", gddStale: "Після нього: відповідей {a}, змінених карток {c} — таблиця цього ще не враховує; «↻ Оновити аналіз», щоб перерахувати.", planReady: "Блокерів немає — можна складати план. Після генерації тут зʼявиться дерево: етапи → епіки → задачі.", planReadyRest: "Решта питань ({n}) план не блокує — на них можна відповісти потім",
       pp: { carried: "Етап зі старого плану", carriedTip: "Новий план зберіг цей етап і його задачі з попереднього", dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
         who: "Виконавець", nobody: "— не призначено —", memberEdit: "✎ змінив {n} — Claude Code не бере, доки ти не схвалиш", memberWait: "⏳ чекає схвалення власника: доти Claude Code її не бере", approve: "✓ Схвалити для агента", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
@@ -602,7 +608,13 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. As soon as you answer the last blocker the development plan makes itself (≈ the «✦ Plan» price).",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", gddAge: "Analysis of {d}.", gddStale: "Since then: {a} answers, {c} changed cards — the table does not reflect them yet; «↻ Refresh analysis» to recompute.", planReady: "No blockers — the plan can be made. After generating, the tree shows here: milestones → epics → tasks.", planReadyRest: "The other questions ({n}) do not block the plan — answer them later",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { tToday: "☀ Today", tPlan: "🌳 Plan", tGdd: "📋 GDD readiness", tLog: "📜 Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
+      noGdd: "First the AI reads the whole game bible: it drafts the design doc and the questions a plan needs.", needBlockers: "To make the plan, answer the blockers ({n}).", toToday: "To «Today»",
+      review: "Waiting for your decision — tasks in review", blocked: "The agent stopped — blocked tasks", gates: "A milestone is done — accept the gate", toGate: "To the gate",
+      agents: "The agents ask or want an approval", toIssues: "Sort out the contradictions", allDone: "All decided — nothing waits for you",
+      stale: "The analysis is out of date: {n} changes and answers since — the ratings below may be off.", minimum: "Stage minimum:", newCard: "New card:", newSec: "New section:",
+      otherGaps: "Other", gddDone: "Nothing is missing in the design", fill: "Fill in", delegate: "Ask the game designer", delegated: "asked",
+      delegateText: "Game designer, fill this GDD gap: {g}. Do not invent what the game does not have yet — ask me." }, gddAge: "Analysis of {d}.", gddStale: "Since then: {a} answers, {c} changed cards — the table does not reflect them yet; «↻ Refresh analysis» to recompute.", planReady: "No blockers — the plan can be made. After generating, the tree shows here: milestones → epics → tasks.", planReadyRest: "The other questions ({n}) do not block the plan — answer them later",
       pp: { carried: "Milestone from the previous plan", carriedTip: "The new plan kept this milestone and its tasks from the previous one", dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
         who: "Assignee", nobody: "— not assigned —", memberEdit: "✎ edited by {n} — Claude Code won’t take it until you approve", memberWait: "⏳ waits for the owner’s approval: Claude Code won’t take it until then", approve: "✓ Approve for the agent", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
@@ -11437,41 +11449,41 @@
     var run = planDoc.running && planDoc.running.at && planDoc.running.at.toMillis && Date.now() - planDoc.running.at.toMillis() < 35 * 60000 ? planDoc.running.op : null;
     var busy = !!(pBusy() || run), busyOp = pBusy() || run;
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
-      '<div class="row">' + (plan ? '<button class="btn" id="p-md">' + STR.exportMd + '</button>' : '') +
+      '<div class="row">' + (gdd ? '<details class="pmore"><summary class="btn ghost" aria-label="' + esc(STR.pl.more) + '">⋯</summary><div class="pmore__m">' : '') +
       '<button class="btn' + (gdd ? ' ghost' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + costMark("analyze") + '</button>' +
       (gdd ? '<button class="btn' + (!plan && !blockers ? ' primary' : '') + '" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + costMark("plan") + '</button>' : '') +
-      '</div></header>';
-    html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
-      (busy ? '' : ' <span class="muted">' + STR.costNote + '</span>') + '</p>';
-    if (plan) { loadAgWait(); html += weekHtml() + draftHtml() + crownHtml(plan); } // 👑 v2.154 · 📅 ✦ v2.155
-    // v2.157.1 (owner: «а як його створити? … я пройшов всі питання»): no plan, no blocker → the button where the eye is, not only in the header
-    if (gdd && !plan && !blockers && !busy) html += '<div class="pready"><b>' + esc(STR.planReady) + '</b>' + (oq.length ? '<p class="muted">' + esc(STR.planReadyRest.replace("{n}", oq.length)) + '</p>' : '') +
-      '<button type="button" class="btn primary" data-mkplan>' + STR.makePlan + costMark("plan") + '</button></div>';
-    if (oq.length) html += qQueueHtml(oq); // the decisions first: they are what the author does here
-
-    if (gdd) {
-      html += '<section class="psec"><h2 class="group">' + STR.gddTitle + '</h2>' +
-        '<div class="ready"><span>' + STR.readiness + '</span><div class="ready__bar"><i style="width:' + (gdd.readiness || 0) + '%"></i></div><b>' + (gdd.readiness || 0) + '%</b></div>' +
-        '<p>' + esc(gdd.summary) + '</p>' + gddTableHtml(gdd.sections || []) + gddAgeHtml() + '</section>';
-    }
-    if (driftCards().length) html += '<section class="psec" id="p-drift"><h2 class="group">' + esc(DD.list) + '</h2><p class="hint">' + esc(DD.hint) + '</p>' + driftCards().map(function (c) {
-      return '<div class="q"><div class="cchips">' + cardChip("c:" + c.id) + '</div>' + driftHtml(c.id, c.devDrift) + '</div>'; }).join("") + '</section>';
-    if (gameIssues().length) html += '<section class="psec"><h2 class="group">' + STR.contradictions + '</h2><ul class="contra">' + gameIssues().map(function (c) {
-      return '<li>' + esc(c.what) + (c.where ? ' <span class="muted">— ' + esc(c.where) + '</span>' : '') + '</li>'; }).join("") + '</ul></section>';
-    var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
-    if (done.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + STR.answeredTitle + ' <span>' + done.length + '</span></h2></summary>' +
-      done.map(function (q) { return '<div class="qa"><div class="muted">' + esc(q.question) + '</div><div>' + esc(answers()[q.id]) + '</div></div>'; }).join("") + '</details></section>';
-    if (plan) html += execHtml();
-    var crs = changeReqs.filter(function (c) { return c.status === "open"; });
-    if (crs.length) html += '<section class="psec"><h2 class="group">' + STR.crTitle + ' <span>' + crs.length + '</span></h2>' + crs.map(function (c) {
-      return '<div class="q"><div class="q__top">' + (c.taskId ? '<span class="mono">' + esc(c.taskId) + '</span> ' : '') + '<b>' + esc(c.what) + '</b></div>' +
-        '<div class="muted">' + STR.crWhy + ': ' + esc(c.why) + '</div>' + (c.proposal ? '<div>' + STR.crProposal + ': ' + esc(c.proposal) + '</div>' : '') +
-        (c.impact ? '<div class="muted">' + STR.crImpact + ': ' + esc(c.impact) + '</div>' : '') +
-        (canWrite ? '<div class="row"><button class="btn" data-cr="' + esc(c.id) + '" data-to="accepted">' + STR.crAccept + '</button><button class="btn" data-cr="' + esc(c.id) + '" data-to="rejected">' + STR.crReject + '</button></div>' : '') + '</div>';
-    }).join("") + '</section>';
-    if (planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length)) html += scaffoldHtml(planDoc.scaffold);
-    if (plan) html += planHtml(plan);
-    else { var lb = tasks.filter(isBugT).sort(bySev), la = tasks.filter(isAuthT); if (lb.length || la.length || (canWrite && gdd)) html += '<section class="psec">' + bugBarHtml(0) + (la.length ? looseAuthHtml(la) : '') + (lb.length ? looseBugsHtml(lb) : '') + '</section>'; } // bugs and the author's instructions before there is a plan
+      (gdd ? '<p class="muted">' + esc(STR.pl.moreNote) + '</p></div></details>' : '') + '</div></header>';
+    // v2.159 (owner: «на сторінці плану перемішано все на кучу… це шо за ужас?»; the game designer's walk-through: «це не план, а склад — задачі після
+    // 15 екранів, прогалини тричі, усе, що чекає автора, у 4 місцях»): four tabs, one question each — ☀ Today (what waits for me, one queue, one tap) ·
+    // 🌳 Plan (where we are, what is next) · 📋 GDD readiness (one list of gaps by stage) · 📜 Log (what happened). One thing — one place, one number.
+    var PL = STR.pl, drift = driftCards(), gi = gameIssues(), crs = changeReqs.filter(function (c) { return c.status === "open"; });
+    var sc = planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length) ? planDoc.scaffold : null;
+    var rv = tasks.filter(function (t) { return t.status === "review"; }), bl = tasks.filter(function (t) { return t.status === "blocked"; });
+    var gates = plan && plan.gated ? (plan.milestones || []).filter(function (m) { if (!m.track || msLock(plan, m) || gateOf(m).status === "approved") return false;
+      var mt = tasks.filter(function (t) { return t.milestone === m.id && t.status !== "deferred" && t.status !== "dropped"; }); return mt.length && mt.every(function (t) { return t.status === "done"; }); }) : [];
+    loadAgWait();
+    var todayN = oq.length + drift.length + gi.length + crs.length + rv.length + bl.length + gates.length + agWait.list.length + (planDraft ? 1 : 0);
+    var doneT = tasks.filter(function (t) { return t.status === "done"; }).length;
+    var stale = gddStale();
+    if (!planTabPicked) planTab = todayN ? "today" : "plan"; // what waits for the author first; nothing waits — the plan
+    var tab = function (k, label, badge, hot) { return '<button type="button" class="ptab" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + label + (badge ? ' <span class="pbadge' + (hot ? ' pb-hot' : '') + '">' + badge + '</span>' : '') + '</button>'; };
+    html += '<div class="ptabbar" role="tablist">' + tab("today", PL.tToday, todayN || "", blockers || rv.length) + tab("plan", PL.tPlan, plan && tasks.length ? doneT + " / " + tasks.length : "") +
+      tab("gdd", PL.tGdd, gdd ? (gdd.readiness || 0) + "%" + (stale ? " ⚠" : "") : "", stale) + tab("log", PL.tLog, "") + '</div>';
+    if (busyOp || planMsg) html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg) + '</p>';
+    if (planTab === "today") html += todayHtml(oq, blockers, drift, gi, crs, sc, rv, bl, gates);
+    else if (planTab === "plan") {
+      if (plan) { var nowT = tasks.filter(function (t) { return t.status === "in_progress"; })[0]; // 📅 v2.155 · the asset ladder folded under the tree
+        html += weekHtml() + '<p class="muted">' + esc(nowT ? EP.crownNext.replace("{t}", nowT.id + " · " + (nowT.title || "")) : EP.crownIdle) + '</p>' + planHtml(plan) +
+          '<details class="psec"><summary><h2 class="group" style="display:inline-flex">🧱 ' + STR.pp.tabMatrix + '</h2></summary>' + matrixHtml() + '</details>'; }
+      else {
+        if (!gdd) html += '<div class="pready"><b>' + esc(PL.noGdd) + '</b><button type="button" class="btn primary" data-mkan>' + STR.analyze + costMark("analyze") + '</button></div>';
+        else if (blockers) html += '<div class="pready"><b>' + esc(PL.needBlockers.replace("{n}", blockers)) + '</b><button type="button" class="btn primary" data-ptab="today">' + esc(PL.toToday) + ' →</button></div>';
+        else if (!busy) html += '<div class="pready"><b>' + esc(STR.planReady) + '</b>' + (oq.length ? '<p class="muted">' + esc(STR.planReadyRest.replace("{n}", oq.length)) + '</p>' : '') +
+          '<button type="button" class="btn primary" data-mkplan>' + STR.makePlan + costMark("plan") + '</button></div>';
+        var lb = tasks.filter(isBugT).sort(bySev), la = tasks.filter(isAuthT); if (lb.length || la.length || (canWrite && gdd)) html += '<section class="psec">' + bugBarHtml(0) + (la.length ? looseAuthHtml(la) : '') + (lb.length ? looseBugsHtml(lb) : '') + '</section>'; // bugs and the author's instructions before there is a plan
+      }
+    } else if (planTab === "gdd") html += readinessHtml(gdd, sc, stale);
+    else html += (plan ? '<div class="row"><button class="btn" id="p-md">' + STR.exportMd + '</button></div>' : '') + '<section class="psec">' + bansHtml() + decisionLogHtml() + '</section>' + (plan ? execHtml() : '');
     $("view").innerHTML = html;
     [].forEach.call(document.querySelectorAll("[data-sc]"), function (cb) { cb.onchange = function () { scOff[cb.dataset.sc] = !cb.checked; }; });
     var scb = $("sc-ok"); if (scb) scb.onclick = function () { scb.disabled = true; applyScaffold().catch(function (e) { planMsg = STR.failed + ": " + e.message; render(); }); };
@@ -11488,50 +11500,6 @@
   // ---------- what the plan needs but the bible lacks: the author ticks, empty cards appear "in progress" ----------
   var scOff = {};
   function scaffoldName(id) { return id.indexOf("new:") === 0 ? id.slice(4) : L(sec(id)); }
-  function scaffoldHtml(sc) {
-    var box = function (k, label, detail) { return '<label class="imp"><input type="checkbox"' + (scOff[k] ? '' : ' checked') + ' data-sc="' + esc(k) + '"><span><b>' + esc(label) + '</b>' +
-      (detail ? '<span class="muted"> — ' + esc(detail) + '</span>' : '') + '</span></label>'; };
-    var html = '<section class="psec"><h2 class="group">' + STR.scTitle + ' <span>' + ((sc.sections || []).length + (sc.cards || []).length) + '</span></h2><p class="muted">' + STR.scIntro + '</p>';
-    if ((sc.sections || []).length) html += '<h3 class="sub">' + STR.scSections + '</h3>' + sc.sections.map(function (x, i) { return box("s:" + i, x.name, x.why || x.about); }).join("");
-    var by = {};
-    (sc.cards || []).forEach(function (c, i) { (by[c.section] = by[c.section] || []).push([c, i]); });
-    Object.keys(by).forEach(function (id) {
-      html += '<h3 class="sub">' + esc(scaffoldName(id)) + '</h3>' + by[id].map(function (x) {
-        return box("c:" + x[1], x[0].title + (x[0].group ? " · " + x[0].group : ""), (x[0].task ? x[0].task + ": " : "") + x[0].need); }).join("");
-    });
-    return html + '<div class="row"><button class="btn" id="sc-ok">' + STR.scApply + '</button></div></section>';
-  }
-  async function applyScaffold() {
-    var sc = planDoc.scaffold, batch = db.batch(), n = 0;
-    var own = (game.sections || []).slice(), made = {};
-    (sc.sections || []).forEach(function (x, i) {
-      if (scOff["s:" + i]) return;
-      var id = newId("sec"); made[x.name] = id;
-      own.push({ id: id, name: x.name, about: x.about || "" }); n++;
-    });
-    if (own.length !== (game.sections || []).length) batch.set(gref(), { sections: own, updatedAt: stamp() }, { merge: true });
-    var all = allCards();
-    (sc.cards || []).forEach(function (c, i) {
-      if (scOff["c:" + i]) return;
-      var target = c.section.indexOf("new:") === 0 ? made[c.section.slice(4)] : c.section;
-      if (!target) return; // its new section was unticked
-      var exists = all.some(function (x) { return x.section === target && x.title.trim().toLowerCase() === c.title.trim().toLowerCase(); });
-      if (exists) return;
-      var s = sec(target), defs = (s.defs || CUSTOM_DEFS).slice(), fields = {}, gk = groupKey(s);
-      if (gk && c.group) { fields[gk] = c.group; if (!defs.some(function (d) { return d.key === gk; })) defs.unshift({ key: gk, label: STR.group }); }
-      defs.push({ key: "need", label: STR.scNeed }, { key: "task", label: STR.scTask });
-      fields.need = c.need; fields.task = c.task;
-      batch.set(gref().collection("cards").doc(newId("card")), { section: target, title: c.title, status: "work", note: "", defs: defs, fields: fields,
-        planTask: c.task || "", order: Date.now() + i, createdAt: stamp(), updatedAt: stamp() });
-      n++;
-    });
-    batch.set(gref().collection("plan").doc("current"), { scaffold: { appliedAt: stamp() } }, { merge: true });
-    await batch.commit();
-    planMsg = STR.scDone + ": " + n; render();
-  }
-
-  // open questions as a decision queue: one card at a time («Питання 2 з 11»), «Відповісти» its only primary; «Показати всі» lists them
-  var qqIdx = 0, qqAll = false;
   function qQueueHtml(oq) {
     var head = '<section class="psec" id="p-queue"><h2 class="group">' + STR.questionsTitle + ' <span>' + oq.length + '</span></h2>';
     if (qqAll) return head + '<div class="row qq-bar"><span style="flex:1"></span><button class="btn ghost mini" data-qall>' + STR.qOne + '</button></div>' + oq.map(function (q) { return qHtml(q, false); }).join("") + '</section>';
@@ -11563,6 +11531,77 @@
     return '<p class="muted">' + esc(STR.gddAge.replace("{d}", new Date(at).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))) +
       (ans || ch ? ' ' + esc(STR.gddStale.replace("{a}", ans).replace("{c}", ch)) : '') + '</p>';
   }
+  // ☀ v2.159 Today: everything that waits for the author, one queue, answered right here (blockers and reviews first)
+  function todayHtml(oq, blockers, drift, gi, crs, sc, rv, bl, gates) {
+    var PL = STR.pl, html = '', dec = '';
+    if (planDraft) html += draftHtml();
+    if (oq.length) html += qQueueHtml(oq);
+    if (rv.length) html += '<section class="psec"><h2 class="group">' + esc(PL.review) + ' <span>' + rv.length + '</span></h2>' + rv.map(taskHtml).join("") + '</section>';
+    if (gates.length) html += '<section class="psec"><h2 class="group">' + esc(PL.gates) + '</h2>' + gates.map(function (m) { return '<div class="q"><b>' + esc(m.id + ' · ' + (m.name || '')) + '</b> <button type="button" class="btn primary mini" data-ptab="plan" data-msgo="' + esc(m.id) + '">' + esc(PL.toGate) + ' →</button></div>'; }).join("") + '</section>';
+    if (agWait.list.length) html += '<section class="psec"><h2 class="group">' + esc(PL.agents) + ' <span>' + agWait.list.length + '</span></h2>' + agWait.list.map(function (m) {
+      var root = m.thread || m.id, can = mayEdit("agents") && canWrite;
+      return '<div class="ag-th">' + agMsgHtml(m) + (m.type === "question" && can ? '<div class="ag-box"><textarea rows="2" data-agrt="' + esc(root) + '" placeholder="' + esc(AGS.replyPh) + '"></textarea><div class="setrow"><button class="btn primary" data-agreply="' + esc(m.id) + '" data-agroot="' + esc(root) + '">' + AGS.reply + '</button></div></div>' : '') + '</div>'; }).join("") + '</section>';
+    if (drift.length) html += '<section class="psec" id="p-drift"><h2 class="group">' + esc(DD.list) + '</h2><p class="hint">' + esc(DD.hint) + '</p>' + drift.map(function (c) {
+      return '<div class="q"><div class="cchips">' + cardChip("c:" + c.id) + '</div>' + driftHtml(c.id, c.devDrift) + '</div>'; }).join("") + '</section>';
+    if (crs.length) dec += '<section class="psec"><h2 class="group">' + STR.crTitle + ' <span>' + crs.length + '</span></h2>' + crs.map(function (c) {
+      return '<div class="q"><div class="q__top">' + (c.taskId ? '<span class="mono">' + esc(c.taskId) + '</span> ' : '') + '<b>' + esc(c.what) + '</b></div>' +
+        '<div class="muted">' + STR.crWhy + ': ' + esc(c.why) + '</div>' + (c.proposal ? '<div>' + STR.crProposal + ': ' + esc(c.proposal) + '</div>' : '') +
+        (c.impact ? '<div class="muted">' + STR.crImpact + ': ' + esc(c.impact) + '</div>' : '') +
+        (canWrite ? '<div class="row"><button class="btn" data-cr="' + esc(c.id) + '" data-to="accepted">' + STR.crAccept + '</button><button class="btn" data-cr="' + esc(c.id) + '" data-to="rejected">' + STR.crReject + '</button></div>' : '') + '</div>';
+    }).join("") + '</section>';
+    html += dec;
+    if (bl.length) html += '<section class="psec"><h2 class="group">' + esc(PL.blocked) + ' <span>' + bl.length + '</span></h2>' + bl.map(taskHtml).join("") + '</section>';
+    if (gi.length) html += '<section class="psec"><h2 class="group">' + STR.contradictions + ' <span>' + gi.length + '</span></h2><ul class="contra">' + gi.map(function (c) {
+      return '<li>' + esc(c.what) + (c.where ? ' <span class="muted">— ' + esc(c.where) + '</span>' : '') + '</li>'; }).join("") + '</ul><button type="button" class="btn mini" data-gosec="issues">' + esc(PL.toIssues) + ' →</button></section>';
+    if (!html) html = '<div class="pempty">✓ ' + esc(PL.allDone) + '</div>';
+    var done = (planDoc.asked || []).filter(function (q) { return answers()[q.id]; });
+    if (done.length) html += '<section class="psec"><details><summary><h2 class="group" style="display:inline-flex">' + STR.answeredTitle + ' <span>' + done.length + '</span></h2></summary>' +
+      done.map(function (q) { return '<div class="qa"><div class="muted">' + esc(q.question) + '</div><div>' + esc(answers()[q.id]) + '</div></div>'; }).join("") + '</details></section>';
+    return html;
+  }
+  // how many answers and card changes came after the last ✦ analysis (the table is not recomputed by itself)
+  function gddStale() {
+    var at = planDoc.analyzedAt && planDoc.analyzedAt.toMillis ? planDoc.analyzedAt.toMillis() : 0; if (!at || !planDoc.gdd) return 0;
+    var ans = Object.keys(planDoc.answeredAt || {}).filter(function (k) { var v = planDoc.answeredAt[k]; return (v && v.toMillis ? v.toMillis() : +v || 0) > at; }).length;
+    return ans + cards.filter(function (c) { return !c.hidden && (c.updatedAt && c.updatedAt.toMillis ? c.updatedAt.toMillis() : 0) > at; }).length;
+  }
+  // 📋 v2.159 GDD readiness: ONE list of gaps, by GDD stage (the schema's own state is live) — the AI's assessment of the area, the cards the
+  // plan proposes and the production problems (licence, polygons, GLB, greybox) all under the stage they belong to; each with «open» / «ask the designer»
+  function readinessHtml(gdd, sc, stale) {
+    var PL = STR.pl, by = {}, put = function (n, html) { (by[n] = by[n] || []).push(html); };
+    var stageOfSec = function (id) { return GDD.stageOf(id) || 0; };
+    (gdd && gdd.sections || []).forEach(function (x) { if (x.status === "solid") return; var to = gddSecFor(x.title, x.section);
+      put(stageOfSec(to), '<li><span class="pill g-' + esc(x.status) + '">' + esc(STR.st[x.status] || x.status) + '</span> <b>' + esc(x.title) + '</b>' + (x.notes ? ' — <span class="muted">' + esc(x.notes) + '</span>' : '') +
+        gapActs(to, x.title + ': ' + (x.notes || '')) + '</li>'); });
+    if (sc) (sc.cards || []).forEach(function (c, i) { put(stageOfSec(c.section), '<li><label class="imp"><input type="checkbox"' + (scOff["c:" + i] ? '' : ' checked') + ' data-sc="c:' + i + '"><span>' + esc(PL.newCard) + ' <b>' + esc(c.title) + '</b>' + (c.need ? '<span class="muted"> — ' + esc(c.need) + '</span>' : '') + '</span></label></li>'); });
+    if (sc) (sc.sections || []).forEach(function (x, i) { put(0, '<li><label class="imp"><input type="checkbox"' + (scOff["s:" + i] ? '' : ' checked') + ' data-sc="s:' + i + '"><span>' + esc(PL.newSec) + ' <b>' + esc(x.name) + '</b>' + (x.why || x.about ? '<span class="muted"> — ' + esc(x.why || x.about) + '</span>' : '') + '</span></label></li>'); });
+    var h = window.__ASSET_KIT.health(allCards()), P = STR.pp;
+    [["red", P.red], ["blue", P.blue], ["heavy", P.heavy], ["notGlb", P.notGlb], ["noGreybox", P.noGrey]].forEach(function (k) {
+      var g = {}; h[k[0]].forEach(function (c) { var n = stageOfSec(c.section); (g[n] = g[n] || []).push(c); });
+      Object.keys(g).forEach(function (n) { put(+n, '<li class="h-warn">' + k[1].replace("{n}", g[n].length) + '<div class="cchips">' + g[n].slice(0, 12).map(function (c) { return cardChip(c.key); }).join("") + '</div></li>'); });
+    });
+    ((planDoc.plan || {}).health || []).forEach(function (x) { put(0, '<li class="h-note"><b>' + esc(x.issue) + '</b>' + (x.fix ? ' — ' + esc(x.fix) : '') + '</li>'); });
+    var html = '<div class="gready"><div class="ready"><span>' + STR.readiness + '</span><div class="ready__bar"><i style="width:' + ((gdd && gdd.readiness) || 0) + '%"></i></div><b>' + ((gdd && gdd.readiness) || 0) + '%</b></div>' +
+      (stale ? '<p class="pstale">⚠ ' + esc(PL.stale.replace("{n}", stale)) + ' <button type="button" class="btn mini" data-mkan>' + STR.reanalyze + costMark("analyze") + '</button></p>' : '') +
+      (gdd && gdd.summary ? '<p>' + esc(gdd.summary) + '</p>' : '') + (stale ? '' : gddAgeHtml()) + '</div>';
+    if (!gdd) html = '<div class="pready"><b>' + esc(PL.noGdd) + '</b><button type="button" class="btn primary" data-mkan>' + STR.analyze + costMark("analyze") + '</button></div>';
+    GDD.STAGES.forEach(function (st) {
+      var state = stageStateOf(st), items = by[st.n] || [];
+      if (state === "done" && !items.length) return;
+      html += '<section class="psec gstage"><h2 class="group"><span class="gst gst-' + state + '">' + STAGE_MARK[state] + '</span> ' + st.n + '. ' + esc(L(st)) + '</h2>' +
+        (state !== "done" && st.need ? '<p class="muted">' + esc(PL.minimum) + ' ' + esc(st.need.map(function (r) { return r[1] + ' × ' + r[0].map(function (id) { var x = sec(id); return x && x.id === id ? L(x) : id; }).join(' / '); }).join('; ')) + '</p>' : '') +
+        (items.length ? '<ul class="glist">' + items.join("") + '</ul>' : '') + '</section>';
+    });
+    if ((by[0] || []).length) html += '<section class="psec gstage"><h2 class="group">' + esc(PL.otherGaps) + '</h2><ul class="glist">' + by[0].join("") + '</ul></section>';
+    if (sc) html += '<div class="row"><button class="btn primary" id="sc-ok">' + STR.scApply + '</button></div>';
+    var n = Object.keys(by).reduce(function (k, x) { return k + by[x].length; }, 0);
+    if (gdd && !n && GDD.STAGES.every(function (st) { return st.optional || stageStateOf(st) === "done"; })) html += '<div class="pempty">✓ ' + esc(PL.gddDone) + '</div>';
+    return html;
+  }
+  function gapActs(sec, what) {
+    return '<span class="gacts">' + (sec ? '<button type="button" class="btn ghost mini" data-gosec="' + esc(sec) + '">' + esc(STR.pl.fill) + '</button>' : '') +
+      (ME.owner && canWrite ? '<button type="button" class="btn ghost mini" data-delegate="' + esc(what) + '">' + esc(STR.pl.delegate) + '</button>' : '') + '</span>';
+  }
   function gddTableHtml(list) {
     if (!list.length) return '';
     var rank = { missing: 0, partial: 1, solid: 2 };
@@ -11591,7 +11630,6 @@
   function execHtml() {
     var live = keys.filter(function (k) { return !k.revoked; });
     var html = '<section class="psec"><h2 class="group">' + STR.exTitle + '</h2><p class="muted">' + STR.exIntro + '</p>';
-    html += agKeysLink(live); // 🔑 the keys live in Settings → Integrations (owner, v2.148: one place, not three)
     if (execs.length) html += '<h3 class="sub">' + STR.exLog + '</h3><ul class="exlog">' + execs.slice(0, 8).map(function (x) {
       var at = x.at && x.at.toDate ? x.at.toDate().toLocaleTimeString(LANG === "en" ? "en-GB" : "uk-UA") : "";
       var what = (x.data && (x.data.message || x.data.summary || x.data.problem || x.data.what)) || "";
@@ -11722,7 +11760,7 @@
   // ---------- the production pipeline: MVP gates G0…G4 → expansion → extra features (ranked, cut line); the plan
   // references Bible cards by role instead of copying them; gates are approved by the author (plan/current.gates)
   // and lock the next stage for Claude Code too (mcp.js lockedBy mirrors msLock) ----------
-  var planTab = "plan";
+  var planTab = "plan", planTabPicked = false; // the author's own pick wins over the default (renderPlan)
   var ASSET_SECS = ["assets", "materials", "animation", "audio", "ui"];
   var gateOf = function (m) { return (planDoc.gates || {})[m.id] || {}; };
   function msLock(plan, m) {
@@ -11844,20 +11882,6 @@
     return '<div class="ms' + (g.status === "approved" ? ' ms-ok' : now ? ' ms-now' : '') + '" id="ms-' + esc(m.id) + '">' + head + body + gate + '</div>';
   }
   // what blocks or weakens the MVP in the Bible itself: licences, heavy models, levels without a greybox + the planner's own notes
-  function healthHtml(plan) {
-    var P = STR.pp, items = [], h = window.__ASSET_KIT.health(allCards()); // v2.158.1 the same count MCP gives (get_project_overview.production_health)
-    var red = h.red, blue = h.blue, hv = h.heavy, old = h.notGlb, noGrey = h.noGreybox;
-    var chips = function (a) { return '<div class="cchips">' + a.slice(0, 12).map(function (c) { return cardChip(c.key); }).join("") + '</div>'; };
-    if (red.length) items.push('<li class="h-red">' + P.red.replace("{n}", red.length) + chips(red) + '</li>');
-    if (blue.length) items.push('<li class="h-warn">' + P.blue.replace("{n}", blue.length) + chips(blue) + '</li>');
-    if (hv.length) items.push('<li class="h-warn">' + P.heavy.replace("{n}", hv.length) + chips(hv) + '</li>');
-    if (old.length) items.push('<li class="h-warn">' + P.notGlb.replace("{n}", old.length) + ' <a href="#" data-kbglb>' + esc(STR.glb.how) + '</a>' + chips(old) + '</li>');
-    if (noGrey.length) items.push('<li class="h-warn">' + P.noGrey.replace("{n}", noGrey.length) + chips(noGrey) + '</li>');
-    (plan.health || []).forEach(function (h) { items.push('<li class="h-note"><b>' + esc(h.issue) + '</b>' + (h.fix ? ' — ' + esc(h.fix) : '') +
-      ((h.cards || []).length ? '<div class="cchips">' + h.cards.map(function (r) { return cardChip(r); }).join("") + '</div>' : '') + '</li>'); });
-    return '<div class="health"><h3 class="sub">' + P.health + '</h3>' + (items.length ? '<ul>' + items.join("") + '</ul>' : '<p class="muted">✓ ' + P.healthOk + '</p>') + '</div>';
-  }
-  // every asset card × its state on the ladder (greybox → stand-in → styled → final), licence, polygons and the tasks that use it
   function matrixHtml() {
     var P = STR.pp, all = allCards().filter(function (c) { return ASSET_SECS.indexOf(c.section) >= 0 || c.section === "levels" || (c.files || []).some(function (f) { return isAsset(f); }); });
     if (!all.length) return '<p class="muted">' + P.mEmpty + '</p>';
@@ -11894,7 +11918,7 @@
       cut: "Що вирізали", cutPh: "Від чого відмовились і чому", learned: "Чого навчились", learnedPh: "Що змінимо на наступному етапі",
       s1Warn: "Етап має відкриті баги S1 ({n}: {ids}). Прийняти ворота все одно можна.",
       expT: "Чим завершити експеримент?", dec: { ship: "✓ Впроваджуємо", kill: "✕ Відмовляємось", iterate: "↻ Ще ітерація" }, decL: "Рішення", note: "Чому (коротко)", notePh: "Що показали дані",
-      log: "Журнал рішень", logHint: "Усі рішення гри в одному місці — те саме бачить Claude Code (get_project_overview → decisions).", logNone: "Рішень ще немає: відповіді на питання аналізу, прийняті ворота, запити на зміну, експерименти й прогалини фреймворку зʼявляться тут.",
+      log: "Журнал рішень", logHint: "Усі рішення гри в одному місці — те саме бачить Claude Code (той самий журнал).", logNone: "Рішень ще немає: відповіді на питання аналізу, прийняті ворота, запити на зміну, експерименти й прогалини фреймворку зʼявляться тут.",
       type: { ban: "Заборона", question: "Питання", change_request: "Запит на зміну", framework_gap: "Фреймворк", experiment: "Експеримент", gate: "Ворота" },
       accepted: "прийнято", declined: "відхилено", ended: "завершено", open: "Відкрити", openCard: "Картка", toPlan: "До етапу", toExp: "Досвід гравців", noDate: "без дати" },
     en: { bugs: "🐞 Bugs", add: "＋ Bug", formT: "New bug", title: "What is broken", titlePh: "E.g.: the player falls through the forest bridge", sevL: "Severity",
@@ -11908,7 +11932,7 @@
       cut: "What we cut", cutPh: "What we dropped and why", learned: "What we learned", learnedPh: "What changes in the next stage",
       s1Warn: "The milestone has open S1 bugs ({n}: {ids}). You can still approve the gate.",
       expT: "How does the experiment end?", dec: { ship: "✓ Ship it", kill: "✕ Kill it", iterate: "↻ Iterate" }, decL: "Decision", note: "Why (briefly)", notePh: "What the data showed",
-      log: "Decision log", logHint: "Every decision of the game in one place — Claude Code sees the same (get_project_overview → decisions).", logNone: "No decisions yet: answers to the analysis questions, approved gates, change requests, experiments and framework gaps will appear here.",
+      log: "Decision log", logHint: "Every decision of the game in one place — Claude Code sees the same log.", logNone: "No decisions yet: answers to the analysis questions, approved gates, change requests, experiments and framework gaps will appear here.",
       type: { ban: "Ban", question: "Question", change_request: "Change request", framework_gap: "Framework", experiment: "Experiment", gate: "Gate" },
       accepted: "accepted", declined: "declined", ended: "ended", open: "Open", openCard: "Card", toPlan: "To the milestone", toExp: "Player experience", noDate: "no date" } }[LANG];
   // ✋ v2.153: the author's instructions from the chat (MCP record_author_instruction) and the cards lagging behind the game at hand-in
@@ -11923,12 +11947,12 @@
   function isAuthT(t) { return !!t && (t.kind === "author" || t.kind === "sync"); } // ✋ the author's instructions and ↻ card syncs: tasks outside the AI plan
   // ---------- 🌳 v2.154 the plan as a tree: milestone → epics (features) → tasks → checklist; 👑 what waits for the author; ‖ ✕ the author's bans ----------
   var EP = { uk: { legend: [["✓", "зроблено"], ["●", "в роботі"], ["○", "черга"], ["!", "чекає іншу задачу"], ["?", "звірити з грою — Claude Code сам"], ["‖", "відкладено автором"], ["✕", "не робимо"]],
-      other: "Інше", next: "далі", waits: "чекає", goto: "Перейти до задачі", verify: "? звірити з грою", verifyT: "План не певен, чи це вже є в грі — Claude Code перевірить сам (verify_task)", partial: "◐ частково", sync: "↻ з картки",
+      other: "Інше", next: "далі", waits: "чекає", goto: "Перейти до задачі", verify: "? звірити з грою", verifyT: "План не певен, чи це вже є в грі — Claude Code перевірить сам", partial: "◐ частково", sync: "↻ з картки",
       park: "‖ Відкласти", drop: "✕ Не робимо", unpark: "↺ Повернути в чергу", parkEpic: "‖ Відкласти епік", dropEpic: "✕ Не робимо епік",
       parkT: "Відкласти — план не братиме це, доки не повернеш", dropT: "Не робимо — план ніколи не поверне це", banPh: "Що саме (так побачить планувальник)",
       crownOk: "Від тебе зараз нічого не потрібно", crownNow: "Чекає тебе", crownNext: "Claude Code зараз: {t}", crownIdle: "Claude Code бере наступну готову задачу сам.",
       cReview: "на рев'ю: {n}", cBlocked: "заблоковано: {n}", cGate: "ворота {g} готові до приймання", cQs: "питання плану: {n}", cCr: "запити на зміну: {n}", cAgents: "питання агентів: {n}",
-      bans: "Заборони плану", bansHint: "Твої рішення «відкладено / не робимо / прибрано». Планувальник ніколи не ставить задач проти них; Claude Code бачить їх у get_project_overview.", banAdd: "＋ Заборона", banKind: "Що це",
+      bans: "Заборони плану", bansHint: "Твої рішення «відкладено / не робимо / прибрано». Планувальник ніколи не ставить задач проти них; Claude Code бачить їх теж.", banAdd: "＋ Заборона", banKind: "Що це",
       kind: { deferred: "‖ відкладено", never: "✕ не робимо", removed: "🗑 прибрано з гри" }, banRm: "Зняти", pending: "⏳ чекає твого ✔ →", via: { terminal: "у терміналі з Claude Code", chat: "у чаті з агентом", bible: "у Біблії" } },
     en: { legend: [["✓", "done"], ["●", "in progress"], ["○", "queued"], ["!", "waits for another task"], ["?", "check against the game — Claude Code does it"], ["‖", "postponed by the author"], ["✕", "not doing"]],
       other: "Other", next: "next", waits: "waits for", goto: "Go to the task", verify: "? check against the game", verifyT: "The plan is not sure whether the game already has it — Claude Code checks it itself (verify_task)", partial: "◐ partly", sync: "↻ from a card",
@@ -11938,7 +11962,7 @@
       cReview: "in review: {n}", cBlocked: "blocked: {n}", cGate: "gate {g} is ready to approve", cQs: "plan questions: {n}", cCr: "change requests: {n}", cAgents: "agents' questions: {n}",
       bans: "The plan's bans", bansHint: "Your decisions «postponed / not doing / removed». The planner never writes a task against them; Claude Code sees them in get_project_overview.", banAdd: "＋ Ban", banKind: "What it is",
       kind: { deferred: "‖ postponed", never: "✕ not doing", removed: "🗑 removed from the game" }, banRm: "Lift", pending: "⏳ waits for your ✔ →", via: { terminal: "in the terminal with Claude Code", chat: "in the chat with the agent", bible: "in the Bible" } } }[LANG === "en" ? "en" : "uk"];
-  var epicOpen = {}, agWait = { n: 0, at: 0 }, planDraft = null, draftBusy = false;
+  var epicOpen = {}, agWait = { n: 0, at: 0, list: [] }, planDraft = null, draftBusy = false;
   // ✅ v2.155 tasks close themselves with proof (functions/task-types.js, mcp.js autoBlock), ✓ an agreed epic, ✦ a replan as a proposal, 📅 the week, ⭐ the recommendation
   var TB = { uk: { proof: "Доказ · {t}", needs: "Закривається з доказом", closedAuto: "🤖 закрилась сама з доказом", closedDes: "🎲 прийняв геймдизайнер",
       notAuto: "Не закрилась сама: {w}", desRec: "🎲 Геймдизайнер радить прийняти", desWhy: "чекає тебе: {w}", evAll: "Доказ повністю", evPlay: "Плейтест", evCons: "Помилок у консолі", evLic: "Ліцензія",
@@ -12014,8 +12038,8 @@
     draftBusy = false; render();
   }
   // ⚠ v2.154 a design change made by the programmer key on its own (functions/src/card-drift.js devDrift): the author accepts it or puts the card back
-  var DD = { uk: { t: "⚠ Розбіжність GDD ↔ гра", row: "{by} змінив «{k}»: {f} → {to}", task: "під час {t}", ok: "Прийняти", back: "Повернути як було", list: "Розбіжності GDD ↔ гра", hint: "Claude Code-програміст змінив у картках дизайн (числа, правила) сам, без твоєї вказівки. Спершу їх розбирає геймдизайнер (resolve_divergence) і питає тебе лише про те, що змінює дизайн. «Прийняти» — так і лишається; «Повернути» — картка знову як була, а гру приведе до неї задача «↻».", crown: "розбіжності: {n}", changed: "⚠ Картку змінено, поки задача в роботі: {k} — Claude Code звірить перед здачею", byAuthor: "за твоєю вказівкою {t} — геймдизайнер доведе текст картки" },
-    en: { t: "⚠ GDD ↔ game divergence", row: "{by} changed «{k}»: {f} → {to}", task: "during {t}", ok: "Accept", back: "Put it back", list: "GDD ↔ game divergences", hint: "The Claude Code programmer changed the design in cards (numbers, rules) on its own, without your instruction. The game designer goes through them first (resolve_divergence) and asks you only about what changes the design. «Accept» — it stays; «Put it back» — the card is as it was, and a «↻» task brings the game back to it.", crown: "divergences: {n}", changed: "⚠ The card changed while the task is in work: {k} — Claude Code checks it before handing in", byAuthor: "on your instruction {t} — the game designer tidies the card text" } }[LANG === "en" ? "en" : "uk"];
+  var DD = { uk: { t: "⚠ Розбіжність GDD ↔ гра", row: "{by} змінив «{k}»: {f} → {to}", task: "під час {t}", ok: "Прийняти", back: "Повернути як було", list: "Розбіжності GDD ↔ гра", hint: "Claude Code-програміст змінив у картках дизайн (числа, правила) сам, без твоєї вказівки. Спершу їх розбирає геймдизайнер і питає тебе лише про те, що змінює дизайн. «Прийняти» — так і лишається; «Повернути» — картка знову як була, а гру приведе до неї задача «↻».", crown: "розбіжності: {n}", changed: "⚠ Картку змінено, поки задача в роботі: {k} — Claude Code звірить перед здачею", byAuthor: "за твоєю вказівкою {t} — геймдизайнер доведе текст картки" },
+    en: { t: "⚠ GDD ↔ game divergence", row: "{by} changed «{k}»: {f} → {to}", task: "during {t}", ok: "Accept", back: "Put it back", list: "GDD ↔ game divergences", hint: "The Claude Code programmer changed the design in cards (numbers, rules) on its own, without your instruction. The game designer goes through them first and asks you only about what changes the design. «Accept» — it stays; «Put it back» — the card is as it was, and a «↻» task brings the game back to it.", crown: "divergences: {n}", changed: "⚠ The card changed while the task is in work: {k} — Claude Code checks it before handing in", byAuthor: "on your instruction {t} — the game designer tidies the card text" } }[LANG === "en" ? "en" : "uk"];
   function driftHtml(cid, dd) {
     if (!(dd || []).length) return "";
     return '<div class="ddrift"><b>' + esc(DD.t) + '</b>' + dd.map(function (x, i) {
@@ -12085,32 +12109,13 @@
         '<button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="never" data-title="' + esc(g.title) + '">' + esc(EP.dropEpic) + '</button></div>' : '') + '</div></details>';
   }
   // 👑 what waits for the author — or «nothing», and what Claude Code does now
-  function crownHtml(plan) {
-    var items = [], P = STR.pp;
-    var rv = tasks.filter(function (t) { return t.status === "review"; }), bl = tasks.filter(function (t) { return t.status === "blocked"; });
-    if (rv.length) items.push('<a href="#task-' + esc(rv[0].id) + '" data-goto="' + esc(rv[0].id) + '">' + esc(EP.cReview.replace("{n}", rv.length)) + '</a>');
-    if (bl.length) items.push('<a href="#task-' + esc(bl[0].id) + '" data-goto="' + esc(bl[0].id) + '">' + esc(EP.cBlocked.replace("{n}", bl.length)) + '</a>');
-    var oq = openQs(); if (oq.length) items.push('<span>' + esc(EP.cQs.replace("{n}", oq.length)) + '</span>');
-    var crs = changeReqs.filter(function (c) { return c.status === "open"; }); if (crs.length) items.push('<span>' + esc(EP.cCr.replace("{n}", crs.length)) + '</span>');
-    var dc = driftCards().reduce(function (n, c) { return n + c.devDrift.filter(function (x) { return !x.author && Date.now() - (x.at || 0) > 864e5; }).length; }, 0); if (dc) items.push('<a href="#p-drift">' + esc(DD.crown.replace("{n}", dc)) + '</a>'); // the designer settles first: the crown shows only what waited over a day
-    if (agWait.n) items.push('<button type="button" class="btn ghost mini" data-gosec="agents">' + esc(EP.cAgents.replace("{n}", agWait.n)) + ' →</button>');
-    if (plan && plan.gated) (plan.milestones || []).forEach(function (m) {
-      if (!m.track || msLock(plan, m) || gateOf(m).status === "approved") return;
-      var mt = tasks.filter(function (t) { return t.milestone === m.id && t.status !== "deferred" && t.status !== "dropped"; });
-      if (mt.length && mt.every(function (t) { return t.status === "done"; })) items.push('<a href="#ms-' + esc(m.id) + '">' + esc(EP.cGate.replace("{g}", m.id)) + '</a>');
-    });
-    var now = tasks.filter(function (t) { return t.status === "in_progress"; })[0];
-    var sub = now ? EP.crownNext.replace("{t}", now.id + " · " + (now.title || "")) : EP.crownIdle;
-    return '<div class="crown' + (items.length ? ' crown-wait' : '') + '"><b>👑 ' + esc(items.length ? EP.crownNow : EP.crownOk) + '</b>' + (items.length ? ' <span class="crown__i">' + items.join(" · ") + '</span>' : '') +
-      '<div class="muted">' + esc(sub) + '</div></div>';
-  }
   function loadAgWait() { // the agents' questions and approval requests still waiting — one read per minute for the crown
     if (Date.now() - agWait.at < 60000 || !gref()) return;
     agWait.at = Date.now();
     gref().collection("agentMessages").orderBy("at", "desc").limit(150).get().then(function (q) {
-      var n = q.docs.map(function (d) { return d.data(); }).filter(function (m) { return m.from && m.from.kind === "agent" && m.status !== "closed" &&
-        ((m.type === "approval_request" && (!m.approval || m.approval.status === "pending")) || (m.type === "question" && (m.status || "new") !== "answered")); }).length;
-      if (n !== agWait.n) { agWait.n = n; if (section === "plan") render(); }
+      var l = q.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }).filter(function (m) { return m.from && m.from.kind === "agent" && m.status !== "closed" &&
+        ((m.type === "approval_request" && (!m.approval || m.approval.status === "pending")) || (m.type === "question" && (m.status || "new") !== "answered")); });
+      var sig = l.map(function (m) { return m.id; }).join(); if (sig !== agWait.sig) { agWait.sig = sig; agWait.n = l.length; agWait.list = l; if (section === "plan") render(); }
     }, function () {});
   }
   // ‖ / ✕ from the Bible: the tasks are parked and the plan gets a ban (plan/current.bans — firestore.rules: the owner only)
@@ -12276,23 +12281,19 @@
   function planHtml(plan) {
     var P = STR.pp, ms = plan.milestones || [];
     var html = '<section class="psec"><h2 class="group">' + STR.planTitle + '</h2>' + (plan.overview ? '<p>' + esc(plan.overview) + '</p>' : '');
-    if ((plan.dod || []).length) html += '<div class="dod"><b>' + P.dod + '</b>' + (plan.estimateWeeks ? ' <span class="muted">' + P.weeks.replace("{n}", plan.estimateWeeks) + '</span>' : '') +
-      '<ul>' + plan.dod.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></div>';
+    if ((plan.dod || []).length) html += '<details class="dod"><summary><b>' + P.dod + '</b>' + (plan.estimateWeeks ? ' <span class="muted">' + P.weeks.replace("{n}", plan.estimateWeeks) + '</span>' : '') +
+      '</summary><ul>' + plan.dod.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></details>';
     if (tasks.length) {
       var done = tasks.filter(function (t) { return t.status === "done"; }).length, pct = Math.round(100 * done / tasks.length);
       html += '<div class="ready"><span>' + STR.progress + '</span><div class="ready__bar"><i style="width:' + pct + '%"></i></div><b>' + done + ' / ' + tasks.length + '</b></div>';
     }
-    if (plan.engineNotes) html += '<div class="nbox"><h4>' + STR.engineNotes + '</h4><div>' + esc(plan.engineNotes) + '</div></div>';
-    html += '<div class="ptabs" role="tablist">' + ["plan", "matrix", "log"].map(function (k) { return '<button class="chip" role="tab" data-ptab="' + k + '" aria-selected="' + (planTab === k) + '">' + (k === "plan" ? P.tabPlan : k === "matrix" ? P.tabMatrix : BG.log) + '</button>'; }).join("") + '</div>';
-    if (planTab === "matrix") return html + matrixHtml() + '</section>';
-    if (planTab === "log") return html + bansHtml() + decisionLogHtml() + '</section>';
+    if (plan.engineNotes) html += '<details class="nbox"><summary><b>' + STR.engineNotes + '</b></summary><div>' + esc(plan.engineNotes) + '</div></details>';
     html += legendHtml();
     var mineN = tasks.filter(function (t) { return t.assignee && t.assignee.uid === myUid(); }).length;
     html += bugBarHtml(mineN);
     var msIds = ms.map(function (m) { return m.id; }), loose = tasks.filter(function (t) { return isBugT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); }).sort(bySev);
     if (mineOnly || bugsOnly) ms = ms.filter(function (m) { return msShown(m).length; });
     if ((mineOnly || bugsOnly) && !ms.length && !loose.length) return html + '<p class="muted">' + (bugsOnly ? BG.none : P.mineNone) + '</p></section>';
-    if (!mineOnly) html += healthHtml(plan);
     var mvp = ms.filter(function (m) { return m.track === "mvp"; });
     if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
       return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '"' + (st === "lock" ? ' title="' + esc(P.locked.replace("{g}", msLock(plan, m))) + '"' : st === "now" ? ' aria-current="step"' : '') + '>' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';
@@ -12668,7 +12669,7 @@
     var gt = e.target.closest("[data-gate]"); if (gt) { setGate(gt.dataset.gate, gt.dataset.to, gt.dataset.early).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     // 🌳 v2.154 the plan tree: ⛓ / ▶ jump to a task (its epic opens), ‖ ✕ park, ↺ back, the bans
     var gto = e.target.closest("[data-goto]"); if (gto) { e.preventDefault(); var tid = gto.dataset.goto, tl = liveTask(tid), tm = tl && ((planDoc.plan || {}).milestones || []).filter(function (m) { return m.id === tl.milestone; })[0];
-      if (tm) epicOpen[epicKey(tm, tl)] = true; if (planTab !== "plan") planTab = "plan"; render(); var tel = $("task-" + tid); if (tel) { tel.scrollIntoView({ block: "center" }); edFlash(tel); } return; }
+      if (tm) epicOpen[epicKey(tm, tl)] = true; if (planTab !== "plan") { planTab = "plan"; planTabPicked = true; } render(); var tel = $("task-" + tid); if (tel) { tel.scrollIntoView({ block: "center" }); edFlash(tel); } return; }
     var eo = e.target.closest("[data-epicok]"); if (eo) { e.preventDefault(); var eu = {}; eu[eo.dataset.epicok] = eo.dataset.off ? firebase.firestore.FieldValue.delete() : { at: Date.now(), by: myUid() };
       gref().collection("plan").doc("current").set({ epicsOk: eu }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     if (e.target.closest("[data-autoclose]")) { gref().collection("plan").doc("current").set({ autoClose: planDoc.autoClose === false }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
@@ -12680,7 +12681,11 @@
     var upk = e.target.closest("[data-unpark]"); if (upk) { upk.disabled = true; unparkTask(upk.dataset.unpark); return; }
     if (e.target.closest("[data-banadd]")) { addBan(); return; }
     var brm = e.target.closest("[data-banrm]"); if (brm) { brm.disabled = true; rmBan(brm.dataset.banrm); return; }
-    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
+    if (e.target.closest("[data-mkan]")) { var ab = $("p-analyze"); if (ab && !ab.disabled) ab.click(); return; }
+    if (section === "plan" && e.target.closest("[data-agok],[data-agno],[data-agreply]")) setTimeout(function () { agWait.at = 0; agWait.sig = null; loadAgWait(); }, 1500); // Today: the answered one leaves the queue
+    var dlg = e.target.closest("[data-delegate]"); if (dlg) { dlg.disabled = true; // 📋 a gap → a note to the game designer in «💬 Агенти» (the server writes it, agents.js post)
+      fnCall("agents", { op: "post", worldId: worldId, gameId: gameId, type: "note", text: STR.pl.delegateText.replace("{g}", dlg.dataset.delegate) }).then(function () { dlg.textContent = "✓ " + STR.pl.delegated; }, function (er) { dlg.disabled = false; notify(STR.failed + ": " + er.message); }); return; }
+    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; planTabPicked = true; render(); var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
     if (e.target.closest("[data-bugs]")) { bugsOnly = !bugsOnly; render(); var bb = document.querySelector("[data-bugs]"); if (bb) bb.focus(); return; }
     if (e.target.closest("[data-addbug]")) { addBug().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var acc = e.target.closest("[data-accept]"); if (acc) { var take = function () { acc.disabled = true; reviewTask(acc.dataset.accept, true); }; if (acc.dataset.unchecked) askConfirm(acc.dataset.unchecked === "lag" ? AU.acceptLag : STR.acceptUnchecked).then(function (ok) { if (ok) take(); }); else take(); return; }
