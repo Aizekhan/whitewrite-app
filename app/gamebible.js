@@ -235,7 +235,7 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Щойно відповіси на останній блокер — план розробки складеться сам (≈ ціна «✦ План»).",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { tToday: "☀ Сьогодні", tPlan: "🌳 План", tGdd: "📋 Готовність GDD", tLog: "📜 Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", pl: { msMore: "Деталі етапу: результат, старт, бюджети", rmap: "Дерево розробки", rmapHint: "Натисни ворота або епік — нижче відкриються його задачі.", more: "ще {n} →", otherMs: "Інше", about: "Про план", risksT: "Ризики, паралельна робота й прогалини фреймворку", tToday: "☀ Сьогодні", tPlan: "🌳 План", tGdd: "📋 Готовність GDD", tLog: "📜 Журнал", more: "Ще дії", moreNote: "Платні дії: ціну видно на кнопці, перед списанням спитаю.",
       noGdd: "Спершу ШІ прочитає всю біблію гри: складе гейм-диздок і питання, без яких план не скласти.", needBlockers: "Щоб скласти план, дай відповідь на блокери ({n}).", toToday: "До «Сьогодні»",
       review: "Чекають твого рішення — задачі на ревʼю", blocked: "Агент зупинився — задачі з блокером", gates: "Етап готовий — прийми ворота", toGate: "До воріт",
       agents: "Агенти питають або просять погодження", toIssues: "Розібрати суперечності", allDone: "Усе вирішено — нічого не чекає на тебе",
@@ -608,7 +608,7 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. As soon as you answer the last blocker the development plan makes itself (≈ the «✦ Plan» price).",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { tToday: "☀ Today", tPlan: "🌳 Plan", tGdd: "📋 GDD readiness", tLog: "📜 Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", pl: { msMore: "Milestone details: deliverables, start, budgets", rmap: "Development tree", rmapHint: "Click a gate or an epic — its tasks open below.", more: "{n} more →", otherMs: "Other", about: "About the plan", risksT: "Risks, parallel work and framework gaps", tToday: "☀ Today", tPlan: "🌳 Plan", tGdd: "📋 GDD readiness", tLog: "📜 Log", more: "More actions", moreNote: "Paid actions: the price is on the button, I ask before charging.",
       noGdd: "First the AI reads the whole game bible: it drafts the design doc and the questions a plan needs.", needBlockers: "To make the plan, answer the blockers ({n}).", toToday: "To «Today»",
       review: "Waiting for your decision — tasks in review", blocked: "The agent stopped — blocked tasks", gates: "A milestone is done — accept the gate", toGate: "To the gate",
       agents: "The agents ask or want an approval", toIssues: "Sort out the contradictions", allDone: "All decided — nothing waits for you",
@@ -11863,8 +11863,8 @@
       (ts.length ? ' <span class="muted">' + done + ' / ' + ts.length + '</span>' : '') +
       (g.status === "approved" ? ' <span class="pill tst-done">✓ ' + P.approved + '</span>' : g.status === "returned" ? ' <span class="pill tst-rework">' + P.returned + '</span>' : '') +
       (now ? ' <span class="pill ms-nowpill">' + P.now + '</span>' : '') + (m.carried ? ' <span class="pill s-idea" title="' + esc(P.carriedTip) + '">' + esc(P.carried) + '</span>' : '') + '</h3>'; // carried: gamedev.js kept it from the previous plan
-    var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') +
-      list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '') + epicTree(m, shown);
+    var more = (m.entry ? '<p class="muted"><b>' + P.entry + ':</b> ' + esc(m.entry) + '</p>' : '') + list(P.deliver, m.deliverables) + (m.budgets ? '<p class="muted"><b>' + P.budgets + ':</b> ' + esc(m.budgets) + '</p>' : '');
+    var body = (m.goal ? '<p><b>' + STR.goal + ':</b> ' + esc(m.goal) + '</p>' : '') + (more ? '<details class="msmore"><summary>' + esc(STR.pl.msMore) + '</summary>' + more + '</details>' : '') + epicTree(m, shown); // v2.160 the epics first
     var gate = m.gate || (m.accept || []).length ? '<div class="gatebox"><div class="gate"><b>' + STR.gate + ':</b> ' + esc(m.gate) + '</div>' +
       ((m.accept || []).length ? '<ul class="crit">' + m.accept.map(function (a) { return '<li>' + (g.status === "approved" ? '☑ ' : '☐ ') + esc(a) + '</li>'; }).join("") + '</ul>' : '') +
       (g.status === "returned" && g.comment ? '<div class="muted">↩ ' + esc(g.comment) + '</div>' : '') +
@@ -12073,7 +12073,7 @@
     var r = cs.filter(function (x) { return roles[x] === "implements"; })[0] || cs.filter(function (x) { return x.indexOf("c:") === 0; })[0];
     return r ? "card:" + r : "other";
   }
-  function epicTree(m, shown) {
+  function epicGroups(m, shown) { // the epics of a milestone with their tasks, in order (the tree's leaves and the panel)
     var groups = {}, order = [];
     (m.epics || []).forEach(function (e) { groups[e.id] = { id: e.id, title: e.title, goal: e.goal, card: e.card, list: [] }; order.push(e.id); });
     shown.forEach(function (t) {
@@ -12081,10 +12081,59 @@
       if (!groups[k]) { var c = k.indexOf("card:") === 0 ? refCard(k.slice(5)) : null; groups[k] = { id: k, title: c ? c.title : EP.other, card: c ? k.slice(5) : "", list: [], derived: true }; order.push(k); }
       groups[k].list.push(t);
     });
-    order = order.filter(function (k) { return groups[k].list.length; });
-    if (!order.length) return "";
-    if (order.length === 1 && order[0] === "other") return shown.map(taskHtml).join("");
-    return order.map(function (k) { return epicHtml(m, groups[k]); }).join("");
+    return order.filter(function (k) { return groups[k].list.length; }).map(function (k) { return groups[k]; });
+  }
+  function epicTree(m, shown) {
+    var gs = epicGroups(m, shown);
+    if (!gs.length) return "";
+    if (gs.length === 1 && gs[0].id === "other") return shown.map(taskRowHtml).join("");
+    return gs.map(function (g) { return epicHtml(m, g); }).join("");
+  }
+  // a task as one row (status, id, title, type, who); the whole card opens under it
+  var trOpen = {};
+  function taskRowHtml(t) {
+    var lt = liveTask(t.id), x = lt || t, st = x.status || "todo";
+    var open = trOpen[t.id] || ["review", "rework", "blocked"].indexOf(st) >= 0;
+    return '<details class="trow tr-' + cls(st) + '"' + (open ? ' open' : '') + ' data-trow="' + esc(t.id) + '"><summary><i class="tdot" aria-hidden="true"></i><span class="mono">' + esc(t.id) + '</span><b>' + esc(x.title || t.title || '') + '</b>' +
+      typeChip(x) + '<span class="pill tst-' + cls(st) + '">' + esc(STR.ts[st] || st) + '</span>' + (lt ? whoHtml(lt) : '') + '</summary>' + taskHtml(t) + '</details>';
+  }
+  // 🌳 v2.160 the development tree: the gates on a trunk (a ring of progress each), the epics as leaves under them; a click picks the milestone
+  var planMs = null;
+  function msProg(m) {
+    var l = (m.tasks || []).map(function (t) { return liveTask(t.id) || t; }).filter(function (x) { return x.status !== "dropped"; });
+    var d = l.filter(function (x) { return x.status === "done"; }).length; return { d: d, n: l.length, pct: l.length ? Math.round(100 * d / l.length) : 0 };
+  }
+  function msState(plan, m) {
+    var g = gateOf(m); if (g.status === "approved") return "ok"; if (msLock(plan, m)) return "lock"; if (g.status === "returned") return "back";
+    return msProg(m).n && msProg(m).d === msProg(m).n ? "ready" : "now";
+  }
+  function selMs(plan, ms) {
+    var f = function (p) { return ms.filter(p)[0]; };
+    return f(function (m) { return m.id === planMs; }) || f(function (m) { var s = msState(plan, m); return s === "now" || s === "back" || s === "ready"; }) || f(function (m) { return msState(plan, m) !== "ok"; }) || ms[ms.length - 1] || null;
+  }
+  function roadmapHtml(plan, ms, sel) {
+    var P = STR.pp, PL = STR.pl, tracks = [["mvp", P.track.mvp], ["expansion", P.track.expansion], ["extra", P.track.extra], ["", ""]];
+    var col = function (m) {
+      var st = msState(plan, m), pr = msProg(m), gs = epicGroups(m, msShown(m)).filter(function (g) { return g.id !== "other" || gs0(m) === 1; });
+      var leaf = function (g) {
+        var l = g.list.map(function (t) { return liveTask(t.id) || t; }).filter(function (x) { return x.status !== "dropped"; }), d = l.filter(function (x) { return x.status === "done"; }).length;
+        var act = l.some(function (x) { return ["in_progress", "review", "rework", "blocked"].indexOf(x.status) >= 0; });
+        return '<button type="button" class="rleaf' + (l.length && d === l.length ? ' rl-done' : act ? ' rl-act' : '') + '" data-msel="' + esc(m.id) + '" data-epicgo="' + esc(g.id) + '" title="' + esc(g.goal || g.title) + '"><b>' + esc(g.title) + '</b>' +
+          '<span class="rbar"><i style="width:' + (l.length ? Math.round(100 * d / l.length) : 0) + '%"></i></span><small>' + d + '/' + l.length + '</small></button>';
+      };
+      var shown = gs.slice(0, 6);
+      return '<div class="rcol rs-' + st + (sel && sel.id === m.id ? ' rsel' : '') + '"><button type="button" class="rnode" data-msel="' + esc(m.id) + '" style="--p:' + pr.pct + '" aria-pressed="' + !!(sel && sel.id === m.id) + '" aria-label="' + esc(m.id + ' · ' + m.name + ' · ' + pr.d + '/' + pr.n) + '">' +
+        '<span>' + (st === "ok" ? "✓" : st === "lock" ? "🔒" : esc(m.id)) + '</span></button>' +
+        '<div class="rname"><b>' + esc(m.id) + '</b> ' + esc(m.name || '') + '</div><div class="rmeta">' + (pr.n ? pr.d + ' / ' + pr.n + ' · ' + pr.pct + '%' : '—') + '</div>' +
+        (shown.length ? '<div class="rleafs">' + shown.map(leaf).join("") + (gs.length > shown.length ? '<button type="button" class="rleaf rl-more" data-msel="' + esc(m.id) + '">' + esc(PL.more.replace("{n}", gs.length - shown.length)) + '</button>' : '') + '</div>' : '') + '</div>';
+    };
+    var gs0 = function (m) { return epicGroups(m, msShown(m)).length; };
+    var html = '<div class="rmap" role="group" aria-label="' + esc(PL.rmap) + '"><div class="rtrack">';
+    tracks.forEach(function (tr) {
+      var group = ms.filter(function (m) { return (m.track || "") === tr[0]; }); if (!group.length) return;
+      html += '<div class="rgroup rg-' + (tr[0] || "other") + '"><div class="rglabel">' + esc(tr[1] || PL.otherMs) + '</div><div class="rcols">' + group.map(col).join("") + '</div></div>';
+    });
+    return html + '</div></div><p class="hint rhint">' + esc(PL.rmapHint) + '</p>';
   }
   function epicHtml(m, g) {
     var live = g.list.map(function (t) { return liveTask(t.id) || t; }), counted = live.filter(function (x) { return x.status !== "dropped"; });
@@ -12100,7 +12149,7 @@
       (next ? ' <span class="epic__next">▶ ' + esc(EP.next) + ': <a href="#task-' + esc(next.id) + '" data-goto="' + esc(next.id) + '">' + esc(next.id) + '</a></span>' : '') +
       outer.map(function (d) { return ' <a class="epic__wait" href="#task-' + esc(d) + '" data-goto="' + esc(d) + '" title="' + esc(EP.goto) + '">⛓ ' + esc(EP.waits) + ' ' + esc(d) + '</a>'; }).join("") + '</summary>' +
       '<div class="epic__b">' + (g.goal ? '<p class="muted">' + esc(g.goal) + '</p>' : '') + (g.card ? '<div class="cchips">' + cardChip(g.card) + '</div>' : '') +
-      g.list.map(taskHtml).join("") +
+      g.list.map(taskRowHtml).join("") +
       (ME.owner && canWrite && ownOpen.length ? '<div class="row"><button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="deferred" data-title="' + esc(g.title) + '">' + esc(EP.parkEpic) + '</button>' +
         '<button type="button" class="btn ghost mini" data-park="' + esc(ownOpen.join(",")) + '" data-kind="never" data-title="' + esc(g.title) + '">' + esc(EP.dropEpic) + '</button></div>' : '') + '</div></details>';
   }
@@ -12276,7 +12325,7 @@
   }
   function planHtml(plan) {
     var P = STR.pp, ms = plan.milestones || [];
-    var html = '<section class="psec"><h2 class="group">' + STR.planTitle + '</h2>' + (plan.overview ? '<p>' + esc(plan.overview) + '</p>' : '');
+    var html = '<section class="psec">' + (plan.overview ? '<details class="nbox"><summary><b>' + esc(STR.pl.about) + '</b></summary><p>' + esc(plan.overview) + '</p></details>' : '');
     if ((plan.dod || []).length) html += '<details class="dod"><summary><b>' + P.dod + '</b>' + (plan.estimateWeeks ? ' <span class="muted">' + P.weeks.replace("{n}", plan.estimateWeeks) + '</span>' : '') +
       '</summary><ul>' + plan.dod.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></details>';
     if (tasks.length) {
@@ -12290,24 +12339,31 @@
     var msIds = ms.map(function (m) { return m.id; }), loose = tasks.filter(function (t) { return isBugT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); }).sort(bySev);
     if (mineOnly || bugsOnly) ms = ms.filter(function (m) { return msShown(m).length; });
     if ((mineOnly || bugsOnly) && !ms.length && !loose.length) return html + '<p class="muted">' + (bugsOnly ? BG.none : P.mineNone) + '</p></section>';
-    var mvp = ms.filter(function (m) { return m.track === "mvp"; });
-    if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
-      return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '"' + (st === "lock" ? ' title="' + esc(P.locked.replace("{g}", msLock(plan, m))) + '"' : st === "now" ? ' aria-current="step"' : '') + '>' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';
-    ["mvp", "expansion", "extra"].forEach(function (tr) {
-      var group = ms.filter(function (m) { return m.track === tr; }); if (!group.length) return;
-      var inner = '<p class="muted">' + P.trackAbout[tr] + '</p>' + group.map(function (m, i) {
-        return (tr === "extra" && plan.cutLine && i === plan.cutLine ? '<div class="cutline">' + P.cut + '</div>' : '') + msHtml(plan, m); }).join("");
-      html += tr === "mvp" ? '<h3 class="sub track">' + P.track[tr] + '</h3>' + inner
-        : '<details class="trackbox"' + (group.some(function (m) { return !msLock(plan, m); }) ? ' open' : '') + '><summary><h3 class="sub track">' + P.track[tr] + ' <span class="muted">' + group.length + '</span></h3></summary>' + inner + '</details>';
-    });
-    ms.filter(function (m) { return !m.track; }).forEach(function (m) { html += msHtml(plan, m); }); // older plans and the experience fixes (EXP)
+    if (mineOnly || bugsOnly) { // a filtered view: every milestone that has a matching task, as a list
+      var mvp = ms.filter(function (m) { return m.track === "mvp"; });
+      if (mvp.length) html += '<div class="gpath">' + mvp.map(function (m) { var st = gateOf(m).status === "approved" ? "ok" : msLock(plan, m) ? "lock" : "now";
+        return '<a class="gstep gs-' + st + '" href="#ms-' + esc(m.id) + '"' + (st === "lock" ? ' title="' + esc(P.locked.replace("{g}", msLock(plan, m))) + '"' : st === "now" ? ' aria-current="step"' : '') + '>' + (st === "ok" ? "✓ " : st === "lock" ? "🔒 " : "● ") + esc(m.id) + ' <span>' + esc(m.name) + '</span></a>'; }).join('<span class="garr">→</span>') + '</div>';
+      ["mvp", "expansion", "extra"].forEach(function (tr) {
+        var group = ms.filter(function (m) { return m.track === tr; }); if (!group.length) return;
+        var inner = '<p class="muted">' + P.trackAbout[tr] + '</p>' + group.map(function (m, i) {
+          return (tr === "extra" && plan.cutLine && i === plan.cutLine ? '<div class="cutline">' + P.cut + '</div>' : '') + msHtml(plan, m); }).join("");
+        html += tr === "mvp" ? '<h3 class="sub track">' + P.track[tr] + '</h3>' + inner
+          : '<details class="trackbox"' + (group.some(function (m) { return !msLock(plan, m); }) ? ' open' : '') + '><summary><h3 class="sub track">' + P.track[tr] + ' <span class="muted">' + group.length + '</span></h3></summary>' + inner + '</details>';
+      });
+      ms.filter(function (m) { return !m.track; }).forEach(function (m) { html += msHtml(plan, m); }); // older plans and the experience fixes (EXP)
+    } else { // 🌳 v2.160 (owner: «замість гарного сучасного дерева розробки — просто куча тексту»): the tree on top, the chosen milestone under it
+      var selM = selMs(plan, ms);
+      html += roadmapHtml(plan, ms, selM) + (selM ? msHtml(plan, selM) : '');
+    }
     var looseA = bugsOnly ? [] : tasks.filter(function (t) { return isAuthT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); });
     if (looseA.length) html += looseAuthHtml(looseA);
     if (loose.length) html += looseBugsHtml(loose);
-    if ((plan.parallel || []).length) html += '<h3 class="sub">' + STR.parallel + '</h3><ul>' + plan.parallel.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
-    if ((plan.risks || []).length) html += '<h3 class="sub">' + STR.risks + '</h3><ul>' + plan.risks.map(function (r) { return '<li><b>' + esc(r.risk) + '</b> — ' + esc(r.mitigation) + '</li>'; }).join("") + '</ul>';
-    if ((plan.gaps || []).length) html += '<h3 class="sub">' + STR.gaps + '</h3><ul>' + plan.gaps.map(function (g) {
+    var rk = '';
+    if ((plan.parallel || []).length) rk += '<h3 class="sub">' + STR.parallel + '</h3><ul>' + plan.parallel.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
+    if ((plan.risks || []).length) rk += '<h3 class="sub">' + STR.risks + '</h3><ul>' + plan.risks.map(function (r) { return '<li><b>' + esc(r.risk) + '</b> — ' + esc(r.mitigation) + '</li>'; }).join("") + '</ul>';
+    if ((plan.gaps || []).length) rk += '<h3 class="sub">' + STR.gaps + '</h3><ul>' + plan.gaps.map(function (g) {
       return '<li><b>' + esc(g.need) + '</b>: ' + esc(g.missing) + (g.desiredApi ? ' · <code>' + esc(g.desiredApi) + '</code>' : '') + (g.workaround ? ' · ' + esc(g.workaround) : '') + '</li>'; }).join("") + '</ul>';
+    if (rk) html += '<details class="nbox"><summary><b>' + esc(STR.pl.risksT) + '</b></summary>' + rk + '</details>';
     return html + '</section>';
   }
 
@@ -12665,7 +12721,7 @@
     var gt = e.target.closest("[data-gate]"); if (gt) { setGate(gt.dataset.gate, gt.dataset.to, gt.dataset.early).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     // 🌳 v2.154 the plan tree: ⛓ / ▶ jump to a task (its epic opens), ‖ ✕ park, ↺ back, the bans
     var gto = e.target.closest("[data-goto]"); if (gto) { e.preventDefault(); var tid = gto.dataset.goto, tl = liveTask(tid), tm = tl && ((planDoc.plan || {}).milestones || []).filter(function (m) { return m.id === tl.milestone; })[0];
-      if (tm) epicOpen[epicKey(tm, tl)] = true; if (planTab !== "plan") { planTab = "plan"; planTabPicked = true; } render(); var tel = $("task-" + tid); if (tel) { tel.scrollIntoView({ block: "center" }); edFlash(tel); } return; }
+      if (tm) { epicOpen[epicKey(tm, tl)] = true; planMs = tm.id; } trOpen[tid] = true; if (planTab !== "plan") { planTab = "plan"; planTabPicked = true; } render(); var tel = $("task-" + tid); if (tel) { tel.scrollIntoView({ block: "center" }); edFlash(tel); } return; }
     var eo = e.target.closest("[data-epicok]"); if (eo) { e.preventDefault(); var eu = {}; eu[eo.dataset.epicok] = eo.dataset.off ? firebase.firestore.FieldValue.delete() : { at: Date.now(), by: myUid() };
       gref().collection("plan").doc("current").set({ epicsOk: eu }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     if (e.target.closest("[data-autoclose]")) { gref().collection("plan").doc("current").set({ autoClose: planDoc.autoClose === false }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
@@ -12677,11 +12733,13 @@
     var upk = e.target.closest("[data-unpark]"); if (upk) { upk.disabled = true; unparkTask(upk.dataset.unpark); return; }
     if (e.target.closest("[data-banadd]")) { addBan(); return; }
     var brm = e.target.closest("[data-banrm]"); if (brm) { brm.disabled = true; rmBan(brm.dataset.banrm); return; }
+    var msel = e.target.closest("[data-msel]"); if (msel) { planMs = msel.dataset.msel; if (msel.dataset.epicgo) epicOpen[msel.dataset.epicgo] = true; render();
+      var mel = $("ms-" + planMs), eel = msel.dataset.epicgo && document.querySelector('[data-epic="' + msel.dataset.epicgo + '"]'); if (eel || mel) (eel || mel).scrollIntoView({ block: "start", behavior: "smooth" }); return; }
     if (e.target.closest("[data-mkan]")) { var ab = $("p-analyze"); if (ab && !ab.disabled) ab.click(); return; }
     if (section === "plan" && e.target.closest("[data-agok],[data-agno],[data-agreply]")) setTimeout(function () { agWait.at = 0; agWait.sig = null; loadAgWait(); }, 1500); // Today: the answered one leaves the queue
     var dlg = e.target.closest("[data-delegate]"); if (dlg) { dlg.disabled = true; // 📋 a gap → a note to the game designer in «💬 Агенти» (the server writes it, agents.js post)
       fnCall("agents", { op: "post", worldId: worldId, gameId: gameId, type: "note", text: STR.pl.delegateText.replace("{g}", dlg.dataset.delegate) }).then(function () { dlg.textContent = "✓ " + STR.pl.delegated; }, function (er) { dlg.disabled = false; notify(STR.failed + ": " + er.message); }); return; }
-    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; planTabPicked = true; render(); var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
+    var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; planTabPicked = true; render(); if (ptb.dataset.msgo) { planMs = ptb.dataset.msgo; render(); } var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
     if (e.target.closest("[data-bugs]")) { bugsOnly = !bugsOnly; render(); var bb = document.querySelector("[data-bugs]"); if (bb) bb.focus(); return; }
     if (e.target.closest("[data-addbug]")) { addBug().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     var acc = e.target.closest("[data-accept]"); if (acc) { var take = function () { acc.disabled = true; reviewTask(acc.dataset.accept, true); }; if (acc.dataset.unchecked) askConfirm(acc.dataset.unchecked === "lag" ? AU.acceptLag : STR.acceptUnchecked).then(function (ok) { if (ok) take(); }); else take(); return; }

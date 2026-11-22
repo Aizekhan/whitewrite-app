@@ -215,14 +215,14 @@ const TOOLS = [
       against: { type: 'array', items: { type: 'string' }, description: 'the anti-pillars this feature goes against (an honest flag — the author decides)' },
       aesthetics: { type: 'array', items: { type: 'string', enum: ['sensation', 'fantasy', 'narrative', 'challenge', 'fellowship', 'discovery', 'expression', 'submission'] }, description: 'the MDA aesthetics it supports' },
       teaches: { type: 'array', items: { type: 'object', properties: { mechanic: { type: 'string', description: '"c:<id>" or the title of a «Механіки» card' }, step: { type: 'string', enum: ['intro', 'test', 'twist', 'combine'] } } }, description: 'levels only — the learning ladder: which mechanics this level introduces (in safety), tests, twists or combines; the whole list, [] clears' } } } },
-  { name: 'save_mechanic', description: 'Fill or change a constructor mechanic (mechanics, the Sound factory, the Progression builder: XP curve, skill / upgrade trees, shops…). ' + WRITE_WHEN + ' save_card cannot reach the constructor; this does. ' +
-      'ref: "c:<cardId>" or the title (get_mechanics). purpose, rules, status — as on a card. sections: [{ id: the section id or title from get_mechanic, ' +
+  { name: 'save_mechanic', description: 'Create, fill or change a constructor mechanic (mechanics, the Sound factory, the Progression builder: XP curve, skill / upgrade trees, shops…). ' + WRITE_WHEN + ' save_card cannot reach the constructor; this does. ' +
+      'ref: "c:<cardId>" or the title (get_mechanics). From a template (get_mechanic_template): { template_id, title } creates a new mechanic; { ref, template_id } turns a plain card (made with save_card) into that template — its fields stay, its text becomes the purpose and the rules; you may fill sections in the same call. purpose, rules, status — as on a card. sections: [{ id: the section id or title from get_mechanic, ' +
       'values: { "<field key or label>": value } for a fields section; rows: [ { id?, "<column key or label>": value } ] for a table — the rows you send ARE the table now (rows left out are removed; each row is exactly what you send — columns you leave out are empty; a row matched by its id or name keeps only its emblem and its cell); ' +
       'add_fields: [{ label, type: text | long | num | pct | time | bool | sel | multi | formula | range | json | card, options: [..] for sel / multi }] — the author’s own field («＋ Своє поле»), then fill it in values / rows }]. ' +
       'Values are typed: numbers, sel / multi by option value or label, ref / refs (e.g. a tree node’s needs) by row id or row name — rows sent in the same call count, card fields by "c:<id>" or card title, range as "1–5". Sound slots take files (the author). ' +
       'A skill tree: section "points" (unit, start, perLevel, maxLevel, respec, owner) and "nodes" rows (name, kind, cost, ranks, effect, needs, needMode all | any, level, branchPts = points already spent on other nodes of its branch before it opens (a keystone after 6 points in the branch), branch, col / row for the cell — leave them out and the Bible lays the nodes out by depth). ' +
       'Returns what changed, what did not (not_changed — fix and send again), completeness, the constructor checks and computed numbers. The author sees that you changed it.',
-    inputSchema: { type: 'object', required: ['ref'], properties: { ref: { type: 'string' }, purpose: { type: 'string' }, rules: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] },
+    inputSchema: { type: 'object', properties: { ref: { type: 'string' }, template_id: { type: 'string', description: 'A template id (get_mechanic_template): create a mechanic from it, or turn the card of ref into it' }, title: { type: 'string', description: 'With template_id and no ref: the name of the new mechanic' }, purpose: { type: 'string' }, rules: { type: 'string' }, status: { type: 'string', enum: ['idea', 'agreed', 'work', 'ingame', 'redo'] },
       sections: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, values: { type: 'object' }, rows: { type: 'array', items: { type: 'object' } },
         add_fields: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' }, type: { type: 'string' }, options: { type: 'array', items: { type: 'string' } } } } } } } } } } },
   { name: 'save_quest', description: 'Create or change a quest of this game. ' + WRITE_WHEN + ' id to update (from get_quest_context or an earlier save_quest), none to create (approval starts as draft; the author approves). ' +
@@ -668,7 +668,7 @@ function mechTemplate(id) {
   return { id: t.id, name: L2(t.name), purpose: L2(t.purpose), description: L2(t.desc), section: t.sec || 'mechanics',
     sections: (t.sections || []).map((s) => ({ id: s.id, title: L2(s.title), kind: s.kind, ...(s.hint ? { hint: L2(s.hint) } : {}), fields: (s.fields || []).map(field),
       ...(s.rows ? { example_rows: s.rows.slice(0, 6) } : {}), ...(s.values ? { example_values: s.values } : {}) })),
-    how: 'Fill it with save_mechanic (template_id = this id); a card of this area already made with save_card can be turned into the template the same way.' };
+    how: 'Create it with save_mechanic { template_id: "' + t.id + '", title } (sections may be filled in the same call); a plain card of this area made with save_card turns into it with save_mechanic { ref: "c:<id>", template_id: "' + t.id + '" } — its fields stay.' };
 }
 // the stories (Book projects of this world) whose scenes name the entity — as the dossier shows it (gamebible.js loadAppearance)
 async function storiesOf(ctx, id, kind) {
@@ -1583,10 +1583,27 @@ function mechValue(ctx, f, v, rowIdOf, warn, where) {
 }
 async function saveMechanic(ctx, key, args) {
   agentGate(ctx);
-  const r = str(args.ref, 200), id = r.replace(/^c:/, '');
-  const c = ctx.cards.find((x) => (x.section === 'mechanics' || x.section === 'audio' || x.section === 'progression') && x.mech && !x.canonRef && (x.id === id || lowS(x.title) === lowS(r)));
-  if (!c) throw rpcError(-32602, `No constructor mechanic ${r}. Call get_mechanics (section mechanics | audio | progression); an older card without a constructor is changed with save_card.`);
-  const m = MECH.upgrade(JSON.parse(JSON.stringify(c.mech))), warn = [], changed = []; // the newer template / tree columns (e.g. «Очок у гілці») are there to fill
+  const r = str(args.ref, 200), id = r.replace(/^c:/, ''), tid = str(args.template_id, 60), MSECS = ['mechanics', 'audio', 'progression'];
+  // v2.160 (owner: «МСП має мати доступ до всього»): template_id creates a mechanic from a template, or turns a plain card (save_card) into one — as «＋ З шаблону» in the Bible
+  const T = tid ? MECH.template(tid) : null;
+  if (tid && !T) throw rpcError(-32602, `No template ${tid}. Call get_mechanic_template without id for the list.`);
+  let c = r ? ctx.cards.find((x) => MSECS.includes(x.section) && !x.canonRef && (x.id === id || lowS(x.title) === lowS(r))) : null, made = '';
+  if (r && !c) throw rpcError(-32602, `No mechanic card ${r}. Call get_mechanics (section mechanics | audio | progression)` + (T ? '; leave ref out to create a new mechanic from the template.' : '.'));
+  if (!r && !T) throw rpcError(-32602, 'Send ref (an existing mechanic) or template_id (+ title) to create one from a template.');
+  if (c && c.mech && T && c.mech.tpl && c.mech.tpl !== T.id) throw rpcError(-32602, `${c.title} is already a constructor mechanic of the template ${c.mech.tpl}; fill it without template_id.`);
+  if (c && !c.mech && !T) throw rpcError(-32602, `${c.title} is a plain card without a constructor: send template_id to turn it into a constructor mechanic (its fields stay), or change it with save_card.`);
+  let base = c && c.mech;
+  if (!base) { // a new constructor copy of the template; a converted card keeps its text as the purpose and the rules (as the Bible's editor does on an older card)
+    base = MECH.instantiate(T.id);
+    if (c) { const f = c.fields || {}; if (f.text) base.purpose = f.text; base.rules = [f.numbers, f.deps ? 'Залежить від: ' + f.deps : '', f.rules].filter(Boolean).join('\n\n'); made = 'converted'; }
+    else {
+      const title = str(args.title, 200) || L2(T.name).split(' / ')[0], sec = T.sec || 'mechanics';
+      const same = ctx.cards.find((x) => x.section === sec && !x.canonRef && lowS(x.title) === lowS(title));
+      if (same) throw rpcError(-32602, `A card «${same.title}» (c:${same.id}) is already there: send ref: "c:${same.id}" with template_id to turn it into this template.`);
+      c = { id: newDocId('card'), section: sec, title, fields: {}, _new: true }; made = 'created';
+    }
+  }
+  const m = MECH.upgrade(JSON.parse(JSON.stringify(base))), warn = [], changed = made ? ['template ' + T.id] : []; // the newer template / tree columns (e.g. «Очок у гілці») are there to fill
   if (args.purpose !== undefined) { m.purpose = str(args.purpose, 8000); changed.push('purpose'); }
   if (args.rules !== undefined) { m.rules = str(args.rules, 20000); changed.push('rules'); }
   const status = args.status === undefined ? null : str(args.status, 12);
@@ -1637,14 +1654,17 @@ async function saveMechanic(ctx, key, args) {
   (m.sections || []).filter((s) => s.tree && s.kind === 'table').forEach((s) => { // a node whose required node is gone loses that link
     const ids = (s.rows || []).map((y) => y._id); (s.rows || []).forEach((y) => { if (Array.isArray(y.needs)) y.needs = y.needs.filter((n) => ids.includes(n)); });
   });
-  if (!changed.length && !status) throw rpcError(-32602, 'Nothing to change: send purpose, rules, status or sections [{ id, values | rows | add_fields }]' + (warn.length ? ' — ' + warn.slice(0, 5).join('; ') : ''));
+  if (!changed.length && !status && !made) throw rpcError(-32602, 'Nothing to change: send purpose, rules, status or sections [{ id, values | rows | add_fields }]' + (warn.length ? ' — ' + warn.slice(0, 5).join('; ') : ''));
   const now = admin.firestore.FieldValue.serverTimestamp();
-  const body = { mech: m, fields: { ...(c.fields || {}), text: m.purpose || '' }, updatedAt: now, ...agentMark(key, prevOf(c, ['mech', 'fields', 'status'])) };
+  const cat = MECH.category && MECH.category(m.cat), body = { mech: m, fields: { ...(c.fields || {}), text: m.purpose || '', ...(made && cat ? { group: cat.uk || '' } : {}) }, updatedAt: now,
+    ...agentMark(key, c._new ? { _new: true } : prevOf(c, ['mech', 'fields', 'status', 'section'])) };
   if (status) body.status = status;
+  if (c._new) Object.assign(body, { section: c.section, title: c.title, status: status || 'idea', note: '', defs: [], files: [], order: Date.now(), createdAt: now });
+  else if (made && T.sec && c.section !== T.sec) body.section = T.sec; // a sound / progression template lives in its own section
   await ctx.gref.collection('cards').doc(c.id).set(body, { merge: true });
-  c.mech = m; if (status) c.status = status;
+  if (c._new) { delete c._new; ctx.cards.push(Object.assign(c, body)); } else Object.assign(c, { mech: m, ...(body.section ? { section: body.section } : {}) }); if (status) c.status = status;
   const chk = MECH.withCards(ctx.cards, () => MECH.check(m)), calc = MECH.withCards(ctx.cards, () => MECH.calc(m));
-  return { ok: true, ref: 'c:' + c.id, title: c.title || '', changed, ...(warn.length ? { not_changed: warn.slice(0, 40) } : {}), completeness: chk.pct,
+  return { ok: true, ref: 'c:' + c.id, title: c.title || '', ...(made ? { [made]: true, template: T.id, section: c.section } : {}), changed, ...(warn.length ? { not_changed: warn.slice(0, 40) } : {}), completeness: chk.pct,
     problems: chk.issues.filter((i) => i.level !== 'tip').slice(0, 20).map((i) => ({ level: i.level, section: i.sec, row: i.row || null, text: i.en })), ...(calc ? { computed: calc } : {}),
     message: 'The author sees «🤖 Claude Code changed this» on the mechanic. Tell the user what you changed.' };
 }
