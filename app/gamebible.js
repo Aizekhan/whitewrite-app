@@ -235,7 +235,7 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Щойно відповіси на останній блокер — план розробки складеться сам (≈ ціна «✦ План»).",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", planReady: "Блокерів немає — можна складати план. Після генерації тут зʼявиться дерево: етапи → епіки → задачі.", planReadyRest: "Решта питань ({n}) план не блокує — на них можна відповісти потім",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", gddAge: "Аналіз від {d}.", gddStale: "Після нього: відповідей {a}, змінених карток {c} — таблиця цього ще не враховує; «↻ Оновити аналіз», щоб перерахувати.", planReady: "Блокерів немає — можна складати план. Після генерації тут зʼявиться дерево: етапи → епіки → задачі.", planReadyRest: "Решта питань ({n}) план не блокує — на них можна відповісти потім",
       pp: { carried: "Етап зі старого плану", carriedTip: "Новий план зберіг цей етап і його задачі з попереднього", dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
         who: "Виконавець", nobody: "— не призначено —", memberEdit: "✎ змінив {n} — Claude Code не бере, доки ти не схвалиш", memberWait: "⏳ чекає схвалення власника: доти Claude Code її не бере", approve: "✓ Схвалити для агента", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
@@ -602,7 +602,7 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. As soon as you answer the last blocker the development plan makes itself (≈ the «✦ Plan» price).",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", planReady: "No blockers — the plan can be made. After generating, the tree shows here: milestones → epics → tasks.", planReadyRest: "The other questions ({n}) do not block the plan — answer them later",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", gddAge: "Analysis of {d}.", gddStale: "Since then: {a} answers, {c} changed cards — the table does not reflect them yet; «↻ Refresh analysis» to recompute.", planReady: "No blockers — the plan can be made. After generating, the tree shows here: milestones → epics → tasks.", planReadyRest: "The other questions ({n}) do not block the plan — answer them later",
       pp: { carried: "Milestone from the previous plan", carriedTip: "The new plan kept this milestone and its tasks from the previous one", dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
         who: "Assignee", nobody: "— not assigned —", memberEdit: "✎ edited by {n} — Claude Code won’t take it until you approve", memberWait: "⏳ waits for the owner’s approval: Claude Code won’t take it until then", approve: "✓ Approve for the agent", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
@@ -11459,7 +11459,7 @@
     if (gdd) {
       html += '<section class="psec"><h2 class="group">' + STR.gddTitle + '</h2>' +
         '<div class="ready"><span>' + STR.readiness + '</span><div class="ready__bar"><i style="width:' + (gdd.readiness || 0) + '%"></i></div><b>' + (gdd.readiness || 0) + '%</b></div>' +
-        '<p>' + esc(gdd.summary) + '</p>' + gddTableHtml(gdd.sections || []) + '</section>';
+        '<p>' + esc(gdd.summary) + '</p>' + gddTableHtml(gdd.sections || []) + gddAgeHtml() + '</section>';
     }
     if (driftCards().length) html += '<section class="psec" id="p-drift"><h2 class="group">' + esc(DD.list) + '</h2><p class="hint">' + esc(DD.hint) + '</p>' + driftCards().map(function (c) {
       return '<div class="q"><div class="cchips">' + cardChip("c:" + c.id) + '</div>' + driftHtml(c.id, c.devDrift) + '</div>'; }).join("") + '</section>';
@@ -11561,6 +11561,14 @@
     var words = String(title || "").toLowerCase().split(/[^a-zа-яіїєґ0-9]+/i).filter(function (w) { return w.length >= 4; }).map(function (w) { return w.slice(0, 5); });
     var hit = gameSections().filter(function (s) { var n = L(s).toLowerCase(); return s.id !== "overview" && words.some(function (w) { return n.indexOf(w) >= 0; }); })[0];
     return hit ? hit.id : "";
+  }
+  // v2.158 how old the analysis is: the table is not recomputed until «↻ Оновити аналіз» (MCP get_design_readiness says the same to the agent)
+  function gddAgeHtml() {
+    var at = planDoc.analyzedAt && planDoc.analyzedAt.toMillis ? planDoc.analyzedAt.toMillis() : 0; if (!at) return "";
+    var ans = Object.keys(planDoc.answeredAt || {}).filter(function (k) { var v = planDoc.answeredAt[k]; return (v && v.toMillis ? v.toMillis() : +v || 0) > at; }).length;
+    var ch = cards.filter(function (c) { return !c.hidden && (c.updatedAt && c.updatedAt.toMillis ? c.updatedAt.toMillis() : 0) > at; }).length;
+    return '<p class="muted">' + esc(STR.gddAge.replace("{d}", new Date(at).toLocaleString(LANG === "en" ? "en-GB" : "uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))) +
+      (ans || ch ? ' ' + esc(STR.gddStale.replace("{a}", ans).replace("{c}", ch)) : '') + '</p>';
   }
   function gddTableHtml(list) {
     if (!list.length) return '';

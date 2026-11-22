@@ -32,5 +32,17 @@ function game(pd, cards) {
   check([g.docs['plan/current'].resolved[cid], !!g.docs['cards/ov'].fields.f_нежить_без_брами, (g.docs['cards/ov'].defs || []).some((d) => d.label === 'Нежить без брами')], ['Урок 3 — полагодь мур', true, true], 'a contradiction → resolved, a new field with its label on the card');
   const r2 = await planAnswerApply(g, 'q2', 'Два біоми', 'x');
   check([g.docs['plan/current'].answers.q2, r2.card], ['Два біоми', null], 'a missing card: the answer stays in the plan');
+  // v2.158 a list field of the overview (pillars) is never appended with prose
+  const gp = game({ gdd: {}, asked: [{ id: 'qp', priority: 'important', question: 'Стовп?', target: { card: 'c:ov', field: 'Стовпи' } }] },
+    [{ id: 'ov', section: 'overview', defs: [{ key: 'pillars', label: 'Стовпи гри (3–4)' }], fields: { pillars: 'Ніхто не сидить без діла\nКожна хвиля — рішення' } }]);
+  const rp = await planAnswerApply(gp, 'qp', 'Стовп переписано', 'x');
+  check([gp.docs['cards/ov'].fields.pillars, rp.list_field, gp.docs['plan/current'].answers.qp], ['Ніхто не сидить без діла\nКожна хвиля — рішення', 'pillars', 'Стовп переписано'], 'pillars: the answer stays in the plan, the list is untouched');
+  // v2.158 the analysis table and its age, the template fields
+  const { designReadiness, mechTemplate } = require(path.join(__dirname, '../functions/src/mcp.js'))._mcp;
+  const dr = designReadiness({ plan: { gdd: { readiness: 40, sections: [{ title: 'Game feel', status: 'missing', notes: 'немає hitstop' }] }, analyzedAt: 1000, answeredAt: { a: 500, b: 2000 } },
+    cards: [{ id: 'x', updatedAt: 3000 }, { id: 'y', updatedAt: 10 }] });
+  check([dr.readiness, dr.areas[0].missing, dr.stale.answers_since, dr.stale.cards_changed_since, dr.templates.some((t) => t.id === 'game_feel')], [40, 'немає hitstop', 1, 1, true], 'readiness, what is missing, how stale, the templates');
+  const tf = mechTemplate('game_feel');
+  check([tf.sections[0].fields[0].key, tf.sections[0].fields[1].unit, tf.sections[0].fields[0].required], ['action', 'ms', 'required'], 'a template\'s fields with units and requirement');
   console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED'); process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });

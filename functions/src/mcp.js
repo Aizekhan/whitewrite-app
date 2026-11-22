@@ -78,6 +78,10 @@ const TOOLS = [
   { name: 'verify_task', description: '🌳 A task marked verify («? звірити з грою»): the plan is not sure whether the game already has it. Check the game (code, scenes, commits) and report what is there: state done (it is built — evidence: files, commit), partial (part is built — what is missing goes into the task) or todo (not built). done closes the task; partial / todo leave it in the queue without the mark. get_next_task gives these first.',
     inputSchema: { type: 'object', required: ['task_id', 'state', 'evidence'], properties: { task_id: { type: 'string' }, state: { type: 'string', enum: ['done', 'partial', 'todo'] },
       evidence: { type: 'string', description: 'What you found: files, commit, what works / what is missing' }, commit: { type: 'string' } } } },
+  { name: 'get_design_readiness', description: '📋 The «Гейм-диздок» block of the Production plan exactly as the author sees it: design readiness %, the summary, every area (vision & pillars, loops, mechanics, game feel, controls & accessibility, progression, monetization, release readiness…) with its state (missing / partial / solid) and «what is missing», the date of the last ✦ analysis and how stale it is (answers given and cards changed after it — the table is not recomputed until the author presses «↻ Оновити аналіз»), plus the constructor templates that structure these areas (read their fields with get_mechanic_template).',
+    inputSchema: { type: 'object', properties: {} } },
+  { name: 'get_mechanic_template', description: '🧩 The fields of a constructor template (game_feel, controls, accessibility, economy, loops, level_metrics, difficulty, release, ftue, retention, UMCF combat, attributes, levels, statuses, inventory, enemy AI, the Sound factory…): its sections (table / fields), every field with type, unit, range, options and whether it is required / recommended, the example rows. No id — the list of templates. Fill a template with save_mechanic.',
+    inputSchema: { type: 'object', properties: { id: { type: 'string', description: 'The template id, e.g. game_feel' } } } },
   { name: 'get_plan_questions', description: '❓ The open questions of the Production plan (Game Bible → «Продакшн-план»: the ✦ analysis asks them) and its open contradictions: id, priority (blocker | important | nice), the question, why, options with the AI\'s recommendation first (recommended, recommend_why), the card and field the answer goes into. While a blocker is open the author cannot generate the plan (plan_ready false). Prepare the decision with the author: look at the canon and the cards, offer your recommendation — then answer_plan_question with the author\'s words.',
     inputSchema: { type: 'object', properties: { all: { type: 'boolean', description: 'true: answered ones too' } } } },
   { name: 'answer_plan_question', description: '❓ Record the author\'s answer to an open question (or resolution of a contradiction) of the Production plan — the same as the author answering in the Game Bible: the answer goes into the plan and is appended to the question\'s card field. Only the author\'s decision, never your own: author_words — what the author said («так, як радиш» counts — then answer = the recommended option). From the game designer\'s chat with the author it is recorded at once; from the terminal (the programmer key) it is a draft the author confirms with one tap (✔ in Telegram). Do not answer what the author has not decided — ask them first.',
@@ -629,6 +633,33 @@ async function recordAuthorDecision(ctx, key, args) {
   await logExecution(ctx, key, 'author_decision', parked.join(','), { what: kind + ': ' + text });
   return { ok: true, id: ban.id, kind, parked, message: 'Recorded as the author\'s ban (' + kind + '). The plan will not bring it back' + (parked.length ? '; tasks ' + parked.join(', ') + ' are ' + st : '') + '.' };
 }
+// ---------- 📋 v2.158 what the author sees and the agent did not (the game-designer agent: «таблиці готовності, шаблонів, свіжості аналізу,
+// блоку «Від гри» я не бачу»; owner: «якого хуя існують ділянки, які Claude Code не бачить»)
+const L2 = (x) => (x && typeof x === 'object' ? x.en || x.uk || '' : x || '');
+function designReadiness(ctx) {
+  const p = ctx.plan || {}, g = p.gdd;
+  const tplList = MECH.TEMPLATES.map((t) => ({ id: t.id, name: L2(t.name), section: t.sec || 'mechanics' }));
+  if (!g) return { analyzed: false, message: 'No ✦ analysis yet: the author presses «✦ Проаналізувати біблію» in the Production plan.', templates: tplList };
+  const at = msOf(p.analyzedAt), after = (m) => Object.values(m || {}).filter((v) => msOf(v) > at).length;
+  const answered = after(p.answeredAt), cardsChanged = ctx.cards.filter((c) => !c.hidden && msOf(c.updatedAt) > at).length;
+  return { analyzed: true, analyzed_at: at ? new Date(at).toISOString() : null, readiness: g.readiness || 0, summary: g.summary || '',
+    areas: (g.sections || []).map((s) => ({ area: s.title, state: s.status, missing: s.notes || '' })),
+    stale: { answers_since: answered, resolved_since: Object.keys(p.resolved || {}).length, cards_changed_since: cardsChanged,
+      note: answered || cardsChanged ? 'The table is from the analysis date: what was answered or changed after it is NOT reflected. The author refreshes it with «↻ Оновити аналіз» (costs tokens) — tell them when it is clearly out of date.' : 'Up to date with the cards.' },
+    templates: tplList };
+}
+function mechTemplate(id) {
+  if (!id) return { templates: MECH.TEMPLATES.map((t) => ({ id: t.id, name: L2(t.name), section: t.sec || 'mechanics', purpose: L2(t.purpose) })) };
+  const t = MECH.template(id);
+  if (!t) throw rpcError(-32602, `No template ${id}. Call get_mechanic_template without id for the list.`);
+  const field = (f) => ({ key: f.k, label: L2(f.l), type: f.t, ...(f.req ? { required: f.req === 'r' ? 'required' : f.req === 'rec' ? 'recommended' : 'optional' } : {}),
+    ...(f.u ? { unit: f.u } : {}), ...(f.min != null ? { min: f.min } : {}), ...(f.max != null ? { max: f.max } : {}), ...(f.o ? { options: f.o.map((o) => o.v + ' — ' + L2(o.l)) } : {}),
+    ...(f.adv ? { advanced: true } : {}), ...(f.h ? { hint: L2(f.h) } : {}) });
+  return { id: t.id, name: L2(t.name), purpose: L2(t.purpose), description: L2(t.desc), section: t.sec || 'mechanics',
+    sections: (t.sections || []).map((s) => ({ id: s.id, title: L2(s.title), kind: s.kind, ...(s.hint ? { hint: L2(s.hint) } : {}), fields: (s.fields || []).map(field),
+      ...(s.rows ? { example_rows: s.rows.slice(0, 6) } : {}), ...(s.values ? { example_values: s.values } : {}) })),
+    how: 'Fill it with save_mechanic (template_id = this id); a card of this area already made with save_card can be turned into the template the same way.' };
+}
 // ---------- ❓ v2.157 the plan's questions through MCP (owner: «а агент може відповісти на ці питання через мсп?») ----------
 // The same data as the Bible's queue (plan/current.asked + answers, contradictions + resolved). An answer = the Bible's answerQuestion /
 // resolveIssue: into the plan and appended to the target card field (fieldPlan, as save_card names fields). The designer key (the author's chat)
@@ -663,6 +694,9 @@ async function planAnswerApply(gref, id, text, by) {
   const cref = gref.collection('cards').doc(ref.slice(2)), cd = await cref.get();
   if (!cd.exists) return { already: false, card: null }; // a canon entity without its game card yet — the answer stays in the plan
   const card = { id: cd.id, ...cd.data() }, cards = (await gref.collection('cards').where('section', '==', card.section || '').get()).docs.map((d) => ({ id: d.id, ...d.data() }));
+  // v2.158 (the designer: «відповідь про стовп записалась прозою в «Стовпи гри (3–4)» — 18 механік стали «не служить жодному стовпу»»): a list
+  // field of the design (pillars, anti-pillars, aesthetics) is never appended — the answer stays in the plan, the agent edits the list itself
+  if (card.section === 'overview' && ['pillars', 'anti', 'aesthetics'].includes(DESIGN.designKeyOf(str(label, 80)))) return { already: false, card: null, list_field: DESIGN.designKeyOf(str(label, 80)) };
   const fp = fieldPlan({ cards }, card, card.section, { [str(label, 80) || 'Рішення']: text }, !card.canonRef);
   const k = Object.keys(fp.set)[0], prev = str((card.fields || {})[k], 20000);
   await cref.set({ fields: { [k]: prev ? prev + '\n\n' + text : text }, ...(fp.defs.length ? { defs: fp.defs } : {}), updatedAt: ts() }, { merge: true });
@@ -686,7 +720,8 @@ async function answerPlanQuestion(ctx, key, args) {
   await logExecution(ctx, key, 'plan_answer', id, { what: text.slice(0, 200) });
   const left = planQuestions((await ctx.gref.collection('plan').doc('current').get()).data(), false);
   return { ok: true, recorded: true, card: r.card, blockers_open: left.blockers_open, plan_ready: left.plan_ready,
-    message: (r.card ? `Recorded in the plan and appended to «${r.card.title}» → ${r.card.field}. ` : 'Recorded in the plan. ') + (left.plan_ready ? 'No blockers left: tell the author they can press «✦ План».' : left.blockers_open + ' blocker(s) left.') };
+    ...(r.list_field ? { card_not_changed: r.list_field } : {}),
+    message: (r.card ? `Recorded in the plan and appended to «${r.card.title}» → ${r.card.field}. ` : r.list_field ? `Recorded in the plan. The overview's ${r.list_field} is a list — NOT appended: change the list item itself with save_card (one line per item), so the checks keep reading it. ` : 'Recorded in the plan. ') + (left.plan_ready ? 'No blockers left: tell the author they can press «✦ План».' : left.blockers_open + ' blocker(s) left.') };
 }
 // the game cards a task points at (its refs, a «new:<title>» resolved, cards made for it)
 function taskCardRefs(ctx, t) {
@@ -1188,7 +1223,10 @@ function gddStatus(ctx, extra) {
     riskiest_assumption: ds.risk.risk || null, prototype_test: ds.risk.test || null, ladder_used: ds.ladder.used,
     issues: ds.issues.slice(0, 40).map((i) => ({ level: i.level, kind: i.kind, ...(i.ref && i.ref.length > 2 ? { ref: i.ref } : {}), message: i.en })),
     how: 'Fix with save_card: pillars / against / aesthetics on a mechanic, level or progression card; teaches on a level; the overview fields «Найризикованіше припущення» / «Як прототип перевірить» / «Цільові естетики».' };
+  const nx = stages.find((s) => !s.optional && s.state !== 'done'); // = the Bible's «Від гри» block under the menu (guideNext / guideAsk)
   return { schema: GDD.VERSION, stages, design, changed_by_you_not_seen_by_author: unseen.length, changed_cards: unseen.slice(0, 30),
+    author_sidebar: { empty_stages: stages.filter((s) => !s.optional && s.state === 'empty').map((s) => s.stage + ' · ' + s.name), rule_changes_to_review: unseen.length,
+      ...(nx ? { next_stage: { stage: nx.stage, name: nx.name, state: nx.state, request: `Call get_gdd_schema and get_gdd_status. Fill stage ${nx.stage} «${nx.name}» in WhiteWrite: look through the game project and record in the GDD everything the game already has for this stage — each thing into its section by the schema; before a new card call find_cards so there are no copies. Do not invent what the game does not have yet — ask the author briefly. At the end say what you recorded.` } } : {}) },
     before_plan: before.length ? 'Fill these before a production plan makes sense: ' + before.join(' · ') : 'Stages 1–6 are filled: a production plan makes sense.' };
 }
 const WRITE_SECS = ['overview', 'lore', 'characters', 'enemies', 'companions', 'locations', 'levels', 'factions', 'items', 'gear', 'playcards', 'mechanics', 'progression', 'worldgen',
@@ -1836,6 +1874,8 @@ async function callTool(name, args, key) {
     case 'review_task': return designerReview(ctx, key, args);
     case 'record_author_decision': return recordAuthorDecision(ctx, key, args);
     case 'get_plan_questions': return planQuestions(ctx.plan, args.all === true);
+    case 'get_design_readiness': return designReadiness(ctx);
+    case 'get_mechanic_template': return mechTemplate(str(args.id, 60));
     case 'answer_plan_question': return answerPlanQuestion(ctx, key, args);
     case 'submit_task_result': {
       const t = findTask(ctx, args.task_id);
@@ -2380,4 +2420,4 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   return out ? res.status(200).json(out) : res.status(202).send('');
 });
 
-exports._mcp = { planQuestions, planAnswerApply, cardsLag, autoBlock, sweepFiles, knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame, handle, HISTORY_MAX, AGENT_PREV_MAX }; // tests only (tests/mcp-knowledge.test.cjs)
+exports._mcp = { designReadiness, mechTemplate, planQuestions, planAnswerApply, cardsLag, autoBlock, sweepFiles, knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame, handle, HISTORY_MAX, AGENT_PREV_MAX }; // tests only (tests/mcp-knowledge.test.cjs)
