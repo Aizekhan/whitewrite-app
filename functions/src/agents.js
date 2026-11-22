@@ -147,12 +147,19 @@ async function settleBan(gref, banId, yes) {
   }
   return n;
 }
+// v2.157 the author's ✔ / ✖ on an answer to a plan question Claude Code recorded from the terminal (mcp.js answerPlanQuestion draft)
+async function settlePlanAnswer(gref, id, yes) {
+  const pref = gref.collection('plan').doc('current'), dr = (((await pref.get()).data() || {}).answerDrafts || {})[id];
+  if (!dr) return;
+  if (!yes) { await pref.set({ answerDrafts: { [id]: admin.firestore.FieldValue.delete() } }, { merge: true }); return; }
+  await require('./mcp')._mcp.planAnswerApply(gref, id, dr.answer, dr.by); // lazy: mcp.js requires this module
+}
 async function applyApproval(gref, msgId, o) {
   const ref = gref.collection('agentMessages').doc(msgId);
-  let banId = '';
+  let banId = '', planAnswer = '';
   const done = await db.runTransaction(async (tx) => {
     const d = await tx.get(ref), m = d.exists ? d.data() : null;
-    banId = (m && m.ban) || '';
+    banId = (m && m.ban) || ''; planAnswer = (m && m.planAnswer) || '';
     if (!m || m.type !== 'approval_request') throw fail(404, 'Запит не знайдено');
     if (m.approval && m.approval.status !== 'pending') return false;
     tx.update(ref, { approval: { status: o.approve ? 'approved' : 'rejected', via: o.via, by: str(o.by, 80), ...(o.words ? { words: str(o.words, 300) } : {}), comment: str(o.comment, 1000), at: Date.now() },
@@ -161,6 +168,7 @@ async function applyApproval(gref, msgId, o) {
   });
   if (!done) throw fail(409, 'Цей запит уже вирішено');
   if (banId) await settleBan(gref, banId, !!o.approve).catch((e) => console.error('[agents] settleBan', e));
+  if (planAnswer) await settlePlanAnswer(gref, planAnswer, !!o.approve).catch((e) => console.error('[agents] settlePlanAnswer', e));
   const aref = db.collection('agentApprovals').doc(approvalId(gref.parent.parent.id, gref.id, msgId)), a = await aref.get().catch(() => null);
   if (a && a.exists) {
     await aref.set({ used: true }, { merge: true });

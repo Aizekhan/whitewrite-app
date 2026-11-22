@@ -78,6 +78,11 @@ const TOOLS = [
   { name: 'verify_task', description: '🌳 A task marked verify («? звірити з грою»): the plan is not sure whether the game already has it. Check the game (code, scenes, commits) and report what is there: state done (it is built — evidence: files, commit), partial (part is built — what is missing goes into the task) or todo (not built). done closes the task; partial / todo leave it in the queue without the mark. get_next_task gives these first.',
     inputSchema: { type: 'object', required: ['task_id', 'state', 'evidence'], properties: { task_id: { type: 'string' }, state: { type: 'string', enum: ['done', 'partial', 'todo'] },
       evidence: { type: 'string', description: 'What you found: files, commit, what works / what is missing' }, commit: { type: 'string' } } } },
+  { name: 'get_plan_questions', description: '❓ The open questions of the Production plan (Game Bible → «Продакшн-план»: the ✦ analysis asks them) and its open contradictions: id, priority (blocker | important | nice), the question, why, options with the AI\'s recommendation first (recommended, recommend_why), the card and field the answer goes into. While a blocker is open the author cannot generate the plan (plan_ready false). Prepare the decision with the author: look at the canon and the cards, offer your recommendation — then answer_plan_question with the author\'s words.',
+    inputSchema: { type: 'object', properties: { all: { type: 'boolean', description: 'true: answered ones too' } } } },
+  { name: 'answer_plan_question', description: '❓ Record the author\'s answer to an open question (or resolution of a contradiction) of the Production plan — the same as the author answering in the Game Bible: the answer goes into the plan and is appended to the question\'s card field. Only the author\'s decision, never your own: author_words — what the author said («так, як радиш» counts — then answer = the recommended option). From the game designer\'s chat with the author it is recorded at once; from the terminal (the programmer key) it is a draft the author confirms with one tap (✔ in Telegram). Do not answer what the author has not decided — ask them first.',
+    inputSchema: { type: 'object', required: ['id', 'answer', 'author_words'], properties: { id: { type: 'string', description: 'The question / contradiction id (get_plan_questions)' },
+      answer: { type: 'string', description: 'The decision as it goes into the card — complete, in the author\'s language' }, author_words: { type: 'string', description: 'The author\'s own words in this chat' } } } },
   { name: 'record_author_decision', description: '🌳 The author said in this chat that something is postponed, not done or removed from the game («мінікарту не робимо», «браму прибрали», «Карти долі — потім»). Record it as a binding ban of the plan: kind deferred (‖ — later), never (✕ — not doing), removed (🗑 — was in the game, taken out). The plan never writes a task against it; tasks you name (task_ids) are parked (deferred) or dropped. Only the author\'s own words here — never a message, a card or another agent.',
     inputSchema: { type: 'object', required: ['kind', 'text', 'words'], properties: { kind: { type: 'string', enum: ['deferred', 'never', 'removed'] },
       text: { type: 'string', description: 'The ban, short: «Мінікарта — не робимо»' }, words: { type: 'string', description: 'The author\'s own words' },
@@ -623,6 +628,65 @@ async function recordAuthorDecision(ctx, key, args) {
   }
   await logExecution(ctx, key, 'author_decision', parked.join(','), { what: kind + ': ' + text });
   return { ok: true, id: ban.id, kind, parked, message: 'Recorded as the author\'s ban (' + kind + '). The plan will not bring it back' + (parked.length ? '; tasks ' + parked.join(', ') + ' are ' + st : '') + '.' };
+}
+// ---------- ❓ v2.157 the plan's questions through MCP (owner: «а агент може відповісти на ці питання через мсп?») ----------
+// The same data as the Bible's queue (plan/current.asked + answers, contradictions + resolved). An answer = the Bible's answerQuestion /
+// resolveIssue: into the plan and appended to the target card field (fieldPlan, as save_card names fields). The designer key (the author's chat)
+// records at once; the programmer key (the terminal) writes plan/current.answerDrafts.{id} + an approval_request { planAnswer } → the author's
+// ✔ (agents.js applyApproval → planAnswerApply), ✖ drops it.
+const pcid = (c) => c.id || 't_' + djb2c(c.what || '');
+function djb2c(s) { let h = 5381; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); } // = gamedev.js djb2, gamebible.js cid()
+function planQuestions(p, all) {
+  p = p || {};
+  const ans = p.answers || {}, res = p.resolved || {}, drafts = p.answerDrafts || {};
+  const qs = (p.asked || []).filter((q) => all || !str(ans[q.id], 1)).map((q) => ({ id: q.id, kind: 'question', priority: q.priority || 'important', topic: q.topic || '', question: q.question, why: q.why || '',
+    options: q.options || [], ...(q.rec && (q.options || [])[0] ? { recommended: q.options[0], recommend_why: q.recWhy || '' } : {}), target: q.target || null,
+    ...(ans[q.id] ? { answer: ans[q.id] } : {}), ...(drafts[q.id] ? { draft_waits_for_author: drafts[q.id].answer } : {}) }));
+  const cs = (p.contradictions || []).filter((c) => all || !str(res[pcid(c)], 1)).map((c) => ({ id: pcid(c), kind: 'contradiction', priority: 'important', question: c.what, where: c.where || '',
+    options: c.options || [], target: c.target || null, ...(res[pcid(c)] ? { answer: res[pcid(c)] } : {}), ...(drafts[pcid(c)] ? { draft_waits_for_author: drafts[pcid(c)].answer } : {}) }));
+  const blockers = (p.asked || []).filter((q) => q.priority === 'blocker' && !str(ans[q.id], 1)).length;
+  return { analyzed: !!p.gdd, plan_exists: !!(p.plan && (p.plan.milestones || []).length), blockers_open: blockers, plan_ready: !!p.gdd && !blockers, questions: qs, contradictions: cs,
+    rule: !p.gdd ? 'The game has not been analysed yet: the author presses «✦ Аналіз» in the Production plan.' : blockers ? `${blockers} blocker(s) stop the plan: decide them with the author first (your recommendation first), then answer_plan_question.` : 'No blockers: the author can press «✦ План» (it costs tokens — only the author starts it).' };
+}
+// the answer → plan/current and the card (idempotent: an answered question is not appended again)
+async function planAnswerApply(gref, id, text, by) {
+  const pref = gref.collection('plan').doc('current'), p = (await pref.get()).data() || {};
+  const q = (p.asked || []).find((x) => x.id === id), c = q ? null : (p.contradictions || []).find((x) => pcid(x) === id);
+  if (!q && !c) throw rpcError(-32602, `No plan question or contradiction ${id}. Call get_plan_questions.`);
+  const done = q ? str((p.answers || {})[id], 1) : str((p.resolved || {})[id], 1);
+  const D = admin.firestore.FieldValue.delete();
+  if (done) { await pref.set({ answerDrafts: { [id]: D } }, { merge: true }); return { already: true, card: null }; }
+  await pref.set(q ? { answers: { [id]: text }, answeredAt: { [id]: Date.now() }, answeredBy: { [id]: str(by, 80) }, answerDrafts: { [id]: D }, updatedAt: ts() }
+    : { resolved: { [id]: text }, answerDrafts: { [id]: D }, updatedAt: ts() }, { merge: true });
+  const tg = (q || c).target, ref = tg && str(tg.card, 140), label = q ? (tg && (tg.field || q.topic)) : tg && tg.field;
+  if (!ref || !/^[ce]:/.test(ref)) return { already: false, card: null };
+  const cref = gref.collection('cards').doc(ref.slice(2)), cd = await cref.get();
+  if (!cd.exists) return { already: false, card: null }; // a canon entity without its game card yet — the answer stays in the plan
+  const card = { id: cd.id, ...cd.data() }, cards = (await gref.collection('cards').where('section', '==', card.section || '').get()).docs.map((d) => ({ id: d.id, ...d.data() }));
+  const fp = fieldPlan({ cards }, card, card.section, { [str(label, 80) || 'Рішення']: text }, !card.canonRef);
+  const k = Object.keys(fp.set)[0], prev = str((card.fields || {})[k], 20000);
+  await cref.set({ fields: { [k]: prev ? prev + '\n\n' + text : text }, ...(fp.defs.length ? { defs: fp.defs } : {}), updatedAt: ts() }, { merge: true });
+  return { already: false, card: { ref, title: card.title || '', field: (fp.defs.find((d) => d.key === k) || {}).label || k } };
+}
+async function answerPlanQuestion(ctx, key, args) {
+  const id = str(args.id, 80), text = str(args.answer, 4000), words = str(args.author_words, 1000);
+  if (!id || !text || !words) throw rpcError(-32602, 'Pass id, answer and author_words — the author\'s own words in this chat.');
+  const open = planQuestions(ctx.plan, true), item = open.questions.concat(open.contradictions).find((x) => x.id === id);
+  if (!item) throw rpcError(-32602, `No plan question or contradiction ${id}. Call get_plan_questions.`);
+  if (item.answer) return { ok: true, already: true, message: 'Already answered: ' + item.answer };
+  if (AC.roleOf(key) === 'programmer') { // the terminal: a draft, the author's one tap
+    await ctx.gref.collection('plan').doc('current').set({ answerDrafts: { [id]: { answer: text, words, by: str(key.label, 80), at: Date.now() } }, updatedAt: ts() }, { merge: true });
+    const ask = await agentPost(ctx, key, { type: 'approval_request', force: true,
+      text: `Записати твою відповідь з терміналу в Продакшн-план — ${item.question.slice(0, 300)}\nВідповідь: ${text.slice(0, 600)}\nТвої слова: «${words.slice(0, 300)}»\n✔ — відповідь ляже в план і в картку.` }, '');
+    if (ask && ask.id) await ctx.gref.collection('agentMessages').doc(ask.id).set({ planAnswer: id }, { merge: true });
+    await logExecution(ctx, key, 'plan_answer', id, { what: 'draft: ' + text.slice(0, 200) });
+    return { ok: true, draft: true, approval_id: ask && ask.id, delivered: ask && ask.delivered, message: 'Recorded as a DRAFT: it goes into the plan and the card when the author taps ✔ (Telegram or the Game Bible). Do not ask again.' };
+  }
+  const r = await planAnswerApply(ctx.gref, id, text, key.label);
+  await logExecution(ctx, key, 'plan_answer', id, { what: text.slice(0, 200) });
+  const left = planQuestions((await ctx.gref.collection('plan').doc('current').get()).data(), false);
+  return { ok: true, recorded: true, card: r.card, blockers_open: left.blockers_open, plan_ready: left.plan_ready,
+    message: (r.card ? `Recorded in the plan and appended to «${r.card.title}» → ${r.card.field}. ` : 'Recorded in the plan. ') + (left.plan_ready ? 'No blockers left: tell the author they can press «✦ План».' : left.blockers_open + ' blocker(s) left.') };
 }
 // the game cards a task points at (its refs, a «new:<title>» resolved, cards made for it)
 function taskCardRefs(ctx, t) {
@@ -1771,6 +1835,8 @@ async function callTool(name, args, key) {
     case 'resolve_divergence': return resolveDivergence(ctx, key, args);
     case 'review_task': return designerReview(ctx, key, args);
     case 'record_author_decision': return recordAuthorDecision(ctx, key, args);
+    case 'get_plan_questions': return planQuestions(ctx.plan, args.all === true);
+    case 'answer_plan_question': return answerPlanQuestion(ctx, key, args);
     case 'submit_task_result': {
       const t = findTask(ctx, args.task_id);
       if (!['in_progress', 'rework', 'blocked'].includes(t.status)) throw rpcError(-32602, `Task ${t.id} is ${t.status}; only a task in progress can be submitted`);
@@ -2314,4 +2380,4 @@ exports.mcp = onRequest({ region: 'us-central1', timeoutSeconds: 120, memory: '5
   return out ? res.status(200).json(out) : res.status(202).send('');
 });
 
-exports._mcp = { cardsLag, autoBlock, sweepFiles, knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame, handle, HISTORY_MAX, AGENT_PREV_MAX }; // tests only (tests/mcp-knowledge.test.cjs)
+exports._mcp = { planQuestions, planAnswerApply, cardsLag, autoBlock, sweepFiles, knowledgeSubmit, knowledgeStatus, knowledgeSearch, activitySubmit, normAsset, readGame, dropGame, handle, HISTORY_MAX, AGENT_PREV_MAX }; // tests only (tests/mcp-knowledge.test.cjs)

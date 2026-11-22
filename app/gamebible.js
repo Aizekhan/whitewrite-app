@@ -11572,6 +11572,7 @@
       (q.topic ? ' <span class="muted">' + esc(q.topic) + '</span>' : '') + '</div>' +
       '<div class="q__q">' + esc(q.question) + '</div>' + (q.why ? '<div class="muted">' + esc(q.why) + '</div>' : '') +
       (q.options && q.options.length ? '<div class="row q__opts">' + q.options.map(function (o, i) { var r = q.rec && !i; return '<button class="chip' + (r ? ' chip-rec' : '') + '" data-opt="' + esc(o) + '">' + (r ? '⭐ ' : '') + esc(o) + '</button>'; }).join("") + '</div>' : '') +
+      ((planDoc.answerDrafts || {})[q.id] ? '<div class="tblock">' + esc(TB.qDraft) + ': «' + esc(planDoc.answerDrafts[q.id].answer) + '» <button type="button" class="btn mini" data-gosec="agents">' + esc(TB.qDraftGo) + '</button></div>' : '') +
       (q.rec && q.options && q.options[0] ? '<div class="muted">' + esc(TB.recStar) + (q.recWhy ? ': ' + esc(q.recWhy) : '') + '</div>' : '') +
       '<textarea rows="2" placeholder="' + esc(STR.answerPh) + '"></textarea><div class="row">' + (q.rec && q.options && q.options[0] && canWrite ? '<button class="btn primary" data-recyes="' + esc(q.options[0]) + '">' + esc(TB.recYes.replace("{o}", q.options[0])) + '</button>' : '') +
       '<button class="btn' + (primary && !q.rec ? ' primary' : '') + '" data-answer>' + STR.answer + '</button></div></div>';
@@ -11954,7 +11955,7 @@
       draftAdd: "＋ нових задач: {n}", draftDone: "уже зроблено: {n}", draftVerify: "звірити з грою: {n}", draftDrop: "− прибираються незапочатковані: {n}", draftKeep: "лишаються як є: {n}",
       draftMs: "нові етапи: {l}", draftGone: "зникають етапи: {l}", draftYes: "✓ Так, застосувати", draftNo: "✕ Відхилити", draftBusy: "Застосовую…", draftDone2: "Новий план застосовано", draftDropped: "Пропозицію відхилено",
       week: "📅 Тиждень: закрито {c}", weekAuto: " (без тебе: {n})", weekNew: " · нових задач: {n}", weekMs: " · {m} — {p}%",
-      recYes: "✓ Так, як радить: «{o}»", recStar: "⭐ радить ШІ" },
+      recYes: "✓ Так, як радить: «{o}»", recStar: "⭐ радить ШІ", qDraft: "⏳ Claude Code записав твою відповідь з терміналу", qDraftGo: "✔ / ✖ →" },
     en: { proof: "Proof · {t}", needs: "Closes with the proof", closedAuto: "🤖 closed itself with proof", closedDes: "🎲 accepted by the game designer",
       notAuto: "Did not close itself: {w}", desRec: "🎲 The game designer recommends accepting", desWhy: "waits for you: {w}", evAll: "The whole proof", evPlay: "Playtest", evCons: "Console errors", evLic: "Licence",
       why: { off: "automatic closing is off", proof: "the proof is incomplete", check: "not every criterion or test", cards: "cards lag behind the game", questions: "questions for you are open", divergence: "a divergence on a card", epic: "a rule outside an agreed epic" },
@@ -11964,7 +11965,7 @@
       draftAdd: "＋ new tasks: {n}", draftDone: "already done: {n}", draftVerify: "to check against the game: {n}", draftDrop: "− unstarted tasks removed: {n}", draftKeep: "kept as they are: {n}",
       draftMs: "new milestones: {l}", draftGone: "milestones gone: {l}", draftYes: "✓ Yes, apply", draftNo: "✕ Reject", draftBusy: "Applying…", draftDone2: "The new plan is applied", draftDropped: "The proposal is rejected",
       week: "📅 The week: closed {c}", weekAuto: " (without you: {n})", weekNew: " · new tasks: {n}", weekMs: " · {m} — {p}%",
-      recYes: "✓ Yes, as recommended: «{o}»", recStar: "⭐ the AI recommends" } }[LANG === "en" ? "en" : "uk"];
+      recYes: "✓ Yes, as recommended: «{o}»", recStar: "⭐ the AI recommends", qDraft: "⏳ Claude Code recorded your answer from the terminal", qDraftGo: "✔ / ✖ →" } }[LANG === "en" ? "en" : "uk"];
   function TTp() { return window.__TASK_TYPES; }
   function typeChip(x) {
     var T = TTp(); if (!T || !x || isBugT(x)) return "";

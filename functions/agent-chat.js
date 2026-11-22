@@ -10,7 +10,7 @@ const READ = /^(get_|list_|search_|find_)/;
 // «Геймдизайнер» keeps the GDD (cards, mechanics, quests, dialogues, links, files, style checks, change requests) and talks;
 // it takes no tasks, reports no bugs, writes no development log, knowledge or environment
 const DESIGNER_WRITE = ['save_card', 'save_mechanic', 'save_quest', 'save_dialogue', 'link_cards', 'archive_card', 'card_image_upload', 'card_file_upload',
-  'card_file_confirm', 'check_style', 'submit_change_request', 'post_agent_message', 'reply_agent_message', 'resolve_approval', 'record_author_decision', 'resolve_divergence', 'review_task'];
+  'card_file_confirm', 'check_style', 'submit_change_request', 'post_agent_message', 'reply_agent_message', 'resolve_approval', 'record_author_decision', 'resolve_divergence', 'review_task', 'answer_plan_question'];
 function toolAllowed(role, name) {
   if (role === 'programmer') return true;
   if (READ.test(name)) return true; // get_next_task too — without claiming (claimFor)
