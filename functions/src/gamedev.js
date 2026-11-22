@@ -307,7 +307,7 @@ const TASK_KEYS = ['title', 'detail', 'deps', 'size', 'owner', 'priority', 'asse
 function reconcileTasks(plan, old, prevPlan) {
   const kept = new Map(), who = {}, stale = []; // who: the person a replaced task was given to — the same task id keeps them
   old.forEach((x) => {
-    if (x.kind !== 'bug' && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(x.id); if (x.assignee) who[x.id] = x.assignee; } else kept.set(x.id, x);
+    if (x.kind !== 'bug' && x.kind !== 'author' && !MANUAL_MS.includes(x.milestone) && ['todo', 'rework'].includes(x.status)) { stale.push(x.id); if (x.assignee) who[x.id] = x.assignee; } else kept.set(x.id, x);
   });
   const asListed = (x) => Object.fromEntries([['id', x.id]].concat(TASK_KEYS.filter((k) => x[k] != null).map((k) => [k, x[k]])));
   const used = new Set(kept.keys()), listed = new Set(), writes = [];
@@ -332,7 +332,7 @@ function reconcileTasks(plan, old, prevPlan) {
   // kept plan tasks the new plan does not list
   const prevMs = (prevPlan && prevPlan.milestones) || [], carried = {};
   kept.forEach((x) => {
-    if (listed.has(x.id) || x.kind === 'bug' || MANUAL_MS.includes(x.milestone) || !x.milestone) return;
+    if (listed.has(x.id) || x.kind === 'bug' || x.kind === 'author' || MANUAL_MS.includes(x.milestone) || !x.milestone) return;
     const m = plan.milestones.find((y) => y.id === x.milestone);
     if (m) { m.tasks.push(asListed(x)); return; }
     if (!carried[x.milestone]) {
@@ -348,6 +348,27 @@ function reconcileTasks(plan, old, prevPlan) {
     writes: writes.map((w) => ({ id: w.id, data: { ...w.t, milestone: w.m.id, track: w.m.track, status: 'todo', order: w.order, history: [], ...(who[w.id] ? { assignee: who[w.id] } : {}) } })),
     drop: stale.filter((id) => !fresh.has(id)),
   };
+}
+// ✋ v2.153 (owner: «плану не прописано, але вже багато зроблено — і ми нажмемо згенерувати план»): the plan is written on what is
+// already built — done / started tasks (the author's instructions too), cards in the game, the last development-log sessions
+async function builtText(gameRef, cards) {
+  const none = () => ({ docs: [] });
+  const [tq, aq, mq] = await Promise.all([gameRef.collection('tasks').get(), gameRef.collection('activity').orderBy('receivedAt', 'desc').limit(15).get().catch(none),
+    gameRef.collection('agentMessages').orderBy('at', 'desc').limit(300).get().catch(none)]);
+  const all = tq.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const tasks = all.filter((t) => ['done', 'review', 'in_progress', 'blocked'].includes(t.status));
+  const ingame = (cards || []).filter((c) => !c.hidden && !c.archived && c.status === 'ingame'); // «agreed» is not «built»
+  const log = aq.docs.map((d) => d.data()).filter((a) => str(a.summary, 1));
+  const msgs = mq.docs.map((d) => d.data()).filter((m) => m.status !== 'closed');
+  const handoffs = msgs.filter((m) => m.type === 'handoff').slice(0, 30); // Claude Code's reports: commits and cards
+  // the author's decisions the plan must not contradict: «Рішення» in «💬 Агенти», the author's instructions, approved requests
+  const decisions = msgs.filter((m) => m.type === 'decision' || (m.type === 'approval_request' && m.approval && m.approval.status === 'approved')).slice(0, 40).map((m) => str(m.text, 300))
+    .concat(all.filter((t) => t.kind === 'author').map((t) => str(t.words || t.title, 300) + (t.numbers ? ' (' + str(t.numbers, 200) + ')' : '')));
+  if (!tasks.length && !ingame.length && !log.length && !handoffs.length && !decisions.length) return '';
+  const line = (t) => `- [${t.status}] ${t.id}${t.kind === 'author' ? ' (the author\'s instruction)' : t.kind === 'bug' ? ' (bug)' : ''}: ${str(t.title, 160)}${(t.cards || []).length ? ' — ' + t.cards.slice(0, 8).join(', ') : ''}`;
+  return `\n\nALREADY BUILT OR UNDER WAY (the game is not starting from zero — plan only what is left):
+${tasks.slice(0, 200).map(line).join('\n')}${ingame.length ? '\nCards already in the game: ' + ingame.slice(0, 200).map((c) => `c:${c.id} ${str(c.title, 80)}`).join('; ') : ''}${log.length ? '\nDevelopment log (newest first):\n' + log.map((a) => '- ' + str(a.summary, 300)).join('\n') : ''}${handoffs.length ? '\nHandoffs of the coding agent (newest first):\n' + handoffs.map((m) => '- ' + str(m.text, 300) + ((m.refs || []).length ? ' [' + m.refs.slice(0, 8).join(', ') + ']' : '')).join('\n') : ''}${decisions.length ? `\n\nTHE AUTHOR'S DECISIONS (binding — never write a task that contradicts one; a removed / postponed thing gets no task):\n` + decisions.map((d) => '- ' + d).join('\n') : ''}
+Rules for this: never write a task for what is listed here as done, in progress or in the game; a milestone whose deliverables are all built gets the task-less goal «вже зроблено» and its gate states what to check; keep the ids of the existing tasks out of the new tasks; the tasks you write continue from here.`;
 }
 // The AI plan's tasks: the new ones first (in batches), then the plan doc itself (writePlan), then the old open tasks it replaced —
 // so a failure midway never leaves a plan whose tasks are missing. Kept: started / done tasks, bugs, the manual EX.n / MAP.n.
@@ -948,6 +969,7 @@ exports.gamedevPlan = onRequest({
         return res.status(403).json({ error: 'Недостатньо токенів', tokensRemaining: balance.available, tokensNeeded: reserveCost, code: 'OUT_OF_TOKENS' });
       }
 
+      const built = op === 'plan' ? await builtText(gameRef, cards) : ''; // ✋ v2.153: what the game already has
       // A big import is split into parts sorted in parallel (one long call ran past the function timeout)
       const prompts = isCanon ? [canonAuditPrompt(bibleText(world, entities, [], {}, [], lore), decided(audit.contradictions, auditAnswers), languageName)]
         : op === 'import' ? splitMarkdown(markdown).map((part) => importPrompt(part, shelves, entities, world, languageName, cards))
@@ -955,7 +977,7 @@ exports.gamedevPlan = onRequest({
         : op === 'concepts' ? [conceptsPrompt(bibleText(world, entities, [], {}, [], lore), str(body.hint, 600), languageName)]
         : op === 'draft' ? [draftPrompt(idea, shelves, entities, world, languageName, cards)]
         : op === 'repoSync' ? [repoPrompt(repoData.text, bibleText(world, entities, cards, game, shelves, lore), shelves, languageName, cards)]
-        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, prev.gdd, languageName, shelves)
+        : [op === 'plan' ? planPrompt(bibleText(world, entities, cards, game, shelves, lore) + built, engine, answered, prev.gdd, languageName, shelves)
           : analyzePrompt(bibleText(world, entities, cards, game, shelves, lore), engine, answered, languageName)];
       const prompt = prompts.map((c) => (Array.isArray(c) ? c.map((b) => b.text).join('') : c)).join('');
       // An uncapped long run (plan, analyze…) costs far above its registry price on Opus (a plan: 64k + 14 × 32k output): the reserve
@@ -1017,7 +1039,7 @@ exports.gamedevPlan = onRequest({
         results = out.filter((r) => r.status === 'fulfilled').flatMap((r) => r.value);
       } else if (op === 'plan') { // pass 1 — the skeleton; pass 2 — every milestone's tasks in parallel (planTasksPrompt)
         const skel = await ask(prompts[0], 64000);
-        const bible = bibleText(world, entities, cards, game, shelves, lore), sk = (skel && skel.plan) || {};
+        const bible = bibleText(world, entities, cards, game, shelves, lore) + built, sk = (skel && skel.plan) || {};
         const ms = (Array.isArray(sk.milestones) ? sk.milestones : []).filter((m) => m && str(m.name, 1)).slice(0, 14);
         if (!ms.length) throw Object.assign(new Error('AI не дав етапів плану'), { paid: { model: usedModel, usage } });
         numberMilestones(ms); // the final ids before pass 2 (cleanPlan numbers the same way)

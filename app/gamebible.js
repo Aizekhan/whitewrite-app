@@ -11471,7 +11471,7 @@
     }).join("") + '</section>';
     if (planDoc.scaffold && !planDoc.scaffold.appliedAt && ((planDoc.scaffold.sections || []).length || (planDoc.scaffold.cards || []).length)) html += scaffoldHtml(planDoc.scaffold);
     if (plan) html += planHtml(plan);
-    else { var lb = tasks.filter(isBugT).sort(bySev); if (lb.length || (canWrite && gdd)) html += '<section class="psec">' + bugBarHtml(0) + (lb.length ? looseBugsHtml(lb) : '') + '</section>'; } // bugs before there is a plan
+    else { var lb = tasks.filter(isBugT).sort(bySev), la = tasks.filter(isAuthT); if (lb.length || la.length || (canWrite && gdd)) html += '<section class="psec">' + bugBarHtml(0) + (la.length ? looseAuthHtml(la) : '') + (lb.length ? looseBugsHtml(lb) : '') + '</section>'; } // bugs and the author's instructions before there is a plan
     $("view").innerHTML = html;
     [].forEach.call(document.querySelectorAll("[data-sc]"), function (cb) { cb.onchange = function () { scOff[cb.dataset.sc] = !cb.checked; }; });
     var scb = $("sc-ok"); if (scb) scb.onclick = function () { scb.disabled = true; applyScaffold().catch(function (e) { planMsg = STR.failed + ": " + e.message; render(); }); };
@@ -11658,16 +11658,18 @@
     if (lt.status === "blocked" && lt.blocker) html += '<div class="tblock"><b>' + STR.blocked + ':</b> ' + esc(lt.blocker.problem) + (lt.blocker.needs ? '<div class="muted">' + STR.needs + ': ' + esc(lt.blocker.needs) + '</div>' : '') +
       (canWrite ? '<div class="row"><button class="btn" data-unblock="' + esc(lt.id) + '">' + STR.unblock + '</button></div>' : '') + '</div>';
     if (lt.status === "review" && lt.report) {
-      var r = lt.report, ck = r.check || {};
+      var r = lt.report, ck = r.check || {}, lag = lagCards(lt);
       html += '<div class="treview"><div><b>' + STR.report + ':</b> ' + esc(r.summary) + '</div>' +
         (r.commit ? '<div class="muted">commit: <span class="mono">' + esc(r.commit) + '</span></div>' : '') +
         ((r.changes || []).length ? '<details><summary>' + STR.changes + ' (' + r.changes.length + ')</summary><pre>' + esc(r.changes.join("\n")) + '</pre></details>' : '') +
         '<div>' + STR.tests + ': ' + (r.tests && r.tests.ran ? '✓ ' + r.tests.passed + ' · ✗ ' + r.tests.failed : STR.testsNone) + '</div>' +
         ((r.criteria || []).length ? '<ul class="crit">' + r.criteria.map(function (c) { return '<li>' + (c.met ? '✅' : '❌') + ' ' + esc(c.criterion) + (c.evidence ? ' <span class="muted">— ' + esc(c.evidence) + '</span>' : '') + '</li>'; }).join("") + '</ul>' : '') +
         '<div class="muted">' + STR.serverCheck + ': ' + (ck.allCriteriaMet && ck.testsGreen ? '✅ ' + STR.checkOk : '⚠ ' + STR.checkWarn + ((ck.unmet || []).length ? ' (' + esc(ck.unmet.join("; ")) + ')' : '')) + '</div>' +
-        (canWrite ? (ck.allCriteriaMet && ck.testsGreen // failed checks: «return» is the primary action, accepting asks once more
+        (lag.length ? '<div class="tblock"><b>' + esc(AU.lag) + '</b><div class="cchips">' + lag.map(function (x) { return cardChip(x); }).join("") + '</div><div class="muted">' + esc(AU.lagHint) + '</div></div>' : '') +
+        (((r.cards || {}).unchanged || []).length ? '<div class="muted">' + esc(AU.unchanged) + ': ' + r.cards.unchanged.map(function (u) { return esc(u.ref) + ' — ' + esc(u.why); }).join("; ") + '</div>' : '') +
+        (canWrite ? (ck.allCriteriaMet && ck.testsGreen && !lag.length // failed checks or lagging cards: «return» is the primary action, accepting asks once more
           ? '<div class="row"><button class="btn primary" data-accept="' + esc(lt.id) + '">' + STR.accept + '</button><button class="btn" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button></div>'
-          : '<div class="row"><button class="btn primary" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button><button class="btn" data-accept="' + esc(lt.id) + '" data-unchecked="1">' + STR.accept + '</button></div>') : '') + '</div>';
+          : '<div class="row"><button class="btn primary" data-return="' + esc(lt.id) + '">' + STR.giveBack + '</button><button class="btn" data-accept="' + esc(lt.id) + '" data-unchecked="' + (lag.length ? 'lag' : '1') + '">' + STR.accept + '</button></div>') : '') + '</div>';
     }
     return html;
   }
@@ -11767,14 +11769,15 @@
   function taskHtml(t) {
     var P = STR.pp, lt = liveTask(t.id), acc = (lt && lt.accept) || t.accept || [], tst = (lt && lt.tests) || t.tests || []; // the task doc is the source of truth
     var bt = isBugT(lt) ? lt : isBugT(t) ? t : null;
-    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
+    var at = isAuthT(lt) ? lt : isAuthT(t) ? t : null;
+    return '<div class="task' + (lt ? ' t-' + cls(lt.status) : '') + (bt || at ? ' t-bug' : '') + '"><div class="task__h"><span class="mono">' + esc(t.id) + '</span>' + (bt ? sevChip(bt) : '') + (at ? ' <span class="pill s-agreed">' + esc(AU.chip) + '</span>' : '') + ' <b>' + esc(t.title) + '</b>' + memberHtml(lt) +
       (lt ? ' <span class="pill tst-' + cls(lt.status) + '">' + esc(STR.ts[lt.status] || lt.status) + '</span>' : '') +
       (t.priority ? ' <span class="pill pr-' + cls(t.priority) + '">' + esc(P.prio[t.priority]) + '</span>' : '') +
       ' <span class="pill s-agreed">' + esc(t.size) + (t.estimate ? ' · ' + P.days.replace("{n}", t.estimate) : '') + '</span> <span class="pill s-idea">' + esc(t.owner) + '</span>' +
       (t.assetState ? ' <span class="pill st-' + cls(t.assetState) + '" title="' + esc(P.stateNeed) + '">→ ' + esc(P.state[t.assetState]) + '</span>' : '') +
       (lt ? whoHtml(lt) : '') +
       (t.deps.length ? ' <span class="muted">' + STR.deps + ' ' + esc(t.deps.join(", ")) + '</span>' : '') + '</div>' +
-      (bt ? bugBody(bt) : t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
+      (bt ? bugBody(bt) : at ? authBody(at) : t.detail ? '<div class="task__d">' + esc(t.detail) + '</div>' : '') +
       ((t.cards || []).length ? '<div class="cchips">' + t.cards.map(function (r) { return cardChip(r, (t.roles || {})[r]); }).join("") + '</div>' : '') +
       (acc.length ? '<details><summary>' + STR.acceptTitle + ' (' + acc.length + ')</summary><ul class="crit">' + acc.map(function (a) { return '<li>' + esc(a) + '</li>'; }).join("") + '</ul>' +
         (tst.length ? '<div class="muted">' + STR.tests + ': ' + esc(tst.join("; ")) + '</div>' : '') + '</details>' : '') +
@@ -11785,7 +11788,8 @@
   function msShown(m) {
     var ts = m.tasks || [], ids = ts.map(function (t) { return t.id; });
     var bugs = tasks.filter(function (t) { return isBugT(t) && t.milestone === m.id && ids.indexOf(t.id) < 0; }).sort(bySev);
-    var l = (bugsOnly ? ts.filter(function (t) { return isBugT(liveTask(t.id)); }) : ts).concat(bugs);
+    var auth = bugsOnly ? [] : tasks.filter(function (t) { return isAuthT(t) && t.milestone === m.id && ids.indexOf(t.id) < 0; });
+    var l = (bugsOnly ? ts.filter(function (t) { return isBugT(liveTask(t.id)); }) : ts).concat(auth, bugs);
     return mineOnly ? l.filter(isMine) : l;
   }
   function bugBarHtml(mineN) { // the plan's filters: «Лише мої задачі», «🐞 Баги N», «＋ Баг»
@@ -11898,6 +11902,31 @@
       log: "Decision log", logHint: "Every decision of the game in one place — Claude Code sees the same (get_project_overview → decisions).", logNone: "No decisions yet: answers to the analysis questions, approved gates, change requests, experiments and framework gaps will appear here.",
       type: { question: "Question", change_request: "Change request", framework_gap: "Framework", experiment: "Experiment", gate: "Gate" },
       accepted: "accepted", declined: "declined", ended: "ended", open: "Open", openCard: "Card", toPlan: "To the milestone", toExp: "Player experience", noDate: "no date" } }[LANG];
+  // ✋ v2.153: the author's instructions from the chat (MCP record_author_instruction) and the cards lagging behind the game at hand-in
+  var AU = { uk: { chip: "✋ від автора", src: { chat: "словом у чаті з агентом", approval: "погоджено в «💬 Агенти»", answer: "відповідь у «💬 Агенти»" }, words: "Вказівка", numbers: "Числа", decision: "Рішення",
+      loose: "Вказівки автора поза етапами", looseHint: "Claude Code записав твої слова з чату як задачі — щоб нічого не загубилось і картки GDD оновились.",
+      lag: "⚠ Картки відстають від гри", lagHint: "Задача змінила гру, але ці картки GDD ще показують старе. Онови їх (або попроси Claude Code) — тоді задачу можна закрити.", unchanged: "Без змін",
+      acceptLag: "Картки GDD ще відстають від гри — після приймання вони показуватимуть старе. Прийняти все одно?" },
+    en: { chip: "✋ from the author", src: { chat: "in words in the chat with the agent", approval: "approved in «💬 Agents»", answer: "an answer in «💬 Agents»" }, words: "Instruction", numbers: "Numbers", decision: "Decision",
+      loose: "The author's instructions outside milestones", looseHint: "Claude Code recorded your words from the chat as tasks — so nothing gets lost and the GDD cards are updated.",
+      lag: "⚠ Cards lag behind the game", lagHint: "The task changed the game, but these GDD cards still show the old design. Update them (or ask Claude Code) — then the task can be closed.", unchanged: "No change",
+      acceptLag: "The GDD cards still lag behind the game — after accepting they will show the old design. Accept anyway?" } }[LANG];
+  function isAuthT(t) { return !!t && t.kind === "author"; }
+  function tMs(v) { return !v ? 0 : typeof v === "number" ? v : v.toMillis ? v.toMillis() : v.seconds ? v.seconds * 1000 : 0; }
+  function authBody(t) {
+    var d = t.decision || {};
+    return '<div class="bugd"><div><b>' + esc(AU.words) + ':</b> <span class="prewrap">«' + esc(t.words || "") + '»</span></div>' +
+      (t.numbers ? '<div><b>' + esc(AU.numbers) + ':</b> ' + esc(t.numbers) + '</div>' : '') +
+      '<div class="muted">' + esc(AU.decision) + ': ' + esc(AU.src[t.source] || AU.src.chat) + (d.message ? ' · <span class="mono">' + esc(d.message) + '</span>' : '') + '</div></div>';
+  }
+  // the cards of a handed-in task still older than its start (the server's list, re-checked live: a card updated since drops out)
+  function lagCards(lt) {
+    var c = (lt.report || {}).cards; if (!c || !(c.stale || []).length) return [];
+    return c.stale.filter(function (r) { var x = cards.filter(function (k) { return "c:" + k.id === r; })[0]; return x && tMs(x.updatedAt) < c.since; });
+  }
+  function looseAuthHtml(list) {
+    return '<div class="ms ms-bugs" id="ms-AUTHOR"><h3>' + esc(AU.loose) + ' <span class="muted">' + list.length + '</span></h3><p class="muted">' + esc(AU.looseHint) + '</p>' + list.map(taskHtml).join("") + '</div>';
+  }
   var bugsOnly = false;
   function isBugT(t) { return !!t && t.kind === "bug"; }
   var SEV = ["s1", "s2", "s3", "s4"];
@@ -12032,6 +12061,8 @@
         : '<details class="trackbox"' + (group.some(function (m) { return !msLock(plan, m); }) ? ' open' : '') + '><summary><h3 class="sub track">' + P.track[tr] + ' <span class="muted">' + group.length + '</span></h3></summary>' + inner + '</details>';
     });
     ms.filter(function (m) { return !m.track; }).forEach(function (m) { html += msHtml(plan, m); }); // older plans and the experience fixes (EXP)
+    var looseA = bugsOnly ? [] : tasks.filter(function (t) { return isAuthT(t) && msIds.indexOf(t.milestone) < 0 && (!mineOnly || isMine(t)); });
+    if (looseA.length) html += looseAuthHtml(looseA);
     if (loose.length) html += looseBugsHtml(loose);
     if ((plan.parallel || []).length) html += '<h3 class="sub">' + STR.parallel + '</h3><ul>' + plan.parallel.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>';
     if ((plan.risks || []).length) html += '<h3 class="sub">' + STR.risks + '</h3><ul>' + plan.risks.map(function (r) { return '<li><b>' + esc(r.risk) + '</b> — ' + esc(r.mitigation) + '</li>'; }).join("") + '</ul>';
@@ -12389,7 +12420,7 @@
     var ptb = e.target.closest("[data-ptab]"); if (ptb) { planTab = ptb.dataset.ptab; render(); var msg = ptb.dataset.msgo && $("ms-" + ptb.dataset.msgo); if (msg) { msg.scrollIntoView({ block: "start" }); edFlash(msg); } return; }
     if (e.target.closest("[data-bugs]")) { bugsOnly = !bugsOnly; render(); var bb = document.querySelector("[data-bugs]"); if (bb) bb.focus(); return; }
     if (e.target.closest("[data-addbug]")) { addBug().catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
-    var acc = e.target.closest("[data-accept]"); if (acc) { var take = function () { acc.disabled = true; reviewTask(acc.dataset.accept, true); }; if (acc.dataset.unchecked) askConfirm(STR.acceptUnchecked).then(function (ok) { if (ok) take(); }); else take(); return; }
+    var acc = e.target.closest("[data-accept]"); if (acc) { var take = function () { acc.disabled = true; reviewTask(acc.dataset.accept, true); }; if (acc.dataset.unchecked) askConfirm(acc.dataset.unchecked === "lag" ? AU.acceptLag : STR.acceptUnchecked).then(function (ok) { if (ok) take(); }); else take(); return; }
     var ret = e.target.closest("[data-return]"); if (ret) { reviewTask(ret.dataset.return, false); return; }
     var ub = e.target.closest("[data-unblock]"); if (ub) { unblockTask(ub.dataset.unblock); return; }
     var cr = e.target.closest("[data-cr]");

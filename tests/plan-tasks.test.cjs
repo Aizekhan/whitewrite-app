@@ -48,5 +48,22 @@ const car = plan.milestones.find((m) => m.id === 'G3');
 check(!!car && car.carried && car.track === '' && car.name === 'Boss' && car.tasks.map((t) => t.id).join() === 'G3.1', true, 'a kept task whose milestone vanished: a carried milestone without a gate');
 check(plan.milestones.map((m) => m.id).join(), 'G0,G3,EXP', 'carried milestones go before the manual ones');
 
+// ✋ v2.153: the author's instructions survive a replan (even returned for rework) and stay out of the plan's task lists, like bugs
+{
+  const p2 = { milestones: [{ id: 'G0', track: 'mvp', name: 'Setup', tasks: [T('G0.1', 'Project setup')] }] };
+  const r2 = reconcileTasks(p2, [{ id: 'AU-1', milestone: 'G0', status: 'rework', kind: 'author', title: 'Remove the gate' }, { id: 'AU-2', milestone: 'G0', status: 'done', kind: 'author', title: 'Potions 40%' }], null);
+  check(r2.drop.length + '|' + p2.milestones[0].tasks.map((t) => t.id).join(), '0|G0.1', 'a replan never drops an author task and does not list it among the plan tasks');
+}
+const gsrc = require('fs').readFileSync(path.join(__dirname, '../functions/src/gamedev.js'), 'utf8');
+check(/planPrompt\(bibleText\([^)]*\) \+ built/.test(gsrc) && /bibleText\([^)]*\) \+ built, sk/.test(gsrc) && /ALREADY BUILT/.test(gsrc), true, 'both plan passes see what is already built (builtText)');
+
+check(/THE AUTHOR'S DECISIONS/.test(gsrc) && /type === 'handoff'/.test(gsrc), true, 'the plan sees the handoffs and the author decisions as bans');
+// ✋ v2.153: at hand-in a task card untouched since the start lags; declared unchanged — not; canon refs are not checked
+{
+  const { cardsLag } = require(path.join(__dirname, '../functions/src/mcp.js'))._mcp;
+  const ctx = { cards: [{ id: 'a', updatedAt: { toMillis: () => 50 } }, { id: 'b', updatedAt: { toMillis: () => 200 } }, { id: 'c', updatedAt: { toMillis: () => 10 } }] };
+  const lag = cardsLag(ctx, { cards: ['c:a', 'c:b', 'c:c', 'e:x'], startedAt: { toMillis: () => 100 } }, { cards_unchanged: [{ ref: 'c:c', why: 'the same' }] });
+  check(lag.stale.join() + '|' + lag.since, 'c:a|100', 'cardsLag: untouched lags, updated and declared-unchanged do not');
+}
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED');
 process.exit(fails ? 1 : 0);
