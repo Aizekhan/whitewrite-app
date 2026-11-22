@@ -19,6 +19,18 @@ check([TT.check('content', { licence: 'cc0' }).ok, TT.check('content', { licence
 check([TT.check('ui', TT.clean({ screenshot: 'https://x/y.png', ui_check: 'гра без читання: ок' })).ok, TT.check('ui', TT.clean({ screenshot: 'C:\\shot.png', ui_check: 'гра без читання: ок' })).ok], [true, false], 'ui: a screenshot URL + the check');
 check([TT.check('tech', {}, { tests: { ran: true, failed: 0 } }).ok, TT.check('tech', {}, { tests: { ran: false, failed: 0 } }).ok], [true, false], 'tech: tests that ran and passed');
 
+// v2.160.2 criteria by meaning; ✅ with proof → proven, ✅ without → the author looks, ❌ → failed
+const au = 'Done as the author said: «всі панелі магазинів тощо - мають відкриватися по центру екрана»';
+check(!!TT.critMatch(au, [{ criterion: 'Панелі крамниць тощо відкриваються по центру', met: true }]), true, 'the author\'s criterion matches the agent\'s restatement by meaning');
+check(TT.critMatch(au, [{ criterion: 'Додано звук кроків', met: true }]), null, 'an unrelated criterion does not match');
+const rep = (crit, extra) => Object.assign({ criteria: crit, tests: { ran: false, passed: 0, failed: 0 }, commit: '' }, extra || {});
+check(TT.critCheck([au], rep([{ criterion: 'Панелі крамниць відкриваються по центру екрана', met: true, evidence: 'UI/Panels.lua' }], { commit: '912a353' })), { proven: [au], look: [], failed: [] }, '✅ + evidence + a commit → proven');
+check(TT.critCheck([au], rep([{ criterion: 'Панелі крамниць відкриваються по центру екрана', met: true, evidence: '' }], { commit: '912a353' })).look, [au], '✅ without evidence → the author looks');
+check(TT.critCheck([au], rep([{ criterion: 'Панелі крамниць відкриваються по центру екрана', met: true, evidence: 'перевірив' }])).look, [au], '✅ with words but no commit / test / screenshot → the author looks');
+check(TT.critCheck([au], rep([{ criterion: 'Панелі крамниць відкриваються по центру екрана', met: false }])).failed, [au], '❌ → failed');
+check(TT.critCheck(['Хвиля 10 проходить'], rep([{ criterion: 'Хвиля 10 проходить', met: true, evidence: 'bot run' }], { tests: { ran: true, passed: 3, failed: 0 } })).proven.length, 1, 'passed tests are proof');
+check(TT.critCheck([], rep([{ criterion: 'Зайве', met: false }])).failed, ['Зайве'], 'the agent\'s own ❌ fails too');
+
 // the safeguards
 const { autoBlock } = require(F + 'src/mcp.js')._mcp;
 const proofOk = { proof: { ok: true }, check: { allCriteriaMet: true, testsGreen: true, cardsSynced: true } };
@@ -28,12 +40,14 @@ check(autoBlock(ctx({ epicsOk: { 'G1.E1': { at: 1 } } }), t, proofOk, 0), [], 'a
 check(autoBlock(ctx(), t, proofOk, 0), ['epic'], 'a rule (mechanic) outside an agreed epic waits');
 check(autoBlock(ctx(), { ...t, type: 'tech' }, proofOk, 0), [], 'a technical task does not need the epic');
 check(autoBlock(ctx(), { ...t, kind: 'sync' }, proofOk, 0), [], 'a ↻ sync task follows the card the author already decided');
+check(autoBlock(ctx(), { ...t, type: 'tech' }, { proof: { ok: true }, check: { allCriteriaMet: false, unmet: [], needsLook: ['x'], testsGreen: true, cardsSynced: true } }, 0), ['look'], 'a criterion without proof: the author looks, not «check failed»');
+check(autoBlock(ctx(), { ...t, type: 'tech' }, { proof: { ok: true }, check: { allCriteriaMet: false, unmet: ['x'], needsLook: [], testsGreen: true, cardsSynced: true } }, 0), ['check'], 'a ❌ criterion fails the check');
 check(autoBlock(ctx({ epicsOk: { 'G1.E1': {} }, autoClose: false }), t, proofOk, 0), ['off'], 'the author turned it off');
 check(autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }), t, { ...proofOk, proof: { ok: false } }, 2), ['proof', 'questions'], 'no proof, open questions');
 check(autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }, [{ id: 'pot', devDrift: [{ key: 'heal' }] }]), t, proofOk, 0), ['divergence'], 'an unsettled divergence on its card waits');
 check(autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }, [{ id: 'pot', devDrift: [{ key: 'heal', author: 'AU-1' }] }]), t, proofOk, 0), [], 'a change on the author\'s instruction is no divergence');
 const weak = { ...proofOk, check: { allCriteriaMet: false, testsGreen: true, cardsSynced: true } };
-check([autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }), t, weak, 0), autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }), t, weak, 0, 'designer')], [['check'], []], 'the designer may judge the word-matched criteria');
+check([autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }), t, weak, 0), autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }), t, weak, 0, 'designer')], [['look'], []], 'a criterion without proof: the author looks; the designer may judge it');
 check(autoBlock(ctx({ epicsOk: { 'G1.E1': {} } }), t, { ...proofOk, check: { allCriteriaMet: true, testsGreen: false, cardsSynced: false } }, 0, 'designer'), ['check', 'cards'], 'never red tests or lagging cards, even for the designer');
 
 // the weekly summary

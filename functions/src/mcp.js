@@ -99,7 +99,7 @@ const TOOLS = [
     inputSchema: { type: 'object', required: ['kind', 'text', 'words'], properties: { kind: { type: 'string', enum: ['deferred', 'never', 'removed'] },
       text: { type: 'string', description: 'The ban, short: «Мінікарта — не робимо»' }, words: { type: 'string', description: 'The author\'s own words' },
       task_ids: { type: 'array', items: { type: 'string' }, description: 'Open tasks it parks / drops' } } } },
-  { name: 'submit_task_result', description: 'Hand in a finished task: what was done, files changed, tests run, each acceptance criterion with evidence, and the proof of the task\'s type (evidence). With the full proof, every criterion met, green tests, synced cards, no open questions and no unsettled design divergence the task CLOSES ITSELF (for a mechanic / balance task — only inside an epic the author agreed); else it goes to review: the game designer or the author accepts it or returns it with comments. Cards: every game card of the task must show what the game now does — update them with save_card BEFORE handing in and list them in cards_updated; a card that needs no change goes to cards_unchanged with why. A card of the task not updated since the task started is reported as lagging, and the author cannot close the task without overriding it.',
+  { name: 'submit_task_result', description: 'Hand in a finished task: what was done, files changed, tests run, each acceptance criterion with evidence, and the proof of the task\'s type (evidence). Criteria are matched by meaning; a ✅ counts as proven only with its evidence and a commit / passed tests / a screenshot behind it — without proof the author looks (not a failure), a ❌ fails. With the full proof, every criterion met, green tests, synced cards, no open questions and no unsettled design divergence the task CLOSES ITSELF (for a mechanic / balance task — only inside an epic the author agreed); else it goes to review: the game designer or the author accepts it or returns it with comments. Cards: every game card of the task must show what the game now does — update them with save_card BEFORE handing in and list them in cards_updated; a card that needs no change goes to cards_unchanged with why. A card of the task not updated since the task started is reported as lagging, and the author cannot close the task without overriding it.',
     inputSchema: { type: 'object', required: ['task_id', 'summary'], properties: {
       task_id: { type: 'string' }, summary: { type: 'string' },
       changes: { type: 'array', items: { type: 'string' }, description: 'Changed files / assets' },
@@ -540,13 +540,14 @@ async function recordAuthorInstruction(ctx, key, args) {
 // server check: criteria, tests, cards); (2) a rule / concept change outside an epic the author agreed still waits — a mechanic / balance task
 // closes itself only in an agreed epic (plan/current.epicsOk), and never with an unsettled design divergence on its cards; (3) the weekly
 // summary shows «закрито без тебе: N» (plan-weekly.js). The author can turn it off (plan/current.autoClose: false).
-const AUTO_WHY = { off: 'the author turned automatic closing off', proof: 'the proof of the task type is incomplete', check: 'acceptance criteria not all met or tests not green',
+const AUTO_WHY = { off: 'the author turned automatic closing off', proof: 'the proof of the task type is incomplete', check: 'an acceptance criterion is not met (❌) or tests are not green', look: 'a criterion has no proof (a commit / a passed test / a screenshot) — the author looks, it is not a failure',
   cards: 'cards lag behind the game', questions: 'open questions for the author', divergence: 'a design divergence waits on its cards', epic: 'a rule change outside an epic the author agreed' };
 function autoBlock(ctx, t, report, openQs, by) {
   const why = [], ck = report.check || {}, type = TT.typeOf(t);
   if (by !== 'designer' && ctx.plan.autoClose === false) why.push('off');
   if (!(report.proof || {}).ok) why.push('proof');
-  if (by !== 'designer' && !ck.allCriteriaMet) why.push('check'); // the criteria match by words — the designer may judge them
+  if (by !== 'designer' && (ck.unmet || []).length) why.push('check'); // a criterion the report marked ❌ (the designer may judge it)
+  else if (by !== 'designer' && !ck.allCriteriaMet) why.push('look'); // ✅ without proof: the author looks — not a failure
   if (!ck.testsGreen) why.push('check');
   if (!ck.cardsSynced) why.push('cards');
   if (openQs) why.push('questions');
@@ -2005,9 +2006,10 @@ async function callTool(name, args, key) {
         at: Date.now(),
       };
       // the server's own check before the author looks: every acceptance criterion answered and met, tests green
-      const unmet = (t.accept || []).filter((a) => !report.criteria.some((c) => c.met && c.criterion.toLowerCase().includes(a.toLowerCase().slice(0, 40))));
+      // v2.160.2 by meaning, not word for word; ✅ without proof → the author looks (needsLook), not a failure; only ❌ fails (unmet)
+      const cc = TT.critCheck(t.accept || [], report);
       report.cards = cardsLag(ctx, t, args); // ✋ v2.153: the cards must show what the game does
-      report.check = { allCriteriaMet: !unmet.length && report.criteria.every((c) => c.met), unmet, testsGreen: !report.tests.ran || report.tests.failed === 0, cardsSynced: !report.cards.stale.length };
+      report.check = { allCriteriaMet: !cc.look.length && !cc.failed.length, unmet: cc.failed, needsLook: cc.look, testsGreen: !report.tests.ran || report.tests.failed === 0, cardsSynced: !report.cards.stale.length };
       // ✅ v2.155 (the game-designer agent: «сама, з трьома запобіжниками»): the proof of the type; a task closes itself only with it
       const openQs = list(args.open_questions, 5, (q) => str(q, 1500));
       report.evidence = TT.clean(args.evidence);

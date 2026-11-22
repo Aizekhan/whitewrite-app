@@ -1347,9 +1347,10 @@ h3.sub{ font-size:1rem; margin:20px 0 6px; }
 .glist li:has(> label.imp){ border:0; padding:0; }
 .gacts{ display:inline-flex; gap:6px; margin-left:8px; vertical-align:middle; }
 .dod > summary, .nbox > summary{ cursor:pointer; }
-.ptabbar{ display:flex; flex-wrap:wrap; gap:4px; margin:8px 0 16px; border-bottom:1px solid var(--line-2); }
-.ptab{ background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; padding:10px 14px; color:var(--tx-mid); font:inherit; font-size:15px; cursor:pointer; }
-.ptab[aria-selected="true"]{ color:var(--tx-hi); border-bottom-color:var(--gold-lit); }
+.ptabbar{ position:sticky; top:0; z-index:20; display:flex; flex-wrap:wrap; gap:4px; width:fit-content; max-width:100%; margin:8px 0 16px; padding:4px; border:1px solid var(--line-2); border-radius:12px; background:#15131b; box-shadow:0 6px 18px rgba(0,0,0,.35); }
+.ptab{ display:inline-flex; align-items:center; gap:8px; min-height:40px; background:none; border:0; border-radius:9px; padding:8px 16px; color:var(--tx-mid); font:inherit; font-size:15px; font-weight:500; cursor:pointer; transition:background .15s, color .15s; }
+.ptab:hover{ color:var(--tx-hi); background:rgba(255,255,255,.04); }
+.ptab[aria-selected="true"]{ color:var(--tx-hi); background:#262131; font-weight:600; box-shadow:inset 0 -2px 0 var(--gold-lit); }
 .pbadge{ display:inline-block; min-width:20px; padding:1px 7px; border-radius:999px; background:var(--line-2); color:var(--tx-hi); font-size:12px; text-align:center; }
 .pb-hot{ background:var(--warn, #d9a441); color:#1b1408; }
 .pempty{ padding:18px; border:1px dashed var(--line-2); border-radius:10px; color:var(--s-game); text-align:center; }

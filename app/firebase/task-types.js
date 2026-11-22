@@ -39,6 +39,41 @@ function check(type, e, r) {
   T.needs.forEach(function (k) { (EVIDENCE[k].ok(ev, r) ? have : missing).push(k); });
   return { type: type, ok: !missing.length, missing: missing, have: have };
 }
+// ✅ v2.160.2 (owner: «критерій звіряй за змістом, не дослівно»): an acceptance criterion against the agent's report — by meaning (shared word
+// stems), not by the exact text; the author's default criterion («Done as the author said: «…»») by the author's words inside «».
+// A criterion is proven (✅ with evidence and a commit / a passed test / a screenshot behind it), look (✅ without proof, or not answered —
+// the author looks, it is not a failure) or failed (❌ in the report). A task closes itself only when every criterion is proven.
+var STOPW = /^(та|чи|або|що|це|як|на|до|по|за|від|для|не|але|все|всі|усі|кожен|кожна|кожне|треба|мають|має|тощо|the|and|for|with|are|that|this|all|each|must|should)$/;
+function stems(t) {
+  var out = [];
+  String(t || '').toLowerCase().replace(/[«»"'`.,:;!?()\[\]{}—–\-\/\\|]+/g, ' ').split(/\s+/).forEach(function (w) {
+    if (w.length > 2 && !STOPW.test(w) && out.indexOf(w.slice(0, 5)) < 0) out.push(w.slice(0, 5)); });
+  return out;
+}
+function critText(a) { var m = /^(?:Done as the author said|Зроблено, як сказав автор)\s*:\s*«([\s\S]*)»/.exec(String(a || '')); return m ? m[1] : String(a || ''); }
+function critScore(a, b) { // 0..1: the share of the shorter text's stems found in the other
+  var x = stems(critText(a)), y = stems(b), hit = x.filter(function (w) { return y.indexOf(w) >= 0; }).length;
+  if (String(b || '').toLowerCase().indexOf(String(a || '').toLowerCase().slice(0, 40)) >= 0) return 1; // the old exact match still counts
+  return hit >= 2 && x.length && y.length ? hit / Math.min(x.length, y.length) : 0;
+}
+function critMatch(a, criteria) { // the report's criterion that answers this one, or null
+  var best = null, sc = 0;
+  (criteria || []).forEach(function (c) { var v = critScore(a, c && c.criterion); if (v > sc) { sc = v; best = c; } });
+  return sc >= 0.5 ? best : null;
+}
+function critProven(c, r) {
+  r = r || {}; var ev = s(c && c.evidence), t = r.tests || {};
+  return !!(c && c.met && ev && (s(r.commit) || (t.ran && t.passed > 0 && !t.failed) || /^https?:\/\//.test(s((r.evidence || {}).screenshot)) || /https?:\/\/|\b[0-9a-f]{7,40}\b/i.test(ev)));
+}
+function critCheck(accept, r) {
+  var out = { proven: [], look: [], failed: [] }, used = [];
+  (accept || []).forEach(function (a) {
+    var c = critMatch(a, (r || {}).criteria); if (c) used.push(c);
+    (c ? (!c.met ? out.failed : critProven(c, r) ? out.proven : out.look) : out.look).push(a);
+  });
+  ((r || {}).criteria || []).forEach(function (c) { if (used.indexOf(c) < 0 && !c.met) out.failed.push(c.criterion); }); // the agent's own ❌
+  return out;
+}
 // the evidence object as stored (cleaned)
 function clean(e) {
   e = e && typeof e === 'object' ? e : {};
@@ -79,7 +114,7 @@ function autoSeen(c, agreed) {
   return !rulesChanged(c.agentPrev, c);
 }
 var label = function (k, lang) { var x = EVIDENCE[k] || TYPES[k]; return x ? (lang === 'en' ? x.en : x.uk) : k; };
-var TASK_TYPES = { TYPES: TYPES, EVIDENCE: EVIDENCE, LICENCES: LICENCES, typeOf: typeOf, check: check, clean: clean, label: label, DESCRIPTIVE: DESCRIPTIVE, rulesChanged: rulesChanged, agreedRefs: agreedRefs, autoSeen: autoSeen };
+var TASK_TYPES = { critMatch: critMatch, critCheck: critCheck, critProven: critProven, TYPES: TYPES, EVIDENCE: EVIDENCE, LICENCES: LICENCES, typeOf: typeOf, check: check, clean: clean, label: label, DESCRIPTIVE: DESCRIPTIVE, rulesChanged: rulesChanged, agreedRefs: agreedRefs, autoSeen: autoSeen };
 if (typeof module !== 'undefined' && module.exports) module.exports = TASK_TYPES;
 if (typeof window !== 'undefined') window.__TASK_TYPES = TASK_TYPES;
 })();
