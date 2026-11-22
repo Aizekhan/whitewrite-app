@@ -36,7 +36,7 @@ function minor(a, b) {
 }
 // the threshold is only for descriptions and notes (the designer agent: «"маги дістають летючих" — кілька слів, нижче порогу»): a rule or a
 // number field counts on any change except spacing / letter case
-const DESCRIPTIVE = /^(text|desc|description|notes?|look|mood|lore|story|bio|about|summary|logline|appearance|refs|source|secrets|portrait|refpics|pics|model)$/i;
+const { DESCRIPTIVE } = require('../task-types.js'); // one list with «what the author must look at» (v2.156)
 const norm = (v) => String(v == null ? '' : typeof v === 'string' ? v : JSON.stringify(v)).toLowerCase().replace(/\s+/g, ' ').trim();
 const fieldMinor = (k, a, b) => (DESCRIPTIVE.test(k) ? minor(a, b) : norm(a) === norm(b));
 // the design changes of one write → [{ key, from, to, full }] (a field of `fields` by name, the rest by block); [] = nothing the game must follow

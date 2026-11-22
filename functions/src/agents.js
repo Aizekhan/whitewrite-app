@@ -125,10 +125,34 @@ async function tellAuthor(gref, world, game, text, sec) {
 }
 
 // the decision on an approval_request: once (pending → approved / rejected); the asking agent sees it again in get_agent_inbox (readBy reset)
+// v2.156 the author's ✔ / ✖ on a decision Claude Code recorded from the terminal (mcp.js recordAuthorDecision draft): ✔ → the ban binds and
+// its tasks are parked; ✖ → the draft goes
+async function settleBan(gref, banId, yes) {
+  const pref = gref.collection('plan').doc('current');
+  const ban = await db.runTransaction(async (tx) => {
+    const p = (await tx.get(pref)).data() || {}, bans = Array.isArray(p.bans) ? p.bans : [], b = bans.find((x) => x.id === banId);
+    if (!b || !b.pending) return null;
+    const { pending, park, ...rest } = b; // eslint-disable-line no-unused-vars
+    tx.set(pref, { bans: yes ? bans.map((x) => (x.id === banId ? { ...rest, confirmedAt: Date.now() } : x)) : bans.filter((x) => x.id !== banId), updatedAt: ts() }, { merge: true });
+    return yes ? b : null;
+  });
+  if (!ban) return 0;
+  const st = ban.kind === 'deferred' ? 'deferred' : 'dropped';
+  let n = 0;
+  for (const id of ban.park || []) {
+    const tref = gref.collection('tasks').doc(id), t = await tref.get();
+    if (!t.exists || ['done', 'review', 'deferred', 'dropped'].includes(t.get('status'))) continue; // a built or handed-in task is the author's to return
+    await tref.set({ status: st, parkedBy: ban.id, updatedAt: ts(), history: admin.firestore.FieldValue.arrayUnion({ type: st, by: 'author', via: 'terminal', comment: str(ban.text, 300), at: Date.now() }) }, { merge: true });
+    n++;
+  }
+  return n;
+}
 async function applyApproval(gref, msgId, o) {
   const ref = gref.collection('agentMessages').doc(msgId);
+  let banId = '';
   const done = await db.runTransaction(async (tx) => {
     const d = await tx.get(ref), m = d.exists ? d.data() : null;
+    banId = (m && m.ban) || '';
     if (!m || m.type !== 'approval_request') throw fail(404, 'Запит не знайдено');
     if (m.approval && m.approval.status !== 'pending') return false;
     tx.update(ref, { approval: { status: o.approve ? 'approved' : 'rejected', via: o.via, by: str(o.by, 80), ...(o.words ? { words: str(o.words, 300) } : {}), comment: str(o.comment, 1000), at: Date.now() },
@@ -136,6 +160,7 @@ async function applyApproval(gref, msgId, o) {
     return true;
   });
   if (!done) throw fail(409, 'Цей запит уже вирішено');
+  if (banId) await settleBan(gref, banId, !!o.approve).catch((e) => console.error('[agents] settleBan', e));
   const aref = db.collection('agentApprovals').doc(approvalId(gref.parent.parent.id, gref.id, msgId)), a = await aref.get().catch(() => null);
   if (a && a.exists) {
     await aref.set({ used: true }, { merge: true });
@@ -353,7 +378,7 @@ async function silenceSweep(now) {
       games[gk] = w.exists && g.exists ? { world: w.data(), game: g.data(), gref: g.ref } : null;
     }
     const G = games[gk], cfg = AC.silenceCfg(G && G.game);
-    const due = !G || k.revoked || !cfg.on ? 'stale' : AC.silenceDue(k.watchLast, cfg.min, now);
+    const due = !G || k.revoked || !cfg.on ? 'stale' : AC.silenceDue(k.watchLast, cfg.min, now, k.watchReportAt);
     if (!due) continue;
     // claim: once per session, and only if the agent did not move meanwhile
     const won = await db.runTransaction(async (tx) => {
@@ -377,4 +402,4 @@ async function silenceSweep(now) {
 }
 exports.agentSilenceWatch = onSchedule({ schedule: 'every 2 minutes', secrets: [telegramBotToken], timeoutSeconds: 120 }, async () => { await silenceSweep(); });
 
-exports._agents = { silenceSweep, authorAnswer, closeTgQuestion, notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };
+exports._agents = { settleBan, silenceSweep, authorAnswer, closeTgQuestion, notify, tellAuthor, checkCode, applyApproval, approvalId, telegramBotToken, hookSecret };

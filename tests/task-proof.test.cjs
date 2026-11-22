@@ -63,4 +63,16 @@ const np = { milestones: [{ id: 'G1', name: 'Greybox', tasks: [{ id: 'G1.1', tit
 const d = planDiff(np, old, prevPlan);
 check([d.add.map((x) => x.id + ':' + x.st), d.drop.map((x) => x.id), d.keep, d.msAdd], [['G1.3:verify'], ['G1.2'], 1, ['Перший рівень']], 'the diff: new tasks with their marks, unstarted removed, the rest kept');
 check(np.milestones[0].tasks.length, 2, 'the diff does not touch the proposed plan');
+// 👁 v2.156 what the author has to look at: only rule changes outside agreed epics
+const agreed = TT.agreedRefs({ epicsOk: { 'G1.E1': {} }, plan: { milestones: [{ epics: [{ id: 'G1.E1', card: 'c:hub' }] }] } }, [{ epic: 'G1.E1', cards: ['c:pot'] }, { epic: 'G1.E2', cards: ['c:boss'] }]);
+check([TT.autoSeen({ id: 'pot', agentAt: 1, agentPrev: { _new: true } }, agreed), TT.autoSeen({ id: 'hub', agentAt: 1, agentPrev: { fields: { hp: 1 } }, fields: { hp: 2 } }, agreed)], [true, true], 'inside an agreed epic: seen by itself');
+check(TT.autoSeen({ id: 'boss', agentAt: 1, agentPrev: { fields: { text: 'a' } }, fields: { text: 'b' } }, agreed), true, 'a description edit outside: seen');
+check([TT.autoSeen({ id: 'boss', agentAt: 1, agentPrev: { fields: { rules: 'a' } }, fields: { rules: 'b' } }, agreed), TT.autoSeen({ id: 'boss', agentAt: 1, agentPrev: { _new: true } }, agreed), TT.autoSeen({ id: 'boss', agentAt: 1, agentPrev: { mech: 1 }, mech: 2 }, agreed)],
+  [false, false, false], 'a rule, a new card, a mechanic outside an agreed epic: the author looks');
+
+// 🛎 v2.156 no false «stopped without a report» right after a report
+const AC = require(F + 'agent-chat.js'), M = 60000, T0 = 1e12;
+check([AC.silenceDue(T0, 10, T0 + 11 * M, T0 - 5 * M), AC.silenceDue(T0, 10, T0 + 11 * M, T0 - 40 * M), AC.silenceDue(T0, 10, T0 + 5 * M, T0 - 5 * M)], ['stale', 'due', ''],
+  'quiet after a report within 30 min → no alarm; an older report → the alarm; not quiet yet → nothing');
+check(['reply_agent_message', 'record_author_instruction', 'record_author_decision', 'verify_task', 'save_card'].map((n) => AC.watchOp(n, {})), ['report', 'report', 'report', 'report', 'arm'], 'an answer, the author\'s word recorded, a checked task are reports');
 console.log(fails ? `\n${fails} FAILED` : '\nALL PASSED'); process.exitCode = fails ? 1 : 0;

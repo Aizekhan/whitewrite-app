@@ -391,7 +391,7 @@ async function builtText(gameRef, cards, bans) {
   // the author's decisions the plan must not contradict: «Рішення» in «💬 Агенти», the author's instructions, approved requests
   const decisions = msgs.filter((m) => m.type === 'decision' || (m.type === 'approval_request' && m.approval && m.approval.status === 'approved')).slice(0, 40).map((m) => str(m.text, 300))
     .concat(all.filter((t) => t.kind === 'author').map((t) => str(t.words || t.title, 300) + (t.numbers ? ' (' + str(t.numbers, 200) + ')' : '')))
-    .concat((Array.isArray(bans) ? bans : []).map((b) => (BAN_WORD[b.kind] || '') + str(b.text, 300))); // 🌳 v2.154 the author's bans (plan/current.bans)
+    .concat((Array.isArray(bans) ? bans : []).filter((b) => !b.pending).map((b) => (BAN_WORD[b.kind] || '') + str(b.text, 300))); // 🌳 v2.154 the author's bans (plan/current.bans)
   if (!tasks.length && !ingame.length && !log.length && !handoffs.length && !decisions.length) return '';
   const line = (t) => `- [${t.status}] ${t.id}${t.kind === 'author' ? ' (the author\'s instruction)' : t.kind === 'bug' ? ' (bug)' : ''}: ${str(t.title, 160)}${(t.cards || []).length ? ' — ' + t.cards.slice(0, 8).join(', ') : ''}`;
   return `\n\nALREADY BUILT OR UNDER WAY (the game is not starting from zero — plan only what is left):

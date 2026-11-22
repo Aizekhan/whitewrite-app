@@ -69,12 +69,14 @@ function view(m) {
 
 // v2.150 the silent-stop watch (owner: «зупинки агентів без питання до автора ловив сам WhiteWrite, а не лише інструкція»):
 // a key's tool call arms it; a report to the author disarms it; agentSilenceWatch (agents.js) tells the author after N quiet minutes.
-const SILENCE = { DEF: 10, MIN: 2, MAX: 120, STALE: 60 }; // minutes; past N + STALE the session is too old to report (the watch was down)
+const SILENCE = { DEF: 10, MIN: 2, MAX: 120, STALE: 60, GRACE: 30 }; // GRACE (v2.156): the work right after a report is the wrap-up, not a stop // minutes; past N + STALE the session is too old to report (the watch was down)
 const REPORT_TYPES = ['question', 'approval_request', 'handoff'];
 // 'report' — the author was told (disarms) · 'quiet' — reading the answers / deciding, it neither arms nor disarms · 'arm' — work
 function watchOp(name, args) {
   args = args || {};
-  if (name === 'report_blocker' || name === 'submit_development_activity' || name === 'submit_task_result') return 'report';
+  // v2.156 (the game-designer agent: «хибні тривоги 5–6 за день, хоча звіти були»): an answer in «💬 Агенти», the author's instruction / decision
+  // recorded (the author is right there in the terminal) and a checked task are reports too
+  if (['report_blocker', 'submit_development_activity', 'submit_task_result', 'reply_agent_message', 'record_author_instruction', 'record_author_decision', 'verify_task'].includes(name)) return 'report';
   if (name === 'post_agent_message') return REPORT_TYPES.includes(args.type) ? 'report' : 'quiet';
   if (name === 'get_agent_inbox' || name === 'resolve_approval') return 'quiet';
   return 'arm';
@@ -85,9 +87,11 @@ function silenceCfg(game) {
   return { on: c.on !== false, min: Number.isFinite(n) && n > 0 ? Math.min(SILENCE.MAX, Math.max(SILENCE.MIN, n)) : SILENCE.DEF };
 }
 // due = quiet long enough and not too old; stale = clear without a word
-function silenceDue(lastMs, min, now) {
+function silenceDue(lastMs, min, now, reportAt) {
   const quiet = now - (lastMs || 0);
-  return quiet >= (min + SILENCE.STALE) * 60000 ? 'stale' : quiet >= min * 60000 ? 'due' : '';
+  if (quiet < min * 60000) return '';
+  if (reportAt && (lastMs || 0) - reportAt < SILENCE.GRACE * 60000) return 'stale'; // it reported shortly before going quiet: no alarm
+  return quiet >= (min + SILENCE.STALE) * 60000 ? 'stale' : 'due';
 }
 
 // v2.151 (owner): answer options a question may carry → Telegram buttons (callback_data stays short, the text is read from the message)

@@ -371,7 +371,7 @@
         ideaT: "розробка починається з GDD: який етап заповнити далі, питання до нього й мінімум", gameT: "гру вже роблять, Claude Code веде GDD: що він заніс, які етапи порожні, готовий запит заповнити етап", offT: "лише позначки етапів у меню (○ порожньо · ◐ почато · ● мінімум є)",
         about: "етапи GDD від 1 до 13 зі схеми; нічого не ховається й не приглушується, ворота лишаються в продакшн-плані.", change: "Змінити",
         stage: "Етап {n} з {all}", or: "або", need: "Мінімум: {m}.", then: "Далі — {s}.", open: "Відкрити етап", done: "Усі етапи GDD мають мінімум",
-        fromGame: "Від гри", mine: "Claude Code заніс або змінив карток, які ти ще не переглянув: {n}", empty: "Порожні етапи: {s}", allStarted: "Усі етапи почато.",
+        fromGame: "Від гри", mine: "Агенти змінили правила гри поза погодженими епіками — переглянь: {n}", empty: "Порожні етапи: {s}", allStarted: "Усі етапи почато.",
         askBtn: "Запит для Claude Code — заповнити етап {n}", copied: "Запит скопійовано — встав його в Claude Code",
         ask: "Виклич get_gdd_schema і get_gdd_status. Заповни в WhiteWrite етап {n} «{s}»: переглянь проєкт гри і занеси в GDD усе, що вже є в грі для цього етапу, — кожну річ у розділ за схемою; перед новою карткою — find_cards, щоб не робити копій. Чого в грі ще немає — не вигадуй, а коротко запитай мене. Наприкінці скажи, що записав.",
         atStage: "етап {n} · {s}", state: { empty: "порожньо", partial: "почато, мінімуму ще немає", done: "мінімум є" } },
@@ -738,7 +738,7 @@
         ideaT: "development starts with the GDD: which stage to fill next, its questions and minimum", gameT: "the game is already being made, Claude Code keeps the GDD: what it recorded, which stages are empty, a ready request to fill a stage", offT: "only the stage marks in the menu (○ empty · ◐ started · ● minimum met)",
         about: "GDD stages 1 to 13 from the schema; nothing is hidden or dimmed, the gates stay in the production plan.", change: "Change",
         stage: "Stage {n} of {all}", or: "or", need: "Minimum: {m}.", then: "Next — {s}.", open: "Open the stage", done: "Every GDD stage has its minimum",
-        fromGame: "From the game", mine: "Cards Claude Code recorded or changed that you have not looked at yet: {n}", empty: "Empty stages: {s}", allStarted: "Every stage is started.",
+        fromGame: "From the game", mine: "Agents changed game rules outside agreed epics — have a look: {n}", empty: "Empty stages: {s}", allStarted: "Every stage is started.",
         askBtn: "Request for Claude Code — fill stage {n}", copied: "Request copied — paste it into Claude Code",
         ask: "Call get_gdd_schema and get_gdd_status. Fill stage {n} «{s}» in WhiteWrite: look through the game project and record in the GDD everything the game already has for this stage — each thing into its section by the schema; before a new card call find_cards so there are no copies. Do not invent what the game does not have yet — ask me briefly. At the end tell me what you recorded.",
         atStage: "stage {n} · {s}", state: { empty: "empty", partial: "started, minimum not met yet", done: "minimum met" } },
@@ -1208,7 +1208,8 @@
     if (!guideOn()) return "";
     var G = STR.guide, m = guideMode(), nx = guideNext();
     if (m === "game") {
-      var mine = cards.filter(function (c) { return c.agentAt && !c.hidden; }).length;
+      var agr = window.__TASK_TYPES ? __TASK_TYPES.agreedRefs(planDoc, tasks) : {}; // 👁 v2.156 only rule changes outside agreed epics
+      var mine = cards.filter(function (c) { return c.agentAt && !c.hidden && !(window.__TASK_TYPES && __TASK_TYPES.autoSeen(c, agr)); }).length;
       var empty = GDD.STAGES.filter(function (st) { return !st.optional && stageStateOf(st) === "empty"; }).map(function (st) { return st.n + " · " + L(st); });
       return '<div class="guide-next">🧭 <b>' + esc(G.fromGame) + '</b>' + (mine ? '<small>' + esc(G.mine.replace("{n}", mine)) + '</small>' : '') +
         '<small>' + esc(empty.length ? G.empty.replace("{s}", empty.join(", ")) : G.allStarted) + '</small>' +
@@ -11933,7 +11934,7 @@
       crownOk: "Від тебе зараз нічого не потрібно", crownNow: "Чекає тебе", crownNext: "Claude Code зараз: {t}", crownIdle: "Claude Code бере наступну готову задачу сам.",
       cReview: "на рев'ю: {n}", cBlocked: "заблоковано: {n}", cGate: "ворота {g} готові до приймання", cQs: "питання плану: {n}", cCr: "запити на зміну: {n}", cAgents: "питання агентів: {n}",
       bans: "Заборони плану", bansHint: "Твої рішення «відкладено / не робимо / прибрано». Планувальник ніколи не ставить задач проти них; Claude Code бачить їх у get_project_overview.", banAdd: "＋ Заборона", banKind: "Що це",
-      kind: { deferred: "‖ відкладено", never: "✕ не робимо", removed: "🗑 прибрано з гри" }, banRm: "Зняти", via: { chat: "у чаті з агентом", bible: "у Біблії" } },
+      kind: { deferred: "‖ відкладено", never: "✕ не робимо", removed: "🗑 прибрано з гри" }, banRm: "Зняти", pending: "⏳ чекає твого ✔ →", via: { terminal: "у терміналі з Claude Code", chat: "у чаті з агентом", bible: "у Біблії" } },
     en: { legend: [["✓", "done"], ["●", "in progress"], ["○", "queued"], ["!", "waits for another task"], ["?", "check against the game — Claude Code does it"], ["‖", "postponed by the author"], ["✕", "not doing"]],
       other: "Other", next: "next", waits: "waits for", goto: "Go to the task", verify: "? check against the game", verifyT: "The plan is not sure whether the game already has it — Claude Code checks it itself (verify_task)", partial: "◐ partly", sync: "↻ from a card",
       park: "‖ Postpone", drop: "✕ Not doing", unpark: "↺ Back to the queue", parkEpic: "‖ Postpone the epic", dropEpic: "✕ Not doing the epic",
@@ -11941,7 +11942,7 @@
       crownOk: "Nothing is needed from you right now", crownNow: "Waiting for you", crownNext: "Claude Code now: {t}", crownIdle: "Claude Code takes the next ready task itself.",
       cReview: "in review: {n}", cBlocked: "blocked: {n}", cGate: "gate {g} is ready to approve", cQs: "plan questions: {n}", cCr: "change requests: {n}", cAgents: "agents' questions: {n}",
       bans: "The plan's bans", bansHint: "Your decisions «postponed / not doing / removed». The planner never writes a task against them; Claude Code sees them in get_project_overview.", banAdd: "＋ Ban", banKind: "What it is",
-      kind: { deferred: "‖ postponed", never: "✕ not doing", removed: "🗑 removed from the game" }, banRm: "Lift", via: { chat: "in the chat with the agent", bible: "in the Bible" } } }[LANG === "en" ? "en" : "uk"];
+      kind: { deferred: "‖ postponed", never: "✕ not doing", removed: "🗑 removed from the game" }, banRm: "Lift", pending: "⏳ waits for your ✔ →", via: { terminal: "in the terminal with Claude Code", chat: "in the chat with the agent", bible: "in the Bible" } } }[LANG === "en" ? "en" : "uk"];
   var epicOpen = {}, agWait = { n: 0, at: 0 }, planDraft = null, draftBusy = false;
   // ✅ v2.155 tasks close themselves with proof (functions/task-types.js, mcp.js autoBlock), ✓ an agreed epic, ✦ a replan as a proposal, 📅 the week, ⭐ the recommendation
   var TB = { uk: { proof: "Доказ · {t}", needs: "Закривається з доказом", closedAuto: "🤖 закрилась сама з доказом", closedDes: "🎲 прийняв геймдизайнер",
@@ -12141,6 +12142,7 @@
     return '<div class="nbox bans"><h4>' + esc(EP.bans) + ' <span class="muted">' + bans.length + '</span></h4><p class="hint">' + esc(EP.bansHint) + '</p>' +
       (bans.length ? '<ul class="crit">' + bans.slice().reverse().map(function (b) {
         return '<li><span class="pill s-idea">' + esc(EP.kind[b.kind] || b.kind) + '</span> ' + esc(b.text) + ' <span class="muted">· ' + esc(EP.via[b.via] || "") + '</span>' +
+          (b.pending ? ' <button type="button" class="btn mini" data-gosec="agents" title="' + esc(b.words || "") + '">' + esc(EP.pending) + '</button>' : '') +
           (own ? ' <button type="button" class="btn ghost mini" data-banrm="' + esc(b.id) + '">' + esc(EP.banRm) + '</button>' : '') + '</li>'; }).join("") + '</ul>' : '') +
       (own ? '<button type="button" class="btn ghost mini" data-banadd>' + esc(EP.banAdd) + '</button>' : '') + '</div>';
   }
@@ -12242,7 +12244,7 @@
   // decisions on mechanics, experiment outcomes, approved gates with their retro; newest first ----------
   function msAt(v) { return !v ? 0 : typeof v === "number" ? v : v.toMillis ? v.toMillis() : v.seconds ? v.seconds * 1000 : 0; }
   function decisionRows() {
-    var out = (planDoc.bans || []).map(function (b) { return { type: "ban", at: b.at || 0, title: b.text || "", decision: EP.kind[b.kind] || b.kind }; }), ans = planDoc.answers || {}, at = planDoc.answeredAt || {}, an = msAt(planDoc.analyzedAt), ms = (planDoc.plan || {}).milestones || [];
+    var out = (planDoc.bans || []).filter(function (b) { return !b.pending; }).map(function (b) { return { type: "ban", at: b.at || 0, title: b.text || "", decision: EP.kind[b.kind] || b.kind }; }), ans = planDoc.answers || {}, at = planDoc.answeredAt || {}, an = msAt(planDoc.analyzedAt), ms = (planDoc.plan || {}).milestones || [];
     (planDoc.asked || []).filter(function (q) { return ans[q.id]; }).forEach(function (q) { out.push({ type: "question", at: msAt(at[q.id]) || an, title: q.question || q.topic || "", decision: ans[q.id], ref: q.target && q.target.card }); });
     changeReqs.filter(function (c) { return ["accepted", "rejected", "declined"].indexOf(c.status) >= 0; }).forEach(function (c) {
       out.push({ type: "change_request", at: msAt(c.decidedAt) || msAt(c.createdAt), title: c.what || "", decision: c.status === "accepted" ? BG.accepted : BG.declined, note: c.why || "", task: c.taskId || "" }); });

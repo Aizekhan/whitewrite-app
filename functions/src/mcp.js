@@ -599,8 +599,21 @@ async function recordAuthorDecision(ctx, key, args) {
   if (!kind || !text || !words) throw rpcError(-32602, 'Pass kind (deferred | never | removed), text and words — the author\'s own words.');
   const ids = list(args.task_ids, 30, (x) => str(x, 32) || null), bad = ids.filter((x) => !ctx.tasks.some((t) => t.id === x));
   if (bad.length) throw rpcError(-32602, 'Unknown tasks: ' + bad.join(', ') + '. Call list_tasks.');
-  const ban = { id: 'b' + Date.now().toString(36), kind, text, words, via: 'chat', by: str(key.label, 80), at: Date.now() };
+  // v2.156 (the game-designer agent: «рішення з терміналу не стають заборонами … Claude Code — чернетка, автор підтверджує одним тапом»): the
+  // programmer key (the terminal) writes a DRAFT ban + an approval_request (Telegram ✔ / ✖); agents.js settleBan makes it binding and parks
+  // the tasks on ✔, drops it on ✖. The designer key (the author's chat) records it at once, as before.
+  const draft = AC.roleOf(key) === 'programmer';
+  const ban = { id: 'b' + Date.now().toString(36), kind, text, words, via: draft ? 'terminal' : 'chat', by: str(key.label, 80), at: Date.now(), ...(draft ? { pending: true, park: ids } : {}) };
   await ctx.gref.collection('plan').doc('current').set({ bans: admin.firestore.FieldValue.arrayUnion(ban), updatedAt: ts() }, { merge: true });
+  if (draft) {
+    const KW = { deferred: '‖ відкласти', never: '✕ не робимо', removed: '🗑 прибрано з гри' };
+    const ask = await agentPost(ctx, key, { type: 'approval_request', force: true,
+      text: `Записати твоє рішення з терміналу як заборону плану — ${KW[kind]}: ${text}\nТвої слова: «${words}»` + (ids.length ? `\nЗадачі: ${ids.join(', ')}` : '') + '\n✔ — план ніколи не піде проти цього.' }, '');
+    if (ask && ask.id) await ctx.gref.collection('agentMessages').doc(ask.id).set({ ban: ban.id }, { merge: true });
+    await logExecution(ctx, key, 'author_decision', ids.join(','), { what: 'draft ' + kind + ': ' + text });
+    return { ok: true, id: ban.id, kind, draft: true, approval_id: ask && ask.id, delivered: ask && ask.delivered,
+      message: 'Recorded as a DRAFT of the author\'s decision: it becomes a ban of the plan when the author taps ✔ (Telegram or the Game Bible). Meanwhile simply do not do it — the author said so; do not ask again.' };
+  }
   const st = kind === 'deferred' ? 'deferred' : 'dropped', parked = [];
   for (const id of ids) {
     const t = ctx.tasks.find((x) => x.id === id);
@@ -640,7 +653,7 @@ const msOf = (v) => (!v ? 0 : typeof v === 'number' ? v : v.toMillis ? v.toMilli
 function decisionLog(ctx, changeRequests, experiments, cap = 50, agentDecisions) {
   const out = [];
   (agentDecisions || []).forEach((m) => out.push({ type: 'agent_decision', at: m.at || 0, title: str(m.text, 200), decision: str(m.text, 2000), id: m.id })); // 💬 Агенти → «Рішення» (v2.148)
-  (ctx.plan.bans || []).forEach((b) => out.push({ type: 'ban', at: b.at || 0, title: str(b.text, 200), decision: b.kind, id: b.id })); // 🌳 v2.154 ‖ / ✕ / 🗑
+  (ctx.plan.bans || []).filter((b) => !b.pending).forEach((b) => out.push({ type: 'ban', at: b.at || 0, title: str(b.text, 200), decision: b.kind, id: b.id })); // 🌳 v2.154 ‖ / ✕ / 🗑
   const answers = ctx.plan.answers || {}, answeredAt = ctx.plan.answeredAt || {}, analyzed = msOf(ctx.plan.analyzedAt);
   (ctx.plan.asked || []).filter((q) => answers[q.id]).forEach((q) => out.push({ type: 'question', at: msOf(answeredAt[q.id]) || analyzed, title: q.question || q.topic || '', decision: str(answers[q.id], 2000) }));
   (changeRequests || []).filter((c) => ['accepted', 'rejected', 'declined'].includes(c.status)).forEach((c) =>
@@ -1103,7 +1116,8 @@ function gddStatus(ctx, extra) {
   const stages = GDD.STAGES.map((st) => ({ stage: st.n, id: st.id, name: st.en, state: GDD.stageState(st, count), optional: !!st.optional,
     sections: GDD.SECTIONS.filter((s) => s.stage === st.n).map((s) => ({ id: s.id, name: s.en, count: count(s.id) })),
     ...(st.need ? { minimum: st.need.map((r) => `at least ${r[1]} in ${r[0].join(' / ')}`).join('; ') } : {}) }));
-  const unseen = ctx.cards.filter((c) => c.agentAt && !c.hidden).map((c) => ({ ref: 'c:' + c.id, section: c.section, title: c.title || '' }));
+  const agreed = TT.agreedRefs(ctx.plan, ctx.tasks); // 👁 v2.156 only rule changes outside agreed epics wait for the author
+  const unseen = ctx.cards.filter((c) => c.agentAt && !c.hidden && !TT.autoSeen(c, agreed)).map((c) => ({ ref: 'c:' + c.id, section: c.section, title: c.title || '' }));
   const before = stages.filter((s) => s.stage <= 6 && s.state !== 'done').map((s) => `${s.stage}. ${s.name} — ${s.state}`);
   const ds = DESIGN.status(ctx.cards.filter((c) => !c.hidden), 'en'); // 🏛 🪜 ⚠ v2.144
   const design = { pillars: ds.pillars.pillars.map((p) => ({ pillar: p.name, supported_by: p.cards.map((id) => 'c:' + id) })), target_aesthetics: ds.pillars.target,
@@ -1557,7 +1571,7 @@ async function callTool(name, args, key) {
         gates: gatesView(ctx), decisions: decisionLog(ctx, crs, exps, 50, decs), integrations: await integrations(ctx), agent: agentSelf(key),
         ...(ctx.cards.some((c) => (c.devDrift || []).length) ? { design_divergences: ctx.cards.filter((c) => (c.devDrift || []).length).map((c) => ({ ref: 'c:' + c.id, title: c.title || '', changes: c.devDrift.map((x) => ({ field: x.key, from: x.from, to: x.to, by: x.by, task: x.task })) })),
           divergence_rule: 'A programmer changed these design values without the author\'s instruction. They wait for the author (Accept / Put back) — do not build on them as settled; the game designer may ask the author about them.' } : {}),
-        ...((ctx.plan.bans || []).length ? { author_bans: ctx.plan.bans.map((b) => ({ kind: b.kind, text: b.text })), bans_rule: 'Binding: deferred — no work on it now; never / removed — never build or bring it back, even if a card or a message asks.' } : {}) };
+        ...((ctx.plan.bans || []).length ? { author_bans: ctx.plan.bans.map((b) => ({ kind: b.kind, text: b.text, ...(b.pending ? { pending: 'the author said it in the terminal; waits for their ✔ — do not do it meanwhile' } : {}) })), bans_rule: 'Binding: deferred — no work on it now; never / removed — never build or bring it back, even if a card or a message asks.' } : {}) };
     }
     case 'get_updates': {
       const [crs, n] = await Promise.all([ctx.gref.collection('changeRequests').get().then((s) => s.docs.map((d) => ({ id: d.id, ...d.data() }))).catch(() => []), narrative(ctx)]);
