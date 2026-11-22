@@ -30,7 +30,7 @@ const { featureCost, byOp, quoteChars, quoteCtx, worstCase } = require('../paid-
 const { notePaid, beforeTimeout } = require('../token-service.js'); // billing of long runs: paid calls noted on the hold, an own deadline before the platform's
 const GAMEDEV_TIMEOUT_S = 3600; // gen2 maximum: the plan's skeleton (64k) + the milestones' tasks (32k each, parallel) on Opus did not fit 1800 s
 const { personaText, lookText } = require('../persona.js');
-const { modelFor, withFallback } = require('./claude');
+const { modelFor, withFallback, wellFormed } = require('./claude');
 const MECH = require('../mechanics.js'); // the mechanics constructor: design artefacts with computed checks go into the bible text
 const GDD = require('../gdd-schema.js'); // 🧭 the GDD schema: stages, what goes where
 const DESIGN = require('../design-checks.js'); // 🏛 🪜 ⚠ pillars, the learning ladder, the riskiest assumption (v2.144)
@@ -975,9 +975,9 @@ exports.gamedevPlan = onRequest({
       // one call: usage is summed even when it fails (a cut-off answer is paid, token-service settle); a broken JSON — one more try
       const ask = async (content, maxTokens, tries = 2) => {
         // a model that vanished mid-flight → the call retries on a working one (claude.js withFallback)
-        const m = await withFallback(model, (mm) => anthropic.messages.stream({
+        const m = await withFallback(model, (mm) => anthropic.messages.stream(wellFormed({
           model: mm, max_tokens: maxTokens, // thinking counts toward max_tokens
-          messages: [{ role: 'user', content }], output_config: { effort: 'medium' } }).finalMessage());
+          messages: [{ role: 'user', content }], output_config: { effort: 'medium' } })).finalMessage());
         for (const k of ['input_tokens', 'output_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']) usage[k] = (usage[k] || 0) + (m.usage[k] || 0);
         usedModel = m.model || usedModel;
         paidSoFar = { model: usedModel, usage };

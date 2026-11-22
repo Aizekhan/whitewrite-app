@@ -7,7 +7,7 @@
 const vm = require('vm');
 const Anthropic = require('@anthropic-ai/sdk');
 const { onRequest, admin, db, cors, claudeApiKey, publicMessage } = require('./common');
-const { activeModels, withFallback } = require('./claude');
+const { activeModels, withFallback, wellFormed } = require('./claude');
 const { MODEL_PRICING } = require('../ai-models.js');
 const { byOp } = require('../paid-features.js');
 
@@ -88,8 +88,8 @@ exports.kbAsk = onRequest({ region: 'us-central1', secrets: [claudeApiKey], time
       const messages = [{ role: 'user', content: (prev ? (lang === 'en' ? 'Earlier in this chat (as the page remembers it):\n' : 'Раніше в цій розмові (як памʼятає сторінка):\n') +
         '<earlier>\n' + prev + '\n</earlier>\n\n' : '') + question }];
       const anthropic = new Anthropic({ apiKey: claudeApiKey.value() });
-      const msg = await withFallback(model, (m) => anthropic.messages.create({ model: m, max_tokens: 1500, output_config: { effort: 'low' },
-        system: [{ type: 'text', text: systemText(lang, articles), cache_control: { type: 'ephemeral' } }], messages }));
+      const msg = await withFallback(model, (m) => anthropic.messages.create(wellFormed({ model: m, max_tokens: 1500, output_config: { effort: 'low' },
+        system: [{ type: 'text', text: systemText(lang, articles), cache_control: { type: 'ephemeral' } }], messages })));
       if (msg.stop_reason === 'refusal') return res.status(200).json({ success: true, answer: lang === 'en' ? 'I can only help with WhiteWrite.' : 'Я допомагаю лише з WhiteWrite.', articles: [], left });
       let text = msg.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
       const m = text.match(/\n?\s*ARTICLES:\s*(.*)\s*$/i);

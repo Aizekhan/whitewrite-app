@@ -75,12 +75,18 @@ async function modelFor(db, user, plan) {
 // One message → text. effort: 'low' for prose (little thinking), 'medium' for analysis. Thinking counts toward
 // max_tokens and is billed as output, so callers leave headroom. A refusal is an error, never an empty scene.
 // noFallback: the watch's own test call must see the real error, not a substitute.
+// v2.152.1 (owner: «400 … not valid JSON: unexpected end of hex escape»): a text cut by .slice() through an emoji leaves half of a
+// surrogate pair; JSON.stringify writes it as a lone high surrogate escape, which the API refuses — every request body goes through wellFormed
+const wellFormed = (v) => typeof v === 'string' ? v.toWellFormed() : Array.isArray(v) ? v.map(wellFormed)
+  : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, wellFormed(x)])) : v;
+
 async function claudeText(apiKey, { model, prompt, system, maxTokens, effort = 'medium', stream = false, noFallback = false }) {
   const anthropic = new Anthropic({ apiKey });
   const call = async (m) => {
     const body = { model: m, max_tokens: maxTokens, messages: [{ role: 'user', content: prompt }], output_config: { effort } };
     if (system) body.system = system;
-    return stream ? anthropic.messages.stream(body).finalMessage() : anthropic.messages.create(body);
+    const clean = wellFormed(body);
+    return stream ? anthropic.messages.stream(clean).finalMessage() : anthropic.messages.create(clean);
   };
   const msg = noFallback ? await call(model) : await withFallback(model, call);
   // a refusal is paid to the API too: the error carries the usage, the caller's settle() charges it (token-service)
@@ -107,4 +113,4 @@ async function allPaid(calls) {
   throw err;
 }
 
-module.exports = { activeModels, modelFor, claudeText, allPaid, withFallback, fallbacksFor, isGone, tierOf };
+module.exports = { activeModels, modelFor, claudeText, allPaid, withFallback, fallbacksFor, isGone, tierOf, wellFormed };

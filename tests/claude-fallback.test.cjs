@@ -41,5 +41,9 @@ const call = async (m) => { if (gone.has(m)) { const e = new Error('404 {"type":
   check((await C.allPaid([ok(1), ok(2)])).length === 2, 'all parts fine → their answers in order');
   const src = require('fs').readFileSync(F + 'src/claude.js', 'utf8');
   check(/stop_reason === 'refusal'\) throw Object\.assign\(new Error\([^)]*\), \{ paid:/.test(src), 'claudeText: a refusal is thrown with its usage (paid), not as a free error');
+  // v2.152.1: half an emoji left by .slice() must not reach the API (400 «unexpected end of hex escape»)
+  const cut = C.wellFormed({ messages: [{ content: [{ type: 'text', text: 'x😀'.slice(0, 2) }] }], n: 1 });
+  check(!/\ud[89ab]/i.test(JSON.stringify(cut)) && cut.n === 1 && C.wellFormed('a😀b') === 'a😀b', 'wellFormed: a lone surrogate becomes U+FFFD, whole emoji and other values stay');
+  for (const f of ['src/gamedev.js', 'src/kb-help.js']) check(/messages\.(create|stream)\(wellFormed\(/.test(require('fs').readFileSync(F + f, 'utf8')), f + ': the request body goes through wellFormed');
   console.log(fails ? fails + ' FAILED' : 'ALL PASSED'); process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });
