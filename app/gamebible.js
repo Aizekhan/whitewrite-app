@@ -235,7 +235,7 @@
       scSections: "Нові розділи", scApply: "Створити відмічене", scDone: "Створено", scNeed: "Що потрібно", scTask: "Задача плану", taskCards: "Картки", costNote: "AI-аналіз, імпорт і план списують токени з балансу.",
       planIntro: "Спершу AI прочитає канон і всю біблію гри: складе гейм-диздок, знайде суперечності й поставить невирішені питання. Твої відповіді записуються назад у картки. Коли блокери закрито — генеруй план.",
       readiness: "Готовність дизайну", gddTitle: "Гейм-диздок", contradictions: "Суперечності", questionsTitle: "Невирішені питання",
-      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери",
+      answeredTitle: "Ухвалені рішення", qOf: "Питання {i} з {n}", qSkip: "Пропустити →", qAll: "Показати всі", qOne: "По одному", gdDomain: "Розділ", gdState: "Стан", gdMissing: "Чого бракує", gdOpen: "Відкрити →", answer: "Відповісти", answerPh: "Твоє рішення…", blockersLeft: "Спершу дай відповідь на блокери", planReady: "Блокерів немає — можна складати план. Після генерації тут зʼявиться дерево: етапи → епіки → задачі.", planReadyRest: "Решта питань ({n}) план не блокує — на них можна відповісти потім",
       pp: { carried: "Етап зі старого плану", carriedTip: "Новий план зберіг цей етап і його задачі з попереднього", dod: "MVP готове, коли", weeks: "≈ {n} тиж. до MVP", days: "≈ {n} дн.", tabPlan: "План", tabMatrix: "Матриця ассетів",
         who: "Виконавець", nobody: "— не призначено —", memberEdit: "✎ змінив {n} — Claude Code не бере, доки ти не схвалиш", memberWait: "⏳ чекає схвалення власника: доти Claude Code її не бере", approve: "✓ Схвалити для агента", ownerLbl: "Власник світу", meLbl: "я", mine: "👤 Лише мої задачі", mineNone: "Тобі ще не призначено жодної задачі.",
         track: { mvp: "MVP — шлях до гри", expansion: "Розширення", extra: "Додаткові фічі" },
@@ -602,7 +602,7 @@
       scSections: "New sections", scApply: "Create ticked items", scDone: "Created", scNeed: "What is needed", scTask: "Plan task", taskCards: "Cards", costNote: "AI analysis, import and the plan spend tokens from your balance.",
       planIntro: "First AI reads the canon and the whole game bible: drafts the game design doc, finds contradictions and asks the open questions. Your answers are written back into the cards. Once the blockers are closed — generate the plan.",
       readiness: "Design readiness", gddTitle: "Game design doc", contradictions: "Contradictions", questionsTitle: "Open questions",
-      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first",
+      answeredTitle: "Decisions made", qOf: "Question {i} of {n}", qSkip: "Skip →", qAll: "Show all", qOne: "One at a time", gdDomain: "Area", gdState: "State", gdMissing: "What is missing", gdOpen: "Open →", answer: "Answer", answerPh: "Your decision…", blockersLeft: "Answer the blockers first", planReady: "No blockers — the plan can be made. After generating, the tree shows here: milestones → epics → tasks.", planReadyRest: "The other questions ({n}) do not block the plan — answer them later",
       pp: { carried: "Milestone from the previous plan", carriedTip: "The new plan kept this milestone and its tasks from the previous one", dod: "The MVP is done when", weeks: "≈ {n} wk to the MVP", days: "≈ {n} d", tabPlan: "Plan", tabMatrix: "Asset matrix",
         who: "Assignee", nobody: "— not assigned —", memberEdit: "✎ edited by {n} — Claude Code won’t take it until you approve", memberWait: "⏳ waits for the owner’s approval: Claude Code won’t take it until then", approve: "✓ Approve for the agent", ownerLbl: "World owner", meLbl: "me", mine: "👤 Only my tasks", mineNone: "No task is assigned to you yet.",
         track: { mvp: "MVP — the road to a game", expansion: "Expansion", extra: "Extra features" },
@@ -11446,11 +11446,14 @@
     var html = '<header class="sec"><div><h1>' + esc(L(s)) + '</h1><p>' + esc(L(s.about)) + '</p></div>' +
       '<div class="row">' + (plan ? '<button class="btn" id="p-md">' + STR.exportMd + '</button>' : '') +
       '<button class="btn' + (gdd ? ' ghost' : ' primary') + '" id="p-analyze"' + (busy ? ' disabled' : '') + '>' + (gdd ? STR.reanalyze : STR.analyze) + costMark("analyze") + '</button>' +
-      (gdd ? '<button class="btn' + (!plan && !oq.length ? ' primary' : '') + '" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + costMark("plan") + '</button>' : '') +
+      (gdd ? '<button class="btn' + (!plan && !blockers ? ' primary' : '') + '" id="p-plan"' + (busy || blockers ? ' disabled title="' + esc(STR.blockersLeft) + '"' : '') + '>' + (plan ? STR.remakePlan : STR.makePlan) + costMark("plan") + '</button>' : '') +
       '</div></header>';
     html += '<p class="pmsg">' + esc(busyOp === "analyze" ? STR.busyAnalyze : busyOp === "plan" ? STR.busyPlan : planMsg || (gdd ? (blockers ? STR.blockersLeft + ' (' + blockers + ').' : '') : STR.planIntro)) +
       (busy ? '' : ' <span class="muted">' + STR.costNote + '</span>') + '</p>';
     if (plan) { loadAgWait(); html += weekHtml() + draftHtml() + crownHtml(plan); } // 👑 v2.154 · 📅 ✦ v2.155
+    // v2.157.1 (owner: «а як його створити? … я пройшов всі питання»): no plan, no blocker → the button where the eye is, not only in the header
+    if (gdd && !plan && !blockers && !busy) html += '<div class="pready"><b>' + esc(STR.planReady) + '</b>' + (oq.length ? '<p class="muted">' + esc(STR.planReadyRest.replace("{n}", oq.length)) + '</p>' : '') +
+      '<button type="button" class="btn primary" data-mkplan>' + STR.makePlan + costMark("plan") + '</button></div>';
     if (oq.length) html += qQueueHtml(oq); // the decisions first: they are what the author does here
 
     if (gdd) {
@@ -12674,6 +12677,7 @@
     var eo = e.target.closest("[data-epicok]"); if (eo) { e.preventDefault(); var eu = {}; eu[eo.dataset.epicok] = eo.dataset.off ? firebase.firestore.FieldValue.delete() : { at: Date.now(), by: myUid() };
       gref().collection("plan").doc("current").set({ epicsOk: eu }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
     if (e.target.closest("[data-autoclose]")) { gref().collection("plan").doc("current").set({ autoClose: planDoc.autoClose === false }, { merge: true }).catch(function (er) { planMsg = STR.failed + ": " + er.message; render(); }); return; }
+    if (e.target.closest("[data-mkplan]")) { var pb = $("p-plan"); if (pb && !pb.disabled) pb.click(); return; }
     var dra = e.target.closest("[data-draft]"); if (dra) { if (!draftBusy) draftAct(dra.dataset.draft === "apply"); return; }
     var epc = e.target.closest("summary.epic__h"); if (epc && !e.target.closest("a")) { var ed = epc.parentNode; epicOpen[ed.dataset.epic] = !ed.open; return; }
     var ddo = e.target.closest("[data-ddok],[data-ddback]"); if (ddo) { ddo.disabled = true; settleDrift(ddo.dataset.ddok || ddo.dataset.ddback, !!ddo.dataset.ddback); return; }
